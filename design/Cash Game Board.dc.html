@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Libre+Caslon+Text:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Archivo:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#EDE6D8;font-family:'Public Sans',system-ui,sans-serif}a{color:#8C3A22}a:hover{color:#6B2914}</style></helmet>
+
+<div style="display:flex;flex-direction:column;background:#EDE6D8;width:max-content;min-width:100vw">
+
+  <div style="position:sticky;left:0;width:100vw;box-sizing:border-box;display:flex;align-items:flex-end;gap:24px;padding:34px 48px 26px;background:#EDE6D8;z-index:5">
+    <div style="display:flex;flex-direction:column;gap:8px;max-width:660px">
+      <div style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8C3A22">Cash game · new board</div>
+      <h1 style="margin:0;font:400 30px/1.15 'Libre Caslon Text',serif;color:#241014">The book — a ledger for cash nights</h1>
+      <p style="margin:0;font:400 13.5px/1.6 'Public Sans',sans-serif;color:#7B615A;text-wrap:pretty">No clock, no levels, no breaks. One host writes down every buy-in, rebuy, cash-out and bill with the time it happened; everyone else watches the same list. At the end the app counts the table, applies the money rules, and says who pays whom. Sessions add up per month and per book.</p>
+    </div>
+    <div style="margin-left:auto;display:flex;flex-direction:column;gap:6px;flex:none;padding:12px 14px;border:1px solid rgba(36,16,20,.16);background:#E5DBC8">
+      <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#7B615A">Style</span>
+      <span style="font:400 15px/1.2 'Libre Caslon Text',serif;color:#241014">Card room</span>
+      <span style="font:400 11.5px/1.4 'Public Sans',sans-serif;color:#7B615A;max-width:150px">Oxblood, bone, brass. 6 px corners, Caslon numbers — deliberately not the tournament app.</span>
+    </div>
+  </div>
+
+  <section style="display:flex;flex-direction:column;gap:20px;padding:36px 48px 40px;border-top:1px solid rgba(36,16,20,.14)">
+    <div style="display:flex;align-items:baseline;gap:14px;position:sticky;left:48px;width:max-content">
+      <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.1em;padding:5px 8px;background:#241014;color:#EDE6D8">01</span>
+      <h2 style="margin:0;font:400 22px/1.2 'Libre Caslon Text',serif;color:#241014">Home</h2>
+      <p style="margin:0;font:400 13px/1.5 'Public Sans',sans-serif;color:#7B615A">Two states: nothing running, and a session in progress.</p>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:26px">
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Idle</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Starting again is one tap, carrying last night's stakes and buy-in.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="01a Home idle" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>18:40</span><span style="color:#AC9086">64%</span></div>
+            <div style="padding:16px 22px 8px;display:flex;align-items:flex-end;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:#AC9086">Your group</span>
+                <span style="font:400 27px/1 'Libre Caslon Text',serif;color:#F3E7D9">Tuesday Cash</span>
+              </div>
+              <div style="margin-left:auto;width:34px;height:34px;border:1px solid rgba(243,231,217,.22);display:flex;align-items:center;justify-content:center;flex:none;border-radius:4px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"></path></svg></div>
+            </div>
+            <div style="margin:14px 18px 0;background:#E0A83C;border-radius:6px;padding:20px 20px 18px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font:400 25px/1 'Libre Caslon Text',serif;color:#20100C">Start a session</span>
+                <svg style="margin-left:auto" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#20100C" stroke-width="1.9" stroke-linecap="round"><path d="M5 12h13M12.5 6l6 6-6 6"></path></svg>
+              </div>
+              <div style="height:1px;background:rgba(32,16,12,.25)"></div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:rgba(32,16,12,.62)">Reuse from last Tuesday</span>
+                <span style="font:500 13.5px/1.4 'Public Sans',sans-serif;color:#20100C">0.50 / 1 · €50 buy-in · 6 regulars · 2 money rules</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin:10px 18px 0">
+              <div style="flex:1;background:#2A1216;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:5px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#AC9086">Your August</span>
+                <span style="font:400 28px/1 'Libre Caslon Text',serif;color:#74C295">+€112</span>
+              </div>
+              <div style="flex:1;background:#2A1216;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:5px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#AC9086">Kitty</span>
+                <span style="font:400 28px/1 'Libre Caslon Text',serif;color:#F3E7D9">€142</span>
+              </div>
+            </div>
+            <div style="margin:22px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 4px 10px">Everything else</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 4px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Players</span><span style="margin-left:auto;font:400 13px 'JetBrains Mono',monospace;color:#AC9086">7</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 4px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Past sessions</span><span style="margin-left:auto;font:400 13px 'JetBrains Mono',monospace;color:#AC9086">27</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 4px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Money rules</span><span style="margin-left:auto;font:400 13px 'JetBrains Mono',monospace;color:#AC9086">2 active</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 4px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Book</span><span style="margin-left:auto;font:400 13px 'JetBrains Mono',monospace;color:#AC9086">open since Jan</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+            </div>
+            <div style="margin-top:auto;display:flex;border-top:1px solid rgba(243,231,217,.12);background:#1E0D11;padding:0 10px 4px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px;box-shadow:inset 0 2px 0 #E0A83C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M4 10.5L12 4l8 6.5V20H4z"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#E0A83C">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"></ellipse><path d="M8 12h8"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Table</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h9l5 5v11H5z"></path><path d="M8 11h8M8 15h5"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Book</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"></circle><path d="M3 19.5c.7-3 3-4.6 6-4.6s5.3 1.6 6 4.6"></path><path d="M16 6.5a3 3 0 0 1 0 5.6M18.5 19.5c-.3-1.5-.9-2.7-1.8-3.6"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Group</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Session live</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Money on the table replaces the clock as the number that matters. Same slot, different content.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="01b Home live" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>23:22</span><span style="color:#AC9086">41%</span></div>
+            <div style="padding:16px 22px 8px;display:flex;align-items:flex-end;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:#AC9086">Your group</span>
+                <span style="font:400 27px/1 'Libre Caslon Text',serif;color:#F3E7D9">Tuesday Cash</span>
+              </div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:7px;flex:none"><span style="width:7px;height:7px;background:#74C295;display:block;border-radius:50%"></span><span style="font:600 10px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#74C295">LIVE</span></div>
+            </div>
+            <div style="margin:14px 18px 0;background:#2A1216;border:1px solid rgba(224,168,60,.4);border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">On the table</span>
+                <span style="margin-left:auto;font:400 12px 'JetBrains Mono',monospace;color:#AC9086">since 20:05 · 3h 17m</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:12px"><span style="font:400 62px/.9 'Libre Caslon Text',serif;color:#F3E7D9">€288</span><span style="font:400 13px/1.4 'Public Sans',sans-serif;color:#AC9086;max-width:120px">in front of 5 players</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Open the ledger</span><svg style="margin-left:auto" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#20100C" stroke-width="1.9" stroke-linecap="round"><path d="M5 12h13M12.5 6l6 6-6 6"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;border:1px solid rgba(243,231,217,.22);border-radius:5px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.7" stroke-linecap="round"><path d="M12 15V4M8 7.5L12 3.5l4 4"></path><path d="M5 14v6h14v-6"></path></svg><span style="font:500 14px 'Public Sans',sans-serif;color:#F3E7D9">Share the watch link</span></div>
+            </div>
+            <div style="display:flex;gap:10px;margin:10px 18px 0">
+              <div style="flex:1;background:#2A1216;border-radius:6px;padding:13px 14px;display:flex;flex-direction:column;gap:4px"><span style="font:400 22px/1 'Libre Caslon Text',serif;color:#F3E7D9">€500</span><span style="font:500 10px/1.3 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">cash in</span></div>
+              <div style="flex:1;background:#2A1216;border-radius:6px;padding:13px 14px;display:flex;flex-direction:column;gap:4px"><span style="font:400 22px/1 'Libre Caslon Text',serif;color:#F3E7D9">€212</span><span style="font:500 10px/1.3 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">cashed out</span></div>
+              <div style="flex:1;background:#2A1216;border-radius:6px;padding:13px 14px;display:flex;flex-direction:column;gap:4px"><span style="font:400 22px/1 'Libre Caslon Text',serif;color:#F3E7D9">11</span><span style="font:500 10px/1.3 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">entries</span></div>
+            </div>
+            <div style="margin:22px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 4px 10px">Tonight</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 4px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">At the table</span><span style="margin-left:auto;font:400 13px 'JetBrains Mono',monospace;color:#AC9086">5 of 6</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 4px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Bill &amp; kitty</span><span style="margin-left:auto;font:400 13px 'JetBrains Mono',monospace;color:#AC9086">€68 · 5%</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 4px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#E2705A">End the session</span><span style="margin-left:auto;font:400 12px 'Public Sans',sans-serif;color:#AC9086">count &amp; settle</span></div>
+            </div>
+            <div style="margin-top:auto;display:flex;border-top:1px solid rgba(243,231,217,.12);background:#1E0D11;padding:0 10px 4px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px;box-shadow:inset 0 2px 0 #E0A83C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M4 10.5L12 4l8 6.5V20H4z"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#E0A83C">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px;position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"></ellipse><path d="M8 12h8"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Table</span><span style="position:absolute;top:10px;right:32px;width:6px;height:6px;border-radius:50%;background:#74C295"></span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h9l5 5v11H5z"></path><path d="M8 11h8M8 15h5"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Book</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"></circle><path d="M3 19.5c.7-3 3-4.6 6-4.6s5.3 1.6 6 4.6"></path><path d="M16 6.5a3 3 0 0 1 0 5.6M18.5 19.5c-.3-1.5-.9-2.7-1.8-3.6"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Group</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Home — variation B</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Tonight sits at the top of one continuous list of nights. No tiles, no second group of destinations: the book is the home screen.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="01c Home · nights feed" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>23:22</span><span style="color:#AC9086">41%</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 20px 14px"><div style="display:flex;flex-direction:column;gap:4px"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#F3E7D9">Tuesday Cash</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">27 nights · book open since January</span></div><div style="margin-left:auto;width:34px;height:34px;border:1px solid rgba(243,231,217,.22);border-radius:4px;display:flex;align-items:center;justify-content:center;flex:none"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"></path></svg></div></div>
+            <div style="margin:0 18px 6px;border:1px solid rgba(224,168,60,.45);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:13px">
+              <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;background:#74C295;display:block;border-radius:50%"></span><span style="font:600 10px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#74C295">TONIGHT</span><span style="margin-left:auto;font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">since 20:05 · 3h 17m</span></div>
+              <div style="display:flex;align-items:flex-end;gap:12px"><span style="font:400 52px/.9 'Libre Caslon Text',serif;color:#F3E7D9">€288</span><span style="font:400 12px/1.4 'Public Sans',sans-serif;color:#AC9086;padding-bottom:5px">on the table<br>5 seated · 11 entries</span></div>
+              <div style="display:flex;gap:8px"><div style="flex:1.4;display:flex;align-items:center;justify-content:center;padding:14px 0;background:#E0A83C;border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#20100C">Open the ledger</span></div><div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Watch link</span></div></div>
+            </div>
+            <div style="flex:1;overflow:hidden;margin:16px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">Before that</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tue 28 July</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">6 players · €520 · settled</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">+64.20</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Fri 24 July</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">7 players · €640 · settled</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">+97</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tue 21 July</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">5 players · €400 · settled</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#E2705A">−64</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tue 14 July</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">4 players · €240 · settled</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">+58</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Fri 10 July</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">6 players · €480 · settled</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#E2705A">−22.10</span></div>
+              <div style="font:400 12px/1.5 'Public Sans',sans-serif;color:#AC9086;padding:12px 2px 0">August so far: <span style="font-family:'JetBrains Mono',monospace;color:#74C295">+€112</span> · kitty <span style="font-family:'JetBrains Mono',monospace;color:#F3E7D9">€142</span></div>
+            </div>
+            <div style="display:flex;border-top:1px solid rgba(243,231,217,.12);background:#1E0D11;padding:0 10px 4px"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px;box-shadow:inset 0 2px 0 #E0A83C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M4 10.5L12 4l8 6.5V20H4z"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#E0A83C">Home</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"></ellipse><path d="M8 12h8"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Table</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h9l5 5v11H5z"></path><path d="M8 11h8M8 15h5"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Book</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"></circle><path d="M3 19.5c.7-3 3-4.6 6-4.6s5.3 1.6 6 4.6"></path><path d="M16 6.5a3 3 0 0 1 0 5.6M18.5 19.5c-.3-1.5-.9-2.7-1.8-3.6"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Group</span></div></div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:20px;padding:36px 48px 40px;border-top:1px solid rgba(36,16,20,.14)">
+    <div style="display:flex;align-items:baseline;gap:14px;position:sticky;left:48px;width:max-content">
+      <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.1em;padding:5px 8px;background:#241014;color:#EDE6D8">02</span>
+      <h2 style="margin:0;font:400 22px/1.2 'Libre Caslon Text',serif;color:#241014">Opening a session</h2>
+      <p style="margin:0;font:400 13px/1.5 'Public Sans',sans-serif;color:#7B615A">Stakes, seats, start time, then the money rules: amount, who pays, and who collects.</p>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:26px">
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">New session</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Everything pre-filled from last time. Start time is the only thing the app needs to be honest about.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="02a New session" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>18:41</span><span style="color:#AC9086">64%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:14px 22px 16px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">New session</span><span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.14em;color:#AC9086">1 / 2</span></div>
+            <div style="margin:0 18px;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">The game</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Stakes</span><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#E0A83C">0.50 / 1</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Default buy-in</span><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#E0A83C">€50</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Seats at the table</span><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">6</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Currency</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">set once for the book · still editable</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">EUR €</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:500 15px 'Public Sans',sans-serif;color:#F3E7D9">Start time</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">stamps every entry from here</span></div><span style="margin-left:auto;display:flex;align-items:center;gap:8px"><span style="font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">20:05</span><span style="font:600 10px 'JetBrains Mono',monospace;letter-spacing:.1em;padding:4px 7px;background:rgba(224,168,60,.18);color:#E0A83C;border-radius:3px">EDIT</span></span></div>
+            </div>
+            <div style="margin:22px 18px 0;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:baseline;gap:8px;padding:0 2px"><span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Seated</span><span style="margin-left:auto;font:400 12px 'JetBrains Mono',monospace;color:#AC9086">4 selected</span></div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <span style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:4px;background:#E0A83C"><span style="font:600 13.5px 'Public Sans',sans-serif;color:#20100C">Marek</span><span style="font:400 11px 'JetBrains Mono',monospace;color:rgba(32,16,12,.65)">host</span></span>
+                <span style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:4px;background:#37191E"><span style="font:600 13.5px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span></span>
+                <span style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:4px;background:#37191E"><span style="font:600 13.5px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span></span>
+                <span style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:4px;background:#37191E"><span style="font:600 13.5px 'Public Sans',sans-serif;color:#F3E7D9">Petr</span></span>
+                <span style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:4px;border:1px solid rgba(243,231,217,.2)"><span style="font:500 13.5px 'Public Sans',sans-serif;color:#AC9086">Dana</span></span>
+                <span style="display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:4px;border:1px solid rgba(243,231,217,.2)"><span style="font:500 13.5px 'Public Sans',sans-serif;color:#AC9086">Tomáš</span></span>
+                <span style="display:flex;align-items:center;gap:6px;padding:10px 13px;border-radius:4px;border:1px dashed rgba(243,231,217,.28)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="2.2" stroke-linecap="round"><path d="M11 5v12M5 11h12"></path><circle cx="17.5" cy="17.5" r="4.5"></circle></svg><span style="font:500 13.5px 'Public Sans',sans-serif;color:#F3E7D9">Find a player</span></span>
+              </div>
+              </div>
+            <div style="margin-top:auto;padding:16px 18px 10px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;padding:16px;background:#E0A83C;border-radius:5px;justify-content:center"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Continue to money rules</span></div>
+              <div style="text-align:center;font:500 13px 'Public Sans',sans-serif;color:#AC9086;padding:6px 0">Skip — no deductions tonight</div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:2px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Money rules</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Percentage or fixed amount, charged to winners or to everyone, paid into a bill or a fund.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="02b Money rules" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>18:43</span><span style="color:#AC9086">63%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:14px 22px 16px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">Money rules</span><span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.14em;color:#AC9086">2 / 2</span></div>
+            <div style="margin:0 18px 16px;font:400 13px/1.55 'Public Sans',sans-serif;color:#AC9086;text-wrap:pretty">Applied once, at settle-up. Nothing is taken from the table while you play.</div>
+            <div style="margin:0 18px;display:flex;flex-direction:column;gap:10px">
+              <div style="background:#2A1216;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:10px"><span style="font:500 16px 'Public Sans',sans-serif;color:#F3E7D9">Kitchen &amp; drinks</span><span style="margin-left:auto;width:38px;height:22px;border-radius:11px;background:#74C295;display:flex;align-items:center;justify-content:flex-end;padding:2px;box-sizing:border-box"><span style="width:18px;height:18px;border-radius:50%;background:#1E0D11;display:block"></span></span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.06em;padding:6px 9px;border-radius:3px;background:rgba(224,168,60,.16);color:#E0A83C">FIXED · €68</span>
+                  <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.06em;padding:6px 9px;border-radius:3px;background:#37191E;color:#F3E7D9">SPLIT BY WINNERS</span>
+                  <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.06em;padding:6px 9px;border-radius:3px;background:#37191E;color:#F3E7D9">COLLECTED BY MAREK</span>
+                </div>
+                <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#AC9086">Entered when the food arrives. Split three ways — €23, €23, €22.</div>
+              </div>
+              <div style="background:#2A1216;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:10px"><span style="font:500 16px 'Public Sans',sans-serif;color:#F3E7D9">Group kitty</span><span style="margin-left:auto;width:38px;height:22px;border-radius:11px;background:#74C295;display:flex;align-items:center;justify-content:flex-end;padding:2px;box-sizing:border-box"><span style="width:18px;height:18px;border-radius:50%;background:#1E0D11;display:block"></span></span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.06em;padding:6px 9px;border-radius:3px;background:rgba(224,168,60,.16);color:#E0A83C">5% OF WIN</span>
+                  <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.06em;padding:6px 9px;border-radius:3px;background:#37191E;color:#F3E7D9">WINNERS ONLY</span>
+                  <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.06em;padding:6px 9px;border-radius:3px;background:#37191E;color:#F3E7D9">HELD BY RADKA</span>
+                </div>
+                <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#AC9086">Balance €142. Held by Radka. Taken from the gross win, before the bill.</div>
+              </div>
+              <div style="border:1px dashed rgba(243,231,217,.26);border-radius:6px;padding:16px;display:flex;align-items:center;gap:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg><span style="font:600 14.5px 'Public Sans',sans-serif;color:#E0A83C">Add a rule</span></div>
+            </div>
+            <div style="margin:20px 18px 0;background:#2A1216;border-left:2px solid #E0A83C;border-radius:0 6px 6px 0;padding:14px 16px;display:flex;flex-direction:column;gap:6px">
+              <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#E0A83C">If tonight ends like last Tuesday</span>
+              <span style="font:400 13px/1.55 'Public Sans',sans-serif;color:#F3E7D9">€80 would leave the table: €68 back to Marek for the food, €12 to Radka for the kitty.</span>
+            </div>
+            <div style="margin-top:auto;padding:16px 18px 10px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;padding:16px;background:#E0A83C;border-radius:5px;justify-content:center"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Open the table · 20:05</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:2px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Rule editor</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Four decisions, and a worked example that updates as you make them.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="02c Rule editor" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:rgba(243,231,217,.4)"><span>18:44</span><span>63%</span></div>
+            <div style="flex:1;background:rgba(21,8,9,.72)"></div>
+            <div style="background:#2A1216;border-radius:10px 10px 0 0;padding:18px 20px 12px;display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;align-items:center;gap:12px"><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">New rule</span><span style="margin-left:auto;font:500 13px 'Public Sans',sans-serif;color:#AC9086">Cancel</span></div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">How much</span>
+                <div style="display:flex;gap:0;border:1px solid rgba(243,231,217,.2);border-radius:5px;overflow:hidden">
+                  <span style="flex:1;text-align:center;padding:11px 0;background:#E0A83C;font:600 13.5px 'Public Sans',sans-serif;color:#20100C">Percentage</span>
+                  <span style="flex:1;text-align:center;padding:11px 0;font:500 13.5px 'Public Sans',sans-serif;color:#AC9086">Fixed amount</span>
+                </div>
+                <div style="display:flex;align-items:flex-end;gap:10px;padding:10px 2px 4px"><span style="font:400 56px/.9 'Libre Caslon Text',serif;color:#F3E7D9">5</span><span style="font:400 26px/1.6 'Libre Caslon Text',serif;color:#E0A83C">%</span><div style="margin-left:auto;display:flex;gap:6px"><span style="padding:9px 12px;border-radius:4px;background:#E0A83C;font:600 13px 'JetBrains Mono',monospace;color:#20100C">5%</span><span style="padding:9px 12px;border-radius:4px;background:#37191E;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9">10%</span><span style="padding:9px 12px;border-radius:4px;background:#37191E;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9">15%</span><span style="padding:9px 12px;border-radius:4px;border:1px solid rgba(243,231,217,.24);font:500 13px 'JetBrains Mono',monospace;color:#AC9086">Set</span></div></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Charged to · pick one, no default</span>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <div style="display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:5px;border:1px solid rgba(243,231,217,.16)"><span style="width:16px;height:16px;border-radius:50%;border:1.5px solid #AC9086;box-sizing:border-box;display:block"></span><span style="font:500 14px 'Public Sans',sans-serif;color:#AC9086">Winners, off their net win</span></div>
+                  <div style="display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:5px;border:1px solid rgba(243,231,217,.16)"><span style="width:16px;height:16px;border-radius:50%;border:1.5px solid #AC9086;box-sizing:border-box;display:block"></span><span style="font:500 14px 'Public Sans',sans-serif;color:#AC9086">Everyone at the table, flat</span></div>
+                  </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Paid into</span>
+                <div style="display:flex;flex-wrap:wrap;gap:7px">
+                  <span style="padding:10px 13px;border-radius:4px;background:#E0A83C;font:600 13px 'Public Sans',sans-serif;color:#20100C">Group kitty</span>
+                  <span style="padding:10px 13px;border-radius:4px;border:1px solid rgba(243,231,217,.2);font:500 13px 'Public Sans',sans-serif;color:#AC9086">A bill</span>
+                  <span style="padding:10px 13px;border-radius:4px;border:1px solid rgba(243,231,217,.2);font:500 13px 'Public Sans',sans-serif;color:#AC9086">Host fee</span>
+                  <span style="padding:10px 13px;border-radius:4px;border:1px solid rgba(243,231,217,.2);font:500 13px 'Public Sans',sans-serif;color:#AC9086">Next game</span>
+                </div>
+              </div>
+              <div style="background:#1E0D11;border-radius:5px;padding:13px 15px;display:flex;flex-direction:column;gap:5px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Example</span>
+                <span style="font:400 13.5px/1.5 'Public Sans',sans-serif;color:#AC9086">Pick who it is charged to and the example fills in: <span style="color:#F3E7D9">Dana wins €162 → <span style="font-family:'JetBrains Mono',monospace;color:#E0A83C">€8</span> to the kitty.</span></span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Save rule</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:6px 0 8px;background:#2A1216"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Rule details</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Second half of the same sheet: the name, what the percentage is taken from, and who holds the money.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="02d Rule details" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:rgba(243,231,217,.4)"><span>18:45</span><span>63%</span></div>
+            <div style="flex:1;background:rgba(21,8,9,.72)"></div>
+            <div style="background:#2A1216;border-radius:10px 10px 0 0;padding:18px 20px 12px;display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;align-items:center;gap:12px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><div style="display:flex;flex-direction:column;gap:2px"><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">Group kitty</span><span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.06em;color:#E0A83C">TAP TO RENAME</span></div><span style="margin-left:auto;font:500 13px 'Public Sans',sans-serif;color:#AC9086">Cancel</span></div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Taken from</span>
+                <div style="display:flex;border:1px solid rgba(243,231,217,.2);border-radius:5px;overflow:hidden">
+                  <span style="flex:1;text-align:center;padding:12px 0;background:#E0A83C;font:600 13px 'Public Sans',sans-serif;color:#20100C">Gross win</span>
+                  <span style="flex:1;text-align:center;padding:12px 0;font:500 13px 'Public Sans',sans-serif;color:#AC9086">Net, after the bill</span>
+                </div>
+                <span style="font:400 12px/1.5 'Public Sans',sans-serif;color:#AC9086">Dana wins €162 gross. Taken first: <span style="font-family:'JetBrains Mono',monospace;color:#E0A83C">€8</span>. Taken after her €23 share of the bill: €7.</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Collected by</span>
+                <div style="display:flex;align-items:center;gap:12px;padding:15px 16px;border-radius:5px;border:1px dashed rgba(224,168,60,.6)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="9" r="3.6"></circle><path d="M4.5 19.5c.8-3 3.3-4.7 6.5-4.7 1 0 2 .17 2.9.5"></path><path d="M18 15v6M15 18h6"></path></svg><span style="font:600 14.5px 'Public Sans',sans-serif;color:#E0A83C">Choose who keeps it</span><svg style="margin-left:auto" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+                <span style="font:400 12px/1.5 'Public Sans',sans-serif;color:#AC9086">One person holds the kitty. They appear in settle-up as a payee.</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Save rule</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:6px 0 8px;background:#2A1216"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Collector picker</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Sorted by who has collected most often. Anyone who never has is added first, from the players or from outside the group.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="02e Who collects" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>18:46</span><span style="color:#AC9086">63%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:14px 20px 16px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">Who keeps the kitty</span></div>
+            <div style="display:flex;align-items:center;gap:10px;margin:0 18px 16px;padding:12px 14px;background:#2A1216;border-radius:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg><span style="font:400 15px 'Public Sans',sans-serif;color:#AC9086">Search people</span></div>
+            <div style="margin:0 18px;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">Has collected before</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 2px;border-top:1px solid rgba(243,231,217,.12);background:rgba(224,168,60,.07)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Radka</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">collected 14 times · last in July</span></div><svg style="margin-left:auto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5l5 5L20 6.5"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">collected 6 times</span></div></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">collected 2 times</span></div></div>
+            </div>
+            <div style="margin:22px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">Never collected · add to use</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#AC9086">Ivo</span><span style="margin-left:auto;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.08em;padding:7px 11px;border-radius:3px;background:#37191E;color:#F3E7D9">ADD</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#AC9086">Dana</span><span style="margin-left:auto;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.08em;padding:7px 11px;border-radius:3px;background:#37191E;color:#F3E7D9">ADD</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><span style="font:500 15px 'Public Sans',sans-serif;color:#AC9086">Petr</span><span style="margin-left:auto;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.08em;padding:7px 11px;border-radius:3px;background:#37191E;color:#F3E7D9">ADD</span></div>
+            </div>
+            <div style="margin:20px 18px 0;display:flex;align-items:center;gap:11px;padding:15px 16px;border-radius:5px;border:1px dashed rgba(243,231,217,.28)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg><span style="font:500 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Someone from outside the group</span></div>
+            <div style="margin-top:auto;padding:16px 18px 10px"><div style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Keep Radka</span></div></div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div></div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Player search</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Everyone the group has played with, most recent first. Seated players carry a check; everyone else an Add, and a new name can be typed on the same screen.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="02f Find a player" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>18:42</span><span style="color:#AC9086">64%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:14px 20px 16px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">Add players</span><span style="margin-left:auto;font:500 12px 'JetBrains Mono',monospace;color:#AC9086">4 seated</span></div>
+            <div style="display:flex;align-items:center;gap:10px;margin:0 18px 16px;padding:12px 14px;background:#2A1216;border-radius:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg><span style="font:400 15px 'Public Sans',sans-serif;color:#AC9086">Search by name</span></div>
+            <div style="flex:1;overflow:hidden;margin:0 18px;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">Most recent first</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">played 28 July · host</span></div><span style="margin-left:auto;display:flex;align-items:center;gap:7px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#74C295" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5l5 5L20 6.5"></path></svg><span style="font:500 12px 'JetBrains Mono',monospace;color:#74C295">SEATED</span></span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">played 28 July · 26 nights</span></div><span style="margin-left:auto;display:flex;align-items:center;gap:7px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#74C295" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5l5 5L20 6.5"></path></svg><span style="font:500 12px 'JetBrains Mono',monospace;color:#74C295">SEATED</span></span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">played 28 July · 19 nights</span></div><span style="margin-left:auto;display:flex;align-items:center;gap:7px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#74C295" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5l5 5L20 6.5"></path></svg><span style="font:500 12px 'JetBrains Mono',monospace;color:#74C295">SEATED</span></span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Petr</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">played 24 July · 22 nights</span></div><span style="margin-left:auto;display:flex;align-items:center;gap:7px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#74C295" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5l5 5L20 6.5"></path></svg><span style="font:500 12px 'JetBrains Mono',monospace;color:#74C295">SEATED</span></span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">played 24 July · 24 nights</span></div><span style="margin-left:auto;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.08em;padding:8px 12px;border-radius:3px;background:#E0A83C;color:#20100C">ADD</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">played 21 July · 14 nights</span></div><span style="margin-left:auto;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.08em;padding:8px 12px;border-radius:3px;background:#E0A83C;color:#20100C">ADD</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Jirka</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">played 10 July · 8 nights</span></div><span style="margin-left:auto;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.08em;padding:8px 12px;border-radius:3px;background:#E0A83C;color:#20100C">ADD</span></div>
+            </div>
+            <div style="margin:16px 18px 0;display:flex;align-items:center;gap:11px;padding:15px 16px;border-radius:5px;border:1px dashed rgba(243,231,217,.28)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg><span style="font:600 14.5px 'Public Sans',sans-serif;color:#E0A83C">New player — type a name</span></div>
+            <div style="padding:16px 18px 10px"><div style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Done · 4 seated</span></div></div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:20px;padding:36px 48px 40px;border-top:1px solid rgba(36,16,20,.14)">
+    <div style="display:flex;align-items:baseline;gap:14px;position:sticky;left:48px;width:max-content">
+      <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.1em;padding:5px 8px;background:#241014;color:#EDE6D8">03</span>
+      <h2 style="margin:0;font:400 22px/1.2 'Libre Caslon Text',serif;color:#241014">The ledger</h2>
+      <p style="margin:0;font:400 13px/1.5 'Public Sans',sans-serif;color:#7B615A">The main screen — a stamped feed — plus the two views without times: totals, and one player.</p>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:26px">
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Host view</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Newest first. Timestamps sit in their own column so the night reads like a log.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="03a Ledger host" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>23:22</span><span style="color:#AC9086">41%</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 20px 12px">
+              <div style="display:flex;flex-direction:column;gap:3px"><span style="font:400 19px/1 'Libre Caslon Text',serif;color:#F3E7D9">Tuesday Cash</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">20:05 → now · 3h 17m</span></div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;background:#74C295;display:block;border-radius:50%"></span><span style="font:600 10px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#74C295">LIVE</span></div>
+            </div>
+            <div style="display:flex;margin:0 18px;background:#2A1216;border-radius:6px">
+              <div style="flex:1;padding:13px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#E0A83C">€288</span><span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">on table</span></div>
+              <div style="flex:1;padding:13px 14px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(243,231,217,.1)"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#F3E7D9">€500</span><span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">cash in</span></div>
+              <div style="flex:1;padding:13px 14px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(243,231,217,.1)"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#F3E7D9">5</span><span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">seated</span></div>
+            </div>
+            <div style="display:flex;align-items:baseline;padding:18px 22px 8px"><span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Tonight · 11 entries</span><span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;color:#E0A83C">FILTER</span></div>
+            <div style="flex:1;overflow:hidden;margin:0 18px;display:flex;flex-direction:column">
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">23:15</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Dana cashed out</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">left the table · in €50</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">−€212</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">22:30</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš joined</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">first buy-in</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€50</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">22:03</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Petr rebought</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">second time · in €150</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€100</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline;background:rgba(224,168,60,.07)"><span style="font:400 12px 'JetBrains Mono',monospace;color:#E0A83C;width:40px;flex:none">21:48</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Pizza &amp; drinks</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">Marek paid · splits by winners</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#E0A83C">€68</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">21:12</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Ivo rebought</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">in €100</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€50</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">20:41</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Dana joined</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">late · first buy-in</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€50</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">20:09</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Petr bought in</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€50</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">20:07</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Lena bought in</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">double buy-in</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€100</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">20:05</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:500 14.5px 'Public Sans',sans-serif;color:#AC9086">Table opened · 0.50 / 1</span></div></div>
+            </div>
+            <div style="display:flex;gap:8px;padding:12px 18px 12px;border-top:1px solid rgba(243,231,217,.12)">
+              <div style="flex:1.3;display:flex;align-items:center;justify-content:center;gap:7px;padding:15px 0;background:#E0A83C;border-radius:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#20100C" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg><span style="font:600 14px 'Public Sans',sans-serif;color:#20100C">Buy-in</span></div>
+              <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:15px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Cash out</span></div>
+              <div style="flex:.8;display:flex;align-items:center;justify-content:center;padding:15px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Bill</span></div>
+            </div>
+            <div style="display:flex;border-top:1px solid rgba(243,231,217,.12);background:#1E0D11;padding:0 10px 4px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M4 10.5L12 4l8 6.5V20H4z"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px;box-shadow:inset 0 2px 0 #E0A83C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"></ellipse><path d="M8 12h8"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#E0A83C">Table</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h9l5 5v11H5z"></path><path d="M8 11h8M8 15h5"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Book</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"></circle><path d="M3 19.5c.7-3 3-4.6 6-4.6s5.3 1.6 6 4.6"></path><path d="M16 6.5a3 3 0 0 1 0 5.6M18.5 19.5c-.3-1.5-.9-2.7-1.8-3.6"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Group</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Logging money</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Player, amount, time. The time defaults to now and can be moved back for the hand that already happened.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="03b Add entry" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:rgba(243,231,217,.4)"><span>23:22</span><span>41%</span></div>
+            <div style="flex:1;background:rgba(21,8,9,.72)"></div>
+            <div style="background:#2A1216;border-radius:10px 10px 0 0;padding:18px 20px 12px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;align-items:center;gap:12px"><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">Rebuy</span><span style="margin-left:auto;font:500 13px 'Public Sans',sans-serif;color:#AC9086">Cancel</span></div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Who</span>
+                <div style="display:flex;flex-wrap:wrap;gap:7px">
+                  <span style="padding:10px 13px;border-radius:4px;background:#37191E;font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span>
+                  <span style="padding:10px 13px;border-radius:4px;background:#37191E;font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span>
+                  <span style="padding:10px 13px;border-radius:4px;background:#37191E;font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span>
+                  <span style="padding:10px 13px;border-radius:4px;background:#E0A83C;font:600 13px 'Public Sans',sans-serif;color:#20100C">Petr</span>
+                  <span style="padding:10px 13px;border-radius:4px;background:#37191E;font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:12px;padding:4px 2px 0">
+                <span style="font:400 78px/.9 'Libre Caslon Text',serif;color:#F3E7D9">€100</span>
+              </div>
+              <div style="display:flex;gap:7px">
+                <span style="flex:1;text-align:center;padding:13px 0;border-radius:4px;background:#37191E;font:500 18px 'JetBrains Mono',monospace;color:#F3E7D9">€50</span>
+                <span style="flex:1;text-align:center;padding:13px 0;border-radius:4px;background:#E0A83C;font:600 18px 'JetBrains Mono',monospace;color:#20100C">€100</span>
+                <span style="flex:1;text-align:center;padding:13px 0;border-radius:4px;background:#37191E;font:500 18px 'JetBrains Mono',monospace;color:#F3E7D9">€200</span>
+                <span style="flex:1;text-align:center;padding:13px 0;border-radius:4px;border:1px solid rgba(243,231,217,.2);font:500 18px 'JetBrains Mono',monospace;color:#AC9086">Set</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 15px;background:#1E0D11;border-radius:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg><span style="font:500 14px 'Public Sans',sans-serif;color:#F3E7D9">Stamped 23:22</span><span style="margin-left:auto;font:600 12px 'JetBrains Mono',monospace;color:#E0A83C">CHANGE</span></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">1</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">2</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">3</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">4</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">5</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">6</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">7</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">8</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">9</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#AC9086">00</span>
+                <span style="text-align:center;padding:14px 0;background:#37191E;border-radius:5px;font:500 20px 'JetBrains Mono',monospace;color:#F3E7D9">0</span>
+                <span style="display:flex;align-items:center;justify-content:center;padding:14px 0;background:#37191E;border-radius:5px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11v12H9L3 12z"></path><path d="M13 10l4 4M17 10l-4 4"></path></svg></span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Log €100 rebuy for Petr</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:6px 0 8px;background:#2A1216"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">One player</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Their own slice of the ledger, and the only place a mistake gets corrected.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="03c Player" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>23:23</span><span style="color:#AC9086">41%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 20px 16px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">Petr</span><span style="font:500 10px 'JetBrains Mono',monospace;letter-spacing:.14em;padding:5px 8px;border-radius:3px;background:#37191E;color:#AC9086">SEATED</span></div>
+            <div style="margin:0 18px;background:#2A1216;border-radius:6px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:flex-end;gap:14px">
+                <div style="display:flex;flex-direction:column;gap:5px"><span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Bought in tonight</span><span style="font:400 44px/.9 'Libre Caslon Text',serif;color:#F3E7D9">€150</span></div>
+                <div style="display:flex;flex-direction:column;gap:5px;margin-left:auto;text-align:right"><span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Counted</span><span style="font:400 44px/.9 'Libre Caslon Text',serif;color:#AC9086">—</span></div>
+              </div>
+              <div style="height:1px;background:rgba(243,231,217,.12)"></div>
+              <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#AC9086">Net is only known once his chips are counted, at cash-out or at the end of the night.</div>
+            </div>
+            <div style="margin:20px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 4px 10px">3 buy-ins · when each was made</div>
+              <div style="display:flex;gap:14px;padding:14px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">22:03</span><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Rebuy</span><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€100</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h4L20 8l-4-4L4 16z"></path></svg></div>
+              <div style="display:flex;gap:14px;padding:14px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">20:09</span><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Buy-in</span><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€50</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h4L20 8l-4-4L4 16z"></path></svg></div>
+              <div style="border-top:1px solid rgba(243,231,217,.12)"></div>
+            </div>
+            <div style="margin:22px 18px 0;display:flex;flex-direction:column;gap:8px">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 4px">Rules he is subject to</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px;padding:0 4px">
+                <span style="font:500 11px 'JetBrains Mono',monospace;padding:7px 10px;border-radius:3px;background:#37191E;color:#F3E7D9">KITTY 5% OF WIN</span>
+                <span style="font:500 11px 'JetBrains Mono',monospace;padding:7px 10px;border-radius:3px;background:#37191E;color:#F3E7D9">BILL SPLIT</span>
+              </div>
+              <div style="font:400 12px/1.5 'Public Sans',sans-serif;color:#AC9086;padding:2px 4px 0">Both charge winners only. If he finishes down, neither applies.</div>
+            </div>
+            <div style="margin-top:auto;padding:16px 18px 10px;display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Cash Petr out</span></div>
+              <div style="display:flex;gap:9px">
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Rebuy</span></div>
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Note</span></div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ showViewerFrame }}" hint-placeholder-val="{{ true }}">
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Everyone else</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Same list, no buttons. Players watch their own money instead of asking.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="03d Ledger watching" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>23:22</span><span style="color:#AC9086">88%</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 20px 12px">
+              <div style="display:flex;flex-direction:column;gap:3px"><span style="font:400 19px/1 'Libre Caslon Text',serif;color:#F3E7D9">Tuesday Cash</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">kept by Marek · 3h 17m</span></div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:7px;padding:5px 9px;border:1px solid rgba(243,231,217,.24);border-radius:3px"><span style="font:600 10px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#AC9086">WATCHING</span></div>
+            </div>
+            <div style="display:flex;margin:0 18px;background:#2A1216;border-radius:6px">
+              <div style="flex:1;padding:13px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#E0A83C">€288</span><span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">on table</span></div>
+              <div style="flex:1;padding:13px 14px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(243,231,217,.1)"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#F3E7D9">€500</span><span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">cash in</span></div>
+              <div style="flex:1;padding:13px 14px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(243,231,217,.1)"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#F3E7D9">5</span><span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">seated</span></div>
+            </div>
+            <div style="display:flex;align-items:baseline;padding:18px 22px 8px"><span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Tonight · 11 entries</span></div>
+            <div style="flex:1;overflow:hidden;margin:0 18px;display:flex;flex-direction:column">
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">23:15</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Dana cashed out</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">left the table · in €50</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">−€212</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">22:30</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš joined</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">first buy-in</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€50</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">22:03</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Petr rebought</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">second time · in €150</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€100</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline;background:rgba(224,168,60,.07)"><span style="font:400 12px 'JetBrains Mono',monospace;color:#E0A83C;width:40px;flex:none">21:48</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Pizza &amp; drinks</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">Marek paid · splits by winners</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#E0A83C">€68</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">21:12</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Ivo rebought</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">in €100</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€50</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">20:41</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Dana joined</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">late · first buy-in</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€50</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline;background:rgba(116,194,149,.08)"><span style="font:400 12px 'JetBrains Mono',monospace;color:#74C295;width:40px;flex:none">20:07</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">You bought in</span><span style="font:400 11.5px 'Public Sans',sans-serif;color:#AC9086">double buy-in</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#F3E7D9">+€100</span></div>
+              <div style="display:flex;gap:14px;padding:13px 4px;border-top:1px solid rgba(243,231,217,.12);align-items:baseline"><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086;width:40px;flex:none">20:05</span><span style="font:500 14.5px 'Public Sans',sans-serif;color:#AC9086">Table opened · 0.50 / 1</span></div>
+            </div>
+            <div style="padding:14px 20px;border-top:1px solid rgba(243,231,217,.12);display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="10.5" width="16" height="10" rx="2"></rect><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"></path></svg><span style="font:400 12.5px 'Public Sans',sans-serif;color:#AC9086">Read-only. Only Marek can write to the ledger.</span></div>
+            <div style="display:flex;border-top:1px solid rgba(243,231,217,.12);background:#1E0D11;padding:0 10px 4px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M4 10.5L12 4l8 6.5V20H4z"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px;box-shadow:inset 0 2px 0 #E0A83C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"></ellipse><path d="M8 12h8"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#E0A83C">Table</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h9l5 5v11H5z"></path><path d="M8 11h8M8 15h5"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Book</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"></circle><path d="M3 19.5c.7-3 3-4.6 6-4.6s5.3 1.6 6 4.6"></path><path d="M16 6.5a3 3 0 0 1 0 5.6M18.5 19.5c-.3-1.5-.9-2.7-1.8-3.6"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Group</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Totals</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">No times: how much is in play and who bought in for how much. The feed is one tap away, and a name opens that player’s own page.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="03f Totals" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>23:22</span><span style="color:#AC9086">41%</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 20px 12px"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:400 19px/1 'Libre Caslon Text',serif;color:#F3E7D9">Tuesday Cash</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">20:05 → now · 3h 17m</span></div><div style="margin-left:auto;display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;background:#74C295;display:block;border-radius:50%"></span><span style="font:600 10px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#74C295">LIVE</span></div></div>
+            <div style="display:flex;margin:0 18px 12px;border:1px solid rgba(243,231,217,.2);border-radius:5px;overflow:hidden"><span style="flex:1;text-align:center;padding:10px 0;font:500 13px 'Public Sans',sans-serif;color:#AC9086">Feed</span><span style="flex:1;text-align:center;padding:10px 0;background:#E0A83C;font:600 13px 'Public Sans',sans-serif;color:#20100C">Totals</span></div>
+            <div style="display:flex;margin:0 18px;background:#2A1216;border-radius:6px;flex:none">
+              <div style="flex:1;padding:13px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#E0A83C">€288</span><span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">on table</span></div>
+              <div style="flex:1;padding:13px 14px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(243,231,217,.1)"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#F3E7D9">€500</span><span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">cash in</span></div>
+              <div style="flex:1;padding:13px 14px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(243,231,217,.1)"><span style="font:400 24px/1 'Libre Caslon Text',serif;color:#F3E7D9">€212</span><span style="font:500 9.5px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">cashed out</span></div>
+            </div>
+            <div style="flex:1;overflow:hidden;margin:16px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">At the table</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 4px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Petr</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">3 buy-ins · €50 + €100 + €100</span></div><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€150</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 4px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">2 buy-ins · €50 + €50</span></div><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€100</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 4px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">1 buy-in · double</span></div><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€100</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 4px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">1 buy-in</span></div><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€50</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 4px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">1 buy-in</span></div><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€50</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 4px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">cashed out · counted €212</span></div><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€50</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 4px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 15px 'Public Sans',sans-serif;color:#AC9086">Total in play</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#E0A83C">€500</span></div>
+            </div>
+            <div style="display:flex;gap:8px;padding:12px 18px 12px;border-top:1px solid rgba(243,231,217,.12)"><div style="flex:1.3;display:flex;align-items:center;justify-content:center;gap:7px;padding:15px 0;background:#E0A83C;border-radius:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#20100C" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg><span style="font:600 14px 'Public Sans',sans-serif;color:#20100C">Buy-in</span></div><div style="flex:1;display:flex;align-items:center;justify-content:center;padding:15px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Cash out</span></div><div style="flex:.8;display:flex;align-items:center;justify-content:center;padding:15px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Bill</span></div></div>
+            <div style="display:flex;border-top:1px solid rgba(243,231,217,.12);background:#1E0D11;padding:0 10px 4px"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M4 10.5L12 4l8 6.5V20H4z"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Home</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px;box-shadow:inset 0 2px 0 #E0A83C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"></ellipse><path d="M8 12h8"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#E0A83C">Table</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h9l5 5v11H5z"></path><path d="M8 11h8M8 15h5"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Book</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"></circle><path d="M3 19.5c.7-3 3-4.6 6-4.6s5.3 1.6 6 4.6"></path><path d="M16 6.5a3 3 0 0 1 0 5.6M18.5 19.5c-.3-1.5-.9-2.7-1.8-3.6"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Group</span></div></div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:20px;padding:36px 48px 40px;border-top:1px solid rgba(36,16,20,.14)">
+    <div style="display:flex;align-items:baseline;gap:14px;position:sticky;left:48px;width:max-content">
+      <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.1em;padding:5px 8px;background:#241014;color:#EDE6D8">04</span>
+      <h2 style="margin:0;font:400 22px/1.2 'Libre Caslon Text',serif;color:#241014">Closing the night</h2>
+      <p style="margin:0;font:400 13px/1.5 'Public Sans',sans-serif;color:#7B615A">Count the chips, take the deductions, then say who pays whom.</p>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:26px">
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Count the table</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Chips counted must equal money left on the table. The gap is shown until it is zero.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="04a Count" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>23:40</span><span style="color:#AC9086">38%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 20px 14px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">Count the table</span><span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.14em;color:#AC9086">1 / 3</span></div>
+            <div style="margin:0 18px 16px;background:rgba(116,194,149,.12);border:1px solid rgba(116,194,149,.4);border-radius:6px;padding:15px 17px;display:flex;align-items:center;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:4px"><span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#74C295">Counted</span><span style="font:400 30px/1 'Libre Caslon Text',serif;color:#F3E7D9">€288 <span style="font-size:16px;color:#AC9086">of €288</span></span></div>
+              <span style="margin-left:auto;font:600 12px 'JetBrains Mono',monospace;letter-spacing:.1em;color:#74C295">BALANCED</span>
+            </div>
+            <div style="margin:0 18px;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 12px">Still seated</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €50</span></div><span style="margin-left:auto;font:500 18px 'JetBrains Mono',monospace;color:#F3E7D9">€96</span><span style="width:30px;height:30px;border:1px solid rgba(243,231,217,.22);border-radius:4px;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="2" stroke-linecap="round"><path d="M4 20h4L20 8l-4-4L4 16z"></path></svg></span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €100</span></div><span style="margin-left:auto;font:500 18px 'JetBrains Mono',monospace;color:#F3E7D9">€22</span><span style="width:30px;height:30px;border:1px solid rgba(243,231,217,.22);border-radius:4px;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="2" stroke-linecap="round"><path d="M4 20h4L20 8l-4-4L4 16z"></path></svg></span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €100</span></div><span style="margin-left:auto;font:500 18px 'JetBrains Mono',monospace;color:#F3E7D9">€143</span><span style="width:30px;height:30px;border:1px solid rgba(243,231,217,.22);border-radius:4px;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="2" stroke-linecap="round"><path d="M4 20h4L20 8l-4-4L4 16z"></path></svg></span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Petr</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €150</span></div><span style="margin-left:auto;font:500 18px 'JetBrains Mono',monospace;color:#F3E7D9">€27</span><span style="width:30px;height:30px;border:1px solid rgba(243,231,217,.22);border-radius:4px;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="2" stroke-linecap="round"><path d="M4 20h4L20 8l-4-4L4 16z"></path></svg></span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €50</span></div><span style="margin-left:auto;font:500 18px 'JetBrains Mono',monospace;color:#E2705A">€0</span><span style="width:30px;height:30px;border:1px solid rgba(243,231,217,.22);border-radius:4px;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="2" stroke-linecap="round"><path d="M4 20h4L20 8l-4-4L4 16z"></path></svg></span></div>
+            </div>
+            <div style="margin:22px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 12px">Already gone</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px 'Public Sans',sans-serif;color:#AC9086">Dana</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">cashed out 23:15 · in €50</span></div><span style="margin-left:auto;font:500 18px 'JetBrains Mono',monospace;color:#AC9086">€212</span></div>
+            </div>
+            <div style="margin-top:auto;padding:16px 18px 10px"><div style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Apply the money rules</span></div></div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Deductions</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">What the rules take, and from whom. Each can be switched off for the night without editing the rule.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="04b Deductions" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>23:42</span><span style="color:#AC9086">37%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 20px 14px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">Deductions</span><span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.14em;color:#AC9086">2 / 3</span></div>
+            <div style="margin:0 18px 14px;background:#2A1216;border-radius:6px;padding:18px 20px;display:flex;flex-direction:column;gap:8px">
+              <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Leaves the table</span>
+              <span style="font:400 46px/.9 'Libre Caslon Text',serif;color:#E0A83C">€80</span>
+              <span style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#AC9086">€68 back to Marek · €12 to Radka for the kitty</span>
+            </div>
+            <div style="margin:0 18px;display:flex;flex-direction:column;gap:10px">
+              <div style="background:#2A1216;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:10px"><span style="font:500 15.5px 'Public Sans',sans-serif;color:#F3E7D9">Kitchen &amp; drinks</span><span style="font:500 16px 'JetBrains Mono',monospace;color:#E0A83C;margin-left:auto">€68</span><span style="width:38px;height:22px;border-radius:11px;background:#74C295;display:flex;align-items:center;justify-content:flex-end;padding:2px;box-sizing:border-box"><span style="width:18px;height:18px;border-radius:50%;background:#1E0D11;display:block"></span></span></div>
+                <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#AC9086">Split three ways — €23, €23, €22. Collected by Marek, who fronted it.</div>
+                <div style="display:flex;gap:6px">
+                  <span style="flex:1;text-align:center;padding:8px 0;border-radius:3px;background:#E0A83C;font:600 11px 'JetBrains Mono',monospace;color:#20100C">EQUAL</span>
+                  <span style="flex:1;text-align:center;padding:8px 0;border-radius:3px;background:#37191E;font:500 11px 'JetBrains Mono',monospace;color:#AC9086">BY WIN SIZE</span>
+                  <span style="flex:1;text-align:center;padding:8px 0;border-radius:3px;background:#37191E;font:500 11px 'JetBrains Mono',monospace;color:#AC9086">EVERYONE</span>
+                </div>
+              </div>
+              <div style="background:#2A1216;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:10px"><span style="font:500 15.5px 'Public Sans',sans-serif;color:#F3E7D9">Group kitty · 5%</span><span style="font:500 16px 'JetBrains Mono',monospace;color:#E0A83C;margin-left:auto">€12</span><span style="width:38px;height:22px;border-radius:11px;background:#74C295;display:flex;align-items:center;justify-content:flex-end;padding:2px;box-sizing:border-box"><span style="width:18px;height:18px;border-radius:50%;background:#1E0D11;display:block"></span></span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <span style="font:500 10.5px 'JetBrains Mono',monospace;letter-spacing:.06em;padding:6px 8px;border-radius:3px;background:rgba(224,168,60,.16);color:#E0A83C">GROSS WIN · BEFORE THE BILL</span>
+                  </div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <div style="display:flex;align-items:baseline;gap:10px"><span style="font:400 13px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086">5% of €162</span><span style="margin-left:auto;font:500 13px 'JetBrains Mono',monospace;color:#E0A83C">€8</span></div>
+                  <div style="display:flex;align-items:baseline;gap:10px"><span style="font:400 13px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086">5% of €46</span><span style="margin-left:auto;font:500 13px 'JetBrains Mono',monospace;color:#E0A83C">€2</span></div>
+                  <div style="display:flex;align-items:baseline;gap:10px"><span style="font:400 13px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="font:400 12px 'JetBrains Mono',monospace;color:#AC9086">5% of €43</span><span style="margin-left:auto;font:500 13px 'JetBrains Mono',monospace;color:#E0A83C">€2</span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding-top:11px;border-top:1px solid rgba(243,231,217,.1)"><span style="font:400 12.5px 'Public Sans',sans-serif;color:#AC9086">Collected by <span style="color:#F3E7D9">Radka</span></span><span style="margin-left:auto;font:600 11px 'JetBrains Mono',monospace;color:#E0A83C">CHANGE</span></div>
+              </div>
+            </div>
+            <div style="margin:8px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">Winners after deductions</div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:12px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="font:400 12.5px 'JetBrains Mono',monospace;color:#AC9086">€162 − €31</span><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">+€131.23</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:12px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:400 12.5px 'JetBrains Mono',monospace;color:#AC9086">€46 − €25</span><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">+€21.03</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:12px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="font:400 12.5px 'JetBrains Mono',monospace;color:#AC9086">€43 − €24</span><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">+€19</span></div>
+              </div>
+            <div style="margin-top:auto;padding:16px 18px 10px"><div style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">See who pays whom</span></div></div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Settle up</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Fewest possible transfers, biggest debt paid to the biggest winner first. Editable if the room decides otherwise.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="04c Settle up" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>23:45</span><span style="color:#AC9086">36%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 20px 14px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><span style="font:400 21px 'Libre Caslon Text',serif;color:#F3E7D9">Settle up</span><span style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.14em;color:#AC9086">3 / 3</span></div>
+            <div style="margin:0 18px 16px;font:400 13px/1.55 'Public Sans',sans-serif;color:#AC9086">Six transfers clear the night. The kitty goes to Radka, who holds it.</div>
+            <div style="margin:0 18px;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Petr</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h14M13 7l5 5-5 5"></path></svg><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€123</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h14M13 7l5 5-5 5"></path></svg><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€78</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h14M13 7l5 5-5 5"></path></svg><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€11</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h14M13 7l5 5-5 5"></path></svg><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€19</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h14M13 7l5 5-5 5"></path></svg><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#F3E7D9">€8</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:15px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12);background:rgba(224,168,60,.07)"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h14M13 7l5 5-5 5"></path></svg><span style="font:600 14.5px 'Public Sans',sans-serif;color:#E0A83C">Radka · kitty</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#E0A83C">€12</span></div>
+            </div>
+            <div style="margin:22px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">Night's net</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 2px">
+                <span style="display:flex;align-items:baseline;gap:8px;padding:9px 12px;border-radius:4px;background:#2A1216"><span style="font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="font:500 13px 'JetBrains Mono',monospace;color:#74C295">+131</span></span>
+                <span style="display:flex;align-items:baseline;gap:8px;padding:9px 12px;border-radius:4px;background:#2A1216"><span style="font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:500 13px 'JetBrains Mono',monospace;color:#74C295">+21</span></span>
+                <span style="display:flex;align-items:baseline;gap:8px;padding:9px 12px;border-radius:4px;background:#2A1216"><span style="font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="font:500 13px 'JetBrains Mono',monospace;color:#74C295">+19</span></span>
+                <span style="display:flex;align-items:baseline;gap:8px;padding:9px 12px;border-radius:4px;background:#2A1216"><span style="font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><span style="font:500 13px 'JetBrains Mono',monospace;color:#E2705A">−50</span></span>
+                <span style="display:flex;align-items:baseline;gap:8px;padding:9px 12px;border-radius:4px;background:#2A1216"><span style="font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span><span style="font:500 13px 'JetBrains Mono',monospace;color:#E2705A">−78</span></span>
+                <span style="display:flex;align-items:baseline;gap:8px;padding:9px 12px;border-radius:4px;background:#2A1216"><span style="font:500 13px 'Public Sans',sans-serif;color:#F3E7D9">Petr</span><span style="font:500 13px 'JetBrains Mono',monospace;color:#E2705A">−123</span></span>
+              </div>
+            </div>
+            <div style="margin-top:auto;padding:16px 18px 10px;display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E0A83C;border-radius:5px"><span style="font:600 15px 'Public Sans',sans-serif;color:#20100C">Close the session</span></div>
+              <div style="display:flex;gap:9px">
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Edit transfers</span></div>
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Share</span></div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:20px;padding:36px 48px 40px;border-top:1px solid rgba(36,16,20,.14)">
+    <div style="display:flex;align-items:baseline;gap:14px;position:sticky;left:48px;width:max-content">
+      <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.1em;padding:5px 8px;background:#241014;color:#EDE6D8">05</span>
+      <h2 style="margin:0;font:400 22px/1.2 'Libre Caslon Text',serif;color:#241014">The book</h2>
+      <p style="margin:0;font:400 13px/1.5 'Public Sans',sans-serif;color:#7B615A">Night by night, month by month, and the running total until someone closes the book.</p>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:26px">
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">One session</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">The receipt for a finished night, kept exactly as it was settled.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="05a Session summary" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>9:12</span><span style="color:#AC9086">92%</span></div>
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 20px 14px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="1.9" stroke-linecap="round"><path d="M15 5l-7 7 7 7"></path></svg><div style="display:flex;flex-direction:column;gap:3px"><span style="font:400 20px 'Libre Caslon Text',serif;color:#F3E7D9">Tue 4 August</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">20:05 → 23:45 · 3h 40m</span></div><span style="margin-left:auto;font:500 10px 'JetBrains Mono',monospace;letter-spacing:.14em;padding:5px 8px;border-radius:3px;background:#37191E;color:#AC9086">SETTLED</span></div>
+            <div style="display:flex;gap:10px;margin:0 18px 14px">
+              <div style="flex:1;background:#2A1216;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><span style="font:400 26px/1 'Libre Caslon Text',serif;color:#F3E7D9">€500</span><span style="font:500 10px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">through the table</span></div>
+              <div style="flex:1;background:#2A1216;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><span style="font:400 26px/1 'Libre Caslon Text',serif;color:#F3E7D9">6</span><span style="font:500 10px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">players · 11 entries</span></div>
+            </div>
+            <div style="margin:6px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">Net, after deductions</div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €50 · out €212</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#74C295">+131</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €50 · out €96</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#74C295">+21</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €100 · out €143</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#74C295">+19</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €50 · out €0</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#E2705A">−50</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €100 · out €22</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#E2705A">−78</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Petr</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">in €150 · out €27</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#E2705A">−123</span></div>
+            </div>
+            <div style="margin:20px 18px 0;background:#2A1216;border-radius:6px;padding:15px 17px;display:flex;flex-direction:column;gap:10px">
+              <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Off the table</span>
+              <div style="display:flex;align-items:baseline;gap:10px"><span style="font:400 13.5px 'Public Sans',sans-serif;color:#F3E7D9">Kitchen &amp; drinks → Marek</span><span style="margin-left:auto;font:500 14px 'JetBrains Mono',monospace;color:#F3E7D9">€68</span></div>
+              <div style="display:flex;align-items:baseline;gap:10px"><span style="font:400 13.5px 'Public Sans',sans-serif;color:#F3E7D9">Kitty · 5% of wins</span><span style="margin-left:auto;font:500 14px 'JetBrains Mono',monospace;color:#E0A83C">€12</span></div>
+            </div>
+            <div style="margin:16px 18px 0;font:400 12px/1.5 'Public Sans',sans-serif;color:#AC9086">Longest session this month. Biggest single pot not tracked — the ledger records money, not hands.</div>
+            <div style="margin-top:auto;padding:14px 18px 10px;display:flex;gap:9px">
+              <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Full ledger</span></div>
+              <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px 0;border:1px solid rgba(243,231,217,.22);border-radius:5px"><span style="font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Share</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">A month</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Sessions stacked, everyone's net for the month, and where the kitty stands.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="05b Month" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>9:14</span><span style="color:#AC9086">92%</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 20px 14px"><span style="font:400 22px 'Libre Caslon Text',serif;color:#F3E7D9">August 2026</span><div style="margin-left:auto;display:flex;gap:6px"><span style="width:30px;height:30px;border:1px solid rgba(243,231,217,.2);border-radius:4px;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3E7D9" stroke-width="2" stroke-linecap="round"><path d="M14 6l-6 6 6 6"></path></svg></span><span style="width:30px;height:30px;border:1px solid rgba(243,231,217,.12);border-radius:4px;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(172,144,134,.5)" stroke-width="2" stroke-linecap="round"><path d="M10 6l6 6-6 6"></path></svg></span></div></div>
+            <div style="display:flex;gap:2px;margin:0 18px 16px;background:#2A1216;border-radius:6px;overflow:hidden;flex:none">
+              <div style="flex:1;padding:14px 14px;display:flex;flex-direction:column;gap:4px"><span style="font:400 26px/1 'Libre Caslon Text',serif;color:#74C295">+€112</span><span style="font:500 10px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">your net</span></div>
+              <div style="flex:1;padding:14px 14px;display:flex;flex-direction:column;gap:4px;border-left:1px solid rgba(243,231,217,.1)"><span style="font:400 26px/1 'Libre Caslon Text',serif;color:#F3E7D9">4</span><span style="font:500 10px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">sessions</span></div>
+              <div style="flex:1;padding:14px 14px;display:flex;flex-direction:column;gap:4px;border-left:1px solid rgba(243,231,217,.1)"><span style="font:400 26px/1 'Libre Caslon Text',serif;color:#F3E7D9">€1,780</span><span style="font:500 10px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#AC9086">in play</span></div>
+            </div>
+            <div style="margin:0 18px;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">Sessions</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tue 4 Aug</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">6 players · €500</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">+21</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tue 11 Aug</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">5 players · €400</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#E2705A">−64</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Fri 21 Aug</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">7 players · €640</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">+97</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#F3E7D9">Tue 25 Aug</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">4 players · €240</span></div><span style="margin-left:auto;font:500 16px 'JetBrains Mono',monospace;color:#74C295">+58</span></div>
+            </div>
+            <div style="margin:20px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">The group this month</div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:11px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 14px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">4 nights</span><span style="margin-left:auto;font:500 15px 'JetBrains Mono',monospace;color:#74C295">+284</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:11px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 14px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">4 nights</span><span style="margin-left:auto;font:500 15px 'JetBrains Mono',monospace;color:#74C295">+112</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:11px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 14px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">2 nights</span><span style="margin-left:auto;font:500 15px 'JetBrains Mono',monospace;color:#E2705A">−92</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:11px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:500 14px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">4 nights</span><span style="margin-left:auto;font:500 15px 'JetBrains Mono',monospace;color:#E2705A">−141</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:11px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><span style="font:500 14px 'Public Sans',sans-serif;color:#F3E7D9">Petr</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">3 nights</span><span style="margin-left:auto;font:500 15px 'JetBrains Mono',monospace;color:#E2705A">−181</span></div>
+            </div>
+            <div style="margin:18px 18px 0;background:#2A1216;border-left:2px solid #E0A83C;border-radius:0 6px 6px 0;padding:14px 16px;display:flex;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;gap:3px"><span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#E0A83C">Kitty</span><span style="font:400 13px 'Public Sans',sans-serif;color:#F3E7D9">€39 added in August</span></div><span style="margin-left:auto;font:400 24px 'Libre Caslon Text',serif;color:#F3E7D9">€142</span></div>
+            <div style="margin-top:auto;display:flex;border-top:1px solid rgba(243,231,217,.12);background:#1E0D11;padding:0 10px 4px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><path d="M4 10.5L12 4l8 6.5V20H4z"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Home</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"></ellipse><path d="M8 12h8"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Table</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px;box-shadow:inset 0 2px 0 #E0A83C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0A83C" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h9l5 5v11H5z"></path><path d="M8 11h8M8 15h5"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#E0A83C">Book</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AC9086" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"></circle><path d="M3 19.5c.7-3 3-4.6 6-4.6s5.3 1.6 6 4.6"></path><path d="M16 6.5a3 3 0 0 1 0 5.6M18.5 19.5c-.3-1.5-.9-2.7-1.8-3.6"></path></svg><span style="font:600 10px 'Public Sans',sans-serif;color:#AC9086">Group</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">All time</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">Everything since the book was opened. Closing it freezes the totals and starts a fresh one.</div>
+        </div>
+        <div style="background:#150809;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="05c All time" style="position:relative;background:#1E0D11;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 6px;font:500 13px 'JetBrains Mono',monospace;color:#F3E7D9"><span>9:16</span><span style="color:#AC9086">91%</span></div>
+            <div style="padding:14px 20px 14px;display:flex;flex-direction:column;gap:4px"><span style="font:400 22px 'Libre Caslon Text',serif;color:#F3E7D9">The book</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">open since 3 January 2026 · 27 sessions</span></div>
+            <div style="margin:0 18px 14px;background:#2A1216;border-radius:6px;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:flex-end;gap:12px"><div style="display:flex;flex-direction:column;gap:5px"><span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086">Your standing</span><span style="font:400 50px/.9 'Libre Caslon Text',serif;color:#74C295">+€418</span></div><span style="margin-left:auto;font:400 12px/1.5 'Public Sans',sans-serif;color:#AC9086;text-align:right">across 27<br>nights</span></div>
+              <div style="height:1px;background:rgba(243,231,217,.12)"></div>
+              <div style="display:flex;gap:16px"><span style="font:400 12.5px 'Public Sans',sans-serif;color:#AC9086">€11,450 through the table</span><span style="font:400 12.5px 'Public Sans',sans-serif;color:#AC9086">€284 to kitty</span></div>
+            </div>
+            <div style="margin:0 18px;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">Standings</div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:400 13px 'JetBrains Mono',monospace;color:#E0A83C;width:18px">1</span><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Dana</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">24 nights</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#74C295">+912</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:400 13px 'JetBrains Mono',monospace;color:#AC9086;width:18px">2</span><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Marek</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">27 nights</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#74C295">+418</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:400 13px 'JetBrains Mono',monospace;color:#AC9086;width:18px">3</span><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Lena</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">19 nights</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#74C295">+97</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:400 13px 'JetBrains Mono',monospace;color:#AC9086;width:18px">4</span><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Tomáš</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">14 nights</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#E2705A">−318</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12)"><span style="font:400 13px 'JetBrains Mono',monospace;color:#AC9086;width:18px">5</span><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Ivo</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">26 nights</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#E2705A">−496</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 2px;border-top:1px solid rgba(243,231,217,.12);border-bottom:1px solid rgba(243,231,217,.12)"><span style="font:400 13px 'JetBrains Mono',monospace;color:#AC9086;width:18px">6</span><span style="font:600 15px 'Public Sans',sans-serif;color:#F3E7D9">Petr</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#AC9086">22 nights</span><span style="margin-left:auto;font:500 17px 'JetBrains Mono',monospace;color:#E2705A">−538</span></div>
+            </div>
+            <div style="margin:20px 18px 0;display:flex;flex-direction:column">
+              <div style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#AC9086;padding:0 2px 10px">By month</div>
+              <div style="display:flex;align-items:flex-end;gap:7px;height:74px;padding:0 2px">
+                <span style="flex:1;height:38%;background:#37191E;border-radius:2px;display:block"></span>
+                <span style="flex:1;height:52%;background:#37191E;border-radius:2px;display:block"></span>
+                <span style="flex:1;height:30%;background:#37191E;border-radius:2px;display:block"></span>
+                <span style="flex:1;height:66%;background:#37191E;border-radius:2px;display:block"></span>
+                <span style="flex:1;height:44%;background:#37191E;border-radius:2px;display:block"></span>
+                <span style="flex:1;height:80%;background:#37191E;border-radius:2px;display:block"></span>
+                <span style="flex:1;height:58%;background:#37191E;border-radius:2px;display:block"></span>
+                <span style="flex:1;height:100%;background:#E0A83C;border-radius:2px;display:block"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 2px 0"><span style="font:400 10.5px 'JetBrains Mono',monospace;color:#AC9086">JAN</span><span style="font:400 10.5px 'JetBrains Mono',monospace;color:#E0A83C">AUG</span></div>
+            </div>
+            <div style="margin-top:auto;padding:16px 18px 10px;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;justify-content:center;padding:15px;border:1px solid rgba(226,112,90,.5);border-radius:5px"><span style="font:600 14.5px 'Public Sans',sans-serif;color:#E2705A">Close this book</span></div>
+              <span style="text-align:center;font:400 11.5px/1.5 'Public Sans',sans-serif;color:#AC9086">Freezes every total and starts a new book. Nothing is deleted.</span>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(243,231,217,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <sc-if value="{{ showStyleGuide }}" hint-placeholder-val="{{ true }}">
+  <section style="display:flex;flex-direction:column;gap:20px;padding:36px 48px 60px;border-top:1px solid rgba(36,16,20,.14)">
+    <div style="display:flex;align-items:baseline;gap:14px;position:sticky;left:48px;width:max-content">
+      <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.1em;padding:5px 8px;background:#241014;color:#EDE6D8">06</span>
+      <h2 style="margin:0;font:400 22px/1.2 'Libre Caslon Text',serif;color:#241014">Style — Card room</h2>
+      <p style="margin:0;font:400 13px/1.5 'Public Sans',sans-serif;color:#7B615A">A first pass, deliberately unlike the tournament app.</p>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:22px">
+      <div style="width:520px;flex:none;background:#241014;border-radius:8px;padding:26px;display:flex;flex-direction:column;gap:22px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:#AC9086">Surfaces &amp; ink</span>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;height:74px;background:#1E0D11;border-radius:5px;border:1px solid rgba(243,231,217,.12);display:flex;align-items:flex-end;padding:8px"><span style="font:400 10px 'JetBrains Mono',monospace;color:#AC9086">1E0D11</span></div>
+            <div style="flex:1;height:74px;background:#2A1216;border-radius:5px;display:flex;align-items:flex-end;padding:8px"><span style="font:400 10px 'JetBrains Mono',monospace;color:#AC9086">2A1216</span></div>
+            <div style="flex:1;height:74px;background:#37191E;border-radius:5px;display:flex;align-items:flex-end;padding:8px"><span style="font:400 10px 'JetBrains Mono',monospace;color:#AC9086">37191E</span></div>
+            <div style="flex:1;height:74px;background:#E0A83C;border-radius:5px;display:flex;align-items:flex-end;padding:8px"><span style="font:400 10px 'JetBrains Mono',monospace;color:#20100C">E0A83C</span></div>
+            <div style="flex:1;height:74px;background:#74C295;border-radius:5px;display:flex;align-items:flex-end;padding:8px"><span style="font:400 10px 'JetBrains Mono',monospace;color:#0E2417">74C295</span></div>
+            <div style="flex:1;height:74px;background:#E2705A;border-radius:5px;display:flex;align-items:flex-end;padding:8px"><span style="font:400 10px 'JetBrains Mono',monospace;color:#2A0D07">E2705A</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:#AC9086">Type</span>
+          <div style="display:flex;flex-direction:column;gap:3px"><span style="font:400 34px/1.05 'Libre Caslon Text',serif;color:#F3E7D9">Libre Caslon Text — money &amp; titles</span><span style="font:400 11px 'JetBrains Mono',monospace;color:#AC9086">400 · hero amounts 40–62px · screen titles 19–22px</span></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 19px/1.2 'Public Sans',sans-serif;color:#F3E7D9">Public Sans — labels, rows, buttons</span><span style="font:400 11px 'JetBrains Mono',monospace;color:#AC9086">400/500/600 · body 13 · row 15 · button 15</span></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><span style="font:500 17px/1.2 'JetBrains Mono',monospace;color:#F3E7D9">JetBrains Mono — 23:15 · +€100 · 5%</span><span style="font:400 11px 'JetBrains Mono',monospace;color:#AC9086">timestamps, ledger amounts, rule chips, all uppercase micro-labels</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:#AC9086">Parts</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+            <span style="padding:13px 18px;background:#E0A83C;border-radius:5px;font:600 14px 'Public Sans',sans-serif;color:#20100C">Primary</span>
+            <span style="padding:13px 18px;border:1px solid rgba(243,231,217,.22);border-radius:5px;font:600 14px 'Public Sans',sans-serif;color:#F3E7D9">Secondary</span>
+            <span style="padding:13px 18px;border:1px solid rgba(226,112,90,.5);border-radius:5px;font:600 14px 'Public Sans',sans-serif;color:#E2705A">Destructive</span>
+            <span style="padding:7px 10px;border-radius:3px;background:#37191E;font:500 11px 'JetBrains Mono',monospace;color:#F3E7D9">RULE CHIP</span>
+            <span style="padding:7px 10px;border-radius:3px;background:rgba(224,168,60,.16);font:500 11px 'JetBrains Mono',monospace;color:#E0A83C">5% OF WIN</span>
+            <span style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;background:#74C295;display:block;border-radius:50%"></span><span style="font:600 10px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#74C295">LIVE</span></span>
+          </div>
+        </div>
+      </div>
+      <div style="width:420px;flex:none;display:flex;flex-direction:column;gap:14px;padding:24px;background:#E5DBC8;border-radius:8px">
+        <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:#8C3A22">Not the tournament app</span>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <div style="display:flex;gap:10px"><span style="font:400 12px 'JetBrains Mono',monospace;color:#8C3A22;padding-top:2px">01</span><span style="font:400 13.5px/1.55 'Public Sans',sans-serif;color:#241014">Corners are 5–6 px, not 22–38 px. Rows sit on hairlines instead of inside stacked cards.</span></div>
+          <div style="display:flex;gap:10px"><span style="font:400 12px 'JetBrains Mono',monospace;color:#8C3A22;padding-top:2px">02</span><span style="font:400 13.5px/1.55 'Public Sans',sans-serif;color:#241014">Numbers are Caslon, not condensed sans. Money reads like a ledger, not a scoreboard.</span></div>
+          <div style="display:flex;gap:10px"><span style="font:400 12px 'JetBrains Mono',monospace;color:#8C3A22;padding-top:2px">03</span><span style="font:400 13.5px/1.55 'Public Sans',sans-serif;color:#241014">Oxblood and brass instead of dusk purple and apricot. One theme for now; a bone daylight variant is the obvious second.</span></div>
+          <div style="display:flex;gap:10px"><span style="font:400 12px 'JetBrains Mono',monospace;color:#8C3A22;padding-top:2px">04</span><span style="font:400 13.5px/1.55 'Public Sans',sans-serif;color:#241014">Four tabs, active marked by a 2 px top rule — no filled pills, no accent dot.</span></div>
+          <div style="display:flex;gap:10px"><span style="font:400 12px 'JetBrains Mono',monospace;color:#8C3A22;padding-top:2px">05</span><span style="font:400 13.5px/1.55 'Public Sans',sans-serif;color:#241014">Nothing counts down. The largest number on any screen is money, and the clock only ever states a time.</span></div>
+        </div>
+        <div style="height:1px;background:rgba(36,16,20,.16);margin:4px 0"></div>
+        <span style="font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:#8C3A22">Open</span>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font:400 13px/1.5 'Public Sans',sans-serif;color:#241014">Daylight theme · Group and player screens · Editing a past session after it settled · Whether viewers may confirm their own count</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:22px">
+      <div style="width:520px;flex:none;background:#0E1A14;border-radius:3px;padding:26px;display:flex;flex-direction:column;gap:22px">
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font:500 10px/1 'DM Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:#8FA394">Direction B</span><span style="font:700 30px/1 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.02em">BAIZE</span><span style="font:400 12.5px/1.55 'Archivo',sans-serif;color:#8FA394">Table felt and chalk. Denser, squarer, all sans: numbers in DM Mono so amounts and times share one grid. 3 px corners, hairlines instead of cards.</span></div>
+        <div style="display:flex;gap:6px">
+          <div style="flex:1;height:70px;background:#0A130E;border:1px solid rgba(231,237,228,.12);display:flex;align-items:flex-end;padding:7px"><span style="font:400 10px 'DM Mono',monospace;color:#8FA394">0A130E</span></div>
+          <div style="flex:1;height:70px;background:#16241B;display:flex;align-items:flex-end;padding:7px"><span style="font:400 10px 'DM Mono',monospace;color:#8FA394">16241B</span></div>
+          <div style="flex:1;height:70px;background:#1F3125;display:flex;align-items:flex-end;padding:7px"><span style="font:400 10px 'DM Mono',monospace;color:#8FA394">1F3125</span></div>
+          <div style="flex:1;height:70px;background:#D9E24F;display:flex;align-items:flex-end;padding:7px"><span style="font:400 10px 'DM Mono',monospace;color:#16241B">D9E24F</span></div>
+          <div style="flex:1;height:70px;background:#7BD8A4;display:flex;align-items:flex-end;padding:7px"><span style="font:400 10px 'DM Mono',monospace;color:#0A130E">7BD8A4</span></div>
+          <div style="flex:1;height:70px;background:#F0705C;display:flex;align-items:flex-end;padding:7px"><span style="font:400 10px 'DM Mono',monospace;color:#2A0D07">F0705C</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:3px"><span style="font:700 26px/1.05 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.02em">Archivo 600/700 — titles &amp; rows</span><span style="font:400 11px 'DM Mono',monospace;color:#8FA394">tight tracking · title 19 · row 13.5 · label 10 uppercase</span></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><span style="font:500 22px/1.1 'DM Mono',monospace;color:#E7EDE4">€288 · 23:15 · +€100</span><span style="font:400 11px 'DM Mono',monospace;color:#8FA394">DM Mono carries every number, hero to hairline</span></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center">
+          <span style="padding:12px 17px;background:#D9E24F;font:600 13.5px 'Archivo',sans-serif;color:#16241B">Primary</span>
+          <span style="padding:12px 17px;border:1px solid rgba(231,237,228,.24);font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4">Secondary</span>
+          <span style="padding:6px 9px;background:#1F3125;font:500 10.5px 'DM Mono',monospace;letter-spacing:.06em;color:#E7EDE4">5% OF WIN</span>
+          <span style="padding:6px 9px;background:rgba(217,226,79,.18);font:500 10.5px 'DM Mono',monospace;letter-spacing:.06em;color:#D9E24F">WINNERS ONLY</span>
+        </div>
+      </div>
+      <div style="width:422px;flex:none;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:5px;min-height:58px">
+          <div style="font:600 15px/1.2 'Public Sans',sans-serif;color:#241014">Baize — the ledger</div>
+          <div style="font:400 12.5px/1.5 'Public Sans',sans-serif;color:#7B615A;max-width:390px;text-wrap:pretty">The main screen in direction B, so the two can be judged on the work rather than on swatches.</div>
+        </div>
+        <div style="background:#050A07;padding:10px;width:422px;box-sizing:border-box;border-radius:14px">
+          <div data-screen-label="06b Baize ledger" style="position:relative;background:#0A130E;border-radius:8px;overflow:hidden;width:402px;height:874px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 6px;font:500 12.5px 'DM Mono',monospace;color:#E7EDE4"><span>23:22</span><span style="color:#8FA394">41%</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 20px 14px"><div style="display:flex;flex-direction:column;gap:2px"><span style="font:700 19px/1.1 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.02em">TUESDAY CASH</span><span style="font:400 11px 'DM Mono',monospace;color:#8FA394">20:05 → now · 3h 17m</span></div><span style="margin-left:auto;font:500 10px 'DM Mono',monospace;letter-spacing:.16em;padding:5px 8px;background:rgba(123,216,164,.16);color:#7BD8A4">LIVE</span></div>
+            <div style="display:flex;margin:0 20px;border-top:1px solid rgba(231,237,228,.16);border-bottom:1px solid rgba(231,237,228,.16);flex:none">
+              <div style="flex:1;padding:12px 0;display:flex;flex-direction:column;gap:2px"><span style="font:500 26px/1 'DM Mono',monospace;color:#D9E24F">€288</span><span style="font:500 9.5px 'DM Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:#8FA394">on table</span></div>
+              <div style="flex:1;padding:12px 0;display:flex;flex-direction:column;gap:2px"><span style="font:500 26px/1 'DM Mono',monospace;color:#E7EDE4">€500</span><span style="font:500 9.5px 'DM Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:#8FA394">cash in</span></div>
+              <div style="flex:1;padding:12px 0;display:flex;flex-direction:column;gap:2px"><span style="font:500 26px/1 'DM Mono',monospace;color:#E7EDE4">5</span><span style="font:500 9.5px 'DM Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:#8FA394">seated</span></div>
+            </div>
+            <div style="display:flex;align-items:baseline;padding:16px 20px 6px"><span style="font:500 10px 'DM Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8FA394">Tonight · 11 entries</span><span style="margin-left:auto;font:500 10.5px 'DM Mono',monospace;letter-spacing:.1em;color:#D9E24F">FILTER</span></div>
+            <div style="flex:1;overflow:hidden;margin:0 20px;display:flex;flex-direction:column">
+              <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(231,237,228,.1);align-items:baseline"><span style="font:400 11.5px 'DM Mono',monospace;color:#8FA394;width:38px;flex:none">23:15</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.01em">Dana cashed out</span><span style="font:400 11px 'Archivo',sans-serif;color:#8FA394">left the table · in €50</span></div><span style="margin-left:auto;font:500 15px 'DM Mono',monospace;color:#7BD8A4">−€212</span></div>
+              <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(231,237,228,.1);align-items:baseline"><span style="font:400 11.5px 'DM Mono',monospace;color:#8FA394;width:38px;flex:none">22:30</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.01em">Tomáš joined</span><span style="font:400 11px 'Archivo',sans-serif;color:#8FA394">first buy-in</span></div><span style="margin-left:auto;font:500 15px 'DM Mono',monospace;color:#E7EDE4">+€50</span></div>
+              <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(231,237,228,.1);align-items:baseline"><span style="font:400 11.5px 'DM Mono',monospace;color:#8FA394;width:38px;flex:none">22:03</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.01em">Petr rebought</span><span style="font:400 11px 'Archivo',sans-serif;color:#8FA394">second time · in €150</span></div><span style="margin-left:auto;font:500 15px 'DM Mono',monospace;color:#E7EDE4">+€100</span></div>
+              <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(231,237,228,.1);align-items:baseline;background:rgba(217,226,79,.08)"><span style="font:400 11.5px 'DM Mono',monospace;color:#D9E24F;width:38px;flex:none">21:48</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4">Pizza &amp; drinks</span><span style="font:400 11px 'Archivo',sans-serif;color:#8FA394">Marek paid · splits by winners</span></div><span style="margin-left:auto;font:500 15px 'DM Mono',monospace;color:#D9E24F">€68</span></div>
+              <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(231,237,228,.1);align-items:baseline"><span style="font:400 11.5px 'DM Mono',monospace;color:#8FA394;width:38px;flex:none">21:12</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.01em">Ivo rebought</span><span style="font:400 11px 'Archivo',sans-serif;color:#8FA394">in €100</span></div><span style="margin-left:auto;font:500 15px 'DM Mono',monospace;color:#E7EDE4">+€50</span></div>
+              <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(231,237,228,.1);align-items:baseline"><span style="font:400 11.5px 'DM Mono',monospace;color:#8FA394;width:38px;flex:none">20:41</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.01em">Dana joined</span><span style="font:400 11px 'Archivo',sans-serif;color:#8FA394">late · first buy-in</span></div><span style="margin-left:auto;font:500 15px 'DM Mono',monospace;color:#E7EDE4">+€50</span></div>
+              <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(231,237,228,.1);align-items:baseline"><span style="font:400 11.5px 'DM Mono',monospace;color:#8FA394;width:38px;flex:none">20:09</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.01em">Petr bought in</span></div><span style="margin-left:auto;font:500 15px 'DM Mono',monospace;color:#E7EDE4">+€50</span></div>
+              <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(231,237,228,.1);align-items:baseline"><span style="font:400 11.5px 'DM Mono',monospace;color:#8FA394;width:38px;flex:none">20:07</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4;letter-spacing:-.01em">Lena bought in</span><span style="font:400 11px 'Archivo',sans-serif;color:#8FA394">double buy-in</span></div><span style="margin-left:auto;font:500 15px 'DM Mono',monospace;color:#E7EDE4">+€100</span></div>
+              <div style="display:flex;gap:12px;padding:11px 0;align-items:baseline"><span style="font:400 11.5px 'DM Mono',monospace;color:#8FA394;width:38px;flex:none">20:05</span><span style="font:500 13.5px 'Archivo',sans-serif;color:#8FA394">Table opened · 0.50 / 1</span></div>
+            </div>
+            <div style="display:flex;gap:7px;padding:12px 20px;border-top:1px solid rgba(231,237,228,.16)"><div style="flex:1.3;display:flex;align-items:center;justify-content:center;gap:7px;padding:14px 0;background:#D9E24F"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16241B" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg><span style="font:600 13.5px 'Archivo',sans-serif;color:#16241B">BUY-IN</span></div><div style="flex:1;display:flex;align-items:center;justify-content:center;padding:14px 0;border:1px solid rgba(231,237,228,.24)"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4">CASH OUT</span></div><div style="flex:.8;display:flex;align-items:center;justify-content:center;padding:14px 0;border:1px solid rgba(231,237,228,.24)"><span style="font:600 13.5px 'Archivo',sans-serif;color:#E7EDE4">BILL</span></div></div>
+            <div style="display:flex;border-top:1px solid rgba(231,237,228,.16);padding:0 8px 4px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 0 7px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8FA394" stroke-width="1.8" stroke-linecap="round"><path d="M4 10.5L12 4l8 6.5V20H4z"></path></svg><span style="font:600 9.5px 'DM Mono',monospace;letter-spacing:.06em;color:#8FA394">HOME</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 0 7px;box-shadow:inset 0 2px 0 #D9E24F"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#D9E24F" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"></ellipse><path d="M8 12h8"></path></svg><span style="font:600 9.5px 'DM Mono',monospace;letter-spacing:.06em;color:#D9E24F">TABLE</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 0 7px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8FA394" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h9l5 5v11H5z"></path><path d="M8 11h8M8 15h5"></path></svg><span style="font:600 9.5px 'DM Mono',monospace;letter-spacing:.06em;color:#8FA394">BOOK</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 0 7px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8FA394" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"></circle><path d="M3 19.5c.7-3 3-4.6 6-4.6s5.3 1.6 6 4.6"></path><path d="M16 6.5a3 3 0 0 1 0 5.6M18.5 19.5c-.3-1.5-.9-2.7-1.8-3.6"></path></svg><span style="font:600 9.5px 'DM Mono',monospace;letter-spacing:.06em;color:#8FA394">GROUP</span></div>
+            </div>
+            <div style="display:flex;justify-content:center;padding:4px 0 8px"><span style="width:134px;height:5px;border-radius:3px;background:rgba(231,237,228,.3)"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showStyleGuide&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Board&quot;},&quot;showViewerFrame&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Board&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showStyleGuide: this.props.showStyleGuide ?? true,
+      showViewerFrame: this.props.showViewerFrame ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>
