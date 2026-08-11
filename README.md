@@ -20,6 +20,9 @@ handoff explicitly asked for a platform/infrastructure decision and a build plan
 - **[`docs/build-plan.md`](docs/build-plan.md)** — the recommendation and build plan:
   platform, backend & data, realtime & offline, identity, money integrity, phasing, and
   cost/operations. Read this first.
+- **[`docs/pricing-model.md`](docs/pricing-model.md)** — how it makes money: tiers, the
+  host/player split, price points, trial, the alternatives considered, and what billing
+  adds to the schema.
 - **[`design/`](design/)** — the original design references (HTML prototypes, high
   fidelity). Open the `.dc.html` files in a browser with `support.js` beside them; pan
   horizontally. `Style Guide v2` has the colour, type, spacing and navigation rules;
