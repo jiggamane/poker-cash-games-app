@@ -97,12 +97,16 @@ export const lightTheme: Theme = {
   dashed: 'rgba(12,13,15,0.28)',
   win: '#0A7A3D',
   loss: '#C0341B',
-  // The bright theme shows a tint more strongly, so the wash is lighter.
-  winWash: 'rgba(10,122,61,0.07)',
-  lossWash: 'rgba(192,52,27,0.07)',
+  // Lighter again after seeing it on a phone: on white, a wash strong enough to
+  // notice turns a run of rows into one solid block and swallows the hairlines
+  // between them, which reads as a card — the one thing the row system forbids.
+  winWash: 'rgba(10,122,61,0.05)',
+  lossWash: 'rgba(192,52,27,0.05)',
   // Bone falls back to INK here, with the row carrying the bone instead.
   offTable: '#0C0D0F',
-  offTableWash: 'rgba(217,211,196,0.38)',
+  // Bone is the worst offender here: two adjacent deduction rows became a single
+  // beige rectangle. Halved, so the rows read as rows again.
+  offTableWash: 'rgba(217,211,196,0.18)',
   onFill: '#FFFFFF',
   keyline: '#FFFFFF',
   danger: '#C0341B',
