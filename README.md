@@ -29,6 +29,8 @@ cd apps/mobile && npm start   # scan the QR code with Expo Go
 - **[`docs/build-plan.md`](docs/build-plan.md)** — the recommendation and build plan:
   platform, backend & data, realtime & offline, identity, money integrity, phasing, and
   cost/operations. Start here if you want to know why.
+- **[`docs/settlement-rules.md`](docs/settlement-rules.md)** — exactly how the money rules
+  are interpreted, and **six decisions that need a designer's confirmation**.
 - **[`design/`](design/)** — the original design references (HTML prototypes, high
   fidelity). Open the `.dc.html` files in a browser with `support.js` beside them; pan
   horizontally. `Style Guide v2` has the colour, type, spacing and navigation rules;

@@ -112,10 +112,14 @@ describe('allocate() — the rounding rule', () => {
   });
 
   it('never creates or loses a unit across many random cases', () => {
-    // Deterministic pseudo-random so a failure is reproducible.
+    // Deterministic pseudo-random so a failure is reproducible. xorshift32,
+    // kept inside 32 bits — a plain LCG overflows Number.MAX_SAFE_INTEGER here
+    // and quietly stops being random.
     let seed = 12345;
     const next = (n: number) => {
-      seed = (seed * 1103515245 + 12345) % 2147483648;
+      seed ^= seed << 13; seed >>>= 0;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5; seed >>>= 0;
       return seed % n;
     };
     for (let i = 0; i < 2000; i++) {
