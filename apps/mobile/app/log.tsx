@@ -7,7 +7,7 @@ import { Icon } from '../src/components/Icon';
 import { Keypad, appendDigits } from '../src/components/Keypad';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { control, radius, space, type } from '../src/design/tokens';
 import {
   buyIn,
   cashOut,
@@ -248,9 +248,17 @@ const styles = StyleSheet.create({
   overTable: { fontSize: 13, fontWeight: '500', paddingHorizontal: 30, textAlign: 'center' },
   amount: { fontSize: 68, fontWeight: '800', letterSpacing: -3.4, fontVariant: ['tabular-nums'] },
 
+  /*
+   * Three equal slots across the content zone. The button's own 24 of side
+   * padding is dropped here: kept, it leaves a 115 wide chip only 67 for its
+   * label, which is under what "Custom" needs — the word was being clipped
+   * mid-letter. The label is centred by the button, so the padding was doing
+   * nothing but taking the room away. minWidth 0 stops a long label widening
+   * the slot instead of sitting inside it.
+   */
   presets: { flexDirection: 'row', gap: 8, paddingHorizontal: space.card, paddingBottom: 16 },
-  presetSlot: { flex: 1, alignItems: 'center', gap: 3 },
-  preset: { width: '100%', height: 44 },
+  presetSlot: { flex: 1, minWidth: 0, alignItems: 'center', gap: 3 },
+  preset: { width: '100%', height: control.presetHeight, paddingHorizontal: 0 },
   presetCaption: { fontSize: 9, fontWeight: '700', letterSpacing: 0.72 },
 
   result: {

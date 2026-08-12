@@ -11,7 +11,7 @@ import {
 import { Button } from '../src/components/Button';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { control, radius, space, type } from '../src/design/tokens';
 import { deleteRule, draftRule, saveRule, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
@@ -208,12 +208,12 @@ export default function RuleEditor() {
       <Section label="Charged to">
         <Radio
           on={rule.charge === 'winners_only'}
-          label={percent ? 'Winners, off their net win' : 'The winners'}
+          label="All winners"
           onPress={() => set({ charge: 'winners_only' })}
         />
         <Radio
           on={rule.charge === 'everyone_flat'}
-          label="Everyone at the table"
+          label="Top winner"
           disabled={percent}
           hint={percent ? 'A percentage of a loss is not a thing' : undefined}
           onPress={() => set({ charge: 'everyone_flat', split: 'evenly' })}
@@ -297,15 +297,15 @@ export default function RuleEditor() {
         <Segment
           options={[
             { key: 'gross', label: 'The gross win' },
-            { key: 'net_after_others', label: 'What is left after the others' },
+            { key: 'net_after_others', label: 'After deductions' },
           ]}
           value={rule.basis}
           onChange={(k) => set({ basis: k as MoneyRule['basis'] })}
         />
         <Text style={[styles.explain, { color: t.muted }]}>
-          Rules run in order. "What is left" means this one is taken after the rules above it have
-          already come off, which is how a kitty ends up smaller than the same percentage of the
-          gross.
+          Rules run in order. "After deductions" means this one is taken once the rules above it
+          have already come off, which is how a kitty ends up smaller than the same percentage of
+          the gross.
         </Text>
       </Section>
 
@@ -363,7 +363,7 @@ function Segment({
 }) {
   const t = useTheme();
   return (
-    <View style={[styles.segment, { borderColor: t.quietOutline }]}>
+    <View style={[styles.segment, { backgroundColor: t.surface }]}>
       {options.map((o) => {
         const on = o.key === value;
         return (
@@ -375,6 +375,7 @@ function Segment({
             style={[styles.segmentItem, on && { backgroundColor: t.text }]}
           >
             <Text
+              numberOfLines={1}
               style={[
                 on ? styles.segmentOn : styles.segmentOff,
                 { color: on ? t.onFill : t.muted },
@@ -445,22 +446,49 @@ const styles = StyleSheet.create({
   figure: { fontSize: 56, fontWeight: '800', letterSpacing: -2.24, lineHeight: 54, fontVariant: ['tabular-nums'] },
   figureUnit: { fontSize: 26, fontWeight: '700', paddingBottom: 4 },
 
+  /*
+   * A row of equal columns that must not out-grow the section it sits in.
+   * `flex: 1` alone does not guarantee that: Yoga gives a flex item an
+   * automatic minimum size of its own content, so one long label ($1,000)
+   * pushes the whole row past the page margin instead of shrinking. minWidth 0
+   * lifts that floor, which is what keeps four boxes inside the content zone.
+   */
   presets: { flexDirection: 'row', gap: 8 },
-  preset: { flex: 1, height: 44, paddingHorizontal: 0 },
+  preset: { flex: 1, minWidth: 0, height: control.presetHeight, paddingHorizontal: 0 },
   setBox: {
     flex: 1,
-    height: 44,
+    minWidth: 0,
+    height: control.presetHeight,
     borderRadius: radius.pressable,
-    borderWidth: 1.5,
+    borderWidth: control.quietWidth,
     alignItems: 'center',
     justifyContent: 'center',
   },
   setText: { fontSize: 16, fontWeight: '700', textAlign: 'center', width: '100%', padding: 0 },
 
-  segment: { flexDirection: 'row', borderRadius: radius.pressable, borderWidth: 1.5, overflow: 'hidden' },
-  segmentItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, paddingHorizontal: 6 },
-  segmentOn: { fontSize: 14, fontWeight: '700', textAlign: 'center' },
-  segmentOff: { fontSize: 14, fontWeight: '600', textAlign: 'center' },
+  /*
+   * The same tab track as the night's Totals / Feed — a filled track with the
+   * selected tab inset inside it, not an outlined box whose fill runs into its
+   * own border. Height comes from the shared tokens so a tab here is the same
+   * height as a tab anywhere else, and numberOfLines keeps it that height when
+   * a label is long rather than wrapping to two lines.
+   */
+  segment: {
+    flexDirection: 'row',
+    padding: control.tabTrackPad,
+    borderRadius: control.tabTrackRadius,
+  },
+  segmentItem: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: control.tabPadV,
+    paddingHorizontal: 6,
+    borderRadius: control.tabRadius,
+  },
+  segmentOn: { ...type.tabOn, textAlign: 'center' },
+  segmentOff: { ...type.tab, textAlign: 'center' },
 
   radioRow: {
     flexDirection: 'row',
