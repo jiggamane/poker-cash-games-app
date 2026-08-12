@@ -30,20 +30,12 @@
       "favicon": "./assets/favicon.png"
     },
 
+    "//updates": "DELIBERATELY NOT SET YET. Expo Go supplies its own runtime and does not support a custom runtimeVersion, so configuring one breaks the QR-code workflow. These only matter for a standalone EAS build, so they come back with the first real build: updates.url = https://u.expo.dev/938b4629-9a41-4ddf-bcd8-86bb4e4696b3 and runtimeVersion.policy = appVersion. That policy ties an over-the-air update to the app version it was built for, so JavaScript expecting newer native code can never land on an older build.",
+
     "extra": {
       "eas": {
         "projectId": "938b4629-9a41-4ddf-bcd8-86bb4e4696b3"
       }
-    },
-
-    "//updates": "Over-the-air updates. A wrong number found on poker night can be fixed in minutes instead of waiting on App Store review — one of the main reasons for choosing Expo.",
-    "updates": {
-      "url": "https://u.expo.dev/938b4629-9a41-4ddf-bcd8-86bb4e4696b3"
-    },
-
-    "//runtimeVersion": "appVersion ties an update to the app version it was built for, so JavaScript that expects newer native code can never land on an older build.",
-    "runtimeVersion": {
-      "policy": "appVersion"
     }
   }
 }
