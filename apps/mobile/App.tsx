@@ -15,7 +15,16 @@ import { Button } from './src/components/Button';
 import { Row } from './src/components/Row';
 import { useTheme } from './src/design/useTheme';
 import { space, type } from './src/design/tokens';
-import { isSupabaseConfigured } from './src/lib/supabase';
+
+/**
+ * Read the env var directly rather than importing the Supabase client.
+ *
+ * Importing it here would pull supabase-js, the URL polyfill and AsyncStorage
+ * into the startup path, which costs ~70 modules on first load and makes the
+ * screen depend on a native module resolving correctly. Nothing on this screen
+ * needs the database, so nothing here should be able to stop it rendering.
+ */
+const isSupabaseConfigured = Boolean(process.env.EXPO_PUBLIC_SUPABASE_URL);
 
 /**
  * Settle up — a first real screen, drawn from design/Style Guide v2.dc.html and
