@@ -5,11 +5,16 @@
   "private": true,
   "dependencies": {
     "@poker-club/core": "*",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@supabase/supabase-js": "^2.112.3",
     "expo": "~57.0.12",
+    "expo-crypto": "~57.0.1",
+    "expo-sqlite": "~57.0.1",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.2",
-    "react-native-safe-area-context": "^5.8.1"
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-url-polyfill": "^3.0.0"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

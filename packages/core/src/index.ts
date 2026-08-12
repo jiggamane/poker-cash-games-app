@@ -13,3 +13,4 @@ export * from './money';
 export * from './types';
 export * from './ledger';
 export * from './settlement';
+export * from './outbox';

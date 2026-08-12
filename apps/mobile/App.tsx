@@ -15,6 +15,7 @@ import { Button } from './src/components/Button';
 import { Row } from './src/components/Row';
 import { useTheme } from './src/design/useTheme';
 import { space, type } from './src/design/tokens';
+import { isSupabaseConfigured } from './src/lib/supabase';
 
 /**
  * Settle up — a first real screen, drawn from design/Style Guide v2.dc.html and
@@ -141,6 +142,12 @@ export default function App() {
             <Button label="Confirm settlement" variant="primary" />
             <Button label="Adjust" variant="secondary" />
           </View>
+
+          <Text style={[styles.meta, styles.section, { color: t.muted }]}>
+            {isSupabaseConfigured
+              ? 'Connected to Supabase.'
+              : 'No Supabase project yet — these figures are computed on the device.'}
+          </Text>
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>

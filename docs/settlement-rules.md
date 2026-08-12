@@ -134,12 +134,9 @@ So a bill can be covered in any of these ways today:
 | Everyone at the table splits it | `charge: everyone_flat` (or `split: across_everyone`) |
 | Nobody — it's not part of the settlement | no bill rule at all |
 
-**The one thing not expressible:** a *single* person — the biggest winner —
-covering the whole bill alone. The phrase "the winner pays" could have meant
-that, but the current model always spreads a bill across a set of people. If it
-turns out a group wants "top winner covers it", that is a new `split` value
-(`top_winner`) and roughly a dozen lines in `applyDeduction`, plus a UI option.
-Nothing else would move.
+**Closed:** a single top winner covering a whole bill alone is **not** a mode,
+and will not be added. The options above are the ones the UI offers, and the UI
+is the source of truth for what a group can choose. Nothing here is outstanding.
 
 ### 3. What happens when a rule has nobody to charge?
 
