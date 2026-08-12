@@ -2,7 +2,7 @@
   "name": "poker-club",
   "version": "0.1.0",
   "private": true,
-  "description": "The Poker Club — a cash-game ledger",
+  "description": "The Poker Club \u2014 a cash-game ledger",
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:verify": "bash scripts/db-verify.sh",
-    "check": "npm run typecheck && npm run test"
+    "check": "npm run typecheck && npm run test",
+    "db:bundle": "bash scripts/db-bundle.sh"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
