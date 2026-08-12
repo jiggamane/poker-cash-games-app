@@ -1,12 +1,13 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatMoney } from '@poker-club/core';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
 import { Avatar } from '../src/components/Avatar';
 import { Icon, type IconName } from '../src/components/Icon';
-import { useLedger, useNight } from '../src/lib/nightStore';
+import { lastSetup, startNight, useLedger, useNight, type Setup } from '../src/lib/nightStore';
 
 /**
  * Home — the group. The root of everything; nothing is pushed beneath it.
@@ -31,15 +32,50 @@ export default function Home() {
   // A night is live until it has been settled. H2 — "Start a session" — is what
   // this becomes once it has, and once starting one is a thing you can do.
   const live =
-    night === null || ledger === null
+    night === null || ledger === null || night.status === 'settled'
       ? null
       : {
           seated: night.players.filter(
             (p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0,
           ).length,
           since: elapsed(night.startedAt),
-          settled: night.status === 'settled',
         };
+
+  // What the card promises when there is no night: the same game as last time.
+  // Read once here so the sub-line can state it before it is tapped — a card
+  // that said "same rules as last time" without knowing them would be a guess.
+  const [last, setLast] = useState<Setup | null>(null);
+  const [starting, setStarting] = useState(false);
+  useEffect(() => {
+    void lastSetup().then(setLast);
+  }, [night?.sessionId]);
+
+  /**
+   * H2's card, in one tap. Same stakes, same buy-in, same rules, same people —
+   * a home game is the same game most weeks, and asking four questions to
+   * discover that is worse than a card that says what it will do and does it.
+   */
+  async function quickStart() {
+    if (last === null || starting) return;
+    setStarting(true);
+    try {
+      await startNight(last);
+      router.push('/session');
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  const lastLine =
+    last === null
+      ? 'opening the ledger'
+      : [
+          last.stakes === undefined ? undefined : `${last.stakes} ·`,
+          `${formatMoney(last.defaultBuyIn)} buy-in`,
+          last.rules.length > 0 ? '· same rules as last time' : undefined,
+        ]
+          .filter((part) => part !== undefined)
+          .join(' ');
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
@@ -62,16 +98,21 @@ export default function Home() {
       </View>
 
       {/* The one filled thing on the screen. Inverted — ink on white, white on
-          ink — with a 2px keyline of the ground set inside it. */}
+          ink — with a 2px keyline of the ground set inside it.
+
+          It carries the only thing you might do right now, and that is either
+          H3 — a night is running, go to it — or H2 — no night is, start one.
+          Never both: two filled cards would be two primary actions, and the
+          whole screen is built on there being one. */}
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push(live?.settled === true ? '/settled' : '/session')}
+        onPress={() => (live === null ? void quickStart() : router.push('/session'))}
         style={({ pressed }) => [
           styles.card,
           { backgroundColor: t.text, borderColor: t.ground, opacity: pressed ? 0.9 : 1 },
         ]}
       >
-        {live !== null && !live.settled && (
+        {live !== null && (
           <View style={styles.cardStatusRow}>
             <View style={[styles.dot, { backgroundColor: t.onFillWin }]} />
             <Text style={[styles.cardStatus, { color: t.onFill }]}>
@@ -85,20 +126,37 @@ export default function Home() {
               so the card and the rows beneath it read as one column. */}
           <View style={styles.cardText}>
             <Text style={[styles.cardName, { color: t.onFill }]}>
-              {live?.settled === true ? 'Last night' : 'Tonight'}
+              {live === null ? 'Start a session' : 'Tonight'}
             </Text>
             <Text style={[styles.cardLede, { color: t.onFill }]}>
               {live === null
-                ? 'opening the ledger'
-                : live.settled
-                  ? 'settled · look back at it'
-                  : `${live.seated} at the table · the ledger is open`}
+                ? starting
+                  ? 'opening the table…'
+                  : lastLine
+                : `${live.seated} at the table · the ledger is open`}
             </Text>
           </View>
           <View style={styles.pushRight}>
             <Icon name="arrow" color={t.onFill} />
           </View>
         </View>
+      </Pressable>
+
+      {/* NOT ON THE BOARD, and deliberate.
+          H2's card starts a night with last time's answers, which is right most
+          weeks and wrong the week the stakes change or somebody new turns up.
+          This is the way to the same act with the questions asked — and when a
+          night is already running it is also the only way to open another,
+          which the drawn screens have nowhere to put. */}
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push('/new-session')}
+        style={({ pressed }) => [styles.setUp, { opacity: pressed ? 0.6 : 1 }]}
+      >
+        <Text style={[styles.setUpLabel, { color: t.muted }]}>
+          {live === null ? 'Set it up first' : 'Start a new session'}
+        </Text>
+        <Icon name="chevron" color={t.muted} />
       </Pressable>
 
       <View style={[styles.destinations, { borderTopColor: t.hairline }]}>
@@ -108,7 +166,16 @@ export default function Home() {
           onPress={() => router.push('/session')}
         />
         <Destination name="My stats" sub="across every group you play in" />
-        <Destination name="Sessions" sub="every night, most recent first" last />
+        <Destination
+          name="Sessions"
+          sub="every night, most recent first"
+          last
+          // One night deep for now: the newest, and only once it is settled.
+          // A list of nights is its own screen and is not built.
+          onPress={
+            night !== null && night.status === 'settled' ? () => router.push('/settled') : undefined
+          }
+        />
       </View>
 
       <View style={styles.bottom}>
@@ -211,6 +278,17 @@ const styles = StyleSheet.create({
   },
   headerText: { flexShrink: 1, gap: 4 },
   headerMeta: type.navMeta,
+
+  // The quiet way to the same act, directly under the card it qualifies.
+  setUp: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: space.page,
+    marginTop: 14,
+    paddingVertical: 4,
+  },
+  setUpLabel: type.chip,
   title: type.homeTitle,
 
   card: {

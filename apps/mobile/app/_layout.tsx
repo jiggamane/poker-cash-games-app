@@ -27,6 +27,7 @@ const SHEETS = [
   'house-rules', // B1 · what tonight will take off the table
   'expenses', // B2 / B4 · the bill
   'add-expense', // B3 · a new expense
+  'new-session', // O1 / O2 · open a table, and who is at it
   'money-rules', // O4 · tonight's money rules
   'rule', // O5 · the rule editor
   'sign-in', // ends in "email me a link"; over Settings
@@ -40,8 +41,8 @@ const SHEETS = [
  * tap back rather than one tab across.
  *
  * Headers are off everywhere: every screen draws its own large title top-left,
- * and pushed screens carry their own labelled back plus a home glyph. A stock
- * navigation bar would sit above all of that and duplicate it.
+ * with rev 9's round back sitting on that same line. A stock navigation bar
+ * would sit above all of that and duplicate it.
  */
 export default function RootLayout() {
   const t = useTheme();

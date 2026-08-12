@@ -82,10 +82,30 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           PRIMARY KEY (session_id, player_id)
         );
       `);
+
+      // The two columns O1 sets when a night is opened. Added rather than
+      // baked into the CREATE above, because a phone that has already run this
+      // app has the old table and its night on it — dropping and recreating
+      // would take somebody's ledger with it.
+      await addColumn(db, 'night', 'stakes', 'TEXT');
+      await addColumn(db, 'night', 'default_buyin', 'INTEGER');
+
       return db;
     });
   }
   return dbPromise;
+}
+
+/** Add a column if this database does not have it yet. */
+async function addColumn(
+  db: SQLite.SQLiteDatabase,
+  table: string,
+  column: string,
+  type: string,
+): Promise<void> {
+  const cols = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${table})`);
+  if (cols.some((c) => c.name === column)) return;
+  await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
 }
 
 export interface Night {
@@ -93,6 +113,10 @@ export interface Night {
   groupName: string;
   startedAt: string;
   status: 'open' | 'counting' | 'settled';
+  /** "$5 / $5". Written down at the table, never used in any arithmetic. */
+  stakes?: string;
+  /** What the keypad offers first. A night can still take any amount. */
+  defaultBuyIn: Money;
   players: Player[];
   entries: LedgerEntry[];
   /** The host's end-of-night count, for players still seated. */
@@ -159,10 +183,30 @@ interface NightRow {
   status: Night['status'];
   rules_json: string;
   ack_json: string | null;
+  stakes: string | null;
+  default_buyin: number | null;
 }
 
 /**
- * Open the night on this phone, seeding one the first time.
+ * The night this phone is showing: the one most recently OPENED.
+ *
+ * By rowid, not by started_at, and the difference is not academic. A night's
+ * start time is a stated fact that can sit anywhere — the seeded sample night
+ * claims 20:05 today, so a table opened this afternoon would sort behind a
+ * night that has not begun yet, and the app would show the wrong one all
+ * evening. Insertion order is the only thing that actually means "latest".
+ */
+const NEWEST = `SELECT * FROM night ORDER BY rowid DESC LIMIT 1`;
+
+/** What the app falls back to when nothing has ever been played here. */
+const FALLBACK_BUYIN = 500 as Money;
+
+/**
+ * Open the newest night on this phone, seeding one the first time.
+ *
+ * NEWEST, not "the only one". A phone now holds every night it has played —
+ * that is what makes starting a session a real act rather than a reset — so
+ * this reads the most recent and the ones behind it stay where they are.
  *
  * TEMPORARY SEED. Until groups and sessions are real, opening the app for the
  * first time creates a night from `sampleNight` so there is something to look
@@ -171,12 +215,12 @@ interface NightRow {
  */
 export async function openNight(): Promise<Night> {
   const db = await getDb();
-  let row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+  let row = await db.getFirstAsync<NightRow>(NEWEST);
 
   if (!row) {
     const seed = await import('../data/sampleNight');
     await seedNight(seed.SEED);
-    row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+    row = await db.getFirstAsync<NightRow>(NEWEST);
   }
 
   const sessionId = row!.session_id;
@@ -208,6 +252,8 @@ export async function openNight(): Promise<Night> {
     groupName: row!.group_name,
     startedAt: row!.started_at,
     status: row!.status,
+    ...(row!.stakes ? { stakes: row!.stakes } : {}),
+    defaultBuyIn: (row!.default_buyin ?? FALLBACK_BUYIN) as Money,
     rules: JSON.parse(row!.rules_json),
     players: players.map((p) => ({ id: p.id, name: p.name, atTable: p.at_table === 1 })),
     entries: entries.map((e) => ({
@@ -227,6 +273,110 @@ export async function openNight(): Promise<Night> {
 
   emit();
   return night;
+}
+
+/**
+ * What a night is opened with — O1, "New session".
+ *
+ * Every field has a sensible answer already, which is the point: the host taps
+ * one thing on the home screen and the table is open. Setting it up by hand is
+ * the same call with the fields filled in differently.
+ */
+export interface Setup {
+  stakes?: string;
+  defaultBuyIn: Money;
+  /** Who is at the table before a single chip moves. Names, not accounts. */
+  playerNames: string[];
+  /** Carried from the last night unless the host says otherwise. */
+  rules: MoneyRule[];
+}
+
+/**
+ * What the last night was played with — the "same as last time" the home card
+ * promises, and the prefill behind O1.
+ *
+ * Rules are carried by VALUE, not by reference: a night's rules are the ones it
+ * was opened with, and editing tonight's kitty must not reach back and change
+ * what last month settled at. That is the same rule the server enforces with a
+ * frozen settlement, applied one step earlier.
+ */
+export async function lastSetup(): Promise<Setup> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<NightRow>(NEWEST);
+  if (!row) return { defaultBuyIn: FALLBACK_BUYIN, playerNames: [], rules: [] };
+
+  const players = await db.getAllAsync<{ name: string }>(
+    `SELECT name FROM night_player WHERE session_id = ? ORDER BY rowid`,
+    row.session_id,
+  );
+
+  return {
+    ...(row.stakes ? { stakes: row.stakes } : {}),
+    defaultBuyIn: (row.default_buyin ?? FALLBACK_BUYIN) as Money,
+    playerNames: players.map((p) => p.name),
+    rules: JSON.parse(row.rules_json) as MoneyRule[],
+  };
+}
+
+/**
+ * Everybody this phone has ever seated, most recently played first.
+ *
+ * The roster O2 picks from. There is no players table — a player is a name on a
+ * night — so this is the union of every night's names, which is exactly what
+ * "people you play with" means here.
+ */
+export async function roster(): Promise<Array<{ name: string; lastPlayed: string; nights: number }>> {
+  const db = await getDb();
+  return db.getAllAsync<{ name: string; lastPlayed: string; nights: number }>(
+    `SELECT p.name           AS name,
+            MAX(n.started_at) AS lastPlayed,
+            COUNT(*)          AS nights
+       FROM night_player p
+       JOIN night n ON n.session_id = p.session_id
+      GROUP BY lower(trim(p.name))
+      ORDER BY lastPlayed DESC`,
+  );
+}
+
+/**
+ * Open a table. The one act that creates a night.
+ *
+ * Deliberately NOT a reset: the night this replaces stays on the phone with
+ * every entry it had. A host who starts a new session while last night is still
+ * open has not lost it — it is simply no longer the newest, and the money in it
+ * is still there to be counted. Nothing in this app deletes a ledger.
+ */
+export async function startNight(setup: Setup): Promise<Night> {
+  const db = await getDb();
+  const sessionId = randomUUID();
+  const startedAt = new Date().toISOString();
+  const groupName = night?.groupName ?? 'The Poker Club';
+
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      `INSERT INTO night (session_id, group_name, started_at, status, rules_json, stakes, default_buyin)
+       VALUES (?, ?, ?, 'open', ?, ?, ?)`,
+      sessionId,
+      groupName,
+      startedAt,
+      JSON.stringify(setup.rules),
+      setup.stakes ?? null,
+      setup.defaultBuyIn,
+    );
+
+    for (const name of setup.playerNames) {
+      // Seated, but in for nothing: they are at the table and have not bought
+      // in yet, which is the true state of everyone at 20:05.
+      await db.runAsync(
+        `INSERT INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, 1)`,
+        sessionId,
+        randomUUID(),
+        name,
+      );
+    }
+  });
+
+  return openNight();
 }
 
 interface Seed {
@@ -658,7 +808,9 @@ export function chipsOnTable(ledger: ResolvedLedger): Money {
 /** What a first buy-in should default to: whatever the table has been buying in for. */
 export function defaultBuyIn(ledger: ResolvedLedger): Money {
   const firsts = ledger.entries.filter((e) => !e.voided && e.type === 'buyin').map((e) => e.amount);
-  if (firsts.length === 0) return money(500);
+  // Nobody has bought in yet, so what the night was OPENED with is the only
+  // answer there is — and at 20:05 it is the right one.
+  if (firsts.length === 0) return night?.defaultBuyIn ?? money(500);
   // The most common one, not the average: a mean would invent an amount nobody
   // has ever bought in for.
   const tally = new Map<number, number>();
