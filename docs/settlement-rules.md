@@ -119,25 +119,27 @@ When a bill rule exists:
 A bill rule with no expenses recorded falls back to collecting its own fixed
 amount to its collector.
 
-### 2b. Which ways can a bill be covered? — OPEN
+### 2b. Which ways can a bill be covered? — SETTLED, with one gap
 
-The product owner named the ways a bill gets covered as: **the winner pays**,
-**split between winners evenly**, or **split between winners in proportion to
-the size of each win**. All three charge winners; none of them charge the whole
-table.
+Decision: **keep the current model**, and `across_everyone` **stays** as an
+option — some groups do split the bar tab across the whole table regardless of
+who won.
 
-That does not quite line up with the design's `split` options (`equal`,
-`by_win_size`, `across_everyone`), in two ways:
+So a bill can be covered in any of these ways today:
 
-1. **"The winner pays"** — is that the *single biggest* winner covering the whole
-   bill, or just the general case of "winners cover it", with the next two
-   options being how? The engine has no single-winner mode today.
-2. **`across_everyone`** — the style guide offers splitting a bill across the
-   whole table, but it was not among the three named. Keep it or drop it?
+| What the group wants | How it is configured |
+|---|---|
+| Winners split it evenly | `charge: winners_only`, `split: equal` |
+| Winners split it by size of win | `charge: winners_only`, `split: by_win_size` |
+| Everyone at the table splits it | `charge: everyone_flat` (or `split: across_everyone`) |
+| Nobody — it's not part of the settlement | no bill rule at all |
 
-**Currently implemented:** `equal` and `by_win_size` behave as described.
-`across_everyone` still exists and charges the whole table. There is no
-single-winner-pays-everything option.
+**The one thing not expressible:** a *single* person — the biggest winner —
+covering the whole bill alone. The phrase "the winner pays" could have meant
+that, but the current model always spreads a bill across a set of people. If it
+turns out a group wants "top winner covers it", that is a new `split` value
+(`top_winner`) and roughly a dozen lines in `applyDeduction`, plus a UI option.
+Nothing else would move.
 
 ### 3. What happens when a rule has nobody to charge?
 
