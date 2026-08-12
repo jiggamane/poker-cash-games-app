@@ -111,15 +111,15 @@ export default function CountUp() {
               toCount.length > 0
                 ? `${toCount.length} still to count`
                 : balanced
-                  ? 'Settle up'
+                  ? 'What comes off'
                   : confirmed
-                    ? `Settle, ${formatMoney(abs(reconciliation.difference))} unaccounted`
+                    ? `Carry on, ${formatMoney(abs(reconciliation.difference))} unaccounted`
                     : 'Confirm the difference'
             }
             variant="primary"
             disabled={toCount.length > 0 || (!balanced && !confirmed && !confirming)}
             onPress={() => {
-              if (canSettle) router.push('/settle-up');
+              if (canSettle) router.push('/deductions');
               else void confirmDifference();
             }}
           />

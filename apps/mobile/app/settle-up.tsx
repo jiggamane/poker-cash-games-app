@@ -52,17 +52,21 @@ export default function SettleUp() {
   }, [night]);
 
   if (night === null || result === null) {
-    return <Screen title="Settle up" backTo="Count up">{null}</Screen>;
+    return <Screen title="Settle up" backTo="Deductions">{null}</Screen>;
   }
 
   if (!result.ok) {
     return (
       <Screen
         title="Not yet"
-        backTo="Count up"
+        backTo="Deductions"
         lede="The night cannot be settled until the chips counted match the chips on the table, or the difference has been confirmed."
         footer={
-          <Button label="Back to the count" variant="primary" onPress={() => router.back()} />
+          <Button
+            label="Back to the count"
+            variant="primary"
+            onPress={() => router.dismissTo('/count-up')}
+          />
         }
       >
         <Text style={[styles.blocked, { color: t.muted }]}>{result.message}</Text>
@@ -103,8 +107,8 @@ export default function SettleUp() {
   return (
     <Screen
       title="Settle up"
-      backTo="Count up"
-      action={{ label: 'Edit', onPress: () => router.back() }}
+      backTo="Deductions"
+      action={{ label: 'Edit', onPress: () => router.push('/money-rules') }}
       step="3 of 3"
       lede={lede}
       footer={
@@ -115,6 +119,7 @@ export default function SettleUp() {
             onPress={() => {
               void setStatus('settled');
               router.dismissTo('/');
+              router.push('/settled');
             }}
           />
           <View style={styles.footerRow}>

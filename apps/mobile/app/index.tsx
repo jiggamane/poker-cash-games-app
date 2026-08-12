@@ -50,7 +50,7 @@ export default function Home() {
           ink — with a 2px keyline of the ground set inside it. */}
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push('/session')}
+        onPress={() => router.push(live?.settled === true ? '/settled' : '/session')}
         style={({ pressed }) => [
           styles.card,
           { backgroundColor: t.text, borderColor: t.ground, opacity: pressed ? 0.9 : 1 },
@@ -69,7 +69,9 @@ export default function Home() {
           {/* Name and line grouped, at the same gap 6 the destination rows use,
               so the card and the rows beneath it read as one column. */}
           <View style={styles.cardText}>
-            <Text style={[styles.cardName, { color: t.onFill }]}>Tonight</Text>
+            <Text style={[styles.cardName, { color: t.onFill }]}>
+              {live?.settled === true ? 'Last night' : 'Tonight'}
+            </Text>
             <Text style={[styles.cardLede, { color: t.onFill }]}>
               {live === null
                 ? 'opening the ledger'
