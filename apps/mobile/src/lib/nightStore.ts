@@ -482,6 +482,63 @@ export async function setAcknowledgement(
   emit();
 }
 
+/**
+ * Add or replace a money rule.
+ *
+ * Rules are stored with the NIGHT, not with the group, and that is deliberate:
+ * a night is settled with the rules it opened with, so a change made in
+ * October cannot quietly restate what everyone agreed in September. When
+ * groups exist, opening a session will copy the group's rules into it, and
+ * this is what edits the copy.
+ */
+export async function saveRule(rule: MoneyRule): Promise<void> {
+  if (night === null) throw new Error('No night is open.');
+  const rules = night.rules.some((r) => r.id === rule.id)
+    ? night.rules.map((r) => (r.id === rule.id ? rule : r))
+    : [...night.rules, rule];
+  await writeRules(rules);
+}
+
+export async function deleteRule(ruleId: string): Promise<void> {
+  if (night === null) return;
+  await writeRules(night.rules.filter((r) => r.id !== ruleId));
+}
+
+export async function toggleRule(ruleId: string, active: boolean): Promise<void> {
+  if (night === null) return;
+  await writeRules(night.rules.map((r) => (r.id === ruleId ? { ...r, active } : r)));
+}
+
+async function writeRules(rules: MoneyRule[]): Promise<void> {
+  if (night === null) return;
+  const ordered = [...rules].sort((a, b) => a.sortOrder - b.sortOrder);
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE night SET rules_json = ? WHERE session_id = ?`,
+    JSON.stringify(ordered),
+    night.sessionId,
+  );
+  night = { ...night, rules: ordered };
+  emit();
+}
+
+/** A blank rule, ready to be filled in. */
+export function draftRule(destination: MoneyRule['destination'], sortOrder: number): MoneyRule {
+  return {
+    id: randomUUID(),
+    name: destination === 'kitty' ? 'Group kitty' : destination === 'bill' ? 'Food & drinks' : 'Host fee',
+    active: true,
+    amountKind: destination === 'bill' ? 'fixed' : 'percent',
+    amount: (destination === 'bill' ? 0 : 10) as Money,
+    basis: 'gross',
+    charge: 'winners_only',
+    destination,
+    split: 'evenly',
+    collectorPlayerId: '',
+    sortOrder,
+  };
+}
+
 export async function setStatus(status: Night['status']): Promise<void> {
   if (night === null) return;
   const db = await getDb();

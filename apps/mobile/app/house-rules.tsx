@@ -51,6 +51,7 @@ export default function HouseRules() {
     <Screen
       title="Bill &amp; kitty"
       backTo="Tonight"
+      action={{ label: 'Edit', onPress: () => router.push('/money-rules') }}
       lede="The group’s usual rules, carried from last night. They apply at settle-up, never during play."
     >
       <View style={styles.cards}>
@@ -96,8 +97,8 @@ export default function HouseRules() {
       </View>
 
       <Text style={[styles.footnote, { color: t.muted }]}>
-        Editing these is coming. A night is settled with the rules it opened with, so changing one
-        has to be recorded rather than slipped in.
+        Edit changes tonight only. A night is settled with the rules it opened with, so nights
+        already closed keep the rules they were closed under.
       </Text>
     </Screen>
   );
