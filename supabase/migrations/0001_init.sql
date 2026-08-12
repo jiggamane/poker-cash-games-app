@@ -16,7 +16,12 @@
 --      a button.
 -- =============================================================================
 
-create extension if not exists pgcrypto;
+-- A hosted Supabase project already has an `extensions` schema with pgcrypto in
+-- it, so both of these are no-ops there. On a bare Postgres neither exists yet,
+-- hence creating the schema first. Functions below put both schemas on their
+-- search_path so gen_random_bytes resolves either way.
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
 
 -- =============================================================================
 -- Enumerated types
@@ -45,6 +50,7 @@ create or replace function new_share_token()
 returns text
 language sql
 volatile
+set search_path = public, extensions
 as $$
   select replace(replace(encode(gen_random_bytes(24), 'base64'), '+', '-'), '/', '_');
 $$;
