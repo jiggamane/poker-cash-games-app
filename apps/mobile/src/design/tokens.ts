@@ -37,6 +37,13 @@ export interface Theme {
   /** Money, and nothing else. */
   win: string;
   loss: string;
+  /**
+   * A faint wash behind a net row, so a win or a loss registers at arm's
+   * length rather than only on close reading of the figure. Net rows only —
+   * transfer rows stay neutral, and no control is ever tinted.
+   */
+  winWash: string;
+  lossWash: string;
   /** Money leaving the table: bill, kitty, host fee. */
   offTable: string;
 
@@ -61,6 +68,8 @@ export const darkTheme: Theme = {
   dashed: 'rgba(255,255,255,0.30)',
   win: '#6FCF97',
   loss: '#F0705C',
+  winWash: 'rgba(111,207,151,0.10)',
+  lossWash: 'rgba(240,112,92,0.10)',
   offTable: '#D9D3C4',
   onFill: '#0C0D0F',
   keyline: '#0A0A0B',
@@ -80,6 +89,9 @@ export const lightTheme: Theme = {
   dashed: 'rgba(12,13,15,0.28)',
   win: '#0A7A3D',
   loss: '#C0341B',
+  // The bright theme shows a tint more strongly, so the wash is lighter.
+  winWash: 'rgba(10,122,61,0.07)',
+  lossWash: 'rgba(192,52,27,0.07)',
   // In the bright theme bone falls back to ink with a tinted row.
   offTable: '#6B6F76',
   onFill: '#FFFFFF',

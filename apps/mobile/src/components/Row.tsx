@@ -33,10 +33,21 @@ export function Row({
         ? t.offTable
         : t.text;
 
+  // A net row carries a faint wash of its own colour so a win or a loss reads
+  // at arm's length. Only net rows — a transfer row is neutral, because the
+  // money has already been coloured once where it was won or lost.
+  const wash =
+    tone === 'result' && amount !== undefined && amount !== 0
+      ? amount > 0
+        ? t.winWash
+        : t.lossWash
+      : undefined;
+
   return (
     <View
       style={[
         styles.row,
+        wash !== undefined && { backgroundColor: wash, paddingHorizontal: 10, marginHorizontal: -10 },
         { borderBottomColor: t.hairline, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth },
       ]}
     >
