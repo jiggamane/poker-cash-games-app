@@ -188,15 +188,19 @@ describe('the canonical night — step 3, settling up', () => {
   /**
    * The handoff's six transfers, verbatim.
    *
-   * Note rows 5 and 6. The handoff lists Lena ($122) before the kitty ($126),
-   * but its own stated algorithm — "take the largest remaining debtor and the
-   * largest remaining creditor" — must pick the kitty first, because 126 > 122.
-   * The doc contradicts itself on those two rows only.
+   * RESOLVED: the product owner confirmed the handoff's figures are layout
+   * mock-ups and can be wrong, so where a drawn number and a stated rule
+   * disagree, the rule wins.
    *
-   * The engine follows the stated algorithm, so it emits those two the other
-   * way round. Every payment, every amount and every person's total is
-   * identical; only the order of two adjacent rows differs. Flagged for the
-   * designer rather than papered over — see docs/settlement-rules.md.
+   * That settles rows 5 and 6. The handoff lists Lena ($122) before the kitty
+   * ($126), but its own algorithm — "take the largest remaining debtor and the
+   * largest remaining creditor" — must pick the kitty first, because 126 > 122.
+   * The engine follows the algorithm. Every payment, every amount and every
+   * person's total is identical; only those two adjacent rows are ordered
+   * differently, and the layout is the thing that was wrong.
+   *
+   * Everything else in this file reproduced exactly on the first run, which is
+   * what makes it worth keeping as a regression test.
    */
   const HANDOFF_TRANSFERS = [
     { fromPlayerId: PETR, toPlayerId: DANA, amount: 1230 },

@@ -170,3 +170,67 @@ NP-hard — but it is close, it always produces fewer transfers than there are
 people, and it is obvious to a room watching it happen. Chasing the true minimum
 would make the result harder to explain and slower to compute, for a saving of
 usually zero payments.
+
+---
+
+# Decisions of 12 August 2026
+
+Answers to the questions raised by the second design handoff.
+
+## The handoff's figures are layouts, not arithmetic — SETTLED
+
+Where a drawn number and a stated rule disagree, **the rule wins**. The designs
+are mock-ups and their sums can be wrong.
+
+This settles the transfer-ordering question: the handoff listed Tomáš's $122
+payment before his $126 one, which its own "largest remaining creditor" rule
+cannot produce. The engine follows the rule.
+
+It does **not** unsettle half-up rounding. That came from the handoff's stated
+*Rounding* rule ("Percentages round half up. 5% of $430 is 21.5 → $22"), which
+is rule text, not a figure in a layout.
+
+The canonical night in `canonical-night.test.ts` stays as a regression test.
+Every one of its figures reproduced on the first run; only the two-row ordering
+differed, and that was the layout being wrong.
+
+## Rounding granularity — SETTLED
+
+A group may round to 10s, 50s or 100s. The parts must still sum exactly to the
+total, so when a leftover is smaller than one whole unit it goes **entirely to
+whoever is furthest from their exact share** — the mathematically fairest single
+recipient. That one person's share is then not a round unit, which is the price
+of the total staying exact; everyone else's is.
+
+`allocate(total, weights, granularity)` implements it:
+
+1. Everyone is floored to a whole unit of the granularity.
+2. Whole units are handed out by largest shortfall, ties going to the biggest
+   winner and then by name.
+3. Any residue smaller than one unit goes to whoever is *still* furthest short —
+   recomputed, so somebody who has just been given a unit does not also take the
+   residue.
+
+| $170 between three winners | Result |
+|---|---|
+| Dollars | $57 / $57 / $56 |
+| 10s | $60 / $60 / $50 |
+| 50s | $70 / $50 / $50 |
+| 100s | $100 / $70 / $0 |
+
+Tested to sum exactly across every granularity, and to leave at most one person
+holding a non-round share.
+
+**Still open:** `roundingMode: 'cents'`. Amounts are currently whole units, so
+cents needs the move to minor units that `04-money-math.md` describes. Cheap to
+do, but it is a data migration, not a setting.
+
+## No-winner nights — SETTLED
+
+There is no such thing as a night with no winners, so it is not a product case
+and needs no design.
+
+The one arithmetic exception is a night where **everyone is exactly flat** —
+which really only happens if a table opens and closes without play, or is
+abandoned. The fallback in `applyDeduction` stays as a guard against a crash on
+that path, but nothing is designed for it and no fee accrues.

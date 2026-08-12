@@ -161,6 +161,64 @@ describe('allocate() — the rounding rule', () => {
     expect(() => allocate(money(100), [])).toThrow(MoneyError);
   });
 
+  describe('rounding granularity', () => {
+    // The group can round to 10s, 50s or 100s. The parts must still sum to the
+    // total exactly, so when a leftover is smaller than one unit it goes whole
+    // to whoever is furthest from their exact share.
+    const THREE_WINNERS = [1, 1, 1]; // Dana, Marek, Lena — sorted biggest win first
+
+    it('behaves exactly as before at a granularity of 1', () => {
+      expect(allocate(money(170), THREE_WINNERS, 1)).toEqual([57, 57, 56]);
+      expect(allocate(money(170), THREE_WINNERS)).toEqual([57, 57, 56]);
+    });
+
+    it('rounds to 10s, handing whole units out by largest shortfall', () => {
+      // exact share 56.67 -> floor to 50 each = 150; two units of 10 remain
+      expect(allocate(money(170), THREE_WINNERS, 10)).toEqual([60, 60, 50]);
+    });
+
+    it('gives a sub-unit leftover to the fairest single recipient', () => {
+      // floor to 50 each = 150; the remaining 20 is smaller than one unit
+      expect(allocate(money(170), THREE_WINNERS, 50)).toEqual([70, 50, 50]);
+    });
+
+    it('rounds to 100s', () => {
+      // Exact share 56.67 each, so nobody's floor reaches a whole 100.
+      // One unit of 100 is available and goes to the biggest winner; that
+      // leaves her over-allocated, so the remaining 70 — smaller than a unit —
+      // passes to the next person still short of their share.
+      expect(allocate(money(170), THREE_WINNERS, 100)).toEqual([100, 70, 0]);
+    });
+
+    it('keeps the parts summing to the total at every granularity', () => {
+      for (const g of [1, 5, 10, 25, 50, 100]) {
+        for (const total of [0, 1, 7, 99, 170, 1234, 5000]) {
+          for (const weights of [[1], [1, 1], [1, 1, 1], [3, 2, 1], [1000, 1, 1]]) {
+            const parts = allocate(money(total), weights, g);
+            expect(sum(parts), `total ${total} across ${weights} at ${g}s`).toBe(total);
+            expect(parts.every((p) => p >= 0)).toBe(true);
+          }
+        }
+      }
+    });
+
+    it('gives everyone a round unit except at most one person', () => {
+      for (const g of [10, 50, 100]) {
+        for (const total of [170, 999, 4321]) {
+          const parts = allocate(money(total), [1, 1, 1, 1], g);
+          const notRound = parts.filter((p) => p % g !== 0);
+          expect(notRound.length, `${total} at ${g}s`).toBeLessThanOrEqual(1);
+        }
+      }
+    });
+
+    it('rejects a nonsense granularity', () => {
+      expect(() => allocate(money(100), [1, 1], 0)).toThrow(MoneyError);
+      expect(() => allocate(money(100), [1, 1], -10)).toThrow(MoneyError);
+      expect(() => allocate(money(100), [1, 1], 2.5)).toThrow(MoneyError);
+    });
+  });
+
   it('rejects negative totals and bad weights', () => {
     expect(() => allocate(money(-100), [1, 1])).toThrow(MoneyError);
     expect(() => allocate(money(100), [1, -1])).toThrow(MoneyError);

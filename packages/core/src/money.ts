@@ -104,8 +104,15 @@ export function percentOf(amount: Money, wholePercent: number): Money {
  * equal split). If every weight is zero the total is split as evenly as
  * possible, so an "equal split among winners" still works when nobody won.
  */
-export function allocate(total: Money, weights: readonly number[]): Money[] {
+export function allocate(
+  total: Money,
+  weights: readonly number[],
+  granularity = 1,
+): Money[] {
   if (total < 0) throw new MoneyError(`Cannot allocate a negative total (${total})`);
+  if (!Number.isInteger(granularity) || granularity < 1) {
+    throw new MoneyError(`Granularity must be a whole number of at least 1, got ${granularity}`);
+  }
   if (weights.length === 0) {
     if (total !== 0) throw new MoneyError(`Cannot allocate ${total} across nobody`);
     return [];
@@ -119,26 +126,39 @@ export function allocate(total: Money, weights: readonly number[]): Money[] {
   const totalWeight = weights.reduce((a, b) => a + b, 0);
   // Nobody has a share — fall back to an equal split.
   const effective = totalWeight === 0 ? weights.map(() => 1) : weights;
-  const effectiveTotal = totalWeight === 0 ? weights.length : totalWeight;
+  const denominator = totalWeight === 0 ? weights.length : totalWeight;
 
-  const base: number[] = [];
-  const remainders: { index: number; remainder: number }[] = [];
+  // Everyone's floor, in whole units of the granularity. Working from the exact
+  // numerator keeps this integer arithmetic end to end.
+  const base = effective.map(
+    (w) => Math.floor((total * w) / (denominator * granularity)) * granularity,
+  );
 
-  for (let i = 0; i < effective.length; i++) {
-    const numerator = total * effective[i];
-    const share = Math.floor(numerator / effectiveTotal);
-    base.push(share);
-    remainders.push({ index: i, remainder: numerator - share * effectiveTotal });
+  /** How far short of their exact share someone is, scaled by the denominator. */
+  const shortfall = (i: number) => total * effective[i] - base[i] * denominator;
+
+  let remaining = total - base.reduce((a, b) => a + b, 0);
+
+  // Hand out whole units, largest shortfall first. Ties go to the earlier
+  // position, which is why callers sort payers by size of win before calling.
+  const wholeUnits = Math.floor(remaining / granularity);
+  const rank = base.map((_, i) => i).sort((a, b) => shortfall(b) - shortfall(a) || a - b);
+
+  for (let i = 0; i < wholeUnits; i++) {
+    base[rank[i % rank.length]] += granularity;
+    remaining -= granularity;
   }
 
-  let leftover = total - base.reduce((a, b) => a + b, 0);
-
-  // Largest remainder first; ties go to the earlier position so the result is
-  // stable for identical inputs.
-  remainders.sort((a, b) => b.remainder - a.remainder || a.index - b.index);
-
-  for (let i = 0; leftover > 0; i++, leftover--) {
-    base[remainders[i % remainders.length].index] += 1;
+  // What is left is smaller than a single unit, so it cannot be divided further
+  // at this granularity. It goes to whoever is still furthest from their exact
+  // share — the mathematically fairest single recipient — which keeps the parts
+  // summing to the total even though that one share is no longer a round unit.
+  if (remaining > 0) {
+    let best = 0;
+    for (let i = 1; i < base.length; i++) {
+      if (shortfall(i) > shortfall(best)) best = i;
+    }
+    base[best] += remaining;
   }
 
   return base.map(money);
