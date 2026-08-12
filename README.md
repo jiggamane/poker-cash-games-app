@@ -11,9 +11,16 @@ start time, an end time, and a list of timestamped money events in between.
 
 ## Status
 
-This repository currently holds the **design handoff** and the **technical
-recommendation** that responds to it. No application code has been written yet — the
-handoff explicitly asked for a platform/infrastructure decision and a build plan first.
+The plan is decided and the foundations are in: the **database schema** (with its money
+invariants proved by tests), the **shared money core**, and a working **Expo dev
+environment**. The designed screens are next.
+
+```bash
+npm install
+npm run check        # typecheck + money tests
+npm run db:verify    # apply the schema to a throwaway DB and assert the money rules
+cd apps/mobile && npm start   # scan the QR code with Expo Go
+```
 
 ## Start here
 
@@ -21,9 +28,13 @@ handoff explicitly asked for a platform/infrastructure decision and a build plan
   in the order it is met, dark and light, at ship size. Nothing to install; open the link
   and pan horizontally. This is the thing to send someone who wants to see the product.
   Published from [`docs/`](docs/) — see [`docs/PUBLISHING.md`](docs/PUBLISHING.md).
+- **[`docs/dev-setup.md`](docs/dev-setup.md)** — how to run everything, written for a
+  non-developer. Start here if you want to build.
 - **[`docs/build-plan.md`](docs/build-plan.md)** — the recommendation and build plan:
   platform, backend & data, realtime & offline, identity, money integrity, phasing, and
-  cost/operations. Read this first.
+  cost/operations. Start here if you want to know why.
+- **[`docs/settlement-rules.md`](docs/settlement-rules.md)** — exactly how the money rules
+  are interpreted, and **six decisions that need a designer's confirmation**.
 - **[`design/`](design/)** — the original design references (HTML prototypes, high
   fidelity). Open the `.dc.html` files in a browser with `support.js` beside them; pan
   horizontally. `Style Guide v2` has the colour, type, spacing and navigation rules;
@@ -31,16 +42,31 @@ handoff explicitly asked for a platform/infrastructure decision and a build plan
   earlier direction, kept only for flows the new style hasn't reached (the book, the
   watcher's view).
 
+## Layout
+
+```
+apps/mobile/        The Expo app (what people install)
+packages/core/      Money + settlement logic — shared by app and server, written once
+supabase/
+  migrations/       The database schema
+  test/             Assertions that the money invariants actually hold
+design/             The original design references
+docs/               The plan and the setup guide
+```
+
 ## The one-paragraph summary of the plan
 
-Build it as an **installable web app (PWA)** so the host gets a home-screen, offline-capable
-app while watchers open a link on any phone with no install and no sign-up. Store the money
-in **Postgres (via Supabase)** as an **append-only, integer-only ledger** where corrections
-are new rows, never edits. Because there is exactly **one writer per session**, offline sync
-is a simple local-first outbox — **no CRDT needed** — while readers get realtime pushes with a
-polling fallback. The **host is the only account**; players are names, watchers are links.
-Settlement is a **pure, deterministic, versioned function** computed live on the client and
-**re-computed and frozen on the server** at close, so the night's math is reproducible and
-auditable. Ship a v1 one group can use this month; leave out multi-group, real player
-accounts, notifications, and native. It runs for roughly **$0–45/mo at 100 groups** and
-**$300–800/mo at 10,000** — the same data model, a bigger operational tier.
+Build it with **React Native + Expo in TypeScript** — real native apps on iOS and Android from
+one codebase, where everyone installs the app and cloud builds (EAS) mean no Mac or Xcode is
+needed and a money bug can be fixed over-the-air the same night. Store the money in
+**Postgres (via Supabase)** as an **append-only, integer-only ledger** where corrections are
+new rows, never edits. Because there is exactly **one writer per session**, offline sync is a
+simple local-first outbox — **no CRDT needed** — while readers get realtime pushes with a
+polling fallback. The **host is the only account**; players are just names, and watchers open a
+deep link whose token *is* their credential, so they never sign up. Settlement is a **pure,
+deterministic, versioned function** computed live on the client and **re-computed and frozen on
+the server** at close — and because app and server are both TypeScript, that algorithm is
+**written once and shared by both**, so the night's math is reproducible and auditable. Ship a
+v1 one group can use this month; leave out multi-group, real player accounts, and
+notifications. It runs for roughly **$30–55/mo at 100 groups** and **$300–800/mo at 10,000** —
+the same data model, a bigger operational tier.

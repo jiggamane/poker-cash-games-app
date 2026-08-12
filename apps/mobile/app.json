@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "The Poker Club",
+    "slug": "poker-club",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "//": "Two themes, dark and light \u2014 the OS decides which. Never pin this to one.",
+    "userInterfaceStyle": "automatic",
+    "//scheme": "Watchers open a share link that deep-links straight into the session.",
+    "scheme": "pokerclub",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.pokerclub.app"
+    },
+    "android": {
+      "package": "com.pokerclub.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0A0B",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "//updates": "DELIBERATELY NOT SET YET. Expo Go supplies its own runtime and does not support a custom runtimeVersion, so configuring one breaks the QR-code workflow. These only matter for a standalone EAS build, so they come back with the first real build: updates.url = https://u.expo.dev/938b4629-9a41-4ddf-bcd8-86bb4e4696b3 and runtimeVersion.policy = appVersion. That policy ties an over-the-air update to the app version it was built for, so JavaScript expecting newer native code can never land on an older build.",
+    "//eas": "EAS project id, updates and runtimeVersion are DELIBERATELY NOT SET. An EAS project id makes Expo Go prompt for an Expo login on every start, and a custom runtimeVersion is unsupported in Expo Go entirely \u2014 both break the scan-a-QR-code loop for no benefit during development. They matter only for a standalone build, so restore all three together with the first eas build: extra.eas.projectId = 938b4629-9a41-4ddf-bcd8-86bb4e4696b3, updates.url = https://u.expo.dev/938b4629-9a41-4ddf-bcd8-86bb4e4696b3, runtimeVersion.policy = appVersion."
+  }
+}

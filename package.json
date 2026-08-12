@@ -1,0 +1,27 @@
+{
+  "name": "poker-club",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Poker Club \u2014 a cash-game ledger",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "//start": "Run the phone app from the repo root. Expo must run inside apps/mobile — started from here it finds no app and hunts for a file called App.",
+    "start": "npm start --workspace @poker-club/mobile --",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:verify": "bash scripts/db-verify.sh",
+    "check": "npm run typecheck && npm run test",
+    "db:bundle": "bash scripts/db-bundle.sh"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@poker-club/mobile",
+  "version": "0.1.0",
+  "main": "expo-router/entry",
+  "private": true,
+  "//sdk": "Expo SDK 54, pinned to match the Expo Go build in the App Store. Every version below comes from SDK 54's own bundledNativeModules manifest — do not bump one on its own.",
+  "dependencies": {
+    "@poker-club/core": "*",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@supabase/supabase-js": "^2.112.3",
+    "expo": "~54.0.36",
+    "expo-constants": "~18.0.13",
+    "expo-crypto": "~15.0.9",
+    "expo-linking": "~8.0.12",
+    "expo-router": "~6.0.24",
+    "expo-sqlite": "~16.0.10",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
+    "react-native-url-polyfill": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.2"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit"
+  }
+}
