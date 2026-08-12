@@ -1,0 +1,456 @@
+import { useSyncExternalStore } from 'react';
+import * as SQLite from 'expo-sqlite';
+import { randomUUID } from 'expo-crypto';
+import {
+  money,
+  resolveLedger,
+  type LedgerEntry,
+  type Money,
+  type MoneyRule,
+  type DiscrepancyAcknowledgement,
+  type Player,
+  type PlayerId,
+  type ResolvedLedger,
+} from '@poker-club/core';
+import { recordEntry } from './ledgerRepo';
+
+/**
+ * The night, on this phone.
+ *
+ * This is the READ MODEL. The outbox is a send queue — entries leave it once
+ * the server has them — so it cannot also be what the screens render from, or
+ * a successful sync would empty the app. Everything the host records lands
+ * here first and stays, and syncing is a separate concern that can fail all
+ * evening without anybody noticing.
+ *
+ * Nothing in here does arithmetic. Totals, positions and settlement all come
+ * from @poker-club/core, which is tested; a screen that added up its own
+ * column would be a second, untested implementation of the same sum.
+ */
+
+const DB_NAME = 'poker-club.db';
+
+let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+
+async function getDb(): Promise<SQLite.SQLiteDatabase> {
+  if (!dbPromise) {
+    dbPromise = SQLite.openDatabaseAsync(DB_NAME).then(async (db) => {
+      await db.execAsync(`
+        PRAGMA journal_mode = WAL;
+
+        CREATE TABLE IF NOT EXISTS night (
+          session_id  TEXT PRIMARY KEY NOT NULL,
+          group_name  TEXT NOT NULL,
+          started_at  TEXT NOT NULL,
+          status      TEXT NOT NULL DEFAULT 'open',
+          rules_json  TEXT NOT NULL,
+          -- The host's confirmation of money that could not be accounted for.
+          -- Part of the night's record, not a UI flag: it is what allows a
+          -- night that does not add up to be closed at all.
+          ack_json    TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS night_player (
+          session_id  TEXT NOT NULL,
+          id          TEXT NOT NULL,
+          name        TEXT NOT NULL,
+          at_table    INTEGER NOT NULL,
+          PRIMARY KEY (session_id, id)
+        );
+
+        -- Append-only, exactly as on the server: a correction is a new row.
+        CREATE TABLE IF NOT EXISTS night_entry (
+          session_id        TEXT NOT NULL,
+          id                TEXT NOT NULL,
+          seq               INTEGER NOT NULL,
+          type              TEXT NOT NULL,
+          player_id         TEXT,
+          payer_id          TEXT,
+          amount            INTEGER NOT NULL,
+          corrects_entry_id TEXT,
+          occurred_at       TEXT NOT NULL,
+          PRIMARY KEY (session_id, id)
+        );
+
+        CREATE TABLE IF NOT EXISTS night_count (
+          session_id  TEXT NOT NULL,
+          player_id   TEXT NOT NULL,
+          amount      INTEGER NOT NULL,
+          PRIMARY KEY (session_id, player_id)
+        );
+      `);
+      return db;
+    });
+  }
+  return dbPromise;
+}
+
+export interface Night {
+  sessionId: string;
+  groupName: string;
+  startedAt: string;
+  status: 'open' | 'counting' | 'settled';
+  players: Player[];
+  entries: LedgerEntry[];
+  /** The host's end-of-night count, for players still seated. */
+  finalCounts: Map<PlayerId, Money>;
+  rules: MoneyRule[];
+  /** When each entry happened, which is not derivable from its seq. */
+  occurredAt: Record<string, string>;
+  /**
+   * Set only when the count did not balance and the host confirmed what was
+   * missing. Without it, `settle()` refuses to run — that refusal is the close
+   * gate, and it lives in the engine so no screen can route around it.
+   */
+  acknowledgement?: DiscrepancyAcknowledgement;
+}
+
+// ---------------------------------------------------------------------------
+// The store: one night in memory, with subscribers.
+//
+// A module-level store rather than a React context, because these screens are
+// separate routes: a provider would have to sit above the router and every
+// sheet would have to be inside it. useSyncExternalStore keeps it plain.
+// ---------------------------------------------------------------------------
+
+let night: Night | null = null;
+let listeners = new Set<() => void>();
+
+const emit = () => {
+  for (const l of listeners) l();
+};
+
+const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+};
+
+const snapshot = () => night;
+
+/** The night this phone is holding, or null while it loads. */
+export function useNight(): Night | null {
+  return useSyncExternalStore(subscribe, snapshot, snapshot);
+}
+
+/** The resolved ledger, which is what almost every screen actually wants. */
+export function useLedger(): ResolvedLedger | null {
+  const n = useNight();
+  return n === null ? null : resolveLedger(n.entries);
+}
+
+export const nameOf = (n: Night | null, id: PlayerId | null | undefined): string =>
+  n?.players.find((p) => p.id === id)?.name ?? 'Someone';
+
+// ---------------------------------------------------------------------------
+// Loading
+// ---------------------------------------------------------------------------
+
+interface NightRow {
+  session_id: string;
+  group_name: string;
+  started_at: string;
+  status: Night['status'];
+  rules_json: string;
+  ack_json: string | null;
+}
+
+/**
+ * Open the night on this phone, seeding one the first time.
+ *
+ * TEMPORARY SEED. Until groups and sessions are real, opening the app for the
+ * first time creates a night from `sampleNight` so there is something to look
+ * at. It runs once — after that this is the host's own data, and the seed
+ * never touches it again.
+ */
+export async function openNight(): Promise<Night> {
+  const db = await getDb();
+  let row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+
+  if (!row) {
+    const seed = await import('../data/sampleNight');
+    await seedNight(seed.SEED);
+    row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+  }
+
+  const sessionId = row!.session_id;
+
+  const players = await db.getAllAsync<{ id: string; name: string; at_table: number }>(
+    `SELECT id, name, at_table FROM night_player WHERE session_id = ? ORDER BY rowid`,
+    sessionId,
+  );
+
+  const entries = await db.getAllAsync<{
+    id: string;
+    seq: number;
+    type: LedgerEntry['type'];
+    player_id: string | null;
+    payer_id: string | null;
+    amount: number;
+    corrects_entry_id: string | null;
+    occurred_at: string;
+  }>(`SELECT * FROM night_entry WHERE session_id = ? ORDER BY seq ASC`, sessionId);
+
+  const counts = await db.getAllAsync<{ player_id: string; amount: number }>(
+    `SELECT player_id, amount FROM night_count WHERE session_id = ?`,
+    sessionId,
+  );
+
+  night = {
+    sessionId,
+    groupName: row!.group_name,
+    startedAt: row!.started_at,
+    status: row!.status,
+    rules: JSON.parse(row!.rules_json),
+    players: players.map((p) => ({ id: p.id, name: p.name, atTable: p.at_table === 1 })),
+    entries: entries.map((e) => ({
+      id: e.id,
+      seq: e.seq,
+      type: e.type,
+      playerId: e.player_id,
+      payerId: e.payer_id,
+      amount: e.amount as Money,
+      correctsEntryId: e.corrects_entry_id,
+    })),
+    finalCounts: new Map(counts.map((c) => [c.player_id, c.amount as Money])),
+    occurredAt: Object.fromEntries(entries.map((e) => [e.id, e.occurred_at])),
+    ...(row!.ack_json ? { acknowledgement: JSON.parse(row!.ack_json) } : {}),
+  };
+
+  emit();
+  return night;
+}
+
+interface Seed {
+  groupName: string;
+  startedAt: string;
+  players: Player[];
+  entries: Array<Omit<LedgerEntry, 'id' | 'seq'> & { occurredAt: string }>;
+  rules: MoneyRule[];
+}
+
+async function seedNight(seed: Seed): Promise<void> {
+  const db = await getDb();
+  const sessionId = randomUUID();
+
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      `INSERT INTO night (session_id, group_name, started_at, status, rules_json)
+       VALUES (?, ?, ?, 'open', ?)`,
+      sessionId,
+      seed.groupName,
+      seed.startedAt,
+      JSON.stringify(seed.rules),
+    );
+
+    for (const p of seed.players) {
+      await db.runAsync(
+        `INSERT INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, ?)`,
+        sessionId,
+        p.id,
+        p.name,
+        p.atTable ? 1 : 0,
+      );
+    }
+
+    let seq = 0;
+    for (const e of seed.entries) {
+      seq += 1;
+      await db.runAsync(
+        `INSERT INTO night_entry
+           (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+        sessionId,
+        randomUUID(),
+        seq,
+        e.type,
+        e.playerId ?? null,
+        e.payerId ?? null,
+        e.amount,
+        e.occurredAt,
+      );
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Writing
+// ---------------------------------------------------------------------------
+
+/**
+ * Record one entry: locally first, then queued for the server.
+ *
+ * The order matters. The local write is what the host sees, and it must not
+ * depend on a network that is not there — a kitchen at 1am is exactly where
+ * the signal goes. `recordEntry` puts it in the outbox and returns immediately.
+ */
+async function append(
+  draft: Omit<LedgerEntry, 'id' | 'seq'>,
+  occurredAt: Date = new Date(),
+): Promise<void> {
+  if (night === null) throw new Error('No night is open.');
+  const db = await getDb();
+
+  const entry = await recordEntry(night.sessionId, draft, occurredAt);
+
+  await db.runAsync(
+    `INSERT INTO night_entry
+       (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    night.sessionId,
+    entry.id,
+    entry.seq,
+    entry.type,
+    entry.playerId ?? null,
+    entry.payerId ?? null,
+    entry.amount,
+    entry.correctsEntryId ?? null,
+    occurredAt.toISOString(),
+  );
+
+  night = {
+    ...night,
+    entries: [...night.entries, entry],
+    occurredAt: { ...night.occurredAt, [entry.id]: occurredAt.toISOString() },
+  };
+  emit();
+}
+
+/** Chips on the table, from the ledger — never a running total kept by hand. */
+export function buyIn(playerId: PlayerId, amount: Money): Promise<void> {
+  return append({ type: 'buyin', playerId, amount });
+}
+
+export function rebuy(playerId: PlayerId, amount: Money): Promise<void> {
+  return append({ type: 'rebuy', playerId, amount });
+}
+
+export function cashOut(playerId: PlayerId, amount: Money): Promise<void> {
+  return append({ type: 'cashout', playerId, amount });
+}
+
+export function addExpense(payerId: PlayerId, amount: Money): Promise<void> {
+  return append({ type: 'expense', payerId, amount });
+}
+
+/**
+ * Seat someone who was not playing, and log their first buy-in.
+ *
+ * One act, not two: a player with no buy-in is not at the table, and the
+ * design's button says so — "Seat Kuba · log buy-in".
+ */
+export async function seatAndBuyIn(name: string, amount: Money): Promise<PlayerId> {
+  if (night === null) throw new Error('No night is open.');
+  const db = await getDb();
+
+  const existing = night.players.find((p) => p.name.toLowerCase() === name.trim().toLowerCase());
+  const id = existing?.id ?? randomUUID();
+
+  if (existing === undefined) {
+    await db.runAsync(
+      `INSERT INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, 1)`,
+      night.sessionId,
+      id,
+      name.trim(),
+    );
+    night = { ...night, players: [...night.players, { id, name: name.trim(), atTable: true }] };
+  } else if (!existing.atTable) {
+    await db.runAsync(
+      `UPDATE night_player SET at_table = 1 WHERE session_id = ? AND id = ?`,
+      night.sessionId,
+      id,
+    );
+    night = {
+      ...night,
+      players: night.players.map((p) => (p.id === id ? { ...p, atTable: true } : p)),
+    };
+  }
+
+  await buyIn(id, amount);
+  return id;
+}
+
+/** The host's end-of-night count for one player. Overwrites: counting again is normal. */
+export async function setFinalCount(playerId: PlayerId, amount: Money): Promise<void> {
+  if (night === null) throw new Error('No night is open.');
+  const db = await getDb();
+
+  await db.runAsync(
+    `INSERT INTO night_count (session_id, player_id, amount) VALUES (?, ?, ?)
+     ON CONFLICT (session_id, player_id) DO UPDATE SET amount = excluded.amount`,
+    night.sessionId,
+    playerId,
+    amount,
+  );
+
+  const finalCounts = new Map(night.finalCounts);
+  finalCounts.set(playerId, amount);
+  night = { ...night, finalCounts };
+  emit();
+
+  // Any confirmation of a shortfall is now about a total that no longer
+  // exists. The engine would reject it as stale; withdrawing it here means the
+  // host is asked again about the number they are actually looking at.
+  if (night.acknowledgement !== undefined) await setAcknowledgement(null);
+}
+
+/**
+ * The host has looked at money that cannot be accounted for and said so.
+ *
+ * Stored with the night rather than held in a screen's state: it is part of
+ * the record of what happened, it is what a player is entitled to see later,
+ * and `settle()` will not run without it. Pass null to withdraw it — which is
+ * what has to happen the moment a count changes, because an acknowledgement of
+ * $150 is not an acknowledgement of $90.
+ */
+export async function setAcknowledgement(
+  ack: DiscrepancyAcknowledgement | null,
+): Promise<void> {
+  if (night === null) return;
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE night SET ack_json = ? WHERE session_id = ?`,
+    ack === null ? null : JSON.stringify(ack),
+    night.sessionId,
+  );
+  const { acknowledgement: _dropped, ...rest } = night;
+  night = ack === null ? rest : { ...rest, acknowledgement: ack };
+  emit();
+}
+
+export async function setStatus(status: Night['status']): Promise<void> {
+  if (night === null) return;
+  const db = await getDb();
+  await db.runAsync(`UPDATE night SET status = ? WHERE session_id = ?`, status, night.sessionId);
+  night = { ...night, status };
+  emit();
+}
+
+/**
+ * How deep somebody is, in the words the design uses.
+ *
+ * "buy-in + 2 rebuys" rather than a number, because that is what the host says
+ * out loud when they are asked.
+ */
+export function depthOf(ledger: ResolvedLedger, playerId: PlayerId): string {
+  const mine = ledger.entries.filter((e) => !e.voided && e.playerId === playerId);
+  const rebuys = mine.filter((e) => e.type === 'rebuy').length;
+  const cashedOut = ledger.cashedOutByPlayer.get(playerId) ?? 0;
+
+  if (cashedOut > 0) return `cashed out · counted ${cashedOut.toLocaleString('en-US')}`;
+  if (rebuys === 0) return 'buy-in';
+  return `buy-in + ${rebuys} ${rebuys === 1 ? 'rebuy' : 'rebuys'}`;
+}
+
+/** What a first buy-in should default to: whatever the table has been buying in for. */
+export function defaultBuyIn(ledger: ResolvedLedger): Money {
+  const firsts = ledger.entries.filter((e) => !e.voided && e.type === 'buyin').map((e) => e.amount);
+  if (firsts.length === 0) return money(500);
+  // The most common one, not the average: a mean would invent an amount nobody
+  // has ever bought in for.
+  const tally = new Map<number, number>();
+  for (const a of firsts) tally.set(a, (tally.get(a) ?? 0) + 1);
+  const [best] = [...tally.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0]);
+  return money(best[0]);
+}

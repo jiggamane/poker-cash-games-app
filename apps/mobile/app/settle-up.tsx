@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { formatSigned, type Money, type PlayerId } from '@poker-club/core';
+import { formatSigned, settle, type Money, type PlayerId } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Row } from '../src/components/Row';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { nameOf, settlement } from '../src/data/sampleNight';
+import { nameOf, setStatus, useNight } from '../src/lib/nightStore';
 
 /**
  * Settle up — the last of the three close steps. Built from E4.
@@ -23,7 +23,54 @@ import { nameOf, settlement } from '../src/data/sampleNight';
  */
 export default function SettleUp() {
   const t = useTheme();
-  const { deductions, players, transfers } = settlement;
+  const night = useNight();
+
+  /**
+   * The close gate, from this side.
+   *
+   * `settle()` throws when the count does not balance and nothing has been
+   * confirmed. That is not an error to swallow — it is the rule, and catching
+   * it here is how the screen refuses to show figures that were never allowed
+   * to exist. The only way past it is back to the count.
+   */
+  const result = useMemo(() => {
+    if (night === null) return null;
+    try {
+      return {
+        ok: true as const,
+        value: settle({
+          players: night.players,
+          entries: night.entries,
+          finalCounts: night.finalCounts,
+          rules: night.rules,
+          ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
+        }),
+      };
+    } catch (e) {
+      return { ok: false as const, message: e instanceof Error ? e.message : String(e) };
+    }
+  }, [night]);
+
+  if (night === null || result === null) {
+    return <Screen title="Settle up" backTo="Count up">{null}</Screen>;
+  }
+
+  if (!result.ok) {
+    return (
+      <Screen
+        title="Not yet"
+        backTo="Count up"
+        lede="The night cannot be settled until the chips counted match the chips on the table, or the difference has been confirmed."
+        footer={
+          <Button label="Back to the count" variant="primary" onPress={() => router.back()} />
+        }
+      >
+        <Text style={[styles.blocked, { color: t.muted }]}>{result.message}</Text>
+      </Screen>
+    );
+  }
+
+  const { deductions, players, transfers } = result.value;
 
   /**
    * Money that leaves the table for good, as opposed to money going back to
@@ -34,7 +81,7 @@ export default function SettleUp() {
    * also playing, the engine nets their winnings and the kitty into one
    * position, and colouring that row bone would be a lie about what it is.
    */
-  const offTable = useMemo(() => {
+  const offTable = (() => {
     const map = new Map<PlayerId, string>();
     const seated = new Set(players.filter((p) => p.boughtIn > 0).map((p) => p.playerId));
     for (const d of deductions) {
@@ -44,12 +91,9 @@ export default function SettleUp() {
       }
     }
     return map;
-  }, [deductions, players]);
+  })();
 
-  const net = useMemo(
-    () => [...players].sort((a, b) => b.finalPosition - a.finalPosition),
-    [players],
-  );
+  const net = [...players].sort((a, b) => b.finalPosition - a.finalPosition);
 
   const kept = [...offTable.values()];
   const lede =
@@ -59,7 +103,7 @@ export default function SettleUp() {
   return (
     <Screen
       title="Settle up"
-      backTo="Deductions"
+      backTo="Count up"
       action={{ label: 'Edit', onPress: () => router.back() }}
       step="3 of 3"
       lede={lede}
@@ -68,7 +112,10 @@ export default function SettleUp() {
           <Button
             label="Close the session"
             variant="primary"
-            onPress={() => router.dismissTo('/')}
+            onPress={() => {
+              void setStatus('settled');
+              router.dismissTo('/');
+            }}
           />
           <View style={styles.footerRow}>
             <Button label="Share" variant="secondary" style={styles.footerAction} />
@@ -84,8 +131,8 @@ export default function SettleUp() {
             <Row
               key={`${tr.fromPlayerId}-${tr.toPlayerId}-${i}`}
               kind="transfer"
-              label={nameOf(tr.fromPlayerId)}
-              to={asKitty ?? nameOf(tr.toPlayerId)}
+              label={nameOf(night, tr.fromPlayerId)}
+              to={asKitty ?? nameOf(night, tr.toPlayerId)}
               amount={tr.amount}
               tone={asKitty !== undefined ? 'offTable' : 'plain'}
               last={i === transfers.length - 1}
@@ -146,6 +193,7 @@ const styles = StyleSheet.create({
   chipName: type.netName,
   chipFigure: type.netFigure,
 
+  blocked: { ...type.footnote, marginHorizontal: space.page },
   footerRow: { flexDirection: 'row', gap: 14 },
   footerAction: { flex: 1 },
 });

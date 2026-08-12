@@ -1,22 +1,21 @@
 /**
- * A fixed night, used until the screens read from the store.
+ * A night to open the app with, the first time and only the first time.
  *
- * TEMPORARY. It exists so the screens can be built and looked at against real
- * engine output rather than mock figures — every number on screen is computed
- * by @poker-club/core from these entries. Replaced by the repository in the
- * next step; nothing outside this file knows where the data came from.
+ * TEMPORARY. `nightStore.openNight()` copies this into the device's database
+ * when it finds no night there, so there is something to look at and something
+ * to record against. After that it is the host's own data: the seed is never
+ * read again, and deleting this file once groups are real will not lose
+ * anybody's night.
  */
 
-import { money, settle, type LedgerEntry, type Money, type MoneyRule, type Player, type PlayerId } from '@poker-club/core';
+import { money, type LedgerEntry, type MoneyRule, type Player } from '@poker-club/core';
 
-export const GROUP_NAME = 'The Thursday game';
+const MAREK = 'seed-marek';
+const PETR = 'seed-petr';
+const DANA = 'seed-dana';
+const RADKA = 'seed-radka';
 
-const MAREK = 'p1';
-const PETR = 'p2';
-const DANA = 'p3';
-const RADKA = 'p9';
-
-export const players: Player[] = [
+const players: Player[] = [
   { id: MAREK, name: 'Marek', atTable: true },
   { id: PETR, name: 'Petr', atTable: true },
   { id: DANA, name: 'Dana', atTable: true },
@@ -24,39 +23,26 @@ export const players: Player[] = [
   { id: RADKA, name: 'Radka', atTable: false },
 ];
 
-export const nameOf = (id: PlayerId): string =>
-  players.find((p) => p.id === id)?.name ?? 'Unaccounted';
-
-let n = 0;
-const entry = (e: Omit<LedgerEntry, 'id' | 'seq'>): LedgerEntry => ({ id: `e${++n}`, seq: n, ...e });
-
-/**
- * In seq order, which must also be time order.
- *
- * seq is what the feed sorts by, so an entry recorded out of sequence would
- * show up in the wrong place in the list. Back-dating is a real feature — the
- * host can log a hand that already happened — but the sample night is a
- * straightforward evening and should read like one.
- */
-export const entries: LedgerEntry[] = [
-  entry({ type: 'buyin', playerId: MAREK, amount: money(500) }),   // 20:07
-  entry({ type: 'buyin', playerId: PETR, amount: money(500) }),    // 20:09
-  entry({ type: 'buyin', playerId: DANA, amount: money(1000) }),   // 20:41
-  entry({ type: 'rebuy', playerId: PETR, amount: money(1000) }),   // 21:04
-  entry({ type: 'expense', payerId: MAREK, amount: money(170) }),  // 21:48
-];
-
-export const timeOf: Record<string, string> = {
-  e1: '20:07', e2: '20:09', e3: '20:41', e4: '21:04', e5: '21:48',
+/** Today, at a given wall-clock time — so the feed reads like tonight. */
+const at = (hhmm: string): string => {
+  const [h, m] = hhmm.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
 };
 
-export const finalCounts = new Map<PlayerId, Money>([
-  [MAREK, money(1982)],
-  [PETR, money(270)],
-  [DANA, money(748)],
-]);
+type SeedEntry = Omit<LedgerEntry, 'id' | 'seq'> & { occurredAt: string };
 
-export const rules: MoneyRule[] = [
+/** In time order, which is also seq order. */
+const entries: SeedEntry[] = [
+  { type: 'buyin', playerId: MAREK, amount: money(500), occurredAt: at('20:07') },
+  { type: 'buyin', playerId: PETR, amount: money(500), occurredAt: at('20:09') },
+  { type: 'buyin', playerId: DANA, amount: money(1000), occurredAt: at('20:41') },
+  { type: 'rebuy', playerId: PETR, amount: money(1000), occurredAt: at('21:04') },
+  { type: 'expense', payerId: MAREK, amount: money(170), occurredAt: at('21:48') },
+];
+
+const rules: MoneyRule[] = [
   {
     id: 'kitchen', name: 'Kitchen & drinks', active: true,
     amountKind: 'fixed', amount: money(170), basis: 'gross',
@@ -71,7 +57,10 @@ export const rules: MoneyRule[] = [
   },
 ];
 
-export const settlement = settle({ players, entries, finalCounts, rules });
-
-/** What is on the table right now, for the live session header. */
-export const inPlay: Money = settlement.reconciliation.chipsOnTable;
+export const SEED = {
+  groupName: 'The Thursday game',
+  startedAt: at('20:05'),
+  players,
+  entries,
+  rules,
+};

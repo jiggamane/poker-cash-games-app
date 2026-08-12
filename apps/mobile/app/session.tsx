@@ -8,7 +8,7 @@ import { Row } from '../src/components/Row';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
-import { GROUP_NAME, entries, nameOf, players, timeOf } from '../src/data/sampleNight';
+import { depthOf, nameOf, useNight } from '../src/lib/nightStore';
 
 /**
  * The live session — N1 and N2.
@@ -23,42 +23,42 @@ import { GROUP_NAME, entries, nameOf, players, timeOf } from '../src/data/sample
 export default function Session() {
   const t = useTheme();
   const [tab, setTab] = useState<'totals' | 'feed'>('totals');
+  const night = useNight();
 
-  const ledger = useMemo(() => resolveLedger(entries), []);
-  const onTable = (ledger.totalBoughtIn - ledger.totalCashedOut) as Money;
+  const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
-  /** Most money in first. */
+  /** Most money in first. Only people who actually have money on the table. */
   const standings = useMemo(() => {
-    const seated = players.filter((p) => p.atTable);
-    return seated
-      .map((p) => {
-        const buyIns = ledger.entries.filter(
-          (e) => !e.voided && e.playerId === p.id && (e.type === 'buyin' || e.type === 'rebuy'),
-        );
-        const rebuys = buyIns.filter((e) => e.type === 'rebuy').length;
-        const cashedOut = ledger.cashedOutByPlayer.get(p.id) ?? 0;
-        return {
-          id: p.id,
-          name: p.name,
-          in: (ledger.boughtInByPlayer.get(p.id) ?? 0) as Money,
-          detail: cashedOut
-            ? `cashed out · counted ${formatMoney(cashedOut as Money)}`
-            : rebuys === 0
-              ? 'buy-in'
-              : `buy-in + ${rebuys} ${rebuys === 1 ? 'rebuy' : 'rebuys'}`,
-        };
-      })
+    if (night === null || ledger === null) return [];
+    return night.players
+      .filter((p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        in: (ledger.boughtInByPlayer.get(p.id) ?? 0) as Money,
+        detail: depthOf(ledger, p.id),
+      }))
       .sort((a, b) => b.in - a.in || (a.name < b.name ? -1 : 1));
-  }, [ledger]);
+  }, [night, ledger]);
+
+  if (night === null || ledger === null) {
+    return <Screen title="Tonight" backTo="The group">{null}</Screen>;
+  }
+
+  const onTable = (ledger.totalBoughtIn - ledger.totalCashedOut) as Money;
+  const since = new Date(night.startedAt).toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   return (
     <Screen
       title="Tonight"
-      backTo={GROUP_NAME}
+      backTo={night.groupName}
       trailing={
         <>
           <LiveBadge />
-          <Text style={[styles.elapsed, { color: t.muted }]}>3h 17m</Text>
+          <Text style={[styles.elapsed, { color: t.muted }]}>{elapsed(night.startedAt)}</Text>
         </>
       }
       footer={
@@ -67,7 +67,7 @@ export default function Session() {
               what happens next — you count, then you settle. */}
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.push('/settle-up')}
+            onPress={() => router.push('/count-up')}
             style={({ pressed }) => [
               styles.endRow,
               { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 },
@@ -79,8 +79,18 @@ export default function Session() {
           </Pressable>
 
           <View style={styles.actions}>
-            <Button label="Buy-in" variant="primary" style={styles.action} />
-            <Button label="Cash out" variant="secondary" style={styles.action} />
+            <Button
+              label="Buy-in"
+              variant="primary"
+              style={styles.action}
+              onPress={() => router.push({ pathname: '/pick', params: { kind: 'buyin' } })}
+            />
+            <Button
+              label="Cash out"
+              variant="secondary"
+              style={styles.action}
+              onPress={() => router.push({ pathname: '/pick', params: { kind: 'cashout' } })}
+            />
           </View>
         </>
       }
@@ -94,7 +104,7 @@ export default function Session() {
             <Text style={[styles.cardFigure, { color: t.text }]}>{formatMoney(onTable)}</Text>
           </View>
           <Text style={[styles.seated, { color: t.muted }]}>
-            {standings.length} seated{'\n'}since 20:05
+            {standings.length} seated{'\n'}since {since}
           </Text>
         </View>
 
@@ -118,7 +128,6 @@ export default function Session() {
                 label={s.name}
                 detail={s.detail}
                 amount={s.in}
-                chevron
                 last={i === standings.length - 1}
               />
             ))}
@@ -133,12 +142,12 @@ export default function Session() {
       ) : (
         <View style={styles.list}>
           {[...ledger.entries].reverse().map((e, i, all) => {
-            const d = describe(e, ledger);
+            const d = describe(e, ledger, night);
             return (
               <Row
                 key={e.id}
                 kind="feed"
-                time={timeOf[e.id] ?? ''}
+                time={clock(night.occurredAt[e.id])}
                 label={d.label}
                 detail={e.voided ? 'voided' : e.corrected ? 'corrected' : d.detail}
                 amount={e.amount}
@@ -162,8 +171,9 @@ export default function Session() {
 function describe(
   e: ReturnType<typeof resolveLedger>['entries'][number],
   ledger: ReturnType<typeof resolveLedger>,
+  night: NonNullable<ReturnType<typeof useNight>>,
 ): { label: string; detail?: string } {
-  const who = nameOf((e.playerId ?? e.payerId ?? '') as PlayerId);
+  const who = nameOf(night, (e.playerId ?? e.payerId ?? '') as PlayerId);
 
   switch (e.type) {
     case 'buyin':
@@ -185,6 +195,18 @@ function describe(
 
 const ordinal = (n: number) =>
   n === 1 ? 'first' : n === 2 ? 'second' : n === 3 ? 'third' : `${n}th`;
+
+/** 23:15. The feed's left column, and the only place a time is shown. */
+const clock = (iso: string | undefined): string =>
+  iso === undefined
+    ? ''
+    : new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+/** "3h 17m" — how long the table has been running. */
+function elapsed(startedAt: string): string {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 60000));
+  return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, '0')}m`;
+}
 
 /** 999px radius is reserved for this and nothing else. */
 function LiveBadge() {

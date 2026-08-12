@@ -5,6 +5,7 @@ import * as Linking from 'expo-linking';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
 import { completeSignInFromUrl } from '../src/lib/authLink';
+import { openNight } from '../src/lib/nightStore';
 
 /**
  * The navigation shell.
@@ -19,6 +20,13 @@ import { completeSignInFromUrl } from '../src/lib/authLink';
  */
 export default function RootLayout() {
   const t = useTheme();
+
+  // Read the night off the device once, at the root, so every screen finds it
+  // already there. It comes from SQLite, not the network — the app is fully
+  // usable with no connection and no account.
+  useEffect(() => {
+    void openNight().catch(() => {});
+  }, []);
 
   // The sign-in link comes back into the app here. It has to be handled at the
   // root: the link can arrive while the app is cold, backgrounded, or sitting

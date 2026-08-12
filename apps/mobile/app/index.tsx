@@ -5,8 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
 import { Icon, type IconName } from '../src/components/Icon';
-import { GROUP_NAME, players } from '../src/data/sampleNight';
 import { useSession } from '../src/lib/useSession';
+import { useLedger, useNight } from '../src/lib/nightStore';
 
 /**
  * Home — the group. The root of everything; nothing is pushed beneath it.
@@ -25,16 +25,27 @@ import { useSession } from '../src/lib/useSession';
 export default function Home() {
   const t = useTheme();
   const { session, loading, configured } = useSession();
+  const night = useNight();
+  const ledger = useLedger();
 
-  // Until the repository lands there is always a night in progress, because the
-  // sample data describes one. H2 is what this becomes when there is not.
-  const live = { seated: players.filter((p) => p.atTable).length, since: '3h 17m' };
+  // A night is live until it has been settled. H2 — "Start a session" — is what
+  // this becomes once it has, and once starting one is a thing you can do.
+  const live =
+    night === null || ledger === null
+      ? null
+      : {
+          seated: night.players.filter(
+            (p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0,
+          ).length,
+          since: elapsed(night.startedAt),
+          settled: night.status === 'settled',
+        };
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={[styles.groupLabel, { color: t.muted }]}>Your group</Text>
-        <Text style={[styles.title, { color: t.text }]}>{GROUP_NAME}</Text>
+        <Text style={[styles.title, { color: t.text }]}>{night?.groupName ?? 'The Poker Club'}</Text>
       </View>
 
       {/* The one filled thing on the screen. Inverted — ink on white, white on
@@ -47,12 +58,14 @@ export default function Home() {
           { backgroundColor: t.text, borderColor: t.ground, opacity: pressed ? 0.9 : 1 },
         ]}
       >
-        <View style={styles.cardStatusRow}>
-          <View style={[styles.dot, { backgroundColor: t.onFillWin }]} />
-          <Text style={[styles.cardStatus, { color: t.onFill }]}>
-            PLAYING NOW · {live.since.toUpperCase()}
-          </Text>
-        </View>
+        {live !== null && !live.settled && (
+          <View style={styles.cardStatusRow}>
+            <View style={[styles.dot, { backgroundColor: t.onFillWin }]} />
+            <Text style={[styles.cardStatus, { color: t.onFill }]}>
+              PLAYING NOW · {live.since.toUpperCase()}
+            </Text>
+          </View>
+        )}
 
         <View style={styles.cardNameRow}>
           {/* Name and line grouped, at the same gap 6 the destination rows use,
@@ -60,7 +73,11 @@ export default function Home() {
           <View style={styles.cardText}>
             <Text style={[styles.cardName, { color: t.onFill }]}>Tonight</Text>
             <Text style={[styles.cardLede, { color: t.onFill }]}>
-              {live.seated} at the table · the ledger is open
+              {live === null
+                ? 'opening the ledger'
+                : live.settled
+                  ? 'settled · look back at it'
+                  : `${live.seated} at the table · the ledger is open`}
             </Text>
           </View>
           <View style={styles.pushRight}>
@@ -76,7 +93,7 @@ export default function Home() {
           onPress={() => router.push('/session')}
         />
         <Destination name="My stats" sub="across every group you play in" />
-        <Destination name="Sessions" sub="tonight, then 27 before it" last />
+        <Destination name="Sessions" sub="every night, most recent first" last />
       </View>
 
       <View style={styles.bottom}>
@@ -171,6 +188,12 @@ function Quiet({
       <Text style={[styles.quietLabel, { color: t.text }]}>{label}</Text>
     </Pressable>
   );
+}
+
+/** "3h 17m" — how long the table has been running. */
+function elapsed(startedAt: string): string {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 60000));
+  return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, '0')}m`;
 }
 
 const styles = StyleSheet.create({

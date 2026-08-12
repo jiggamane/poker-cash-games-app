@@ -24,7 +24,13 @@ export type IconName =
   /** The rule book, in the night's bar. */
   | 'rules'
   | 'settings'
-  | 'invite';
+  | 'invite'
+  /** The time an entry is stamped with. */
+  | 'clock'
+  /** The keypad's delete key. */
+  | 'backspace'
+  /** Adds something — always paired with a dashed outline. */
+  | 'plus';
 
 export function Icon({
   name,
@@ -123,6 +129,40 @@ export function Icon({
             strokeWidth={1.8}
             strokeLinecap="round"
           />
+        </Svg>
+      );
+    }
+
+    case 'clock': {
+      const s = size ?? 17;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Circle cx={12} cy={12} r={8.5} stroke={color} strokeWidth={1.9} />
+          <Path d="M12 7.5V12l3 2" stroke={color} strokeWidth={1.9} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'backspace': {
+      const w = size ?? 26;
+      return (
+        <Svg width={w} height={(w * 20) / 26} viewBox="0 0 26 20" fill="none">
+          <Path
+            d="M8.5 2h15v16h-15L1.5 10z"
+            stroke={color}
+            strokeWidth={1.7}
+            strokeLinecap="round"
+          />
+          <Path d="M13 7l6 6M19 7l-6 6" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'plus': {
+      const s = size ?? 15;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={2} strokeLinecap="round" />
         </Svg>
       );
     }
