@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Linking from 'expo-linking';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
+import { completeSignInFromUrl } from '../src/lib/authLink';
 
 /**
  * The navigation shell.
@@ -16,6 +19,18 @@ import { useTheme } from '../src/design/useTheme';
  */
 export default function RootLayout() {
   const t = useTheme();
+
+  // The sign-in link comes back into the app here. It has to be handled at the
+  // root: the link can arrive while the app is cold, backgrounded, or sitting
+  // on any screen, and only the shell is guaranteed to be mounted.
+  const url = Linking.useURL();
+  useEffect(() => {
+    if (!url) return;
+    void completeSignInFromUrl(url).catch(() => {
+      // A stale or already-used link. useSession stays signed out and the
+      // sign-in screen remains available; nothing to interrupt the host with.
+    });
+  }, [url]);
 
   return (
     <SafeAreaProvider>

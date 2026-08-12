@@ -6,52 +6,39 @@ import { Field } from '../src/components/Field';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
-import { isSupabaseConfigured, sendSignInCode, verifySignInCode } from '../src/lib/supabase';
+import { authRedirectUrl } from '../src/lib/authLink';
+import { isSupabaseConfigured, sendSignInLink } from '../src/lib/supabase';
 
 /**
- * The host signs in with a six-digit code.
+ * The host signs in.
  *
- * A code rather than a magic link: a link has to reopen the app through a
- * custom URL scheme, which does not exist while the app runs inside Expo Go.
- * A code is typed into the screen already in front of you, needs no redirect
- * configuration, and behaves the same in every environment.
+ * A link rather than a password: the app is opened at a kitchen table, often
+ * one-handed, and a password is one more thing to have forgotten since last
+ * month. This is the only sign-in in the product — players are names the host
+ * types, and watchers hold a link of their own.
  *
- * This is the only sign-in in the product. Players are names the host types;
- * watchers hold a link.
+ * The redirect comes from authRedirectUrl(), which returns whatever is correct
+ * for how the app is running. Hardcoding a scheme is what made the first
+ * attempt fail: pokerclub:// does not exist while the app runs inside Expo Go.
  */
 export default function SignIn() {
   const t = useTheme();
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [stage, setStage] = useState<'email' | 'code'>('email');
+  const [stage, setStage] = useState<'email' | 'sent'>('email');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const emailOk = /\S+@\S+\.\S+/.test(email.trim());
-  const codeOk = /^\d{6}$/.test(code.trim());
 
   async function send() {
     setError(null);
     setBusy(true);
     try {
-      await sendSignInCode(email.trim());
-      setStage('code');
+      await sendSignInLink(email.trim(), authRedirectUrl());
+      setStage('sent');
     } catch (e) {
-      setError(message(e));
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setBusy(false);
-    }
-  }
-
-  async function verify() {
-    setError(null);
-    setBusy(true);
-    try {
-      await verifySignInCode(email.trim(), code);
-      // The auth listener in useSession picks the session up from here.
-      router.dismissTo('/');
-    } catch (e) {
-      setError(message(e));
       setBusy(false);
     }
   }
@@ -68,48 +55,30 @@ export default function SignIn() {
     );
   }
 
-  if (stage === 'code') {
+  if (stage === 'sent') {
     return (
       <Screen
-        title="Enter the code"
+        title="Check your email"
         backTo="Sign in"
         footer={
           <>
-            <Button
-              label={busy ? 'Checking…' : 'Sign in'}
-              variant="primary"
-              disabled={!codeOk || busy}
-              onPress={verify}
-            />
+            <Button label="Done" variant="primary" onPress={() => router.dismissTo('/')} />
             <Button
               label="Use a different email"
               variant="secondary"
               onPress={() => {
                 setStage('email');
-                setCode('');
                 setError(null);
               }}
             />
           </>
         }
       >
-        <Text style={[styles.body, { color: t.muted }]}>
-          We emailed a six-digit code to {email.trim()}.
+        <Text style={[styles.body, { color: t.text }]}>A link is on its way to {email.trim()}.</Text>
+        <Text style={[styles.body, styles.spaced, { color: t.muted }]}>
+          Open it on this phone and you will come back here signed in. It works once and expires
+          shortly, so ask for another if it goes stale.
         </Text>
-
-        <View style={styles.form}>
-          <Field
-            label="Code"
-            value={code}
-            onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
-            placeholder="123456"
-            keyboardType="number-pad"
-            autoFocus
-            hint="It expires shortly. Ask for another if it goes stale."
-          />
-        </View>
-
-        {error !== null && <Text style={[styles.body, { color: t.loss }]}>{error}</Text>}
       </Screen>
     );
   }
@@ -120,7 +89,7 @@ export default function SignIn() {
       backTo="The group"
       footer={
         <Button
-          label={busy ? 'Sending…' : 'Email me a code'}
+          label={busy ? 'Sending…' : 'Email me a link'}
           variant="primary"
           disabled={!emailOk || busy}
           onPress={send}
@@ -139,7 +108,7 @@ export default function SignIn() {
           placeholder="you@example.com"
           keyboardType="email-address"
           autoFocus
-          hint="No password. We email you a six-digit code."
+          hint="No password. We email you a link that signs you in."
         />
       </View>
 
@@ -148,16 +117,8 @@ export default function SignIn() {
   );
 }
 
-function message(e: unknown): string {
-  const raw = e instanceof Error ? e.message : String(e);
-  // The library's wording for a wrong or stale code is unhelpfully generic.
-  if (/token has expired|invalid/i.test(raw)) {
-    return 'That code did not work. It may have expired — ask for another.';
-  }
-  return raw;
-}
-
 const styles = StyleSheet.create({
   body: { ...type.body, fontWeight: '400', lineHeight: 24 },
+  spaced: { marginTop: 12 },
   form: { marginTop: space.section },
 });

@@ -33,31 +33,29 @@ export const supabase: SupabaseClient = createClient(
 );
 
 /**
- * Sign the host in with a six-digit code emailed to them.
+ * Email the host a sign-in link.
  *
- * A CODE, not a magic link. A link has to reopen the app through a custom URL
- * scheme, which does not exist while the app runs inside Expo Go, and which
- * needs a redirect allowlist entry per environment even once it does. A code is
- * typed into the screen the host is already looking at, works identically
- * everywhere, and needs no configuration at all.
- *
- * It is also better at a kitchen table: no leaving the app mid-sign-in.
+ * redirectTo comes from authRedirectUrl(), which returns whatever suits how the
+ * app is running — an exp:// dev URL inside Expo Go, pokerclub:// in a build.
+ * Hardcoding either one breaks the other.
  */
-export async function sendSignInCode(email: string): Promise<void> {
+export async function sendSignInLink(email: string, redirectTo: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: { shouldCreateUser: true, emailRedirectTo: redirectTo },
   });
   if (error) throw error;
 }
 
-/** Exchange the emailed code for a session. */
+/**
+ * Exchange a six-digit code for a session.
+ *
+ * Only reachable once the project has custom SMTP and its email templates carry
+ * {{ .Token }} — Supabase's built-in mail sends a link and nothing else. Kept
+ * because a code is the better flow when it is available: no leaving the app.
+ */
 export async function verifySignInCode(email: string, code: string): Promise<void> {
-  const { error } = await supabase.auth.verifyOtp({
-    email,
-    token: code.trim(),
-    type: 'email',
-  });
+  const { error } = await supabase.auth.verifyOtp({ email, token: code.trim(), type: 'email' });
   if (error) throw error;
 }
 

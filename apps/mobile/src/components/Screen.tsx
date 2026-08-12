@@ -14,12 +14,18 @@ import { space, type } from '../design/tokens';
  */
 export function Screen({
   title,
+  eyebrow,
+  trailing,
   backTo,
   step,
   children,
   footer,
 }: {
   title: string;
+  /** The group's name, sitting above the title. A name, never a figure. */
+  eyebrow?: string;
+  /** On the title's baseline, right-aligned — a live badge, a duration. */
+  trailing?: ReactNode;
   /** The name of the screen this returns to. Omit on the root. */
   backTo?: string;
   /** Numbered flows say "2 of 3" — the close flow is genuinely sequential. */
@@ -60,8 +66,12 @@ export function Screen({
       )}
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.titleRow}>
+        {eyebrow !== undefined && (
+          <Text style={[styles.eyebrow, { color: t.muted }]}>{eyebrow}</Text>
+        )}
+        <View style={[styles.titleRow, eyebrow !== undefined && styles.titleTight]}>
           <Text style={[styles.title, { color: t.text }]}>{title}</Text>
+          {trailing}
           {step !== undefined && <Text style={[styles.step, { color: t.muted }]}>{step}</Text>}
         </View>
         {children}
@@ -113,8 +123,10 @@ const styles = StyleSheet.create({
   backLabel: { ...type.body, fontWeight: '500' },
   home: { paddingLeft: 12 },
   content: { paddingHorizontal: space.page, paddingBottom: 32 },
-  titleRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 8, marginBottom: 22 },
-  title: { ...type.title, flex: 1 },
-  step: type.meta,
+  eyebrow: { ...type.meta, marginTop: 8 },
+  titleRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 8, marginBottom: 20, gap: 10 },
+  titleTight: { marginTop: 2 },
+  title: type.title,
+  step: { ...type.meta, marginLeft: 'auto' },
   footer: { paddingHorizontal: space.page, paddingTop: 12, paddingBottom: 4, borderTopWidth: StyleSheet.hairlineWidth, gap: 10 },
 });
