@@ -212,3 +212,45 @@ function addTo(map: Map<PlayerId, Money>, key: PlayerId, amount: Money): void {
 function totalOf(map: ReadonlyMap<PlayerId, Money>): Money {
   return sum([...map.values()]);
 }
+
+/**
+ * What the Rebuy button should offer this player — rev 7's M16.
+ *
+ * Tables drift. Once somebody has rebought $500 at a $200 table, their next
+ * rebuy is almost always $500 again, and asking them to retype it every time is
+ * the sort of small friction that gets an app put down at a kitchen table.
+ *
+ * Resolution order, PER PLAYER and per session:
+ *
+ *   1. their last rebuy tonight
+ *   2. the amount the session was opened with
+ *   3. the group default
+ *
+ * Two edge cases decide the rest. A **voided** rebuy stops counting — it is a
+ * rebuy that did not happen, so the default falls back to the one before it. A
+ * **corrected** rebuy counts at its corrected amount, which is free here
+ * because `EffectiveEntry.amount` is already the corrected figure.
+ *
+ * Per player, never table-wide: Petr rebuying $500 must not change what Ivo is
+ * offered. And note that first buy-ins are unaffected — this is only ever asked
+ * about a rebuy.
+ *
+ * M17: the ANSWER is used, the reasoning is not shown. No "same as last time"
+ * line appears under the button; a host who wants a different number taps
+ * Other amount. Keep the derivation here, in code, where it can be tested.
+ */
+export function lastRebuyAmount(
+  ledger: ResolvedLedger,
+  playerId: PlayerId,
+  sessionBuyIn: Money,
+): Money {
+  const rebuys = ledger.entries.filter(
+    (e) => e.type === 'rebuy' && e.playerId === playerId && !e.voided,
+  );
+  if (rebuys.length === 0) return sessionBuyIn;
+
+  // Newest by seq, not by position: entries arrive in seq order today, and a
+  // rule about "the last one" should not quietly depend on that staying true.
+  const newest = rebuys.reduce((latest, e) => (e.seq > latest.seq ? e : latest));
+  return newest.amount;
+}

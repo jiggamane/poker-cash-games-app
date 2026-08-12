@@ -80,6 +80,20 @@ export interface Theme {
   /** The 38 × 5 grabber. */
   grabber: string;
 
+  /** The dimmest tone in the app: the dock's "seat · cash out · end" hint. */
+  dim: string;
+  /** The dock panel's border once its drawer is open — it strengthens. */
+  dockEdgeOpen: string;
+  /** The fill behind an admin row inside the drawer. */
+  adminFill: string;
+  /** A control with nothing to act on: Bill before the first buy-in. */
+  disabled: string;
+  disabledEdge: string;
+  /** The end-of-night row at rest — red at 55%, never filled. */
+  dangerEdgeStrong: string;
+  /** The wipe that crosses that row while it is held. */
+  holdWipe: string;
+
   /** Text sitting on a filled primary button. */
   onFill: string;
   /** The 2px keyline set INSIDE a primary button's fill. */
@@ -110,6 +124,13 @@ export const darkTheme: Theme = {
   dangerWash: 'rgba(240,112,92,0.12)',
   dangerEdge: 'rgba(240,112,92,0.35)',
   controlFill: 'rgba(255,255,255,0.09)',
+  dim: 'rgba(255,255,255,0.38)',
+  dockEdgeOpen: 'rgba(255,255,255,0.16)',
+  adminFill: 'rgba(255,255,255,0.07)',
+  disabled: '#5C5E64',
+  disabledEdge: 'rgba(255,255,255,0.22)',
+  dangerEdgeStrong: 'rgba(240,112,92,0.55)',
+  holdWipe: 'rgba(240,112,92,0.34)',
   sheetGround: '#101013',
   sheetEdge: 'rgba(255,255,255,0.12)',
   grabber: 'rgba(255,255,255,0.22)',
@@ -149,6 +170,13 @@ export const lightTheme: Theme = {
   dangerWash: 'rgba(176,58,40,0.12)',
   dangerEdge: 'rgba(176,58,40,0.35)',
   controlFill: 'rgba(12,13,15,0.06)',
+  dim: 'rgba(12,13,15,0.40)',
+  dockEdgeOpen: 'rgba(12,13,15,0.18)',
+  adminFill: 'rgba(12,13,15,0.05)',
+  disabled: '#9A9CA3',
+  disabledEdge: 'rgba(12,13,15,0.18)',
+  dangerEdgeStrong: 'rgba(176,58,40,0.55)',
+  holdWipe: 'rgba(176,58,40,0.28)',
   sheetGround: '#FFFFFF',
   sheetEdge: 'rgba(12,13,15,0.10)',
   grabber: 'rgba(12,13,15,0.18)',
@@ -248,6 +276,35 @@ export const type = {
   quietAction: { fontSize: 15, fontWeight: '700' },
   /** A text action in a navigation bar — "Edit", "Cancel". */
   barAction: { fontSize: 16, fontWeight: '700' },
+
+  // --- the dock ------------------------------------------------------------
+  /** "Table admin", closed then open: it goes up a weight, not a size. */
+  dockDisclosure: { fontSize: 14.5, fontWeight: '600' },
+  dockDisclosureOpen: { fontSize: 14.5, fontWeight: '700' },
+  /** A row inside the drawer. */
+  dockRow: { fontSize: 16.5, fontWeight: '600' },
+  /** Rebuy. The largest label on the screen, because it is the most used. */
+  dockPrimary: { fontSize: 19, fontWeight: '700' },
+  /** Bill, stacked under its glyph. */
+  dockSecondary: { fontSize: 14.5, fontWeight: '700' },
+
+  // --- the night, T1 -------------------------------------------------------
+  /** "On the table" — 800 44/1, four points up from a card figure elsewhere. */
+  tableFigure: { fontSize: 44, fontWeight: '800', letterSpacing: -1.76, lineHeight: 44 },
+  /** The two lines beside it: "5 seated / since 20:05". */
+  tableAside: { fontSize: 12.5, fontWeight: '400', lineHeight: 18 },
+  /** "Total in play", under the rule. */
+  totalLabel: { fontSize: 16, fontWeight: '600' },
+  /** A player's amount in the list. */
+  playerAmount: { fontSize: 19, fontWeight: '700' },
+  /** The player card's two big figures, and three once they have cashed out. */
+  statFigure: { fontSize: 32, fontWeight: '800', letterSpacing: -1.28, lineHeight: 32 },
+  statFigureThree: { fontSize: 30, fontWeight: '800', letterSpacing: -1.2, lineHeight: 30 },
+  /** An entry's provenance: "first rebuy · corrected from $300 at 21:14". */
+  provenance: { fontSize: 12.5, fontWeight: '400' },
+  /** The empty table's heading. */
+  emptyTitle: { fontSize: 19, fontWeight: '700' },
+  emptyBody: { fontSize: 14, fontWeight: '400', lineHeight: 21 },
 } satisfies Record<string, TextStyle>;
 
 /** 8 on everything pressable, 14 on cards, 46 on the screen, 999 on the live badge only. */
@@ -314,6 +371,42 @@ export const control = {
   keylineWidth: 2,
   outlineWidth: 2,
   quietWidth: 1.5,
+} as const;
+
+/**
+ * The dock — T3, with rev 7's geometry.
+ *
+ * The two numbers that are not decoration: `disclosure*` add up to a 46px
+ * target, and `panelGap` is the 14px of clearance between it and the primary.
+ * A thumb reaching for Table admin must not be able to hit Rebuy.
+ */
+export const dock = {
+  panelMarginH: 14,
+  panelMarginTop: 10,
+  panelRadius: 16,
+  panelPadTop: 6,
+  panelPadH: 12,
+  panelPadBottom: 10,
+  panelGap: 14,
+  panelGapOpen: 12,
+
+  disclosurePadTop: 16,
+  disclosurePadH: 6,
+  disclosurePadBottom: 14,
+
+  rowGap: 8,
+  adminPad: 14,
+  adminRadius: 10,
+
+  pairGap: 10,
+  buttonRadius: 10,
+  primaryPadV: 20,
+  billPadV: 14,
+
+  /** 1.5 seconds, and the only way to end a night. */
+  holdMs: 1500,
+  /** What the screen behind an open drawer drops to. */
+  behindOpenOpacity: 0.4,
 } as const;
 
 /**

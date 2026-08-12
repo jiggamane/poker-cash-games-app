@@ -158,7 +158,27 @@ bone. Used for "House rules" — a quiet action that is not a button.
 
 ## Where we knowingly differ from the board
 
-Two, both marked in the code with the reason. Everything else is copied.
+Each one is marked in the code with its reason. Everything else is copied.
+
+**A voided entry says "voided", which the board has not written.** Rev 8 asks
+for the row and flags the string as unwritten, so rather than invent prose the
+player card reuses the word the feed has always used. Replace it when the copy
+arrives — it is one string in `provenanceOf`.
+
+**"Their result is set", not "Her result is set".** The board's line is written
+about Dana. The screen is written about whoever is on it, and the app does not
+know anybody's pronouns.
+
+**No "logged by Ivo" under an entry.** There is one writer, so every entry was
+logged by the host. It goes in the day a night can have two.
+
+**House rules moved to the Bill.** Rev 8 leaves the night screen with no room —
+one figure on the card, two actions in the dock — and the Bill is what a host is
+looking at when the question comes up.
+
+**"Correct an entry" on a cashed-out player opens their last entry.** The board
+gives the button, not its destination. The last one is nearly always the one
+being fixed, and every other entry is one tap away in the list above it.
 
 ~~**The home glyph is always rightmost in a bar.**~~ **Settled by rev 9, and the
 difference is gone.** There is no home glyph and no bar: a pushed screen carries

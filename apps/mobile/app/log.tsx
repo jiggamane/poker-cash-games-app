@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { formatMoney, formatSigned, money, resolveLedger, type Money } from '@poker-club/core';
+import {
+  formatMoney,
+  formatSigned,
+  lastRebuyAmount,
+  money,
+  resolveLedger,
+  type Money,
+} from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Keypad, appendDigits } from '../src/components/Keypad';
@@ -46,7 +53,23 @@ export default function Log() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   const name = newPlayer ?? night?.players.find((p) => p.id === player)?.name ?? '';
-  const suggested = ledger === null ? money(500) : defaultBuyIn(ledger);
+
+  /*
+   * What the keypad opens on.
+   *
+   * A REBUY asks the player, not the table: M16 gives them their own last
+   * rebuy tonight, falling back to what the session was opened with. A first
+   * buy-in is the table's amount, because they have no history to have drifted
+   * from. Either way the figure is only a starting point — the whole screen is
+   * a keypad, and any amount can be typed over it.
+   */
+  const rebuying = kind === 'rebuy';
+  const suggested =
+    ledger === null || night === null
+      ? money(500)
+      : rebuying
+        ? lastRebuyAmount(ledger, player ?? '', night.defaultBuyIn)
+        : defaultBuyIn(ledger);
 
   const counting = kind === 'cashout' || kind === 'count';
   const [typed, setTyped] = useState<string>(counting ? '0' : String(suggested));
@@ -171,9 +194,13 @@ export default function Log() {
         </View>
       ) : (
         <View style={styles.presets}>
+          {/* M17's one visible trace: inside the amount screen the resolved
+              figure is marked LAST rather than STANDARD, so a host who opened
+              the keypad can see WHY it says $500 — while the button they came
+              from stays silent about it. */}
           <Preset
             label={formatMoney(suggested)}
-            caption="DEFAULT"
+            caption={rebuying && suggested !== defaultBuyIn(ledger) ? 'LAST' : 'STANDARD'}
             on={amount === suggested}
             onPress={() => setTyped(String(suggested))}
           />

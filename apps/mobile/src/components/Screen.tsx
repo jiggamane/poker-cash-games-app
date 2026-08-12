@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
-import { nav, space, type } from '../design/tokens';
+import { dock, nav, space, type } from '../design/tokens';
 import { Icon } from './Icon';
 
 /**
@@ -36,6 +36,8 @@ export function Screen({
   backTo,
   step,
   lede,
+  dimmed = false,
+  onDimPress,
   children,
   footer,
 }: {
@@ -50,14 +52,25 @@ export function Screen({
   step?: string;
   /** One paragraph under the title, saying what the screen is showing. */
   lede?: string;
+  /**
+   * Everything except the footer drops to 40%.
+   *
+   * For the dock's drawer, which is a panel over its own screen rather than a
+   * sheet: the title, the card and the list go back while the panel stays
+   * forward, and the footer is excluded because the dock lives there and its
+   * Rebuy/Bill pair stays live with the drawer open.
+   */
+  dimmed?: boolean;
+  /** Tapping the dimmed area — how an open drawer is closed. */
+  onDimPress?: () => void;
   children: ReactNode;
   /** Pinned below the scroll area, where the one primary action lives. */
   footer?: ReactNode;
 }) {
   const t = useTheme();
 
-  return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+  const body = (
+    <>
       <View style={styles.titleRow}>
         {backTo !== undefined && (
           <Pressable
@@ -91,6 +104,23 @@ export function Screen({
         {lede !== undefined && <Text style={[styles.lede, { color: t.muted }]}>{lede}</Text>}
         {children}
       </ScrollView>
+    </>
+  );
+
+  return (
+    <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+      {dimmed ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          onPress={onDimPress}
+          style={[styles.dimmed, { opacity: dock.behindOpenOpacity }]}
+        >
+          {body}
+        </Pressable>
+      ) : (
+        body
+      )}
 
       {footer !== undefined && <View style={styles.footer}>{footer}</View>}
     </SafeAreaView>
@@ -99,6 +129,7 @@ export function Screen({
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  dimmed: { flex: 1 },
 
   titleRow: {
     flexDirection: 'row',

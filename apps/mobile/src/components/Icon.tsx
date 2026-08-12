@@ -32,17 +32,27 @@ export type IconName =
   /** The keypad's delete key. */
   | 'backspace'
   /** Adds something — always paired with a dashed outline. */
-  | 'plus';
+  | 'plus'
+  /** The dock's disclosure. Points down when the drawer is open. */
+  | 'caret'
+  /** A person: seating one, and the empty table's own glyph. */
+  | 'person'
+  /** Cashing one out — a stack leaving the table. */
+  | 'cashOut';
 
 export function Icon({
   name,
   color,
   size,
+  weight,
 }: {
   name: IconName;
   color: string;
   /** Omit to get the size it is drawn at on the board. */
   size?: number;
+  /** Stroke width, where one glyph is drawn at two weights — the dock's plus
+   *  is 2.6 against the 2 it carries everywhere else. */
+  weight?: number;
 }) {
   switch (name) {
     case 'arrow': {
@@ -177,7 +187,55 @@ export function Icon({
       const s = size ?? 15;
       return (
         <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-          <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+          <Path
+            d="M12 5v14M5 12h14"
+            stroke={color}
+            strokeWidth={weight ?? 2}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'caret': {
+      // Drawn pointing down; the dock rotates it 180° when the drawer opens,
+      // so there is one glyph and one state, not two glyphs.
+      const s = size ?? 16;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path d="M6 9l6 6 6-6" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'person': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Circle cx={12} cy={8} r={3.6} stroke={color} strokeWidth={weight ?? 1.9} />
+          <Path
+            d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"
+            stroke={color}
+            strokeWidth={weight ?? 1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'cashOut': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M4 17V7l7 5-7 5z"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path d="M13 12h7" stroke={color} strokeWidth={1.9} strokeLinecap="round" />
         </Svg>
       );
     }

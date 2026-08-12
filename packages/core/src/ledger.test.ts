@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { endedWith, LedgerError, reconcile, resolveLedger } from './ledger';
+import { endedWith, lastRebuyAmount, LedgerError, reconcile, resolveLedger } from './ledger';
 import { money } from './money';
 import type { LedgerEntry, PlayerId } from './types';
 
@@ -210,5 +210,67 @@ describe('endedWith()', () => {
     reset();
     const l = resolveLedger([buyin(DANA, 500), cashout(DANA, 800)]);
     expect(endedWith(l, DANA, new Map())).toBe(800);
+  });
+});
+
+describe('lastRebuyAmount()', () => {
+  const SESSION_BUYIN = money(200);
+
+  it('offers the session buy-in to somebody who has not rebought', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 200)]);
+    expect(lastRebuyAmount(l, PETR, SESSION_BUYIN)).toBe(200);
+  });
+
+  it('offers their last rebuy once the table has drifted', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 200), rebuy(PETR, 500)]);
+    expect(lastRebuyAmount(l, PETR, SESSION_BUYIN)).toBe(500);
+  });
+
+  it('is per player — one person drifting does not move anybody else', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 200), buyin(DANA, 200), rebuy(PETR, 500)]);
+    expect(lastRebuyAmount(l, PETR, SESSION_BUYIN)).toBe(500);
+    expect(lastRebuyAmount(l, DANA, SESSION_BUYIN)).toBe(200);
+  });
+
+  it('takes the LAST rebuy, not the largest or the first', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 200), rebuy(PETR, 1000), rebuy(PETR, 300)]);
+    expect(lastRebuyAmount(l, PETR, SESSION_BUYIN)).toBe(300);
+  });
+
+  it('falls back past a voided rebuy to the one before it', () => {
+    reset();
+    const l = resolveLedger([
+      buyin(PETR, 200),
+      rebuy(PETR, 500, 'first-rebuy'),
+      rebuy(PETR, 900, 'mistake'),
+      voidEntry('mistake'),
+    ]);
+    expect(lastRebuyAmount(l, PETR, SESSION_BUYIN)).toBe(500);
+  });
+
+  it('falls all the way back to the session buy-in when every rebuy is voided', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 200), rebuy(PETR, 900, 'mistake'), voidEntry('mistake')]);
+    expect(lastRebuyAmount(l, PETR, SESSION_BUYIN)).toBe(200);
+  });
+
+  it('counts a corrected rebuy at its corrected amount', () => {
+    reset();
+    const l = resolveLedger([
+      buyin(PETR, 200),
+      rebuy(PETR, 300, 'typo'),
+      correction('typo', 500),
+    ]);
+    expect(lastRebuyAmount(l, PETR, SESSION_BUYIN)).toBe(500);
+  });
+
+  it('ignores buy-ins and cash-outs — only a rebuy sets the next rebuy', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 1000), cashout(PETR, 4000)]);
+    expect(lastRebuyAmount(l, PETR, SESSION_BUYIN)).toBe(200);
   });
 });

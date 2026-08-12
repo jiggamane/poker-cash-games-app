@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, resolveLedger, settle, type Money } from '@poker-club/core';
+import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
@@ -63,6 +64,21 @@ export default function Expenses() {
         billRule === undefined
           ? 'Recorded, and nothing more — no rule shares this out, so whoever paid, paid.'
           : undefined
+      }
+      /*
+       * The bill is where the house rules belong now.
+       *
+       * Rev 8 leaves the night screen with no room for them — the card is one
+       * figure and the dock is two actions — and the Bill is what a host is
+       * looking at when the question "what does this cost me" comes up. Two
+       * sheets deep, which is the floor rev 9 allows.
+       */
+      footer={
+        <Button
+          label="House rules"
+          variant="secondary"
+          onPress={() => router.push('/house-rules')}
+        />
       }
     >
       {/* The bone card: this is money leaving the table. */}
