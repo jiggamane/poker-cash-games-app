@@ -69,6 +69,9 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           amount            INTEGER NOT NULL,
           corrects_entry_id TEXT,
           occurred_at       TEXT NOT NULL,
+          -- What the money was for: "Pizza", "Drinks". Display only — the
+          -- engine never reads it, which is why it is not on LedgerEntry.
+          note              TEXT,
           PRIMARY KEY (session_id, id)
         );
 
@@ -97,6 +100,8 @@ export interface Night {
   rules: MoneyRule[];
   /** When each entry happened, which is not derivable from its seq. */
   occurredAt: Record<string, string>;
+  /** What an expense was for. Display only. */
+  noteOf: Record<string, string>;
   /**
    * Set only when the count did not balance and the host confirmed what was
    * missing. Without it, `settle()` refuses to run — that refusal is the close
@@ -190,6 +195,7 @@ export async function openNight(): Promise<Night> {
     amount: number;
     corrects_entry_id: string | null;
     occurred_at: string;
+    note: string | null;
   }>(`SELECT * FROM night_entry WHERE session_id = ? ORDER BY seq ASC`, sessionId);
 
   const counts = await db.getAllAsync<{ player_id: string; amount: number }>(
@@ -215,6 +221,7 @@ export async function openNight(): Promise<Night> {
     })),
     finalCounts: new Map(counts.map((c) => [c.player_id, c.amount as Money])),
     occurredAt: Object.fromEntries(entries.map((e) => [e.id, e.occurred_at])),
+    noteOf: Object.fromEntries(entries.filter((e) => e.note).map((e) => [e.id, e.note!])),
     ...(row!.ack_json ? { acknowledgement: JSON.parse(row!.ack_json) } : {}),
   };
 
@@ -226,7 +233,7 @@ interface Seed {
   groupName: string;
   startedAt: string;
   players: Player[];
-  entries: Array<Omit<LedgerEntry, 'id' | 'seq'> & { occurredAt: string }>;
+  entries: Array<Omit<LedgerEntry, 'id' | 'seq'> & { occurredAt: string; note?: string }>;
   rules: MoneyRule[];
 }
 
@@ -259,8 +266,8 @@ async function seedNight(seed: Seed): Promise<void> {
       seq += 1;
       await db.runAsync(
         `INSERT INTO night_entry
-           (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+           (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at, note)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
         sessionId,
         randomUUID(),
         seq,
@@ -269,6 +276,7 @@ async function seedNight(seed: Seed): Promise<void> {
         e.payerId ?? null,
         e.amount,
         e.occurredAt,
+        e.note ?? null,
       );
     }
   });
@@ -288,6 +296,7 @@ async function seedNight(seed: Seed): Promise<void> {
 async function append(
   draft: Omit<LedgerEntry, 'id' | 'seq'>,
   occurredAt: Date = new Date(),
+  note?: string,
 ): Promise<void> {
   if (night === null) throw new Error('No night is open.');
   const db = await getDb();
@@ -296,8 +305,8 @@ async function append(
 
   await db.runAsync(
     `INSERT INTO night_entry
-       (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at, note)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     night.sessionId,
     entry.id,
     entry.seq,
@@ -307,12 +316,14 @@ async function append(
     entry.amount,
     entry.correctsEntryId ?? null,
     occurredAt.toISOString(),
+    note ?? null,
   );
 
   night = {
     ...night,
     entries: [...night.entries, entry],
     occurredAt: { ...night.occurredAt, [entry.id]: occurredAt.toISOString() },
+    noteOf: note === undefined ? night.noteOf : { ...night.noteOf, [entry.id]: note },
   };
   emit();
 }
@@ -330,8 +341,15 @@ export function cashOut(playerId: PlayerId, amount: Money): Promise<void> {
   return append({ type: 'cashout', playerId, amount });
 }
 
-export function addExpense(payerId: PlayerId, amount: Money): Promise<void> {
-  return append({ type: 'expense', payerId, amount });
+/**
+ * Something somebody bought for the table.
+ *
+ * The bill rule's own `amount` is never used for a reimbursing bill — the
+ * engine takes the real sum of these entries — so adding one here changes what
+ * is charged at settle-up without anybody editing a rule.
+ */
+export function addExpense(payerId: PlayerId, amount: Money, note: string): Promise<void> {
+  return append({ type: 'expense', payerId, amount }, new Date(), note);
 }
 
 /**

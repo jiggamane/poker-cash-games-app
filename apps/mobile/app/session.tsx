@@ -55,6 +55,16 @@ export default function Session() {
     <Screen
       title="Tonight"
       backTo={night.groupName}
+      barExtra={
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Food and drinks"
+          hitSlop={12}
+          onPress={() => router.push('/expenses')}
+        >
+          <Icon name="rules" color={t.offTable} />
+        </Pressable>
+      }
       trailing={
         <>
           <LiveBadge />
@@ -187,7 +197,7 @@ function describe(
     case 'cashout':
       return { label: `${who} cashed out`, detail: 'left the table' };
     case 'expense':
-      return { label: 'Food & drinks', detail: `${who} paid` };
+      return { label: night.noteOf[e.id] ?? 'Food & drinks', detail: `${who} paid` };
     default:
       return { label: who };
   }
@@ -233,10 +243,14 @@ function Stat({ label, value }: { label: string; value: Money }) {
 function HouseRules() {
   const t = useTheme();
   return (
-    <Pressable style={({ pressed }) => [
-      styles.chip,
-      { borderColor: `${t.offTable}4D`, opacity: pressed ? 0.6 : 1 },
-    ]}>
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => router.push('/house-rules')}
+      style={({ pressed }) => [
+        styles.chip,
+        { borderColor: `${t.offTable}4D`, opacity: pressed ? 0.6 : 1 },
+      ]}
+    >
       <Icon name="info" color={t.offTable} />
       <Text style={[styles.chipText, { color: t.offTable }]}>House rules</Text>
     </Pressable>

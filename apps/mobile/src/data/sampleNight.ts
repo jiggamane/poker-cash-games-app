@@ -31,7 +31,7 @@ const at = (hhmm: string): string => {
   return d.toISOString();
 };
 
-type SeedEntry = Omit<LedgerEntry, 'id' | 'seq'> & { occurredAt: string };
+type SeedEntry = Omit<LedgerEntry, 'id' | 'seq'> & { occurredAt: string; note?: string };
 
 /** In time order, which is also seq order. */
 const entries: SeedEntry[] = [
@@ -39,7 +39,7 @@ const entries: SeedEntry[] = [
   { type: 'buyin', playerId: PETR, amount: money(500), occurredAt: at('20:09') },
   { type: 'buyin', playerId: DANA, amount: money(1000), occurredAt: at('20:41') },
   { type: 'rebuy', playerId: PETR, amount: money(1000), occurredAt: at('21:04') },
-  { type: 'expense', payerId: MAREK, amount: money(170), occurredAt: at('21:48') },
+  { type: 'expense', payerId: MAREK, amount: money(170), occurredAt: at('21:48'), note: 'Pizza & drinks' },
 ];
 
 const rules: MoneyRule[] = [

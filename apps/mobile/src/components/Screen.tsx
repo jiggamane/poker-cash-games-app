@@ -28,6 +28,7 @@ export function Screen({
   trailing,
   backTo,
   action,
+  barExtra,
   step,
   lede,
   children,
@@ -40,6 +41,8 @@ export function Screen({
   backTo?: string;
   /** A text action at the right of the bar — "Edit", "Cancel". */
   action?: { label: string; onPress?: () => void; quiet?: boolean };
+  /** A glyph in the bar, left of the home one. */
+  barExtra?: ReactNode;
   /** Numbered flows say "3 of 3" — the close flow is genuinely sequential. */
   step?: string;
   /** One paragraph under the title, saying what the screen is showing. */
@@ -68,6 +71,7 @@ export function Screen({
           </Pressable>
 
           <View style={styles.barTrailing}>
+            {barExtra}
             {action !== undefined && (
               <Pressable
                 accessibilityRole="button"

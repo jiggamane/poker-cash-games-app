@@ -6,7 +6,7 @@ import {
   type LedgerEntry,
   type OutboxItem,
 } from '@poker-club/core';
-import { supabase } from './supabase';
+import { isSupabaseConfigured, supabase } from './supabase';
 import { SqliteOutboxStore } from './outboxStore';
 
 /**
@@ -84,8 +84,21 @@ export async function recordEntry(
  */
 const occurredAtById = new Map<string, string>();
 
-/** Drain the outbox. Safe to call often; does nothing when there is nothing to send. */
+/**
+ * Drain the outbox. Safe to call often; does nothing when there is nothing to
+ * send, and nothing when there is nobody to send as.
+ *
+ * The signed-out check is not an optimisation. Signing in is optional in this
+ * app, so most writes happen with no account at all — without it, every buy-in
+ * would fire a request that is certain to be refused, and the queue would fill
+ * with failure counts describing a situation that is not a failure.
+ */
 export async function sync(): Promise<FlushResult> {
+  if (!isSupabaseConfigured) return { pushed: 0, remaining: await outbox.count() };
+
+  const { data } = await supabase.auth.getSession();
+  if (data.session === null) return { pushed: 0, remaining: await outbox.count() };
+
   return flushOutbox(outbox, async (items) => {
     const rows = items.map((i) => itemToRow(i, occurredAtById.get(i.entry.id) ?? new Date().toISOString()));
 

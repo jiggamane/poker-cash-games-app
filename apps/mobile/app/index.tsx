@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
 import { Icon, type IconName } from '../src/components/Icon';
-import { useSession } from '../src/lib/useSession';
 import { useLedger, useNight } from '../src/lib/nightStore';
 
 /**
@@ -24,7 +23,6 @@ import { useLedger, useNight } from '../src/lib/nightStore';
  */
 export default function Home() {
   const t = useTheme();
-  const { session, loading, configured } = useSession();
   const night = useNight();
   const ledger = useLedger();
 
@@ -97,22 +95,8 @@ export default function Home() {
       </View>
 
       <View style={styles.bottom}>
-        {/* Where tonight actually lives. Say it here rather than let the host
-            find out at settle-up. */}
-        {!loading && (configured ? session === null : true) && (
-          <Text style={[styles.status, { color: t.muted }]}>
-            {configured
-              ? 'Not signed in — tonight stays on this phone.'
-              : 'Not connected — tonight stays on this phone.'}
-          </Text>
-        )}
-
         <View style={styles.bottomBar}>
-          {!loading && configured && session === null ? (
-            <Quiet icon="invite" label="Sign in" onPress={() => router.push('/sign-in')} />
-          ) : (
-            <Quiet icon="settings" label="Settings" />
-          )}
+          <Quiet icon="settings" label="Settings" onPress={() => router.push('/settings')} />
           <Quiet icon="invite" label="Invite a player" />
         </View>
       </View>
@@ -237,7 +221,6 @@ const styles = StyleSheet.create({
   pushRight: { marginLeft: 'auto' },
 
   bottom: { marginTop: 'auto' },
-  status: { ...type.meta, paddingHorizontal: space.card, paddingBottom: 10 },
   bottomBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: space.card, paddingBottom: 14 },
   quiet: {
     flexDirection: 'row',
