@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
 import { nav, space, type } from '../design/tokens';
@@ -16,9 +17,10 @@ import { Icon } from './Icon';
  *   │  Title            [ × ] │  800 34, or 30 with a sub-line
  *   │  sub-line               │
  *
- * The panel itself — the 26px top corners, the dimming of what is behind, and
- * the swipe that dismisses it — is the NATIVE form sheet, declared in the stack
- * in app/_layout.tsx. That matters: swipe-down is the gesture most people will
+ * The panel itself — the rounded top corners over the screen behind, and the
+ * swipe that dismisses it — is the native modal, declared in the stack in
+ * app/_layout.tsx (see `sheetPresentation` below for why it is `modal` rather
+ * than `formSheet`). That matters: swipe-down is the gesture most people will
  * use, and hand-rolling it would mean a pan responder chasing a system
  * behaviour it cannot match. This component draws what sits inside.
  *
@@ -47,7 +49,12 @@ export function Sheet({
   const t = useTheme();
 
   return (
-    <View style={[styles.sheet, { backgroundColor: t.sheetGround, borderTopColor: t.sheetEdge }]}>
+    // Only the bottom edge: a modal starts below the status bar already, and
+    // the footer must clear the home indicator.
+    <SafeAreaView
+      style={[styles.sheet, { backgroundColor: t.sheetGround, borderTopColor: t.sheetEdge }]}
+      edges={['bottom']}
+    >
       <View style={styles.grabberRow}>
         <View style={[styles.grabber, { backgroundColor: t.grabber }]} />
       </View>
@@ -82,22 +89,30 @@ export function Sheet({
       </ScrollView>
 
       {footer !== undefined && <View style={styles.footer}>{footer}</View>}
-    </View>
+    </SafeAreaView>
   );
 }
 
 /**
  * What every sheet route declares in the stack.
  *
- * `sheetAllowedDetents` is left at its default of `[1.0]` — the design draws
- * the panel starting 18px down, which is one height, not a set of them. Half
- * detents would be a different design, not a nicety.
+ * `modal`, NOT `formSheet`, and that is a scar rather than a preference.
+ *
+ * formSheet is the closer match on paper — it takes a corner radius and a
+ * detent, which is exactly Chrome B — but in react-native-screens 4.16 its
+ * content container does not size the way an ordinary screen's does, and every
+ * sheet in the app came out with its header painted on top of its own scroll
+ * content. The package's own types allude to it: contentStyle carries a note
+ * about "a workaround to truncated sheet content".
+ *
+ * `modal` lays out identically to a pushed screen, which is the layout that
+ * demonstrably works, and still gives the two things Chrome B needs from the
+ * platform: rounded top corners over the screen behind, and swipe-down to
+ * dismiss. What it does not give is the exact 26px radius, so that number now
+ * lives only in the token file. Revisit if a later SDK fixes formSheet.
  */
 export const sheetPresentation = {
-  presentation: 'formSheet',
-  sheetCornerRadius: nav.sheetRadius,
-  // Ours is drawn above, to the design's 38 × 5 and in the theme's colour.
-  sheetGrabberVisible: false,
+  presentation: 'modal',
   gestureEnabled: true,
 } as const;
 

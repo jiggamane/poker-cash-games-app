@@ -76,6 +76,8 @@ export default function Session() {
       meta={`${night.groupName} · ${elapsed(night.startedAt)} · since ${since}`}
       dimmed={drawer}
       onDimPress={() => setDrawer(false)}
+      // The dock carries its own 14px margin, measured from the screen edge.
+      flushFooter
       footer={
         <Dock
           variant={nobodyIn ? 'empty-table' : 'resting'}

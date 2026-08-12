@@ -4,6 +4,7 @@ import { randomUUID } from 'expo-crypto';
 import {
   money,
   resolveLedger,
+  settle,
   type LedgerEntry,
   type Money,
   type MoneyRule,
@@ -80,6 +81,13 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           player_id   TEXT NOT NULL,
           amount      INTEGER NOT NULL,
           PRIMARY KEY (session_id, player_id)
+        );
+
+        -- Small facts about this phone rather than about any night. Currently
+        -- one: which of the names at the table is the person holding it.
+        CREATE TABLE IF NOT EXISTS setting (
+          key    TEXT PRIMARY KEY NOT NULL,
+          value  TEXT NOT NULL
         );
       `);
 
@@ -223,7 +231,20 @@ export async function openNight(): Promise<Night> {
     row = await db.getFirstAsync<NightRow>(NEWEST);
   }
 
-  const sessionId = row!.session_id;
+  night = await readNight(db, row!);
+  emit();
+  return night;
+}
+
+/**
+ * Build one night out of its five tables.
+ *
+ * Separate from openNight because My stats reads every night rather than the
+ * current one, and two readers of the same rows that drifted apart would be a
+ * genuinely nasty bug: the month would disagree with the night it is made of.
+ */
+async function readNight(db: SQLite.SQLiteDatabase, row: NightRow): Promise<Night> {
+  const sessionId = row.session_id;
 
   const players = await db.getAllAsync<{ id: string; name: string; at_table: number }>(
     `SELECT id, name, at_table FROM night_player WHERE session_id = ? ORDER BY rowid`,
@@ -247,14 +268,14 @@ export async function openNight(): Promise<Night> {
     sessionId,
   );
 
-  night = {
+  return {
     sessionId,
-    groupName: row!.group_name,
-    startedAt: row!.started_at,
-    status: row!.status,
-    ...(row!.stakes ? { stakes: row!.stakes } : {}),
-    defaultBuyIn: (row!.default_buyin ?? FALLBACK_BUYIN) as Money,
-    rules: JSON.parse(row!.rules_json),
+    groupName: row.group_name,
+    startedAt: row.started_at,
+    status: row.status,
+    ...(row.stakes ? { stakes: row.stakes } : {}),
+    defaultBuyIn: (row.default_buyin ?? FALLBACK_BUYIN) as Money,
+    rules: JSON.parse(row.rules_json),
     players: players.map((p) => ({ id: p.id, name: p.name, atTable: p.at_table === 1 })),
     entries: entries.map((e) => ({
       id: e.id,
@@ -268,11 +289,8 @@ export async function openNight(): Promise<Night> {
     finalCounts: new Map(counts.map((c) => [c.player_id, c.amount as Money])),
     occurredAt: Object.fromEntries(entries.map((e) => [e.id, e.occurred_at])),
     noteOf: Object.fromEntries(entries.filter((e) => e.note).map((e) => [e.id, e.note!])),
-    ...(row!.ack_json ? { acknowledgement: JSON.parse(row!.ack_json) } : {}),
+    ...(row.ack_json ? { acknowledgement: JSON.parse(row.ack_json) } : {}),
   };
-
-  emit();
-  return night;
 }
 
 /**
@@ -377,6 +395,126 @@ export async function startNight(setup: Setup): Promise<Night> {
   });
 
   return openNight();
+}
+
+// ---------------------------------------------------------------------------
+// Who is holding the phone
+// ---------------------------------------------------------------------------
+// My stats is a screen about ONE person, and until now nothing in this app knew
+// which person that is. A player is a name the host typed, not an account, so
+// the answer is a name — matched across nights case-insensitively, because
+// "Dana" and "dana" are one person to everybody at the table.
+//
+// This is the small local ancestor of X2 "Claim your place". It is not identity
+// and it grants nothing: it only decides whose row the stats are about.
+
+const ME = 'me';
+
+export async function whoAmI(): Promise<string | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ value: string }>(
+    `SELECT value FROM setting WHERE key = ?`,
+    ME,
+  );
+  // An empty value is how "not me any more" is stored, so it reads as unset.
+  return row?.value === undefined || row.value.trim() === '' ? null : row.value;
+}
+
+export async function setWhoAmI(name: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO setting (key, value) VALUES (?, ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+    ME,
+    name,
+  );
+  emit();
+}
+
+/** One past night, from the reader's point of view. */
+export interface PastNight {
+  sessionId: string;
+  groupName: string;
+  startedAt: string;
+  /** The last thing that happened. There is no stored end time yet. */
+  lastEntryAt: string | null;
+  status: Night['status'];
+  /** Did the reader play at all? A night can be watched rather than played. */
+  played: boolean;
+  /**
+   * Their result. AFTER deductions once a night is settled, and the gross
+   * result before that — the honest figure at each stage, never a mixture.
+   */
+  net: Money | null;
+  settled: boolean;
+}
+
+/**
+ * Every night on this phone, newest first, reduced to what My stats needs.
+ *
+ * The nets come from the real settlement engine, one night at a time, rather
+ * than from a running total kept somewhere: a figure a player reads about their
+ * own month has to be the same arithmetic that decided what they paid on the
+ * night, or the two will disagree and the app will be wrong in the only way
+ * that matters.
+ */
+export async function history(): Promise<PastNight[]> {
+  const db = await getDb();
+  const me = await whoAmI();
+  const rows = await db.getAllAsync<NightRow>(`SELECT * FROM night ORDER BY rowid DESC`);
+
+  const out: PastNight[] = [];
+  for (const row of rows) {
+    const n = await readNight(db, row);
+    const mine =
+      me === null
+        ? undefined
+        : n.players.find((p) => p.name.trim().toLowerCase() === me.trim().toLowerCase());
+
+    const lastEntry = n.entries[n.entries.length - 1];
+    let net: Money | null = null;
+
+    if (mine !== undefined) {
+      const ledger = resolveLedger(n.entries);
+      const bought = ledger.boughtInByPlayer.get(mine.id) ?? 0;
+
+      if (bought > 0) {
+        if (n.status === 'settled') {
+          try {
+            const result = settle({
+              players: n.players,
+              entries: n.entries,
+              finalCounts: n.finalCounts,
+              rules: n.rules,
+              ...(n.acknowledgement ? { acknowledgement: n.acknowledgement } : {}),
+            });
+            net = result.players.find((p) => p.playerId === mine.id)?.finalPosition ?? null;
+          } catch {
+            // A settled night that will not re-settle is a bug worth seeing on
+            // the results screen, not one worth crashing a stats page over.
+            net = null;
+          }
+        } else {
+          // Mid-night there is no result, only what has moved. Cash-outs less
+          // buy-ins is the most that can honestly be said.
+          net = ((ledger.cashedOutByPlayer.get(mine.id) ?? 0) - bought) as Money;
+        }
+      }
+    }
+
+    out.push({
+      sessionId: n.sessionId,
+      groupName: n.groupName,
+      startedAt: n.startedAt,
+      lastEntryAt: lastEntry === undefined ? null : (n.occurredAt[lastEntry.id] ?? null),
+      status: n.status,
+      played: net !== null,
+      net,
+      settled: n.status === 'settled',
+    });
+  }
+
+  return out;
 }
 
 interface Seed {

@@ -38,6 +38,7 @@ export function Screen({
   lede,
   dimmed = false,
   onDimPress,
+  flushFooter = false,
   children,
   footer,
 }: {
@@ -63,6 +64,14 @@ export function Screen({
   dimmed?: boolean;
   /** Tapping the dimmed area — how an open drawer is closed. */
   onDimPress?: () => void;
+  /**
+   * Drop the footer's own inset, for a footer that carries its own.
+   *
+   * The dock is measured from the SCREEN edge — `margin: 10px 14px 0` — so
+   * padding it again here put it at 34px a side and left it looking like a
+   * narrow tray rather than the full-width panel it is drawn as.
+   */
+  flushFooter?: boolean;
   children: ReactNode;
   /** Pinned below the scroll area, where the one primary action lives. */
   footer?: ReactNode;
@@ -122,7 +131,9 @@ export function Screen({
         body
       )}
 
-      {footer !== undefined && <View style={styles.footer}>{footer}</View>}
+      {footer !== undefined && (
+        <View style={[styles.footer, flushFooter && styles.footerFlush]}>{footer}</View>
+      )}
     </SafeAreaView>
   );
 }
@@ -164,4 +175,5 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     gap: 12,
   },
+  footerFlush: { paddingHorizontal: 0, paddingTop: 0 },
 });
