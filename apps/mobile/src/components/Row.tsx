@@ -41,7 +41,9 @@ export function Row({
       ? amount > 0
         ? t.winWash
         : t.lossWash
-      : undefined;
+      : tone === 'offTable' && t.offTableWash !== 'transparent'
+        ? t.offTableWash
+        : undefined;
 
   return (
     <View

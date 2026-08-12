@@ -163,13 +163,16 @@ export default function App() {
   );
 }
 
+// Gaps tightened after seeing the screen on a phone: the first pass read a
+// little loose. Type sizes moved to the bottom of the spec's ranges in
+// tokens.ts; these spacings are ours and are simply tuned.
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { paddingHorizontal: space.page, paddingBottom: 48 },
-  title: { ...type.title, marginTop: 8, marginBottom: 28 },
+  content: { paddingHorizontal: space.page, paddingBottom: 40 },
+  title: { ...type.title, marginTop: 8, marginBottom: 22 },
   label: type.label,
-  section: { marginTop: 32 },
-  display: { ...type.display, marginTop: 6 },
-  meta: { ...type.meta, marginTop: 8 },
-  actions: { marginTop: 36, gap: 12 },
+  section: { marginTop: space.section },
+  display: { ...type.display, marginTop: 4 },
+  meta: { ...type.meta, marginTop: 6 },
+  actions: { marginTop: 28, gap: 10 },
 });

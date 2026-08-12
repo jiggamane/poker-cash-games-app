@@ -46,6 +46,13 @@ export interface Theme {
   lossWash: string;
   /** Money leaving the table: bill, kitty, host fee. */
   offTable: string;
+  /**
+   * Bone is distinctive enough on its own in the dark theme. In the bright one
+   * the spec falls the text back to ink and marks the row with a tint instead,
+   * so the figure still reads as a different KIND of money rather than as a
+   * de-emphasised one.
+   */
+  offTableWash: string;
 
   /** Text sitting on a filled primary button. */
   onFill: string;
@@ -71,6 +78,7 @@ export const darkTheme: Theme = {
   winWash: 'rgba(111,207,151,0.10)',
   lossWash: 'rgba(240,112,92,0.10)',
   offTable: '#D9D3C4',
+  offTableWash: 'transparent',
   onFill: '#0C0D0F',
   keyline: '#0A0A0B',
   danger: '#F0705C',
@@ -92,8 +100,9 @@ export const lightTheme: Theme = {
   // The bright theme shows a tint more strongly, so the wash is lighter.
   winWash: 'rgba(10,122,61,0.07)',
   lossWash: 'rgba(192,52,27,0.07)',
-  // In the bright theme bone falls back to ink with a tinted row.
-  offTable: '#6B6F76',
+  // Bone falls back to INK here, with the row carrying the bone instead.
+  offTable: '#0C0D0F',
+  offTableWash: 'rgba(217,211,196,0.38)',
   onFill: '#FFFFFF',
   keyline: '#FFFFFF',
   danger: '#C0341B',
@@ -110,20 +119,25 @@ export const lightTheme: Theme = {
  */
 export const tabular: TextStyle = { fontVariant: ['tabular-nums'] };
 
+/*
+ * Where the token doc gives a RANGE, these sit at the bottom of it — checked on
+ * a real phone, where the middle of each range read slightly too large. Display,
+ * body and label are single fixed values in the doc and are not ours to move.
+ */
 export const type = {
-  /** Hero amount. One per screen, never two. */
+  /** Hero amount. One per screen, never two. Fixed at 64 by the spec. */
   display: { fontSize: 64, fontWeight: '800', letterSpacing: -1, ...tabular },
-  /** Large screen title, always top-left. */
-  title: { fontSize: 33, fontWeight: '800', letterSpacing: -0.5 },
-  /** Home-screen destination names. A name, never a figure. */
-  destination: { fontSize: 29, fontWeight: '800', letterSpacing: -0.4 },
-  /** Amounts in rows and strips. */
-  figure: { fontSize: 20, fontWeight: '700', ...tabular },
-  /** Row labels and buttons. */
+  /** Large screen title, always top-left. Spec 32–34. */
+  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.5 },
+  /** Home-screen destination names. A name, never a figure. Spec 28–30. */
+  destination: { fontSize: 28, fontWeight: '800', letterSpacing: -0.4 },
+  /** Amounts in rows and strips. Spec 19–24. */
+  figure: { fontSize: 19, fontWeight: '700', ...tabular },
+  /** Row labels and buttons. Fixed at 17 by the spec. */
   body: { fontSize: 17, fontWeight: '500' },
-  /** Times, counts, explanations. */
-  meta: { fontSize: 14, fontWeight: '400' },
-  /** Section headers. */
+  /** Times, counts, explanations. Spec 13–15. */
+  meta: { fontSize: 13, fontWeight: '400' },
+  /** Section headers. Fixed at 12 by the spec. */
   label: { fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
 } satisfies Record<string, TextStyle>;
 
@@ -142,8 +156,10 @@ export const space = {
   card: 20,
   /** Between cards. */
   betweenCards: 12,
-  /** Vertical padding inside a row. */
-  row: 15,
+  /** Vertical padding inside a row. Spec 13–17; at the tight end. */
+  row: 13,
+  /** Gap above a section's caps header. Not specified — tuned on device. */
+  section: 26,
 } as const;
 
 export const control = {
