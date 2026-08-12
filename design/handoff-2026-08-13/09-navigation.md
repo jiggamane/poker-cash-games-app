@@ -86,14 +86,13 @@ A sheet **never** carries a chevron, and a push **never** carries a grabber or a
 | T1 Tonight · resting | back → club; meta "The poker club · 3h 17m · since 20:05" |
 | T5 Tonight · nobody in yet | same chrome, dock inverted |
 | G1 Your groups | back → club |
-| G4 / My stats | back → club |
-| My nights (1A Regular / 1B Free) | back → My stats |
-| A past night (1C Results / 1D Money / Entries) | back → My nights; tabs live inside the screen |
+| G4 / My stats | back → club; **G4's layout is the confirmed one** (period tabs, this-period card, result-per-night chart, last games) |
+| My games (1A Regular / 1B Free) | back → My stats; period tabs (Month / Year / All time) sit inside the summary card, right-aligned |
 | The book — month / all time | back → club |
 | C2 Players · the roster | back → club |
 | C4 Settings | back → club |
 | Money rules (group level, the list) | back → Settings |
-| E6 Night settled | back → club |
+| E6 Night settled | **superseded — use `1C`**, the same sheet, presented as the final screen of the ending flow |
 | E7 Payments | back → the settled night |
 | E2 → E4 the ending flow (count up, deductions, settle up) | pushed steps: going back a step is real navigation, and a half-counted night must not be swipe-dismissible. E1 Confirm, which precedes it, is a sheet |
 
@@ -101,6 +100,7 @@ A sheet **never** carries a chevron, and a push **never** carries a grabber or a
 
 | Screen | Opens over |
 | --- | --- |
+| A past night (`1C`) | My games — one screen, no tabs: summary, the results with each player's full calculation, the settlement status line, then what you paid |
 | T2 Player card · at the table | Tonight |
 | T4 Player card · cashed out | Tonight |
 | N4 / N8 pick a player (bust, cash out, rebuy) | Tonight |
@@ -139,12 +139,11 @@ A sheet **never** carries a chevron, and a push **never** carries a grabber or a
 Applied already:
 
 - `design/Nav System.dc.html` — new. The four containers drawn: root, push, sheet over a push, sheet for one setting. Use it as the source for both chromes.
-- `design/Tonight Home.dc.html` — T1 (both themes) and T5 rewrapped in Chrome A. The old two-line header (club name row + title row) and the two top-right icons are gone.
-- `design/Player History.dc.html` — 1A–1D rewrapped in Chrome A; the kicker back row (small caps + 7 × 12 chevron) is retired everywhere.
+- `design/Tonight Home.dc.html` — T1 (both themes) and T5 rewrapped in Chrome A; **T2 (both themes) and T4 redrawn as sheets** over the pushed night screen. The old two-line header (club name row + title row), the inline `‹ Tonight` back row and the two top-right icons are all gone.
+- `design/Player History.dc.html` — 1A/1B rewrapped in Chrome A; the past-night screen (1C/1D) is a **sheet** over My games, with no internal tabs. The kicker back row (small caps + 7 × 12 chevron) is retired everywhere.
 
 Still to redraw, and classified above rather than drawn:
 
-- `Tonight Home` T2 and T4 are drawn as full screens; they are **sheets** — see `N3` on the Nav System board for the exact treatment, including the pushed screen behind at `.32`.
 - The three older boards (`Screens - Before the night`, `- The night`, `- After the night`) still carry their original headers. Build from the classification table, not from those headers. The night board's `N1`/`N2` are superseded by `08-tonight-home.md` in any case.
 
 ## One naming collision to fix before you build

@@ -4,16 +4,19 @@
 > The screens have moved on since. Dated bundles sit beside it, newest last, and
 > each one's own `CHANGELOG.md` says what it supersedes:
 >
-> - **`handoff-2026-08-13/`** — current, at rev 9. Adds rev 7 (the action dock,
->   the per-player rebuy default), rev 8 (the session screen rebuilt as one list
->   with no tabs and no feed — `08-tonight-home.md`, board `Tonight Home`), and
->   rev 9 (navigation settled: no tab bar, push chrome and sheet chrome, every
->   screen classified — `09-navigation.md`, board `Nav System`).
->   **None of it has been built yet.**
+> - **`handoff-2026-08-13/`** — current, at rev 10. Carries rev 7 (the action
+>   dock, the per-player rebuy default), rev 8 (the session screen as one list —
+>   `08-tonight-home.md`), rev 9 (navigation: push chrome and sheet chrome, every
+>   screen classified — `09-navigation.md`), and rev 10 (My stats uses G4; the
+>   night-results screen is `1C`, replacing E6; each player's row carries its
+>   whole calculation). Revs 7, 8 and 9 are **built**; rev 10 is not.
 > - `handoff-2026-08-12/` — superseded, kept so the diff is readable.
 >
 > `docs/screen-specs/` is regenerated from the newest bundle's boards by
-> `python3 scripts/extract-design.py`. Build against those measurements — with
+> `python3 scripts/extract-design.py`. The **settlement status line** is the one
+> string that lives only in `Style Guide v2.dc.html`, which produces no spec:
+> "Settled." / "Not settled yet." / "Short by $120." Build against those
+> measurements — with
 > one correction the boards have not caught up with: **the Tonight screens are
 > `T1`–`T5`, not `H1`–`H5`.** The boards still label them H, which collides with
 > the old club-home states; rev 9 renames them and the specs inherit the boards'

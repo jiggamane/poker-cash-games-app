@@ -84,16 +84,24 @@ the intent and this states what was actually drawn.
 
 | tag | text | style |
 |---|---|---|
-| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
-| `span` | 64% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:6px · padding:16px 20px 6px` |
-| `span` | — | `display:flex · align-items:center · gap:5px` |
-| `span` | Tonight | `font:500 17px · color:#FFFFFF` |
-| `div` | — | `padding:4px 22px 4px · display:flex · align-items:flex-end · gap:10px` |
-| `h2` | Ivo | `margin:0 · font:800 32px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
-| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(255,255,255,.1)` |
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:rgba(255,255,255,.5)` |
+| `span` | 64% | `font:400 13px · color:rgba(255,255,255,.35)` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0 · opacity:.32` |
+| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(111,207,151,.14)` |
+| `span` | — | `width:6px · height:6px · border-radius:3px · background:#6FCF97 · display:block` |
+| `span` | LIVE | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
+| `div` | The poker club · 3h 17m · since 20:05 | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · opacity:.32 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:18px 0 0 · flex:1 · background:#101013 · border-radius:26px 26px 0 0 · border-top:1px solid rgba(255,255,255,.12) · display:flex · flex-direction:column · overflow:hidden` |
+| `div` | — | `display:flex · justify-content:center · padding:9px 0 2px` |
+| `span` | — | `width:38px · height:5px · border-radius:3px · background:rgba(255,255,255,.22) · display:block` |
+| `div` | — | `padding:12px 22px 0 · display:flex · align-items:center · gap:11px` |
+| `h2` | Ivo | `margin:0 · font:800 34px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | — | `display:flex · align-items:center · padding:6px 11px · border-radius:999px · background:rgba(255,255,255,.1)` |
 | `span` | SEATED | `font:700 10px · letter-spacing:.1em · color:#FFFFFF` |
-| `span` | since 20:05 | `margin-left:auto · font:500 13px · color:#8B8D93` |
+| `span` | — | `margin-left:auto · width:30px · height:30px · border-radius:15px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `div` | since 20:05 | `padding:7px 22px 0 · font:500 13px · color:#8B8D93` |
 | `div` | — | `margin:10px 20px 14px · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:22px · box-sizing:border-box` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px` |
 | `span` | In for | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
@@ -125,42 +133,30 @@ the intent and this states what was actually drawn.
 | `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
 | `div` | — | `background:#07080A · padding:11px · border-radius:56px · flex:none` |
 | `div` | — | `width:402px · height:874px · border-radius:46px · overflow:hidden · background:#FFFFFF · display:flex · flex-direction:column · box-sizing:border-box` |
-| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#0C0D0F` |
-| `span` | 64% | `font:400 13px · color:#6B6F76` |
-| `div` | — | `display:flex · align-items:center · gap:6px · padding:16px 20px 6px` |
-| `span` | — | `display:flex · align-items:center · gap:5px` |
-| `span` | Tonight | `font:500 17px · color:#0C0D0F` |
-| `div` | — | `padding:4px 22px 4px · display:flex · align-items:flex-end · gap:10px` |
-| `h2` | Ivo | `margin:0 · font:800 32px/1.05 · color:#0C0D0F · letter-spacing:-.03em` |
-| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(12,13,15,.08)` |
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:rgba(12,13,15,.45)` |
+| `span` | 64% | `font:400 13px · color:rgba(12,13,15,.3)` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0 · opacity:.32` |
+| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(12,13,15,.06) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1 · color:#0C0D0F · letter-spacing:-.03em` |
+| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(111,207,151,.14)` |
+| `span` | — | `width:6px · height:6px · border-radius:3px · background:#6FCF97 · display:block` |
+| `span` | LIVE | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
+| `div` | The poker club · 3h 17m · since 20:05 | `padding:8px 20px 0 68px · font:500 13px · color:#6B6F76 · opacity:.32 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:18px 0 0 · flex:1 · background:#FFFFFF · border-radius:26px 26px 0 0 · border-top:1px solid rgba(12,13,15,.1) · display:flex · flex-direction:column · overflow:hidden` |
+| `div` | — | `display:flex · justify-content:center · padding:9px 0 2px` |
+| `span` | — | `width:38px · height:5px · border-radius:3px · background:rgba(12,13,15,.18) · display:block` |
+| `div` | — | `padding:12px 22px 0 · display:flex · align-items:center · gap:11px` |
+| `h2` | Ivo | `margin:0 · font:800 34px/1 · color:#0C0D0F · letter-spacing:-.03em` |
+| `span` | — | `display:flex · align-items:center · padding:6px 11px · border-radius:999px · background:rgba(12,13,15,.07)` |
 | `span` | SEATED | `font:700 10px · letter-spacing:.1em · color:#0C0D0F` |
-| `span` | since 20:05 | `margin-left:auto · font:500 13px · color:#6B6F76` |
+| `span` | — | `margin-left:auto · width:30px · height:30px · border-radius:15px · background:rgba(12,13,15,.06) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `div` | since 20:05 | `padding:7px 22px 0 · font:500 13px · color:#6B6F76` |
 | `div` | — | `margin:10px 20px 14px · background:#F4F4F6 · border:1px solid rgba(12,13,15,.1) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:22px · box-sizing:border-box` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px` |
 | `span` | In for | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#6B6F76` |
 | `span` | $1,000 | `font:800 32px/1 · color:#0C0D0F · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px` |
 | `span` | Counted | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#6B6F76` |
-| `span` | — | `font:800 32px/1 · color:#6B6F76 · letter-spacing:-.04em` |
-| `span` | Net is known | `margin-left:auto · font:400 12px/1.4 · color:#6B6F76 · text-align:right · max-width:104px` |
-| `div` | — | `flex:1 · overflow:hidden · margin:0 22px · display:flex · flex-direction:column` |
-| `div` | Entries | `font:700 12px · letter-spacing:.1em · text-transform:uppercase · color:#6B6F76 · padding:0 4px 4px` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:13px 4px · border-bottom:1px solid rgba(12,13,15,.1)` |
-| `span` | 20:05 | `font:600 13px · color:#6B6F76 · font-variant-numeric:tabular-nums · width:44px` |
-| `div` | — | `display:flex · flex-direction:column · gap:2px` |
-| `span` | Buy-in | `font:600 16px · color:#0C0D0F` |
-| `span` | first buy-in · logged by Ivo | `font:400 12.5px · color:#6B6F76` |
-| `span` | $500 | `margin-left:auto · font:700 17px · color:#0C0D0F · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:13px 4px · border-bottom:1px solid rgba(12,13,15,.1)` |
-| `span` | 21:12 | `font:600 13px · color:#6B6F76 · font-variant-numeric:tabular-nums · width:44px` |
-| `div` | — | `display:flex · flex-direction:column · gap:2px` |
-| `span` | Rebuy | `font:600 16px · color:#0C0D0F` |
-| `span` | first rebuy · corrected from $300 at 21:14 | `font:400 12.5px · color:#6B6F76` |
-| `span` | $500 | `margin-left:auto · font:700 17px · color:#0C0D0F · font-variant-numeric:tabular-nums` |
-| `div` | — | `margin:14px 20px 0 · display:flex · flex-direction:column · gap:8px` |
-| `span` | — | `display:flex · align-items:center · justify-content:center · gap:10px · padding:19px 0 · border-radius:8px · background:#0C0D0F · font:700 18px · color:#FFFFFF` |
-| `div` | — | `display:flex · gap:10px · padding-top:2px` |
-| `span` | Other amount | `flex:1 · text-align:center · padding:15px 0 · border-radius:8px · border:2px solid rgba(12,13,15,.5) · font:700 16px · color:#0C0D0F · box-sizing:border-box` |
 
 ## H3 · Table admin drawer
 
@@ -297,36 +293,43 @@ the intent and this states what was actually drawn.
 | `span` | No rebuy: the seat is closed. The count is an entry like any | `font:400 12.5px/1.45 · color:#6C6C70` |
 | `div` | — | `background:#07080A · padding:11px · border-radius:56px · flex:none` |
 | `div` | — | `width:402px · height:874px · border-radius:46px · overflow:hidden · background:#0A0A0B · display:flex · flex-direction:column · box-sizing:border-box` |
-| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
-| `span` | 64% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:6px · padding:16px 20px 6px` |
-| `span` | — | `display:flex · align-items:center · gap:5px` |
-| `span` | Tonight | `font:500 17px · color:#FFFFFF` |
-| `div` | — | `padding:4px 22px 4px · display:flex · align-items:flex-end · gap:10px` |
-| `h2` | Dana | `margin:0 · font:800 32px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
-| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(255,255,255,.1)` |
-| `span` | CASHED OUT | `font:700 10px · letter-spacing:.1em · color:#8B8D93` |
-| `span` | left 23:15 | `margin-left:auto · font:500 13px · color:#8B8D93` |
-| `div` | — | `margin:10px 20px 14px · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:22px · box-sizing:border-box` |
-| `div` | — | `display:flex · flex-direction:column · gap:4px` |
-| `span` | In for | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
-| `span` | $500 | `font:800 30px/1 · color:#FFFFFF · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · flex-direction:column · gap:4px` |
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:rgba(255,255,255,.5)` |
+| `span` | 64% | `font:400 13px · color:rgba(255,255,255,.35)` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0 · opacity:.32` |
+| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(111,207,151,.14)` |
+| `span` | — | `width:6px · height:6px · border-radius:3px · background:#6FCF97 · display:block` |
+| `span` | LIVE | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
+| `div` | The poker club · 3h 17m · since 20:05 | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · opacity:.32 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:18px 0 0 · flex:1 · background:#101013 · border-radius:26px 26px 0 0 · border-top:1px solid rgba(255,255,255,.12) · display:flex · flex-direction:column · overflow:hidden` |
+| `div` | — | `display:flex · justify-content:center · padding:9px 0 2px` |
+| `span` | — | `width:38px · height:5px · border-radius:3px · background:rgba(255,255,255,.22) · display:block` |
+| `div` | — | `padding:12px 22px 0 · display:flex · align-items:center · gap:11px` |
+| `h2` | Dana | `margin:0 · font:800 34px/1 · color:#FFFFFF · letter-spacing:-.03em` |
 
 ## H4 · Player card · cashed out
 
 | tag | text | style |
 |---|---|---|
-| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
-| `span` | 64% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:6px · padding:16px 20px 6px` |
-| `span` | — | `display:flex · align-items:center · gap:5px` |
-| `span` | Tonight | `font:500 17px · color:#FFFFFF` |
-| `div` | — | `padding:4px 22px 4px · display:flex · align-items:flex-end · gap:10px` |
-| `h2` | Dana | `margin:0 · font:800 32px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
-| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(255,255,255,.1)` |
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:rgba(255,255,255,.5)` |
+| `span` | 64% | `font:400 13px · color:rgba(255,255,255,.35)` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0 · opacity:.32` |
+| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(111,207,151,.14)` |
+| `span` | — | `width:6px · height:6px · border-radius:3px · background:#6FCF97 · display:block` |
+| `span` | LIVE | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
+| `div` | The poker club · 3h 17m · since 20:05 | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · opacity:.32 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:18px 0 0 · flex:1 · background:#101013 · border-radius:26px 26px 0 0 · border-top:1px solid rgba(255,255,255,.12) · display:flex · flex-direction:column · overflow:hidden` |
+| `div` | — | `display:flex · justify-content:center · padding:9px 0 2px` |
+| `span` | — | `width:38px · height:5px · border-radius:3px · background:rgba(255,255,255,.22) · display:block` |
+| `div` | — | `padding:12px 22px 0 · display:flex · align-items:center · gap:11px` |
+| `h2` | Dana | `margin:0 · font:800 34px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | — | `display:flex · align-items:center · padding:6px 11px · border-radius:999px · background:rgba(255,255,255,.1)` |
 | `span` | CASHED OUT | `font:700 10px · letter-spacing:.1em · color:#8B8D93` |
-| `span` | left 23:15 | `margin-left:auto · font:500 13px · color:#8B8D93` |
+| `span` | — | `margin-left:auto · width:30px · height:30px · border-radius:15px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `div` | left 23:15 · stack counted | `padding:7px 22px 0 · font:500 13px · color:#8B8D93` |
 | `div` | — | `margin:10px 20px 14px · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:22px · box-sizing:border-box` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px` |
 | `span` | In for | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
@@ -380,13 +383,6 @@ the intent and this states what was actually drawn.
 | `div` | — | `margin:10px 14px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:16px · padding:6px 12px 10px · display:flex · flex-direction:column · gap:14px · box-sizing:border-box` |
 | `div` | — | `display:flex · align-items:center · gap:10px · padding:16px 6px 14px` |
 | `span` | Table admin | `font:600 14.5px · color:#8B8D93` |
-| `span` | seat · cash out · end | `margin-left:auto · font:400 13px · color:#6C6E74` |
-| `div` | — | `display:grid · grid-template-columns:1.9fr 1fr · gap:10px` |
-| `span` | — | `display:flex · align-items:center · justify-content:center · gap:10px · padding:20px 0 · border-radius:10px · background:#FFFFFF · font:700 19px · color:#0C0D0F` |
-| `span` | — | `display:flex · flex-direction:column · align-items:center · justify-content:center · gap:5px · padding:14px 0 · border-radius:10px · border:2px solid rgba(255,255,255,.22) · box-sizing:border-box` |
-| `span` | Bill | `font:700 14.5px · color:#5C5E64` |
-| `div` | — | `display:flex · justify-content:center · padding:10px 0 9px` |
-| `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
 
 ## H5 · Tonight · nobody in yet
 

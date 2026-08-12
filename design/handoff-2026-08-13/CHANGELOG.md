@@ -1,3 +1,49 @@
+# Rev 10 — 13 August 2026 · two screens picked, and the results row is canonical
+
+Cumulative, like the rest of this file: rev 10, rev 9, rev 8, rev 7, then the 12 August delta. Nothing has been applied yet.
+
+Boards: `design/Player History.dc.html` (the night results `1C` and the two list states `1A`/`1B` — three screens; the earlier `1D` exploration is deliberately excluded), `design/Screens - Before the night.dc.html` (G4), `design/Style Guide v2.dc.html` (extended — the four patterns confirmed in these rounds).
+
+## 1 · CHANGELOG
+
+| # | Change | Status |
+|---|---|---|
+| S40 | **My stats uses G4's layout.** Period tabs, the this-period card, the result-per-night chart and the last games list. It is a **push** from the club. The old segmented All-groups/per-group version is dead. | FINAL |
+| S41 | **The night-results screen is `1C`, exactly.** It replaces **E6 Night settled** — same UI and same logic for a night you open from a list and for the night you have just closed. E6's own layout (three figures + net-per-player with in/out beneath) is gone. | FINAL |
+| S42 | **1C's summary is three figures:** Money in play (large, foreground) with **Bill** and **Kitty** grouped at the right in a smaller grey-label / red-value format, no minus signs. The buy-in and rebuy counts are not shown. | FINAL |
+| S43 | **Each player row carries the whole calculation** as coloured tokens: `in 1,000` (red) · `out 1,300` (green) · `bill 61` · `kitty 15` (grey). A reimbursement rides **inside** its deduction — `bill 61 +170 back`, the `+170 back` in green — never as a separate token. Losers show `in`/`out` only, since deductions are charged to winners. | FINAL |
+| S44 | **The net shown is after deductions**, and the list is **sorted by that net, best first**. On the canonical night that puts Marek (+394, reimbursed) above Dana (+320, who won more at the table). The reader's own row is bolded (800 on name and net); nothing is filled or highlighted. | FINAL |
+| S45 | **Every results screen ends with one settlement status line**, and exactly one: **Settled** (green check) · **Not settled yet** (amber clock) · **Short by $X** (red). The three strings are fixed and drawn at size in `design/Style Guide v2.dc.html` § *Settlement status line* — that specimen is the only source for this copy. | FINAL |
+| S46 | **The transfers section shows only the reader's own payments** and is titled **What you paid**: on the canonical night, `You → Dana $320` and `You → Lena $60`, summing to his −$380. It is not the whole night's settlement. Specified, not drawn — it sits below the results inside the same sheet. | FINAL |
+| S47 | Column header over the results is **Net** (was "In → out"). | FINAL |
+| S48 | **Month is the default period** everywhere, and the meta beside a period figure states the count then the average: "played 3 games / av. −$90 per game". | FINAL |
+| S49 | List rows in My games read **club · session times** ("The poker club · 20:05 – 00:15"); a missed night reads "The poker club · did not play". Buy-in and duration live on the night, not in the list. | FINAL |
+| D11 | Style guide extended with four patterns: **push header**, **sheet container**, **night-results row**, **settlement status line**, **period tabs in card**. | FINAL |
+
+## 2 · The arithmetic a developer must reproduce
+
+The canonical night, now fully consistent across `1C`, `1D`, `1A` and `1B`:
+
+| Player | in | out | bill | kitty | reimbursed | net |
+| --- | --- | --- | --- | --- | --- | --- |
+| Marek | 1,000 | 1,300 | 61 | 15 | +170 | **+394** |
+| Dana | 500 | 930 | 88 | 22 | — | **+320** |
+| Lena | 1,000 | 1,100 | 21 | 5 | — | **+74** |
+| Tomáš | 880 | 680 | — | — | — | **−200** |
+| Petr | 1,500 | 1,250 | — | — | — | **−250** |
+| Ivo | 1,000 | 620 | — | — | — | **−380** |
+
+- Ins and outs each total **5,880** — that is "Money in play".
+- The bill is **170**, split winners-by-% (88 / 61 / 21); the kitty is **42**, 5% of each win (22 / 15 / 5).
+- Nets sum to **−42**, not zero, because the bill returned to Marek and only the kitty actually left the table. A developer should assert this: `Σ nets = −(kitty + any rule not paid back to a person)`.
+- Marek nets more than Dana despite winning less. That is correct, and it is why the sort is on the final net rather than on the table result.
+
+## 3 · What did not change
+
+No data model changes. The money rules in `04-money-math.md` are unchanged — rev 10 changes what is *displayed* and in what order, not how anything is computed. Navigation is as rev 9 left it: My stats is a push, a past night is a sheet over the list that opened it.
+
+---
+
 # Rev 9 — 13 August 2026 · navigation is settled: no tab bar, push + sheet
 
 **Read `09-navigation.md` before you build any screen.** It carries both chromes in numbers and a table classifying every screen in the app as root, push, sheet or neither. Board: `design/Nav System.dc.html`.
@@ -16,13 +62,13 @@ Cumulative, like the rest of this file: rev 9, then rev 8, then rev 7, then the 
 | S36 | **The ending flow (E2 → E4) is pushed, not a sheet** — going back a step is real navigation and a half-counted night must not be swipe-dismissible. E1 Confirm, which precedes it, is a sheet. | FINAL |
 | S37 | **The two top-right icons on the night screen are removed** (the receipt and the house from rev 8's open question). Bill lives in the dock; the club is what the back button returns to. That question is now closed. | FINAL |
 | S38 | **The kicker back row is retired.** Small-caps-plus-tiny-chevron headers are replaced by Chrome A everywhere they appeared. | FINAL |
-| S39 | **T2 and T4 (the player card) become sheets** over the pushed night screen. They are still drawn as full screens on the Tonight board; `N3` on the Nav System board is the correct treatment. | Model FINAL, redraw PENDING |
+| S39 | **T2 and T4 (the player card) are sheets** over the pushed night screen. Redrawn on the Tonight board — dimmed push chrome behind at `.32`, panel at `margin-top:18px` `radius 26px 26px 0 0`, grabber, 30px close, no chevron. Both themes for T2. | FINAL |
 | D10 | New components: **push header**, **sheet container**. Both specified in `09-navigation.md`. | FINAL |
 | — | **Naming collision:** the Tonight board's `H1`–`H5` collide with the old home states `H1`–`H3`. The Tonight screens are **T1–T5** from now on. | FINAL |
 
 ## 2 · Applied in the design files
 
-`design/Nav System.dc.html` is new. `design/Tonight Home.dc.html` (T1 both themes, T5) and `design/Player History.dc.html` (1A–1D) are rewrapped in Chrome A. The three older boards still carry their original headers — build those screens from the classification table in `09-navigation.md`, not from the boards.
+`design/Nav System.dc.html` is new. `design/Tonight Home.dc.html` is fully migrated (T1 both themes and T5 in Chrome A; T2 both themes and T4 redrawn as sheets) and `design/Player History.dc.html` (1A–1D) is rewrapped in Chrome A. The three older boards still carry their original headers — build those screens from the classification table in `09-navigation.md`, not from the boards.
 
 ## 3 · What did not change
 

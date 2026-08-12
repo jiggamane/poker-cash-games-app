@@ -7,9 +7,9 @@ is the thing to build against rather than a remembered token. Where a
 figure here disagrees with `07-design-tokens.md`, the token doc states
 the intent and this states what was actually drawn.
 
-4 screens.
+3 screens.
 
-## 1A · My nights · Regular
+## 1A · My games · Regular
 
 | tag | text | style |
 |---|---|---|
@@ -17,56 +17,60 @@ the intent and this states what was actually drawn.
 | `span` | 64% | `font:400 13px · color:#8B8D93` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
 | `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
-| `h2` | My nights | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `h2` | My games | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
 | `div` | The poker club · 14 nights on the book | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:flex-end · gap:14px · padding:20px 26px 0` |
-| `span` | Year | `font:700 12.5px · color:#FFFFFF · border-bottom:1.5px solid #FFFFFF · padding-bottom:4px` |
-| `span` | All time | `font:500 12.5px · color:#8B8D93` |
-| `div` | — | `margin:16px 20px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box` |
-| `div` | — | `display:flex · flex-direction:column · gap:4px` |
-| `span` | 2026 so far | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
-| `span` | +1,240 | `font:800 40px/1 · color:#6FCF97 · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
-| `span` | played 9 of 14 | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right` |
+| `div` | — | `margin:20px 20px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:16px · padding:14px 18px 18px · display:flex · flex-direction:column · gap:14px · box-sizing:border-box` |
+| `div` | — | `display:flex · align-items:baseline · gap:12px` |
+| `span` | This month | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
+| `span` | — | `margin-left:auto · display:flex · align-items:flex-end · gap:12px · white-space:nowrap · flex:none` |
+| `span` | Month | `font:700 11.5px · color:#FFFFFF · border-bottom:1.5px solid #FFFFFF · padding-bottom:3px` |
+| `span` | Year | `font:500 11.5px · color:#8B8D93` |
+| `span` | All time | `font:500 11.5px · color:#8B8D93` |
+| `div` | — | `display:flex · align-items:flex-end · gap:12px` |
+| `span` | −270 | `font:800 40px/1 · color:#F0705C · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+| `span` | played 3 games | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right · white-space:nowrap` |
 | `div` | — | `flex:1 · overflow:hidden · margin:22px 22px 0 · display:flex · flex-direction:column` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:0 4px 8px` |
 | `span` | August | `font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 7 Aug | `font:600 16px · color:#FFFFFF` |
-| `span` | in for $1,000 · 4h 10m | `font:400 12.5px · color:#8B8D93` |
+| `span` | Thu 28 Aug | `font:600 16px · color:#FFFFFF` |
+| `span` | The poker club · 20:05 – 00:15 | `font:400 12.5px · color:#8B8D93` |
 | `span` | −380 | `margin-left:auto · font:700 18px · color:#F0705C · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 31 Jul | `font:600 16px · color:#6B6D73` |
-| `span` | did not play · 5 sat down | `font:400 12.5px · color:#6B6D73` |
+| `span` | Thu 21 Aug | `font:600 16px · color:#6B6D73` |
+| `span` | The poker club · did not play | `font:400 12.5px · color:#6B6D73` |
 | `span` | — | `margin-left:auto · font:700 18px · color:#6B6D73` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 24 Jul | `font:600 16px · color:#FFFFFF` |
-| `span` | in for $500 · 2h 50m | `font:400 12.5px · color:#8B8D93` |
-| `span` | +240 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
+| `span` | Thu 14 Aug | `font:600 16px · color:#FFFFFF` |
+| `span` | The poker club · 20:30 – 23:20 | `font:400 12.5px · color:#8B8D93` |
+| `span` | +230 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 17 Jul | `font:600 16px · color:#FFFFFF` |
-| `span` | in for $1,500 · 5h 05m | `font:400 12.5px · color:#8B8D93` |
-| `span` | +1,620 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
+| `span` | Thu 7 Aug | `font:600 16px · color:#FFFFFF` |
+| `span` | The poker club · 19:50 – 00:55 | `font:400 12.5px · color:#8B8D93` |
+| `span` | −120 | `margin-left:auto · font:700 18px · color:#F0705C · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px 8px` |
+| `span` | July | `font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 10 Jul | `font:600 16px · color:#6B6D73` |
-| `span` | did not play · 6 sat down | `font:400 12.5px · color:#6B6D73` |
+| `span` | Thu 31 Jul | `font:600 16px · color:#6B6D73` |
+| `span` | The poker club · did not play | `font:400 12.5px · color:#6B6D73` |
 | `span` | — | `margin-left:auto · font:700 18px · color:#6B6D73` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 3 Jul | `font:600 16px · color:#FFFFFF` |
-| `span` | in for $500 · 3h 40m | `font:400 12.5px · color:#8B8D93` |
-| `span` | −120 | `margin-left:auto · font:700 18px · color:#F0705C · font-variant-numeric:tabular-nums` |
+| `span` | Thu 24 Jul | `font:600 16px · color:#FFFFFF` |
+| `span` | The poker club · 20:10 – 23:50 | `font:400 12.5px · color:#8B8D93` |
+| `span` | +1,620 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · justify-content:center · padding:14px 0 9px` |
 | `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
 | `div` | — | `display:flex · flex-direction:column · gap:12px · flex:none · width:424px` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px · padding-left:6px` |
 | `span` | — | `display:flex · align-items:center · gap:8px` |
 | `span` | 1B | `font:700 10px · letter-spacing:.1em · color:#FFFFFF · background:#0B0B0F · padding:4px 7px · border-radius:5px` |
-| `span` | My nights · Free | `font:700 14px · color:#0B0B0F · letter-spacing:-.01em` |
+| `span` | My games · Free | `font:700 14px · color:#0B0B0F · letter-spacing:-.01em` |
 | `span` | The last three he played, and no more. Nights he missed do n | `font:400 12.5px/1.45 · color:#6C6C70` |
 | `div` | — | `background:#07080A · padding:11px · border-radius:56px · flex:none` |
 | `div` | — | `width:402px · height:874px · border-radius:46px · overflow:hidden · background:#0A0A0B · display:flex · flex-direction:column · box-sizing:border-box` |
@@ -74,21 +78,16 @@ the intent and this states what was actually drawn.
 | `span` | 64% | `font:400 13px · color:#8B8D93` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
 | `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
-| `h2` | My nights | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `h2` | My games | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
 | `div` | The poker club · 14 nights on the book | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
 | `div` | — | `margin:20px 20px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px` |
 | `span` | Your last three | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
-| `span` | +1,480 | `font:800 40px/1 · color:#6FCF97 · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
-| `span` | 3 nights | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right` |
+| `span` | −270 | `font:800 40px/1 · color:#F0705C · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+| `span` | played 3 games | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right · white-space:nowrap` |
 | `div` | — | `flex:1 · overflow:hidden · margin:22px 22px 0 · display:flex · flex-direction:column` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
-| `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 7 Aug | `font:600 16px · color:#FFFFFF` |
-| `span` | in for $1,000 · 4h 10m | `font:400 12.5px · color:#8B8D93` |
-| `span` | −380 | `margin-left:auto · font:700 18px · color:#F0705C · font-variant-numeric:tabular-nums` |
 
-## 1B · My nights · Free
+## 1B · My games · Free
 
 | tag | text | style |
 |---|---|---|
@@ -96,42 +95,42 @@ the intent and this states what was actually drawn.
 | `span` | 64% | `font:400 13px · color:#8B8D93` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
 | `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
-| `h2` | My nights | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `h2` | My games | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
 | `div` | The poker club · 14 nights on the book | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
 | `div` | — | `margin:20px 20px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px` |
 | `span` | Your last three | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
-| `span` | +1,480 | `font:800 40px/1 · color:#6FCF97 · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
-| `span` | 3 nights | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right` |
+| `span` | −270 | `font:800 40px/1 · color:#F0705C · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+| `span` | played 3 games | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right · white-space:nowrap` |
 | `div` | — | `flex:1 · overflow:hidden · margin:22px 22px 0 · display:flex · flex-direction:column` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 7 Aug | `font:600 16px · color:#FFFFFF` |
-| `span` | in for $1,000 · 4h 10m | `font:400 12.5px · color:#8B8D93` |
+| `span` | Thu 28 Aug | `font:600 16px · color:#FFFFFF` |
+| `span` | The poker club · 20:05 – 00:15 | `font:400 12.5px · color:#8B8D93` |
 | `span` | −380 | `margin-left:auto · font:700 18px · color:#F0705C · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 24 Jul | `font:600 16px · color:#FFFFFF` |
-| `span` | in for $500 · 2h 50m | `font:400 12.5px · color:#8B8D93` |
-| `span` | +240 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
+| `span` | Thu 14 Aug | `font:600 16px · color:#FFFFFF` |
+| `span` | The poker club · 20:30 – 23:20 | `font:400 12.5px · color:#8B8D93` |
+| `span` | +230 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 17 Jul | `font:600 16px · color:#FFFFFF` |
-| `span` | in for $1,500 · 5h 05m | `font:400 12.5px · color:#8B8D93` |
-| `span` | +1,620 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
+| `span` | Thu 7 Aug | `font:600 16px · color:#FFFFFF` |
+| `span` | The poker club · 19:50 – 00:55 | `font:400 12.5px · color:#8B8D93` |
+| `span` | −120 | `margin-left:auto · font:700 18px · color:#F0705C · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.08)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 10 Jul | `font:600 16px · color:#4E5056` |
+| `span` | Thu 24 Jul | `font:600 16px · color:#4E5056` |
 | `span` | before your last three | `font:400 12.5px · color:#4E5056` |
 | `span` | — | `margin-left:auto · font:700 18px · color:#4E5056` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:14px 4px · border-bottom:1px solid rgba(255,255,255,.08)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Thu 3 Jul | `font:600 16px · color:#4E5056` |
+| `span` | Thu 17 Jul | `font:600 16px · color:#4E5056` |
 | `span` | before your last three | `font:400 12.5px · color:#4E5056` |
 | `span` | — | `margin-left:auto · font:700 18px · color:#4E5056` |
 | `div` | — | `margin-top:auto · display:flex · flex-direction:column · gap:12px · padding:18px 2px 0` |
 | `span` | Regular keeps every night, including the ones you missed, an | `font:400 13px/1.55 · color:#8B8D93` |
-| `span` | Take Regular · $2.49/mo | `display:flex · align-items:center · justify-content:center · padding:17px 0 · border-radius:8px · background:#FFFFFF · font:700 17px · color:#0C0D0F` |
+| `span` | Upgrade to Regular · $2.49/mo | `display:flex · align-items:center · justify-content:center · padding:17px 0 · border-radius:8px · background:#FFFFFF · font:700 17px · color:#0C0D0F` |
 | `div` | — | `display:flex · justify-content:center · padding:14px 0 9px` |
 | `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
 | `div` | — | `display:flex · flex-direction:column · gap:12px · flex:none · width:424px` |
@@ -139,174 +138,117 @@ the intent and this states what was actually drawn.
 | `span` | — | `display:flex · align-items:center · gap:8px` |
 | `span` | 1C | `font:700 10px · letter-spacing:.1em · color:#FFFFFF · background:#0B0B0F · padding:4px 7px · border-radius:5px` |
 | `span` | A night · Results | `font:700 14px · color:#0B0B0F · letter-spacing:-.01em` |
-| `span` | Money in play, when it started and ended, and every final re | `font:400 12.5px/1.45 · color:#6C6C70` |
+| `span` | A sheet over My games. Money in play, what came off the tabl | `font:400 12.5px/1.45 · color:#6C6C70` |
 | `div` | — | `background:#07080A · padding:11px · border-radius:56px · flex:none` |
 | `div` | — | `width:402px · height:874px · border-radius:46px · overflow:hidden · background:#0A0A0B · display:flex · flex-direction:column · box-sizing:border-box` |
-| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
-| `span` | 64% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:rgba(255,255,255,.5)` |
+| `span` | 64% | `font:400 13px · color:rgba(255,255,255,.35)` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0 · opacity:.32` |
 | `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
-| `h2` | Thu 7 August | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
-| `div` | 20:05 – 00:15 · 4h 10m · 6 players | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:flex-end · gap:16px · padding:20px 26px 0` |
-| `span` | Results | `font:700 12.5px · color:#FFFFFF · border-bottom:1.5px solid #FFFFFF · padding-bottom:4px` |
-| `span` | Money | `font:500 12.5px · color:#8B8D93` |
-| `span` | Entries | `font:500 12.5px · color:#8B8D93` |
-| `div` | — | `margin:16px 20px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box` |
-| `div` | — | `display:flex · flex-direction:column · gap:4px` |
-| `span` | Money in play | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
-| `span` | $5,000 | `font:800 40px/1 · color:#FFFFFF · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
-| `span` | 8 buy-ins | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right` |
-| `div` | — | `flex:1 · overflow:hidden · margin:20px 22px 0 · display:flex · flex-direction:column` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:0 4px 8px` |
-| `span` | Final results | `font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93` |
-| `span` | In → out | `margin-left:auto · font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
-| `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Dana | `font:600 16px · color:#FFFFFF` |
+| `h2` | My games | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `div` | The poker club · 14 nights on the book | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · opacity:.32 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:18px 0 0 · flex:1 · min-height:0 · background:#101013 · border-radius:26px 26px 0 0 · border-top:1px solid rgba(255,255,255,.12) · display:flex · flex-direction:column · overflow:hidden` |
+| `div` | — | `display:flex · justify-content:center · padding:9px 0 2px` |
+| `span` | — | `width:38px · height:5px · border-radius:3px · background:rgba(255,255,255,.22) · display:block` |
+| `div` | — | `padding:12px 22px 0 · display:flex · align-items:center · gap:11px` |
+| `h2` | Thu 28 August | `margin:0 · font:800 30px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | — | `margin-left:auto · width:30px · height:30px · border-radius:15px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `div` | 20:05 – 00:15 · 4h 10m · 6 players | `padding:7px 22px 0 · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:16px 20px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:14px · box-sizing:border-box` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px · flex:none` |
+| `span` | Money in play | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93 · white-space:nowrap` |
+| `span` | $5,880 | `font:800 36px/1 · color:#FFFFFF · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin-left:auto · display:flex · align-items:flex-end · gap:14px · flex:none` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px · flex:none` |
 
 ## 1C · A night · Results
 
 | tag | text | style |
 |---|---|---|
-| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
-| `span` | 64% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:rgba(255,255,255,.5)` |
+| `span` | 64% | `font:400 13px · color:rgba(255,255,255,.35)` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0 · opacity:.32` |
 | `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
-| `h2` | Thu 7 August | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
-| `div` | 20:05 – 00:15 · 4h 10m · 6 players | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:flex-end · gap:16px · padding:20px 26px 0` |
-| `span` | Results | `font:700 12.5px · color:#FFFFFF · border-bottom:1.5px solid #FFFFFF · padding-bottom:4px` |
-| `span` | Money | `font:500 12.5px · color:#8B8D93` |
-| `span` | Entries | `font:500 12.5px · color:#8B8D93` |
-| `div` | — | `margin:16px 20px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box` |
-| `div` | — | `display:flex · flex-direction:column · gap:4px` |
-| `span` | Money in play | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
-| `span` | $5,000 | `font:800 40px/1 · color:#FFFFFF · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
-| `span` | 8 buy-ins | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right` |
+| `h2` | My games | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
+| `div` | The poker club · 14 nights on the book | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · opacity:.32 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:18px 0 0 · flex:1 · min-height:0 · background:#101013 · border-radius:26px 26px 0 0 · border-top:1px solid rgba(255,255,255,.12) · display:flex · flex-direction:column · overflow:hidden` |
+| `div` | — | `display:flex · justify-content:center · padding:9px 0 2px` |
+| `span` | — | `width:38px · height:5px · border-radius:3px · background:rgba(255,255,255,.22) · display:block` |
+| `div` | — | `padding:12px 22px 0 · display:flex · align-items:center · gap:11px` |
+| `h2` | Thu 28 August | `margin:0 · font:800 30px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | — | `margin-left:auto · width:30px · height:30px · border-radius:15px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `div` | 20:05 – 00:15 · 4h 10m · 6 players | `padding:7px 22px 0 · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:16px 20px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:14px · box-sizing:border-box` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px · flex:none` |
+| `span` | Money in play | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93 · white-space:nowrap` |
+| `span` | $5,880 | `font:800 36px/1 · color:#FFFFFF · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin-left:auto · display:flex · align-items:flex-end · gap:14px · flex:none` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px · flex:none` |
+| `span` | Bill | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93 · white-space:nowrap` |
+| `span` | $170 | `font:700 22px/1 · color:#F0705C · letter-spacing:-.02em · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px · flex:none` |
+| `span` | Kitty | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93 · white-space:nowrap` |
+| `span` | $42 | `font:700 22px/1 · color:#F0705C · letter-spacing:-.02em · font-variant-numeric:tabular-nums` |
 | `div` | — | `flex:1 · overflow:hidden · margin:20px 22px 0 · display:flex · flex-direction:column` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:0 4px 8px` |
 | `span` | Final results | `font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93` |
-| `span` | In → out | `margin-left:auto · font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
-| `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Dana | `font:600 16px · color:#FFFFFF` |
-| `span` | 500 → 930 | `font:400 12.5px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `span` | +430 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
+| `span` | Net | `margin-left:auto · font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
 | `span` | Marek | `font:600 16px · color:#FFFFFF` |
-| `span` | 1,000 → 1,300 | `font:400 12.5px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `span` | +300 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
+| `span` | — | `display:flex · align-items:center · gap:9px · font:400 12.5px · font-variant-numeric:tabular-nums · white-space:nowrap` |
+| `span` | in 1,000 | `color:#F0705C` |
+| `span` | out 1,300 | `color:#6FCF97` |
+| `span` | bill 61 | `color:#8B8D93` |
+| `span` | +170 back | `color:#6FCF97` |
+| `span` | kitty 15 | `color:#8B8D93` |
+| `span` | +394 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Dana | `font:600 16px · color:#FFFFFF` |
+| `span` | — | `display:flex · align-items:center · gap:9px · font:400 12.5px · font-variant-numeric:tabular-nums · white-space:nowrap` |
+| `span` | in 500 | `color:#F0705C` |
+| `span` | out 930 | `color:#6FCF97` |
+| `span` | bill 88 | `color:#8B8D93` |
+| `span` | kitty 22 | `color:#8B8D93` |
+| `span` | +320 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
 | `span` | Lena | `font:600 16px · color:#FFFFFF` |
-| `span` | 1,000 → 1,100 | `font:400 12.5px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `span` | +100 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
+| `span` | — | `display:flex · align-items:center · gap:9px · font:400 12.5px · font-variant-numeric:tabular-nums · white-space:nowrap` |
+| `span` | in 1,000 | `color:#F0705C` |
+| `span` | out 1,100 | `color:#6FCF97` |
+| `span` | bill 21 | `color:#8B8D93` |
+| `span` | kitty 5 | `color:#8B8D93` |
+| `span` | +74 | `margin-left:auto · font:700 18px · color:#6FCF97 · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Ivo | `font:800 17px · color:#FFFFFF · letter-spacing:-.01em` |
-| `span` | 1,000 → 620 | `font:600 12.5px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `span` | −380 | `margin-left:auto · font:800 19px · color:#F0705C · font-variant-numeric:tabular-nums` |
+| `span` | Tomáš | `font:600 16px · color:#FFFFFF` |
+| `span` | — | `display:flex · align-items:center · gap:9px · font:400 12.5px · font-variant-numeric:tabular-nums · white-space:nowrap` |
+| `span` | in 880 | `color:#F0705C` |
+| `span` | out 680 | `color:#6FCF97` |
+| `span` | −200 | `margin-left:auto · font:700 18px · color:#F0705C · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
 | `span` | Petr | `font:600 16px · color:#FFFFFF` |
-| `span` | 1,000 → 750 | `font:400 12.5px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
+| `span` | — | `display:flex · align-items:center · gap:9px · font:400 12.5px · font-variant-numeric:tabular-nums · white-space:nowrap` |
+| `span` | in 1,500 | `color:#F0705C` |
+| `span` | out 1,250 | `color:#6FCF97` |
 | `span` | −250 | `margin-left:auto · font:700 18px · color:#F0705C · font-variant-numeric:tabular-nums` |
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px` |
 | `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Tomáš | `font:600 16px · color:#FFFFFF` |
-| `span` | 500 → 300 | `font:400 12.5px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `span` | −200 | `margin-left:auto · font:700 18px · color:#F0705C · font-variant-numeric:tabular-nums` |
-| `div` | Results before the bill and the kitty. What each person actu | `margin-top:auto · padding:12px 4px 2px · border-top:1px solid rgba(255,255,255,.11) · font:400 13px/1.5 · color:#8B8D93` |
-| `div` | — | `display:flex · justify-content:center · padding:14px 0 9px` |
-| `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
-| `div` | — | `display:flex · flex-direction:column · gap:12px · flex:none · width:424px` |
-| `div` | — | `display:flex · flex-direction:column · gap:4px · padding-left:6px` |
-| `span` | — | `display:flex · align-items:center · gap:8px` |
-| `span` | 1D | `font:700 10px · letter-spacing:.1em · color:#FFFFFF · background:#0B0B0F · padding:4px 7px · border-radius:5px` |
-| `span` | A night · Money | `font:700 14px · color:#0B0B0F · letter-spacing:-.01em` |
-| `span` | The second tab, so the set reads as more than decoration: wh | `font:400 12.5px/1.45 · color:#6C6C70` |
-| `div` | — | `background:#07080A · padding:11px · border-radius:56px · flex:none` |
-| `div` | — | `width:402px · height:874px · border-radius:46px · overflow:hidden · background:#0A0A0B · display:flex · flex-direction:column · box-sizing:border-box` |
-| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
-| `span` | 64% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
-| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
-| `h2` | Thu 7 August | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
-| `div` | 20:05 – 00:15 · 4h 10m · 6 players | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:flex-end · gap:16px · padding:20px 26px 0` |
-| `span` | Results | `font:500 12.5px · color:#8B8D93` |
-| `span` | Money | `font:700 12.5px · color:#FFFFFF · border-bottom:1.5px solid #FFFFFF · padding-bottom:4px` |
-| `span` | Entries | `font:500 12.5px · color:#8B8D93` |
-| `div` | — | `flex:1 · overflow:hidden · margin:18px 22px 0 · display:flex · flex-direction:column · gap:20px` |
-| `div` | — | `display:flex · flex-direction:column` |
-| `span` | Off the table | `font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93 · padding:0 4px 8px` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:13px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
-| `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Bar bill | `font:600 16px · color:#FFFFFF` |
-| `span` | Marek paid · winners by % | `font:400 12.5px · color:#8B8D93` |
-| `span` | $170 | `margin-left:auto · font:700 17px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:13px 4px` |
-| `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Kitty | `font:600 16px · color:#FFFFFF` |
-
-## 1D · A night · Money
-
-| tag | text | style |
-|---|---|---|
-| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
-| `span` | 64% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
-| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
-| `h2` | Thu 7 August | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
-| `div` | 20:05 – 00:15 · 4h 10m · 6 players | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:flex-end · gap:16px · padding:20px 26px 0` |
-| `span` | Results | `font:500 12.5px · color:#8B8D93` |
-| `span` | Money | `font:700 12.5px · color:#FFFFFF · border-bottom:1.5px solid #FFFFFF · padding-bottom:4px` |
-| `span` | Entries | `font:500 12.5px · color:#8B8D93` |
-| `div` | — | `flex:1 · overflow:hidden · margin:18px 22px 0 · display:flex · flex-direction:column · gap:20px` |
-| `div` | — | `display:flex · flex-direction:column` |
-| `span` | Off the table | `font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93 · padding:0 4px 8px` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:13px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
-| `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Bar bill | `font:600 16px · color:#FFFFFF` |
-| `span` | Marek paid · winners by % | `font:400 12.5px · color:#8B8D93` |
-| `span` | $170 | `margin-left:auto · font:700 17px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:13px 4px` |
-| `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Kitty | `font:600 16px · color:#FFFFFF` |
-| `span` | 5% of each win | `font:400 12.5px · color:#8B8D93` |
-| `span` | $42 | `margin-left:auto · font:700 17px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · flex-direction:column` |
-| `span` | Your night | `font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93 · padding:0 4px 8px` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
-| `span` | At the table | `font:600 16px · color:#FFFFFF` |
-| `span` | −380 | `margin-left:auto · font:700 17px · color:#F0705C · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:center · gap:12px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
-| `div` | — | `display:flex · flex-direction:column · gap:3px` |
-| `span` | Bill and kitty | `font:600 16px · color:#FFFFFF` |
-| `span` | charged to winners only | `font:400 12.5px · color:#8B8D93` |
-| `span` | — | `margin-left:auto · font:700 17px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:baseline · gap:12px · padding:14px 4px` |
-| `span` | Your result | `font:800 17px · color:#FFFFFF · letter-spacing:-.01em` |
-| `span` | −380 | `margin-left:auto · font:800 26px · color:#F0705C · letter-spacing:-.03em · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · flex-direction:column` |
-| `span` | Settled that night | `font:700 11px · letter-spacing:.12em · text-transform:uppercase · color:#8B8D93 · padding:0 4px 8px` |
-| `div` | — | `display:flex · align-items:center · gap:10px · padding:12px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
-| `span` | You | `font:800 16px · color:#FFFFFF · letter-spacing:-.01em` |
-| `span` | Dana | `font:600 16px · color:#FFFFFF` |
-| `span` | $380 | `margin-left:auto · font:700 17px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
-| `div` | — | `display:flex · align-items:center · gap:10px · padding:12px 4px` |
-| `span` | Petr | `font:600 16px · color:#FFFFFF` |
-| `span` | Marek | `font:600 16px · color:#FFFFFF` |
-| `span` | $250 | `margin-left:auto · font:700 17px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `span` | Ivo | `font:800 17px · color:#FFFFFF · letter-spacing:-.01em` |
+| `span` | — | `display:flex · align-items:center · gap:9px · font:600 12.5px · font-variant-numeric:tabular-nums · white-space:nowrap` |
+| `span` | in 1,000 | `color:#F0705C` |
+| `span` | out 620 | `color:#6FCF97` |
+| `span` | −380 | `margin-left:auto · font:800 19px · color:#F0705C · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin-top:auto · padding:12px 4px 2px · border-top:1px solid rgba(255,255,255,.11) · display:flex · align-items:flex-start · gap:9px` |
+| `svg` | — | `flex:none · margin-top:2px` |
+| `span` | — | `font:400 13px/1.5 · color:#8B8D93` |
+| `span` | Settled. | `color:#FFFFFF · font-weight:600` |
 | `div` | — | `display:flex · justify-content:center · padding:14px 0 9px` |
 | `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
 | `div` | — | `display:flex · gap:22px · flex-wrap:wrap · width:1310px` |
 | `div` | — | `display:flex · flex-direction:column · gap:9px · width:424px · background:#FFFFFF · border:1px solid rgba(11,11,15,.09) · border-radius:16px · padding:18px 20px · box-sizing:border-box` |
-| `span` | The em-dash means two different things | `font:700 13px · color:#0B0B0F` |
-| `span` | In | `font:400 12.5px/1.5 · color:#6C6C70` |
-| `div` | — | `display:flex · flex-direction:column · gap:9px · width:424px · background:#FFFFFF · border:1px solid rgba(11,11,15,.09) · border-radius:16px · padding:18px 20px · box-sizing:border-box` |
-| `span` | Open questions | `font:700 13px · color:#0B0B0F` |
-| `span` | Can a Free player open a night he played but which has falle | `font:400 12.5px/1.5 · color:#6C6C70` |
+| `span` | The foot line has three states | `font:700 13px · color:#0B0B0F` |
+| `span` | One line at the foot of the results, and it is the only plac | `font:400 12.5px/1.55 · color:#6C6C70` |
