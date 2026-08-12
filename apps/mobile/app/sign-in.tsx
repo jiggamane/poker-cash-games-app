@@ -7,7 +7,7 @@ import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { authRedirectUrl } from '../src/lib/authLink';
-import { isSupabaseConfigured, sendSignInLink } from '../src/lib/supabase';
+import { isNotInvited, isSupabaseConfigured, sendSignInLink } from '../src/lib/supabase';
 
 /**
  * The host signs in.
@@ -34,7 +34,13 @@ export default function SignIn() {
       await sendSignInLink(email.trim(), redirect);
       setStage('sent');
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(
+        isNotInvited(e)
+          ? `${email.trim()} has not been invited yet. While the app is being tested, the host adds each address by hand.`
+          : e instanceof Error
+            ? e.message
+            : String(e),
+      );
     } finally {
       setBusy(false);
     }
@@ -101,6 +107,11 @@ export default function SignIn() {
       <View style={styles.page}>
         <Text style={[styles.body, { color: t.muted }]}>
           Only the host signs in. Players are names you type, and watchers open a link.
+        </Text>
+
+        <Text style={[styles.body, styles.spaced, { color: t.muted }]}>
+          The app is in testing, so sign-in is by invitation: an address has to have been added
+          before a link will be sent to it.
         </Text>
 
         <View style={styles.form}>

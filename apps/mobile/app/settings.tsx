@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { useSession } from '../src/lib/useSession';
 import { supabase } from '../src/lib/supabase';
+import { shareLinkFor } from '../src/lib/shareLink';
+import { publishNight, stopSharing, watcherCount } from '../src/lib/publish';
 import { outbox, sync } from '../src/lib/ledgerRepo';
 import { useNight } from '../src/lib/nightStore';
 
@@ -30,6 +32,12 @@ export default function Settings() {
   const [queued, setQueued] = useState<number | null>(null);
   const [syncing, setSyncing] = useState(false);
 
+  // The watcher's link, once this night has been put on the server.
+  const [link, setLink] = useState<string | null>(null);
+  const [watchers, setWatchers] = useState<number | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+
   useEffect(() => {
     void outbox.count().then(setQueued).catch(() => setQueued(null));
   });
@@ -45,6 +53,45 @@ export default function Settings() {
     } finally {
       setQueued(await outbox.count().catch(() => 0));
       setSyncing(false);
+    }
+  }
+
+  /**
+   * Publish tonight and hand the room its link.
+   *
+   * Publishing on demand rather than continuously is the honest v1 behaviour:
+   * nothing leaves the phone until the host asks for it to, and the ask is the
+   * same gesture as the sharing.
+   */
+  async function share() {
+    if (night === null) return;
+    setSharing(true);
+    setShareError(null);
+    try {
+      const token = await publishNight(night);
+      const url = shareLinkFor(token);
+      setLink(url);
+      setWatchers(await watcherCount(night.sessionId).catch(() => 0));
+      await Share.share({ message: url });
+    } catch (e) {
+      setShareError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  async function unshare() {
+    if (night === null) return;
+    setSharing(true);
+    setShareError(null);
+    try {
+      await stopSharing(night.sessionId);
+      setLink(null);
+      setWatchers(0);
+    } catch (e) {
+      setShareError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSharing(false);
     }
   }
 
@@ -95,6 +142,47 @@ export default function Settings() {
               sent the moment you do.
             </Text>
             <Action label="Sign in" onPress={() => router.push('/sign-in')} last />
+          </>
+        )}
+
+        {signedIn && night !== null && (
+          <>
+            <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Watchers</Text>
+
+            <Text style={[styles.note, { color: t.muted }]}>
+              Sharing puts tonight on the server and gives you a link. Whoever opens it can read
+              this night — the running list, as it happens — and nothing else. They never sign up:
+              the link is their whole credential, which is also why anyone it is forwarded to can
+              watch too.
+            </Text>
+
+            {link !== null && (
+              <>
+                <Fact
+                  label="Watching now"
+                  value={watchers === null ? '—' : watchers === 0 ? 'Nobody yet' : String(watchers)}
+                />
+                <View style={[styles.row, { borderBottomColor: t.hairline, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+                  <Text style={[styles.linkText, { color: t.muted }]} selectable>
+                    {link}
+                  </Text>
+                </View>
+              </>
+            )}
+
+            <Action
+              label={sharing ? 'Working…' : link === null ? 'Share this night' : 'Send the link again'}
+              onPress={() => void share()}
+              last={link === null}
+            />
+
+            {link !== null && (
+              <Action label="Stop sharing" onPress={() => void unshare()} last />
+            )}
+
+            {shareError !== null && (
+              <Text style={[styles.note, { color: t.loss }]}>{shareError}</Text>
+            )}
           </>
         )}
       </View>
@@ -165,4 +253,5 @@ const styles = StyleSheet.create({
   value: { ...type.meta, marginLeft: 'auto', flexShrink: 1 },
   chevron: { marginLeft: 'auto' },
   note: { ...type.footnote, paddingHorizontal: 4, paddingBottom: 14 },
+  linkText: { ...type.footnote, flexShrink: 1 },
 });

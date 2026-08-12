@@ -173,6 +173,8 @@ The design says players "are not necessarily app users," watchers open a link "w
 
   Mechanically, the app exchanges the `share_token` at an edge function for a **scoped, read-only session token** carrying a `share_session_id` claim. RLS policies check that claim, which makes the same rule govern both ordinary reads and realtime subscriptions — a plain token-in-a-header would authorize REST but not the websocket.
 
+  **As built, the exchange happens in Postgres rather than in an edge function** (`0004_watcher_access.sql`): the watcher signs in anonymously, redeems the token through a `SECURITY DEFINER` function that records a grant, and a custom access-token hook stamps `share_session_id` into their JWT. The claim, the policies and the realtime consequence above are unchanged — this only removes the deployed function and the signing key. See [`auth-test-period.md`](auth-test-period.md).
+
 **"Claiming a name" — deliberately v2.** The minimum for v1 is: host account + share links. That already runs a full night. Claiming (a player signs in and links their account to their `player` row, unlocking their own cross-book standing on their device and private notifications) is a real feature but adds real surface — invites, verification, "is this the right Petr?" — for zero v1 value, since watchers already see everything through the link. The schema leaves the hook in place (`player.claimed_by_user_id`) so v2 doesn't need a migration.
 
 **Unsettled → defaults:** auth provider → magic-link email (+ Apple). Share-link lifetime → tokens are per-session and revocable; default them to live for the session and remain openable while the book is open, revocable by the host.

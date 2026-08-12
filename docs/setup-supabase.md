@@ -22,8 +22,13 @@ container's network policy denies it — so these two steps have to happen here.
 
 ## Step 1 — apply the database schema
 
-The schema is one file: `supabase/migrations/0001_init.sql`. It has never been
-applied to this project, so it needs running once.
+The schema is `supabase/schema.sql` — every migration in
+`supabase/migrations/` concatenated, in order, for a project that has none of
+them yet. It has never been applied to this project, so it needs running once.
+(The instructions below name `0001_init.sql`, which was the whole schema when
+they were written; run the bundle instead, and see
+[`auth-test-period.md`](auth-test-period.md) for the dashboard settings that
+`0004_watcher_access.sql` needs turned on.)
 
 Use whichever of these works:
 

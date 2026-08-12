@@ -87,8 +87,13 @@ for f in "$MIGRATIONS"/*.sql; do
   run_sql_file "$f"
 done
 
-echo "==> Asserting money invariants"
-run_sql_file "$TESTS/01_invariants.sql"
+echo "==> Asserting invariants"
+for f in "$TESTS"/*.sql; do
+  # 00 is the shim, already applied above.
+  case "$(basename "$f")" in 00_*) continue ;; esac
+  echo "    $(basename "$f")"
+  run_sql_file "$f"
+done
 
 echo ""
-echo "OK — schema applies cleanly and every money invariant holds."
+echo "OK — schema applies cleanly and every invariant holds."

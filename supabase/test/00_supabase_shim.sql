@@ -33,5 +33,10 @@ begin
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then
     create role authenticated nologin;
   end if;
+  -- The role Supabase's auth server runs as. 0004 grants it the access-token
+  -- hook and a read of share_grant, so the migration needs it to exist here too.
+  if not exists (select 1 from pg_roles where rolname = 'supabase_auth_admin') then
+    create role supabase_auth_admin nologin;
+  end if;
 end;
 $$;
