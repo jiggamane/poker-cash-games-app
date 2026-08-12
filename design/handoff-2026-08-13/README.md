@@ -10,7 +10,9 @@ It is not a tournament app. There is no clock, no blind levels, no eliminations.
 
 ## Start here
 
-**`CHANGELOG.md` — read it before anything else.** It is cumulative and **nothing in it has been applied yet**: rev 8 (the session screen rebuilt as one list, one dock, one card per player), then rev 7 (in-game nav, rebuy default), then the 12 August delta. Each section names what it supersedes and carries the answers to the open money-rule questions.
+**`CHANGELOG.md` — read it before anything else.** It is cumulative and **nothing in it has been applied yet**: rev 9 (navigation settled — no tab bar, push + sheet), rev 8 (the session screen rebuilt as one list, one dock, one card per player), then rev 7 (in-game nav, rebuy default), then the 12 August delta. Each section names what it supersedes and carries the answers to the open money-rule questions.
+
+**`09-navigation.md`** is the navigation model: both chromes in numbers, and a table classifying every screen as root, push, sheet or neither. Read it before building any screen.
 
 **`08-tonight-home.md`** is the full specification of the live-session screen and the player screen behind it. It replaces the session screens in `02-screens.md`. Build the session from that file, not from `02`.
 
@@ -27,6 +29,7 @@ It is not a tournament app. There is no clock, no blind levels, no eliminations.
 | `06-test-checklist.md` | What the closed-circle round has to survive. |
 | `07-design-tokens.md` | Colour, type, shape, spacing, button rules. |
 | `08-tonight-home.md` | **The session screen, in full.** H1–H5: the table, the dock, the player card, the hold-to-end. Supersedes `02`'s N1/N1b/N1c/N2/N3. |
+| `09-navigation.md` | **Navigation, final.** Push chrome, sheet chrome, depth limits, and every screen classified. |
 | `design/` | The design files themselves. Reference, not production code. |
 
 ---
@@ -79,7 +82,7 @@ The files in `design/` are **design references created in HTML** — prototypes 
 
 To open them: put `support.js` beside the `.dc.html` files and open them in a browser. The boards are wider than a viewport by design — pan horizontally. Screens are grouped in sections; the dark variant sits above its light twin.
 
-The session screens live in `design/Tonight Home.dc.html`; everything else in `design/Screens - *.dc.html`.
+The session screens live in `design/Tonight Home.dc.html`; the navigation chromes in `design/Nav System.dc.html`; player history in `design/Player History.dc.html`; everything else in `design/Screens - *.dc.html`.
 
 **Copy is final. Do not rewrite the strings.** Every label, caption and explanatory line in the designs was written deliberately, several of them to defuse an argument at the table. If a string is missing for a state that is not drawn, flag it rather than inventing one.
 

@@ -35,9 +35,11 @@ cd apps/mobile && npm start   # scan the QR code with Expo Go
   being tested: invite-only sign-in, how a watcher's link actually works, and the dashboard
   steps that make it run. Read it before the first night with real people.
 - **[`design/handoff-2026-08-13/`](design/handoff-2026-08-13/)** — the current design
-  handoff, and the newest thing in the repo. Read its `CHANGELOG.md` first: rev 7 and
-  rev 8 are both **pending**, and rev 8 rebuilds the live session screen as one list with
-  no tabs and no feed (`08-tonight-home.md`, board `design/Tonight Home.dc.html`).
+  handoff, and the newest thing in the repo. Read its `CHANGELOG.md` first: revs 7, 8 and
+  9 are all **pending**. Rev 8 rebuilds the live session screen as one list with no tabs
+  and no feed (`08-tonight-home.md`); rev 9 settles navigation — no tab bar, one push
+  chrome, one sheet chrome, and every screen in the app classified as one or the other
+  (`09-navigation.md`).
 - **[`docs/screen-specs/`](docs/screen-specs/)** — every drawn screen's exact
   measurements, extracted from those boards by `python3 scripts/extract-design.py`. Build
   against these rather than a remembered token.

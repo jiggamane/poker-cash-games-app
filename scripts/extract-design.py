@@ -37,7 +37,8 @@ FRAME = re.compile(r"width:402px;height:874px")
 # Every frame carries its own name: data-screen-label="H3b Hold in progress".
 # Read that rather than the caption printed under the screen — a screen with no
 # light twin has no caption at all, which is how H3b and H5 went missing.
-LABEL = re.compile(r"data-screen-label=\"([A-Z]\d+[a-z]?)\s+([^\"]{2,60})\"")
+# Ids come both ways round: N1c, T3b, E6 — and 1A, 1D on the history board.
+LABEL = re.compile(r"data-screen-label=\"([A-Z]\d+[a-z]?|\d+[A-Z])\s+([^\"]{2,60})\"")
 ELEMENT = re.compile(r"<(\w+)[^>]*?style=\"([^\"]+)\"[^>]*>([^<]{0,60})")
 
 

@@ -4,14 +4,20 @@
 > The screens have moved on since. Dated bundles sit beside it, newest last, and
 > each one's own `CHANGELOG.md` says what it supersedes:
 >
-> - **`handoff-2026-08-13/`** — current. Adds rev 7 (the action dock, the
->   per-player rebuy default) and rev 8 (the session screen rebuilt as one list
->   with no tabs and no feed, specified in full in `08-tonight-home.md`, drawn
->   in `design/Tonight Home.dc.html`). **None of it has been built yet.**
+> - **`handoff-2026-08-13/`** — current, at rev 9. Adds rev 7 (the action dock,
+>   the per-player rebuy default), rev 8 (the session screen rebuilt as one list
+>   with no tabs and no feed — `08-tonight-home.md`, board `Tonight Home`), and
+>   rev 9 (navigation settled: no tab bar, push chrome and sheet chrome, every
+>   screen classified — `09-navigation.md`, board `Nav System`).
+>   **None of it has been built yet.**
 > - `handoff-2026-08-12/` — superseded, kept so the diff is readable.
 >
 > `docs/screen-specs/` is regenerated from the newest bundle's boards by
-> `python3 scripts/extract-design.py`. Build against those measurements.
+> `python3 scripts/extract-design.py`. Build against those measurements — with
+> one correction the boards have not caught up with: **the Tonight screens are
+> `T1`–`T5`, not `H1`–`H5`.** The boards still label them H, which collides with
+> the old club-home states; rev 9 renames them and the specs inherit the boards'
+> defect.
 
 ## What I need back from you
 

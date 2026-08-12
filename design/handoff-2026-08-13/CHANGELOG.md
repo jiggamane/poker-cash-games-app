@@ -1,3 +1,35 @@
+# Rev 9 — 13 August 2026 · navigation is settled: no tab bar, push + sheet
+
+**Read `09-navigation.md` before you build any screen.** It carries both chromes in numbers and a table classifying every screen in the app as root, push, sheet or neither. Board: `design/Nav System.dc.html`.
+
+Cumulative, like the rest of this file: rev 9, then rev 8, then rev 7, then the 12 August delta. Nothing has been applied yet.
+
+## 1 · CHANGELOG
+
+| # | Change | Status |
+|---|---|---|
+| S31 | **No tab bar, ever.** The tab-bar options (2A, 3E, 4B) are dead. The club is the root and the only permanent screen. | FINAL |
+| S32 | **Chrome A · push.** A screen you navigate to carries a 36px round back button on the title line, title at `800 32px`, an optional status badge after it, and the club name and elapsed on a meta line beneath at a 68px indent. **The top-right corner is empty on every pushed screen.** | FINAL |
+| S33 | **Chrome B · sheet.** A screen you open to do one thing arrives as a sheet: `radius 26px 26px 0 0`, a 38 × 5 grabber, title `800 34px`, a 30px round close pushed right, and what is behind it at `opacity: .32`. Swipe down, tap close, or complete the action. | FINAL |
+| S34 | **The choosing rule.** If a screen ends with a Save, an Add, an Apply or a confirm, it is a sheet; if it is a place you can stay in, it is a push. A sheet never carries a chevron; a push never carries a grabber or a close. | FINAL |
+| S35 | **Depth limits.** Two pushes below the root, two sheets deep at most, and a sheet never pushes. Multi-step flows (group creation, the rule editor) replace the sheet's content in place and keep one close. | FINAL |
+| S36 | **The ending flow (E2 → E4) is pushed, not a sheet** — going back a step is real navigation and a half-counted night must not be swipe-dismissible. E1 Confirm, which precedes it, is a sheet. | FINAL |
+| S37 | **The two top-right icons on the night screen are removed** (the receipt and the house from rev 8's open question). Bill lives in the dock; the club is what the back button returns to. That question is now closed. | FINAL |
+| S38 | **The kicker back row is retired.** Small-caps-plus-tiny-chevron headers are replaced by Chrome A everywhere they appeared. | FINAL |
+| S39 | **T2 and T4 (the player card) become sheets** over the pushed night screen. They are still drawn as full screens on the Tonight board; `N3` on the Nav System board is the correct treatment. | Model FINAL, redraw PENDING |
+| D10 | New components: **push header**, **sheet container**. Both specified in `09-navigation.md`. | FINAL |
+| — | **Naming collision:** the Tonight board's `H1`–`H5` collide with the old home states `H1`–`H3`. The Tonight screens are **T1–T5** from now on. | FINAL |
+
+## 2 · Applied in the design files
+
+`design/Nav System.dc.html` is new. `design/Tonight Home.dc.html` (T1 both themes, T5) and `design/Player History.dc.html` (1A–1D) are rewrapped in Chrome A. The three older boards still carry their original headers — build those screens from the classification table in `09-navigation.md`, not from the boards.
+
+## 3 · What did not change
+
+No money math, no data model, no copy other than the removal of the two icons. Section 06 of `02-screens.md` remains superseded by `08-tonight-home.md`.
+
+---
+
 # Rev 8 — 13 August 2026 · the session screen is one list, one dock, one card per player
 
 **Nothing from rev 7 or from the 12 August delta has been applied yet.** This bundle is cumulative: read rev 8, then rev 7, then the 12 August delta, and treat all three as pending work. Where rev 8 contradicts rev 7, rev 8 wins and says so.

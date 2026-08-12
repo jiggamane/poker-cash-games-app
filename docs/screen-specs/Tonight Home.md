@@ -15,16 +15,13 @@ the intent and this states what was actually drawn.
 |---|---|---|
 | `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
 | `span` | 64% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:6px · padding:16px 20px 4px` |
-| `span` | — | `display:flex · align-items:center · gap:5px` |
-| `span` | The poker club | `font:500 17px · color:#FFFFFF` |
-| `span` | — | `margin-left:auto · display:flex · align-items:center · gap:16px` |
-| `div` | — | `padding:4px 22px 10px · display:flex · align-items:flex-end · gap:10px` |
-| `h2` | Tonight | `margin:0 · font:800 32px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
+| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
 | `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(111,207,151,.14)` |
 | `span` | — | `width:6px · height:6px · border-radius:3px · background:#6FCF97 · display:block` |
 | `span` | LIVE | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
-| `span` | 3h 17m | `margin-left:auto · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
+| `div` | The poker club · 3h 17m · since 20:05 | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
 | `div` | — | `margin:0 20px 16px · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px` |
 | `span` | On the table | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
@@ -66,16 +63,22 @@ the intent and this states what was actually drawn.
 | `div` | — | `width:402px · height:874px · border-radius:46px · overflow:hidden · background:#FFFFFF · display:flex · flex-direction:column · box-sizing:border-box` |
 | `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#0C0D0F` |
 | `span` | 64% | `font:400 13px · color:#6B6F76` |
-| `div` | — | `display:flex · align-items:center · gap:6px · padding:16px 20px 4px` |
-| `span` | — | `display:flex · align-items:center · gap:5px` |
-| `span` | The poker club | `font:500 17px · color:#0C0D0F` |
-| `span` | — | `margin-left:auto · display:flex · align-items:center · gap:16px` |
-| `div` | — | `padding:4px 22px 10px · display:flex · align-items:flex-end · gap:10px` |
-| `h2` | Tonight | `margin:0 · font:800 32px/1.05 · color:#0C0D0F · letter-spacing:-.03em` |
-| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(10,122,61,.14)` |
-| `span` | — | `width:6px · height:6px · border-radius:3px · background:#0A7A3D · display:block` |
-| `span` | LIVE | `font:700 10px · letter-spacing:.1em · color:#0A7A3D` |
-| `span` | 3h 17m | `margin-left:auto · font:500 13px · color:#6B6F76 · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
+| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(12,13,15,.06) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1 · color:#0C0D0F · letter-spacing:-.03em` |
+| `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(111,207,151,.14)` |
+| `span` | — | `width:6px · height:6px · border-radius:3px · background:#6FCF97 · display:block` |
+| `span` | LIVE | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
+| `div` | The poker club · 3h 17m · since 20:05 | `padding:8px 20px 0 68px · font:500 13px · color:#6B6F76 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:0 20px 16px · background:#F4F4F6 · border:1px solid rgba(12,13,15,.1) · border-radius:14px · padding:14px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px` |
+| `span` | On the table | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#6B6F76` |
+| `span` | $2,880 | `font:800 44px/1 · color:#0C0D0F · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+| `span` | 5 seated | `margin-left:auto · font:400 12.5px/1.45 · color:#6B6F76 · text-align:right` |
+| `div` | — | `flex:1 · overflow:hidden · margin:0 22px · display:flex · flex-direction:column` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:22px 4px · border-bottom:1px solid rgba(12,13,15,.1)` |
+| `span` | Petr | `font:600 17px · color:#0C0D0F` |
+| `span` | $1,500 | `margin-left:auto · font:700 19px · color:#0C0D0F · font-variant-numeric:tabular-nums` |
 
 ## H2 · Player card · at the table
 
@@ -359,16 +362,13 @@ the intent and this states what was actually drawn.
 | `div` | — | `width:402px · height:874px · border-radius:46px · overflow:hidden · background:#0A0A0B · display:flex · flex-direction:column · box-sizing:border-box` |
 | `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
 | `span` | 92% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:6px · padding:16px 20px 4px` |
-| `span` | — | `display:flex · align-items:center · gap:5px` |
-| `span` | The poker club | `font:500 17px · color:#FFFFFF` |
-| `span` | — | `margin-left:auto · display:flex · align-items:center · gap:16px` |
-| `div` | — | `padding:4px 22px 10px · display:flex · align-items:flex-end · gap:10px` |
-| `h2` | Tonight | `margin:0 · font:800 32px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
+| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
 | `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(111,207,151,.14)` |
 | `span` | — | `width:6px · height:6px · border-radius:3px · background:#6FCF97 · display:block` |
-| `span` | OPEN | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
-| `span` | $1/$2 | `margin-left:auto · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
+| `span` | LIVE | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
+| `div` | The poker club · opened 20:02 | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
 | `div` | — | `margin:0 20px 14px · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:12px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px` |
 | `span` | On the table | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
@@ -384,6 +384,9 @@ the intent and this states what was actually drawn.
 | `div` | — | `display:grid · grid-template-columns:1.9fr 1fr · gap:10px` |
 | `span` | — | `display:flex · align-items:center · justify-content:center · gap:10px · padding:20px 0 · border-radius:10px · background:#FFFFFF · font:700 19px · color:#0C0D0F` |
 | `span` | — | `display:flex · flex-direction:column · align-items:center · justify-content:center · gap:5px · padding:14px 0 · border-radius:10px · border:2px solid rgba(255,255,255,.22) · box-sizing:border-box` |
+| `span` | Bill | `font:700 14.5px · color:#5C5E64` |
+| `div` | — | `display:flex · justify-content:center · padding:10px 0 9px` |
+| `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
 
 ## H5 · Tonight · nobody in yet
 
@@ -391,16 +394,13 @@ the intent and this states what was actually drawn.
 |---|---|---|
 | `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF` |
 | `span` | 92% | `font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · align-items:center · gap:6px · padding:16px 20px 4px` |
-| `span` | — | `display:flex · align-items:center · gap:5px` |
-| `span` | The poker club | `font:500 17px · color:#FFFFFF` |
-| `span` | — | `margin-left:auto · display:flex · align-items:center · gap:16px` |
-| `div` | — | `padding:4px 22px 10px · display:flex · align-items:flex-end · gap:10px` |
-| `h2` | Tonight | `margin:0 · font:800 32px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:26px 20px 0` |
+| `span` | — | `width:36px · height:36px · border-radius:18px · background:rgba(255,255,255,.09) · display:flex · align-items:center · justify-content:center · flex:none` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1 · color:#FFFFFF · letter-spacing:-.03em` |
 | `span` | — | `display:flex · align-items:center · gap:6px · padding:6px 11px · border-radius:999px · background:rgba(111,207,151,.14)` |
 | `span` | — | `width:6px · height:6px · border-radius:3px · background:#6FCF97 · display:block` |
-| `span` | OPEN | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
-| `span` | $1/$2 | `margin-left:auto · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
+| `span` | LIVE | `font:700 10px · letter-spacing:.1em · color:#6FCF97` |
+| `div` | The poker club · opened 20:02 | `padding:8px 20px 0 68px · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
 | `div` | — | `margin:0 20px 14px · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:12px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box` |
 | `div` | — | `display:flex · flex-direction:column · gap:4px` |
 | `span` | On the table | `font:700 11px · letter-spacing:.1em · text-transform:uppercase · color:#8B8D93` |
