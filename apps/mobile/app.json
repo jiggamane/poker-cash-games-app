@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "The Poker Club",
+    "slug": "poker-club",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+
+    "//": "Two themes, dark and light — the OS decides which. Never pin this to one.",
+    "userInterfaceStyle": "automatic",
+
+    "//scheme": "Watchers open a share link that deep-links straight into the session.",
+    "scheme": "pokerclub",
+
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.pokerclub.app"
+    },
+    "android": {
+      "package": "com.pokerclub.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0A0B",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

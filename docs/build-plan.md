@@ -8,7 +8,7 @@
 
 | # | Question | Recommendation (the default I'd pick) |
 |---|----------|----------------------------------------|
-| 1 | **Platform** | **Installable web app (PWA), one codebase.** The host installs it to the home screen; watchers open a link on any phone with no install and no sign-up. Native App Store presence, if ever wanted, is a later Capacitor wrapper around the *same* code — not a rewrite. |
+| 1 | **Platform** | **React Native, built with Expo, in TypeScript.** Real native apps on iOS *and* Android from one codebase. Everyone — host and watchers — installs the app. Cloud builds (EAS) mean no Mac/Xcode is needed; over-the-air updates mean a money bug can be fixed tonight without App Store review. |
 | 2 | **Backend & data** | **Supabase** (managed Postgres + Realtime + Auth + Row-Level Security). One relational database with an **append-only ledger**, money stored as **integers**, corrections stored as new rows. |
 | 3 | **Realtime & offline** | **Local-first single-writer.** The host writes to a durable on-device outbox first (instant, offline-proof), then syncs. Readers get pushes over websockets with a polling fallback. Because there is exactly **one writer per session**, no CRDT is needed. |
 | 4 | **Identity** | **Host is the only account.** Players are just names the host types. Watchers open an unguessable share link — read-only, no sign-up. "Claiming your name" is deliberately a v2 feature. |
@@ -16,39 +16,47 @@
 | 6 | **Phasing** | **v1 = one group can run a real night this month.** Leave out multi-group, real player accounts, notifications, and native. |
 | 7 | **Cost & ops** | **~$0–45/mo at 100 groups. ~$300–800/mo at 10,000.** The data model doesn't change between them; the operational tier (connection pooling, read replica, realtime capacity, monitoring) does. |
 
-The load-bearing insight is in the handoff itself: **"watchers open a shared link on any phone"** and **"the host is the one device that writes."** The first kills native-first (you cannot open a native app from a link on an arbitrary phone without an install). The second kills the hard distributed-systems problem (with a single writer there is nothing to merge). Every recommendation below falls out of those two sentences.
+Two constraints do most of the work. From the handoff: **"the host is the one device that writes"** — which kills the hard distributed-systems problem, because with a single writer there is nothing to merge. And from the product owner, revising the handoff: **watchers are expected to install the app too**, rather than opening a link as strangers. That second point moves the platform answer from a web app to real native apps, but changes nothing below it — the data model, sync model, and money design are identical either way.
+
+A third constraint shapes *how* this gets built rather than what it is: **the app is being built by a non-developer working with Claude Code.** That is a real engineering input, not a footnote. It favours the stack with the largest training corpus, the shortest path from code to a phone, and the fewest failure modes that can only be cleared by a human developer staring at a native build error. It is the single biggest reason for the Expo recommendation, and it is recorded in §1.
 
 ---
 
 ## 1. Platform
 
-### Recommendation: web-app-first, installed as a PWA. One codebase serves both roles.
+### Recommendation: React Native, built with Expo, in TypeScript.
 
-The design is drawn for iPhone and uses iOS navigation conventions, which tempts an iOS-native build. But the product has two roles with opposite distribution needs:
+Since installing is acceptable — even preferred — for watchers as well as the host, the zero-install web link stops being a deciding advantage and real native apps become the better product. The remaining question is which native path.
 
-- **The host** uses the app for 3–5 hours, wants it on their home screen, and needs it to keep working when the wifi drops. This *looks* like a native use-case.
-- **A watcher** — up to a dozen of them, on whatever phone they walked in with — taps a link and expects to see the ledger *immediately*, with no App Store, no account, no friction. This is a *web* use-case, and it is non-negotiable ("watchers open a shared link on any phone… without signing up").
+**Not iOS-native.** The design is drawn in iOS conventions, but the *audience* is not iOS-only: a home game is a mixed room of iPhones and Androids. A Swift app either excludes half the table or forces a second, separate Android build. Cross-platform is not a compromise here, it is the requirement.
 
-A native-first build cannot serve the watcher without *also* building a web app. So the web app exists no matter what. The only real question is whether to *also* build a separate native host app — and for v1 the answer is no, because a modern PWA already gives the host everything the design asks for:
+That narrows it to **Flutter** or **React Native**. And one clarification collapses part of the question: **Expo is not an alternative to React Native — it is the standard toolchain *for* React Native**, and React Native's own documentation recommends it for new apps. "React Native + Expo" versus "React Native" is not framework-versus-framework; it is React Native with the build infrastructure managed, versus React Native where you maintain Xcode projects, Gradle, CocoaPods, native linking, and signing certificates by hand.
 
-| Host requirement | PWA answer |
-|---|---|
-| Home-screen icon, full-screen, no browser chrome | `manifest.json` + `display: standalone` |
-| Keep writing when the network drops | Service worker + IndexedDB outbox (see §3) |
-| Fast, native-feeling interactions | It's a single-page app; the design has no capability a PWA lacks |
-| The iOS look | The design *is* the look; we recreate it in the web patterns the handoff explicitly asks for |
+#### Why Expo over Flutter
 
-**Stack:** React + TypeScript, built with Vite. TypeScript is not optional here — it is a money app, and the type system is the cheapest place to stop a dollar becoming a float. Styling with plain CSS variables + CSS Modules (the design is a small, fixed token set — see §Appendix — not a sprawling system that needs Tailwind or a component library). Client routing with a light router; no framework heavier than it needs to be.
+Flutter has genuine advantages and they are the ones a solo builder feels: far fewer dependency conflicts, unusually legible error messages, and calmer year-over-year churn. If the only criterion were steady-state maintenance in isolation, it would be a close call or a Flutter win.
 
-**Why not the alternatives**
+Three factors decide it the other way for this project:
 
-- **iOS-native (Swift):** best host polish, but doubles the build (still need the web watcher app), gates every release behind App Store review, and delivers nothing the design needs that a PWA can't. Reconsider only if push notifications or deep OS integration become core — and even then, see the upgrade path.
-- **React Native / Expo or Flutter:** buys you a native host shell and a shared component model, but the watcher *still* needs a web target, so you're maintaining two runtimes to avoid a PWA that would have done the job. Flutter additionally renders its own non-native widgets, working against a design defined in iOS terms.
-- **Web-first PWA:** one codebase, one deploy, instant watcher links, offline host, no store gatekeeper. It is the smallest thing that satisfies both roles.
+**1. The money math gets written once.** This is the decisive one. §5 requires the settlement calculation to run on the client (instant feedback) *and* be re-computed on the server (canonical, auditable) — and the two must agree exactly. With React Native the app is TypeScript and the Supabase edge functions are TypeScript, so the settlement algorithm is **one file, one implementation, one test suite, imported by both**. With Flutter the client is Dart and the server is not, which forces the safety-critical algorithm to either exist twice in two languages that must never drift, or be server-only (losing the live preview). Duplicating the money logic is the worst thing this architecture could be asked to do, and Flutter structurally invites it.
 
-**Upgrade path (so this isn't a one-way door):** if App Store presence or richer OS hooks are later wanted, wrap the *existing* web app in **Capacitor**. The host gets a real installable native app and native push; the web app keeps serving watcher links unchanged. Nothing is thrown away. This is the reason to build on web now: it keeps the native option open at low cost instead of committing to it early at high cost.
+**2. Shipping without a native toolchain.** Expo covers the whole path from laptop to store with no Xcode, no Android Studio, and no Mac: **Expo Go** previews the app on a real phone by scanning a QR code, **EAS Build** compiles iOS and Android in the cloud and manages signing, **EAS Submit** uploads to the stores, and **EAS Update** pushes JavaScript fixes over-the-air without App Store review. On the Flutter path, producing an iOS build without a Mac is a CI yak-shave. For a money app, OTA updates matter on their own terms: a wrong settlement discovered on poker night is fixable in minutes rather than after a review cycle.
 
-**Unsettled → default:** the design is iPhone-sized, but a PWA is inherently cross-platform. Default: build responsive to the 402 pt design as the reference width, verify on Android Chrome, don't chase tablet/desktop layouts in v1.
+**3. Agent fluency.** TypeScript/React is the most heavily represented stack in the training data of the tool actually writing this code, so generated code is more likely to be correct and current, and there is far more community material to feed back when it is not.
+
+#### Why "built with Claude Code, no developer" reinforces this
+
+Every piece of infrastructure Expo removes is a failure that would otherwise land on someone with no developer to call — and, critically, these are *environmental* failures (a CocoaPods version conflict, a broken provisioning profile, a Gradle mismatch) that an AI agent cannot see or reproduce, unlike application bugs it can read and fix. Expo moves that entire class of problem off the local machine and into a managed service. `expo install` pinning packages to versions verified against the SDK removes most of React Native's historic dependency hell, which is the other place solo builders get stranded.
+
+**One guardrail: stay on the managed path.** Expo's advantages come from not hand-maintaining native projects. Adding arbitrary native modules that force a prebuild/eject re-inherits React Native's old pain with nobody around to absorb it. Everything v1 needs — ledger, realtime, auth, push, secure storage — is covered by the Expo SDK plus Supabase, so there is no reason to leave it. If a future need genuinely requires custom native code, config plugins and development builds handle it without the old one-way "eject."
+
+**Note on the old objection.** "Use Expo and you'll hit a wall and have to eject" was true before roughly 2021. Config plugins, prebuild, and development builds have since removed that ceiling; it is no longer a reason to choose bare React Native.
+
+**Stack:** React Native + Expo (managed) · TypeScript · Expo Router for navigation · Supabase JS client · shared TypeScript core package for money and settlement (imported by both app and edge functions).
+
+**Pick Flutter instead only if** the team is comfortable in Dart and is willing to run settlement server-only or maintain it twice, in exchange for lower churn. Absent that, the shared-TypeScript argument wins.
+
+**Unsettled → defaults:** the design is drawn at 402 × 874 pt (iPhone). Default: treat that as the reference width, build responsive, verify on a mid-size Android, and do not chase tablet layouts in v1. Expo can also emit a web build — keep that available as an occasional watcher fallback, but do not treat web as a supported target in v1.
 
 ---
 
@@ -134,7 +142,7 @@ The single most important simplification: **there is exactly one writer per sess
 
 **Host write path (offline-proof):**
 
-1. The host taps "Buy-in $100." We generate a `ledger_entry` with a **client-side UUID** and a monotonically increasing `seq`, and write it to a durable **on-device outbox** (IndexedDB) inside the service worker's reach.
+1. The host taps "Buy-in $100." We generate a `ledger_entry` with a **client-side UUID** and a monotonically increasing `seq`, and write it to a durable **on-device outbox** — **`expo-sqlite`**, which survives app restarts and force-quits, unlike in-memory state.
 2. The UI updates **optimistically and immediately** from local state. The host never waits on the network to see their own entry.
 3. A background sync flushes the outbox to Supabase **in `seq` order**. Each row's UUID is its **idempotency key** — retries and duplicates collapse to one row, so a flaky connection that half-sends is safe.
 4. Because entries are **immutable and corrections are additive**, replay is always safe: re-sending an entry the server already has is a no-op, and there is never a merge to resolve.
@@ -161,7 +169,9 @@ The design says players "are not necessarily app users," watchers open a link "w
 
 - **Host — a real account.** The only sign-in in v1. Use **email magic-link** (default) — no passwords, minimal friction — with **Sign in with Apple** as an easy add given the iOS audience. The host owns the book and is the only principal with write access.
 - **Player — just a name.** The host types "Petr." That creates a `player` row on the book. No account, no invite, no email. Players are reused across sessions within the book. A collector is the same kind of row that happens to be named as a rule's payee.
-- **Watcher — a capability link.** Sharing a session produces a URL carrying an **unguessable `share_token`**. Opening it grants **read-only** access to that session (and the player pages within it) — enforced server-side by RLS / an edge function checking the token, never by hiding a client button. No account, no sign-up. Per the design, the room is trusted: a watcher sees their own money and everyone else's.
+- **Watcher — a capability link, opened in the installed app.** Sharing a session produces a URL carrying an **unguessable `share_token`**. Because watchers now install the app, the link is a **deep link**: tapping it opens the app directly on that session. Opening it grants **read-only** access to that session (and the player pages within it) — enforced server-side, never by hiding a client button. **Still no sign-up:** the token is the credential, so a watcher installs once and never makes an account. Per the design, the room is trusted: a watcher sees their own money and everyone else's.
+
+  Mechanically, the app exchanges the `share_token` at an edge function for a **scoped, read-only session token** carrying a `share_session_id` claim. RLS policies check that claim, which makes the same rule govern both ordinary reads and realtime subscriptions — a plain token-in-a-header would authorize REST but not the websocket.
 
 **"Claiming a name" — deliberately v2.** The minimum for v1 is: host account + share links. That already runs a full night. Claiming (a player signs in and links their account to their `player` row, unlocking their own cross-book standing on their device and private notifications) is a real feature but adds real surface — invites, verification, "is this the right Petr?" — for zero v1 value, since watchers already see everything through the link. The schema leaves the hook in place (`player.claimed_by_user_id`) so v2 doesn't need a migration.
 
@@ -205,7 +215,7 @@ Given the same immutable inputs it must always produce the same output. Determin
 
 Everything needed end-to-end for one host, one group, live watchers:
 
-- Install as PWA (host), open-a-link read-only (watchers); dark **and** light themes at ship fidelity.
+- Installed native app on iOS and Android (host writes; watchers read-only via a deep-linked share token); dark **and** light themes at ship fidelity.
 - Open a session (stakes, default buy-in, seats, start time) → seat players → money rules editor with collector/player pickers.
 - Live ledger: buy-in, rebuy (presets: buy-in / ×2 / ×4 / custom), cash-out, shared expense; back-dating; notes; corrections that stay visible.
 - Both views: chronological feed **and** the timeless totals view; a single player's page.
@@ -219,12 +229,13 @@ Everything needed end-to-end for one host, one group, live watchers:
 - **Real player accounts / claiming a name** — watchers already see everything via the link; the hook (`claimed_by_user_id`) is in the schema for later.
 - **Notifications** — needs claimed identities to be meaningful; it's a v2 companion to claiming.
 - **The book/month/all-time screens in the new visual style** — the handoff notes these aren't redesigned yet. v1 ships a *minimal* month/all-time rollup (correct numbers, plain rows) and defers the polished screens.
-- **Watcher onboarding** and **native App Store build** — the link *is* the onboarding; Capacitor is the later native path.
+- **Polished watcher onboarding** — the deep link drops a watcher straight into the session; a proper first-run explainer can wait.
+- **Public App Store release** — v1 ships to the group over **TestFlight (iOS)** and an **internal track / direct build (Android)**, which is faster than store review and enough for one group this month. Full store submission is a v2 step, and it is the same `eas submit` command.
 - **Host-device handoff** — mitigated by continuous sync (§3), fully solved in v2.
 
 ### v2 — the group comes back next month
 
-Player claiming + first-class personal cross-book standing; push notifications; the redesigned book/month/all-time screens; multiple groups per host; optional Capacitor native host app for App Store + native push.
+Player claiming + first-class personal cross-book standing; push notifications (Expo Notifications — now straightforward, since everyone has the app installed); the redesigned book/month/all-time screens; multiple groups per host; public App Store and Play Store release.
 
 ### v3 — scale and polish
 
@@ -234,20 +245,21 @@ Host handoff / co-hosts, exports (CSV/PDF of a closed book), richer history and 
 
 ## 7. Cost and operations
 
-Costs are dominated by the managed backend; the static PWA is nearly free to host at any scale (CDN). Figures are rough monthly run-rate, not commitments.
+Costs are dominated by the managed backend; the app itself is distributed by the stores, so there is no per-user hosting bill at all. Figures are rough monthly run-rate, not commitments.
 
 ### At 100 groups
 Traffic is tiny — a few concurrent live sessions, a dozen readers each, a few hundred integer rows per night.
 
 - **Backend (Supabase):** free tier likely covers it; **Pro (~$25/mo)** buys headroom, daily backups, and no auto-pause. 
-- **Static hosting (Vercel/Netlify/Cloudflare):** free/hobby tier, call it **$0–20/mo**.
-- **Total: ~$0–45/mo.** Effectively a hobby-tier bill.
+- **Expo EAS:** free tier builds work but queue slowly; the paid tier is roughly **~$19/mo** for practical build throughput and OTA updates. (Pricing moves — verify current rates.)
+- **Store fees:** Apple Developer **$99/yr** (~$8/mo), Google Play **$25 once**.
+- **Total: ~$30–55/mo**, plus the one-off Play fee. Effectively a hobby-tier bill.
 
 ### At 10,000 groups
 Assume a few hundred concurrent live sessions at peak (evenings/weekends), each with ~a dozen websocket readers → low thousands of concurrent realtime connections; still-modest write volume; the data is small and mostly append-only.
 
 - **Backend:** Supabase **Team tier + compute add-on**, larger DB instance, higher realtime concurrency: order **$300–800/mo** depending on peak concurrency and retention.
-- **Static hosting/CDN:** still **$20–50/mo**; static assets scale cheaply.
+- **Expo EAS:** still **~$19–99/mo** depending on build volume and OTA update bandwidth; app distribution itself stays free via the stores.
 - **Total: ~$300–800/mo**, i.e. **~5–10¢ per group per month** — trivially covered by any host-fee or subscription if monetized.
 
 ### What changes between the two points (the data model does **not**)
