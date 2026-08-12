@@ -6,6 +6,7 @@ import { Button } from '../src/components/Button';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { GROUP_NAME, inPlay, players } from '../src/data/sampleNight';
+import { useSession } from '../src/lib/useSession';
 
 /**
  * Home — the group. The root of everything; nothing is pushed beneath it.
@@ -16,6 +17,7 @@ import { GROUP_NAME, inPlay, players } from '../src/data/sampleNight';
 export default function Home() {
   const t = useTheme();
   const seated = players.filter((p) => p.atTable).length;
+  const { session, loading, configured } = useSession();
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
@@ -44,6 +46,22 @@ export default function Home() {
 
         <View style={styles.spacer} />
 
+        {/* Until the host is signed in the night lives only on this phone. Say
+            so plainly rather than letting them find out at settle-up. */}
+        {!loading && (
+          <Text style={[styles.status, { color: t.muted }]}>
+            {!configured
+              ? 'Not connected — tonight stays on this phone.'
+              : session
+                ? `Signed in as ${session.user.email}`
+                : 'Not signed in — tonight stays on this phone.'}
+          </Text>
+        )}
+
+        {!loading && configured && !session && (
+          <Button label="Sign in" variant="secondary" onPress={() => router.push('/sign-in')} />
+        )}
+
         <Button label="Open a night" variant="primary" onPress={() => router.push('/session')} />
       </View>
     </SafeAreaView>
@@ -62,4 +80,5 @@ const styles = StyleSheet.create({
   figure: { ...type.display, fontSize: 44 },
   meta: { ...type.meta, marginTop: 6 },
   spacer: { flex: 1 },
+  status: { ...type.meta, marginBottom: 10 },
 });
