@@ -292,7 +292,7 @@ describe('collectors', () => {
 });
 
 describe('expenses', () => {
-  it('gives the payer their money back, shared equally when no bill rule exists', () => {
+  it('leaves the tab out of the settlement entirely when there is no bill rule', () => {
     reset();
     const r = settle({
       players: [at(MAREK), at(PETR), at(DANA)],
@@ -301,16 +301,59 @@ describe('expenses', () => {
       rules: [],
     });
 
-    expect(r.deductions).toHaveLength(1);
-    expect(r.deductions[0].ruleId).toBeNull();
-    expect(r.deductions[0].total).toBe(170);
-    // 170 across three: 57 / 57 / 56
-    expect(chargedOf(r, MAREK)).toBe(57);
-    expect(chargedOf(r, PETR)).toBe(57);
-    expect(chargedOf(r, DANA)).toBe(56);
-    // Marek fronted 170 and gets it back
-    expect(positionOf(r, MAREK)).toBe(113);
-    expect(r.totalOffTable).toBe(170);
+    // The group chose not to put the bar tab through the settlement. It stays
+    // in the ledger as a record; nobody is charged and nobody is reimbursed.
+    expect(r.deductions).toEqual([]);
+    expect(r.totalOffTable).toBe(0);
+    expect(chargedOf(r, MAREK)).toBe(0);
+    expect(positionOf(r, MAREK)).toBe(0);
+    expect(r.transfers).toEqual([]);
+  });
+
+  it('adds up several bills across the night, paid by different people', () => {
+    reset();
+    const r = settle({
+      players: [at(MAREK), at(PETR), at(DANA)],
+      entries: [
+        buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000),
+        expense(PETR, 60), // food, settled mid-evening
+        expense(MAREK, 90), // drinks, settled at the end
+        expense(PETR, 30), // one more round
+      ],
+      finalCounts: counts([[MAREK, 1000], [PETR, 1000], [DANA, 1000]]),
+      rules: [
+        rule({ id: 'tab', destination: 'bill', amountKind: 'fixed', amount: money(1),
+               charge: 'everyone_flat', split: 'equal', collectorPlayerId: MAREK }),
+      ],
+    });
+
+    expect(r.deductions[0].total).toBe(180); // 60 + 90 + 30
+    // each is credited exactly their own outlay, not an average
+    expect(r.players.find((p) => p.playerId === PETR)!.credited).toBe(90);
+    expect(r.players.find((p) => p.playerId === MAREK)!.credited).toBe(90);
+    expect(r.players.find((p) => p.playerId === DANA)!.credited).toBe(0);
+    expect(chargedOf(r, DANA)).toBe(60); // 180 split three ways
+  });
+
+  it("nets a payer's own share against what they fronted", () => {
+    // The worked example: A covers a 150 bill, wins, and owes 50 of it.
+    // They are charged 50 and credited 150, so they come out 100 ahead.
+    reset();
+    const r = settle({
+      players: [at(MAREK), at(PETR), at(DANA)],
+      entries: [buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000), expense(MAREK, 150)],
+      finalCounts: counts([[MAREK, 1000], [PETR, 1000], [DANA, 1000]]),
+      rules: [
+        rule({ id: 'tab', destination: 'bill', amountKind: 'fixed', amount: money(1),
+               charge: 'everyone_flat', split: 'equal', collectorPlayerId: MAREK }),
+      ],
+    });
+
+    const marek = r.players.find((p) => p.playerId === MAREK)!;
+    expect(marek.charged).toBe(50); // a third of 150
+    expect(marek.credited).toBe(150); // what he actually paid the bar
+    expect(marek.finalPosition).toBe(100); // 0 - 50 + 150
+    expect(r.totalOffTable).toBe(150);
   });
 
   it('lets a bill rule decide how the cost is shared', () => {

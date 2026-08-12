@@ -72,8 +72,7 @@ export interface MoneyRule {
 
 /** What one deduction took, from whom, and who ended up holding it. */
 export interface Deduction {
-  /** null for the implicit reimbursement of expenses when no bill rule exists. */
-  ruleId: RuleId | null;
+  ruleId: RuleId;
   name: string;
   destination: RuleDestination;
   total: Money;

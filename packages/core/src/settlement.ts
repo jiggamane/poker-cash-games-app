@@ -230,12 +230,8 @@ export function matchTransfers(settlements: readonly PlayerSettlement[]): Transf
 // Deductions
 // =============================================================================
 
-/**
- * A deduction to apply. Either a configured rule, or the implicit
- * reimbursement of expenses when the group never wrote a bill rule.
- */
 interface DeductionSpec {
-  rule: MoneyRule | null;
+  rule: MoneyRule;
   /** Reimburse the people who actually paid for things, rather than a collector. */
   reimbursesExpenses: boolean;
 }
@@ -243,12 +239,22 @@ interface DeductionSpec {
 /**
  * Decide which deductions run and in what order.
  *
- * Expenses are money someone spent out of their own pocket, so it has to come
- * back to them. If the group has a rule with destination 'bill', that rule says
- * how the cost is shared, and the expense total is the amount — the rule's own
- * amount is only used when nothing was recorded as an expense. If there is no
- * bill rule at all, the expenses are still owed, so they are shared equally
- * across the table before anything else.
+ * A night at a bar produces a tab: sometimes one bill, sometimes several
+ * (food, then drinks), sometimes settled midway and again at the end, and not
+ * always by the same person. Each of those is an expense entry naming whoever
+ * actually paid.
+ *
+ * Whether that tab touches the settlement at all is the group's choice:
+ *
+ *   NO BILL RULE  — the tab is recorded and nothing more. Whoever paid, paid.
+ *   A BILL RULE   — the tab is shared out at settle-up. The rule says who
+ *                   covers it and in what proportion; the total is the real
+ *                   sum of the expenses, and everyone who fronted money gets
+ *                   back exactly what they put in.
+ *
+ * Someone who both paid the bill and owes a share of it is charged their share
+ * and credited what they paid, so they end up out of pocket by only the
+ * difference.
  */
 function deductionOrder(
   rules: readonly MoneyRule[],
@@ -261,20 +267,13 @@ function deductionOrder(
   const firstBill = active.find((r) => r.destination === 'bill');
   const hasExpenses = ledger.totalExpenses > 0;
 
-  const specs: DeductionSpec[] = [];
-
-  if (hasExpenses && !firstBill) {
-    specs.push({ rule: null, reimbursesExpenses: true });
-  }
-
-  for (const rule of active) {
-    specs.push({
-      rule,
-      reimbursesExpenses: hasExpenses && rule === firstBill,
-    });
-  }
-
-  return specs;
+  // No bill rule means the group chose not to put the bar tab through the
+  // settlement at all. The expenses stay in the ledger as a record of what was
+  // spent, and nobody is charged for them.
+  return active.map((rule) => ({
+    rule,
+    reimbursesExpenses: hasExpenses && rule === firstBill,
+  }));
 }
 
 interface DeductionContext {
@@ -288,20 +287,17 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   const { rule, reimbursesExpenses } = spec;
   const { ledger, atTable, gross, charged } = ctx;
 
-  const name = rule?.name ?? 'Expenses';
-  const destination = rule?.destination ?? 'bill';
-  const basisKind = rule?.basis ?? 'gross';
+  const { name, destination, id: ruleId } = rule;
 
   // What each person's share is measured against.
   const basisFor = (id: PlayerId): Money =>
-    basisKind === 'gross'
+    rule.basis === 'gross'
       ? gross.get(id)!
       : subtract(gross.get(id)!, charged.get(id) ?? ZERO);
 
   // --- who pays --------------------------------------------------------------
   const everyone = atTable;
-  const winnersOnly =
-    rule !== null && rule.charge === 'winners_only' && rule.split !== 'across_everyone';
+  const winnersOnly = rule.charge === 'winners_only' && rule.split !== 'across_everyone';
 
   let payers = winnersOnly ? everyone.filter((p) => basisFor(p.id) > 0) : everyone;
 
@@ -313,12 +309,12 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   // spent a specific sum and needs exactly that back. A percentage of a
   // specific bill is meaningless, so a reimbursing rule only gets to say how
   // the cost is shared, not how much it is.
-  const usePercent = rule?.amountKind === 'percent' && !reimbursesExpenses;
-  const fixedTotal = reimbursesExpenses ? ledger.totalExpenses : (rule?.amount ?? ZERO);
+  const usePercent = rule.amountKind === 'percent' && !reimbursesExpenses;
+  const fixedTotal = reimbursesExpenses ? ledger.totalExpenses : rule.amount;
 
   const nothingToDo = payers.length === 0 || (!usePercent && fixedTotal === 0);
   if (nothingToDo) {
-    return { ruleId: rule?.id ?? null, name, destination, total: ZERO, charges: [], credits: [] };
+    return { ruleId, name, destination, total: ZERO, charges: [], credits: [] };
   }
 
   let charges: Array<{ playerId: PlayerId; amount: Money }>;
@@ -329,14 +325,14 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
     charges = payers
       .map((p) => ({
         playerId: p.id,
-        amount: percentOf(money(Math.max(basisFor(p.id), 0)), rule!.amount),
+        amount: percentOf(money(Math.max(basisFor(p.id), 0)), rule.amount),
       }))
       .filter((c) => c.amount > 0);
   } else {
     // A fixed sum, divided between the payers. allocate() is what guarantees
     // the parts add back up to the whole.
     const weights =
-      rule?.split === 'by_win_size'
+      rule.split === 'by_win_size'
         ? payers.map((p) => Math.max(basisFor(p.id), 0))
         : payers.map(() => 1);
 
@@ -351,14 +347,16 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   // --- who ends up holding it ------------------------------------------------
   // Expense payers get back exactly what they put in; otherwise the rule's one
   // collector holds the lot.
+  // Several people may have paid across the night — one covered the food, one
+  // the drinks — so each is credited exactly their own outlay.
   const credits: Array<{ playerId: PlayerId; amount: Money }> =
-    reimbursesExpenses && total > 0
-      ? [...ledger.expensesByPayer.entries()]
-          .sort((a, b) => (a[0] < b[0] ? -1 : 1))
-          .map(([playerId, amount]) => ({ playerId, amount }))
-      : total > 0 && rule
-        ? [{ playerId: rule.collectorPlayerId, amount: total }]
-        : [];
+    total === 0
+      ? []
+      : reimbursesExpenses
+        ? [...ledger.expensesByPayer.entries()]
+            .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+            .map(([playerId, amount]) => ({ playerId, amount }))
+        : [{ playerId: rule.collectorPlayerId, amount: total }];
 
   const creditTotal = sum(credits.map((c) => c.amount));
   if (creditTotal !== total) {
@@ -367,5 +365,5 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
     );
   }
 
-  return { ruleId: rule?.id ?? null, name, destination, total, charges, credits };
+  return { ruleId, name, destination, total, charges, credits };
 }

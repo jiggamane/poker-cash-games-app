@@ -16,8 +16,8 @@ Version string: `settlement-v1` (stored on every frozen settlement).
    point at, last one winning; a correction may itself be corrected and the
    chain is followed to the original. Nothing is removed — history stays whole.
 2. **Reconcile.** `chips on table = buy-ins − cash-outs`. This must equal the
-   host's count exactly, or settlement refuses to run. Expenses are cash, never
-   chips, so they play no part here.
+   host's count exactly, or settlement refuses to run. Expenses are cash paid to
+   a bar, never chips, so they play no part here.
 3. **Gross result** per player = `(cash-outs + chips still in front of them) − buy-ins`.
    When the count reconciles, these sum to exactly zero.
 4. **Deductions**, applied in `sortOrder`. This ordering is what makes
@@ -85,35 +85,66 @@ to the whole table (otherwise the option would mean nothing next to `equal`).
 *Confirm:* is `split` meant to apply to percentage rules at all? In the code it
 does not, because a percentage already determines each person's share.
 
-### 2. Expenses and bill rules — the big one
+### 2. Expenses and bill rules — CONFIRMED
 
-The handoff has expense entries ("a shared expense such as food or drinks", with
-a **payer**), and separately a rule **destination** of `bill` with a
-**collector**. It never says how they connect. The settled summary — *"$296
-leaves the table: $170 back to Marek, $126 to Radka"* — reads as an expense
-coming back to the person who paid, alongside a rule collecting to a treasurer.
+*Settled by the product owner. Recorded here because the code depends on it.*
 
-**Default taken:**
-- Expense entries are money someone really spent, so the payer gets back exactly
-  what they put in.
-- A `bill` rule does **not** set its own amount when expenses exist — the
-  expenses *are* the amount. The rule only says **how the cost is shared** and
-  its `amount` field is ignored. (A percentage of a specific bill is meaningless,
-  so a reimbursing rule always behaves as a fixed division.)
-- If there are expenses and **no** bill rule, the cost is still owed, so it is
-  shared **equally across the table** before anything else.
-- A `bill` rule with **no** expenses recorded falls back to collecting its own
-  fixed amount to its collector.
+A poker night at a bar produces a tab. It may be **one bill or several** (food
+on one, drinks on another), settled **midway through the evening and again at
+the end**, and **not always by the same person**. Each of those is an expense
+entry naming whoever actually paid.
 
-*Confirm:* is that the intended relationship? The main alternative — expenses are
-just notes, and the bill rule's amount is authoritative — is a one-line change
-but means recording an expense has no effect on the money.
+**Whether the tab enters the settlement at all is the group's choice:**
+
+| | Behaviour |
+|---|---|
+| **No bill rule** | The tab is recorded in the ledger and nothing more. Whoever paid, paid. Nobody is charged, nobody is reimbursed. |
+| **A bill rule** | The tab is shared out at settle-up. The rule says who covers it and in what proportion. |
+
+When a bill rule exists:
+- The amount is the **real sum of the expense entries**, not a number typed into
+  the rule. Several bills across the night simply add up.
+- Everyone who fronted money is credited **exactly their own outlay** — if Petr
+  bought the food and Marek the drinks, each gets back what they personally
+  spent, not an average.
+- Someone who **both paid the bill and owes a share of it** is charged their
+  share and credited what they paid, so they are out of pocket by only the
+  difference.
+
+> **The worked example.** A covers a $150 bill, wins, and owes $50 as their
+> share. A is charged $50 and credited $150 → **$100 ahead**. Tested in
+> `settlement.test.ts` under "nets a payer's own share against what they
+> fronted".
+
+A bill rule with no expenses recorded falls back to collecting its own fixed
+amount to its collector.
+
+### 2b. Which ways can a bill be covered? — OPEN
+
+The product owner named the ways a bill gets covered as: **the winner pays**,
+**split between winners evenly**, or **split between winners in proportion to
+the size of each win**. All three charge winners; none of them charge the whole
+table.
+
+That does not quite line up with the design's `split` options (`equal`,
+`by_win_size`, `across_everyone`), in two ways:
+
+1. **"The winner pays"** — is that the *single biggest* winner covering the whole
+   bill, or just the general case of "winners cover it", with the next two
+   options being how? The engine has no single-winner mode today.
+2. **`across_everyone`** — the style guide offers splitting a bill across the
+   whole table, but it was not among the three named. Keep it or drop it?
+
+**Currently implemented:** `equal` and `by_win_size` behave as described.
+`across_everyone` still exists and charges the whole table. There is no
+single-winner-pays-everything option.
 
 ### 3. What happens when a rule has nobody to charge?
 
 **Default taken:** a rule that charges winners only, on a night with no winners,
-collects **nothing**. The exception is expense reimbursement, which falls back to
-charging everyone — someone actually spent that money and it cannot evaporate.
+collects **nothing**. The exception is a bill covering real expenses, which falls
+back to charging everyone at the table — somebody actually handed money to the
+bar, and the group has said they want it shared.
 
 *Confirm:* should a fixed host fee still be collected when nobody won?
 
