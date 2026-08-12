@@ -32,6 +32,7 @@ export default function SettleUp() {
         </>
       }
     >
+      <View style={styles.body}>
       <Text style={[styles.label, { color: t.muted }]}>OFF THE TABLE</Text>
       <Text style={[styles.display, { color: t.text }]}>{formatMoney(totalOffTable)}</Text>
       <Text style={[styles.meta, { color: t.muted }]}>
@@ -79,11 +80,15 @@ export default function SettleUp() {
           />
         ))}
       </View>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  // This screen keeps the 64px display: it is the settled result, the one
+  // figure in the app that earns that size.
+  body: { paddingHorizontal: space.page },
   label: type.label,
   section: { marginTop: space.section },
   display: { ...type.display, marginTop: 4 },

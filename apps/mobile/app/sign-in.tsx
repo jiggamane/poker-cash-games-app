@@ -46,7 +46,7 @@ export default function SignIn() {
   if (!isSupabaseConfigured) {
     return (
       <Screen title="Not connected" backTo="The group">
-        <Text style={[styles.body, { color: t.muted }]}>
+        <Text style={[styles.body, styles.page, { color: t.muted }]}>
           This build has no Supabase project configured, so there is nothing to sign in to. Put
           EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in apps/mobile/.env and restart
           the server.
@@ -74,11 +74,13 @@ export default function SignIn() {
           </>
         }
       >
+        <View style={styles.page}>
         <Text style={[styles.body, { color: t.text }]}>A link is on its way to {email.trim()}.</Text>
         <Text style={[styles.body, styles.spaced, { color: t.muted }]}>
           Open it on this phone and you will come back here signed in. It works once and expires
           shortly, so ask for another if it goes stale.
         </Text>
+        </View>
       </Screen>
     );
   }
@@ -96,6 +98,7 @@ export default function SignIn() {
         />
       }
     >
+      <View style={styles.page}>
       <Text style={[styles.body, { color: t.muted }]}>
         Only the host signs in. Players are names you type, and watchers open a link.
       </Text>
@@ -113,11 +116,13 @@ export default function SignIn() {
       </View>
 
       {error !== null && <Text style={[styles.body, { color: t.loss }]}>{error}</Text>}
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  page: { paddingHorizontal: space.page },
   body: { ...type.body, fontWeight: '400', lineHeight: 24 },
   spaced: { marginTop: 12 },
   form: { marginTop: space.section },

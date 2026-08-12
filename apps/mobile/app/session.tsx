@@ -6,7 +6,7 @@ import { Button } from '../src/components/Button';
 import { Row } from '../src/components/Row';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { control, radius, space, type } from '../src/design/tokens';
 import { GROUP_NAME, entries, nameOf, players, timeOf } from '../src/data/sampleNight';
 
 /**
@@ -70,22 +70,31 @@ export default function Session() {
         </>
       }
     >
-      <Text style={[styles.label, { color: t.muted }]}>ON THE TABLE</Text>
-      <Text style={[styles.display, { color: t.text }]}>{formatMoney(onTable)}</Text>
-      <Text style={[styles.meta, { color: t.muted }]}>
-        {standings.length} seated · since 20:05
-      </Text>
+      {/* One card: the headline figure, a hairline, then the two figures that
+          explain it. Measured from the board — 20 inset, 18/20 padding, gap 12. */}
+      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+        <View style={styles.cardTop}>
+          <View style={styles.cardFigures}>
+            <Text style={[styles.label, { color: t.muted }]}>ON THE TABLE</Text>
+            <Text style={[styles.cardFigure, { color: t.text }]}>{formatMoney(onTable)}</Text>
+          </View>
+          <Text style={[styles.seated, { color: t.muted }]}>
+            {standings.length} seated{'\n'}since 20:05
+          </Text>
+        </View>
 
-      {/* Cash in and cash out, side by side — the two figures that explain the
-          one above them. */}
-      <View style={[styles.strip, { borderColor: t.hairline }]}>
-        <Stat label="cash in" value={ledger.totalBoughtIn} />
-        <View style={[styles.divider, { backgroundColor: t.hairline }]} />
-        <Stat label="cashed out" value={ledger.totalCashedOut} />
+        <View style={[styles.rule, { backgroundColor: t.hairline }]} />
+
+        <View style={styles.stats}>
+          <Stat label="cash in" value={ledger.totalBoughtIn} />
+          <Stat label="cashed out" value={ledger.totalCashedOut} />
+          <Chip label="House rules" />
+        </View>
       </View>
 
       <Tabs value={tab} onChange={setTab} />
 
+      <View style={styles.list}>
       {tab === 'totals' ? (
         <View>
           {standings.map((s, i) => (
@@ -120,6 +129,7 @@ export default function Session() {
           })}
         </View>
       )}
+      </View>
     </Screen>
   );
 }
@@ -161,7 +171,7 @@ const ordinal = (n: number) =>
 function LiveBadge() {
   const t = useTheme();
   return (
-    <View style={[styles.badge, { borderColor: t.win }]}>
+    <View style={[styles.badge, { backgroundColor: t.winTint }]}>
       <View style={[styles.dot, { backgroundColor: t.win }]} />
       <Text style={[styles.badgeText, { color: t.win }]}>LIVE</Text>
     </View>
@@ -175,6 +185,16 @@ function Stat({ label, value }: { label: string; value: Money }) {
       <Text style={[styles.statValue, { color: t.text }]}>{formatMoney(value)}</Text>
       <Text style={[styles.statLabel, { color: t.muted }]}>{label}</Text>
     </View>
+  );
+}
+
+/** A quiet action that is not a button: bone text, bone border at 30%. */
+function Chip({ label }: { label: string }) {
+  const t = useTheme();
+  return (
+    <Pressable style={[styles.chip, { borderColor: `${t.offTable}4D` }]}>
+      <Text style={[styles.chipText, { color: t.offTable }]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -198,7 +218,7 @@ function Tabs({
             onPress={() => onChange(key)}
             style={[styles.tab, on && { backgroundColor: t.text }]}
           >
-            <Text style={[styles.tabLabel, { color: on ? t.onFill : t.muted }]}>
+            <Text style={[on ? styles.tabLabelOn : styles.tabLabel, { color: on ? t.onFill : t.muted }]}>
               {key === 'totals' ? 'Totals' : 'Feed'}
             </Text>
           </Pressable>
@@ -209,49 +229,73 @@ function Tabs({
 }
 
 const styles = StyleSheet.create({
+  // --- header card ---------------------------------------------------------
+  card: {
+    marginHorizontal: space.card,
+    marginBottom: space.belowCard,
+    backgroundColor: 'transparent',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.card,
+    paddingVertical: space.cardPadV,
+    paddingHorizontal: space.cardPadH,
+    gap: space.cardGap,
+  },
+  cardTop: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
+  cardFigures: { gap: 4 },
   label: type.label,
-  display: { ...type.display, fontSize: 52, marginTop: 2 },
-  meta: { ...type.meta, marginTop: 4 },
+  cardFigure: type.cardFigure,
+  seated: { ...type.statLabel, fontWeight: '400', marginLeft: 'auto', textAlign: 'right', lineHeight: 17 },
+  rule: { height: StyleSheet.hairlineWidth },
+  stats: { flexDirection: 'row', alignItems: 'center', gap: space.statGap },
+  stat: { gap: 2 },
+  statValue: type.statValue,
+  statLabel: type.statLabel,
+  chip: {
+    marginLeft: 'auto',
+    borderWidth: 1,
+    borderRadius: radius.pressable,
+    paddingVertical: control.chipPadV,
+    paddingHorizontal: control.chipPadH,
+  },
+  chipText: type.chip,
 
+  // --- live badge ----------------------------------------------------------
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    borderWidth: 1,
+    gap: 6,
     borderRadius: radius.badge,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: control.badgePadV,
+    paddingHorizontal: control.badgePadH,
   },
-  dot: { width: 6, height: 6, borderRadius: radius.badge },
-  badgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  badgeText: type.badge,
 
-  strip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.card,
-    paddingVertical: 12,
-    marginTop: 16,
-  },
-  stat: { flex: 1, alignItems: 'center' },
-  statValue: { ...type.figure },
-  statLabel: { ...type.meta, marginTop: 2 },
-  divider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch' },
-
+  // --- tabs ----------------------------------------------------------------
   tabs: {
     flexDirection: 'row',
-    borderRadius: radius.pressable,
-    padding: 3,
-    marginTop: space.section,
-    marginBottom: 2,
+    marginHorizontal: space.card,
+    marginBottom: space.belowCard,
+    padding: control.tabTrackPad,
+    borderRadius: control.tabTrackRadius,
   },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: 6 },
-  tabLabel: { ...type.body, fontWeight: '700', fontSize: 15 },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: control.tabPadV, borderRadius: control.tabRadius },
+  tabLabel: type.tab,
+  tabLabelOn: type.tabOn,
 
-  total: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth },
+  // --- list ----------------------------------------------------------------
+  // 22, where the card above it is 20. The 2px difference is deliberate.
+  list: { marginHorizontal: space.page },
+  total: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
   totalLabel: { ...type.body, fontWeight: '700' },
   totalValue: { ...type.figure, fontWeight: '800' },
 
+  // --- footer --------------------------------------------------------------
   actions: { flexDirection: 'row', gap: 10 },
   action: { flex: 1 },
 });

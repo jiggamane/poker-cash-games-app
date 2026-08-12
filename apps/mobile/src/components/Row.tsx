@@ -77,9 +77,9 @@ export function Row({
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: space.row, gap: 12 },
-  time: { ...type.meta, width: 44 },
+  time: { ...type.meta, width: 42 },
   middle: { flex: 1 },
   label: type.body,
-  detail: { ...type.meta, marginTop: 2 },
+  detail: { ...type.detail, marginTop: 2 },
   figure: type.figure,
 });

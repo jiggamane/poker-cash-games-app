@@ -44,6 +44,9 @@ export interface Theme {
    */
   winWash: string;
   lossWash: string;
+  /** A LIVE badge's fill — the win colour at 14%. Tinted, never outlined:
+   *  an outline reads as a control, a tint reads as a state. */
+  winTint: string;
   /** Money leaving the table: bill, kitty, host fee. */
   offTable: string;
   /**
@@ -77,6 +80,7 @@ export const darkTheme: Theme = {
   loss: '#F0705C',
   winWash: 'rgba(111,207,151,0.10)',
   lossWash: 'rgba(240,112,92,0.10)',
+  winTint: 'rgba(111,207,151,0.14)',
   offTable: '#D9D3C4',
   offTableWash: 'transparent',
   onFill: '#0C0D0F',
@@ -102,6 +106,7 @@ export const lightTheme: Theme = {
   // between them, which reads as a card — the one thing the row system forbids.
   winWash: 'rgba(10,122,61,0.05)',
   lossWash: 'rgba(192,52,27,0.05)',
+  winTint: 'rgba(10,122,61,0.12)',
   // Bone falls back to INK here, with the row carrying the bone instead.
   offTable: '#0C0D0F',
   // Bone is the worst offender here: two adjacent deduction rows became a single
@@ -124,25 +129,44 @@ export const lightTheme: Theme = {
 export const tabular: TextStyle = { fontVariant: ['tabular-nums'] };
 
 /*
- * Where the token doc gives a RANGE, these sit at the bottom of it — checked on
- * a real phone, where the middle of each range read slightly too large. Display,
- * body and label are single fixed values in the doc and are not ours to move.
+ * Taken from the drawn screens, not from the token doc.
+ *
+ * docs/screen-specs/ holds the exact inline styles from every board. Where the
+ * two disagree the board wins: the section label, for instance, is 11px there
+ * and 12 in the doc. See docs/ui-guide.md.
  */
 export const type = {
-  /** Hero amount. One per screen, never two. Fixed at 64 by the spec. */
-  display: { fontSize: 64, fontWeight: '800', letterSpacing: -1, ...tabular },
-  /** Large screen title, always top-left. Spec 32–34. */
-  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.5 },
-  /** Home-screen destination names. A name, never a figure. Spec 28–30. */
-  destination: { fontSize: 28, fontWeight: '800', letterSpacing: -0.4 },
-  /** Amounts in rows and strips. Spec 19–24. */
+  /** A settled result. The one 64px figure, on the last screen of a night. */
+  display: { fontSize: 64, fontWeight: '800', letterSpacing: -2.5, ...tabular },
+  /** The figure inside a surface card — "On the table". 800 48/1, -.04em. */
+  cardFigure: { fontSize: 48, fontWeight: '800', letterSpacing: -1.9, ...tabular },
+  /** Screen title. 800 32/1.05, -.03em. */
+  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96 },
+  /** Home-screen destination names. */
+  destination: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
+  /** The group's name above a title. Body weight, not meta. */
+  eyebrow: { fontSize: 17, fontWeight: '500' },
+  /** Amounts in rows. */
   figure: { fontSize: 19, fontWeight: '700', ...tabular },
-  /** Row labels and buttons. Fixed at 17 by the spec. */
+  /** A figure in a stat pair. */
+  statValue: { fontSize: 18, fontWeight: '700', ...tabular },
+  /** The caption under it. */
+  statLabel: { fontSize: 11.5, fontWeight: '500' },
+  /** Row labels and buttons. */
   body: { fontSize: 17, fontWeight: '500' },
-  /** Times, counts, explanations. Spec 13–15. */
+  /** The small print under a row: "second rebuy", "left the table". */
+  detail: { fontSize: 12.5, fontWeight: '400', lineHeight: 18 },
+  /** Times, counts, explanations. */
   meta: { fontSize: 13, fontWeight: '400' },
-  /** Section headers. Fixed at 12 by the spec. */
-  label: { fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
+  /** Section headers. 11px on the board, not 12. */
+  label: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
+  /** A quiet chip action — "House rules". */
+  chip: { fontSize: 12.5, fontWeight: '600' },
+  /** A tab, unselected then selected. */
+  tab: { fontSize: 14, fontWeight: '600' },
+  tabOn: { fontSize: 14, fontWeight: '700' },
+  /** A state badge — LIVE. */
+  badge: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
 } satisfies Record<string, TextStyle>;
 
 /** 8 on everything pressable, 14 on cards, 46 on the screen, 999 on the live badge only. */
@@ -153,20 +177,42 @@ export const radius = {
   badge: 999,
 } as const;
 
+/*
+ * There is NO single page margin. The board insets a card by 20 and the list
+ * beneath it by 22, and that 2px difference is visible. Measured, not rounded.
+ */
 export const space = {
-  /** Page margin. */
+  /** Lists, and the title row. */
   page: 22,
-  /** Inside cards and button rows. */
+  /** Cards and tab tracks — two less than the list beside them. */
   card: 20,
-  /** Between cards. */
-  betweenCards: 12,
-  /** Vertical padding inside a row. Spec 13–17; at the tight end. */
+  /** Below a card or a tab track. */
+  belowCard: 14,
+  /** Inside a card. */
+  cardPadV: 18,
+  cardPadH: 20,
+  /** Between the blocks inside a card. */
+  cardGap: 12,
+  /** Between a pair of stats. */
+  statGap: 22,
+  /** Vertical padding inside a row. */
   row: 13,
-  /** Gap above a section's caps header. Not specified — tuned on device. */
-  section: 26,
+  /** Above a section's caps header. */
+  section: 22,
 } as const;
 
 export const control = {
+  /** Tab track: radius 10, 3 of padding; each tab radius 7, 10 of padding. */
+  tabTrackRadius: 10,
+  tabTrackPad: 3,
+  tabRadius: 7,
+  tabPadV: 10,
+  /** A chip action. */
+  chipPadV: 8,
+  chipPadH: 11,
+  /** A state badge. */
+  badgePadV: 6,
+  badgePadH: 11,
   /** Primary, secondary and destructive buttons. */
   height: 56,
   /** Preset chips ($50 / $100). */
