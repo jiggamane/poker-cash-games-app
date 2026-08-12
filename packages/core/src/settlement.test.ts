@@ -9,7 +9,14 @@ import {
   SettlementError,
   type SettlementInput,
 } from './settlement';
-import type { LedgerEntry, MoneyRule, Player, PlayerId } from './types';
+import {
+  UNACCOUNTED_ID,
+  UNACCOUNTED_NAME,
+  type LedgerEntry,
+  type MoneyRule,
+  type Player,
+  type PlayerId,
+} from './types';
 
 // --- fixtures ----------------------------------------------------------------
 // Ids are deliberately sortable: player order in the engine is by id, so the
@@ -104,6 +111,125 @@ describe('reconciliation gate', () => {
   });
 });
 
+describe('closing a night that does not balance', () => {
+  // A night closes only when the money adds up, OR when the host has looked at
+  // the exact shortfall and confirmed it. Chips get miscounted and people leave
+  // early, so this has to be possible — but never silently.
+  const shortNight = (ack?: SettlementInput['acknowledgedDiscrepancy']): SettlementInput => {
+    reset();
+    return {
+      players: [at(MAREK), at(PETR), at(DANA)],
+      entries: [buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000)],
+      // 3000 on the table but only 2950 counted — 50 is missing
+      finalCounts: counts([[MAREK, 1500], [PETR, 950], [DANA, 500]]),
+      rules: [],
+      ...(ack ? { acknowledgedDiscrepancy: ack } : {}),
+    };
+  };
+
+  const confirm = (amount: number) => ({
+    amount: money(amount),
+    confirmedByUserId: 'host-1',
+    confirmedAt: '2026-08-12T23:59:00.000Z',
+    note: 'Chips came up short; Ivo left early.',
+  });
+
+  it('refuses to close while the money is unaccounted for', () => {
+    expect(() => settle(shortNight())).toThrow(ReconciliationError);
+  });
+
+  it('tells the UI exactly how much is missing, so it can be shown live', () => {
+    const r = checkReconciliation(shortNight());
+    expect(r.chipsOnTable).toBe(3000);
+    expect(r.counted).toBe(2950);
+    expect(r.difference).toBe(-50);
+    expect(r.reconciled).toBe(false);
+  });
+
+  it('closes once the host confirms the missing amount', () => {
+    const r = settle(shortNight(confirm(-50)));
+    expect(r.acknowledgedDiscrepancy?.amount).toBe(-50);
+    expect(r.acknowledgedDiscrepancy?.confirmedByUserId).toBe('host-1');
+  });
+
+  it('still balances to zero — the shortfall is carried, not hidden', () => {
+    const r = settle(shortNight(confirm(-50)));
+    expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
+    expect(transfersBalance(r)).toBe(true);
+  });
+
+  it('names the missing money instead of spreading it across the players', () => {
+    const r = settle(shortNight(confirm(-50)));
+    const unaccounted = r.players.find((p) => p.playerId === UNACCOUNTED_ID)!;
+    expect(unaccounted.name).toBe(UNACCOUNTED_NAME);
+    expect(unaccounted.finalPosition).toBe(50);
+    // the real players keep exactly their own results
+    expect(positionOf(r, MAREK)).toBe(500);
+    expect(positionOf(r, PETR)).toBe(-50);
+    expect(positionOf(r, DANA)).toBe(-500);
+  });
+
+  it('refuses a confirmation that no longer matches the count', () => {
+    // The host confirmed 50 missing, then someone found 20 of it.
+    expect(() => settle(shortNight(confirm(-30)))).toThrow(SettlementError);
+    expect(() => settle(shortNight(confirm(-30)))).toThrow(/must confirm the current figure/);
+  });
+
+  it('refuses a confirmation on a night that balances perfectly', () => {
+    reset();
+    expect(() =>
+      settle({
+        players: [at(PETR), at(DANA)],
+        entries: [buyin(PETR, 1000), buyin(DANA, 1000)],
+        finalCounts: counts([[PETR, 0], [DANA, 2000]]),
+        rules: [],
+        acknowledgedDiscrepancy: confirm(-50),
+      }),
+    ).toThrow(/balances exactly/);
+  });
+
+  it('handles a surplus as well as a shortfall', () => {
+    reset();
+    const r = settle({
+      players: [at(PETR), at(DANA)],
+      entries: [buyin(PETR, 1000), buyin(DANA, 1000)],
+      finalCounts: counts([[PETR, 1000], [DANA, 1075]]), // 75 too many
+      rules: [],
+      acknowledgedDiscrepancy: confirm(75),
+    });
+    expect(r.players.find((p) => p.playerId === UNACCOUNTED_ID)!.finalPosition).toBe(-75);
+    expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
+  });
+
+  it('counts the bills, the kitty and the fees before deciding it balances', () => {
+    // A night that reconciles on chips must still balance once everything that
+    // leaves the table is applied — that is the check that actually matters.
+    reset();
+    const r = settle({
+      players: [at(MAREK), at(PETR), at(DANA), away(RADKA)],
+      entries: [
+        buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000),
+        expense(MAREK, 150),
+      ],
+      finalCounts: counts([[MAREK, 2000], [PETR, 500], [DANA, 500]]),
+      rules: [
+        rule({ id: 'bill', name: 'Food', destination: 'bill', amountKind: 'fixed',
+               amount: money(150), charge: 'winners_only', split: 'equal', collectorPlayerId: MAREK, sortOrder: 1 }),
+        rule({ id: 'kitty', name: 'Kitty', destination: 'kitty', amountKind: 'percent',
+               amount: money(10), charge: 'winners_only', collectorPlayerId: RADKA, sortOrder: 2 }),
+        rule({ id: 'fee', name: 'Host fee', destination: 'host_fee', amountKind: 'fixed',
+               amount: money(20), charge: 'winners_only', split: 'equal', collectorPlayerId: RADKA, sortOrder: 3 }),
+      ],
+    });
+
+    expect(r.reconciliation.reconciled).toBe(true);
+    expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
+    expect(transfersBalance(r)).toBe(true);
+    // everything that left the table is accounted for in the total
+    expect(r.totalOffTable).toBe(sum(r.deductions.map((d) => d.total)));
+  });
+});
+
 describe('the simplest night: no rules', () => {
   it('nets one player against the other', () => {
     reset();
@@ -168,7 +294,7 @@ describe('percentage rules', () => {
     expect(r.deductions.map((d) => d.total)).toEqual([100, 90]);
   });
 
-  it('rounds a percentage down, so a rule never takes more than it says', () => {
+  it('rounds a percentage half up', () => {
     reset();
     const r = settle({
       players: [at(PETR), at(DANA), away(RADKA)],
@@ -176,9 +302,9 @@ describe('percentage rules', () => {
       finalCounts: counts([[PETR, 995], [DANA, 1005]]),
       rules: [rule({ id: 'kitty', amount: money(10) })],
     });
-    // 10% of a 5 win is 0.5 -> 0
-    expect(chargedOf(r, DANA)).toBe(0);
-    expect(r.totalOffTable).toBe(0);
+    // 10% of a 5 win is 0.5 -> 1
+    expect(chargedOf(r, DANA)).toBe(1);
+    expect(r.totalOffTable).toBe(1);
   });
 
   it('collects nothing when nobody won', () => {
@@ -453,27 +579,27 @@ describe('a whole night', () => {
     expect(marek.endedWith).toBe(1982);
     expect(marek.grossResult).toBe(1482);
 
-    // the bill: 170 across three -> 57 / 57 / 56
+    // the bill: 170 across three -> 57 / 57 / 56, biggest winner first
     expect(r.deductions[0].total).toBe(170);
-    // the kitty: 10% of Marek's win after the bill -> floor(1425 * 0.1) = 142
-    expect(r.deductions[1].total).toBe(142);
+    // the kitty: 10% of Marek's win after the bill -> 1425 * 0.1 = 142.5 -> 143
+    expect(r.deductions[1].total).toBe(143);
 
-    expect(chargedOf(r, MAREK)).toBe(199); // 57 + 142
-    expect(positionOf(r, MAREK)).toBe(1453); // 1482 - 199 + 170 reimbursed
-    expect(positionOf(r, PETR)).toBe(-1287);
-    expect(positionOf(r, DANA)).toBe(-308);
-    expect(positionOf(r, RADKA)).toBe(142);
+    expect(chargedOf(r, MAREK)).toBe(200); // 57 + 143
+    expect(positionOf(r, MAREK)).toBe(1452); // 1482 - 200 + 170 reimbursed
+    expect(positionOf(r, PETR)).toBe(-1286);
+    expect(positionOf(r, DANA)).toBe(-309);
+    expect(positionOf(r, RADKA)).toBe(143);
 
-    expect(r.totalOffTable).toBe(312);
+    expect(r.totalOffTable).toBe(313);
     expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
   });
 
   it('settles it in as few payments as it can, largest debt first', () => {
     const r = settle(input());
     expect(r.transfers).toEqual([
-      { fromPlayerId: PETR, toPlayerId: MAREK, amount: 1287 },
+      { fromPlayerId: PETR, toPlayerId: MAREK, amount: 1286 },
       { fromPlayerId: DANA, toPlayerId: MAREK, amount: 166 },
-      { fromPlayerId: DANA, toPlayerId: RADKA, amount: 142 },
+      { fromPlayerId: DANA, toPlayerId: RADKA, amount: 143 },
     ]);
     expect(transfersBalance(r)).toBe(true);
   });
@@ -505,16 +631,19 @@ describe('a whole night', () => {
 describe('matchTransfers()', () => {
   it('pairs the biggest debtor with the biggest creditor', () => {
     const transfers = matchTransfers([
-      { playerId: 'a', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(-500) },
-      { playerId: 'b', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(-300) },
-      { playerId: 'c', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(600) },
-      { playerId: 'd', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(200) },
+      { playerId: 'a', name: 'a', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(-500) },
+      { playerId: 'b', name: 'b', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(-300) },
+      { playerId: 'c', name: 'c', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(600) },
+      { playerId: 'd', name: 'd', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(200) },
     ]);
 
+    // a owes 500, b owes 300; c is owed 600, d is owed 200.
+    // a clears against c (the biggest), leaving c on 100. b then pays the
+    // largest outstanding creditor first — d's 200 before c's remaining 100.
     expect(transfers).toEqual([
       { fromPlayerId: 'a', toPlayerId: 'c', amount: 500 },
-      { fromPlayerId: 'b', toPlayerId: 'c', amount: 100 },
       { fromPlayerId: 'b', toPlayerId: 'd', amount: 200 },
+      { fromPlayerId: 'b', toPlayerId: 'c', amount: 100 },
     ]);
   });
 

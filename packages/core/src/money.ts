@@ -69,19 +69,24 @@ export function sum(values: readonly Money[]): Money {
 }
 
 /**
- * A whole percentage of an amount, rounded DOWN.
+ * A whole percentage of an amount, rounded HALF UP.
  *
- * Rounding down is deliberate and it is the conservative direction: a rule can
- * never take more off the table than the stated percentage. Where a total then
- * has to be divided between people, use allocate() — that is what guarantees
- * the pieces add back up to the whole.
+ * Half up, not down: the handoff's worked night is explicit that 5% of $430 is
+ * 21.5 and must charge $22. It is computed per person from their own figure,
+ * never from a pooled total, so the parts of a percentage rule are simply
+ * summed rather than allocated.
+ *
+ * Where a fixed total has to be divided between people instead, use allocate()
+ * — that is what guarantees the pieces add back up to the whole.
  */
 export function percentOf(amount: Money, wholePercent: number): Money {
   if (!Number.isInteger(wholePercent) || wholePercent < 0 || wholePercent > 100) {
     throw new MoneyError(`Percentage must be a whole number 0–100, got ${wholePercent}`);
   }
-  // Integer arithmetic throughout: multiply before dividing so no float creeps in.
-  return money(Math.floor((amount * wholePercent) / 100));
+  if (amount < 0) throw new MoneyError(`Cannot take a percentage of a negative amount (${amount})`);
+  // Integer arithmetic throughout — adding half the divisor before flooring is
+  // half-up without ever creating a fractional value.
+  return money(Math.floor((amount * wholePercent + 50) / 100));
 }
 
 /**

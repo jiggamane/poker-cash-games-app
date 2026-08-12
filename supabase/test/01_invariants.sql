@@ -262,3 +262,56 @@ reset request.jwt.claims;
 \echo '--------------------------------------------------'
 \echo ' ALL SCHEMA INVARIANT TESTS PASSED'
 \echo '--------------------------------------------------'
+
+-- =============================================================================
+-- 8. THE CLOSE GATE (0002)
+-- =============================================================================
+-- A night may be settled only if the money balances, or if a host confirmed the
+-- exact shortfall. The database is the last line of that check.
+
+\o /dev/null
+
+-- balanced night: no discrepancy, no confirmation needed
+insert into settlement (session_id, algorithm_version, rules_snapshot, inputs_snapshot,
+                        computed_transfers, total_off_table)
+values ('50000000-0000-0000-0000-000000000001', 'settlement-v1', '{}', '{}', '[]', 0);
+
+-- missing money with nobody's name on it must be refused
+select expect_rejected(
+  $$insert into settlement (session_id, algorithm_version, rules_snapshot, inputs_snapshot,
+                            computed_transfers, total_off_table, discrepancy_amount)
+    values ('50000000-0000-0000-0000-000000000002', 'settlement-v1', '{}', '{}', '[]', 0, -50)$$,
+  'unconfirmed discrepancy');
+
+-- a confirmation with no discrepancy is equally wrong
+select expect_rejected(
+  $$insert into settlement (session_id, algorithm_version, rules_snapshot, inputs_snapshot,
+                            computed_transfers, total_off_table,
+                            discrepancy_amount, discrepancy_confirmed_by, discrepancy_confirmed_at)
+    values ('50000000-0000-0000-0000-000000000002', 'settlement-v1', '{}', '{}', '[]', 0,
+            0, '11111111-1111-1111-1111-111111111111', now())$$,
+  'confirmation without a discrepancy');
+
+-- confirmed shortfall is allowed, and recorded
+insert into settlement (session_id, algorithm_version, rules_snapshot, inputs_snapshot,
+                        computed_transfers, total_off_table,
+                        discrepancy_amount, discrepancy_confirmed_by, discrepancy_confirmed_at, discrepancy_note)
+values ('50000000-0000-0000-0000-000000000002', 'settlement-v1', '{}', '{}', '[]', 0,
+        -50, '11111111-1111-1111-1111-111111111111', now(), 'Chips came up short.');
+
+select expect_eq(
+  (select discrepancy_amount from settlement where session_id = '50000000-0000-0000-0000-000000000002'),
+  -50, 'confirmed discrepancy is stored');
+
+-- a frozen settlement's figures cannot be rewritten
+select expect_rejected(
+  $$update settlement set total_off_table = 999
+    where session_id = '50000000-0000-0000-0000-000000000001'$$,
+  'editing a frozen settlement');
+
+-- ...but the room may still redistribute who physically pays whom
+update settlement set final_transfers = '[{"from":"a","to":"b","amount":10}]'
+where session_id = '50000000-0000-0000-0000-000000000001';
+
+\o
+\echo ' CLOSE GATE TESTS PASSED'

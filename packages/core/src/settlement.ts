@@ -7,11 +7,12 @@
  * numbers live. Two things are required for that and both are deliberate here:
  *
  *   ORDERING  — rules apply in sortOrder; players are iterated in a sorted
- *               order, never in map/object insertion order; ties in the
- *               transfer matching break on player id.
- *   ROUNDING  — a percentage floors (a rule never takes more than it says), and
- *               dividing a total between people goes through allocate(), which
- *               guarantees the parts sum back to the whole exactly.
+ *               order, never in map/object insertion order; a leftover unit
+ *               goes to the biggest winner, then by name; and ties in the
+ *               transfer matching break on name.
+ *   ROUNDING  — a percentage rounds half up, per the handoff's worked night,
+ *               and dividing a total between people goes through allocate(),
+ *               which guarantees the parts sum back to the whole exactly.
  *
  * Bump ALGORITHM_VERSION if any of that changes. Old settlements stay
  * reproducible because they store the version they were computed with.
@@ -27,15 +28,18 @@ import {
   ZERO,
 } from './money';
 import { endedWith, reconcile, resolveLedger, type ResolvedLedger } from './ledger';
-import type {
-  Deduction,
-  LedgerEntry,
-  MoneyRule,
-  Player,
-  PlayerId,
-  PlayerSettlement,
-  Reconciliation,
-  Transfer,
+import {
+  UNACCOUNTED_ID,
+  UNACCOUNTED_NAME,
+  type Deduction,
+  type DiscrepancyAcknowledgement,
+  type LedgerEntry,
+  type MoneyRule,
+  type Player,
+  type PlayerId,
+  type PlayerSettlement,
+  type Reconciliation,
+  type Transfer,
 } from './types';
 
 export const ALGORITHM_VERSION = 'settlement-v1';
@@ -65,6 +69,11 @@ export interface SettlementInput {
   /** The host's end-of-night count, for players still seated. */
   finalCounts: ReadonlyMap<PlayerId, Money>;
   rules: readonly MoneyRule[];
+  /**
+   * Set only when the count does not balance and the host has confirmed the
+   * missing amount. Without it, a night that does not add up cannot be closed.
+   */
+  acknowledgedDiscrepancy?: DiscrepancyAcknowledgement;
 }
 
 export interface SettlementResult {
@@ -75,6 +84,8 @@ export interface SettlementResult {
   /** What leaves the table in total — "$296 leaves the table". */
   totalOffTable: Money;
   transfers: Transfer[];
+  /** Present only when the night was closed over a confirmed discrepancy. */
+  acknowledgedDiscrepancy?: DiscrepancyAcknowledgement;
 }
 
 /**
@@ -96,7 +107,29 @@ export function checkReconciliation(input: SettlementInput): Reconciliation {
 export function settle(input: SettlementInput): SettlementResult {
   const ledger = resolveLedger(input.entries);
   const reconciliation = reconcile(ledger, input.finalCounts);
-  if (!reconciliation.reconciled) throw new ReconciliationError(reconciliation);
+  const ack = input.acknowledgedDiscrepancy;
+
+  // THE CLOSE GATE. A night closes only if the money balances, or if the host
+  // has looked at the exact shortfall and confirmed it.
+  if (!reconciliation.reconciled) {
+    if (!ack) throw new ReconciliationError(reconciliation);
+    if (ack.amount !== reconciliation.difference) {
+      // The count changed after the host confirmed it. Making them look again
+      // is the whole point — a stale confirmation would rubber-stamp a
+      // different number from the one they actually saw.
+      throw new SettlementError(
+        `The confirmed discrepancy (${ack.amount}) no longer matches the count, which is now off by ` +
+          `${reconciliation.difference}. The host must confirm the current figure.`,
+      );
+    }
+  }
+  // Confirming a discrepancy that does not exist would put a phantom line in an
+  // otherwise clean night.
+  if (reconciliation.reconciled && ack && ack.amount !== 0) {
+    throw new SettlementError(
+      `A discrepancy of ${ack.amount} was confirmed, but the night balances exactly.`,
+    );
+  }
 
   // Sorted once, used everywhere: no result may depend on input ordering.
   const players = [...input.players].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
@@ -118,19 +151,28 @@ export function settle(input: SettlementInput): SettlementResult {
     gross.set(p.id, subtract(endedWith(ledger, p.id, input.finalCounts), boughtIn));
   }
 
-  // A reconciled count means these cancel out exactly. If they ever don't, the
-  // arithmetic is wrong and we must not produce a settlement.
+  // Gross results always sum to the count difference — exactly zero on a night
+  // that balances. Anything else means the arithmetic itself is wrong, which is
+  // a different thing from money being missing, and is never recoverable.
   const grossTotal = sum([...players.map((p) => gross.get(p.id)!)]);
-  if (grossTotal !== 0) {
+  if (grossTotal !== reconciliation.difference) {
     throw new SettlementError(
-      `Gross results do not sum to zero (${grossTotal}). ` +
-        `Some money is unaccounted for — refusing to settle.`,
+      `Gross results sum to ${grossTotal} but the count is off by ${reconciliation.difference}. ` +
+        `The two must agree — refusing to settle.`,
     );
   }
 
+  // A confirmed shortfall is carried by a named party rather than quietly
+  // spread across the players. The books close, and the hole stays visible.
+  const participants: Player[] = [...players];
+  if (reconciliation.difference !== 0) {
+    participants.push({ id: UNACCOUNTED_ID, name: UNACCOUNTED_NAME, atTable: false });
+    gross.set(UNACCOUNTED_ID, money(-reconciliation.difference));
+  }
+
   // --- 2. Apply the rules, in order -----------------------------------------
-  const charged = new Map<PlayerId, Money>(players.map((p) => [p.id, ZERO]));
-  const credited = new Map<PlayerId, Money>(players.map((p) => [p.id, ZERO]));
+  const charged = new Map<PlayerId, Money>(participants.map((p) => [p.id, ZERO]));
+  const credited = new Map<PlayerId, Money>(participants.map((p) => [p.id, ZERO]));
   const deductions: Deduction[] = [];
 
   for (const spec of deductionOrder(input.rules, ledger)) {
@@ -147,12 +189,13 @@ export function settle(input: SettlementInput): SettlementResult {
   }
 
   // --- 3. Where everyone stands ---------------------------------------------
-  const settlements: PlayerSettlement[] = players.map((p) => {
+  const settlements: PlayerSettlement[] = participants.map((p) => {
     const g = gross.get(p.id)!;
     const ch = charged.get(p.id)!;
     const cr = credited.get(p.id)!;
     return {
       playerId: p.id,
+      name: p.name,
       boughtIn: ledger.boughtInByPlayer.get(p.id) ?? ZERO,
       endedWith: endedWith(ledger, p.id, input.finalCounts),
       grossResult: g,
@@ -176,6 +219,7 @@ export function settle(input: SettlementInput): SettlementResult {
     deductions,
     totalOffTable: sum(deductions.map((d) => d.total)),
     transfers: matchTransfers(settlements),
+    ...(ack ? { acknowledgedDiscrepancy: ack } : {}),
   };
 }
 
@@ -189,38 +233,48 @@ export function settle(input: SettlementInput): SettlementResult {
  * reproducible.
  */
 export function matchTransfers(settlements: readonly PlayerSettlement[]): Transfer[] {
+  // Biggest first, ties broken by name ascending, so the same night always
+  // produces the same list of payments no matter what order the data arrived in.
+  const bySize = (a: { remaining: number; name: string }, b: { remaining: number; name: string }) =>
+    b.remaining - a.remaining || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+
   const debtors = settlements
     .filter((s) => s.finalPosition < 0)
-    .map((s) => ({ id: s.playerId, remaining: -s.finalPosition }))
-    // biggest debt first; ties by id so the result never depends on input order
-    .sort((a, b) => b.remaining - a.remaining || (a.id < b.id ? -1 : 1));
+    .map((s) => ({ id: s.playerId, name: s.name, remaining: -s.finalPosition }))
+    .sort(bySize);
 
   const creditors = settlements
     .filter((s) => s.finalPosition > 0)
-    .map((s) => ({ id: s.playerId, remaining: s.finalPosition as number }))
-    .sort((a, b) => b.remaining - a.remaining || (a.id < b.id ? -1 : 1));
+    .map((s) => ({ id: s.playerId, name: s.name, remaining: s.finalPosition as number }))
+    .sort(bySize);
 
   const transfers: Transfer[] = [];
-  let d = 0;
-  let c = 0;
 
-  while (d < debtors.length && c < creditors.length) {
-    const debtor = debtors[d];
-    const creditor = creditors[c];
-    const amount = Math.min(debtor.remaining, creditor.remaining);
+  // One debtor at a time, biggest first, and each is finished before the next
+  // starts. That keeps a person's payments together in the list — "Ivo pays
+  // Marek, then Lena, done" — which is how the room actually settles up.
+  // Within a debtor, the largest outstanding creditor is chosen fresh each
+  // time, because paying someone partially changes who the largest is.
+  for (const debtor of debtors) {
+    while (debtor.remaining > 0) {
+      let best: (typeof creditors)[number] | undefined;
+      for (const creditor of creditors) {
+        if (creditor.remaining <= 0) continue;
+        if (
+          !best ||
+          creditor.remaining > best.remaining ||
+          (creditor.remaining === best.remaining && creditor.name < best.name)
+        ) {
+          best = creditor;
+        }
+      }
+      if (!best) break; // nobody left to pay — only possible if the books are unbalanced
 
-    if (amount > 0) {
-      transfers.push({
-        fromPlayerId: debtor.id,
-        toPlayerId: creditor.id,
-        amount: money(amount),
-      });
+      const amount = Math.min(debtor.remaining, best.remaining);
+      transfers.push({ fromPlayerId: debtor.id, toPlayerId: best.id, amount: money(amount) });
+      debtor.remaining -= amount;
+      best.remaining -= amount;
     }
-
-    debtor.remaining -= amount;
-    creditor.remaining -= amount;
-    if (debtor.remaining === 0) d++;
-    if (creditor.remaining === 0) c++;
   }
 
   return transfers;
@@ -303,6 +357,13 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
 
   // Somebody really spent this money, so it has to be shared by someone.
   if (payers.length === 0 && reimbursesExpenses) payers = everyone;
+
+  // Order decides who absorbs a leftover unit when a total does not divide
+  // evenly: biggest win first, then by name. allocate() hands remainders to the
+  // earliest position, so sorting here IS the tie-break rule.
+  payers = [...payers].sort(
+    (a, b) => basisFor(b.id) - basisFor(a.id) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+  );
 
   // --- how much in total -----------------------------------------------------
   // When a bill covers real expenses, the expenses ARE the amount: someone

@@ -62,11 +62,20 @@ describe('percentOf()', () => {
     expect(percentOf(money(1000), 0)).toBe(0);
   });
 
-  it('rounds DOWN, so a rule never takes more than it says', () => {
-    // 10% of 1005 is 100.5 -> 100, not 101
-    expect(percentOf(money(1005), 10)).toBe(100);
-    expect(percentOf(money(999), 15)).toBe(149); // 149.85
-    expect(percentOf(money(1), 50)).toBe(0); // 0.5
+  it('rounds HALF UP, as the handoff worked night requires', () => {
+    // the canonical case: 5% of 430 is 21.5 and must charge 22
+    expect(percentOf(money(430), 5)).toBe(22);
+    // exact values are untouched
+    expect(percentOf(money(1620), 5)).toBe(81);
+    expect(percentOf(money(460), 5)).toBe(23);
+    // and the halves go up
+    expect(percentOf(money(1005), 10)).toBe(101); // 100.5
+    expect(percentOf(money(999), 15)).toBe(150); // 149.85
+    expect(percentOf(money(1), 50)).toBe(1); // 0.5
+  });
+
+  it('refuses a percentage of a negative amount', () => {
+    expect(() => percentOf(money(-100), 10)).toThrow(MoneyError);
   });
 
   it('rejects nonsense percentages', () => {

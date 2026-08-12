@@ -80,9 +80,28 @@ export interface Deduction {
   credits: Array<{ playerId: PlayerId; amount: Money }>;
 }
 
+/**
+ * A night cannot be closed unless the money balances — or unless the host has
+ * looked at what is missing and said so out loud.
+ *
+ * Chips get miscounted and people leave early, so a real game does sometimes
+ * fail to add up. Refusing to close would leave the group stuck; closing
+ * silently would hide missing money. So the shortfall is named, the host
+ * confirms it, and the confirmation is stored as part of the night's record.
+ */
+export interface DiscrepancyAcknowledgement {
+  /** Must equal the difference exactly, so a stale confirmation cannot be reused. */
+  amount: Money;
+  /** The host who confirmed it. */
+  confirmedByUserId: string;
+  confirmedAt: string;
+  note?: string;
+}
+
 /** One player's night, end to end. */
 export interface PlayerSettlement {
   playerId: PlayerId;
+  name: string;
   /** Everything they put on the table. */
   boughtIn: Money;
   /** What they took off it: cash-outs plus any chips still in front of them. */
@@ -113,7 +132,18 @@ export interface Reconciliation {
   chipsOnTable: Money;
   /** What the host actually counted. */
   counted: Money;
-  /** counted − chipsOnTable. Zero, or the flow does not continue. */
+  /** counted − chipsOnTable. Zero, or the host must confirm what is missing. */
   difference: Money;
   reconciled: boolean;
 }
+
+/**
+ * The synthetic party that holds a confirmed discrepancy.
+ *
+ * Money that cannot be accounted for still has to appear somewhere, or the
+ * settlement would not add up and every downstream check would be meaningless.
+ * Giving it a name keeps the books closed AND keeps the hole visible, rather
+ * than quietly spreading it across the players.
+ */
+export const UNACCOUNTED_ID = '__unaccounted__';
+export const UNACCOUNTED_NAME = 'Unaccounted';
