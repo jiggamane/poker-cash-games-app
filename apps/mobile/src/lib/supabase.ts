@@ -33,13 +33,30 @@ export const supabase: SupabaseClient = createClient(
 );
 
 /**
- * Sign the host in with a magic link — no password to forget at a kitchen
- * table. The link opens the app through the `pokerclub` scheme.
+ * Sign the host in with a six-digit code emailed to them.
+ *
+ * A CODE, not a magic link. A link has to reopen the app through a custom URL
+ * scheme, which does not exist while the app runs inside Expo Go, and which
+ * needs a redirect allowlist entry per environment even once it does. A code is
+ * typed into the screen the host is already looking at, works identically
+ * everywhere, and needs no configuration at all.
+ *
+ * It is also better at a kitchen table: no leaving the app mid-sign-in.
  */
-export async function signInWithEmail(email: string, redirectTo = 'pokerclub://auth-callback') {
+export async function sendSignInCode(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: redirectTo },
+    options: { shouldCreateUser: true },
+  });
+  if (error) throw error;
+}
+
+/** Exchange the emailed code for a session. */
+export async function verifySignInCode(email: string, code: string): Promise<void> {
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token: code.trim(),
+    type: 'email',
   });
   if (error) throw error;
 }
