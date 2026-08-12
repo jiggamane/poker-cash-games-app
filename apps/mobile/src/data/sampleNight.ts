@@ -30,17 +30,24 @@ export const nameOf = (id: PlayerId): string =>
 let n = 0;
 const entry = (e: Omit<LedgerEntry, 'id' | 'seq'>): LedgerEntry => ({ id: `e${++n}`, seq: n, ...e });
 
+/**
+ * In seq order, which must also be time order.
+ *
+ * seq is what the feed sorts by, so an entry recorded out of sequence would
+ * show up in the wrong place in the list. Back-dating is a real feature — the
+ * host can log a hand that already happened — but the sample night is a
+ * straightforward evening and should read like one.
+ */
 export const entries: LedgerEntry[] = [
-  entry({ type: 'buyin', playerId: MAREK, amount: money(500) }),
-  entry({ type: 'buyin', playerId: PETR, amount: money(500) }),
-  entry({ type: 'rebuy', playerId: PETR, amount: money(1000) }),
-  entry({ type: 'buyin', playerId: DANA, amount: money(1000) }),
-  entry({ type: 'expense', payerId: MAREK, amount: money(170) }),
+  entry({ type: 'buyin', playerId: MAREK, amount: money(500) }),   // 20:07
+  entry({ type: 'buyin', playerId: PETR, amount: money(500) }),    // 20:09
+  entry({ type: 'buyin', playerId: DANA, amount: money(1000) }),   // 20:41
+  entry({ type: 'rebuy', playerId: PETR, amount: money(1000) }),   // 21:04
+  entry({ type: 'expense', payerId: MAREK, amount: money(170) }),  // 21:48
 ];
 
-/** Wall-clock times for the feed, alongside the entries above. */
 export const timeOf: Record<string, string> = {
-  e1: '20:07', e2: '20:09', e3: '21:04', e4: '20:41', e5: '21:48',
+  e1: '20:07', e2: '20:09', e3: '20:41', e4: '21:04', e5: '21:48',
 };
 
 export const finalCounts = new Map<PlayerId, Money>([

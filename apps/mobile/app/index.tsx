@@ -1,11 +1,12 @@
 import { Link, router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { formatMoney } from '@poker-club/core';
+import { formatMoney, resolveLedger } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { GROUP_NAME, inPlay, players } from '../src/data/sampleNight';
+import { Row } from '../src/components/Row';
+import { GROUP_NAME, entries, inPlay, players } from '../src/data/sampleNight';
 import { useSession } from '../src/lib/useSession';
 
 /**
@@ -16,8 +17,14 @@ import { useSession } from '../src/lib/useSession';
  */
 export default function Home() {
   const t = useTheme();
-  const seated = players.filter((p) => p.atTable).length;
   const { session, loading, configured } = useSession();
+
+  const ledger = resolveLedger(entries);
+  const atTable = players
+    .filter((p) => p.atTable)
+    .map((p) => ({ ...p, in: ledger.boughtInByPlayer.get(p.id) ?? 0 }))
+    .sort((a, b) => b.in - a.in || (a.name < b.name ? -1 : 1));
+  const seated = atTable.length;
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
@@ -43,6 +50,13 @@ export default function Home() {
             </Text>
           </Pressable>
         </Link>
+
+        <Text style={[styles.label, { color: t.muted }]}>AT THE TABLE</Text>
+        <View>
+          {atTable.map((p, i) => (
+            <Row key={p.id} label={p.name} amount={p.in as never} last={i === atTable.length - 1} />
+          ))}
+        </View>
 
         <View style={styles.spacer} />
 
@@ -79,6 +93,7 @@ const styles = StyleSheet.create({
   live: { ...type.label, letterSpacing: 1.2 },
   figure: { ...type.display, fontSize: 44 },
   meta: { ...type.meta, marginTop: 6 },
-  spacer: { flex: 1 },
+  spacer: { flex: 1, minHeight: 16 },
+  label: { ...type.label, marginTop: space.section, marginBottom: 2 },
   status: { ...type.meta, marginBottom: 10 },
 });
