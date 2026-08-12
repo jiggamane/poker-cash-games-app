@@ -59,24 +59,29 @@ export default function Session() {
     <Screen
       title="Tonight"
       backTo={night.groupName}
-      barExtra={
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Food and drinks"
-          hitSlop={12}
-          onPress={() => router.push('/expenses')}
-        >
-          <Icon name="rules" color={t.offTable} />
-        </Pressable>
-      }
-      trailing={
-        <>
-          <LiveBadge />
-          <Text style={[styles.elapsed, { color: t.muted }]}>{elapsed(night.startedAt)}</Text>
-        </>
-      }
+      badge={<LiveBadge />}
+      meta={`${night.groupName} · ${elapsed(night.startedAt)} · since ${since}`}
       footer={
         <>
+          {/* The bill, until rev 7's dock takes it.
+              It used to be a receipt glyph in the top-right corner; rev 9 (S37)
+              empties that corner on every pushed screen and says the bill lives
+              in the dock instead. The dock is rev 7 and not built, so the row
+              below keeps it reachable rather than stranding the screen. It goes
+              when the dock arrives. */}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push('/expenses')}
+            style={({ pressed }) => [
+              styles.endRow,
+              { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 },
+            ]}
+          >
+            <Text style={[styles.endLabel, { color: t.text }]}>Food &amp; drinks</Text>
+            <Text style={[styles.endHint, { color: t.muted }]}>the night&rsquo;s bill</Text>
+            <Icon name="chevron" color={t.muted} />
+          </Pressable>
+
           {/* Ending the night is not a red button. It is a quiet row that names
               what happens next — you count, then you settle. */}
           <Pressable
@@ -305,7 +310,6 @@ function Tabs({
 }
 
 const styles = StyleSheet.create({
-  elapsed: { ...type.meta, fontWeight: '500', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
   // --- header card ---------------------------------------------------------
   card: {

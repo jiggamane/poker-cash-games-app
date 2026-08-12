@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, resolveLedger, settle, type Money, type MoneyRule } from '@poker-club/core';
+import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { nameOf, useNight } from '../src/lib/nightStore';
@@ -42,17 +43,22 @@ export default function HouseRules() {
   }, [night]);
 
   if (night === null || ledger === null) {
-    return <Screen title="Bill &amp; kitty" backTo="Tonight">{null}</Screen>;
+    return <Sheet title="Bill &amp; kitty">{null}</Sheet>;
   }
 
   const active = night.rules.filter((r) => r.active).sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
-    <Screen
+    <Sheet
       title="Bill &amp; kitty"
-      backTo="Tonight"
-      action={{ label: 'Edit', onPress: () => router.push('/money-rules') }}
-      lede="The group’s usual rules, carried from last night. They apply at settle-up, never during play."
+      footer={
+        <Button
+          label="Edit the money rules"
+          variant="secondary"
+          onPress={() => router.push('/money-rules')}
+        />
+      }
+      sub="The group’s usual rules, carried from last night. They apply at settle-up, never during play."
     >
       <View style={styles.cards}>
         {active.map((rule) => {
@@ -100,7 +106,7 @@ export default function HouseRules() {
         Edit changes tonight only. A night is settled with the rules it opened with, so nights
         already closed keep the rules they were closed under.
       </Text>
-    </Screen>
+    </Sheet>
   );
 }
 

@@ -4,9 +4,33 @@ import { StatusBar } from 'expo-status-bar';
 import * as Linking from 'expo-linking';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
+import { sheetPresentation } from '../src/components/Sheet';
 import { completeSignInFromUrl } from '../src/lib/authLink';
 import { parseShareLink } from '../src/lib/shareLink';
 import { openNight } from '../src/lib/nightStore';
+
+/**
+ * Every screen you open to DO one thing, per the classification in
+ * 09-navigation.md § Every screen, classified.
+ *
+ * Read it as the rule that produced it: each of these ends in a Save, an Add,
+ * an Apply or a confirm, and leaves you exactly where you were. Everything else
+ * — the night, the close flow, settings, a settled record — is a place you can
+ * stay in, so it is pushed.
+ */
+const SHEETS = [
+  'player', // T2 / T4 · the player card, over Tonight
+  'pick', // N4 / N8 · who is this about
+  'log', // N5 / N6 / N9 · the amount keypads
+  'entry', // N10 · correct an entry
+  'seat', // N7 · seat a new player
+  'house-rules', // B1 · what tonight will take off the table
+  'expenses', // B2 / B4 · the bill
+  'add-expense', // B3 · a new expense
+  'money-rules', // O4 · tonight's money rules
+  'rule', // O5 · the rule editor
+  'sign-in', // ends in "email me a link"; over Settings
+] as const;
 
 /**
  * The navigation shell.
@@ -62,7 +86,23 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: t.ground },
           animation: 'slide_from_right',
         }}
-      />
+      >
+        {/*
+          The classification from 09-navigation.md, in one place.
+
+          Anything not listed is a push and needs no declaration. Listing the
+          sheets here rather than per screen is deliberate: the rule is about
+          the app's shape, not about any one screen, and a route that quietly
+          disagreed with its own chrome would be invisible in review.
+        */}
+        {SHEETS.map((name) => (
+          <Stack.Screen
+            key={name}
+            name={name}
+            options={{ ...sheetPresentation, contentStyle: { backgroundColor: t.sheetGround } }}
+          />
+        ))}
+      </Stack>
     </SafeAreaProvider>
   );
 }

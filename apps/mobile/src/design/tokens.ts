@@ -67,6 +67,19 @@ export interface Theme {
   dangerWash: string;
   dangerEdge: string;
 
+  /**
+   * The fill behind a round navigation control — the 36px back on a pushed
+   * screen, the 30px close on a sheet. Faint on purpose: the glyph is the
+   * signal and the disc is only the target.
+   */
+  controlFill: string;
+  /** A sheet's own ground. Dark lifts it off the page; light stays white. */
+  sheetGround: string;
+  /** The hairline along a sheet's top edge, where it meets what is behind. */
+  sheetEdge: string;
+  /** The 38 × 5 grabber. */
+  grabber: string;
+
   /** Text sitting on a filled primary button. */
   onFill: string;
   /** The 2px keyline set INSIDE a primary button's fill. */
@@ -96,6 +109,10 @@ export const darkTheme: Theme = {
   onFillWin: '#0A7A3D',
   dangerWash: 'rgba(240,112,92,0.12)',
   dangerEdge: 'rgba(240,112,92,0.35)',
+  controlFill: 'rgba(255,255,255,0.09)',
+  sheetGround: '#101013',
+  sheetEdge: 'rgba(255,255,255,0.12)',
+  grabber: 'rgba(255,255,255,0.22)',
   onFill: '#0C0D0F',
   keyline: '#0A0A0B',
   danger: '#F0705C',
@@ -131,6 +148,10 @@ export const lightTheme: Theme = {
   onFillWin: '#6FCF97',
   dangerWash: 'rgba(176,58,40,0.12)',
   dangerEdge: 'rgba(176,58,40,0.35)',
+  controlFill: 'rgba(12,13,15,0.06)',
+  sheetGround: '#FFFFFF',
+  sheetEdge: 'rgba(12,13,15,0.10)',
+  grabber: 'rgba(12,13,15,0.18)',
   onFill: '#FFFFFF',
   keyline: '#FFFFFF',
   danger: '#B03A28',
@@ -159,8 +180,16 @@ export const type = {
   display: { fontSize: 64, fontWeight: '800', letterSpacing: -2.5, ...tabular },
   /** The figure inside a surface card — "On the table". 800 48/1, -.04em. */
   cardFigure: { fontSize: 48, fontWeight: '800', letterSpacing: -1.9, ...tabular },
-  /** Screen title on a pushed screen. 800 32/1.05, -.03em. */
-  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 34 },
+  /** Screen title on a pushed screen. Rev 9 draws it 800 32/1, -.03em. */
+  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 32 },
+  /** A sheet's title. Two points larger than a pushed one — it is nearer. */
+  sheetTitle: { fontSize: 34, fontWeight: '800', letterSpacing: -1.02, lineHeight: 34 },
+  /** The same, dropped to 30/1.05 when a sub-line follows it. */
+  sheetTitleWithSub: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 31.5 },
+  /** A sheet's sub-line: what this one is about. */
+  sheetSub: { fontSize: 13, fontWeight: '500' },
+  /** The line under a pushed title — "The poker club · 3h 17m · since 20:05". */
+  navMeta: { fontSize: 13, fontWeight: '500', ...tabular },
   /** The group's name on home. 800 30/1.05 — two smaller than a pushed title. */
   homeTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 32 },
   /** A home destination — "The group", "My stats". 800 30, -.03em. */
@@ -285,4 +314,41 @@ export const control = {
   keylineWidth: 2,
   outlineWidth: 2,
   quietWidth: 1.5,
+} as const;
+
+/**
+ * The two navigation chromes — 09-navigation.md, drawn on `Nav System`.
+ *
+ * A pushed screen carries a round back and NOTHING in its top-right corner. A
+ * sheet carries a grabber and a close and never a chevron. Those two
+ * vocabularies are the only thing telling somebody which gesture takes them
+ * back, so they must never be mixed — which is why both live in one block here
+ * rather than being spelled out per screen.
+ */
+export const nav = {
+  /** Chrome A. The 68 aligns the meta under the title, not under the button. */
+  titleRowPadTop: 26,
+  titleRowPadH: 20,
+  titleGap: 12,
+  backSize: 36,
+  backRadius: 18,
+  metaPadTop: 8,
+  metaIndent: 68,
+
+  /** Chrome B. The panel itself is the native sheet; these are its contents. */
+  sheetRadius: 26,
+  sheetTopInset: 18,
+  grabberWidth: 38,
+  grabberHeight: 5,
+  grabberRadius: 3,
+  grabberPadTop: 9,
+  grabberPadBottom: 2,
+  sheetTitlePadTop: 12,
+  sheetPadH: 22,
+  sheetTitleGap: 11,
+  closeSize: 30,
+  closeRadius: 15,
+  subPadTop: 7,
+  /** What is behind a sheet, dimmed. Not a colour — an opacity on the screen. */
+  behindOpacity: 0.32,
 } as const;

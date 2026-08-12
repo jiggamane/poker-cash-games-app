@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, resolveLedger, settle, type MoneyRule } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { nameOf, toggleRule, useNight } from '../src/lib/nightStore';
@@ -38,7 +38,7 @@ export default function MoneyRules() {
     }
   }, [night]);
 
-  if (night === null) return <Screen title="Money rules" backTo="Tonight">{null}</Screen>;
+  if (night === null) return <Sheet title="Money rules">{null}</Sheet>;
 
   const ledger = resolveLedger(night.entries);
   const rules = [...night.rules].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -54,10 +54,9 @@ export default function MoneyRules() {
     });
 
   return (
-    <Screen
+    <Sheet
       title="Money rules"
-      backTo="Tonight"
-      lede="What comes off the table at settle-up, in the order it is taken. Nothing here touches a hand while it is being played."
+      sub="What comes off the table at settle-up, in the order it is taken. Nothing here touches a hand while it is being played."
     >
       <View style={styles.cards}>
         {rules.map((rule) => {
@@ -130,7 +129,7 @@ export default function MoneyRules() {
         These belong to tonight. A night is settled with the rules it opened with, so editing one
         here changes this night and not the ones already closed.
       </Text>
-    </Screen>
+    </Sheet>
   );
 }
 

@@ -66,8 +66,7 @@ export default function Settled() {
     <Screen
       title={started.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
       backTo="The group"
-      action={{ label: 'Share' }}
-      lede={`${clock(night.startedAt)} · ${night.players.length} players · settled`}
+      meta={`${clock(night.startedAt)} · ${night.players.length} players · settled`}
       footer={<Button label="Done" variant="secondary" onPress={() => router.dismissTo('/')} />}
     >
       <View style={[styles.strip, { borderColor: t.hairline }]}>

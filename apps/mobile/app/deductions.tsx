@@ -83,18 +83,24 @@ export default function Deductions() {
     <Screen
       title="Deductions"
       backTo="Count up"
-      action={{ label: 'Edit', onPress: () => router.push('/money-rules') }}
       step="2 of 3"
       footer={
-        <Button
-          label={
-            taken.length === 0
-              ? 'Nothing comes off · settle up'
-              : `${formatMoney(totalOffTable)} off the table · settle up`
-          }
-          variant="primary"
-          onPress={() => router.push('/settle-up')}
-        />
+        <>
+          <Button
+            label={
+              taken.length === 0
+                ? 'Nothing comes off · settle up'
+                : `${formatMoney(totalOffTable)} off the table · settle up`
+            }
+            variant="primary"
+            onPress={() => router.push('/settle-up')}
+          />
+          <Button
+            label="Edit the money rules"
+            variant="secondary"
+            onPress={() => router.push('/money-rules')}
+          />
+        </>
       }
     >
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>

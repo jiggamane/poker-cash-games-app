@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, formatSigned, resolveLedger, type Money } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { depthOf, standingOf, useNight } from '../src/lib/nightStore';
@@ -28,15 +28,15 @@ export default function PlayerPage() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   if (night === null || ledger === null) {
-    return <Screen title="Player" backTo="Tonight">{null}</Screen>;
+    return <Sheet title="Player">{null}</Sheet>;
   }
 
   const player = night.players.find((p) => p.id === id);
   if (player === undefined) {
     return (
-      <Screen title="Player" backTo="Tonight">
+      <Sheet title="Player">
         <Text style={[styles.note, { color: t.muted }]}>Nobody by that name tonight.</Text>
-      </Screen>
+      </Sheet>
     );
   }
 
@@ -63,9 +63,8 @@ export default function PlayerPage() {
   const first = mine[0];
 
   return (
-    <Screen
+    <Sheet
       title={player.name}
-      backTo="Tonight"
       footer={
         stillIn ? (
           <View style={styles.actions}>
@@ -171,7 +170,7 @@ export default function PlayerPage() {
           </Pressable>
         ))}
       </View>
-    </Screen>
+    </Sheet>
   );
 }
 

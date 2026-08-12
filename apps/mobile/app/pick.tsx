@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, resolveLedger } from '@poker-club/core';
 import { Avatar } from '../src/components/Avatar';
 import { Icon } from '../src/components/Icon';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { depthOf, standingsOf, useNight } from '../src/lib/nightStore';
@@ -28,7 +28,7 @@ export default function Pick() {
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
-  if (night === null || ledger === null) return <Screen title="Tonight" backTo="Tonight">{null}</Screen>;
+  if (night === null || ledger === null) return <Sheet title="Tonight">{null}</Sheet>;
 
   const standings = standingsOf(night, ledger);
 
@@ -42,11 +42,9 @@ export default function Pick() {
     router.push({ pathname: '/log', params: { player: playerId, kind } });
 
   return (
-    <Screen
+    <Sheet
       title={cashingOut ? 'Who’s cashing out?' : 'Who’s playing?'}
-      backTo="Tonight"
-      action={{ label: 'Cancel', quiet: true, onPress: () => router.back() }}
-      lede={
+      sub={
         cashingOut
           ? 'Pick whoever is leaving the table. You will count their chips next.'
           : 'Pick someone at the table to add chips, or seat a player who isn’t in yet.'
@@ -128,7 +126,7 @@ export default function Pick() {
           </>
         )}
       </View>
-    </Screen>
+    </Sheet>
   );
 }
 

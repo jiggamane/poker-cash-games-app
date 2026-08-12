@@ -5,7 +5,7 @@ import { formatMoney, formatSigned, money, resolveLedger, type Money } from '@po
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Keypad, appendDigits } from '../src/components/Keypad';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import {
@@ -52,7 +52,7 @@ export default function Log() {
   const [typed, setTyped] = useState<string>(counting ? '0' : String(suggested));
   const [busy, setBusy] = useState(false);
 
-  if (night === null || ledger === null) return <Screen title="Tonight" backTo="Tonight">{null}</Screen>;
+  if (night === null || ledger === null) return <Sheet title="Tonight">{null}</Sheet>;
 
   const amount = typed === '' ? 0 : Number(typed);
 
@@ -129,22 +129,14 @@ export default function Log() {
   const stamped = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <Screen
+    <Sheet
       title={name}
-      backTo={
-        kind === 'count'
-          ? 'Count up'
-          : kind === 'cashout'
-            ? 'Who’s cashing out?'
-            : 'Who’s playing?'
-      }
-      action={{ label: 'Cancel', quiet: true, onPress: () => router.dismissTo('/session') }}
-      trailing={
+      badge={
         <View style={[styles.tag, { backgroundColor: t.raised }]}>
           <Text style={[styles.tagText, { color: t.text }]}>{tag}</Text>
         </View>
       }
-      lede={under}
+      sub={under}
       footer={
         <Button
           label={commitLabel}
@@ -209,7 +201,7 @@ export default function Log() {
         onDigits={(d) => setTyped((cur) => appendDigits(cur, d))}
         onBackspace={() => setTyped((cur) => cur.slice(0, -1))}
       />
-    </Screen>
+    </Sheet>
   );
 }
 

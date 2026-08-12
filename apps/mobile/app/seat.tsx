@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { formatMoney, money, resolveLedger } from '@poker-club/core';
 import { Button } from '../src/components/Button';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { addPlayer, defaultBuyIn, seatAndBuyIn, useNight } from '../src/lib/nightStore';
@@ -29,7 +29,7 @@ export default function Seat() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   if (night === null || ledger === null) {
-    return <Screen title="New player" backTo="Who’s playing?">{null}</Screen>;
+    return <Sheet title="New player">{null}</Sheet>;
   }
 
   const suggested = defaultBuyIn(ledger);
@@ -65,11 +65,9 @@ export default function Seat() {
   }
 
   return (
-    <Screen
+    <Sheet
       title="New player"
-      backTo="Who’s playing?"
-      action={{ label: 'Cancel', quiet: true, onPress: () => router.back() }}
-      lede="Seats them tonight and adds them to the group roster. They can be invited later."
+      sub="Seats them tonight and adds them to the group roster. They can be invited later."
       footer={
         <>
           <Button
@@ -146,7 +144,7 @@ export default function Seat() {
           {ledger.totalBoughtIn === 0 ? 'the usual' : 'same as the table'}
         </Text>
       </View>
-    </Screen>
+    </Sheet>
   );
 }
 

@@ -5,7 +5,7 @@ import { formatMoney, money, resolveLedger } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Keypad, appendDigits } from '../src/components/Keypad';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { correctEntry, nameOf, useNight, voidEntry } from '../src/lib/nightStore';
@@ -34,15 +34,15 @@ export default function EntryPage() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   if (night === null || ledger === null) {
-    return <Screen title="One entry" backTo="Tonight">{null}</Screen>;
+    return <Sheet title="One entry">{null}</Sheet>;
   }
 
   const entry = ledger.entries.find((e) => e.id === id);
   if (entry === undefined) {
     return (
-      <Screen title="One entry" backTo="Tonight">
+      <Sheet title="One entry">
         <Text style={[styles.note, { color: t.muted }]}>That entry is not in this night.</Text>
-      </Screen>
+      </Sheet>
     );
   }
 
@@ -72,10 +72,8 @@ export default function EntryPage() {
   }
 
   return (
-    <Screen
+    <Sheet
       title="One entry"
-      backTo="Tonight"
-      action={{ label: 'Cancel', quiet: true, onPress: () => router.back() }}
       footer={
         mode === 'amount' ? (
           <Button
@@ -151,7 +149,7 @@ export default function EntryPage() {
           />
         </>
       )}
-    </Screen>
+    </Sheet>
   );
 }
 

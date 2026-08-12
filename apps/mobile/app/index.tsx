@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
+import { Avatar } from '../src/components/Avatar';
 import { Icon, type IconName } from '../src/components/Icon';
 import { useLedger, useNight } from '../src/lib/nightStore';
 
@@ -18,13 +19,14 @@ import { useLedger, useNight } from '../src/lib/nightStore';
  * number you read. Figures belong to the night, which is why the only figure
  * anywhere on this screen is inside the card, and only when a night is open.
  *
- * Home does not use `Screen`: it has no back bar, and its header is inset 24
- * where a pushed screen's title is inset 22.
+ * Home does not use `Screen`: rev 9 gives the root the same title line without
+ * the back button, with the avatar where the button would be.
  */
 export default function Home() {
   const t = useTheme();
   const night = useNight();
   const ledger = useLedger();
+  const members = night?.players.length ?? 0;
 
   // A night is live until it has been settled. H2 — "Start a session" — is what
   // this becomes once it has, and once starting one is a thing you can do.
@@ -41,9 +43,22 @@ export default function Home() {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+      {/* The root chrome — N1 on the Nav System board.
+          The same title line as a pushed screen, two points smaller and with no
+          chevron: this is the one screen nothing precedes. What sits where a
+          pushed screen keeps its back button is the avatar, pushed right, and
+          the "Your group" eyebrow above the name is gone — the name is the
+          heading, and what it needs beneath it is who and when. */}
       <View style={styles.header}>
-        <Text style={[styles.groupLabel, { color: t.muted }]}>Your group</Text>
-        <Text style={[styles.title, { color: t.text }]}>{night?.groupName ?? 'The Poker Club'}</Text>
+        <View style={styles.headerText}>
+          <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
+            {night?.groupName ?? 'The Poker Club'}
+          </Text>
+          <Text style={[styles.headerMeta, { color: t.muted }]} numberOfLines={1}>
+            {members === 0 ? 'No players yet' : `${members} ${members === 1 ? 'member' : 'members'}`}
+          </Text>
+        </View>
+        <Avatar name={night?.groupName ?? 'The Poker Club'} />
       </View>
 
       {/* The one filled thing on the screen. Inverted — ink on white, white on
@@ -185,9 +200,17 @@ function elapsed(startedAt: string): string {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
 
-  // 28 / 24 / 20 — the home header is inset 24, not the 22 of a pushed title.
-  header: { paddingTop: 28, paddingHorizontal: space.home, paddingBottom: 20, gap: 4 },
-  groupLabel: type.groupLabel,
+  // 30 / 22 / 20, gap 11 — N1 on the Nav System board.
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    paddingTop: 30,
+    paddingHorizontal: space.page,
+    paddingBottom: 20,
+  },
+  headerText: { flexShrink: 1, gap: 4 },
+  headerMeta: type.navMeta,
   title: type.homeTitle,
 
   card: {

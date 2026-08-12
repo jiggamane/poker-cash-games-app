@@ -3,47 +3,50 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
-import { space, type } from '../design/tokens';
+import { nav, space, type } from '../design/tokens';
 import { Icon } from './Icon';
 
 /**
- * The frame every pushed screen sits in.
+ * Chrome A — a screen you navigate TO. See docs 09-navigation.md.
  *
- * A pushed screen carries a back that is LABELLED with where it returns to —
- * not a bare chevron — and a home glyph on the right, because the design's
- * whole navigation idea is that the club is always one tap away without a tab
- * bar.
+ * A place you can stay in: the night, the settings, a step of the close flow.
+ * Everything you open to DO one thing is a sheet instead, and the difference is
+ * carried entirely by the chrome — a round back and no grabber here, a grabber
+ * and a close and no chevron there. Somebody halfway through a night reads
+ * which gesture takes them back off that one signal, so the two vocabularies
+ * must never mix.
  *
- * Three bands, each measured off the board and each with its OWN inset:
+ *   [status bar]
+ *   [ ← ]  Title   BADGE      ← 26 / 20 / 0, gap 12, back 36 × 36
+ *          meta · line        ← 8 / 20 / 0 / 68
  *
- *   bar     16 / 20 / 4      chevron 11×18, gap 5, label 500 17
- *   title    4 / 22 / 10     32/1.05, baseline-aligned trailing
- *   footer  16 / 20 / 6      no rule above it — the board draws none
+ * **The top-right corner is empty.** No actions, no overflow, no icons — on
+ * every pushed screen in the app. It is the one rule in rev 9 with no
+ * exceptions, and it is why the home glyph and the "Edit" text action that used
+ * to live up here are gone: the club is what back returns to, and an action
+ * belongs in the page or in the footer where it can be read.
  *
- * The 20-vs-22 difference between the bar and the title is deliberate and it is
- * visible; do not tidy them into one page margin.
+ * The 68 on the meta line is not a round number, it is the back button plus its
+ * gap — the line hangs under the TITLE, not under the button.
  */
 export function Screen({
   title,
-  trailing,
+  badge,
+  meta,
   backTo,
-  action,
-  barExtra,
   step,
   lede,
   children,
   footer,
 }: {
   title: string;
-  /** On the title's baseline, right-aligned — a live badge, a duration. */
-  trailing?: ReactNode;
-  /** The name of the screen this returns to. Omit on the root. */
+  /** A status pill, directly after the title on the same line. */
+  badge?: ReactNode;
+  /** One line beneath: whose club, how long, since when. */
+  meta?: string;
+  /** Where back goes. Read aloud, not drawn — rev 9 retired the label. */
   backTo?: string;
-  /** A text action at the right of the bar — "Edit", "Cancel". */
-  action?: { label: string; onPress?: () => void; quiet?: boolean };
-  /** A glyph in the bar, left of the home one. */
-  barExtra?: ReactNode;
-  /** Numbered flows say "3 of 3" — the close flow is genuinely sequential. */
+  /** Numbered flows say "3 of 3". Sits with the badge; it states, never acts. */
   step?: string;
   /** One paragraph under the title, saying what the screen is showing. */
   lede?: string;
@@ -55,63 +58,37 @@ export function Screen({
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
-      {backTo !== undefined && (
-        <View style={styles.bar}>
+      <View style={styles.titleRow}>
+        {backTo !== undefined && (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Back to ${backTo}`}
             onPress={() => router.back()}
-            hitSlop={12}
-            style={({ pressed }) => [styles.back, { opacity: pressed ? 0.6 : 1 }]}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.back,
+              { backgroundColor: t.controlFill, opacity: pressed ? 0.6 : 1 },
+            ]}
           >
             <Icon name="back" color={t.text} />
-            <Text style={[styles.backLabel, { color: t.text }]} numberOfLines={1}>
-              {backTo}
-            </Text>
           </Pressable>
+        )}
 
-          <View style={styles.barTrailing}>
-            {barExtra}
-            {action !== undefined && (
-              <Pressable
-                accessibilityRole="button"
-                onPress={action.onPress}
-                hitSlop={12}
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Text
-                  style={[
-                    action.quiet === true ? styles.barActionQuiet : styles.barAction,
-                    { color: action.quiet === true ? t.muted : t.text },
-                  ]}
-                >
-                  {action.label}
-                </Text>
-              </Pressable>
-            )}
+        <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
+          {title}
+        </Text>
+        {badge}
+        {step !== undefined && <Text style={[styles.step, { color: t.muted }]}>{step}</Text>}
+      </View>
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="The group"
-              onPress={() => router.dismissTo('/')}
-              hitSlop={12}
-              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-            >
-              <Icon name="home" color={t.muted} />
-            </Pressable>
-          </View>
-        </View>
+      {meta !== undefined && (
+        <Text style={[styles.meta, { color: t.muted }]} numberOfLines={1}>
+          {meta}
+        </Text>
       )}
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: t.text }]}>{title}</Text>
-          {trailing}
-          {step !== undefined && <Text style={[styles.step, { color: t.muted }]}>{step}</Text>}
-        </View>
-
         {lede !== undefined && <Text style={[styles.lede, { color: t.muted }]}>{lede}</Text>}
-
         {children}
       </ScrollView>
 
@@ -123,31 +100,31 @@ export function Screen({
 const styles = StyleSheet.create({
   screen: { flex: 1 },
 
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: space.card,
-    paddingTop: 16,
-    paddingBottom: 4,
-  },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 },
-  backLabel: type.eyebrow,
-  barTrailing: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 16 },
-  barAction: type.barAction,
-  barActionQuiet: type.eyebrow,
-
-  content: { paddingBottom: 24 },
   titleRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 10,
-    paddingHorizontal: space.page,
-    paddingTop: 4,
-    paddingBottom: 10,
+    alignItems: 'center',
+    gap: nav.titleGap,
+    paddingTop: nav.titleRowPadTop,
+    paddingHorizontal: nav.titleRowPadH,
   },
-  title: type.title,
-  step: { ...type.meta, fontWeight: '600', marginLeft: 'auto' },
+  back: {
+    width: nav.backSize,
+    height: nav.backSize,
+    borderRadius: nav.backRadius,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  title: { ...type.title, flexShrink: 1 },
+  step: { ...type.navMeta, marginLeft: 'auto' },
+  meta: {
+    ...type.navMeta,
+    paddingTop: nav.metaPadTop,
+    paddingRight: nav.titleRowPadH,
+    paddingLeft: nav.metaIndent,
+  },
+
+  content: { paddingTop: 14, paddingBottom: 24 },
   lede: { ...type.lede, marginHorizontal: space.page, marginBottom: 12 },
 
   footer: {

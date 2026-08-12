@@ -13,8 +13,10 @@ import { Circle, Path, Svg } from 'react-native-svg';
 export type IconName =
   /** A row's "go here" arrow, and the payer → payee arrow on a transfer. */
   | 'arrow'
-  /** Back, in the navigation bar. */
+  /** Back, inside the round button on a pushed screen's title line. */
   | 'back'
+  /** Dismisses a sheet. Never appears on a pushed screen. */
+  | 'close'
   /** The small chevron at the end of a tappable row. */
   | 'chevron'
   /** The club, always one tap away. */
@@ -58,17 +60,30 @@ export function Icon({
     }
 
     case 'back': {
-      // The only glyph drawn on a 12 × 20 box rather than 24 × 24.
-      const h = size ?? 18;
+      // The only glyph drawn on a 12 × 20 box rather than 24 × 24. Rev 9 draws
+      // it 10 × 17 at 2.4 inside the round button, a hair heavier and shorter
+      // than the kicker row's 11 × 18 at 2.3 that it replaces.
+      const h = size ?? 17;
       return (
-        <Svg width={(h * 11) / 18} height={h} viewBox="0 0 12 20" fill="none">
+        <Svg width={(h * 10) / 17} height={h} viewBox="0 0 12 20" fill="none">
           <Path
-            d="M9.5 2L2 10l7.5 8"
+            d="M9 2L2 10l7 8"
             stroke={color}
-            strokeWidth={2.3}
+            strokeWidth={2.4}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+        </Svg>
+      );
+    }
+
+    case 'close': {
+      // A sheet's only way out that is a control. 12 × 12 at 2.6 — small and
+      // heavy, so it reads at the size the design gives it.
+      const s = size ?? 12;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path d="M5 5l14 14M19 5L5 19" stroke={color} strokeWidth={2.6} strokeLinecap="round" />
         </Svg>
       );
     }

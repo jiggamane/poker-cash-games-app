@@ -18,8 +18,15 @@ import { isSupabaseConfigured, supabase, watchedSessionId } from '../src/lib/sup
  * the policies are wrong, the correct outcome is an empty screen, not a screen
  * that fills itself in from a client-side rule about who counts as a watcher.
  *
- * It is deliberately plain. The designed watcher screen is a later piece of
- * work; what this proves is the mechanism — link in, rows out, live.
+ * It is deliberately plain. The designed watcher screen is X1 on the
+ * After-the-night board and a later piece of work; what this proves is the
+ * mechanism — link in, rows out, live.
+ *
+ * Rev 9 classifies X1 as a ROOT, "for a watcher's install" — the home screen of
+ * a phone that only ever watches. This is a push instead, because the app has
+ * no notion yet of an install that belongs to a watcher rather than a host, and
+ * inventing one to satisfy the chrome would be the tail wagging the dog. It
+ * becomes a root when that distinction is real.
  */
 export default function Watch() {
   const t = useTheme();

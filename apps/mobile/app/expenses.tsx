@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, resolveLedger, settle, type Money } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { nameOf, useNight } from '../src/lib/nightStore';
@@ -49,7 +49,7 @@ export default function Expenses() {
   }, [night]);
 
   if (night === null || ledger === null) {
-    return <Screen title="Food &amp; drinks" backTo="Tonight">{null}</Screen>;
+    return <Sheet title="Food &amp; drinks">{null}</Sheet>;
   }
 
   const expenses = ledger.entries.filter((e) => !e.voided && e.type === 'expense');
@@ -57,10 +57,9 @@ export default function Expenses() {
   const billRule = night.rules.find((r) => r.destination === 'bill' && r.active);
 
   return (
-    <Screen
+    <Sheet
       title="Food &amp; drinks"
-      backTo="Tonight"
-      lede={
+      sub={
         billRule === undefined
           ? 'Recorded, and nothing more — no rule shares this out, so whoever paid, paid.'
           : undefined
@@ -156,7 +155,7 @@ export default function Expenses() {
           ))}
         </View>
       )}
-    </Screen>
+    </Sheet>
   );
 }
 

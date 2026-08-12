@@ -108,7 +108,6 @@ export default function SettleUp() {
     <Screen
       title="Settle up"
       backTo="Deductions"
-      action={{ label: 'Edit', onPress: () => router.push('/money-rules') }}
       step="3 of 3"
       lede={lede}
       footer={
@@ -121,6 +120,11 @@ export default function SettleUp() {
               router.dismissTo('/');
               router.push('/settled');
             }}
+          />
+          <Button
+            label="Edit the money rules"
+            variant="secondary"
+            onPress={() => router.push('/money-rules')}
           />
           <View style={styles.footerRow}>
             <Button label="Share" variant="secondary" style={styles.footerAction} />

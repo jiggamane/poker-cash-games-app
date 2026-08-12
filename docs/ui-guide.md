@@ -145,7 +145,10 @@ bone. Used for "House rules" — a quiet action that is not a button.
 1. Find it in `docs/screen-specs/`.
 2. Copy the measurements into the component. Do not round them to something
    tidier — the tidier number is what makes it look wrong.
-3. Use `Screen` for the frame; it owns the bar, title and footer.
+3. Pick the frame with rev 9's test: if the screen ends in a Save, an Add, an
+   Apply or a confirm it is a `Sheet`; if it is a place you can stay in it is a
+   `Screen`. Whichever it is, add it to the classification comment in
+   `app/_layout.tsx` — a sheet is a route option, not just a component.
 4. Check both themes before saying it is done. The bright theme has caught two
    bugs that the dark theme hid.
 5. If a value genuinely is not in the spec, add it to `tokens.ts` with a comment
@@ -157,9 +160,10 @@ bone. Used for "House rules" — a quiet action that is not a button.
 
 Two, both marked in the code with the reason. Everything else is copied.
 
-**The home glyph is always rightmost in a bar.** `[N1]`/`[N2]` put it last;
-`[E4]` puts it before the text action. Navigation that moves between screens is
-worse than a 16px ordering difference on one screen.
+~~**The home glyph is always rightmost in a bar.**~~ **Settled by rev 9, and the
+difference is gone.** There is no home glyph and no bar: a pushed screen carries
+a round back on its title line and **nothing in its top-right corner**. See
+`09-navigation.md`, and `Screen`/`Sheet` for the two chromes.
 
 **The bright theme's "playing now" dot is `#6FCF97`, not `#0A7A3D`.** Both boards
 draw it in the dark green, but on the bright screen that card is filled with
