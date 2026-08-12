@@ -113,7 +113,17 @@ export interface DiscrepancyAcknowledgement {
   /** The host who confirmed it. */
   confirmedByUserId: string;
   confirmedAt: string;
+  /** What the host says happened. Shown wherever the night is read back. */
   note?: string;
+  /**
+   * Who takes the shortfall, if the room decided on the spot.
+   *
+   * Leave it unset to close the night with the gap recorded but unassigned —
+   * the figures stand, the note explains, and the payouts can be adjusted by
+   * hand afterwards. Set it to a person or to the kitty's collector to have
+   * somebody absorb it immediately instead.
+   */
+  absorbedByPlayerId?: PlayerId;
 }
 
 /** One player's night, end to end. */

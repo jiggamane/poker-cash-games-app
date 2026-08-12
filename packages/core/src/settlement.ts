@@ -184,10 +184,25 @@ export function settle(input: SettlementInput): SettlementResult {
 
   // A confirmed shortfall is carried by a named party rather than quietly
   // spread across the players. The books close, and the hole stays visible.
+  //
+  // Either somebody absorbs it now — a player, or whoever holds the kitty — or
+  // it is left against 'Unaccounted', which records the gap without deciding
+  // who eats it. Both close the night; the second leaves the payouts to be
+  // adjusted by hand later.
   const participants: Player[] = [...players];
   if (reconciliation.difference !== 0) {
-    participants.push({ id: UNACCOUNTED_ID, name: UNACCOUNTED_NAME, atTable: false });
-    gross.set(UNACCOUNTED_ID, money(-reconciliation.difference));
+    const absorber = ack?.absorbedByPlayerId;
+    if (absorber !== undefined) {
+      if (!known.has(absorber)) {
+        throw new SettlementError(
+          `The shortfall is assigned to ${absorber}, who is not in the player list`,
+        );
+      }
+      gross.set(absorber, money(gross.get(absorber)! - reconciliation.difference));
+    } else {
+      participants.push({ id: UNACCOUNTED_ID, name: UNACCOUNTED_NAME, atTable: false });
+      gross.set(UNACCOUNTED_ID, money(-reconciliation.difference));
+    }
   }
 
   // --- 2. Apply the rules, in order -----------------------------------------

@@ -191,3 +191,46 @@ describe('rounding granularity', () => {
     expect(() => granularityOf('cents')).toThrow(MoneyError);
   });
 });
+
+describe('custom can charge everyone, not only winners', () => {
+  it('lets the host type an amount for every player at the table', () => {
+    // "Everyone pays" lives here: the host names the people and the amounts,
+    // whether or not they are in profit.
+    const r = settle(
+      night(
+        bill({
+          split: 'custom',
+          customShares: [
+            { playerId: DANA, amount: money(50) },
+            { playerId: MAREK, amount: money(50) },
+            { playerId: LENA, amount: money(40) },
+            { playerId: PETR, amount: money(30) }, // down on the night, still pays
+          ],
+        }),
+      ),
+    );
+    expect(charged(r, DANA)).toBe(50);
+    expect(charged(r, MAREK)).toBe(50);
+    expect(charged(r, LENA)).toBe(40);
+    expect(charged(r, PETR)).toBe(30);
+    expect(r.totalOffTable).toBe(170);
+  });
+
+  it('lets the host charge a subset and leave the rest out', () => {
+    const r = settle(
+      night(
+        bill({
+          split: 'custom',
+          customShares: [
+            { playerId: DANA, amount: money(120) },
+            { playerId: PETR, amount: money(50) },
+          ],
+        }),
+      ),
+    );
+    expect(charged(r, DANA)).toBe(120);
+    expect(charged(r, PETR)).toBe(50);
+    expect(charged(r, MAREK)).toBe(0);
+    expect(charged(r, LENA)).toBe(0);
+  });
+});

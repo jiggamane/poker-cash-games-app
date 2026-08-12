@@ -769,3 +769,77 @@ describe('invariants over many random nights', () => {
     }
   });
 });
+
+describe('what happens to money that is missing', () => {
+  // Two ways to close a short night, both allowed: record the gap and sort the
+  // payouts out afterwards, or have somebody absorb it there and then.
+  const shortNight = (
+    ack: Partial<SettlementInput['acknowledgedDiscrepancy']> = {},
+  ): SettlementInput => {
+    reset();
+    return {
+      players: [at(MAREK), at(PETR), at(DANA), away(RADKA)],
+      entries: [buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000)],
+      finalCounts: counts([[MAREK, 1500], [PETR, 950], [DANA, 500]]), // 50 short
+      rules: [],
+      acknowledgedDiscrepancy: {
+        amount: money(-50),
+        confirmedByUserId: 'host-1',
+        confirmedAt: '2026-08-12T23:59:00.000Z',
+        note: 'Fifty short after counting twice.',
+        ...ack,
+      },
+    };
+  };
+
+  it('records the gap and leaves it unassigned by default', () => {
+    const r = settle(shortNight());
+    const unaccounted = r.players.find((p) => p.playerId === UNACCOUNTED_ID);
+
+    expect(unaccounted?.finalPosition).toBe(50);
+    expect(r.acknowledgedDiscrepancy?.note).toBe('Fifty short after counting twice.');
+    // nobody's own result was quietly altered to make it balance
+    expect(positionOf(r, MAREK)).toBe(500);
+    expect(positionOf(r, PETR)).toBe(-50);
+    expect(positionOf(r, DANA)).toBe(-500);
+  });
+
+  it('lets the kitty holder absorb it there and then', () => {
+    const r = settle(shortNight({ absorbedByPlayerId: RADKA }));
+
+    // no phantom party: the shortfall sits with a real person
+    expect(r.players.some((p) => p.playerId === UNACCOUNTED_ID)).toBe(false);
+    expect(positionOf(r, RADKA)).toBe(50);
+    expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
+    expect(transfersBalance(r)).toBe(true);
+  });
+
+  it('lets a player take it instead', () => {
+    const r = settle(shortNight({ absorbedByPlayerId: MAREK }));
+    // Marek was up 500 and takes the 50 himself
+    expect(positionOf(r, MAREK)).toBe(550);
+    expect(r.players.some((p) => p.playerId === UNACCOUNTED_ID)).toBe(false);
+  });
+
+  it('absorbs a surplus the other way round', () => {
+    reset();
+    const r = settle({
+      players: [at(PETR), at(DANA), away(RADKA)],
+      entries: [buyin(PETR, 1000), buyin(DANA, 1000)],
+      finalCounts: counts([[PETR, 1000], [DANA, 1075]]), // 75 too many
+      rules: [],
+      acknowledgedDiscrepancy: {
+        amount: money(75),
+        confirmedByUserId: 'host-1',
+        confirmedAt: '2026-08-12T23:59:00.000Z',
+        absorbedByPlayerId: RADKA,
+      },
+    });
+    expect(positionOf(r, RADKA)).toBe(-75);
+    expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
+  });
+
+  it('refuses to hand the shortfall to somebody who was not there', () => {
+    expect(() => settle(shortNight({ absorbedByPlayerId: 'ghost' }))).toThrow(SettlementError);
+  });
+});

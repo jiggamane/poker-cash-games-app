@@ -93,3 +93,22 @@ comment on column session.settlement_due_kind is
 -- so ties would surface as rules silently swapping places.
 create unique index money_rule_order_unique
   on money_rule (book_id, sort_order);
+
+-- --- E5: what happens to money that is missing -------------------------------
+-- Two ways to close a short night, both legitimate:
+--
+--   RECORD  — the gap is confirmed and noted, nobody is assigned it, and the
+--             payouts get adjusted by hand afterwards. This is the default.
+--   ABSORB  — somebody takes it on the spot: a player, or whoever holds the
+--             kitty. Available, but never the automatic choice; the app must
+--             not decide on its own that the kitty eats a shortfall.
+alter table settlement
+  add column discrepancy_absorbed_by uuid references player (id) on delete restrict;
+
+alter table settlement
+  add constraint settlement_absorber_needs_a_discrepancy check (
+    discrepancy_absorbed_by is null or discrepancy_amount <> 0
+  );
+
+comment on column settlement.discrepancy_absorbed_by is
+  'Null means the gap was recorded but left unassigned — the note explains it and the payouts are adjusted by hand. Set means this person took it at settle-up.';
