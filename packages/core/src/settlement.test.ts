@@ -58,7 +58,7 @@ function rule(over: Partial<MoneyRule> & { id: string }): MoneyRule {
     basis: 'gross',
     charge: 'winners_only',
     destination: 'kitty',
-    split: 'equal',
+    split: 'evenly',
     collectorPlayerId: RADKA,
     sortOrder: 0,
     ...over,
@@ -214,11 +214,11 @@ describe('closing a night that does not balance', () => {
       finalCounts: counts([[MAREK, 2000], [PETR, 500], [DANA, 500]]),
       rules: [
         rule({ id: 'bill', name: 'Food', destination: 'bill', amountKind: 'fixed',
-               amount: money(150), charge: 'winners_only', split: 'equal', collectorPlayerId: MAREK, sortOrder: 1 }),
+               amount: money(150), charge: 'winners_only', split: 'evenly', collectorPlayerId: MAREK, sortOrder: 1 }),
         rule({ id: 'kitty', name: 'Kitty', destination: 'kitty', amountKind: 'percent',
                amount: money(10), charge: 'winners_only', collectorPlayerId: RADKA, sortOrder: 2 }),
         rule({ id: 'fee', name: 'Host fee', destination: 'host_fee', amountKind: 'fixed',
-               amount: money(20), charge: 'winners_only', split: 'equal', collectorPlayerId: RADKA, sortOrder: 3 }),
+               amount: money(20), charge: 'winners_only', split: 'evenly', collectorPlayerId: RADKA, sortOrder: 3 }),
       ],
     });
 
@@ -328,7 +328,7 @@ describe('fixed rules and how they are split', () => {
       entries: [buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000)],
       finalCounts: counts([[MAREK, 1000], [PETR, 1000], [DANA, 1000]]),
       rules: [
-        rule({ id: 'kitty', amountKind: 'fixed', amount: money(100), charge: 'everyone_flat', split: 'equal' }),
+        rule({ id: 'kitty', amountKind: 'fixed', amount: money(100), charge: 'everyone_flat', split: 'evenly' }),
       ],
     });
 
@@ -348,7 +348,7 @@ describe('fixed rules and how they are split', () => {
       // Marek +2000, Petr +1000, Dana -3000
       finalCounts: counts([[MAREK, 3000], [PETR, 2000], [DANA, 0]]),
       rules: [
-        rule({ id: 'bill2', amountKind: 'fixed', amount: money(300), charge: 'winners_only', split: 'by_win_size' }),
+        rule({ id: 'bill2', amountKind: 'fixed', amount: money(300), charge: 'winners_only', split: 'by_percent' }),
       ],
     });
 
@@ -364,7 +364,7 @@ describe('fixed rules and how they are split', () => {
       entries: [buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000)],
       finalCounts: counts([[MAREK, 3000], [PETR, 0], [DANA, 0]]),
       rules: [
-        rule({ id: 'kitty', amountKind: 'fixed', amount: money(90), charge: 'winners_only', split: 'across_everyone' }),
+        rule({ id: 'kitty', amountKind: 'fixed', amount: money(90), charge: 'everyone_flat', split: 'evenly' }),
       ],
     });
 
@@ -449,7 +449,7 @@ describe('expenses', () => {
       finalCounts: counts([[MAREK, 1000], [PETR, 1000], [DANA, 1000]]),
       rules: [
         rule({ id: 'tab', destination: 'bill', amountKind: 'fixed', amount: money(1),
-               charge: 'everyone_flat', split: 'equal', collectorPlayerId: MAREK }),
+               charge: 'everyone_flat', split: 'evenly', collectorPlayerId: MAREK }),
       ],
     });
 
@@ -471,7 +471,7 @@ describe('expenses', () => {
       finalCounts: counts([[MAREK, 1000], [PETR, 1000], [DANA, 1000]]),
       rules: [
         rule({ id: 'tab', destination: 'bill', amountKind: 'fixed', amount: money(1),
-               charge: 'everyone_flat', split: 'equal', collectorPlayerId: MAREK }),
+               charge: 'everyone_flat', split: 'evenly', collectorPlayerId: MAREK }),
       ],
     });
 
@@ -493,7 +493,7 @@ describe('expenses', () => {
         rule({
           id: 'kitchen', name: 'Kitchen & drinks', destination: 'bill',
           amountKind: 'fixed', amount: money(1), // ignored: the expenses are the amount
-          charge: 'winners_only', split: 'by_win_size', collectorPlayerId: MAREK,
+          charge: 'winners_only', split: 'by_percent', collectorPlayerId: MAREK,
         }),
       ],
     });
@@ -513,7 +513,7 @@ describe('expenses', () => {
       finalCounts: counts([[MAREK, 1000], [PETR, 1000], [DANA, 1000]]), // nobody won
       rules: [
         rule({ id: 'bill', destination: 'bill', amountKind: 'fixed', amount: money(90),
-               charge: 'winners_only', split: 'by_win_size', collectorPlayerId: MAREK }),
+               charge: 'winners_only', split: 'by_percent', collectorPlayerId: MAREK }),
       ],
     });
 
@@ -559,7 +559,7 @@ describe('a whole night', () => {
         rule({
           id: 'kitchen', name: 'Kitchen & drinks', destination: 'bill', sortOrder: 1,
           amountKind: 'fixed', amount: money(170), charge: 'everyone_flat',
-          split: 'across_everyone', collectorPlayerId: MAREK,
+          split: 'evenly', collectorPlayerId: MAREK,
         }),
         rule({
           id: 'kitty', name: 'Group kitty', destination: 'kitty', sortOrder: 2,
@@ -693,7 +693,7 @@ describe('invariants over many random nights', () => {
     const kinds = ['percent', 'fixed'] as const;
     const bases = ['gross', 'net_after_others'] as const;
     const charges = ['winners_only', 'everyone_flat'] as const;
-    const splits = ['equal', 'by_win_size', 'across_everyone'] as const;
+    const splits = ['by_percent', 'evenly'] as const;
     const destinations = ['bill', 'kitty', 'host_fee', 'next_pot'] as const;
 
     const rules: MoneyRule[] = Array.from({ length: next(4) }, (_, i) => {
@@ -703,7 +703,9 @@ describe('invariants over many random nights', () => {
         amountKind,
         amount: money(amountKind === 'percent' ? 1 + next(100) : 1 + next(500)),
         basis: bases[next(bases.length)],
-        charge: charges[next(charges.length)],
+        // A percentage may only ever be charged to winners, so the generator
+        // never produces the pair the engine rejects.
+        charge: amountKind === 'percent' ? 'winners_only' : charges[next(charges.length)],
         split: splits[next(splits.length)],
         destination: destinations[next(destinations.length)],
         collectorPlayerId: collector,

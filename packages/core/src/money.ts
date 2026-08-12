@@ -176,3 +176,44 @@ export function formatSigned(amount: Money, currencySymbol = '$'): string {
   const sign = amount > 0 ? '+' : '-';
   return `${sign}${currencySymbol}${Math.abs(amount).toLocaleString('en-US')}`;
 }
+
+/**
+ * How coarsely a group wants divided amounts rounded.
+ *
+ * This is a money rule, not a display setting: it changes what people actually
+ * pay, so it is part of the rules snapshot a night is settled with.
+ */
+export type RoundingMode =
+  | 'cents'
+  | 'dollars'
+  | 'tens'
+  | 'fifties'
+  | 'hundreds'
+  | 'thousands';
+
+/**
+ * The granularity to hand to allocate(), in whole currency units.
+ *
+ * Unset means dollars, which is the behaviour every night has had so far.
+ */
+export function granularityOf(mode: RoundingMode | null | undefined): number {
+  switch (mode ?? 'dollars') {
+    case 'cents':
+      // Amounts are whole units today. Honouring cents means storing minor
+      // units throughout — a data migration, not a setting — so refuse rather
+      // than silently rounding to dollars and taking the wrong money.
+      throw new MoneyError(
+        'Rounding to cents needs amounts stored in minor units, which is not built yet.',
+      );
+    case 'dollars':
+      return 1;
+    case 'tens':
+      return 10;
+    case 'fifties':
+      return 50;
+    case 'hundreds':
+      return 100;
+    case 'thousands':
+      return 1000;
+  }
+}

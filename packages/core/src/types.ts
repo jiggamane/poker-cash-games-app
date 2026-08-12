@@ -50,7 +50,20 @@ export type RuleAmountKind = 'percent' | 'fixed';
 export type RuleBasis = 'gross' | 'net_after_others';
 export type RuleCharge = 'winners_only' | 'everyone_flat';
 export type RuleDestination = 'bill' | 'kitty' | 'host_fee' | 'next_pot';
-export type RuleSplit = 'equal' | 'by_win_size' | 'across_everyone';
+/**
+ * How a fixed total is divided between the people paying it.
+ *
+ *   by_percent — in proportion to the size of each win
+ *   evenly     — the same share each
+ *   custom     — the host types an amount per person. This is also how ONE
+ *                person covers a whole bill, and it is the only split that
+ *                ignores the winners-only constraint.
+ *
+ * There is deliberately no "across everyone" value: that is `charge:
+ * 'everyone_flat'` with `split: 'evenly'`, which says the same thing without
+ * two settings competing to decide who pays.
+ */
+export type RuleSplit = 'by_percent' | 'evenly' | 'custom';
 
 /** A rule that takes money off the table at settle-up — never during play. */
 export interface MoneyRule {
@@ -64,6 +77,11 @@ export interface MoneyRule {
   charge: RuleCharge;
   destination: RuleDestination;
   split: RuleSplit;
+  /**
+   * Per-person amounts, only when split is 'custom'. Must sum to the rule's
+   * resolved amount — for a bill, to the real expense total.
+   */
+  customShares?: ReadonlyArray<{ playerId: PlayerId; amount: Money }>;
   /** Exactly one person physically holds this money. Need not be playing. */
   collectorPlayerId: PlayerId;
   /** Rules apply in this order, which is what makes 'net_after_others' defined. */

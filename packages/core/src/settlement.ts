@@ -142,7 +142,27 @@ export function settle(input: SettlementInput): SettlementResult {
         `Rule "${rule.name}" names a collector (${rule.collectorPlayerId}) who is not in the player list`,
       );
     }
+    // A percentage of a loss is not a thing, so a percentage rule can only ever
+    // charge winners. The UI prevents the pair; this rejects it if it slips past.
+    if (rule.amountKind === 'percent' && rule.charge !== 'winners_only') {
+      throw new SettlementError(
+        `Rule "${rule.name}" is a percentage charged to everyone. A percentage can only be charged to winners.`,
+      );
+    }
+    if (rule.split === 'custom' && !rule.customShares) {
+      throw new SettlementError(`Rule "${rule.name}" is a custom split but names no amounts.`);
+    }
+    for (const share of rule.customShares ?? []) {
+      if (!known.has(share.playerId)) {
+        throw new SettlementError(
+          `Rule "${rule.name}" gives a custom share to ${share.playerId}, who is not in the player list`,
+        );
+      }
+    }
   }
+
+  /** Lookup used by custom splits, which name their own payers. */
+  const byId = new Map(input.players.map((p) => [p.id, p]));
 
   // --- 1. What each player did on their own ---------------------------------
   const gross = new Map<PlayerId, Money>();
@@ -176,7 +196,7 @@ export function settle(input: SettlementInput): SettlementResult {
   const deductions: Deduction[] = [];
 
   for (const spec of deductionOrder(input.rules, ledger)) {
-    const deduction = applyDeduction(spec, { ledger, atTable, gross, charged });
+    const deduction = applyDeduction(spec, { ledger, atTable, byId, gross, charged });
     if (deduction.total === 0 && deduction.charges.length === 0) continue;
 
     for (const c of deduction.charges) {
@@ -333,13 +353,14 @@ function deductionOrder(
 interface DeductionContext {
   ledger: ResolvedLedger;
   atTable: readonly Player[];
+  byId: ReadonlyMap<PlayerId, Player>;
   gross: ReadonlyMap<PlayerId, Money>;
   charged: ReadonlyMap<PlayerId, Money>;
 }
 
 function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   const { rule, reimbursesExpenses } = spec;
-  const { ledger, atTable, gross, charged } = ctx;
+  const { ledger, atTable, byId, gross, charged } = ctx;
 
   const { name, destination, id: ruleId } = rule;
 
@@ -351,9 +372,17 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
 
   // --- who pays --------------------------------------------------------------
   const everyone = atTable;
-  const winnersOnly = rule.charge === 'winners_only' && rule.split !== 'across_everyone';
 
-  let payers = winnersOnly ? everyone.filter((p) => basisFor(p.id) > 0) : everyone;
+  // A custom split names its own payers and is the one split that may charge
+  // somebody who is not in profit — it is how a single person covers a bill.
+  const custom = rule.split === 'custom' ? (rule.customShares ?? []) : null;
+  const winnersOnly = rule.charge === 'winners_only' && custom === null;
+
+  let payers = custom
+    ? custom.filter((c) => c.amount !== 0).map((c) => byId.get(c.playerId)!).filter(Boolean)
+    : winnersOnly
+      ? everyone.filter((p) => basisFor(p.id) > 0)
+      : everyone;
 
   // Somebody really spent this money, so it has to be shared by someone.
   if (payers.length === 0 && reimbursesExpenses) payers = everyone;
@@ -380,7 +409,17 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
 
   let charges: Array<{ playerId: PlayerId; amount: Money }>;
 
-  if (usePercent) {
+  if (custom) {
+    // The host typed these, so they must add up to the amount being covered
+    // exactly — the design makes that field blocking rather than a warning.
+    const typed = sum(custom.map((c) => c.amount));
+    if (typed !== fixedTotal) {
+      throw new SettlementError(
+        `Rule "${name}" has custom amounts totalling ${typed}, but ${fixedTotal} needs covering.`,
+      );
+    }
+    charges = custom.filter((c) => c.amount > 0).map((c) => ({ playerId: c.playerId, amount: c.amount }));
+  } else if (usePercent) {
     // Each payer is charged a percentage of their own share. Losers have
     // nothing to take a percentage of, so they pay nothing.
     charges = payers
@@ -393,7 +432,7 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
     // A fixed sum, divided between the payers. allocate() is what guarantees
     // the parts add back up to the whole.
     const weights =
-      rule.split === 'by_win_size'
+      rule.split === 'by_percent'
         ? payers.map((p) => Math.max(basisFor(p.id), 0))
         : payers.map(() => 1);
 

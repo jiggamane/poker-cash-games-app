@@ -181,7 +181,7 @@ select expect_rejected(
   $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
                             destination, split, collector_player_id)
     values ('b0000000-0000-0000-0000-000000000001', 'Impossible', 'percent', 150,
-            'gross', 'winners_only', 'kitty', 'equal',
+            'gross', 'winners_only', 'kitty', 'evenly',
             'c0000000-0000-0000-0000-000000000003')$$,
   'percentage rule above 100%');
 
@@ -189,7 +189,7 @@ select expect_rejected(
 insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
                         destination, split, collector_player_id)
 values ('b0000000-0000-0000-0000-000000000001', 'Kitchen & drinks', 'percent', 10,
-        'gross', 'winners_only', 'bill', 'by_win_size',
+        'gross', 'winners_only', 'bill', 'by_percent',
         'c0000000-0000-0000-0000-000000000003');
 
 select expect_eq((select count(*) from money_rule
@@ -313,5 +313,61 @@ select expect_rejected(
 update settlement set final_transfers = '[{"from":"a","to":"b","amount":10}]'
 where session_id = '50000000-0000-0000-0000-000000000001';
 
+
+-- =============================================================================
+-- 9. MONEY RULE SHAPE (0003)
+-- =============================================================================
+
+-- a percentage may only ever be charged to winners
+select expect_rejected(
+  $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                            destination, split, collector_player_id)
+    values ('b0000000-0000-0000-0000-000000000001', 'Bad percent', 'percent', 5,
+            'gross', 'everyone_flat', 'kitty', 'evenly',
+            'c0000000-0000-0000-0000-000000000003')$$,
+  'percentage charged to everyone');
+
+-- a custom split must carry its amounts
+select expect_rejected(
+  $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                            destination, split, collector_player_id)
+    values ('b0000000-0000-0000-0000-000000000001', 'Custom, empty', 'fixed', 170,
+            'gross', 'winners_only', 'bill', 'custom',
+            'c0000000-0000-0000-0000-000000000003')$$,
+  'custom split with no amounts');
+
+-- ...and a non-custom split must not
+select expect_rejected(
+  $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                            destination, split, collector_player_id, custom_shares)
+    values ('b0000000-0000-0000-0000-000000000001', 'Evenly, with shares', 'fixed', 170,
+            'gross', 'winners_only', 'bill', 'evenly',
+            'c0000000-0000-0000-0000-000000000003', '[]'::jsonb)$$,
+  'non-custom split carrying amounts');
+
+-- a valid custom split is accepted
+insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                        destination, split, collector_player_id, custom_shares, sort_order)
+values ('b0000000-0000-0000-0000-000000000001', 'Dana covers it', 'fixed', 170,
+        'gross', 'winners_only', 'bill', 'custom',
+        'c0000000-0000-0000-0000-000000000003',
+        '[{"playerId":"c0000000-0000-0000-0000-000000000001","amount":170}]'::jsonb, 5);
+
+-- two rules cannot share a position, or the order would silently swap
+select expect_rejected(
+  $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                            destination, split, collector_player_id, sort_order)
+    values ('b0000000-0000-0000-0000-000000000001', 'Same slot', 'fixed', 10,
+            'gross', 'winners_only', 'kitty', 'evenly',
+            'c0000000-0000-0000-0000-000000000003', 5)$$,
+  'duplicate rule order');
+
+-- settlement due: after_days needs a number of days
+select expect_rejected(
+  $$update book set settlement_due_kind = 'after_days'
+    where id = 'b0000000-0000-0000-0000-000000000001'$$,
+  'after_days with no day count');
+
 \o
 \echo ' CLOSE GATE TESTS PASSED'
+\echo ' MONEY RULE TESTS PASSED'

@@ -2,11 +2,26 @@
 
 Everything below is a change **since the last bundle** (Cash Game v2 / Style Guide v2 / Cash Game Board + `handoff/01–07`). Nothing unchanged is restated. Where a section of an older doc is now wrong, it is named here and stamped in that file — do not infer from position in the file.
 
+## Revisions since the first issue of this file
+
+Same date, same bundle — this is the file you already have, corrected and extended. If you read the first issue, these are the only parts that moved:
+
+- **Settlement due is new** (M7b, S13, §4 *C7 Settlement due*). A group-level due date, overridable per night: same night · after N days (optionally moved to the next working day) · week's end · month's end. It reminds; it never settles.
+- **Group creation is one three-step flow** (S3, S4, S14) shared by both entry points — name/currency/stakes → **The money side** → **Add players**. Two new screens: `C1b`, `G2b`. Money rules no longer sit inline on step 1.
+- **Rounding gained `1k`** and singular control labels (Cent, Dollar). `roundingMode` enum accordingly.
+- **`C1b` input treatment specified** (S14): numeric buy-in, open chip row for rounding, disclosure rows for bills/kitty and settlement.
+- **Counts corrected**: 31 screens on the Before board, 57 across the four boards. The index board's stale G3/joining and Tier 1 copy is fixed.
+- **`publish/` is stale** — noted below.
+
+Nothing in §2 *Logic changes* or §3 *Answers* changed; the money math in the first issue still stands.
+
 ## Which files supersede which
+
+**`publish/` is stale.** It was built before this round; do not read it. `design/` in this folder is the current snapshot.
 
 | Use this | Instead of | Scope |
 |---|---|---|
-| `design/Screens - Before the night.dc.html` | `publish/before.html`, `Cash Game Board.dc.html` (groups/membership/opening parts) | 26 screens, dark + light, 402 × 874 |
+| `design/Screens - Before the night.dc.html` | `publish/before.html`, `Cash Game Board.dc.html` (groups/membership/opening parts) | 31 screens, dark + light, 402 × 874 |
 | This changelog §2 | `04-money-math.md` → *Rounding*, and the split rules inside *Step 2* | bill splits, rounding granularity, rule order |
 | This changelog §5 | `03-data-model.md` → *MoneyRule*, *Session*, *Identity → The group-wide link* | new fields, new enums, invite model |
 | This changelog §6 | `07-design-tokens.md` | additions only; no existing token changed value |
@@ -28,7 +43,8 @@ Everything below is a change **since the last bundle** (Cash Game v2 / Style Gui
 | M4 | Winners-only rule on a night with **no winners**: fixed fees and kitties collect nothing and do not carry; a bill backed by a real expense falls back to charging everyone. | FINAL — my call, question (b) came back unanswered; override if wrong |
 | M5 | **Rule order is host-editable** by dragging. Order is visible, stored, and snapshotted at open. | FINAL |
 | M6 | Rule edits apply to **new nights only**. A session keeps the snapshot it opened with. | FINAL |
-| M7 | **Rounding granularity** is now a group money rule — cents, dollars, 10s, 50s, 100s — unset by default. Replaces the display-only *Show cents* toggle. It changes computed amounts, not just formatting. | Rule is FINAL; the granularity arithmetic in §2.6 is EXPLORATORY and needs your sign-off |
+| M7 | **Rounding granularity** is now a group money rule — cent, dollar, 10s, 50s, 100s, 1k — unset by default. Replaces the display-only *Show cents* toggle. It changes computed amounts, not just formatting. | Rule is FINAL; the granularity arithmetic in §2.6 is EXPLORATORY and needs your sign-off |
+| M7b | **Settlement due** is a new group rule, overridable per night: same night · after N days (optionally moved to the next working day) · week's end · month's end (+date). It reminds only — nothing settles by itself. | Rule FINAL; per-night override screen not drawn |
 | M8 | **Stakes** are group-level: small blind, big blind, and straddle as a three-state pick — No / Optional / Mandatory — with a value when not No. | FINAL |
 | M9 | Cash out then buy back in: unchanged, confirmed. Ends the night holding the cashed-out amount plus chips in front of them. | FINAL, no code change |
 | M10 | Free tier scope changed from *last 30 days* to **last 3 games** — a per-player count window, not a date window. | FINAL |
@@ -44,8 +60,14 @@ Everything below is a change **since the last bundle** (Cash Game v2 / Style Gui
 |---|---|---|
 | S1 | **G3 Switch group deleted.** Group choice happens on G1 Your groups. | FINAL |
 | S2 | G1: **Join button removed**; New group is the only action. | FINAL |
-| S3 | G2 New group restructured: Group name → Currency → Stakes → Money rules (3 optional fields) → Who is in it. | FINAL |
-| S4 | C1 Name the group brought in line with G2 (same sections, onboarding copy). | FINAL |
+| S3 | Group creation is now **three steps, shared by both entry points**: name/currency/stakes → **The money side** (tiles) → **Add players**. New screens: `C1b The money side`, `G2b Add players`. | FINAL |
+| S4 | C1 Name the group is step 1 of the same three-step flow (host-framed copy); it no longer carries money rules inline. | FINAL |
+| S17 | `N3 One player`: the **Note** action is removed — notes were undefined and a descriptive note about money moving would desync the ledger. Rebuy now spans the row. If cash changes hands outside the app it needs a real entry type, not prose. | FINAL |
+| S18 | Contrast pass on the night board: the Totals/Feed tab track no longer uses hardcoded black (dark/light field colour), the selected tab is a solid white/black pill, and the DEFAULT / X2 sub-labels on selected amount chips were dark-on-dark. `E6` secondary action renamed **Rematch → Close**. | FINAL |
+| S15 | `E2 Count up` now shows the count **in progress**: *Still to count* on top (em-dash, pencil), *Done* below (value, green check), header card neutral until balanced. Its primary CTA is **blocked** while any stack is uncounted (E5's disabled token pair), with a "See where everyone stands" link to a new screen `E2b Where everyone stands` — ranked net before any deduction, uncounted players listed apart, ranks flagged provisional. | FINAL |
+| S16 | `X2 Join by invite` **rebuilt as `X2 Claim your place`** — the per-player link binds an existing member row ("Ivo added you as Petr"), states the one-device rule, CTA "This is me · open the group". The old join flow is gone, per M13. | FINAL |
+| S14 | `C1b The money side` (step 2) uses one input per setting: buy-in is a **numeric field** (keypad, like the blinds), rounding is an **open chip row** — Cent · Dollar · 10s · 50s · 100s · 1k — set below the fields under a hairline rule, and Bills/kitty and Settlement due are **disclosure rows** opening O3/O4 and C7. Drawn in two states, nothing set and filled in. | FINAL |
+| S13 | New screen `C7 Settlement due`: **Same night / After N days (with next-working-day) / Week's end / Month's end**, with the rule restated in plain words and the resolved date. Settings and rule lists show only that sentence. | Selector FINAL; week's-end and month's-end control states not yet drawn |
 | S5 | G4 My stats rebuilt around recency: period tabs, this-month card, an 8-night result chart, last 4 games. All-time sits behind the *All time* tab. | FINAL |
 | S6 | C3 Invite a player rebuilt per-player: player row with claim state, that player's link, Send invite / QR code / Copy link, Reset link. | FINAL |
 | S7 | C4 Settings "This group" list now mirrors creation: Group name, Currency, Stakes, Straddle, Rounding, Money rules. *Show cents* removed from Appearance. | FINAL |
@@ -155,7 +177,7 @@ One dollar apart, and both are defensible — which is exactly why the order mus
 
 ### 2.6 Rounding granularity — EXPLORATORY, needs your sign-off
 
-**Rule.** The group picks a granularity: cents, dollars (default behaviour today), 10s, 50s, 100s. Every divided amount is expressed in whole units of that granularity, and the parts still sum exactly to the total.
+**Rule.** The group picks a granularity: cent, dollar (default behaviour today), 10s, 50s, 100s, 1k. Labels are singular on the control (Cent, Dollar); settings restates the stored value ("Dollars"). Every divided amount is expressed in whole units of that granularity, and the parts still sum exactly to the total.
 
 **Proposed arithmetic.** Compute exact shares, floor each to a whole unit of the granularity, then hand out whole units by largest remainder (same tie-break as today: size of win, then name). Any residue smaller than one unit goes to the largest share.
 
@@ -212,6 +234,16 @@ States: has groups (shown) · single group · none yet (not drawn, and now reach
 One state: filling in. Interactive: Group name (text, cursor shown) · Currency → picker · Stakes: small blind, big blind (numeric) and a straddle pick of No / Optional / Mandatory with a value field when not No · Money rules, three dashed **optional** fields — Rounding, Standard buy-in, Food and drinks split/kitty bank/fees — each opening its own editor · **Add** under *Who is in it* → name entry · **Create the group** → C2 roster.
 Not-yet-possible: none of the money rules block creation; a group with no rules opens tables with no deductions. If Group name is empty, Create is disabled — not drawn.
 
+### C1b The money side — new, step 2 of both create flows
+Two states drawn: **nothing set** (dashed fields, placeholders naming the fallback — `$0`, "Nothing off the table", "Same night") and **filled in**. Interactive: Standard buy-in (numeric keypad) · Bills, kitty bank and fees → O3/O4 · Settlement due → C7 · Rounding chips, single pick, no navigation. **Skip** in the nav leaves every default in place; **Next · who is in it** → G2b.
+
+### G2b Add players — new, step 3 of both create flows
+Name entry and the seated list; **Create the group** finishes both flows.
+
+### C7 Settlement due — new
+Four options, each expanding in place: **Same night** · **After N days** (stepper + "Move to the next working day") · **Week's end** · **Month's end**. The rule is restated in plain words with the resolved date ("Two days after the night, moved to the next working day. Tonight ends Tue 12 Aug → due Thu 14 Aug"). Settings and rule lists show only that sentence.
+Not drawn: the week's-end (Sat/Sun/Mon) and month's-end (last day / a date) control states, and the per-night override.
+
 ### C1 Name the group — changed
 The onboarding twin of G2, same sections and same controls, host-framed copy. Straddle defaults to **No** here. **Create the group** → C2.
 
@@ -263,7 +295,7 @@ Say the word and I will draw them; the watcher set and the book are the two that
 - `sortOrder` is now user-writable and needs a reorder endpoint (a single ordered array write, not per-row patches).
 
 **5.2 Group**
-- New: `roundingMode` — `'cents' | 'dollars' | 'tens' | 'fifties' | 'hundreds'`, nullable (unset = dollars).
+- New: `roundingMode` — `'cents' | 'dollars' | 'tens' | 'fifties' | 'hundreds' | 'thousands'`, nullable (unset = dollars).
 - New: `stakes { small, big }` at group level, plus `straddleMode` — `'none' | 'optional' | 'mandatory'` — and `straddleAmount`, nullable.
 - `rulesSnapshot` on Session must now include `roundingMode`, the straddle fields and the rule order.
 

@@ -63,14 +63,14 @@ const rules: MoneyRule[] = [
   {
     id: 'kitty', name: 'Group kitty', active: true,
     amountKind: 'percent', amount: money(5), basis: 'gross',
-    charge: 'winners_only', destination: 'kitty', split: 'equal',
+    charge: 'winners_only', destination: 'kitty', split: 'evenly',
     collectorPlayerId: KITTY, sortOrder: 1,
   },
   {
     id: 'bill', name: 'Kitchen & drinks', active: true,
     // The expenses are the amount; the rule only says how it is shared.
     amountKind: 'fixed', amount: money(170), basis: 'gross',
-    charge: 'winners_only', destination: 'bill', split: 'equal',
+    charge: 'winners_only', destination: 'bill', split: 'evenly',
     collectorPlayerId: MAREK, sortOrder: 2,
   },
 ];
