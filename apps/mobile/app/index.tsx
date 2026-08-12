@@ -55,15 +55,18 @@ export default function Home() {
         </View>
 
         <View style={styles.cardNameRow}>
-          <Text style={[styles.cardName, { color: t.onFill }]}>Tonight</Text>
+          {/* Name and line grouped, at the same gap 6 the destination rows use,
+              so the card and the rows beneath it read as one column. */}
+          <View style={styles.cardText}>
+            <Text style={[styles.cardName, { color: t.onFill }]}>Tonight</Text>
+            <Text style={[styles.cardLede, { color: t.onFill }]}>
+              {live.seated} at the table · the ledger is open
+            </Text>
+          </View>
           <View style={styles.pushRight}>
             <Icon name="arrow" color={t.onFill} />
           </View>
         </View>
-
-        <Text style={[styles.cardLede, { color: t.onFill }]}>
-          {live.seated} at the table · the ledger is open
-        </Text>
       </Pressable>
 
       <View style={[styles.destinations, { borderTopColor: t.hairline }]}>
@@ -190,11 +193,20 @@ const styles = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: 4 },
   cardStatus: { ...type.cardStatus, opacity: 0.6 },
   cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cardText: { gap: 6, flexShrink: 1 },
   cardName: type.destination,
   cardLede: { ...type.cardLede, opacity: 0.62 },
 
-  destinations: { marginTop: 6, marginHorizontal: space.home, borderTopWidth: StyleSheet.hairlineWidth },
-  destination: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 26, paddingHorizontal: 4 },
+  /*
+   * The card and this list share one column.
+   *
+   * The board insets the card 20 and the destination list 24 + 4, which puts
+   * "Tonight" at 44 from the edge and "The group" at 28 — a 16px step between
+   * two things drawn as the same kind of thing. Both are 20 to the edge and 44
+   * to the text here, so the names line up and so do the arrows.
+   */
+  destinations: { marginTop: 6, marginHorizontal: space.card, borderTopWidth: StyleSheet.hairlineWidth },
+  destination: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 26, paddingHorizontal: 24 },
   destinationText: { gap: 6, flexShrink: 1 },
   destinationName: type.destination,
   destinationSub: type.destinationSub,

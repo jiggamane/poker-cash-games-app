@@ -29,10 +29,18 @@ interface Props {
 }
 
 /**
- * One filled primary per screen. The primary's fill carries a 2px keyline set
- * INSIDE it — in the style guide that is `inset 0 0 0 2px` in the ground
- * colour, and React Native draws borders inset, so a plain borderWidth is an
- * exact translation rather than an approximation.
+ * One filled primary per screen.
+ *
+ * DELIBERATE DEVIATION: the style guide gives the primary a 2px keyline set
+ * inside its fill, in the GROUND colour. Drawn on the ground — which is where
+ * every button in this app sits — that ring is the same colour as what is
+ * behind it, so it never reads as a line. Its only effect is to shrink the
+ * visible fill to 52 while the outlined button beside it stays 56, and a
+ * Buy-in that is four pixels shorter than the Cash out next to it is exactly
+ * the sort of thing that makes a screen look assembled rather than designed.
+ *
+ * Both variants are now 56 outside and 56 to the eye. Bring the keyline back
+ * the day a primary has to sit on a surface card, where it would do its job.
  */
 export function Button({
   label,
@@ -57,12 +65,8 @@ export function Button({
 
   switch (variant) {
     case 'primary':
-      box = {
-        backgroundColor: t.text,
-        // A disabled button keeps the fill but loses the keyline.
-        borderWidth: disabled ? 0 : control.keylineWidth,
-        borderColor: t.keyline,
-      };
+      // NO KEYLINE, deliberately — see the note above.
+      box = { backgroundColor: t.text };
       color = t.onFill;
       break;
 

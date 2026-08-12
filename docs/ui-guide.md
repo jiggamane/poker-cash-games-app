@@ -166,6 +166,17 @@ draw it in the dark green, but on the bright screen that card is filled with
 ink, which puts a dark green on near-black at about 2.5:1. Read as intent —
 green that reads on the fill — rather than as a literal value.
 
+**The primary button has no keyline.** The guide sets a 2px keyline of the
+ground colour inside the fill. On the ground — where every button in this app
+sits — that ring is the colour of what is behind it, so it never reads as a
+line; its only effect is to make the filled button's visible height 52 while
+the outlined button beside it stays 56. Bring it back if a primary ever sits on
+a surface card, where it would do its job.
+
+**Home's card and its destination list share one column**, both 20 to the edge
+and 44 to the text. The board draws the card at 20 and the list at 24 + 4,
+which steps the names 16px apart.
+
 **Titles are `4 / 22 / 10` everywhere.** `[E4]` draws `6 / 22 / 14`. Two- and
 four-pixel differences between boards are noise, and the complaint that started
 this document was that the UI jumps between screens.
