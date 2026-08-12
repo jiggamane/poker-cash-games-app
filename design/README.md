@@ -1,5 +1,18 @@
 # Handoff: The Poker Club — a cash-game ledger
 
+> **This file is the FIRST handoff, kept for its scope and design language.**
+> The screens have moved on since. Dated bundles sit beside it, newest last, and
+> each one's own `CHANGELOG.md` says what it supersedes:
+>
+> - **`handoff-2026-08-13/`** — current. Adds rev 7 (the action dock, the
+>   per-player rebuy default) and rev 8 (the session screen rebuilt as one list
+>   with no tabs and no feed, specified in full in `08-tonight-home.md`, drawn
+>   in `design/Tonight Home.dc.html`). **None of it has been built yet.**
+> - `handoff-2026-08-12/` — superseded, kept so the diff is readable.
+>
+> `docs/screen-specs/` is regenerated from the newest bundle's boards by
+> `python3 scripts/extract-design.py`. Build against those measurements.
+
 ## What I need back from you
 
 **A recommendation and a build plan for the technical infrastructure.** Not UI code yet. Specifically:

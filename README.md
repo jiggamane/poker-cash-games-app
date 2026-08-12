@@ -34,12 +34,18 @@ cd apps/mobile && npm start   # scan the QR code with Expo Go
 - **[`docs/auth-test-period.md`](docs/auth-test-period.md)** — who gets in while the app is
   being tested: invite-only sign-in, how a watcher's link actually works, and the dashboard
   steps that make it run. Read it before the first night with real people.
-- **[`design/`](design/)** — the original design references (HTML prototypes, high
+- **[`design/handoff-2026-08-13/`](design/handoff-2026-08-13/)** — the current design
+  handoff, and the newest thing in the repo. Read its `CHANGELOG.md` first: rev 7 and
+  rev 8 are both **pending**, and rev 8 rebuilds the live session screen as one list with
+  no tabs and no feed (`08-tonight-home.md`, board `design/Tonight Home.dc.html`).
+- **[`docs/screen-specs/`](docs/screen-specs/)** — every drawn screen's exact
+  measurements, extracted from those boards by `python3 scripts/extract-design.py`. Build
+  against these rather than a remembered token.
+- **[`design/`](design/)** — the design references themselves (HTML prototypes, high
   fidelity). Open the `.dc.html` files in a browser with `support.js` beside them; pan
   horizontally. `Style Guide v2` has the colour, type, spacing and navigation rules;
-  `Cash Game v2` has the current screens (newest at the top); `Cash Game Board` is the
-  earlier direction, kept only for flows the new style hasn't reached (the book, the
-  watcher's view).
+  `Cash Game v2` and `Cash Game Board` are the earlier direction, kept only for flows the
+  new style hasn't reached (the book, the watcher's view).
 
 ## Layout
 

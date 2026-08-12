@@ -1373,7 +1373,7 @@ the intent and this states what was actually drawn.
 | `span` | You are the host. The host keeps the book: only you can log | `font:400 13.5px/1.55 · color:#6B6F76` |
 | `div` | — | `margin-top:auto · padding:14px 20px 0 · display:flex · gap:10px` |
 
-## C1b · The money side · nothing set
+## C1b · The money side · empty
 
 | tag | text | style |
 |---|---|---|

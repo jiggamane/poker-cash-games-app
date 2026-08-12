@@ -7,7 +7,7 @@ is the thing to build against rather than a remembered token. Where a
 figure here disagrees with `07-design-tokens.md`, the token doc states
 the intent and this states what was actually drawn.
 
-16 screens.
+18 screens.
 
 ## N1 · Session · totals
 
@@ -79,15 +79,180 @@ the intent and this states what was actually drawn.
 | `div` | — | `display:flex · align-items:center · gap:12px · padding:11px 4px` |
 | `span` | Total in play | `font:600 17px · color:#8B8D93` |
 | `span` | $5,000 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
-| `div` | — | `margin:8px 20px 0 · display:flex · align-items:center · gap:10px · padding:11px 16px · border-radius:8px · border:1.5px solid rgba(255,255,255,.22)` |
-| `span` | End the night | `font:600 15px · color:#FFFFFF` |
-| `span` | count & settle | `margin-left:auto · font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · gap:14px · padding:14px 20px 0` |
-| `span` | Buy-in | `flex:1 · text-align:center · padding:18px 0 · border-radius:8px · background:#FFFFFF · color:#0C0D0F · font:700 17px · box-shadow:inset 0 0 0 2px #0A0A0B` |
-| `span` | Cash out | `flex:1 · text-align:center · padding:18px 0 · border-radius:8px · border:2px solid rgba(255,255,255,.55) · color:#FFFFFF · font:700 17px · box-sizing:border-box` |
-| `div` | — | `display:flex · justify-content:center · padding:8px 0 9px` |
+| `div` | — | `margin:10px 14px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:16px · padding:6px 12px 10px · display:flex · flex-direction:column · gap:14px · box-sizing:border-box` |
+| `div` | — | `display:flex · align-items:center · gap:10px · padding:16px 6px 14px` |
+| `span` | Table admin | `font:600 14.5px · color:#8B8D93` |
+| `span` | seat · cash out · end | `margin-left:auto · font:400 13px · color:#8B8D93` |
+| `div` | — | `display:grid · grid-template-columns:1.9fr 1fr · gap:10px` |
+| `span` | — | `display:flex · align-items:center · justify-content:center · gap:10px · padding:20px 0 · border-radius:10px · background:#FFFFFF · font:700 19px · color:#0C0D0F` |
+| `span` | — | `display:flex · flex-direction:column · align-items:center · justify-content:center · gap:5px · padding:14px 0 · border-radius:10px · border:2px solid rgba(255,255,255,.5) · box-sizing:border-box` |
+
+## N1b · Table admin drawer
+
+| tag | text | style |
+|---|---|---|
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF · opacity:.5` |
+| `span` | 64% | `font:400 13px · color:#8B8D93` |
+| `div` | — | `padding:16px 22px 10px · display:flex · align-items:flex-end · gap:10px · opacity:.4` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | 3h 17m | `margin-left:auto · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:0 20px 14px · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:12px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box · opacity:.4` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px` |
+| `span` | On the table | `font:700 11px · color:#8B8D93 · letter-spacing:.1em · text-transform:uppercase` |
+| `span` | $2,880 | `font:800 34px/1 · color:#FFFFFF · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+| `span` | 5 seated | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right` |
+| `div` | — | `flex:1 · overflow:hidden · margin:0 22px · display:flex · flex-direction:column · opacity:.4` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Petr | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in + 2 rebuys | `font:400 13px · color:#8B8D93` |
+| `span` | $1,500 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Ivo | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in + 1 rebuy | `font:400 13px · color:#8B8D93` |
+| `span` | $1,000 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Lena | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in · double | `font:400 13px · color:#8B8D93` |
+| `span` | $1,000 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Marek | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in | `font:400 13px · color:#8B8D93` |
+| `span` | $500 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Tomáš | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in | `font:400 13px · color:#8B8D93` |
+| `span` | $500 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Dana | `font:600 17px · color:#FFFFFF` |
+| `span` | cashed out · counted $2,120 | `font:400 13px · color:#8B8D93` |
+| `span` | $500 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:0 22px · opacity:.4 · display:flex · align-items:center · gap:12px · padding:11px 4px 2px · border-top:1px solid rgba(255,255,255,.11)` |
+| `span` | Total in play | `font:600 16px · color:#8B8D93` |
+| `span` | $5,000 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:10px 14px 0 · background:#16161A · border:1px solid rgba(255,255,255,.14) · border-radius:16px · padding:6px 12px 10px · display:flex · flex-direction:column · gap:12px · box-sizing:border-box` |
+| `div` | — | `display:flex · align-items:center · gap:10px · padding:16px 6px 14px` |
+| `span` | Table admin | `font:700 14.5px · color:#FFFFFF` |
+| `div` | — | `display:flex · flex-direction:column · gap:8px` |
+| `span` | — | `display:flex · align-items:center · gap:12px · padding:14px · border-radius:10px · background:rgba(255,255,255,.07)` |
+| `span` | Seat a player | `font:600 16.5px · color:#FFFFFF` |
+| `svg` | — | `margin-left:auto` |
+| `span` | — | `display:flex · align-items:center · gap:12px · padding:14px · border-radius:10px · background:rgba(255,255,255,.07)` |
+| `span` | Cash out a player | `font:600 16.5px · color:#FFFFFF` |
+| `svg` | — | `margin-left:auto` |
+| `span` | — | `display:flex · align-items:center · gap:12px · padding:14px · border-radius:10px · border:1.5px solid #F0705C88 · box-sizing:border-box` |
+| `span` | — | `display:flex · flex-direction:column · gap:2px` |
+| `span` | End this poker night | `font:700 16.5px · color:#F0705C` |
+| `span` | Hold 1.5s · counting starts, no rebuys | `font:400 12.5px · color:#8B8D93` |
+| `div` | — | `display:grid · grid-template-columns:1.9fr 1fr · gap:10px` |
+| `span` | — | `display:flex · align-items:center · justify-content:center · gap:10px · padding:20px 0 · border-radius:10px · background:#FFFFFF · font:700 19px · color:#0C0D0F` |
+| `span` | — | `display:flex · flex-direction:column · align-items:center · justify-content:center · gap:5px · padding:14px 0 · border-radius:10px · border:2px solid rgba(255,255,255,.5) · box-sizing:border-box` |
+| `span` | Bill | `font:700 14.5px · color:#FFFFFF` |
+| `div` | — | `display:flex · justify-content:center · padding:10px 0 9px` |
 | `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
 | `div` | — | `background:#07080A · padding:11px · border-radius:56px · flex:none` |
+| `div` | — | `width:402px · height:874px · border-radius:46px · overflow:hidden · background:#FFFFFF · display:flex · flex-direction:column · box-sizing:border-box` |
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#0C0D0F · opacity:.5` |
+| `span` | 64% | `font:400 13px · color:#6B6F76` |
+| `div` | — | `padding:16px 22px 10px · display:flex · align-items:flex-end · gap:10px · opacity:.4` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1.05 · color:#0C0D0F · letter-spacing:-.03em` |
+| `span` | 3h 17m | `margin-left:auto · font:500 13px · color:#6B6F76 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:0 20px 14px · background:#F4F4F6 · border:1px solid rgba(12,13,15,.1) · border-radius:14px · padding:12px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box · opacity:.4` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px` |
+| `span` | On the table | `font:700 11px · color:#6B6F76 · letter-spacing:.1em · text-transform:uppercase` |
+| `span` | $2,880 | `font:800 34px/1 · color:#0C0D0F · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+
+## N1c · Player sheet · rebuy
+
+| tag | text | style |
+|---|---|---|
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#FFFFFF · opacity:.5` |
+| `span` | 64% | `font:400 13px · color:#8B8D93` |
+| `div` | — | `padding:16px 22px 10px · display:flex · align-items:flex-end · gap:10px · opacity:.35` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1.05 · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | 3h 17m | `margin-left:auto · font:500 13px · color:#8B8D93 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:0 20px 14px · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:14px · padding:12px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box · opacity:.35` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px` |
+| `span` | On the table | `font:700 11px · color:#8B8D93 · letter-spacing:.1em · text-transform:uppercase` |
+| `span` | $2,880 | `font:800 34px/1 · color:#FFFFFF · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+| `span` | 5 seated | `margin-left:auto · font:400 12.5px/1.45 · color:#8B8D93 · text-align:right` |
+| `div` | — | `flex:1 · overflow:hidden · margin:0 22px · display:flex · flex-direction:column · opacity:.35` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11) · box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4) · border-radius:6px` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Petr | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in + 2 rebuys | `font:400 13px · color:#8B8D93` |
+| `span` | $1,500 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Ivo | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in + 1 rebuy | `font:400 13px · color:#8B8D93` |
+| `span` | $1,000 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Lena | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in · double | `font:400 13px · color:#8B8D93` |
+| `span` | $1,000 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Marek | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in | `font:400 13px · color:#8B8D93` |
+| `span` | $500 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Tomáš | `font:600 17px · color:#FFFFFF` |
+| `span` | buy-in | `font:400 13px · color:#8B8D93` |
+| `span` | $500 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(255,255,255,.11)` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Dana | `font:600 17px · color:#FFFFFF` |
+| `span` | cashed out · counted $2,120 | `font:400 13px · color:#8B8D93` |
+| `span` | $500 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:0 22px · opacity:.35 · display:flex · align-items:center · gap:12px · padding:11px 4px 2px · border-top:1px solid rgba(255,255,255,.11)` |
+| `span` | Total in play | `font:600 16px · color:#8B8D93` |
+| `span` | $5,000 | `margin-left:auto · font:700 19px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:10px 0 0 · background:#16161A · border-top:1px solid rgba(255,255,255,.14) · border-radius:24px 24px 0 0 · padding:12px 20px 4px · display:flex · flex-direction:column · gap:16px · box-sizing:border-box` |
+| `div` | — | `display:flex · justify-content:center` |
+| `span` | — | `width:44px · height:5px · border-radius:3px · background:rgba(255,255,255,.28) · display:block` |
+| `div` | — | `display:flex · align-items:flex-end · gap:12px` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Petr | `font:800 26px · color:#FFFFFF · letter-spacing:-.03em` |
+| `span` | buy-in + 2 rebuys · seated 20:05 | `font:400 14px · color:#8B8D93` |
+| `span` | $1,500 | `margin-left:auto · font:800 26px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
+| `div` | — | `display:flex · flex-direction:column · gap:10px` |
+| `span` | — | `display:flex · align-items:center · justify-content:center · gap:10px · padding:18px 0 · border-radius:8px · background:#FFFFFF · font:700 18px · color:#0C0D0F` |
+| `div` | — | `display:flex · gap:10px` |
+| `span` | Other amount | `flex:1 · text-align:center · padding:15px 0 · border-radius:8px · border:2px solid rgba(255,255,255,.5) · font:700 16px · color:#FFFFFF · box-sizing:border-box` |
+| `span` | Edit entries | `flex:1 · text-align:center · padding:15px 0 · border-radius:8px · border:2px solid rgba(255,255,255,.5) · font:700 16px · color:#FFFFFF · box-sizing:border-box` |
+| `span` | — | `display:flex · align-items:center · gap:12px · padding:16px · border-radius:8px · background:rgba(240,112,92,.12)` |
+| `span` | — | `display:flex · flex-direction:column · gap:2px` |
+| `span` | Cash out Petr | `font:700 16px · color:#F0705C` |
+| `span` | Count his stack and close the seat | `font:400 13px · color:#8B8D93` |
+| `svg` | — | `margin-left:auto` |
+| `div` | — | `display:flex · justify-content:center · padding:10px 0 9px` |
+| `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
+| `div` | — | `background:#07080A · padding:11px · border-radius:56px · flex:none` |
+| `div` | — | `width:402px · height:874px · border-radius:46px · overflow:hidden · background:#FFFFFF · display:flex · flex-direction:column · box-sizing:border-box` |
+| `div` | — | `display:flex · justify-content:space-between · align-items:center · padding:20px 30px 0 · font:600 15px · color:#0C0D0F · opacity:.5` |
+| `span` | 64% | `font:400 13px · color:#6B6F76` |
+| `div` | — | `padding:16px 22px 10px · display:flex · align-items:flex-end · gap:10px · opacity:.35` |
+| `h2` | Tonight | `margin:0 · font:800 32px/1.05 · color:#0C0D0F · letter-spacing:-.03em` |
+| `span` | 3h 17m | `margin-left:auto · font:500 13px · color:#6B6F76 · font-variant-numeric:tabular-nums` |
+| `div` | — | `margin:0 20px 14px · background:#F4F4F6 · border:1px solid rgba(12,13,15,.1) · border-radius:14px · padding:12px 16px · display:flex · align-items:flex-end · gap:12px · box-sizing:border-box · opacity:.35` |
+| `div` | — | `display:flex · flex-direction:column · gap:4px` |
+| `span` | On the table | `font:700 11px · color:#6B6F76 · letter-spacing:.1em · text-transform:uppercase` |
+| `span` | $2,880 | `font:800 34px/1 · color:#0C0D0F · letter-spacing:-.04em · font-variant-numeric:tabular-nums` |
+| `span` | 5 seated | `margin-left:auto · font:400 12.5px/1.45 · color:#6B6F76 · text-align:right` |
+| `div` | — | `flex:1 · overflow:hidden · margin:0 22px · display:flex · flex-direction:column · opacity:.35` |
+| `div` | — | `display:flex · align-items:center · gap:12px · padding:9px 4px · border-bottom:1px solid rgba(12,13,15,.1) · box-shadow:inset 0 0 0 1.5px rgba(12,13,15,.35) · border-radius:6px` |
+| `div` | — | `display:flex · flex-direction:column · gap:3px` |
+| `span` | Petr | `font:600 17px · color:#0C0D0F` |
+| `span` | buy-in + 2 rebuys | `font:400 13px · color:#6B6F76` |
+| `span` | $1,500 | `margin-left:auto · font:700 19px · color:#0C0D0F · font-variant-numeric:tabular-nums` |
 
 ## N2 · Session · feed
 
@@ -167,14 +332,12 @@ the intent and this states what was actually drawn.
 | `span` | Lena bought in | `font:600 16px · color:#FFFFFF` |
 | `span` | double | `font:400 12.5px · color:#8B8D93` |
 | `span` | $1,000 | `margin-left:auto · font:700 18px · color:#FFFFFF · font-variant-numeric:tabular-nums` |
-| `div` | — | `margin:8px 20px 0 · display:flex · align-items:center · gap:10px · padding:11px 16px · border-radius:8px · border:1.5px solid rgba(255,255,255,.22)` |
-| `span` | End the night | `font:600 15px · color:#FFFFFF` |
-| `span` | count & settle | `margin-left:auto · font:400 13px · color:#8B8D93` |
-| `div` | — | `display:flex · gap:14px · padding:14px 20px 0` |
-| `span` | Buy-in | `flex:1 · text-align:center · padding:18px 0 · border-radius:8px · background:#FFFFFF · color:#0C0D0F · font:700 17px · box-shadow:inset 0 0 0 2px #0A0A0B` |
-| `span` | Cash out | `flex:1 · text-align:center · padding:18px 0 · border-radius:8px · border:2px solid rgba(255,255,255,.55) · color:#FFFFFF · font:700 17px · box-sizing:border-box` |
-| `div` | — | `display:flex · justify-content:center · padding:8px 0 9px` |
-| `span` | — | `width:140px · height:5px · border-radius:3px · background:rgba(255,255,255,.9) · display:block` |
+| `div` | — | `margin:10px 14px 0 · background:#16161A · border:1px solid rgba(255,255,255,.11) · border-radius:16px · padding:6px 12px 10px · display:flex · flex-direction:column · gap:14px · box-sizing:border-box` |
+| `div` | — | `display:flex · align-items:center · gap:10px · padding:16px 6px 14px` |
+| `span` | Table admin | `font:600 14.5px · color:#8B8D93` |
+| `span` | seat · cash out · end | `margin-left:auto · font:400 13px · color:#8B8D93` |
+| `div` | — | `display:grid · grid-template-columns:1.9fr 1fr · gap:10px` |
+| `span` | — | `display:flex · align-items:center · justify-content:center · gap:10px · padding:20px 0 · border-radius:10px · background:#FFFFFF · font:700 19px · color:#0C0D0F` |
 
 ## N3 · One player
 

@@ -19,13 +19,25 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-BOARDS = ROOT / "design" / "handoff-2026-08-12" / "design"
 OUT = ROOT / "docs" / "screen-specs"
+
+
+def boards() -> pathlib.Path:
+    """The design folder of the newest handoff bundle.
+
+    Bundles arrive dated and cumulative, and the specs must be regenerated from
+    the latest one — a spec extracted from a superseded board is worse than no
+    spec, because it looks authoritative.
+    """
+    bundles = sorted((ROOT / "design").glob("handoff-*/design"))
+    return bundles[-1] if bundles else ROOT / "design"
 
 # A screen frame is the div drawn at the iPhone's logical size.
 FRAME = re.compile(r"width:402px;height:874px")
-# Screens are captioned "N2 · Session · feed" and similar.
-LABEL = re.compile(r">\s*([A-Z]\d+[a-z]?)\s*·\s*([^<]{2,60})<")
+# Every frame carries its own name: data-screen-label="H3b Hold in progress".
+# Read that rather than the caption printed under the screen — a screen with no
+# light twin has no caption at all, which is how H3b and H5 went missing.
+LABEL = re.compile(r"data-screen-label=\"([A-Z]\d+[a-z]?)\s+([^\"]{2,60})\"")
 ELEMENT = re.compile(r"<(\w+)[^>]*?style=\"([^\"]+)\"[^>]*>([^<]{0,60})")
 
 
@@ -63,14 +75,16 @@ def describe(doc: str, start: int, limit: int = 11000) -> list[tuple[str, str, s
 
 
 def main() -> int:
-    if not BOARDS.is_dir():
-        print(f"No boards at {BOARDS}", file=sys.stderr)
+    source = boards()
+    if not source.is_dir():
+        print(f"No boards at {source}", file=sys.stderr)
         return 1
 
+    print(f"Reading {source.relative_to(ROOT)}")
     OUT.mkdir(parents=True, exist_ok=True)
     total = 0
 
-    for board in sorted(BOARDS.glob("*.dc.html")):
+    for board in sorted(source.glob("*.dc.html")):
         doc = board.read_text(encoding="utf-8", errors="replace")
         found = screens(doc)
         if not found:
