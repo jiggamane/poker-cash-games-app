@@ -13,7 +13,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { setAcknowledgement, useNight } from '../src/lib/nightStore';
+import { setAcknowledgement, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
  * Count up — step 1 of closing a night. E2, and E5 when it does not add up.
@@ -50,14 +50,14 @@ export default function CountUp() {
     rules: night.rules,
   });
 
-  /** Everyone who still has chips in front of them, so still owes a count. */
-  const seated = night.players.filter(
-    (p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0,
-  );
-  const stillPlaying = seated.filter(
-    (p) => (ledger.cashedOutByPlayer.get(p.id) ?? 0) === 0,
-  );
-  const gone = seated.filter((p) => (ledger.cashedOutByPlayer.get(p.id) ?? 0) > 0);
+  /**
+   * Only people with chips in front of them owe a count. Somebody who busted
+   * out cashed out for nothing and has nothing left to count — waiting for one
+   * would block the close forever.
+   */
+  const standings = standingsOf(night, ledger).filter((s) => s.played);
+  const stillPlaying = standings.filter((s) => s.atTable);
+  const gone = standings.filter((s) => !s.atTable);
 
   const toCount = stillPlaying.filter((p) => !night.finalCounts.has(p.id));
   const counted = stillPlaying.filter((p) => night.finalCounts.has(p.id));
@@ -238,7 +238,11 @@ function Group({
             <View style={styles.rowText}>
               <Text style={[styles.name, { color: cashedOut ? t.muted : t.text }]}>{p.name}</Text>
               <Text style={[styles.detail, { color: t.muted }]}>
-                {cashedOut ? 'cashed out earlier' : `in ${formatMoney((ledger.boughtInByPlayer.get(p.id) ?? 0) as Money)}`}
+                {cashedOut
+                  ? (ledger.cashedOutByPlayer.get(p.id) ?? 0) === 0
+                    ? 'busted out'
+                    : 'cashed out earlier'
+                  : `in ${formatMoney((ledger.boughtInByPlayer.get(p.id) ?? 0) as Money)}`}
               </Text>
             </View>
             {/* An em dash, never a zero: nothing counted is not the same as

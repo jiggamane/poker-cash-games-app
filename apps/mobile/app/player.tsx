@@ -7,7 +7,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { depthOf, useNight } from '../src/lib/nightStore';
+import { depthOf, standingOf, useNight } from '../src/lib/nightStore';
 
 /**
  * One player — N3.
@@ -40,17 +40,27 @@ export default function PlayerPage() {
     );
   }
 
-  const boughtIn = (ledger.boughtInByPlayer.get(player.id) ?? 0) as Money;
-  const cashedOut = ledger.cashedOutByPlayer.get(player.id);
-  const counted = cashedOut !== undefined && cashedOut > 0
-    ? (cashedOut as Money)
-    : night.finalCounts.get(player.id);
+  const standing = standingOf(night, ledger, player.id);
+  const boughtIn = (standing?.boughtIn ?? 0) as Money;
+  const stillIn = standing?.atTable === true;
 
-  const mine = ledger.entries.filter(
-    (e) => !e.voided && e.playerId === player.id,
-  );
+  /*
+   * What they have taken off the table: their cash-outs, plus the count in
+   * front of them if they are still sitting there. Nothing at all until one of
+   * those exists — a player mid-game has no result, only a stake.
+   */
+  const finalCount = night.finalCounts.get(player.id);
+  const counted =
+    stillIn
+      ? finalCount === undefined
+        ? undefined
+        : ((finalCount + (standing?.cashedOut ?? 0)) as Money)
+      : standing?.played === true
+        ? ((standing.cashedOut ?? 0) as Money)
+        : undefined;
+
+  const mine = ledger.entries.filter((e) => e.playerId === player.id);
   const first = mine[0];
-  const stillIn = boughtIn > 0 && (cashedOut ?? 0) === 0;
 
   return (
     <Screen
@@ -82,7 +92,15 @@ export default function PlayerPage() {
       <View style={styles.tagRow}>
         <View style={[styles.tag, { backgroundColor: t.raised }]}>
           <Text style={[styles.tagText, { color: t.muted }]}>
-            {boughtIn === 0 ? 'ON THE ROSTER' : stillIn ? 'SEATED' : 'CASHED OUT'}
+            {standing?.played !== true
+              ? 'ON THE ROSTER'
+              : stillIn
+                ? standing.returned
+                  ? 'BACK IN'
+                  : 'SEATED'
+                : standing.cashedOut === 0
+                  ? 'BUSTED OUT'
+                  : 'CASHED OUT'}
           </Text>
         </View>
         {first !== undefined && (
@@ -144,9 +162,9 @@ export default function PlayerPage() {
             ]}
           >
             <Text style={[styles.time, { color: t.muted }]}>{clock(night.occurredAt[e.id])}</Text>
-            <Text style={[styles.what, { color: t.text }]}>
+            <Text style={[styles.what, { color: e.voided ? t.muted : t.text }]}>
               {e.type === 'buyin' ? 'Buy-in' : e.type === 'rebuy' ? 'Rebuy' : 'Cash out'}
-              {e.corrected ? ' · corrected' : ''}
+              {e.voided ? ' · voided' : e.corrected ? ' · corrected' : ''}
             </Text>
             <Text style={[styles.amount, { color: t.text }]}>{formatMoney(e.amount)}</Text>
             <Icon name="chevron" color={t.muted} />

@@ -8,7 +8,7 @@ import { Row } from '../src/components/Row';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
-import { depthOf, nameOf, useNight } from '../src/lib/nightStore';
+import { depthOf, nameOf, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
  * The live session — N1 and N2.
@@ -27,18 +27,22 @@ export default function Session() {
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
-  /** Most money in first. Only people who actually have money on the table. */
+  /**
+   * Most money in first, and everyone who has played — including whoever has
+   * already gone. A host closing the night needs to see the people who left as
+   * much as the people still sitting there.
+   */
   const standings = useMemo(() => {
     if (night === null || ledger === null) return [];
-    return night.players
-      .filter((p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0)
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        in: (ledger.boughtInByPlayer.get(p.id) ?? 0) as Money,
-        detail: depthOf(ledger, p.id),
-      }))
-      .sort((a, b) => b.in - a.in || (a.name < b.name ? -1 : 1));
+    return standingsOf(night, ledger)
+      .filter((s) => s.played)
+      .map((s) => ({ ...s, detail: depthOf(ledger, s.id) }))
+      .sort(
+        (a, b) =>
+          Number(b.atTable) - Number(a.atTable) ||
+          b.boughtIn - a.boughtIn ||
+          (a.name < b.name ? -1 : 1),
+      );
   }, [night, ledger]);
 
   if (night === null || ledger === null) {
@@ -114,7 +118,7 @@ export default function Session() {
             <Text style={[styles.cardFigure, { color: t.text }]}>{formatMoney(onTable)}</Text>
           </View>
           <Text style={[styles.seated, { color: t.muted }]}>
-            {standings.length} seated{'\n'}since {since}
+            {standings.filter((s) => s.atTable).length} seated{'\n'}since {since}
           </Text>
         </View>
 
@@ -142,7 +146,7 @@ export default function Session() {
                 <Row
                   label={s.name}
                   detail={s.detail}
-                  amount={s.in}
+                  amount={s.boughtIn}
                   chevron
                   last={i === standings.length - 1}
                 />

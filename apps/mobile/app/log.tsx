@@ -11,6 +11,7 @@ import { radius, space, type } from '../src/design/tokens';
 import {
   buyIn,
   cashOut,
+  chipsOnTable,
   defaultBuyIn,
   depthOf,
   rebuy,
@@ -48,16 +49,30 @@ export default function Log() {
   const suggested = ledger === null ? money(500) : defaultBuyIn(ledger);
 
   const counting = kind === 'cashout' || kind === 'count';
-  const [typed, setTyped] = useState<string>(counting ? '' : String(suggested));
+  const [typed, setTyped] = useState<string>(counting ? '0' : String(suggested));
   const [busy, setBusy] = useState(false);
 
   if (night === null || ledger === null) return <Screen title="Tonight" backTo="Tonight">{null}</Screen>;
 
   const amount = typed === '' ? 0 : Number(typed);
-  const valid = Number.isInteger(amount) && amount > 0;
 
   const inFor = ((player && ledger.boughtInByPlayer.get(player)) ?? 0) as Money;
   const alreadyOut = ((player && ledger.cashedOutByPlayer.get(player)) ?? 0) as Money;
+
+  /*
+   * ZERO IS A REAL ANSWER when counting chips, and it is the most common one:
+   * a player who loses their stack cashes out for nothing. Refusing it — as
+   * "amount must be positive" does — leaves them seated at a table they have
+   * walked away from, and the close flow then waits forever for a count of
+   * chips that do not exist.
+   *
+   * A buy-in of zero is not a real answer, so the two part company here.
+   */
+  const table = chipsOnTable(ledger);
+  const overTable = counting && kind === 'cashout' && amount > table;
+
+  const valid =
+    Number.isInteger(amount) && (counting ? amount >= 0 && !overTable : amount > 0);
 
   /* On a cash out the figure being typed IS the night's result, so show it —
      it is the number the room argues about, and finding it out after the fact
@@ -81,15 +96,19 @@ export default function Log() {
         : `in for ${formatMoney(inFor)} · ${depthOf(ledger, player!)}`;
 
   const commitLabel =
-    kind === 'count'
-      ? `Save ${name}’s count`
-      : kind === 'cashout'
-        ? `Cash ${name} out`
-        : newPlayer !== undefined
-        ? `Seat ${name} · log buy-in`
-        : kind === 'rebuy'
-          ? `Log ${name}’s rebuy`
-          : `Log ${name}’s buy-in`;
+    overTable
+      ? `Only ${formatMoney(table)} is on the table`
+      : kind === 'count'
+        ? `Save ${name}’s count`
+        : kind === 'cashout'
+          ? amount === 0
+            ? `${name} busted out`
+            : `Cash ${name} out`
+          : newPlayer !== undefined
+            ? `Seat ${name} · log buy-in`
+            : kind === 'rebuy'
+              ? `Log ${name}’s rebuy`
+              : `Log ${name}’s buy-in`;
 
   async function commit() {
     if (!valid || busy) return;
@@ -136,9 +155,14 @@ export default function Log() {
       }
     >
       <View style={styles.amountRow}>
-        <Text style={[styles.amount, { color: valid ? t.text : t.muted }]}>
+        <Text style={[styles.amount, { color: overTable ? t.loss : valid ? t.text : t.muted }]}>
           {formatMoney(money(amount))}
         </Text>
+        {overTable && (
+          <Text style={[styles.overTable, { color: t.loss }]}>
+            More chips than the table holds. Somebody’s buy-in is missing.
+          </Text>
+        )}
       </View>
 
       {counting ? (
@@ -220,7 +244,8 @@ const styles = StyleSheet.create({
   tag: { borderRadius: 6, paddingVertical: 6, paddingHorizontal: 10 },
   tagText: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1 },
 
-  amountRow: { alignItems: 'center', paddingTop: 14, paddingBottom: 16 },
+  amountRow: { alignItems: 'center', paddingTop: 14, paddingBottom: 16, gap: 8 },
+  overTable: { fontSize: 13, fontWeight: '500', paddingHorizontal: 30, textAlign: 'center' },
   amount: { fontSize: 68, fontWeight: '800', letterSpacing: -3.4, fontVariant: ['tabular-nums'] },
 
   presets: { flexDirection: 'row', gap: 8, paddingHorizontal: space.card, paddingBottom: 16 },

@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, resolveLedger, type Money } from '@poker-club/core';
+import { formatMoney, resolveLedger } from '@poker-club/core';
 import { Avatar } from '../src/components/Avatar';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { depthOf, useNight } from '../src/lib/nightStore';
+import { depthOf, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
  * Who is this about? — N4 for a buy-in, N8 for a cash out.
@@ -30,23 +30,16 @@ export default function Pick() {
 
   if (night === null || ledger === null) return <Screen title="Tonight" backTo="Tonight">{null}</Screen>;
 
-  // Money on the table IS being seated — buyIn() sets the flag — so the ledger
-  // is the only thing worth asking.
-  const seated = night.players.filter((p) => (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0);
-  const stillIn = seated.filter(
-    (p) =>
-      (ledger.boughtInByPlayer.get(p.id) ?? 0) - (ledger.cashedOutByPlayer.get(p.id) ?? 0) > 0,
-  );
-  const rows = cashingOut ? stillIn : seated;
+  const standings = standingsOf(night, ledger);
 
-  // Everyone on the roster who has not put money on the table tonight.
-  const notSeated = night.players.filter((p) => !seated.some((s) => s.id === p.id));
+  // Cashing out is for people who actually have chips. Buying in is for people
+  // who are already playing — everyone else goes in the row of chips below,
+  // including anybody who busted out and wants back in.
+  const rows = standings.filter((s) => s.atTable);
+  const notSeated = standings.filter((s) => !s.atTable);
 
-  const go = (playerId: string, first: boolean) =>
-    router.push({
-      pathname: '/log',
-      params: { player: playerId, kind: cashingOut ? 'cashout' : first ? 'buyin' : 'rebuy' },
-    });
+  const go = (playerId: string, kind: 'buyin' | 'rebuy' | 'cashout') =>
+    router.push({ pathname: '/log', params: { player: playerId, kind } });
 
   return (
     <Screen
@@ -68,7 +61,7 @@ export default function Pick() {
           <Pressable
             key={p.id}
             accessibilityRole="button"
-            onPress={() => go(p.id, false)}
+            onPress={() => go(p.id, cashingOut ? 'cashout' : 'rebuy')}
             style={({ pressed }) => [
               styles.row,
               {
@@ -84,7 +77,7 @@ export default function Pick() {
               <Text style={[styles.detail, { color: t.muted }]}>{depthOf(ledger, p.id)}</Text>
             </View>
             <Text style={[styles.figure, { color: t.muted }]}>
-              {formatMoney((ledger.boughtInByPlayer.get(p.id) ?? 0) as Money)}
+              {formatMoney(p.boughtIn)}
             </Text>
             <Icon name="chevron" color={t.muted} />
           </Pressable>
@@ -101,7 +94,7 @@ export default function Pick() {
         {!cashingOut && (
           <>
             <Text style={[styles.sectionLabel, styles.sectionAfter, { color: t.muted }]}>
-              Not seated · first buy-in
+              Not at the table · buy in
             </Text>
 
             <View style={styles.chips}>
@@ -109,7 +102,7 @@ export default function Pick() {
                 <Pressable
                   key={p.id}
                   accessibilityRole="button"
-                  onPress={() => go(p.id, true)}
+                  onPress={() => go(p.id, p.played ? 'rebuy' : 'buyin')}
                   style={({ pressed }) => [
                     styles.chip,
                     { backgroundColor: t.surface, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },

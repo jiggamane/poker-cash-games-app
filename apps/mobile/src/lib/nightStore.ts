@@ -491,6 +491,72 @@ export async function setStatus(status: Night['status']): Promise<void> {
 }
 
 /**
+ * Where everyone stands, as one answer.
+ *
+ * Every screen was asking this its own way — "at the table" meant a flag on
+ * the player in one place, a positive buy-in in another, and money not yet
+ * cashed out in a third. They disagree in exactly the cases that matter:
+ *
+ *   BUSTING OUT. A player who loses their stack cashes out for ZERO. Reading
+ *   "has cashed out" as "cashed out more than nothing" leaves them sitting at
+ *   a table they walked away from, and the close flow then waits forever for
+ *   a count of chips they do not have.
+ *
+ *   COMING BACK. Somebody who busts and buys in again is normal, and by then
+ *   they have both a cash-out and a later buy-in. Whether they are at the
+ *   table is decided by WHICH CAME LAST, not by whether either exists.
+ */
+export interface Standing {
+  id: PlayerId;
+  name: string;
+  /** Everything they have put on the table tonight. */
+  boughtIn: Money;
+  /** Everything they have taken off it, across every time they left. */
+  cashedOut: Money;
+  /** Do they have chips in front of them right now? */
+  atTable: boolean;
+  /** Have they played at all tonight, or are they only on the roster? */
+  played: boolean;
+  /** How many times they have gone back to the table for more. */
+  rebuys: number;
+  /** True once they have left and come back. */
+  returned: boolean;
+}
+
+export function standingsOf(night: Night, ledger: ResolvedLedger): Standing[] {
+  return night.players
+    .map((p) => {
+      const mine = ledger.entries.filter((e) => !e.voided && e.playerId === p.id);
+      const buys = mine.filter((e) => e.type === 'buyin' || e.type === 'rebuy');
+      const outs = mine.filter((e) => e.type === 'cashout');
+
+      const lastBuy = buys.length === 0 ? -1 : Math.max(...buys.map((e) => e.seq));
+      const lastOut = outs.length === 0 ? -1 : Math.max(...outs.map((e) => e.seq));
+
+      return {
+        id: p.id,
+        name: p.name,
+        boughtIn: (ledger.boughtInByPlayer.get(p.id) ?? 0) as Money,
+        cashedOut: (ledger.cashedOutByPlayer.get(p.id) ?? 0) as Money,
+        atTable: lastBuy > lastOut,
+        played: buys.length > 0,
+        rebuys: Math.max(0, buys.length - 1),
+        returned: outs.length > 0 && lastBuy > lastOut,
+      };
+    })
+    .filter((s) => s.played || night.players.find((p) => p.id === s.id)?.atTable === true);
+}
+
+/** One person's standing, or undefined if they have not played. */
+export function standingOf(
+  night: Night,
+  ledger: ResolvedLedger,
+  playerId: PlayerId,
+): Standing | undefined {
+  return standingsOf(night, ledger).find((s) => s.id === playerId);
+}
+
+/**
  * How deep somebody is, in the words the design uses.
  *
  * "buy-in + 2 rebuys" rather than a number, because that is what the host says
@@ -498,12 +564,38 @@ export async function setStatus(status: Night['status']): Promise<void> {
  */
 export function depthOf(ledger: ResolvedLedger, playerId: PlayerId): string {
   const mine = ledger.entries.filter((e) => !e.voided && e.playerId === playerId);
-  const rebuys = mine.filter((e) => e.type === 'rebuy').length;
-  const cashedOut = ledger.cashedOutByPlayer.get(playerId) ?? 0;
+  const buys = mine.filter((e) => e.type === 'buyin' || e.type === 'rebuy');
+  const outs = mine.filter((e) => e.type === 'cashout');
 
-  if (cashedOut > 0) return `cashed out · counted ${cashedOut.toLocaleString('en-US')}`;
-  if (rebuys === 0) return 'buy-in';
-  return `buy-in + ${rebuys} ${rebuys === 1 ? 'rebuy' : 'rebuys'}`;
+  const lastBuy = buys.length === 0 ? -1 : Math.max(...buys.map((e) => e.seq));
+  const lastOut = outs.length === 0 ? -1 : Math.max(...outs.map((e) => e.seq));
+  const rebuys = Math.max(0, buys.length - 1);
+
+  if (buys.length === 0) return 'on the roster';
+
+  if (lastOut > lastBuy) {
+    const counted = ledger.cashedOutByPlayer.get(playerId) ?? 0;
+    return counted === 0
+      ? 'busted out'
+      : `cashed out · counted ${counted.toLocaleString("en-US")}`;
+  }
+
+  const back = outs.length > 0 ? 'back in · ' : '';
+  return rebuys === 0
+    ? `${back}buy-in`
+    : `${back}buy-in + ${rebuys} ${rebuys === 1 ? 'rebuy' : 'rebuys'}`;
+}
+
+/**
+ * The most anyone can take off the table.
+ *
+ * You cannot cash out chips that are not there. This is the same figure the
+ * close flow reconciles against, and catching an impossible count HERE — while
+ * the player is still standing in the room — is worth far more than catching
+ * it at 1am when everyone has gone home.
+ */
+export function chipsOnTable(ledger: ResolvedLedger): Money {
+  return (ledger.totalBoughtIn - ledger.totalCashedOut) as Money;
 }
 
 /** What a first buy-in should default to: whatever the table has been buying in for. */
