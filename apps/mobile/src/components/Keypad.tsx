@@ -11,8 +11,9 @@ import { Icon } from './Icon';
  * the button that commits it. It also means there is no decimal point, which
  * is correct — this app deals in whole units and `Money` refuses anything else.
  *
- * `00` sits where a decimal point would: at a table where buy-ins are 500 and
- * 1,000, two zeros is the key you actually want.
+ * `000` sits where a decimal point would: at a table where buy-ins are 500 and
+ * 1,000, three zeros is the key you actually want — 1 · 000 is a buy-in, and
+ * 5 · 00 was never the shorter way to reach one.
  */
 export function Keypad({
   onDigits,
@@ -42,7 +43,7 @@ export function Keypad({
   return (
     <View style={styles.pad}>
       {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => key(d, true))}
-      {key('00', false)}
+      {key('000', false)}
       {key('0', true)}
       <Pressable
         accessibilityRole="button"

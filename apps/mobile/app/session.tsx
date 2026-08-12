@@ -153,12 +153,6 @@ export default function Session() {
               </Pressable>
             ))}
           </View>
-
-          {/* Its own block above the list, not the last row of it. */}
-          <View style={[styles.total, { borderTopColor: t.hairline }]}>
-            <Text style={[styles.totalLabel, { color: t.muted }]}>Total in play</Text>
-            <Text style={[styles.totalValue, { color: t.text }]}>{formatMoney(onTable)}</Text>
-          </View>
         </>
       ) : (
         <View style={styles.list}>
@@ -366,17 +360,6 @@ const styles = StyleSheet.create({
   // --- list ----------------------------------------------------------------
   // 22, where the card above it is 20. The 2px difference is deliberate.
   list: { marginHorizontal: space.page },
-  total: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: space.page,
-    paddingVertical: 11,
-    paddingHorizontal: space.rowInset,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  totalLabel: type.rowName,
-  totalValue: { ...type.figure, marginLeft: 'auto' },
 
   // --- footer --------------------------------------------------------------
   endRow: {

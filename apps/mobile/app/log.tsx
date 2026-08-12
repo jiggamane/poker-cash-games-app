@@ -51,6 +51,9 @@ export default function Log() {
   const counting = kind === 'cashout' || kind === 'count';
   const [typed, setTyped] = useState<string>(counting ? '0' : String(suggested));
   const [busy, setBusy] = useState(false);
+  /* Which preset was tapped last, so a repeat tap can tell itself apart from a
+     first one. Cleared by anything else that changes the figure. */
+  const [lastPreset, setLastPreset] = useState<number | null>(null);
 
   if (night === null || ledger === null) return <Screen title="Tonight" backTo="Tonight">{null}</Screen>;
 
@@ -109,6 +112,24 @@ export default function Log() {
             : kind === 'rebuy'
               ? `Log ${name}’s rebuy`
               : `Log ${name}’s buy-in`;
+
+  /*
+   * A preset sets the figure; tapping the SAME one again adds it on top, so
+   * $500 · $500 is $1,000 and a third tap is $1,500. A rebuy at this table is
+   * some whole number of buy-ins, and tapping the amount that many times is
+   * how the host counts them out anyway.
+   *
+   * Only a REPEAT counts. Tapping the other preset, or typing on the keypad,
+   * starts the figure again — otherwise every tap after the first would add,
+   * and there would be no way back down to $500 but the backspace.
+   */
+  function tapPreset(value: number) {
+    setTyped((cur) => {
+      const now = cur === '' ? 0 : Number(cur);
+      return String(lastPreset === value && now > 0 ? now + value : value);
+    });
+    setLastPreset(value);
+  }
 
   async function commit() {
     if (!valid || busy) return;
@@ -183,19 +204,22 @@ export default function Log() {
             label={formatMoney(suggested)}
             caption="DEFAULT"
             on={amount === suggested}
-            onPress={() => setTyped(String(suggested))}
+            onPress={() => tapPreset(suggested)}
           />
           <Preset
             label={formatMoney(money(suggested * 2))}
             caption="X2"
             on={amount === suggested * 2}
-            onPress={() => setTyped(String(suggested * 2))}
+            onPress={() => tapPreset(suggested * 2)}
           />
           <Preset
             label="Custom"
             caption="SET"
             on={amount !== suggested && amount !== suggested * 2}
-            onPress={() => setTyped('')}
+            onPress={() => {
+              setTyped('');
+              setLastPreset(null);
+            }}
           />
         </View>
       )}
@@ -206,8 +230,14 @@ export default function Log() {
       </View>
 
       <Keypad
-        onDigits={(d) => setTyped((cur) => appendDigits(cur, d))}
-        onBackspace={() => setTyped((cur) => cur.slice(0, -1))}
+        onDigits={(d) => {
+          setTyped((cur) => appendDigits(cur, d));
+          setLastPreset(null);
+        }}
+        onBackspace={() => {
+          setTyped((cur) => cur.slice(0, -1));
+          setLastPreset(null);
+        }}
       />
     </Screen>
   );
