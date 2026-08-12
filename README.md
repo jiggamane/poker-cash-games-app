@@ -17,6 +17,10 @@ handoff explicitly asked for a platform/infrastructure decision and a build plan
 
 ## Start here
 
+- **[The design boards](https://jiggamane.github.io/poker-cash-games-app/)** — every screen
+  in the order it is met, dark and light, at ship size. Nothing to install; open the link
+  and pan horizontally. This is the thing to send someone who wants to see the product.
+  Published from [`docs/`](docs/) — see [`docs/PUBLISHING.md`](docs/PUBLISHING.md).
 - **[`docs/build-plan.md`](docs/build-plan.md)** — the recommendation and build plan:
   platform, backend & data, realtime & offline, identity, money integrity, phasing, and
   cost/operations. Read this first.
