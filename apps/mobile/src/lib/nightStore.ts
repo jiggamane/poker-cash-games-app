@@ -328,9 +328,79 @@ async function append(
   emit();
 }
 
-/** Chips on the table, from the ledger — never a running total kept by hand. */
-export function buyIn(playerId: PlayerId, amount: Money): Promise<void> {
+/**
+ * Chips on the table, from the ledger — never a running total kept by hand.
+ *
+ * A buy-in seats whoever it is for. Being at the table and having money on it
+ * are the same fact, and keeping them as two would let a player be charged a
+ * share of the bill while officially not playing.
+ */
+export async function buyIn(playerId: PlayerId, amount: Money): Promise<void> {
+  await seat(playerId);
   return append({ type: 'buyin', playerId, amount });
+}
+
+/** Mark someone as playing tonight. Idempotent. */
+export async function seat(playerId: PlayerId): Promise<void> {
+  if (night === null) return;
+  const player = night.players.find((p) => p.id === playerId);
+  if (player === undefined || player.atTable) return;
+
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE night_player SET at_table = 1 WHERE session_id = ? AND id = ?`,
+    night.sessionId,
+    playerId,
+  );
+  night = {
+    ...night,
+    players: night.players.map((p) => (p.id === playerId ? { ...p, atTable: true } : p)),
+  };
+  emit();
+}
+
+/**
+ * Add somebody to the roster without seating them.
+ *
+ * The roster outlives a night: it is who the group is. Somebody can be on it
+ * and not playing tonight — the treasurer who holds the kitty is exactly that,
+ * and so is anyone who came to watch.
+ */
+export async function addPlayer(name: string): Promise<PlayerId> {
+  if (night === null) throw new Error('No night is open.');
+  const trimmed = name.trim();
+
+  const existing = night.players.find((p) => p.name.toLowerCase() === trimmed.toLowerCase());
+  if (existing !== undefined) return existing.id;
+
+  const db = await getDb();
+  const id = randomUUID();
+  await db.runAsync(
+    `INSERT INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, 0)`,
+    night.sessionId,
+    id,
+    trimmed,
+  );
+  night = { ...night, players: [...night.players, { id, name: trimmed, atTable: false }] };
+  emit();
+  return id;
+}
+
+/**
+ * Restate an entry without erasing it.
+ *
+ * The ledger is append-only, here and on the server, and this is why: a host
+ * who mistypes $5,000 for $500 at midnight must be able to fix it, and every
+ * player must still be able to see that it was fixed. A correction writes a
+ * new row pointing at the old one; both stay in the feed.
+ */
+export function correctEntry(entryId: string, amount: Money): Promise<void> {
+  return append({ type: 'correction', correctsEntryId: entryId, amount });
+}
+
+/** The same, for an entry that should never have existed at all. */
+export function voidEntry(entryId: string): Promise<void> {
+  return append({ type: 'void', correctsEntryId: entryId, amount: money(0) });
 }
 
 export function rebuy(playerId: PlayerId, amount: Money): Promise<void> {
@@ -359,32 +429,7 @@ export function addExpense(payerId: PlayerId, amount: Money, note: string): Prom
  * design's button says so — "Seat Kuba · log buy-in".
  */
 export async function seatAndBuyIn(name: string, amount: Money): Promise<PlayerId> {
-  if (night === null) throw new Error('No night is open.');
-  const db = await getDb();
-
-  const existing = night.players.find((p) => p.name.toLowerCase() === name.trim().toLowerCase());
-  const id = existing?.id ?? randomUUID();
-
-  if (existing === undefined) {
-    await db.runAsync(
-      `INSERT INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, 1)`,
-      night.sessionId,
-      id,
-      name.trim(),
-    );
-    night = { ...night, players: [...night.players, { id, name: name.trim(), atTable: true }] };
-  } else if (!existing.atTable) {
-    await db.runAsync(
-      `UPDATE night_player SET at_table = 1 WHERE session_id = ? AND id = ?`,
-      night.sessionId,
-      id,
-    );
-    night = {
-      ...night,
-      players: night.players.map((p) => (p.id === id ? { ...p, atTable: true } : p)),
-    };
-  }
-
+  const id = await addPlayer(name);
   await buyIn(id, amount);
   return id;
 }

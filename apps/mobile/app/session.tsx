@@ -133,13 +133,20 @@ export default function Session() {
         <>
           <View style={styles.list}>
             {standings.map((s, i) => (
-              <Row
+              <Pressable
                 key={s.id}
-                label={s.name}
-                detail={s.detail}
-                amount={s.in}
-                last={i === standings.length - 1}
-              />
+                accessibilityRole="button"
+                onPress={() => router.push({ pathname: '/player', params: { id: s.id } })}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <Row
+                  label={s.name}
+                  detail={s.detail}
+                  amount={s.in}
+                  chevron
+                  last={i === standings.length - 1}
+                />
+              </Pressable>
             ))}
           </View>
 
@@ -154,16 +161,22 @@ export default function Session() {
           {[...ledger.entries].reverse().map((e, i, all) => {
             const d = describe(e, ledger, night);
             return (
-              <Row
+              <Pressable
                 key={e.id}
-                kind="feed"
-                time={clock(night.occurredAt[e.id])}
-                label={d.label}
-                detail={e.voided ? 'voided' : e.corrected ? 'corrected' : d.detail}
-                amount={e.amount}
-                tone={e.type === 'expense' ? 'offTable' : 'plain'}
-                last={i === all.length - 1}
-              />
+                accessibilityRole="button"
+                onPress={() => router.push({ pathname: '/entry', params: { id: e.id } })}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <Row
+                  kind="feed"
+                  time={clock(night.occurredAt[e.id])}
+                  label={d.label}
+                  detail={e.voided ? 'voided' : e.corrected ? 'corrected' : d.detail}
+                  amount={e.amount}
+                  tone={e.type === 'expense' ? 'offTable' : 'plain'}
+                  last={i === all.length - 1}
+                />
+              </Pressable>
             );
           })}
         </View>

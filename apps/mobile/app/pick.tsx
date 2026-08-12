@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, resolveLedger, type Money } from '@poker-club/core';
 import { Avatar } from '../src/components/Avatar';
 import { Icon } from '../src/components/Icon';
@@ -25,25 +25,22 @@ export default function Pick() {
   const { kind } = useLocalSearchParams<{ kind: 'buyin' | 'cashout' }>();
   const cashingOut = kind === 'cashout';
   const night = useNight();
-  const [newName, setNewName] = useState<string | null>(null);
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   if (night === null || ledger === null) return <Screen title="Tonight" backTo="Tonight">{null}</Screen>;
 
-  const seated = night.players.filter(
-    (p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0,
-  );
+  // Money on the table IS being seated — buyIn() sets the flag — so the ledger
+  // is the only thing worth asking.
+  const seated = night.players.filter((p) => (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0);
   const stillIn = seated.filter(
     (p) =>
       (ledger.boughtInByPlayer.get(p.id) ?? 0) - (ledger.cashedOutByPlayer.get(p.id) ?? 0) > 0,
   );
   const rows = cashingOut ? stillIn : seated;
 
-  // Everyone in the group who has not put money on the table tonight.
-  const notSeated = night.players.filter(
-    (p) => !seated.some((s) => s.id === p.id) && p.atTable !== false,
-  );
+  // Everyone on the roster who has not put money on the table tonight.
+  const notSeated = night.players.filter((p) => !seated.some((s) => s.id === p.id));
 
   const go = (playerId: string, first: boolean) =>
     router.push({
@@ -122,40 +119,18 @@ export default function Pick() {
                 </Pressable>
               ))}
 
-              {newName === null ? (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => setNewName('')}
-                  style={({ pressed }) => [
-                    styles.chip,
-                    styles.dashed,
-                    { borderColor: t.dashed, opacity: pressed ? 0.6 : 1 },
-                  ]}
-                >
-                  <Icon name="plus" color={t.text} />
-                  <Text style={[styles.chipLabel, { color: t.text }]}>New player</Text>
-                </Pressable>
-              ) : (
-                <View style={[styles.chip, styles.dashed, { borderColor: t.dashed }]}>
-                  <TextInput
-                    autoFocus
-                    value={newName}
-                    onChangeText={setNewName}
-                    onSubmitEditing={() => {
-                      if (newName.trim() === '') return setNewName(null);
-                      router.push({
-                        pathname: '/log',
-                        params: { newPlayer: newName.trim(), kind: 'buyin' },
-                      });
-                      setNewName(null);
-                    }}
-                    placeholder="Their name"
-                    placeholderTextColor={t.muted}
-                    returnKeyType="done"
-                    style={[styles.chipLabel, styles.input, { color: t.text }]}
-                  />
-                </View>
-              )}
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/seat')}
+                style={({ pressed }) => [
+                  styles.chip,
+                  styles.dashed,
+                  { borderColor: t.dashed, opacity: pressed ? 0.6 : 1 },
+                ]}
+              >
+                <Icon name="plus" color={t.text} />
+                <Text style={[styles.chipLabel, { color: t.text }]}>New player</Text>
+              </Pressable>
             </View>
           </>
         )}
@@ -188,5 +163,4 @@ const styles = StyleSheet.create({
   },
   dashed: { borderWidth: 1.5, borderStyle: 'dashed', backgroundColor: 'transparent', gap: 7 },
   chipLabel: { fontSize: 15, fontWeight: '600' },
-  input: { minWidth: 120, padding: 0 },
 });
