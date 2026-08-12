@@ -50,12 +50,22 @@ export interface Theme {
   /** Money leaving the table: bill, kitty, host fee. */
   offTable: string;
   /**
-   * Bone is distinctive enough on its own in the dark theme. In the bright one
-   * the spec falls the text back to ink and marks the row with a tint instead,
-   * so the figure still reads as a different KIND of money rather than as a
-   * de-emphasised one.
+   * A row of off-the-table money is a rounded washed block, in BOTH themes —
+   * radius 8, inset by 12 past the list, so it reads as a different kind of
+   * money rather than a de-emphasised one.
    */
   offTableWash: string;
+
+  /**
+   * The inverted card on the home screen — ink on white, white on ink. Its
+   * green has to read against the FILL, not the ground, which is why it is a
+   * token of its own rather than `win`.
+   */
+  onFillWin: string;
+
+  /** A warning block: 12% fill, 35% border, both in the loss colour. */
+  dangerWash: string;
+  dangerEdge: string;
 
   /** Text sitting on a filled primary button. */
   onFill: string;
@@ -78,11 +88,14 @@ export const darkTheme: Theme = {
   dashed: 'rgba(255,255,255,0.30)',
   win: '#6FCF97',
   loss: '#F0705C',
-  winWash: 'rgba(111,207,151,0.10)',
-  lossWash: 'rgba(240,112,92,0.10)',
+  winWash: 'rgba(111,207,151,0.13)',
+  lossWash: 'rgba(240,112,92,0.12)',
   winTint: 'rgba(111,207,151,0.14)',
   offTable: '#D9D3C4',
-  offTableWash: 'transparent',
+  offTableWash: 'rgba(217,211,196,0.09)',
+  onFillWin: '#0A7A3D',
+  dangerWash: 'rgba(240,112,92,0.12)',
+  dangerEdge: 'rgba(240,112,92,0.35)',
   onFill: '#0C0D0F',
   keyline: '#0A0A0B',
   danger: '#F0705C',
@@ -100,21 +113,27 @@ export const lightTheme: Theme = {
   quietOutline: 'rgba(12,13,15,0.24)',
   dashed: 'rgba(12,13,15,0.28)',
   win: '#0A7A3D',
-  loss: '#C0341B',
-  // Lighter again after seeing it on a phone: on white, a wash strong enough to
-  // notice turns a run of rows into one solid block and swallows the hairlines
-  // between them, which reads as a card — the one thing the row system forbids.
-  winWash: 'rgba(10,122,61,0.05)',
-  lossWash: 'rgba(192,52,27,0.05)',
+  // #B03A28 on every bright board. The token doc says #C0341B; the board wins.
+  loss: '#B03A28',
+  winWash: 'rgba(10,122,61,0.13)',
+  lossWash: 'rgba(176,58,40,0.12)',
   winTint: 'rgba(10,122,61,0.12)',
-  // Bone falls back to INK here, with the row carrying the bone instead.
-  offTable: '#0C0D0F',
-  // Bone is the worst offender here: two adjacent deduction rows became a single
-  // beige rectangle. Halved, so the rows read as rows again.
-  offTableWash: 'rgba(217,211,196,0.18)',
+  // Bone does NOT fall back to ink, whatever the token doc says: the bright
+  // boards draw off-table money in a warm brown, on a wash of the same hue.
+  // That was the fix for two deduction rows merging into one beige rectangle —
+  // the wash is the same 9% as the dark theme, only the hue changes.
+  offTable: '#786644',
+  offTableWash: 'rgba(120,102,68,0.09)',
+  // DELIBERATE DEVIATION. Both boards draw this dot #0A7A3D, but here the card
+  // is filled with ink, so the board's value is a dark green on near-black —
+  // about 2.5:1. Read as the intent ("green that reads on the fill") rather
+  // than the literal value, which flips it to the dark theme's green.
+  onFillWin: '#6FCF97',
+  dangerWash: 'rgba(176,58,40,0.12)',
+  dangerEdge: 'rgba(176,58,40,0.35)',
   onFill: '#FFFFFF',
   keyline: '#FFFFFF',
-  danger: '#C0341B',
+  danger: '#B03A28',
 };
 
 /**
@@ -140,33 +159,66 @@ export const type = {
   display: { fontSize: 64, fontWeight: '800', letterSpacing: -2.5, ...tabular },
   /** The figure inside a surface card — "On the table". 800 48/1, -.04em. */
   cardFigure: { fontSize: 48, fontWeight: '800', letterSpacing: -1.9, ...tabular },
-  /** Screen title. 800 32/1.05, -.03em. */
-  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96 },
-  /** Home-screen destination names. */
-  destination: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
-  /** The group's name above a title. Body weight, not meta. */
+  /** Screen title on a pushed screen. 800 32/1.05, -.03em. */
+  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 34 },
+  /** The group's name on home. 800 30/1.05 — two smaller than a pushed title. */
+  homeTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 32 },
+  /** A home destination — "The group", "My stats". 800 30, -.03em. */
+  destination: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9 },
+  /** The line under it. */
+  destinationSub: { fontSize: 14, fontWeight: '400' },
+  /** The group's name in a pushed screen's back bar. */
   eyebrow: { fontSize: 17, fontWeight: '500' },
-  /** Amounts in rows. */
+  /** "Your group", above the name on home. Small and semibold, not body. */
+  groupLabel: { fontSize: 13, fontWeight: '600' },
+  /** Amounts in a totals or transfer row. */
   figure: { fontSize: 19, fontWeight: '700', ...tabular },
+  /** Amounts in the feed, which runs one step smaller throughout. */
+  feedFigure: { fontSize: 18, fontWeight: '700', ...tabular },
   /** A figure in a stat pair. */
   statValue: { fontSize: 18, fontWeight: '700', ...tabular },
   /** The caption under it. */
   statLabel: { fontSize: 11.5, fontWeight: '500' },
+  /** A person's name in a row. 600, not the 500 of body text. */
+  rowName: { fontSize: 17, fontWeight: '600' },
+  /** What happened, in the feed. */
+  feedName: { fontSize: 16, fontWeight: '600' },
   /** Row labels and buttons. */
   body: { fontSize: 17, fontWeight: '500' },
-  /** The small print under a row: "second rebuy", "left the table". */
+  /** The small print under a totals row. */
+  rowDetail: { fontSize: 13, fontWeight: '400', ...tabular },
+  /** The small print under a feed row: "second rebuy", "left the table". */
   detail: { fontSize: 12.5, fontWeight: '400', lineHeight: 18 },
+  /** A time in the feed's left column. */
+  time: { fontSize: 13, fontWeight: '600', ...tabular },
   /** Times, counts, explanations. */
   meta: { fontSize: 13, fontWeight: '400' },
-  /** Section headers. 11px on the board, not 12. */
+  /** A paragraph of explanation under a title. */
+  lede: { fontSize: 14.5, fontWeight: '400', lineHeight: 22 },
+  /** The same, smaller — a footnote under a list. */
+  footnote: { fontSize: 12.5, fontWeight: '400', lineHeight: 19 },
+  /** A label inside a card — "ON THE TABLE". 11px, .1em. */
   label: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
+  /** A section header over a list — "NIGHT'S NET". A whole point larger. */
+  sectionLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
   /** A quiet chip action — "House rules". */
   chip: { fontSize: 12.5, fontWeight: '600' },
+  /** A name inside a net chip, then the figure beside it. */
+  netName: { fontSize: 14, fontWeight: '600' },
+  netFigure: { fontSize: 14, fontWeight: '700', ...tabular },
   /** A tab, unselected then selected. */
   tab: { fontSize: 14, fontWeight: '600' },
   tabOn: { fontSize: 14, fontWeight: '700' },
   /** A state badge — LIVE. */
   badge: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  /** The status line inside home's filled card — "PLAYING NOW · 3H 17M". */
+  cardStatus: { fontSize: 11, fontWeight: '700', letterSpacing: 1.32 },
+  /** The line under a filled card's name. */
+  cardLede: { fontSize: 14, fontWeight: '500' },
+  /** A quiet outlined action in home's bottom bar. */
+  quietAction: { fontSize: 15, fontWeight: '700' },
+  /** A text action in a navigation bar — "Edit", "Cancel". */
+  barAction: { fontSize: 16, fontWeight: '700' },
 } satisfies Record<string, TextStyle>;
 
 /** 8 on everything pressable, 14 on cards, 46 on the screen, 999 on the live badge only. */
@@ -184,8 +236,10 @@ export const radius = {
 export const space = {
   /** Lists, and the title row. */
   page: 22,
-  /** Cards and tab tracks — two less than the list beside them. */
+  /** Cards, tab tracks, bars — two less than the list beside them. */
   card: 20,
+  /** The home screen's own inset: its header and its destination list. */
+  home: 24,
   /** Below a card or a tab track. */
   belowCard: 14,
   /** Inside a card. */
@@ -195,8 +249,15 @@ export const space = {
   cardGap: 12,
   /** Between a pair of stats. */
   statGap: 22,
-  /** Vertical padding inside a row. */
-  row: 13,
+  /**
+   * Vertical padding inside a row, which is NOT one number:
+   * a totals row is tight, a transfer row is open, the feed sits between.
+   */
+  totalsRow: 9,
+  feedRow: 13,
+  transferRow: 15,
+  /** A row's own horizontal inset, inside the list's margin. */
+  rowInset: 4,
   /** Above a section's caps header. */
   section: 22,
 } as const;
@@ -213,7 +274,10 @@ export const control = {
   /** A state badge. */
   badgePadV: 6,
   badgePadH: 11,
-  /** Primary, secondary and destructive buttons. */
+  /** A quiet outlined action on home: 13/18, radius 8, 1.5px. */
+  quietPadV: 13,
+  quietPadH: 18,
+  /** Primary, secondary and destructive buttons. 18 + 20 + 18 on the board. */
   height: 56,
   /** Preset chips ($50 / $100). */
   presetHeight: 44,

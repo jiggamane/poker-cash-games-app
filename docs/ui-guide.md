@@ -27,7 +27,12 @@ and build from that table. It takes a minute and removes the guesswork entirely.
 
 **Where the spec and `07-design-tokens.md` disagree, the drawn screen wins.**
 The token doc states the intent; the board states what shipped. They differ in
-real places — the section label is 11px on the board and 12 in the doc.
+real places — the light theme's loss colour is `#C0341B` in the doc and
+`#B03A28` on every board.
+
+The boards also ship their glyphs as inline SVG, so `src/components/Icon.tsx`
+carries the `d` strings verbatim. When a screen needs a glyph, copy the path out
+of the board rather than reaching for an icon set.
 
 ---
 
@@ -78,6 +83,51 @@ An outlined badge reads as a control; a tinted one reads as a state.
 | Tab | `600 14px` inactive, `700 14px` active |
 | Row detail | `400 12.5px/1.45` |
 
+### There is no such thing as "a row"
+
+Three rows are drawn, and they agree on nothing:
+
+| | padding | gap | name | detail | figure |
+|---|---|---|---|---|---|
+| Totals `[N1]` | `9 / 4` | 12 | `600 17` | `400 13` | `700 19` |
+| Feed `[N2]` | `13 / 0` | 14 | `600 16` | `400 12.5` | `700 18` |
+| Transfer `[E4]` | `15 / 4` | 12 | `600 17` | — | `700 19` |
+
+A name in a row is `600`, not the `500` of body text. `Row` takes a `kind` and
+owns all three; do not restyle it at the call site.
+
+### Money leaving the table is a washed block, not a colour
+
+The bill, the kitty and the host's fee are drawn as a rounded block that breaks
+out of the list by 12 on each side and pays it back as padding, with the
+hairline suppressed. Radius 8, wash at 9%.
+
+In the bright theme bone is **`#786644`**, a warm brown, on `rgba(120,102,68,.09)`.
+It does **not** fall back to ink, whatever `07-design-tokens.md` says — that
+reading is what produced two deduction rows merged into one beige rectangle.
+
+### The home screen has its own inset
+
+Home is inset **24**, not 22 — its header (`28 / 24 / 20`) and its destination
+list both. Its title is `800 30`, two smaller than a pushed screen's `800 32`.
+The one filled card on it is inverted: ink on white, white on ink, with a 2px
+keyline of the *ground* set inside the fill.
+
+### Settle up is a list of transfers
+
+The net per player is not a list. It is a wrap of chips at the bottom —
+`10 / 13`, radius 8, on a wash of its own colour, name `600 14` and figure
+`700 14` with **no currency symbol**, because in a row of six the sign is the
+information and six dollar signs are six pieces of noise.
+
+There is no 64px display figure anywhere on it.
+
+### Ending the night is not a red button
+
+`[N1]` draws it as a quiet outlined row — `11 / 16`, 1.5px at 22%, "End the
+night" at `600 15` with "count & settle" muted on the right and a chevron. The
+primary pair below it is Buy-in (filled) and Cash out (outlined), gap 14.
+
 ### Tabs
 
 Track: `#16161A`, radius `10`, padding `3`. Each tab: `flex 1`, padding
@@ -100,3 +150,22 @@ bone. Used for "House rules" — a quiet action that is not a button.
    bugs that the dark theme hid.
 5. If a value genuinely is not in the spec, add it to `tokens.ts` with a comment
    saying it was invented — so the next person knows it is not gospel.
+
+---
+
+## Where we knowingly differ from the board
+
+Two, both marked in the code with the reason. Everything else is copied.
+
+**The home glyph is always rightmost in a bar.** `[N1]`/`[N2]` put it last;
+`[E4]` puts it before the text action. Navigation that moves between screens is
+worse than a 16px ordering difference on one screen.
+
+**The bright theme's "playing now" dot is `#6FCF97`, not `#0A7A3D`.** Both boards
+draw it in the dark green, but on the bright screen that card is filled with
+ink, which puts a dark green on near-black at about 2.5:1. Read as intent —
+green that reads on the fill — rather than as a literal value.
+
+**Titles are `4 / 22 / 10` everywhere.** `[E4]` draws `6 / 22 / 14`. Two- and
+four-pixel differences between boards are noise, and the complaint that started
+this document was that the UI jumps between screens.

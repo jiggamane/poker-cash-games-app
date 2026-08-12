@@ -4,32 +4,46 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
 import { space, type } from '../design/tokens';
+import { Icon } from './Icon';
 
 /**
- * The frame every screen sits in.
+ * The frame every pushed screen sits in.
  *
  * A pushed screen carries a back that is LABELLED with where it returns to —
- * not a bare chevron — and a home glyph beside it, because the design's whole
- * navigation idea is that the club is always one tap away without a tab bar.
+ * not a bare chevron — and a home glyph on the right, because the design's
+ * whole navigation idea is that the club is always one tap away without a tab
+ * bar.
+ *
+ * Three bands, each measured off the board and each with its OWN inset:
+ *
+ *   bar     16 / 20 / 4      chevron 11×18, gap 5, label 500 17
+ *   title    4 / 22 / 10     32/1.05, baseline-aligned trailing
+ *   footer  16 / 20 / 6      no rule above it — the board draws none
+ *
+ * The 20-vs-22 difference between the bar and the title is deliberate and it is
+ * visible; do not tidy them into one page margin.
  */
 export function Screen({
   title,
-  eyebrow,
   trailing,
   backTo,
+  action,
   step,
+  lede,
   children,
   footer,
 }: {
   title: string;
-  /** The group's name, sitting above the title. A name, never a figure. */
-  eyebrow?: string;
   /** On the title's baseline, right-aligned — a live badge, a duration. */
   trailing?: ReactNode;
   /** The name of the screen this returns to. Omit on the root. */
   backTo?: string;
-  /** Numbered flows say "2 of 3" — the close flow is genuinely sequential. */
+  /** A text action at the right of the bar — "Edit", "Cancel". */
+  action?: { label: string; onPress?: () => void; quiet?: boolean };
+  /** Numbered flows say "3 of 3" — the close flow is genuinely sequential. */
   step?: string;
+  /** One paragraph under the title, saying what the screen is showing. */
+  lede?: string;
   children: ReactNode;
   /** Pinned below the scroll area, where the one primary action lives. */
   footer?: ReactNode;
@@ -47,94 +61,95 @@ export function Screen({
             hitSlop={12}
             style={({ pressed }) => [styles.back, { opacity: pressed ? 0.6 : 1 }]}
           >
-            <Text style={[styles.chevron, { color: t.text }]}>‹</Text>
+            <Icon name="back" color={t.text} />
             <Text style={[styles.backLabel, { color: t.text }]} numberOfLines={1}>
               {backTo}
             </Text>
           </Pressable>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="The group"
-            onPress={() => router.dismissTo('/')}
-            hitSlop={12}
-            style={({ pressed }) => [styles.home, { opacity: pressed ? 0.6 : 1 }]}
-          >
-            <HomeGlyph color={t.text} />
-          </Pressable>
+          <View style={styles.barTrailing}>
+            {action !== undefined && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={action.onPress}
+                hitSlop={12}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <Text
+                  style={[
+                    action.quiet === true ? styles.barActionQuiet : styles.barAction,
+                    { color: action.quiet === true ? t.muted : t.text },
+                  ]}
+                >
+                  {action.label}
+                </Text>
+              </Pressable>
+            )}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="The group"
+              onPress={() => router.dismissTo('/')}
+              hitSlop={12}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Icon name="home" color={t.muted} />
+            </Pressable>
+          </View>
         </View>
       )}
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {eyebrow !== undefined && (
-          <Text style={[styles.eyebrow, { color: t.muted }]}>{eyebrow}</Text>
-        )}
-        <View style={[styles.titleRow, eyebrow !== undefined && styles.titleTight]}>
+        <View style={styles.titleRow}>
           <Text style={[styles.title, { color: t.text }]}>{title}</Text>
           {trailing}
           {step !== undefined && <Text style={[styles.step, { color: t.muted }]}>{step}</Text>}
         </View>
+
+        {lede !== undefined && <Text style={[styles.lede, { color: t.muted }]}>{lede}</Text>}
+
         {children}
       </ScrollView>
 
-      {footer !== undefined && (
-        <View style={[styles.footer, { borderTopColor: t.hairline }]}>{footer}</View>
-      )}
+      {footer !== undefined && <View style={styles.footer}>{footer}</View>}
     </SafeAreaView>
   );
 }
 
-/** A house, drawn rather than imported — the design ships no bitmaps. */
-function HomeGlyph({ color }: { color: string }) {
-  return (
-    <View style={glyph.wrap}>
-      <View style={[glyph.roof, { borderBottomColor: color }]} />
-      <View style={[glyph.body, { borderColor: color }]} />
-    </View>
-  );
-}
-
-const glyph = StyleSheet.create({
-  wrap: { width: 20, height: 18, alignItems: 'center', justifyContent: 'flex-end' },
-  roof: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 10,
-    borderRightWidth: 10,
-    borderBottomWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-  },
-  body: { width: 14, height: 9, borderWidth: 2, borderTopWidth: 0 },
-});
-
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: space.page,
-    paddingTop: 4,
-    paddingBottom: 8,
+    gap: 6,
+    paddingHorizontal: space.card,
+    paddingTop: 16,
+    paddingBottom: 4,
   },
-  back: { flexDirection: 'row', alignItems: 'center', flexShrink: 1 },
-  chevron: { fontSize: 26, fontWeight: '400', marginRight: 4, marginTop: -3 },
-  backLabel: { ...type.body, fontWeight: '500' },
-  home: { paddingLeft: 12 },
-  // Measured from the board: the group row is 16/20/4, the title row 4/22/10.
-  content: { paddingBottom: 32 },
-  eyebrow: { ...type.eyebrow, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4 },
+  back: { flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 },
+  backLabel: type.eyebrow,
+  barTrailing: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 16 },
+  barAction: type.barAction,
+  barActionQuiet: type.eyebrow,
+
+  content: { paddingBottom: 24 },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 10,
     paddingHorizontal: space.page,
-    paddingTop: 12,
+    paddingTop: 4,
     paddingBottom: 10,
   },
-  titleTight: { paddingTop: 4 },
   title: type.title,
-  step: { ...type.meta, marginLeft: 'auto' },
-  footer: { paddingHorizontal: space.page, paddingTop: 12, paddingBottom: 4, borderTopWidth: StyleSheet.hairlineWidth, gap: 10 },
+  step: { ...type.meta, fontWeight: '600', marginLeft: 'auto' },
+  lede: { ...type.lede, marginHorizontal: space.page, marginBottom: 12 },
+
+  footer: {
+    paddingHorizontal: space.card,
+    paddingTop: 16,
+    paddingBottom: 6,
+    gap: 12,
+  },
 });
