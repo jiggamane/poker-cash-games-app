@@ -1,25 +1,46 @@
 import { useMemo } from 'react';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { formatMoney, formatSigned, resolveLedger, settle, type Money } from '@poker-club/core';
+import {
+  formatMoney,
+  formatSigned,
+  resolveLedger,
+  settle,
+  type Deduction,
+  type Money,
+  type PlayerId,
+} from '@poker-club/core';
 import { Button } from '../src/components/Button';
+import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { useNight } from '../src/lib/nightStore';
+import { nameOf, useNight } from '../src/lib/nightStore';
 
 /**
- * Night settled — E6. What a night looks like once it is over.
+ * The night's results — 1C. Rev 10.
  *
- * The record, not a receipt: three figures across the top, then everyone's net
- * AFTER deductions, each on a wash of its own colour. This is the screen a
- * player opens three weeks later to check what they remember, so it says
- * everything that is true of the night, including a shortfall the host
- * confirmed rather than quietly leaving that out.
+ * ONE screen for two situations: the night you have just closed, and a night
+ * you open from a list three weeks later. They are the same facts, so they are
+ * the same screen — E6's own layout is gone.
+ *
+ * EVERY ROW CARRIES THE WHOLE CALCULATION, as tokens: what they put in, what
+ * they took out, and what each rule took off them. A reimbursement rides
+ * INSIDE its deduction — "bill 61 +170 back" — never as a token of its own,
+ * because it is not a separate movement of money, it is the same bill seen
+ * from the other side. Losers show in and out only: deductions are charged to
+ * winners.
+ *
+ * The net is after deductions and the list is sorted by it, best first. On the
+ * canonical night that puts Marek above Dana even though Dana won more at the
+ * table, which is exactly why the sort is on the final net.
  */
-export default function Settled() {
+export default function NightResults() {
   const t = useTheme();
   const night = useNight();
+  /** Whose results these are. The night knows, unless nobody has claimed it. */
+  const { me: asked } = useLocalSearchParams<{ me?: PlayerId }>();
+  const me = asked ?? night?.meId;
 
   const result = useMemo(() => {
     if (night === null) return null;
@@ -38,8 +59,6 @@ export default function Settled() {
 
   if (night === null) return <Sheet title="The night">{null}</Sheet>;
 
-  const ledger = resolveLedger(night.entries);
-
   if (result === null) {
     return (
       <Sheet
@@ -47,11 +66,7 @@ export default function Settled() {
         sub="This night was never closed. Count everyone up and settle it to see the record."
         sentence
         footer={
-          <Button
-            label="Open the night"
-            variant="primary"
-            onPress={() => router.replace('/session')}
-          />
+          <Button label="Open the night" variant="primary" onPress={() => router.replace('/session')} />
         }
       >
         {null}
@@ -59,19 +74,37 @@ export default function Settled() {
     );
   }
 
-  const net = [...result.players].sort((a, b) => b.finalPosition - a.finalPosition);
+  const ledger = resolveLedger(night.entries);
   const started = new Date(night.startedAt);
+
+  /* Money in play is the ins, which equal the outs. Bill and kitty are read off
+     the deductions rather than added up here — if a figure looks wrong the rule
+     is wrong, and there is a test for the rule. */
+  const bill = totalFor(result.deductions, 'bill');
+  const kitty = totalFor(result.deductions, 'kitty');
+
+  const rows = [...result.players].sort((a, b) => b.finalPosition - a.finalPosition);
+  const mine = me === undefined ? [] : result.transfers.filter((tr) => tr.fromPlayerId === me);
 
   return (
     <Sheet
       title={started.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
-      sub={`${clock(night.startedAt)} · ${night.players.length} players · settled`}
+      sub={`${clock(night.startedAt)} · ${night.players.length} players`}
       footer={<Button label="Done" variant="secondary" onPress={() => router.dismissTo('/')} />}
     >
-      <View style={[styles.strip, { borderColor: t.hairline }]}>
-        <Stat value={formatMoney(ledger.totalBoughtIn)} label="through the table" />
-        <Stat value={String(ledger.entries.length)} label="entries" />
-        <Stat value={formatMoney(result.totalOffTable)} label="off the table" />
+      <View style={styles.summary}>
+        <View style={styles.summaryLeft}>
+          <Text style={[styles.summaryLabel, { color: t.muted }]}>Money in play</Text>
+          <Text style={[styles.summaryFigure, { color: t.text }]}>
+            {formatMoney(ledger.totalBoughtIn)}
+          </Text>
+        </View>
+        {/* Grouped at the right, small, and with no minus signs: they are two
+            amounts that left the table, not two negative numbers. */}
+        <View style={styles.offTable}>
+          <Off label="Bill" value={bill} />
+          <Off label="Kitty" value={kitty} />
+        </View>
       </View>
 
       {night.acknowledgement !== undefined && (
@@ -87,89 +120,235 @@ export default function Settled() {
       )}
 
       <View style={styles.list}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Net, after deductions</Text>
+        <Text style={[styles.sectionLabel, { color: t.muted }]}>Net</Text>
 
-        {net.map((p) => (
-          <View
-            key={p.playerId}
-            style={[
-              styles.row,
-              {
-                backgroundColor:
-                  p.finalPosition > 0 ? t.winWash : p.finalPosition < 0 ? t.lossWash : 'transparent',
-              },
-            ]}
-          >
-            <View style={styles.rowText}>
-              <Text style={[styles.name, { color: t.text }]}>{p.name}</Text>
-              <Text style={[styles.detail, { color: t.muted }]}>
-                in {formatMoney(p.boughtIn)} · out {formatMoney(p.endedWith)}
-                {p.charged > 0 ? ` · paid ${formatMoney(p.charged)}` : ''}
-                {p.credited > 0 ? ` · back ${formatMoney(p.credited)}` : ''}
-              </Text>
+        {rows.map((p, i) => {
+          const isMe = p.playerId === me;
+          const won = p.grossResult > 0;
+          return (
+            <View
+              key={p.playerId}
+              style={[
+                styles.row,
+                {
+                  borderBottomColor: t.hairline,
+                  borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                },
+              ]}
+            >
+              <View style={styles.rowTop}>
+                <Text style={[isMe ? styles.nameMine : styles.name, { color: t.text }]}>
+                  {p.name}
+                </Text>
+                <Text
+                  style={[
+                    isMe ? styles.netMine : styles.net,
+                    { color: moneyColor(t, p.finalPosition) },
+                  ]}
+                >
+                  {formatSigned(p.finalPosition)}
+                </Text>
+              </View>
+
+              <View style={styles.tokens}>
+                <Token label="in" value={p.boughtIn} color={t.loss} />
+                <Token label="out" value={p.endedWith} color={t.win} />
+
+                {/* Deductions are charged to winners, so a loser's row stops at
+                    in and out — printing "bill 0" would suggest they were
+                    charged and forgiven. */}
+                {won &&
+                  result.deductions.map((d) => {
+                    const charged = d.charges.find((c) => c.playerId === p.playerId)?.amount ?? 0;
+                    if (charged === 0) return null;
+                    const back = d.credits.find((c) => c.playerId === p.playerId)?.amount ?? 0;
+                    return (
+                      <Token
+                        key={d.ruleId}
+                        label={word(d)}
+                        value={charged as Money}
+                        color={t.muted}
+                        back={back > 0 ? (back as Money) : undefined}
+                      />
+                    );
+                  })}
+              </View>
             </View>
-            <Text style={[styles.figure, { color: moneyColor(t, p.finalPosition) }]}>
-              {formatSigned(p.finalPosition)}
+          );
+        })}
+      </View>
+
+      <Status night={night} short={result.acknowledgedDiscrepancy?.amount} />
+
+      <View style={styles.transfers}>
+        <Text style={[styles.sectionLabel, { color: t.muted }]}>
+          {me === undefined ? 'Who pays whom' : 'What you paid'}
+        </Text>
+        {/*
+         * S46 says this section is the READER'S OWN payments, which needs a
+         * reader. The night names one as soon as somebody has claimed their
+         * place; until then it shows the whole settlement under its own honest
+         * title rather than passing off everyone's transfers as yours.
+         */}
+        {(me === undefined ? result.transfers : mine).map((tr, i) => (
+          <View key={`${tr.fromPlayerId}-${tr.toPlayerId}-${i}`} style={styles.transfer}>
+            <Text style={[styles.transferText, { color: t.text }]}>
+              {me === undefined ? nameOf(night, tr.fromPlayerId) : 'You'}
             </Text>
+            <Icon name="arrow" color={t.muted} />
+            <Text style={[styles.transferText, { color: t.text }]}>
+              {nameOf(night, tr.toPlayerId)}
+            </Text>
+            <Text style={[styles.transferAmount, { color: t.text }]}>{formatMoney(tr.amount)}</Text>
           </View>
         ))}
+        {(me === undefined ? result.transfers : mine).length === 0 && (
+          <Text style={[styles.none, { color: t.muted }]}>
+            {me === undefined ? 'Nothing to move: everyone left level.' : 'You owe nobody.'}
+          </Text>
+        )}
       </View>
     </Sheet>
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+/**
+ * One settlement status line, and exactly one. The three strings are fixed.
+ */
+function Status({
+  night,
+  short,
+}: {
+  night: NonNullable<ReturnType<typeof useNight>>;
+  short?: Money;
+}) {
   const t = useTheme();
+
+  const state =
+    short !== undefined && short < 0
+      ? ({ text: `Short by ${formatMoney(Math.abs(short) as Money)}`, color: t.loss, icon: 'info' } as const)
+      : night.status === 'settled'
+        ? ({ text: 'Settled', color: t.win, icon: 'check' } as const)
+        : ({ text: 'Not settled yet', color: t.amber, icon: 'clock' } as const);
+
   return (
-    <View style={styles.stat}>
-      <Text style={[styles.statValue, { color: t.text }]}>{value}</Text>
-      <Text style={[styles.statLabel, { color: t.muted }]}>{label}</Text>
+    <View style={styles.status}>
+      <Icon name={state.icon} color={state.color} size={15} />
+      <Text style={[styles.statusText, { color: state.color }]}>{state.text}</Text>
     </View>
   );
 }
+
+/** "in 1,000", "bill 61 +170 back". */
+function Token({
+  label,
+  value,
+  color,
+  back,
+}: {
+  label: string;
+  value: Money;
+  color: string;
+  back?: Money;
+}) {
+  const t = useTheme();
+  return (
+    <Text style={[styles.token, { color }]}>
+      {label} {value.toLocaleString('en-US')}
+      {back !== undefined && (
+        <Text style={[styles.tokenBack, { color: t.win }]}> +{back.toLocaleString('en-US')} back</Text>
+      )}
+    </Text>
+  );
+}
+
+function Off({ label, value }: { label: string; value: Money }) {
+  const t = useTheme();
+  return (
+    <View style={styles.off}>
+      <Text style={[styles.offLabel, { color: t.muted }]}>{label}</Text>
+      <Text style={[styles.offValue, { color: t.loss }]}>{formatMoney(value)}</Text>
+    </View>
+  );
+}
+
+const totalFor = (deductions: readonly Deduction[], destination: Deduction['destination']): Money =>
+  deductions
+    .filter((d) => d.destination === destination)
+    .reduce((sum, d) => sum + d.total, 0) as Money;
+
+/** The token's word is what the money was for, not what the rule was called. */
+const word = (d: Deduction): string =>
+  d.destination === 'bill'
+    ? 'bill'
+    : d.destination === 'kitty'
+      ? 'kitty'
+      : d.destination === 'host_fee'
+        ? 'fee'
+        : 'pot';
 
 const clock = (iso: string): string =>
   new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 const styles = StyleSheet.create({
-  strip: {
+  summary: {
     flexDirection: 'row',
-    marginHorizontal: space.page,
-    marginBottom: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    alignItems: 'flex-end',
+    gap: 16,
+    marginHorizontal: space.card,
+    marginBottom: 20,
   },
-  stat: { flex: 1, paddingVertical: 14, gap: 3 },
-  statValue: { fontSize: 24, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  statLabel: { fontSize: 11, fontWeight: '600', letterSpacing: 0.88, textTransform: 'uppercase' },
+  summaryLeft: { gap: 8 },
+  summaryLabel: type.tableLabel,
+  summaryFigure: type.tableFigure,
+  offTable: { marginLeft: 'auto', gap: 6, alignItems: 'flex-end' },
+  off: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  offLabel: { fontSize: 12.5, fontWeight: '500' },
+  offValue: { fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
 
   alert: {
     marginHorizontal: space.card,
-    marginTop: 8,
-    marginBottom: 4,
+    marginBottom: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: radius.pressable,
     borderWidth: 1,
     gap: 6,
   },
-  alertLabel: { ...type.label },
+  alertLabel: type.label,
   alertBody: { fontSize: 13, fontWeight: '400', lineHeight: 19 },
 
-  list: { marginTop: 12, marginHorizontal: space.page },
+  list: { marginHorizontal: space.page },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  row: {
+  row: { paddingVertical: 13, paddingHorizontal: 4, gap: 7 },
+  rowTop: { flexDirection: 'row', alignItems: 'baseline', gap: 12 },
+  name: { fontSize: 17, fontWeight: '600', flexShrink: 1 },
+  nameMine: { fontSize: 17, fontWeight: '800', flexShrink: 1 },
+  net: { fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+  netMine: { fontSize: 19, fontWeight: '800', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+  tokens: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  token: { fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  tokenBack: { fontSize: 13, fontWeight: '700' },
+
+  status: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 11,
-    paddingHorizontal: 10,
-    marginHorizontal: -6,
-    marginBottom: 3,
-    borderRadius: radius.pressable,
+    gap: 8,
+    marginTop: 20,
+    marginHorizontal: space.page,
+    paddingHorizontal: 4,
   },
-  rowText: { gap: 3, flexShrink: 1 },
-  name: type.rowName,
-  detail: { ...type.rowDetail },
-  figure: { ...type.feedFigure, marginLeft: 'auto' },
+  statusText: { fontSize: 14, fontWeight: '700' },
+
+  transfers: { marginTop: 24, marginHorizontal: space.page },
+  transfer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  transferText: type.rowName,
+  transferAmount: { ...type.figure, marginLeft: 'auto' },
+  none: { ...type.footnote, paddingHorizontal: 4 },
 });

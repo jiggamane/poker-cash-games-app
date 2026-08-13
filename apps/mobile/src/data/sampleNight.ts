@@ -63,4 +63,11 @@ export const SEED = {
   players,
   entries,
   rules,
+  /*
+   * Whoever is holding this phone. It is a seeded guess and nothing more —
+   * the real answer arrives when a member claims their place from an invite,
+   * and until then it is what lets "What you paid" and My stats say YOUR
+   * figures rather than everybody's.
+   */
+  meId: MAREK,
 };

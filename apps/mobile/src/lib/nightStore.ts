@@ -5,6 +5,7 @@ import {
   formatMoney,
   money,
   resolveLedger,
+  settle,
   type LedgerEntry,
   type Money,
   type MoneyRule,
@@ -45,6 +46,10 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           started_at  TEXT NOT NULL,
           status      TEXT NOT NULL DEFAULT 'open',
           rules_json  TEXT NOT NULL,
+          -- Which player row is the person holding this phone. Null until
+          -- somebody claims their place; nothing in the money depends on it,
+          -- only on which figures a screen calls yours.
+          me_id       TEXT,
           -- The host's confirmation of money that could not be accounted for.
           -- Part of the night's record, not a UI flag: it is what allows a
           -- night that does not add up to be closed at all.
@@ -102,6 +107,11 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           // Already there.
         }
       }
+      try {
+        await db.execAsync(`ALTER TABLE night ADD COLUMN me_id TEXT;`);
+      } catch {
+        // Already there.
+      }
 
       return db;
     });
@@ -119,6 +129,11 @@ export interface Night {
   /** The host's end-of-night count, for players still seated. */
   finalCounts: Map<PlayerId, Money>;
   rules: MoneyRule[];
+  /**
+   * The player row this device belongs to, when it is known. It decides whose
+   * figures a screen calls yours — never what any of them are.
+   */
+  meId?: PlayerId;
   /** When each entry happened, which is not derivable from its seq. */
   occurredAt: Record<string, string>;
   /** What an expense was for. Display only. */
@@ -180,6 +195,7 @@ interface NightRow {
   status: Night['status'];
   rules_json: string;
   ack_json: string | null;
+  me_id: string | null;
 }
 
 /**
@@ -232,6 +248,7 @@ export async function openNight(): Promise<Night> {
     startedAt: row!.started_at,
     status: row!.status,
     rules: JSON.parse(row!.rules_json),
+    ...(row!.me_id ? { meId: row!.me_id } : {}),
     players: players.map((p) => ({ id: p.id, name: p.name, atTable: p.at_table === 1 })),
     entries: entries.map((e) => ({
       id: e.id,
@@ -260,6 +277,7 @@ interface Seed {
   players: Player[];
   entries: Array<Omit<LedgerEntry, 'id' | 'seq'> & { occurredAt: string; note?: string }>;
   rules: MoneyRule[];
+  meId?: PlayerId;
 }
 
 async function seedNight(seed: Seed): Promise<void> {
@@ -268,12 +286,13 @@ async function seedNight(seed: Seed): Promise<void> {
 
   await db.withTransactionAsync(async () => {
     await db.runAsync(
-      `INSERT INTO night (session_id, group_name, started_at, status, rules_json)
-       VALUES (?, ?, ?, 'open', ?)`,
+      `INSERT INTO night (session_id, group_name, started_at, status, rules_json, me_id)
+       VALUES (?, ?, ?, 'open', ?, ?)`,
       sessionId,
       seed.groupName,
       seed.startedAt,
       JSON.stringify(seed.rules),
+      seed.meId ?? null,
     );
 
     for (const p of seed.players) {
@@ -507,6 +526,88 @@ export async function addSpend(amount: Money, note: string, cover: Cover): Promi
     );
   }
 }
+
+/** A night as it appears in a list of your own — 1A/1B, and My stats. */
+export interface MyNight {
+  sessionId: string;
+  groupName: string;
+  /** "Thu 13 August". */
+  date: string;
+  /** "13/8", for the chart's axis. */
+  short: string;
+  /** "20:05 – 00:15", or the start alone while the night is still running. */
+  times: string;
+  /** False for a night of this club you sat out. */
+  played: boolean;
+  /** Your net after deductions. Zero on a night you did not play. */
+  result: Money;
+}
+
+/**
+ * Your nights, most recent last.
+ *
+ * ONE NIGHT, FOR NOW. This phone holds the session it is recording and nothing
+ * else — history arrives with the server — so this is honest rather than
+ * complete: it reads what is here, works out your result the same way the
+ * results screen does, and returns a list of one. The screens above it are
+ * built for many and will not change when many arrive.
+ *
+ * `withinDays` bounds the period; null is all time.
+ */
+export function myNights(night: Night | null, withinDays: number | null): MyNight[] {
+  if (night === null || night.status !== 'settled') return [];
+
+  const started = new Date(night.startedAt);
+  if (withinDays !== null) {
+    const age = (Date.now() - started.getTime()) / 86_400_000;
+    if (age > withinDays) return [];
+  }
+
+  let result = 0 as Money;
+  let played = false;
+
+  if (night.meId !== undefined) {
+    try {
+      const settled = settle({
+        players: night.players,
+        entries: night.entries,
+        finalCounts: night.finalCounts,
+        rules: night.rules,
+        ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
+      });
+      const me = settled.players.find((p) => p.playerId === night.meId);
+      if (me !== undefined) {
+        result = me.finalPosition;
+        played = true;
+      }
+    } catch {
+      // A night that will not settle has no result to show. It still appears,
+      // as a night you were at, with no figure beside it.
+      played = false;
+    }
+  }
+
+  const last = [...night.entries].sort((a, b) => b.seq - a.seq)[0];
+  const ended = last === undefined ? undefined : night.occurredAt[last.id];
+
+  return [
+    {
+      sessionId: night.sessionId,
+      groupName: night.groupName,
+      date: started.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' }),
+      short: `${started.getDate()}/${started.getMonth() + 1}`,
+      times:
+        ended === undefined
+          ? hhmm(night.startedAt)
+          : `${hhmm(night.startedAt)} – ${hhmm(ended)}`,
+      played,
+      result,
+    },
+  ];
+}
+
+const hhmm = (iso: string): string =>
+  new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 /** One thing the night bought, however many people put money towards it. */
 export interface Spend {

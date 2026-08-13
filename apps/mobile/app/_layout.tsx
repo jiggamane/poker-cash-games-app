@@ -67,6 +67,8 @@ export default function RootLayout() {
         <Stack.Screen name="count-up" />
         <Stack.Screen name="deductions" />
         <Stack.Screen name="settle-up" />
+        <Stack.Screen name="stats" />
+        <Stack.Screen name="games" />
         <Stack.Screen name="settings" />
 
         {/* Sheets. Each of these ends with one action and then gets out. */}
