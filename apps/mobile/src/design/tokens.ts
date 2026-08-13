@@ -73,6 +73,32 @@ export interface Theme {
   keyline: string;
   /** Outline and text of a destructive action. Never filled. */
   danger: string;
+
+  /**
+   * A third text tone, below `muted`: the seat count beside a figure, the hint
+   * beside a disclosure row. Never used for anything a person has to read.
+   */
+  dim: string;
+
+  /** Fill of a round chrome button — the 36px back, the 30px sheet close. */
+  roundFill: string;
+
+  /*
+   * Chrome B. A sheet is not a card: it is lighter than the ground in the dark
+   * theme and white in the light one, so the screen it covers reads as being
+   * behind it rather than beside it.
+   */
+  sheet: string;
+  sheetEdge: string;
+  grabber: string;
+  /**
+   * What is behind a sheet sits at opacity .32, which is the ground showing
+   * through at 68% — so the scrim IS the ground colour at that alpha.
+   */
+  scrim: string;
+
+  /** Pending, unclaimed, unpaid. Text and 1px border on a pill, never a fill. */
+  amber: string;
 }
 
 export const darkTheme: Theme = {
@@ -99,6 +125,13 @@ export const darkTheme: Theme = {
   onFill: '#0C0D0F',
   keyline: '#0A0A0B',
   danger: '#F0705C',
+  dim: '#6C6E74',
+  roundFill: 'rgba(255,255,255,0.09)',
+  sheet: '#101013',
+  sheetEdge: 'rgba(255,255,255,0.12)',
+  grabber: 'rgba(255,255,255,0.22)',
+  scrim: 'rgba(10,10,11,0.68)',
+  amber: '#E8B455',
 };
 
 export const lightTheme: Theme = {
@@ -134,6 +167,13 @@ export const lightTheme: Theme = {
   onFill: '#FFFFFF',
   keyline: '#FFFFFF',
   danger: '#B03A28',
+  dim: '#8A8F96',
+  roundFill: 'rgba(12,13,15,0.06)',
+  sheet: '#FFFFFF',
+  sheetEdge: 'rgba(12,13,15,0.1)',
+  grabber: 'rgba(12,13,15,0.18)',
+  scrim: 'rgba(255,255,255,0.68)',
+  amber: '#8A5A00',
 };
 
 /**
@@ -159,8 +199,16 @@ export const type = {
   display: { fontSize: 64, fontWeight: '800', letterSpacing: -2.5, ...tabular },
   /** The figure inside a surface card — "On the table". 800 48/1, -.04em. */
   cardFigure: { fontSize: 48, fontWeight: '800', letterSpacing: -1.9, ...tabular },
-  /** Screen title on a pushed screen. 800 32/1.05, -.03em. */
-  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 34 },
+  /** Screen title on a pushed screen. Chrome A: 800 32/1, -.03em. */
+  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 32 },
+  /** The line under it: club · elapsed · since, indented to the title. */
+  pushMeta: { fontSize: 13, fontWeight: '500', ...tabular },
+  /** A sheet's title. Chrome B: 800 34/1, and 30/1.05 when a sub-line follows. */
+  sheetTitle: { fontSize: 34, fontWeight: '800', letterSpacing: -1.02, lineHeight: 34 },
+  sheetTitleSub: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 31.5 },
+  /** A sheet's sub-line: a phrase at 500, a sentence at 400 and 1.5. */
+  sheetSub: { fontSize: 13, fontWeight: '500' },
+  sheetSentence: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
   /** The group's name on home. 800 30/1.05 — two smaller than a pushed title. */
   homeTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 32 },
   /** A home destination — "The group", "My stats". 800 30, -.03em. */
@@ -260,6 +308,40 @@ export const space = {
   rowInset: 4,
   /** Above a section's caps header. */
   section: 22,
+} as const;
+
+/**
+ * The two chromes, from 09-navigation.md.
+ *
+ * A pushed screen carries a round back button and nothing at all in the
+ * top-right corner. A sheet carries a grabber and a round close and never a
+ * chevron. Mixing the two vocabularies is the one thing that would leave a
+ * person unsure which gesture takes them back, so these numbers are the whole
+ * signal and are kept together rather than inlined per screen.
+ */
+export const chrome = {
+  /** Title row: 26 / 20 / 0, centred, gap 12. */
+  titlePadTop: 26,
+  titlePadH: 20,
+  titleGap: 12,
+  /** The round back button, and the chevron inside it. */
+  back: 36,
+  /** 8 / 20 / 0 / 68 — the 68 puts it under the title, not under the button. */
+  metaPadTop: 8,
+  metaIndent: 68,
+
+  /** The sheet panel. */
+  sheetTop: 18,
+  sheetRadius: 26,
+  sheetTitlePadTop: 12,
+  sheetTitlePadH: 22,
+  sheetTitleGap: 11,
+  grabberWidth: 38,
+  grabberHeight: 5,
+  close: 30,
+  /** What is behind a sheet, and behind the table-admin drawer. */
+  behindSheet: 0.32,
+  behindDrawer: 0.4,
 } as const;
 
 export const control = {

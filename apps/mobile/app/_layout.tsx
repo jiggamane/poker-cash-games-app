@@ -8,16 +8,27 @@ import { completeSignInFromUrl } from '../src/lib/authLink';
 import { openNight } from '../src/lib/nightStore';
 
 /**
- * The navigation shell.
+ * The navigation shell. 09-navigation.md.
  *
- * NO TAB BAR — the design is explicit about this. The group is the root, and
- * the session and the book are pushed on top of it, so the club is always one
- * tap back rather than one tab across.
+ * NO TAB BAR, ever. The club is the root and the only permanent screen.
  *
- * Headers are off everywhere: every screen draws its own large title top-left,
- * and pushed screens carry their own labelled back plus a home glyph. A stock
- * navigation bar would sit above all of that and duplicate it.
+ * Every other screen is one of two things, and the list below is where that is
+ * decided: a screen you navigate TO is PUSHED (Chrome A, `Screen`), and a
+ * screen you open to do ONE THING is a SHEET (Chrome B, `Sheet`). The test:
+ * if it ends with a Save, an Add, an Apply or a confirm, it is a sheet; if it
+ * is a place you can stay in, it is a push.
+ *
+ * A sheet is a transparent modal because the design's scrim is not opaque —
+ * what is behind sits at .32 and stays visible, which is what tells you the
+ * thing underneath is still there and still yours.
+ *
+ * Headers are off everywhere: each chrome draws its own.
  */
+const SHEET = {
+  presentation: 'transparentModal',
+  animation: 'slide_from_bottom',
+  contentStyle: { backgroundColor: 'transparent' },
+} as const;
 export default function RootLayout() {
   const t = useTheme();
 
@@ -49,7 +60,29 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: t.ground },
           animation: 'slide_from_right',
         }}
-      />
+      >
+        {/* Root, and pushes: the club, the night, the ending flow, settings. */}
+        <Stack.Screen name="index" />
+        <Stack.Screen name="session" />
+        <Stack.Screen name="count-up" />
+        <Stack.Screen name="deductions" />
+        <Stack.Screen name="settle-up" />
+        <Stack.Screen name="settings" />
+
+        {/* Sheets. Each of these ends with one action and then gets out. */}
+        <Stack.Screen name="player" options={SHEET} />
+        <Stack.Screen name="pick" options={SHEET} />
+        <Stack.Screen name="log" options={SHEET} />
+        <Stack.Screen name="entry" options={SHEET} />
+        <Stack.Screen name="seat" options={SHEET} />
+        <Stack.Screen name="expenses" options={SHEET} />
+        <Stack.Screen name="add-expense" options={SHEET} />
+        <Stack.Screen name="house-rules" options={SHEET} />
+        <Stack.Screen name="money-rules" options={SHEET} />
+        <Stack.Screen name="rule" options={SHEET} />
+        <Stack.Screen name="settled" options={SHEET} />
+        <Stack.Screen name="sign-in" options={SHEET} />
+      </Stack>
     </SafeAreaProvider>
   );
 }

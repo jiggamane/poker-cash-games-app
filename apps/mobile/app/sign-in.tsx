@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { Button } from '../src/components/Button';
 import { Field } from '../src/components/Field';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { authRedirectUrl } from '../src/lib/authLink';
@@ -42,21 +42,21 @@ export default function SignIn() {
 
   if (!isSupabaseConfigured) {
     return (
-      <Screen title="Not connected" backTo="The group">
+      <Sheet title="Not connected">
         <Text style={[styles.body, styles.page, { color: t.muted }]}>
           This build has no Supabase project configured, so there is nothing to sign in to. Put
           EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in apps/mobile/.env and restart
           the server.
         </Text>
-      </Screen>
+      </Sheet>
     );
   }
 
   if (stage === 'sent') {
     return (
-      <Screen
+      <Sheet
         title="Check your email"
-        backTo="Sign in"
+       
         footer={
           <>
             <Button label="Done" variant="primary" onPress={() => router.dismissTo('/')} />
@@ -81,14 +81,14 @@ export default function SignIn() {
           </Text>
           <RedirectNote url={redirect} />
         </View>
-      </Screen>
+      </Sheet>
     );
   }
 
   return (
-    <Screen
+    <Sheet
       title="Sign in"
-      backTo="The group"
+     
       footer={
         <Button
           label={busy ? 'Sending…' : 'Email me a link'}
@@ -119,7 +119,7 @@ export default function SignIn() {
 
         <RedirectNote url={redirect} />
       </View>
-    </Screen>
+    </Sheet>
   );
 }
 

@@ -86,7 +86,7 @@ export default function CountUp() {
     <Screen
       title={balanced || toCount.length > 0 ? 'Count up' : 'It doesn’t add up'}
       backTo="Tonight"
-      step="1 of 3"
+      badge="1 of 3"
       footer={
         <>
           {!balanced && toCount.length === 0 && !confirmed && (

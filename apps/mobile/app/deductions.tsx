@@ -83,8 +83,7 @@ export default function Deductions() {
     <Screen
       title="Deductions"
       backTo="Count up"
-      action={{ label: 'Edit', onPress: () => router.push('/money-rules') }}
-      step="2 of 3"
+      badge="2 of 3"
       footer={
         <Button
           label={
@@ -114,6 +113,16 @@ export default function Deductions() {
           <Card key={d.ruleId} deduction={d} night={night} />
         ))}
       </View>
+
+      {/* Under the rules rather than in the corner: Chrome A keeps the
+          top-right empty, and this is the one screen where "the fix is the
+          rule" has to be a visible way out rather than an icon. */}
+      <Button
+        label="Change a rule and look again"
+        variant="chip"
+        style={styles.edit}
+        onPress={() => router.push('/money-rules')}
+      />
     </Screen>
   );
 }
@@ -200,6 +209,7 @@ const styles = StyleSheet.create({
   cardNote: { fontSize: 13.5, fontWeight: '400', lineHeight: 19 },
 
   cards: { marginHorizontal: space.card, gap: 8 },
+  edit: { marginHorizontal: space.card, marginTop: 14 },
   rule: {
     borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,

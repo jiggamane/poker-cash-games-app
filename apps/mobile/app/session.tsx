@@ -58,23 +58,11 @@ export default function Session() {
   return (
     <Screen
       title="Tonight"
-      backTo={night.groupName}
-      barExtra={
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Food and drinks"
-          hitSlop={12}
-          onPress={() => router.push('/expenses')}
-        >
-          <Icon name="rules" color={t.offTable} />
-        </Pressable>
-      }
-      trailing={
-        <>
-          <LiveBadge />
-          <Text style={[styles.elapsed, { color: t.muted }]}>{elapsed(night.startedAt)}</Text>
-        </>
-      }
+      backTo="the club"
+      /* The two icons that used to sit in this corner — a receipt and a house —
+         are gone with rev 9: the bill is in the dock and the club is what back
+         returns to. What was in the badge moves down to the meta line. */
+      meta={`${night.groupName} · ${elapsed(night.startedAt)} · since ${since}`}
       footer={
         <>
           {/* Ending the night is not a red button. It is a quiet row that names

@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { formatMoney, formatSigned, resolveLedger, settle, type Money } from '@poker-club/core';
 import { Button } from '../src/components/Button';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { useNight } from '../src/lib/nightStore';
@@ -36,16 +36,16 @@ export default function Settled() {
     }
   }, [night]);
 
-  if (night === null) return <Screen title="The night" backTo="The group">{null}</Screen>;
+  if (night === null) return <Sheet title="The night">{null}</Sheet>;
 
   const ledger = resolveLedger(night.entries);
 
   if (result === null) {
     return (
-      <Screen
+      <Sheet
         title="Not settled"
-        backTo="The group"
-        lede="This night was never closed. Count everyone up and settle it to see the record."
+        sub="This night was never closed. Count everyone up and settle it to see the record."
+        sentence
         footer={
           <Button
             label="Open the night"
@@ -55,7 +55,7 @@ export default function Settled() {
         }
       >
         {null}
-      </Screen>
+      </Sheet>
     );
   }
 
@@ -63,11 +63,9 @@ export default function Settled() {
   const started = new Date(night.startedAt);
 
   return (
-    <Screen
+    <Sheet
       title={started.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
-      backTo="The group"
-      action={{ label: 'Share' }}
-      lede={`${clock(night.startedAt)} · ${night.players.length} players · settled`}
+      sub={`${clock(night.startedAt)} · ${night.players.length} players · settled`}
       footer={<Button label="Done" variant="secondary" onPress={() => router.dismissTo('/')} />}
     >
       <View style={[styles.strip, { borderColor: t.hairline }]}>
@@ -116,7 +114,7 @@ export default function Settled() {
           </View>
         ))}
       </View>
-    </Screen>
+    </Sheet>
   );
 }
 

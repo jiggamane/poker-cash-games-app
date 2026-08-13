@@ -30,7 +30,19 @@ export type IconName =
   /** The keypad's delete key. */
   | 'backspace'
   /** Adds something — always paired with a dashed outline. */
-  | 'plus';
+  | 'plus'
+  /** A sheet's close. The only glyph that dismisses rather than navigates. */
+  | 'close'
+  /** The dock's disclosure, pointing at the drawer it opens. */
+  | 'chevronUp'
+  /** Seat a player. */
+  | 'person'
+  /** Cash a player out — a seat emptying, not a warning. */
+  | 'cashOut'
+  /** The bill. */
+  | 'receipt'
+  /** Settled. */
+  | 'check';
 
 export function Icon({
   name,
@@ -163,6 +175,99 @@ export function Icon({
       return (
         <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
           <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'close': {
+      const s = size ?? 12;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path d="M5 5l14 14M19 5L5 19" stroke={color} strokeWidth={2.6} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'chevronUp': {
+      const s = size ?? 16;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M5 15l7-7 7 7"
+            stroke={color}
+            strokeWidth={2.4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'person': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Circle cx={12} cy={8.5} r={3.6} stroke={color} strokeWidth={1.8} />
+          <Path
+            d="M4.8 20c.9-3.4 3.6-5.3 7.2-5.3s6.3 1.9 7.2 5.3"
+            stroke={color}
+            strokeWidth={1.8}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'cashOut': {
+      // A seat with an arrow leaving it. Never red: cashing out is expected,
+      // and only ending the night is destructive.
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M13.5 4.5H5.5v15h8"
+            stroke={color}
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M11 12h8.5M16.5 8.5l3.5 3.5-3.5 3.5"
+            stroke={color}
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'receipt': {
+      const s = size ?? 20;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M5 3.5h14v17l-2.3-1.5-2.4 1.5-2.3-1.5-2.4 1.5L7.3 19 5 20.5z"
+            stroke={color}
+            strokeWidth={1.8}
+            strokeLinejoin="round"
+          />
+          <Path d="M8.5 8.5h7M8.5 12.5h7" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'check': {
+      const s = size ?? 15;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M4.5 12.5l5 5 10-11"
+            stroke={color}
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </Svg>
       );
     }

@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, resolveLedger, settle, type Money, type MoneyRule } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { nameOf, useNight } from '../src/lib/nightStore';
@@ -42,17 +42,16 @@ export default function HouseRules() {
   }, [night]);
 
   if (night === null || ledger === null) {
-    return <Screen title="Bill &amp; kitty" backTo="Tonight">{null}</Screen>;
+    return <Sheet title="Bill &amp; kitty">{null}</Sheet>;
   }
 
   const active = night.rules.filter((r) => r.active).sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
-    <Screen
+    <Sheet
       title="Bill &amp; kitty"
-      backTo="Tonight"
-      action={{ label: 'Edit', onPress: () => router.push('/money-rules') }}
-      lede="The group’s usual rules, carried from last night. They apply at settle-up, never during play."
+      sub="The group’s usual rules, carried from last night. They apply at settle-up, never during play."
+      sentence
     >
       <View style={styles.cards}>
         {active.map((rule) => {
@@ -96,11 +95,22 @@ export default function HouseRules() {
         </Pressable>
       </View>
 
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push('/money-rules')}
+        style={({ pressed }) => [
+          styles.edit,
+          { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 },
+        ]}
+      >
+        <Text style={[styles.editLabel, { color: t.text }]}>Edit tonight’s rules</Text>
+      </Pressable>
+
       <Text style={[styles.footnote, { color: t.muted }]}>
-        Edit changes tonight only. A night is settled with the rules it opened with, so nights
+        Editing changes tonight only. A night is settled with the rules it opened with, so nights
         already closed keep the rules they were closed under.
       </Text>
-    </Screen>
+    </Sheet>
   );
 }
 
@@ -170,6 +180,19 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   addLabel: { fontSize: 15, fontWeight: '700' },
+
+  /* Chrome B has no corner either: the way to the editor is a control in the
+     content, not an "Edit" floating above the title. */
+  edit: {
+    alignSelf: 'flex-start',
+    marginHorizontal: space.card,
+    marginTop: 16,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    borderRadius: radius.pressable,
+    borderWidth: 1.5,
+  },
+  editLabel: { fontSize: 15, fontWeight: '700' },
 
   footnote: { ...type.footnote, marginHorizontal: space.page, marginTop: 18 },
 });

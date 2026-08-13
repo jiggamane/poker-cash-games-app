@@ -5,7 +5,7 @@ import { formatMoney, money, resolveLedger } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Keypad, appendDigits } from '../src/components/Keypad';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { addExpense, useNight } from '../src/lib/nightStore';
@@ -35,7 +35,7 @@ export default function AddExpense() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   if (night === null || ledger === null) {
-    return <Screen title="New expense" backTo="Food &amp; drinks">{null}</Screen>;
+    return <Sheet title="New expense">{null}</Sheet>;
   }
 
   // Whoever is actually here. Somebody who never sat down did not buy the pizza.
@@ -59,10 +59,8 @@ export default function AddExpense() {
   }
 
   return (
-    <Screen
+    <Sheet
       title="New expense"
-      backTo="Food &amp; drinks"
-      action={{ label: 'Cancel', quiet: true, onPress: () => router.back() }}
       footer={
         <Button
           label={
@@ -133,7 +131,7 @@ export default function AddExpense() {
         onDigits={(d) => setTyped((cur) => appendDigits(cur, d))}
         onBackspace={() => setTyped((cur) => cur.slice(0, -1))}
       />
-    </Screen>
+    </Sheet>
   );
 }
 

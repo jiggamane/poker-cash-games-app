@@ -108,8 +108,7 @@ export default function SettleUp() {
     <Screen
       title="Settle up"
       backTo="Deductions"
-      action={{ label: 'Edit', onPress: () => router.push('/money-rules') }}
-      step="3 of 3"
+      badge="3 of 3"
       lede={lede}
       footer={
         <>
@@ -154,6 +153,16 @@ export default function SettleUp() {
           ))}
         </View>
       </View>
+
+      {/* The corner is empty on a pushed screen, so the way back to the rules
+          is here, at the end, where a room that disagrees with a figure is
+          already looking. */}
+      <Button
+        label="Change a rule and look again"
+        variant="chip"
+        style={styles.edit}
+        onPress={() => router.push('/money-rules')}
+      />
     </Screen>
   );
 }
@@ -197,6 +206,7 @@ const styles = StyleSheet.create({
   },
   chipName: type.netName,
   chipFigure: type.netFigure,
+  edit: { marginHorizontal: space.card, marginTop: 20 },
 
   blocked: { ...type.footnote, marginHorizontal: space.page },
   footerRow: { flexDirection: 'row', gap: 14 },

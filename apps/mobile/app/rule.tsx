@@ -9,7 +9,7 @@ import {
   type MoneyRule,
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
-import { Screen } from '../src/components/Screen';
+import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { deleteRule, draftRule, saveRule, standingsOf, useNight } from '../src/lib/nightStore';
@@ -66,7 +66,7 @@ export default function RuleEditor() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   if (night === null || ledger === null) {
-    return <Screen title="Rule" backTo="Money rules">{null}</Screen>;
+    return <Sheet title="Rule">{null}</Sheet>;
   }
 
   const players = standingsOf(night, ledger).filter((s) => s.played);
@@ -99,10 +99,8 @@ export default function RuleEditor() {
   }
 
   return (
-    <Screen
+    <Sheet
       title={rule.name === '' ? 'New rule' : rule.name}
-      backTo="Money rules"
-      action={{ label: 'Save', onPress: save }}
       footer={
         <>
           <Button
@@ -338,7 +336,7 @@ export default function RuleEditor() {
           </Text>
         </Section>
       )}
-    </Screen>
+    </Sheet>
   );
 }
 
