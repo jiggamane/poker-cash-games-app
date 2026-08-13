@@ -142,43 +142,29 @@ export default function Home() {
         </View>
       </Pressable>
 
-      {/* NOT ON THE BOARD, and deliberate.
-          H2's card starts a night with last time's answers, which is right most
-          weeks and wrong the week the stakes change or somebody new turns up.
-          This is the way to the same act with the questions asked — and when a
-          night is already running it is also the only way to open another,
-          which the drawn screens have nowhere to put. */}
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.push('/new-session')}
-        style={({ pressed }) => [styles.setUp, { opacity: pressed ? 0.6 : 1 }]}
-      >
-        <Text style={[styles.setUpLabel, { color: t.muted }]}>
-          {live === null ? 'Set it up first' : 'Start a new session'}
-        </Text>
-        <Icon name="chevron" color={t.muted} />
-      </Pressable>
+      {/* TWO DESTINATIONS, and that is the whole screen.
+          The card above is the night you are in; these are the only other two
+          places worth going. "The group" and "Sessions" are gone: the group's
+          players and rules are reached from the night they belong to, and a
+          list of past nights is what My stats already ends with.
 
+          "Start a new game" is a destination row rather than the quiet line it
+          used to be, so the two things you can do from here look like each
+          other. It is not on any board — H2's card starts a night with last
+          time's answers, which is right most weeks and wrong the week the
+          stakes change or somebody new turns up, and when a night is already
+          running this is the only way to open another. */}
       <View style={[styles.destinations, { borderTopColor: t.hairline }]}>
         <Destination
-          name="The group"
-          sub="players, money rules, the kitty"
-          onPress={() => router.push('/session')}
+          name="Start a new game"
+          sub="stakes, buy-in and who is at the table"
+          onPress={() => router.push('/new-session')}
         />
         <Destination
           name="My stats"
           sub="across every group you play in"
-          onPress={() => router.push('/my-stats')}
-        />
-        <Destination
-          name="Sessions"
-          sub="every night, most recent first"
           last
-          // One night deep for now: the newest, and only once it is settled.
-          // A list of nights is its own screen and is not built.
-          onPress={
-            night !== null && night.status === 'settled' ? () => router.push('/settled') : undefined
-          }
+          onPress={() => router.push('/my-stats')}
         />
       </View>
 
@@ -283,16 +269,6 @@ const styles = StyleSheet.create({
   headerText: { flexShrink: 1, gap: 4 },
   headerMeta: type.navMeta,
 
-  // The quiet way to the same act, directly under the card it qualifies.
-  setUp: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginHorizontal: space.page,
-    marginTop: 14,
-    paddingVertical: 4,
-  },
-  setUpLabel: type.chip,
   title: type.homeTitle,
 
   card: {
