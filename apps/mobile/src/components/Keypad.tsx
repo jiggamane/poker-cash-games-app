@@ -17,9 +17,12 @@ import { Icon } from './Icon';
 export function Keypad({
   onDigits,
   onBackspace,
+  compact = false,
 }: {
   onDigits: (digits: string) => void;
   onBackspace: () => void;
+  /** 13 of padding instead of 14 — the bill board draws the pad a point tighter. */
+  compact?: boolean;
 }) {
   const t = useTheme();
 
@@ -31,6 +34,7 @@ export function Keypad({
       onPress={() => onDigits(label)}
       style={({ pressed }) => [
         styles.key,
+        compact && styles.keyCompact,
         filled && { backgroundColor: t.surface },
         { opacity: pressed ? 0.6 : 1 },
       ]}
@@ -58,7 +62,11 @@ export function Keypad({
           accessibilityRole="button"
           accessibilityLabel="Delete"
           onPress={onBackspace}
-          style={({ pressed }) => [styles.key, { opacity: pressed ? 0.6 : 1 }]}
+          style={({ pressed }) => [
+            styles.key,
+            compact && styles.keyCompact,
+            { opacity: pressed ? 0.6 : 1 },
+          ]}
         >
           <Icon name="backspace" color={t.muted} />
         </Pressable>
@@ -90,5 +98,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: radius.pressable,
   },
+  keyCompact: { paddingVertical: 13 },
   digit: { fontSize: 25, fontWeight: '500' },
 });

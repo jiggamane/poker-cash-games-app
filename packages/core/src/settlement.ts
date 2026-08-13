@@ -131,6 +131,25 @@ export function settle(input: SettlementInput): SettlementResult {
     );
   }
 
+  /*
+   * A spend nobody has been named for cannot be settled. It is on the bill, so
+   * the winners would be charged for it, and there is no one to pay it to — the
+   * money would come off six people and land nowhere. The host names whoever
+   * put the card down, or voids the spend. This is the same posture as the
+   * close gate: stop while the room is still standing there.
+   */
+  if (ledger.unpaidExpenses > 0) {
+    throw new SettlementError(
+      `${ledger.unpaidExpenses} of the bill has nobody covering it. Name who fronted it, or void the spend.`,
+    );
+  }
+  // The kitty cannot repay a spend it made if no rule says who holds the kitty.
+  if (ledger.kittyPaidExpenses > 0 && !input.rules.some((r) => r.active && r.destination === 'kitty')) {
+    throw new SettlementError(
+      `${ledger.kittyPaidExpenses} was paid out of the kitty, but no kitty rule is active to be repaid.`,
+    );
+  }
+
   // Sorted once, used everywhere: no result may depend on input ordering.
   const players = [...input.players].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const atTable = players.filter((p) => p.atTable);
@@ -323,6 +342,8 @@ interface DeductionSpec {
   rule: MoneyRule;
   /** Reimburse the people who actually paid for things, rather than a collector. */
   reimbursesExpenses: boolean;
+  /** Who holds the kitty, when a spend was paid out of it. */
+  kittyCollectorId?: PlayerId;
 }
 
 /**
@@ -359,9 +380,12 @@ function deductionOrder(
   // No bill rule means the group chose not to put the bar tab through the
   // settlement at all. The expenses stay in the ledger as a record of what was
   // spent, and nobody is charged for them.
+  const kitty = active.find((r) => r.destination === 'kitty');
+
   return active.map((rule) => ({
     rule,
     reimbursesExpenses: hasExpenses && rule === firstBill,
+    kittyCollectorId: kitty?.collectorPlayerId,
   }));
 }
 
@@ -393,14 +417,18 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   const custom = rule.split === 'custom' ? (rule.customShares ?? []) : null;
   const winnersOnly = rule.charge === 'winners_only' && custom === null;
 
+  // Off for tonight. A custom split names its own payers, so an exemption
+  // there would contradict an amount the host typed on purpose.
+  const exempt = new Set<PlayerId>(custom ? [] : (rule.exemptPlayerIds ?? []));
+
   let payers = custom
     ? custom.filter((c) => c.amount !== 0).map((c) => byId.get(c.playerId)!).filter(Boolean)
     : winnersOnly
-      ? everyone.filter((p) => basisFor(p.id) > 0)
-      : everyone;
+      ? everyone.filter((p) => basisFor(p.id) > 0 && !exempt.has(p.id))
+      : everyone.filter((p) => !exempt.has(p.id));
 
   // Somebody really spent this money, so it has to be shared by someone.
-  if (payers.length === 0 && reimbursesExpenses) payers = everyone;
+  if (payers.length === 0 && reimbursesExpenses) payers = everyone.filter((p) => !exempt.has(p.id));
 
   // Order decides who absorbs a leftover unit when a total does not divide
   // evenly: biggest win first, then by name. allocate() hands remainders to the
@@ -464,13 +492,27 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   // collector holds the lot.
   // Several people may have paid across the night — one covered the food, one
   // the drinks — so each is credited exactly their own outlay.
+  /*
+   * A spend the KITTY paid for is repaid to the kitty, which physically means
+   * whoever holds it. Without this the bill would collect money from the
+   * winners that nothing paid out, and the invariant below would — correctly —
+   * refuse to settle.
+   */
+  const kittyCredit =
+    reimbursesExpenses && ledger.kittyPaidExpenses > 0
+      ? [{ playerId: spec.kittyCollectorId!, amount: ledger.kittyPaidExpenses }]
+      : [];
+
   const credits: Array<{ playerId: PlayerId; amount: Money }> =
     total === 0
       ? []
       : reimbursesExpenses
-        ? [...ledger.expensesByPayer.entries()]
-            .sort((a, b) => (a[0] < b[0] ? -1 : 1))
-            .map(([playerId, amount]) => ({ playerId, amount }))
+        ? [
+            ...[...ledger.expensesByPayer.entries()]
+              .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+              .map(([playerId, amount]) => ({ playerId, amount })),
+            ...kittyCredit,
+          ]
         : [{ playerId: rule.collectorPlayerId, amount: total }];
 
   const creditTotal = sum(credits.map((c) => c.amount));

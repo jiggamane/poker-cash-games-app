@@ -20,6 +20,14 @@ export type EntryType =
   | 'correction'
   | 'void';
 
+/**
+ * Who put up the money for a spend that no player fronted.
+ *
+ *   kitty  — the kitty paid directly, so the kitty is owed it back
+ *   unpaid — it is on the bill and nobody has been named yet
+ */
+export type SpendCover = 'kitty' | 'unpaid';
+
 /** One row of the append-only ledger. */
 export interface LedgerEntry {
   id: EntryId;
@@ -33,6 +41,19 @@ export interface LedgerEntry {
   amount: Money;
   /** Set on correction/void: the entry being restated. */
   correctsEntryId?: EntryId | null;
+  /**
+   * Groups the fronters of ONE spend.
+   *
+   * Two people can split a pizza, and each has to be paid back exactly what
+   * they put in — so each is their own entry, and this is what makes them one
+   * line on the bill rather than two. A single-fronter spend does not need it.
+   */
+  spendId?: string | null;
+  /**
+   * On an expense NOT fronted by a player. Exactly one of `payerId` and
+   * `coveredBy` is set on any expense.
+   */
+  coveredBy?: SpendCover | null;
 }
 
 export interface Player {
@@ -84,6 +105,14 @@ export interface MoneyRule {
   customShares?: ReadonlyArray<{ playerId: PlayerId; amount: Money }>;
   /** Exactly one person physically holds this money. Need not be playing. */
   collectorPlayerId: PlayerId;
+  /**
+   * People this rule does not charge TONIGHT.
+   *
+   * A per-night exception, not a group setting: somebody brought the food, so
+   * the kitty leaves them alone this once. It never touches what the group
+   * does next week.
+   */
+  exemptPlayerIds?: readonly PlayerId[];
   /** Rules apply in this order, which is what makes 'net_after_others' defined. */
   sortOrder: number;
 }

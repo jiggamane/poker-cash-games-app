@@ -8,7 +8,7 @@
  */
 
 import { money, subtract, sum, type Money, ZERO } from './money';
-import type { EntryId, LedgerEntry, PlayerId, Reconciliation } from './types';
+import type { EntryId, LedgerEntry, PlayerId, Reconciliation, SpendCover } from './types';
 
 export class LedgerError extends Error {
   constructor(message: string) {
@@ -31,6 +31,9 @@ export interface EffectiveEntry {
   /** True if a correction changed the amount. */
   corrected: boolean;
   originalAmount: Money;
+  /** Expenses only: what groups the fronters of one spend, and who covered it. */
+  spendId?: string | null;
+  coveredBy?: SpendCover | null;
 }
 
 export interface ResolvedLedger {
@@ -40,7 +43,17 @@ export interface ResolvedLedger {
   expensesByPayer: Map<PlayerId, Money>;
   totalBoughtIn: Money;
   totalCashedOut: Money;
+  /**
+   * Everything spent tonight, whoever put the money up — including the kitty's
+   * own spends and anything still unpaid. This is what the bill charges out,
+   * which is NOT the same as the sum of `expensesByPayer`: that map is only
+   * the people who are owed money back.
+   */
   totalExpenses: Money;
+  /** Spends the kitty paid for directly. The kitty is repaid, not a player. */
+  kittyPaidExpenses: Money;
+  /** On the bill with nobody named yet. A night cannot settle while this is > 0. */
+  unpaidExpenses: Money;
 }
 
 const BASE_TYPES = new Set(['buyin', 'rebuy', 'cashout', 'expense']);
@@ -72,6 +85,8 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
         originalAmount: money(e.amount),
         voided: false,
         corrected: false,
+        spendId: e.spendId ?? null,
+        coveredBy: e.coveredBy ?? null,
       });
     } else if (e.correctsEntryId) {
       correctionTarget.set(e.id, e.correctsEntryId);
@@ -107,6 +122,9 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
   const boughtInByPlayer = new Map<PlayerId, Money>();
   const cashedOutByPlayer = new Map<PlayerId, Money>();
   const expensesByPayer = new Map<PlayerId, Money>();
+  let totalExpenses = 0;
+  let kittyPaidExpenses = 0;
+  let unpaidExpenses = 0;
 
   for (const e of list) {
     if (e.voided) continue;
@@ -119,7 +137,10 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
         addTo(cashedOutByPlayer, e.playerId!, e.amount);
         break;
       case 'expense':
-        addTo(expensesByPayer, e.payerId!, e.amount);
+        totalExpenses += e.amount;
+        if (e.coveredBy === 'kitty') kittyPaidExpenses += e.amount;
+        else if (e.coveredBy === 'unpaid') unpaidExpenses += e.amount;
+        else addTo(expensesByPayer, e.payerId!, e.amount);
         break;
     }
   }
@@ -131,7 +152,9 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
     expensesByPayer,
     totalBoughtIn: totalOf(boughtInByPlayer),
     totalCashedOut: totalOf(cashedOutByPlayer),
-    totalExpenses: totalOf(expensesByPayer),
+    totalExpenses: money(totalExpenses),
+    kittyPaidExpenses: money(kittyPaidExpenses),
+    unpaidExpenses: money(unpaidExpenses),
   };
 }
 
@@ -179,7 +202,12 @@ export function endedWith(
 function validateBaseEntry(e: LedgerEntry): void {
   money(e.amount); // throws on anything fractional
   if (e.type === 'expense') {
-    if (!e.payerId) throw new LedgerError(`Expense ${e.id} has no payer`);
+    // Exactly one of the two. A spend either has a player who is owed it back,
+    // or it says who else covered it — never both, and never neither.
+    if (!e.payerId && !e.coveredBy) throw new LedgerError(`Expense ${e.id} has no payer`);
+    if (e.payerId && e.coveredBy) {
+      throw new LedgerError(`Expense ${e.id} names both a payer and a coverer`);
+    }
     if (e.playerId) throw new LedgerError(`Expense ${e.id} must have a payer, not a player`);
   } else {
     if (!e.playerId) throw new LedgerError(`Entry ${e.id} of type '${e.type}' has no player`);

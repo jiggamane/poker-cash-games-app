@@ -202,7 +202,7 @@ export default function Session() {
         variant={empty ? 'empty-table' : 'resting'}
         onOpenChange={setDrawerOpen}
         onRebuy={() => router.push({ pathname: '/pick', params: { kind: 'buyin' } })}
-        onBill={() => router.push('/house-rules')}
+        onBill={() => router.push('/bill')}
         onSeat={() => router.push({ pathname: '/pick', params: { kind: 'buyin' } })}
         onCashOut={() => router.push({ pathname: '/pick', params: { kind: 'cashout' } })}
         onEnd={() => router.push('/count-up')}

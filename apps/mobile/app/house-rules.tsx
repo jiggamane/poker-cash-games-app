@@ -85,7 +85,7 @@ export default function HouseRules() {
 
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push('/expenses')}
+          onPress={() => router.push('/bill')}
           style={({ pressed }) => [
             styles.add,
             { borderColor: t.dashed, opacity: pressed ? 0.6 : 1 },

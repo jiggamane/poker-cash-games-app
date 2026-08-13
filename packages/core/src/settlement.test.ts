@@ -42,6 +42,9 @@ const rebuy = (playerId: PlayerId, amount: number): LedgerEntry => ({
 const cashout = (playerId: PlayerId, amount: number): LedgerEntry => ({
   id: `e${++seq}`, seq, type: 'cashout', playerId, amount: money(amount),
 });
+const covered = (coveredBy: 'kitty' | 'unpaid', amount: number): LedgerEntry => ({
+  id: `e${++seq}`, seq, type: 'expense', coveredBy, amount: money(amount),
+});
 const expense = (payerId: PlayerId, amount: number): LedgerEntry => ({
   id: `e${++seq}`, seq, type: 'expense', payerId, amount: money(amount),
 });
@@ -459,6 +462,90 @@ describe('expenses', () => {
     expect(r.players.find((p) => p.playerId === MAREK)!.credited).toBe(90);
     expect(r.players.find((p) => p.playerId === DANA)!.credited).toBe(0);
     expect(chargedOf(r, DANA)).toBe(60); // 180 split three ways
+  });
+
+  it('charges a spend the kitty paid for, and repays the kitty', () => {
+    reset();
+    const r = settle({
+      players: [at(MAREK), at(PETR), at(DANA)],
+      entries: [
+        buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000),
+        expense(PETR, 60),
+        covered('kitty', 120), // the kitty bought the pizza itself
+      ],
+      finalCounts: counts([[MAREK, 1200], [PETR, 1000], [DANA, 800]]),
+      rules: [
+        rule({ id: 'tab', destination: 'bill', amountKind: 'fixed', amount: money(1),
+               charge: 'everyone_flat', split: 'evenly', collectorPlayerId: MAREK }),
+        rule({ id: 'kitty', destination: 'kitty', amountKind: 'percent', amount: money(5),
+               charge: 'winners_only', split: 'by_percent', collectorPlayerId: DANA }),
+      ],
+    });
+
+    // The whole 180 is on the bill, whoever put the money up...
+    expect(r.deductions.find((d) => d.destination === 'bill')!.total).toBe(180);
+    // ...and the 120 goes back to whoever holds the kitty, not to a player who
+    // never spent it. Dana collects the kitty, so Dana is credited it.
+    expect(r.players.find((p) => p.playerId === PETR)!.credited).toBe(60);
+    expect(r.players.find((p) => p.playerId === DANA)!.credited).toBeGreaterThanOrEqual(120);
+  });
+
+  it('leaves a player off tonight out of the charge, without touching the others', () => {
+    reset();
+    const off = settle({
+      players: [at(MAREK), at(PETR), at(DANA)],
+      entries: [buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000)],
+      finalCounts: counts([[MAREK, 1400], [PETR, 1000], [DANA, 600]]),
+      rules: [
+        rule({ id: 'kitty', destination: 'kitty', amountKind: 'percent', amount: money(10),
+               charge: 'winners_only', split: 'by_percent', collectorPlayerId: DANA,
+               exemptPlayerIds: [MAREK] }),
+      ],
+    });
+
+    // Marek won 400 and would have paid 40. He brought the food, so tonight he
+    // pays nothing, and nobody else's share moves to cover it.
+    expect(chargedOf(off, MAREK)).toBe(0);
+    // He was the only winner, so with him off there is nothing to charge and
+    // the rule produces no deduction at all rather than an empty one.
+    expect(off.deductions).toEqual([]);
+    expect(off.totalOffTable).toBe(0);
+  });
+
+  it('refuses to settle while a spend has nobody covering it', () => {
+    reset();
+    expect(() =>
+      settle({
+        players: [at(MAREK), at(PETR), at(DANA)],
+        entries: [
+          buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000),
+          covered('unpaid', 120),
+        ],
+        finalCounts: counts([[MAREK, 1000], [PETR, 1000], [DANA, 1000]]),
+        rules: [
+          rule({ id: 'tab', destination: 'bill', amountKind: 'fixed', amount: money(1),
+                 charge: 'everyone_flat', split: 'evenly', collectorPlayerId: MAREK }),
+        ],
+      }),
+    ).toThrow(SettlementError);
+  });
+
+  it('refuses a kitty-paid spend when no kitty rule is active to be repaid', () => {
+    reset();
+    expect(() =>
+      settle({
+        players: [at(MAREK), at(PETR), at(DANA)],
+        entries: [
+          buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000),
+          covered('kitty', 120),
+        ],
+        finalCounts: counts([[MAREK, 1000], [PETR, 1000], [DANA, 1000]]),
+        rules: [
+          rule({ id: 'tab', destination: 'bill', amountKind: 'fixed', amount: money(1),
+                 charge: 'everyone_flat', split: 'evenly', collectorPlayerId: MAREK }),
+        ],
+      }),
+    ).toThrow(SettlementError);
   });
 
   it("nets a payer's own share against what they fronted", () => {

@@ -72,6 +72,11 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           -- What the money was for: "Pizza", "Drinks". Display only — the
           -- engine never reads it, which is why it is not on LedgerEntry.
           note              TEXT,
+          -- Groups the fronters of one spend, so a pizza two people split is
+          -- one line on the bill and two reimbursements at settle-up.
+          spend_id          TEXT,
+          -- 'kitty' or 'unpaid' on a spend no player fronted.
+          covered_by        TEXT,
           PRIMARY KEY (session_id, id)
         );
 
@@ -82,6 +87,12 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           PRIMARY KEY (session_id, player_id)
         );
       `);
+
+      // The two columns above arrived after the first release, and SQLite has
+      // no IF NOT EXISTS for a column — so try, and ignore the duplicate.
+      for (const column of ['spend_id TEXT', 'covered_by TEXT']) {
+        await db.execAsync(`ALTER TABLE night_entry ADD COLUMN ${column}`).catch(() => {});
+      }
       return db;
     });
   }
@@ -196,6 +207,8 @@ export async function openNight(): Promise<Night> {
     corrects_entry_id: string | null;
     occurred_at: string;
     note: string | null;
+    spend_id: string | null;
+    covered_by: LedgerEntry['coveredBy'];
   }>(`SELECT * FROM night_entry WHERE session_id = ? ORDER BY seq ASC`, sessionId);
 
   const counts = await db.getAllAsync<{ player_id: string; amount: number }>(
@@ -218,6 +231,8 @@ export async function openNight(): Promise<Night> {
       payerId: e.payer_id,
       amount: e.amount as Money,
       correctsEntryId: e.corrects_entry_id,
+      spendId: e.spend_id,
+      coveredBy: e.covered_by,
     })),
     finalCounts: new Map(counts.map((c) => [c.player_id, c.amount as Money])),
     occurredAt: Object.fromEntries(entries.map((e) => [e.id, e.occurred_at])),
@@ -305,8 +320,9 @@ async function append(
 
   await db.runAsync(
     `INSERT INTO night_entry
-       (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at, note)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at,
+        note, spend_id, covered_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     night.sessionId,
     entry.id,
     entry.seq,
@@ -317,6 +333,8 @@ async function append(
     entry.correctsEntryId ?? null,
     occurredAt.toISOString(),
     note ?? null,
+    entry.spendId ?? null,
+    entry.coveredBy ?? null,
   );
 
   night = {
@@ -422,6 +440,157 @@ export function addExpense(payerId: PlayerId, amount: Money, note: string): Prom
   return append({ type: 'expense', payerId, amount }, new Date(), note);
 }
 
+/** Who put the money up for one spend. */
+export type Cover =
+  | { kind: 'players'; shares: ReadonlyArray<{ playerId: PlayerId; amount: Money }> }
+  | { kind: 'kitty' }
+  | { kind: 'unpaid' };
+
+/**
+ * One spend on the bill — L2.
+ *
+ * Several people can front one pizza, and each has to be paid back exactly
+ * what they put in, so each fronter is their own ledger entry. `spendId` is
+ * what makes them one line on the bill rather than three, and the same stamp
+ * on all of them is what keeps them together in time.
+ *
+ * The shares must sum to the spend. The screen blocks Save until they do; this
+ * refuses anyway, because a bill that does not add up is how money goes
+ * missing between six people at 1am.
+ */
+export async function addSpend(amount: Money, note: string, cover: Cover): Promise<void> {
+  if (night === null) throw new Error('No night is open.');
+  const spendId = randomUUID();
+  const at = new Date();
+
+  if (cover.kind !== 'players') {
+    await append({ type: 'expense', amount, spendId, coveredBy: cover.kind }, at, note);
+    return;
+  }
+
+  const total = cover.shares.reduce((n, s) => n + s.amount, 0);
+  if (total !== amount) {
+    throw new Error(`The fronted amounts come to ${total}, not ${amount}.`);
+  }
+  for (const share of cover.shares) {
+    if (share.amount <= 0) continue;
+    await append(
+      { type: 'expense', payerId: share.playerId, amount: share.amount, spendId },
+      at,
+      note,
+    );
+  }
+}
+
+/**
+ * All the entries that make up one spend, oldest first.
+ *
+ * A spend written before `spendId` existed is a single entry and is its own
+ * group, which is why the fallback is the entry's own id.
+ */
+export const spendIdOf = (e: { id: string; spendId?: string | null }): string => e.spendId ?? e.id;
+
+/** One line on the bill: what it was, what it cost, and who put the money up. */
+export interface Spend {
+  /** The group id, which is the single entry's own id when it has no group. */
+  id: string;
+  amount: Money;
+  /** Absent when the host typed no note. The row then shows the amount alone. */
+  note?: string;
+  at: string;
+  /** 'players' means somebody is owed it back; the other two mean nobody is. */
+  cover: 'players' | 'kitty' | 'unpaid';
+  fronters: ReadonlyArray<{ playerId: PlayerId; amount: Money; entryId: string }>;
+  /** Every entry behind it, so a correction can reach the right row. */
+  entryIds: readonly string[];
+}
+
+/**
+ * The bill, as lines rather than as ledger rows.
+ *
+ * Newest at the bottom, in ledger order — the order things were bought in is
+ * the order somebody remembers them in.
+ */
+export function spendsOf(n: Night, ledger: ResolvedLedger): Spend[] {
+  const byGroup = new Map<string, Spend>();
+
+  for (const e of ledger.entries) {
+    if (e.type !== 'expense' || e.voided) continue;
+    const id = spendIdOf(e);
+    const existing = byGroup.get(id);
+
+    if (existing === undefined) {
+      byGroup.set(id, {
+        id,
+        amount: e.amount,
+        note: n.noteOf[e.id],
+        at: n.occurredAt[e.id] ?? '',
+        cover: e.coveredBy ?? 'players',
+        fronters:
+          e.coveredBy != null ? [] : [{ playerId: e.payerId!, amount: e.amount, entryId: e.id }],
+        entryIds: [e.id],
+      });
+      continue;
+    }
+
+    byGroup.set(id, {
+      ...existing,
+      amount: (existing.amount + e.amount) as Money,
+      note: existing.note ?? n.noteOf[e.id],
+      fronters:
+        e.coveredBy != null
+          ? existing.fronters
+          : [...existing.fronters, { playerId: e.payerId!, amount: e.amount, entryId: e.id }],
+      entryIds: [...existing.entryIds, e.id],
+    });
+  }
+
+  return [...byGroup.values()];
+}
+
+/**
+ * Rename a spend — the Note row on L3.
+ *
+ * The note is NOT ledger data: no amount depends on it and the engine never
+ * reads it, which is why it is a column on the row rather than an entry of its
+ * own. Editing it in place is therefore not a hole in the append-only rule —
+ * every figure on the bill still only ever changes by correction.
+ */
+export async function renameSpend(spendId: string, note: string): Promise<void> {
+  if (night === null) return;
+  const db = await getDb();
+  const mine = night.entries.filter((e) => e.type === 'expense' && spendIdOf(e) === spendId);
+  if (mine.length === 0) return;
+
+  const noteOf = { ...night.noteOf };
+  for (const e of mine) {
+    await db.runAsync(
+      `UPDATE night_entry SET note = ? WHERE session_id = ? AND id = ?`,
+      note === '' ? null : note,
+      night.sessionId,
+      e.id,
+    );
+    if (note === '') delete noteOf[e.id];
+    else noteOf[e.id] = note;
+  }
+
+  night = { ...night, noteOf };
+  emit();
+}
+
+/**
+ * Void a whole spend — L3.
+ *
+ * Every fronter's entry goes, not just the one that was tapped. Voiding one
+ * half of a split pizza would leave the bill charging for a pizza that half
+ * exists.
+ */
+export async function voidSpend(spendId: string): Promise<void> {
+  if (night === null) return;
+  const mine = night.entries.filter((e) => e.type === 'expense' && spendIdOf(e) === spendId);
+  for (const e of mine) await voidEntry(e.id);
+}
+
 /**
  * Seat someone who was not playing, and log their first buy-in.
  *
@@ -497,6 +666,26 @@ export async function saveRule(rule: MoneyRule): Promise<void> {
     ? night.rules.map((r) => (r.id === rule.id ? rule : r))
     : [...night.rules, rule];
   await writeRules(rules);
+}
+
+/**
+ * Switch one player out of a rule FOR TONIGHT — L6's "Off for tonight".
+ *
+ * It lives on the night's own copy of the rule, which is a snapshot taken when
+ * the night opened, so it never reaches back into what the group does next
+ * week. That is the whole point of the exception.
+ */
+export async function toggleExemption(ruleId: string, playerId: PlayerId): Promise<void> {
+  if (night === null) return;
+  await writeRules(
+    night.rules.map((r) => {
+      if (r.id !== ruleId) return r;
+      const off = new Set(r.exemptPlayerIds ?? []);
+      if (off.has(playerId)) off.delete(playerId);
+      else off.add(playerId);
+      return { ...r, exemptPlayerIds: [...off] };
+    }),
+  );
 }
 
 export async function deleteRule(ruleId: string): Promise<void> {
