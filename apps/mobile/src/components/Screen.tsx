@@ -9,10 +9,10 @@ import { Icon } from './Icon';
 /**
  * The frame every pushed screen sits in.
  *
- * A pushed screen carries a back that is LABELLED with where it returns to —
- * not a bare chevron — and a home glyph on the right, because the design's
- * whole navigation idea is that the club is always one tap away without a tab
- * bar.
+ * A pushed screen carries a back that is LABELLED with where it returns to,
+ * not a bare chevron. The label is the whole navigation: there is one club and
+ * one home, so a glyph that jumps to it would say a second time what the words
+ * left of it already say.
  *
  * Three bands, each measured off the board and each with its OWN inset:
  *
@@ -89,16 +89,6 @@ export function Screen({
                 </Text>
               </Pressable>
             )}
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="The group"
-              onPress={() => router.dismissTo('/')}
-              hitSlop={12}
-              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-            >
-              <Icon name="home" color={t.muted} />
-            </Pressable>
           </View>
         </View>
       )}

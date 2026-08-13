@@ -51,7 +51,7 @@ export default function Settings() {
   return (
     <Screen
       title="Settings"
-      backTo="The group"
+      backTo="Home"
       lede="Everything below is optional. The app records a night without any of it."
     >
       <View style={styles.list}>

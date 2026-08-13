@@ -36,7 +36,7 @@ export default function Settled() {
     }
   }, [night]);
 
-  if (night === null) return <Screen title="The night" backTo="The group">{null}</Screen>;
+  if (night === null) return <Screen title="The night" backTo="Home">{null}</Screen>;
 
   const ledger = resolveLedger(night.entries);
 
@@ -44,7 +44,7 @@ export default function Settled() {
     return (
       <Screen
         title="Not settled"
-        backTo="The group"
+        backTo="Home"
         lede="This night was never closed. Count everyone up and settle it to see the record."
         footer={
           <Button
@@ -65,7 +65,7 @@ export default function Settled() {
   return (
     <Screen
       title={started.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
-      backTo="The group"
+      backTo="Home"
       action={{ label: 'Share' }}
       lede={`${clock(night.startedAt)} · ${night.players.length} players · settled`}
       footer={<Button label="Done" variant="secondary" onPress={() => router.dismissTo('/')} />}

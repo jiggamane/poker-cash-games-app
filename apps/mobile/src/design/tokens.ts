@@ -161,16 +161,12 @@ export const type = {
   cardFigure: { fontSize: 48, fontWeight: '800', letterSpacing: -1.9, ...tabular },
   /** Screen title on a pushed screen. 800 32/1.05, -.03em. */
   title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 34 },
-  /** The group's name on home. 800 30/1.05 — two smaller than a pushed title. */
-  homeTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 32 },
-  /** A home destination — "The group", "My stats". 800 30, -.03em. */
+  /** A home destination — "My stats", "Sessions". 800 30, -.03em. */
   destination: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9 },
   /** The line under it. */
   destinationSub: { fontSize: 14, fontWeight: '400' },
-  /** The group's name in a pushed screen's back bar. */
+  /** Where a pushed screen's back bar returns to. */
   eyebrow: { fontSize: 17, fontWeight: '500' },
-  /** "Your group", above the name on home. Small and semibold, not body. */
-  groupLabel: { fontSize: 13, fontWeight: '600' },
   /** Amounts in a totals or transfer row. */
   figure: { fontSize: 19, fontWeight: '700', ...tabular },
   /** Amounts in the feed, which runs one step smaller throughout. */
@@ -238,8 +234,6 @@ export const space = {
   page: 22,
   /** Cards, tab tracks, bars — two less than the list beside them. */
   card: 20,
-  /** The home screen's own inset: its header and its destination list. */
-  home: 24,
   /** Below a card or a tab track. */
   belowCard: 14,
   /** Inside a card. */

@@ -1,66 +1,94 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatMoney } from '@poker-club/core';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
 import { Icon, type IconName } from '../src/components/Icon';
-import { useLedger, useNight } from '../src/lib/nightStore';
+import { defaultBuyIn, startNight, useLedger, useNight } from '../src/lib/nightStore';
 
 /**
- * Home — the group. The root of everything; nothing is pushed beneath it.
+ * Home — the night. The root of everything; nothing is pushed beneath it.
  *
- * Built from H2 (idle) and H3 (live). The shape is the same in both: a header,
- * ONE filled card carrying the only thing you might do right now, then a list
- * of destinations, then a quiet bar at the bottom.
+ * ONE CLUB PER HOST, so the screen names no club and offers no way to switch
+ * between clubs: there is nothing to switch to. That is why there is no header
+ * at all — a title saying "Your group" above a name you already know is a line
+ * the host reads past every single time. The card is the first thing on the
+ * screen, and it carries the only thing you might do right now: the game that
+ * is running, or the one you are about to start.
  *
- * A destination is a NAME, never a figure — the group is a place you go, not a
- * number you read. Figures belong to the night, which is why the only figure
- * anywhere on this screen is inside the card, and only when a night is open.
+ * Built from H2 (idle) and H3 (live), minus that header. Below the card, a
+ * list of destinations, then a quiet bar at the bottom. A destination is a
+ * NAME, never a figure — a place you go, not a number you read. Figures belong
+ * to the night, which is why the only figure anywhere on this screen is inside
+ * the card, and only when a night is open.
  *
- * Home does not use `Screen`: it has no back bar, and its header is inset 24
- * where a pushed screen's title is inset 22.
+ * "My stats" is the one place the app still knows about more than one club:
+ * a host runs one, but they can PLAY in several, and their own results are the
+ * only screen where a per-club filter means anything.
+ *
+ * Home does not use `Screen`: it has no back bar and no title.
  */
 export default function Home() {
   const t = useTheme();
   const night = useNight();
   const ledger = useLedger();
+  const [starting, setStarting] = useState(false);
 
-  // A night is live until it has been settled. H2 — "Start a session" — is what
-  // this becomes once it has, and once starting one is a thing you can do.
-  const live =
+  /**
+   * Three states, and the card is a different card in each. A night is live
+   * until it has been SETTLED — counting still counts as playing — and once it
+   * has been, starting the next one is the thing to offer.
+   */
+  const state =
     night === null || ledger === null
       ? null
-      : {
-          seated: night.players.filter(
-            (p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0,
-          ).length,
-          since: elapsed(night.startedAt),
-          settled: night.status === 'settled',
-        };
+      : night.status === 'settled'
+        ? { kind: 'idle' as const, buyIn: defaultBuyIn(ledger) }
+        : {
+            kind: 'live' as const,
+            seated: night.players.filter(
+              (p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0,
+            ).length,
+            since: elapsed(night.startedAt),
+          };
+
+  async function start(): Promise<void> {
+    if (starting) return;
+    setStarting(true);
+    try {
+      await startNight();
+      router.push('/session');
+    } catch {
+      // The night was not written. Last night is still on screen and the card
+      // can be pressed again; nothing has been lost.
+    } finally {
+      setStarting(false);
+    }
+  }
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <Text style={[styles.groupLabel, { color: t.muted }]}>Your group</Text>
-        <Text style={[styles.title, { color: t.text }]}>{night?.groupName ?? 'The Poker Club'}</Text>
-      </View>
-
       {/* The one filled thing on the screen. Inverted — ink on white, white on
           ink — with a 2px keyline of the ground set inside it. */}
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push(live?.settled === true ? '/settled' : '/session')}
+        disabled={state === null || starting}
+        onPress={() => {
+          if (state?.kind === 'live') router.push('/session');
+          else void start();
+        }}
         style={({ pressed }) => [
           styles.card,
           { backgroundColor: t.text, borderColor: t.ground, opacity: pressed ? 0.9 : 1 },
         ]}
       >
-        {live !== null && !live.settled && (
+        {state?.kind === 'live' && (
           <View style={styles.cardStatusRow}>
             <View style={[styles.dot, { backgroundColor: t.onFillWin }]} />
             <Text style={[styles.cardStatus, { color: t.onFill }]}>
-              PLAYING NOW · {live.since.toUpperCase()}
+              PLAYING NOW · {state.since.toUpperCase()}
             </Text>
           </View>
         )}
@@ -70,14 +98,16 @@ export default function Home() {
               so the card and the rows beneath it read as one column. */}
           <View style={styles.cardText}>
             <Text style={[styles.cardName, { color: t.onFill }]}>
-              {live?.settled === true ? 'Last night' : 'Tonight'}
+              {state?.kind === 'idle' ? 'Start a session' : 'Tonight'}
             </Text>
             <Text style={[styles.cardLede, { color: t.onFill }]}>
-              {live === null
+              {state === null
                 ? 'opening the ledger'
-                : live.settled
-                  ? 'settled · look back at it'
-                  : `${live.seated} at the table · the ledger is open`}
+                : state.kind === 'idle'
+                  ? starting
+                    ? 'dealing you in…'
+                    : `${formatMoney(state.buyIn)} buy-in · same players and rules as last time`
+                  : `${state.seated} at the table · the ledger is open`}
             </Text>
           </View>
           <View style={styles.pushRight}>
@@ -87,12 +117,21 @@ export default function Home() {
       </Pressable>
 
       <View style={[styles.destinations, { borderTopColor: t.hairline }]}>
+        {/* Only while last night is still the night this phone is holding —
+            once the next one starts, it is history, and history is Sessions. */}
+        {state?.kind === 'idle' && (
+          <Destination
+            name="Last night"
+            sub="settled · look back at it"
+            onPress={() => router.push('/settled')}
+          />
+        )}
         <Destination
-          name="The group"
-          sub="players, money rules, the kitty"
+          name="Players &amp; rules"
+          sub="the roster, the money rules, the kitty"
           onPress={() => router.push('/session')}
         />
-        <Destination name="My stats" sub="across every group you play in" />
+        <Destination name="My stats" sub="every club you play in" />
         <Destination name="Sessions" sub="every night, most recent first" last />
       </View>
 
@@ -185,12 +224,11 @@ function elapsed(startedAt: string): string {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
 
-  // 28 / 24 / 20 — the home header is inset 24, not the 22 of a pushed title.
-  header: { paddingTop: 28, paddingHorizontal: space.home, paddingBottom: 20, gap: 4 },
-  groupLabel: type.groupLabel,
-  title: type.homeTitle,
-
   card: {
+    // 28 down from the top, where the header's own first line used to sit:
+    // the card takes over that place rather than sliding up into the status
+    // bar's shadow.
+    marginTop: 28,
     marginHorizontal: space.card,
     marginBottom: 16,
     padding: 24,

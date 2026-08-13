@@ -42,7 +42,7 @@ export default function SignIn() {
 
   if (!isSupabaseConfigured) {
     return (
-      <Screen title="Not connected" backTo="The group">
+      <Screen title="Not connected" backTo="Home">
         <Text style={[styles.body, styles.page, { color: t.muted }]}>
           This build has no Supabase project configured, so there is nothing to sign in to. Put
           EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in apps/mobile/.env and restart
@@ -88,7 +88,7 @@ export default function SignIn() {
   return (
     <Screen
       title="Sign in"
-      backTo="The group"
+      backTo="Home"
       footer={
         <Button
           label={busy ? 'Sending…' : 'Email me a link'}

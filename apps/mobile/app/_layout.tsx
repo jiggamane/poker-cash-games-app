@@ -10,13 +10,13 @@ import { openNight } from '../src/lib/nightStore';
 /**
  * The navigation shell.
  *
- * NO TAB BAR — the design is explicit about this. The group is the root, and
- * the session and the book are pushed on top of it, so the club is always one
- * tap back rather than one tab across.
+ * NO TAB BAR — the design is explicit about this. There is one club and one
+ * night, so home is the root and everything else is pushed on top of it: home
+ * is always one tap back rather than one tab across.
  *
  * Headers are off everywhere: every screen draws its own large title top-left,
- * and pushed screens carry their own labelled back plus a home glyph. A stock
- * navigation bar would sit above all of that and duplicate it.
+ * and pushed screens carry their own labelled back. A stock navigation bar
+ * would sit above all of that and duplicate it.
  */
 export default function RootLayout() {
   const t = useTheme();

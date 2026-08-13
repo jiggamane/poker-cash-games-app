@@ -46,7 +46,7 @@ export default function Session() {
   }, [night, ledger]);
 
   if (night === null || ledger === null) {
-    return <Screen title="Tonight" backTo="The group">{null}</Screen>;
+    return <Screen title="Tonight" backTo="Home">{null}</Screen>;
   }
 
   const onTable = (ledger.totalBoughtIn - ledger.totalCashedOut) as Money;
@@ -58,7 +58,7 @@ export default function Session() {
   return (
     <Screen
       title="Tonight"
-      backTo={night.groupName}
+      backTo="Home"
       barExtra={
         <Pressable
           accessibilityRole="button"

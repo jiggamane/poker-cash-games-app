@@ -5,9 +5,9 @@ import { Circle, Path, Svg } from 'react-native-svg';
  *
  * The boards ship inline SVG, so there is no icon set to choose and no
  * approximation to make: `d` below is the same string the designer drew with.
- * Stroke widths differ per glyph on purpose — the back chevron is 2.3, the home
- * roof 1.9, the settings gear 1.8 — and copying them keeps the weights matched
- * the way they are on the board.
+ * Stroke widths differ per glyph on purpose — the back chevron is 2.3, the
+ * rules book 1.8, the settings gear 1.8 — and copying them keeps the weights
+ * matched the way they are on the board.
  */
 
 export type IconName =
@@ -17,8 +17,6 @@ export type IconName =
   | 'back'
   /** The small chevron at the end of a tappable row. */
   | 'chevron'
-  /** The club, always one tap away. */
-  | 'home'
   /** House rules. */
   | 'info'
   /** The rule book, in the night's bar. */
@@ -79,15 +77,6 @@ export function Icon({
       return (
         <Svg width={(h * 8) / 13} height={h} viewBox="0 0 8 13" fill="none">
           <Path d="M1.5 1.5L6.5 6.5l-5 5" stroke={color} strokeWidth={2} strokeLinecap="round" />
-        </Svg>
-      );
-    }
-
-    case 'home': {
-      const s = size ?? 19;
-      return (
-        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-          <Path d="M12 3.9l8 6.7v9.9H4v-9.9z" stroke={color} strokeWidth={1.9} strokeLinejoin="round" />
         </Svg>
       );
     }

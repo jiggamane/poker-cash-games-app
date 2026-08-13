@@ -164,6 +164,10 @@ interface NightRow {
 /**
  * Open the night on this phone, seeding one the first time.
  *
+ * The MOST RECENT night, not the only one: a settled night stays in the
+ * database when the next one starts, so the ordering is what decides which of
+ * them the app is holding.
+ *
  * TEMPORARY SEED. Until groups and sessions are real, opening the app for the
  * first time creates a night from `sampleNight` so there is something to look
  * at. It runs once — after that this is the host's own data, and the seed
@@ -171,12 +175,13 @@ interface NightRow {
  */
 export async function openNight(): Promise<Night> {
   const db = await getDb();
-  let row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+  const latest = `SELECT * FROM night ORDER BY started_at DESC LIMIT 1`;
+  let row = await db.getFirstAsync<NightRow>(latest);
 
   if (!row) {
     const seed = await import('../data/sampleNight');
     await seedNight(seed.SEED);
-    row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+    row = await db.getFirstAsync<NightRow>(latest);
   }
 
   const sessionId = row!.session_id;
@@ -227,6 +232,45 @@ export async function openNight(): Promise<Night> {
 
   emit();
   return night;
+}
+
+/**
+ * Start the next night.
+ *
+ * The roster and the money rules carry over, because a club plays the same
+ * game with the same people most weeks and retyping both every Thursday is the
+ * fastest way to stop using an app. Nobody is seated: who is at the table is
+ * something tonight decides, one buy-in at a time.
+ *
+ * The night that just ended is left where it is, under its own session id.
+ * Nothing reads it yet — a sessions list is what will.
+ */
+export async function startNight(): Promise<Night> {
+  const previous = night;
+  const db = await getDb();
+  const sessionId = randomUUID();
+
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      `INSERT INTO night (session_id, group_name, started_at, status, rules_json)
+       VALUES (?, ?, ?, 'open', ?)`,
+      sessionId,
+      previous?.groupName ?? 'The club',
+      new Date().toISOString(),
+      JSON.stringify(previous?.rules ?? []),
+    );
+
+    for (const p of previous?.players ?? []) {
+      await db.runAsync(
+        `INSERT INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, 0)`,
+        sessionId,
+        p.id,
+        p.name,
+      );
+    }
+  });
+
+  return openNight();
 }
 
 interface Seed {

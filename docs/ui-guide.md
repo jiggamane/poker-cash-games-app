@@ -108,10 +108,11 @@ reading is what produced two deduction rows merged into one beige rectangle.
 
 ### The home screen has its own inset
 
-Home is inset **24**, not 22 — its header (`28 / 24 / 20`) and its destination
-list both. Its title is `800 30`, two smaller than a pushed screen's `800 32`.
-The one filled card on it is inverted: ink on white, white on ink, with a 2px
-keyline of the *ground* set inside the fill.
+Home's destination list is inset **24**, not 22, and its names are `800 30` —
+two smaller than a pushed screen's `800 32`, which is the largest thing on the
+screen now that the header has gone. The card takes the 28 from the top that
+the header's first line used to. The card is inverted: ink on white, white on
+ink, with a 2px keyline of the *ground* set inside the fill.
 
 ### Settle up is a list of transfers
 
@@ -155,11 +156,16 @@ bone. Used for "House rules" — a quiet action that is not a button.
 
 ## Where we knowingly differ from the board
 
-Two, both marked in the code with the reason. Everything else is copied.
+All marked in the code with the reason. Everything else is copied.
 
-**The home glyph is always rightmost in a bar.** `[N1]`/`[N2]` put it last;
-`[E4]` puts it before the text action. Navigation that moves between screens is
-worse than a 16px ordering difference on one screen.
+**One club per host, so home has no header and no bar carries a home glyph.**
+The boards were drawn when a host could have several clubs: `[H2]`/`[H3]` head
+home with "Your group" above the club's name, `[N1]` labels its back with that
+name, and every pushed bar ends in a house glyph — "the club is one tap away".
+With one club there is nothing to name and nowhere else to go, so home opens on
+the card and pushed screens go back to **Home**, which is what `[G4]` and `[X1]`
+already labelled their backs with. The per-club filter survives in one place:
+`[G4] My stats`, because a host runs one club but can play in several.
 
 **The bright theme's "playing now" dot is `#6FCF97`, not `#0A7A3D`.** Both boards
 draw it in the dark green, but on the bright screen that card is filled with
