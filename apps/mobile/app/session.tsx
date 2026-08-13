@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 12,
-    marginTop: 16,
+    marginTop: 10,
     marginHorizontal: 20,
     marginBottom: 16,
     paddingVertical: 14,

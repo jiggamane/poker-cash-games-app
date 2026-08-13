@@ -15,7 +15,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { radius } from '../src/design/tokens';
 import { nameOf, useNight } from '../src/lib/nightStore';
 
 /**
@@ -48,8 +48,8 @@ export default function Deductions() {
           ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
         }),
       };
-    } catch (e) {
-      return { ok: false as const, message: e instanceof Error ? e.message : String(e) };
+    } catch {
+      return { ok: false as const };
     }
   }, [night]);
 
@@ -64,10 +64,16 @@ export default function Deductions() {
         title="Not yet"
         backTo="Count up"
         trailing={<Step label="2 of 3" />}
-        lede="Nothing can be worked out until every stack has been counted."
-        footer={<Button label="Back to the count" variant="primary" onPress={() => router.back()} />}
+        lede="No rule can take its share until every stack has been counted, because there is nothing yet to take a share of."
+        footer={
+          <Button
+            label="Back to the count"
+            variant="primary"
+            onPress={() => router.dismissTo('/count-up')}
+          />
+        }
       >
-        <Text style={[styles.blocked, { color: t.muted }]}>{result.message}</Text>
+        {null}
       </Screen>
     );
   }
@@ -417,5 +423,4 @@ const styles = StyleSheet.create({
 
   previewNote: { fontSize: 11.5, fontWeight: '400', lineHeight: 16.7, paddingTop: 7, paddingHorizontal: 6 },
 
-  blocked: { ...type.footnote, marginHorizontal: space.page },
 });

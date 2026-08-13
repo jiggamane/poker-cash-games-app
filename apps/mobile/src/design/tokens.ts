@@ -229,8 +229,12 @@ export const type = {
   display: { fontSize: 64, fontWeight: '800', letterSpacing: -2.5, ...tabular },
   /** The figure inside a surface card — "On the table". 800 48/1, -.04em. */
   cardFigure: { fontSize: 48, fontWeight: '800', letterSpacing: -1.9, ...tabular },
-  /** Screen title on a pushed screen. Chrome A: 800 32/1, -.03em. */
-  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 32 },
+  /**
+   * Screen title on a pushed screen. Chrome A gives 800 32/1; the drawn frames
+   * set 1.05, and they are right — at a flat 1 the descender of a "p" leaves
+   * the text box and lands on whatever the screen puts underneath.
+   */
+  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 33.6 },
   /** The line under it: club · elapsed · since, indented to the title. */
   pushMeta: { fontSize: 13, fontWeight: '500', ...tabular },
   /** A sheet's title. Chrome B: 800 34/1, and 30/1.05 when a sub-line follows. */
@@ -397,8 +401,10 @@ export const chrome = {
   titleGap: 12,
   /** The round back button, and the chevron inside it. */
   back: 36,
+  /** The gap every pushed screen keeps between its title and its content. */
+  titlePadBottom: 6,
   /** 8 / 20 / 0 / 68 — the 68 puts it under the title, not under the button. */
-  metaPadTop: 8,
+  metaPadTop: 2,
   metaIndent: 68,
 
   /** The sheet panel. */

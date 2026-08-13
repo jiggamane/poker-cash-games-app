@@ -91,16 +91,11 @@ export function Screen({
             <Icon name="back" color={t.text} />
           </Pressable>
         )}
-        {/* One line, always: the title is 800/32 and a wrapped one would push
-            the meta line and everything under it down by a third of a screen.
-            A long title shrinks instead — "Where everyone stands" is the only
-            one that has to. */}
-        <Text
-          style={[styles.title, { color: t.text }]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.78}
-        >
+        {/* The frames draw a title on one line because their back chevron sits
+            on a row of its own; Chrome A puts the two together, which costs the
+            title 48pt. Where that is not enough it WRAPS — an ellipsis would
+            drop a word, and "Where everyone st…" is not a screen title. */}
+        <Text style={[styles.title, { color: t.text }]} numberOfLines={2}>
           {title}
         </Text>
         {typeof badge === 'string' ? <Pill label={badge} /> : badge}
@@ -152,6 +147,10 @@ const styles = StyleSheet.create({
     gap: chrome.titleGap,
     paddingTop: chrome.titlePadTop,
     paddingHorizontal: chrome.titlePadH,
+    // The floor under a title. Every screen's first element adds its own
+    // margin on top of this; none of them can land on the title by omitting
+    // one, which is exactly what had happened.
+    paddingBottom: chrome.titlePadBottom,
   },
   back: {
     width: chrome.back,
@@ -168,7 +167,7 @@ const styles = StyleSheet.create({
     paddingRight: chrome.titlePadH,
     paddingLeft: chrome.metaIndent,
   },
-  lede: { ...type.lede, marginTop: 12, marginHorizontal: space.page },
+  lede: { ...type.lede, marginTop: 8, marginHorizontal: space.page },
 
   footer: {
     paddingHorizontal: space.card,

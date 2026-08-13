@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginTop: 8,
     marginHorizontal: 20,
     marginBottom: 18,
     paddingVertical: 18,
