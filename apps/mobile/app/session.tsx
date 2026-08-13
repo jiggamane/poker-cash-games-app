@@ -87,13 +87,17 @@ export default function Session() {
           style={[styles.above, drawerOpen && styles.behind]}
           pointerEvents={drawerOpen ? 'none' : 'auto'}
         >
+          {/* Before the first buy-in there is no elapsed time worth printing and
+              no start to point at — the night has not begun, it is being set
+              up. The tag says "starting" and the right corner stays empty until
+              somebody is in for something. */}
           <PushHeader
             title="Tonight"
-            badge={<RunningTag label={empty ? 'just opened' : running} />}
+            badge={<RunningTag label={empty ? 'starting' : running} />}
             trailing={
-              <Text style={[styles.started, { color: t.muted }]}>
-                {empty ? 'opened' : 'started'} {started}
-              </Text>
+              empty ? undefined : (
+                <Text style={[styles.started, { color: t.muted }]}>started {started}</Text>
+              )
             }
           />
 
