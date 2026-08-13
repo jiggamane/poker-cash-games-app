@@ -16,7 +16,15 @@ export type ButtonVariant =
   /** Dashed always means "creates something". */
   | 'add'
   /** Navigation bars only. */
-  | 'text';
+  | 'text'
+  /**
+   * A primary that cannot be pressed yet, and says so by its own weight
+   * rather than by fading: card fill, muted label, and a 2px ring of the
+   * ground set inside it. The ending flow uses it for the two gates — the
+   * count that is not finished and the night that does not add up — where a
+   * greyed-out button would read as broken instead of as waiting.
+   */
+  | 'blocked';
 
 interface Props {
   label: string;
@@ -101,15 +109,25 @@ export function Button({
       box = { height: undefined, paddingHorizontal: 0 };
       color = t.text;
       break;
+
+    case 'blocked':
+      box = { backgroundColor: t.surface, borderWidth: 2, borderColor: t.ground };
+      color = t.muted;
+      break;
   }
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ disabled, selected: variant === 'preset' ? selected : undefined }}
-      disabled={disabled}
+      disabled={disabled || variant === 'blocked'}
       onPress={onPress}
-      style={({ pressed }) => [base, box, { opacity: disabled ? 0.4 : pressed ? 0.7 : 1 }, style]}
+      style={({ pressed }) => [
+        base,
+        box,
+        { opacity: variant === 'blocked' ? 1 : disabled ? 0.4 : pressed ? 0.7 : 1 },
+        style,
+      ]}
     >
       <Text style={[styles.label, { color }]}>{label}</Text>
     </Pressable>

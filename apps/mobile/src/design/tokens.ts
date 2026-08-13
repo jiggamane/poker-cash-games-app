@@ -108,6 +108,15 @@ export interface Theme {
   drawerFill: string;
   /** The drawer's own edge, one step stronger than a hairline. */
   drawerEdge: string;
+
+  /**
+   * The lighter of the two off-the-table column tints on the deductions
+   * preview. Two strengths of one hue let the eye follow a single rule down a
+   * table of six people without a second colour entering the design.
+   */
+  offTableFaint: string;
+  /** The rule between rows inside that table: stronger than a hairline. */
+  previewRule: string;
 }
 
 export const darkTheme: Theme = {
@@ -145,6 +154,8 @@ export const darkTheme: Theme = {
   dangerWipe: 'rgba(240,112,92,0.34)',
   drawerFill: 'rgba(255,255,255,0.07)',
   drawerEdge: 'rgba(255,255,255,0.16)',
+  offTableFaint: 'rgba(217,211,196,0.055)',
+  previewRule: 'rgba(255,255,255,0.13)',
 };
 
 export const lightTheme: Theme = {
@@ -191,6 +202,8 @@ export const lightTheme: Theme = {
   dangerWipe: 'rgba(176,58,40,0.34)',
   drawerFill: 'rgba(12,13,15,0.05)',
   drawerEdge: 'rgba(12,13,15,0.15)',
+  offTableFaint: 'rgba(120,102,68,0.05)',
+  previewRule: 'rgba(12,13,15,0.13)',
 };
 
 /**

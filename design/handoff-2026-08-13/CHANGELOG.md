@@ -1,3 +1,16 @@
+# Rev 14 — 13 August 2026 · the ending flow, ready to build
+
+Cumulative on rev 13 and everything before it. Board: `design/Screens - After the night.dc.html`. Build reference: `screens-after-the-night.html`. Full spec: `13-after-the-night.md`. No design changed this round — the E-series was extracted, annotated and reconciled against the decisions taken since it was drawn.
+
+| # | Change | Status |
+|---|---|---|
+| S71 | **E1–E7 are issued for build**, both themes, nine frames: **E1** confirm · **E2** count up · **E2b** where everyone stands · **E3** deductions · **E3b** deductions before the bill · **E4** settle up · **E5** out of balance · **E6** *(superseded)* · **E7** payments. | FINAL |
+| S72 | **The E-series is one self-consistent night** and is stated as a table in `13-after-the-night.md`: $5,000 in, $5,000 counted out, gross sums to zero, nets sum to −126 (the kitty is the only money that leaves the table), six transfers that reconcile per payer and per payee. Assert it in a test. **E5 is a different sample night** and is not part of it. | FINAL |
+| S73 | **E1's drawn sheet geometry is errata.** `radius 24px`, a `38 × 4` grabber and a flat dim predate rev 9; Chrome B wins — `radius 26px 26px 0 0`, `38 × 5`, the live screen behind at `.32`. | FINAL |
+| S74 | **E6 stays superseded by `1C`** (S41), and the reference file says so on the frame. What survives from E6: the meta line, Full ledger, and the rule-outcome rows. **1C's "just closed" presentation is still not drawn.** | FINAL / one gap |
+| S75 | The E-series draws the bill split **evenly between the winners** (57/57/56) while S62 made **by size of win** the default (110/31/29 on this night). Layout is unaffected; the rule sentence and the three amounts come from the session snapshot and must not be hard-coded. Blocks nothing, still needs the canonical night re-derived. | **OPEN (S62)** |
+| S76 | Five states named as not drawn: E4's edit state · E5's write-off confirmation · E7's all-paid state · E2's per-player count keypad · 1C as the closing screen. | OPEN |
+
 # Rev 13 — 13 August 2026 · the group, and where a game gets its settings
 
 Cumulative on rev 12 and everything before it. Board: `design/Groups Section.dc.html`. Build reference: `screens-group.html`. Full spec: `12-the-group.md`.

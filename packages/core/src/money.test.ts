@@ -236,7 +236,7 @@ describe('formatting', () => {
 
   it('formats results with an explicit sign', () => {
     expect(formatSigned(money(1482))).toBe('+$1,482');
-    expect(formatSigned(money(-1230))).toBe('-$1,230');
+    expect(formatSigned(money(-1230))).toBe('−$1,230'); // U+2212
     expect(formatSigned(money(0))).toBe('$0');
   });
 });

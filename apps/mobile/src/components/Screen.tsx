@@ -91,7 +91,16 @@ export function Screen({
             <Icon name="back" color={t.text} />
           </Pressable>
         )}
-        <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
+        {/* One line, always: the title is 800/32 and a wrapped one would push
+            the meta line and everything under it down by a third of a screen.
+            A long title shrinks instead — "Where everyone stands" is the only
+            one that has to. */}
+        <Text
+          style={[styles.title, { color: t.text }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.78}
+        >
           {title}
         </Text>
         {typeof badge === 'string' ? <Pill label={badge} /> : badge}

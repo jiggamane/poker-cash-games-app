@@ -173,7 +173,9 @@ export function formatMoney(amount: Money, currencySymbol = '$'): string {
 /** Format a result, where the sign is the point: +$1,482 / -$1,230 / $0. */
 export function formatSigned(amount: Money, currencySymbol = '$'): string {
   if (amount === 0) return `${currencySymbol}0`;
-  const sign = amount > 0 ? '+' : '-';
+  // U+2212, not a hyphen: the boards set it that way because a minus is the
+  // width of a digit and a hyphen is not, so a column of figures stays square.
+  const sign = amount > 0 ? '+' : '−';
   return `${sign}${currencySymbol}${Math.abs(amount).toLocaleString('en-US')}`;
 }
 

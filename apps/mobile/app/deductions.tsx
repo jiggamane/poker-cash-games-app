@@ -1,24 +1,35 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
-import { formatMoney, settle, type Deduction, type Money } from '@poker-club/core';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  formatMoney,
+  formatSigned,
+  settle,
+  type Deduction,
+  type Money,
+  type MoneyRule,
+  type PlayerId,
+} from '@poker-club/core';
 import { Button } from '../src/components/Button';
+import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
-import { useTheme } from '../src/design/useTheme';
+import { Step } from '../src/components/Step';
+import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { nameOf, useNight } from '../src/lib/nightStore';
 
 /**
- * Deductions — E3, step 2 of 3.
+ * Deductions — E3, step 2 of 3, and E3b when the bill is not in yet.
+ * 13-after-the-night.md.
  *
- * The step between counting and paying out, and the one that stops an argument
- * before it starts: it shows what each rule took, FROM WHOM, and where it went,
- * while there is still time to change a rule and look again.
+ * Every rule, itemised per person, while there is still time to change one and
+ * look again. The screen does no arithmetic of its own — not even the totals,
+ * which come off the deduction rather than from adding up the rows above them.
+ * If a share looks wrong the rule is wrong, and the fix is the rule.
  *
- * Every figure is the engine's. This screen does no arithmetic of its own —
- * not even the totals, which come from the deduction rather than from adding
- * up the rows above them. If a share looks wrong, the rule is wrong, and the
- * way to fix it is Edit rather than a different number here.
+ * The bill block NEVER disappears. A bar tab usually arrives after the count,
+ * so the common case is a bill of em dashes with its rows already in place; a
+ * block that appeared later would move everything under it at the worst moment.
  */
 export default function Deductions() {
   const t = useTheme();
@@ -52,7 +63,8 @@ export default function Deductions() {
       <Screen
         title="Not yet"
         backTo="Count up"
-        lede="Nothing can be worked out until every stack has been counted, or the difference has been confirmed."
+        trailing={<Step label="2 of 3" />}
+        lede="Nothing can be worked out until every stack has been counted."
         footer={<Button label="Back to the count" variant="primary" onPress={() => router.back()} />}
       >
         <Text style={[styles.blocked, { color: t.muted }]}>{result.message}</Text>
@@ -60,38 +72,46 @@ export default function Deductions() {
     );
   }
 
-  const { deductions, totalOffTable } = result.value;
-  const taken = deductions.filter((d) => d.total > 0);
+  const { deductions, totalOffTable, players } = result.value;
+  const active = deductions.filter((d) => d.total > 0 || d.destination === 'bill');
+  const billIn = deductions.some((d) => d.destination === 'bill' && d.total > 0);
 
-  /** "$120 back to Marek, $50 to Lena · $126 to the kitty" */
-  const summary = taken
-    .map((d) =>
-      d.credits
-        .map(
-          (c) =>
-            `${formatMoney(c.amount)} ${d.destination === 'bill' ? 'back to' : 'to'} ${nameOf(
-              night,
-              c.playerId,
-            )}`,
-        )
-        .join(', '),
-    )
-    .filter((s) => s.length > 0)
+  /* "$120 back to Marek, $50 to Lena · $126 to the kitty" — where the money
+     actually goes, in one line, because "leaves the table" is not the same as
+     "is gone" and the room will ask. */
+  const destinations = deductions
+    .filter((d) => d.total > 0)
+    .map((d) => {
+      /* Somebody who fronted money gets it BACK; the kitty is simply paid. */
+      const reimbursements = [...d.credits]
+        .filter((c) => night.players.find((pl) => pl.id === c.playerId)?.atTable === true)
+        .sort((a, b) => b.amount - a.amount);
+
+      if (reimbursements.length > 0) {
+        return reimbursements
+          .map(
+            (c, i) =>
+              `${formatMoney(c.amount)} ${i === 0 ? 'back to ' : 'to '}${nameOf(night, c.playerId)}`,
+          )
+          .join(', ');
+      }
+      return `${formatMoney(d.total)} to the ${d.destination === 'kitty' ? 'kitty' : d.name.toLowerCase()}`;
+    })
     .join(' · ');
+
+  const winners = players.filter((p) => p.grossResult > 0);
 
   return (
     <Screen
       title="Deductions"
       backTo="Count up"
-      badge="2 of 3"
+      trailing={<Step label="2 of 3" />}
       footer={
+        /* An outline, not a fill: the loud button of this flow is at the end of
+           it, and this step is a look before a decision. */
         <Button
-          label={
-            taken.length === 0
-              ? 'Nothing comes off · settle up'
-              : `${formatMoney(totalOffTable)} off the table · settle up`
-          }
-          variant="primary"
+          label="See who pays whom"
+          variant="secondary"
           onPress={() => router.push('/settle-up')}
         />
       }
@@ -99,133 +119,303 @@ export default function Deductions() {
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <Text style={[styles.cardLabel, { color: t.muted }]}>Leaves the table</Text>
         <Text style={[styles.cardFigure, { color: t.text }]}>{formatMoney(totalOffTable)}</Text>
-        {summary !== '' && <Text style={[styles.cardNote, { color: t.muted }]}>{summary}</Text>}
+        <Text style={[styles.cardNote, { color: t.muted }]}>
+          {billIn
+            ? destinations
+            : destinations === ''
+              ? 'Nothing comes off tonight'
+              : `${destinations} · the bill is not in yet`}
+        </Text>
       </View>
 
-      {taken.length === 0 && (
-        <Text style={[styles.blocked, { color: t.muted }]}>
-          No rule takes anything tonight. Everyone leaves with exactly what they counted.
-        </Text>
-      )}
-
-      <View style={styles.cards}>
-        {taken.map((d) => (
-          <Card key={d.ruleId} deduction={d} night={night} />
+      <View style={styles.blocks}>
+        {active.map((d, i) => (
+          <Block
+            key={d.ruleId}
+            deduction={d}
+            rule={night.rules.find((r) => r.id === d.ruleId)}
+            night={night}
+            basisFor={(playerId) => {
+              const p = players.find((x) => x.playerId === playerId);
+              if (p === undefined) return 0 as Money;
+              const rule = night.rules.find((r) => r.id === d.ruleId);
+              if (rule?.basis !== 'net_after_others') return p.grossResult;
+              // Everything the rules above this one already took off them.
+              const taken = deductions
+                .slice(0, i)
+                .flatMap((earlier) => earlier.charges)
+                .filter((c) => c.playerId === playerId)
+                .reduce((sum, c) => sum + c.amount, 0);
+              return (p.grossResult - taken) as Money;
+            }}
+          />
         ))}
       </View>
 
-      {/* Under the rules rather than in the corner: Chrome A keeps the
-          top-right empty, and this is the one screen where "the fix is the
-          rule" has to be a visible way out rather than an icon. */}
-      <Button
-        label="Change a rule and look again"
-        variant="chip"
-        style={styles.edit}
-        onPress={() => router.push('/money-rules')}
-      />
+      {/* Nobody's net is settled until the transfers are, so this is a preview
+          and is drawn as one — dashed, tagged, and recomputed from the engine
+          every time a figure above it changes. */}
+      <View style={[styles.preview, { borderColor: t.dashed }]}>
+        <View style={styles.previewHead}>
+          <Text style={[styles.previewTitle, { color: t.text }]}>Everyone after deductions</Text>
+          <View style={[styles.tag, { borderColor: t.dashed }]}>
+            <Text style={[styles.tagText, { color: t.muted }]}>PREVIEW</Text>
+          </View>
+        </View>
+
+        <View style={styles.headRow}>
+          <Text style={styles.cellName} />
+          <Text style={[styles.head, styles.num, { color: t.muted }]}>GROSS</Text>
+          <Text style={[styles.head, styles.num, styles.billCol, { color: t.offTable, backgroundColor: t.offTableFaint }]}>
+            BILL
+          </Text>
+          <Text style={[styles.head, styles.backCol, styles.num, { color: t.muted }]}>BACK</Text>
+          <Text style={[styles.head, styles.num, styles.kittyCol, { color: t.offTable, backgroundColor: t.offTableWash }]}>
+            KITTY
+          </Text>
+          <Text style={[styles.head, styles.num, styles.netCol, { color: t.muted }]}>NET</Text>
+        </View>
+
+        {players
+          .filter((p) => p.boughtIn > 0 || p.endedWith > 0)
+          .sort((a, b) => b.finalPosition - a.finalPosition)
+          .map((p) => {
+            const bill = amountFor(deductions, 'bill', p.playerId, 'charge');
+            const back = amountFor(deductions, 'bill', p.playerId, 'credit');
+            const kitty = amountFor(deductions, 'kitty', p.playerId, 'charge');
+            const won = winners.some((w) => w.playerId === p.playerId);
+
+            return (
+              <View key={p.playerId} style={[styles.bodyRow, { borderBottomColor: t.previewRule }]}>
+                <Text style={[styles.cellName, { color: t.text }]} numberOfLines={1}>
+                  {p.name}
+                </Text>
+                <Text style={[styles.gross, styles.num, { color: t.muted }]} numberOfLines={1}>
+                  {p.grossResult < 0 ? '−' : ''}
+                  {Math.abs(p.grossResult).toLocaleString('en-US')}
+                </Text>
+                {/* Losers show gross and net only: both rules charge winners,
+                    and an empty cell says that better than a zero. */}
+                <Text style={[styles.money, styles.num, styles.billCol, { color: t.offTable, backgroundColor: t.offTableFaint }]}>
+                  {won ? dash(bill, true) : ''}
+                </Text>
+                <Text style={[styles.money, styles.backCol, styles.num, { color: t.text }]} numberOfLines={1}>
+                  {won && back > 0 ? `+${back.toLocaleString('en-US')}` : ''}
+                </Text>
+                <Text style={[styles.money, styles.num, styles.kittyCol, { color: t.offTable, backgroundColor: t.offTableWash }]}>
+                  {won ? dash(kitty, true) : ''}
+                </Text>
+                <Text
+                  style={[styles.net, styles.num, styles.netCol, { color: moneyColor(t, p.finalPosition) }]}
+                >
+                  {formatSigned(p.finalPosition)}
+                </Text>
+              </View>
+            );
+          })}
+
+        <Text style={[styles.previewNote, { color: t.muted }]}>
+          Provisional until you settle. Tap any figure above to change it.
+        </Text>
+      </View>
     </Screen>
   );
 }
 
-/** One rule: what it took in total, in one line of why, then who paid it. */
-function Card({
+/**
+ * One rule, itemised.
+ *
+ * A percentage shows its working — "5% of $1,620 → $81" — because a percentage
+ * is the one deduction nobody at the table can check in their head.
+ */
+function Block({
   deduction,
+  rule,
   night,
+  basisFor,
 }: {
   deduction: Deduction;
+  rule: MoneyRule | undefined;
   night: NonNullable<ReturnType<typeof useNight>>;
+  basisFor: (playerId: PlayerId) => Money;
 }) {
   const t = useTheme();
-  const rule = night.rules.find((r) => r.id === deduction.ruleId);
-
-  const name =
-    rule?.amountKind === 'percent' ? `${deduction.name} · ${rule.amount}%` : deduction.name;
-
-  const why =
-    deduction.destination === 'bill'
-      ? `${describeSplit(rule)} · ${deduction.credits
-          .map((c) => `${nameOf(night, c.playerId)} fronted ${formatMoney(c.amount)}`)
-          .join(', ')}.`
-      : rule?.amountKind === 'percent'
-        ? `Off each win${rule.basis === 'net_after_others' ? ', after the rules above' : ''} · held by ${nameOf(night, rule.collectorPlayerId)}.`
-        : `${describeSplit(rule)} · held by ${nameOf(night, rule?.collectorPlayerId)}.`;
+  const percent = rule?.amountKind === 'percent';
+  const empty = deduction.total === 0;
 
   return (
-    <View style={[styles.rule, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-      <View style={styles.ruleTop}>
-        <Text style={[styles.ruleName, { color: t.text }]}>{name}</Text>
-        <Text style={[styles.ruleTotal, { color: t.text }]}>{formatMoney(deduction.total)}</Text>
+    <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={styles.blockTop}>
+        <Text style={[styles.blockName, { color: t.text }]}>
+          {percent && rule !== undefined ? `${deduction.name} · ${rule.amount}%` : deduction.name}
+        </Text>
+        <Text style={[styles.blockTotal, { color: empty ? t.muted : t.text }]}>
+          {empty ? '—' : formatMoney(deduction.total)}
+        </Text>
       </View>
 
-      <Text style={[styles.why, { color: t.muted }]}>{why}</Text>
+      {!percent && (
+        <Text style={[styles.blockNote, { color: t.muted }]}>
+          {empty
+            ? 'Nothing on the bill yet. Add it and the split appears here.'
+            : sentence(rule, deduction, night)}
+        </Text>
+      )}
 
-      <View style={styles.charges}>
-        {deduction.charges.map((c, i) => (
-          <View
-            key={c.playerId}
-            style={[
-              styles.charge,
-              {
-                borderBottomColor: t.hairline,
-                borderBottomWidth:
-                  i === deduction.charges.length - 1 ? 0 : StyleSheet.hairlineWidth,
-              },
-            ]}
-          >
-            <Text style={[styles.chargeName, { color: t.text }]}>
-              {nameOf(night, c.playerId)}
-            </Text>
-            <Text style={[styles.chargeAmount, { color: t.text }]}>
-              {formatMoney(c.amount as Money)}
-            </Text>
-          </View>
-        ))}
+      <View style={styles.blockRows}>
+        {(deduction.charges.length > 0 ? deduction.charges : placeholders(night, rule)).map(
+          (c, i, all) => (
+            <Pressable
+              key={c.playerId}
+              accessibilityRole="button"
+              onPress={() =>
+                rule !== undefined && router.push({ pathname: '/rule', params: { id: rule.id } })
+              }
+              style={({ pressed }) => [
+                percent ? styles.workingRow : styles.chargeRow,
+                !percent &&
+                  i < all.length - 1 && { borderBottomColor: t.previewRule, borderBottomWidth: StyleSheet.hairlineWidth },
+                { opacity: pressed ? 0.6 : 1 },
+              ]}
+            >
+              <Text style={[percent ? styles.workingName : styles.chargeName, { color: t.text }]}>
+                {nameOf(night, c.playerId)}
+              </Text>
+
+              {percent && rule !== undefined && (
+                <Text style={[styles.working, { color: t.muted }]}>
+                  {rule.amount}% of {formatMoney(basisFor(c.playerId))}
+                </Text>
+              )}
+
+              <Text style={[percent ? styles.workingAmount : styles.chargeAmount, { color: c.amount === 0 ? t.muted : t.text }]}>
+                {c.amount === 0 ? '—' : formatMoney(c.amount)}
+              </Text>
+
+              {!percent && <Icon name="pencil" color={t.muted} size={14} />}
+            </Pressable>
+          ),
+        )}
       </View>
     </View>
   );
 }
 
-const describeSplit = (rule: { split?: string; charge?: string } | undefined): string =>
-  rule?.split === 'custom'
-    ? 'Split by hand'
-    : rule?.charge === 'everyone_flat'
-      ? 'Split between everyone at the table'
-      : rule?.split === 'by_percent'
-        ? 'Split between the winners, by the size of the win'
-        : 'Split equally between the winners';
+/** "Split equally between the winners · Marek fronted $120, Lena $50." */
+function sentence(
+  rule: MoneyRule | undefined,
+  deduction: Deduction,
+  night: NonNullable<ReturnType<typeof useNight>>,
+): string {
+  const how =
+    rule === undefined
+      ? 'Split between the winners'
+      : rule.charge === 'everyone_flat'
+        ? 'Split between everyone at the table'
+        : rule.split === 'by_percent'
+          ? 'Split between the winners, by the size of each win'
+          : rule.split === 'custom'
+            ? 'Split by hand'
+            : 'Split equally between the winners';
+
+  const fronted = [...deduction.credits]
+    .filter((c) => night.players.find((p) => p.id === c.playerId)?.atTable === true)
+    .sort((a, b) => b.amount - a.amount)
+    .map(
+      (c, i) =>
+        `${nameOf(night, c.playerId)} ${i === 0 ? 'fronted ' : ''}${formatMoney(c.amount)}`,
+    )
+    .join(', ');
+
+  return fronted === '' ? `${how}.` : `${how} · ${fronted}.`;
+}
+
+/** The bill's rows stay in place with em dashes until there is a bill. */
+const placeholders = (
+  night: NonNullable<ReturnType<typeof useNight>>,
+  rule: MoneyRule | undefined,
+): Array<{ playerId: PlayerId; amount: Money }> =>
+  rule === undefined
+    ? []
+    : night.players.filter((p) => p.atTable).map((p) => ({ playerId: p.id, amount: 0 as Money }));
+
+const amountFor = (
+  deductions: readonly Deduction[],
+  destination: Deduction['destination'],
+  playerId: PlayerId,
+  side: 'charge' | 'credit',
+): Money =>
+  deductions
+    .filter((d) => d.destination === destination)
+    .flatMap((d) => (side === 'charge' ? d.charges : d.credits))
+    .filter((c) => c.playerId === playerId)
+    .reduce((sum, c) => sum + c.amount, 0) as Money;
+
+const dash = (m: Money, negative = false): string =>
+  m === 0 ? '' : `${negative ? '−' : ''}${m.toLocaleString('en-US')}`;
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: space.card,
+    marginHorizontal: 20,
     marginBottom: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     gap: 5,
   },
-  cardLabel: type.label,
-  cardFigure: { fontSize: 28, fontWeight: '800', letterSpacing: -1.12, fontVariant: ['tabular-nums'] },
-  cardNote: { fontSize: 13.5, fontWeight: '400', lineHeight: 19 },
+  cardLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
+  cardFigure: { fontSize: 28, fontWeight: '800', letterSpacing: -1.12, lineHeight: 30, fontVariant: ['tabular-nums'] },
+  cardNote: { fontSize: 13.5, fontWeight: '400' },
 
-  cards: { marginHorizontal: space.card, gap: 8 },
-  edit: { marginHorizontal: space.card, marginTop: 14 },
-  rule: {
-    borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 11,
-    paddingHorizontal: 12,
-    gap: 6,
-  },
-  ruleTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  ruleName: { fontSize: 17, fontWeight: '700', flexShrink: 1 },
-  ruleTotal: { ...type.statValue, marginLeft: 'auto' },
-  why: { fontSize: 12.5, fontWeight: '400', lineHeight: 17.5 },
+  blocks: { marginHorizontal: 20, gap: 8 },
+  block: { borderRadius: radius.card, borderWidth: 1, paddingVertical: 11, paddingHorizontal: 12, gap: 6 },
+  blockTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  blockName: { fontSize: 17, fontWeight: '700', flexShrink: 1 },
+  blockTotal: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+  blockNote: { fontSize: 12.5, fontWeight: '400', lineHeight: 17.5 },
+  blockRows: { gap: 2 },
 
-  charges: { gap: 2 },
-  charge: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 5 },
-  chargeName: { fontSize: 15, fontWeight: '500' },
+  chargeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 5 },
+  chargeName: { fontSize: 15, fontWeight: '500', flexShrink: 1 },
   chargeAmount: { fontSize: 16, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+
+  workingRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10, paddingVertical: 2 },
+  workingName: { fontSize: 14, fontWeight: '500' },
+  working: { fontSize: 13, fontWeight: '400', fontVariant: ['tabular-nums'] },
+  workingAmount: { fontSize: 14, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+
+  preview: {
+    marginTop: 6,
+    marginHorizontal: 20,
+    paddingTop: 10,
+    paddingHorizontal: 12,
+    paddingBottom: 9,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  previewHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 6, paddingBottom: 5 },
+  previewTitle: { fontSize: 11.5, fontWeight: '700', letterSpacing: 1.15, textTransform: 'uppercase' },
+  tag: { marginLeft: 'auto', borderWidth: 1, borderStyle: 'dashed', borderRadius: 4, paddingVertical: 2, paddingHorizontal: 6 },
+  tagText: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.95 },
+
+  headRow: { flexDirection: 'row', alignItems: 'flex-end' },
+  bodyRow: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth },
+  head: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.85, paddingVertical: 4, paddingHorizontal: 4 },
+  num: { textAlign: 'right', fontVariant: ['tabular-nums'] },
+  cellName: { flex: 1, fontSize: 14, fontWeight: '600', paddingVertical: 5, paddingHorizontal: 4 },
+  gross: { width: 52, fontSize: 13, fontWeight: '500', paddingVertical: 5, paddingHorizontal: 4 },
+  money: { fontSize: 13, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 4 },
+  net: { fontSize: 15, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 4 },
+  /* The two columns that take money off the table are tinted the bone colour,
+     at two strengths, so the eye can follow one rule down the table. */
+  billCol: { width: 42 },
+  backCol: { width: 44 },
+  kittyCol: { width: 42 },
+  netCol: { width: 72 },
+
+  previewNote: { fontSize: 11.5, fontWeight: '400', lineHeight: 16.7, paddingTop: 7, paddingHorizontal: 6 },
 
   blocked: { ...type.footnote, marginHorizontal: space.page },
 });
