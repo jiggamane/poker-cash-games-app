@@ -353,14 +353,30 @@ values ('b0000000-0000-0000-0000-000000000001', 'Dana covers it', 'fixed', 170,
         'c0000000-0000-0000-0000-000000000003',
         '[{"playerId":"c0000000-0000-0000-0000-000000000001","amount":170}]'::jsonb, 5);
 
--- two rules cannot share a position, or the order would silently swap
-select expect_rejected(
-  $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
-                            destination, split, collector_player_id, sort_order)
-    values ('b0000000-0000-0000-0000-000000000001', 'Same slot', 'fixed', 10,
-            'gross', 'winners_only', 'kitty', 'evenly',
-            'c0000000-0000-0000-0000-000000000003', 5)$$,
-  'duplicate rule order');
+-- Two rules MAY share a position, and 0005 is where that changed.
+--
+-- The old rule was that they may not, so a host reordering rules could never
+-- leave two in the same slot. Right for one night's rules; wrong for this
+-- table, which is per BOOK while the rules themselves are per NIGHT — each
+-- night is settled with the copy it opened with. Deleting a rule and adding
+-- another in its place gives a new row a position an older night's row still
+-- holds, and the unique index refused it. That refusal halted the outbox, which
+-- halts at its first failure, which silently stopped every later night from
+-- reaching the server at all.
+--
+-- The order still means what it meant; keeping it contiguous is now the app's
+-- job rather than something the database can enforce across nights that
+-- legitimately disagree.
+insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                        destination, split, collector_player_id, sort_order)
+values ('b0000000-0000-0000-0000-000000000001', 'Same slot', 'fixed', 10,
+        'gross', 'winners_only', 'kitty', 'evenly',
+        'c0000000-0000-0000-0000-000000000003', 5);
+
+select expect_eq(
+  (select count(*) from money_rule
+    where book_id = 'b0000000-0000-0000-0000-000000000001' and sort_order = 5),
+  2, 'two rules may hold one position, across nights that each carry their own');
 
 -- settlement due: after_days needs a number of days
 select expect_rejected(

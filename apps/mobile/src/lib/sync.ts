@@ -10,6 +10,24 @@ import {
 } from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { SqliteOutboxStore } from './outboxStore';
+import {
+  countRow,
+  entryRow,
+  playerRow,
+  ruleRow,
+  seatRow,
+  sessionClosedPatch,
+  sessionRow,
+  settlementRow,
+  type ClosePayload,
+  type CountPayload,
+  type EntryPayload,
+  type PlayerPayload,
+  type RowWrite,
+  type RulePayload,
+  type SeatPayload,
+  type SessionOpenPayload,
+} from './syncRows';
 
 /**
  * The queue, and the one place anything reaches the server from.
@@ -44,64 +62,6 @@ const isUuid = (id: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
 // ---------------------------------------------------------------------------
-// What each operation carries.
-//
-// Payloads are self-contained: whatever the handler needs to write the row must
-// be inside, because it may be sent days later from a different app launch by
-// which time the night it belongs to is not the one on screen.
-// ---------------------------------------------------------------------------
-
-interface SessionOpen {
-  groupName: string;
-  session: {
-    id: string;
-    startedAt: string;
-    defaultBuyIn: number;
-    stakes?: string;
-    seatCount: number;
-  };
-}
-
-interface PlayerUpsert {
-  groupName: string;
-  player: { id: string; name: string };
-}
-
-interface SeatUpsert {
-  sessionId: string;
-  playerId: string;
-}
-
-/** The entry, plus when it happened — which is not derivable from its seq. */
-type EntryAppend = LedgerEntry & { occurredAt: string; note?: string };
-
-interface RuleUpsert {
-  groupName: string;
-  rule: MoneyRule;
-}
-
-interface CountUpsert {
-  sessionId: string;
-  playerId: PlayerId;
-  amount: number;
-}
-
-interface SessionClose {
-  sessionId: string;
-  endedAt: string;
-  settlement: {
-    algorithmVersion: string;
-    rulesSnapshot: unknown;
-    inputsSnapshot: unknown;
-    computedTransfers: unknown;
-    totalOffTable: number;
-    discrepancyAmount: number;
-    discrepancyNote?: string;
-    discrepancyAbsorbedBy?: PlayerId;
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Queueing
 // ---------------------------------------------------------------------------
 
@@ -124,7 +84,7 @@ export async function queueSessionOpen(args: {
   const { sessionId, groupName } = args;
   if (!isUuid(sessionId)) return;
 
-  await enqueueOp<SessionOpen>(outbox, {
+  await enqueueOp<SessionOpenPayload>(outbox, {
     id: `session-open:${sessionId}`,
     sessionId,
     kind: 'session.open',
@@ -152,7 +112,7 @@ export async function queuePlayer(
 ): Promise<void> {
   if (!isUuid(sessionId) || !isUuid(player.id)) return;
 
-  await enqueueOp<PlayerUpsert>(outbox, {
+  await enqueueOp<PlayerPayload>(outbox, {
     id: `player:${player.id}`,
     sessionId,
     kind: 'player.upsert',
@@ -160,7 +120,7 @@ export async function queuePlayer(
   });
 
   if (player.atTable) {
-    await enqueueOp<SeatUpsert>(outbox, {
+    await enqueueOp<SeatPayload>(outbox, {
       id: `seat:${sessionId}:${player.id}`,
       sessionId,
       kind: 'seat.upsert',
@@ -176,7 +136,7 @@ export async function queueRule(
 ): Promise<void> {
   if (!isUuid(sessionId) || !isUuid(rule.id) || !isUuid(rule.collectorPlayerId)) return;
 
-  await enqueueOp<RuleUpsert>(outbox, {
+  await enqueueOp<RulePayload>(outbox, {
     id: `rule:${rule.id}`,
     sessionId,
     kind: 'rule.upsert',
@@ -191,7 +151,7 @@ export async function queueCount(
 ): Promise<void> {
   if (!isUuid(sessionId) || !isUuid(playerId)) return;
 
-  await enqueueOp<CountUpsert>(outbox, {
+  await enqueueOp<CountPayload>(outbox, {
     // One per player per night: counting somebody twice replaces the first.
     id: `count:${sessionId}:${playerId}`,
     sessionId,
@@ -200,10 +160,10 @@ export async function queueCount(
   });
 }
 
-export async function queueClose(payload: SessionClose): Promise<void> {
+export async function queueClose(payload: ClosePayload): Promise<void> {
   if (!isUuid(payload.sessionId)) return;
 
-  await enqueueOp<SessionClose>(outbox, {
+  await enqueueOp<ClosePayload>(outbox, {
     id: `close:${payload.sessionId}`,
     sessionId: payload.sessionId,
     kind: 'session.close',
@@ -262,21 +222,38 @@ async function send(item: OutboxItem): Promise<void> {
   if (!isUuid(item.sessionId)) return;
 
   switch (item.kind) {
-    case 'session.open':
-      return sendSessionOpen(item.payload as SessionOpen);
-    case 'player.upsert':
-      return sendPlayer(item.payload as PlayerUpsert);
+    case 'session.open': {
+      const p = item.payload as SessionOpenPayload;
+      return write(sessionRow(p, await ensureBook(p.groupName)));
+    }
+    case 'player.upsert': {
+      const p = item.payload as PlayerPayload;
+      return write(playerRow(p, await ensureBook(p.groupName)));
+    }
     case 'seat.upsert':
-      return sendSeat(item.payload as SeatUpsert);
+      return write(seatRow(item.payload as SeatPayload));
     case 'entry.append':
-      return sendEntry(item.sessionId, item.payload as EntryAppend);
-    case 'rule.upsert':
-      return sendRule(item.payload as RuleUpsert);
+      return write(entryRow(item.sessionId, item.payload as EntryPayload));
+    case 'rule.upsert': {
+      const p = item.payload as RulePayload;
+      return write(ruleRow(p, await ensureBook(p.groupName)));
+    }
     case 'count.upsert':
-      return sendCount(item.payload as CountUpsert);
+      return write(countRow(item.payload as CountPayload));
     case 'session.close':
-      return sendClose(item.payload as SessionClose);
+      return sendClose(item.payload as ClosePayload);
   }
+}
+
+/** One row, upserted exactly as `syncRows` describes it. */
+async function write(w: RowWrite): Promise<void> {
+  const { error } = await supabase
+    .from(w.table)
+    .upsert([w.row], {
+      onConflict: w.onConflict,
+      ...(w.ignoreDuplicates === true ? { ignoreDuplicates: true } : {}),
+    });
+  if (error) throw new Error(`${w.table}: ${error.message}`);
 }
 
 async function ensureBook(groupName: string): Promise<string> {
@@ -304,104 +281,6 @@ async function ensureBook(groupName: string): Promise<string> {
   return bookId;
 }
 
-async function sendSessionOpen(p: SessionOpen): Promise<void> {
-  const book = await ensureBook(p.groupName);
-  const { error } = await supabase.from('session').upsert(
-    [
-      {
-        id: p.session.id,
-        book_id: book,
-        default_buyin: p.session.defaultBuyIn,
-        seat_count: p.session.seatCount,
-        started_at: p.session.startedAt,
-        stakes: p.session.stakes ?? null,
-        status: 'live',
-      },
-    ],
-    // Never overwrite: the row carries the share_token, and rewriting it would
-    // silently invalidate every link already sent to the room.
-    { onConflict: 'id', ignoreDuplicates: true },
-  );
-  if (error) throw new Error(error.message);
-}
-
-async function sendPlayer(p: PlayerUpsert): Promise<void> {
-  const book = await ensureBook(p.groupName);
-  const { error } = await supabase
-    .from('player')
-    .upsert([{ id: p.player.id, book_id: book, display_name: p.player.name }], {
-      onConflict: 'id',
-      ignoreDuplicates: true,
-    });
-  if (error) throw new Error(error.message);
-}
-
-async function sendSeat(p: SeatUpsert): Promise<void> {
-  const { error } = await supabase
-    .from('session_seat')
-    .upsert([{ session_id: p.sessionId, player_id: p.playerId }], {
-      onConflict: 'session_id,player_id',
-      ignoreDuplicates: true,
-    });
-  if (error) throw new Error(error.message);
-}
-
-async function sendEntry(sessionId: string, e: EntryAppend): Promise<void> {
-  const { error } = await supabase.from('ledger_entry').upsert(
-    [
-      {
-        id: e.id,
-        session_id: sessionId,
-        seq: e.seq,
-        type: e.type,
-        player_id: e.playerId ?? null,
-        payer_id: e.payerId ?? null,
-        amount: e.amount,
-        note: e.note ?? null,
-        corrects_entry_id: e.correctsEntryId ?? null,
-        occurred_at: e.occurredAt,
-      },
-    ],
-    { onConflict: 'id', ignoreDuplicates: true },
-  );
-  if (error) throw new Error(error.message);
-}
-
-async function sendRule(p: RuleUpsert): Promise<void> {
-  const book = await ensureBook(p.groupName);
-  const r = p.rule;
-  const { error } = await supabase.from('money_rule').upsert(
-    [
-      {
-        id: r.id,
-        book_id: book,
-        name: r.name,
-        active: r.active,
-        amount_kind: r.amountKind,
-        amount: r.amount,
-        basis: r.basis,
-        charge: r.charge,
-        destination: r.destination,
-        split: r.split,
-        custom_shares: r.customShares ?? null,
-        collector_player_id: r.collectorPlayerId,
-        sort_order: r.sortOrder,
-      },
-    ],
-    { onConflict: 'id' },
-  );
-  if (error) throw new Error(error.message);
-}
-
-async function sendCount(p: CountUpsert): Promise<void> {
-  const { error } = await supabase
-    .from('final_count')
-    .upsert([{ session_id: p.sessionId, player_id: p.playerId, counted_chips: p.amount }], {
-      onConflict: 'session_id,player_id',
-    });
-  if (error) throw new Error(error.message);
-}
-
 /**
  * The night's record: the frozen settlement, then the session going settled.
  *
@@ -410,43 +289,16 @@ async function sendCount(p: CountUpsert): Promise<void> {
  * problem. The reverse would be a night marked finished with no result behind
  * it, which is a lie.
  */
-async function sendClose(p: SessionClose): Promise<void> {
+async function sendClose(p: ClosePayload): Promise<void> {
   const { data: auth } = await supabase.auth.getSession();
   const hostId = auth.session?.user.id;
   if (hostId === undefined) throw new Error('Not signed in');
 
-  const s = p.settlement;
-  const shortfall = s.discrepancyAmount !== 0;
+  await write(settlementRow(p, hostId));
 
-  const { error } = await supabase.from('settlement').upsert(
-    [
-      {
-        session_id: p.sessionId,
-        algorithm_version: s.algorithmVersion,
-        rules_snapshot: s.rulesSnapshot,
-        inputs_snapshot: s.inputsSnapshot,
-        computed_transfers: s.computedTransfers,
-        total_off_table: s.totalOffTable,
-        discrepancy_amount: s.discrepancyAmount,
-        // The schema insists a shortfall carries somebody's name and the moment
-        // they put it there. That is the point of it — missing money is never
-        // recorded quietly.
-        discrepancy_confirmed_by: shortfall ? hostId : null,
-        discrepancy_confirmed_at: shortfall ? p.endedAt : null,
-        discrepancy_note: s.discrepancyNote ?? null,
-        discrepancy_absorbed_by: s.discrepancyAbsorbedBy ?? null,
-        frozen: true,
-      },
-    ],
-    { onConflict: 'session_id', ignoreDuplicates: true },
-  );
-  if (error) throw new Error(error.message);
-
-  const { error: sessionError } = await supabase
-    .from('session')
-    .update({ status: 'settled', ended_at: p.endedAt })
-    .eq('id', p.sessionId);
-  if (sessionError) throw new Error(sessionError.message);
+  const patch = sessionClosedPatch(p);
+  const { error } = await supabase.from(patch.table).update(patch.patch).eq('id', patch.matchId);
+  if (error) throw new Error(`${patch.table}: ${error.message}`);
 }
 
 // ---------------------------------------------------------------------------

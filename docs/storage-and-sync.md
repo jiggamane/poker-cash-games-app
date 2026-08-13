@@ -222,6 +222,30 @@ read.
 
 ---
 
+## How this is tested without a phone
+
+Two harnesses, because the failure modes are different.
+
+**`syncRows.ts` is pure.** Every row the app sends is a value, not a call
+buried inside a Supabase request that no test can reach.
+`apps/mobile/src/lib/syncRows.test.ts` asserts each one's exact column set.
+
+**`supabase/test/03_sync_contract.sql` replays them** — the same rows, in the
+order the queue drains, as the host, through row-level security, against a real
+Postgres with the real migrations (`npm run db:verify`). It cannot check auth or
+the network; it checks the half that fails first, which is a wrong column name,
+a stale enum value or a constraint nobody remembered.
+
+The two describe the same tables, so the column lists in the TypeScript test are
+a deliberate tripwire: change one side and the other fails, naming the file that
+has to change with it.
+
+Writing them found two schema faults that would each have stopped a night
+reaching the server, silently. Both are fixed in `0005_sync_contract_fixes.sql`
+and described there.
+
+---
+
 ## Order of work
 
 1. ~~**The operation log.**~~ **Built.** The queue carries the whole night;
