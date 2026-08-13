@@ -8,12 +8,22 @@
  * anybody's night.
  */
 
+import { randomUUID } from 'expo-crypto';
 import { money, type LedgerEntry, type MoneyRule, type Player } from '@poker-club/core';
 
-const MAREK = 'seed-marek';
-const PETR = 'seed-petr';
-const DANA = 'seed-dana';
-const RADKA = 'seed-radka';
+/*
+ * Real UUIDs, not readable strings like 'seed-marek'.
+ *
+ * The server's player.id is a uuid column, so a night seeded with handwritten
+ * ids cannot be published at all — the insert fails on the first player and
+ * takes every ledger entry that names them with it. Nothing on the phone cares
+ * either way, which is exactly why it went unnoticed until the night had to
+ * leave it.
+ */
+const MAREK = randomUUID();
+const PETR = randomUUID();
+const DANA = randomUUID();
+const RADKA = randomUUID();
 
 const players: Player[] = [
   { id: MAREK, name: 'Marek', atTable: true },

@@ -22,6 +22,16 @@ export async function publishNight(night: Night): Promise<string> {
   const hostId = auth.session?.user.id;
   if (hostId === undefined) throw new Error('Sign in first — a night can only be shared from an account.');
 
+  // Every id in this app is a UUID because the server's columns are uuid.
+  // Saying so here turns an unreadable Postgres error on the first player into
+  // a sentence that names the actual problem: this night predates that.
+  const badId = [night.sessionId, ...night.players.map((p) => p.id)].find((id) => !isUuid(id));
+  if (badId !== undefined) {
+    throw new Error(
+      'This night was created before the app used proper ids, so it cannot be shared. Start a new session and that one will share fine.',
+    );
+  }
+
   const bookId = await ensureBook(hostId, night.groupName);
 
   // Players before the session, and the session before the ledger: a ledger
@@ -127,3 +137,7 @@ function firstBuyIn(night: Night): number {
   const first = night.entries.find((e) => e.type === 'buyin');
   return first === undefined || first.amount <= 0 ? 500 : first.amount;
 }
+
+/** The shape every id in this app has, because every server column is uuid. */
+const isUuid = (id: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
