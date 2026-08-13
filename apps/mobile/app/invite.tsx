@@ -8,6 +8,7 @@ import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { roster, type Person } from '../src/lib/nightStore';
 import { createInvite, inviteLinkFor, revokeInvite, seatStatuses } from '../src/lib/invites';
+import { explainServerError, isSupabaseConfigured, supabase } from '../src/lib/supabase';
 
 /**
  * C3 · Invite a player — a sheet over the roster.
@@ -35,12 +36,40 @@ export default function Invite() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * An invite is the one thing here that is not a local fact.
+   *
+   * A code is issued by the database, to a host it recognises, for a member row
+   * it already holds — so unlike every other screen in the app this one cannot
+   * work offline or signed out, and `blocked` is the honest version of that. It
+   * is checked BEFORE the request rather than after, because "you are not
+   * signed in" is a sentence with an action in it and whatever the server says
+   * to an unauthenticated stranger is not.
+   */
+  const [blocked, setBlocked] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     if (playerId === undefined) return;
 
     const found = (await roster()).find((r) => r.id === playerId) ?? null;
     setPerson(found);
 
+    if (!isSupabaseConfigured) {
+      setBlocked(
+        'This build has no server, and a code has to be issued by one. Settings → Connection says what is missing.',
+      );
+      return;
+    }
+
+    const { data } = await supabase.auth.getSession();
+    if (data.session === null) {
+      setBlocked(
+        'Only a signed-in host can hand out a place. Sign in from Settings and come back — nothing recorded tonight is affected.',
+      );
+      return;
+    }
+
+    setBlocked(null);
     try {
       const [seat] = await seatStatuses([playerId]);
       setClaimed(seat?.claimed ?? false);
@@ -108,7 +137,9 @@ export default function Invite() {
           : 'The code belongs to this name. Whoever uses it becomes them.'
       }
       footer={
-        claimed ? (
+        blocked !== null ? (
+          <Button label="Close" variant="secondary" onPress={() => router.back()} />
+        ) : claimed ? (
           <Button label="Done" variant="primary" onPress={() => router.back()} />
         ) : code === null ? (
           <Button
@@ -158,7 +189,9 @@ export default function Invite() {
           </View>
         </View>
 
-        {claimed ? (
+        {blocked !== null ? (
+          <Text style={[styles.note, { color: t.muted }]}>{blocked}</Text>
+        ) : claimed ? (
           <Text style={[styles.note, { color: t.muted }]}>
             {name} has claimed this place, so they can read the group&rsquo;s book on their own
             phone. Nothing else changed: their nights, their net and everything they play from here
@@ -201,13 +234,15 @@ export default function Invite() {
  *
  * The database says "No such player." when a player has not reached the server
  * — which for a host means one thing only, and it is not a missing person.
+ * Everything else goes through `explainServerError`, which is what keeps a
+ * sentence about the build's API key off a sheet about inviting somebody.
  */
 function message(e: unknown): string {
   const raw = e instanceof Error ? e.message : String(e);
   if (raw.includes('No such player')) {
     return 'This player has not reached the server yet. Sign in, let the night send, and try again.';
   }
-  return raw;
+  return explainServerError(e);
 }
 
 const month = (iso: string): string =>

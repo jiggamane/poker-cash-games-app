@@ -7,7 +7,12 @@ import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { loadEntries, watchEntries } from '../src/lib/ledgerRepo';
 import { openShareLink } from '../src/lib/shareLink';
-import { isSupabaseConfigured, supabase, watchedSessionId } from '../src/lib/supabase';
+import {
+  explainServerError,
+  isSupabaseConfigured,
+  supabase,
+  watchedSessionId,
+} from '../src/lib/supabase';
 
 /**
  * The watcher's view of a night.
@@ -62,7 +67,7 @@ export default function Watch() {
       setState('watching');
     } catch (e) {
       setState('refused');
-      setMessage(e instanceof Error ? e.message : String(e));
+      setMessage(explainServerError(e));
     }
   }, [token]);
 

@@ -87,13 +87,26 @@ Create `apps/mobile/.env` (it is gitignored, so it exists only on this machine):
 
 ```
 EXPO_PUBLIC_SUPABASE_URL=https://eciozeeqywpgqlxqmprl.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=<paste the anon key here>
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<paste the key here>
 ```
 
-The anon key is in the dashboard under **Project Settings → API → Project API
-keys → `anon` `public`**. It is a long string starting with `eyJ`.
+The key is in the dashboard under **Project Settings → API Keys**. Depending on
+when the project was made it is one of two things, and both go on that line:
 
-Do not put the `service_role` key here.
+- a **publishable** key, starting `sb_publishable_` — the current format;
+- a legacy **anon / public** key, a long string starting `eyJ`.
+
+Take whichever the project actually has. A legacy key that the dashboard shows
+as *disabled* is refused just like a wrong one.
+
+Do not put the `service_role` or `sb_secret_` key here. The app checks, and
+refuses to start with one rather than shipping it.
+
+Both lines must come from the same project, and they are read once, when the
+bundle is built — after editing `.env`, restart the dev server. If anything is
+wrong, every request comes back **"Invalid API key"**; **Settings → Connection**
+in the app says which of the possible causes it is. See
+[`auth-test-period.md`](auth-test-period.md#when-it-says-invalid-api-key).
 
 ---
 

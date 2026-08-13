@@ -7,7 +7,12 @@ import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { authRedirectUrl } from '../src/lib/authLink';
-import { isNotInvited, isSupabaseConfigured, sendSignInLink } from '../src/lib/supabase';
+import {
+  explainServerError,
+  isNotInvited,
+  isSupabaseConfigured,
+  sendSignInLink,
+} from '../src/lib/supabase';
 
 /**
  * The host signs in.
@@ -37,9 +42,7 @@ export default function SignIn() {
       setError(
         isNotInvited(e)
           ? `${email.trim()} has not been invited yet. While the app is being tested, the host adds each address by hand.`
-          : e instanceof Error
-            ? e.message
-            : String(e),
+          : explainServerError(e),
       );
     } finally {
       setBusy(false);

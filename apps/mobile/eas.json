@@ -3,11 +3,15 @@
     "version": ">= 12.0.0",
     "appVersionSource": "remote"
   },
+  "//env": "apps/mobile/.env is gitignored, so it is NOT uploaded to the EAS builder — a build made without the two lines below carries no Supabase project at all and refuses every request. The URL is public and lives here. The key does not: create it once with `eas env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --visibility plaintext` (plaintext, because an EXPO_PUBLIC_ value has to be readable at bundle time and ends up inside the app either way), and it is injected into every profile.",
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://eciozeeqywpgqlxqmprl.supabase.co"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -17,11 +21,17 @@
       },
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://eciozeeqywpgqlxqmprl.supabase.co"
       }
     },
     "production": {
       "channel": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://eciozeeqywpgqlxqmprl.supabase.co"
+      }
     }
   },
   "submit": {

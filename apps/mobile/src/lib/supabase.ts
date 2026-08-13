@@ -1,6 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { config } from './supabaseConfig';
 
 /**
  * The Supabase client.
@@ -9,17 +10,17 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
  * row-level security policies in supabase/migrations are what actually protect
  * the data, not the secrecy of this key. The service_role key must never come
  * near this file; it bypasses every policy and belongs only in edge functions.
+ * `supabaseConfig` refuses to start with one, rather than trusting that.
  */
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
 /** False until the project is configured, so the app can say so plainly. */
-export const isSupabaseConfigured = Boolean(url && anonKey);
+export const isSupabaseConfigured = config.problem === null;
+
+export { config as supabaseConfig };
 
 export const supabase: SupabaseClient = createClient(
-  url ?? 'https://unconfigured.supabase.co',
-  anonKey ?? 'unconfigured',
+  config.url ?? 'https://unconfigured.supabase.co',
+  config.key ?? 'unconfigured',
   {
     auth: {
       // The host stays signed in between nights.
@@ -29,8 +30,72 @@ export const supabase: SupabaseClient = createClient(
       // There is no browser URL to read a session back from.
       detectSessionInUrl: false,
     },
+    global: { fetch: refuseWhenUnconfigured },
   },
 );
+
+/**
+ * A misconfigured build must not be allowed to ask.
+ *
+ * `unconfigured.supabase.co` is not a dead address — supabase.co answers on
+ * every subdomain — so without this the placeholders above reach a real gateway,
+ * which refuses the placeholder key and answers "Invalid API key". That message
+ * then surfaces on whichever screen happened to make the call, and it describes
+ * neither the cause (there is no project in this build) nor the cure (a line in
+ * a file). One check here means every screen in the app reports the real fault
+ * instead, without any of them knowing about it.
+ */
+function refuseWhenUnconfigured(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  if (config.problem !== null) {
+    return Promise.reject(new Error(config.complaint ?? 'This build has no Supabase project.'));
+  }
+  return fetch(input, init);
+}
+
+/**
+ * What went wrong, said to a host rather than to a developer.
+ *
+ * The server's own wording is kept for anything this does not recognise — a
+ * message we cannot improve on is better than a message we have flattened into
+ * "something went wrong". These four are the ones worth rewriting because each
+ * one is reported in language about the protocol and fixed in language about
+ * the app.
+ */
+export function explainServerError(e: unknown): string {
+  const raw = e instanceof Error ? e.message : String(e);
+
+  if (/invalid api key/i.test(raw)) {
+    return `The server refused this build’s key${
+      config.ref === null ? '' : ` for project ${config.ref}`
+    }. Settings → Connection says which key it is and what to replace it with.`;
+  }
+
+  if (/jwt expired|token is expired|invalid claim|bad_jwt/i.test(raw)) {
+    return 'This sign-in has expired. Settings → Connection will clear it, then sign in again.';
+  }
+
+  if (/network request failed|failed to fetch|fetch failed/i.test(raw)) {
+    return 'No answer from the server. The night keeps recording on this phone and sends when there is signal.';
+  }
+
+  if (/anonymous sign-ins are disabled/i.test(raw)) {
+    return 'This project has anonymous sign-ins turned off, and a code cannot be spent without one. Authentication → Sign In / Providers → Anonymous sign-ins.';
+  }
+
+  return raw;
+}
+
+/**
+ * Drop the sign-in this phone is holding, without asking the server first.
+ *
+ * The case that needs it is precisely the case where the server will not
+ * answer: a token it no longer accepts. An ordinary `signOut()` posts to
+ * /logout, is refused, and leaves the bad token in place — so the one action
+ * that could rescue the app fails for the same reason the app is stuck.
+ */
+export async function forgetSignIn(): Promise<void> {
+  await supabase.auth.signOut({ scope: 'local' });
+}
 
 /**
  * Email the host a sign-in link.

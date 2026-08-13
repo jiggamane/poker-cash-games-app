@@ -6,7 +6,8 @@ import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { useSession } from '../src/lib/useSession';
-import { supabase } from '../src/lib/supabase';
+import { explainServerError, forgetSignIn, supabase, supabaseConfig } from '../src/lib/supabase';
+import { checkConnection, type ConnectionReport } from '../src/lib/connection';
 import { shareLinkFor } from '../src/lib/shareLink';
 import { shareTokenFor, stopSharing, watcherCount } from '../src/lib/publish';
 import { drain, syncStatus, type SyncStatus } from '../src/lib/sync';
@@ -34,6 +35,10 @@ export default function Settings() {
   const [syncing, setSyncing] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [fetched, setFetched] = useState<string | null>(null);
+
+  // What the server makes of this build's key, and of this phone's sign-in.
+  const [connection, setConnection] = useState<ConnectionReport | null>(null);
+  const [checking, setChecking] = useState(false);
 
   // The watcher's link, once this night has been put on the server.
   const [link, setLink] = useState<string | null>(null);
@@ -68,9 +73,27 @@ export default function Settings() {
             : `${result.added} ${result.added === 1 ? 'night' : 'nights'} added.`,
       );
     } catch (e) {
-      setFetched(e instanceof Error ? e.message : String(e));
+      setFetched(explainServerError(e));
     } finally {
       setFetching(false);
+    }
+  }
+
+  /**
+   * Ask the server what it makes of this build, and say so in one sentence.
+   *
+   * The one screen in the app allowed to be technical, because it is the only
+   * one whose subject IS the plumbing. Everywhere else a server failure is
+   * beside the point — a host inviting somebody cannot act on "Invalid API
+   * key", and now does not have to: every other screen sends them here.
+   */
+  async function checkNow() {
+    setChecking(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      setConnection(await checkConnection(data.session?.access_token ?? null));
+    } finally {
+      setChecking(false);
     }
   }
 
@@ -108,7 +131,7 @@ export default function Settings() {
       setWatchers(await watcherCount(night.sessionId).catch(() => 0));
       await Share.share({ message: url });
     } catch (e) {
-      setShareError(e instanceof Error ? e.message : String(e));
+      setShareError(explainServerError(e));
     } finally {
       setSharing(false);
     }
@@ -123,7 +146,7 @@ export default function Settings() {
       setLink(null);
       setWatchers(0);
     } catch (e) {
-      setShareError(e instanceof Error ? e.message : String(e));
+      setShareError(explainServerError(e));
     } finally {
       setSharing(false);
     }
@@ -158,7 +181,8 @@ export default function Settings() {
 
         {!configured ? (
           <Text style={[styles.note, { color: t.muted }]}>
-            No server is configured for this build, so nothing leaves the phone.
+            No server is configured for this build, so nothing leaves the phone. Connection, below,
+            says exactly what is missing.
           </Text>
         ) : loading ? (
           <Text style={[styles.note, { color: t.muted }]}>Checking…</Text>
@@ -173,10 +197,16 @@ export default function Settings() {
               label={fetching ? 'Fetching…' : 'Fetch my nights'}
               onPress={() => void fetchNow()}
             />
+            {/* Signing out asks the server to retire the token first. If the
+                server will not answer — no signal, or a token it has stopped
+                accepting — the sign-in is dropped from the phone anyway, because
+                a Sign out that leaves you signed in is not one. */}
             <Action
               label="Sign out"
               onPress={() => {
-                void supabase.auth.signOut();
+                void supabase.auth.signOut().then(({ error }) => {
+                  if (error !== null) void forgetSignIn();
+                });
               }}
               last
             />
@@ -190,6 +220,58 @@ export default function Settings() {
             </Text>
             <Action label="Sign in" onPress={() => router.push('/sign-in')} last />
           </>
+        )}
+
+        {/* Connection — where "Invalid API key" is explained and nowhere else.
+            A failure of the plumbing has exactly one place to be read, so that
+            no screen about players or money has to try to describe one. */}
+        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Connection</Text>
+
+        <Fact label="Project" value={supabaseConfig.ref ?? 'None'} />
+        <Fact label="Key" value={keyLine()} />
+
+        {supabaseConfig.complaint !== null && (
+          <Text style={[styles.note, { color: t.loss }]}>{supabaseConfig.complaint}</Text>
+        )}
+
+        {connection !== null && (
+          <>
+            <Text
+              style={[styles.note, { color: connection.ok ? t.muted : t.loss, paddingBottom: 4 }]}
+            >
+              {connection.headline}
+            </Text>
+            {connection.detail !== '' && (
+              <Text style={[styles.note, { color: t.muted }]}>{connection.detail}</Text>
+            )}
+            {connection.ok && connection.anonymousSignIns === false && (
+              <Text style={[styles.note, { color: t.loss }]}>
+                Anonymous sign-ins are off for this project, so an invite code cannot be spent and a
+                watcher’s link opens nothing. Authentication → Sign In / Providers → Anonymous
+                sign-ins.
+              </Text>
+            )}
+          </>
+        )}
+
+        <Action
+          label={checking ? 'Checking…' : 'Check the connection'}
+          onPress={() => void checkNow()}
+          last={connection?.staleSignIn !== true}
+        />
+
+        {/* Offered only when the check has established that the sign-in itself
+            is what the server is refusing. It clears the token without asking
+            the server's permission — which it would refuse for the same reason
+            it refuses everything else this phone sends. */}
+        {connection?.staleSignIn === true && (
+          <Action
+            label="Forget this sign-in"
+            onPress={() => {
+              void forgetSignIn().then(() => setConnection(null));
+            }}
+            last
+          />
         )}
 
         {/* The way in for a code that arrived down a phone rather than as a
@@ -252,6 +334,30 @@ export default function Settings() {
       </View>
     </Screen>
   );
+}
+
+/**
+ * Which key this build is carrying, in four characters.
+ *
+ * The tail rather than the key: enough to hold against the dashboard and settle
+ * "have I actually restarted since I changed it", which is the question behind
+ * most of the time lost to this. The anon key is public by design, so the
+ * restraint is about legibility on a phone rather than about secrecy.
+ */
+function keyLine(): string {
+  const facts = supabaseConfig.keyFacts;
+  if (facts === null) return 'None';
+
+  const kind =
+    facts.kind === 'anon'
+      ? 'anon'
+      : facts.kind === 'publishable'
+        ? 'publishable'
+        : facts.kind === 'unknown'
+          ? 'not a key'
+          : 'SECRET — remove it';
+
+  return `${kind} · ends ${facts.tail}`;
 }
 
 function Fact({ label, value, last = false }: { label: string; value: string; last?: boolean }) {

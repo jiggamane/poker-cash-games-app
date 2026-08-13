@@ -151,6 +151,47 @@ screen; the invite is what makes their address known, not a separate way in.
 
 ---
 
+## When it says "Invalid API key"
+
+This is the gateway refusing the key the app sent, before any of the above is
+reached — no policy, no account, no table is involved. It is worth knowing that
+it is **one message for four unrelated causes**, which is why it used to appear
+on whatever screen happened to ask (an invite sheet, say) and tell nobody
+anything:
+
+| Cause | What actually happened |
+|---|---|
+| No key | `EXPO_PUBLIC_SUPABASE_ANON_KEY` is missing, or `.env` was added without restarting the dev server. The value is read once, at bundle time. |
+| Another project's key | The two lines in `.env` came from different projects. |
+| An expired key | A legacy anon key has an expiry inside it, and rotating one retires the old. |
+| A mangled key | Pasted with a line break in the middle, or with the quotes left on. |
+
+**Settings → Connection** decides between them on the phone. It prints the
+project ref and the last four characters of the key, and "Check the connection"
+asks the server two separate questions — does it accept this build's *key*, and
+does it accept this phone's *sign-in* — because those fail independently and
+have nothing to do with each other.
+
+Three things worth knowing before reading its verdict:
+
+- **The key is not called `anon` any more.** Projects made since Supabase's key
+  migration issue a **publishable** key (`sb_publishable_…`) under Project
+  Settings → API Keys and may have no anon key at all; a legacy `eyJ…` anon key
+  that has been *disabled* there is refused exactly like a wrong one. Either
+  format goes in `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and
+  `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is accepted as an alias.
+- **A stored sign-in can be the thing being refused**, not the key. Rotating a
+  project's keys or resetting its database leaves the phone holding a token
+  nothing will accept, and `autoRefreshToken` cannot mend it — every request
+  fails for ever, through restarts. That is what **Forget this sign-in** is for;
+  it clears the token locally, without asking the server's permission, because
+  the server is exactly what is refusing to give it.
+- **A real build has no `.env`.** It is gitignored, so it never reaches the EAS
+  builder — see the `//env` note in `apps/mobile/eas.json`. A build that signs in
+  fine over the QR code and refuses everything once installed is this.
+
+---
+
 ## One thing to watch: the project falls asleep
 
 A free Supabase project **pauses after 7 days with no activity**, and poker is

@@ -9,7 +9,7 @@ import { radius, space, type } from '../src/design/tokens';
 import { previewInvite, redeemInvite, type InvitePreview } from '../src/lib/invites';
 import { dropSampleNight, setWhoAmI } from '../src/lib/nightStore';
 import { pullBooks } from '../src/lib/pull';
-import { isSupabaseConfigured } from '../src/lib/supabase';
+import { explainServerError, isSupabaseConfigured } from '../src/lib/supabase';
 
 /**
  * X2 · Claim your place.
@@ -58,7 +58,7 @@ export default function Claim() {
       setState('ready');
     } catch (e) {
       setState('dead');
-      setError(e instanceof Error ? e.message : String(e));
+      setError(explainServerError(e));
     }
   }, []);
 
@@ -97,7 +97,7 @@ export default function Claim() {
       router.replace('/');
     } catch (e) {
       setState('ready');
-      setError(e instanceof Error ? e.message : String(e));
+      setError(explainServerError(e));
     }
   }
 
