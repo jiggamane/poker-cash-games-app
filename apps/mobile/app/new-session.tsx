@@ -8,7 +8,14 @@ import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { lastSetup, roster, startNight, useNight, type Setup } from '../src/lib/nightStore';
+import {
+  lastSetup,
+  roster,
+  startNight,
+  useNight,
+  type Person,
+  type Setup,
+} from '../src/lib/nightStore';
 
 /**
  * New session — O1, with O2 inside it.
@@ -208,7 +215,7 @@ function AddPlayers({
   onDone: () => void;
 }) {
   const t = useTheme();
-  const [known, setKnown] = useState<Array<{ name: string; lastPlayed: string; nights: number }>>([]);
+  const [known, setKnown] = useState<Person[]>([]);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -281,7 +288,9 @@ function AddPlayers({
               <View style={styles.rosterText}>
                 <Text style={[styles.seatName, { color: t.text }]}>{p.name}</Text>
                 <Text style={[styles.rosterSub, { color: t.muted }]}>
-                  played {played(p.lastPlayed)} · {p.nights} {p.nights === 1 ? 'night' : 'nights'}
+                  {p.lastPlayed === null
+                    ? 'not played yet'
+                    : `played ${played(p.lastPlayed)} · ${p.nights} ${p.nights === 1 ? 'night' : 'nights'}`}
                 </Text>
               </View>
 

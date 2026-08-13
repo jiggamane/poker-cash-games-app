@@ -10,6 +10,7 @@ import { supabase } from '../src/lib/supabase';
 import { shareLinkFor } from '../src/lib/shareLink';
 import { shareTokenFor, stopSharing, watcherCount } from '../src/lib/publish';
 import { drain, syncStatus, type SyncStatus } from '../src/lib/sync';
+import { pullBooks } from '../src/lib/pull';
 import { useNight } from '../src/lib/nightStore';
 
 /**
@@ -31,6 +32,8 @@ export default function Settings() {
 
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [fetched, setFetched] = useState<string | null>(null);
 
   // The watcher's link, once this night has been put on the server.
   const [link, setLink] = useState<string | null>(null);
@@ -43,6 +46,33 @@ export default function Settings() {
   });
 
   const signedIn = session !== null;
+
+  /**
+   * The other direction — every night this account can see, onto this phone.
+   *
+   * Nothing local is overwritten: a night this phone already holds is skipped
+   * whole, because the device that recorded a night is the authority on it. So
+   * this is safe to press at any time, and does nothing at all on the phone
+   * that recorded everything.
+   */
+  async function fetchNow() {
+    setFetching(true);
+    setFetched(null);
+    try {
+      const result = await pullBooks();
+      setFetched(
+        result.books === 0
+          ? 'Nothing to fetch — this account is not in anybody’s book yet.'
+          : result.added === 0
+            ? 'Nothing new. Every night on the server is already here.'
+            : `${result.added} ${result.added === 1 ? 'night' : 'nights'} added.`,
+      );
+    } catch (e) {
+      setFetched(e instanceof Error ? e.message : String(e));
+    } finally {
+      setFetching(false);
+    }
+  }
 
   async function sendNow() {
     setSyncing(true);
@@ -134,8 +164,15 @@ export default function Settings() {
           <Text style={[styles.note, { color: t.muted }]}>Checking…</Text>
         ) : signedIn ? (
           <>
-            <Fact label="Signed in as" value={session.user.email ?? 'unknown'} />
+            <Fact
+              label="Signed in as"
+              value={session.user.email ?? (session.user.is_anonymous === true ? 'this phone' : 'unknown')}
+            />
             <Action label={syncing ? 'Sending…' : 'Send what is waiting'} onPress={() => void sendNow()} />
+            <Action
+              label={fetching ? 'Fetching…' : 'Fetch my nights'}
+              onPress={() => void fetchNow()}
+            />
             <Action
               label="Sign out"
               onPress={() => {
@@ -154,6 +191,18 @@ export default function Settings() {
             <Action label="Sign in" onPress={() => router.push('/sign-in')} last />
           </>
         )}
+
+        {/* The way in for a code that arrived down a phone rather than as a
+            link — which, during testing, is every code. The link is a
+            convenience wrapper; this is the door that always works. */}
+        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Your place</Text>
+        <Text style={[styles.note, { color: t.muted }]}>
+          Somebody who runs a game can add you to their book and give you a ten-character code. It
+          puts your own nights on this phone; it does not let you record anything.
+        </Text>
+        <Action label="I have an invite code" onPress={() => router.push('/claim')} last />
+
+        {fetched !== null && <Text style={[styles.note, { color: t.muted }]}>{fetched}</Text>}
 
         {status !== null && status.lastError !== null && (
           <Text style={[styles.note, { color: t.muted }]}>

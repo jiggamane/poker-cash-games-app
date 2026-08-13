@@ -71,25 +71,29 @@ Six steps, all in the Supabase dashboard except the DNS one. A remote Claude
 session cannot reach `supabase.co`, so these are for a person or a session
 running on your own machine.
 
-### 1. Apply the migration
+### 1. Apply the migrations
 
-`supabase/migrations/0004_watcher_access.sql`, on top of 0001–0003. For a
-project that already has the earlier ones, run just this file in the SQL
-Editor. For a fresh project, `supabase/schema.sql` is all four concatenated.
+`0004_watcher_access.sql`, `0005_sync_contract_fixes.sql` and
+`0006_player_identity.sql`, in that order, on top of 0001–0003. For a project
+that already has the earlier ones, run just these three files in the SQL Editor.
+For a fresh project, `supabase/schema.sql` is all of them concatenated.
 
-Check it landed:
+Check they landed:
 
 ```sql
 select proname from pg_proc
-where proname in ('redeem_share_token', 'revoke_share_access', 'custom_access_token_hook');
+where proname in ('redeem_share_token', 'revoke_share_access', 'custom_access_token_hook',
+                  'create_player_invite', 'redeem_player_invite', 'preview_player_invite');
 ```
+
+Six rows. Fewer means one of the three files did not run.
 
 ### 2. Turn on anonymous sign-ins
 
 **Authentication → Sign In / Providers → Anonymous sign-ins → enable.**
 
 Without this, redeeming a link fails at the first step for anybody who is not
-already signed in — which is every watcher.
+already signed in — which is every watcher, and every player claiming a seat.
 
 ### 3. Turn on the access token hook
 
@@ -173,6 +177,32 @@ On two phones, or one phone and one simulator:
 
 If step 4 shows an empty night rather than an error, it is step 3 of the setup
 — the hook.
+
+### And then the player side
+
+A watcher reads one night. A **player** claims a name and keeps their own
+history, which is the part worth testing with the people you actually play with.
+
+8. **Host:** Home → **Invite a player** → tap a name → **Make a code**. Ten
+   characters appear. **Send it** hands over the code and a link together.
+9. **Player (the other device):** Settings → **I have an invite code**, type it,
+   and the screen should say *"You have been added as Petr"* with the group's
+   name — before anything is spent. Then **This is me · open the group**.
+10. **Player:** My stats should already hold every night Petr has played,
+    fetched from the server on the way in. Nothing was typed but the code.
+11. **Player:** try to record something. There is nothing to record with — the
+    host's controls are not there, and the database refuses a write from a
+    member anyway. Both facts are asserted in `05_member_read.sql`.
+12. **Host:** the same name now reads **claimed** on the roster, and the invite
+    sheet offers no new code for it.
+13. **Host:** make a code for somebody else and then **New code** before it is
+    used. The first should now be dead — one live code per seat, always.
+
+If step 10 shows an empty My stats, the claim worked and the fetch did not:
+Settings → **Fetch my nights** says which. If step 9 says the code opens
+nothing, check that the host's night actually reached the server — an invite
+cannot be issued for a player the server has never heard of, and the invite
+sheet says so in those words.
 
 ---
 

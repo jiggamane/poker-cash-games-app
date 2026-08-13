@@ -92,21 +92,85 @@ works everywhere.
 
 ---
 
+---
+
+## What was built, and the one change from the design
+
+**The code is the primitive; the link is a wrapper around it.** C3 draws
+`pokerclub.app/p/8FQ2-KD` because a link is what a designer draws. What actually
+gets issued is ten characters, and the link is one of two ways they can travel.
+
+That is a deliberate departure, for three reasons in descending order of weight:
+
+1. **A link cannot be delivered right now.** In Expo Go the app's URL is
+   `exp://192.168.x.x:8081`, which points at a laptop on somebody's wifi. Nobody
+   outside the room can open it, and it changes every time the server restarts.
+   Testing invitations with real people this week is only possible with something
+   that is not a URL.
+2. **A link is at the mercy of the channel.** Chat apps shorten, wrap, preview
+   and occasionally eat them. Ten characters survive being read down a phone,
+   photographed, or written on the back of a receipt.
+3. **A code is checkable before it is spent.** `preview_player_invite` returns a
+   name and a group and nothing else, so X2 can say "you have been added as Petr"
+   before anything is committed. That works identically whichever way the code
+   arrived.
+
+Both are offered: **Send it** hands over the code and a deep link together, and
+`/claim?c=CODE` opens the same screen with the field already filled. Settings has
+**I have an invite code** for every other case, which during development is all
+of them.
+
+### The shape of it
+
+| Piece | Where |
+| --- | --- |
+| `player_invite`, the code, and the four rules below | `supabase/migrations/0006_player_identity.sql` |
+| `create_player_invite` / `revoke_player_invite` / `redeem_player_invite` / `preview_player_invite` | same |
+| The eight `*_member_read` policies — what a claimed player may see | same |
+| Proof that all of it holds | `supabase/test/04_player_identity.sql` |
+| Proof that a claimant reads back exactly their own book and nothing else | `supabase/test/05_member_read.sql` |
+| The app's side of the four functions | `apps/mobile/src/lib/invites.ts` |
+| C2 the roster · C3 the invite · X2 the claim | `app/players.tsx` · `app/invite.tsx` · `app/claim.tsx` |
+| Filling a claimed phone from the server | `apps/mobile/src/lib/pull.ts` |
+
+**A person is now durable on the phone too.** Until this work, a night minted a
+fresh id for every name at the table, so "Petr" was one id in March and another
+in April — six rows on the server for one man, and an invite would have bound one
+evening of him rather than him. `nightStore`'s `person` table gives each name one
+id for as long as the group lasts, and every night reuses it. Nights recorded
+before that keep the ids they were written with: rewriting a settled ledger to
+tidy up an id is the one thing this app never does.
+
+**What claiming grants is reading.** Only the host writes to a book, before and
+after. `05_member_read.sql` asserts both halves — everything a member must see,
+and that they cannot restate an entry, edit their count, or reopen a settled
+night.
+
+---
+
 ## The other three answers
 
 ### Link properties
 
 **Single-use, seven days, re-issuable by the host.** The design draws seven days
-on C3 and per-player links should follow it.
+on C3 and per-player codes follow it.
 
-Single-use is the important half. A per-player link is a seat with somebody's
+Single-use is the important half. A per-player code is a seat with somebody's
 history behind it, and it will be pasted into a group chat — assume that, as the
 design says. Reusable, it becomes a credential anyone in the chat can spend.
 Single-use, the worst case is that the wrong person in a trusted room claims a
 seat once and the host re-issues, which is recoverable and visible.
 
-Re-issuing rotates the token, exactly as `revoke_share_access` already does for
+Re-issuing rotates the code, exactly as `revoke_share_access` already does for
 watchers. The host needs no new concept: it is the control C3 already draws.
+`player_invite_one_live` — a partial unique index — makes "exactly one live code
+per seat" a fact about the database rather than a habit of the app.
+
+**A code is a bearer credential**, and that is the honest cost of asking nothing
+of a player. Four properties are what make it acceptable in a trusted room, and
+each is asserted in `04_player_identity.sql`: one use, one live code per seat,
+seven days, and a host who can take it back. The alphabet has no 0/O, 1/I/L or U
+in it, and 32¹⁰ is about 50 bits — not guessable, and short enough to say aloud.
 
 ### Cross-group identity
 

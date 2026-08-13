@@ -171,7 +171,11 @@ export default function Home() {
       <View style={styles.bottom}>
         <View style={styles.bottomBar}>
           <Quiet icon="settings" label="Settings" onPress={() => router.push('/settings')} />
-          <Quiet icon="invite" label="Invite a player" />
+          <Quiet
+            icon="invite"
+            label="Invite a player"
+            onPress={() => router.push('/players')}
+          />
         </View>
       </View>
     </SafeAreaView>

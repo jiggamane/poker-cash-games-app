@@ -35,8 +35,11 @@ cd apps/mobile && npm start   # scan the QR code with Expo Go
   when, what the phone keeps, and exactly what still works with no signal. Read it before
   touching sync or the close flow.
 - **[`docs/player-identity.md`](docs/player-identity.md)** — what a player is
-  authenticated by, and why: the credential comparison, how the invite link behaves, how
-  one person is recognised across two groups, and what a second phone does.
+  authenticated by, and why: the credential comparison, how an invite behaves, how one
+  person is recognised across two groups, and what a second phone does. **Built**: the
+  host issues a ten-character code bound to one name, and whoever spends it becomes the
+  person that name already described. The code is the primitive; the deep link is a
+  wrapper around it, for the times a link happens to work.
 - **[`docs/auth-test-period.md`](docs/auth-test-period.md)** — who gets in while the app is
   being tested: invite-only sign-in, how a watcher's link actually works, and the dashboard
   steps that make it run. Read it before the first night with real people.

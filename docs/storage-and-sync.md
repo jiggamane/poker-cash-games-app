@@ -184,9 +184,31 @@ explicit act, not a race.
 
 ## Reading back
 
-On sign-in, and on first launch after a reinstall, the app pulls what it does
-not have: the host's book, its sessions, and for each session the entries,
-counts and settlement.
+**Built** — `apps/mobile/src/lib/pull.ts`. It pulls every book this account can
+see, its sessions, and for each session the players, seats, entries, counts and
+settlement, and writes them into the same local tables every screen already
+reads from. Nothing else in the app has to know it happened.
+
+It runs the moment somebody claims their place, and from **Fetch my nights** in
+Settings. That is what makes an invitation worth sending: a player who claims a
+seat and lands on an empty My stats has been told a lie by the claim screen.
+
+**Which books come back is decided entirely by the database.** There is not one
+check in `pull.ts` about what may be read — the member policies in
+`0006_player_identity.sql` return the books this account belongs to and nothing
+else. If those policies are wrong the correct outcome is an empty result, never
+a client-side rule quietly filling the gap.
+
+**It never overwrites.** A night the phone already holds is skipped whole,
+because the device that recorded a night is the authority on it — principle 3,
+applied to the only place it could be violated. A host pulling their own book
+therefore gets nothing back, which is correct.
+
+A settled night arrives with the **rules it was settled with**, from the
+server's `rules_snapshot`, and its frozen local record is recomputed from those
+— safe only because settlement is a pure versioned function of the rows above,
+so the same inputs give the same result on any device. Using today's rules
+instead would restate a night the group has already been paid out on.
 
 The merge rule is trivial, and only because of principle 4:
 
@@ -244,6 +266,15 @@ Writing them found two schema faults that would each have stopped a night
 reaching the server, silently. Both are fixed in `0005_sync_contract_fixes.sql`
 and described there.
 
+**The same pair exists for reading back**, and it matters more, not less. A
+wrong column in a write fails loudly — the night never leaves and the host sees
+"waiting". A wrong column in a read fails silently: a player claims their place,
+lands on an empty My stats, and nothing anywhere looks broken. So
+`pullReads.ts` holds every column list as a value, `pull.test.ts` asserts them,
+and `supabase/test/05_member_read.sql` runs the same lists as an actual claimed
+member through RLS — asserting both that they see their whole book and that they
+see nothing else, and that reading is all claiming ever grants.
+
 ---
 
 ## Order of work
@@ -256,8 +287,10 @@ and described there.
    settlement once, freezes it in `night_settlement`, and queues the server's
    `settlement` row with its snapshots plus the session's status and `ended_at`.
    The settled screen and My stats read the frozen copy.
-3. **Read back.** Pull on sign-in so a reinstall or a new phone recovers the
-   book. My stats then works from whichever copy exists.
+3. ~~**Read back.**~~ **Built.** `pullBooks()` fills a phone from the server —
+   on claiming a place, and on demand from Settings. My stats then works from
+   whichever copy exists. What is left is running it automatically after a
+   reinstall, which needs a way to tell a fresh install from an empty one.
 4. **Verification.** An edge function that re-settles from the snapshots and
    flags any disagreement. Cheap once the snapshots are there, and it is what
    makes "the client calculated it" a non-issue.

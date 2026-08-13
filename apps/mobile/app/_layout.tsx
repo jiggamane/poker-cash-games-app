@@ -10,6 +10,7 @@ import { completeSignInFromUrl } from '../src/lib/authLink';
 import { drain } from '../src/lib/sync';
 import { supabase } from '../src/lib/supabase';
 import { parseShareLink } from '../src/lib/shareLink';
+import { parseInviteLink } from '../src/lib/invites';
 import { openNight } from '../src/lib/nightStore';
 
 /**
@@ -33,6 +34,7 @@ const SHEETS = [
   'new-session', // O1 / O2 · open a table, and who is at it
   'money-rules', // O4 · tonight's money rules
   'rule', // O5 · the rule editor
+  'invite', // C3 · invite a player, over the roster
   'sign-in', // ends in "email me a link"; over Settings
 ] as const;
 
@@ -96,6 +98,17 @@ export default function RootLayout() {
     const token = parseShareLink(url);
     if (token !== null) {
       router.push({ pathname: '/watch', params: { t: token } });
+      return;
+    }
+
+    // A player's invite. Same reasoning as the watcher's link — the screen it
+    // lands on shows the name and the group BEFORE anything is spent, and is
+    // where a dead code has to say so. The code is the primitive here and the
+    // link is only one way it can arrive; the same screen is reachable from
+    // Settings for a code that was read down a phone.
+    const invite = parseInviteLink(url);
+    if (invite !== null) {
+      router.push({ pathname: '/claim', params: { c: invite } });
       return;
     }
 
