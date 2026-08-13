@@ -30,17 +30,26 @@ export type IconName =
   /** The keypad's delete key. */
   | 'backspace'
   /** Adds something — always paired with a dashed outline. */
-  | 'plus';
+  | 'plus'
+  /** Correct this entry — the affordance on a ledger row. */
+  | 'pencil';
 
 export function Icon({
   name,
   color,
   size,
+  stroke,
 }: {
   name: IconName;
   color: string;
   /** Omit to get the size it is drawn at on the board. */
   size?: number;
+  /**
+   * Omit to get the weight it is drawn at. One board draws the plus at 2.3
+   * rather than 2 — inside the dashed New player chip, where a lighter glyph
+   * would read as disabled beside the 600 label next to it.
+   */
+  stroke?: number;
 }) {
   switch (name) {
     case 'arrow': {
@@ -162,7 +171,22 @@ export function Icon({
       const s = size ?? 15;
       return (
         <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-          <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+          <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={stroke ?? 2} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'pencil': {
+      const s = size ?? 15;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M4 20h4L20 8l-4-4L4 16z"
+            stroke={color}
+            strokeWidth={stroke ?? 1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </Svg>
       );
     }

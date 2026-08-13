@@ -14,10 +14,19 @@ import { openNight } from '../src/lib/nightStore';
  * the session and the book are pushed on top of it, so the club is always one
  * tap back rather than one tab across.
  *
- * Headers are off everywhere: every screen draws its own large title top-left,
- * and pushed screens carry their own labelled back plus a home glyph. A stock
- * navigation bar would sit above all of that and duplicate it.
+ * Headers are off everywhere: every screen draws its own chrome. A pushed
+ * screen draws Chrome A — a round back button on the title line, and NOTHING in
+ * the top-right corner. A stock navigation bar would sit above all of that and
+ * duplicate it.
+ *
+ * The screens listed below are sheets (Chrome B): things you open to do one
+ * thing, which finish and drop away. They are presented as TRANSPARENT modals
+ * rather than stock ones so the screen behind stays visible through the sheet's
+ * own scrim at .32 — that dimmed strip of the pushed screen above the panel is
+ * what tells you the thing behind is still there, in the same scroll position,
+ * waiting.
  */
+const SHEETS = ['pick', 'log', 'seat', 'entry'] as const;
 export default function RootLayout() {
   const t = useTheme();
 
@@ -49,7 +58,19 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: t.ground },
           animation: 'slide_from_right',
         }}
-      />
+      >
+        {SHEETS.map((name) => (
+          <Stack.Screen
+            key={name}
+            name={name}
+            options={{
+              presentation: 'transparentModal',
+              animation: 'slide_from_bottom',
+              contentStyle: { backgroundColor: 'transparent' },
+            }}
+          />
+        ))}
+      </Stack>
     </SafeAreaProvider>
   );
 }

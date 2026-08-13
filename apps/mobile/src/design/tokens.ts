@@ -73,6 +73,23 @@ export interface Theme {
   keyline: string;
   /** Outline and text of a destructive action. Never filled. */
   danger: string;
+
+  /*
+   * The navigation chrome — 09-navigation.md, drawn in design/Nav System.
+   * These four are the only colours the two chromes introduce, and they are
+   * translucent rather than solid so a sheet's round close reads the same over
+   * the panel as the back button does over the ground.
+   */
+  /** The 36px round back button, and the 30px round close on a sheet. */
+  roundFill: string;
+  /** A status pill sitting on a title line — SEATED, LIVE's neutral twin. */
+  pillFill: string;
+  /** A sheet's panel. A hair off the ground in dark; the ground itself in light. */
+  sheetPanel: string;
+  /** The 1px line along a sheet's top edge, which is what separates the two in light. */
+  sheetEdge: string;
+  /** The 38 × 5 grab handle. */
+  grabber: string;
 }
 
 export const darkTheme: Theme = {
@@ -99,19 +116,31 @@ export const darkTheme: Theme = {
   onFill: '#0C0D0F',
   keyline: '#0A0A0B',
   danger: '#F0705C',
+  roundFill: 'rgba(255,255,255,0.09)',
+  pillFill: 'rgba(255,255,255,0.10)',
+  sheetPanel: '#101013',
+  sheetEdge: 'rgba(255,255,255,0.12)',
+  grabber: 'rgba(255,255,255,0.22)',
 };
 
 export const lightTheme: Theme = {
   name: 'light',
   ground: '#FFFFFF',
   surface: '#F4F4F6',
-  raised: '#EDEDF0',
+  /*
+   * Four values below come from the drawn screens rather than from
+   * 07-design-tokens.md, per the rule in docs/ui-guide.md: where the spec and
+   * the token doc disagree, the board wins. The token doc says raised #EDEDF0,
+   * hairline #E2E3E7, an opaque outline and a .28 dash; every bright board —
+   * Before / The night / After, and now N3–N10 — draws them as below.
+   */
+  raised: '#E8E8ED',
   text: '#0C0D0F',
   muted: '#6B6F76',
-  hairline: '#E2E3E7',
-  outline: '#0C0D0F',
+  hairline: 'rgba(12,13,15,0.1)',
+  outline: 'rgba(12,13,15,0.5)',
   quietOutline: 'rgba(12,13,15,0.24)',
-  dashed: 'rgba(12,13,15,0.28)',
+  dashed: 'rgba(12,13,15,0.27)',
   win: '#0A7A3D',
   // #B03A28 on every bright board. The token doc says #C0341B; the board wins.
   loss: '#B03A28',
@@ -134,6 +163,11 @@ export const lightTheme: Theme = {
   onFill: '#FFFFFF',
   keyline: '#FFFFFF',
   danger: '#B03A28',
+  roundFill: 'rgba(12,13,15,0.06)',
+  pillFill: 'rgba(12,13,15,0.07)',
+  sheetPanel: '#FFFFFF',
+  sheetEdge: 'rgba(12,13,15,0.1)',
+  grabber: 'rgba(12,13,15,0.18)',
 };
 
 /**

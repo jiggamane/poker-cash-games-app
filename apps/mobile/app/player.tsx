@@ -1,16 +1,18 @@
 import { useMemo } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, formatSigned, resolveLedger, type Money } from '@poker-club/core';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatMoney, formatSigned, resolveLedger, type Money, type MoneyRule } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
-import { Screen } from '../src/components/Screen';
+import { HeaderPill, PushHeader } from '../src/components/PushHeader';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
 import { depthOf, standingOf, useNight } from '../src/lib/nightStore';
 
 /**
- * One player — N3.
+ * N3 · One player. A push — this is a place you can stay in, so it takes
+ * Chrome A: the round back button, the name, the status pill beside it, and
+ * "since 20:09" on the meta line beneath.
  *
  * Two figures side by side, and the right one is an EM DASH until their chips
  * are counted. That is the whole point of the screen: while a game is running
@@ -18,7 +20,10 @@ import { depthOf, standingOf, useNight } from '../src/lib/nightStore';
  * a running "net" would be inventing a number out of chips it has not seen.
  *
  * Underneath, every entry with the time it was made — which is what settles an
- * argument about whether somebody rebought before or after a hand.
+ * argument about whether somebody rebought before or after a hand — each with a
+ * pencil that opens N10.
+ *
+ * Geometry, weights and copy are `screens-N3-N10.html`; only the header is new.
  */
 export default function PlayerPage() {
   const t = useTheme();
@@ -28,15 +33,20 @@ export default function PlayerPage() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   if (night === null || ledger === null) {
-    return <Screen title="Player" backTo="Tonight">{null}</Screen>;
+    return (
+      <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+        <PushHeader title="Player" />
+      </SafeAreaView>
+    );
   }
 
   const player = night.players.find((p) => p.id === id);
   if (player === undefined) {
     return (
-      <Screen title="Player" backTo="Tonight">
+      <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+        <PushHeader title="Player" />
         <Text style={[styles.note, { color: t.muted }]}>Nobody by that name tonight.</Text>
-      </Screen>
+      </SafeAreaView>
     );
   }
 
@@ -62,53 +72,27 @@ export default function PlayerPage() {
   const mine = ledger.entries.filter((e) => e.playerId === player.id);
   const first = mine[0];
 
+  const status =
+    standing?.played !== true
+      ? 'ON THE ROSTER'
+      : stillIn
+        ? standing.returned
+          ? 'BACK IN'
+          : 'SEATED'
+        : standing.cashedOut === 0
+          ? 'BUSTED OUT'
+          : 'CASHED OUT';
+
+  const rules = night.rules.filter((r) => r.active).sort((a, b) => a.sortOrder - b.sortOrder);
+  const note = chargeNote(rules);
+
   return (
-    <Screen
-      title={player.name}
-      backTo="Tonight"
-      footer={
-        stillIn ? (
-          <View style={styles.actions}>
-            <Button
-              label="Rebuy"
-              variant="primary"
-              style={styles.action}
-              onPress={() =>
-                router.push({ pathname: '/log', params: { player: player.id, kind: 'rebuy' } })
-              }
-            />
-            <Button
-              label="Cash out"
-              variant="secondary"
-              style={styles.action}
-              onPress={() =>
-                router.push({ pathname: '/log', params: { player: player.id, kind: 'cashout' } })
-              }
-            />
-          </View>
-        ) : undefined
-      }
-    >
-      <View style={styles.tagRow}>
-        <View style={[styles.tag, { backgroundColor: t.raised }]}>
-          <Text style={[styles.tagText, { color: t.muted }]}>
-            {standing?.played !== true
-              ? 'ON THE ROSTER'
-              : stillIn
-                ? standing.returned
-                  ? 'BACK IN'
-                  : 'SEATED'
-                : standing.cashedOut === 0
-                  ? 'BUSTED OUT'
-                  : 'CASHED OUT'}
-          </Text>
-        </View>
-        {first !== undefined && (
-          <Text style={[styles.since, { color: t.muted }]}>
-            since {clock(night.occurredAt[first.id])}
-          </Text>
-        )}
-      </View>
+    <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+      <PushHeader
+        title={player.name}
+        badge={<HeaderPill label={status} quiet />}
+        meta={first === undefined ? undefined : `since ${clock(night.occurredAt[first.id])}`}
+      />
 
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <View style={styles.cardTop}>
@@ -130,6 +114,9 @@ export default function PlayerPage() {
             : 'Before the bill and the kitty, which come off at settle-up.'}
         </Text>
 
+        {/* Undrawn state: N3 draws a player who is still seated. Once they are
+            counted the em-dash becomes a figure, and the difference between the
+            two is the number the room will ask for. */}
         {counted !== undefined && (
           <View style={[styles.net, { borderTopColor: t.hairline }]}>
             <Text style={[styles.netLabel, { color: t.text }]}>Chips against buy-ins</Text>
@@ -142,23 +129,23 @@ export default function PlayerPage() {
         )}
       </View>
 
-      <View style={styles.list}>
+      <ScrollView
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={[styles.sectionLabel, { color: t.muted }]}>
           {mine.length === 0 ? 'Nothing yet' : `${depthOf(ledger, player.id)} · when each was made`}
         </Text>
 
-        {[...mine].reverse().map((e, i, all) => (
+        {[...mine].reverse().map((e) => (
           <Pressable
             key={e.id}
             accessibilityRole="button"
             onPress={() => router.push({ pathname: '/entry', params: { id: e.id } })}
             style={({ pressed }) => [
               styles.row,
-              {
-                borderBottomColor: t.hairline,
-                borderBottomWidth: i === all.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                opacity: pressed ? 0.6 : 1,
-              },
+              { borderBottomColor: t.hairline, opacity: pressed ? 0.6 : 1 },
             ]}
           >
             <Text style={[styles.time, { color: t.muted }]}>{clock(night.occurredAt[e.id])}</Text>
@@ -167,12 +154,64 @@ export default function PlayerPage() {
               {e.voided ? ' · voided' : e.corrected ? ' · corrected' : ''}
             </Text>
             <Text style={[styles.amount, { color: t.text }]}>{formatMoney(e.amount)}</Text>
-            <Icon name="chevron" color={t.muted} />
+            <Icon name="pencil" color={t.muted} />
           </Pressable>
         ))}
-      </View>
-    </Screen>
+
+        {rules.length > 0 && (
+          <>
+            <View style={styles.tokens}>
+              {rules.map((r) => (
+                <View key={r.id} style={[styles.token, { backgroundColor: t.raised }]}>
+                  <Text style={[styles.tokenText, { color: t.text }]}>{tokenFor(r)}</Text>
+                </View>
+              ))}
+            </View>
+            {note !== undefined && (
+              <Text style={[styles.tokenNote, { color: t.muted }]}>{note}</Text>
+            )}
+          </>
+        )}
+      </ScrollView>
+
+      {stillIn && (
+        <View style={styles.actions}>
+          <Button
+            label={`Cash ${player.name} out`}
+            variant="primary"
+            onPress={() =>
+              router.push({ pathname: '/log', params: { player: player.id, kind: 'cashout' } })
+            }
+          />
+          <Button
+            label="Rebuy"
+            variant="secondary"
+            onPress={() =>
+              router.push({ pathname: '/log', params: { player: player.id, kind: 'rebuy' } })
+            }
+          />
+        </View>
+      )}
+    </SafeAreaView>
   );
+}
+
+/** "KITTY 5% OF WIN", "BILL SPLIT" — the rule, in the four words it takes. */
+const tokenFor = (r: MoneyRule): string =>
+  `${r.name.toUpperCase()} ${r.amountKind === 'percent' ? `${r.amount}% OF WIN` : 'SPLIT'}`;
+
+/**
+ * The line under the tokens.
+ *
+ * The board draws it for two winners-only rules and writes it "If he finishes
+ * down" — a pronoun the app cannot know, so it says "they". The one-rule and
+ * many-rule wordings are not drawn; both follow the drawn sentence's shape.
+ */
+function chargeNote(rules: MoneyRule[]): string | undefined {
+  if (rules.some((r) => r.charge !== 'winners_only')) return undefined;
+  if (rules.length === 1) return 'It charges winners only. If they finish down, it does not apply.';
+  if (rules.length === 2) return 'Both charge winners only. If they finish down, neither applies.';
+  return 'They all charge winners only. If they finish down, none of them applies.';
 }
 
 const clock = (iso: string | undefined): string =>
@@ -181,45 +220,61 @@ const clock = (iso: string | undefined): string =>
     : new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 const styles = StyleSheet.create({
-  tagRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: -6,
-    marginHorizontal: space.page,
-    marginBottom: 4,
-  },
-  tag: { borderRadius: 6, paddingVertical: 6, paddingHorizontal: 10 },
-  tagText: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1 },
-  since: { fontSize: 14, fontWeight: '400' },
+  screen: { flex: 1 },
 
   card: {
     marginTop: 16,
     marginHorizontal: 18,
     paddingVertical: 22,
     paddingHorizontal: 24,
-    borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 14,
+    borderWidth: 1,
     gap: 16,
   },
   cardTop: { flexDirection: 'row', alignItems: 'flex-end', gap: 14 },
   figure: { gap: 5 },
   right: { marginLeft: 'auto', alignItems: 'flex-end' },
-  label: type.sectionLabel,
-  big: { fontSize: 46, fontWeight: '800', letterSpacing: -1.84, fontVariant: ['tabular-nums'] },
-  cardNote: { fontSize: 13.5, fontWeight: '400', lineHeight: 20 },
-  net: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
+  label: { fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
+  big: { fontSize: 46, fontWeight: '800', letterSpacing: -1.84, lineHeight: 46, fontVariant: ['tabular-nums'] },
+  cardNote: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
+  net: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
   netLabel: { fontSize: 14, fontWeight: '500' },
   netFigure: { fontSize: 18, fontWeight: '800', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
-  list: { marginTop: 22, marginHorizontal: space.page },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 4 },
-  time: { ...type.time, width: 42 },
-  what: type.feedName,
-  amount: { ...type.feedFigure, marginLeft: 'auto' },
+  list: { flex: 1, marginTop: 22, marginHorizontal: 22 },
+  listContent: { paddingBottom: 8 },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    paddingHorizontal: 4,
+    paddingBottom: 6,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+  },
+  time: { fontSize: 13, fontWeight: '600', width: 42, fontVariant: ['tabular-nums'] },
+  what: { fontSize: 16, fontWeight: '600' },
+  amount: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
-  note: { ...type.footnote, marginHorizontal: space.page },
-  actions: { flexDirection: 'row', gap: 14 },
-  action: { flex: 1 },
+  tokens: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 18, paddingHorizontal: 4 },
+  token: { paddingVertical: 8, paddingHorizontal: 11, borderRadius: 6 },
+  tokenText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.88 },
+  tokenNote: { fontSize: 13, fontWeight: '400', lineHeight: 19.5, paddingTop: 10, paddingHorizontal: 4 },
+
+  actions: { paddingTop: 16, paddingHorizontal: 20, paddingBottom: 6, gap: 12 },
+
+  note: { fontSize: 12.5, fontWeight: '400', lineHeight: 19, marginHorizontal: 22, marginTop: 16 },
 });

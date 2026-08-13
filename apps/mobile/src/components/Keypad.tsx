@@ -41,17 +41,28 @@ export function Keypad({
 
   return (
     <View style={styles.pad}>
-      {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => key(d, true))}
-      {key('00', false)}
-      {key('0', true)}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Delete"
-        onPress={onBackspace}
-        style={({ pressed }) => [styles.key, styles.delete, { opacity: pressed ? 0.6 : 1 }]}
-      >
-        <Icon name="backspace" color={t.muted} />
-      </Pressable>
+      {[
+        ['1', '2', '3'],
+        ['4', '5', '6'],
+        ['7', '8', '9'],
+      ].map((row) => (
+        <View key={row[0]} style={styles.row}>
+          {row.map((d) => key(d, true))}
+        </View>
+      ))}
+
+      <View style={styles.row}>
+        {key('00', false)}
+        {key('0', true)}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Delete"
+          onPress={onBackspace}
+          style={({ pressed }) => [styles.key, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Icon name="backspace" color={t.muted} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -63,22 +74,21 @@ export function appendDigits(current: string, digits: string): string {
   return trimmed.length > 9 ? current : trimmed;
 }
 
+/*
+ * `grid-template-columns: repeat(3, 1fr); gap: 8px` on the board. Four rows of
+ * three equal cells rather than a wrapping row: wrapping has to guess a
+ * percentage width that the gaps then eat into, and the keys come out a pixel
+ * narrow in the middle column.
+ */
 const styles = StyleSheet.create({
-  pad: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingHorizontal: 16,
-  },
-  // Three to a row, with the gaps taken out of the width.
+  pad: { gap: 8, paddingHorizontal: 16 },
+  row: { flexDirection: 'row', gap: 8 },
   key: {
-    width: '31.5%',
-    flexGrow: 1,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: radius.pressable,
   },
-  delete: { backgroundColor: 'transparent' },
   digit: { fontSize: 25, fontWeight: '500' },
 });
