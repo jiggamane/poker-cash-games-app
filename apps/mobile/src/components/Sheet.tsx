@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Svg, Path } from 'react-native-svg';
 import { useTheme } from '../design/useTheme';
-import { pushHeaderHeight } from './PushHeader';
+import { pushHeaderHeight, sheetGap } from './PushHeader';
 
 /**
  * Chrome B — a sheet. `09-navigation.md`, drawn in `Nav System.dc.html`.
@@ -90,7 +90,7 @@ export function Sheet({
         style={[
           styles.panel,
           {
-            marginTop: insets.top + pushHeaderHeight + 18,
+            marginTop: insets.top + pushHeaderHeight + sheetGap,
             paddingBottom: insets.bottom,
             backgroundColor: t.sheetPanel,
             borderTopColor: t.sheetEdge,

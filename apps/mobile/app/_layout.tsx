@@ -26,7 +26,8 @@ import { openNight } from '../src/lib/nightStore';
  * what tells you the thing behind is still there, in the same scroll position,
  * waiting.
  */
-const SHEETS = ['pick', 'log', 'seat', 'entry'] as const;
+const SHEETS = ['player', 'pick', 'log', 'seat', 'entry'] as const;
+
 export default function RootLayout() {
   const t = useTheme();
 

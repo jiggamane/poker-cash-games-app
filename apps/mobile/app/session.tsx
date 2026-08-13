@@ -1,29 +1,36 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, resolveLedger, type Money, type PlayerId } from '@poker-club/core';
-import { Button } from '../src/components/Button';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatMoney, formatSigned, resolveLedger, type Money } from '@poker-club/core';
+import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
-import { Row } from '../src/components/Row';
-import { Screen } from '../src/components/Screen';
-import { useTheme } from '../src/design/useTheme';
-import { control, radius, space, type } from '../src/design/tokens';
-import { depthOf, nameOf, standingsOf, useNight } from '../src/lib/nightStore';
+import { PushHeader } from '../src/components/PushHeader';
+import { moneyColor, useTheme } from '../src/design/useTheme';
+import { defaultBuyIn, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
- * The live session — N1 and N2.
+ * Tonight's game — H1, with H3 the admin drawer, H3b the hold, and H5 the empty
+ * table. `08-tonight-home.md` rev 11, drawn in `screens-tonight-home.html`.
  *
- * TOTALS first, then FEED: what a host checks most often is who is in for how
- * much, not the order things happened in. Both are readings of one ledger.
+ * THE SCREEN IS THE TABLE. No tabs, no segmented control, no feed: one figure
+ * for the money on it, one row per player, and a dock at the foot with the two
+ * actions a host touches every half hour. Every entry with its timestamp lives
+ * on the player it belongs to, one tap into their row.
  *
- * Every row carries a sub-label — "second rebuy", "double", "late", "left the
- * table" — which is what makes the feed readable at a glance instead of a wall
- * of names and figures.
+ * The running time IS the live tag — a green dot and the elapsed clock, no
+ * "LIVE" — and the start time sits at the right edge of the title row, which is
+ * the only place in the app it appears.
+ *
+ * Two sums, never one: **On the table** is what players still seated have
+ * bought in, **total in** is every dollar tonight including people who have
+ * gone. The second line hides when the two are equal, so the same figure is
+ * never printed twice.
  */
 export default function Session() {
   const t = useTheme();
-  const [tab, setTab] = useState<'totals' | 'feed'>('totals');
   const night = useNight();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
@@ -36,7 +43,6 @@ export default function Session() {
     if (night === null || ledger === null) return [];
     return standingsOf(night, ledger)
       .filter((s) => s.played)
-      .map((s) => ({ ...s, detail: depthOf(ledger, s.id) }))
       .sort(
         (a, b) =>
           Number(b.atTable) - Number(a.atTable) ||
@@ -45,351 +51,240 @@ export default function Session() {
       );
   }, [night, ledger]);
 
+  const running = useElapsed(night?.startedAt);
+
   if (night === null || ledger === null) {
-    return <Screen title="Tonight" backTo="The group">{null}</Screen>;
+    return (
+      <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+        <PushHeader title="Tonight" />
+      </SafeAreaView>
+    );
   }
 
-  const onTable = (ledger.totalBoughtIn - ledger.totalCashedOut) as Money;
-  const since = new Date(night.startedAt).toLocaleTimeString('en-GB', {
+  /*
+   * Two sums, and they are NOT the same arithmetic. On the table is what the
+   * people still sitting there have bought in; total in is every dollar
+   * tonight. Neither is "bought in minus cashed out" — that is the chips a
+   * count has to reconcile against, and it lives in the close flow.
+   */
+  const onTable = standings
+    .filter((s) => s.atTable)
+    .reduce((sum, s) => sum + s.boughtIn, 0) as Money;
+  const totalIn = ledger.totalBoughtIn;
+  const seated = standings.filter((s) => s.atTable).length;
+  const out = standings.length - seated;
+  const empty = standings.length === 0;
+
+  const started = new Date(night.startedAt).toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
   });
 
   return (
-    <Screen
-      title="Tonight"
-      backTo={night.groupName}
-      barExtra={
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Food and drinks"
-          hitSlop={12}
-          onPress={() => router.push('/expenses')}
+    <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+      <View style={styles.above}>
+        <View
+          style={[styles.above, drawerOpen && styles.behind]}
+          pointerEvents={drawerOpen ? 'none' : 'auto'}
         >
-          <Icon name="rules" color={t.offTable} />
-        </Pressable>
-      }
-      trailing={
-        <>
-          <LiveBadge />
-          <Text style={[styles.elapsed, { color: t.muted }]}>{elapsed(night.startedAt)}</Text>
-        </>
-      }
-      footer={
-        <>
-          {/* Ending the night is not a red button. It is a quiet row that names
-              what happens next — you count, then you settle. */}
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push('/count-up')}
-            style={({ pressed }) => [
-              styles.endRow,
-              { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 },
+          <PushHeader
+            title="Tonight"
+            badge={<RunningTag label={empty ? 'just opened' : running} />}
+            trailing={
+              <Text style={[styles.started, { color: t.muted }]}>
+                {empty ? 'opened' : 'started'} {started}
+              </Text>
+            }
+          />
+
+          <View
+            style={[
+              styles.card,
+              empty ? styles.cardEmpty : styles.cardResting,
+              { backgroundColor: t.surface, borderColor: t.hairline },
             ]}
           >
-            <Text style={[styles.endLabel, { color: t.text }]}>End the night</Text>
-            <Text style={[styles.endHint, { color: t.muted }]}>count &amp; settle</Text>
-            <Icon name="chevron" color={t.muted} />
-          </Pressable>
+            <View style={styles.cardFigures}>
+              <Text style={[styles.cardLabel, { color: t.muted }]}>On the table</Text>
+              <Text
+                style={[
+                  empty ? styles.figureEmpty : styles.figure,
+                  { color: empty ? t.muted : t.text },
+                ]}
+              >
+                {formatMoney(onTable)}
+              </Text>
+            </View>
 
-          <View style={styles.actions}>
-            <Button
-              label="Buy-in"
-              variant="primary"
-              style={styles.action}
-              onPress={() => router.push({ pathname: '/pick', params: { kind: 'buyin' } })}
-            />
-            <Button
-              label="Cash out"
-              variant="secondary"
-              style={styles.action}
-              onPress={() => router.push({ pathname: '/pick', params: { kind: 'cashout' } })}
-            />
+            {empty ? (
+              <Text style={[styles.seats, styles.cardRight, { color: t.dim }]}>nobody seated</Text>
+            ) : (
+              <View style={[styles.cardRight, styles.cardRightCol]}>
+                {/* Hidden when it equals what is on the table: before anybody
+                    cashes out the two are the same figure, and one of them is
+                    then just noise. */}
+                {totalIn !== onTable && (
+                  <Text style={[styles.totalIn, { color: t.muted }]}>
+                    {formatMoney(totalIn)} total in
+                  </Text>
+                )}
+                <Text style={[styles.seats, { color: t.dim }]}>
+                  {seated} seated{out > 0 ? ` · ${out} out` : ''}
+                </Text>
+              </View>
+            )}
           </View>
-        </>
-      }
-    >
-      {/* One card: the headline figure, a hairline, then the two figures that
-          explain it. Measured from N2 — 20 inset, 18/20 padding, gap 12. */}
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <View style={styles.cardTop}>
-          <View style={styles.cardFigures}>
-            <Text style={[styles.label, { color: t.muted }]}>On the table</Text>
-            <Text style={[styles.cardFigure, { color: t.text }]}>{formatMoney(onTable)}</Text>
-          </View>
-          <Text style={[styles.seated, { color: t.muted }]}>
-            {standings.filter((s) => s.atTable).length} seated{'\n'}since {since}
-          </Text>
+
+          {empty ? (
+            <View style={styles.emptyState}>
+              <Icon name="person" color={t.name === 'dark' ? '#3A3B40' : '#D2D5DA'} size={34} stroke={1.6} />
+              <Text style={[styles.emptyTitle, { color: t.text }]}>Nobody has bought in yet</Text>
+              <Text style={[styles.emptyBody, { color: t.muted }]}>
+                Seat the first player and the table starts filling. Buy-ins are{' '}
+                {formatMoney(defaultBuyIn(ledger))} tonight.
+              </Text>
+            </View>
+          ) : (
+            <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+              {standings.map((s, i) => (
+                <Pressable
+                  key={s.id}
+                  accessibilityRole="button"
+                  onPress={() => router.push({ pathname: '/player', params: { id: s.id } })}
+                  style={({ pressed }) => [
+                    styles.row,
+                    {
+                      borderBottomColor: t.hairline,
+                      borderBottomWidth: i === standings.length - 1 ? 0 : 1,
+                      opacity: pressed ? 0.6 : 1,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.name, { color: s.atTable ? t.text : t.muted }]}>{s.name}</Text>
+                  {s.atTable ? (
+                    <Text style={[styles.value, { color: t.text }]}>{formatMoney(s.boughtIn)}</Text>
+                  ) : (
+                    <Text
+                      style={[
+                        styles.value,
+                        { color: moneyColor(t, (s.cashedOut - s.boughtIn) as Money) },
+                      ]}
+                    >
+                      {/* No symbol here: the board prints a bare +1,620 in
+                          this column, and the money figures above it carry
+                          the $ that tells you what the column is. */}
+                      {formatSigned((s.cashedOut - s.boughtIn) as Money, '')}
+                    </Text>
+                  )}
+                  <Icon name="chevron" color={t.muted} />
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
-        <View style={[styles.rule, { backgroundColor: t.hairline }]} />
-
-        <View style={styles.stats}>
-          <Stat label="cash in" value={ledger.totalBoughtIn} />
-          <Stat label="cashed out" value={ledger.totalCashedOut} />
-          <HouseRules />
-        </View>
+        {/* Tapping outside the panel closes it. */}
+        {drawerOpen && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close table admin"
+            onPress={() => setDrawerOpen(false)}
+            style={StyleSheet.absoluteFill}
+          />
+        )}
       </View>
 
-      <Tabs value={tab} onChange={setTab} />
-
-      {tab === 'totals' ? (
-        <>
-          <View style={styles.list}>
-            {standings.map((s, i) => (
-              <Pressable
-                key={s.id}
-                accessibilityRole="button"
-                onPress={() => router.push({ pathname: '/player', params: { id: s.id } })}
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Row
-                  label={s.name}
-                  detail={s.detail}
-                  amount={s.boughtIn}
-                  chevron
-                  last={i === standings.length - 1}
-                />
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Its own block above the list, not the last row of it. */}
-          <View style={[styles.total, { borderTopColor: t.hairline }]}>
-            <Text style={[styles.totalLabel, { color: t.muted }]}>Total in play</Text>
-            <Text style={[styles.totalValue, { color: t.text }]}>{formatMoney(onTable)}</Text>
-          </View>
-        </>
-      ) : (
-        <View style={styles.list}>
-          {[...ledger.entries].reverse().map((e, i, all) => {
-            const d = describe(e, ledger, night);
-            return (
-              <Pressable
-                key={e.id}
-                accessibilityRole="button"
-                onPress={() => router.push({ pathname: '/entry', params: { id: e.id } })}
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Row
-                  kind="feed"
-                  time={clock(night.occurredAt[e.id])}
-                  label={d.label}
-                  detail={e.voided ? 'voided' : e.corrected ? 'corrected' : d.detail}
-                  amount={e.amount}
-                  tone={e.type === 'expense' ? 'offTable' : 'plain'}
-                  last={i === all.length - 1}
-                />
-              </Pressable>
-            );
-          })}
-        </View>
-      )}
-    </Screen>
+      <Dock
+        variant={empty ? 'empty-table' : 'resting'}
+        onOpenChange={setDrawerOpen}
+        onRebuy={() => router.push({ pathname: '/pick', params: { kind: 'buyin' } })}
+        onBill={() => router.push('/house-rules')}
+        onSeat={() => router.push({ pathname: '/pick', params: { kind: 'buyin' } })}
+        onCashOut={() => router.push({ pathname: '/pick', params: { kind: 'cashout' } })}
+        onEnd={() => router.push('/count-up')}
+      />
+    </SafeAreaView>
   );
 }
 
 /**
- * What happened, and the small print under it.
+ * The tag beside the title. Green dot, elapsed clock, no word.
  *
- * "second rebuy" rather than just "rebought": at 23:00 the host wants to know
- * how deep somebody is without opening their page.
+ * Its two colours are the SAME in both themes — the board draws
+ * `rgba(111,207,151,.14)` and `#6FCF97` on the bright twin as well. Only money
+ * flips to the light theme's darker green; this is a state, not an amount.
  */
-function describe(
-  e: ReturnType<typeof resolveLedger>['entries'][number],
-  ledger: ReturnType<typeof resolveLedger>,
-  night: NonNullable<ReturnType<typeof useNight>>,
-): { label: string; detail?: string } {
-  const who = nameOf(night, (e.playerId ?? e.payerId ?? '') as PlayerId);
-
-  switch (e.type) {
-    case 'buyin':
-      return { label: `${who} bought in`, detail: 'first buy-in' };
-    case 'rebuy': {
-      const before = ledger.entries.filter(
-        (x) => x.playerId === e.playerId && x.type === 'rebuy' && x.seq <= e.seq,
-      ).length;
-      return { label: `${who} rebought`, detail: `${ordinal(before)} rebuy` };
-    }
-    case 'cashout':
-      return { label: `${who} cashed out`, detail: 'left the table' };
-    case 'expense':
-      return { label: night.noteOf[e.id] ?? 'Food & drinks', detail: `${who} paid` };
-    default:
-      return { label: who };
-  }
+function RunningTag({ label }: { label: string }) {
+  return (
+    <View style={[styles.tag, { backgroundColor: LIVE_WASH }]}>
+      <View style={[styles.dot, { backgroundColor: LIVE_INK }]} />
+      <Text style={[styles.tagText, { color: LIVE_INK }]}>{label}</Text>
+    </View>
+  );
 }
 
-const ordinal = (n: number) =>
-  n === 1 ? 'first' : n === 2 ? 'second' : n === 3 ? 'third' : `${n}th`;
+const LIVE_WASH = 'rgba(111,207,151,0.14)';
+const LIVE_INK = '#6FCF97';
 
-/** 23:15. The feed's left column, and the only place a time is shown. */
-const clock = (iso: string | undefined): string =>
-  iso === undefined
-    ? ''
-    : new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+/** "3h 17m", counting up. Re-reads the clock every 30s, which is twice as often
+ *  as the figure can change. */
+function useElapsed(startedAt: string | undefined): string {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
-/** "3h 17m" — how long the table has been running. */
-function elapsed(startedAt: string): string {
+  if (startedAt === undefined) return '';
   const minutes = Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 60000));
   return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, '0')}m`;
 }
 
-/** 999px radius is reserved for this and nothing else. */
-function LiveBadge() {
-  const t = useTheme();
-  return (
-    <View style={[styles.badge, { backgroundColor: t.winTint }]}>
-      <View style={[styles.dot, { backgroundColor: t.win }]} />
-      <Text style={[styles.badgeText, { color: t.win }]}>LIVE</Text>
-    </View>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: Money }) {
-  const t = useTheme();
-  return (
-    <View style={styles.stat}>
-      <Text style={[styles.statValue, { color: t.text }]}>{formatMoney(value)}</Text>
-      <Text style={[styles.statLabel, { color: t.muted }]}>{label}</Text>
-    </View>
-  );
-}
-
-/** A quiet action that is not a button: bone text, bone border at 30%. */
-function HouseRules() {
-  const t = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => router.push('/house-rules')}
-      style={({ pressed }) => [
-        styles.chip,
-        { borderColor: `${t.offTable}4D`, opacity: pressed ? 0.6 : 1 },
-      ]}
-    >
-      <Icon name="info" color={t.offTable} />
-      <Text style={[styles.chipText, { color: t.offTable }]}>House rules</Text>
-    </Pressable>
-  );
-}
-
-function Tabs({
-  value,
-  onChange,
-}: {
-  value: 'totals' | 'feed';
-  onChange: (v: 'totals' | 'feed') => void;
-}) {
-  const t = useTheme();
-  return (
-    <View style={[styles.tabs, { backgroundColor: t.surface }]}>
-      {(['totals', 'feed'] as const).map((key) => {
-        const on = key === value;
-        return (
-          <Pressable
-            key={key}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: on }}
-            onPress={() => onChange(key)}
-            style={[styles.tab, on && { backgroundColor: t.text }]}
-          >
-            <Text style={[on ? styles.tabLabelOn : styles.tabLabel, { color: on ? t.onFill : t.muted }]}>
-              {key === 'totals' ? 'Totals' : 'Feed'}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  elapsed: { ...type.meta, fontWeight: '500', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+  screen: { flex: 1 },
+  above: { flex: 1 },
+  /** Everything behind the open drawer, including the title and the card. */
+  behind: { opacity: 0.4 },
 
-  // --- header card ---------------------------------------------------------
-  card: {
-    marginHorizontal: space.card,
-    marginBottom: space.belowCard,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.card,
-    paddingVertical: space.cardPadV,
-    paddingHorizontal: space.cardPadH,
-    gap: space.cardGap,
-  },
-  cardTop: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
-  cardFigures: { gap: 4 },
-  label: type.label,
-  cardFigure: type.cardFigure,
-  seated: { ...type.detail, marginLeft: 'auto', textAlign: 'right' },
-  rule: { height: StyleSheet.hairlineWidth },
-  stats: { flexDirection: 'row', alignItems: 'flex-end', gap: space.statGap },
-  stat: { gap: 2 },
-  statValue: type.statValue,
-  statLabel: type.statLabel,
-  chip: {
-    marginLeft: 'auto',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    borderWidth: 1,
-    borderRadius: radius.pressable,
-    paddingVertical: control.chipPadV,
-    paddingHorizontal: control.chipPadH,
-  },
-  chipText: type.chip,
+  started: { fontSize: 13, fontWeight: '400', fontVariant: ['tabular-nums'] },
 
-  // --- live badge ----------------------------------------------------------
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderRadius: radius.badge,
-    paddingVertical: control.badgePadV,
-    paddingHorizontal: control.badgePadH,
-  },
+  tag: { flexDirection: 'row', alignItems: 'center', gap: 7, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  badgeText: type.badge,
+  tagText: { fontSize: 13, fontWeight: '700', letterSpacing: -0.13, fontVariant: ['tabular-nums'] },
 
-  // --- tabs ----------------------------------------------------------------
-  tabs: {
-    flexDirection: 'row',
-    marginHorizontal: space.card,
-    marginBottom: space.belowCard,
-    padding: control.tabTrackPad,
-    borderRadius: control.tabTrackRadius,
-  },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: control.tabPadV, borderRadius: control.tabRadius },
-  tabLabel: type.tab,
-  tabLabelOn: type.tabOn,
-
-  // --- list ----------------------------------------------------------------
-  // 22, where the card above it is 20. The 2px difference is deliberate.
-  list: { marginHorizontal: space.page },
-  total: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: space.page,
-    paddingVertical: 11,
-    paddingHorizontal: space.rowInset,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  totalLabel: type.rowName,
-  totalValue: { ...type.figure, marginLeft: 'auto' },
-
-  // --- footer --------------------------------------------------------------
-  endRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 11,
+  card: {
+    marginTop: 16,
+    marginHorizontal: 20,
+    borderRadius: 14,
+    borderWidth: 1,
     paddingHorizontal: 16,
-    borderRadius: radius.pressable,
-    borderWidth: control.quietWidth,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 12,
   },
-  endLabel: { fontSize: 15, fontWeight: '600' },
-  endHint: { ...type.meta, marginLeft: 'auto' },
-  actions: { flexDirection: 'row', gap: 14 },
-  action: { flex: 1 },
+  cardResting: { marginBottom: 16, paddingVertical: 14 },
+  cardEmpty: { marginBottom: 14, paddingVertical: 12 },
+  cardFigures: { gap: 8 },
+  cardLabel: { fontSize: 12.5, fontWeight: '600' },
+  figure: { fontSize: 44, fontWeight: '800', letterSpacing: -1.76, lineHeight: 44, fontVariant: ['tabular-nums'] },
+  figureEmpty: { fontSize: 34, fontWeight: '800', letterSpacing: -1.36, lineHeight: 34, fontVariant: ['tabular-nums'] },
+  cardRight: { marginLeft: 'auto', textAlign: 'right' },
+  cardRightCol: { gap: 3, alignItems: 'flex-end' },
+  totalIn: { fontSize: 13, fontWeight: '500', fontVariant: ['tabular-nums'] },
+  seats: { fontSize: 13, fontWeight: '400' },
+
+  list: { flex: 1, marginHorizontal: 22 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 22, paddingHorizontal: 4 },
+  name: { fontSize: 17, fontWeight: '600' },
+  value: { fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+
+  emptyState: {
+    flex: 1,
+    marginHorizontal: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  emptyTitle: { fontSize: 19, fontWeight: '700', letterSpacing: -0.38 },
+  emptyBody: { fontSize: 14, fontWeight: '400', lineHeight: 21, maxWidth: 250, textAlign: 'center' },
 });

@@ -27,12 +27,20 @@ import { useTheme } from '../design/useTheme';
 export function PushHeader({
   title,
   badge,
+  trailing,
   meta,
   onBack,
 }: {
   title: string;
   /** A status pill, directly after the title in the same row. */
   badge?: ReactNode;
+  /**
+   * One line at the right edge of the title row, pushed there with
+   * `margin-left: auto`. Rev 11 puts the session's start time here and nothing
+   * else has earned the space: it is a fact, not a control, and S32's empty
+   * right corner is about controls.
+   */
+  trailing?: ReactNode;
   /** One line beneath, indented to sit under the title. */
   meta?: string;
   /** Defaults to popping the stack. */
@@ -64,10 +72,11 @@ export function PushHeader({
           </Svg>
         </Pressable>
 
-        <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
-          {title}
-        </Text>
+        {/* The title never truncates. When the row runs out of room the badge
+            wraps instead — which is what the board does with "just opened". */}
+        <Text style={[styles.title, { color: t.text }]}>{title}</Text>
         {badge}
+        {trailing !== undefined && <View style={styles.trailing}>{trailing}</View>}
       </View>
 
       {meta !== undefined && <Text style={[styles.meta, { color: t.muted }]}>{meta}</Text>}
@@ -90,11 +99,17 @@ export function HeaderPill({ label, quiet = false }: { label: string; quiet?: bo
 }
 
 /**
- * How tall Chrome A is below the safe area: 26 of padding, the 36px button,
- * then 8 and the 13px meta line. A sheet is drawn 18 below this, and exporting
- * the number is what keeps the two from drifting apart.
+ * How tall Chrome A is below the safe area: 26 of padding and the 36px button.
+ *
+ * Rev 11 deleted the club-name / elapsed meta line from every frame — the
+ * running time moved into the tag beside the title and the start time to the
+ * right edge — so the header is two numbers tall, and a sheet is drawn 24 below
+ * it rather than 18. Exporting the number is what keeps the two from drifting.
  */
-export const pushHeaderHeight = 26 + 36 + 8 + 16;
+export const pushHeaderHeight = 26 + 36;
+
+/** The gap between Chrome A and the top of a sheet's panel. */
+export const sheetGap = 24;
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 26, paddingHorizontal: 20 },
@@ -106,7 +121,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 32, flexShrink: 1 },
+  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 32, flexShrink: 0 },
+  trailing: { marginLeft: 'auto', flexShrink: 0 },
   meta: {
     fontSize: 13,
     fontWeight: '500',

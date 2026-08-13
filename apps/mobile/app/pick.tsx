@@ -39,6 +39,12 @@ export default function Pick() {
   const notSeated = standings.filter((s) => !s.atTable);
   /* Cashed out, as opposed to never seated: they played and then left. */
   const out = notSeated.filter((s) => s.played);
+  /*
+   * The chips are people who have not sat down tonight. A cashed-out player is
+   * deliberately NOT among them — cashing out is final for the night, so
+   * offering them a first buy-in would offer something the ledger refuses.
+   */
+  const bench = notSeated.filter((s) => !s.played);
 
   const go = (playerId: string, next: 'buyin' | 'rebuy' | 'cashout') =>
     router.push({ pathname: '/log', params: { player: playerId, kind: next } });
@@ -143,11 +149,11 @@ export default function Pick() {
                 </View>
 
                 <View style={styles.chips}>
-                  {notSeated.map((p) => (
+                  {bench.map((p) => (
                     <Pressable
                       key={p.id}
                       accessibilityRole="button"
-                      onPress={() => go(p.id, p.played ? 'rebuy' : 'buyin')}
+                      onPress={() => go(p.id, 'buyin')}
                       style={({ pressed }) => [
                         styles.chip,
                         {

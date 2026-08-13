@@ -32,7 +32,18 @@ export type IconName =
   /** Adds something — always paired with a dashed outline. */
   | 'plus'
   /** Correct this entry — the affordance on a ledger row. */
-  | 'pencil';
+  | 'pencil'
+  /** The dock's disclosure, closed then open. */
+  | 'chevronUp'
+  | 'chevronDown'
+  /** Seat a player, in the drawer and on an empty table's primary. */
+  | 'person'
+  /** Cash out a player, in the drawer. */
+  | 'cashOut'
+  /** End the night. Not the same clock as a timestamp's — the hands differ. */
+  | 'endClock'
+  /** The bill, in the dock. Not the same page as the rule book's. */
+  | 'bill';
 
 export function Icon({
   name,
@@ -172,6 +183,99 @@ export function Icon({
       return (
         <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
           <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={stroke ?? 2} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'chevronUp':
+    case 'chevronDown': {
+      const s = size ?? 16;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d={name === 'chevronUp' ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'}
+            stroke={color}
+            strokeWidth={stroke ?? 2.4}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'person': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Circle
+            cx={12}
+            cy={8}
+            r={3.6}
+            stroke={color}
+            strokeWidth={stroke ?? 1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"
+            stroke={color}
+            strokeWidth={stroke ?? 1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'cashOut': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M4 17V7l7 5-7 5z"
+            stroke={color}
+            strokeWidth={stroke ?? 1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M13 12h7"
+            stroke={color}
+            strokeWidth={stroke ?? 1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'endClock': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Circle cx={12} cy={12} r={8.5} stroke={color} strokeWidth={stroke ?? 1.9} />
+          <Path d="M12 8v4l3 2" stroke={color} strokeWidth={stroke ?? 1.9} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'bill': {
+      const s = size ?? 20;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M6 3.5h12v17l-3-1.6-3 1.6-3-1.6-3 1.6z"
+            stroke={color}
+            strokeWidth={stroke ?? 1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M9.5 9h5M9.5 13h5"
+            stroke={color}
+            strokeWidth={stroke ?? 1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </Svg>
       );
     }

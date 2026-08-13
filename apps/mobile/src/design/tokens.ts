@@ -90,6 +90,24 @@ export interface Theme {
   sheetEdge: string;
   /** The 38 × 5 grab handle. */
   grabber: string;
+
+  /*
+   * The dock, and the one tone below muted — 08-tonight-home.md rev 11, drawn
+   * in `screens-tonight-home.html`.
+   */
+  /**
+   * A step quieter than muted, for the second line of a pair where muted is
+   * already carrying the first: "seat · cash out · end" under Table admin, the
+   * seat count under the total-in figure.
+   */
+  dim: string;
+  /** A row inside the open admin drawer — a fill on a fill, so barely there. */
+  drawerRow: string;
+  /** The dock's border once the drawer is open. It firms up; it does not move. */
+  panelEdgeOpen: string;
+  /** Bill, with nothing on the table to split. Border and label both. */
+  disabled: string;
+  disabledEdge: string;
 }
 
 export const darkTheme: Theme = {
@@ -121,6 +139,11 @@ export const darkTheme: Theme = {
   sheetPanel: '#101013',
   sheetEdge: 'rgba(255,255,255,0.12)',
   grabber: 'rgba(255,255,255,0.22)',
+  dim: '#6C6E74',
+  drawerRow: 'rgba(255,255,255,0.07)',
+  panelEdgeOpen: 'rgba(255,255,255,0.16)',
+  disabled: '#5C5E64',
+  disabledEdge: 'rgba(255,255,255,0.22)',
 };
 
 export const lightTheme: Theme = {
@@ -168,6 +191,18 @@ export const lightTheme: Theme = {
   sheetPanel: '#FFFFFF',
   sheetEdge: 'rgba(12,13,15,0.1)',
   grabber: 'rgba(12,13,15,0.18)',
+  // Drawn on the bright H1: the one tone below muted.
+  dim: '#8A8F96',
+  /*
+   * H3, H3b and H5 are drawn dark only, and rev 8 says to apply the
+   * substitution table rather than ask. These four are that substitution: the
+   * same alphas over ink, and a disabled tone the same distance below muted as
+   * #5C5E64 sits below #8B8D93 in the dark.
+   */
+  drawerRow: 'rgba(12,13,15,0.05)',
+  panelEdgeOpen: 'rgba(12,13,15,0.16)',
+  disabled: '#A9ADB4',
+  disabledEdge: 'rgba(12,13,15,0.22)',
 };
 
 /**
