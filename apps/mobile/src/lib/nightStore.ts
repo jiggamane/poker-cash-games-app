@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { Platform } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
 import {
@@ -30,7 +31,14 @@ import { recordEntry } from './ledgerRepo';
  * column would be a second, untested implementation of the same sum.
  */
 
-const DB_NAME = 'poker-club.db';
+/*
+ * WEB PREVIEW ONLY. expo-sqlite's browser build stores its file in OPFS, which
+ * a sandboxed page cannot open — so on web the same SQLite runs in memory
+ * instead. It means a browser preview starts from the seed every time it is
+ * loaded and remembers nothing, which is what you want from a preview and
+ * would be a bug anywhere else. Phones are untouched: they get the real file.
+ */
+const DB_NAME = Platform.OS === 'web' ? ':memory:' : 'poker-club.db';
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -38,7 +46,7 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!dbPromise) {
     dbPromise = SQLite.openDatabaseAsync(DB_NAME).then(async (db) => {
       await db.execAsync(`
-        PRAGMA journal_mode = WAL;
+        ${Platform.OS === 'web' ? '' : 'PRAGMA journal_mode = WAL;'}
 
         CREATE TABLE IF NOT EXISTS night (
           session_id  TEXT PRIMARY KEY NOT NULL,

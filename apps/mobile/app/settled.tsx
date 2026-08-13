@@ -28,8 +28,9 @@ import { nameOf, useNight } from '../src/lib/nightStore';
  * they took out, and what each rule took off them. A reimbursement rides
  * INSIDE its deduction — "bill 61 +170 back" — never as a token of its own,
  * because it is not a separate movement of money, it is the same bill seen
- * from the other side. Losers show in and out only: deductions are charged to
- * winners.
+ * from the other side. A row shows a rule when that rule touched that person:
+ * usually winners only, but a bill split between everyone charges losers too,
+ * and a net nothing on the row accounts for is what starts an argument.
  *
  * The net is after deductions and the list is sorted by it, best first. On the
  * canonical night that puts Marek above Dana even though Dana won more at the
@@ -83,7 +84,12 @@ export default function NightResults() {
   const bill = totalFor(result.deductions, 'bill');
   const kitty = totalFor(result.deductions, 'kitty');
 
-  const rows = [...result.players].sort((a, b) => b.finalPosition - a.finalPosition);
+  /* Somebody who never sat down and was neither charged nor credited has
+     nothing to say on a results list — the engine counts them because they
+     could have collected something, and tonight they did not. */
+  const rows = [...result.players]
+    .filter((p) => p.boughtIn > 0 || p.endedWith > 0 || p.charged > 0 || p.credited > 0)
+    .sort((a, b) => b.finalPosition - a.finalPosition);
   const mine = me === undefined ? [] : result.transfers.filter((tr) => tr.fromPlayerId === me);
 
   return (
@@ -124,7 +130,6 @@ export default function NightResults() {
 
         {rows.map((p, i) => {
           const isMe = p.playerId === me;
-          const won = p.grossResult > 0;
           return (
             <View
               key={p.playerId}
@@ -154,24 +159,28 @@ export default function NightResults() {
                 <Token label="in" value={p.boughtIn} color={t.loss} />
                 <Token label="out" value={p.endedWith} color={t.win} />
 
-                {/* Deductions are charged to winners, so a loser's row stops at
-                    in and out — printing "bill 0" would suggest they were
-                    charged and forgiven. */}
-                {won &&
-                  result.deductions.map((d) => {
-                    const charged = d.charges.find((c) => c.playerId === p.playerId)?.amount ?? 0;
-                    if (charged === 0) return null;
-                    const back = d.credits.find((c) => c.playerId === p.playerId)?.amount ?? 0;
-                    return (
-                      <Token
-                        key={d.ruleId}
-                        label={word(d)}
-                        value={charged as Money}
-                        color={t.muted}
-                        back={back > 0 ? (back as Money) : undefined}
-                      />
-                    );
-                  })}
+                {/*
+                 * A token for every rule that actually took something off this
+                 * person. Usually that means winners only — but the bill can be
+                 * split evenly between EVERYONE, losers included, and a row
+                 * reading "in 1,500 · out 1,500 · −$56" with nothing to account
+                 * for the 56 is exactly the argument these screens exist to
+                 * stop. What is charged is shown, whoever it is charged to.
+                 */}
+                {result.deductions.map((d) => {
+                  const charged = d.charges.find((c) => c.playerId === p.playerId)?.amount ?? 0;
+                  const back = d.credits.find((c) => c.playerId === p.playerId)?.amount ?? 0;
+                  if (charged === 0 && back === 0) return null;
+                  return (
+                    <Token
+                      key={d.ruleId}
+                      label={word(d)}
+                      value={charged as Money}
+                      color={t.muted}
+                      back={back > 0 ? (back as Money) : undefined}
+                    />
+                  );
+                })}
               </View>
             </View>
           );

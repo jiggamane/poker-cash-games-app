@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { Platform } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
 import { money, type Money, type MoneyRule, type PlayerId } from '@poker-club/core';
@@ -21,7 +22,14 @@ import { money, type Money, type MoneyRule, type PlayerId } from '@poker-club/co
  * game's suggestion — not the club's setting, which only Settings changes.
  */
 
-const DB_NAME = 'poker-club.db';
+/*
+ * WEB PREVIEW ONLY. expo-sqlite's browser build stores its file in OPFS, which
+ * a sandboxed page cannot open — so on web the same SQLite runs in memory
+ * instead. It means a browser preview starts from the seed every time it is
+ * loaded and remembers nothing, which is what you want from a preview and
+ * would be a bug anywhere else. Phones are untouched: they get the real file.
+ */
+const DB_NAME = Platform.OS === 'web' ? ':memory:' : 'poker-club.db';
 
 /** Standing is per club: the same person can be admin here and a name there. */
 export type Standing = 'admin' | 'member' | 'name_only';

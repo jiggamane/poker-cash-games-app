@@ -27,4 +27,9 @@ config.resolver.nodeModulesPaths = [
 // Don't walk up the tree looking for modules; use the two paths above only.
 config.resolver.disableHierarchicalLookup = true;
 
+// expo-sqlite's web build is a WebAssembly SQLite, and Metro will not resolve a
+// .wasm import unless it is told that one is an asset. Native builds never hit
+// this; a browser preview does, on the very first import in the store.
+config.resolver.assetExts.push('wasm');
+
 module.exports = config;
