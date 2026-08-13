@@ -12,7 +12,11 @@ import {
   type Player,
   type PlayerId,
   type ResolvedLedger,
+  snapshotOf,
+  toStored,
+  verifyNight,
   type SettlementResult,
+  type StoredVerification,
 } from '@poker-club/core';
 import { recordEntry } from './ledgerRepo';
 import { drain, queueClose, queueCount, queuePlayer, queueRule, queueSessionOpen } from './sync';
@@ -127,6 +131,11 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
       await addColumn(db, 'night', 'stakes', 'TEXT');
       await addColumn(db, 'night', 'default_buyin', 'INTEGER');
       await addColumn(db, 'night', 'ended_at', 'TEXT');
+
+      // What `verifyNight()` made of the result at close. Added rather than
+      // baked in for the same reason: a phone that has already settled a night
+      // must keep it.
+      await addColumn(db, 'night_settlement', 'verification', 'TEXT');
 
       /*
        * Everybody this phone already knows, given a lasting identity.
@@ -1046,23 +1055,43 @@ export function draftRule(destination: MoneyRule['destination'], sortOrder: numb
 export async function closeNight(): Promise<void> {
   if (night === null) throw new Error('No night is open.');
 
-  const result = settle({
+  const input = {
     players: night.players,
     entries: night.entries,
     finalCounts: night.finalCounts,
     rules: night.rules,
     ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
-  });
+  };
+  const result = settle(input);
 
   const endedAt = new Date().toISOString();
+
+  /*
+   * CHECK THE ANSWER BEFORE FREEZING IT.
+   *
+   * `verifyNight` re-derives every figure from the raw ledger, independently of
+   * the engine that produced them — see `packages/core/src/verify.ts`. It runs
+   * here, on every real night, because the nights that break an assumption are
+   * by definition the ones nobody wrote a test for.
+   *
+   * A failure does NOT stop the close, and that is deliberate. The room is
+   * standing up to leave; refusing to finish would leave the host with no
+   * result at all and nowhere to put the evening. What it does instead is
+   * record the failure with the night, hand it to the server, and put it on the
+   * screen — the settled screen says so rather than presenting figures nobody
+   * should act on.
+   */
+  const verdict = toStored(verifyNight(input, result), endedAt);
+
   const db = await getDb();
 
   await db.runAsync(
-    `INSERT INTO night_settlement (session_id, computed_at, payload) VALUES (?, ?, ?)
+    `INSERT INTO night_settlement (session_id, computed_at, payload, verification) VALUES (?, ?, ?, ?)
        ON CONFLICT (session_id) DO NOTHING`,
     night.sessionId,
     endedAt,
     JSON.stringify(result),
+    JSON.stringify(verdict),
   );
 
   await db.runAsync(
@@ -1080,15 +1109,14 @@ export async function closeNight(): Promise<void> {
       algorithmVersion: result.algorithmVersion,
       rulesSnapshot: night.rules,
       // Everything the result was derived from, so it can be re-derived years
-      // later even if every rule has changed since.
-      inputsSnapshot: {
-        players: night.players,
-        entries: night.entries,
-        finalCounts: [...night.finalCounts.entries()],
-        occurredAt: night.occurredAt,
-      },
+      // later even if every rule has changed since. Built by `snapshotOf` and
+      // read back by `inputFromSnapshot`, which are proved to be inverses in
+      // `snapshot.test.ts` — the audit is only worth running if the round trip
+      // is lossless.
+      inputsSnapshot: snapshotOf(input, night.occurredAt),
       computedTransfers: result.transfers,
       totalOffTable: result.totalOffTable,
+      verification: verdict,
       discrepancyAmount: result.reconciliation.difference,
       ...(night.acknowledgement?.note === undefined
         ? {}
@@ -1099,6 +1127,26 @@ export async function closeNight(): Promise<void> {
     },
   });
   void drain().catch(() => {});
+}
+
+/**
+ * Whether the night's own arithmetic held, as checked on this phone at close.
+ *
+ * Null for a night settled before verification existed — which is not the same
+ * as a pass, and the screens that read this must not treat it as one.
+ */
+export async function frozenVerification(sessionId: string): Promise<StoredVerification | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ verification: string | null }>(
+    `SELECT verification FROM night_settlement WHERE session_id = ?`,
+    sessionId,
+  );
+  if (row?.verification == null) return null;
+  try {
+    return JSON.parse(row.verification) as StoredVerification;
+  } catch {
+    return null;
+  }
 }
 
 /** The frozen result of a night that has been closed, if it has one. */

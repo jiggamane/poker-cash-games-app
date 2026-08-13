@@ -148,6 +148,85 @@ night.
 
 ---
 
+## Seeing the user base
+
+There are **two stores, and they answer different questions.**
+
+**The server — Supabase Postgres — is the user base.** Three tables hold all of
+it, and every one is readable from the dashboard's SQL editor, which runs as the
+service role and is not subject to row-level security:
+
+| Table | What it holds |
+| --- | --- |
+| `player` | one row per person per book: their name, and `claimed_by_user_id` — the account behind the name, or null |
+| `player_invite` | every code ever issued: to whom, by whom, when, whether it was used, and by which account |
+| `auth.users` | the accounts themselves. Anonymous ones have no email — that is the normal state for a player |
+
+**The phone is a cache with a different shape.** `nightStore`'s SQLite holds a
+`person` table which is that device's own view of the roster, and a claimed
+player's `setting('me')`. Nothing there is authoritative and nothing needs to be
+read to answer a question about who is in the group.
+
+There is **no admin screen in the app**, deliberately. An owner's view of every
+group would be a second permission model to design, test and keep honest, and
+the dashboard already does it correctly.
+
+### The queries worth having
+
+Everybody in every book, and whether anybody is behind the name:
+
+```sql
+select b.group_name,
+       p.display_name,
+       case when p.claimed_by_user_id is null then 'not claimed' else 'claimed' end as state,
+       u.email,
+       u.created_at as account_since
+  from player p
+  join book b on b.id = p.book_id
+  left join auth.users u on u.id = p.claimed_by_user_id
+ order by b.group_name, p.display_name;
+```
+
+Where the invitations actually got to — the funnel, during the test period:
+
+```sql
+select b.group_name,
+       p.display_name,
+       i.created_at,
+       i.expires_at,
+       case
+         when i.claimed_at is not null then 'claimed ' || i.claimed_at::date
+         when i.revoked_at is not null then 'revoked'
+         when i.expires_at < now()     then 'expired unused'
+         else 'outstanding'
+       end as outcome
+  from player_invite i
+  join player p on p.id = i.player_id
+  join book b on b.id = i.book_id
+ order by i.created_at desc;
+```
+
+How many people the whole thing has:
+
+```sql
+select count(*) filter (where claimed_by_user_id is not null) as claimed,
+       count(*)                                               as names_in_books,
+       count(distinct claimed_by_user_id)                     as real_people
+  from player;
+```
+
+`names_in_books` exceeding `real_people` is normal and expected — one person in
+two groups is two rows pointing at one account, which is the whole design.
+
+**Codes are never shown to anybody but the host**, including through the API.
+`player_invite` has one policy, `player_invite_host_read`, and
+`05_member_read.sql` asserts that a claimed member reads zero rows from it: a
+member who could read that table could take any unclaimed seat in the book. The
+dashboard sees everything because it runs as the service role, which is the
+account you own.
+
+---
+
 ## The other three answers
 
 ### Link properties

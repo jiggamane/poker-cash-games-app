@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { allocate, money, sum, type Money } from './money';
+import { summarise, verifyNight } from './verify';
 import {
   ALGORITHM_VERSION,
   checkReconciliation,
@@ -766,6 +767,24 @@ describe('invariants over many random nights', () => {
       const night = randomNight();
       const r = settle(night);
       expect(r.transfers.length).toBeLessThan(r.players.length);
+    }
+  });
+
+  /*
+   * The verifier runs on every real night, so a false alarm is not a small
+   * problem — it is the thing that makes a host stop believing the report, and
+   * a report nobody believes is the same as no report.
+   *
+   * This asserts the other half of `verify.test.ts`: that file proves the
+   * verifier catches broken nights, and this proves it accepts correct ones,
+   * over a thousand nights nobody wrote by hand.
+   */
+  it('passes verification on every night the engine can produce', () => {
+    for (let i = 0; i < 1000; i++) {
+      const night = randomNight();
+      const verdict = verifyNight(night, settle(night));
+      expect(verdict.findings, `night ${i}: ${summarise(verdict)}`).toEqual([]);
+      expect(verdict.checked).toBeGreaterThan(0);
     }
   });
 });

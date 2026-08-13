@@ -13,7 +13,8 @@ import { Button } from '../src/components/Button';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { frozenSettlement, useNight } from '../src/lib/nightStore';
+import { frozenSettlement, frozenVerification, useNight } from '../src/lib/nightStore';
+import type { StoredVerification } from '@poker-club/core';
 
 /**
  * Night settled — E6. What a night looks like once it is over.
@@ -40,9 +41,11 @@ export default function Settled() {
    * the moment between arriving here and the read returning.
    */
   const [frozen, setFrozen] = useState<SettlementResult | null>(null);
+  const [verdict, setVerdict] = useState<StoredVerification | null>(null);
   useEffect(() => {
     if (night === null) return;
     void frozenSettlement(night.sessionId).then(setFrozen);
+    void frozenVerification(night.sessionId).then(setVerdict);
   }, [night?.sessionId]);
 
   const live = useMemo(() => {
@@ -100,6 +103,28 @@ export default function Settled() {
         <Stat value={String(ledger.entries.length)} label="entries" />
         <Stat value={formatMoney(result.totalOffTable)} label="off the table" />
       </View>
+
+      {/* THE ARITHMETIC DID NOT HOLD.
+          Louder than the shortfall notice below it, and above it, because a
+          confirmed shortfall is a known fact about the night while this is the
+          app saying it does not trust its own figures. Nobody should pay
+          anything off a screen carrying this. */}
+      {verdict !== null && !verdict.ok && (
+        <View style={[styles.alert, { backgroundColor: t.dangerWash, borderColor: t.danger }]}>
+          <Text style={[styles.alertLabel, { color: t.danger }]}>
+            These figures did not check out
+          </Text>
+          <Text style={[styles.alertBody, { color: t.text }]}>
+            {verdict.detail[0] ?? 'The night failed its own arithmetic check.'}
+          </Text>
+          <Text style={[styles.alertBody, { color: t.muted }]}>
+            Do not settle up from this screen. The night is stored exactly as it was recorded, and
+            the failure is stored with it — send it to whoever is running the app and it can be
+            worked out from the ledger, which is intact.
+            {verdict.codes.length > 1 ? ` (${verdict.codes.join(', ')})` : ''}
+          </Text>
+        </View>
+      )}
 
       {night.acknowledgement !== undefined && (
         <View style={[styles.alert, { backgroundColor: t.dangerWash, borderColor: t.dangerEdge }]}>

@@ -19,6 +19,7 @@ environment**. The designed screens are next.
 npm install
 npm run check        # typecheck + money tests
 npm run db:verify    # apply the schema to a throwaway DB and assert the money rules
+npm run audit        # re-check every settled night on the server, and report the failure rate
 cd apps/mobile && npm start   # scan the QR code with Expo Go
 ```
 
@@ -31,6 +32,10 @@ cd apps/mobile && npm start   # scan the QR code with Expo Go
   cost/operations. Start here if you want to know why.
 - **[`docs/settlement-rules.md`](docs/settlement-rules.md)** — exactly how the money rules
   are interpreted, and **six decisions that need a designer's confirmation**.
+- **[`docs/verification.md`](docs/verification.md)** — how the app checks its own
+  arithmetic on every real night, what a failure looks like, and how to measure the
+  broken-calculation rate with `npm run audit`. The target is zero and this is how it is
+  known.
 - **[`docs/storage-and-sync.md`](docs/storage-and-sync.md)** — where a night is stored and
   when, what the phone keeps, and exactly what still works with no signal. Read it before
   touching sync or the close flow.

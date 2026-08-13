@@ -79,6 +79,15 @@ export interface ClosePayload {
     discrepancyAmount: number;
     discrepancyNote?: string;
     discrepancyAbsorbedBy?: PlayerId;
+    /**
+     * What `verifyNight()` made of the result, on the device, at close.
+     *
+     * Travels with the settlement rather than after it, so a night that failed
+     * its own arithmetic cannot reach the server looking clean. See
+     * `0007_verification.sql` for why the phone's own verdict is worth storing
+     * even though the phone is the thing being checked.
+     */
+    verification?: unknown;
   };
 }
 
@@ -200,6 +209,7 @@ export const settlementRow = (p: ClosePayload, hostUserId: string): RowWrite => 
       discrepancy_confirmed_at: shortfall ? p.endedAt : null,
       discrepancy_note: s.discrepancyNote ?? null,
       discrepancy_absorbed_by: s.discrepancyAbsorbedBy ?? null,
+      verification: s.verification ?? null,
       frozen: true,
     },
   };

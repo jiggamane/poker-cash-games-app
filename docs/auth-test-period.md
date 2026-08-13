@@ -73,9 +73,10 @@ running on your own machine.
 
 ### 1. Apply the migrations
 
-`0004_watcher_access.sql`, `0005_sync_contract_fixes.sql` and
-`0006_player_identity.sql`, in that order, on top of 0001–0003. For a project
-that already has the earlier ones, run just these three files in the SQL Editor.
+`0004_watcher_access.sql`, `0005_sync_contract_fixes.sql`,
+`0006_player_identity.sql` and `0007_verification.sql`, in that order, on top of
+0001–0003. For a project that already has the earlier ones, run just these four
+files in the SQL Editor.
 For a fresh project, `supabase/schema.sql` is all of them concatenated.
 
 Check they landed:
@@ -86,7 +87,13 @@ where proname in ('redeem_share_token', 'revoke_share_access', 'custom_access_to
                   'create_player_invite', 'redeem_player_invite', 'preview_player_invite');
 ```
 
-Six rows. Fewer means one of the three files did not run.
+Six rows. Fewer means one of the four files did not run. And one more, for the
+column 0007 adds:
+
+```sql
+select count(*) from information_schema.columns
+ where table_name = 'settlement' and column_name = 'verification';
+```
 
 ### 2. Turn on anonymous sign-ins
 

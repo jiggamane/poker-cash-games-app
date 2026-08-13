@@ -14,3 +14,5 @@ export * from './types';
 export * from './ledger';
 export * from './settlement';
 export * from './outbox';
+export * from './snapshot';
+export * from './verify';

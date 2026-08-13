@@ -212,12 +212,20 @@ select expect_eq(
 insert into settlement
   (session_id, algorithm_version, rules_snapshot, inputs_snapshot, computed_transfers,
    total_off_table, discrepancy_amount, discrepancy_confirmed_by, discrepancy_confirmed_at,
-   discrepancy_note, discrepancy_absorbed_by, frozen)
+   discrepancy_note, discrepancy_absorbed_by, verification, frozen)
 values
   ('c4000000-0000-0000-0000-000000000001', 'settlement-v1', '[]'::jsonb, '{}'::jsonb,
    '[{"fromPlayerId":"x","toPlayerId":"y","amount":320}]'::jsonb,
-   212, 0, null, null, null, null, true)
+   212, 0, null, null, null, null,
+   '{"ok":true,"checked":41,"algorithmVersion":"settlement-v1","codes":[],"detail":[],"at":"2026-08-14T00:15:00Z"}'::jsonb,
+   true)
 on conflict (session_id) do nothing;
+
+-- The night's own verdict on its arithmetic arrives WITH the settlement, so a
+-- night that failed its check cannot land on the server looking clean.
+select expect_eq(
+  (select count(*) from settlement where verification ->> 'ok' = 'true'),
+  1, 'the settlement carries the verification verdict');
 
 update session
    set status = 'settled', ended_at = '2026-08-14T00:15:00Z'

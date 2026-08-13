@@ -203,7 +203,21 @@ describe('the settlement row', () => {
       'rules_snapshot',
       'session_id',
       'total_off_table',
+      'verification',
     ]);
+  });
+
+  it('carries the device\u2019s own verdict on the night\u2019s arithmetic', () => {
+    // The verdict travels WITH the settlement rather than after it, so a night
+    // that failed its own check cannot reach the server looking clean.
+    const verified = settlementRow(
+      { ...base, settlement: { ...base.settlement, verification: { ok: false, codes: ['night.zeroSum'] } } },
+      HOST,
+    ).row;
+    expect(verified.verification).toEqual({ ok: false, codes: ['night.zeroSum'] });
+
+    // Null, never absent, for a night closed by a build that did not check.
+    expect(settlementRow(base, HOST).row.verification).toBeNull();
   });
 
   it('leaves the confirmation empty when the night balanced', () => {
