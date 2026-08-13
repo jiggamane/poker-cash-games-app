@@ -91,8 +91,12 @@ export default function EntryPage() {
         <Text style={[styles.label, { color: t.muted }]}>
           {clock(night.occurredAt[entry.id])} · {entry.voided ? 'voided' : entry.corrected ? 'corrected since' : 'as logged'}
         </Text>
+        {/* Voiding zeroes the amount, which is how the arithmetic drops it —
+            but "Petr · rebuy · $0" describes an entry nobody ever made. The
+            figure it was logged with is the one being looked at, and the line
+            above already says the entry was voided. */}
         <Text style={[styles.headline, { color: t.text }]}>
-          {who} · {what} · {formatMoney(entry.amount)}
+          {who} · {what} · {formatMoney(entry.voided ? entry.originalAmount : entry.amount)}
         </Text>
       </View>
 

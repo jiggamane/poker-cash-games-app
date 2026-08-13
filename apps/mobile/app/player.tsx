@@ -78,6 +78,29 @@ export default function PlayerPage() {
   const cashedOut = played && !stillIn;
 
   /**
+   * A voided entry is struck through tonight and gone afterwards.
+   *
+   * While the night is running the row has to stay. A rebuy that was voided is
+   * a thing the host DID and then undid, in front of six people who watched
+   * them do it, and someone will ask about it within the minute — "did that
+   * $500 go in or not". A struck-through row answers that; a row that silently
+   * vanished looks like the void never happened, which is the same screen as a
+   * void that failed. It also has to stay because it is still the way back: a
+   * void is undone by correcting the entry to an amount, and the row is what
+   * the host taps to get there.
+   *
+   * Once the night is settled neither reason holds. The counts are in, the
+   * deductions are off, the balances are agreed, and the entry contributed
+   * nothing to any of it — it is a correction to the host's typing, not part of
+   * what happened at the table. So the settled card shows the night as it was
+   * played, and the cancelled rows go with the rest of the scaffolding. Nothing
+   * is deleted: the entry and its void are both still in the ledger, which is
+   * what `settle()` was verified against and what the server holds.
+   */
+  const settled = night.status === 'settled';
+  const shown = settled ? mine.filter((e) => !e.voided) : mine;
+
+  /**
    * M16, resolved here and NOT explained anywhere on the screen (M17).
    *
    * The button says "Rebuy $500" and nothing under it says why $500. A host who
@@ -196,10 +219,12 @@ export default function PlayerPage() {
       <View style={styles.entries}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Entries</Text>
 
-        {mine.length === 0 ? (
-          <Text style={[styles.note, { color: t.muted }]}>Nothing yet tonight.</Text>
+        {shown.length === 0 ? (
+          <Text style={[styles.note, { color: t.muted }]}>
+            {settled ? 'Nothing recorded tonight.' : 'Nothing yet tonight.'}
+          </Text>
         ) : (
-          mine.map((e, i) => (
+          shown.map((e, i) => (
             <Pressable
               key={e.id}
               accessibilityRole="button"
@@ -208,21 +233,49 @@ export default function PlayerPage() {
                 styles.entry,
                 {
                   borderBottomColor: t.hairline,
-                  borderBottomWidth: i === mine.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                  borderBottomWidth: i === shown.length - 1 ? 0 : StyleSheet.hairlineWidth,
                   opacity: pressed ? 0.6 : 1,
                 },
               ]}
             >
+              {/* The TIME is not struck through. When it happened is still
+                  true — it is the act and the amount that were taken back, and
+                  striking the clock as well would say the whole row was a
+                  mistake rather than that the money did not move. */}
               <Text style={[styles.time, { color: t.muted }]}>
                 {clock(night.occurredAt[e.id])}
               </Text>
               <View style={styles.entryText}>
-                <Text style={[styles.entryName, { color: t.text }]}>{titleOf(e)}</Text>
+                <Text
+                  style={[
+                    styles.entryName,
+                    e.voided && styles.struck,
+                    { color: e.voided ? t.muted : t.text },
+                  ]}
+                >
+                  {titleOf(e)}
+                </Text>
                 <Text style={[styles.provenance, { color: t.muted }]}>
                   {provenanceOf(e, mine)}
                 </Text>
               </View>
-              <Text style={[styles.entryAmount, { color: t.text }]}>{formatMoney(e.amount)}</Text>
+              {/* A voided entry's `amount` is ZERO — that is what makes the
+                  arithmetic ignore it. Striking through "$0" would say nothing
+                  at all, so the row shows the figure it was LOGGED with, which
+                  is the one being asked about. (An entry corrected and then
+                  voided shows what it was first logged as, because the ledger
+                  keeps the original and the current amount and a void sets the
+                  current one to zero. The provenance line says "voided" either
+                  way, so nothing here claims the figure is still standing.) */}
+              <Text
+                style={[
+                  styles.entryAmount,
+                  e.voided && styles.struck,
+                  { color: e.voided ? t.muted : t.text },
+                ]}
+              >
+                {formatMoney(e.voided ? e.originalAmount : e.amount)}
+              </Text>
             </Pressable>
           ))
         )}
@@ -353,6 +406,9 @@ const styles = StyleSheet.create({
   entryName: type.feedName,
   provenance: type.provenance,
   entryAmount: { ...type.figure, fontSize: 17, marginLeft: 'auto' },
+  /* Struck AND muted. The line alone is easy to miss at a table in bad light,
+     and on a tabular figure it reads as a hyphen at a glance. */
+  struck: { textDecorationLine: 'line-through' },
 
   closing: {
     marginHorizontal: space.page,
