@@ -34,6 +34,9 @@ cd apps/mobile && npm start   # scan the QR code with Expo Go
 - **[`docs/storage-and-sync.md`](docs/storage-and-sync.md)** — where a night is stored and
   when, what the phone keeps, and exactly what still works with no signal. Read it before
   touching sync or the close flow.
+- **[`docs/player-identity.md`](docs/player-identity.md)** — what a player is
+  authenticated by, and why: the credential comparison, how the invite link behaves, how
+  one person is recognised across two groups, and what a second phone does.
 - **[`docs/auth-test-period.md`](docs/auth-test-period.md)** — who gets in while the app is
   being tested: invite-only sign-in, how a watcher's link actually works, and the dashboard
   steps that make it run. Read it before the first night with real people.
