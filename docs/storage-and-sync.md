@@ -1,0 +1,222 @@
+# Storage, sync, and what happens with no signal
+
+How a night is stored, at which moments, on which side, and what the app does
+when the kitchen wifi drops in the middle of it.
+
+This replaces the ad-hoc arrangement it describes at the end: today the only
+things that reach the server are the ledger and a few rows, and only when the
+host taps **Share this night**. Sharing has nothing to do with storage and never
+should have — it is about letting somebody *watch*, not about keeping the book.
+
+---
+
+## Four principles, and everything else follows
+
+**1. The ledger is the truth. Everything else is derived.**
+Buy-ins, rebuys, cash-outs, expenses, corrections and voids are the only facts.
+Totals, positions, deductions and the settlement are all functions of them. A
+correction is a new row that points at an old one; nothing is ever edited or
+deleted. This is already how the app works and none of it changes.
+
+**2. The server is the record. The phone is a durable write-ahead log.**
+Every change is written to the phone first, immediately, and queued for the
+server. The screens never wait for the network — not on a good connection
+either, because a UI that is fast only when the wifi is good is a UI nobody
+trusts at a table.
+
+**3. Client-side arithmetic is for speed, not for authority.**
+The app computes everything locally so the screen answers instantly and works
+with no signal. What it stores at the end is that computation, frozen. Because
+`@poker-club/core` is shared TypeScript, the server can re-run the identical
+function over the identical inputs later and assert it agrees — that is the
+audit story, and it is why the calculation being on the client costs nothing.
+
+**4. The settlement is guidance, not a workflow.**
+"Ivo → Dana $320" is an instruction to the room. Whether Ivo actually hands
+Dana the money is **not the app's business** and is never recorded. A night is
+FINAL the moment it is counted, deducted and settled. Nothing about payment can
+change a single figure afterwards.
+
+That fourth one is a load-bearing simplification. It means a settled night is
+**immutable**, which means sync is a **set union rather than a merge**, which is
+why none of what follows needs conflict resolution.
+
+---
+
+## Where each thing lives
+
+| | On the phone (SQLite) | On the server (Postgres) |
+| --- | --- | --- |
+| The night | `night` | `session` |
+| Who played | `night_player` | `player` + `session_seat` |
+| The money | `night_entry` | `ledger_entry` |
+| The rules it was opened with | `night.rules_json` | `money_rule` |
+| The chip count | `night_count` | `final_count` |
+| The frozen result | `night_settlement` *(new)* | `settlement` |
+| Waiting to be sent | `outbox_op` *(new)* | — |
+| Which name is me | `setting` | — (local by design) |
+
+The server schema needs **no migration**: `money_rule`, `final_count` and
+`settlement` were built in `0001` and have simply never been written to.
+
+---
+
+## The write points — what is stored, and exactly when
+
+Every one of these writes locally first and returns immediately. The queued
+column is what goes to the server, in order, whenever there is a connection.
+
+| Moment | Written locally | Queued for the server |
+| --- | --- | --- |
+| **Open a night** | `night`, `night_player`, rules | `book` (first time only), `player`, `session`, `session_seat`, `money_rule` |
+| **Seat someone** | `night_player` | `player`, `session_seat` |
+| **Buy-in / rebuy / cash-out / expense** | `night_entry` | `ledger_entry` |
+| **Correct or void an entry** | `night_entry` (a new row) | `ledger_entry` (a new row) |
+| **Edit a money rule** | `night.rules_json` | `money_rule` |
+| **Count a player's chips** | `night_count` | `final_count` |
+| **Confirm a shortfall** | `night.ack_json` | — carried in the settlement at close |
+| **Close the night** | `night_settlement`, `night.status`, `night.ended_at` | `settlement`, `session` (status + `ended_at`) |
+
+Two things worth noticing.
+
+**A night publishes the moment it opens**, not when it is shared. By the first
+buy-in the server already has the book, the session, the players and the rules,
+so every entry after that has somewhere to land.
+
+**Closing writes the whole result in one go.** The settlement row carries its own
+`rules_snapshot` and `inputs_snapshot` alongside the computed transfers and the
+algorithm version, so the night can be re-derived years later even if the group
+has changed every rule since. The server's `settlement_frozen_guard` trigger
+then refuses to let it change.
+
+---
+
+## The outbox, generalised
+
+Today's outbox holds ledger entries only. It becomes an ordered log of
+**operations** — the same idea, one level up:
+
+```
+outbox_op
+  id          uuid   -- client-generated; the server's idempotency key
+  seq         int    -- monotonic per device, the order things happened
+  kind        text   -- 'session.open' | 'player.upsert' | 'seat.upsert'
+                     -- 'entry.append' | 'rule.upsert'   | 'count.upsert'
+                     -- 'session.close'
+  payload     json
+  attempts    int
+  last_error  text
+  created_at  text
+```
+
+**It drains strictly in order, and stops at the first failure.** That is not
+timidity, it is the foreign keys: a session must exist before its entries, a
+player before their seat. Halting keeps the server's view a prefix of the
+phone's — always behind, never inconsistent.
+
+**Every operation is idempotent**, keyed on an id the phone generated, so
+replaying one the server already has is a no-op. Re-sending is always safe,
+which is what makes "retry forever" a correct strategy rather than a dangerous
+one.
+
+**It drains** when the app comes to the foreground, shortly after each write,
+on a timer while a queue is non-empty, and once on sign-in. There is no
+connectivity library involved: the attempt *is* the connectivity check, and a
+failure just leaves the queue where it was.
+
+### Signed out
+
+The queue still fills. Nothing is dropped and nothing is gated: play the whole
+night with no account, sign in on Tuesday, and the night is backed up as the
+queue drains. That is strictly better than refusing to record what cannot yet
+be sent.
+
+---
+
+## With no connection
+
+Nothing changes, and that is the entire point. The app reads only local state,
+so a night with no signal is not a degraded mode — it is the same code path with
+a queue that happens to be growing.
+
+Specifically, with the phone in aeroplane mode you can still: open a night, seat
+players, record every buy-in, rebuy, cash-out and expense, correct and void
+entries, edit the money rules, read every player's card and history, count the
+table, confirm a shortfall, see the deductions, and **close the night and read
+its final settlement**. Nothing in the close flow needs the network, because the
+arithmetic is local and the freezing is local.
+
+When the connection returns the queue drains in order and the server catches up.
+If the app is closed and reopened first, the queue is still there — it is a
+table, not memory.
+
+**What the host sees** is one honest line rather than a blocking state:
+*"Backed up"* when the queue is empty, *"Saved on this phone · 12 waiting"* when
+it is not, and after a long failure the actual error, on the Settings screen,
+because a host who is about to wipe their phone deserves to know.
+
+### The one real limit
+
+**One device writes a night.** `ledger_entry` is unique on `(session_id, seq)`,
+so two phones both numbering entry 7 for the same night is a collision the
+server will refuse — correctly. The design has always had a single writer per
+session; this is where that assumption is cashed. A second device opening the
+same night reads it; it does not write. If it ever needs to, the handover is an
+explicit act, not a race.
+
+---
+
+## Reading back
+
+On sign-in, and on first launch after a reinstall, the app pulls what it does
+not have: the host's book, its sessions, and for each session the entries,
+counts and settlement.
+
+The merge rule is trivial, and only because of principle 4:
+
+- **Ledger entries are append-only** → take the union, keyed by id.
+- **A settlement is frozen** → if both sides have one, they are equal; if only
+  one does, copy it.
+- **Everything else is derived** → recompute it.
+
+There is no field-level merge anywhere, no last-write-wins, no vector clocks.
+Rows are immutable once written, so "sync" is just making both sets the same
+set.
+
+---
+
+## What is computed where
+
+| | Where | When |
+| --- | --- | --- |
+| Totals, positions, "on the table" | Phone | Every render, from local state |
+| Deduction preview | Phone | Live, as rules or counts change |
+| The settlement | Phone | Once, at close — then frozen and never recomputed |
+| Verification | Server, later | Re-run `settle()` over the stored snapshots and assert it matches |
+
+Reading a settled night today recomputes it, which is a quiet bug: correct a
+long-past entry and the "record" silently changes. Once the settlement is frozen
+locally, a settled night reads its stored copy and cannot drift.
+
+**A settled night is closed to edits.** Corrections are for a night in progress.
+Since payment is not tracked, there is no legitimate reason to reopen one — and
+if a group genuinely gets a figure wrong, the honest fix is a visible correcting
+entry on the *next* night, not a rewrite of a record five people have already
+read.
+
+---
+
+## Order of work
+
+1. **The operation log.** Generalise the outbox; publish a night when it opens;
+   drain after every write. Sharing stops having anything to do with storage.
+2. **Close writes the record.** `final_count`, `settlement`, session status and
+   `ended_at`; freeze the settlement locally and read it back from there.
+3. **Read back.** Pull on sign-in so a reinstall or a new phone recovers the
+   book. My stats then works from whichever copy exists.
+4. **Verification.** An edge function that re-settles from the snapshots and
+   flags any disagreement. Cheap once the snapshots are there, and it is what
+   makes "the client calculated it" a non-issue.
+
+Phases 1 and 2 are what "the results are stored" means. Phase 3 is what "and
+retrievable" means. Phase 4 is what makes it auditable.

@@ -31,6 +31,9 @@ cd apps/mobile && npm start   # scan the QR code with Expo Go
   cost/operations. Start here if you want to know why.
 - **[`docs/settlement-rules.md`](docs/settlement-rules.md)** — exactly how the money rules
   are interpreted, and **six decisions that need a designer's confirmation**.
+- **[`docs/storage-and-sync.md`](docs/storage-and-sync.md)** — where a night is stored and
+  when, what the phone keeps, and exactly what still works with no signal. Read it before
+  touching sync or the close flow.
 - **[`docs/auth-test-period.md`](docs/auth-test-period.md)** — who gets in while the app is
   being tested: invite-only sign-in, how a watcher's link actually works, and the dashboard
   steps that make it run. Read it before the first night with real people.
