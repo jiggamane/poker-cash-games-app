@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { formatMoney, formatSigned, resolveLedger, settle, type Money } from '@poker-club/core';
 import { Button } from '../src/components/Button';
@@ -21,6 +21,13 @@ export default function Settled() {
   const t = useTheme();
   const night = useNight();
 
+  // The back label names where you came from, because this screen is reached
+  // from home AND from My stats and a bar that says the wrong one is worse than
+  // a bare chevron. `id` is accepted and not yet read: this phone holds one
+  // night, so there is only one record to show until sessions are real.
+  const { from } = useLocalSearchParams<{ id?: string; from?: string }>();
+  const backTo = from ?? 'The group';
+
   const result = useMemo(() => {
     if (night === null) return null;
     try {
@@ -36,7 +43,7 @@ export default function Settled() {
     }
   }, [night]);
 
-  if (night === null) return <Screen title="The night" backTo="The group">{null}</Screen>;
+  if (night === null) return <Screen title="The night" backTo={backTo}>{null}</Screen>;
 
   const ledger = resolveLedger(night.entries);
 
@@ -44,7 +51,7 @@ export default function Settled() {
     return (
       <Screen
         title="Not settled"
-        backTo="The group"
+        backTo={backTo}
         lede="This night was never closed. Count everyone up and settle it to see the record."
         footer={
           <Button
@@ -65,7 +72,7 @@ export default function Settled() {
   return (
     <Screen
       title={started.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
-      backTo="The group"
+      backTo={backTo}
       action={{ label: 'Share' }}
       lede={`${clock(night.startedAt)} · ${night.players.length} players · settled`}
       footer={<Button label="Done" variant="secondary" onPress={() => router.dismissTo('/')} />}

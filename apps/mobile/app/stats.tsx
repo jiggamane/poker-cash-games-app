@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatSigned, type Money } from '@poker-club/core';
+import { Icon } from '../src/components/Icon';
 import { NightsChart } from '../src/components/NightsChart';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
@@ -13,7 +15,7 @@ import {
   inGroup,
   inPeriod,
   mostRecentFirst,
-  periodLabel,
+  periodTitle,
   summarise,
   type Period,
 } from '../src/lib/myStats';
@@ -54,7 +56,7 @@ export default function MyStats() {
   const plotted = useMemo(() => [...nights].slice(0, 8).reverse(), [nights]);
 
   return (
-    <Screen title="My stats" backTo="The group">
+    <Screen title={periodTitle(period, now)} backTo="The group">
       <View style={styles.chips}>
         <Chip label="All groups" on={group === null} onPress={() => setGroup(null)} />
         {SAMPLE_GROUPS.map((name) => (
@@ -71,8 +73,10 @@ export default function MyStats() {
           },
         ]}
       >
+        {/* The title above already names the stretch, so the label here says
+            what the figure IS rather than repeating which months it covers. */}
         <View style={styles.cardHead}>
-          <Text style={[styles.cardLabel, { color: t.muted }]}>{periodLabel(period, now)}</Text>
+          <Text style={[styles.cardLabel, { color: t.muted }]}>Your net</Text>
           <View style={styles.tabs}>
             <Tab label="Month" on={period === 'month'} onPress={() => setPeriod('month')} />
             <Tab label="Year" on={period === 'year'} onPress={() => setPeriod('year')} />
@@ -131,7 +135,16 @@ export default function MyStats() {
         )}
 
         {nights.map((n) => (
-          <View key={n.id} style={[styles.row, { borderTopColor: t.hairline }]}>
+          <Pressable
+            key={n.id}
+            accessibilityRole="button"
+            accessibilityLabel={`${formatNightDate(n.startedAt, true)}, ${n.group}, ${formatSigned(n.net)}`}
+            onPress={() => openNight(n.id)}
+            style={({ pressed }) => [
+              styles.row,
+              { borderTopColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+            ]}
+          >
             <View style={styles.rowText}>
               <Text style={[styles.rowName, { color: t.text }]}>
                 {formatNightDate(n.startedAt, true)}
@@ -144,7 +157,10 @@ export default function MyStats() {
               </Text>
               <Text style={[styles.rowSub, { color: t.muted }]}>{formatSitting(n.minutes)}</Text>
             </View>
-          </View>
+            <View style={styles.rowChevron}>
+              <Icon name="chevron" color={t.muted} />
+            </View>
+          </Pressable>
         ))}
       </View>
 
@@ -155,6 +171,19 @@ export default function MyStats() {
     </Screen>
   );
 }
+
+/**
+ * Open one night's record — E6, the screen the night itself ends on.
+ *
+ * The same screen, not a second version of it: what a night came to is one
+ * fact, and two screens showing it would eventually disagree. The id is passed
+ * even though `settled` does not read it yet — this phone holds a single night,
+ * so there is only one record to open until sessions are real, and the call
+ * site should already be shaped for the day it is not.
+ */
+const openNight = (id: string): void => {
+  router.push({ pathname: '/settled', params: { id, from: 'My stats' } });
+};
 
 /** A group filter: filled when it is the one being shown. */
 function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
@@ -241,6 +270,9 @@ const styles = StyleSheet.create({
   rowSub: { ...type.detail, lineHeight: 16 },
   rowFigures: { marginLeft: 'auto', alignItems: 'flex-end', gap: 2 },
   rowFigure: { fontSize: 16, fontWeight: '700', ...tabular },
+  // On the figure's own line rather than centred on the row, so the column of
+  // amounts stays straight and the chevron does not float between two lines.
+  rowChevron: { paddingTop: 4 },
 
   footnote: { ...type.footnote, marginTop: 16, marginHorizontal: space.page, paddingHorizontal: space.rowInset },
 });

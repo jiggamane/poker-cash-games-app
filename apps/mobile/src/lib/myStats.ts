@@ -82,11 +82,18 @@ export function summarise(nights: readonly PlayedNight[]): Summary {
   };
 }
 
-/** "This month · August", "This year · 2026", "All time". */
-export function periodLabel(period: Period, now: Date): string {
+/**
+ * The screen's own title: "August", "2026", "All time".
+ *
+ * The stretch being shown IS the title, rather than a fixed "My stats" with the
+ * period repeated underneath it. A month is named and a year is a number, and
+ * neither needs a word in front of it to be understood at the top of a screen
+ * whose every figure is about that stretch.
+ */
+export function periodTitle(period: Period, now: Date): string {
   if (period === 'all') return 'All time';
-  if (period === 'year') return `This year · ${now.getFullYear()}`;
-  return `This month · ${now.toLocaleDateString('en-GB', { month: 'long' })}`;
+  if (period === 'year') return String(now.getFullYear());
+  return now.toLocaleDateString('en-GB', { month: 'long' });
 }
 
 /** "25 h" — a total, where the minutes are noise. */

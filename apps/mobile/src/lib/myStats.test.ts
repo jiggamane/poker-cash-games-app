@@ -6,6 +6,7 @@ import {
   inGroup,
   inPeriod,
   mostRecentFirst,
+  periodTitle,
   summarise,
   type PlayedNight,
 } from './myStats';
@@ -70,6 +71,14 @@ describe('mostRecentFirst', () => {
     const sorted = mostRecentFirst(NIGHTS);
     expect(sorted[0].startedAt).toBe('2026-08-15T20:00:00.000Z');
     expect(NIGHTS[0].startedAt).toBe('2026-07-12T20:00:00.000Z');
+  });
+});
+
+describe('periodTitle', () => {
+  it('names the month, numbers the year, and says all time', () => {
+    expect(periodTitle('month', NOW)).toBe('August');
+    expect(periodTitle('year', NOW)).toBe('2026');
+    expect(periodTitle('all', NOW)).toBe('All time');
   });
 });
 
