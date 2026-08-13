@@ -92,7 +92,11 @@ export default function Home() {
           sub="players, money rules, the kitty"
           onPress={() => router.push('/session')}
         />
-        <Destination name="My stats" sub="across every group you play in" />
+        <Destination
+          name="My stats"
+          sub="across every group you play in"
+          onPress={() => router.push('/stats')}
+        />
         <Destination name="Sessions" sub="every night, most recent first" last />
       </View>
 
