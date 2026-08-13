@@ -54,13 +54,13 @@ const entries: SeedEntry[] = [
 
 const rules: MoneyRule[] = [
   {
-    id: 'kitchen', name: 'Kitchen & drinks', active: true,
+    id: randomUUID(), name: 'Kitchen & drinks', active: true,
     amountKind: 'fixed', amount: money(170), basis: 'gross',
     charge: 'everyone_flat', destination: 'bill', split: 'evenly',
     collectorPlayerId: MAREK, sortOrder: 1,
   },
   {
-    id: 'kitty', name: 'Group kitty', active: true,
+    id: randomUUID(), name: 'Group kitty', active: true,
     amountKind: 'percent', amount: money(10), basis: 'net_after_others',
     charge: 'winners_only', destination: 'kitty', split: 'evenly',
     collectorPlayerId: RADKA, sortOrder: 2,

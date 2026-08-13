@@ -29,6 +29,20 @@ import { SqliteOutboxStore } from './outboxStore';
 
 export const outbox = new SqliteOutboxStore();
 
+/**
+ * The shape every id in this app has, because every server column is uuid.
+ *
+ * Nights from before that was true are kept OUT of the queue entirely rather
+ * than allowed to fail in it. The queue halts at its first failure — which is
+ * exactly right for an entry that arrived before its session, and exactly wrong
+ * for a sample night from an old build, which would sit at the head of the line
+ * failing forever and block every real night behind it.
+ *
+ * Such a night stays on the phone and works completely. It simply never leaves.
+ */
+const isUuid = (id: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
 // ---------------------------------------------------------------------------
 // What each operation carries.
 //
@@ -108,6 +122,7 @@ export async function queueSessionOpen(args: {
   rules: readonly MoneyRule[];
 }): Promise<void> {
   const { sessionId, groupName } = args;
+  if (!isUuid(sessionId)) return;
 
   await enqueueOp<SessionOpen>(outbox, {
     id: `session-open:${sessionId}`,
@@ -135,6 +150,8 @@ export async function queuePlayer(
   groupName: string,
   player: { id: string; name: string; atTable: boolean },
 ): Promise<void> {
+  if (!isUuid(sessionId) || !isUuid(player.id)) return;
+
   await enqueueOp<PlayerUpsert>(outbox, {
     id: `player:${player.id}`,
     sessionId,
@@ -157,6 +174,8 @@ export async function queueRule(
   groupName: string,
   rule: MoneyRule,
 ): Promise<void> {
+  if (!isUuid(sessionId) || !isUuid(rule.id) || !isUuid(rule.collectorPlayerId)) return;
+
   await enqueueOp<RuleUpsert>(outbox, {
     id: `rule:${rule.id}`,
     sessionId,
@@ -170,6 +189,8 @@ export async function queueCount(
   playerId: PlayerId,
   amount: Money,
 ): Promise<void> {
+  if (!isUuid(sessionId) || !isUuid(playerId)) return;
+
   await enqueueOp<CountUpsert>(outbox, {
     // One per player per night: counting somebody twice replaces the first.
     id: `count:${sessionId}:${playerId}`,
@@ -180,6 +201,8 @@ export async function queueCount(
 }
 
 export async function queueClose(payload: SessionClose): Promise<void> {
+  if (!isUuid(payload.sessionId)) return;
+
   await enqueueOp<SessionClose>(outbox, {
     id: `close:${payload.sessionId}`,
     sessionId: payload.sessionId,
@@ -231,6 +254,13 @@ export async function drain(): Promise<FlushResult> {
 }
 
 async function send(item: OutboxItem): Promise<void> {
+  // A night from before ids were uuids can still queue entries — the queue is
+  // where their seq numbers come from — so this is the last gate before one
+  // reaches a server that would refuse it forever. Returning marks it done and
+  // drops it, which keeps a sample night from blocking every real one behind
+  // it. The night itself is untouched and still works on the phone.
+  if (!isUuid(item.sessionId)) return;
+
   switch (item.kind) {
     case 'session.open':
       return sendSessionOpen(item.payload as SessionOpen);

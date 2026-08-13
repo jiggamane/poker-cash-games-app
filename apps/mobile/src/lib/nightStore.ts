@@ -347,9 +347,19 @@ export async function lastSetup(): Promise<Setup> {
     ...(row.stakes ? { stakes: row.stakes } : {}),
     defaultBuyIn: (row.default_buyin ?? FALLBACK_BUYIN) as Money,
     playerNames: players.map((p) => p.name),
-    rules: JSON.parse(row.rules_json) as MoneyRule[],
+    // A rule carried from a night that predates real ids gets a new one. The
+    // server's money_rule.id is a uuid, and 'kitchen' is not — and because the
+    // queue halts at its first failure, one such rule would block every night
+    // behind it from ever reaching the server.
+    rules: (JSON.parse(row.rules_json) as MoneyRule[]).map((r) =>
+      isUuid(r.id) ? r : { ...r, id: randomUUID() },
+    ),
   };
 }
+
+/** The shape every id in this app has, because every server column is uuid. */
+export const isUuid = (id: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
 /**
  * Everybody this phone has ever seated, most recently played first.
@@ -604,7 +614,9 @@ async function append(
   if (night === null) throw new Error('No night is open.');
   const db = await getDb();
 
-  const entry = await recordEntry(night.sessionId, draft, occurredAt);
+  // The note travels with it: an expense's "Pizza" is display-only to the
+  // engine but it is the whole of what a bill row says to a reader.
+  const entry = await recordEntry(night.sessionId, draft, occurredAt, note);
 
   await db.runAsync(
     `INSERT INTO night_entry
