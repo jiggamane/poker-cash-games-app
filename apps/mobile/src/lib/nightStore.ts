@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 import * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
 import {
+  formatMoney,
   money,
   resolveLedger,
   type LedgerEntry,
@@ -72,6 +73,11 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           -- What the money was for: "Pizza", "Drinks". Display only — the
           -- engine never reads it, which is why it is not on LedgerEntry.
           note              TEXT,
+          -- A spend with no person behind it: 'kitty' or 'unpaid'. Mirrors the
+          -- server column added in migration 0004.
+          covered_by        TEXT,
+          -- Ties the several fronters of one spend back into one thing bought.
+          spend_group       TEXT,
           PRIMARY KEY (session_id, id)
         );
 
@@ -82,6 +88,21 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           PRIMARY KEY (session_id, player_id)
         );
       `);
+
+      /*
+       * Phones that already hold a night were created before the bill was
+       * redrawn, and CREATE TABLE IF NOT EXISTS will not add a column to them.
+       * Adding it twice is the expected outcome on every later launch, so the
+       * failure is the success case and is swallowed on purpose.
+       */
+      for (const column of ['covered_by TEXT', 'spend_group TEXT']) {
+        try {
+          await db.execAsync(`ALTER TABLE night_entry ADD COLUMN ${column};`);
+        } catch {
+          // Already there.
+        }
+      }
+
       return db;
     });
   }
@@ -196,6 +217,8 @@ export async function openNight(): Promise<Night> {
     corrects_entry_id: string | null;
     occurred_at: string;
     note: string | null;
+    covered_by: 'kitty' | 'unpaid' | null;
+    spend_group: string | null;
   }>(`SELECT * FROM night_entry WHERE session_id = ? ORDER BY seq ASC`, sessionId);
 
   const counts = await db.getAllAsync<{ player_id: string; amount: number }>(
@@ -218,6 +241,8 @@ export async function openNight(): Promise<Night> {
       payerId: e.payer_id,
       amount: e.amount as Money,
       correctsEntryId: e.corrects_entry_id,
+      coveredBy: e.covered_by,
+      spendGroup: e.spend_group,
     })),
     finalCounts: new Map(counts.map((c) => [c.player_id, c.amount as Money])),
     occurredAt: Object.fromEntries(entries.map((e) => [e.id, e.occurred_at])),
@@ -266,8 +291,9 @@ async function seedNight(seed: Seed): Promise<void> {
       seq += 1;
       await db.runAsync(
         `INSERT INTO night_entry
-           (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at, note)
-         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
+           (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id,
+            occurred_at, note, covered_by, spend_group)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?)`,
         sessionId,
         randomUUID(),
         seq,
@@ -277,6 +303,8 @@ async function seedNight(seed: Seed): Promise<void> {
         e.amount,
         e.occurredAt,
         e.note ?? null,
+        e.coveredBy ?? null,
+        e.spendGroup ?? null,
       );
     }
   });
@@ -305,8 +333,9 @@ async function append(
 
   await db.runAsync(
     `INSERT INTO night_entry
-       (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id, occurred_at, note)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id,
+        occurred_at, note, covered_by, spend_group)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     night.sessionId,
     entry.id,
     entry.seq,
@@ -317,6 +346,8 @@ async function append(
     entry.correctsEntryId ?? null,
     occurredAt.toISOString(),
     note ?? null,
+    entry.coveredBy ?? null,
+    entry.spendGroup ?? null,
   );
 
   night = {
@@ -418,8 +449,129 @@ export function cashOut(playerId: PlayerId, amount: Money): Promise<void> {
  * engine takes the real sum of these entries — so adding one here changes what
  * is charged at settle-up without anybody editing a rule.
  */
-export function addExpense(payerId: PlayerId, amount: Money, note: string): Promise<void> {
-  return append({ type: 'expense', payerId, amount }, new Date(), note);
+/**
+ * Who fronted a spend — the four cases from 11-bill-and-kitty.md.
+ *
+ * `players` carries one row per fronter, and those rows must sum to the spend:
+ * that is what lets each of them be repaid exactly what they put in. `kitty`
+ * and `unpaid` have nobody to repay, which is why they are the other shape
+ * rather than a player row with a funny id.
+ */
+export type Cover =
+  | { kind: 'players'; shares: Array<{ playerId: PlayerId; amount: Money }> }
+  | { kind: 'kitty' }
+  | { kind: 'unpaid' };
+
+export class SpendError extends Error {}
+
+/**
+ * Add a spend to tonight's bill. L2.
+ *
+ * The time is stamped here, on save — there is no time field on the screen and
+ * no way to back-date a round of drinks. A spend covered by several people
+ * becomes several entries sharing one `spendGroup`, because the ledger records
+ * money moving from a person, and two people fronting a bar tab is two
+ * movements even though it was one bar tab.
+ */
+export async function addSpend(amount: Money, note: string, cover: Cover): Promise<void> {
+  const at = new Date();
+  const text = note.trim();
+
+  if (cover.kind !== 'players') {
+    await append({ type: 'expense', amount, coveredBy: cover.kind }, at, text);
+    return;
+  }
+
+  const shares = cover.shares.filter((s) => s.amount > 0);
+  if (shares.length === 0) throw new SpendError('Nobody is down for any of it.');
+
+  const fronted = shares.reduce((sum, s) => sum + s.amount, 0);
+  if (fronted !== amount) {
+    throw new SpendError(
+      `The fronted amounts come to ${formatMoney(fronted as Money)}, not ${formatMoney(amount)}.`,
+    );
+  }
+
+  // One entry is the whole spend and needs no group; several do.
+  const group = shares.length === 1 ? undefined : randomUUID();
+  for (const s of shares) {
+    await append(
+      {
+        type: 'expense',
+        amount: s.amount,
+        payerId: s.playerId,
+        ...(group === undefined ? {} : { spendGroup: group }),
+      },
+      at,
+      text,
+    );
+  }
+}
+
+/** One thing the night bought, however many people put money towards it. */
+export interface Spend {
+  /** The group id where there is one, else the single entry's id. */
+  id: string;
+  entryIds: string[];
+  amount: Money;
+  /** May be empty — a spend with no note shows as its amount alone. */
+  note: string;
+  /** "21:48", which is when it was stamped on save. */
+  at: string;
+  occurredAt: string;
+  coveredBy: 'kitty' | 'unpaid' | null;
+  fronters: Array<{ playerId: PlayerId; amount: Money }>;
+}
+
+/**
+ * The bill, as spends rather than as ledger rows.
+ *
+ * Several people fronting one bar tab is several movements of money and so
+ * several entries — that is what makes each of them repaid exactly what they
+ * put in — but it is one line on the bill, so they are gathered back up here.
+ * Voided entries drop out entirely; the ledger keeps them, the bill does not.
+ */
+export function spendsOf(night: Night, ledger: ResolvedLedger): Spend[] {
+  const spends = new Map<string, Spend>();
+
+  for (const e of ledger.entries) {
+    if (e.type !== 'expense' || e.voided) continue;
+
+    const id = e.spendGroup ?? e.id;
+    const at = night.occurredAt[e.id] ?? night.startedAt;
+    const existing = spends.get(id);
+
+    if (existing === undefined) {
+      spends.set(id, {
+        id,
+        entryIds: [e.id],
+        amount: e.amount,
+        note: night.noteOf[e.id] ?? '',
+        at: new Date(at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        occurredAt: at,
+        coveredBy: e.coveredBy ?? null,
+        fronters: e.payerId ? [{ playerId: e.payerId, amount: e.amount }] : [],
+      });
+      continue;
+    }
+
+    existing.entryIds.push(e.id);
+    existing.amount = (existing.amount + e.amount) as Money;
+    if (e.payerId) existing.fronters.push({ playerId: e.payerId, amount: e.amount });
+  }
+
+  return [...spends.values()].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
+}
+
+/**
+ * Take a spend off the bill. L3.
+ *
+ * Nothing is deleted: a void is a new row against each entry of the spend, and
+ * the original lines stay in the ledger where anybody can still see what was
+ * claimed and when it was withdrawn.
+ */
+export async function voidSpend(entryIds: readonly string[]): Promise<void> {
+  for (const id of entryIds) await voidEntry(id);
 }
 
 /**

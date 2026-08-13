@@ -31,6 +31,10 @@ export interface EffectiveEntry {
   /** True if a correction changed the amount. */
   corrected: boolean;
   originalAmount: Money;
+  /** Expenses only: the kitty paid, or nobody has yet. */
+  coveredBy?: 'kitty' | 'unpaid' | null;
+  /** Expenses only: which spend this fronting belongs to. */
+  spendGroup?: string | null;
 }
 
 export interface ResolvedLedger {
@@ -38,8 +42,14 @@ export interface ResolvedLedger {
   boughtInByPlayer: Map<PlayerId, Money>;
   cashedOutByPlayer: Map<PlayerId, Money>;
   expensesByPayer: Map<PlayerId, Money>;
+  /**
+   * Spends the kitty covered or nobody has covered yet. They are on the bill
+   * — the money was spent — but no person is owed them back.
+   */
+  expensesUnattributed: Money;
   totalBoughtIn: Money;
   totalCashedOut: Money;
+  /** Everything on the bill, whoever fronted it and whether anyone did. */
   totalExpenses: Money;
 }
 
@@ -72,6 +82,8 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
         originalAmount: money(e.amount),
         voided: false,
         corrected: false,
+        coveredBy: e.coveredBy ?? null,
+        spendGroup: e.spendGroup ?? null,
       });
     } else if (e.correctsEntryId) {
       correctionTarget.set(e.id, e.correctsEntryId);
@@ -107,6 +119,7 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
   const boughtInByPlayer = new Map<PlayerId, Money>();
   const cashedOutByPlayer = new Map<PlayerId, Money>();
   const expensesByPayer = new Map<PlayerId, Money>();
+  let unattributed = ZERO;
 
   for (const e of list) {
     if (e.voided) continue;
@@ -119,7 +132,10 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
         addTo(cashedOutByPlayer, e.playerId!, e.amount);
         break;
       case 'expense':
-        addTo(expensesByPayer, e.payerId!, e.amount);
+        // No payer means the kitty paid it or nobody has: on the bill, owed
+        // to nobody.
+        if (e.payerId) addTo(expensesByPayer, e.payerId, e.amount);
+        else unattributed = sum([unattributed, e.amount]);
         break;
     }
   }
@@ -129,9 +145,10 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
     boughtInByPlayer,
     cashedOutByPlayer,
     expensesByPayer,
+    expensesUnattributed: unattributed,
     totalBoughtIn: totalOf(boughtInByPlayer),
     totalCashedOut: totalOf(cashedOutByPlayer),
-    totalExpenses: totalOf(expensesByPayer),
+    totalExpenses: sum([totalOf(expensesByPayer), unattributed]),
   };
 }
 
@@ -218,8 +235,15 @@ export function lastRebuyAmount(ledger: ResolvedLedger, playerId: PlayerId): Mon
 function validateBaseEntry(e: LedgerEntry): void {
   money(e.amount); // throws on anything fractional
   if (e.type === 'expense') {
-    if (!e.payerId) throw new LedgerError(`Expense ${e.id} has no payer`);
     if (e.playerId) throw new LedgerError(`Expense ${e.id} must have a payer, not a player`);
+    // A spend is covered by a person, by the kitty, or by nobody yet. Exactly
+    // one of the two fields says which, and neither may be guessed.
+    if (!e.payerId && !e.coveredBy) {
+      throw new LedgerError(`Expense ${e.id} names neither a payer nor what covered it`);
+    }
+    if (e.payerId && e.coveredBy) {
+      throw new LedgerError(`Expense ${e.id} has both a payer and a cover`);
+    }
   } else {
     if (!e.playerId) throw new LedgerError(`Entry ${e.id} of type '${e.type}' has no player`);
     if (e.payerId) throw new LedgerError(`Entry ${e.id} of type '${e.type}' must not have a payer`);

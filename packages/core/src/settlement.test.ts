@@ -277,6 +277,37 @@ describe('percentage rules', () => {
     expect(r.totalOffTable).toBe(100);
   });
 
+  it('does not charge somebody sitting out of the rule tonight', () => {
+    reset();
+    const r = settle({
+      players: [at(MAREK), at(PETR), at(DANA), away(RADKA)],
+      entries: [buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000)],
+      finalCounts: counts([[MAREK, 2000], [PETR, 0], [DANA, 1000]]),
+      rules: [rule({ id: 'kitty', amount: money(10), exemptPlayerIds: [MAREK] })],
+    });
+
+    // Marek won 1,000 and would owe 100. He is out of the kitty tonight, so
+    // the kitty collects nothing from him and he keeps the lot.
+    expect(chargedOf(r, MAREK)).toBe(0);
+    expect(positionOf(r, MAREK)).toBe(1000);
+    expect(r.totalOffTable).toBe(0);
+    expect(transfersBalance(r)).toBe(true);
+  });
+
+  it('still charges everyone else the exemption does not name', () => {
+    reset();
+    const r = settle({
+      players: [at(MAREK), at(PETR), at(DANA), away(RADKA)],
+      entries: [buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000)],
+      finalCounts: counts([[MAREK, 1500], [PETR, 0], [DANA, 1500]]),
+      rules: [rule({ id: 'kitty', amount: money(10), exemptPlayerIds: [MAREK] })],
+    });
+
+    expect(chargedOf(r, MAREK)).toBe(0);
+    expect(chargedOf(r, DANA)).toBe(50); // 10% of her 500
+    expect(positionOf(r, RADKA)).toBe(50);
+  });
+
   it('applies rules in order, so net_after_others means something', () => {
     reset();
     const r = settle({

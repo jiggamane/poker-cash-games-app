@@ -399,8 +399,15 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
       ? everyone.filter((p) => basisFor(p.id) > 0)
       : everyone;
 
+  // Sitting out of the kitty for one night takes somebody out of the charge
+  // and does nothing else: they are still at the table, still counted, still
+  // settled. A custom split is exempt from the exemption — an amount typed
+  // against a name is already an explicit answer.
+  const exempt = new Set(rule.exemptPlayerIds ?? []);
+  if (custom === null && exempt.size > 0) payers = payers.filter((p) => !exempt.has(p.id));
+
   // Somebody really spent this money, so it has to be shared by someone.
-  if (payers.length === 0 && reimbursesExpenses) payers = everyone;
+  if (payers.length === 0 && reimbursesExpenses) payers = everyone.filter((p) => !exempt.has(p.id));
 
   // Order decides who absorbs a leftover unit when a total does not divide
   // evenly: biggest win first, then by name. allocate() hands remainders to the

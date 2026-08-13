@@ -77,7 +77,7 @@ export default function Session() {
           open={drawer}
           onOpenChange={setDrawer}
           onRebuy={() => router.push({ pathname: '/pick', params: { kind: 'buyin' } })}
-          onBill={() => router.push('/expenses')}
+          onBill={() => router.push('/bill')}
           onSeat={() => {
             setDrawer(false);
             router.push('/seat');

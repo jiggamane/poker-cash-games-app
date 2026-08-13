@@ -135,6 +135,29 @@ select expect_rejected(
             '11111111-1111-1111-1111-111111111111')$$,
   'expense attributed to a player instead of a payer');
 
+-- ...and it names exactly one of a payer and a cover. "Nobody yet" is a real
+-- answer, but it has to be written down rather than left as a missing column.
+select expect_rejected(
+  $$insert into ledger_entry (id, session_id, seq, type, amount, occurred_at, created_by_user_id)
+    values (gen_random_uuid(), '50000000-0000-0000-0000-000000000001', 96, 'expense',
+            200, now(), '11111111-1111-1111-1111-111111111111')$$,
+  'expense with neither a payer nor a cover');
+
+select expect_rejected(
+  $$insert into ledger_entry (id, session_id, seq, type, payer_id, covered_by, amount,
+                              occurred_at, created_by_user_id)
+    values (gen_random_uuid(), '50000000-0000-0000-0000-000000000001', 97, 'expense',
+            'c0000000-0000-0000-0000-000000000001', 'kitty', 200, now(),
+            '11111111-1111-1111-1111-111111111111')$$,
+  'expense with both a payer and a cover');
+
+select expect_rejected(
+  $$insert into ledger_entry (id, session_id, seq, type, covered_by, amount,
+                              occurred_at, created_by_user_id)
+    values (gen_random_uuid(), '50000000-0000-0000-0000-000000000001', 98, 'expense',
+            'somebody', 200, now(), '11111111-1111-1111-1111-111111111111')$$,
+  'expense covered by something that is not the kitty or nobody');
+
 select expect_rejected(
   $$insert into ledger_entry (id, session_id, seq, type, amount, occurred_at, corrects_entry_id, created_by_user_id)
     values (gen_random_uuid(), '50000000-0000-0000-0000-000000000001', 94, 'void',

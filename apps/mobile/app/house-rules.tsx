@@ -56,10 +56,24 @@ export default function HouseRules() {
       <View style={styles.cards}>
         {active.map((rule) => {
           const taken = preview?.deductions.find((d) => d.ruleId === rule.id)?.total;
+          /* The kitty is reached from here and never from the bill: it is a cut
+             of winnings that carries over, not a thing the night bought. */
+          const opens =
+            rule.destination === 'kitty'
+              ? '/kitty-rules'
+              : rule.destination === 'bill'
+                ? '/bill-rules'
+                : undefined;
           return (
-            <View
+            <Pressable
               key={rule.id}
-              style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}
+              accessibilityRole={opens === undefined ? 'none' : 'button'}
+              disabled={opens === undefined}
+              onPress={() => opens !== undefined && router.push(opens)}
+              style={({ pressed }) => [
+                styles.card,
+                { backgroundColor: t.surface, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+              ]}
             >
               <View style={styles.cardTop}>
                 <Text style={[styles.cardName, { color: t.text }]}>{title(rule)}</Text>
@@ -72,7 +86,7 @@ export default function HouseRules() {
                 </Text>
               </View>
               <Text style={[styles.cardNote, { color: t.muted }]}>{explain(rule, night, ledger.totalExpenses)}</Text>
-            </View>
+            </Pressable>
           );
         })}
 
@@ -84,14 +98,14 @@ export default function HouseRules() {
 
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push('/expenses')}
+          onPress={() => router.push('/bill')}
           style={({ pressed }) => [
             styles.add,
             { borderColor: t.dashed, opacity: pressed ? 0.6 : 1 },
           ]}
         >
           <Icon name="plus" color={t.text} />
-          <Text style={[styles.addLabel, { color: t.text }]}>Food &amp; drinks</Text>
+          <Text style={[styles.addLabel, { color: t.text }]}>The bill</Text>
         </Pressable>
       </View>
 

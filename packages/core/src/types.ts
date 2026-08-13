@@ -30,6 +30,19 @@ export interface LedgerEntry {
   playerId?: PlayerId | null;
   /** Who fronted a shared expense. */
   payerId?: PlayerId | null;
+  /**
+   * An expense nobody is owed for. A spend is covered by a person, by the
+   * kitty, or by nobody yet — and the last two have no payer to reimburse, so
+   * they carry this instead. Exactly one of `payerId` and `coveredBy` is set on
+   * an expense; the database enforces the same pair.
+   */
+  coveredBy?: 'kitty' | 'unpaid' | null;
+  /**
+   * Several people can front one spend. Each fronter is their own entry — that
+   * is what makes each of them repaid exactly what they put in — and this ties
+   * those entries back into the single thing that was bought.
+   */
+  spendGroup?: string | null;
   amount: Money;
   /** Set on correction/void: the entry being restated. */
   correctsEntryId?: EntryId | null;
@@ -82,6 +95,16 @@ export interface MoneyRule {
    * resolved amount — for a bill, to the real expense total.
    */
   customShares?: ReadonlyArray<{ playerId: PlayerId; amount: Money }>;
+  /**
+   * People this rule does not charge tonight.
+   *
+   * A group's kitty is a standing arrangement and somebody sitting out of it
+   * for one night is an exception to that night, not a change to the group —
+   * which is why it rides on the session's snapshot of the rule rather than on
+   * the group. A custom split ignores it: an amount the host typed against a
+   * name is already an explicit answer.
+   */
+  exemptPlayerIds?: readonly PlayerId[];
   /** Exactly one person physically holds this money. Need not be playing. */
   collectorPlayerId: PlayerId;
   /** Rules apply in this order, which is what makes 'net_after_others' defined. */
