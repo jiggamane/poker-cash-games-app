@@ -69,7 +69,10 @@ export default function RootLayout() {
         <Stack.Screen name="settle-up" />
         <Stack.Screen name="stats" />
         <Stack.Screen name="games" />
+        <Stack.Screen name="groups" />
+        <Stack.Screen name="players" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="club-rules" />
 
         {/* Sheets. Each of these ends with one action and then gets out. */}
         <Stack.Screen name="player" options={SHEET} />
@@ -86,6 +89,9 @@ export default function RootLayout() {
         <Stack.Screen name="rule" options={SHEET} />
         <Stack.Screen name="settled" options={SHEET} />
         <Stack.Screen name="sign-in" options={SHEET} />
+        <Stack.Screen name="member" options={SHEET} />
+        <Stack.Screen name="new-group" options={SHEET} />
+        <Stack.Screen name="new-night" options={SHEET} />
       </Stack>
     </SafeAreaProvider>
   );

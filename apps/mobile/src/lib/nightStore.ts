@@ -792,6 +792,77 @@ export function draftRule(destination: MoneyRule['destination'], sortOrder: numb
   };
 }
 
+/**
+ * Open a night for a club. S64, S65.
+ *
+ * A NIGHT COPIES, IT DOES NOT REFERENCE. Every rule the club carries is
+ * snapshotted onto the session here, at birth, and from this moment the night
+ * owns them: a later change to the club cannot alter what is running in the
+ * kitchen, and can never alter what has been settled.
+ *
+ * Starting a game is therefore adding players and their first buy-ins, which
+ * is all this takes — the rules arrived by inheritance and want no form.
+ */
+export async function startNight(input: {
+  clubId: string;
+  groupName: string;
+  rules: readonly MoneyRule[];
+  seats: ReadonlyArray<{ playerId: PlayerId; name: string; buyIn: Money }>;
+  meId?: PlayerId;
+}): Promise<void> {
+  const db = await getDb();
+  const sessionId = randomUUID();
+  const startedAt = new Date();
+
+  await db.runAsync(
+    `INSERT INTO night (session_id, group_name, started_at, status, rules_json, me_id)
+     VALUES (?, ?, ?, 'open', ?, ?)`,
+    sessionId,
+    input.groupName,
+    startedAt.toISOString(),
+    JSON.stringify(input.rules),
+    input.meId ?? null,
+  );
+
+  for (const seat of input.seats) {
+    await db.runAsync(
+      `INSERT INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, 1)`,
+      sessionId,
+      seat.playerId,
+      seat.name,
+    );
+  }
+
+  // Everything after this point is the ledger's own business, so the night is
+  // loaded first and the buy-ins are appended through the same path every
+  // other entry takes.
+  const previous = night;
+  night = {
+    sessionId,
+    groupName: input.groupName,
+    startedAt: startedAt.toISOString(),
+    status: 'open',
+    players: input.seats.map((s) => ({ id: s.playerId, name: s.name, atTable: true })),
+    entries: [],
+    finalCounts: new Map(),
+    rules: [...input.rules],
+    ...(input.meId === undefined ? {} : { meId: input.meId }),
+    occurredAt: {},
+    noteOf: {},
+  };
+  emit();
+
+  try {
+    for (const seat of input.seats) {
+      if (seat.buyIn > 0) await buyIn(seat.playerId, seat.buyIn);
+    }
+  } catch (e) {
+    night = previous;
+    emit();
+    throw e;
+  }
+}
+
 export async function setStatus(status: Night['status']): Promise<void> {
   if (night === null) return;
   const db = await getDb();

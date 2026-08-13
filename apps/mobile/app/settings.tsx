@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { formatMoney } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
@@ -9,9 +10,12 @@ import { useSession } from '../src/lib/useSession';
 import { supabase } from '../src/lib/supabase';
 import { outbox, sync } from '../src/lib/ledgerRepo';
 import { useNight } from '../src/lib/nightStore';
+import { useClub } from '../src/lib/clubStore';
 
 /**
- * Settings — and the only place an account is mentioned.
+ * Settings — GR7. Four sections: the group, the money, the people, the exits.
+ *
+ * It is also the only place an account is mentioned.
  *
  * Signing in is NOT a gate. A night runs entirely on this phone: the ledger,
  * the counting, the settlement and the record of it all work with no account
@@ -26,6 +30,7 @@ export default function Settings() {
   const t = useTheme();
   const { session, loading, configured } = useSession();
   const night = useNight();
+  const club = useClub();
 
   const [queued, setQueued] = useState<number | null>(null);
   const [syncing, setSyncing] = useState(false);
@@ -51,18 +56,50 @@ export default function Settings() {
   return (
     <Screen
       title="Settings"
-      backTo="The group"
-      lede="Everything below is optional. The app records a night without any of it."
+      backTo="the club"
+      meta={club?.name}
     >
       <View style={styles.list}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>This night</Text>
+        <Text style={[styles.sectionLabel, { color: t.muted }]}>The group</Text>
+
+        <Fact label="Group name" value={club?.name ?? night?.groupName ?? '—'} />
+        <Fact label="Currency" value={club?.currency ?? '—'} last />
+
+        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The money</Text>
+
+        {/*
+         * The club's own layer of the chain. What is set here is what a night
+         * opens with when the last game has nothing to say — and changing it
+         * never reaches a night that is already running, or one already
+         * settled.
+         */}
+        <Fact
+          label="Standard buy-in"
+          value={club === null ? '—' : formatMoney(club.defaultBuyIn)}
+        />
+        <Action label="Money rules" onPress={() => router.push('/club-rules')} last />
+
+        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The people</Text>
+
+        <Action label="Players" onPress={() => router.push('/players')} />
+        <Fact
+          label="Invited"
+          value={
+            club === null
+              ? '—'
+              : `${club.members.filter((m) => m.invited).length} waiting`
+          }
+          last
+        />
+
+        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>This night</Text>
 
         <Fact label="Where it lives" value="On this phone" />
         <Fact
           label="Waiting to sync"
           value={queued === null ? '—' : queued === 0 ? 'Nothing' : `${queued} entries`}
+          last
         />
-        <Fact label="Group" value={night?.groupName ?? '—'} last />
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Account</Text>
 
@@ -97,6 +134,23 @@ export default function Settings() {
             <Action label="Sign in" onPress={() => router.push('/sign-in')} last />
           </>
         )}
+
+        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The exits</Text>
+
+        {/*
+         * SPECIFIED, NOT DRAWN, and blocked on decisions rev 13 leaves open:
+         * whether a club can have two admins and how admin is handed over,
+         * whether you can leave with an unsettled debt, and whether deleting a
+         * club destroys nights other people played in. A destructive control
+         * whose behaviour nobody has decided is worse than no control, so it
+         * says what it is waiting for instead.
+         */}
+        <Text style={[styles.note, { color: t.muted }]}>
+          Leaving and deleting a club are not built. Both wait on decisions the group has not
+          taken: whether a club can have a second admin and how it is handed over, whether
+          somebody can leave with money outstanding, and what happens to nights other people
+          played in.
+        </Text>
       </View>
     </Screen>
   );

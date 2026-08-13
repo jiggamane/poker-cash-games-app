@@ -10,6 +10,7 @@ import {
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
+import { setClubRules, useClub } from '../src/lib/clubStore';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { deleteRule, draftRule, saveRule, standingsOf, useNight } from '../src/lib/nightStore';
@@ -42,9 +43,17 @@ export default function RuleEditor() {
     destination?: MoneyRule['destination'];
     order?: string;
     draft?: string;
+    /**
+     * Which layer of the chain is being edited. 'club' writes the group's
+     * default, which only reaches nights opened afterwards; anything else
+     * writes tonight's own snapshot, which reaches nothing but tonight.
+     */
+    scope?: 'club' | 'night';
   }>();
 
-  const existing = night?.rules.find((r) => r.id === params.id);
+  const club = useClub();
+  const forClub = params.scope === 'club';
+  const existing = (forClub ? club?.rules : night?.rules)?.find((r) => r.id === params.id);
 
   /*
    * The night loads asynchronously, so `existing` is undefined on the first
@@ -91,7 +100,13 @@ export default function RuleEditor() {
     if (!canSave || busy) return;
     setBusy(true);
     try {
-      await saveRule({ ...rule, name: rule.name.trim() });
+      const saved = { ...rule, name: rule.name.trim() };
+      if (forClub && club !== null) {
+        const rest = club.rules.filter((r) => r.id !== saved.id);
+        await setClubRules(club.id, [...rest, saved]);
+      } else {
+        await saveRule(saved);
+      }
       router.back();
     } finally {
       setBusy(false);
@@ -126,7 +141,14 @@ export default function RuleEditor() {
               label="Remove this rule"
               variant="destructive"
               onPress={() => {
-                void deleteRule(rule.id);
+                if (forClub && club !== null) {
+                  void setClubRules(
+                    club.id,
+                    club.rules.filter((r) => r.id !== rule.id),
+                  );
+                } else {
+                  void deleteRule(rule.id);
+                }
                 router.back();
               }}
             />
