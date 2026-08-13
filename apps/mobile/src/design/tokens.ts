@@ -99,6 +99,15 @@ export interface Theme {
 
   /** Pending, unclaimed, unpaid. Text and 1px border on a pill, never a fill. */
   amber: string;
+
+  /** The 1.5px border of the end-the-night row: the loss colour at 55%. */
+  dangerStrong: string;
+  /** What the hold wipes across that row: the same colour at 34%. */
+  dangerWipe: string;
+  /** A row inside the table-admin drawer. */
+  drawerFill: string;
+  /** The drawer's own edge, one step stronger than a hairline. */
+  drawerEdge: string;
 }
 
 export const darkTheme: Theme = {
@@ -132,6 +141,10 @@ export const darkTheme: Theme = {
   grabber: 'rgba(255,255,255,0.22)',
   scrim: 'rgba(10,10,11,0.68)',
   amber: '#E8B455',
+  dangerStrong: 'rgba(240,112,92,0.55)',
+  dangerWipe: 'rgba(240,112,92,0.34)',
+  drawerFill: 'rgba(255,255,255,0.07)',
+  drawerEdge: 'rgba(255,255,255,0.16)',
 };
 
 export const lightTheme: Theme = {
@@ -174,6 +187,10 @@ export const lightTheme: Theme = {
   grabber: 'rgba(12,13,15,0.18)',
   scrim: 'rgba(255,255,255,0.68)',
   amber: '#8A5A00',
+  dangerStrong: 'rgba(176,58,40,0.55)',
+  dangerWipe: 'rgba(176,58,40,0.34)',
+  drawerFill: 'rgba(12,13,15,0.05)',
+  drawerEdge: 'rgba(12,13,15,0.15)',
 };
 
 /**
@@ -251,6 +268,47 @@ export const type = {
   sectionLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
   /** A quiet chip action — "House rules". */
   chip: { fontSize: 12.5, fontWeight: '600' },
+
+  /*
+   * Tonight — 08-tonight-home.md. The session screen runs its own scale: it is
+   * read across a room at arm's length, so the figure is bigger and the labels
+   * are smaller than anywhere else in the app.
+   */
+  /** The elapsed time inside the green pill. It IS the live tag. */
+  liveTag: { fontSize: 13, fontWeight: '700', letterSpacing: -0.13, ...tabular },
+  /** "started 20:05", at the right edge of the title row. */
+  startedAt: { fontSize: 13, fontWeight: '400', ...tabular },
+  /** "On the table" — sentence case, and deliberately not the caps eyebrow. */
+  tableLabel: { fontSize: 12.5, fontWeight: '600' },
+  /** The figure under it. */
+  tableFigure: { fontSize: 44, fontWeight: '800', letterSpacing: -1.76, lineHeight: 44, ...tabular },
+  /** "$5,000 total in", and the seat count beneath it. */
+  tableTotal: { fontSize: 13, fontWeight: '500', ...tabular },
+  tableSeats: { fontSize: 13, fontWeight: '400' },
+  /** A player row on Tonight: bigger than a totals row, and further apart. */
+  tableName: { fontSize: 17, fontWeight: '600' },
+  tableAmount: { fontSize: 19, fontWeight: '700', ...tabular },
+
+  /** The dock's disclosure row, closed then open. */
+  dockLabel: { fontSize: 14.5, fontWeight: '600' },
+  dockLabelOpen: { fontSize: 14.5, fontWeight: '700' },
+  dockHint: { fontSize: 13, fontWeight: '400' },
+  dockPrimary: { fontSize: 19, fontWeight: '700' },
+  dockSecondary: { fontSize: 14.5, fontWeight: '700' },
+  dockRow: { fontSize: 16.5, fontWeight: '600' },
+  dockEnd: { fontSize: 16.5, fontWeight: '700' },
+  dockEndSub: { fontSize: 12.5, fontWeight: '400' },
+
+  /** The player card's stat pairs, at two and at three across. */
+  statPairLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
+  statPairValue: { fontSize: 32, fontWeight: '800', letterSpacing: -1.28, lineHeight: 32, ...tabular },
+  statPairValueTight: { fontSize: 30, fontWeight: '800', letterSpacing: -1.2, lineHeight: 30, ...tabular },
+  /** The note beside them, at 104 wide. */
+  statPairNote: { fontSize: 12, fontWeight: '400', lineHeight: 16.8 },
+  /** An entry on the player card: what it was, over where it came from. */
+  entryType: { fontSize: 16, fontWeight: '600' },
+  entryProvenance: { fontSize: 12.5, fontWeight: '400' },
+  entryAmount: { fontSize: 17, fontWeight: '700', ...tabular },
   /** A name inside a net chip, then the figure beside it. */
   netName: { fontSize: 14, fontWeight: '600' },
   netFigure: { fontSize: 14, fontWeight: '700', ...tabular },

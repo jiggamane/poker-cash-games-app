@@ -36,17 +36,24 @@ type Kind = 'buyin' | 'rebuy' | 'cashout' | 'count';
  */
 export default function Log() {
   const t = useTheme();
-  const { player, newPlayer, kind = 'buyin' } = useLocalSearchParams<{
+  const { player, newPlayer, kind = 'buyin', amount: prefill } = useLocalSearchParams<{
     player?: string;
     newPlayer?: string;
     kind?: Kind;
+    /** What the caller has already resolved — the player card's rebuy figure. */
+    amount?: string;
   }>();
 
   const night = useNight();
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   const name = newPlayer ?? night?.players.find((p) => p.id === player)?.name ?? '';
-  const suggested = ledger === null ? money(500) : defaultBuyIn(ledger);
+  const suggested =
+    prefill !== undefined && Number.isInteger(Number(prefill))
+      ? money(Number(prefill))
+      : ledger === null
+        ? money(500)
+        : defaultBuyIn(ledger);
 
   const counting = kind === 'cashout' || kind === 'count';
   const [typed, setTyped] = useState<string>(counting ? '0' : String(suggested));

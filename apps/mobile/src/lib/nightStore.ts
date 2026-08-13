@@ -655,14 +655,10 @@ export function chipsOnTable(ledger: ResolvedLedger): Money {
   return (ledger.totalBoughtIn - ledger.totalCashedOut) as Money;
 }
 
-/** What a first buy-in should default to: whatever the table has been buying in for. */
-export function defaultBuyIn(ledger: ResolvedLedger): Money {
-  const firsts = ledger.entries.filter((e) => !e.voided && e.type === 'buyin').map((e) => e.amount);
-  if (firsts.length === 0) return money(500);
-  // The most common one, not the average: a mean would invent an amount nobody
-  // has ever bought in for.
-  const tally = new Map<number, number>();
-  for (const a of firsts) tally.set(a, (tally.get(a) ?? 0) + 1);
-  const [best] = [...tally.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0]);
-  return money(best[0]);
-}
+/*
+ * Both of these are pure reads over a resolved ledger, so they live in the
+ * money core where they are tested, and are re-exported here because every
+ * screen already reaches for the store.
+ */
+export { lastRebuyAmount } from '@poker-club/core';
+export { standardBuyIn as defaultBuyIn } from '@poker-club/core';

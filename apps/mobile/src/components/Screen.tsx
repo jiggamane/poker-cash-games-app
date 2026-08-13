@@ -26,16 +26,29 @@ import { Pill } from './Pill';
 export function Screen({
   title,
   badge,
+  trailing,
   meta,
   backTo,
   lede,
   children,
   footer,
+  footerPad = true,
   scroll = true,
+  dimmed = false,
 }: {
   title: string;
-  /** A status pill directly after the title — "1 of 3", "SETTLED". */
-  badge?: string;
+  /**
+   * After the title, in the same row. A string becomes a status pill; anything
+   * else is drawn as given — Tonight's running-time tag is its own element.
+   */
+  badge?: ReactNode;
+  /**
+   * The right edge of the title row. TEXT ONLY, and only where a screen has
+   * been drawn with it (Tonight's "started 20:05"). The corner takes no
+   * controls: that rule is what keeps a push and a sheet telling different
+   * stories.
+   */
+  trailing?: ReactNode;
   /** Club · elapsed · since. One line, and it may be a fragment. */
   meta?: string;
   /**
@@ -48,8 +61,16 @@ export function Screen({
   children: ReactNode;
   /** Pinned below the scroll area, where the one primary action lives. */
   footer?: ReactNode;
+  /** Off when the footer carries its own margins — the dock does. */
+  footerPad?: boolean;
   /** Off when the screen manages its own scrolling — a list with a dock. */
   scroll?: boolean;
+  /**
+   * Everything above the footer drops to .4 while the table-admin drawer is
+   * open. The drawer is not a navigation state — it is the dock expanding in
+   * place — so the screen stays mounted and simply steps back.
+   */
+  dimmed?: boolean;
 }) {
   const t = useTheme();
 
@@ -73,7 +94,8 @@ export function Screen({
         <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
           {title}
         </Text>
-        {badge !== undefined && <Pill label={badge} />}
+        {typeof badge === 'string' ? <Pill label={badge} /> : badge}
+        {trailing !== undefined && <View style={styles.trailing}>{trailing}</View>}
       </View>
 
       {meta !== undefined && (
@@ -89,18 +111,22 @@ export function Screen({
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
       {scroll ? (
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          style={dimmed ? styles.dimmed : undefined}
+        >
           {head}
           {children}
         </ScrollView>
       ) : (
-        <View style={styles.fixed}>
+        <View style={[styles.fixed, dimmed && styles.dimmed]}>
           {head}
           {children}
         </View>
       )}
 
-      {footer !== undefined && <View style={styles.footer}>{footer}</View>}
+      {footer !== undefined && <View style={footerPad ? styles.footer : undefined}>{footer}</View>}
     </SafeAreaView>
   );
 }
@@ -109,6 +135,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   fixed: { flex: 1 },
   content: { paddingBottom: 24 },
+  dimmed: { opacity: chrome.behindDrawer },
 
   titleRow: {
     flexDirection: 'row',
@@ -125,6 +152,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: { ...type.title, flexShrink: 1 },
+  trailing: { marginLeft: 'auto' },
   meta: {
     ...type.pushMeta,
     paddingTop: chrome.metaPadTop,

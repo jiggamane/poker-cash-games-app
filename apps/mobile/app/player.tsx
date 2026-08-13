@@ -7,20 +7,24 @@ import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { depthOf, standingOf, useNight } from '../src/lib/nightStore';
+import { lastRebuyAmount, standingOf, useNight } from '../src/lib/nightStore';
 
 /**
- * One player — N3.
+ * The player card — T2 at the table, T4 cashed out. 08-tonight-home.md.
  *
- * Two figures side by side, and the right one is an EM DASH until their chips
- * are counted. That is the whole point of the screen: while a game is running
- * nobody's result is known, only what they have put in, and a page that showed
- * a running "net" would be inventing a number out of chips it has not seen.
+ * This is where the night's history lives now: there is no feed anywhere in
+ * the app, so every entry with its timestamp hangs off the person it happened
+ * to. Oldest first, because you read a person's night forwards.
  *
- * Underneath, every entry with the time it was made — which is what settles an
- * argument about whether somebody rebought before or after a hand.
+ * COUNTED IS AN EM DASH until their chips are counted, and that is the point of
+ * the screen. While a game runs nobody's result exists — only what they have
+ * put in — and a page showing a running "net" would be inventing a number out
+ * of chips nobody has looked at.
+ *
+ * The two secondaries are NOT red. Cashing out is a normal, expected act; only
+ * ending the night is destructive, and that lives behind a hold in the dock.
  */
-export default function PlayerPage() {
+export default function PlayerCard() {
   const t = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const night = useNight();
@@ -41,113 +45,135 @@ export default function PlayerPage() {
   }
 
   const standing = standingOf(night, ledger, player.id);
-  const boughtIn = (standing?.boughtIn ?? 0) as Money;
-  const stillIn = standing?.atTable === true;
-
-  /*
-   * What they have taken off the table: their cash-outs, plus the count in
-   * front of them if they are still sitting there. Nothing at all until one of
-   * those exists — a player mid-game has no result, only a stake.
-   */
-  const finalCount = night.finalCounts.get(player.id);
-  const counted =
-    stillIn
-      ? finalCount === undefined
-        ? undefined
-        : ((finalCount + (standing?.cashedOut ?? 0)) as Money)
-      : standing?.played === true
-        ? ((standing.cashedOut ?? 0) as Money)
-        : undefined;
+  const inFor = (standing?.boughtIn ?? 0) as Money;
+  const seated = standing?.atTable === true;
 
   const mine = ledger.entries.filter((e) => e.playerId === player.id);
   const first = mine[0];
+  const lastOut = [...mine].reverse().find((e) => e.type === 'cashout');
+
+  /*
+   * What they have taken off the table: their cash-outs, plus the count in
+   * front of them if the host has already counted it. Nothing at all until one
+   * of those exists.
+   */
+  const finalCount = night.finalCounts.get(player.id);
+  const counted = seated
+    ? finalCount === undefined
+      ? undefined
+      : ((finalCount + (standing?.cashedOut ?? 0)) as Money)
+    : standing?.played === true
+      ? ((standing.cashedOut ?? 0) as Money)
+      : undefined;
+
+  const result = counted === undefined ? undefined : ((counted - inFor) as Money);
+
+  const rebuy = lastRebuyAmount(ledger, player.id);
 
   return (
     <Sheet
       title={player.name}
-     
+      badge={
+        standing?.played !== true
+          ? 'on the roster'
+          : seated
+            ? standing.returned
+              ? 'back in'
+              : 'seated'
+            : standing.cashedOut === 0
+              ? 'busted out'
+              : 'cashed out'
+      }
+      sub={
+        seated
+          ? first === undefined
+            ? undefined
+            : `since ${clock(night.occurredAt[first.id])}`
+          : lastOut === undefined
+            ? undefined
+            : `left ${clock(night.occurredAt[lastOut.id])}`
+      }
       footer={
-        stillIn ? (
-          <View style={styles.actions}>
+        seated ? (
+          <>
+            {/* Pre-filled per M16: their last rebuy tonight, then tonight's
+                buy-in, then the group default. Where it came from is
+                deliberately not printed anywhere — M17. */}
             <Button
-              label="Rebuy"
+              label={`Rebuy ${formatMoney(rebuy)}`}
               variant="primary"
-              style={styles.action}
               onPress={() =>
-                router.push({ pathname: '/log', params: { player: player.id, kind: 'rebuy' } })
+                router.push({
+                  pathname: '/log',
+                  params: { player: player.id, kind: 'rebuy', amount: String(rebuy) },
+                })
+              }
+            />
+            <View style={styles.pair}>
+              <Button
+                label="Other amount"
+                variant="secondary"
+                style={styles.half}
+                onPress={() =>
+                  router.push({ pathname: '/log', params: { player: player.id, kind: 'rebuy' } })
+                }
+              />
+              <Button
+                label={`Cash out ${player.name}`}
+                variant="secondary"
+                style={styles.half}
+                onPress={() =>
+                  router.push({ pathname: '/log', params: { player: player.id, kind: 'cashout' } })
+                }
+              />
+            </View>
+          </>
+        ) : (
+          <View style={styles.pair}>
+            {/* No primary once they are out. Correcting opens the newest line,
+                which is the one just written; every other line is one tap away
+                in the list above. */}
+            <Button
+              label="Correct an entry"
+              variant="secondary"
+              style={styles.half}
+              disabled={mine.length === 0}
+              onPress={() =>
+                router.push({ pathname: '/entry', params: { id: mine[mine.length - 1]!.id } })
               }
             />
             <Button
-              label="Cash out"
+              label="Back to table"
               variant="secondary"
-              style={styles.action}
-              onPress={() =>
-                router.push({ pathname: '/log', params: { player: player.id, kind: 'cashout' } })
-              }
+              style={styles.half}
+              onPress={() => router.back()}
             />
           </View>
-        ) : undefined
+        )
       }
     >
-      <View style={styles.tagRow}>
-        <View style={[styles.tag, { backgroundColor: t.raised }]}>
-          <Text style={[styles.tagText, { color: t.muted }]}>
-            {standing?.played !== true
-              ? 'ON THE ROSTER'
-              : stillIn
-                ? standing.returned
-                  ? 'BACK IN'
-                  : 'SEATED'
-                : standing.cashedOut === 0
-                  ? 'BUSTED OUT'
-                  : 'CASHED OUT'}
-          </Text>
-        </View>
-        {first !== undefined && (
-          <Text style={[styles.since, { color: t.muted }]}>
-            since {clock(night.occurredAt[first.id])}
-          </Text>
-        )}
-      </View>
-
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <View style={styles.cardTop}>
-          <View style={styles.figure}>
-            <Text style={[styles.label, { color: t.muted }]}>Buy-in + rebuys</Text>
-            <Text style={[styles.big, { color: t.text }]}>{formatMoney(boughtIn)}</Text>
-          </View>
-          <View style={[styles.figure, styles.right]}>
-            <Text style={[styles.label, { color: t.muted }]}>Counted</Text>
-            <Text style={[styles.big, { color: counted === undefined ? t.muted : t.text }]}>
-              {counted === undefined ? '—' : formatMoney(counted)}
-            </Text>
-          </View>
-        </View>
-
-        <Text style={[styles.cardNote, { color: t.muted }]}>
-          {counted === undefined
-            ? `Net is known once ${player.name}’s chips are counted, at cash-out or at the end of the night.`
-            : 'Before the bill and the kitty, which come off at settle-up.'}
-        </Text>
-
-        {counted !== undefined && (
-          <View style={[styles.net, { borderTopColor: t.hairline }]}>
-            <Text style={[styles.netLabel, { color: t.text }]}>Chips against buy-ins</Text>
-            <Text
-              style={[styles.netFigure, { color: moneyColor(t, (counted - boughtIn) as Money) }]}
-            >
-              {formatSigned((counted - boughtIn) as Money)}
-            </Text>
-          </View>
+        <StatPair label="In for" value={formatMoney(inFor)} tight={result !== undefined} />
+        <StatPair
+          label="Counted"
+          value={counted === undefined ? '—' : formatMoney(counted)}
+          muted={counted === undefined}
+          tight={result !== undefined}
+        />
+        {result !== undefined && (
+          <StatPair label="Night" value={formatSigned(result)} color={moneyColor(t, result)} tight push />
+        )}
+        {result === undefined && (
+          <Text style={[styles.cardNote, { color: t.muted }]}>
+            Net is known once chips are counted
+          </Text>
         )}
       </View>
 
       <View style={styles.list}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>
-          {mine.length === 0 ? 'Nothing yet' : `${depthOf(ledger, player.id)} · when each was made`}
-        </Text>
+        <Text style={[styles.sectionLabel, { color: t.muted }]}>Entries</Text>
 
-        {[...mine].reverse().map((e, i, all) => (
+        {mine.map((e, i) => (
           <Pressable
             key={e.id}
             accessibilityRole="button"
@@ -156,24 +182,126 @@ export default function PlayerPage() {
               styles.row,
               {
                 borderBottomColor: t.hairline,
-                borderBottomWidth: i === all.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                borderBottomWidth: i === mine.length - 1 ? 0 : StyleSheet.hairlineWidth,
                 opacity: pressed ? 0.6 : 1,
               },
             ]}
           >
             <Text style={[styles.time, { color: t.muted }]}>{clock(night.occurredAt[e.id])}</Text>
-            <Text style={[styles.what, { color: e.voided ? t.muted : t.text }]}>
-              {e.type === 'buyin' ? 'Buy-in' : e.type === 'rebuy' ? 'Rebuy' : 'Cash out'}
-              {e.voided ? ' · voided' : e.corrected ? ' · corrected' : ''}
-            </Text>
-            <Text style={[styles.amount, { color: t.text }]}>{formatMoney(e.amount)}</Text>
-            <Icon name="chevron" color={t.muted} />
+            <View style={styles.entryText}>
+              <Text style={[styles.entryType, { color: e.voided ? t.muted : t.text }]}>
+                {label(e.type, mine, i)}
+              </Text>
+              <Text style={[styles.provenance, { color: t.muted }]} numberOfLines={1}>
+                {provenance(e, mine, i, night)}
+              </Text>
+            </View>
+            <Text style={[styles.entryAmount, { color: t.text }]}>{formatMoney(e.amount)}</Text>
           </Pressable>
         ))}
+
+        {mine.length === 0 && (
+          <Text style={[styles.note, { color: t.muted }]}>Nothing logged for them yet.</Text>
+        )}
       </View>
+
+      {!seated && result !== undefined && (
+        <View style={[styles.settledNote, { borderTopColor: t.hairline }]}>
+          {/* The drawn line names the sample player and so carries her pronoun;
+              this is the same sentence with the pronoun that fits everyone. */}
+          <Text style={[styles.settledText, { color: t.muted }]}>
+            Their result is set. Bills and the kitty still come off it at settle-up.
+          </Text>
+        </View>
+      )}
     </Sheet>
   );
 }
+
+/** A label over a figure, two or three across the summary card. */
+function StatPair({
+  label,
+  value,
+  color,
+  muted = false,
+  tight = false,
+  push = false,
+}: {
+  label: string;
+  value: string;
+  color?: string;
+  muted?: boolean;
+  tight?: boolean;
+  push?: boolean;
+}) {
+  const t = useTheme();
+  return (
+    <View style={[styles.stat, push && styles.statPush]}>
+      <Text style={[styles.statLabel, { color: t.muted }]}>{label}</Text>
+      <Text
+        style={[
+          tight ? styles.statValueTight : styles.statValue,
+          { color: color ?? (muted ? t.muted : t.text) },
+        ]}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+/** "First buy-in", "Second rebuy", "Cashed out" — what the line is. */
+function label(
+  kind: 'buyin' | 'rebuy' | 'cashout' | 'expense',
+  all: readonly { type: string }[],
+  index: number,
+): string {
+  if (kind === 'cashout') return 'Cashed out';
+  if (kind === 'buyin') return 'Buy-in';
+  const nth = all.slice(0, index + 1).filter((e) => e.type === 'rebuy').length;
+  return `${ordinal(nth)} rebuy`;
+}
+
+/**
+ * The line under it: how deep this entry is, and what has happened to it since.
+ *
+ * The drawn strings carry a "logged by Ivo" clause. Nothing in the app knows
+ * who is holding the phone yet — there is no host identity in the store — so
+ * that clause is left off rather than filled with a guess.
+ *
+ * A VOIDED entry has no written copy in the bundle (rev 8, § "What is not
+ * settled"). The row must exist, so it uses the word this app already shipped
+ * rather than a new sentence invented here. Flagged, not solved.
+ */
+function provenance(
+  e: { id: string; type: string; corrected: boolean; voided: boolean; originalAmount: Money },
+  all: readonly { type: string }[],
+  index: number,
+  night: NonNullable<ReturnType<typeof useNight>>,
+): string {
+  if (e.voided) return 'voided';
+
+  const depth =
+    e.type === 'cashout'
+      ? 'stack counted · seat closed'
+      : e.type === 'buyin'
+        ? 'first buy-in'
+        : `${ordinal(all.slice(0, index + 1).filter((x) => x.type === 'rebuy').length)} rebuy`;
+
+  if (!e.corrected) return depth;
+
+  const correction = [...night.entries]
+    .filter((x) => x.correctsEntryId === e.id)
+    .sort((a, b) => b.seq - a.seq)[0];
+  const at = correction === undefined ? undefined : night.occurredAt[correction.id];
+
+  return `${depth} · corrected from ${formatMoney(e.originalAmount)}${
+    at === undefined ? '' : ` at ${clock(at)}`
+  }`;
+}
+
+const ordinal = (n: number): string =>
+  n === 1 ? 'First' : n === 2 ? 'Second' : n === 3 ? 'Third' : `${n}th`;
 
 const clock = (iso: string | undefined): string =>
   iso === undefined
@@ -181,45 +309,38 @@ const clock = (iso: string | undefined): string =>
     : new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 const styles = StyleSheet.create({
-  tagRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: -6,
-    marginHorizontal: space.page,
-    marginBottom: 4,
-  },
-  tag: { borderRadius: 6, paddingVertical: 6, paddingHorizontal: 10 },
-  tagText: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1 },
-  since: { fontSize: 14, fontWeight: '400' },
-
   card: {
-    marginTop: 16,
-    marginHorizontal: 18,
-    paddingVertical: 22,
-    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 22,
+    marginTop: 10,
+    marginHorizontal: 20,
+    marginBottom: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
     borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: 16,
   },
-  cardTop: { flexDirection: 'row', alignItems: 'flex-end', gap: 14 },
-  figure: { gap: 5 },
-  right: { marginLeft: 'auto', alignItems: 'flex-end' },
-  label: type.sectionLabel,
-  big: { fontSize: 46, fontWeight: '800', letterSpacing: -1.84, fontVariant: ['tabular-nums'] },
-  cardNote: { fontSize: 13.5, fontWeight: '400', lineHeight: 20 },
-  net: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
-  netLabel: { fontSize: 14, fontWeight: '500' },
-  netFigure: { fontSize: 18, fontWeight: '800', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+  stat: { gap: 6 },
+  statPush: { marginLeft: 'auto', alignItems: 'flex-end' },
+  statLabel: type.statPairLabel,
+  statValue: type.statPairValue,
+  statValueTight: type.statPairValueTight,
+  cardNote: { ...type.statPairNote, marginLeft: 'auto', maxWidth: 104, textAlign: 'right' },
 
-  list: { marginTop: 22, marginHorizontal: space.page },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 4 },
-  time: { ...type.time, width: 42 },
-  what: type.feedName,
-  amount: { ...type.feedFigure, marginLeft: 'auto' },
+  list: { marginHorizontal: 20 },
+  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 4 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4 },
+  time: { ...type.time, width: 44 },
+  entryText: { gap: 2, flexShrink: 1 },
+  entryType: type.entryType,
+  provenance: type.entryProvenance,
+  entryAmount: { ...type.entryAmount, marginLeft: 'auto' },
+
+  settledNote: { marginTop: 14, marginHorizontal: 20, paddingTop: 12, borderTopWidth: 1 },
+  settledText: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
 
   note: { ...type.footnote, marginHorizontal: space.page },
-  actions: { flexDirection: 'row', gap: 14 },
-  action: { flex: 1 },
+  pair: { flexDirection: 'row', gap: 10 },
+  half: { flex: 1 },
 });

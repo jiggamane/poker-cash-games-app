@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { endedWith, LedgerError, reconcile, resolveLedger } from './ledger';
+import {
+  endedWith,
+  lastRebuyAmount,
+  LedgerError,
+  reconcile,
+  resolveLedger,
+  standardBuyIn,
+} from './ledger';
 import { money } from './money';
 import type { LedgerEntry, PlayerId } from './types';
 
@@ -210,5 +217,67 @@ describe('endedWith()', () => {
     reset();
     const l = resolveLedger([buyin(DANA, 500), cashout(DANA, 800)]);
     expect(endedWith(l, DANA, new Map())).toBe(800);
+  });
+});
+
+describe('standardBuyIn()', () => {
+  it('is the most common first buy-in, not the average', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 500), buyin(DANA, 500), buyin('p-ivo', 1000)]);
+    expect(standardBuyIn(l)).toBe(500);
+  });
+
+  it('falls back to 500 on a table nobody has bought into', () => {
+    reset();
+    expect(standardBuyIn(resolveLedger([]))).toBe(500);
+  });
+});
+
+describe('lastRebuyAmount() — M16', () => {
+  it('is that player’s last rebuy tonight', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 500), rebuy(PETR, 1000), rebuy(PETR, 300)]);
+    expect(lastRebuyAmount(l, PETR)).toBe(300);
+  });
+
+  it('is per player, not table-wide', () => {
+    reset();
+    const l = resolveLedger([
+      buyin(PETR, 500),
+      buyin(DANA, 500),
+      rebuy(PETR, 1000),
+      rebuy(DANA, 200),
+    ]);
+    expect(lastRebuyAmount(l, PETR)).toBe(1000);
+    expect(lastRebuyAmount(l, DANA)).toBe(200);
+  });
+
+  it('falls back to the standard buy-in for someone who has not rebought', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 500), buyin(DANA, 500), rebuy(PETR, 1000)]);
+    expect(lastRebuyAmount(l, DANA)).toBe(500);
+  });
+
+  it('stops counting a voided rebuy and falls back to the one before it', () => {
+    reset();
+    const l = resolveLedger([
+      buyin(PETR, 500),
+      rebuy(PETR, 1000),
+      rebuy(PETR, 300, 'mistake'),
+      voidEntry('mistake'),
+    ]);
+    expect(lastRebuyAmount(l, PETR)).toBe(1000);
+  });
+
+  it('counts a corrected rebuy at its corrected amount', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 500), rebuy(PETR, 300, 'typo'), correction('typo', 500)]);
+    expect(lastRebuyAmount(l, PETR)).toBe(500);
+  });
+
+  it('falls back to the buy-in when every rebuy has been voided', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 800), rebuy(PETR, 300, 'only'), voidEntry('only')]);
+    expect(lastRebuyAmount(l, PETR)).toBe(800);
   });
 });

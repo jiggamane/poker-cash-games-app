@@ -174,6 +174,45 @@ export function endedWith(
   ]);
 }
 
+/**
+ * What the table has been buying in for.
+ *
+ * The most common first buy-in, not the average: a mean would invent an amount
+ * nobody has ever bought in for. With nothing to go on, $500.
+ */
+export function standardBuyIn(ledger: ResolvedLedger): Money {
+  const firsts = ledger.entries.filter((e) => !e.voided && e.type === 'buyin');
+  if (firsts.length === 0) return money(500);
+
+  const tally = new Map<number, number>();
+  for (const e of firsts) tally.set(e.amount, (tally.get(e.amount) ?? 0) + 1);
+  const [best] = [...tally.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0]);
+  return money(best![0]);
+}
+
+/**
+ * What a rebuy should be pre-filled with, for one person. M16.
+ *
+ * Resolution order, per player and never table-wide: their last rebuy tonight
+ * → tonight's standard buy-in → the group default. A VOIDED rebuy stops
+ * counting, so the answer falls back to the one before it; a CORRECTED rebuy
+ * counts at its corrected amount, which is what `resolveLedger` has already
+ * applied by the time this reads it.
+ *
+ * This is an input convenience, not a money rule — it decides what a keypad
+ * opens with and nothing else. It lives here because the resolution order is
+ * exact, and because the screen showing it deliberately never explains where
+ * the figure came from (M17), which leaves this function as the only place the
+ * answer is written down.
+ */
+export function lastRebuyAmount(ledger: ResolvedLedger, playerId: PlayerId): Money {
+  const mine = ledger.entries.filter(
+    (e) => !e.voided && e.type === 'rebuy' && e.playerId === playerId,
+  );
+  const newest = mine[mine.length - 1];
+  return newest === undefined ? standardBuyIn(ledger) : newest.amount;
+}
+
 // --- internals ---------------------------------------------------------------
 
 function validateBaseEntry(e: LedgerEntry): void {
