@@ -1,5 +1,13 @@
 # Handoff: The Poker Club — a cash-game ledger
 
+> **This is the first handoff, kept for its reasoning. It is not current.**
+> The current bundle is [`handoff-2026-08-13/`](handoff-2026-08-13/), whose `CHANGELOG.md`
+> is cumulative to rev 13. Where this file and that one disagree, that one wins — most
+> visibly on navigation (there is no labelled back row any more: a screen is either pushed
+> with a round back button or opened as a sheet), on the session screen (the Totals/Feed
+> tabs are gone), and on the money rules (splits are *winners by %*, *winners evenly* or
+> *custom*, and rounding granularity is a group rule).
+
 ## What I need back from you
 
 **A recommendation and a build plan for the technical infrastructure.** Not UI code yet. Specifically:

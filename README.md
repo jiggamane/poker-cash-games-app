@@ -31,12 +31,16 @@ cd apps/mobile && npm start   # scan the QR code with Expo Go
   cost/operations. Start here if you want to know why.
 - **[`docs/settlement-rules.md`](docs/settlement-rules.md)** — exactly how the money rules
   are interpreted, and **six decisions that need a designer's confirmation**.
-- **[`design/`](design/)** — the original design references (HTML prototypes, high
+- **[`design/handoff-2026-08-13/`](design/handoff-2026-08-13/)** — **the current handoff.**
+  Read its `CHANGELOG.md` first: it is cumulative to rev 13, and it names what each rev
+  supersedes. `09-navigation.md` (push + sheet, no tab bar) and `08-tonight-home.md` (the
+  live session) are the two files every screen depends on.
+- **[`design/`](design/)** — the design references themselves (HTML prototypes, high
   fidelity). Open the `.dc.html` files in a browser with `support.js` beside them; pan
-  horizontally. `Style Guide v2` has the colour, type, spacing and navigation rules;
-  `Cash Game v2` has the current screens (newest at the top); `Cash Game Board` is the
-  earlier direction, kept only for flows the new style hasn't reached (the book, the
-  watcher's view).
+  horizontally. `Style Guide v2` has the colour, type, spacing and navigation rules; the
+  boards inside the handoff folder are the current snapshot, and the loose ones at the top
+  level are the earlier direction, kept only for flows the new style hasn't reached (the
+  book, the watcher's view).
 
 ## Layout
 
