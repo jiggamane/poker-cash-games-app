@@ -8,8 +8,8 @@ import { space, type } from '../src/design/tokens';
 import { useSession } from '../src/lib/useSession';
 import { supabase } from '../src/lib/supabase';
 import { shareLinkFor } from '../src/lib/shareLink';
-import { publishNight, stopSharing, watcherCount } from '../src/lib/publish';
-import { outbox, sync } from '../src/lib/ledgerRepo';
+import { shareTokenFor, stopSharing, watcherCount } from '../src/lib/publish';
+import { drain, syncStatus, type SyncStatus } from '../src/lib/sync';
 import { useNight } from '../src/lib/nightStore';
 
 /**
@@ -29,7 +29,7 @@ export default function Settings() {
   const { session, loading, configured } = useSession();
   const night = useNight();
 
-  const [queued, setQueued] = useState<number | null>(null);
+  const [status, setStatus] = useState<SyncStatus | null>(null);
   const [syncing, setSyncing] = useState(false);
 
   // The watcher's link, once this night has been put on the server.
@@ -39,36 +39,40 @@ export default function Settings() {
   const [shareError, setShareError] = useState<string | null>(null);
 
   useEffect(() => {
-    void outbox.count().then(setQueued).catch(() => setQueued(null));
+    void syncStatus().then(setStatus).catch(() => setStatus(null));
   });
 
   const signedIn = session !== null;
 
-  async function drain() {
+  async function sendNow() {
     setSyncing(true);
     try {
-      await sync();
+      await drain();
     } catch {
       // Offline, or not signed in. The queue keeps everything; nothing is lost.
     } finally {
-      setQueued(await outbox.count().catch(() => 0));
+      setStatus(await syncStatus().catch(() => null));
       setSyncing(false);
     }
   }
 
   /**
-   * Publish tonight and hand the room its link.
+   * Hand the room the link. Nothing is published here.
    *
-   * Publishing on demand rather than continuously is the honest v1 behaviour:
-   * nothing leaves the phone until the host asks for it to, and the ask is the
-   * same gesture as the sharing.
+   * The night went to the server when it opened. This reads the token that came
+   * with it — so a night that has not reached the server yet has no link, and
+   * says so rather than pretending.
    */
   async function share() {
     if (night === null) return;
     setSharing(true);
     setShareError(null);
     try {
-      const token = await publishNight(night);
+      // The night is already on the server, or queued to be — this only reads
+      // the link. A night that has not reached the server yet has no token to
+      // read, and the error says exactly that.
+      await drain();
+      const token = await shareTokenFor(night.sessionId);
       const url = shareLinkFor(token);
       setLink(url);
       setWatchers(await watcherCount(night.sessionId).catch(() => 0));
@@ -104,10 +108,19 @@ export default function Settings() {
       <View style={styles.list}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>This night</Text>
 
-        <Fact label="Where it lives" value="On this phone" />
+        {/* One honest line. A host about to wipe their phone deserves to know
+            whether the night is anywhere else yet. */}
         <Fact
-          label="Waiting to sync"
-          value={queued === null ? '—' : queued === 0 ? 'Nothing' : `${queued} entries`}
+          label="Where it lives"
+          value={
+            status === null
+              ? 'On this phone'
+              : status.waiting === 0
+                ? signedIn
+                  ? 'On this phone and the server'
+                  : 'On this phone'
+                : `On this phone · ${status.waiting} waiting`
+          }
         />
         <Fact label="Group" value={night?.groupName ?? '—'} last />
 
@@ -122,10 +135,7 @@ export default function Settings() {
         ) : signedIn ? (
           <>
             <Fact label="Signed in as" value={session.user.email ?? 'unknown'} />
-            <Action
-              label={syncing ? 'Syncing…' : 'Sync now'}
-              onPress={() => void drain()}
-            />
+            <Action label={syncing ? 'Sending…' : 'Send what is waiting'} onPress={() => void sendNow()} />
             <Action
               label="Sign out"
               onPress={() => {
@@ -145,15 +155,20 @@ export default function Settings() {
           </>
         )}
 
+        {status !== null && status.lastError !== null && (
+          <Text style={[styles.note, { color: t.muted }]}>
+            Last try: {status.lastError}
+          </Text>
+        )}
+
         {signedIn && night !== null && (
           <>
             <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Watchers</Text>
 
             <Text style={[styles.note, { color: t.muted }]}>
-              Sharing puts tonight on the server and gives you a link. Whoever opens it can read
-              this night — the running list, as it happens — and nothing else. They never sign up:
-              the link is their whole credential, which is also why anyone it is forwarded to can
-              watch too.
+              Whoever opens the link can read this night — the running list, as it happens — and
+              nothing else. They never sign up: the link is their whole credential, which is also
+              why anyone it is forwarded to can watch too.
             </Text>
 
             {link !== null && (

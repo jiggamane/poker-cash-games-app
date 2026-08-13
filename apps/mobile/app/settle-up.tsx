@@ -7,7 +7,7 @@ import { Row } from '../src/components/Row';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { nameOf, setStatus, useNight } from '../src/lib/nightStore';
+import { closeNight, nameOf, useNight } from '../src/lib/nightStore';
 
 /**
  * Settle up — the last of the three close steps. Built from E4.
@@ -116,9 +116,18 @@ export default function SettleUp() {
             label="Close the session"
             variant="primary"
             onPress={() => {
-              void setStatus('settled');
-              router.dismissTo('/');
-              router.push('/settled');
+              // Freezes the result, marks the night, and queues the record.
+              // Everything after this reads that frozen copy rather than
+              // recomputing — which is what stops a settled night drifting.
+              void closeNight()
+                .then(() => {
+                  router.dismissTo('/');
+                  router.push('/settled');
+                })
+                .catch(() => {
+                  // settle() refused: the count does not balance and nothing
+                  // has been confirmed. The screen above already says so.
+                });
             }}
           />
           <Button

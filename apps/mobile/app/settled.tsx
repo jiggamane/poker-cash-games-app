@@ -1,12 +1,19 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { formatMoney, formatSigned, resolveLedger, settle, type Money } from '@poker-club/core';
+import {
+  formatMoney,
+  formatSigned,
+  resolveLedger,
+  settle,
+  type Money,
+  type SettlementResult,
+} from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { useNight } from '../src/lib/nightStore';
+import { frozenSettlement, useNight } from '../src/lib/nightStore';
 
 /**
  * Night settled — E6. What a night looks like once it is over.
@@ -21,7 +28,24 @@ export default function Settled() {
   const t = useTheme();
   const night = useNight();
 
-  const result = useMemo(() => {
+  /*
+   * THE FROZEN RESULT, read rather than recomputed.
+   *
+   * This screen is the record of a night that is over, and a record that
+   * recalculates itself every time it is opened is not a record: correct a
+   * long-past entry and the figures five people already settled on would move
+   * under them. The settlement was computed once, at close, and stored.
+   *
+   * The live fallback is for nights closed before results were frozen, and for
+   * the moment between arriving here and the read returning.
+   */
+  const [frozen, setFrozen] = useState<SettlementResult | null>(null);
+  useEffect(() => {
+    if (night === null) return;
+    void frozenSettlement(night.sessionId).then(setFrozen);
+  }, [night?.sessionId]);
+
+  const live = useMemo(() => {
     if (night === null) return null;
     try {
       return settle({
@@ -35,6 +59,8 @@ export default function Settled() {
       return null;
     }
   }, [night]);
+
+  const result = frozen ?? live;
 
   if (night === null) return <Screen title="The night" backTo="The group">{null}</Screen>;
 

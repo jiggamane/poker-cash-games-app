@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Linking from 'expo-linking';
@@ -6,6 +7,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
 import { sheetPresentation } from '../src/components/Sheet';
 import { completeSignInFromUrl } from '../src/lib/authLink';
+import { drain } from '../src/lib/sync';
+import { supabase } from '../src/lib/supabase';
 import { parseShareLink } from '../src/lib/shareLink';
 import { openNight } from '../src/lib/nightStore';
 
@@ -52,6 +55,30 @@ export default function RootLayout() {
   // usable with no connection and no account.
   useEffect(() => {
     void openNight().catch(() => {});
+  }, []);
+
+  /*
+   * Two moments worth draining on, beyond after every write.
+   *
+   * Coming back to the foreground is when a phone that spent the evening in
+   * somebody's pocket rejoins the wifi — and signing in is when a queue that
+   * has been filling with no account suddenly has somewhere to go. Neither
+   * blocks anything: a failed drain leaves the queue exactly where it was.
+   */
+  useEffect(() => {
+    void drain().catch(() => {});
+
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void drain().catch(() => {});
+    });
+    const { data } = supabase.auth.onAuthStateChange(() => {
+      void drain().catch(() => {});
+    });
+
+    return () => {
+      sub.remove();
+      data.subscription.unsubscribe();
+    };
   }, []);
 
   // Both kinds of link come back into the app here — the host's sign-in link

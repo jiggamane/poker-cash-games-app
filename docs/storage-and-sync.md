@@ -12,11 +12,27 @@ should have — it is about letting somebody *watch*, not about keeping the book
 
 ## Four principles, and everything else follows
 
-**1. The ledger is the truth. Everything else is derived.**
+**1. The ledger is the truth. Everything else is derived — but a result is
+derived from the ledger AND the rules.**
 Buy-ins, rebuys, cash-outs, expenses, corrections and voids are the only facts.
-Totals, positions, deductions and the settlement are all functions of them. A
-correction is a new row that points at an old one; nothing is ever edited or
-deleted. This is already how the app works and none of it changes.
+A correction is a new row pointing at an old one; nothing is ever edited or
+deleted.
+
+But a player's **result is never the ledger alone.** The bill, the kitty and
+every other rule come off it, and what a player is owed — and what appears in
+their month, their year and their all-time — is the figure **after deductions**.
+Chips won minus chips bought is the gross result, an intermediate number that
+belongs on the night's screen and nowhere else.
+
+This is exactly why the settlement is stored rather than recomputed. My stats
+reads the **frozen settlement** of each night, not a fresh subtraction over that
+night's entries: a stats page that added up buy-ins and cash-outs would quietly
+report figures nobody was ever asked to pay.
+
+On the sample night the difference is the whole point — Marek nets **+394** and
+Dana **+320**, though Dana won more at the table, because Marek fronted the bill
+and it comes back to him. Sorting on the table result would put them the wrong
+way round.
 
 **2. The server is the record. The phone is a durable write-ahead log.**
 Every change is written to the phone first, immediately, and queued for the
@@ -208,10 +224,14 @@ read.
 
 ## Order of work
 
-1. **The operation log.** Generalise the outbox; publish a night when it opens;
-   drain after every write. Sharing stops having anything to do with storage.
-2. **Close writes the record.** `final_count`, `settlement`, session status and
-   `ended_at`; freeze the settlement locally and read it back from there.
+1. ~~**The operation log.**~~ **Built.** The queue carries the whole night;
+   a night publishes when it opens; every write drains after itself, on
+   returning to the foreground, and on signing in. Sharing no longer has
+   anything to do with storage — `publishNight` is gone.
+2. ~~**Close writes the record.**~~ **Built.** `closeNight()` computes the
+   settlement once, freezes it in `night_settlement`, and queues the server's
+   `settlement` row with its snapshots plus the session's status and `ended_at`.
+   The settled screen and My stats read the frozen copy.
 3. **Read back.** Pull on sign-in so a reinstall or a new phone recovers the
    book. My stats then works from whichever copy exists.
 4. **Verification.** An edge function that re-settles from the snapshots and

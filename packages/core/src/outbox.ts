@@ -24,6 +24,26 @@
 
 import type { EntryId, LedgerEntry } from './types';
 
+/**
+ * What one queued operation does when it reaches the server.
+ *
+ * The queue carries the whole night, not just its money: a session has to exist
+ * before an entry can point at it, and a player before a seat can. Naming the
+ * kinds here — rather than letting the app queue anonymous blobs — is what lets
+ * the drain dispatch them and what makes an unsent queue readable in the
+ * database when something has gone wrong.
+ */
+export type OpKind =
+  /** The book, the session, its players, its seats and its rules. */
+  | 'session.open'
+  | 'player.upsert'
+  | 'seat.upsert'
+  | 'entry.append'
+  | 'rule.upsert'
+  | 'count.upsert'
+  /** The frozen settlement, and the session going to settled. */
+  | 'session.close';
+
 export class OutboxError extends Error {
   constructor(message: string) {
     super(message);
@@ -31,12 +51,17 @@ export class OutboxError extends Error {
   }
 }
 
-export interface OutboxItem {
-  /** The ledger entry id. Also the server's idempotency key. */
+export interface OutboxItem<P = unknown> {
+  /**
+   * Client-generated, and the server's idempotency key. Every operation is an
+   * upsert on this, so re-sending one the server already has is a no-op — which
+   * is what makes "retry until it works" a correct strategy rather than a
+   * dangerous one.
+   */
   id: EntryId;
   sessionId: string;
-  seq: number;
-  entry: LedgerEntry;
+  kind: OpKind;
+  payload: P;
   /** How many times we have tried to send this. */
   attempts: number;
   lastError?: string;
@@ -44,8 +69,13 @@ export interface OutboxItem {
 
 /** Durable local storage for entries that have not reached the server yet. */
 export interface OutboxStore {
+  /**
+   * Queue one operation. The STORE decides the order, not the caller: ordering
+   * is the whole point of the queue, and a caller that could choose its own
+   * place in the line would eventually put an entry before its session.
+   */
   add(item: OutboxItem): Promise<void>;
-  /** Oldest first, by seq. */
+  /** Oldest first, in the order they were queued. */
   pending(limit: number): Promise<OutboxItem[]>;
   remove(ids: readonly EntryId[]): Promise<void>;
   markAttempt(id: EntryId, error: string): Promise<void>;
@@ -80,14 +110,45 @@ export async function enqueueEntry(
   sessionId: string,
   id: EntryId,
   draft: Omit<LedgerEntry, 'id' | 'seq'>,
+  /**
+   * Anything the server row needs that the entry itself does not carry — when
+   * it happened, and what an expense was for.
+   *
+   * It goes in the QUEUED payload rather than in memory beside it, because an
+   * entry recorded on Saturday with no signal may not be sent until Tuesday,
+   * from a different launch of the app. Held anywhere else, the timestamp would
+   * quietly become "whenever it finally sent".
+   */
+  meta: Record<string, unknown> = {},
 ): Promise<LedgerEntry> {
   if (!id) throw new OutboxError('An entry needs a client-generated id to be safe to retry');
 
   const seq = (await store.highestSeq(sessionId)) + 1;
   const entry: LedgerEntry = { ...draft, id, seq };
 
-  await store.add({ id, sessionId, seq, entry, attempts: 0 });
+  await store.add({
+    id,
+    sessionId,
+    kind: 'entry.append',
+    payload: { ...entry, ...meta },
+    attempts: 0,
+  });
   return entry;
+}
+
+/**
+ * Queue anything that is not a ledger entry.
+ *
+ * Same queue, same order, same idempotency — a session, a seat, a rule and a
+ * chip count all have to arrive behind the things they depend on, so there is
+ * exactly one line and everything stands in it.
+ */
+export async function enqueueOp<P>(
+  store: OutboxStore,
+  op: { id: string; sessionId: string; kind: OpKind; payload: P },
+): Promise<void> {
+  if (!op.id) throw new OutboxError('An operation needs a client-generated id to be safe to retry');
+  await store.add({ ...op, attempts: 0 });
 }
 
 /**
@@ -133,20 +194,28 @@ export async function flushOutbox(
  * stop the host recording money mid-game.
  */
 export class MemoryOutboxStore implements OutboxStore {
-  private items = new Map<EntryId, OutboxItem>();
+  private items = new Map<EntryId, { item: OutboxItem; order: number }>();
   private seqHighWater = new Map<string, number>();
+  private nextOrder = 0;
 
   async add(item: OutboxItem): Promise<void> {
-    this.items.set(item.id, { ...item });
-    const seen = this.seqHighWater.get(item.sessionId) ?? 0;
-    if (item.seq > seen) this.seqHighWater.set(item.sessionId, item.seq);
+    const existing = this.items.get(item.id);
+    // Re-queueing keeps its place in the line rather than jumping to the back.
+    const order = existing?.order ?? this.nextOrder++;
+    this.items.set(item.id, { item: { ...item }, order });
+
+    if (item.kind === 'entry.append') {
+      const seq = (item.payload as LedgerEntry).seq;
+      const seen = this.seqHighWater.get(item.sessionId) ?? 0;
+      if (seq > seen) this.seqHighWater.set(item.sessionId, seq);
+    }
   }
 
   async pending(limit: number): Promise<OutboxItem[]> {
     return [...this.items.values()]
-      .sort((a, b) => a.seq - b.seq || (a.id < b.id ? -1 : 1))
+      .sort((a, b) => a.order - b.order)
       .slice(0, limit)
-      .map((i) => ({ ...i }));
+      .map((i) => ({ ...i.item }));
   }
 
   async remove(ids: readonly EntryId[]): Promise<void> {
@@ -154,8 +223,13 @@ export class MemoryOutboxStore implements OutboxStore {
   }
 
   async markAttempt(id: EntryId, error: string): Promise<void> {
-    const item = this.items.get(id);
-    if (item) this.items.set(id, { ...item, attempts: item.attempts + 1, lastError: error });
+    const found = this.items.get(id);
+    if (found) {
+      this.items.set(id, {
+        ...found,
+        item: { ...found.item, attempts: found.item.attempts + 1, lastError: error },
+      });
+    }
   }
 
   async highestSeq(sessionId: string): Promise<number> {

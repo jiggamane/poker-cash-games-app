@@ -12,8 +12,10 @@ import {
   type Player,
   type PlayerId,
   type ResolvedLedger,
+  type SettlementResult,
 } from '@poker-club/core';
 import { recordEntry } from './ledgerRepo';
+import { drain, queueClose, queueCount, queuePlayer, queueRule, queueSessionOpen } from './sync';
 
 /**
  * The night, on this phone.
@@ -89,6 +91,18 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           key    TEXT PRIMARY KEY NOT NULL,
           value  TEXT NOT NULL
         );
+
+        -- The night's result, computed once at close and never again.
+        --
+        -- Recomputing it on every read is how a "record" silently changes:
+        -- correct a long-past entry and last month's settled figures move under
+        -- somebody who already paid them. The server freezes its copy with a
+        -- trigger; this is the same promise on the phone.
+        CREATE TABLE IF NOT EXISTS night_settlement (
+          session_id  TEXT PRIMARY KEY NOT NULL,
+          computed_at TEXT NOT NULL,
+          payload     TEXT NOT NULL
+        );
       `);
 
       // The two columns O1 sets when a night is opened. Added rather than
@@ -97,6 +111,7 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
       // would take somebody's ledger with it.
       await addColumn(db, 'night', 'stakes', 'TEXT');
       await addColumn(db, 'night', 'default_buyin', 'INTEGER');
+      await addColumn(db, 'night', 'ended_at', 'TEXT');
 
       return db;
     });
@@ -645,6 +660,9 @@ export async function seat(playerId: PlayerId): Promise<void> {
     players: night.players.map((p) => (p.id === playerId ? { ...p, atTable: true } : p)),
   };
   emit();
+
+  await queuePlayer(night.sessionId, night.groupName, { id: playerId, name: player.name, atTable: true });
+  void drain().catch(() => {});
 }
 
 /**
@@ -671,6 +689,9 @@ export async function addPlayer(name: string): Promise<PlayerId> {
   );
   night = { ...night, players: [...night.players, { id, name: trimmed, atTable: false }] };
   emit();
+
+  await queuePlayer(night.sessionId, night.groupName, { id, name: trimmed, atTable: false });
+  void drain().catch(() => {});
   return id;
 }
 
@@ -740,6 +761,9 @@ export async function setFinalCount(playerId: PlayerId, amount: Money): Promise<
   night = { ...night, finalCounts };
   emit();
 
+  await queueCount(night.sessionId, playerId, amount);
+  void drain().catch(() => {});
+
   // Any confirmation of a shortfall is now about a total that no longer
   // exists. The engine would reject it as stale; withdrawing it here means the
   // host is asked again about the number they are actually looking at.
@@ -808,6 +832,12 @@ async function writeRules(rules: MoneyRule[]): Promise<void> {
   );
   night = { ...night, rules: ordered };
   emit();
+
+  // Every rule, every time: they are few, the upsert is idempotent, and a rule
+  // that changed while the phone was offline would otherwise be the one thing
+  // the server never heard about.
+  for (const rule of ordered) await queueRule(night.sessionId, night.groupName, rule);
+  void drain().catch(() => {});
 }
 
 /** A blank rule, ready to be filled in. */
@@ -825,6 +855,91 @@ export function draftRule(destination: MoneyRule['destination'], sortOrder: numb
     collectorPlayerId: '',
     sortOrder,
   };
+}
+
+/**
+ * Close the night: compute the result once, freeze it, and send it.
+ *
+ * This is the only moment a settlement is calculated for keeps. Everything up
+ * to here has been a live preview — figures that move as the ledger does, which
+ * is right while a night is running and wrong the second it is over.
+ *
+ * The order matters. The settlement is written locally BEFORE the status
+ * changes, so a phone that dies between the two reopens on a night that is
+ * still countable rather than one marked finished with no result behind it.
+ *
+ * What is NOT recorded here, deliberately: whether anybody actually paid. The
+ * transfers are an instruction to the room — "Ivo pays Dana $320" — and the
+ * night is final the moment it is counted and settled, however long the money
+ * takes to move. Tracking payment would make a settled record mutable, and the
+ * whole storage model rests on it not being.
+ */
+export async function closeNight(): Promise<void> {
+  if (night === null) throw new Error('No night is open.');
+
+  const result = settle({
+    players: night.players,
+    entries: night.entries,
+    finalCounts: night.finalCounts,
+    rules: night.rules,
+    ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
+  });
+
+  const endedAt = new Date().toISOString();
+  const db = await getDb();
+
+  await db.runAsync(
+    `INSERT INTO night_settlement (session_id, computed_at, payload) VALUES (?, ?, ?)
+       ON CONFLICT (session_id) DO NOTHING`,
+    night.sessionId,
+    endedAt,
+    JSON.stringify(result),
+  );
+
+  await db.runAsync(
+    `UPDATE night SET status = 'settled', ended_at = ? WHERE session_id = ?`,
+    endedAt,
+    night.sessionId,
+  );
+  night = { ...night, status: 'settled' };
+  emit();
+
+  await queueClose({
+    sessionId: night.sessionId,
+    endedAt,
+    settlement: {
+      algorithmVersion: result.algorithmVersion,
+      rulesSnapshot: night.rules,
+      // Everything the result was derived from, so it can be re-derived years
+      // later even if every rule has changed since.
+      inputsSnapshot: {
+        players: night.players,
+        entries: night.entries,
+        finalCounts: [...night.finalCounts.entries()],
+        occurredAt: night.occurredAt,
+      },
+      computedTransfers: result.transfers,
+      totalOffTable: result.totalOffTable,
+      discrepancyAmount: result.reconciliation.difference,
+      ...(night.acknowledgement?.note === undefined
+        ? {}
+        : { discrepancyNote: night.acknowledgement.note }),
+      ...(night.acknowledgement?.absorbedByPlayerId == null
+        ? {}
+        : { discrepancyAbsorbedBy: night.acknowledgement.absorbedByPlayerId }),
+    },
+  });
+  void drain().catch(() => {});
+}
+
+/** The frozen result of a night that has been closed, if it has one. */
+export async function frozenSettlement(sessionId: string): Promise<SettlementResult | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ payload: string }>(
+    `SELECT payload FROM night_settlement WHERE session_id = ?`,
+    sessionId,
+  );
+  return row === null || row === undefined ? null : (JSON.parse(row.payload) as SettlementResult);
 }
 
 export async function setStatus(status: Night['status']): Promise<void> {

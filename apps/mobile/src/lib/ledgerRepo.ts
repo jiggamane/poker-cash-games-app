@@ -1,13 +1,7 @@
 import { randomUUID } from 'expo-crypto';
-import {
-  enqueueEntry,
-  flushOutbox,
-  type FlushResult,
-  type LedgerEntry,
-  type OutboxItem,
-} from '@poker-club/core';
-import { isSupabaseConfigured, supabase } from './supabase';
-import { SqliteOutboxStore } from './outboxStore';
+import { enqueueEntry, type FlushResult, type LedgerEntry } from '@poker-club/core';
+import { supabase } from './supabase';
+import { drain, outbox } from './sync';
 
 /**
  * Reading and writing one night's ledger.
@@ -18,7 +12,7 @@ import { SqliteOutboxStore } from './outboxStore';
  * and can fail without anyone noticing.
  */
 
-export const outbox = new SqliteOutboxStore();
+
 
 /** Shape of a ledger_entry row as it goes over the wire. */
 interface EntryRow {
@@ -44,73 +38,34 @@ const rowToEntry = (r: EntryRow): LedgerEntry => ({
   correctsEntryId: r.corrects_entry_id,
 });
 
-const itemToRow = (item: OutboxItem, occurredAt: string): Record<string, unknown> => ({
-  id: item.entry.id,
-  session_id: item.sessionId,
-  seq: item.entry.seq,
-  type: item.entry.type,
-  player_id: item.entry.playerId ?? null,
-  payer_id: item.entry.payerId ?? null,
-  amount: item.entry.amount,
-  corrects_entry_id: item.entry.correctsEntryId ?? null,
-  occurred_at: occurredAt,
-});
-
 /**
  * Record an entry.
  *
  * `occurredAt` is passed in rather than read from the clock here, because the
  * host can back-date an entry for a hand that already happened.
+ *
+ * It travels INSIDE the queued payload, along with an expense's note. An entry
+ * recorded with no signal may not reach the server for days, from a different
+ * launch of the app; held anywhere but in the queue, its timestamp would
+ * quietly become "whenever it finally sent".
  */
 export async function recordEntry(
   sessionId: string,
   draft: Omit<LedgerEntry, 'id' | 'seq'>,
   occurredAt: Date = new Date(),
+  note?: string,
 ): Promise<LedgerEntry> {
   // The id is generated on the device and is what makes a retry safe: the
   // server treats it as an idempotency key, so a half-sent entry collapses to
   // one row rather than becoming a second buy-in.
-  const entry = await enqueueEntry(outbox, sessionId, randomUUID(), draft);
-  occurredAtById.set(entry.id, occurredAt.toISOString());
+  const entry = await enqueueEntry(outbox, sessionId, randomUUID(), draft, {
+    occurredAt: occurredAt.toISOString(),
+    ...(note === undefined ? {} : { note }),
+  });
 
   // Fire and forget: a failure here is normal and simply leaves it queued.
-  void sync().catch(() => {});
+  void drain().catch(() => {});
   return entry;
-}
-
-/**
- * Back-dating means an entry's occurred_at is not derivable from its seq, so it
- * is held alongside the queue until the row is sent.
- */
-const occurredAtById = new Map<string, string>();
-
-/**
- * Drain the outbox. Safe to call often; does nothing when there is nothing to
- * send, and nothing when there is nobody to send as.
- *
- * The signed-out check is not an optimisation. Signing in is optional in this
- * app, so most writes happen with no account at all — without it, every buy-in
- * would fire a request that is certain to be refused, and the queue would fill
- * with failure counts describing a situation that is not a failure.
- */
-export async function sync(): Promise<FlushResult> {
-  if (!isSupabaseConfigured) return { pushed: 0, remaining: await outbox.count() };
-
-  const { data } = await supabase.auth.getSession();
-  if (data.session === null) return { pushed: 0, remaining: await outbox.count() };
-
-  return flushOutbox(outbox, async (items) => {
-    const rows = items.map((i) => itemToRow(i, occurredAtById.get(i.entry.id) ?? new Date().toISOString()));
-
-    // The server's primary key on id makes this idempotent, so re-sending an
-    // entry it already has is a no-op rather than a duplicate.
-    const { error } = await supabase
-      .from('ledger_entry')
-      .upsert(rows, { onConflict: 'id', ignoreDuplicates: true });
-
-    if (error) throw new Error(error.message);
-    for (const i of items) occurredAtById.delete(i.entry.id);
-  });
 }
 
 /** Everything the server holds for a session, oldest first. */
@@ -156,3 +111,13 @@ export function watchEntries(
     void supabase.removeChannel(channel);
   };
 }
+
+/**
+ * Drain the queue. Kept as `sync` because that is what the screens call it.
+ *
+ * Everything it sends now lives in `sync.ts` — the whole night, not just its
+ * money, and no longer only when somebody taps Share.
+ */
+export { drain as sync, outbox } from './sync';
+
+export type { FlushResult };
