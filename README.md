@@ -11,9 +11,24 @@ start time, an end time, and a list of timestamped money events in between.
 
 ## Status
 
-The plan is decided and the foundations are in: the **database schema** (with its money
-invariants proved by tests), the **shared money core**, and a working **Expo dev
-environment**. The designed screens are next.
+The foundations are in — the **database schema** (with its money invariants proved by
+tests), the **shared money core**, and a working **Expo dev environment** — and the
+**13 August handoff (revs 7–13) has been applied**:
+
+| Rev | What landed |
+| --- | --- |
+| 9 | Navigation: no tab bar. A screen is a **push** (round back, empty top-right corner) or a **sheet** (grabber, close, swipe down). Every route is classified in `app/_layout.tsx`. |
+| 8 · 11 | **Tonight** rebuilt as one list, one dock, one card per player. No tabs and no feed anywhere — entries live on the player they happened to. Ending a night is a 1.5s hold inside the table-admin drawer, and there is no tap path to it. |
+| 12 | **The bill and the kitty**: L1–L6. A spend is covered by one player, several (whose amounts must sum), the kitty, or nobody yet. Nothing on those screens computes a share. |
+| 10 | **Night results `1C`**, one screen for a night just closed and a night opened weeks later, every row carrying the whole calculation as tokens. Plus **My stats** and **My games**. |
+| 13 | **The club section**, GR1–GR8, and the inheritance chain — *this game → last game → club default → app default* — with a night snapshotting its rules at birth. |
+
+**Not built, and why:** leaving and deleting a club (rev 13 leaves four decisions open —
+two admins or one, leaving with a debt, the club book, My stats vs My nights), and the
+membership tiers, which the handoff says to skip for this round. The default bill split
+is now *by size of win*, which **contradicts the worked night** in the handoff's
+`04-money-math.md`; nothing was re-derived, and the contradiction is flagged in
+`apps/mobile/app/bill-rules.tsx`.
 
 ```bash
 npm install
