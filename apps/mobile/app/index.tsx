@@ -52,24 +52,9 @@ export default function ClubHome() {
         };
 
   const settled = night?.status === 'settled';
-  const name = club?.name ?? night?.groupName ?? 'The Poker Club';
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
-          {name}
-        </Text>
-        <View style={[styles.avatar, { backgroundColor: t.roundFill }]}>
-          <Text style={[styles.initial, { color: t.text }]}>{name.slice(0, 1).toUpperCase()}</Text>
-        </View>
-      </View>
-      <Text style={[styles.meta, { color: t.muted }]}>
-        {club === null
-          ? 'opening the ledger'
-          : `${club.members.length} ${club.members.length === 1 ? 'player' : 'players'} · ${club.currency}`}
-      </Text>
-
       {/* The one filled thing on the screen, and the only figure on it. */}
       <Pressable
         accessibilityRole="button"
@@ -173,29 +158,14 @@ const elapsed = (startedAt: string): string => {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
 
-  // The root wears the same title row as a push, minus the back button, plus
-  // a 38px avatar at the right.
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: chrome.titleGap,
-    paddingTop: chrome.titlePadTop,
-    paddingHorizontal: chrome.titlePadH,
-  },
-  title: { ...type.homeTitle, flexShrink: 1 },
-  avatar: {
-    marginLeft: 'auto',
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initial: { fontSize: 16, fontWeight: '700' },
-  meta: { ...type.pushMeta, paddingTop: chrome.metaPadTop, paddingHorizontal: chrome.titlePadH },
-
+  /*
+   * NOTHING ABOVE THE CARD. GR1 draws a club name and an avatar here; this
+   * screen starts at the night instead, because the name of the club is the
+   * one thing a person opening their own club already knows. It is still on
+   * Settings and on Your groups, where it identifies rather than decorates.
+   */
   card: {
-    marginTop: 18,
+    marginTop: chrome.titlePadTop,
     marginHorizontal: space.card,
     marginBottom: 16,
     padding: 24,

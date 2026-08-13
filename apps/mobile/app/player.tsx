@@ -119,7 +119,7 @@ export default function PlayerCard() {
                 }
               />
               <Button
-                label={`Cash out ${player.name}`}
+                label="Cash out"
                 variant="secondary"
                 style={styles.half}
                 onPress={() =>

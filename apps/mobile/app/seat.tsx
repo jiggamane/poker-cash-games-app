@@ -25,6 +25,12 @@ export default function Seat() {
 
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+  /**
+   * The first buy-in, typed. It arrives filled with what the table has been
+   * buying in for, and somebody sitting down for half of that — or double it —
+   * is a normal enough thing that it must not need a second screen.
+   */
+  const [stake, setStake] = useState<string | null>(null);
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
@@ -33,19 +39,22 @@ export default function Seat() {
   }
 
   const suggested = defaultBuyIn(ledger);
+  const typed = stake ?? String(suggested);
+  const amount = typed === '' ? 0 : Number(typed);
+  const stakeOk = Number.isInteger(amount) && amount > 0;
 
   /** On the roster, not in tonight's game. */
   const bench = night.players.filter((p) => (ledger.boughtInByPlayer.get(p.id) ?? 0) === 0);
 
   const trimmed = name.trim();
   const clash = night.players.some((p) => p.name.toLowerCase() === trimmed.toLowerCase());
-  const valid = trimmed.length > 0 && !clash;
+  const valid = trimmed.length > 0 && !clash && stakeOk;
 
   async function commit() {
     if (!valid || busy) return;
     setBusy(true);
     try {
-      await seatAndBuyIn(trimmed, suggested);
+      await seatAndBuyIn(trimmed, money(amount));
       router.dismissTo('/session');
     } finally {
       setBusy(false);
@@ -77,7 +86,9 @@ export default function Seat() {
                 ? 'Type a name'
                 : clash
                   ? `${trimmed} is already here`
-                  : `Seat ${trimmed} · ${formatMoney(suggested)}`
+                  : !stakeOk
+                    ? 'Set a first buy-in'
+                    : `Seat ${trimmed} · ${formatMoney(money(amount))}`
             }
             variant="primary"
             disabled={!valid || busy}
@@ -140,9 +151,22 @@ export default function Seat() {
 
       <View style={[styles.stake, { borderColor: t.hairline }]}>
         <Text style={[styles.stakeLabel, { color: t.text }]}>First buy-in</Text>
-        <Text style={[styles.stakeValue, { color: t.text }]}>{formatMoney(suggested)}</Text>
+        <View style={[styles.stakeField, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+          <Text style={[styles.stakeCurrency, { color: stakeOk ? t.text : t.muted }]}>$</Text>
+          <TextInput
+            value={typed}
+            onChangeText={(v) => setStake(v.replace(/[^0-9]/g, ''))}
+            keyboardType="number-pad"
+            selectTextOnFocus
+            style={[styles.stakeValue, { color: stakeOk ? t.text : t.muted }]}
+          />
+        </View>
         <Text style={[styles.stakeHint, { color: t.muted }]}>
-          {ledger.totalBoughtIn === 0 ? 'the usual' : 'same as the table'}
+          {amount !== suggested
+            ? 'for this seat'
+            : ledger.totalBoughtIn === 0
+              ? 'the usual'
+              : 'same as the table'}
         </Text>
       </View>
     </Sheet>
@@ -170,14 +194,39 @@ const styles = StyleSheet.create({
   stake: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     marginHorizontal: space.card,
-    paddingVertical: 15,
+    paddingVertical: 12,
     paddingHorizontal: 2,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  stakeLabel: { fontSize: 16, fontWeight: '500' },
-  stakeValue: { fontSize: 16, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
-  stakeHint: { fontSize: 13, fontWeight: '600' },
+  // The label and the hint both hold their line; only the hint may wrap, and
+  // the field between them keeps its width whatever the two of them do.
+  stakeLabel: { fontSize: 16, fontWeight: '500', flexShrink: 0 },
+  stakeField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1,
+    // A fixed box. A text input left to itself takes whatever room is going
+    // and squeezes the line beside it into a column of single words.
+    width: 108,
+    marginLeft: 'auto',
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: radius.pressable,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  stakeCurrency: { fontSize: 16, fontWeight: '700' },
+  stakeValue: {
+    // A width, not a flex: an input given `flex` inside a fixed box overflows
+    // it on web and puts the figure outside its own field.
+    width: 72,
+    fontSize: 16,
+    fontWeight: '700',
+    padding: 0,
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
+  },
+  stakeHint: { fontSize: 13, fontWeight: '600', flexShrink: 1, textAlign: 'right' },
 });
