@@ -74,6 +74,21 @@ export default function RootLayout() {
         <Stack.Screen name="players" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="club-rules" />
+        {/*
+         * X1 is a PUSH, not a root (S77). There is no watcher's install: every
+         * install is a host install with a book in it, so a share link opens
+         * the club and pushes the night on top of it, and back returns to the
+         * club exactly as it does from Tonight. This supersedes the "Root, for
+         * a watcher's install" row in `09-navigation.md`.
+         */}
+        <Stack.Screen name="watch" />
+        {/*
+         * X1c is a PUSH. This was a sheet under 1C (rev 10); rev 15 redraws the
+         * settled night as Chrome A, and the classification follows the layout:
+         * it is a place you stay and read, not something you confirm and
+         * dismiss.
+         */}
+        <Stack.Screen name="settled" />
 
         {/* Sheets. Each of these ends with one action and then gets out. */}
         <Stack.Screen name="player" options={SHEET} />
@@ -88,11 +103,22 @@ export default function RootLayout() {
         <Stack.Screen name="house-rules" options={SHEET} />
         <Stack.Screen name="money-rules" options={SHEET} />
         <Stack.Screen name="rule" options={SHEET} />
-        <Stack.Screen name="settled" options={SHEET} />
         <Stack.Screen name="sign-in" options={SHEET} />
         <Stack.Screen name="member" options={SHEET} />
         <Stack.Screen name="new-group" options={SHEET} />
         <Stack.Screen name="new-night" options={SHEET} />
+        {/* C3, over Players. Its reset and its QR replace this sheet's own
+            content rather than stacking a second one on top (S79). */}
+        <Stack.Screen name="invite" options={SHEET} />
+
+        {/*
+         * X2 is NEITHER. It is the one screen in the app with no chrome at all:
+         * it arrives from a link, the reader has not been anywhere, and there
+         * is nothing behind it — no chevron, no grabber, and deliberately no
+         * close. Presenting it as a card would give it a dismiss gesture that
+         * leads nowhere.
+         */}
+        <Stack.Screen name="claim" options={{ animation: 'fade', gestureEnabled: false }} />
       </Stack>
     </SafeAreaProvider>
   );

@@ -1,47 +1,43 @@
 import { useMemo } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import {
-  formatMoney,
-  formatSigned,
-  resolveLedger,
-  settle,
-  type Deduction,
-  type Money,
-  type PlayerId,
-} from '@poker-club/core';
+import { formatMoney, settle, type Money, type PlayerId } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
-import { Sheet } from '../src/components/Sheet';
-import { moneyColor, useTheme } from '../src/design/useTheme';
+import { NightResult } from '../src/components/NightResult';
+import { Screen } from '../src/components/Screen';
+import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { nameOf, useNight } from '../src/lib/nightStore';
 
 /**
- * The night's results — 1C. Rev 10.
+ * The night's results — X1c. Rev 15, `14-invite-and-watcher.md`.
  *
  * ONE screen for two situations: the night you have just closed, and a night
  * you open from a list three weeks later. They are the same facts, so they are
- * the same screen — E6's own layout is gone.
+ * the same screen.
  *
- * EVERY ROW CARRIES THE WHOLE CALCULATION, as tokens: what they put in, what
- * they took out, and what each rule took off them. A reimbursement rides
- * INSIDE its deduction — "bill 61 +170 back" — never as a token of its own,
- * because it is not a separate movement of money, it is the same bill seen
- * from the other side. A row shows a rule when that rule touched that person:
- * usually winners only, but a bill split between everyone charges losers too,
- * and a net nothing on the row accounts for is what starts an argument.
+ * REBUILT FROM 1C TO X1c, and the container moved with the layout. 1C (rev 10)
+ * drew this as a sheet of net rows carrying their whole calculation as inline
+ * tokens — "in 1,000 · out 1,430 · bill 29 +50 back". Rev 15 draws the same
+ * night as a PUSH: your own net at the top with the working underneath it as
+ * full rows, then the settlement, then everyone else ranked. Two reasons the
+ * push is right beyond the drawing saying so — a settled night is a place you
+ * stay and read rather than something you confirm and dismiss, and `09` puts
+ * exactly that on the push side of the line.
  *
- * The net is after deductions and the list is sorted by it, best first. On the
- * canonical night that puts Marek above Dana even though Dana won more at the
- * table, which is exactly why the sort is on the final net.
+ * WHAT THE HOST GETS THAT A WATCHER DOES NOT is the payments. X1c ends in a
+ * read-only band because a watcher never marks a payment paid; the host is the
+ * one doing the marking, so the band is replaced by the transfers. Everything
+ * above that is `NightResult`, shared with `watch.tsx` — the same data, a
+ * different projection, which is what the spec asks for.
  */
 export default function NightResults() {
   const t = useTheme();
   const night = useNight();
   /** Whose results these are. The night knows, unless nobody has claimed it. */
   const { me: asked } = useLocalSearchParams<{ me?: PlayerId }>();
-  const me = asked ?? night?.meId;
+  const me = asked ?? night?.meId ?? null;
 
   const result = useMemo(() => {
     if (night === null) return null;
@@ -58,61 +54,39 @@ export default function NightResults() {
     }
   }, [night]);
 
-  if (night === null) return <Sheet title="The night">{null}</Sheet>;
+  if (night === null) {
+    return (
+      <Screen title="The night" backTo="the club">
+        {null}
+      </Screen>
+    );
+  }
 
   if (result === null) {
     return (
-      <Sheet
+      <Screen
         title="Not settled"
-        sub="This night was never closed. Count everyone up and settle it to see the record."
-        sentence
+        backTo="the club"
+        lede="This night was never closed. Count everyone up and settle it to see the record."
         footer={
           <Button label="Open the night" variant="primary" onPress={() => router.replace('/session')} />
         }
       >
         {null}
-      </Sheet>
+      </Screen>
     );
   }
 
-  const ledger = resolveLedger(night.entries);
-  const started = new Date(night.startedAt);
-
-  /* Money in play is the ins, which equal the outs. Bill and kitty are read off
-     the deductions rather than added up here — if a figure looks wrong the rule
-     is wrong, and there is a test for the rule. */
-  const bill = totalFor(result.deductions, 'bill');
-  const kitty = totalFor(result.deductions, 'kitty');
-
-  /* Somebody who never sat down and was neither charged nor credited has
-     nothing to say on a results list — the engine counts them because they
-     could have collected something, and tonight they did not. */
-  const rows = [...result.players]
-    .filter((p) => p.boughtIn > 0 || p.endedWith > 0 || p.charged > 0 || p.credited > 0)
-    .sort((a, b) => b.finalPosition - a.finalPosition);
-  const mine = me === undefined ? [] : result.transfers.filter((tr) => tr.fromPlayerId === me);
+  const mine = me === null ? [] : result.transfers.filter((tr) => tr.fromPlayerId === me);
+  const shown = me === null ? result.transfers : mine;
 
   return (
-    <Sheet
-      title={started.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
-      sub={`${clock(night.startedAt)} · ${night.players.length} players`}
-      footer={<Button label="Done" variant="secondary" onPress={() => router.dismissTo('/')} />}
+    <Screen
+      title={nightDate(night.startedAt)}
+      badge={<Status label="SETTLED" />}
+      meta={metaLine(night)}
+      backTo="the club"
     >
-      <View style={styles.summary}>
-        <View style={styles.summaryLeft}>
-          <Text style={[styles.summaryLabel, { color: t.muted }]}>Money in play</Text>
-          <Text style={[styles.summaryFigure, { color: t.text }]}>
-            {formatMoney(ledger.totalBoughtIn)}
-          </Text>
-        </View>
-        {/* Grouped at the right, small, and with no minus signs: they are two
-            amounts that left the table, not two negative numbers. */}
-        <View style={styles.offTable}>
-          <Off label="Bill" value={bill} />
-          <Off label="Kitty" value={kitty} />
-        </View>
-      </View>
-
       {night.acknowledgement !== undefined && (
         <View style={[styles.alert, { backgroundColor: t.dangerWash, borderColor: t.dangerEdge }]}>
           <Text style={[styles.alertLabel, { color: t.danger }]}>
@@ -125,84 +99,30 @@ export default function NightResults() {
         </View>
       )}
 
-      <View style={styles.list}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Net</Text>
+      <NightResult
+        result={result}
+        rules={night.rules}
+        me={me}
+        hostName={null}
+        readOnly={false}
+      />
 
-        {rows.map((p, i) => {
-          const isMe = p.playerId === me;
-          return (
-            <View
-              key={p.playerId}
-              style={[
-                styles.row,
-                {
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                },
-              ]}
-            >
-              <View style={styles.rowTop}>
-                <Text style={[isMe ? styles.nameMine : styles.name, { color: t.text }]}>
-                  {p.name}
-                </Text>
-                <Text
-                  style={[
-                    isMe ? styles.netMine : styles.net,
-                    { color: moneyColor(t, p.finalPosition) },
-                  ]}
-                >
-                  {formatSigned(p.finalPosition)}
-                </Text>
-              </View>
-
-              <View style={styles.tokens}>
-                <Token label="in" value={p.boughtIn} color={t.loss} />
-                <Token label="out" value={p.endedWith} color={t.win} />
-
-                {/*
-                 * A token for every rule that actually took something off this
-                 * person. Usually that means winners only — but the bill can be
-                 * split evenly between EVERYONE, losers included, and a row
-                 * reading "in 1,500 · out 1,500 · −$56" with nothing to account
-                 * for the 56 is exactly the argument these screens exist to
-                 * stop. What is charged is shown, whoever it is charged to.
-                 */}
-                {result.deductions.map((d) => {
-                  const charged = d.charges.find((c) => c.playerId === p.playerId)?.amount ?? 0;
-                  const back = d.credits.find((c) => c.playerId === p.playerId)?.amount ?? 0;
-                  if (charged === 0 && back === 0) return null;
-                  return (
-                    <Token
-                      key={d.ruleId}
-                      label={word(d)}
-                      value={charged as Money}
-                      color={t.muted}
-                      back={back > 0 ? (back as Money) : undefined}
-                    />
-                  );
-                })}
-              </View>
-            </View>
-          );
-        })}
-      </View>
-
-      <Status night={night} short={result.acknowledgedDiscrepancy?.amount} />
-
+      {/*
+       * Where X1c's read-only band goes for a host: the payments themselves.
+       *
+       * S46 says this section is the READER'S OWN payments, which needs a
+       * reader. The night names one as soon as somebody has claimed their
+       * place; until then it shows the whole settlement under its own honest
+       * title rather than passing off everyone's transfers as yours.
+       */}
       <View style={styles.transfers}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>
-          {me === undefined ? 'Who pays whom' : 'What you paid'}
+          {me === null ? 'Who pays whom' : 'What you paid'}
         </Text>
-        {/*
-         * S46 says this section is the READER'S OWN payments, which needs a
-         * reader. The night names one as soon as somebody has claimed their
-         * place; until then it shows the whole settlement under its own honest
-         * title rather than passing off everyone's transfers as yours.
-         */}
-        {(me === undefined ? result.transfers : mine).map((tr, i) => (
+        {shown.map((tr, i) => (
           <View key={`${tr.fromPlayerId}-${tr.toPlayerId}-${i}`} style={styles.transfer}>
             <Text style={[styles.transferText, { color: t.text }]}>
-              {me === undefined ? nameOf(night, tr.fromPlayerId) : 'You'}
+              {me === null ? nameOf(night, tr.fromPlayerId) : 'You'}
             </Text>
             <Icon name="arrow" color={t.muted} />
             <Text style={[styles.transferText, { color: t.text }]}>
@@ -211,113 +131,67 @@ export default function NightResults() {
             <Text style={[styles.transferAmount, { color: t.text }]}>{formatMoney(tr.amount)}</Text>
           </View>
         ))}
-        {(me === undefined ? result.transfers : mine).length === 0 && (
+        {shown.length === 0 && (
           <Text style={[styles.none, { color: t.muted }]}>
-            {me === undefined ? 'Nothing to move: everyone left level.' : 'You owe nobody.'}
+            {me === null ? 'Nothing to move: everyone left level.' : 'You owe nobody.'}
           </Text>
         )}
       </View>
-    </Sheet>
+    </Screen>
   );
 }
 
 /**
- * One settlement status line, and exactly one. The three strings are fixed.
+ * The SETTLED pill.
+ *
+ * NOT the `Pill` component: 999px belongs to the host's live badge alone, and
+ * this is X1c's 7px status pill in card fill with a hairline round it. The two
+ * mean different things and must not look alike.
  */
-function Status({
-  night,
-  short,
-}: {
-  night: NonNullable<ReturnType<typeof useNight>>;
-  short?: Money;
-}) {
+function Status({ label }: { label: string }) {
   const t = useTheme();
-
-  const state =
-    short !== undefined && short < 0
-      ? ({ text: `Short by ${formatMoney(Math.abs(short) as Money)}`, color: t.loss, icon: 'info' } as const)
-      : night.status === 'settled'
-        ? ({ text: 'Settled', color: t.win, icon: 'check' } as const)
-        : ({ text: 'Not settled yet', color: t.amber, icon: 'clock' } as const);
-
   return (
-    <View style={styles.status}>
-      <Icon name={state.icon} color={state.color} size={15} />
-      <Text style={[styles.statusText, { color: state.color }]}>{state.text}</Text>
+    <View style={[styles.status, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <Text style={[styles.statusLabel, { color: t.muted }]}>{label}</Text>
     </View>
   );
 }
 
-/** "in 1,000", "bill 61 +170 back". */
-function Token({
-  label,
-  value,
-  color,
-  back,
-}: {
-  label: string;
-  value: Money;
-  color: string;
-  back?: Money;
-}) {
-  const t = useTheme();
-  return (
-    <Text style={[styles.token, { color }]}>
-      {label} {value.toLocaleString('en-US')}
-      {back !== undefined && (
-        <Text style={[styles.tokenBack, { color: t.win }]}> +{back.toLocaleString('en-US')} back</Text>
-      )}
-    </Text>
-  );
+/**
+ * "4h 36m · 6 players".
+ *
+ * X1c's meta reads "kept by Marek · 4h 36m · 6 players". The host is reading
+ * their own night here, so naming them to themselves is dropped and the rest
+ * stands.
+ *
+ * The local night carries no end time — `Night` has `startedAt` and a status,
+ * and nothing that says when the last chip moved. The last entry's own
+ * timestamp IS that moment, and using the clock instead would make a night
+ * settled in March grow longer every time somebody opened it.
+ */
+function metaLine(night: NonNullable<ReturnType<typeof useNight>>): string {
+  const players = night.players.filter((p) => p.atTable).length;
+  const stamps = Object.values(night.occurredAt);
+  const last = stamps.length === 0 ? null : stamps.reduce((a, b) => (a > b ? a : b));
+  return `${elapsed(night.startedAt, last)} · ${players} players`;
 }
 
-function Off({ label, value }: { label: string; value: Money }) {
-  const t = useTheme();
-  return (
-    <View style={styles.off}>
-      <Text style={[styles.offLabel, { color: t.muted }]}>{label}</Text>
-      <Text style={[styles.offValue, { color: t.loss }]}>{formatMoney(value)}</Text>
-    </View>
-  );
+function elapsed(startedAt: string, endedAt: string | null): string {
+  const end = endedAt === null ? Date.now() : new Date(endedAt).getTime();
+  const mins = Math.max(0, Math.round((end - new Date(startedAt).getTime()) / 60000));
+  return `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`;
 }
 
-const totalFor = (deductions: readonly Deduction[], destination: Deduction['destination']): Money =>
-  deductions
-    .filter((d) => d.destination === destination)
-    .reduce((sum, d) => sum + d.total, 0) as Money;
-
-/** The token's word is what the money was for, not what the rule was called. */
-const word = (d: Deduction): string =>
-  d.destination === 'bill'
-    ? 'bill'
-    : d.destination === 'kitty'
-      ? 'kitty'
-      : d.destination === 'host_fee'
-        ? 'fee'
-        : 'pot';
-
-const clock = (iso: string): string =>
-  new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+const nightDate = (iso: string): string =>
+  new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
 
 const styles = StyleSheet.create({
-  summary: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 16,
-    marginHorizontal: space.card,
-    marginBottom: 20,
-  },
-  summaryLeft: { gap: 8 },
-  summaryLabel: type.tableLabel,
-  summaryFigure: type.tableFigure,
-  offTable: { marginLeft: 'auto', gap: 6, alignItems: 'flex-end' },
-  off: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  offLabel: { fontSize: 12.5, fontWeight: '500' },
-  offValue: { fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  status: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: 7, borderWidth: 1 },
+  statusLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.05 },
 
   alert: {
     marginHorizontal: space.card,
-    marginBottom: 16,
+    marginTop: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: radius.pressable,
@@ -327,28 +201,7 @@ const styles = StyleSheet.create({
   alertLabel: type.label,
   alertBody: { fontSize: 13, fontWeight: '400', lineHeight: 19 },
 
-  list: { marginHorizontal: space.page },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  row: { paddingVertical: 13, paddingHorizontal: 4, gap: 7 },
-  rowTop: { flexDirection: 'row', alignItems: 'baseline', gap: 12 },
-  name: { fontSize: 17, fontWeight: '600', flexShrink: 1 },
-  nameMine: { fontSize: 17, fontWeight: '800', flexShrink: 1 },
-  net: { fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
-  netMine: { fontSize: 19, fontWeight: '800', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
-  tokens: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  token: { fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  tokenBack: { fontSize: 13, fontWeight: '700' },
-
-  status: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 20,
-    marginHorizontal: space.page,
-    paddingHorizontal: 4,
-  },
-  statusText: { fontSize: 14, fontWeight: '700' },
-
   transfers: { marginTop: 24, marginHorizontal: space.page },
   transfer: {
     flexDirection: 'row',

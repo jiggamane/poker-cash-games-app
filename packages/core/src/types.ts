@@ -66,8 +66,13 @@ export type RuleDestination = 'bill' | 'kitty' | 'host_fee' | 'next_pot';
 /**
  * How a fixed total is divided between the people paying it.
  *
- *   by_percent — in proportion to the size of each win
- *   evenly     — the same share each
+ *   by_percent — in proportion to the size of each win. **This is what the
+ *                design calls "by size of win", and since S62 it is the
+ *                default** for a bill. The stored value keeps its old name
+ *                because it is written into every settled night on the server;
+ *                `splitSentence()` below is what a screen shows a person.
+ *   evenly     — the same share each. The default until S62, and still what
+ *                `04-money-math.md` and the E-series frames draw.
  *   custom     — the host types an amount per person. This is also how ONE
  *                person covers a whole bill, and it is the only split that
  *                ignores the winners-only constraint.

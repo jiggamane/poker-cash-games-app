@@ -85,10 +85,14 @@ const entries: SeedEntry[] = [
 ];
 
 /*
- * The night's own snapshot of the rules, in the order they apply. The bill is
- * split EVENLY BETWEEN THE WINNERS here, which is what the E-series frames are
- * drawn from; the club's default is a separate question (S62) and a night
- * keeps whatever it opened with either way.
+ * The night's own snapshot of the rules, in the order they apply.
+ *
+ * The bill is split BY SIZE OF WIN — S62 made that the default and
+ * `14-invite-and-watcher.md` § 5 re-derived this night on it: 110 / 31 / 29
+ * rather than the E-series' 57 / 57 / 56, with nets still summing to −126.
+ * The seeded night is what a screen gets held against, so it has to be the
+ * night the current drawings show. `rev15-night.test.ts` asserts every figure
+ * below to the dollar.
  */
 const rules: MoneyRule[] = [
   {
@@ -101,7 +105,7 @@ const rules: MoneyRule[] = [
     id: 'kitchen', name: 'Kitchen & drinks', active: true,
     // The expenses are the amount; the rule only says how it is shared.
     amountKind: 'fixed', amount: money(170), basis: 'gross',
-    charge: 'winners_only', destination: 'bill', split: 'evenly',
+    charge: 'winners_only', destination: 'bill', split: 'by_percent',
     collectorPlayerId: MAREK, sortOrder: 1,
   },
 ];
