@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { formatMoney } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { useSession } from '../src/lib/useSession';
-import { supabase } from '../src/lib/supabase';
+import { checkConnection, type ConnectionReport } from '../src/lib/connection';
+import { shareTokenFor, stopSharing } from '../src/lib/publish';
+import { pullBooks } from '../src/lib/pull';
+import { shareLinkFor } from '../src/lib/shareLink';
+import { explainServerError, supabase } from '../src/lib/supabase';
 import { outbox, sync } from '../src/lib/ledgerRepo';
 import { useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
@@ -34,12 +38,72 @@ export default function Settings() {
 
   const [queued, setQueued] = useState<number | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [report, setReport] = useState<ConnectionReport | null>(null);
+  const [fetched, setFetched] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     void outbox.count().then(setQueued).catch(() => setQueued(null));
   });
 
   const signedIn = session !== null;
+
+  /**
+   * The one place that asks the server what is wrong.
+   *
+   * "Invalid API key" is one message for four unrelated causes and it used to
+   * surface on whichever screen happened to ask. `connection.ts` asks the two
+   * questions separately — does the server accept this build's KEY, and does it
+   * accept this phone's SIGN-IN — because they fail independently and their
+   * fixes have nothing to do with each other.
+   */
+  async function probe() {
+    setReport(await checkConnection(session?.access_token ?? null));
+  }
+
+  async function fetchMine() {
+    setFetching(true);
+    try {
+      const { added, books } = await pullBooks();
+      setFetched(
+        books === 0
+          ? 'You do not belong to a book yet — claim an invite first.'
+          : added === 0
+            ? 'Nothing new. Every night on the server is already on this phone.'
+            : `${added} ${added === 1 ? 'night' : 'nights'} came down.`,
+      );
+    } catch (e) {
+      setFetched(explainServerError(e));
+    } finally {
+      setFetching(false);
+    }
+  }
+
+  async function share() {
+    if (night === null) return;
+    setSharing(true);
+    try {
+      const token = await shareTokenFor(night.sessionId);
+      // The code and the link together, same as an invite: the link is the
+      // convenience and the room is what makes it safe to send.
+      await Share.share({ message: shareLinkFor(token) });
+    } catch (e) {
+      setFetched(explainServerError(e));
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  async function unshare() {
+    if (night === null) return;
+    try {
+      await stopSharing(night.sessionId);
+      setFetched('The link is rotated and every watcher is cut off. Anyone still holding a valid token keeps reading until it expires, within the hour.');
+    } catch (e) {
+      setFetched(explainServerError(e));
+    }
+  }
 
   async function drain() {
     setSyncing(true);
@@ -89,8 +153,14 @@ export default function Settings() {
               ? '—'
               : `${club.members.filter((m) => m.invited).length} waiting`
           }
-          last
         />
+        {/*
+         * X2d, reached without a link. During development this is how every
+         * invite arrives — an `exp://` URL points at a laptop on somebody's
+         * wifi and nobody outside the room can open it — and afterwards it is
+         * the answer to a chat app that mangled one.
+         */}
+        <Action label="I have an invite code" onPress={() => router.push('/claim')} last />
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>This night</Text>
 
@@ -116,6 +186,44 @@ export default function Settings() {
               label={syncing ? 'Syncing…' : 'Sync now'}
               onPress={() => void drain()}
             />
+            {/*
+             * Filling this phone from the server, which is what a claimed seat
+             * is FOR. Separate from "Sync now" because they run in opposite
+             * directions and fail for different reasons — one is "my night is
+             * not on the server", the other is "my nights are not on my phone",
+             * and one control for both would answer neither.
+             */}
+            <Action
+              label={fetching ? 'Fetching…' : 'Fetch my nights'}
+              onPress={() => void fetchMine()}
+            />
+            <Action label="Connection" onPress={() => void probe()} />
+            {/*
+             * The watcher's half. Sharing is NOT publishing — the night reached
+             * the server the moment it opened, through the queue — so this only
+             * ever hands over the link, and stopping rotates the token and
+             * revokes every grant at once.
+             *
+             * One honest gap, stated where a host will read it rather than
+             * buried: rotation is immediate, but a phone already holding a
+             * valid token keeps reading until it expires, within the hour.
+             */}
+            {night !== null && (
+              <Action
+                label={sharing ? 'Sharing…' : 'Share this night'}
+                onPress={() => void share()}
+              />
+            )}
+            {night !== null && (
+              <Action label="Stop sharing" onPress={() => void unshare()} />
+            )}
+            {fetched !== null && <Text style={[styles.note, { color: t.muted }]}>{fetched}</Text>}
+            {report !== null && (
+              <Text style={[styles.note, { color: report.ok ? t.muted : t.loss }]}>
+                {report.headline}
+                {report.detail === '' ? '' : ` — ${report.detail}`}
+              </Text>
+            )}
             <Action
               label="Sign out"
               onPress={() => {

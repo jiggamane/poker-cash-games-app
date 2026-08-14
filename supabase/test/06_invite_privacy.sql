@@ -238,6 +238,12 @@ select expect_text(
   (select group_name from preview_player_invite('LIVE222222')),
   'Thursday game', 'and the group it is for');
 
+-- X2b's first line. The host of this fixture never sat down, so there is no
+-- player row to name them and the sentence has to survive that.
+select expect_text(
+  (select host_name from preview_player_invite('LIVE222222')),
+  null, 'a host with no seat of their own has no name to offer X2b');
+
 select expect_true(
   ms_of($$select * from preview_player_invite('LIVE222222')$$) < invite_refusal_floor(),
   'and a hit is not padded — it is distinguishable by its content anyway');
@@ -355,6 +361,30 @@ select expect_eq((select count(*) from codes where length(code) = 10), 2,
 
 select expect_eq((select count(*) from codes where code ~ '[IO01]'), 0,
   'and holds none of I, O, 0 or 1 — the four that get misheard down a phone');
+
+-- =============================================================================
+-- 8. AND WHEN THE HOST DOES SIT AT THEIR OWN TABLE
+-- =============================================================================
+-- "{host} added you as {name}" is X2b's first line, so a host who plays has to
+-- come back from the preview.
+
+reset role;
+
+insert into player (id, book_id, display_name, claimed_by_user_id) values
+  ('f3000000-0000-0000-0000-000000000009', 'f2000000-0000-0000-0000-000000000001',
+   'Marek', 'f1000000-0000-0000-0000-000000000001');
+
+set request.jwt.claims = '{"sub":"f1000000-0000-0000-0000-000000000003"}';
+set role authenticated;
+
+select expect_text(
+  (select host_name from preview_player_invite((select code from codes limit 1))),
+  'Marek', 'a live code names the host who issued it');
+
+-- And a dead one still names nobody and nothing.
+select expect_eq(
+  (select count(*) from preview_player_invite('UNKNOWN222')), 0,
+  'while a dead code says as little as it ever did');
 
 reset role;
 

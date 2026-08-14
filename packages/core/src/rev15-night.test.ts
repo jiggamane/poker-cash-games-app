@@ -24,6 +24,7 @@ import { money, sum, type Money } from './money';
 import { ruleLabel, splitSentence } from './ruleText';
 import { settle } from './settlement';
 import type { LedgerEntry, MoneyRule, Player, PlayerId } from './types';
+import { workingRows } from './working';
 
 const DANA = 'dana';
 const MAREK = 'marek';
@@ -232,5 +233,63 @@ describe('the words a settled night carries on its face', () => {
     expect(ruleLabel({ ...rules[1], split: 'evenly' })).toBe(
       'Kitchen & drinks · evenly between the winners',
     );
+  });
+});
+
+describe('X1c — the working, as it is drawn', () => {
+  /*
+   * The frame shows Lena's own card: a net of +$429 over six rows that account
+   * for it. These are those six rows, verbatim off the drawing, with the bill
+   * applied before the kitty as `sampleNight` orders them.
+   */
+  const billFirst: MoneyRule[] = [
+    { ...rules[1], sortOrder: 1 },
+    { ...rules[0], sortOrder: 2 },
+  ];
+  const drawn = settle({ players, entries, finalCounts, rules: billFirst });
+  const rows = workingRows(drawn, billFirst, LENA);
+
+  it('is in, out, result, bill, back, kitty — in that order', () => {
+    expect(rows.map((r) => r.label)).toEqual([
+      'In',
+      'Out',
+      'Result',
+      'Kitchen & drinks · by size of win',
+      'Back to you · fronted the bill',
+      'Group kitty · 5%',
+    ]);
+  });
+
+  it('carries the figures the frame carries', () => {
+    expect(rows.map((r) => r.amount)).toEqual([1000, 1430, 430, -29, 50, -22]);
+  });
+
+  it('accounts for the net exactly — result, less what was taken, plus what came back', () => {
+    // The whole reason the working is on the screen: it has to add up to the
+    // figure above it, or it is six numbers and an argument.
+    const afterResult = rows.filter((r) => r.kind === 'charge' || r.kind === 'credit');
+    const net = rows.find((r) => r.kind === 'result')!.amount + sum(afterResult.map((r) => r.amount));
+    expect(net).toBe(429);
+    expect(net).toBe(drawn.players.find((p) => p.playerId === LENA)!.finalPosition);
+  });
+
+  it('draws the two charges in bone and nothing else', () => {
+    expect(rows.filter((r) => r.offTable).map((r) => r.key)).toEqual(['bill:charge', 'kitty:charge']);
+  });
+
+  it('keeps a reimbursement under its own charge', () => {
+    const labels = rows.map((r) => r.label);
+    expect(labels.indexOf('Back to you · fronted the bill')).toBe(
+      labels.indexOf('Kitchen & drinks · by size of win') + 1,
+    );
+  });
+
+  it('leaves out rules that did not touch this person', () => {
+    // Tomáš lost, so neither rule charged him: three rows, no deductions.
+    expect(workingRows(drawn, billFirst, TOMAS).map((r) => r.label)).toEqual(['In', 'Out', 'Result']);
+  });
+
+  it('says nothing at all about somebody who was not at this night', () => {
+    expect(workingRows(drawn, billFirst, 'nobody')).toEqual([]);
   });
 });

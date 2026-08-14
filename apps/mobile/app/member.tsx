@@ -5,26 +5,21 @@ import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import {
-  inviteMember,
-  removeMember,
-  renameMember,
-  resetInvite,
-  setPaysKitty,
-  useClub,
-} from '../src/lib/clubStore';
+import { removeMember, renameMember, setPaysKitty, useClub } from '../src/lib/clubStore';
 
 /**
- * A player — GR5 — and their invite — GR6.
+ * A player — GR5.
  *
- * GR6 REPLACES GR5'S CONTENT rather than opening on top of it: a sheet never
- * pushes, and a multi-step sheet keeps one close. Which is also why both live
- * in this one file.
+ * GR6, the invite, USED TO LIVE HERE as a second step replacing this sheet's
+ * content. Rev 15 supersedes it with C3 (`app/invite.tsx`), which issues a real
+ * ten-character code against the server instead of setting a local flag, and
+ * which opens from Players as well as from this row — so it is its own sheet
+ * rather than a step inside this one.
  *
- * The invite is THEIRS: single-use and tied to this roster row, so opening it
- * hands them the name they already have and every night of theirs already in
- * the book. That is the whole reason naming comes first — a link that created
- * a person would create a second one.
+ * The invite is still THEIRS: single-use and tied to this roster row, so
+ * opening it hands them the name they already have and every night of theirs
+ * already in the book. That is the whole reason naming comes first — a link
+ * that created a person would create a second one.
  */
 export default function MemberSheet() {
   const t = useTheme();
@@ -32,7 +27,6 @@ export default function MemberSheet() {
   const club = useClub();
   const member = club?.members.find((m) => m.id === id);
 
-  const [step, setStep] = useState<'edit' | 'invite'>('edit');
   const [name, setName] = useState(member?.name ?? '');
   const [busy, setBusy] = useState(false);
 
@@ -45,58 +39,6 @@ export default function MemberSheet() {
   }
 
   const renamed = name.trim() !== '' && name.trim() !== member.name;
-
-  if (step === 'invite') {
-    return (
-      <Sheet
-        title="Invite this player"
-        sub={`${member.name} keeps their name and everything they have already played.`}
-        sentence
-        onClose={() => setStep('edit')}
-        footer={
-          <>
-            <Button
-              label={member.invited ? 'Send it again' : `Send ${member.name} their link`}
-              variant="primary"
-              disabled={busy}
-              onPress={() => {
-                setBusy(true);
-                void inviteMember(club.id, member.id).finally(() => {
-                  setBusy(false);
-                  setStep('edit');
-                });
-              }}
-            />
-            {member.invited && (
-              <Button
-                label="Reset the link"
-                variant="secondary"
-                disabled={busy}
-                onPress={() => {
-                  setBusy(true);
-                  void resetInvite(club.id, member.id).finally(() => setBusy(false));
-                }}
-              />
-            )}
-          </>
-        }
-      >
-        <View style={[styles.block, { borderColor: t.hairline }]}>
-          <Text style={[styles.blockTitle, { color: t.text }]}>What opening it does</Text>
-          <Text style={[styles.blockBody, { color: t.muted }]}>
-            It hands them this row — their name, and every night of theirs already in the book —
-            and promotes them from name only to member. The link works once, on one phone; after
-            that it has to be reset here.
-          </Text>
-        </View>
-
-        <Text style={[styles.note, { color: t.muted }]}>
-          They do not need it to play. A name on the roster is bought in, counted and settled
-          exactly like somebody holding a phone.
-        </Text>
-      </Sheet>
-    );
-  }
 
   return (
     <Sheet
@@ -146,9 +88,15 @@ export default function MemberSheet() {
       </View>
 
       <View style={styles.rows}>
+        {/*
+         * C3 (rev 15) supersedes the GR6 step below this file's `step` flag.
+         * GR6 described the invite; C3 issues it, and what it issues is a real
+         * ten-character code from the server rather than a local flag. It is a
+         * sheet of its own because it opens over Players as well as from here.
+         */}
         <Pressable
           accessibilityRole="button"
-          onPress={() => setStep('invite')}
+          onPress={() => router.push({ pathname: '/invite', params: { player: member.id } })}
           style={({ pressed }) => [
             styles.row,
             { borderBottomColor: t.hairline, opacity: pressed ? 0.6 : 1 },

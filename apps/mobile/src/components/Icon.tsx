@@ -1,4 +1,4 @@
-import { Circle, Path, Svg } from 'react-native-svg';
+import { Circle, Path, Rect, Svg } from 'react-native-svg';
 
 /**
  * The drawn glyphs, copied path-for-path out of the design boards.
@@ -44,7 +44,16 @@ export type IconName =
   /** Settled. */
   | 'check'
   /** Change this figure — one per editable row in the ending flow. */
-  | 'pencil';
+  | 'pencil'
+  /*
+   * C3a's four share chips, in the fixed order Copy · Message · Share · QR
+   * code. Copied path-for-path out of `screens-invite-and-watcher.html`, where
+   * all four are drawn at 17px on a 24 viewBox with a 1.9 stroke.
+   */
+  | 'copy'
+  | 'message'
+  | 'share'
+  | 'qr';
 
 export function Icon({
   name,
@@ -301,6 +310,97 @@ export function Icon({
             strokeLinecap="round"
           />
           <Path d="M18 14.5v6M15 17.5h6" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'copy': {
+      const s = size ?? 17;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Rect
+            x={8.5}
+            y={8.5}
+            width={12}
+            height={12}
+            rx={2.5}
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M15.5 4.5H5.5a1 1 0 00-1 1v10"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'message': {
+      const s = size ?? 17;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M20 12.5c0 4-3.6 7-8 7a9.6 9.6 0 01-2.6-.35L4.5 21l1.2-3.4A6.9 6.9 0 014 12.5c0-4 3.6-7 8-7s8 3 8 7z"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'share': {
+      const s = size ?? 17;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M12 15V4m0 0L8 8m4-4l4 4"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M5 14v5.5h14V14"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'qr': {
+      const s = size ?? 17;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          {[
+            { x: 4, y: 4 },
+            { x: 13.5, y: 4 },
+            { x: 4, y: 13.5 },
+          ].map((r) => (
+            <Rect
+              key={`${r.x}-${r.y}`}
+              x={r.x}
+              y={r.y}
+              width={6.5}
+              height={6.5}
+              rx={1.4}
+              stroke={color}
+              strokeWidth={1.9}
+              strokeLinejoin="round"
+            />
+          ))}
+          <Path
+            d="M14 14h2m4 0h-2m0 3v3m-4 0h2"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinejoin="round"
+          />
         </Svg>
       );
     }

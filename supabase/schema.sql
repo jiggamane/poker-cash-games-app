@@ -1745,3 +1745,149 @@ $$;
 
 comment on function redeem_share_token(text) is
   'Grant this device read access to one night. One message and one duration for every refusal — S80.';
+
+-- ===== 0010_night_header.sql =============================================
+
+-- =============================================================================
+-- What a watcher is allowed to know ABOUT the night, as opposed to in it
+-- =============================================================================
+-- X1a's meta line reads "kept by Marek · 3h 17m", X1c's reads "kept by Marek ·
+-- 4h 36m · 6 players", and both screens end in the band "Read-only. Only Marek
+-- can write to the ledger." Three places on two screens, all naming the host.
+--
+-- Nothing on the server could answer that. 0001 gives a watcher row-level reads
+-- of session, player, ledger_entry and the rest, and deliberately no read of
+-- `book` at all — `docs/auth-test-period.md` lists that as a known limit and
+-- says "adding one is a two-line policy if it turns out to matter". Rev 15 is
+-- it turning out to matter, but a policy on `book` is the wrong shape for what
+-- is actually needed: the host's NAME is not in `book`, it is in the host's own
+-- player row, and opening the table would hand over host_user_id, the currency
+-- and the open/closed state to answer a question about a string.
+--
+-- So: one function, returning exactly the four values the two meta lines and
+-- the band need, for one night, to somebody who can already read that night.
+--
+-- WHO MAY CALL IT is asked in the same terms the policies use, so this cannot
+-- drift away from them: a watcher holding a live grant, a claimed member of the
+-- book, or the host. Anybody else gets nothing back — not an error, which would
+-- itself say the night exists.
+-- =============================================================================
+
+create or replace function night_header(target_session_id uuid)
+returns table (
+  group_name  text,
+  host_name   text,
+  player_count int,
+  started_at  timestamptz,
+  ended_at    timestamptz,
+  status      text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    b.group_name,
+    -- The host as a person at their own table. A host who never plays has no
+    -- player row and no name to give; the screens fall back rather than
+    -- inventing one, because "kept by" with nothing after it is a bug a reader
+    -- can see and a made-up name is one they cannot.
+    (select p.display_name
+       from player p
+      where p.book_id = b.id
+        and p.claimed_by_user_id = b.host_user_id
+      limit 1),
+    (select count(*)::int from session_seat ss where ss.session_id = s.id),
+    s.started_at,
+    s.ended_at,
+    s.status::text
+  from session s
+  join book b on b.id = s.book_id
+  where s.id = target_session_id
+    and (
+      -- A watcher, holding the grant 0005 mints and 0001's policies read.
+      s.id = watcher_session_id()
+      -- A claimed member of this book.
+      or is_book_member(s.book_id)
+      -- The host themselves — the same screens serve them when they open a
+      -- night they kept.
+      or is_book_host(s.book_id)
+    );
+$$;
+
+comment on function night_header(uuid) is
+  'The group, the host''s name, the seat count and the times for ONE night, to somebody already entitled to read it. Feeds X1a and X1c''s meta lines and the read-only band. Zero rows for anybody else.';
+
+-- Callable by signed-in users; the function decides for itself who gets an
+-- answer. Anonymous watchers are `authenticated` too — an anonymous Supabase
+-- user is a real user with a real JWT, which is the whole point of 0005.
+grant execute on function night_header(uuid) to authenticated;
+
+-- ===== 0011_preview_host.sql =============================================
+
+-- =============================================================================
+-- The preview names the host
+-- =============================================================================
+-- X2b's first line is "{host} added you as {name}" — the sentence that makes
+-- the screen work, because it says who is vouching for the code before the
+-- reader spends it. `preview_player_invite` returned a name and a group and
+-- could not answer it.
+--
+-- The narrowness of the preview is deliberate and stays: 0007 calls it "a name,
+-- a group, and nothing about the money", and that is the right line. A host's
+-- display name sits on the same side of it as the group's — both are facts
+-- about whose table this is, neither is a figure, and a holder of a live code
+-- was given it by that person. What stays out is everything the reader has not
+-- yet been granted: the ledger, the nights, the roster, the amounts.
+--
+-- The night count X2b also draws is NOT added here, and that is a decision
+-- rather than an omission — see the note in `app/claim.tsx`.
+--
+-- The return type changes, so this is a DROP and CREATE. The constant-time
+-- behaviour 0009 gave it is preserved verbatim; the only difference is one more
+-- column on the way out and one more join on the way in, and the join sits
+-- INSIDE the padded path so it cannot become a timing difference of its own.
+-- =============================================================================
+
+drop function if exists preview_player_invite(text);
+
+create function preview_player_invite(code text)
+returns table (player_name text, group_name text, host_name text)
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  started timestamptz := clock_timestamp();
+  hit     boolean := false;
+begin
+  for player_name, group_name, host_name in
+    select p.display_name,
+           b.group_name,
+           (select h.display_name
+              from player h
+             where h.book_id = b.id
+               and h.claimed_by_user_id = b.host_user_id
+             limit 1)
+    from player_invite i
+    join player p on p.id = i.player_id
+    join book b on b.id = i.book_id
+    where upper(trim(i.code)) = upper(trim(preview_player_invite.code))
+      and i.claimed_at is null
+      and i.revoked_at is null
+      and i.expires_at > now()
+  loop
+    hit := true;
+    return next;
+  end loop;
+
+  if not hit then
+    perform pad_refusal(started);
+  end if;
+end;
+$$;
+
+comment on function preview_player_invite(text) is
+  'A name, a group and the host, for a live code only. Zero rows for unknown, spent, revoked and expired alike, in constant time — S80.';

@@ -5,6 +5,7 @@ import {
   formatMoney,
   formatSigned,
   resolveLedger,
+  ruleTerms,
   settle,
   type Deduction,
   type Money,
@@ -84,6 +85,21 @@ export default function NightResults() {
   const bill = totalFor(result.deductions, 'bill');
   const kitty = totalFor(result.deductions, 'kitty');
 
+  /*
+   * What each of those two was charged ON, in the night's own words.
+   *
+   * X1c puts the terms on the row — "Bill · by size of win" — for a reason that
+   * applies just as much here as it does to a watcher: S62 changed the default
+   * split, so two nights three weeks apart can carry different rules and show
+   * the same label. A settled night has to say which one it was settled under,
+   * and it says it from the snapshot rather than from this file. See
+   * `ruleText.ts`.
+   */
+  const termsFor = (destination: Deduction['destination']): string | undefined => {
+    const rule = night.rules.find((r) => r.destination === destination && r.active);
+    return rule === undefined ? undefined : ruleTerms(rule);
+  };
+
   /* Somebody who never sat down and was neither charged nor credited has
      nothing to say on a results list — the engine counts them because they
      could have collected something, and tonight they did not. */
@@ -108,8 +124,8 @@ export default function NightResults() {
         {/* Grouped at the right, small, and with no minus signs: they are two
             amounts that left the table, not two negative numbers. */}
         <View style={styles.offTable}>
-          <Off label="Bill" value={bill} />
-          <Off label="Kitty" value={kitty} />
+          <Off label="Bill" value={bill} terms={termsFor('bill')} />
+          <Off label="Kitty" value={kitty} terms={termsFor('kitty')} />
         </View>
       </View>
 
@@ -128,17 +144,23 @@ export default function NightResults() {
       <View style={styles.list}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Net</Text>
 
-        {rows.map((p, i) => {
+        {rows.map((p) => {
           const isMe = p.playerId === me;
           return (
             <View
               key={p.playerId}
+              /*
+               * Tinted per net, which X1c confirms as the treatment for a
+               * settled table (M1) and the tokens have always described: "a
+               * faint wash behind a net row, so a win or a loss registers at
+               * arm's length rather than only on close reading of the figure."
+               * The wash replaces the hairline — a washed block with a rule
+               * under it reads as two devices doing one job.
+               */
               style={[
                 styles.row,
-                {
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                },
+                styles.rowWashed,
+                { backgroundColor: p.finalPosition >= 0 ? t.winWash : t.lossWash },
               ]}
             >
               <View style={styles.rowTop}>
@@ -271,12 +293,17 @@ function Token({
   );
 }
 
-function Off({ label, value }: { label: string; value: Money }) {
+function Off({ label, value, terms }: { label: string; value: Money; terms?: string }) {
   const t = useTheme();
   return (
-    <View style={styles.off}>
-      <Text style={[styles.offLabel, { color: t.muted }]}>{label}</Text>
-      <Text style={[styles.offValue, { color: t.loss }]}>{formatMoney(value)}</Text>
+    <View style={styles.offGroup}>
+      <View style={styles.off}>
+        <Text style={[styles.offLabel, { color: t.muted }]}>{label}</Text>
+        <Text style={[styles.offValue, { color: t.loss }]}>{formatMoney(value)}</Text>
+      </View>
+      {terms !== undefined && (
+        <Text style={[styles.offTerms, { color: t.dim }]}>{terms}</Text>
+      )}
     </View>
   );
 }
@@ -310,10 +337,12 @@ const styles = StyleSheet.create({
   summaryLeft: { gap: 8 },
   summaryLabel: type.tableLabel,
   summaryFigure: type.tableFigure,
-  offTable: { marginLeft: 'auto', gap: 6, alignItems: 'flex-end' },
+  offTable: { marginLeft: 'auto', gap: 10, alignItems: 'flex-end' },
+  offGroup: { alignItems: 'flex-end', gap: 2 },
   off: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   offLabel: { fontSize: 12.5, fontWeight: '500' },
   offValue: { fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  offTerms: { fontSize: 11.5, fontWeight: '400' },
 
   alert: {
     marginHorizontal: space.card,
@@ -330,6 +359,13 @@ const styles = StyleSheet.create({
   list: { marginHorizontal: space.page },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
   row: { paddingVertical: 13, paddingHorizontal: 4, gap: 7 },
+  /* X1c's geometry: 11/10 inside, pulled 6 past the list, radius 8, 3 apart. */
+  rowWashed: {
+    paddingHorizontal: 10,
+    marginHorizontal: -6,
+    marginBottom: 3,
+    borderRadius: radius.pressable,
+  },
   rowTop: { flexDirection: 'row', alignItems: 'baseline', gap: 12 },
   name: { fontSize: 17, fontWeight: '600', flexShrink: 1 },
   nameMine: { fontSize: 17, fontWeight: '800', flexShrink: 1 },

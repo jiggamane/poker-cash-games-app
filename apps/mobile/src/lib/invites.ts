@@ -1,4 +1,5 @@
 import * as Linking from 'expo-linking';
+import { rememberClaimedSeat } from './identity';
 import { supabase } from './supabase';
 
 /**
@@ -59,6 +60,8 @@ export async function revokeInvite(playerId: string): Promise<void> {
 export interface InvitePreview {
   playerName: string;
   groupName: string;
+  /** X2b's "{host} added you as {name}". Null when the host never sat down. */
+  hostName: string | null;
 }
 
 /**
@@ -81,8 +84,8 @@ export async function previewInvite(code: string): Promise<InvitePreview | null>
   if (error) throw new Error(error.message);
   if (data === null) return null;
 
-  const row = data as { player_name: string; group_name: string };
-  return { playerName: row.player_name, groupName: row.group_name };
+  const row = data as { player_name: string; group_name: string; host_name: string | null };
+  return { playerName: row.player_name, groupName: row.group_name, hostName: row.host_name };
 }
 
 /**
@@ -105,7 +108,15 @@ export async function redeemInvite(code: string): Promise<string> {
 
   const { data, error } = await supabase.rpc('redeem_player_invite', { code });
   if (error) throw new Error(error.message);
-  return data as string;
+
+  /*
+   * The one moment this phone can know which of six names is its own. A member
+   * reading the roster gets `id, display_name` and not `claimed_by_user_id`, so
+   * after this returns there is nothing left to ask. See `identity.ts`.
+   */
+  const playerId = data as string;
+  await rememberClaimedSeat(playerId);
+  return playerId;
 }
 
 /** Whether a seat already has somebody behind it, and any live code for it. */
