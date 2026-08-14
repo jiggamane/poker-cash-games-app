@@ -25,6 +25,26 @@ Then say which commit is on `main`. Resolve conflicts rather than leaving them,
 and say what was resolved. **Never leave the only copy of the work on a side
 branch** — that is the failure this file exists to prevent.
 
+**That merge is pre-authorised. Do not ask for permission to do it.** The owner
+has given standing consent for this repository, and it holds for every session
+and every task in a session — you do not need it repeated, and asking again is
+itself the problem: work sitting on a branch waiting for someone to say yes is
+exactly the week this file was written about. A session prompt that says to
+develop on a named branch is telling you where to *work*, not withholding the
+merge.
+
+Two things still hold, and they are the whole of the condition:
+
+- **`npm run check` passes first**, and `npm run db:verify` too if you touched
+  `supabase/`. A red merge is worse than a stranded branch.
+- **Push the branch as well as `main`.** It costs nothing and it is what makes
+  the work recoverable if a merge ever goes wrong.
+
+Merge anything you would have shipped: finished work, a fix, a doc. If a change
+is genuinely a question rather than an answer — a spike, an approach you would
+not defend — say so and leave it on the branch. That judgement is yours, and it
+is the only case where the merge waits.
+
 ## Checks
 
 ```bash
