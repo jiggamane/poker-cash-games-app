@@ -37,6 +37,14 @@ npm run db:verify    # apply the schema to a throwaway DB and assert the money r
 cd apps/mobile && npm start   # scan the QR code with Expo Go
 ```
 
+## Working on this repo
+
+`main` is the trunk. **Start every session from it and merge back into it** —
+`docs/branches.md` says why in full, and lists what is still sitting on the
+older branches. Until this week the repo had no `main` at all and ten threads
+built in parallel on the same 12 August commit; that document is the map out of
+it.
+
 ## Start here
 
 - **[`docs/dev-setup.md`](docs/dev-setup.md)** — how to run everything, written for a

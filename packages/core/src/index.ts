@@ -14,3 +14,11 @@ export * from './types';
 export * from './ledger';
 export * from './settlement';
 export * from './outbox';
+/*
+ * Recovered from claude/auth-not-working, where they were written and tested
+ * against the same money core. A night's rules snapshot and the re-derivation
+ * that proves a settled night still computes to what it was closed with —
+ * neither belongs to a screen, so neither needed rebuilding here.
+ */
+export * from './snapshot';
+export * from './verify';
