@@ -572,6 +572,10 @@ export interface MyNight {
   played: boolean;
   /** Your net after deductions. Zero on a night you did not play. */
   result: Money;
+  /** When it started, ISO — what `myStats` counts calendar months by. */
+  startedAt: string;
+  /** How long the table ran, in minutes. Zero while it is still running. */
+  minutes: number;
 }
 
 /**
@@ -633,6 +637,11 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
           : `${hhmm(night.startedAt)} – ${hhmm(ended)}`,
       played,
       result,
+      startedAt: night.startedAt,
+      minutes:
+        ended === undefined
+          ? 0
+          : Math.max(0, Math.round((Date.parse(ended) - started.getTime()) / 60_000)),
     },
   ];
 }

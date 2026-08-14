@@ -1,17 +1,30 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, formatSigned, type Money } from '@poker-club/core';
-import { Chart } from '../src/components/Chart';
+import { formatSigned, type Money } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
+import { NightsChart } from '../src/components/NightsChart';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { myNights, useNight, type MyNight } from '../src/lib/nightStore';
+import { SAMPLE_HISTORY } from '../src/data/sampleHistory';
+import {
+  formatNightDate,
+  formatSitting,
+  inPeriod,
+  mostRecentFirst,
+  summarise,
+  type Period,
+  type PlayedNight,
+} from '../src/lib/myStats';
+import { myNights, useNight } from '../src/lib/nightStore';
 
 /** Month first, everywhere. Rev 10, S48. */
-const PERIODS = ['Month', 'Year', 'All time'] as const;
-type Period = (typeof PERIODS)[number];
+const PERIODS: ReadonlyArray<{ label: string; value: Period }> = [
+  { label: 'Month', value: 'month' },
+  { label: 'Year', value: 'year' },
+  { label: 'All time', value: 'all' },
+];
 
 /**
  * My stats — G4. Rev 10, S40: this layout is the confirmed one, and the old
@@ -21,90 +34,139 @@ type Period = (typeof PERIODS)[number];
  * then the nights themselves. A running all-time total is one tab away and
  * nowhere else, because the number a player actually wants at 1am is what
  * this month has done to them.
+ *
+ * Not one figure on this screen is added up here. Every one of them comes out
+ * of `myStats`, which is tested — including the thing this screen used to get
+ * wrong: a period is a CALENDAR month, not the last thirty-one days. On the
+ * 2nd of the month "this month" is two days of poker, which is what a person
+ * means and what makes the total agree with the one they would reach counting
+ * their own nights on their fingers.
  */
 export default function MyStats() {
   const t = useTheme();
   const night = useNight();
-  const [period, setPeriod] = useState<Period>('Month');
+  const [period, setPeriod] = useState<Period>('month');
 
-  const nights = myNights(night, period === 'Month' ? 31 : period === 'Year' ? 365 : null);
-  const played = nights.filter((n) => n.played);
-  const total = played.reduce((sum, n) => sum + n.result, 0) as Money;
-  const average = played.length === 0 ? 0 : Math.round(total / played.length);
-  const won = played.filter((n) => n.result > 0).length;
-  const lost = played.filter((n) => n.result < 0).length;
+  // One clock for the whole screen. Two calls to new Date() could land either
+  // side of midnight and put a night in the chart that is not in the total.
+  const now = useMemo(() => new Date(), []);
+
+  const history = useMemo<PlayedNight[]>(() => {
+    const mine = myNights(night, null)
+      .filter((n) => n.played)
+      .map((n) => ({
+        id: n.sessionId,
+        startedAt: n.startedAt,
+        group: n.groupName,
+        net: n.result,
+        minutes: n.minutes,
+      }));
+    // This phone's own settled night first, then the seeded ones behind it.
+    // Both are the same shape by the time anything adds them up.
+    return [...mine, ...SAMPLE_HISTORY];
+  }, [night]);
+
+  const nights = useMemo(
+    () => mostRecentFirst(inPeriod(history, period, now)),
+    [history, period, now],
+  );
+  const stats = useMemo(() => summarise(nights), [nights]);
+  const best = useMemo(
+    () => (nights.length === 0 ? null : Math.max(...nights.map((n) => n.net))),
+    [nights],
+  );
+
+  // Oldest first for the chart, and never more than eight: past that the
+  // columns are too narrow to compare and the dates stop fitting under them.
+  const plotted = useMemo(() => [...nights].slice(0, 8).reverse(), [nights]);
+
+  const periodLabel = PERIODS.find((p) => p.value === period)!.label;
 
   return (
     <Screen title="My stats" backTo="the club" meta={night?.groupName}>
       <View style={[styles.card, { backgroundColor: t.surface }]}>
         <View style={styles.cardTop}>
           <Text style={[styles.cardLabel, { color: t.muted }]}>
-            {period === 'All time' ? 'All time' : `This ${period.toLowerCase()}`}
+            {period === 'all' ? 'All time' : `This ${periodLabel.toLowerCase()}`}
           </Text>
           <View style={styles.tabs}>
             {PERIODS.map((p) => (
               <Pressable
-                key={p}
+                key={p.value}
                 accessibilityRole="tab"
-                accessibilityState={{ selected: p === period }}
-                onPress={() => setPeriod(p)}
+                accessibilityState={{ selected: p.value === period }}
+                onPress={() => setPeriod(p.value)}
                 style={[
                   styles.tab,
-                  p === period && { borderBottomWidth: 1.5, borderBottomColor: t.text },
+                  p.value === period && { borderBottomWidth: 1.5, borderBottomColor: t.text },
                 ]}
               >
-                <Text style={[p === period ? styles.tabOn : styles.tabOff, { color: p === period ? t.text : t.muted }]}>
-                  {p}
+                <Text
+                  style={[
+                    p.value === period ? styles.tabOn : styles.tabOff,
+                    { color: p.value === period ? t.text : t.muted },
+                  ]}
+                >
+                  {p.label}
                 </Text>
               </Pressable>
             ))}
           </View>
         </View>
 
-        <Text style={[styles.figure, { color: moneyColor(t, total as Money) }]}>
-          {formatSigned(total)}
+        <Text style={[styles.figure, { color: moneyColor(t, stats.net as Money) }]}>
+          {formatSigned(stats.net as Money)}
         </Text>
 
         {/* The count, then the average — in that order, always. */}
         <Text style={[styles.meta, { color: t.muted }]}>
-          played {played.length} {played.length === 1 ? 'game' : 'games'} / av.{' '}
-          {formatSigned(average as Money)} per game
+          played {stats.games} {stats.games === 1 ? 'game' : 'games'} / av.{' '}
+          {formatSigned(stats.average as Money)} per game
         </Text>
 
         <View style={[styles.pairs, { borderTopColor: t.hairline }]}>
           <View style={styles.pair}>
             <Text style={[styles.pairLabel, { color: t.muted }]}>WON / LOST</Text>
             <Text style={styles.pairValue}>
-              <Text style={{ color: t.win }}>{won} W</Text>
+              <Text style={{ color: t.win }}>{stats.won} W</Text>
               <Text style={{ color: t.muted }}> · </Text>
-              <Text style={{ color: t.loss }}>{lost} L</Text>
+              <Text style={{ color: t.loss }}>{stats.lost} L</Text>
             </Text>
           </View>
           <View style={[styles.pair, styles.pairRight]}>
             <Text style={[styles.pairLabel, { color: t.muted }]}>BEST NIGHT</Text>
             <Text style={[styles.pairValue, { color: t.text }]}>
-              {played.length === 0
-                ? '—'
-                : formatSigned(Math.max(...played.map((n) => n.result)) as Money)}
+              {best === null ? '—' : formatSigned(best as Money)}
             </Text>
           </View>
         </View>
       </View>
 
-      {played.length > 0 && (
-        <Chart nights={played.slice(-8).map((n) => ({ label: n.short, result: n.result }))} />
+      {plotted.length > 0 && (
+        <NightsChart
+          caption="result per night"
+          nights={plotted.map((n) => ({
+            id: n.id,
+            label: formatNightDate(n.startedAt),
+            net: n.net,
+          }))}
+        />
       )}
 
       <View style={styles.list}>
         <View style={styles.listHead}>
           <Text style={[styles.sectionLabel, { color: t.muted }]}>Last games</Text>
-          <Pressable accessibilityRole="button" onPress={() => router.push('/games')}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push('/games')}
+            style={styles.seeAllHit}
+          >
             <Text style={[styles.seeAll, { color: t.text }]}>See all</Text>
           </Pressable>
         </View>
 
-        {nights.slice(-4).reverse().map((n) => (
-          <NightRow key={n.sessionId} night={n} />
+        {nights.slice(0, 4).map((n) => (
+          <NightRow key={n.id} night={n} />
         ))}
 
         {nights.length === 0 && (
@@ -117,8 +179,8 @@ export default function MyStats() {
   );
 }
 
-/** A game in the list: club and times on top, the result on the right. */
-function NightRow({ night }: { night: MyNight }) {
+/** A game in the list: club and how long you sat, the result on the right. */
+function NightRow({ night }: { night: PlayedNight }) {
   const t = useTheme();
   return (
     <Pressable
@@ -130,18 +192,20 @@ function NightRow({ night }: { night: MyNight }) {
       ]}
     >
       <View style={styles.rowText}>
-        <Text style={[styles.rowDate, { color: t.text }]}>{night.date}</Text>
-        {/* Club · session times. Buy-in and duration live on the night, not
-            in the list. */}
+        <Text style={[styles.rowDate, { color: t.text }]}>
+          {formatNightDate(night.startedAt, true)}
+        </Text>
+        {/* Club · how long the sitting ran. Buy-in lives on the night, not in
+            the list. */}
         <Text style={[styles.rowMeta, { color: t.muted }]}>
-          {night.played ? `${night.groupName} · ${night.times}` : `${night.groupName} · did not play`}
+          {night.minutes === 0
+            ? night.group
+            : `${night.group} · ${formatSitting(night.minutes)}`}
         </Text>
       </View>
-      {night.played && (
-        <Text style={[styles.rowResult, { color: moneyColor(t, night.result) }]}>
-          {formatSigned(night.result)}
-        </Text>
-      )}
+      <Text style={[styles.rowResult, { color: moneyColor(t, night.net) }]}>
+        {formatSigned(night.net)}
+      </Text>
       <Icon name="chevron" color={t.muted} />
     </Pressable>
   );
@@ -174,7 +238,10 @@ const styles = StyleSheet.create({
   list: { marginTop: 22, marginHorizontal: space.page },
   listHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4, paddingBottom: 6 },
   sectionLabel: type.sectionLabel,
-  seeAll: { ...type.chip, marginLeft: 'auto', fontWeight: '700' },
+  // The push has to carry the margin, not the text inside it: `auto` on the
+  // Text only pushes it within a box that is already hard against the label.
+  seeAllHit: { marginLeft: 'auto', paddingLeft: 12 },
+  seeAll: { ...type.chip, fontWeight: '700' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
