@@ -130,6 +130,9 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
       }
       for (const column of [
         'me_id TEXT',
+        // Which sample night this is, or NULL if it is a real one. See
+        // SEED_VERSION in data/sampleNight.
+        'seed_version INTEGER',
         // Carried by nights arriving from the server. A night this phone
         // recorded has them on its session row upstream; locally they are
         // display only, which is why they may be null on every existing row.
@@ -227,6 +230,8 @@ interface NightRow {
   rules_json: string;
   ack_json: string | null;
   me_id: string | null;
+  /** Non-null only on the sample night. See SEED_VERSION in data/sampleNight. */
+  seed_version: number | null;
 }
 
 /**
@@ -241,10 +246,27 @@ export async function openNight(): Promise<Night> {
   const db = await getDb();
   let row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
 
-  if (!row) {
+  /*
+   * Lay down the sample night, or replace one that has gone stale.
+   *
+   * The second half matters more than the first. Seeding only when the database
+   * is empty means a phone keeps whichever demo night it met on its very first
+   * launch, and every build after that arrives looking unchanged however much
+   * the seed has moved — which is exactly what happened while this app was
+   * being drawn.
+   *
+   * A night the host STARTED has no seed_version and is never in scope here. A
+   * seeded one is demo data by definition, so replacing it loses nothing.
+   */
+  if (row === null || row.seed_version !== null) {
+    // Loaded lazily so the sample night stays out of the main bundle; a build
+    // with a real night in it never pulls the chunk at all.
     const seed = await import('../data/sampleNight');
-    await seedNight(seed.SEED);
-    row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+    if (row === null || row.seed_version! < seed.SEED_VERSION) {
+      if (row !== null) await forgetNight(row.session_id);
+      await seedNight(seed.SEED, seed.SEED_VERSION);
+      row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+    }
   }
 
   const sessionId = row!.session_id;
@@ -311,19 +333,31 @@ interface Seed {
   meId?: PlayerId;
 }
 
-async function seedNight(seed: Seed): Promise<void> {
+/** Drop a night and everything hanging off it. Only ever a stale seed. */
+async function forgetNight(sessionId: string): Promise<void> {
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    for (const table of ['night_count', 'night_entry', 'night_player', 'night_settlement']) {
+      await db.runAsync(`DELETE FROM ${table} WHERE session_id = ?`, sessionId);
+    }
+    await db.runAsync(`DELETE FROM night WHERE session_id = ?`, sessionId);
+  });
+}
+
+async function seedNight(seed: Seed, seedVersion: number): Promise<void> {
   const db = await getDb();
   const sessionId = randomUUID();
 
   await db.withTransactionAsync(async () => {
     await db.runAsync(
-      `INSERT INTO night (session_id, group_name, started_at, status, rules_json, me_id)
-       VALUES (?, ?, ?, 'open', ?, ?)`,
+      `INSERT INTO night (session_id, group_name, started_at, status, rules_json, me_id, seed_version)
+       VALUES (?, ?, ?, 'open', ?, ?, ?)`,
       sessionId,
       seed.groupName,
       seed.startedAt,
       JSON.stringify(seed.rules),
       seed.meId ?? null,
+      seedVersion,
     );
 
     for (const p of seed.players) {

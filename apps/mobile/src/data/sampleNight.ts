@@ -35,13 +35,34 @@ const players: Player[] = [
   { id: RADKA, name: 'Radka', atTable: false },
 ];
 
-/** Today, at a given wall-clock time — so the night reads like tonight. */
-const at = (hhmm: string): string => {
+/**
+ * The night's clock, written as the wall-clock times it was designed at and
+ * played back so that it is ENDING NOW.
+ *
+ * These times used to be taken literally — 20:05 today — which is right for
+ * about four hours a day and wrong for the other twenty. Opened in the morning
+ * the whole night sat in the future, so the header counted "0h 00m" for a
+ * table that had six people and $4,500 on it, and the one figure on the home
+ * screen that is supposed to say the night is live said the opposite.
+ *
+ * So the times keep their spacing and lose their absolute position: the last
+ * thing that happened lands a few minutes ago, everything else falls back from
+ * it, and the night reads as three hours old whenever the app is opened.
+ */
+/** The latest time used below. Keep it in step if a later entry is added. */
+const LAST = '23:15';
+/** How long ago the most recent entry was. Recent, but not this second. */
+const SINCE_LAST_MIN = 6;
+
+const minutes = (hhmm: string): number => {
   const [h, m] = hhmm.split(':').map(Number);
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d.toISOString();
+  return h! * 60 + m!;
 };
+
+const at = (hhmm: string): string =>
+  new Date(
+    Date.now() - (minutes(LAST) - minutes(hhmm) + SINCE_LAST_MIN) * 60_000,
+  ).toISOString();
 
 type SeedEntry = Omit<LedgerEntry, 'id' | 'seq'> & { occurredAt: string; note?: string };
 
@@ -84,6 +105,22 @@ const rules: MoneyRule[] = [
     collectorPlayerId: MAREK, sortOrder: 1,
   },
 ];
+
+/**
+ * Bump this whenever anything above changes.
+ *
+ * A phone seeds itself once and then never again, because after the first
+ * launch there is a night in the database and the seed only runs when there is
+ * not. So a device that has ever opened this app keeps whichever demo night it
+ * met first, for good — and every later build lands on it looking unchanged.
+ * That is not a hypothetical: it is why the seeded night on the phone stayed at
+ * an older shape while the screens around it moved on for a week.
+ *
+ * A night carries the version it was seeded at, and a version behind this one
+ * is replaced on launch. A night the host STARTED carries no version at all and
+ * is never touched by any of this — see `openNight`.
+ */
+export const SEED_VERSION = 2;
 
 export const SEED = {
   groupName: 'The Thursday game',
