@@ -29,8 +29,16 @@ Every thread, at the end, once the checks pass:
 git checkout main && git pull && git merge --no-ff <branch> && git push origin main
 ```
 
-A session is told to develop on its own branch and not to push elsewhere
-without permission, so the merge only happens if the prompt asks for it.
+**The merge is pre-authorised — a session must not ask for it.** This used to
+read "the merge only happens if the prompt asks for it", which was the wrong
+rule and produced the wrong outcome twice: a session finished its work, pushed a
+branch, and waited to be told to do the obvious last step. Being told to develop
+on a named branch says where to work; it has never meant the trunk is off
+limits. The owner's consent is standing and covers every session.
+
+What the merge waits for is `npm run check` — and `npm run db:verify` if
+`supabase/` was touched — and nothing else. See `CLAUDE.md` for the one
+exception: work you would not defend does not get merged, and you say so.
 
 ## What was recovered into main
 
