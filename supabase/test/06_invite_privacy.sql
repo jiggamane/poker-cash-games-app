@@ -91,7 +91,8 @@ $$;
 insert into auth.users (id, email) values
   ('f1000000-0000-0000-0000-000000000001', 'privacy-host@example.com'),
   ('f1000000-0000-0000-0000-000000000002', null),  -- the person who spent one
-  ('f1000000-0000-0000-0000-000000000003', null);  -- a stranger doing the trying
+  ('f1000000-0000-0000-0000-000000000003', null),  -- a stranger doing the trying
+  ('f1000000-0000-0000-0000-000000000004', null);  -- takes the seat after a Reset
 
 insert into book (id, host_user_id, group_name) values
   ('f2000000-0000-0000-0000-000000000001',
@@ -388,8 +389,66 @@ select expect_eq(
 
 reset role;
 
+
+-- =============================================================================
+-- 9. S84 — a month to use a code, and what Reset does to a claimed seat
+-- =============================================================================
+
+reset role;
+
+select expect_true(
+  (select expires_at > now() + interval '25 days'
+     from player_invite where code = (select code from codes limit 1)),
+  'a per-player code lives a month, not a week');
+
+-- The seat claimed at the top of this file: f3…004, held by f1…003.
+select expect_text(
+  (select claimed_by_user_id::text from player where id = 'f3000000-0000-0000-0000-000000000004'),
+  'f1000000-0000-0000-0000-000000000003', 'the Live seat starts out claimed');
+
+set request.jwt.claims = '{"sub":"f1000000-0000-0000-0000-000000000001"}';
+set role authenticated;
+
+select revoke_player_invite('f3000000-0000-0000-0000-000000000004');
+
+reset role;
+
+select expect_text(
+  (select claimed_by_user_id::text from player where id = 'f3000000-0000-0000-0000-000000000004'),
+  null, 'Reset releases the seat, so a new code has something to attach to');
+
+-- The spent invite is NOT rewritten. It is the record of a claim that happened.
+select expect_true(
+  (select claimed_at is not null and revoked_at is null
+     from player_invite where code = 'LIVE222222'),
+  'and the spent code keeps its claim — this app does not tidy up history');
+
+-- A new code can now be issued, and it works.
+set request.jwt.claims = '{"sub":"f1000000-0000-0000-0000-000000000001"}';
+set role authenticated;
+
+create temporary table reissued (code text);
+insert into reissued select create_player_invite('f3000000-0000-0000-0000-000000000004');
+
+-- Somebody who holds no seat in this book yet, since one person holds at most
+-- one — f1…002 already has the Spent seat.
+set request.jwt.claims = '{"sub":"f1000000-0000-0000-0000-000000000004"}';
+select expect_text(
+  redeem_player_invite((select code from reissued))::text,
+  'f3000000-0000-0000-0000-000000000004',
+  'and somebody else can take the seat with it');
+
+reset role;
+
+-- Only the new one is live: the unspent code Reset retired is dead.
+select expect_eq(
+  (select count(*) from player_invite
+    where player_id = 'f3000000-0000-0000-0000-000000000002'
+      and claimed_at is null and revoked_at is null),
+  1, 'a seat never has two live codes loose at once');
+
 \o
 
 \echo '--------------------------------------------------'
-\echo ' INVITE PRIVACY TESTS PASSED (S80, S81)'
+\echo ' INVITE PRIVACY TESTS PASSED (S80, S81, S84)'
 \echo '--------------------------------------------------'

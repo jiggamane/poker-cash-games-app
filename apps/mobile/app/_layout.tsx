@@ -82,6 +82,13 @@ export default function RootLayout() {
          * a watcher's install" row in `09-navigation.md`.
          */}
         <Stack.Screen name="watch" />
+        {/*
+         * X1c is a PUSH. This was a sheet under 1C (rev 10); rev 15 redraws the
+         * settled night as Chrome A, and the classification follows the layout:
+         * it is a place you stay and read, not something you confirm and
+         * dismiss.
+         */}
+        <Stack.Screen name="settled" />
 
         {/* Sheets. Each of these ends with one action and then gets out. */}
         <Stack.Screen name="player" options={SHEET} />
@@ -96,7 +103,6 @@ export default function RootLayout() {
         <Stack.Screen name="house-rules" options={SHEET} />
         <Stack.Screen name="money-rules" options={SHEET} />
         <Stack.Screen name="rule" options={SHEET} />
-        <Stack.Screen name="settled" options={SHEET} />
         <Stack.Screen name="sign-in" options={SHEET} />
         <Stack.Screen name="member" options={SHEET} />
         <Stack.Screen name="new-group" options={SHEET} />

@@ -113,7 +113,16 @@ export default function Invite() {
   }
 
   if (stage === 'reset') {
-    return <Reset name={name} code={code} busy={busy} onConfirm={() => void reset()} onKeep={() => setStage('code')} />;
+    return (
+      <Reset
+        name={name}
+        code={code}
+        claimed={claimed}
+        busy={busy}
+        onConfirm={() => void reset()}
+        onKeep={() => setStage('code')}
+      />
+    );
   }
 
   if (stage === 'qr' && code !== null) {
@@ -198,7 +207,14 @@ function Code({
         <Text style={[styles.note, { color: t.muted }]}>
           {claimed
             ? `${name} claimed this. It cannot be used again.`
-            : `One person, one code — it only ever attaches to ${name}.`}
+            : /*
+               * S84, answered: a per-player code lives ONE MONTH. C3a is drawn
+               * with the binding sentence and no expiry line, and § 6 says that
+               * sentence "gains a clause" if codes do expire. This is that
+               * clause, and it is MINE rather than the designer's — flagged for
+               * sign-off with the rest of the proposed copy.
+               */
+              `One person, one code — it only ever attaches to ${name}. It works for a month.`}
         </Text>
 
         <View style={styles.chips}>
@@ -315,12 +331,14 @@ function Qr({
 function Reset({
   name,
   code,
+  claimed,
   busy,
   onConfirm,
   onKeep,
 }: {
   name: string;
   code: string | null;
+  claimed: boolean;
   busy: boolean;
   onConfirm: () => void;
   onKeep: () => void;
@@ -328,7 +346,7 @@ function Reset({
   const t = useTheme();
   return (
     <Sheet
-      title="Reset the code?"
+      title={claimed ? `Give ${name}’s seat a new code?` : 'Reset the code?'}
       sub={name}
       onClose={onKeep}
       footer={
@@ -339,13 +357,40 @@ function Reset({
       }
     >
       <View style={styles.page}>
-        <Text style={[styles.warning, { color: t.text }]}>
-          The code you already sent stops working. Anyone holding it sees nothing, and it cannot be
-          undone.
-        </Text>
-        <Text style={[styles.warning, { color: t.muted }]}>
-          A new ten-character code takes its place, bound to {name} in the same way.
-        </Text>
+        {/*
+         * S84's second question, answered: Reset works on a claimed seat, and
+         * it releases the seat rather than destroying anything. That is a
+         * different act from retiring an unspent code, so it gets its own copy
+         * — § 6 asks for exactly this. Both sets are MINE and want sign-off.
+         *
+         * The order is the same in both: what stops working, whether it can be
+         * undone, and what takes its place. The claimed version adds the one
+         * sentence a host actually needs, which is what does NOT happen.
+         */}
+        {claimed ? (
+          <>
+            <Text style={[styles.warning, { color: t.text }]}>
+              {name} stops being able to open the book on their phone, until they use the new code.
+            </Text>
+            <Text style={[styles.warning, { color: t.muted }]}>
+              Nothing they have played is affected. Every night, every buy-in and every settlement
+              stays on {name}’s name in this book — those belong to the seat, not to the phone.
+            </Text>
+            <Text style={[styles.warning, { color: t.muted }]}>
+              A new ten-character code takes its place. Whoever opens it takes the seat.
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={[styles.warning, { color: t.text }]}>
+              The code you already sent stops working. Anyone holding it sees nothing, and it cannot
+              be undone.
+            </Text>
+            <Text style={[styles.warning, { color: t.muted }]}>
+              A new ten-character code takes its place, bound to {name} in the same way.
+            </Text>
+          </>
+        )}
 
         {/* Shown struck through, so the host can check they are killing the
             code they think they are. */}
@@ -354,7 +399,9 @@ function Reset({
             {code === null ? '—' : grouped(code)}
           </Text>
           <View style={[styles.dyingTag, { borderColor: t.hairline }]}>
-            <Text style={[styles.dyingTagText, { color: t.muted }]}>DIES ON RESET</Text>
+            <Text style={[styles.dyingTagText, { color: t.muted }]}>
+              {claimed ? 'ALREADY USED' : 'DIES ON RESET'}
+            </Text>
           </View>
         </View>
       </View>

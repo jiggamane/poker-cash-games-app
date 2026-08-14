@@ -3,13 +3,12 @@ import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   formatMoney,
-  formatSigned,
   resolveLedger,
   settle,
-  workingRows,
   type Money,
   type PlayerId,
 } from '@poker-club/core';
+import { NightResult } from '../src/components/NightResult';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
@@ -178,15 +177,20 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
     >
       <View style={styles.body}>
         {result === null ? (
-          <LiveSeat night={night} mine={mine} />
+          <>
+            <LiveSeat night={night} mine={mine} />
+            <Live night={night} ledger={ledger} me={me} />
+          </>
         ) : (
-          <SettledSeat night={night} result={result} me={me} mine={mine} />
-        )}
-
-        {result === null ? (
-          <Live night={night} ledger={ledger} me={me} />
-        ) : (
-          <TableResults result={result} me={me} />
+          /* The same three blocks the host reads on `settled.tsx`. Same data,
+             different projection — the only difference is what follows them. */
+          <NightResult
+            result={result}
+            rules={night.rules}
+            me={me}
+            hostName={night.hostName}
+            readOnly
+          />
         )}
 
         {/*
@@ -228,99 +232,6 @@ function LiveSeat({ night, mine }: { night: WatchedNight; mine: { id: string; na
         in {formatMoney(boughtIn)} · {buyIns} {buyIns === 1 ? 'buy-in' : 'buy-ins'}
       </Text>
       <Text style={[styles.seatMuted, { color: t.muted }]}>counted at the end</Text>
-    </View>
-  );
-}
-
-/**
- * X1c's card: the net, then the working that produced it.
- *
- * Every row comes from `workingRows()` in core, labels included, so the bill
- * row names the split the night was actually settled under. A watcher cannot
- * ask the host what the split was at 00:52, and a screen that wrote the answer
- * into its own markup would keep giving the current one.
- */
-function SettledSeat({
-  night,
-  result,
-  me,
-  mine,
-}: {
-  night: WatchedNight;
-  result: NonNullable<ReturnType<typeof settle>>;
-  me: PlayerId | null;
-  mine: { id: string; name: string } | null;
-}) {
-  const t = useTheme();
-  if (me === null || mine === null) return null;
-
-  const rows = workingRows(result, night.rules, me);
-  if (rows.length === 0) return null;
-
-  const net = result.players.find((p) => p.playerId === me)?.finalPosition ?? (0 as Money);
-
-  return (
-    <>
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <View style={styles.cardHead}>
-          <Text style={[styles.seatName, { color: t.text }]}>You, {mine.name}</Text>
-          <Text style={[styles.netBig, { color: moneyColor(t, net) }]}>{formatSigned(net)}</Text>
-        </View>
-
-        <View>
-          {rows.map((row) => (
-            <View key={row.key} style={[styles.workRow, { borderBottomColor: t.hairline }]}>
-              <Text style={[styles.workLabel, { color: t.muted }]}>{row.label}</Text>
-              <Text
-                style={[
-                  styles.workValue,
-                  {
-                    color:
-                      row.offTable
-                        ? t.offTable
-                        : row.kind === 'result'
-                          ? moneyColor(t, row.amount)
-                          : t.text,
-                  },
-                ]}
-              >
-                {row.signed ? formatSigned(row.amount) : formatMoney(row.amount)}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <Settlement net={net} hostName={night.hostName} />
-    </>
-  );
-}
-
-/**
- * What they are owed, then who does the marking.
- *
- * A WATCHER NEVER MARKS A PAYMENT PAID — there is no control here, only the
- * sentence. The block is tinted with the win wash whichever way the net went,
- * because it is the settlement's own block and not a figure: the figure inside
- * it carries the colour.
- */
-function Settlement({ net, hostName }: { net: Money; hostName: string | null }) {
-  const t = useTheme();
-  return (
-    <View style={[styles.settlement, { backgroundColor: t.winWash }]}>
-      <Text style={[styles.settlementEyebrow, { color: t.muted }]}>SETTLEMENT</Text>
-      <Text style={[styles.settlementLine, { color: t.text }]}>
-        {net > 0
-          ? `You are owed ${formatMoney(net)}`
-          : net < 0
-            ? `You owe ${formatMoney(Math.abs(net) as Money)}`
-            : 'You are square'}
-      </Text>
-      {hostName !== null && (
-        <Text style={[styles.settlementSub, { color: t.muted }]}>
-          {hostName} marks payments as they land.
-        </Text>
-      )}
     </View>
   );
 }
@@ -375,51 +286,6 @@ function Live({
           })}
       </View>
     </>
-  );
-}
-
-/**
- * X1c's table, ranked and tinted per net (M1).
- *
- * Everyone's figure is shown because the book is shared; nobody else's
- * calculation is. The reader's own row is labelled **You** at 700 — the only
- * weight change in the list, and the only thing that makes it findable.
- */
-function TableResults({
-  result,
-  me,
-}: {
-  result: NonNullable<ReturnType<typeof settle>>;
-  me: PlayerId | null;
-}) {
-  const t = useTheme();
-  const rows = [...result.players]
-    .filter((p) => p.boughtIn > 0 || p.endedWith > 0 || p.charged > 0 || p.credited > 0)
-    .sort((a, b) => b.finalPosition - a.finalPosition);
-
-  return (
-    <View style={styles.table}>
-      <Text style={[styles.sectionLabel, { color: t.muted }]}>The table · after deductions</Text>
-      {rows.map((p) => {
-        const isMe = p.playerId === me;
-        return (
-          <View
-            key={p.playerId}
-            style={[
-              styles.resultRow,
-              { backgroundColor: p.finalPosition >= 0 ? t.winWash : t.lossWash },
-            ]}
-          >
-            <Text style={[isMe ? styles.resultNameMine : styles.resultName, { color: t.text }]}>
-              {isMe ? 'You' : p.name}
-            </Text>
-            <Text style={[styles.resultNet, { color: moneyColor(t, p.finalPosition) }]}>
-              {formatSigned(p.finalPosition)}
-            </Text>
-          </View>
-        );
-      })}
-    </View>
   );
 }
 
