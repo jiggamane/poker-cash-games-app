@@ -100,6 +100,19 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           amount      INTEGER NOT NULL,
           PRIMARY KEY (session_id, player_id)
         );
+
+        -- What a settled night settled at, frozen at the moment it closed.
+        --
+        -- Only ever written for nights that arrive from the server: a night
+        -- this phone recorded is recomputed from its own rows on demand, and
+        -- there is nothing to preserve. A pulled night, though, may one day
+        -- meet a newer settlement engine, and the figures the room actually
+        -- paid each other are not a thing a later version gets to revise.
+        CREATE TABLE IF NOT EXISTS night_settlement (
+          session_id  TEXT PRIMARY KEY NOT NULL,
+          computed_at TEXT NOT NULL,
+          payload     TEXT NOT NULL
+        );
       `);
 
       /*
@@ -115,10 +128,20 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
           // Already there.
         }
       }
-      try {
-        await db.execAsync(`ALTER TABLE night ADD COLUMN me_id TEXT;`);
-      } catch {
-        // Already there.
+      for (const column of [
+        'me_id TEXT',
+        // Carried by nights arriving from the server. A night this phone
+        // recorded has them on its session row upstream; locally they are
+        // display only, which is why they may be null on every existing row.
+        'stakes TEXT',
+        'default_buyin INTEGER',
+        'ended_at TEXT',
+      ]) {
+        try {
+          await db.execAsync(`ALTER TABLE night ADD COLUMN ${column};`);
+        } catch {
+          // Already there.
+        }
       }
 
       return db;
@@ -869,6 +892,145 @@ export async function startNight(input: {
     emit();
     throw e;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Nights arriving FROM the server
+// ---------------------------------------------------------------------------
+// The other direction, and the half that makes claiming a place mean anything:
+// somebody who has just taken their seat has an empty phone, and every screen
+// in this app reads from these tables. So a pull writes into them and nothing
+// else has to know it happened.
+//
+// NEVER OVERWRITES. A night this phone already holds is skipped whole — the
+// device that recorded a night is the authority on it, and a pull that could
+// restate a local ledger would be the one way this app loses money. The host
+// pulling their own book therefore gets nothing back, which is correct.
+
+export interface ImportedNight {
+  sessionId: string;
+  groupName: string;
+  startedAt: string;
+  endedAt: string | null;
+  status: Night['status'];
+  stakes: string | null;
+  defaultBuyIn: number;
+  rules: MoneyRule[];
+  players: Array<{ id: string; name: string; atTable: boolean }>;
+  entries: Array<LedgerEntry & { occurredAt: string; note: string | null }>;
+  counts: Array<{ playerId: string; amount: number }>;
+  acknowledgement?: DiscrepancyAcknowledgement;
+}
+
+/** How many nights this phone did not already have. */
+export async function importNights(nights: readonly ImportedNight[]): Promise<number> {
+  const db = await getDb();
+  let added = 0;
+
+  for (const n of nights) {
+    const existing = await db.getFirstAsync<{ session_id: string }>(
+      `SELECT session_id FROM night WHERE session_id = ?`,
+      n.sessionId,
+    );
+    if (existing) continue;
+
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        `INSERT INTO night
+           (session_id, group_name, started_at, status, rules_json, ack_json, stakes, default_buyin, ended_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        n.sessionId,
+        n.groupName,
+        n.startedAt,
+        n.status,
+        JSON.stringify(n.rules),
+        n.acknowledgement === undefined ? null : JSON.stringify(n.acknowledgement),
+        n.stakes,
+        n.defaultBuyIn,
+        n.endedAt,
+      );
+
+      // The people, too. A roster is what a group IS, and somebody reading
+      // their own nights should see the names they played them against.
+      for (const p of n.players) {
+        await db.runAsync(
+          `INSERT OR IGNORE INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, ?)`,
+          n.sessionId,
+          p.id,
+          p.name,
+          p.atTable ? 1 : 0,
+        );
+      }
+
+      for (const e of n.entries) {
+        await db.runAsync(
+          `INSERT OR IGNORE INTO night_entry
+             (session_id, id, seq, type, player_id, payer_id, amount, corrects_entry_id,
+              occurred_at, note, covered_by, spend_group)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          n.sessionId,
+          e.id,
+          e.seq,
+          e.type,
+          e.playerId ?? null,
+          e.payerId ?? null,
+          e.amount,
+          e.correctsEntryId ?? null,
+          e.occurredAt,
+          e.note,
+          e.coveredBy ?? null,
+          e.spendGroup ?? null,
+        );
+      }
+
+      for (const c of n.counts) {
+        await db.runAsync(
+          `INSERT OR IGNORE INTO night_count (session_id, player_id, amount) VALUES (?, ?, ?)`,
+          n.sessionId,
+          c.playerId,
+          c.amount,
+        );
+      }
+    });
+
+    added += 1;
+
+    /*
+     * Freeze what a settled night settled at.
+     *
+     * Recomputed here rather than carried down the wire, and that is safe for
+     * one reason only: settlement is a pure, versioned function of the rows
+     * above, so the same inputs give the same result on any device. The rules
+     * came from the night's own snapshot, not from what the group uses today.
+     *
+     * A night that will not recompute is left without a frozen record instead
+     * of blocking the import — the ledger is still there and still readable,
+     * which is more than the alternative leaves.
+     */
+    if (n.status === 'settled') {
+      try {
+        const result = settle({
+          players: n.players.map((p) => ({ id: p.id, name: p.name, atTable: p.atTable })),
+          entries: n.entries,
+          finalCounts: new Map(n.counts.map((c) => [c.playerId, c.amount as Money])),
+          rules: n.rules,
+          ...(n.acknowledgement ? { acknowledgedDiscrepancy: n.acknowledgement } : {}),
+        });
+        await db.runAsync(
+          `INSERT INTO night_settlement (session_id, computed_at, payload) VALUES (?, ?, ?)
+             ON CONFLICT (session_id) DO NOTHING`,
+          n.sessionId,
+          n.endedAt ?? n.startedAt,
+          JSON.stringify(result),
+        );
+      } catch {
+        // Left unfrozen on purpose. See above.
+      }
+    }
+  }
+
+  if (added > 0) await openNight();
+  return added;
 }
 
 export async function setStatus(status: Night['status']): Promise<void> {

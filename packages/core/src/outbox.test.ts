@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   enqueueEntry,
+  enqueueOp,
   flushOutbox,
   MemoryOutboxStore,
   OutboxError,
@@ -67,13 +68,15 @@ describe('flushOutbox()', () => {
     expect(sent.map((i) => i.id)).toEqual(['a', 'b', 'c']);
   });
 
-  it('sends in seq order, not the order things happen to come back in', async () => {
+  it('sends in the order things were queued, not in id order', async () => {
     const store = new MemoryOutboxStore();
     await enqueueEntry(store, SESSION, 'zzz', draft(100));
     await enqueueEntry(store, SESSION, 'aaa', draft(200));
 
     const sent: number[] = [];
-    await flushOutbox(store, async (items) => void sent.push(...items.map((i) => i.seq)));
+    await flushOutbox(store, async (items) =>
+      void sent.push(...items.map((i) => (i.payload as LedgerEntry).seq)),
+    );
     expect(sent).toEqual([1, 2]);
   });
 
@@ -102,7 +105,7 @@ describe('flushOutbox()', () => {
     const [item] = await store.pending(10);
     expect(item.attempts).toBe(1);
     expect(item.lastError).toBe('offline');
-    expect(item.entry.amount).toBe(500);
+    expect((item.payload as LedgerEntry).amount).toBe(500);
   });
 
   it('picks up where it left off when the network comes back', async () => {
@@ -180,5 +183,83 @@ describe('flushOutbox()', () => {
     expect(first.remaining).toBe(0);
     expect(second.remaining).toBe(0);
     expect(new Set(sent)).toEqual(new Set(['a', 'b']));
+  });
+});
+
+describe('the queue carries the whole night, not just its money', () => {
+  it('sends operations in the order they happened, whatever their kind', async () => {
+    const store = new MemoryOutboxStore();
+
+    // Exactly the order a night produces them: the session exists before the
+    // players in it, the players before their seats, and the money after all of
+    // it. The server's foreign keys mean this order IS the correctness.
+    await enqueueOp(store, {
+      id: 'op-session',
+      sessionId: SESSION,
+      kind: 'session.open',
+      payload: { stakes: '$5 / $5' },
+    });
+    await enqueueOp(store, {
+      id: 'op-player',
+      sessionId: SESSION,
+      kind: 'player.upsert',
+      payload: { name: 'Petr' },
+    });
+    await enqueueEntry(store, SESSION, 'op-entry', draft(500));
+    await enqueueOp(store, {
+      id: 'op-count',
+      sessionId: SESSION,
+      kind: 'count.upsert',
+      payload: { amount: 1200 },
+    });
+
+    const sent: string[] = [];
+    await flushOutbox(store, async (items) => void sent.push(...items.map((i) => i.kind)));
+    expect(sent).toEqual(['session.open', 'player.upsert', 'entry.append', 'count.upsert']);
+  });
+
+  it('stops at the first failure, so the server never sees an entry before its session', async () => {
+    const store = new MemoryOutboxStore();
+    await enqueueOp(store, {
+      id: 'op-session',
+      sessionId: SESSION,
+      kind: 'session.open',
+      payload: {},
+    });
+    await enqueueEntry(store, SESSION, 'op-entry', draft(500));
+
+    const result = await flushOutbox(store, async () => {
+      throw new Error('offline');
+    });
+
+    expect(result.pushed).toBe(0);
+    expect(await store.count()).toBe(2);
+    // and the session is still first in the line
+    const [first] = await store.pending(10);
+    expect(first.kind).toBe('session.open');
+  });
+
+  it('re-queueing an operation keeps its place rather than jumping to the back', async () => {
+    const store = new MemoryOutboxStore();
+    await enqueueOp(store, { id: 'a', sessionId: SESSION, kind: 'session.open', payload: {} });
+    await enqueueEntry(store, SESSION, 'b', draft(500));
+    // the same op again, with a corrected payload
+    await enqueueOp(store, {
+      id: 'a',
+      sessionId: SESSION,
+      kind: 'session.open',
+      payload: { stakes: '$5 / $5' },
+    });
+
+    const pending = await store.pending(10);
+    expect(pending.map((i) => i.id)).toEqual(['a', 'b']);
+    expect(pending[0].payload).toEqual({ stakes: '$5 / $5' });
+  });
+
+  it('refuses an operation with no id, because it could not be retried safely', async () => {
+    const store = new MemoryOutboxStore();
+    await expect(
+      enqueueOp(store, { id: '', sessionId: SESSION, kind: 'session.open', payload: {} }),
+    ).rejects.toThrow(OutboxError);
   });
 });

@@ -15,7 +15,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:verify": "bash scripts/db-verify.sh",
     "check": "npm run typecheck && npm run test",
-    "db:bundle": "bash scripts/db-bundle.sh"
+    "db:bundle": "bash scripts/db-bundle.sh",
+    "//audit": "Re-check every settled night on the server and report the failure rate. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY exported in the shell — never written to a file. See docs/verification.md.",
+    "audit": "vite-node scripts/audit.ts"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
