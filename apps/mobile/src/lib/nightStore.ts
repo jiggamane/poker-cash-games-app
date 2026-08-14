@@ -860,7 +860,10 @@ export function draftRule(destination: MoneyRule['destination'], sortOrder: numb
     basis: 'gross',
     charge: 'winners_only',
     destination,
-    split: 'evenly',
+    // S62: by size of win, not evenly between the winners. `by_percent` is the
+    // stored name for it — see `splitSentence()` in core for why the value and
+    // the label are allowed to differ.
+    split: 'by_percent',
     collectorPlayerId: '',
     sortOrder,
   };

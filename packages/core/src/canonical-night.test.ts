@@ -6,6 +6,14 @@
  * entries to the six payments, and asserts every intermediate figure the
  * handoff states. If the money model is right, all of this passes; if any of it
  * fails, the model has drifted from the specification.
+ *
+ * **This night is worked on the EVEN split — 57 / 57 / 56.** S62 has since made
+ * *by size of win* the default and rev 15 § 5 re-derived the same night on it;
+ * that version is `rev15-night.test.ts`, and it is the one the app is seeded
+ * with and the current frames are drawn from. Nothing here is stale as a test:
+ * `evenly` is still a rule a group can choose, and it is still what
+ * `04-money-math.md` and the E-series frames document. Two splits, two files,
+ * one night — so a change to the default cannot silently break the other rule.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -128,7 +136,7 @@ describe('the canonical night — step 2, the money rules', () => {
     expect(kitty.total).toBe(126);
   });
 
-  it('splits the $170 bill between the winners, biggest win absorbing the extra unit', () => {
+  it('splits the $170 bill EVENLY between the winners, biggest win absorbing the extra unit', () => {
     const bill = result.deductions.find((d) => d.ruleId === 'bill')!;
     const charge = (id: PlayerId) => bill.charges.find((c) => c.playerId === id)?.amount ?? 0;
 
