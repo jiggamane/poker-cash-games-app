@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
+import * as Brightness from 'expo-brightness';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Button } from '../src/components/Button';
 import { Icon, type IconName } from '../src/components/Icon';
+import { QrCode } from '../src/components/QrCode';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
@@ -113,6 +116,10 @@ export default function Invite() {
     return <Reset name={name} code={code} busy={busy} onConfirm={() => void reset()} onKeep={() => setStage('code')} />;
   }
 
+  if (stage === 'qr' && code !== null) {
+    return <Qr name={name} code={code} group={night?.groupName ?? null} onBack={() => setStage('code')} />;
+  }
+
   return (
     <Code
       name={name}
@@ -120,11 +127,12 @@ export default function Invite() {
       claimed={claimed}
       busy={busy}
       onReset={() => setStage('reset')}
+      onQr={() => setStage('qr')}
     />
   );
 }
 
-type Stage = 'code' | 'reset';
+type Stage = 'code' | 'reset' | 'qr';
 
 /**
  * C3a, and C3b when the seat is taken.
@@ -139,12 +147,14 @@ function Code({
   claimed,
   busy,
   onReset,
+  onQr,
 }: {
   name: string;
   code: string | null;
   claimed: boolean;
   busy: boolean;
   onReset: () => void;
+  onQr: () => void;
 }) {
   const t = useTheme();
 
@@ -195,6 +205,7 @@ function Code({
           <Chip label="Copy" icon="copy" disabled={claimed || code === null} onPress={() => void share('copy')} />
           <Chip label="Message" icon="message" disabled={claimed || code === null} onPress={() => void share('message')} />
           <Chip label="Share" icon="share" disabled={claimed || code === null} onPress={() => void share('share')} />
+          <Chip label="QR code" icon="qr" disabled={claimed || code === null} onPress={onQr} />
         </View>
 
         {/*
@@ -215,6 +226,75 @@ function Code({
          *     second person from inside a sheet titled with the first one's
          *     name needs a decision about where it lives.
          */}
+      </View>
+    </Sheet>
+  );
+}
+
+/**
+ * C3d · The QR.
+ *
+ * IT REPLACES THE SHEET'S CONTENT — same panel, same close, same margins — and
+ * is not a second sheet. Two sheets is the floor of this app's depth and it is
+ * reserved for a player sheet raising an amount keypad; a QR is the same invite
+ * shown another way, so swiping down leaves the whole sheet rather than peeling
+ * off a layer. Back to the invite is a text action, not a chevron.
+ *
+ * The screen is held awake and turned up while it is shown. Both are undone on
+ * the way out — a sheet that permanently brightened somebody's phone would be a
+ * worse bug than the one it fixes — and both are best-effort: `expo-brightness`
+ * can be refused, and a QR at normal brightness is a QR that usually still
+ * scans. Neither failure is worth showing anybody.
+ */
+function Qr({
+  name,
+  code,
+  group,
+  onBack,
+}: {
+  name: string;
+  code: string;
+  group: string | null;
+  onBack: () => void;
+}) {
+  const t = useTheme();
+
+  useEffect(() => {
+    activateKeepAwakeAsync('invite-qr').catch(() => undefined);
+    let restore: number | null = null;
+    void Brightness.getBrightnessAsync()
+      .then((current) => {
+        restore = current;
+        return Brightness.setBrightnessAsync(1);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      deactivateKeepAwake('invite-qr');
+      if (restore !== null) void Brightness.setBrightnessAsync(restore).catch(() => undefined);
+    };
+  }, []);
+
+  return (
+    <Sheet
+      title="Scan to join"
+      sub={group === null ? name : `${name} · ${group}`}
+      onClose={onBack}
+      footer={<Button label="Back to the invite" variant="text" onPress={onBack} />}
+    >
+      <View style={styles.page}>
+        <QrCode value={inviteLinkFor(code)} />
+
+        {/*
+         * The ten characters repeat underneath, and they are not decoration: a
+         * QR with no typable fallback is a dead end the moment a camera will
+         * not read it, and cameras vary more than anybody designing for one
+         * expects.
+         */}
+        <Text style={[styles.qrCode, { color: t.text }]}>{grouped(code)}</Text>
+        <Text style={[styles.note, styles.centred, { color: t.muted }]}>
+          If the camera will not read it, the code can be typed.
+        </Text>
       </View>
     </Sheet>
   );
@@ -376,6 +456,16 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   chipLabel: { fontSize: 11.5, fontWeight: '600' },
+
+  qrCode: {
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.85,
+    textAlign: 'center',
+    marginTop: 4,
+    fontVariant: ['tabular-nums'],
+  },
+  centred: { textAlign: 'center' },
 
   warning: { fontSize: 14.5, fontWeight: '400', lineHeight: 21.75 },
   dying: { alignItems: 'center', gap: 8, marginTop: 8 },
