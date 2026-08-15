@@ -4,6 +4,7 @@ import {
   lastRebuyAmount,
   LedgerError,
   reconcile,
+  rebuyPrefill,
   resolveLedger,
   standardBuyIn,
 } from './ledger';
@@ -279,5 +280,55 @@ describe('lastRebuyAmount() — M16', () => {
     reset();
     const l = resolveLedger([buyin(PETR, 800), rebuy(PETR, 300, 'only'), voidEntry('only')]);
     expect(lastRebuyAmount(l, PETR)).toBe(800);
+  });
+});
+
+/**
+ * The same resolution, with the layer that answered it.
+ *
+ * M17 forbids the interface explaining where the pre-filled amount came from,
+ * with one exception it names: the amount screen's preset reads LAST rather
+ * than STANDARD when the figure is the player's own last rebuy. That word is
+ * the only thing provenance may change, and it is decided here rather than by
+ * a screen asking the ledger a second question of its own.
+ */
+describe('rebuyPrefill() — M16 with its provenance, M17', () => {
+  it('says when the figure is the player’s own last rebuy', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 500), rebuy(PETR, 1000)]);
+    expect(rebuyPrefill(l, PETR)).toEqual({ amount: 1000, from: 'last rebuy' });
+  });
+
+  it('says when it fell back to what the table buys in for', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 500), buyin(DANA, 500), rebuy(PETR, 1000)]);
+    expect(rebuyPrefill(l, DANA)).toEqual({ amount: 500, from: 'standard buy-in' });
+  });
+
+  it('falls back once a voided rebuy leaves the player with none', () => {
+    // The provenance has to follow the void, or the screen says LAST about a
+    // number that came from the table.
+    reset();
+    const l = resolveLedger([buyin(PETR, 800), rebuy(PETR, 300, 'only'), voidEntry('only')]);
+    expect(rebuyPrefill(l, PETR)).toEqual({ amount: 800, from: 'standard buy-in' });
+  });
+
+  it('still reads as a rebuy when one was corrected rather than voided', () => {
+    reset();
+    const l = resolveLedger([buyin(PETR, 800), rebuy(PETR, 300, 'r1'), correction('r1', 500)]);
+    expect(rebuyPrefill(l, PETR)).toEqual({ amount: 500, from: 'last rebuy' });
+  });
+
+  it('never disagrees with lastRebuyAmount', () => {
+    // The two are one derivation; lastRebuyAmount now reads this. Asserted so
+    // a later edit to one cannot quietly fork them.
+    reset();
+    const l = resolveLedger([
+      buyin(PETR, 500), buyin(DANA, 500),
+      rebuy(PETR, 1000), rebuy(PETR, 250),
+    ]);
+    for (const id of [PETR, DANA, 'nobody']) {
+      expect(rebuyPrefill(l, id).amount).toBe(lastRebuyAmount(l, id));
+    }
   });
 });

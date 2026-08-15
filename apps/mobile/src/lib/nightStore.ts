@@ -1220,5 +1220,5 @@ export function chipsOnTable(ledger: ResolvedLedger): Money {
  * money core where they are tested, and are re-exported here because every
  * screen already reaches for the store.
  */
-export { lastRebuyAmount } from '@poker-club/core';
+export { lastRebuyAmount, rebuyPrefill } from '@poker-club/core';
 export { standardBuyIn as defaultBuyIn } from '@poker-club/core';

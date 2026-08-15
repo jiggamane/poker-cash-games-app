@@ -7,6 +7,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
+import { useElapsed } from '../src/lib/elapsed';
 import { defaultBuyIn, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
@@ -199,20 +200,19 @@ export default function Session() {
  */
 function LiveTag({ startedAt, empty }: { startedAt: string; empty: boolean }) {
   const t = useTheme();
+  // Ticks itself. It used to be computed once per render, which on this screen
+  // meant it moved only when the host recorded something — a figure that sat
+  // still for twenty minutes and then jumped, beside a green dot saying the
+  // night was live.
+  const running = useElapsed(startedAt);
   return (
     <View style={[styles.tag, { backgroundColor: t.winTint }]}>
       <View style={[styles.dot, { backgroundColor: t.win }]} />
       <Text style={[styles.tagText, { color: t.win }]}>
-        {empty ? 'just opened' : elapsed(startedAt)}
+        {empty ? 'just opened' : running}
       </Text>
     </View>
   );
-}
-
-/** "3h 17m" — how long the table has been running. */
-function elapsed(startedAt: string): string {
-  const minutes = Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 60000));
-  return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, '0')}m`;
 }
 
 const clock = (iso: string): string =>

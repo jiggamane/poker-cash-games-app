@@ -6,6 +6,7 @@ import { useTheme } from '../src/design/useTheme';
 import { chrome, control, radius, space, type } from '../src/design/tokens';
 import { Icon } from '../src/components/Icon';
 import { loadClubs, useClub } from '../src/lib/clubStore';
+import { useElapsed } from '../src/lib/elapsed';
 import { isTonight, useLedger, useNight } from '../src/lib/nightStore';
 
 /**
@@ -71,7 +72,7 @@ export default function ClubHome() {
           seated: night.players.filter(
             (p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0,
           ).length,
-          since: elapsed(night.startedAt),
+          startedAt: night.startedAt,
         };
 
   return (
@@ -85,12 +86,7 @@ export default function ClubHome() {
           { backgroundColor: t.text, borderColor: t.ground, opacity: pressed ? 0.9 : 1 },
         ]}
       >
-        {live !== null && (
-          <View style={[styles.tag, { backgroundColor: 'rgba(255,255,255,0.16)' }]}>
-            <View style={[styles.dot, { backgroundColor: t.onFillWin }]} />
-            <Text style={[styles.tagText, { color: t.onFillWin }]}>{live.since}</Text>
-          </View>
-        )}
+        {live !== null && <RunningFor startedAt={live.startedAt} />}
 
         <View style={styles.cardRow}>
           <View style={styles.cardText}>
@@ -169,10 +165,23 @@ function Row({
   );
 }
 
-const elapsed = (startedAt: string): string => {
-  const minutes = Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 60000));
-  return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, '0')}m`;
-};
+/**
+ * The green running-time tag on the card, which is what says a night is on.
+ *
+ * Its own component so the hook that ticks it is not conditional — and so the
+ * figure is the same one Tonight draws, off the same clock. Both screens used
+ * to compute it once per render and neither ever re-rendered on time.
+ */
+function RunningFor({ startedAt }: { startedAt: string }) {
+  const t = useTheme();
+  const running = useElapsed(startedAt);
+  return (
+    <View style={[styles.tag, { backgroundColor: 'rgba(255,255,255,0.16)' }]}>
+      <View style={[styles.dot, { backgroundColor: t.onFillWin }]} />
+      <Text style={[styles.tagText, { color: t.onFillWin }]}>{running}</Text>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },

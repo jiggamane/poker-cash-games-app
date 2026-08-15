@@ -251,11 +251,31 @@ export function standardBuyIn(ledger: ResolvedLedger): Money {
  * answer is written down.
  */
 export function lastRebuyAmount(ledger: ResolvedLedger, playerId: PlayerId): Money {
+  return rebuyPrefill(ledger, playerId).amount;
+}
+
+/**
+ * The same answer, and which layer of M16 gave it.
+ *
+ * M17 says the interface must not explain where the figure came from — there
+ * is no "same as Petr's last rebuy" line under the button, the amount stands
+ * on its own. It also says the derivation is kept in code, and that the amount
+ * screen's preset row marks the resolved figure **LAST** rather than STANDARD
+ * once you are inside it. That one word is the only thing the provenance is
+ * allowed to change, so it is returned here rather than re-derived by a screen
+ * asking the ledger a second question of its own.
+ */
+export function rebuyPrefill(
+  ledger: ResolvedLedger,
+  playerId: PlayerId,
+): { amount: Money; from: 'last rebuy' | 'standard buy-in' } {
   const mine = ledger.entries.filter(
     (e) => !e.voided && e.type === 'rebuy' && e.playerId === playerId,
   );
   const newest = mine[mine.length - 1];
-  return newest === undefined ? standardBuyIn(ledger) : newest.amount;
+  return newest === undefined
+    ? { amount: standardBuyIn(ledger), from: 'standard buy-in' }
+    : { amount: newest.amount, from: 'last rebuy' };
 }
 
 // --- internals ---------------------------------------------------------------

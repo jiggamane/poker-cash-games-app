@@ -15,6 +15,7 @@ import {
   defaultBuyIn,
   depthOf,
   rebuy,
+  rebuyPrefill,
   seatAndBuyIn,
   setFinalCount,
   useNight,
@@ -48,12 +49,29 @@ export default function Log() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   const name = newPlayer ?? night?.players.find((p) => p.id === player)?.name ?? '';
+
+  /*
+   * WHAT THE KEYPAD OPENS WITH. M16, and it is per player, never table-wide:
+   * their last rebuy tonight → tonight's standard buy-in → the group default.
+   *
+   * Only the player card was applying it. Arriving the other way — the dock's
+   * Rebuy, then picking a name — resolved nothing per-player and offered the
+   * table's standard buy-in instead, which on a night where somebody has been
+   * rebuying $1,000 a time is the wrong number on the most repeated action of
+   * the evening. Resolved here rather than by each caller, so every route in
+   * gets the same answer.
+   */
+  const resolved =
+    ledger === null
+      ? { amount: money(500), from: 'standard buy-in' as const }
+      : kind === 'rebuy' && player !== undefined
+        ? rebuyPrefill(ledger, player)
+        : { amount: defaultBuyIn(ledger), from: 'standard buy-in' as const };
+
   const suggested =
     prefill !== undefined && Number.isInteger(Number(prefill))
       ? money(Number(prefill))
-      : ledger === null
-        ? money(500)
-        : defaultBuyIn(ledger);
+      : resolved.amount;
 
   const counting = kind === 'cashout' || kind === 'count';
   const [typed, setTyped] = useState<string>(counting ? '0' : String(suggested));
@@ -174,9 +192,16 @@ export default function Log() {
         </View>
       ) : (
         <View style={styles.presets}>
+          {/*
+            LAST rather than DEFAULT when the figure is this player's own last
+            rebuy — M17. The interface never explains where the amount came
+            from; this one word is the whole of what it is allowed to say.
+          */}
           <Preset
             label={formatMoney(suggested)}
-            caption="DEFAULT"
+            caption={resolved.from === 'last rebuy' && suggested === resolved.amount
+              ? 'LAST'
+              : 'DEFAULT'}
             on={amount === suggested}
             onPress={() => setTyped(String(suggested))}
           />
