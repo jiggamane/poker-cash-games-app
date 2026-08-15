@@ -45,12 +45,34 @@ export interface ResolvedLedger {
   /**
    * Spends the kitty covered or nobody has covered yet. They are on the bill
    * — the money was spent — but no person is owed them back.
+   *
+   * The two halves settle differently, which is why they are also kept apart
+   * below. Prefer the specific figure; this is their sum.
    */
   expensesUnattributed: Money;
+  /**
+   * The kitty paid directly. Nobody is reimbursed and nobody is charged: this
+   * money was collected off the table by the kitty rule and has already left
+   * it. Charging the winners again would be charging them twice for one round.
+   * `11-bill-and-kitty.md` § *Covered by*.
+   */
+  expensesFromKitty: Money;
+  /**
+   * Nobody has paid this yet. It **counts towards the bill** — the round was
+   * had and somebody will settle it — but no player is out of pocket, so the
+   * money collected for it goes to the bill rule's collector rather than back
+   * to a fronter. `11-bill-and-kitty.md` § *Covered by*.
+   */
+  expensesUnpaid: Money;
   totalBoughtIn: Money;
   totalCashedOut: Money;
-  /** Everything on the bill, whoever fronted it and whether anyone did. */
+  /** Everything spent tonight, whoever fronted it and whether anyone did. */
   totalExpenses: Money;
+  /**
+   * What a bill rule actually shares out: everything except what the kitty
+   * already paid for.
+   */
+  billableExpenses: Money;
 }
 
 const BASE_TYPES = new Set(['buyin', 'rebuy', 'cashout', 'expense']);
@@ -119,7 +141,8 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
   const boughtInByPlayer = new Map<PlayerId, Money>();
   const cashedOutByPlayer = new Map<PlayerId, Money>();
   const expensesByPayer = new Map<PlayerId, Money>();
-  let unattributed = ZERO;
+  let fromKitty = ZERO;
+  let unpaid = ZERO;
 
   for (const e of list) {
     if (e.voided) continue;
@@ -132,10 +155,12 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
         addTo(cashedOutByPlayer, e.playerId!, e.amount);
         break;
       case 'expense':
-        // No payer means the kitty paid it or nobody has: on the bill, owed
-        // to nobody.
+        // No payer means the kitty paid it or nobody has. Both are owed to
+        // nobody, and they are NOT interchangeable at settle-up: the kitty's
+        // has already been paid for, the unpaid one still has to be.
         if (e.payerId) addTo(expensesByPayer, e.payerId, e.amount);
-        else unattributed = sum([unattributed, e.amount]);
+        else if (e.coveredBy === 'kitty') fromKitty = sum([fromKitty, e.amount]);
+        else unpaid = sum([unpaid, e.amount]);
         break;
     }
   }
@@ -145,10 +170,13 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
     boughtInByPlayer,
     cashedOutByPlayer,
     expensesByPayer,
-    expensesUnattributed: unattributed,
+    expensesUnattributed: sum([fromKitty, unpaid]),
+    expensesFromKitty: fromKitty,
+    expensesUnpaid: unpaid,
     totalBoughtIn: totalOf(boughtInByPlayer),
     totalCashedOut: totalOf(cashedOutByPlayer),
-    totalExpenses: sum([totalOf(expensesByPayer), unattributed]),
+    totalExpenses: sum([totalOf(expensesByPayer), fromKitty, unpaid]),
+    billableExpenses: sum([totalOf(expensesByPayer), unpaid]),
   };
 }
 

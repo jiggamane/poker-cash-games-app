@@ -134,10 +134,26 @@ function checkLedger(input: SettlementInput, check: Check): void {
     }
 
     if (e.type === 'expense') {
+      // A spend is covered by a person, by the kitty, or by nobody yet — S58,
+      // and the `covered_by` column migration 0004 added. Exactly one of the
+      // two fields says which, so demanding a payer outright would fail two of
+      // the four legal covers on a night that is perfectly correct.
+      const hasPayer = e.payerId !== null && e.payerId !== undefined;
+      const hasCover = e.coveredBy !== null && e.coveredBy !== undefined;
       check(
-        e.payerId !== null && e.payerId !== undefined,
+        hasPayer || hasCover,
         'entry.payer.missing',
-        `An expense (${e.id}) has no payer.`,
+        `An expense (${e.id}) names neither a payer nor what covered it.`,
+      );
+      check(
+        !(hasPayer && hasCover),
+        'entry.payer.ambiguous',
+        `An expense (${e.id}) names a payer and says the ${e.coveredBy} covered it.`,
+      );
+      check(
+        !hasPayer || ids.has(e.payerId!),
+        'entry.payer.unknown',
+        `An expense (${e.id}) names payer ${e.payerId}, who is not in this night.`,
       );
     }
 

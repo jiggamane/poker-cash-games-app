@@ -16,6 +16,7 @@ import {
   type ResolvedLedger,
 } from '@poker-club/core';
 import { recordEntry } from './ledgerRepo';
+import { CURRENT_NIGHT } from './nightQueries';
 
 /**
  * The night, on this phone.
@@ -173,6 +174,13 @@ export interface Night {
   /** What an expense was for. Display only. */
   noteOf: Record<string, string>;
   /**
+   * True while this is the demo night the app seeds itself with. It exists so
+   * there is a club to start from and a screen to hold against the canonical
+   * frame — it is never the host's own game, and the home screen must not
+   * offer it as tonight's.
+   */
+  seeded: boolean;
+  /**
    * Set only when the count did not balance and the host confirmed what was
    * missing. Without it, `settle()` refuses to run — that refusal is the close
    * gate, and it lives in the engine so no screen can route around it.
@@ -244,7 +252,7 @@ interface NightRow {
  */
 export async function openNight(): Promise<Night> {
   const db = await getDb();
-  let row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+  let row = await db.getFirstAsync<NightRow>(CURRENT_NIGHT);
 
   /*
    * Lay down the sample night, or replace one that has gone stale.
@@ -265,7 +273,7 @@ export async function openNight(): Promise<Night> {
     if (row === null || row.seed_version! < seed.SEED_VERSION) {
       if (row !== null) await forgetNight(row.session_id);
       await seedNight(seed.SEED, seed.SEED_VERSION);
-      row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+      row = await db.getFirstAsync<NightRow>(CURRENT_NIGHT);
     }
   }
 
@@ -317,6 +325,7 @@ export async function openNight(): Promise<Night> {
     finalCounts: new Map(counts.map((c) => [c.player_id, c.amount as Money])),
     occurredAt: Object.fromEntries(entries.map((e) => [e.id, e.occurred_at])),
     noteOf: Object.fromEntries(entries.filter((e) => e.note).map((e) => [e.id, e.note!])),
+    seeded: row!.seed_version !== null,
     ...(row!.ack_json ? { acknowledgement: JSON.parse(row!.ack_json) } : {}),
   };
 
@@ -891,6 +900,14 @@ export async function startNight(input: {
   const sessionId = randomUUID();
   const startedAt = new Date();
 
+  // The demo is over the moment there is a real game. Leaving it in place put
+  // two "open" nights on the phone at once, and the sample — being older — is
+  // the one the home screen kept offering.
+  const seeded = await db.getAllAsync<{ session_id: string }>(
+    `SELECT session_id FROM night WHERE seed_version IS NOT NULL`,
+  );
+  for (const s of seeded) await forgetNight(s.session_id);
+
   await db.runAsync(
     `INSERT INTO night (session_id, group_name, started_at, status, rules_json, me_id)
      VALUES (?, ?, ?, 'open', ?, ?)`,
@@ -926,6 +943,7 @@ export async function startNight(input: {
     ...(input.meId === undefined ? {} : { meId: input.meId }),
     occurredAt: {},
     noteOf: {},
+    seeded: false,
   };
   emit();
 

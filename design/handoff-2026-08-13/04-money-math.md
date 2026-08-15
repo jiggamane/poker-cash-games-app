@@ -149,6 +149,56 @@ Six transfers. Seven non-zero balances means at most six are ever needed, and no
 
 ---
 
+## A spend nobody fronted
+
+`11-bill-and-kitty.md` gives a spend four ways to be covered (S58). Two of them
+name a person — one player, or several whose fronted amounts must sum to the
+spend — and those are the case Step 2 above works through. The other two name
+nobody, and they do **not** behave the same as each other.
+
+| Covered by | In the bill's total? | Who is credited |
+| --- | --- | --- |
+| One player | yes | that player, exactly what they fronted |
+| Several players | yes | each of them, exactly what they fronted |
+| **The kitty** | **no** | nobody |
+| **Nobody yet** | **yes** | the bill rule's collector |
+
+**The kitty's spend is outside the bill.** The kitty is funded by a rule that
+already took that money off the table, so it has been paid for once. Putting it
+back into the bill would charge the winners a second time for one round of
+drinks. Nobody is reimbursed either, because no player is out of pocket — the
+money left the kitty, not a wallet. A night whose only spend was covered by the
+kitty therefore produces **no bill deduction at all**.
+
+**An unpaid spend is inside it.** The round was had and somebody still has to
+settle it, so it counts towards the bill exactly as a fronted one does. What is
+collected for it has no fronter to go back to, and it cannot simply evaporate
+or the night stops summing to zero — so it goes to the **rule's collector**,
+who is the person holding the money to pay the bar with.
+
+This is the one case where a bill has a collector, and it does not contradict
+§2 below: a bill still has fronters rather than a collector *for money somebody
+fronted*. The collector appears only for money nobody has yet. If the collector
+also fronted something, the two are one credit against their name, not two.
+
+**Worked example.** Three players, Marek and Petr up $200 each, Dana down $400.
+The bill is split evenly between the winners, and Marek is its collector. Four
+spends: Petr fronted $70, Dana fronted $30, the kitty covered $40, and $60 is
+unpaid.
+
+- The bill's total is **$160** — 70 + 30 + 60. The kitty's $40 is not in it.
+- Marek and Petr are charged **$80 each**. Dana, a loser, is charged nothing.
+- Petr is credited $70, Dana $30, and Marek $60 as the collector.
+- Charges $160, credits $160. The night still sums to zero.
+
+Asserted in `packages/core/src/settlement.test.ts` § *the four ways a spend is
+covered*. Before this was settled, the two payer-less covers **could not be
+settled at all**: the bill charged the whole tab and then refused to pay it out,
+because the only people it knew how to reimburse were the ones who had fronted
+something.
+
+---
+
 ## Rounding
 
 Three rules, applied in this order.
