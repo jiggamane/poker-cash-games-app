@@ -421,8 +421,14 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   // spent a specific sum and needs exactly that back. A percentage of a
   // specific bill is meaningless, so a reimbursing rule only gets to say how
   // the cost is shared, not how much it is.
+  //
+  // What the kitty paid for is NOT in that sum. The kitty's money was
+  // collected off the table by its own rule and has already left it, so
+  // charging the winners for a round the kitty bought would charge them for it
+  // twice. An unpaid spend is in the sum — the round was had and somebody
+  // still has to settle it (`11-bill-and-kitty.md` § Covered by).
   const usePercent = rule.amountKind === 'percent' && !reimbursesExpenses;
-  const fixedTotal = reimbursesExpenses ? ledger.totalExpenses : rule.amount;
+  const fixedTotal = reimbursesExpenses ? ledger.billableExpenses : rule.amount;
 
   const nothingToDo = payers.length === 0 || (!usePercent && fixedTotal === 0);
   if (nothingToDo) {
@@ -471,14 +477,28 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   // collector holds the lot.
   // Several people may have paid across the night — one covered the food, one
   // the drinks — so each is credited exactly their own outlay.
-  const credits: Array<{ playerId: PlayerId; amount: Money }> =
-    total === 0
-      ? []
-      : reimbursesExpenses
-        ? [...ledger.expensesByPayer.entries()]
-            .sort((a, b) => (a[0] < b[0] ? -1 : 1))
-            .map(([playerId, amount]) => ({ playerId, amount }))
-        : [{ playerId: rule.collectorPlayerId, amount: total }];
+  //
+  // What was charged for an UNPAID spend has no fronter to go back to, but it
+  // cannot simply evaporate or the night stops summing to zero. It goes to the
+  // rule's collector, who is the person holding the money to pay the bar with
+  // — the same place every non-reimbursing rule's money goes.
+  let credits: Array<{ playerId: PlayerId; amount: Money }>;
+  if (total === 0) {
+    credits = [];
+  } else if (reimbursesExpenses) {
+    // One row per person, even when the collector also fronted something —
+    // two rows against one name would read as two refunds on the deductions
+    // screen, and they are one.
+    const owed = new Map(ledger.expensesByPayer);
+    if (ledger.expensesUnpaid > 0) {
+      addOwed(owed, rule.collectorPlayerId, ledger.expensesUnpaid);
+    }
+    credits = [...owed.entries()]
+      .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+      .map(([playerId, amount]) => ({ playerId, amount }));
+  } else {
+    credits = [{ playerId: rule.collectorPlayerId, amount: total }];
+  }
 
   const creditTotal = sum(credits.map((c) => c.amount));
   if (creditTotal !== total) {
@@ -488,4 +508,9 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   }
 
   return { ruleId, name, destination, total, charges, credits };
+}
+
+/** Add to a player's entry in a running total, creating it if absent. */
+function addOwed(into: Map<PlayerId, Money>, playerId: PlayerId, amount: Money): void {
+  into.set(playerId, sum([into.get(playerId) ?? ZERO, amount]));
 }

@@ -41,8 +41,31 @@ export default function ClubHome() {
     ).catch(() => {});
   }, [night]);
 
+  /*
+   * THE CARD IS TONIGHT'S GAME, and only that.
+   *
+   * Two things used to be able to sit on it that are not tonight's game, and
+   * each of them walled the host in:
+   *
+   *   THE SAMPLE NIGHT arrives seeded and open, with six people at the table,
+   *   so this read as live and sent every tap to /session. There was no state
+   *   in which "Set up the game" could be reached, and settling the demo only
+   *   moved the wall — the card then read "Last night" and pushed /settled.
+   *   The seed still has a job (it is what `loadClubs` builds the club from),
+   *   so it stays on the phone; it just is not tonight.
+   *
+   *   A NIGHT ALREADY SETTLED is history the moment it closes, and history
+   *   belongs in My nights — `09-navigation.md` puts a past night in a sheet
+   *   over that list, not on the root. Leaving it here meant a host opening
+   *   the app the following Saturday had nowhere to go.
+   *
+   * So: a real, unsettled night is Tonight. Anything else is an invitation to
+   * start one.
+   */
   const live =
-    night === null || ledger === null || night.status === 'settled'
+    // 'counting' stays live on purpose: a half-counted night is still tonight's,
+    // and the host walking back to the root must be able to walk into it again.
+    night === null || ledger === null || night.seeded || night.status === 'settled'
       ? null
       : {
           seated: night.players.filter(
@@ -51,14 +74,12 @@ export default function ClubHome() {
           since: elapsed(night.startedAt),
         };
 
-  const settled = night?.status === 'settled';
-
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
       {/* The one filled thing on the screen, and the only figure on it. */}
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push(settled ? '/settled' : live !== null ? '/session' : '/new-night')}
+        onPress={() => router.push(live !== null ? '/session' : '/new-night')}
         style={({ pressed }) => [
           styles.card,
           { backgroundColor: t.text, borderColor: t.ground, opacity: pressed ? 0.9 : 1 },
@@ -74,14 +95,12 @@ export default function ClubHome() {
         <View style={styles.cardRow}>
           <View style={styles.cardText}>
             <Text style={[styles.cardName, { color: t.onFill }]}>
-              {live !== null ? 'Tonight' : settled ? 'Last night' : 'Set up the game'}
+              {live !== null ? 'Tonight' : 'Set up the game'}
             </Text>
             <Text style={[styles.cardLede, { color: t.onFill }]}>
               {live !== null
                 ? `${live.seated} at the table · the ledger is open`
-                : settled
-                  ? 'settled · look back at it'
-                  : 'the rules are already set — pick who is playing'}
+                : 'the rules are already set — pick who is playing'}
             </Text>
           </View>
           <View style={styles.pushRight}>

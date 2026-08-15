@@ -335,6 +335,54 @@ describe('the ledger the night was built from', () => {
     const v = verifyNight({ ...input, finalCounts }, settle(input));
     expect(v.findings.map((f) => f.code)).toContain('count.player.unknown');
   });
+
+  /*
+   * A spend covered by the kitty or by nobody yet has no payer, and that is
+   * legal — S58 and the `covered_by` column. The verifier used to demand a
+   * payer on every expense, which raised the settled screen's red "do not
+   * settle up from this screen" banner on nights that were entirely correct.
+   * A verifier that cries wolf is the failure mode `docs/verification.md`
+   * warns about, so both covers are asserted to pass.
+   */
+  it.each(['kitty', 'unpaid'] as const)('passes a spend covered by %s', (coveredBy) => {
+    const input = night();
+    const entries = [
+      ...input.entries,
+      e({ type: 'expense', coveredBy, amount: money(60) }),
+    ];
+
+    const v = verifyNight({ ...input, entries }, settle({ ...input, entries }));
+    expect(v.findings.map((f) => f.code)).not.toContain('entry.payer.missing');
+    expect(v.ok).toBe(true);
+  });
+
+  it('still catches a spend that says nothing about who covered it', () => {
+    const input = night();
+    const entries = [...input.entries];
+    // Strip the payer without naming a cover — the shape the check exists for.
+    entries[4] = { id: 'e5', seq: 5, type: 'expense', amount: money(200) };
+
+    const v = verifyNight({ ...input, entries }, settle(input));
+    expect(v.findings.map((f) => f.code)).toContain('entry.payer.missing');
+  });
+
+  it('catches a spend that names a payer AND a cover', () => {
+    const input = night();
+    const entries = [...input.entries];
+    entries[4] = { ...entries[4], coveredBy: 'kitty' };
+
+    const v = verifyNight({ ...input, entries }, settle(input));
+    expect(v.findings.map((f) => f.code)).toContain('entry.payer.ambiguous');
+  });
+
+  it('catches a spend fronted by somebody who is not in the night', () => {
+    const input = night();
+    const entries = [...input.entries];
+    entries[4] = { ...entries[4], payerId: 'ghost' };
+
+    const v = verifyNight({ ...input, entries }, settle(input));
+    expect(v.findings.map((f) => f.code)).toContain('entry.payer.unknown');
+  });
 });
 
 describe('a record from another algorithm', () => {

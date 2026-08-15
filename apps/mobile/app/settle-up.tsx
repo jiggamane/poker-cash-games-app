@@ -120,10 +120,14 @@ export default function SettleUp() {
               router.push('/settled');
             }}
           />
-          <View style={styles.footerRow}>
-            <Button label="Share" variant="secondary" style={styles.footerAction} />
-            <Button label="Export" variant="secondary" style={styles.footerAction} />
-          </View>
+          {/*
+            Share and Export used to sit here with no onPress at all — two
+            controls that did nothing, on the last screen of the night, at the
+            moment the host most needs to trust what they are tapping.
+            Sharing a night already exists, as the watcher link in Settings;
+            export is not designed and `05-build-order.md` puts it in phase 4.
+            An absent control is better than a dead one.
+          */}
         </>
       }
     >
@@ -392,5 +396,4 @@ const styles = StyleSheet.create({
   fix: { flex: 1 },
 
   footerRow: { flexDirection: 'row', gap: 14 },
-  footerAction: { flex: 1 },
 });

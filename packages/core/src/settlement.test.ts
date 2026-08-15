@@ -45,6 +45,10 @@ const cashout = (playerId: PlayerId, amount: number): LedgerEntry => ({
 const expense = (payerId: PlayerId, amount: number): LedgerEntry => ({
   id: `e${++seq}`, seq, type: 'expense', payerId, amount: money(amount),
 });
+/** A spend nobody fronted: the kitty paid it, or nobody has yet. S58. */
+const coveredExpense = (coveredBy: 'kitty' | 'unpaid', amount: number): LedgerEntry => ({
+  id: `e${++seq}`, seq, type: 'expense', coveredBy, amount: money(amount),
+});
 
 const counts = (entries: Array<[PlayerId, number]>) =>
   new Map(entries.map(([id, n]) => [id, money(n)] as const));
@@ -490,6 +494,112 @@ describe('expenses', () => {
     expect(r.players.find((p) => p.playerId === MAREK)!.credited).toBe(90);
     expect(r.players.find((p) => p.playerId === DANA)!.credited).toBe(0);
     expect(chargedOf(r, DANA)).toBe(60); // 180 split three ways
+  });
+
+  /*
+   * The four ways a spend can be covered — S58, `11-bill-and-kitty.md`.
+   *
+   * Two of them name a person and two do not, and before this was fixed the
+   * two that do not could not be settled at all: the bill charged the whole
+   * tab and then refused to pay out, because the only people it knew how to
+   * reimburse were the ones who had fronted something.
+   */
+  describe('the four ways a spend is covered', () => {
+    const nightWith = (...spends: LedgerEntry[]) => {
+      const r = settle({
+        players: [at(MAREK), at(PETR), at(DANA)],
+        entries: [
+          buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000),
+          ...spends,
+        ],
+        // Marek and Petr win 200 each, Dana loses 400.
+        finalCounts: counts([[MAREK, 1200], [PETR, 1200], [DANA, 600]]),
+        rules: [
+          rule({ id: 'tab', destination: 'bill', amountKind: 'fixed', amount: money(1),
+                 charge: 'winners_only', split: 'evenly', collectorPlayerId: MAREK }),
+        ],
+      });
+      // Whatever the cover, the night must still balance and still clear.
+      expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
+      expect(transfersBalance(r)).toBe(true);
+      return r;
+    };
+
+    it('one player fronted it: they are reimbursed in full', () => {
+      reset();
+      const r = nightWith(expense(PETR, 100));
+
+      expect(r.deductions[0].total).toBe(100);
+      expect(r.players.find((p) => p.playerId === PETR)!.credited).toBe(100);
+      // Split evenly between the two winners.
+      expect(chargedOf(r, MAREK)).toBe(50);
+      expect(chargedOf(r, PETR)).toBe(50);
+      expect(chargedOf(r, DANA)).toBe(0); // a loser is never charged by a winners-only rule
+    });
+
+    it('several players fronted it: each gets back their own outlay', () => {
+      reset();
+      const r = nightWith(expense(PETR, 70), expense(DANA, 30));
+
+      expect(r.deductions[0].total).toBe(100);
+      expect(r.players.find((p) => p.playerId === PETR)!.credited).toBe(70);
+      expect(r.players.find((p) => p.playerId === DANA)!.credited).toBe(30);
+    });
+
+    it('the kitty paid it: nobody is reimbursed and nobody is charged', () => {
+      reset();
+      const r = nightWith(coveredExpense('kitty', 100));
+
+      // The kitty's money was collected off the table by its own rule and has
+      // already left it. Charging the winners would charge them twice for one
+      // round, so the bill has nothing to share out and drops out entirely.
+      expect(r.deductions).toEqual([]);
+      expect(r.totalOffTable).toBe(0);
+      expect(chargedOf(r, MAREK)).toBe(0);
+      expect(chargedOf(r, PETR)).toBe(0);
+      expect(r.players.every((p) => p.credited === 0)).toBe(true);
+    });
+
+    it('nobody has paid it yet: it counts towards the bill, and the collector holds it', () => {
+      reset();
+      const r = nightWith(coveredExpense('unpaid', 100));
+
+      // The round was had and somebody still has to settle it, so the winners
+      // are charged for it. No player is out of pocket, so what is collected
+      // goes to the rule's collector rather than back to a fronter.
+      expect(r.deductions[0].total).toBe(100);
+      expect(chargedOf(r, MAREK)).toBe(50);
+      expect(chargedOf(r, PETR)).toBe(50);
+      expect(r.players.find((p) => p.playerId === MAREK)!.credited).toBe(100);
+    });
+
+    it('mixes the four in one night, and still balances', () => {
+      reset();
+      const r = nightWith(
+        expense(PETR, 70),
+        expense(DANA, 30),
+        coveredExpense('kitty', 40), // already paid for — outside the bill
+        coveredExpense('unpaid', 60), // still owed — inside it
+      );
+
+      expect(r.deductions[0].total).toBe(160); // 70 + 30 + 60, not 200
+      expect(r.players.find((p) => p.playerId === PETR)!.credited).toBe(70);
+      expect(r.players.find((p) => p.playerId === DANA)!.credited).toBe(30);
+      expect(r.players.find((p) => p.playerId === MAREK)!.credited).toBe(60); // the collector
+      expect(chargedOf(r, MAREK)).toBe(80);
+      expect(chargedOf(r, PETR)).toBe(80);
+    });
+
+    it('gives the collector one credit row when they also fronted something', () => {
+      reset();
+      const r = nightWith(expense(MAREK, 40), coveredExpense('unpaid', 60));
+
+      // Marek fronted 40 and collects the 60 nobody has paid. That is one
+      // refund of 100, not two rows against one name.
+      const credits = r.deductions[0].credits.filter((c) => c.playerId === MAREK);
+      expect(credits).toHaveLength(1);
+      expect(credits[0].amount).toBe(100);
+    });
   });
 
   it("nets a payer's own share against what they fronted", () => {
