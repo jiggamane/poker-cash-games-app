@@ -5,7 +5,7 @@ import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { removeMember, renameMember, setPaysKitty, useClub } from '../src/lib/clubStore';
+import { makeAdmin, removeMember, renameMember, setPaysKitty, useClub } from '../src/lib/clubStore';
 
 /**
  * A player — GR5.
@@ -88,6 +88,45 @@ export default function MemberSheet() {
       </View>
 
       <View style={styles.rows}>
+        {/*
+         * STANDING. Drawn on GR5 as a row reading "Standing · Name only" and
+         * missing from this screen until now, which mattered for more than
+         * conformance: the admin row is how the app knows which of six names
+         * is the person holding the phone, and there was no way to say so.
+         * A host who removed the seeded admin and added themselves ended up
+         * with a club with no admin, nights stamped with nobody, and My stats
+         * permanently empty.
+         *
+         * ⚠ COPY NOT DRAWN. The drawn row is a read-only value; the design has
+         * no control for naming yourself, because it was written for a club
+         * whose admin already exists. "This is me" is therefore mine and wants
+         * review — the row itself and its three values are the drawn ones.
+         */}
+        {member.standing === 'admin' ? (
+          <View style={[styles.row, { borderBottomColor: t.hairline }]}>
+            <Text style={[styles.rowLabel, { color: t.text }]}>Standing</Text>
+            <Text style={[styles.rowValue, { color: t.muted }]}>Admin · this is you</Text>
+          </View>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            disabled={busy}
+            onPress={() => {
+              setBusy(true);
+              void makeAdmin(club.id, member.id).finally(() => setBusy(false));
+            }}
+            style={({ pressed }) => [
+              styles.row,
+              { borderBottomColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+            ]}
+          >
+            <Text style={[styles.rowLabel, { color: t.text }]}>Standing</Text>
+            <Text style={[styles.rowValue, { color: t.muted }]}>
+              {member.standing === 'member' ? 'Member' : 'Name only'} · this is me
+            </Text>
+          </Pressable>
+        )}
+
         {/*
          * C3 (rev 15) supersedes the GR6 step below this file's `step` flag.
          * GR6 described the invite; C3 issues it, and what it issues is a real

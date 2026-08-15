@@ -16,7 +16,7 @@ import {
   type ResolvedLedger,
 } from '@poker-club/core';
 import { recordEntry } from './ledgerRepo';
-import { CURRENT_NIGHT } from './nightQueries';
+import { CURRENT_NIGHT } from './whichNight';
 
 /**
  * The night, on this phone.
@@ -225,6 +225,8 @@ export function useLedger(): ResolvedLedger | null {
 
 export const nameOf = (n: Night | null, id: PlayerId | null | undefined): string =>
   n?.players.find((p) => p.id === id)?.name ?? 'Someone';
+
+export { isTonight } from './whichNight';
 
 // ---------------------------------------------------------------------------
 // Loading

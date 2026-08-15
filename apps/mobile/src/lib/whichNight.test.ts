@@ -1,6 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CURRENT_NIGHT } from './nightQueries';
+import { CURRENT_NIGHT, isTonight } from './whichNight';
 
 /**
  * Which night the app opens on.
@@ -106,6 +106,58 @@ describe('which night the app opens on', () => {
     for (const column of ['session_id', 'group_name', 'started_at', 'status',
                           'rules_json', 'me_id', 'ack_json', 'seed_version']) {
       expect(row).toHaveProperty(column);
+    }
+  });
+});
+
+/**
+ * Whether the night on the phone is a game the host is playing.
+ *
+ * The home card and "Set up the game" both ask this. When they asked it
+ * separately they gave different answers and between them left the host with
+ * nowhere to go: the card offered to start a night, and the sheet it opened
+ * said one was already running. Both were describing the seeded sample night.
+ */
+describe('whether it is tonight', () => {
+  const night = (over: Partial<{ seeded: boolean; status: 'open' | 'counting' | 'settled' }> = {}) =>
+    ({ seeded: false, status: 'open' as const, ...over });
+
+  it('is tonight when the host has a real night open', () => {
+    expect(isTonight(night())).toBe(true);
+  });
+
+  it('is still tonight halfway through counting up', () => {
+    // A half-counted night is being played. The host who walks back to the
+    // root has to be able to walk into it again, or the count is stranded.
+    expect(isTonight(night({ status: 'counting' }))).toBe(true);
+  });
+
+  it('is not tonight once the night is settled', () => {
+    expect(isTonight(night({ status: 'settled' }))).toBe(false);
+  });
+
+  it('is not tonight when it is the seeded sample', () => {
+    // The shape that walled the host in: seeded, open, six people at a table.
+    expect(isTonight(night({ seeded: true }))).toBe(false);
+  });
+
+  it('is not tonight on a phone holding nothing', () => {
+    expect(isTonight(null)).toBe(false);
+  });
+
+  it('agrees with itself across every combination', () => {
+    // The two screens read one function, so the only way they can disagree now
+    // is if it is non-deterministic. Enumerated rather than asserted in prose.
+    const table: Array<[boolean, 'open' | 'counting' | 'settled', boolean]> = [
+      [false, 'open', true],
+      [false, 'counting', true],
+      [false, 'settled', false],
+      [true, 'open', false],
+      [true, 'counting', false],
+      [true, 'settled', false],
+    ];
+    for (const [seeded, status, expected] of table) {
+      expect(isTonight({ seeded, status })).toBe(expected);
     }
   });
 });

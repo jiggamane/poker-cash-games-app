@@ -349,6 +349,39 @@ export async function resetInvite(clubId: string, id: PlayerId): Promise<void> {
   await loadClubs();
 }
 
+/**
+ * Say which roster row is the person holding this phone.
+ *
+ * The club's admin and the reader are the same person — it is what
+ * `new-night.tsx` reads to stamp `meId` onto a night, and `meId` is what makes
+ * a results screen able to say "You" and My stats able to say what YOU won.
+ * Until now the only admin was the one the sample night seeded, so a host who
+ * removed that name and added their own had a club with no admin at all: every
+ * night they recorded was stamped with nobody, and their own stats came back
+ * empty with nothing on screen explaining why.
+ *
+ * ONE ADMIN AT A TIME. Whether a club can have two is open — `12-the-group.md`
+ * § 4.1, along with how admin would be handed over — so this promotes one row
+ * and demotes whoever held it to `member`: they still have the app, they no
+ * longer run the club. Nothing here creates the second admin that question is
+ * about.
+ */
+export async function makeAdmin(clubId: string, id: PlayerId): Promise<void> {
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      `UPDATE club_member SET standing = 'member' WHERE club_id = ? AND standing = 'admin'`,
+      clubId,
+    );
+    await db.runAsync(
+      `UPDATE club_member SET standing = 'admin' WHERE club_id = ? AND id = ?`,
+      clubId,
+      id,
+    );
+  });
+  await loadClubs();
+}
+
 /** Removing keeps their nights. Unsettled amounts stay on the night they came from. */
 export async function removeMember(clubId: string, id: PlayerId): Promise<void> {
   const db = await getDb();

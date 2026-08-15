@@ -6,7 +6,7 @@ import { useTheme } from '../src/design/useTheme';
 import { chrome, control, radius, space, type } from '../src/design/tokens';
 import { Icon } from '../src/components/Icon';
 import { loadClubs, useClub } from '../src/lib/clubStore';
-import { useLedger, useNight } from '../src/lib/nightStore';
+import { isTonight, useLedger, useNight } from '../src/lib/nightStore';
 
 /**
  * Club home — GR1. The root, and the only screen in the app with no back
@@ -60,12 +60,12 @@ export default function ClubHome() {
    *   the app the following Saturday had nowhere to go.
    *
    * So: a real, unsettled night is Tonight. Anything else is an invitation to
-   * start one.
+   * start one. `isTonight` is that rule, and "Set up the game" reads the same
+   * one — the two screens disagreeing is what walled the host in the first
+   * time.
    */
   const live =
-    // 'counting' stays live on purpose: a half-counted night is still tonight's,
-    // and the host walking back to the root must be able to walk into it again.
-    night === null || ledger === null || night.seeded || night.status === 'settled'
+    !isTonight(night) || night === null || ledger === null
       ? null
       : {
           seated: night.players.filter(

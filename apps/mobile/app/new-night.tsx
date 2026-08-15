@@ -8,7 +8,7 @@ import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { inheritedFor, rememberLastGame, useClub, type Inherited } from '../src/lib/clubStore';
-import { startNight, useNight } from '../src/lib/nightStore';
+import { isTonight, startNight, useNight } from '../src/lib/nightStore';
 
 /**
  * Setting up the game. 12-the-group.md § 2.
@@ -46,7 +46,23 @@ export default function NewNight() {
     }))
     .filter((s) => s.buyIn > 0);
 
-  const running = night !== null && night.status !== 'settled';
+  // The same rule the home card uses, so the two cannot disagree about whether
+  // there is a game on. See `isTonight`.
+  const running = isTonight(night);
+
+  /*
+   * Which seat is the host's own. It is stamped onto the night at birth and it
+   * is the only thing that lets a results screen say "You" and My stats say
+   * what you won — nothing in the money depends on it.
+   *
+   * A club normally has exactly one admin, seeded from the sample night. A
+   * host who removes that name while making the roster their own can leave
+   * none at all, and the consequence used to arrive four hours later as an
+   * empty stats screen with nothing on it explaining why. Naming yourself is a
+   * row on the player sheet; this says so before the night starts rather than
+   * after it ends.
+   */
+  const me = club.members.find((m) => m.standing === 'admin');
 
   async function open() {
     if (seats.length === 0 || busy || club === null || inherited === null) return;
@@ -57,9 +73,7 @@ export default function NewNight() {
         groupName: club.name,
         rules: inherited.rules,
         seats,
-        ...(club.members.find((m) => m.standing === 'admin')?.id === undefined
-          ? {}
-          : { meId: club.members.find((m) => m.standing === 'admin')!.id }),
+        ...(me === undefined ? {} : { meId: me.id }),
       });
       // What the night actually ran with becomes the next night's suggestion,
       // and only that — the club's own setting is untouched.
@@ -132,6 +146,19 @@ export default function NewNight() {
 
       <View style={styles.list}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Who is playing</Text>
+
+        {/*
+          ⚠ COPY NOT DRAWN. The design has no state for a club with no admin,
+          because it was written for one that always has exactly one. Flagged
+          rather than left silent: the alternative is a host finding out after
+          the night that it was recorded against nobody.
+        */}
+        {me === undefined && club.members.length > 0 && (
+          <Text style={[styles.warn, { color: t.amber }]}>
+            Nobody on this roster is marked as you, so this night will not count towards your
+            stats. Open your own name in Players and tap Standing.
+          </Text>
+        )}
 
         {club.members.map((m, i) => {
           const on = picked[m.id] !== undefined;
@@ -242,4 +269,5 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   empty: { ...type.footnote, paddingHorizontal: 4 },
+  warn: { ...type.footnote, paddingHorizontal: 4, paddingBottom: 10, lineHeight: 18 },
 });
