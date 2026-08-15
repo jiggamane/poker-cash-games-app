@@ -7,6 +7,7 @@ import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
+import { currencyFor } from '../src/data/currencies';
 import { inheritedFor, rememberLastGame, useClub, type Inherited } from '../src/lib/clubStore';
 import { startNight, useNight } from '../src/lib/nightStore';
 
@@ -37,6 +38,8 @@ export default function NewNight() {
   }, [club]);
 
   if (club === null || inherited === null) return <Sheet title="Set up the game">{null}</Sheet>;
+
+  const currency = currencyFor(club.currency);
 
   const seats = Object.entries(picked)
     .map(([playerId, amount]) => ({
@@ -103,8 +106,22 @@ export default function NewNight() {
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <View style={styles.cardRow}>
           <Text style={[styles.cardLabel, { color: t.muted }]}>Buy-in</Text>
+          {/* The club's own symbol, because this figure is the club's money and
+              this is the screen that says which money that is. */}
           <Text style={[styles.cardValue, { color: t.text }]}>
-            {formatMoney(inherited.buyIn)}
+            {formatMoney(inherited.buyIn, currency.symbol)}
+          </Text>
+        </View>
+        {/*
+         * A NIGHT DOES NOT PICK A CURRENCY. It is a club default — the top row
+         * of the settings table in 12-the-group.md § 2 — and a book whose
+         * column changed money halfway through would be unreadable. So it is
+         * stated here, where the game is set up, and changed in the group.
+         */}
+        <View style={styles.cardRow}>
+          <Text style={[styles.cardLabel, { color: t.muted }]}>Currency</Text>
+          <Text style={[styles.cardValue, { color: t.text }]}>
+            {`${currency.code} · ${currency.name}`}
           </Text>
         </View>
         <View style={styles.cardRow}>
