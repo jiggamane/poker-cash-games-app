@@ -3,12 +3,12 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { formatMoney, money } from '@poker-club/core';
 import { Button } from '../src/components/Button';
+import { CurrencyField } from '../src/components/CurrencyField';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
+import { DEFAULT_CURRENCY } from '../src/data/currencies';
 import { APP_DEFAULT_BUY_IN, createClub } from '../src/lib/clubStore';
-
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'CZK'];
 
 /**
  * New group — GR3. Three steps in one sheet, replacing their own content.
@@ -22,7 +22,7 @@ export default function NewGroup() {
   const t = useTheme();
   const [step, setStep] = useState<0 | 1 | 2>(0);
   const [name, setName] = useState('');
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [buyIn, setBuyIn] = useState(String(APP_DEFAULT_BUY_IN));
   const [players, setPlayers] = useState<string[]>([]);
   const [typing, setTyping] = useState('');
@@ -95,13 +95,9 @@ export default function NewGroup() {
             />
           </Field>
 
-          <Field label="CURRENCY">
-            <View style={styles.chips}>
-              {CURRENCIES.map((c) => (
-                <Chip key={c} label={c} on={c === currency} onPress={() => setCurrency(c)} />
-              ))}
-            </View>
-          </Field>
+          {/* Every currency there is, found by typing it. The four that used
+              to be the whole list are still one tap away. */}
+          <CurrencyField value={currency} onChange={setCurrency} />
         </>
       )}
 
@@ -192,9 +188,15 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
   );
 }
 
+/*
+ * ONE INSET DOWN THE WHOLE SHEET: 20, which is what the footer buttons and
+ * every field use. The explanation under each step was at 22 — the list inset,
+ * correct on a pushed screen and wrong here — and a paragraph two points wider
+ * than the box above it reads as a mistake rather than as a margin.
+ */
 const styles = StyleSheet.create({
-  field: { marginHorizontal: space.card, marginBottom: 20 },
-  label: { ...type.label, marginBottom: 10 },
+  field: { marginHorizontal: space.card, marginBottom: 20, gap: 10 },
+  label: type.label,
   input: {
     ...type.body,
     borderWidth: 1,
@@ -202,8 +204,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 13,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginHorizontal: space.card },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginHorizontal: space.card, marginBottom: 12 },
   chip: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: radius.pressable, borderWidth: 1.5 },
   chipLabel: { fontSize: 14.5, fontWeight: '600' },
-  note: { ...type.footnote, marginTop: 16, marginHorizontal: space.page },
+  note: { ...type.footnote, marginTop: 8, marginHorizontal: space.card },
 });

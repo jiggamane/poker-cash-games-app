@@ -31,7 +31,7 @@ export default function MyGames() {
   const average = played.length === 0 ? 0 : Math.round(total / played.length);
 
   return (
-    <Screen title="My games" backTo="My stats">
+    <Screen title="My games" backTo="the club">
       <View style={[styles.card, { backgroundColor: t.surface }]}>
         <View style={styles.cardTop}>
           <Text style={[styles.cardLabel, { color: t.muted }]}>

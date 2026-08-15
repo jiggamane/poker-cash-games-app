@@ -6,6 +6,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
+import { currencyFor } from '../src/data/currencies';
 import { useSession } from '../src/lib/useSession';
 import { checkConnection, type ConnectionReport } from '../src/lib/connection';
 import { shareTokenFor, stopSharing } from '../src/lib/publish';
@@ -48,6 +49,7 @@ export default function Settings() {
   });
 
   const signedIn = session !== null;
+  const currency = club === null ? null : currencyFor(club.currency);
 
   /**
    * The one place that asks the server what is wrong.
@@ -127,7 +129,16 @@ export default function Settings() {
         <Text style={[styles.sectionLabel, { color: t.muted }]}>The group</Text>
 
         <Fact label="Group name" value={club?.name ?? night?.groupName ?? '—'} />
-        <Fact label="Currency" value={club?.currency ?? '—'} last />
+        <Fact
+          label="Currency"
+          value={currency === null ? '—' : `${currency.code} · ${currency.name}`}
+        />
+        {/*
+         * Home is the card, the two lists and this button now, so the one
+         * cross-group screen in the app hangs here — beside the name of the
+         * group you are in, which is the question it answers.
+         */}
+        <Action label="Your groups" onPress={() => router.push('/groups')} last />
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The money</Text>
 
@@ -139,7 +150,11 @@ export default function Settings() {
          */}
         <Fact
           label="Standard buy-in"
-          value={club === null ? '—' : formatMoney(club.defaultBuyIn)}
+          value={
+            club === null || currency === null
+              ? '—'
+              : formatMoney(club.defaultBuyIn, currency.symbol)
+          }
         />
         <Action label="Money rules" onPress={() => router.push('/club-rules')} last />
 
