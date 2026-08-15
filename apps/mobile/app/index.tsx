@@ -16,9 +16,20 @@ import { useLedger, useNight } from '../src/lib/nightStore';
  * does not own the night in progress: the card below is that night, and the
  * night is the club's child rather than part of it.
  *
- * Four rows and no more. Everything to do with the group is admin work between
- * nights, and none of it is reachable from inside a live session — a host
- * halfway through recording a rebuy should not be one tap from the roster.
+ * TWO THINGS AND A WAY OUT. The card starts a game — or opens the one running
+ * — and under it are the two places a person actually goes between games:
+ * every night that has been played, and their own record across them. Settings
+ * is where it was before the section grew rows: the quiet control at the foot
+ * of the screen, out of the way of everything you open the app to do.
+ *
+ * WHAT IS NOT HERE. There is no "Last night" card: a settled night is history
+ * the moment it is settled, and history is a list, not the top of the home
+ * screen — leaving it up there means the first thing a host sees on a Friday
+ * is last Friday. The roster and Your groups are gone too; both are admin work
+ * between nights and both live in Settings, which is where you go when the
+ * group itself needs changing rather than when a game does. None of it is
+ * reachable from inside a live session — a host halfway through recording a
+ * rebuy should not be one tap from the roster.
  */
 export default function ClubHome() {
   const t = useTheme();
@@ -51,14 +62,12 @@ export default function ClubHome() {
           since: elapsed(night.startedAt),
         };
 
-  const settled = night?.status === 'settled';
-
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
       {/* The one filled thing on the screen, and the only figure on it. */}
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push(settled ? '/settled' : live !== null ? '/session' : '/new-night')}
+        onPress={() => router.push(live !== null ? '/session' : '/new-night')}
         style={({ pressed }) => [
           styles.card,
           { backgroundColor: t.text, borderColor: t.ground, opacity: pressed ? 0.9 : 1 },
@@ -74,14 +83,12 @@ export default function ClubHome() {
         <View style={styles.cardRow}>
           <View style={styles.cardText}>
             <Text style={[styles.cardName, { color: t.onFill }]}>
-              {live !== null ? 'Tonight' : settled ? 'Last night' : 'Set up the game'}
+              {live !== null ? 'Tonight' : 'Set up the game'}
             </Text>
             <Text style={[styles.cardLede, { color: t.onFill }]}>
               {live !== null
                 ? `${live.seated} at the table · the ledger is open`
-                : settled
-                  ? 'settled · look back at it'
-                  : 'the rules are already set — pick who is playing'}
+                : 'the rules are already set — pick who is playing'}
             </Text>
           </View>
           <View style={styles.pushRight}>
@@ -92,22 +99,20 @@ export default function ClubHome() {
 
       <View style={[styles.rows, { borderTopColor: t.hairline }]}>
         <Row name="My nights" sub="every night you played, most recent first" to="/games" />
-        <Row name="Players" sub="the roster, and who has the app" to="/players" />
-        <Row name="Settings" sub="the group, the money, the people" to="/settings" />
-        <Row name="Your groups" sub="every club you play in" to="/groups" last />
+        <Row name="My stats" sub="across every group you play in" to="/stats" last />
       </View>
 
       <View style={styles.bottom}>
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push('/stats')}
+          onPress={() => router.push('/settings')}
           style={({ pressed }) => [
             styles.quiet,
             { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 },
           ]}
         >
-          <Icon name="rules" color={t.text} />
-          <Text style={[styles.quietLabel, { color: t.text }]}>My stats</Text>
+          <Icon name="settings" color={t.text} />
+          <Text style={[styles.quietLabel, { color: t.text }]}>Settings</Text>
         </Pressable>
       </View>
     </SafeAreaView>

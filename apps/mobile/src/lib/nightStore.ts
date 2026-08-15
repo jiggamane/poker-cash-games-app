@@ -244,7 +244,16 @@ interface NightRow {
  */
 export async function openNight(): Promise<Night> {
   const db = await getDb();
-  let row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+  /*
+   * THE MOST RECENT NIGHT, not whichever row the table hands back first.
+   * `startNight` appends, so a phone that has hosted twice holds two rows, and
+   * an unordered LIMIT 1 can reopen the older one — a settled Friday coming
+   * back as tonight. Home's card is now the only way into a game, so what this
+   * query returns is what the whole screen says.
+   */
+  let row = await db.getFirstAsync<NightRow>(
+    `SELECT * FROM night ORDER BY started_at DESC LIMIT 1`,
+  );
 
   /*
    * Lay down the sample night, or replace one that has gone stale.
@@ -265,7 +274,9 @@ export async function openNight(): Promise<Night> {
     if (row === null || row.seed_version! < seed.SEED_VERSION) {
       if (row !== null) await forgetNight(row.session_id);
       await seedNight(seed.SEED, seed.SEED_VERSION);
-      row = await db.getFirstAsync<NightRow>(`SELECT * FROM night LIMIT 1`);
+      row = await db.getFirstAsync<NightRow>(
+        `SELECT * FROM night ORDER BY started_at DESC LIMIT 1`,
+      );
     }
   }
 
