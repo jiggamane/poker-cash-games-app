@@ -431,8 +431,16 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   // charging the winners for a round the kitty bought would charge them for it
   // twice. An unpaid spend is in the sum — the round was had and somebody
   // still has to settle it (`11-bill-and-kitty.md` § Covered by).
-  const usePercent = rule.amountKind === 'percent' && !reimbursesExpenses;
-  const fixedTotal = reimbursesExpenses ? ledger.billableExpenses : rule.amount;
+  //
+  // A BILL IS ITS EXPENSES, INCLUDING WHEN THERE ARE NONE. The amount stored on
+  // a bill rule is a placeholder that the tab overwrites, so falling back to it
+  // on a night where nobody spent anything invented a charge: the seeded club's
+  // "Kitchen & drinks" carries 170, and a night with no food and no drinks
+  // still took $170 off the winners and handed it to a collector who had not
+  // spent a penny. A tab of nothing is nothing.
+  const isBill = destination === 'bill';
+  const usePercent = rule.amountKind === 'percent' && !reimbursesExpenses && !isBill;
+  const fixedTotal = isBill || reimbursesExpenses ? ledger.billableExpenses : rule.amount;
 
   const nothingToDo = payers.length === 0 || (!usePercent && fixedTotal === 0);
   if (nothingToDo) {

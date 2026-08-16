@@ -640,6 +640,56 @@ describe('expenses', () => {
     });
   });
 
+  /*
+   * A bill rule's stored amount is a placeholder the tab overwrites, so on a
+   * night with no tab it must not become a charge. The seeded club's
+   * "Kitchen & drinks" carries 170; a night where nobody bought anything was
+   * taking that off the winners and crediting a collector who had spent
+   * nothing — money invented out of a rule's default.
+   */
+  it('charges nothing for a bill on a night where nobody spent anything', () => {
+    reset();
+    const r = settle({
+      players: [at(MAREK), at(PETR), at(DANA)],
+      entries: [buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000)],
+      finalCounts: counts([[MAREK, 1500], [PETR, 1000], [DANA, 500]]),
+      rules: [
+        rule({ id: 'kitchen', name: 'Kitchen & drinks', destination: 'bill',
+               amountKind: 'fixed', amount: money(170), split: 'by_percent',
+               charge: 'winners_only', collectorPlayerId: MAREK }),
+      ],
+    });
+
+    expect(r.deductions).toEqual([]);
+    expect(r.totalOffTable).toBe(0);
+    expect(chargedOf(r, MAREK)).toBe(0);
+    expect(r.players.every((p) => p.credited === 0)).toBe(true);
+    // Marek won 500, Dana lost 500, and nothing came off either of them.
+    expect(positionOf(r, MAREK)).toBe(500);
+    expect(positionOf(r, DANA)).toBe(-500);
+    expect(transfersBalance(r)).toBe(true);
+  });
+
+  it('still charges the real tab when there is one, ignoring the stored amount', () => {
+    reset();
+    const r = settle({
+      players: [at(MAREK), at(PETR), at(DANA)],
+      entries: [
+        buyin(MAREK, 1000), buyin(PETR, 1000), buyin(DANA, 1000),
+        expense(PETR, 60),
+      ],
+      finalCounts: counts([[MAREK, 1500], [PETR, 1000], [DANA, 500]]),
+      rules: [
+        rule({ id: 'kitchen', name: 'Kitchen & drinks', destination: 'bill',
+               amountKind: 'fixed', amount: money(170), split: 'by_percent',
+               charge: 'winners_only', collectorPlayerId: MAREK }),
+      ],
+    });
+
+    expect(r.deductions[0].total).toBe(60); // the tab, not the rule's 170
+    expect(r.players.find((p) => p.playerId === PETR)!.credited).toBe(60);
+  });
+
   it("nets a payer's own share against what they fronted", () => {
     // The worked example: A covers a 150 bill, wins, and owes 50 of it.
     // They are charged 50 and credited 150, so they come out 100 ahead.
