@@ -131,7 +131,10 @@ export function Row({
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
-  time: { ...type.time, width: 42, flexGrow: 0, flexShrink: 0 },
+  // 44, which is what L1 draws and what the player card's entries use. It was
+  // 42 here, so the same column was two pixels narrower depending on which
+  // component happened to draw it.
+  time: { ...type.time, width: 44, flexGrow: 0, flexShrink: 0 },
   middle: { flexShrink: 1 },
   name: type.rowName,
   detail: type.rowDetail,

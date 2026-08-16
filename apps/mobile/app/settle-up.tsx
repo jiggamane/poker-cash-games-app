@@ -370,30 +370,34 @@ const styles = StyleSheet.create({
   blocked: { ...type.footnote, paddingHorizontal: 4 },
 
   // --- out of balance ------------------------------------------------------
+  // E5: `0 20px 16px` · `16px 18px` · gap 6 · radius 8. Not a card — a card's
+  // 14 put a rounder corner on the one block that has to read as an alarm.
   alert: {
     marginHorizontal: space.card,
-    marginBottom: 18,
+    marginBottom: 16,
     paddingVertical: 16,
     paddingHorizontal: 18,
-    borderRadius: radius.card,
+    borderRadius: radius.pressable,
     borderWidth: 1,
-    gap: 7,
+    gap: 6,
   },
   alertLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
-  alertBody: { fontSize: 14.5, fontWeight: '400', lineHeight: 21 },
+  // 13.5/1.5 as drawn, not the 14.5 lede: this sentence sits inside a block
+  // and a lede sits under a title.
+  alertBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
 
-  countRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4 },
-  avatar: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  countRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 4 },
+  avatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   initial: { fontSize: 14, fontWeight: '700' },
-  rowText: { gap: 3, flexShrink: 1 },
+  rowText: { gap: 2, flexShrink: 1 },
   name: type.rowName,
   detail: type.rowDetail,
   result: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
-  footnote: { fontSize: 14.5, fontWeight: '400', lineHeight: 21 },
+  footnote: type.footnote,
   writeOff: { textDecorationLine: 'underline' },
   settle: { flex: 2 },
   fix: { flex: 1 },
 
-  footerRow: { flexDirection: 'row', gap: 14 },
+  footerRow: { flexDirection: 'row', gap: 10 },
 });

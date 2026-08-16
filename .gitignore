@@ -31,3 +31,7 @@ pgdata/
 # OS / editor
 .DS_Store
 *.log
+
+# ui-check output
+apps/mobile/.web/
+.ui-check/

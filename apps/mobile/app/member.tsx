@@ -209,16 +209,9 @@ const styles = StyleSheet.create({
   rowValue: { ...type.meta, marginLeft: 'auto' },
   switch: { marginLeft: 'auto' },
 
-  block: {
-    marginHorizontal: space.card,
-    marginBottom: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderRadius: radius.card,
-    gap: 7,
-  },
-  blockTitle: { fontSize: 16.5, fontWeight: '600' },
-  blockBody: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
+  // The explainer block that used to sit here went with GR6 when the invite
+  // became its own sheet (`app/invite.tsx`); its styles outlived it. `block`
+  // in tokens.ts is where the shape lives now.
 
   note: { ...type.footnote, marginTop: 16, marginHorizontal: space.page },
 });
