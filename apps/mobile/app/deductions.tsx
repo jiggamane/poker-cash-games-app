@@ -218,12 +218,18 @@ export default function Deductions() {
 
         <View style={styles.headRow}>
           <Text style={styles.cellName} />
-          <Text style={[styles.head, styles.num, { color: t.muted }]}>GROSS</Text>
-          <Text style={[styles.head, styles.num, styles.billCol, { color: t.offTable, backgroundColor: t.offTableFaint }]}>
+          <Text style={[styles.head, styles.num, { color: t.muted }]} numberOfLines={1}>GROSS</Text>
+          <Text
+            style={[styles.head, styles.num, styles.billCol, styles.washTop, { color: t.offTable, backgroundColor: t.offTableFaint }]}
+            numberOfLines={1}
+          >
             BILL
           </Text>
-          <Text style={[styles.head, styles.backCol, styles.num, { color: t.muted }]}>BACK</Text>
-          <Text style={[styles.head, styles.num, styles.kittyCol, { color: t.offTable, backgroundColor: t.offTableWash }]}>
+          <Text style={[styles.head, styles.backCol, styles.num, { color: t.muted }]} numberOfLines={1}>BACK</Text>
+          <Text
+            style={[styles.head, styles.num, styles.kittyCol, styles.washTop, { color: t.offTable, backgroundColor: t.offTableWash }]}
+            numberOfLines={1}
+          >
             KITTY
           </Text>
           <Text style={[styles.head, styles.num, styles.netCol, { color: t.muted }]}>NET</Text>
@@ -249,17 +255,24 @@ export default function Deductions() {
                 </Text>
                 {/* Losers show gross and net only: both rules charge winners,
                     and an empty cell says that better than a zero. */}
-                <Text style={[styles.money, styles.num, styles.billCol, { color: t.offTable, backgroundColor: t.offTableFaint }]}>
+                <Text
+                  style={[styles.money, styles.num, styles.billCol, { color: t.offTable, backgroundColor: t.offTableFaint }]}
+                  numberOfLines={1}
+                >
                   {won ? dash(bill, true) : ''}
                 </Text>
                 <Text style={[styles.money, styles.backCol, styles.num, { color: t.text }]} numberOfLines={1}>
                   {won && back > 0 ? `+${back.toLocaleString('en-US')}` : ''}
                 </Text>
-                <Text style={[styles.money, styles.num, styles.kittyCol, { color: t.offTable, backgroundColor: t.offTableWash }]}>
+                <Text
+                  style={[styles.money, styles.num, styles.kittyCol, { color: t.offTable, backgroundColor: t.offTableWash }]}
+                  numberOfLines={1}
+                >
                   {won ? dash(kitty, true) : ''}
                 </Text>
                 <Text
                   style={[styles.net, styles.num, styles.netCol, { color: moneyColor(t, p.finalPosition) }]}
+                  numberOfLines={1}
                 >
                   {formatSigned(p.finalPosition)}
                 </Text>
@@ -419,7 +432,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   cardLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
-  cardFigure: { fontSize: 28, fontWeight: '800', letterSpacing: -1.12, lineHeight: 30, fontVariant: ['tabular-nums'] },
+  cardFigure: { fontSize: 28, fontWeight: '800', letterSpacing: -1.12, lineHeight: 28, fontVariant: ['tabular-nums'] },
   cardNote: { fontSize: 13.5, fontWeight: '400' },
 
   blocks: { marginHorizontal: 20, gap: 8 },
@@ -456,18 +469,34 @@ const styles = StyleSheet.create({
 
   headRow: { flexDirection: 'row', alignItems: 'flex-end' },
   bodyRow: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth },
-  head: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.85, paddingVertical: 4, paddingHorizontal: 4 },
+  /*
+   * E3 draws every cell in this table at `5px 6px`, `4px 6px` in the header.
+   * They had been built at 4, and the two pixels matter here more than
+   * anywhere: the bill and kitty columns carry a wash running the whole height
+   * of the table, and a wash two pixels short on each side reads as a stack of
+   * separate rectangles rather than as one column to follow down six rows.
+   *
+   * The COLUMN WIDTHS are wider than the board's 46/40/44/40/78. The drawn
+   * night's deductions are two digits; a real one is not, and at the board's
+   * widths a $170 bill share wraps to two lines and takes the wash with it.
+   * Wider by four with the same padding keeps the drawn look and survives the
+   * figures the engine actually produces — and every cell is single-line, so
+   * an extreme one clips instead of breaking the table.
+   */
+  head: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.85, paddingVertical: 4, paddingHorizontal: 6 },
   num: { textAlign: 'right', fontVariant: ['tabular-nums'] },
-  cellName: { flex: 1, fontSize: 14, fontWeight: '600', paddingVertical: 5, paddingHorizontal: 4 },
-  gross: { width: 52, fontSize: 13, fontWeight: '500', paddingVertical: 5, paddingHorizontal: 4 },
-  money: { fontSize: 13, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 4 },
-  net: { fontSize: 15, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 4 },
+  cellName: { flex: 1, fontSize: 14, fontWeight: '600', paddingVertical: 5, paddingHorizontal: 6 },
+  gross: { width: 52, fontSize: 13, fontWeight: '500', paddingVertical: 5, paddingHorizontal: 6 },
+  money: { fontSize: 13, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 6 },
+  net: { fontSize: 15, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 6 },
   /* The two columns that take money off the table are tinted the bone colour,
-     at two strengths, so the eye can follow one rule down the table. */
-  billCol: { width: 42 },
+     at two strengths, so the eye can follow one rule down the table. The
+     header cell rounds its top corners by 5, which is where the column starts. */
+  billCol: { width: 46 },
   backCol: { width: 44 },
-  kittyCol: { width: 42 },
-  netCol: { width: 72 },
+  kittyCol: { width: 46 },
+  netCol: { width: 76 },
+  washTop: { borderTopLeftRadius: 5, borderTopRightRadius: 5 },
 
   previewNote: { fontSize: 11.5, fontWeight: '400', lineHeight: 16.7, paddingTop: 7, paddingHorizontal: 6 },
 

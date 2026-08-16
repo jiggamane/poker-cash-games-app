@@ -111,7 +111,10 @@ export default function Stands() {
 
 const styles = StyleSheet.create({
   group: { marginTop: 16, marginHorizontal: 22 },
-  groupAfter: { marginTop: 22 },
+  // E2b sets the second group `16px 4px 0` — 16 above it, and 4 of inset so
+  // its rows step in from the washed blocks above rather than lining up with
+  // their bled edge.
+  groupAfter: { marginTop: 16, paddingHorizontal: 4 },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
 
   // The ranked rows are blocks rather than hairline rows: a wash of their own
@@ -128,11 +131,13 @@ const styles = StyleSheet.create({
   },
   rank: { width: 16, fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] },
 
+  // 11, the same as the washed rows above them: E2b draws one row height for
+  // the whole screen and this list was two pixels taller than the other.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 13,
+    paddingVertical: 11,
     paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
@@ -141,14 +146,18 @@ const styles = StyleSheet.create({
   detail: type.rowDetail,
   result: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
+  // `14px 22px 0` · `12px 18px` · radius 8, dashed. It had been built as a
+  // card — radius 14, on the card's 20 margin — which made a provisional note
+  // read as a surface, and the dashed outline is the only thing that is
+  // supposed to be saying "not final" here.
   note: {
-    marginTop: 22,
-    marginHorizontal: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: radius.card,
+    marginTop: 14,
+    marginHorizontal: 22,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: radius.pressable,
     borderWidth: 1,
     borderStyle: 'dashed',
   },
-  noteText: { fontSize: 13, fontWeight: '400', lineHeight: 19 },
+  noteText: type.footnote,
 });

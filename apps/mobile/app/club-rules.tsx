@@ -5,7 +5,7 @@ import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { block, radius, space, type } from '../src/design/tokens';
 import { setClubRules, useClub } from '../src/lib/clubStore';
 import { useNight } from '../src/lib/nightStore';
 
@@ -100,7 +100,7 @@ export default function ClubMoneyRules() {
         </Pressable>
       )}
 
-      <View style={[styles.block, { borderColor: t.hairline }]}>
+      <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <Text style={[styles.blockTitle, { color: t.text }]}>Where a night gets its rules</Text>
         <Text style={[styles.blockBody, { color: t.muted }]}>
           A night copies these when it opens and then owns its copy. Changing a rule here never
@@ -153,13 +153,14 @@ const styles = StyleSheet.create({
   promoteLabel: { fontSize: 15, fontWeight: '700' },
 
   block: {
-    marginTop: 20,
+    marginTop: 14,
     marginHorizontal: space.card,
-    padding: 16,
+    paddingVertical: block.padV,
+    paddingHorizontal: block.padH,
     borderWidth: 1,
-    borderRadius: radius.card,
-    gap: 7,
+    borderRadius: block.radius,
+    gap: block.gap,
   },
-  blockTitle: { fontSize: 16.5, fontWeight: '600' },
-  blockBody: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
+  blockTitle: type.blockTitle,
+  blockBody: type.blockBody,
 });

@@ -7,7 +7,7 @@ import { Icon } from '../src/components/Icon';
 import { Pill } from '../src/components/Pill';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { block, radius, space, type } from '../src/design/tokens';
 import { nameOf, spendsOf, useNight, type Spend } from '../src/lib/nightStore';
 
 /**
@@ -119,7 +119,7 @@ export default function Bill() {
       )}
 
       {!empty && (
-        <View style={[styles.split, { borderColor: t.hairline }]}>
+        <View style={[styles.split, { backgroundColor: t.surface, borderColor: t.hairline }]}>
           <Text style={[styles.splitTitle, { color: t.text }]}>How it will be split</Text>
           <Text style={[styles.splitBody, { color: t.muted }]}>
             {splitSentence(rule)} Nothing is worked out until settle-up, and whoever fronted a
@@ -182,9 +182,12 @@ const styles = StyleSheet.create({
   rule: type.tableTotal,
   spendCount: type.tableSeats,
 
-  list: { marginHorizontal: 20 },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4 },
+  // The list sits at 22 while the card above it sits at 20 — the 2px step is
+  // drawn, deliberate and visible, and this list had been at 20 with it.
+  list: { marginHorizontal: space.page },
+  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
+  // A spend is a transfer-height row on L1, not a feed-height one: 15, not 13.
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
   time: { ...type.time, width: 44 },
   rowText: { gap: 2, flexShrink: 1 },
   note: type.entryType,
@@ -192,15 +195,16 @@ const styles = StyleSheet.create({
   amount: { ...type.entryAmount, marginLeft: 'auto' },
 
   split: {
-    marginTop: 18,
-    marginHorizontal: 20,
-    padding: 16,
+    marginTop: 14,
+    marginHorizontal: space.card,
+    paddingVertical: block.padV,
+    paddingHorizontal: block.padH,
     borderWidth: 1,
-    borderRadius: radius.card,
-    gap: 7,
+    borderRadius: block.radius,
+    gap: block.gap,
   },
-  splitTitle: { fontSize: 16.5, fontWeight: '600' },
-  splitBody: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
+  splitTitle: type.blockTitle,
+  splitBody: type.blockBody,
 
   blank: { alignItems: 'center', gap: 14, paddingVertical: 40, paddingHorizontal: space.page },
   blankTitle: { fontSize: 19, fontWeight: '700' },
