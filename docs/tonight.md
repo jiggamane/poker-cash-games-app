@@ -66,9 +66,13 @@ Two things to know about that screen:
 - A player with their amount cleared to blank is **silently not seated**, even
   with the box ticked. If the button says "Pick who is playing" while boxes look
   ticked, that is why — put an amount back.
-- Anyone not on the roster has to be added in Settings → Players **first**.
-  Adding somebody mid-game from the Seat sheet puts them in tonight's night but
-  **not** on the club roster, so they will be missing next week.
+- You can **add a name on this screen** — it joins the roster for good and is
+  ticked for tonight at the standard buy-in. Use this rather than adding people
+  later.
+- Adding somebody **mid-game**, from the Seat sheet once the table is open, is
+  different: it puts them in tonight's night but **not** on the club roster, so
+  they are missing next week. If somebody turns up late, seat them — and add
+  them properly in Settings → Players afterwards.
 
 ---
 
