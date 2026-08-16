@@ -36,7 +36,16 @@ export default function RootLayout() {
   // already there. It comes from SQLite, not the network — the app is fully
   // usable with no connection and no account.
   useEffect(() => {
-    void openNight().catch(() => {});
+    /*
+     * A FAILURE HERE MUST NOT BE SILENT. If the database cannot be opened the
+     * app still renders — the home card reads "Set up the game", because that
+     * is what it shows when there is no night — and every screen behind it is
+     * inert, with nothing anywhere saying why. That is indistinguishable from
+     * a working first run right up until the host tries to seat somebody.
+     */
+    void openNight().catch((e) => {
+      console.error('openNight failed — the app has no local database', e);
+    });
   }, []);
 
   // The sign-in link comes back into the app here. It has to be handled at the
