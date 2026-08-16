@@ -4,6 +4,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   formatMoney,
   formatSigned,
+  reconcile,
+  resolveLedger,
   settle,
   type Deduction,
   type Money,
@@ -48,8 +50,23 @@ export default function Deductions() {
           ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
         }),
       };
-    } catch {
-      return { ok: false as const };
+    } catch (e) {
+      /*
+       * WHY IT FAILED MATTERS, because the two reasons need opposite actions.
+       *
+       * An uncounted stack is answered by going back and counting it. A rule
+       * the engine refuses — a collector who is not in the night, a custom
+       * split that no longer sums to the bill — is not, and telling the host
+       * to count again sends them back to a screen that immediately sends them
+       * here, with the night unclosable and nothing on either screen saying
+       * so. That loop is how this arrived at the end of a real evening.
+       */
+      const counted = reconcile(resolveLedger(night.entries), night.finalCounts).reconciled;
+      return {
+        ok: false as const,
+        counted,
+        detail: e instanceof Error ? e.message : String(e),
+      };
     }
   }, [night]);
 
@@ -58,7 +75,7 @@ export default function Deductions() {
   }
 
   /* The same gate as everywhere else: no counted night, no figures. */
-  if (!result.ok) {
+  if (!result.ok && !result.counted) {
     return (
       <Screen
         title="Not yet"
@@ -74,6 +91,36 @@ export default function Deductions() {
         }
       >
         {null}
+      </Screen>
+    );
+  }
+
+  /*
+   * The count is in and a RULE is what the engine refused. Going back to the
+   * count cannot help, so this does not offer it: the way out is the rules,
+   * where the offending one can be corrected or switched off for tonight.
+   *
+   * ⚠ COPY NOT DRAWN. `13-after-the-night.md` has no state for a night whose
+   * rules will not settle, and the engine's own sentence is the only thing
+   * that names which rule. Shown verbatim rather than paraphrased — it is
+   * precise, and a host at 1am needs the rule's name, not a mood.
+   */
+  if (!result.ok) {
+    return (
+      <Screen
+        title="A rule will not settle"
+        backTo="Count up"
+        trailing={<Step label="2 of 3" />}
+        lede="Every stack is counted. One of tonight's rules cannot be applied, so nothing can be worked out until it is changed or switched off."
+        footer={
+          <Button
+            label="Open tonight's rules"
+            variant="primary"
+            onPress={() => router.push('/money-rules')}
+          />
+        }
+      >
+        <Text style={[styles.failure, { color: t.muted }]}>{result.detail}</Text>
       </Screen>
     );
   }
@@ -361,6 +408,7 @@ const dash = (m: Money, negative = false): string =>
   m === 0 ? '' : `${negative ? '−' : ''}${m.toLocaleString('en-US')}`;
 
 const styles = StyleSheet.create({
+  failure: { fontSize: 13.5, fontWeight: '400', lineHeight: 20, marginHorizontal: 20 },
   card: {
     marginHorizontal: 20,
     marginBottom: 8,

@@ -897,6 +897,12 @@ export async function startNight(input: {
   rules: readonly MoneyRule[];
   seats: ReadonlyArray<{ playerId: PlayerId; name: string; buyIn: Money }>;
   meId?: PlayerId;
+  /**
+   * What to call a rule's collector who is not playing tonight. The roster
+   * lives in `clubStore`, so the caller resolves the name rather than this
+   * reaching across into another store's tables.
+   */
+  nameOfCollector?: (id: PlayerId) => string | undefined;
 }): Promise<void> {
   const db = await getDb();
   const sessionId = randomUUID();
@@ -929,6 +935,45 @@ export async function startNight(input: {
     );
   }
 
+  /*
+   * THE PEOPLE WHO HOLD MONEY BUT DO NOT PLAY.
+   *
+   * A rule names one person who physically holds what it takes — the kitty's
+   * treasurer, whoever collects a host fee — and `12-the-group.md` is explicit
+   * that they need not be playing. The sample night says the same thing in its
+   * own data: Radka is `atTable: false`, holds the kitty, never sits down.
+   *
+   * Only the seats were being written, so the moment a host started a real
+   * game the inherited kitty rule named somebody who was not in the night at
+   * all, and `settle()` refused it: "names a collector who is not in the player
+   * list". That refusal is correct — money cannot go to a person the night has
+   * never heard of — and it arrived at the END of the evening, as an
+   * unexplained loop between counting up and the deductions screen, with the
+   * night unclosable and no way back.
+   *
+   * So a collector who is not seated joins the night as a participant who is
+   * not at the table: counted by nothing, charged nothing, and able to receive
+   * what the rule collects. They never appear on Tonight, which lists only
+   * people who have played.
+   */
+  const seated = new Set(input.seats.map((s) => s.playerId));
+  const collectors = new Map<PlayerId, string>();
+  for (const rule of input.rules) {
+    if (!rule.active) continue;
+    const id = rule.collectorPlayerId;
+    if (id === '' || seated.has(id) || collectors.has(id)) continue;
+    collectors.set(id, input.nameOfCollector?.(id) ?? 'The group');
+  }
+
+  for (const [id, name] of collectors) {
+    await db.runAsync(
+      `INSERT INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, 0)`,
+      sessionId,
+      id,
+      name,
+    );
+  }
+
   // Everything after this point is the ledger's own business, so the night is
   // loaded first and the buy-ins are appended through the same path every
   // other entry takes.
@@ -938,7 +983,10 @@ export async function startNight(input: {
     groupName: input.groupName,
     startedAt: startedAt.toISOString(),
     status: 'open',
-    players: input.seats.map((s) => ({ id: s.playerId, name: s.name, atTable: true })),
+    players: [
+      ...input.seats.map((s) => ({ id: s.playerId, name: s.name, atTable: true })),
+      ...[...collectors].map(([id, name]) => ({ id, name, atTable: false })),
+    ],
     entries: [],
     finalCounts: new Map(),
     rules: [...input.rules],

@@ -450,6 +450,44 @@ describe('collectors', () => {
       }),
     ).toThrow(SettlementError);
   });
+
+  /*
+   * A rule switched off for tonight must not be able to stop the night.
+   *
+   * Validating every rule regardless of whether it runs made "switch it off"
+   * useless as a remedy — which matters because it is the ONLY remedy the
+   * interface offers for a rule the engine will not accept. A host whose
+   * inherited kitty named a collector who was not playing could not settle,
+   * and could not turn off the rule to escape either.
+   */
+  it('ignores a rule that is switched off, however broken it is', () => {
+    reset();
+    const r = settle({
+      players: [at(PETR), at(DANA)],
+      entries: [buyin(PETR, 1000), buyin(DANA, 1000)],
+      finalCounts: counts([[PETR, 0], [DANA, 2000]]),
+      rules: [rule({ id: 'kitty', active: false, collectorPlayerId: 'ghost' })],
+    });
+
+    expect(r.deductions).toEqual([]);
+    expect(positionOf(r, DANA)).toBe(1000);
+    expect(transfersBalance(r)).toBe(true);
+  });
+
+  it('ignores a switched-off custom split that names nobody', () => {
+    reset();
+    const r = settle({
+      players: [at(PETR), at(DANA)],
+      entries: [buyin(PETR, 1000), buyin(DANA, 1000)],
+      finalCounts: counts([[PETR, 0], [DANA, 2000]]),
+      rules: [
+        rule({ id: 'bill', active: false, split: 'custom', amountKind: 'fixed',
+               amount: money(100), collectorPlayerId: PETR }),
+      ],
+    });
+
+    expect(r.deductions).toEqual([]);
+  });
 });
 
 describe('expenses', () => {

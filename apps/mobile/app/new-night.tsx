@@ -76,6 +76,8 @@ export default function NewNight() {
         groupName: club.name,
         rules: inherited.rules,
         seats,
+        // The club's roster is where a non-playing collector gets their name.
+        nameOfCollector: (id) => club.members.find((m) => m.id === id)?.name,
         ...(me === undefined ? {} : { meId: me.id }),
       });
       // What the night actually ran with becomes the next night's suggestion,

@@ -136,7 +136,11 @@ export function settle(input: SettlementInput): SettlementResult {
   const atTable = players.filter((p) => p.atTable);
   const known = new Set(players.map((p) => p.id));
 
-  for (const rule of input.rules) {
+  // ONLY THE RULES THAT WILL RUN. A rule the host switched off for tonight
+  // takes nothing and pays nobody, so its shape cannot make a night wrong —
+  // but validating it anyway made switching a rule off useless as a way out of
+  // a rule that would not settle, which is the one remedy the interface offers.
+  for (const rule of input.rules.filter((r) => r.active)) {
     if (!known.has(rule.collectorPlayerId)) {
       throw new SettlementError(
         `Rule "${rule.name}" names a collector (${rule.collectorPlayerId}) who is not in the player list`,
