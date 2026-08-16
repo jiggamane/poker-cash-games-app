@@ -140,6 +140,37 @@ bone. Used for "House rules" — a quiet action that is not a button.
 
 ---
 
+## Reading the measurements back off a built screen
+
+The rule above is about writing a screen. This is about checking one, and it
+found things nobody was going to see by looking: a note drawn as a card, a
+list two pixels tighter on one screen than the next, four copies of the same
+explainer block that had each drifted a different way.
+
+```bash
+npm i -g playwright && npx playwright install chromium   # once; not a dependency
+export NODE_PATH="$(npm root -g)"
+
+npm --workspace @poker-club/mobile run export:web   # a static build of the app
+npx serve -s apps/mobile/.web -l 4321 &             # serve it
+
+node scripts/ui-check.mjs dump /session                          # what shipped
+node scripts/ui-check.mjs frame design/handoff-2026-08-13/screens-tonight-home.html \
+  "H1 Tonight · resting"                                         # what was drawn
+```
+
+Both print the same tree — every padding, gap, radius, border and type value,
+computed. The app runs on `react-native-web` at the frames' own 402 × 874, so
+the two are directly comparable; diff them and the drift is a list rather than
+a feeling. `shot` and `frames` do the same for pictures, and `--light` switches
+the theme.
+
+Expect the two chromes to differ at the top of a screen — the boards predate
+rev 9 — and expect the type to be normalised where boards disagree with each
+other by a point. Everything else that differs is a bug in the screen.
+
+---
+
 ## Checklist for a new screen
 
 1. Find it in `docs/screen-specs/`.

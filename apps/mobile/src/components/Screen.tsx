@@ -169,10 +169,15 @@ const styles = StyleSheet.create({
   },
   lede: { ...type.lede, marginTop: 8, marginHorizontal: space.page },
 
+  // Every board draws the footer `14px 20px 0` with `gap: 10` — E2b, E4, E5,
+  // L1, N5, N7, GR4. The 16 and the 12 here were neither, and a two-pixel
+  // error on the one block that sits on every screen is the most visible
+  // place in the app to have one. The 6 at the foot stays: it is clearance
+  // over the safe-area inset, which the drawn frames do not have.
   footer: {
     paddingHorizontal: space.card,
-    paddingTop: 16,
+    paddingTop: 14,
     paddingBottom: 6,
-    gap: 12,
+    gap: 10,
   },
 });

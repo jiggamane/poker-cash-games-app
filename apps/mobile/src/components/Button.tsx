@@ -71,11 +71,25 @@ export function Button({
   let box: ViewStyle;
   let color: string;
 
+  /*
+   * A DISABLED PRIMARY IS DRAWN AS `blocked`, not faded.
+   *
+   * Fading a filled button drops the fill AND the label together: white at 40%
+   * with near-black text on it is a grey box with a grey word in it, which is
+   * what "Add a player by name" and "Save" were on their empty states. The
+   * design already has the treatment for a primary that is not ready — card
+   * fill, muted label — and it is legible, which fading is not. Outlined
+   * variants still fade: an outline at 40% is quieter without going illegible.
+   */
+  const blocked = variant === 'blocked' || (variant === 'primary' && disabled);
+
   switch (variant) {
     case 'primary':
       // NO KEYLINE, deliberately — see the note above.
-      box = { backgroundColor: t.text };
-      color = t.onFill;
+      box = blocked
+        ? { backgroundColor: t.surface, borderWidth: 2, borderColor: t.ground }
+        : { backgroundColor: t.text };
+      color = blocked ? t.muted : t.onFill;
       break;
 
     case 'secondary':
@@ -125,7 +139,7 @@ export function Button({
       style={({ pressed }) => [
         base,
         box,
-        { opacity: variant === 'blocked' ? 1 : disabled ? 0.4 : pressed ? 0.7 : 1 },
+        { opacity: blocked ? 1 : disabled ? 0.4 : pressed ? 0.7 : 1 },
         style,
       ]}
     >

@@ -5,7 +5,7 @@ import type { MoneyRule } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { block, radius, space, type } from '../src/design/tokens';
 import { saveRule, useNight } from '../src/lib/nightStore';
 
 /**
@@ -81,7 +81,7 @@ export default function BillRules() {
       <Text style={[styles.sectionLabel, { color: t.muted }]}>How it is split</Text>
 
       <View style={styles.options}>
-        {OPTIONS.map((o) => {
+        {OPTIONS.map((o, i) => {
           const on = o.key === pick;
           return (
             <Pressable
@@ -90,7 +90,19 @@ export default function BillRules() {
               accessibilityState={{ checked: on }}
               disabled={rule === undefined}
               onPress={() => setPick(o.key)}
-              style={({ pressed }) => [styles.option, { opacity: pressed ? 0.6 : 1 }]}
+              style={({ pressed }) => [
+                styles.option,
+                {
+                  // Hairlines between the options, as L5 draws them. Without
+                  // them three two-line rows run together into one block of
+                  // text and the thing you are choosing between stops being
+                  // visible as three things.
+                  borderBottomColor: t.hairline,
+                  borderBottomWidth:
+                    i === OPTIONS.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                  opacity: pressed ? 0.6 : 1,
+                },
+              ]}
             >
               <View style={[styles.circle, { borderColor: on ? t.text : t.dashed }]}>
                 {on && <View style={[styles.dot, { backgroundColor: t.text }]} />}
@@ -109,7 +121,7 @@ export default function BillRules() {
         <Text style={[styles.rowValue, { color: t.muted }]}>Whole dollars</Text>
       </View>
 
-      <View style={[styles.block, { borderColor: t.hairline }]}>
+      <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <Text style={[styles.blockTitle, { color: t.text }]}>When it is charged</Text>
         <Text style={[styles.blockBody, { color: t.muted }]}>
           At settle-up, against the counted table — never during the game. Changing the rule
@@ -178,15 +190,16 @@ const styles = StyleSheet.create({
   rowValue: { ...type.meta, marginLeft: 'auto' },
 
   block: {
-    marginTop: 18,
+    marginTop: 14,
     marginHorizontal: space.card,
-    padding: 16,
+    paddingVertical: block.padV,
+    paddingHorizontal: block.padH,
     borderWidth: 1,
-    borderRadius: radius.card,
-    gap: 7,
+    borderRadius: block.radius,
+    gap: block.gap,
   },
-  blockTitle: { fontSize: 16.5, fontWeight: '600' },
-  blockBody: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
+  blockTitle: type.blockTitle,
+  blockBody: type.blockBody,
 
   none: { ...type.footnote, marginTop: 16, marginHorizontal: space.page },
 });

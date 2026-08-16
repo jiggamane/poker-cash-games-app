@@ -321,7 +321,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.card,
   },
-  stat: { gap: 6 },
+  // 4 between the caps label and the figure, as H2 draws it — 6 pushed the
+  // three pairs a row taller than the card they sit in was drawn for.
+  stat: { gap: 4 },
   statPush: { marginLeft: 'auto', alignItems: 'flex-end' },
   statLabel: type.statPairLabel,
   statValue: type.statPairValue,

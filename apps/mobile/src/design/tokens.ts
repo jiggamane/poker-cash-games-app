@@ -287,6 +287,16 @@ export const type = {
   chip: { fontSize: 12.5, fontWeight: '600' },
 
   /*
+   * The explainer block — "How it will be split", "When it is charged".
+   * Drawn identically on L1, L5 and GR8: a bordered block with a line of its
+   * own over a paragraph. Four screens had hand-copied it and all four had
+   * drifted, which is exactly the "assembled rather than designed" failure
+   * `docs/ui-guide.md` was written about. See `block` below for its shape.
+   */
+  blockTitle: { fontSize: 16.5, fontWeight: '600' },
+  blockBody: { fontSize: 12.5, fontWeight: '400', lineHeight: 19.4 },
+
+  /*
    * Tonight — 08-tonight-home.md. The session screen runs its own scale: it is
    * read across a room at arm's length, so the figure is bigger and the labels
    * are smaller than anywhere else in the app.
@@ -350,6 +360,20 @@ export const radius = {
   card: 14,
   screen: 46,
   badge: 999,
+} as const;
+
+/**
+ * The explainer block, from `L1`, `L5` and `GR8` — all three draw it the same.
+ *
+ * It is NOT a card: 12 rather than 14, and 18 of horizontal padding rather
+ * than a card's 20. Two pixels each way, and copying a card instead is what
+ * had it looking almost right on four different screens.
+ */
+export const block = {
+  padV: 16,
+  padH: 18,
+  gap: 8,
+  radius: 12,
 } as const;
 
 /*

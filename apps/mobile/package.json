@@ -39,6 +39,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "//export:web": "A static build of the real app, for scripts/ui-check.mjs to drive in a headless browser. Same components, same tokens, at the frames' 402x874.",
+    "export:web": "expo export --platform web --output-dir .web",
     "typecheck": "tsc --noEmit"
   }
 }

@@ -173,10 +173,12 @@ const styles = StyleSheet.create({
   sentence: { ...type.sheetSentence, paddingTop: 7, paddingHorizontal: chrome.sheetTitlePadH },
 
   content: { paddingTop: 16, paddingBottom: 20 },
+  // 14 / 20 / 0 and gap 10, the same footer the pushed screens draw — the two
+  // chromes differ at the top of a screen and nowhere else.
   footer: {
     paddingHorizontal: space.card,
     paddingTop: 14,
     paddingBottom: 6,
-    gap: 12,
+    gap: 10,
   },
 });
