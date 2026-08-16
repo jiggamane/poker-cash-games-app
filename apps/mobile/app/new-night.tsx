@@ -8,7 +8,13 @@ import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { currencyFor } from '../src/data/currencies';
-import { inheritedFor, rememberLastGame, useClub, type Inherited } from '../src/lib/clubStore';
+import {
+  addMember,
+  inheritedFor,
+  rememberLastGame,
+  useClub,
+  type Inherited,
+} from '../src/lib/clubStore';
 import { isTonight, startNight, useNight } from '../src/lib/nightStore';
 
 /**
@@ -31,6 +37,9 @@ export default function NewNight() {
   const [inherited, setInherited] = useState<Inherited | null>(null);
   const [picked, setPicked] = useState<Record<PlayerId, string>>({});
   const [busy, setBusy] = useState(false);
+  /** O2, folded into O1: a name typed here joins the roster and sits down. */
+  const [newName, setNewName] = useState('');
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     if (club === null) return;
@@ -89,6 +98,37 @@ export default function NewNight() {
       setBusy(false);
     }
   }
+
+  /*
+   * ADDING SOMEBODY IS PART OF SETTING UP THE GAME, not an errand before it.
+   *
+   * Without this the roster was read-only here, and the empty-club case had no
+   * way out at all: a group created with "Add players later" landed on a sheet
+   * whose own copy told the host to go to Players — a screen this sheet cannot
+   * reach, because `09-navigation.md` forbids a sheet from pushing. The route
+   * was close the sheet, Settings, Players, back, back, and open it again, and
+   * every one of those taps is one an admin makes standing at a table.
+   *
+   * A name typed here does both halves at once: it joins the club's roster for
+   * good, and it is ticked for tonight at the inherited buy-in — which is what
+   * O2 means by "a name typed into the field creates a player and seats them".
+   */
+  async function add() {
+    const name = newName.trim();
+    if (club === null || inherited === null || name === '' || adding) return;
+    if (club.members.some((m) => m.name.toLowerCase() === name.toLowerCase())) return;
+    setAdding(true);
+    try {
+      const id = await addMember(club.id, name);
+      setPicked((p) => ({ ...p, [id]: String(inherited.buyIn) }));
+      setNewName('');
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  const typed = newName.trim();
+  const taken = club.members.some((m) => m.name.toLowerCase() === typed.toLowerCase());
 
   return (
     <Sheet
@@ -150,9 +190,20 @@ export default function NewNight() {
         </View>
         <Text style={[styles.from, { color: t.dim }]}>from the {inherited.from}</Text>
 
+        {/*
+         * A SHEET NEVER PUSHES — `09-navigation.md`: "if a sheet needs to go
+         * somewhere that is a place, it dismisses first". This used to push
+         * Money rules straight out of the sheet, stacking Chrome A on top of
+         * Chrome B: a round back button over a grabber, the two vocabularies
+         * mixed on one screen, and a back button whose label said Settings
+         * when back actually landed on this sheet.
+         */}
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push('/club-rules')}
+          onPress={() => {
+            router.back();
+            router.push('/club-rules');
+          }}
           style={({ pressed }) => [
             styles.change,
             { borderTopColor: t.hairline, opacity: pressed ? 0.6 : 1 },
@@ -232,8 +283,49 @@ export default function NewNight() {
 
         {club.members.length === 0 && (
           <Text style={[styles.empty, { color: t.muted }]}>
-            Nobody on the roster yet. Add the first names in Players and they can play tonight.
+            Nobody on the roster yet. Add the first name below and they can play tonight.
           </Text>
+        )}
+
+        {/* At the foot of the roster, where O2 puts it. */}
+        <View style={styles.add}>
+          <TextInput
+            value={newName}
+            onChangeText={setNewName}
+            onSubmitEditing={() => void add()}
+            placeholder="New player — type a name"
+            placeholderTextColor={t.muted}
+            autoCapitalize="words"
+            returnKeyType="done"
+            style={[
+              styles.addField,
+              {
+                color: t.text,
+                backgroundColor: t.surface,
+                borderColor: typed === '' ? t.dashed : t.hairline,
+                borderStyle: typed === '' ? 'dashed' : 'solid',
+              },
+            ]}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ disabled: typed === '' || taken || adding }}
+            disabled={typed === '' || taken || adding}
+            onPress={() => void add()}
+            style={({ pressed }) => [
+              styles.addButton,
+              {
+                borderColor: t.quietOutline,
+                opacity: typed === '' || taken ? 0.4 : pressed ? 0.6 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.addLabel, { color: t.text }]}>Add</Text>
+          </Pressable>
+        </View>
+
+        {taken && (
+          <Text style={[styles.empty, { color: t.muted }]}>{`${typed} is already here`}</Text>
         )}
       </View>
     </Sheet>
@@ -289,4 +381,21 @@ const styles = StyleSheet.create({
   },
   empty: { ...type.footnote, paddingHorizontal: 4 },
   warn: { ...type.footnote, paddingHorizontal: 4, paddingBottom: 10, lineHeight: 18 },
+
+  add: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 14, paddingHorizontal: 4 },
+  addField: {
+    ...type.body,
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: radius.pressable,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  addButton: {
+    paddingVertical: 13,
+    paddingHorizontal: 18,
+    borderRadius: radius.pressable,
+    borderWidth: 1.5,
+  },
+  addLabel: { fontSize: 15, fontWeight: '700' },
 });
