@@ -234,7 +234,10 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
   return (
     <Screen
       title="It doesn’t add up"
-      backTo="Deductions"
+      /* E5 replaces E4 in the flow, but it is only ever ARRIVED at from the
+         count: a night that does not balance skips the deductions entirely
+         (E2 sends it straight here), so back goes one step, to the count. */
+      backTo="Count up"
       footer={
         <>
           <Text style={[styles.footnote, { color: t.muted }]}>
