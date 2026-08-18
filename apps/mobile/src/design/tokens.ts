@@ -316,7 +316,7 @@ export const type = {
    */
   /** The elapsed time inside the green pill. It IS the live tag. */
   liveTag: { fontSize: 13, fontWeight: '700', letterSpacing: -0.13, ...tabular },
-  /** "started 20:05", under the seat count on the On-the-table card. */
+  /** "started 20:05", at the right edge of the title row. */
   startedAt: { fontSize: 13, fontWeight: '400', ...tabular },
   /** "On the table" — sentence case, and deliberately not the caps eyebrow. */
   tableLabel: { fontSize: 12.5, fontWeight: '600' },
