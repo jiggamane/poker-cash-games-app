@@ -98,7 +98,7 @@ resolve each element's background against its nearest painted ancestor and asser
 |---|---|---|---|---|---|
 | iPhone SE 3 | 375 × 667 | 20 / 0 | 647 | 6 | all full-height |
 | 13 mini | 375 × 812 | 50 / 34 | 728 | 7 | peek allowed |
-| **16 / 15 / 14 — reference** | **393 × 852** | **59 / 34** | **759** | **8** | peek allowed |
+| **16 / 15 / 14 — reference, and the only device the test round runs on** | **393 × 852** | **59 / 34** | **759** | **8** | peek allowed |
 | 16 Pro | 402 × 874 | 62 / 34 | 778 | 8 | peek allowed |
 | 16 Pro Max | 430 × 932 | 62 / 34 | 836 | 9 | peek allowed |
 

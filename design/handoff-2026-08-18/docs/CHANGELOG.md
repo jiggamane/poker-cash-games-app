@@ -1,3 +1,17 @@
+# Rev 17 — 18 August 2026 · four picks closed, the T-series named, money rules as two settings
+
+| # | Change | Status |
+|---|---|---|
+| S99 | **The player card is T2, the sheet.** N3, the push, is retired and tagged SUPERSEDED on board 2. The card opens over the live table; the table stays behind it; the full history scrolls inside the sheet. Closes the "player card, twice" gap in `11 Missing`. | FINAL |
+| S100 | **The night closes on E6**, reversing S74. The just-closed 1C variant drawn earlier tonight is retired and removed from board 3. 1C keeps its other job: the past-night sheet reached from Sessions. | FINAL, supersedes S74 |
+| S101 | **Home is H1 / H2 / H3 — three data-driven states.** GR1 stays retired, now with the replacement named on the caption. | FINAL |
+| S102 | **The live night is the T-series**: T1 resting · T2 player card · T3 admin drawer · T3b hold · T4 cashed out · T5 nobody in yet. H now means home and only home. N, E, C, X, GR keep their meanings. Renamed on board 2, frames and captions. | FINAL |
+| S103 | **Money rules are two settings, not one.** The group carries defaults; the game carries its own, seeded from the group's and editable, overriding the group for that game only and never writing back. **With no group setting, the game's options open unselected** — nothing pre-picked, nothing assumed. Where a split is set, the default is by size of win. | FINAL |
+| S104 | **Four states drawn tonight, both themes**: **N11** offline · queued (pending mark on the row, count in the dock) · **N12** corrected and voided rows (append-only, void struck through in place, correction names what it replaces and who made it) · **E8** nudge the table (fixed message, once, skips whoever has paid) · **GR9** hand over admin (claimed players only, one admin, only the new admin can hand it back). | FINAL |
+| S105 | **A failed write at settle-up: the night goes read-only until the host resolves it.** Specified, not drawn — no last-writer-wins, no silent merge, no second settle. | FINAL, undrawn |
+| S106 | **The book is two destinations**: Sessions (the list) and My stats (the figures). "My games" and "My nights" are retired as names. Closes the three-names gap in `11 Missing`. | FINAL |
+| S107 | **The test round runs on iPhone 16 / 15 / 14 only** (393 × 852). Other sizes stay specified in doc 15 but are not test targets. | FINAL |
+
 # Rev 16 — 18 August 2026 · standard-iPhone geometry, light theme complete, build handout
 
 Cumulative on rev 15. Boards touched: all four journey maps, the home handoff board, the section boards, every `handoff/screens-*.html` reference. New docs: `15-screen-geometry.md`, `CC-HANDOUT.md`.

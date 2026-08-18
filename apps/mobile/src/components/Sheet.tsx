@@ -102,10 +102,10 @@ export function Sheet({
                 <View style={[styles.grabber, { backgroundColor: t.grabber }]} />
               </View>
 
-              <View style={styles.titleRow}>
+              <View style={[styles.titleRow, sub === undefined && styles.titleRowAlone]}>
                 <Text
                   nativeID="sheet-title"
-                  style={[sub === undefined ? styles.title : styles.titleWithSub, { color: t.text }]}
+                  style={[styles.title, { color: t.text }]}
                   numberOfLines={1}
                 >
                   {title}
@@ -163,7 +163,11 @@ export function Sheet({
             </ScrollView>
 
             {footer !== undefined && (
-              <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 6) }]}>
+              /* doc 15 § 5 check 2 — the button's bottom edge sits 28 above
+                 the screen bottom: 6 of footer pad plus the 22 the home
+                 indicator band occupies. On a phone the inset already covers
+                 the band, so the pad is what is left of the 28. */
+              <View style={[styles.footer, { paddingBottom: insets.bottom > 0 ? 28 : 6 }]}>
                 {footer}
               </View>
             )}
@@ -201,15 +205,18 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
 
+  // doc 15 § 3: header 12 / 22, then 8 under it when a subhead follows and 14
+  // when the body does. The subhead carries its own 14 below itself.
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: chrome.sheetTitleGap,
     paddingTop: chrome.sheetTitlePadTop,
     paddingHorizontal: chrome.sheetTitlePadH,
+    paddingBottom: 8,
   },
+  titleRowAlone: { paddingBottom: 14 },
   title: { ...type.sheetTitle, flexShrink: 1 },
-  titleWithSub: { ...type.sheetTitleSub, flexShrink: 1 },
   close: {
     marginLeft: 'auto',
     width: chrome.close,
@@ -218,8 +225,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sub: { ...type.sheetSub, paddingTop: 7, paddingHorizontal: chrome.sheetTitlePadH },
-  sentence: { ...type.sheetSentence, paddingTop: 7, paddingHorizontal: chrome.sheetTitlePadH },
+  sub: { ...type.sheetSub, paddingBottom: 14, paddingHorizontal: chrome.sheetTitlePadH },
+  sentence: { ...type.sheetSentence, paddingBottom: 14, paddingHorizontal: chrome.sheetTitlePadH },
 
   // Bounded, so it yields to the footer instead of pushing it off the phone.
   // `flexGrow: 0` is what react-native-web needs to agree with the phone:
@@ -227,7 +234,7 @@ const styles = StyleSheet.create({
   // action to the bottom of the panel on the web and leave `ui-check`
   // screenshotting a layout no phone draws.
   body: { flexGrow: 0, flexShrink: 1 },
-  content: { paddingTop: 16, paddingBottom: 20 },
+  content: { paddingBottom: 20 },
   // 14 / 20 / 0 and gap 10, the same footer the pushed screens draw — the two
   // chromes differ at the top of a screen and nowhere else.
   // The panel now paints all the way to the bottom edge of the phone — the

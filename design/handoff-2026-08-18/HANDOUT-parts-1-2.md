@@ -167,8 +167,61 @@ button is never covered. (State not yet drawn; the rule is binding regardless.)
 
 ---
 
+## A9 · Answered on the night of 18 Aug
+
+1. **Money rules are two settings, not one.** The **group** carries the defaults. The **game**
+   carries its own settings, seeded from the group's and editable — an edit there overrides the group
+   for that game only and never writes back. **If the group has no setting, the game's options open
+   unselected** — nothing is pre-picked and nothing is assumed. Where a split is set, the default is
+   **by size of win**. The E-series' even 57 / 57 / 56 is stale drawing: the sentence and the amounts
+   come from the session snapshot and are never hard-coded.
+2. **Offline and queued entries:** a pending mark on the row itself, plus a count in the dock
+   (`N11`). A queued entry is written and counted locally the moment it is made; the mark clears per
+   row as each lands. Nothing is lost and nothing is guessed.
+3. **A failed write at settle-up: the night goes read-only until the host resolves it.** Not drawn
+   yet — specified only. No last-writer-wins, no silent merge, no second settle.
+4. **Corrections** (`N12`): the ledger is append-only. A correction is a new row naming what it
+   replaces and who made it; the original stays, struck through, in its own place in the order.
+   Totals count the correction only.
+5. **Nudge the table** (`E8`): a fixed message — group, date, amount, who is collecting. No free
+   text, marks nothing paid, goes out once, skips whoever has paid.
+6. **The book is two destinations, not three:** **Sessions** (the list of nights) and **My stats**
+   (the figures). "My games" and "My nights" are retired as names.
+7. **Handing over admin** (`GR9`): one admin at a time, only a claimed player, only the new admin
+   can hand it back. Money rules, settle-up, invites and the exits move; nothing settled changes hands.
+8. **The test round runs on iPhone 16 / 15 / 14 only** — 393 × 852. Other sizes stay documented but
+   are not test targets.
+
+## A10 · The four picks, and the naming that follows
+
+* **The player card is `T2`, the sheet.** `N3`, the push, is retired — tagged SUPERSEDED on board 2.
+  The card opens over the live table, the table stays visible behind it, swipe down or the close
+  glyph returns to the night. Full history lives in the sheet's own scroll, not a second screen.
+* **The night closes on `E6`.** The just-closed `1C` variant is retired and off the board. `1C` keeps
+  its other job — the past-night sheet reached from Sessions — so a settled night is read there, and
+  `E6` is the screen you land on the moment a night is settled.
+* **Home is `H1` / `H2` / `H3`, three states.** `GR1` is retired — tagged SUPERSEDED on board 1.
+  Same one screen in the code with three data-driven states, per the state rules in §B.
+* **The night is the T-series.** With home keeping `H`, the live-night screens are renamed:
+
+| was | is | screen |
+|---|---|---|
+| H1 | **T1** | Tonight · resting |
+| H2 | **T2** | Player card · at the table |
+| H3 | **T3** | Table admin drawer |
+| H3b | **T3b** | Hold in progress |
+| H4 | **T4** | Player card · cashed out |
+| H5 | **T5** | Tonight · nobody in yet |
+
+`N`-numbers keep their meaning — the entry screens (`N4`–`N10`) and the new `N11`/`N12` states are
+unaffected. `H` now means home and only home; `T` means the live night; `N` means an entry made
+during it; `E` the ending; `C`/`X` invites and outside readers; `GR` the group.
+
+---
+
 # D · Open — needs a decision, not a guess
 
+0. *(closed 18 Aug — see A10.)*
 1. **The group switch.** Admins and any player who belongs to more than one group need a switch,
    at the **top** of the screen, in a format that stands out — not a line in Settings, not text in
    the body. **Not drawn yet; next design task.** Build the scope, leave the control's slot.

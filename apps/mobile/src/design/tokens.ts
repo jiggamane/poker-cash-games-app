@@ -171,7 +171,7 @@ export const darkTheme: Theme = {
   sheet: '#101013',
   sheetEdge: 'rgba(255,255,255,0.12)',
   grabber: 'rgba(255,255,255,0.22)',
-  scrim: 'rgba(10,10,11,0.68)',
+  scrim: 'rgba(12,13,15,0.94)',
   amber: '#E8B455',
   disabled: '#5C5E64',
   dockFill: 'rgba(255,255,255,0.08)',
@@ -187,7 +187,7 @@ export const lightTheme: Theme = {
   name: 'light',
   ground: '#FFFFFF',
   surface: '#F4F4F6',
-  raised: '#EDEDF0',
+  raised: '#E8E8ED',
   text: '#0C0D0F',
   muted: '#6B6F76',
   hairline: 'rgba(12,13,15,0.1)',
@@ -221,7 +221,7 @@ export const lightTheme: Theme = {
   sheet: '#FFFFFF',
   sheetEdge: 'rgba(12,13,15,0.1)',
   grabber: 'rgba(12,13,15,0.18)',
-  scrim: 'rgba(255,255,255,0.68)',
+  scrim: 'rgba(244,244,246,0.94)',
   amber: '#7A5410',
   disabled: '#A2A6AD',
   dockFill: 'rgba(12,13,15,0.06)',
@@ -287,11 +287,16 @@ export const type = {
   /** The line under it: club · elapsed · since, indented to the title. */
   pushMeta: { fontSize: 13, fontWeight: '500', ...tabular },
   /** A sheet's title. Chrome B: 800 34/1, and 30/1.05 when a sub-line follows. */
-  sheetTitle: { fontSize: 34, fontWeight: '800', letterSpacing: -1.02, lineHeight: 34 },
-  sheetTitleSub: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 31.5 },
+  /**
+   * A sheet's title. ONE size, whether or not a subhead follows it — doc 15
+   * § 3. What the subhead changes is the pad under the header (8 rather than
+   * 14), not the type: a title that shrank because a line was added below it
+   * made two sheets of the same rank look like two ranks.
+   */
+  sheetTitle: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 33.6 },
   /** A sheet's sub-line: a phrase at 500, a sentence at 400 and 1.5. */
-  sheetSub: { fontSize: 13, fontWeight: '500' },
-  sheetSentence: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
+  sheetSub: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
+  sheetSentence: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
   /*
    * CLUB HOME, in the order it is read. Home handoff § 1, and nothing on that
    * screen is below 12.5 — the 11 of `cardStatus` is uppercase and tracked,

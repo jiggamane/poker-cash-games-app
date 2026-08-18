@@ -208,6 +208,10 @@ const styles = StyleSheet.create({
   // error on the one block that sits on every screen is the most visible
   // place in the app to have one. The 6 at the foot stays: it is clearance
   // over the safe-area inset, which the drawn frames do not have.
+  // doc 15 § 2 and § 5 check 2: 14 / 20 above, and the button's bottom edge 28
+  // above the screen bottom — 6 of pad plus the 22 the indicator band takes.
+  // The safe-area inset covers the band on a phone, so `Screen` adds the 6 and
+  // the inset does the rest.
   footer: {
     paddingHorizontal: space.card,
     paddingTop: 14,
