@@ -2,7 +2,7 @@
   "name": "poker-club",
   "version": "0.1.0",
   "private": true,
-  "description": "The Poker Club \u2014 a cash-game ledger",
+  "description": "The Poker Club — a cash-game ledger",
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -15,6 +15,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:verify": "bash scripts/db-verify.sh",
     "check": "npm run typecheck && npm run test",
+    "//ui": "Fonts, web export and a server for scripts/ui-check.mjs — the tool that holds a built screen against the board it was drawn from. Foreground; Ctrl-C stops it. See docs/ui-guide.md.",
+    "ui": "bash scripts/ui-up.sh",
     "db:bundle": "bash scripts/db-bundle.sh",
     "//audit": "Re-check every settled night on the server and report the failure rate. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY exported in the shell — never written to a file. See docs/verification.md.",
     "audit": "vite-node scripts/audit.ts"

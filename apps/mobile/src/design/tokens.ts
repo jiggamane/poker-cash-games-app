@@ -211,7 +211,13 @@ export const lightTheme: Theme = {
  *
  * SF on Apple platforms, Figtree everywhere else. Leaving fontFamily undefined
  * gives the system font, which is SF on iOS — correct. Android currently falls
- * back to Roboto; loading Figtree via expo-font is a small follow-up for parity.
+ * back to Roboto; loading Figtree via expo-font is the outstanding follow-up.
+ * It is not a one-liner: Android will not synthesize weights from one bundled
+ * family, so each weight has to be loaded and named separately and every entry
+ * below gains a fontFamily.
+ *
+ * None of that affects `scripts/ui-check.mjs`, which renders on the web and
+ * takes Figtree from the machine — `bash scripts/ui-fonts.sh` puts it there.
  *
  * EVERY figure is tabular so columns line up down a list.
  */
@@ -230,9 +236,16 @@ export const type = {
   /** The figure inside a surface card — "On the table". 800 48/1, -.04em. */
   cardFigure: { fontSize: 48, fontWeight: '800', letterSpacing: -1.9, ...tabular },
   /**
-   * Screen title on a pushed screen. Chrome A gives 800 32/1; the drawn frames
-   * set 1.05, and they are right — at a flat 1 the descender of a "p" leaves
-   * the text box and lands on whatever the screen puts underneath.
+   * Screen title on a pushed screen.
+   *
+   * 33.6 is 32 × 1.05, and it is a deliberate departure: Chrome A says 800 32/1
+   * and every drawn frame agrees with it — `font:800 32px/1` on the h2, with no
+   * 1.05 anywhere in the handoff. We set 1.05 anyway, because at a flat 1 the
+   * descender of a "p" leaves the text box and lands on whatever the screen
+   * puts underneath.
+   *
+   * So `ui-check` will report this line as 33.6 against the board's 32. That is
+   * the one place a title is meant to disagree with its frame. Do not "fix" it.
    */
   title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.96, lineHeight: 33.6 },
   /** The line under it: club · elapsed · since, indented to the title. */
