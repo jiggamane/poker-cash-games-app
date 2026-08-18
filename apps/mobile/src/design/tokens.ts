@@ -100,6 +100,19 @@ export interface Theme {
   /** Pending, unclaimed, unpaid. Text and 1px border on a pill, never a fill. */
   amber: string;
 
+  /**
+   * A control the reader cannot use, and its icon.
+   *
+   * Distinct from `muted`, which is quiet but readable, and from `dim`, which
+   * is de-emphasis rather than refusal. A power the reader does not HAVE is
+   * removed from the screen entirely; this is for one they have and cannot use
+   * right now — start a game with no connection — where the control has to
+   * stay put and say why.
+   */
+  disabled: string;
+  /** The fill behind a dock pill and the theme button: the opposite colour, faint. */
+  dockFill: string;
+
   /** The 1.5px border of the end-the-night row: the loss colour at 55%. */
   dangerStrong: string;
   /** What the hold wipes across that row: the same colour at 34%. */
@@ -129,7 +142,7 @@ export const darkTheme: Theme = {
   hairline: 'rgba(255,255,255,0.11)',
   outline: 'rgba(255,255,255,0.55)',
   quietOutline: 'rgba(255,255,255,0.28)',
-  dashed: 'rgba(255,255,255,0.30)',
+  dashed: 'rgba(255,255,255,0.26)',
   win: '#6FCF97',
   loss: '#F0705C',
   winWash: 'rgba(111,207,151,0.13)',
@@ -137,7 +150,7 @@ export const darkTheme: Theme = {
   winTint: 'rgba(111,207,151,0.14)',
   offTable: '#D9D3C4',
   offTableWash: 'rgba(217,211,196,0.09)',
-  onFillWin: '#0A7A3D',
+  onFillWin: '#0E8A4F',
   dangerWash: 'rgba(240,112,92,0.12)',
   dangerEdge: 'rgba(240,112,92,0.35)',
   onFill: '#0C0D0F',
@@ -149,7 +162,9 @@ export const darkTheme: Theme = {
   sheetEdge: 'rgba(255,255,255,0.12)',
   grabber: 'rgba(255,255,255,0.22)',
   scrim: 'rgba(10,10,11,0.68)',
-  amber: '#E8B455',
+  amber: '#E0A44A',
+  disabled: '#5C5E64',
+  dockFill: 'rgba(255,255,255,0.08)',
   dangerStrong: 'rgba(240,112,92,0.55)',
   dangerWipe: 'rgba(240,112,92,0.34)',
   drawerFill: 'rgba(255,255,255,0.07)',
@@ -165,10 +180,10 @@ export const lightTheme: Theme = {
   raised: '#EDEDF0',
   text: '#0C0D0F',
   muted: '#6B6F76',
-  hairline: '#E2E3E7',
+  hairline: 'rgba(12,13,15,0.1)',
   outline: '#0C0D0F',
   quietOutline: 'rgba(12,13,15,0.24)',
-  dashed: 'rgba(12,13,15,0.28)',
+  dashed: 'rgba(12,13,15,0.3)',
   win: '#0A7A3D',
   // #B03A28 on every bright board. The token doc says #C0341B; the board wins.
   loss: '#B03A28',
@@ -197,7 +212,9 @@ export const lightTheme: Theme = {
   sheetEdge: 'rgba(12,13,15,0.1)',
   grabber: 'rgba(12,13,15,0.18)',
   scrim: 'rgba(255,255,255,0.68)',
-  amber: '#8A5A00',
+  amber: '#A9741A',
+  disabled: '#A2A6AD',
+  dockFill: 'rgba(12,13,15,0.06)',
   dangerStrong: 'rgba(176,58,40,0.55)',
   dangerWipe: 'rgba(176,58,40,0.34)',
   drawerFill: 'rgba(12,13,15,0.05)',
@@ -209,17 +226,26 @@ export const lightTheme: Theme = {
 /**
  * Type scale.
  *
- * SF on Apple platforms, Figtree everywhere else. Leaving fontFamily undefined
- * gives the system font, which is SF on iOS — correct. Android currently falls
- * back to Roboto; loading Figtree via expo-font is the outstanding follow-up.
- * It is not a one-liner: Android will not synthesize weights from one bundled
- * family, so each weight has to be loaded and named separately and every entry
- * below gains a fontFamily.
+ * THE TYPEFACE IS SF PRO, AND NO WEB FONT SHIPS. The home handoff § 0 made
+ * this a decision rather than an accident: every board hands over
+ * `-apple-system, 'SF Pro Text', 'Figtree', sans-serif`, which resolves to SF
+ * on the Mac a design is approved on and to Figtree on a device that has it —
+ * so no width on any board was a fact. One family, in one place: this file.
  *
- * None of that affects `scripts/ui-check.mjs`, which renders on the web and
- * takes Figtree from the machine — `bash scripts/ui-fonts.sh` puts it there.
+ * In practice that means **no entry below sets a fontFamily**, because leaving
+ * it undefined is what gives the platform's own face — SF Pro on iOS. Do not
+ * add one, and do not add a per-screen stack: a second family that can win is
+ * the thing the decision exists to prevent. Android falls back to Roboto and
+ * is a known gap, not a licence to load a second family on one screen.
  *
- * EVERY figure is tabular so columns line up down a list.
+ * `scripts/ui-check.mjs` paints Figtree with `--figtree` to preview what
+ * bundling it would do. That is a preview; the build does not load it.
+ *
+ * Sizes are what the boards specify. LETTER-SPACING AND SIZE ARE NEVER USED TO
+ * MAKE TEXT FIT A BOX — fit is a layout problem, and the layout has to give.
+ *
+ * EVERY figure is tabular so columns line up down a list, and so a running
+ * clock does not shuffle sideways as it ticks.
  */
 export const tabular: TextStyle = { fontVariant: ['tabular-nums'] };
 
@@ -256,16 +282,36 @@ export const type = {
   /** A sheet's sub-line: a phrase at 500, a sentence at 400 and 1.5. */
   sheetSub: { fontSize: 13, fontWeight: '500' },
   sheetSentence: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
-  /** The group's name on home. 800 30/1.05 — two smaller than a pushed title. */
-  homeTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 32 },
-  /** A home destination — "The group", "My stats". 800 30, -.03em. */
-  destination: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9 },
-  /** The line under it. */
-  destinationSub: { fontSize: 14, fontWeight: '400' },
+  /*
+   * CLUB HOME, in the order it is read. Home handoff § 1, and nothing on that
+   * screen is below 12.5 — the 11 of `cardStatus` is uppercase and tracked,
+   * which is what makes it legible, and no other role may use it.
+   */
+  /** The club's name. 800 30/1.06, -.03em. Two lines, then an ellipsis. */
+  homeTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 31.8 },
+  /** A card's title — "Start a session", "Tonight". 800 21, -.022em. Never wraps. */
+  cardTitle: { fontSize: 21, fontWeight: '800', letterSpacing: -0.462 },
+  /** The line under it: seats, stakes, what the ledger is doing. Truncates. */
+  cardMeta: { fontSize: 13, fontWeight: '400', ...tabular },
+  /**
+   * A home destination — "The group", "My stats". 800 21, -.022em. Never wraps.
+   *
+   * The line heights below are what make a row measure what the handoff says a
+   * row measures: 17 + 21 + 4 + 15 + 17. They are set rather than left to the
+   * platform, which gives a 21px line a box of about 26 and a row of 79 — five
+   * points of nothing, four times over, which is where a fold goes. The 22 is
+   * the same 1.05 the pushed title takes and for the same reason: at a flat 21
+   * the descender of the "p" in "The group" leaves the box.
+   */
+  destination: { fontSize: 21, fontWeight: '800', letterSpacing: -0.462, lineHeight: 22 },
+  /** The line under it. One line, truncates. */
+  destinationSub: { fontSize: 12.5, fontWeight: '400', lineHeight: 15 },
+  /** "Start another game" — a secondary row, a step down from a destination. */
+  secondary: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.155 },
   /** The group's name in a pushed screen's back bar. */
   eyebrow: { fontSize: 17, fontWeight: '500' },
-  /** "Your group", above the name on home. Small and semibold, not body. */
-  groupLabel: { fontSize: 13, fontWeight: '600' },
+  /** "Your group", above the club's name on home. Body weight, muted colour. */
+  groupLabel: { fontSize: 13, fontWeight: '400' },
   /** Amounts in a totals or transfer row. */
   figure: { fontSize: 19, fontWeight: '700', ...tabular },
   /** Amounts in the feed, which runs one step smaller throughout. */
@@ -357,11 +403,23 @@ export const type = {
   tabOn: { fontSize: 14, fontWeight: '700' },
   /** A state badge — LIVE. */
   badge: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-  /** The status line inside home's filled card — "PLAYING NOW · 3H 17M". */
-  cardStatus: { fontSize: 11, fontWeight: '700', letterSpacing: 1.32 },
+  /**
+   * The status line inside home's filled card — "PLAYING NOW · 3H 17M".
+   *
+   * 11/700 uppercase at .1em. It carries a running clock, so it is tabular and
+   * it NEVER wraps and NEVER truncates: a status that says "PLAYING NOW · 3H…"
+   * is worse than no status at all.
+   */
+  cardStatus: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, ...tabular },
   /** The line under a filled card's name. */
   cardLede: { fontSize: 14, fontWeight: '500' },
-  /** A quiet outlined action in home's bottom bar. */
+  /**
+   * A home dock pill's label. Always visible — the dock is never icon-only,
+   * and never a tab bar. (The session screen's dock is a different object at a
+   * different size: `dockLabel`, above.)
+   */
+  homeDock: { fontSize: 13.5, fontWeight: '600' },
+  /** A quiet outlined action. */
   quietAction: { fontSize: 15, fontWeight: '700' },
   /** A text action in a navigation bar — "Edit", "Cancel". */
   barAction: { fontSize: 16, fontWeight: '700' },
@@ -420,6 +478,60 @@ export const space = {
   rowInset: 4,
   /** Above a section's caps header. */
   section: 22,
+} as const;
+
+/**
+ * Club home, measured from the safe-area inset down. Home handoff § 2.
+ *
+ * Two gutters, both fixed and neither scaling with the screen: content sits in
+ * 20, the row list in 22, so the hairlines are inset from the cards above them.
+ *
+ * THE ONE RULE THAT KEEPS THE SCREEN HONEST: a row is intrinsic height —
+ * 17 + 21 + 4 + 15 + 17 ≈ 74pt — and never stretches. Every leftover point on
+ * a tall screen goes into ONE flexible spacer between the row list and the
+ * dock. Spread the slack into the rows instead and a six-player table shows
+ * five, because the rows have quietly eaten the fold.
+ */
+export const home = {
+  /** Content gutter, and the row list's own two-larger one. */
+  gutter: 20,
+  rowGutter: 22,
+
+  /** Header: 26 from the inset, 5 under the eyebrow, 20 under the name. */
+  padTop: 26,
+  eyebrowGap: 5,
+  nameGap: 20,
+
+  /** The primary card: 14 / 18 / 16, and 18 at the top when it is the idle one. */
+  cardPadTop: 14,
+  cardPadH: 18,
+  cardPadBottom: 16,
+  cardPadTopIdle: 18,
+  /** Between the label, the title and the meta inside it — 7 on the idle card. */
+  cardGap: 9,
+  cardGapIdle: 7,
+  /** Card to card, and card to "Start another game". */
+  cardGapOuter: 10,
+  /** "Start another game" — 14 / 16, dashed. */
+  secondaryPadV: 14,
+  secondaryPadH: 16,
+  /** The last card down to the row list. */
+  listGap: 20,
+
+  /** A row: 17 above and below, 4 between its two lines. */
+  rowPadV: 17,
+  rowGap: 4,
+  /** What a row must measure. Asserted, not hoped for. */
+  rowHeight: 74,
+
+  /** The dock: pills at 13/16, 8 icon to label, 10 pill to pill, 4 off the foot. */
+  dockPadV: 13,
+  dockPadH: 16,
+  dockIconGap: 8,
+  dockGap: 10,
+  dockBottom: 4,
+  /** The theme button, and the floor under every tappable thing on this screen. */
+  tap: 44,
 } as const;
 
 /**

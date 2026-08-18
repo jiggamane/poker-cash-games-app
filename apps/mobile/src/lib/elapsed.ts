@@ -26,8 +26,30 @@ const MINUTE = 60_000;
  * derived from the same rounding so the two cannot disagree.
  */
 export function elapsedLabel(startedAt: string, now: number): string {
-  const minutes = Math.max(0, Math.round((now - new Date(startedAt).getTime()) / MINUTE));
-  return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, '0')}m`;
+  const since = now - new Date(startedAt).getTime();
+
+  /*
+   * UNDER A MINUTE THE FIGURE IS A WORD. "0h 00m" beside a green dot is a
+   * clock that has not started, which is the one thing the tag must never
+   * imply; a night that has just been opened says so. Tested against the raw
+   * elapsed rather than the rounded minutes, so the word holds for the whole
+   * first minute instead of half of it.
+   */
+  if (since < MINUTE) return 'just opened';
+
+  const minutes = Math.max(0, Math.round(since / MINUTE));
+
+  /*
+   * PAST 99 HOURS IT SWITCHES TO DAYS. A four-figure hour count is not a
+   * duration anybody reads — and a night left open over a holiday reaches it.
+   * The hours stay padded so the figure keeps its width as it counts.
+   */
+  const hours = Math.floor(minutes / 60);
+  if (hours > 99) {
+    return `${Math.floor(hours / 24)}d ${String(hours % 24).padStart(2, '0')}h`;
+  }
+
+  return `${hours}h ${String(minutes % 60).padStart(2, '0')}m`;
 }
 
 /**
@@ -40,6 +62,13 @@ export function elapsedLabel(startedAt: string, now: number): string {
  */
 export function msUntilNextLabelChange(startedAt: string, now: number): number {
   const since = now - new Date(startedAt).getTime();
+
+  // "just opened" holds for the whole first minute, so the next change is when
+  // that minute is up — not at the half-minute where the rounding turns over.
+  // A start time in the future is a wrong clock somewhere: the label stays the
+  // word until the phone catches up, so look again in a minute.
+  if (since < MINUTE) return since < 0 ? MINUTE : MINUTE - since;
+
   const untilBoundary = MINUTE - (((since + MINUTE / 2) % MINUTE) + MINUTE) % MINUTE;
   // A boundary landing exactly on `now` is a full minute away, not zero: a
   // zero-delay timer would spin.
