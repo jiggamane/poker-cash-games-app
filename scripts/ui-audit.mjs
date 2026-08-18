@@ -41,7 +41,7 @@ const ROUTES = [
   '/', '/session', '/pick', '/seat', '/entry', '/log', '/player', '/bill', '/spend',
   '/count-up', '/stands', '/deductions', '/settle-up', '/settled',
   '/games', '/stats', '/players', '/member', '/groups', '/new-group', '/new-night',
-  '/settings', '/club-rules', '/money-rules', '/rule', '/bill-rules', '/kitty-rules',
+  '/settings', '/club-rules', '/money-rules', '/rule', '/bill-rules', '/piggy-bank-rules',
   '/house-rules', '/sign-in', '/claim', '/invite', '/watch',
 ];
 

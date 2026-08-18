@@ -62,6 +62,16 @@ export interface Player {
 export type RuleAmountKind = 'percent' | 'fixed';
 export type RuleBasis = 'gross' | 'net_after_others';
 export type RuleCharge = 'winners_only' | 'everyone_flat';
+/**
+ * Where a rule's money goes.
+ *
+ * THE WORD IN THE INTERFACE IS "PIGGY BANK" — the handoff renamed it and every
+ * string a person reads says so. `'kitty'` survives HERE because this value is
+ * written into `rules_json` on every night ever recorded and into `covered_by`
+ * on every spend, on this phone and on the server. Renaming it is a migration
+ * of stored money records on both sides, and it buys nothing a reader can see.
+ * Map it at the edge — `ruleText.ts` and the screens — never in the ledger.
+ */
 export type RuleDestination = 'bill' | 'kitty' | 'host_fee' | 'next_pot';
 /**
  * How a fixed total is divided between the people paying it.
@@ -148,7 +158,7 @@ export interface DiscrepancyAcknowledgement {
    *
    * Leave it unset to close the night with the gap recorded but unassigned —
    * the figures stand, the note explains, and the payouts can be adjusted by
-   * hand afterwards. Set it to a person or to the kitty's collector to have
+   * hand afterwards. Set it to a person or to the piggy bank's collector to have
    * somebody absorb it immediately instead.
    */
   absorbedByPlayerId?: PlayerId;

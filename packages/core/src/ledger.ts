@@ -31,7 +31,7 @@ export interface EffectiveEntry {
   /** True if a correction changed the amount. */
   corrected: boolean;
   originalAmount: Money;
-  /** Expenses only: the kitty paid, or nobody has yet. */
+  /** Expenses only: the piggy bank paid, or nobody has yet. */
   coveredBy?: 'kitty' | 'unpaid' | null;
   /** Expenses only: which spend this fronting belongs to. */
   spendGroup?: string | null;
@@ -43,7 +43,7 @@ export interface ResolvedLedger {
   cashedOutByPlayer: Map<PlayerId, Money>;
   expensesByPayer: Map<PlayerId, Money>;
   /**
-   * Spends the kitty covered or nobody has covered yet. They are on the bill
+   * Spends the piggy bank covered or nobody has covered yet. They are on the bill
    * — the money was spent — but no person is owed them back.
    *
    * The two halves settle differently, which is why they are also kept apart
@@ -52,16 +52,16 @@ export interface ResolvedLedger {
   expensesUnattributed: Money;
   /**
    * The kitty paid directly. Nobody is reimbursed and nobody is charged: this
-   * money was collected off the table by the kitty rule and has already left
+   * money was collected off the table by the piggy bank rule and has already left
    * it. Charging the winners again would be charging them twice for one round.
-   * `11-bill-and-kitty.md` § *Covered by*.
+   * `11-bill-and-piggy-bank.md` § *Covered by*.
    */
   expensesFromKitty: Money;
   /**
    * Nobody has paid this yet. It **counts towards the bill** — the round was
    * had and somebody will settle it — but no player is out of pocket, so the
    * money collected for it goes to the bill rule's collector rather than back
-   * to a fronter. `11-bill-and-kitty.md` § *Covered by*.
+   * to a fronter. `11-bill-and-piggy-bank.md` § *Covered by*.
    */
   expensesUnpaid: Money;
   totalBoughtIn: Money;
@@ -69,7 +69,7 @@ export interface ResolvedLedger {
   /** Everything spent tonight, whoever fronted it and whether anyone did. */
   totalExpenses: Money;
   /**
-   * What a bill rule actually shares out: everything except what the kitty
+   * What a bill rule actually shares out: everything except what the piggy bank
    * already paid for.
    */
   billableExpenses: Money;
@@ -141,7 +141,7 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
   const boughtInByPlayer = new Map<PlayerId, Money>();
   const cashedOutByPlayer = new Map<PlayerId, Money>();
   const expensesByPayer = new Map<PlayerId, Money>();
-  let fromKitty = ZERO;
+  let fromPiggyBank = ZERO;
   let unpaid = ZERO;
 
   for (const e of list) {
@@ -155,11 +155,11 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
         addTo(cashedOutByPlayer, e.playerId!, e.amount);
         break;
       case 'expense':
-        // No payer means the kitty paid it or nobody has. Both are owed to
-        // nobody, and they are NOT interchangeable at settle-up: the kitty's
+        // No payer means the piggy bank paid it or nobody has. Both are owed to
+        // nobody, and they are NOT interchangeable at settle-up: the piggy bank's
         // has already been paid for, the unpaid one still has to be.
         if (e.payerId) addTo(expensesByPayer, e.payerId, e.amount);
-        else if (e.coveredBy === 'kitty') fromKitty = sum([fromKitty, e.amount]);
+        else if (e.coveredBy === 'kitty') fromPiggyBank = sum([fromPiggyBank, e.amount]);
         else unpaid = sum([unpaid, e.amount]);
         break;
     }
@@ -170,12 +170,12 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
     boughtInByPlayer,
     cashedOutByPlayer,
     expensesByPayer,
-    expensesUnattributed: sum([fromKitty, unpaid]),
-    expensesFromKitty: fromKitty,
+    expensesUnattributed: sum([fromPiggyBank, unpaid]),
+    expensesFromKitty: fromPiggyBank,
     expensesUnpaid: unpaid,
     totalBoughtIn: totalOf(boughtInByPlayer),
     totalCashedOut: totalOf(cashedOutByPlayer),
-    totalExpenses: sum([totalOf(expensesByPayer), fromKitty, unpaid]),
+    totalExpenses: sum([totalOf(expensesByPayer), fromPiggyBank, unpaid]),
     billableExpenses: sum([totalOf(expensesByPayer), unpaid]),
   };
 }
@@ -284,7 +284,7 @@ function validateBaseEntry(e: LedgerEntry): void {
   money(e.amount); // throws on anything fractional
   if (e.type === 'expense') {
     if (e.playerId) throw new LedgerError(`Expense ${e.id} must have a payer, not a player`);
-    // A spend is covered by a person, by the kitty, or by nobody yet. Exactly
+    // A spend is covered by a person, by the piggy bank, or by nobody yet. Exactly
     // one of the two fields says which, and neither may be guessed.
     if (!e.payerId && !e.coveredBy) {
       throw new LedgerError(`Expense ${e.id} names neither a payer nor what covered it`);

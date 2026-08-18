@@ -74,10 +74,10 @@ export default function SettleUp() {
   /**
    * Money that leaves the table for good, as opposed to money going back to
    * somebody who fronted it. A bill reimbursement is a person being repaid and
-   * stays in plain ink; the kitty and the host's fee are bone.
+   * stays in plain ink; the piggy bank and the host's fee are bone.
    *
-   * Only collectors who are NOT at the table qualify: if the kitty's holder is
-   * also playing, the engine nets their winnings and the kitty into one
+   * Only collectors who are NOT at the table qualify: if the piggy bank's holder is
+   * also playing, the engine nets their winnings and the piggy bank into one
    * position, and colouring that row bone would be a lie about what it is.
    */
   const offTable = (() => {
@@ -92,7 +92,7 @@ export default function SettleUp() {
     return map;
   })();
 
-  /* The night's net is the people who played it. A collector holding the kitty
+  /* The night's net is the people who played it. A collector holding the piggy bank
      is a payee in the list above, not a result. */
   const net = [...players]
     .filter((p) => p.boughtIn > 0 || p.endedWith > 0)
@@ -133,13 +133,13 @@ export default function SettleUp() {
     >
       <View style={styles.list}>
         {transfers.map((tr, i) => {
-          const kitty = offTable.get(tr.toPlayerId);
+          const piggy = offTable.get(tr.toPlayerId);
           return (
             <View
               key={`${tr.fromPlayerId}-${tr.toPlayerId}-${i}`}
               style={[
-                kitty === undefined ? styles.row : styles.kittyRow,
-                kitty === undefined
+                piggy === undefined ? styles.row : styles.piggyRow,
+                piggy === undefined
                   ? {
                       borderBottomColor: t.hairline,
                       borderBottomWidth:
@@ -150,10 +150,10 @@ export default function SettleUp() {
             >
               <Text style={[styles.party, { color: t.text }]}>{nameOf(night, tr.fromPlayerId)}</Text>
               <Icon name="arrow" color={t.muted} size={18} />
-              <Text style={[styles.party, { color: kitty === undefined ? t.text : t.offTable }]}>
-                {kitty === undefined ? nameOf(night, tr.toPlayerId) : `The ${kitty}`}
+              <Text style={[styles.party, { color: piggy === undefined ? t.text : t.offTable }]}>
+                {piggy === undefined ? nameOf(night, tr.toPlayerId) : `The ${piggy}`}
               </Text>
-              <Text style={[styles.amount, { color: kitty === undefined ? t.text : t.offTable }]}>
+              <Text style={[styles.amount, { color: piggy === undefined ? t.text : t.offTable }]}>
                 {formatMoney(tr.amount)}
               </Text>
             </View>
@@ -243,7 +243,7 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
           <Text style={[styles.footnote, { color: t.muted }]}>
             Fix a count, add the missing buy-in, or{' '}
             <Text style={styles.writeOff} onPress={() => void writeOff()}>
-              write the difference off to the kitty
+              write the difference off to the piggy bank
             </Text>
             .
           </Text>
@@ -340,7 +340,7 @@ const inWords = (n: number): string =>
 const styles = StyleSheet.create({
   list: { marginHorizontal: space.page },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
-  kittyRow: {
+  piggyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,

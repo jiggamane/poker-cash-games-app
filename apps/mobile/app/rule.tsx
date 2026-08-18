@@ -324,7 +324,7 @@ export default function RuleEditor() {
         />
         <Text style={[styles.explain, { color: t.muted }]}>
           Rules run in order. "What is left" means this one is taken after the rules above it have
-          already come off, which is how a kitty ends up smaller than the same percentage of the
+          already come off, which is how a piggy bank ends up smaller than the same percentage of the
           gross.
         </Text>
       </Section>

@@ -625,7 +625,7 @@ export async function seat(playerId: PlayerId): Promise<void> {
  * Add somebody to the roster without seating them.
  *
  * The roster outlives a night: it is who the group is. Somebody can be on it
- * and not playing tonight — the treasurer who holds the kitty is exactly that,
+ * and not playing tonight — the treasurer who holds the piggy bank is exactly that,
  * and so is anyone who came to watch.
  */
 export async function addPlayer(name: string): Promise<PlayerId> {
@@ -681,7 +681,7 @@ export function cashOut(playerId: PlayerId, amount: Money): Promise<void> {
  * is charged at settle-up without anybody editing a rule.
  */
 /**
- * Who fronted a spend — the four cases from 11-bill-and-kitty.md.
+ * Who fronted a spend — the four cases from 11-bill-and-piggy-bank.md.
  *
  * `players` carries one row per fronter, and those rows must sum to the spend:
  * that is what lets each of them be repaid exactly what they put in. `kitty`
@@ -1000,7 +1000,7 @@ async function writeRules(rules: MoneyRule[]): Promise<void> {
 export function draftRule(destination: MoneyRule['destination'], sortOrder: number): MoneyRule {
   return {
     id: randomUUID(),
-    name: destination === 'kitty' ? 'Group kitty' : destination === 'bill' ? 'Food & drinks' : 'Host fee',
+    name: destination === 'kitty' ? 'Group piggy bank' : destination === 'bill' ? 'Food & drinks' : 'Host fee',
     active: true,
     amountKind: destination === 'bill' ? 'fixed' : 'percent',
     amount: (destination === 'bill' ? 0 : 10) as Money,
@@ -1122,13 +1122,13 @@ export async function startNight(input: {
   /*
    * THE PEOPLE WHO HOLD MONEY BUT DO NOT PLAY.
    *
-   * A rule names one person who physically holds what it takes — the kitty's
+   * A rule names one person who physically holds what it takes — the piggy bank's
    * treasurer, whoever collects a host fee — and `12-the-group.md` is explicit
    * that they need not be playing. The sample night says the same thing in its
-   * own data: Radka is `atTable: false`, holds the kitty, never sits down.
+   * own data: Radka is `atTable: false`, holds the piggy bank, never sits down.
    *
    * Only the seats were being written, so the moment a host started a real
-   * game the inherited kitty rule named somebody who was not in the night at
+   * game the inherited piggy bank rule named somebody who was not in the night at
    * all, and `settle()` refused it: "names a collector who is not in the player
    * list". That refusal is correct — money cannot go to a person the night has
    * never heard of — and it arrived at the END of the evening, as an

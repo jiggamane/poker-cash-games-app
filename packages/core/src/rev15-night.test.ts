@@ -41,7 +41,7 @@ const players: Player[] = [
   { id: TOMAS, name: 'Tomáš', atTable: true },
   { id: IVO, name: 'Ivo', atTable: true },
   { id: PETR, name: 'Petr', atTable: true },
-  { id: KITTY, name: 'The kitty', atTable: false },
+  { id: KITTY, name: 'The piggy bank', atTable: false },
 ];
 
 let seq = 0;
@@ -73,7 +73,7 @@ const finalCounts = new Map<PlayerId, Money>([
 /** One field apart from the canonical file: the bill's split. */
 const rules: MoneyRule[] = [
   {
-    id: 'kitty', name: 'Group kitty', active: true,
+    id: 'kitty', name: 'Group piggy bank', active: true,
     amountKind: 'percent', amount: money(5), basis: 'gross',
     charge: 'winners_only', destination: 'kitty', split: 'evenly',
     collectorPlayerId: KITTY, sortOrder: 1,
@@ -124,7 +124,7 @@ describe('rev 15 § 5 — the bill, split by size of win', () => {
     expect(charge(MAREK)).toBeGreaterThan(charge(LENA));
   });
 
-  it('leaves the kitty alone — it is a percentage and S62 did not touch it', () => {
+  it('leaves the piggy bank alone — it is a percentage and S62 did not touch it', () => {
     const kitty = result.deductions.find((d) => d.ruleId === 'kitty')!;
     const k = (id: PlayerId) => kitty.charges.find((c) => c.playerId === id)?.amount ?? 0;
     expect(k(DANA)).toBe(81);
@@ -145,13 +145,13 @@ describe('rev 15 § 5 — the nets', () => {
     expect(player(PETR).finalPosition).toBe(-1230);
   });
 
-  it('sums the players’ nets to −126 — the kitty is the only money that leaves', () => {
+  it('sums the players’ nets to −126 — the piggy bank is the only money that leaves', () => {
     const atTable = result.players.filter((p) => p.playerId !== KITTY);
     expect(sum(atTable.map((p) => p.finalPosition))).toBe(-126);
     expect(player(KITTY).finalPosition).toBe(126);
   });
 
-  it('still balances once the kitty is counted', () => {
+  it('still balances once the piggy bank is counted', () => {
     expect(sum(result.players.map((p) => p.finalPosition))).toBe(0);
   });
 
@@ -209,7 +209,7 @@ describe('rev 15 § 5 — who pays whom', () => {
 
 describe('the words a settled night carries on its face', () => {
   /*
-   * X1c draws "Bill · by size of win" and "Kitty · 5%". A watcher opening a
+   * X1c draws "Bill · by size of win" and "Piggy bank · 5%". A watcher opening a
    * night three weeks later cannot ask what the split was, so the row says it —
    * and it says it from the snapshot, never from the screen.
    */
@@ -218,7 +218,7 @@ describe('the words a settled night carries on its face', () => {
   });
 
   it('states a percentage rule as its percentage', () => {
-    expect(ruleLabel(rules[0])).toBe('Group kitty · 5%');
+    expect(ruleLabel(rules[0])).toBe('Group piggy bank · 5%');
   });
 
   it('still has words for the split this night did not use', () => {
@@ -240,7 +240,7 @@ describe('X1c — the working, as it is drawn', () => {
   /*
    * The frame shows Lena's own card: a net of +$429 over six rows that account
    * for it. These are those six rows, verbatim off the drawing, with the bill
-   * applied before the kitty as `sampleNight` orders them.
+   * applied before the piggy bank as `sampleNight` orders them.
    */
   const billFirst: MoneyRule[] = [
     { ...rules[1], sortOrder: 1 },
@@ -256,7 +256,7 @@ describe('X1c — the working, as it is drawn', () => {
       'Result',
       'Kitchen & drinks · by size of win',
       'Back to you · fronted the bill',
-      'Group kitty · 5%',
+      'Group piggy bank · 5%',
     ]);
   });
 

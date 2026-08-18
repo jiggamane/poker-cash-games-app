@@ -22,7 +22,7 @@
  *
  * The two claims in it that are easy to get wrong, and are asserted below:
  *
- *   1. **Nets sum to −42, not zero.** Only the kitty actually leaves the room —
+ *   1. **Nets sum to −42, not zero.** Only the piggy bank actually leaves the room —
  *      the bill goes back to the person who paid it. Rev 10 states the general
  *      form: Σ nets = −(kitty + any rule not paid back to a person).
  *   2. **Marek nets more than Dana despite winning less at the table.** +394
@@ -50,7 +50,7 @@ const players: Player[] = [
   { id: TOMAS, name: 'Tomáš', atTable: true },
   { id: PETR, name: 'Petr', atTable: true },
   { id: IVO, name: 'Ivo', atTable: true },
-  { id: KITTY, name: 'The kitty', atTable: false },
+  { id: KITTY, name: 'The piggy bank', atTable: false },
 ];
 
 let seq = 0;
@@ -89,7 +89,7 @@ const entries: LedgerEntry[] = [
 const rules: MoneyRule[] = [
   {
     id: 'kitty',
-    name: 'Group kitty',
+    name: 'Group piggy bank',
     active: true,
     amountKind: 'percent',
     amount: money(5),
@@ -148,7 +148,7 @@ describe("rev 10's night — each player's row", () => {
     expect(charge('bill', LENA)).toBe(21);
   });
 
-  it('charges the kitty 5% of each win: 22 / 15 / 5', () => {
+  it('charges the piggy bank 5% of each win: 22 / 15 / 5', () => {
     expect(charge('kitty', DANA)).toBe(22); // 430 * 5% = 21.50 -> 22
     expect(charge('kitty', MAREK)).toBe(15);
     expect(charge('kitty', LENA)).toBe(5);
@@ -172,7 +172,7 @@ describe("rev 10's night — each player's row", () => {
 });
 
 describe("rev 10's night — the two claims that are easy to get wrong", () => {
-  it('sums the six drawn rows to −42, the kitty being the only money that left', () => {
+  it('sums the six drawn rows to −42, the piggy bank being the only money that left', () => {
     const atTheTable = result.players.filter((p) => p.playerId !== KITTY);
     expect(sum(atTheTable.map((p) => p.finalPosition))).toBe(-42);
 
@@ -195,7 +195,7 @@ describe("rev 10's night — the two claims that are easy to get wrong", () => {
    * reasonably conclude the engine is meant to lose 42 somewhere, and build a
    * screen that balances by discarding it.
    */
-  it('sums to zero once the collector holding the kitty is counted', () => {
+  it('sums to zero once the collector holding the piggy bank is counted', () => {
     expect(sum(result.players.map((p) => p.finalPosition))).toBe(0);
     expect(player(KITTY).finalPosition).toBe(42);
   });

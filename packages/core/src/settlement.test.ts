@@ -45,7 +45,7 @@ const cashout = (playerId: PlayerId, amount: number): LedgerEntry => ({
 const expense = (payerId: PlayerId, amount: number): LedgerEntry => ({
   id: `e${++seq}`, seq, type: 'expense', payerId, amount: money(amount),
 });
-/** A spend nobody fronted: the kitty paid it, or nobody has yet. S58. */
+/** A spend nobody fronted: the piggy bank paid it, or nobody has yet. S58. */
 const coveredExpense = (coveredBy: 'kitty' | 'unpaid', amount: number): LedgerEntry => ({
   id: `e${++seq}`, seq, type: 'expense', coveredBy, amount: money(amount),
 });
@@ -205,7 +205,7 @@ describe('closing a night that does not balance', () => {
     expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
   });
 
-  it('counts the bills, the kitty and the fees before deciding it balances', () => {
+  it('counts the bills, the piggy bank and the fees before deciding it balances', () => {
     // A night that reconciles on chips must still balance once everything that
     // leaves the table is applied — that is the check that actually matters.
     reset();
@@ -290,8 +290,8 @@ describe('percentage rules', () => {
       rules: [rule({ id: 'kitty', amount: money(10), exemptPlayerIds: [MAREK] })],
     });
 
-    // Marek won 1,000 and would owe 100. He is out of the kitty tonight, so
-    // the kitty collects nothing from him and he keeps the lot.
+    // Marek won 1,000 and would owe 100. He is out of the piggy bank tonight, so
+    // the piggy bank collects nothing from him and he keeps the lot.
     expect(chargedOf(r, MAREK)).toBe(0);
     expect(positionOf(r, MAREK)).toBe(1000);
     expect(r.totalOffTable).toBe(0);
@@ -535,7 +535,7 @@ describe('expenses', () => {
   });
 
   /*
-   * The four ways a spend can be covered — S58, `11-bill-and-kitty.md`.
+   * The four ways a spend can be covered — S58, `11-bill-and-piggy-bank.md`.
    *
    * Two of them name a person and two do not, and before this was fixed the
    * two that do not could not be settled at all: the bill charged the whole
@@ -584,11 +584,11 @@ describe('expenses', () => {
       expect(r.players.find((p) => p.playerId === DANA)!.credited).toBe(30);
     });
 
-    it('the kitty paid it: nobody is reimbursed and nobody is charged', () => {
+    it('the piggy bank paid it: nobody is reimbursed and nobody is charged', () => {
       reset();
       const r = nightWith(coveredExpense('kitty', 100));
 
-      // The kitty's money was collected off the table by its own rule and has
+      // The piggy bank's money was collected off the table by its own rule and has
       // already left it. Charging the winners would charge them twice for one
       // round, so the bill has nothing to share out and drops out entirely.
       expect(r.deductions).toEqual([]);
@@ -769,7 +769,7 @@ describe('inactive rules', () => {
 });
 
 describe('a whole night', () => {
-  // Marek, Petr and Dana play; Radka holds the kitty and never sits down.
+  // Marek, Petr and Dana play; Radka holds the piggy bank and never sits down.
   // Marek also pays 170 for food out of his own pocket.
   const input = (): SettlementInput => {
     reset();
@@ -791,7 +791,7 @@ describe('a whole night', () => {
           split: 'evenly', collectorPlayerId: MAREK,
         }),
         rule({
-          id: 'kitty', name: 'Group kitty', destination: 'kitty', sortOrder: 2,
+          id: 'kitty', name: 'Group piggy bank', destination: 'kitty', sortOrder: 2,
           amountKind: 'percent', amount: money(10), basis: 'net_after_others',
           charge: 'winners_only', collectorPlayerId: RADKA,
         }),
@@ -810,7 +810,7 @@ describe('a whole night', () => {
 
     // the bill: 170 across three -> 57 / 57 / 56, biggest winner first
     expect(r.deductions[0].total).toBe(170);
-    // the kitty: 10% of Marek's win after the bill -> 1425 * 0.1 = 142.5 -> 143
+    // the piggy bank: 10% of Marek's win after the bill -> 1425 * 0.1 = 142.5 -> 143
     expect(r.deductions[1].total).toBe(143);
 
     expect(chargedOf(r, MAREK)).toBe(200); // 57 + 143
@@ -1033,7 +1033,7 @@ describe('what happens to money that is missing', () => {
     expect(positionOf(r, DANA)).toBe(-500);
   });
 
-  it('lets the kitty holder absorb it there and then', () => {
+  it('lets the piggy bank holder absorb it there and then', () => {
     const r = settle(shortNight({ absorbedByPlayerId: RADKA }));
 
     // no phantom party: the shortfall sits with a real person

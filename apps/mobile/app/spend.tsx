@@ -20,7 +20,7 @@ import {
 const PREFILLS = ['Food', 'Drinks', 'Venue'];
 
 /**
- * Add a spend — L2 — and edit one — L3. 11-bill-and-kitty.md.
+ * Add a spend — L2 — and edit one — L3. 11-bill-and-piggy-bank.md.
  *
  * One screen, no steps: an amount, an optional note, and who covered it. The
  * time is stamped on save and there is no time field, because a round of
@@ -32,7 +32,7 @@ const PREFILLS = ['Food', 'Drinks', 'Venue'];
  *
  * Covered by has four cases and they are not decoration: one player is repaid
  * exactly what they fronted, several players must sum to the spend before Save
- * will go, the kitty is repaid nothing because the money left the kitty, and
+ * will go, the piggy bank is repaid nothing because the money left it, and
  * nobody yet leaves the spend on the bill and unpaid until someone is named.
  */
 export default function SpendScreen() {
@@ -224,7 +224,7 @@ export default function SpendScreen() {
           })}
 
           <CoverChip
-            label="The kitty"
+            label="The piggy bank"
             on={cover.kind === 'kitty'}
             onPress={() => setCover({ kind: 'kitty' })}
           />
@@ -270,7 +270,7 @@ export default function SpendScreen() {
 
         <Text style={[styles.explain, { color: t.muted }]}>
           {cover.kind === 'kitty'
-            ? 'The kitty paid it directly. Nobody is reimbursed — the money has already left the kitty.'
+            ? 'The piggy bank paid it directly. Nobody is reimbursed — the money has already left it.'
             : cover.kind === 'unpaid'
               ? 'It counts towards the bill and stays tagged unpaid until somebody is named.'
               : 'Fronting is not exemption: whoever put money in gets exactly that back, and still pays their own share.'}

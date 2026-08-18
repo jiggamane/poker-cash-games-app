@@ -42,25 +42,25 @@ export default function HouseRules() {
   }, [night]);
 
   if (night === null || ledger === null) {
-    return <Sheet title="Bill &amp; kitty">{null}</Sheet>;
+    return <Sheet title="Bill &amp; piggy bank">{null}</Sheet>;
   }
 
   const active = night.rules.filter((r) => r.active).sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
     <Sheet
-      title="Bill &amp; kitty"
+      title="Bill &amp; piggy bank"
       sub="The group’s usual rules, carried from last night. They apply at settle-up, never during play."
       sentence
     >
       <View style={styles.cards}>
         {active.map((rule) => {
           const taken = preview?.deductions.find((d) => d.ruleId === rule.id)?.total;
-          /* The kitty is reached from here and never from the bill: it is a cut
+          /* The piggy bank is reached from here and never from the bill: it is a cut
              of winnings that carries over, not a thing the night bought. */
           const opens =
             rule.destination === 'kitty'
-              ? '/kitty-rules'
+              ? '/piggy-bank-rules'
               : rule.destination === 'bill'
                 ? '/bill-rules'
                 : undefined;
@@ -128,7 +128,7 @@ export default function HouseRules() {
   );
 }
 
-/** "Group kitty · 10%" — the rate belongs in the name, where it is read. */
+/** "Group piggy bank · 10%" — the rate belongs in the name, where it is read. */
 const title = (r: MoneyRule): string =>
   r.amountKind === 'percent' ? `${r.name} · ${r.amount}%` : r.name;
 

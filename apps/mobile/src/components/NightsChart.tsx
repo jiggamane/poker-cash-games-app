@@ -43,7 +43,7 @@ export interface ChartNight {
   id: string;
   /** Under the column: "12 Jul". */
   label: string;
-  /** The result, after the bill and the kitty. Negative is a losing night. */
+  /** The result, after the bill and the piggy bank. Negative is a losing night. */
   net: Money;
 }
 

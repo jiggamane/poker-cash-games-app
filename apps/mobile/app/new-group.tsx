@@ -114,7 +114,7 @@ export default function NewGroup() {
 
           <Text style={[styles.note, { color: t.muted }]}>
             It is only what a night opens with — the host can change it for one evening without
-            changing it here. Bills, the kitty and fees are set in the group’s money rules once
+            changing it here. Bills, the piggy bank and fees are set in the group’s money rules once
             it exists; a group with none takes nothing off the table.
           </Text>
         </>

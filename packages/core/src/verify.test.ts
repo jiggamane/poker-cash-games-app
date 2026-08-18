@@ -27,7 +27,7 @@ const players: Player[] = [
   { id: A, name: 'Ada', atTable: true },
   { id: B, name: 'Ben', atTable: true },
   { id: C, name: 'Cyd', atTable: true },
-  { id: KITTY, name: 'The kitty', atTable: false },
+  { id: KITTY, name: 'The piggy bank', atTable: false },
 ];
 
 let seq = 0;
@@ -52,7 +52,7 @@ function night(): SettlementInput {
     rules: [
       {
         id: 'r-kitty',
-        name: 'Group kitty',
+        name: 'Group piggy bank',
         active: true,
         amountKind: 'percent',
         amount: money(5),
@@ -337,7 +337,7 @@ describe('the ledger the night was built from', () => {
   });
 
   /*
-   * A spend covered by the kitty or by nobody yet has no payer, and that is
+   * A spend covered by the piggy bank or by nobody yet has no payer, and that is
    * legal — S58 and the `covered_by` column. The verifier used to demand a
    * payer on every expense, which raised the settled screen's red "do not
    * settle up from this screen" banner on nights that were entirely correct.

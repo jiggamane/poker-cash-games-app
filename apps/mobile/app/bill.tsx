@@ -11,11 +11,11 @@ import { block, radius, space, type } from '../src/design/tokens';
 import { nameOf, spendsOf, useNight, type Spend } from '../src/lib/nightStore';
 
 /**
- * The bill — L1, and L4 when nothing is on it. 11-bill-and-kitty.md.
+ * The bill — L1, and L4 when nothing is on it. 11-bill-and-piggy-bank.md.
  *
  * NOTHING ON THIS SCREEN CALCULATES A SHARE. While the game is running nobody
  * has a result, so no winner is known, no per-player amount can exist and the
- * kitty's take is unknowable. The screen carries two things: the spends, and
+ * piggy bank's take is unknowable. The screen carries two things: the spends, and
  * the formula. All of the arithmetic happens once, at settle-up, against the
  * counted table — which is also why the right side of the card has no money on
  * it at all.
@@ -150,9 +150,9 @@ function splitSentence(rule: MoneyRule | undefined): string {
     : 'The winners pay the same share each, whatever they won.';
 }
 
-/** "Marek fronted it", "Marek and Dana fronted it", "the kitty paid". */
+/** "Marek fronted it", "Marek and Dana fronted it", "the piggy bank paid". */
 function fronted(spend: Spend, night: NonNullable<ReturnType<typeof useNight>>): string {
-  if (spend.coveredBy === 'kitty') return 'the kitty paid';
+  if (spend.coveredBy === 'kitty') return 'the piggy bank paid';
   if (spend.coveredBy === 'unpaid') return 'nobody has paid for it yet';
 
   const names = spend.fronters.map((f) => nameOf(night, f.playerId));

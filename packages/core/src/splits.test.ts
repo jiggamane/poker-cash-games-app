@@ -34,7 +34,7 @@ function night(rule: MoneyRule): SettlementInput {
       { id: MAREK, name: 'Marek', atTable: true },
       { id: LENA, name: 'Lena', atTable: true },
       { id: PETR, name: 'Petr', atTable: true },
-      { id: KITTY, name: 'The kitty', atTable: false },
+      { id: KITTY, name: 'The piggy bank', atTable: false },
     ],
     entries: [
       e({ type: 'buyin', playerId: DANA, amount: money(1000) }),

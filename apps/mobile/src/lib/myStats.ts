@@ -7,7 +7,7 @@ import type { Money } from '@poker-club/core';
  * "this month" is testable and so two figures on the same screen can never be
  * computed against two different midnights.
  *
- * Every net here is AFTER the bill and the kitty — the same figure the night's
+ * Every net here is AFTER the bill and the piggy bank — the same figure the night's
  * settle-up handed the player, never the raw win at the table. There is only
  * one number a person remembers about a night, and this is it.
  */

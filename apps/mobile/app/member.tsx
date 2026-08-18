@@ -152,7 +152,7 @@ export default function MemberSheet() {
         </Pressable>
 
         <View style={[styles.row, { borderBottomColor: t.hairline }]}>
-          <Text style={[styles.rowLabel, { color: t.text }]}>Pays into the kitty</Text>
+          <Text style={[styles.rowLabel, { color: t.text }]}>Pays into the piggy bank</Text>
           <Switch
             value={member.paysKitty}
             disabled={busy}

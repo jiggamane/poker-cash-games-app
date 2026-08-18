@@ -134,7 +134,7 @@ function checkLedger(input: SettlementInput, check: Check): void {
     }
 
     if (e.type === 'expense') {
-      // A spend is covered by a person, by the kitty, or by nobody yet — S58,
+      // A spend is covered by a person, by the piggy bank, or by nobody yet — S58,
       // and the `covered_by` column migration 0004 added. Exactly one of the
       // two fields says which, so demanding a payer outright would fail two of
       // the four legal covers on a night that is perfectly correct.
@@ -370,7 +370,7 @@ function checkDeductions(result: SettlementResult, check: Check): void {
       `"${d.name}" says it took ${d.total} but its charges add up to ${charged}.`,
     );
 
-    // Every deduction is a MOVEMENT, not a disappearance: whatever the kitty
+    // Every deduction is a MOVEMENT, not a disappearance: whatever the piggy bank
     // takes, the collector receives; whatever the bill charges, whoever paid
     // for the pizza is given back. A deduction that took more than it paid out
     // would be money vanishing off the table with nobody's name on it.

@@ -36,7 +36,7 @@ const players: Player[] = [
   { id: TOMAS, name: 'Tomáš', atTable: true },
   { id: IVO, name: 'Ivo', atTable: true },
   { id: PETR, name: 'Petr', atTable: true },
-  { id: KITTY, name: 'The kitty', atTable: false },
+  { id: KITTY, name: 'The piggy bank', atTable: false },
 ];
 
 let seq = 0;
@@ -69,7 +69,7 @@ const finalCounts = new Map<PlayerId, Money>([
 
 const rules: MoneyRule[] = [
   {
-    id: 'kitty', name: 'Group kitty', active: true,
+    id: 'kitty', name: 'Group piggy bank', active: true,
     amountKind: 'percent', amount: money(5), basis: 'gross',
     charge: 'winners_only', destination: 'kitty', split: 'evenly',
     collectorPlayerId: KITTY, sortOrder: 1,
@@ -126,7 +126,7 @@ describe('the canonical night — step 1, counting the table', () => {
 });
 
 describe('the canonical night — step 2, the money rules', () => {
-  it('charges the kitty 5% of each win, rounding half up', () => {
+  it('charges the piggy bank 5% of each win, rounding half up', () => {
     const kitty = result.deductions.find((d) => d.ruleId === 'kitty')!;
     const charge = (id: PlayerId) => kitty.charges.find((c) => c.playerId === id)?.amount ?? 0;
 
@@ -200,9 +200,9 @@ describe('the canonical night — step 3, settling up', () => {
    * mock-ups and can be wrong, so where a drawn number and a stated rule
    * disagree, the rule wins.
    *
-   * That settles rows 5 and 6. The handoff lists Lena ($122) before the kitty
+   * That settles rows 5 and 6. The handoff lists Lena ($122) before the piggy bank
    * ($126), but its own algorithm — "take the largest remaining debtor and the
-   * largest remaining creditor" — must pick the kitty first, because 126 > 122.
+   * largest remaining creditor" — must pick the piggy bank first, because 126 > 122.
    * The engine follows the algorithm. Every payment, every amount and every
    * person's total is identical; only those two adjacent rows are ordered
    * differently, and the layout is the thing that was wrong.

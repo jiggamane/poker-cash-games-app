@@ -40,7 +40,7 @@ export interface Member {
   standing: Standing;
   /** A link is out and has not been opened yet. A badge, never a queue. */
   invited: boolean;
-  /** Off for somebody who does not pay into the kitty at all. */
+  /** Off for somebody who does not pay into the piggy bank at all. */
   paysKitty: boolean;
 }
 

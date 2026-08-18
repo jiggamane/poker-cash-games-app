@@ -16,7 +16,7 @@ import { nameOf, toggleRule, useNight } from '../src/lib/nightStore';
  * the pot", and three short tags answer it at a glance where a paragraph does
  * not.
  *
- * The switch turns a rule off without deleting it. Groups have a kitty they
+ * The switch turns a rule off without deleting it. Groups have a piggy bank they
  * skip on somebody's birthday, and deleting the rule to skip it once means
  * rebuilding it next week.
  */
@@ -120,7 +120,7 @@ export default function MoneyRules() {
             >
               <Icon name="plus" color={t.text} />
               <Text style={[styles.addLabel, { color: t.text }]}>
-                {d === 'kitty' ? 'A kitty' : d === 'bill' ? 'Food & drinks' : 'A host fee'}
+                {d === 'kitty' ? 'A piggy bank' : d === 'bill' ? 'Food & drinks' : 'A host fee'}
               </Text>
             </Pressable>
           ))}

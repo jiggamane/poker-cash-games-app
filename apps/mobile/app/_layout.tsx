@@ -115,7 +115,7 @@ export default function RootLayout() {
         <Stack.Screen name="bill" options={SHEET} />
         <Stack.Screen name="spend" options={SHEET} />
         <Stack.Screen name="bill-rules" options={SHEET} />
-        <Stack.Screen name="kitty-rules" options={SHEET} />
+        <Stack.Screen name="piggy-bank-rules" options={SHEET} />
         <Stack.Screen name="house-rules" options={SHEET} />
         <Stack.Screen name="money-rules" options={SHEET} />
         <Stack.Screen name="rule" options={SHEET} />

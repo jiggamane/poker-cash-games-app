@@ -47,7 +47,7 @@ export default function Stands() {
     <Screen
       title="Where everyone stands"
       backTo="Count up"
-      lede="Chips against what went in. Nothing has come off the table yet — the bill and the kitty land at the next step."
+      lede="Chips against what went in. Nothing has come off the table yet — the bill and the piggy bank land at the next step."
       footer={<Button label="Back to the count" variant="primary" onPress={() => router.back()} />}
     >
       {counted.length > 0 && (

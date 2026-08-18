@@ -7,9 +7,9 @@ import { radius, space, type } from '../src/design/tokens';
 import { nameOf, saveRule, standingsOf, toggleRule, useNight } from '../src/lib/nightStore';
 
 /**
- * Kitty rules — L6. 11-bill-and-kitty.md.
+ * Piggy bank rules — L6. 11-bill-and-piggy-bank.md.
  *
- * Its own screen off the house rules, and NEVER off the bill: the kitty is not
+ * Its own screen off the house rules, and NEVER off the bill: the piggy bank is not
  * a spend, it is a cut of winnings that carries over to the next game. The two
  * only look alike because both take money off the table.
  *
@@ -19,9 +19,9 @@ import { nameOf, saveRule, standingsOf, toggleRule, useNight } from '../src/lib/
  *
  * "Off for tonight" reads backwards on purpose: the FILLED chip is the player
  * switched off. Everyone else stays at full strength and nobody is greyed,
- * because the people paying into the kitty are not disabled.
+ * because the people paying into the piggy bank are not disabled.
  */
-export default function KittyRules() {
+export default function PiggyBankRules() {
   const t = useTheme();
   const night = useNight();
   const [busy, setBusy] = useState(false);
@@ -29,13 +29,13 @@ export default function KittyRules() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
   const rule = night?.rules.find((r) => r.destination === 'kitty');
 
-  if (night === null || ledger === null) return <Sheet title="The kitty">{null}</Sheet>;
+  if (night === null || ledger === null) return <Sheet title="The piggy bank">{null}</Sheet>;
 
   if (rule === undefined) {
     return (
-      <Sheet title="The kitty" sub="nothing is taken for a kitty tonight" sentence>
+      <Sheet title="The piggy bank" sub="nothing is taken for a piggy bank tonight" sentence>
         <Text style={[styles.none, { color: t.muted }]}>
-          This group has no kitty rule. Add one in the money rules and it will appear here, with
+          This group has no piggy bank rule. Add one in the money rules and it will appear here, with
           who collects it and who is sitting out of it tonight.
         </Text>
       </Sheet>
@@ -59,7 +59,7 @@ export default function KittyRules() {
   }
 
   return (
-    <Sheet title="The kitty" sub="a cut of the wins, held for the group">
+    <Sheet title="The piggy bank" sub="a cut of the wins, held for the group">
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <View style={styles.cardLeft}>
           <Text style={[styles.label, { color: t.muted }]}>Charged on every win</Text>
@@ -75,7 +75,7 @@ export default function KittyRules() {
 
       <View style={styles.rows}>
         <View style={[styles.row, { borderBottomColor: t.hairline }]}>
-          <Text style={[styles.rowLabel, { color: t.text }]}>Kitty on tonight</Text>
+          <Text style={[styles.rowLabel, { color: t.text }]}>Piggy bank on tonight</Text>
           <Switch
             value={rule.active}
             disabled={busy}
@@ -109,7 +109,7 @@ export default function KittyRules() {
                 key={p.id}
                 accessibilityRole="button"
                 accessibilityState={{ selected: off }}
-                accessibilityLabel={`${p.name}${off ? ' is out of the kitty tonight' : ' pays into the kitty'}`}
+                accessibilityLabel={`${p.name}${off ? ' is out of the piggy bank tonight' : ' pays into the piggy bank'}`}
                 disabled={busy}
                 onPress={() => void setExempt(p.id, !off)}
                 style={({ pressed }) => [

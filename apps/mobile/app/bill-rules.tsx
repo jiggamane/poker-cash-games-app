@@ -9,7 +9,7 @@ import { block, radius, space, type } from '../src/design/tokens';
 import { saveRule, useNight } from '../src/lib/nightStore';
 
 /**
- * Bill rules — L5. 11-bill-and-kitty.md.
+ * Bill rules — L5. 11-bill-and-piggy-bank.md.
  *
  * Three options and nothing else, because the bill has exactly one question:
  * who carries it. Only the third charges losers; the other two are

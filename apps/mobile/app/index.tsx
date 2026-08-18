@@ -160,7 +160,7 @@ export default function ClubHome() {
       </View>
 
       <View style={styles.rows}>
-        <Row name="The group" sub="players, money rules, the kitty" to="/players" />
+        <Row name="The group" sub="players, money rules, the piggy bank" to="/players" />
         <Row name="My stats" sub="across every group you play in" to="/stats" waiting={fresh} />
         <Row
           name="Sessions"

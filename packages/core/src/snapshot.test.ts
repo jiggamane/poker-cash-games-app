@@ -26,13 +26,13 @@ const KITTY = 'kitty';
 const players: Player[] = [
   { id: A, name: 'Ada', atTable: true },
   { id: B, name: 'Ben', atTable: true },
-  { id: KITTY, name: 'The kitty', atTable: false },
+  { id: KITTY, name: 'The piggy bank', atTable: false },
 ];
 
 const rules: MoneyRule[] = [
   {
     id: 'r1',
-    name: 'Group kitty',
+    name: 'Group piggy bank',
     active: true,
     amountKind: 'percent',
     amount: money(10),

@@ -76,7 +76,7 @@ export async function loadWatchedNight(sessionId: string): Promise<WatchedNight 
     status: header.status,
     /*
      * `atTable` is seat membership, not "did they play". A collector who holds
-     * the kitty without sitting down is a player row that must not be charged,
+     * the piggy bank without sitting down is a player row that must not be charged,
      * and the settlement engine reads exactly this flag to decide.
      */
     players: players.map((p) => ({

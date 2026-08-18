@@ -189,7 +189,7 @@ export function settle(input: SettlementInput): SettlementResult {
   // A confirmed shortfall is carried by a named party rather than quietly
   // spread across the players. The books close, and the hole stays visible.
   //
-  // Either somebody absorbs it now — a player, or whoever holds the kitty — or
+  // Either somebody absorbs it now — a player, or whoever holds the piggy bank — or
   // it is left against 'Unaccounted', which records the gap without deciding
   // who eats it. Both close the night; the second leaves the payouts to be
   // adjusted by hand later.
@@ -403,7 +403,7 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
       ? everyone.filter((p) => basisFor(p.id) > 0)
       : everyone;
 
-  // Sitting out of the kitty for one night takes somebody out of the charge
+  // Sitting out of the piggy bank for one night takes somebody out of the charge
   // and does nothing else: they are still at the table, still counted, still
   // settled. A custom split is exempt from the exemption — an amount typed
   // against a name is already an explicit answer.
@@ -426,11 +426,11 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   // specific bill is meaningless, so a reimbursing rule only gets to say how
   // the cost is shared, not how much it is.
   //
-  // What the kitty paid for is NOT in that sum. The kitty's money was
+  // What the piggy bank paid for is NOT in that sum. The piggy bank's money was
   // collected off the table by its own rule and has already left it, so
-  // charging the winners for a round the kitty bought would charge them for it
+  // charging the winners for a round the piggy bank bought would charge them for it
   // twice. An unpaid spend is in the sum — the round was had and somebody
-  // still has to settle it (`11-bill-and-kitty.md` § Covered by).
+  // still has to settle it (`11-bill-and-piggy-bank.md` § Covered by).
   //
   // A BILL IS ITS EXPENSES, INCLUDING WHEN THERE ARE NONE. The amount stored on
   // a bill rule is a placeholder that the tab overwrites, so falling back to it

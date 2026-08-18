@@ -126,7 +126,7 @@ function describe(r: MoneyRule): string {
     r.destination === 'bill'
       ? 'the bill'
       : r.destination === 'kitty'
-        ? 'the kitty'
+        ? 'the piggy bank'
         : r.destination === 'host_fee'
           ? 'the host'
           : 'the next pot';

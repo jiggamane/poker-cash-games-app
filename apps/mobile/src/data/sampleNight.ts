@@ -31,7 +31,7 @@ const players: Player[] = [
   { id: TOMAS, name: 'Tomáš', atTable: true },
   { id: IVO, name: 'Ivo', atTable: true },
   { id: PETR, name: 'Petr', atTable: true },
-  // the group's treasurer: holds the kitty, never sits down
+  // the group's treasurer: holds the piggy bank, never sits down
   { id: RADKA, name: 'Radka', atTable: false },
 ];
 
@@ -96,7 +96,7 @@ const entries: SeedEntry[] = [
  */
 const rules: MoneyRule[] = [
   {
-    id: 'kitty', name: 'Group kitty', active: true,
+    id: 'kitty', name: 'Group piggy bank', active: true,
     amountKind: 'percent', amount: money(5), basis: 'gross',
     charge: 'winners_only', destination: 'kitty', split: 'evenly',
     collectorPlayerId: RADKA, sortOrder: 2,

@@ -1,8 +1,8 @@
 /**
  * What a money rule's terms are, said in words.
  *
- * X1c draws the bill row as **"Bill · by size of win"** and the kitty row as
- * **"Kitty · 5%"**, and `14-invite-and-watcher.md` § 5 is explicit about why
+ * X1c draws the bill row as **"Bill · by size of win"** and the piggy bank row as
+ * **"Piggy bank · 5%"**, and `14-invite-and-watcher.md` § 5 is explicit about why
  * that second half exists at all: *"a watcher cannot ask the host what the
  * split was at 00:52."* A settled night has to carry its own terms on its face.
  *

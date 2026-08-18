@@ -210,7 +210,7 @@ export default function PlayerCard() {
           {/* The drawn line names the sample player and so carries her pronoun;
               this is the same sentence with the pronoun that fits everyone. */}
           <Text style={[styles.settledText, { color: t.muted }]}>
-            Their result is set. Bills and the kitty still come off it at settle-up.
+            Their result is set. Bills and the piggy bank still come off it at settle-up.
           </Text>
         </View>
       )}

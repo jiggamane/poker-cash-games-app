@@ -129,13 +129,13 @@ export default function Deductions() {
   const active = deductions.filter((d) => d.total > 0 || d.destination === 'bill');
   const billIn = deductions.some((d) => d.destination === 'bill' && d.total > 0);
 
-  /* "$120 back to Marek, $50 to Lena · $126 to the kitty" — where the money
+  /* "$120 back to Marek, $50 to Lena · $126 to the piggy bank" — where the money
      actually goes, in one line, because "leaves the table" is not the same as
      "is gone" and the room will ask. */
   const destinations = deductions
     .filter((d) => d.total > 0)
     .map((d) => {
-      /* Somebody who fronted money gets it BACK; the kitty is simply paid. */
+      /* Somebody who fronted money gets it BACK; the piggy bank is simply paid. */
       const reimbursements = [...d.credits]
         .filter((c) => night.players.find((pl) => pl.id === c.playerId)?.atTable === true)
         .sort((a, b) => b.amount - a.amount);
@@ -148,7 +148,7 @@ export default function Deductions() {
           )
           .join(', ');
       }
-      return `${formatMoney(d.total)} to the ${d.destination === 'kitty' ? 'kitty' : d.name.toLowerCase()}`;
+      return `${formatMoney(d.total)} to the ${d.destination === 'kitty' ? 'piggy bank' : d.name.toLowerCase()}`;
     })
     .join(' · ');
 
@@ -227,7 +227,7 @@ export default function Deductions() {
           </Text>
           <Text style={[styles.head, styles.backCol, styles.num, { color: t.muted }]} numberOfLines={1}>BACK</Text>
           <Text
-            style={[styles.head, styles.num, styles.kittyCol, styles.washTop, { color: t.offTable, backgroundColor: t.offTableWash }]}
+            style={[styles.head, styles.num, styles.piggyCol, styles.washTop, { color: t.offTable, backgroundColor: t.offTableWash }]}
             numberOfLines={1}
           >
             KITTY
@@ -265,7 +265,7 @@ export default function Deductions() {
                   {won && back > 0 ? `+${back.toLocaleString('en-US')}` : ''}
                 </Text>
                 <Text
-                  style={[styles.money, styles.num, styles.kittyCol, { color: t.offTable, backgroundColor: t.offTableWash }]}
+                  style={[styles.money, styles.num, styles.piggyCol, { color: t.offTable, backgroundColor: t.offTableWash }]}
                   numberOfLines={1}
                 >
                   {won ? dash(kitty, true) : ''}
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
      header cell rounds its top corners by 5, which is where the column starts. */
   billCol: { width: 46 },
   backCol: { width: 44 },
-  kittyCol: { width: 46 },
+  piggyCol: { width: 46 },
   netCol: { width: 76 },
   washTop: { borderTopLeftRadius: 5, borderTopRightRadius: 5 },
 
