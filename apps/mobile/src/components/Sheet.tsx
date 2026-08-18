@@ -1,14 +1,16 @@
 import { useRef, type ReactNode } from 'react';
 import {
   Animated,
+  KeyboardAvoidingView,
   PanResponder,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
 import { chrome, space, type } from '../design/tokens';
@@ -53,6 +55,7 @@ export function Sheet({
   onClose?: () => void;
 }) {
   const t = useTheme();
+  const insets = useSafeAreaInsets();
   const close = onClose ?? (() => router.back());
 
   /*
@@ -77,7 +80,17 @@ export function Sheet({
       <View style={[styles.fill, styles.scrim, { backgroundColor: t.scrim }]} />
 
       <Animated.View style={[styles.fill, { transform: [{ translateY: drag }] }]}>
-        <SafeAreaView style={styles.fill} edges={['bottom']}>
+        {/*
+         * THE KEYBOARD MOVES THE PANEL, NOT THE CONTENT. Half these sheets end
+         * with Save under a field — the amount, a player's name, what a table
+         * is called — and a footer behind the keyboard is a sheet you cannot
+         * finish. Padding rather than height: the panel keeps its radius and
+         * its grabber where they were.
+         */}
+        <KeyboardAvoidingView
+          style={[styles.fill, styles.bottom]}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View
             style={[
               styles.panel,
@@ -118,17 +131,43 @@ export function Sheet({
               )}
             </View>
 
+            {/*
+             * `flexShrink` IS THE WHOLE FIX, and it was the whole bug.
+             *
+             * A ScrollView takes the height of its content unless something
+             * bounds it. In a column with a pinned footer that means a long
+             * body grows past the panel and pushes the footer off the bottom
+             * of the phone — and because the ScrollView is exactly as tall as
+             * what is in it, it has nothing to scroll, so the copy simply ends
+             * mid-sentence at the edge of the screen. That is what happened on
+             * the rule sheet (Save and Remove 44pt below the glass) and on Set
+             * up the game (no footer visible at all).
+             *
+             * Shrinking rather than `flex: 1` keeps every short sheet drawn
+             * where the boards draw it — action directly under the content —
+             * and only takes space back when there is none left to give.
+             */}
             <ScrollView
-              contentContainerStyle={styles.content}
+              style={styles.body}
+              contentContainerStyle={[
+                styles.content,
+                // With no footer, the last row is what clears the home
+                // indicator; with one, the footer does it below.
+                footer === undefined && { paddingBottom: 20 + insets.bottom },
+              ]}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
               {children}
             </ScrollView>
 
-            {footer !== undefined && <View style={styles.footer}>{footer}</View>}
+            {footer !== undefined && (
+              <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 6) }]}>
+                {footer}
+              </View>
+            )}
           </View>
-        </SafeAreaView>
+        </KeyboardAvoidingView>
       </Animated.View>
     </View>
   );
@@ -136,10 +175,19 @@ export function Sheet({
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  bottom: { justifyContent: 'flex-end' },
   scrim: { ...StyleSheet.absoluteFillObject },
 
+  // Anchored to the bottom of the phone, and only as tall as it needs to be.
+  //
+  // It used to be `flex: 1` — every sheet the full height of the screen — which
+  // put the action of a short one (New player, a confirm) in the middle of a
+  // panel with a hand's width of nothing under it. Shrinking rather than
+  // growing gives both: a short sheet is short, and one with more in it than
+  // fits stops 18 from the top and scrolls inside, which is where the boards
+  // draw the tall ones.
   panel: {
-    flex: 1,
+    flexShrink: 1,
     marginTop: chrome.sheetTop,
     borderTopLeftRadius: chrome.sheetRadius,
     borderTopRightRadius: chrome.sheetRadius,
@@ -172,13 +220,23 @@ const styles = StyleSheet.create({
   sub: { ...type.sheetSub, paddingTop: 7, paddingHorizontal: chrome.sheetTitlePadH },
   sentence: { ...type.sheetSentence, paddingTop: 7, paddingHorizontal: chrome.sheetTitlePadH },
 
+  // Bounded, so it yields to the footer instead of pushing it off the phone.
+  // `flexGrow: 0` is what react-native-web needs to agree with the phone:
+  // its ScrollView grows by default, which would pin every short sheet's
+  // action to the bottom of the panel on the web and leave `ui-check`
+  // screenshotting a layout no phone draws.
+  body: { flexGrow: 0, flexShrink: 1 },
   content: { paddingTop: 16, paddingBottom: 20 },
   // 14 / 20 / 0 and gap 10, the same footer the pushed screens draw — the two
   // chromes differ at the top of a screen and nowhere else.
+  // The panel now paints all the way to the bottom edge of the phone — the
+  // safe-area inset is applied HERE, inside it, rather than to a wrapper that
+  // stopped the sheet short and left a band of the screen behind showing under
+  // it. `paddingBottom` is set on the element; the 6 is the floor for a phone
+  // with no home indicator.
   footer: {
     paddingHorizontal: space.card,
     paddingTop: 14,
-    paddingBottom: 6,
     gap: 10,
   },
 });

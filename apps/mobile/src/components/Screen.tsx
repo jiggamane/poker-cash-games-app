@@ -154,10 +154,16 @@ export function Screen({
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
       {scroll ? (
+        /* `flexShrink` bounds it. A ScrollView is as tall as its content
+           unless something says otherwise, and in a column with a pinned
+           footer that means a long screen pushes its own primary action off
+           the bottom of the phone — with nothing left to scroll, because the
+           view is exactly as tall as what is in it. Sheets had the same bug
+           and it is the same fix; see `Sheet`. */
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
-          style={dimmed ? styles.dimmed : undefined}
+          style={[styles.body, dimmed && styles.dimmed]}
         >
           {head}
           {children}
@@ -177,6 +183,10 @@ export function Screen({
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   fixed: { flex: 1 },
+  // A pushed screen fills the phone, so its scroll area takes what is left
+  // after the footer and the footer stays at the foot. (A sheet does the
+  // opposite — it shrinks to its content; see `Sheet`.)
+  body: { flexGrow: 1, flexShrink: 1 },
   content: { paddingBottom: 24 },
   dimmed: { opacity: chrome.behindDrawer },
 

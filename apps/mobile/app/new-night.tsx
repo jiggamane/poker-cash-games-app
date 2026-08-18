@@ -182,8 +182,10 @@ export default function NewNight() {
               nameProblem === 'reserved'
                 ? 'Tonight is both tables now — this one needs a name of its own'
                 : nameProblem === 'taken'
-                  ? 'That is the other table’s name'
-                  : `${others.join(' · ')} already open`
+                  ? 'That name is taken by a table already open'
+                  : others.length === 1
+                    ? `${others[0]} is already open`
+                    : `${others.length} tables are already open`
             }
           />
         </View>

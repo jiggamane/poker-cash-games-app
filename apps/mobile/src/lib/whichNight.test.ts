@@ -7,6 +7,7 @@ import {
   isTonight,
   renamedForSecondTable,
   tableNameProblem,
+  uniqueTableName,
 } from './whichNight';
 
 /**
@@ -192,5 +193,19 @@ describe('naming a table', () => {
     expect(tableNameProblem('Tonight', ['Main table'])).toBe('reserved');
     expect(tableNameProblem('main TABLE', ['Main table'])).toBe('taken');
     expect(tableNameProblem(' Kitchen table ', ['Kitchen table'])).toBe('taken');
+  });
+});
+
+describe('keeping table names apart', () => {
+  it('leaves a free name alone', () => {
+    expect(uniqueTableName(MAIN_TABLE, ['Kitchen table'])).toBe(MAIN_TABLE);
+  });
+
+  it('numbers the ones that would collide', () => {
+    // A phone that has been opening nights since before tables had names has
+    // a row of them, and they all want to be called the same thing.
+    expect(uniqueTableName(MAIN_TABLE, ['Main table'])).toBe('Main table 2');
+    expect(uniqueTableName(MAIN_TABLE, ['Main table', 'Main table 2'])).toBe('Main table 3');
+    expect(uniqueTableName(MAIN_TABLE, ['MAIN TABLE'])).toBe('Main table 2');
   });
 });

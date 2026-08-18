@@ -16,7 +16,12 @@ import {
   type ResolvedLedger,
 } from '@poker-club/core';
 import { recordEntry } from './ledgerRepo';
-import { CURRENT_NIGHT, FIRST_TABLE, renamedForSecondTable } from './whichNight';
+import {
+  CURRENT_NIGHT,
+  FIRST_TABLE,
+  renamedForSecondTable,
+  uniqueTableName,
+} from './whichNight';
 
 /**
  * The night, on this phone.
@@ -1069,9 +1074,16 @@ export async function startNight(input: {
     `SELECT session_id, table_name FROM night
       WHERE status != 'settled' AND seed_version IS NULL`,
   );
+  const taken = others.map((o) => o.table_name ?? FIRST_TABLE);
   for (const other of others) {
-    const renamed = renamedForSecondTable(other.table_name ?? FIRST_TABLE);
-    if (renamed === null) continue;
+    const wanted = renamedForSecondTable(other.table_name ?? FIRST_TABLE);
+    if (wanted === null) continue;
+    // More than one table can be carrying the default — a phone that has been
+    // opening nights since before tables had names has a row of them — and
+    // renaming them all to the same thing swaps one indistinguishable pair for
+    // another.
+    const renamed = uniqueTableName(wanted, taken);
+    taken.push(renamed);
     await db.runAsync(
       `UPDATE night SET table_name = ? WHERE session_id = ?`,
       renamed,
@@ -1080,7 +1092,10 @@ export async function startNight(input: {
     if (night?.sessionId === other.session_id) night = { ...night, tableName: renamed };
   }
 
-  const tableName = input.tableName?.trim() || FIRST_TABLE;
+  const tableName =
+    others.length === 0
+      ? FIRST_TABLE
+      : uniqueTableName((input.tableName ?? '').trim() || FIRST_TABLE, taken);
 
   await db.runAsync(
     `INSERT INTO night

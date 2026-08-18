@@ -62,6 +62,24 @@ export const renamedForSecondTable = (name: string): string | null =>
   name.trim() === FIRST_TABLE ? MAIN_TABLE : null;
 
 /**
+ * A name no other open table answers to.
+ *
+ * The rename that runs when a second table opens can meet more than one table
+ * still carrying the default — a phone that has been opening nights since
+ * before tables had names has a row of them — and renaming them all to "Main
+ * table" swaps one indistinguishable pair for another. So each one takes the
+ * first free numeral, which is ugly exactly once and then the host renames it.
+ */
+export function uniqueTableName(desired: string, taken: readonly string[]): string {
+  const used = new Set(taken.map((n) => n.trim().toLowerCase()));
+  if (!used.has(desired.trim().toLowerCase())) return desired;
+  for (let n = 2; ; n++) {
+    const candidate = `${desired} ${n}`;
+    if (!used.has(candidate.toLowerCase())) return candidate;
+  }
+}
+
+/**
  * Is this name usable for a new table?
  *
  * Empty is not a name, "Tonight" is not a name once there are two, and a name

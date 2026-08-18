@@ -236,3 +236,32 @@ each weight must be loaded and named and every entry in the type scale gains a
 **Titles are `4 / 22 / 10` everywhere.** `[E4]` draws `6 / 22 / 14`. Two- and
 four-pixel differences between boards are noise, and the complaint that started
 this document was that the UI jumps between screens.
+
+---
+
+## The two chromes have opposite layout contracts
+
+Both are a column of header, body and footer, and they resolve height in
+opposite directions. Getting this backwards is what put a Save button below the
+glass on four sheets and left the copy above it ending mid-sentence.
+
+| | `Screen` (Chrome A) | `Sheet` (Chrome B) |
+|---|---|---|
+| The panel | fills the phone | **shrinks to its content**, anchored to the bottom, and stops 18 from the top |
+| The body | `flexGrow: 1` — takes what the footer leaves | `flexGrow: 0, flexShrink: 1` — yields to the footer |
+| The footer | at the foot of the phone | directly under the content, wherever that is |
+| Safe area | on the `SafeAreaView` | on the footer, **inside** the panel |
+
+Two rules follow, and both are load-bearing:
+
+1. **A ScrollView with nothing bounding it does not scroll.** It takes the
+   height of its content, pushes the footer off the bottom, and has no overflow
+   left to scroll — so a long sheet loses its action AND its last paragraph at
+   once. `flexShrink: 1` on the body is the whole fix.
+2. **The safe-area inset belongs inside the panel.** Put it on a wrapper and
+   the sheet stops short of the bottom edge, leaving a band of the screen
+   behind showing under it.
+
+`react-native-web` needs the explicit `flexGrow: 0`: its ScrollView grows by
+default where the phone's does not, so without it `ui-check` screenshots a
+layout no phone draws.
