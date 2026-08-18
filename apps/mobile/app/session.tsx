@@ -85,7 +85,11 @@ export default function Session() {
     <Screen
       title="Tonight"
       backTo="the club"
-      badge={<LiveTag startedAt={night.startedAt} empty={empty} />}
+      /* The tag sits at the RIGHT EDGE of the title row rather than beside the
+         title: it is the state of the night, not part of its name, and the
+         corner is where a reader looks for state. It is the only thing in that
+         corner now that the start time has moved onto the card. */
+      trailing={<LiveTag startedAt={night.startedAt} empty={empty} />}
       scroll={false}
       dimmed={drawer}
       footerPad={false}

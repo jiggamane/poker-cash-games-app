@@ -19,9 +19,14 @@ drawn to sit next to.
 
 ## What ships
 
-**The title row is the drawn row — title, then tag — and the start time sits in
-the On-the-table card**, as a third line in the right-hand stack under
-"5 seated · 1 out".
+**The title row is the title on the left and the running-time tag at the right
+edge, and the start time sits in the On-the-table card** as a third line in the
+right-hand stack under "5 seated · 1 out".
+
+The tag moved off the title's shoulder deliberately: it is the state of the
+night rather than part of its name, and the corner is where a reader looks for
+state. It is also the only thing in that corner now, which is what makes the
+room for it — the two of them there together is what broke the title.
 
 The two clocks are not the same kind of thing. The elapsed figure is live: it
 counts all night and is the only thing on screen claiming the night is

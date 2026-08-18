@@ -43,16 +43,19 @@ export function Screen({
    */
   badge?: ReactNode;
   /**
-   * The right edge of the title row. TEXT ONLY, and only where a screen has
-   * been drawn with it (Tonight's "started 20:05"). The corner takes no
-   * controls: that rule is what keeps a push and a sheet telling different
-   * stories.
+   * The right edge of the title row: the state of the screen, not part of its
+   * name. Two things are drawn there — the step count in the ending flow
+   * ("1 of 3") and Tonight's running-time tag.
    *
-   * NOT alongside a badge. A badge and a trailing text pull at opposite ends
-   * of the row and leave the title — the one child that shrinks — to absorb
-   * what is left; on Tonight that broke "Tonight" mid-word. Where a screen
-   * wants both, one of them belongs somewhere else: Tonight's start time is a
-   * line on the On-the-table card. See docs/tonight-title-row.md.
+   * NO CONTROLS, ever. Text or a tag, nothing you can press. That rule is what
+   * keeps a push and a sheet telling different stories.
+   *
+   * ONE THING AT A TIME, and never alongside a badge. Two elements pulling at
+   * opposite ends of the row leave the title — the one child that shrinks — to
+   * absorb what is left, and on Tonight that broke "Tonight" mid-word. Where a
+   * screen seems to want both, one of them belongs somewhere else: Tonight's
+   * start time is a line on the On-the-table card. docs/tonight-title-row.md
+   * has the arithmetic.
    */
   trailing?: ReactNode;
   /** Club · elapsed · since. One line, and it may be a fragment. */
