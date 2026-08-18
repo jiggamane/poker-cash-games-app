@@ -76,7 +76,17 @@ export interface Theme {
 
   /**
    * A third text tone, below `muted`: the seat count beside a figure, the hint
-   * beside a disclosure row. Never used for anything a person has to read.
+   * beside a disclosure row.
+   *
+   * "Never used for anything a person has to read" was the intent and it was
+   * not true — it carried the seat count, the start time, the dock's own hint
+   * and the bill's spend count, all of which a host reads at a table in bad
+   * light. At its drawn values it measured 3.54:1 on a card in the dark theme
+   * and 2.96:1 in the light one, against a floor of 4.5.
+   *
+   * It clears the floor now on every ground it is drawn on, which costs it
+   * some of its distance from `muted`. The separation between the two tiers is
+   * carried by size and weight, and a tone that cannot be read is not a tier.
    */
   dim: string;
 
@@ -156,13 +166,13 @@ export const darkTheme: Theme = {
   onFill: '#0C0D0F',
   keyline: '#0A0A0B',
   danger: '#F0705C',
-  dim: '#6C6E74',
+  dim: '#7F8187',
   roundFill: 'rgba(255,255,255,0.09)',
   sheet: '#101013',
   sheetEdge: 'rgba(255,255,255,0.12)',
   grabber: 'rgba(255,255,255,0.22)',
   scrim: 'rgba(10,10,11,0.68)',
-  amber: '#E0A44A',
+  amber: '#E8B455',
   disabled: '#5C5E64',
   dockFill: 'rgba(255,255,255,0.08)',
   dangerStrong: 'rgba(240,112,92,0.55)',
@@ -206,13 +216,13 @@ export const lightTheme: Theme = {
   onFill: '#FFFFFF',
   keyline: '#FFFFFF',
   danger: '#B03A28',
-  dim: '#8A8F96',
+  dim: '#6A6E75',
   roundFill: 'rgba(12,13,15,0.06)',
   sheet: '#FFFFFF',
   sheetEdge: 'rgba(12,13,15,0.1)',
   grabber: 'rgba(12,13,15,0.18)',
   scrim: 'rgba(255,255,255,0.68)',
-  amber: '#A9741A',
+  amber: '#7A5410',
   disabled: '#A2A6AD',
   dockFill: 'rgba(12,13,15,0.06)',
   dangerStrong: 'rgba(176,58,40,0.55)',

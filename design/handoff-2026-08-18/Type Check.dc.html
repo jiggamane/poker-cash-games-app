@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#F6F6F8;font-family:-apple-system,'Figtree',sans-serif}a{color:#0C0D0F}a:hover{color:#4A4D55}</style>
+</helmet>
+
+<section style="display:flex;flex-direction:column;gap:30px;padding:44px 48px 80px;width:max-content;box-sizing:border-box">
+
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:940px">
+    <span style="font:700 11px/1 -apple-system,'Figtree',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8E8E93">Type check · board versus build</span>
+    <h1 style="margin:0;font:800 30px/1.12 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.025em">The board and the app are not setting the same type</h1>
+    <p style="margin:0;font:400 14px/1.6 -apple-system,'Figtree',sans-serif;color:#6C6C70;text-wrap:pretty">Every board file declares <strong style="font-weight:600">-apple-system, 'SF Pro Text', 'Figtree'</strong> and no board ever names a typeface outright. That stack resolves to SF Pro on a Mac and to something else wherever SF Pro is absent, so the boards and the build are not guaranteed to be setting the same face — and the screenshots say they are not. Two faces never differ by one uniform amount either: the difference runs per role, which is why a row drawn with no slack breaks even when the sizes are right. The table below measures each role rather than assuming a direction.</p>
+  </div>
+
+  <div style="display:flex;align-items:flex-start;gap:10px;padding:13px 16px;border-radius:12px;background:rgba(224,164,74,.14);max-width:940px;box-sizing:border-box">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A9741A" stroke-width="2.2" stroke-linecap="round" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="8.6"></circle><path d="M12 7.6v5"></path><path d="M12 16.3v.2"></path></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font:700 12.5px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#7A5210">Rendering environment</span>
+      <span style="font:400 12.5px/1.5 -apple-system,'Figtree',sans-serif;color:#7A5210">{{ envNote }}</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;max-width:1810px">
+    <div style="display:flex;flex-direction:column;gap:10px;flex:none;width:393px">
+      <div style="display:flex;flex-direction:column;gap:3px"><span style="font:700 13.5px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F">Build · the night screen</span><span style="font:400 12.5px/1.45 -apple-system,'Figtree',sans-serif;color:#6C6C70">1179 × 2556 at 3× = 393 × 852pt. Shown 1:1 in points.</span></div>
+      <img src="uploads/IMG_8825.PNG" alt="Built night screen" style="width:393px;display:block;border-radius:14px;border:1px solid #DEDEE4">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;flex:none;width:393px">
+      <div style="display:flex;flex-direction:column;gap:3px"><span style="font:700 13.5px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F">Build · the club home screen</span><span style="font:400 12.5px/1.45 -apple-system,'Figtree',sans-serif;color:#6C6C70">Same device. Note the dock is one outlined button, not the two pills.</span></div>
+      <img src="uploads/IMG_8826.PNG" alt="Built club home screen" style="width:393px;display:block;border-radius:14px;border:1px solid #DEDEE4">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;flex:none;width:420px">
+      <span style="font:700 13.5px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F">What the screenshots show</span>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:5px"><span style="font:700 13px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F">The face is not SF Pro <span style="font:700 9.5px -apple-system,'Figtree',sans-serif;letter-spacing:.08em;color:#A9741A;background:rgba(224,164,74,.16);border-radius:5px;padding:3px 6px;vertical-align:2px">TO CONFIRM</span></span><span style="font:400 12.5px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">Single-storey g, flat-sided digits, tight extrabold display weight — read off the screenshots, not from the code. Figtree is the likely candidate because it sits in the stack the boards hand over, but no font declaration in the app has been read. Confirm it before this becomes a rule.</span></div>
+        <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:5px"><span style="font:700 13px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F">Sizes are roughly on spec</span><span style="font:400 12.5px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">Title ≈ 32, table figure ≈ 44, row name ≈ 17, row money ≈ 19 — within a point of the board. The break is not scale, it is width.</span></div>
+        <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:5px"><span style="font:700 13px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F">The device is 9pt narrower than the board</span><span style="font:400 12.5px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">Boards are drawn at 402; this phone is 393. The title row was drawn with no slack, so 9pt less width is enough to push it to a second line.</span></div>
+        <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:5px"><span style="font:700 13px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F">Row rhythm is looser than drawn</span><span style="font:400 12.5px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">Player rows run ~70pt tall against 22px padding in the spec, so six rows no longer fit above the dock. Same cause as the count reading "6 seated" over five visible rows.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;padding-top:8px;border-top:1px solid #E1E1E6">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font:700 16px -apple-system,'SF Pro Display','Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.01em">Same size, same weight, two faces</span><span style="font:400 13px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">Top line in each pair is the stack the boards declare — SF Pro on a Mac, the system sans anywhere else. Bottom line is Figtree, web-loaded, so it is the same everywhere. Both at the size the spec states. If the two lines in a pair look identical, this browser has no SF Pro and the top line is a stand-in.</span></div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;max-width:1810px">
+
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:14px;padding:18px 20px;width:420px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <span style="font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">Screen title · 800 / 32px</span>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font:800 32px/1 -apple-system,'SF Pro Display',sans-serif;color:#0B0B0F;letter-spacing:-.03em">Tonight</span><span style="font:600 10.5px -apple-system,'Figtree',sans-serif;color:#8E8E93">board stack</span></div>
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font:800 32px/1 'Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.03em">Tonight</span><span style="font:600 10.5px -apple-system,'Figtree',sans-serif;color:#0E8A4F">build stack</span></div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:14px;padding:18px 20px;width:420px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <span style="font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">Card and row title · 800 / 21px</span>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font:800 21px/1 -apple-system,'SF Pro Display',sans-serif;color:#0B0B0F;letter-spacing:-.022em">Start a session</span><span style="font:600 10.5px -apple-system,'Figtree',sans-serif;color:#8E8E93">board</span></div>
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font:800 21px/1 'Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.022em">Start a session</span><span style="font:600 10.5px -apple-system,'Figtree',sans-serif;color:#0E8A4F">build</span></div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:14px;padding:18px 20px;width:420px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <span style="font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">Table figure · 800 / 44px · tabular</span>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font:800 44px/1 -apple-system,'SF Pro Display',sans-serif;color:#0B0B0F;letter-spacing:-.04em;font-variant-numeric:tabular-nums">$3,000</span><span style="font:600 10.5px -apple-system,'Figtree',sans-serif;color:#8E8E93">board</span></div>
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font:800 44px/1 'Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.04em;font-variant-numeric:tabular-nums">$3,000</span><span style="font:600 10.5px -apple-system,'Figtree',sans-serif;color:#0E8A4F">build</span></div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:14px;padding:18px 20px;width:420px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <span style="font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">Row name and money · 600 / 17px · 700 / 19px</span>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;width:250px"><span style="font:600 17px -apple-system,'SF Pro Text',sans-serif;color:#0B0B0F">Andro</span><span style="margin-left:auto;font:700 19px -apple-system,'SF Pro Text',sans-serif;color:#0B0B0F;font-variant-numeric:tabular-nums">$500</span></div>
+          <div style="display:flex;align-items:center;gap:10px;width:250px"><span style="font:600 17px 'Figtree',sans-serif;color:#0B0B0F">Andro</span><span style="margin-left:auto;font:700 19px 'Figtree',sans-serif;color:#0B0B0F;font-variant-numeric:tabular-nums">$500</span></div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:14px;padding:18px 20px;width:420px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <span style="font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">Meta line · 400 / 13px</span>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font:400 13px -apple-system,'SF Pro Text',sans-serif;color:#5C5F66">6 at the table · the ledger is open</span>
+          <span style="font:400 13px 'Figtree',sans-serif;color:#5C5F66">6 at the table · the ledger is open</span>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:14px;padding:18px 20px;width:420px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <span style="font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">Tracked label and timer · 700 / 11px · 700 / 13px</span>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px"><span style="font:700 11px -apple-system,'SF Pro Text',sans-serif;letter-spacing:.1em;color:#0E8A4F">PLAYING NOW · 3H 17M</span><span style="font:700 13px -apple-system,'SF Pro Text',sans-serif;color:#0E8A4F;font-variant-numeric:tabular-nums">23h 41m</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><span style="font:700 11px 'Figtree',sans-serif;letter-spacing:.1em;color:#0E8A4F">PLAYING NOW · 3H 17M</span><span style="font:700 13px 'Figtree',sans-serif;color:#0E8A4F;font-variant-numeric:tabular-nums">23h 41m</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;padding-top:8px;border-top:1px solid #E1E1E6">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font:700 16px -apple-system,'SF Pro Display','Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.01em">Measured, not eyeballed</span><span style="font:400 13px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">Rendered width of each string at the spec size, measured live in whatever this browser resolves for each stack. The Board column is only SF Pro on a Mac with SF Pro installed — the banner at the top states what it actually measured. Positive means the build's face is wider.</span></div>
+    <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:14px;padding:6px 20px 14px;width:860px;box-sizing:border-box;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:16px;padding:14px 0 10px;border-bottom:1px solid #E8E8EE"><span style="width:300px;flex:none;font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">String · size</span><span style="width:120px;flex:none;font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">Board</span><span style="width:120px;flex:none;font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">Build</span><span style="font:700 11px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8E8E93">Difference</span></div>
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+        <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #F0F0F4">
+          <span style="width:300px;flex:none;font:500 13px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F">{{ r.label }}</span>
+          <span style="width:120px;flex:none;font:400 13px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#6C6C70;font-variant-numeric:tabular-nums">{{ r.sf }}</span>
+          <span style="width:120px;flex:none;font:400 13px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#6C6C70;font-variant-numeric:tabular-nums">{{ r.fig }}</span>
+          <span style="font:700 13px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F;font-variant-numeric:tabular-nums">{{ r.delta }}</span>
+        </div>
+      </sc-for>
+      <span style="padding:14px 0 0;font:500 12.5px/1.5 -apple-system,'SF Pro Text','Figtree',sans-serif;color:#6C6C70">{{ deltaVerdict }}</span>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;padding-top:8px;border-top:1px solid #E1E1E6">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font:700 16px -apple-system,'SF Pro Display','Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.01em">Why the title broke mid-word</span><span style="font:400 13px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">All three rows below are 393pt wide, set in Figtree, with the same four children the build has: back button, title, timer pill, start time.</span></div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;max-width:1810px">
+      <div style="display:flex;flex-direction:column;gap:8px;width:415px;flex:none">
+        <span style="font:700 12.5px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#B4342A">As built · breaks anywhere</span>
+        <div style="width:393px;background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 20px;box-sizing:border-box;display:flex;align-items:center;gap:12px">
+          <span style="width:36px;height:36px;border-radius:18px;background:rgba(12,13,15,.06);display:flex;align-items:center;justify-content:center;flex:none"><svg width="10" height="17" viewBox="0 0 12 20" fill="none" stroke="#0C0D0F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L2 10l7 8"></path></svg></span>
+          <span style="font:800 32px/1.05 'Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.03em;overflow-wrap:anywhere">Tonight</span>
+          <span style="display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(14,138,79,.12)"><span style="width:6px;height:6px;border-radius:3px;background:#0E8A4F;display:block"></span><span style="font:700 13px 'Figtree',sans-serif;color:#0E8A4F;font-variant-numeric:tabular-nums">23h 41m</span></span>
+          <span style="margin-left:auto;font:400 13px 'Figtree',sans-serif;color:#6B6F76;font-variant-numeric:tabular-nums">started 16:37</span>
+        </div>
+        <span style="font:400 12.5px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">The title is a shrinkable flex item allowed to break inside a word, so it gives up its width to the pill and the timestamp.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;width:415px;flex:none">
+        <span style="font:700 12.5px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0E8A4F">Fix · title holds, timestamp yields</span>
+        <div style="width:393px;background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 20px;box-sizing:border-box;display:flex;align-items:center;gap:12px">
+          <span style="width:36px;height:36px;border-radius:18px;background:rgba(12,13,15,.06);display:flex;align-items:center;justify-content:center;flex:none"><svg width="10" height="17" viewBox="0 0 12 20" fill="none" stroke="#0C0D0F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L2 10l7 8"></path></svg></span>
+          <span style="font:800 32px/1.05 'Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.03em;white-space:nowrap;flex:none">Tonight</span>
+          <span style="display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(14,138,79,.12);flex:none"><span style="width:6px;height:6px;border-radius:3px;background:#0E8A4F;display:block"></span><span style="font:700 13px 'Figtree',sans-serif;color:#0E8A4F;font-variant-numeric:tabular-nums;white-space:nowrap">23h 41m</span></span>
+          <span style="margin-left:auto;font:400 13px 'Figtree',sans-serif;color:#6B6F76;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">started 16:37</span>
+        </div>
+        <span style="font:400 12.5px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">Title and pill are <strong style="font-weight:600">flex:none</strong> with <strong style="font-weight:600">white-space:nowrap</strong>. The start time is the only child allowed to truncate, and it drops out entirely under 360pt.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;width:415px;flex:none">
+        <span style="font:700 12.5px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0E8A4F">Safer · two lines by design</span>
+        <div style="width:393px;background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 20px;box-sizing:border-box;display:flex;align-items:flex-start;gap:12px">
+          <span style="width:36px;height:36px;border-radius:18px;background:rgba(12,13,15,.06);display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px"><svg width="10" height="17" viewBox="0 0 12 20" fill="none" stroke="#0C0D0F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L2 10l7 8"></path></svg></span>
+          <div style="display:flex;flex-direction:column;gap:7px;min-width:0">
+            <span style="font:800 32px/1.05 'Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Thursday marathon</span>
+            <div style="display:flex;align-items:center;gap:10px"><span style="display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;background:rgba(14,138,79,.12);flex:none"><span style="width:6px;height:6px;border-radius:3px;background:#0E8A4F;display:block"></span><span style="font:700 12.5px 'Figtree',sans-serif;color:#0E8A4F;font-variant-numeric:tabular-nums">23h 41m</span></span><span style="font:400 12.5px 'Figtree',sans-serif;color:#6B6F76;font-variant-numeric:tabular-nums">started 16:37</span></div>
+          </div>
+        </div>
+        <span style="font:400 12.5px/1.5 -apple-system,'Figtree',sans-serif;color:#6C6C70">Once tables get names, one row cannot hold a title plus two pieces of meta. Stacking removes the competition and the title truncates cleanly at the ellipsis.</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;padding-top:8px;border-top:1px solid #E1E1E6;max-width:940px">
+    <span style="font:700 16px -apple-system,'SF Pro Display','Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.01em">What to put in the handoff</span>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 16px;display:flex;gap:12px"><span style="font:800 13px -apple-system,'Figtree',sans-serif;color:#0E8A4F;flex:none;width:16px">1</span><span style="font:400 13px/1.55 -apple-system,'Figtree',sans-serif;color:#3A3B40">Name one typeface and stop shipping a stack. A stack means the reviewer and the device can resolve different faces, so no width on any board is a fact. If the answer is Figtree, every board gets redrawn in Figtree so approvals happen against real widths; if it is SF Pro, the build stops loading Figtree.</span></div>
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 16px;display:flex;gap:12px"><span style="font:800 13px -apple-system,'Figtree',sans-serif;color:#0E8A4F;flex:none;width:16px">2</span><span style="font:400 13px/1.55 -apple-system,'Figtree',sans-serif;color:#3A3B40">Specs get drawn at 393pt, not 402. The narrowest supported width is the one the layout is proven at.</span></div>
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 16px;display:flex;gap:12px"><span style="font:800 13px -apple-system,'Figtree',sans-serif;color:#0E8A4F;flex:none;width:16px">3</span><span style="font:400 13px/1.55 -apple-system,'Figtree',sans-serif;color:#3A3B40">No text in this app may break inside a word. Titles and figures never wrap or shrink; meta truncates; a name that still does not fit gets an ellipsis, never a second line it was not designed for.</span></div>
+      <div style="background:#FFFFFF;border:1px solid #E1E1E6;border-radius:12px;padding:14px 16px;display:flex;gap:12px"><span style="font:800 13px -apple-system,'Figtree',sans-serif;color:#0E8A4F;flex:none;width:16px">4</span><span style="font:400 13px/1.55 -apple-system,'Figtree',sans-serif;color:#3A3B40">Every row height in the spec is a maximum. If the list cannot show the number the summary claims, the summary is wrong: it says what is visible, or the list scrolls.</span></div>
+    </div>
+  </div>
+
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { rows: [], envNote: '', deltaVerdict: '' };
+  componentDidMount() {
+    const measure = () => {
+      const c = document.createElement('canvas').getContext('2d');
+      const S = 'Tonight Handgloves 3,000';
+      const w = (fam) => { c.font = "800 32px " + fam; return c.measureText(S).width; };
+      // sentinel must be an unlikely family, not a generic: an unknown family falls back to
+      // the browser default, which may differ from sans-serif and fake a positive result.
+      const sentinel = w('monospace');
+      const has = (fam) => Math.abs(w("'" + fam + "', monospace") - sentinel) > 0.5;
+      const sfAvailable = has('SF Pro Display');
+      const figAvailable = has('Figtree');
+      let envNote;
+      if (sfAvailable && figAvailable) {
+        envNote = 'SF Pro and Figtree are both installed here, so both columns are real and the deltas hold.';
+      } else if (figAvailable) {
+        envNote = 'SF Pro is not installed in this browser, so the Board column cannot be measured — it is shown as n/a rather than as a number, and the top line of each visual pair is this browser\u2019s default face standing in, not SF Pro. Figtree loads correctly, so the Build column is accurate everywhere. Open this page on the Mac the boards are approved on to get the comparison.';
+      } else if (sfAvailable) {
+        envNote = 'Figtree did not load in this browser, so the Build column is not Figtree. Reload with a network connection before reading anything here.';
+      } else {
+        envNote = 'Neither face is available in this browser — every width below is a fallback. Reload on the Mac the boards are approved on, with a network connection.';
+      }
+      const specs = [
+        ['Tonight · 800 / 32px', '800 32px', 'Tonight'],
+        ['Start a session · 800 / 21px', '800 21px', 'Start a session'],
+        ['$3,000 · 800 / 44px', '800 44px', '$3,000'],
+        ['Andro · 600 / 17px', '600 17px', 'Andro'],
+        ['6 at the table · the ledger is open · 400 / 13px', '400 13px', '6 at the table \u00b7 the ledger is open'],
+        ['PLAYING NOW · 3H 17M · 700 / 11px', '700 11px', 'PLAYING NOW \u00b7 3H 17M']
+      ];
+      const valid = sfAvailable && figAvailable;
+      const rows = specs.map(([label, f, text]) => {
+        c.font = f + " 'SF Pro Display', monospace";
+        const sf = c.measureText(text).width;
+        c.font = f + " Figtree, monospace";
+        const fig = c.measureText(text).width;
+        const pct = sf ? Math.round(((fig - sf) / sf) * 1000) / 10 : 0;
+        return {
+          label,
+          sf: valid ? Math.round(sf) + ' px' : 'n/a',
+          fig: figAvailable ? Math.round(fig) + ' px' : 'n/a',
+          delta: valid ? (pct > 0 ? '+' : '') + pct.toFixed(1) + '%' : '—'
+        };
+      });
+      const deltaVerdict = valid
+        ? 'Measured here: ' + rows.filter(r => r.delta.startsWith('+')).length + ' of ' + rows.length + ' strings are wider in the build\u2019s face, and the money figure moves most.'
+        : 'The per-role difference cannot be computed in this browser — see the banner above. Nothing on this page should be quoted as a width delta until it is read where both faces are installed.';
+      this.setState({ rows, envNote, deltaVerdict });
+    };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure); else measure();
+  }
+  renderVals() { return { rows: this.state.rows, envNote: this.state.envNote, deltaVerdict: this.state.deltaVerdict }; }
+}
+</script>
+</body>
+</html>

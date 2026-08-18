@@ -106,7 +106,10 @@ export function Screen({
             on a row of its own; Chrome A puts the two together, which costs the
             title 48pt. Where that is not enough it WRAPS — an ellipsis would
             drop a word, and "Where everyone st…" is not a screen title. */}
-        <Text style={[styles.title, { color: t.text }]} numberOfLines={2}>
+        {/* Named so `scripts/ui-audit.mjs` can tell a screen's own title from a
+            big figure inside its body, and hold the rule that a screen never
+            scrolls as a whole. */}
+        <Text nativeID="screen-title" style={[styles.title, { color: t.text }]} numberOfLines={2}>
           {title}
         </Text>
 
@@ -126,27 +129,36 @@ export function Screen({
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
-      {scroll ? (
-        /* `flexShrink` bounds it. A ScrollView is as tall as its content
-           unless something says otherwise, and in a column with a pinned
-           footer that means a long screen pushes its own primary action off
-           the bottom of the phone — with nothing left to scroll, because the
-           view is exactly as tall as what is in it. Sheets had the same bug
-           and it is the same fix; see `Sheet`. */
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-          style={[styles.body, dimmed && styles.dimmed]}
-        >
-          {head}
-          {children}
-        </ScrollView>
-      ) : (
-        <View style={[styles.fixed, dimmed && styles.dimmed]}>
-          {head}
-          {children}
-        </View>
-      )}
+      {/*
+       * A SCREEN NEVER SCROLLS AS A WHOLE — only what is inside it does.
+       *
+       * The head used to sit inside the scroll view, so a screen with a long
+       * body scrolled its own title off the top: the one thing telling a
+       * person where they are left first, and the back button with it. The
+       * title, the meta line and the lede ARE the screen; the body is what it
+       * holds, and the body is the only thing that moves.
+       *
+       * `flexShrink` bounds the scroller. A ScrollView is as tall as its
+       * content unless something says otherwise, and in a column with a pinned
+       * footer that means a long screen pushes its own primary action off the
+       * bottom of the phone — with nothing left to scroll, because the view is
+       * exactly as tall as what is in it. Sheets had the same bug and it is
+       * the same fix; see `Sheet`.
+       */}
+      <View style={[styles.fixed, dimmed && styles.dimmed]}>
+        {head}
+        {scroll ? (
+          <ScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            style={styles.body}
+          >
+            {children}
+          </ScrollView>
+        ) : (
+          children
+        )}
+      </View>
 
       {footer !== undefined && <View style={footerPad ? styles.footer : undefined}>{footer}</View>}
     </SafeAreaView>

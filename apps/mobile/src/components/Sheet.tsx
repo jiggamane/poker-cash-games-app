@@ -104,6 +104,7 @@ export function Sheet({
 
               <View style={styles.titleRow}>
                 <Text
+                  nativeID="sheet-title"
                   style={[sub === undefined ? styles.title : styles.titleWithSub, { color: t.text }]}
                   numberOfLines={1}
                 >
