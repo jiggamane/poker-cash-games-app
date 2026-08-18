@@ -53,7 +53,18 @@ export type IconName =
   | 'copy'
   | 'message'
   | 'share'
-  | 'qr';
+  | 'qr'
+  /*
+   * The theme button's two faces. It shows the theme you will GET, so the sun
+   * paints while the app is dark and the moon while it is light.
+   *
+   * `settings` had been a circle with rays — a sun in everything but name —
+   * which was fine while it was the only round glyph on home and is not fine
+   * now that the two sit in the same dock row. It is a cog below; this is the
+   * sun.
+   */
+  | 'sun'
+  | 'moon';
 
 export function Icon({
   name,
@@ -142,15 +153,47 @@ export function Icon({
     }
 
     case 'settings': {
+      // A cog. It was a circle with eight rays, which is a sun — unremarkable
+      // while nothing else on the screen was round, and unusable next to the
+      // theme button, whose whole job is to be a sun. Same size, same stroke.
       const s = size ?? 17;
       return (
         <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-          <Circle cx={12} cy={12} r={3} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+          <Circle cx={12} cy={12} r={3.1} stroke={color} strokeWidth={1.8} />
           <Path
-            d="M12 3.5v2.5M12 18v2.5M3.5 12H6M18 12h2.5M6 6l1.8 1.8M16.2 16.2L18 18M18 6l-1.8 1.8M7.8 16.2L6 18"
+            d="M19.2 14.6a1.5 1.5 0 0 0 .3 1.7l.1.1a1.8 1.8 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-1.7-.3 1.5 1.5 0 0 0-.9 1.4v.2a1.8 1.8 0 1 1-3.6 0V20a1.5 1.5 0 0 0-1-1.4 1.5 1.5 0 0 0-1.7.3l-.1.1a1.8 1.8 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0 .3-1.7 1.5 1.5 0 0 0-1.4-.9H4a1.8 1.8 0 1 1 0-3.6h.2a1.5 1.5 0 0 0 1.4-1 1.5 1.5 0 0 0-.3-1.7l-.1-.1a1.8 1.8 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4V4a1.8 1.8 0 1 1 3.6 0v.2a1.5 1.5 0 0 0 .9 1.4 1.5 1.5 0 0 0 1.7-.3l.1-.1a1.8 1.8 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0-.3 1.7v.1a1.5 1.5 0 0 0 1.4.9h.2a1.8 1.8 0 1 1 0 3.6H20a1.5 1.5 0 0 0-1.4.9Z"
             stroke={color}
-            strokeWidth={1.8}
+            strokeWidth={1.6}
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'sun': {
+      const s = size ?? 18;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Circle cx={12} cy={12} r={4.6} stroke={color} strokeWidth={1.9} />
+          <Path
+            d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"
+            stroke={color}
+            strokeWidth={1.9}
             strokeLinecap="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'moon': {
+      const s = size ?? 18;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M20 14.4A8.6 8.6 0 0 1 9.6 4a8.6 8.6 0 1 0 10.4 10.4Z"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinejoin="round"
           />
         </Svg>
       );
