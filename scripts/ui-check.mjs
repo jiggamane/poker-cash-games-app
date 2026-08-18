@@ -13,18 +13,28 @@
  * not a card, a 13 where the board says 12.5. None of it shows up in a
  * screenshot on its own and all of it compounds.
  *
- *   npm --workspace @poker-club/mobile run export:web   # build once
- *   npx serve -s <that dir> -l 4321                     # serve it
+ *   npm run ui        # fonts, build, server — everything below needs it
  *
  *   node scripts/ui-check.mjs shot /session /bill              → PNGs
  *   node scripts/ui-check.mjs dump /session                    → the app's tree
  *   node scripts/ui-check.mjs frames design/handoff-.../x.html → list + PNGs
  *   node scripts/ui-check.mjs frame  <file> "H1 Tonight · resting"
  *
+ *   --figtree   paint the app in Figtree, previewing the parity that bundling
+ *               it would bring (today the app renders in a fallback stack)
+ *
  * Playwright is not a dependency of this repo — it is heavy, and this is a
- * tool rather than a test. Use the one on the machine (`npx playwright`), or
- * `npm i -g playwright`. Chromium is whatever `PLAYWRIGHT_CHROMIUM` points at,
- * else Playwright's own.
+ * tool rather than a test. Use the one on the machine, or `npm i -g playwright`
+ * and run with `NODE_PATH="$(npm root -g)"`. Chromium is found automatically:
+ * `PLAYWRIGHT_CHROMIUM` if set, else whatever sits under
+ * `PLAYWRIGHT_BROWSERS_PATH`, else Playwright's own.
+ *
+ * A word on type. The boards ask for SF, then Figtree. On a Mac the first is
+ * already there; anywhere else run `bash scripts/ui-fonts.sh` (which `npm run
+ * ui` does) to get the second. Without it both sides fall back to the same
+ * substitute — layout and colour still compare, but every width is that
+ * substitute's, and a wrap it causes reads exactly like a bug. The script
+ * warns when this is the case.
  *
  * `--light` switches the colour scheme. Check both: the bright theme has
  * caught bugs the dark one hid, every time.
@@ -33,6 +43,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 
 const require_ = createRequire(import.meta.url);
 
@@ -53,6 +64,7 @@ try {
 const BASE = process.env.UI_CHECK_BASE ?? 'http://127.0.0.1:4321';
 const OUT = process.env.UI_CHECK_OUT ?? path.join(process.cwd(), '.ui-check');
 const light = process.argv.includes('--light');
+const asFigtree = process.argv.includes('--figtree');
 const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const [command, ...rest] = args;
 
@@ -112,11 +124,94 @@ const EXTRACT = (selector) => {
   return lines.join('\n');
 };
 
-async function open() {
-  const browser = await chromium.launch(
-    process.env.PLAYWRIGHT_CHROMIUM ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM } : {},
+/*
+ * Find a Chromium.
+ *
+ * PLAYWRIGHT_CHROMIUM wins if it is set. Otherwise, if the machine keeps its
+ * browsers somewhere central (PLAYWRIGHT_BROWSERS_PATH, which the sandboxes
+ * set), look for the binary there — the directory is versioned, so the path
+ * cannot be written down. Failing both, let Playwright find its own.
+ */
+function chromiumPath() {
+  if (process.env.PLAYWRIGHT_CHROMIUM) return process.env.PLAYWRIGHT_CHROMIUM;
+
+  const store = process.env.PLAYWRIGHT_BROWSERS_PATH;
+  if (!store || !fs.existsSync(store)) return undefined;
+
+  const candidates = fs
+    .readdirSync(store)
+    .filter((d) => d.startsWith('chromium-'))
+    .sort()
+    .reverse()
+    .map((d) => path.join(store, d, 'chrome-linux', 'chrome'));
+
+  return candidates.find((c) => fs.existsSync(c));
+}
+
+/*
+ * Is Figtree on this machine at all?
+ *
+ * Without it the boards cannot render the typeface they name, and every width
+ * they report is a substitute's.
+ */
+function figtreeInstalled() {
+  try {
+    return /\bFigtree\b/.test(execFileSync('fc-match', ['Figtree'], { encoding: 'utf8' }));
+  } catch {
+    return true; // no fontconfig (macOS): assume the stack's SF entry covers it
+  }
+}
+
+/*
+ * Say what type the app actually rendered in — which is not what you would
+ * guess.
+ *
+ * The boards name the typeface: `-apple-system, 'SF Pro Text', Figtree`. The
+ * app names nothing, because `fontFamily` is left undefined everywhere on
+ * purpose (see apps/mobile/src/design/tokens.ts), so react-native-web falls
+ * back to its own stack — Segoe, Roboto, Helvetica, Arial — which has no
+ * Figtree in it.
+ *
+ * On iOS both sides land on SF and this does not matter. Anywhere else the two
+ * sides render in DIFFERENT faces, so a width that differs by a pixel may be
+ * the font rather than the layout. Installing Figtree makes the board more
+ * truthful and the gap wider, not narrower; only bundling Figtree into the app
+ * closes it. That is the outstanding follow-up in tokens.ts.
+ *
+ * `--figtree` paints the app in Figtree to preview the parity that follow-up
+ * would bring. It is a lie about today's build, so it announces itself.
+ */
+let noticed = false;
+async function noticeFonts(page) {
+  if (noticed) return;
+  noticed = true;
+
+  if (!figtreeInstalled()) {
+    console.error(
+      'note: Figtree is not on this machine, so even the boards render in a\n' +
+        '      substitute.  Fix:  bash scripts/ui-fonts.sh\n',
+    );
+    return;
+  }
+  if (asFigtree) {
+    console.error('note: --figtree — the app is painted in Figtree, which today it is not.\n');
+    return;
+  }
+  const usesFigtree = await page.evaluate(() =>
+    getComputedStyle(document.body).fontFamily.includes('Figtree'),
   );
-  return browser;
+  if (!usesFigtree) {
+    console.error(
+      'note: the app renders in react-native-web\'s fallback stack, not Figtree —\n' +
+        '      it sets no fontFamily. Against a board this shows up as small width\n' +
+        '      differences that are type, not layout. Use --figtree to preview parity.\n',
+    );
+  }
+}
+
+async function open() {
+  const executablePath = chromiumPath();
+  return chromium.launch(executablePath ? { executablePath } : {});
 }
 
 /** The app, at the size the frames are drawn at. */
@@ -131,7 +226,13 @@ async function appPage(browser) {
   return page;
 }
 
-const settle = (page) => page.waitForTimeout(1200);
+const FIGTREE_CSS = '*, *::before, *::after { font-family: Figtree, sans-serif !important; }';
+
+async function settle(page) {
+  if (asFigtree) await page.addStyleTag({ content: FIGTREE_CSS });
+  await page.waitForTimeout(1200);
+  await noticeFonts(page);
+}
 
 async function shot(routes) {
   fs.mkdirSync(OUT, { recursive: true });
@@ -192,7 +293,8 @@ const usage = `usage:
   node scripts/ui-check.mjs dump   <route>           app route measurements
   node scripts/ui-check.mjs frames <board.html>      list + screenshot frames
   node scripts/ui-check.mjs frame  <board.html> <label>   one frame's measurements
-  --light                                            the bright theme`;
+  --light                                            the bright theme
+  --figtree                                          paint the app in Figtree`;
 
 switch (command) {
   case 'shot':

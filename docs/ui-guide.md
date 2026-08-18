@@ -151,8 +151,7 @@ explainer block that had each drifted a different way.
 npm i -g playwright && npx playwright install chromium   # once; not a dependency
 export NODE_PATH="$(npm root -g)"
 
-npm --workspace @poker-club/mobile run export:web   # a static build of the app
-npx serve -s apps/mobile/.web -l 4321 &             # serve it
+npm run ui &                                        # fonts, build, server
 
 node scripts/ui-check.mjs dump /session                          # what shipped
 node scripts/ui-check.mjs frame design/handoff-2026-08-13/screens-tonight-home.html \
@@ -168,6 +167,19 @@ the theme.
 Expect the two chromes to differ at the top of a screen — the boards predate
 rev 9 — and expect the type to be normalised where boards disagree with each
 other by a point. Everything else that differs is a bug in the screen.
+
+**One caveat, and it is not obvious.** The two sides do not render in the same
+typeface off a Mac. The boards name theirs — `-apple-system, 'SF Pro Text',
+Figtree` — while the app names none at all, deliberately (`tokens.ts`), so
+`react-native-web` falls back to its own Segoe/Roboto/Arial stack. On iOS both
+land on SF and it does not matter. Anywhere else, a width that differs by a
+pixel may be the font rather than the layout: "Tonight" measures 108.19 in the
+app and 107.17 on the board, and all of that is typeface.
+
+`npm run ui` installs Figtree so the boards at least render what they ask for,
+and `ui-check` says so when the app does not. Pass `--figtree` to paint the app
+in it too — with that, the same string measures 107.17 on both sides. Treat
+that flag as a preview of the day Figtree is bundled, not as today's build.
 
 ---
 
@@ -186,7 +198,7 @@ other by a point. Everything else that differs is a bug in the screen.
 
 ## Where we knowingly differ from the board
 
-Two, both marked in the code with the reason. Everything else is copied.
+Each is marked in the code with the reason. Everything else is copied.
 
 **The home glyph is always rightmost in a bar.** `[N1]`/`[N2]` put it last;
 `[E4]` puts it before the text action. Navigation that moves between screens is
@@ -207,6 +219,19 @@ a surface card, where it would do its job.
 **Home's card and its destination list share one column**, both 20 to the edge
 and 44 to the text. The board draws the card at 20 and the list at 24 + 4,
 which steps the names 16px apart.
+
+**The pushed title's line-height is 32 × 1.05, not 32.** Chrome A says `800
+32/1` and every drawn frame agrees — `font:800 32px/1`, with no 1.05 anywhere in
+the handoff. At a flat 1 the descender of a "p" leaves the text box and lands on
+whatever is underneath, so `tokens.ts` sets 33.6. `ui-check` will report this
+line as 33.6 against the board's 32; that one is meant to disagree.
+
+**The app renders in no named typeface.** The boards ask for SF then Figtree;
+the app sets `fontFamily` nowhere, which gives SF on iOS — right — and Roboto on
+Android, which is not. Bundling Figtree is the outstanding follow-up, and it is
+not a one-liner: Android will not synthesize weights from a single family, so
+each weight must be loaded and named and every entry in the type scale gains a
+`fontFamily`.
 
 **Titles are `4 / 22 / 10` everywhere.** `[E4]` draws `6 / 22 / 14`. Two- and
 four-pixel differences between boards are noise, and the complaint that started
