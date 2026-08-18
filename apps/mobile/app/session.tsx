@@ -64,11 +64,6 @@ export default function Session() {
       title="Tonight"
       backTo="the club"
       badge={<LiveTag startedAt={night.startedAt} empty={empty} />}
-      trailing={
-        <Text style={[styles.started, { color: t.muted }]}>
-          {empty ? 'opened' : 'started'} {clock(night.startedAt)}
-        </Text>
-      }
       scroll={false}
       dimmed={drawer}
       footerPad={false}
@@ -125,6 +120,17 @@ export default function Session() {
                 : out === 0
                   ? `${seated.length} seated`
                   : `${seated.length} seated · ${out} out`}
+            </Text>
+            {/* The start time used to sit at the right edge of the title row,
+                where it and the running-time tag between them left "Tonight"
+                too little to stay on one line — see docs/tonight-title-row.md.
+                It lives here now, and this is the right place for it on its
+                own merits: the tag is live and belongs in the chrome, while
+                the start time is read once and is a fact about the night, like
+                the two lines above it. The column is shorter than the figure
+                beside it either way, so the card does not grow. */}
+            <Text style={[styles.started, { color: t.dim }]}>
+              {empty ? 'opened' : 'started'} {clock(night.startedAt)}
             </Text>
           </View>
         </View>
