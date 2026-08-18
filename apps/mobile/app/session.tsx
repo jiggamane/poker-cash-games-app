@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { router } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, formatSigned, resolveLedger, type Money } from '@poker-club/core';
 import { Dock } from '../src/components/Dock';
@@ -33,6 +33,28 @@ export default function Session() {
   const t = useTheme();
   const night = useNight();
   const [drawer, setDrawer] = useState(false);
+
+  /*
+   * THE DRAWER IS NEVER OPEN WHEN YOU ARRIVE.
+   *
+   * It is the dock expanding in place, not a mode the screen is in: it exists
+   * for the two seconds between wanting to seat somebody and seating them. A
+   * host who opened it, recorded a rebuy and came back found the table still
+   * dimmed to .4 behind a panel they had already finished with — every figure
+   * on the screen they came back to READ was greyed out, and the way out was a
+   * tap they had no reason to expect they owed.
+   *
+   * So it closes on the way out (the handlers below) and again on the way
+   * back, which is this. Two belts, because they cover different journeys: the
+   * handlers catch the action, and the focus catches every other route home —
+   * a swipe down on the sheet, a hardware back, a sheet that dismisses itself
+   * after a confirm.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      setDrawer(false);
+    }, []),
+  );
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
@@ -77,8 +99,14 @@ export default function Session() {
           variant={empty ? 'empty-table' : 'resting'}
           open={drawer}
           onOpenChange={setDrawer}
-          onRebuy={() => router.push({ pathname: '/pick', params: { kind: 'buyin' } })}
-          onBill={() => router.push('/bill')}
+          onRebuy={() => {
+            setDrawer(false);
+            router.push({ pathname: '/pick', params: { kind: 'buyin' } });
+          }}
+          onBill={() => {
+            setDrawer(false);
+            router.push('/bill');
+          }}
           onSeat={() => {
             setDrawer(false);
             router.push('/seat');
