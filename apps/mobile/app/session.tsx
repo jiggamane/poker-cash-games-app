@@ -86,11 +86,6 @@ export default function Session() {
       title="Tonight"
       backTo="the club"
       badge={<LiveTag startedAt={night.startedAt} empty={empty} />}
-      trailing={
-        <Text style={[styles.started, { color: t.muted }]}>
-          {empty ? 'opened' : 'started'} {clock(night.startedAt)}
-        </Text>
-      }
       scroll={false}
       dimmed={drawer}
       footerPad={false}
@@ -153,6 +148,16 @@ export default function Session() {
                 : out === 0
                   ? `${seated.length} seated`
                   : `${seated.length} seated · ${out} out`}
+            </Text>
+            {/* WHEN THE NIGHT STARTED SITS WITH WHO IS AT THE TABLE.
+                It was at the right edge of the title row, where it and the
+                running-time tag between them left "Tonight" too little to keep
+                one line. Here it is a fact about the night beside the other
+                two, the tag stays beside the title where it was drawn, and the
+                column is still shorter than the figure next to it — so the
+                card does not grow. */}
+            <Text style={[styles.started, { color: t.dim }]}>
+              {empty ? 'opened' : 'started'} {clock(night.startedAt)}
             </Text>
           </View>
         </View>

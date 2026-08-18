@@ -18,10 +18,6 @@ import { Pill } from './Pill';
  *   title row   26 / 20 / 0    back 36×36, title 800 32/1, badge after it
  *   meta line    8 / 20 / 0 / 68   500 13 muted, indented under the title
  *
- * A screen carrying both a badge and a trailing text — Tonight, and nothing
- * else — stacks the two at the right edge instead of spreading them across the
- * row, so the title is never the thing that has to give. See the title row.
- *
  * THE TOP-RIGHT CORNER IS EMPTY. No actions, no overflow, no icons — not even
  * the home glyph this component used to carry, and not the receipt and house
  * that used to sit on the night screen. Bill lives in the dock; the club is
@@ -52,9 +48,11 @@ export function Screen({
    * controls: that rule is what keeps a push and a sheet telling different
    * stories.
    *
-   * Where a badge is present too it sits under it, right-aligned, rather than
-   * beside it — two elements pulling at opposite ends of the row is what broke
-   * the title.
+   * NOT alongside a badge. A badge and a trailing text pull at opposite ends
+   * of the row and leave the title — the one child that shrinks — to absorb
+   * what is left; on Tonight that broke "Tonight" mid-word. Where a screen
+   * wants both, one of them belongs somewhere else: Tonight's start time is a
+   * line on the On-the-table card. See docs/tonight-title-row.md.
    */
   trailing?: ReactNode;
   /** Club · elapsed · since. One line, and it may be a fragment. */
@@ -109,36 +107,8 @@ export function Screen({
           {title}
         </Text>
 
-        {/* A badge AND a right-hand text is Tonight, and only Tonight. The
-            four of them — button, "Tonight", the running-time tag and
-            "started 20:05" — need 342 of the 362pt the drawn row has. Nineteen
-            points of spare, and every one is spent by something the board could
-            not draw: the tenth hour, where the tag takes a second hour digit,
-            costs 8; a 393pt phone costs 9; a 375pt one costs 27. The title is
-            the only child of the row that shrinks, so the title is what gave —
-            and "Tonight" is one word, so it wrapped INSIDE the word, "Tonig /
-            ht", beside a tag it was drawn to sit next to.
-
-            The two of them stack instead. They are one thought — how long, and
-            since when — they share a right edge, and the row now costs the
-            title one element's width rather than two. That holds a one-line
-            title at every width the app runs at, and through the standard text
-            sizes (it runs out around 145%, where the accessibility sizes
-            begin). Everywhere else the row is unchanged: a badge alone still
-            sits directly after the title, a step count alone still sits at the
-            right edge. `docs/tonight-title-row.md` has the arithmetic and the
-            two layouts this was chosen over. */}
-        {badgeNode !== undefined && trailing !== undefined ? (
-          <View style={styles.when}>
-            {badgeNode}
-            {trailing}
-          </View>
-        ) : (
-          <>
-            {badgeNode}
-            {trailing !== undefined && <View style={styles.trailing}>{trailing}</View>}
-          </>
-        )}
+        {badgeNode}
+        {trailing !== undefined && <View style={styles.trailing}>{trailing}</View>}
       </View>
 
       {meta !== undefined && (
@@ -210,11 +180,6 @@ const styles = StyleSheet.create({
   },
   title: { ...type.title, flexShrink: 1 },
   trailing: { marginLeft: 'auto' },
-  // The tag over the start time, right edges aligned. 6 is the gap the boards
-  // put between a figure and the line labelling it — the card's own right side
-  // stacks "$5,000 total in" over "5 seated" at 3, but that pair is two lines
-  // of text; this one has a pill's 6pt of padding under it already.
-  when: { marginLeft: 'auto', alignItems: 'flex-end', gap: 6 },
   meta: {
     ...type.pushMeta,
     paddingTop: chrome.metaPadTop,
