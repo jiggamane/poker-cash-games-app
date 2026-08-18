@@ -37,6 +37,51 @@ export const isTonight = (
 ): boolean => n !== null && !n.seeded && n.status !== 'settled';
 
 /**
+ * What a table is called while it is the only one.
+ *
+ * It is a time, not a name, and that is the point: with one game running there
+ * is nothing to tell apart, and "Tonight" is what a host calls it out loud.
+ */
+export const FIRST_TABLE = 'Tonight';
+
+/**
+ * What that table becomes the moment a second one opens.
+ *
+ * Two cards on home, and the only thing separating them is their names — so
+ * "Tonight" stops being one. It cannot mean this table when the other one is
+ * also tonight. The first table is the main one by definition: it is the one
+ * that was already running.
+ */
+export const MAIN_TABLE = 'Main table';
+
+/**
+ * The name an existing table takes when another opens beside it, or null when
+ * it already has a name of its own and keeps it.
+ */
+export const renamedForSecondTable = (name: string): string | null =>
+  name.trim() === FIRST_TABLE ? MAIN_TABLE : null;
+
+/**
+ * Is this name usable for a new table?
+ *
+ * Empty is not a name, "Tonight" is not a name once there are two, and a name
+ * another open table already answers to is worse than either — the host would
+ * be choosing between two identical cards with money on both.
+ */
+export function tableNameProblem(
+  typed: string,
+  openNames: readonly string[],
+): 'empty' | 'reserved' | 'taken' | null {
+  const name = typed.trim();
+  if (name === '') return 'empty';
+  if (name === FIRST_TABLE) return 'reserved';
+  const taken = openNames.some((n) => n.trim().toLowerCase() === name.toLowerCase());
+  // A table called "Main table" is only a clash once the rename has happened,
+  // which is exactly what `openNames` will say by then.
+  return taken ? 'taken' : null;
+}
+
+/**
  * Which night the app opens on.
  *
  * A phone can hold several. It is seeded with the sample night so there is a

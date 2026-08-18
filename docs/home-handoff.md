@@ -50,40 +50,39 @@ Consequences, stated so nobody has to rediscover them:
 
 ### States
 
-**Rendered and reachable:** H1 idle · H2 one game live · H5 brand-new club ·
+**All nine.** H1 idle · H2 one game live · H3 two or more, one card each,
+newest first · H4 a live table beside one still counting · H5 brand-new club ·
 H6 long names and big numbers · H7 player-not-host · H8 first paint (skeletons
 in the exact geometry the card will take) · H9 offline.
-
-**Rendered, reachable, partly stated:** H4's unsettled card — a night that has
-ended and is being counted gets the amber "COUNTING · NOT SETTLED" card with
-Settle up on it, and it is never hidden.
 
 ---
 
 ## What the app could not honour
 
-### Two games at once — H3, and half of H4 and H2
+### ~~Two games at once~~ — done
 
-`nightStore` holds **one** night. Not one at a time by policy — one by
-construction: `useNight()` is a single object, `/session` takes no night id, and
-`whichNight.ts` picks the single most recent real night for every screen in the
-app to agree on. So:
+The store held **one** night, so H3 could not be drawn and the start affordance
+was hidden while a game was on. That is fixed rather than documented now:
 
-- **H3 (two or more live games) cannot be reached.** The card list is written as
-  a list and will render N cards, but nothing can produce a second one.
-- **H4's pairing cannot be reached.** The unsettled card renders; a live card
-  beside it does not, because the same night cannot be both.
-- **H2's "never hide the start affordance" is not honoured while a game is
-  live.** "Start another game" is not drawn. Starting a second night today would
-  not open a second table — `startNight` would replace the current one, and the
-  night it replaced is money on a table that the app can no longer reach.
-  A refusing button is the failure the home screen was rebuilt to remove, so the
-  affordance is absent rather than dishonest.
+- `night` rows carry a `table_name`, and the store lists every unsettled one
+  (`useOpenGames`), each read and resolved **through the engine** so the seat
+  count on a card cannot disagree with the screen it opens.
+- `openNightById` swaps which table every screen below home is about, so a card
+  is a choice rather than a guess.
+- `startNight` adds a table instead of replacing one, and settles the names
+  first: while there is one game it is "Tonight"; the moment a second opens,
+  the first becomes "Main table" and the new one is named by the host. The rule
+  is `renamedForSecondTable` / `tableNameProblem` in `whichNight.ts`, asserted
+  in its tests, because two cards with money on them and the same name is the
+  one outcome nobody could recover from.
+- The setup sheet no longer refuses. Its "A night is already running" button is
+  gone; it asks what this table is called instead.
+- `setStatus('counting')` stamps `ended_at`, so the unsettled card can say when
+  the game stopped rather than when it started.
 
-Making these three real is one change: nights become a list, every route that
-means "the night" carries an id, and `startNight` stops replacing. It touches
-the store, the router and every screen in the ending flow. It is not a screen
-pass and it should not be smuggled into one.
+**Still true:** the ending flow and every screen below home operate on the one
+night the store is holding. That is now a deliberate rule — a table is chosen on
+home and everything after is about that table — rather than an accident.
 
 ### The timer does not freeze offline — H9
 
@@ -98,12 +97,11 @@ would print a figure the app knows to be wrong. So home shows the banner, states
 when the app last reached the server, and keeps counting. The freezing belongs
 on the watcher screen, where the data really does come from somewhere else.
 
-### "ended 23:14" on the unsettled card
+### Stakes are a buy-in, not blinds
 
-The app does not record **when** a night stopped being played — `status` moves
-to `counting` and no timestamp is written. The card states the start time
-instead. Adding `ended_at` is a migration and a store change; it is small, and
-it is not a screen change.
+H1 and H3 state stakes as `$5 / $5`. This app has a buy-in and no blinds at all,
+so the card states the buy-in the night was opened with. Blinds would be a rule
+on the club and a column on the night; nothing in the money math wants them yet.
 
 ---
 
@@ -115,7 +113,7 @@ than copied off a frame. Each one is a place to check against `H*`:
 | Where | Shipped | Why |
 |---|---|---|
 | H7 eyebrow | `Hosted by <name>` | The rule says "eyebrow names the host" and gives no string. |
-| "The group" sub-line | `6 players · buy-in $500` | No sub-line is quoted for this row. This is GR1's own club meta line from the previous handoff, so it is at least the app's existing vocabulary. |
+| Table names | `Tonight` → `Main table`, then whatever the host types | Both words are the board's own; which of them applies when is the rule above. |
 | Sessions sub-line | `every night you played, most recent first` | The app's existing string for the same destination. |
 | Unsettled card meta | `started 23:14 · 2 still to count` | "N still to count" is the count-up screen's own phrasing. |
 | Offline, never yet connected | `No connection · reconnecting` | The quoted banner states a saved time; before the first successful reach there is none, and inventing one would be the stale figure the state exists to prevent. |
@@ -137,8 +135,8 @@ Run at 393 × 852 in both themes.
 | 2 | Long table name | The card title truncates on one line; the status label is never allowed to. ✅ |
 | 3 | Six seated, six rows reachable | Home states the count; the list is the session screen's. ✅ |
 | 4 | No row shorter than 74pt | 75pt of content plus its hairline. The 1 over comes from a 22 line box on a 21 title, which is the 1.05 the app uses everywhere to keep a descender inside its box. ✅ |
-| 5 | Two games live | **Not reachable** — see above. |
-| 6 | Live plus unsettled | **Not reachable** as a pair; the unsettled card itself is. |
+| 5 | Two games live | Both cards named and equal weight, "Start another game" still present. ✅ |
+| 6 | Live plus unsettled | Both cards visible, Settle up reachable from the amber card, starting another still allowed. ✅ |
 | 7 | `₾128,400` | Symbol comes from the club, no shrink-to-fit anywhere. ✅ |
 | 8 | `14h 08m` and `just opened` | Both fit the status line without wrapping. ✅ |
 | 9 | Airplane mode | Banner with the saved time, invite disabled, timer honestly still running — see above. ⚠ |

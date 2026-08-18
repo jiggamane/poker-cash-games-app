@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { formatMoney, money, type Money, type PlayerId } from '@poker-club/core';
 import { Button } from '../src/components/Button';
+import { Field } from '../src/components/Field';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
@@ -15,7 +16,7 @@ import {
   useClub,
   type Inherited,
 } from '../src/lib/clubStore';
-import { isTonight, startNight, useNight } from '../src/lib/nightStore';
+import { startNight, tableNameProblem, useOpenGames } from '../src/lib/nightStore';
 
 /**
  * Setting up the game. 12-the-group.md § 2.
@@ -32,7 +33,7 @@ import { isTonight, startNight, useNight } from '../src/lib/nightStore';
 export default function NewNight() {
   const t = useTheme();
   const club = useClub();
-  const night = useNight();
+  const open = useOpenGames();
 
   const [inherited, setInherited] = useState<Inherited | null>(null);
   const [picked, setPicked] = useState<Record<PlayerId, string>>({});
@@ -40,6 +41,8 @@ export default function NewNight() {
   /** O2, folded into O1: a name typed here joins the roster and sits down. */
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
+  /** What to call this table, asked only when it is not the club's only one. */
+  const [tableName, setTableName] = useState('');
 
   useEffect(() => {
     if (club === null) return;
@@ -58,9 +61,22 @@ export default function NewNight() {
     }))
     .filter((s) => s.buyIn > 0);
 
-  // The same rule the home card uses, so the two cannot disagree about whether
-  // there is a game on. See `isTonight`.
-  const running = isTonight(night);
+  /*
+   * A SECOND TABLE IS A NORMAL THING TO OPEN.
+   *
+   * This sheet used to refuse: with a game running its only button read "A
+   * night is already running" and led back to it. A club that puts eight people
+   * round one table and four round another had nowhere to go, and the refusal
+   * was not protecting anything — the ledger has always been per night.
+   *
+   * What a second table does need is a name. While there is one game it is
+   * "Tonight"; the moment there are two, both cards on home are told apart by
+   * nothing else, so this asks — and `tableNameProblem` is the same rule the
+   * store enforces when it writes the row.
+   */
+  const others = open.map((g) => g.tableName);
+  const second = others.length > 0;
+  const nameProblem = second ? tableNameProblem(tableName, others) : null;
 
   /*
    * Which seat is the host's own. It is stamped onto the night at birth and it
@@ -76,7 +92,7 @@ export default function NewNight() {
    */
   const me = club.members.find((m) => m.standing === 'admin');
 
-  async function open() {
+  async function openTable() {
     if (seats.length === 0 || busy || club === null || inherited === null) return;
     setBusy(true);
     try {
@@ -85,6 +101,8 @@ export default function NewNight() {
         groupName: club.name,
         rules: inherited.rules,
         seats,
+        buyIn: inherited.buyIn,
+        ...(second ? { tableName: tableName.trim() } : {}),
         // The club's roster is where a non-playing collector gets their name.
         nameOfCollector: (id) => club.members.find((m) => m.id === id)?.name,
         ...(me === undefined ? {} : { meId: me.id }),
@@ -135,29 +153,42 @@ export default function NewNight() {
       title="Set up the game"
       sub={club.name}
       footer={
-        running ? (
-          <Button
-            label="A night is already running"
-            variant="secondary"
-            onPress={() => {
-              router.back();
-              router.push('/session');
-            }}
-          />
-        ) : (
-          <Button
-            label={
-              seats.length === 0
-                ? 'Pick who is playing'
+        <Button
+          label={
+            seats.length === 0
+              ? 'Pick who is playing'
+              : nameProblem !== null
+                ? 'Name this table'
                 : `Open the table · ${seats.length} ${seats.length === 1 ? 'player' : 'players'}`
-            }
-            variant="primary"
-            disabled={seats.length === 0 || busy}
-            onPress={() => void open()}
-          />
-        )
+          }
+          variant="primary"
+          disabled={seats.length === 0 || nameProblem !== null || busy}
+          onPress={() => void openTable()}
+        />
       }
     >
+      {/* A second table is named before it is opened: two cards on home with
+          money on both are told apart by nothing else. The first table is not
+          asked — while it is the only one it is "Tonight". */}
+      {second && (
+        <View style={styles.tableName}>
+          <Field
+            label="This table"
+            value={tableName}
+            onChangeText={setTableName}
+            placeholder="Kitchen table"
+            autoCapitalize="sentences"
+            hint={
+              nameProblem === 'reserved'
+                ? 'Tonight is both tables now — this one needs a name of its own'
+                : nameProblem === 'taken'
+                  ? 'That is the other table’s name'
+                  : `${others.join(' · ')} already open`
+            }
+          />
+        </View>
+      )}
+
       {/* A summary, not a form. */}
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <View style={styles.cardRow}>
@@ -358,6 +389,7 @@ const styles = StyleSheet.create({
 
   list: { marginHorizontal: space.page },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
+  tableName: { marginHorizontal: space.card, marginBottom: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 4 },
   pick: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 },
   box: {

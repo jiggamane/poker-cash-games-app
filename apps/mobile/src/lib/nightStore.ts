@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
@@ -16,7 +16,7 @@ import {
   type ResolvedLedger,
 } from '@poker-club/core';
 import { recordEntry } from './ledgerRepo';
-import { CURRENT_NIGHT } from './whichNight';
+import { CURRENT_NIGHT, FIRST_TABLE, renamedForSecondTable } from './whichNight';
 
 /**
  * The night, on this phone.
@@ -140,6 +140,10 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
         'stakes TEXT',
         'default_buyin INTEGER',
         'ended_at TEXT',
+        // What this table is called. A club can run two at once, so the club's
+        // name (group_name) is not enough to tell them apart. Null on every
+        // row written before tables had names, which reads as "Tonight".
+        'table_name TEXT',
       ]) {
         try {
           await db.execAsync(`ALTER TABLE night ADD COLUMN ${column};`);
@@ -157,7 +161,15 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
 export interface Night {
   sessionId: string;
   groupName: string;
+  /**
+   * What this table is called — "Tonight" while it is the only one, a name the
+   * host gives it once the club is running two. Distinct per open table: it is
+   * the only thing telling two cards on home apart.
+   */
+  tableName: string;
   startedAt: string;
+  /** When the game stopped being played, set the moment counting starts. */
+  endedAt?: string;
   status: 'open' | 'counting' | 'settled';
   players: Player[];
   entries: LedgerEntry[];
@@ -226,7 +238,7 @@ export function useLedger(): ResolvedLedger | null {
 export const nameOf = (n: Night | null, id: PlayerId | null | undefined): string =>
   n?.players.find((p) => p.id === id)?.name ?? 'Someone';
 
-export { isTonight } from './whichNight';
+export { isTonight, FIRST_TABLE, MAIN_TABLE, tableNameProblem } from './whichNight';
 
 // ---------------------------------------------------------------------------
 // Loading
@@ -242,6 +254,10 @@ interface NightRow {
   me_id: string | null;
   /** Non-null only on the sample night. See SEED_VERSION in data/sampleNight. */
   seed_version: number | null;
+  table_name: string | null;
+  ended_at: string | null;
+  /** What a seat cost. Carried by pulled nights; null on locally started ones. */
+  default_buyin: number | null;
 }
 
 /**
@@ -279,7 +295,123 @@ export async function openNight(): Promise<Night> {
     }
   }
 
-  const sessionId = row!.session_id;
+  night = await readNight(row!);
+  emit();
+  return night;
+}
+
+/**
+ * Make one of the club's other tables the one every screen is looking at.
+ *
+ * A club can have two games open at once, and every screen below home —
+ * Tonight, the bill, the ending flow — reads "the night" from this store. So
+ * choosing a table on home is this call: the store swaps which night it holds,
+ * and the screens that follow are about that table without knowing there was a
+ * choice. It is the same load path as `openNight`, by id instead of by rule.
+ */
+export async function openNightById(sessionId: string): Promise<Night | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<NightRow>(
+    `SELECT * FROM night WHERE session_id = ?`,
+    sessionId,
+  );
+  if (row === null) return null;
+  night = await readNight(row);
+  emit();
+  return night;
+}
+
+/**
+ * Every table this club has open, newest first.
+ *
+ * Home draws one card per game, so it needs a list rather than the one night
+ * the store is holding — and the figures on those cards have to agree with the
+ * screens they lead to. So each one is READ AND RESOLVED THROUGH THE ENGINE,
+ * exactly as the session screen does it, rather than counted with a clever
+ * SELECT: a seat count derived twice is two implementations of the same sum,
+ * and the one on home would be the untested one.
+ *
+ * There are never many. Two tables is the case this exists for, three is a
+ * long night, and a settled night is not in the list at all.
+ */
+export interface OpenGame {
+  sessionId: string;
+  tableName: string;
+  startedAt: string;
+  endedAt: string | null;
+  status: 'open' | 'counting';
+  /** People with money in front of them right now. */
+  seated: number;
+  /** Everyone who played, which is what "2 of 6 stacks" counts against. */
+  played: number;
+  /** Stacks counted so far, for a night that has ended. */
+  counted: number;
+  /** What a seat costs at this table, when the night recorded one. */
+  buyIn: Money | null;
+}
+
+let games: OpenGame[] = [];
+const gameListeners = new Set<() => void>();
+const gamesSnapshot = (): OpenGame[] => games;
+const subscribeGames = (l: () => void): (() => void) => {
+  gameListeners.add(l);
+  return () => {
+    gameListeners.delete(l);
+  };
+};
+
+/** Re-read the list. Called whenever the night store changes underneath it. */
+export async function refreshOpenGames(): Promise<OpenGame[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<NightRow>(
+    `SELECT * FROM night
+      WHERE status != 'settled' AND seed_version IS NULL
+      ORDER BY started_at DESC`,
+  );
+
+  const next: OpenGame[] = [];
+  for (const row of rows) {
+    const n = await readNight(row);
+    const ledger = resolveLedger(n.entries);
+    const standings = standingsOf(n, ledger).filter((st) => st.played);
+    next.push({
+      sessionId: n.sessionId,
+      tableName: n.tableName,
+      startedAt: n.startedAt,
+      endedAt: n.endedAt ?? null,
+      status: n.status === 'counting' ? 'counting' : 'open',
+      seated: standings.filter((st) => st.atTable).length,
+      played: standings.length,
+      counted: n.finalCounts.size,
+      buyIn: (row.default_buyin as Money | null) ?? null,
+    });
+  }
+
+  games = next;
+  for (const l of gameListeners) l();
+  return games;
+}
+
+/**
+ * The tables on this phone, kept current.
+ *
+ * The list is derived from the same rows the night store writes, so it is
+ * re-read whenever that store emits — a buy-in changes a seat count, ending a
+ * night moves a card from live to counting, and neither should need a screen
+ * to remember to ask again.
+ */
+export function useOpenGames(): OpenGame[] {
+  const current = useNight();
+  useEffect(() => {
+    void refreshOpenGames().catch(() => {});
+  }, [current]);
+  return useSyncExternalStore(subscribeGames, gamesSnapshot, gamesSnapshot);
+}
+
+/** Read one night off the database. Touches nothing: the caller decides. */
+async function readNight(row: NightRow): Promise<Night> {
+  const db = await getDb();
+  const sessionId = row.session_id;
 
   const players = await db.getAllAsync<{ id: string; name: string; at_table: number }>(
     `SELECT id, name, at_table FROM night_player WHERE session_id = ? ORDER BY rowid`,
@@ -305,13 +437,15 @@ export async function openNight(): Promise<Night> {
     sessionId,
   );
 
-  night = {
+  return {
     sessionId,
-    groupName: row!.group_name,
-    startedAt: row!.started_at,
-    status: row!.status,
-    rules: JSON.parse(row!.rules_json),
-    ...(row!.me_id ? { meId: row!.me_id } : {}),
+    groupName: row.group_name,
+    tableName: row.table_name ?? FIRST_TABLE,
+    startedAt: row.started_at,
+    ...(row.ended_at ? { endedAt: row.ended_at } : {}),
+    status: row.status,
+    rules: JSON.parse(row.rules_json),
+    ...(row.me_id ? { meId: row.me_id } : {}),
     players: players.map((p) => ({ id: p.id, name: p.name, atTable: p.at_table === 1 })),
     entries: entries.map((e) => ({
       id: e.id,
@@ -327,12 +461,9 @@ export async function openNight(): Promise<Night> {
     finalCounts: new Map(counts.map((c) => [c.player_id, c.amount as Money])),
     occurredAt: Object.fromEntries(entries.map((e) => [e.id, e.occurred_at])),
     noteOf: Object.fromEntries(entries.filter((e) => e.note).map((e) => [e.id, e.note!])),
-    seeded: row!.seed_version !== null,
-    ...(row!.ack_json ? { acknowledgement: JSON.parse(row!.ack_json) } : {}),
+    seeded: row.seed_version !== null,
+    ...(row.ack_json ? { acknowledgement: JSON.parse(row.ack_json) } : {}),
   };
-
-  emit();
-  return night;
 }
 
 interface Seed {
@@ -894,6 +1025,14 @@ export function draftRule(destination: MoneyRule['destination'], sortOrder: numb
 export async function startNight(input: {
   clubId: string;
   groupName: string;
+  /** What to call this table. Empty means the first one, which is "Tonight". */
+  tableName?: string;
+  /**
+   * What a seat costs here. Recorded on the night because home states it on a
+   * card the moment a club has two tables — the whole reason the figure is on
+   * the card is that it now differs between them.
+   */
+  buyIn?: Money;
   rules: readonly MoneyRule[];
   seats: ReadonlyArray<{ playerId: PlayerId; name: string; buyIn: Money }>;
   meId?: PlayerId;
@@ -916,14 +1055,44 @@ export async function startNight(input: {
   );
   for (const s of seeded) await forgetNight(s.session_id);
 
+  /*
+   * A CLUB CAN RUN TWO TABLES, so this adds a night rather than replacing one.
+   *
+   * What it has to do first is settle the names. While one game is running it
+   * is called "Tonight", which is a time and not a name — the moment a second
+   * one opens, the two cards on home are told apart by nothing else, and
+   * "Tonight" cannot mean this table when the other one is also tonight. So
+   * any table still carrying the default becomes the main one, which is what
+   * it is: the table that was already going.
+   */
+  const others = await db.getAllAsync<{ session_id: string; table_name: string | null }>(
+    `SELECT session_id, table_name FROM night
+      WHERE status != 'settled' AND seed_version IS NULL`,
+  );
+  for (const other of others) {
+    const renamed = renamedForSecondTable(other.table_name ?? FIRST_TABLE);
+    if (renamed === null) continue;
+    await db.runAsync(
+      `UPDATE night SET table_name = ? WHERE session_id = ?`,
+      renamed,
+      other.session_id,
+    );
+    if (night?.sessionId === other.session_id) night = { ...night, tableName: renamed };
+  }
+
+  const tableName = input.tableName?.trim() || FIRST_TABLE;
+
   await db.runAsync(
-    `INSERT INTO night (session_id, group_name, started_at, status, rules_json, me_id)
-     VALUES (?, ?, ?, 'open', ?, ?)`,
+    `INSERT INTO night
+       (session_id, group_name, table_name, started_at, status, rules_json, me_id, default_buyin)
+     VALUES (?, ?, ?, ?, 'open', ?, ?, ?)`,
     sessionId,
     input.groupName,
+    tableName,
     startedAt.toISOString(),
     JSON.stringify(input.rules),
     input.meId ?? null,
+    input.buyIn ?? null,
   );
 
   for (const seat of input.seats) {
@@ -981,6 +1150,7 @@ export async function startNight(input: {
   night = {
     sessionId,
     groupName: input.groupName,
+    tableName,
     startedAt: startedAt.toISOString(),
     status: 'open',
     players: [
@@ -1150,8 +1320,23 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
 export async function setStatus(status: Night['status']): Promise<void> {
   if (night === null) return;
   const db = await getDb();
-  await db.runAsync(`UPDATE night SET status = ? WHERE session_id = ?`, status, night.sessionId);
-  night = { ...night, status };
+
+  /*
+   * COUNTING IS WHEN THE GAME STOPPED. Home says "ended 23:52" on a night that
+   * is holding money, and until now nothing wrote that moment down: the row
+   * had a started_at and the app inferred the rest. A host settling up the
+   * next morning needs the time the cards stopped, not the time they looked.
+   * Stamped once — a night that goes back to counting keeps the first answer.
+   */
+  const endedAt = status === 'counting' ? (night.endedAt ?? new Date().toISOString()) : night.endedAt;
+
+  await db.runAsync(
+    `UPDATE night SET status = ?, ended_at = ? WHERE session_id = ?`,
+    status,
+    endedAt ?? null,
+    night.sessionId,
+  );
+  night = { ...night, status, ...(endedAt === undefined ? {} : { endedAt }) };
   emit();
 }
 

@@ -11,7 +11,13 @@ import { loadClubs, useClub, type Club } from '../src/lib/clubStore';
 import { useElapsed } from '../src/lib/elapsed';
 import { useOnline } from '../src/lib/online';
 import { toggleTheme } from '../src/lib/themeStore';
-import { isTonight, useLedger, useNight, type Night } from '../src/lib/nightStore';
+import {
+  openNightById,
+  useLedger,
+  useNight,
+  useOpenGames,
+  type OpenGame,
+} from '../src/lib/nightStore';
 
 /**
  * Club home — the root, and the only screen in the app with no back button.
@@ -68,14 +74,13 @@ export default function ClubHome() {
   const host = admin === undefined || meId === undefined || admin.id === meId;
 
   /*
-   * WHICH STATE. `isTonight` is the one rule for whether a night on this phone
-   * is a game being played — a seeded night is demo data and a settled one is
-   * history. Past that, `status` splits the two cards apart: a game still
-   * being played, and a game that has ended and is holding money until it is
-   * settled.
+   * ONE CARD PER GAME. A club can have two tables going at once, so this is a
+   * list and not a night: the store hands back every game that is not settled,
+   * newest first, each with the figures already resolved through the engine.
+   * Tapping one makes it the table every screen below home is about.
    */
-  const playing = isTonight(night) && night !== null && night.status === 'open' ? night : null;
-  const counting = isTonight(night) && night !== null && night.status === 'counting' ? night : null;
+  const games = useOpenGames();
+  const live = games.filter((g) => g.status === 'open');
 
   // H8 · first paint. The club is known long before the night is read off the
   // database, so everything known paints immediately and only the unknown
@@ -84,15 +89,10 @@ export default function ClubHome() {
 
   // H5 · a club with nobody in it yet has never played and has no rules to
   // inherit, so the card asks for the first session rather than the next one.
-  const fresh = club !== null && club.members.length <= 1 && !loading && playing === null;
+  const fresh = club !== null && club.members.length <= 1 && !loading && games.length === 0;
 
-  const seated =
-    playing === null || ledger === null
-      ? 0
-      : playing.players.filter((p) => p.atTable && (ledger.boughtInByPlayer.get(p.id) ?? 0) > 0)
-          .length;
   const mine =
-    playing === null || ledger === null || meId === undefined
+    ledger === null || meId === undefined
       ? null
       : ((ledger.boughtInByPlayer.get(meId) ?? 0) as Money);
 
@@ -127,32 +127,40 @@ export default function ClubHome() {
       <View style={styles.cards}>
         {loading ? (
           <CardSkeleton />
-        ) : playing !== null ? (
-          <LiveCard
-            startedAt={playing.startedAt}
-            meta={
-              host || mine === null
-                ? `${seated} at the table · the ledger is open`
-                : `you’re in for ${formatMoney(mine, symbol)} · ${seated} at the table`
-            }
-          />
-        ) : counting !== null ? (
-          <UnsettledCard night={counting} />
-        ) : host ? (
-          <StartCard club={club} fresh={fresh} symbol={symbol} />
-        ) : null}
+        ) : games.length === 0 ? (
+          host ? (
+            <StartCard club={club} fresh={fresh} symbol={symbol} />
+          ) : null
+        ) : (
+          <>
+            {games.map((game) =>
+              game.status === 'open' ? (
+                <LiveCard
+                  key={game.sessionId}
+                  game={game}
+                  symbol={symbol}
+                  /* One table and the card says what the ledger is doing;
+                     two and it says what the table costs, because that is
+                     the thing that now differs between them. */
+                  meta={
+                    !host && mine !== null && game.sessionId === night?.sessionId
+                      ? `you’re in for ${formatMoney(mine, symbol)} · ${game.seated} at the table`
+                      : games.length === 1
+                        ? `${game.seated} at the table · the ledger is open`
+                        : `${game.seated} at the table · ${game.buyIn === null ? '—' : formatMoney(game.buyIn, symbol)}`
+                  }
+                />
+              ) : (
+                <UnsettledCard key={game.sessionId} game={game} />
+              ),
+            )}
+            {host && <StartAnother open={live.length} />}
+          </>
+        )}
       </View>
 
       <View style={styles.rows}>
-        <Row
-          name="The group"
-          sub={
-            club === null
-              ? '—'
-              : `${club.members.length} players · buy-in ${formatMoney(club.defaultBuyIn, symbol)}`
-          }
-          to="/players"
-        />
+        <Row name="The group" sub="players, money rules, the kitty" to="/players" />
         <Row name="My stats" sub="across every group you play in" to="/stats" waiting={fresh} />
         <Row
           name="Sessions"
@@ -198,29 +206,47 @@ export default function ClubHome() {
  * its own, and it never wraps and never truncates: "PLAYING NOW · 3H…" is
  * worse than no status at all.
  */
-function LiveCard({ startedAt, meta }: { startedAt: string; meta: string }) {
+function LiveCard({ game, meta }: { game: OpenGame; symbol: string; meta: string }) {
   const t = useTheme();
-  const running = useElapsed(startedAt);
+  const running = useElapsed(game.startedAt);
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={() => router.push('/session')}
+      accessibilityLabel={`${game.tableName}, ${meta}`}
+      onPress={() => void goTo(game.sessionId)}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: t.text, opacity: pressed ? 0.9 : 1 },
       ]}
     >
-      <Text style={[styles.cardStatus, { color: t.onFillWin }]} numberOfLines={1}>
-        {`Playing now · ${running}`}
-      </Text>
-      <Text style={[styles.cardTitle, { color: t.onFill }]} numberOfLines={1}>
-        Tonight
-      </Text>
-      <Text style={[styles.cardMeta, { color: t.onFill }]} numberOfLines={1}>
-        {meta}
-      </Text>
+      <View style={styles.cardBody}>
+        <Text style={[styles.cardStatus, { color: t.onFillWin }]} numberOfLines={1}>
+          {`● Playing now · ${running}`}
+        </Text>
+        <Text style={[styles.cardTitle, { color: t.onFill }]} numberOfLines={1}>
+          {game.tableName}
+        </Text>
+        <Text style={[styles.cardMeta, { color: t.onFill }]} numberOfLines={1}>
+          {meta}
+        </Text>
+      </View>
+      <View style={styles.cardArrow}>
+        <Icon name="arrow" color={t.onFill} />
+      </View>
     </Pressable>
   );
+}
+
+/**
+ * Open one of the club's tables.
+ *
+ * The store holds one night at a time and every screen below home reads it, so
+ * choosing a card is a swap and then a push — never a push and then a swap, or
+ * Tonight paints the table you were looking at a moment ago.
+ */
+async function goTo(sessionId: string, to = '/session'): Promise<void> {
+  await openNightById(sessionId);
+  router.push(to);
 }
 
 /** H1 and H5 · no game running: the stakes are inherited, and the tap opens the night. */
@@ -236,53 +262,116 @@ function StartCard({ club, fresh, symbol }: { club: Club | null; fresh: boolean;
         { backgroundColor: t.text, opacity: pressed ? 0.9 : 1 },
       ]}
     >
-      <Text style={[styles.cardTitle, { color: t.onFill }]} numberOfLines={1}>
-        {fresh ? 'Start the first session' : 'Start a session'}
-      </Text>
-      <Text style={[styles.cardMeta, { color: t.onFill }]} numberOfLines={1}>
-        {fresh
-          ? 'You’ll set the buy-in and blinds once, here'
-          : `${formatMoney(club?.defaultBuyIn ?? (0 as Money), symbol)} buy-in · same rules as last time`}
-      </Text>
+      <View style={styles.cardBody}>
+        <Text style={[styles.cardTitle, { color: t.onFill }]} numberOfLines={1}>
+          {fresh ? 'Start the first session' : 'Start a session'}
+        </Text>
+        <Text style={[styles.cardMeta, { color: t.onFill }]} numberOfLines={1}>
+          {fresh
+            ? 'You’ll set the buy-in and blinds once, here'
+            : `${formatMoney(club?.defaultBuyIn ?? (0 as Money), symbol)} buy-in · same rules as last time`}
+        </Text>
+      </View>
+      <View style={styles.cardArrow}>
+        <Icon name="arrow" color={t.onFill} />
+      </View>
     </Pressable>
   );
 }
 
 /**
- * H4 · a night that has ended and is not settled.
+ * H4 · a game that has ended and is not settled.
  *
- * It is never hidden, because it holds money. Amber rather than the filled
- * card: it is not the thing to do next unless you are the one counting, and a
- * second filled card would compete with the live one when both are on screen.
+ * It is never hidden, because it holds money — and it never blocks starting
+ * another one either. Amber and unfilled: it is not the thing to do next
+ * unless you are the one counting, and a second filled card would compete with
+ * the live table beside it.
  */
-function UnsettledCard({ night }: { night: Night }) {
+function UnsettledCard({ game }: { game: OpenGame }) {
   const t = useTheme();
-  const left = night.players.length - night.finalCounts.size;
+  const left = game.played - game.counted;
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={() => router.push('/count-up')}
+      accessibilityLabel={`${game.tableName}, counting, not settled`}
+      onPress={() => void goTo(game.sessionId)}
       style={({ pressed }) => [
         styles.card,
         styles.cardUnsettled,
-        { backgroundColor: t.surface, borderColor: t.amber, opacity: pressed ? 0.9 : 1 },
+        { borderColor: t.amber, opacity: pressed ? 0.9 : 1 },
       ]}
     >
-      <Text style={[styles.cardStatus, { color: t.amber }]} numberOfLines={1}>
-        Counting · not settled
-      </Text>
-      <Text style={[styles.cardTitle, { color: t.text }]} numberOfLines={1}>
-        Tonight
-      </Text>
-      <Text style={[styles.cardMeta, { color: t.muted }]} numberOfLines={1}>
-        {`started ${clock(new Date(night.startedAt))} · ${left > 0 ? `${left} still to count` : 'every stack counted'}`}
-      </Text>
-      <View style={[styles.settle, { backgroundColor: t.text }]}>
-        <Text style={[styles.settleLabel, { color: t.onFill }]}>Settle up</Text>
+      <View style={styles.cardBody}>
+        <View style={styles.statusRow}>
+          <Icon name="clock" color={t.amber} size={13} />
+          <Text style={[styles.cardStatus, { color: t.amber }]} numberOfLines={1}>
+            Counting · not settled
+          </Text>
+          {/* The one action the card carries, and it is not where the card
+              itself goes: tapping the card opens the table, this finishes it. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Settle up ${game.tableName}`}
+            hitSlop={10}
+            onPress={() => void goTo(game.sessionId, '/count-up')}
+            style={({ pressed }) => [styles.pushRight, styles.settle, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Text style={[styles.settleLabel, { color: t.amber }]}>Settle up</Text>
+            <Icon name="chevron" color={t.amber} size={13} />
+          </Pressable>
+        </View>
+        <Text style={[styles.cardTitle, { color: t.text }]} numberOfLines={1}>
+          {game.tableName}
+        </Text>
+        <Text style={[styles.cardMetaQuiet, { color: t.muted }]} numberOfLines={1}>
+          {`ended ${game.endedAt === null ? '—' : clock(new Date(game.endedAt))} · ${
+            left > 0 ? `${left} of ${game.played} stacks still uncounted` : 'every stack counted'
+          }`}
+        </Text>
       </View>
     </Pressable>
   );
 }
+
+/**
+ * "Start another game" — H2 and H3.
+ *
+ * A club can run a second table on the same night, so the start affordance is
+ * NEVER hidden because a game is on. Dashed and secondary: it must be reachable
+ * underneath the live card without competing with it.
+ */
+function StartAnother({ open }: { open: number }) {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => router.push('/new-night')}
+      style={({ pressed }) => [
+        styles.secondary,
+        { borderColor: t.dashed, opacity: pressed ? 0.6 : 1 },
+      ]}
+    >
+      <View style={[styles.plus, { borderColor: t.dashed }]}>
+        <Icon name="plus" color={t.text} size={13} />
+      </View>
+      <View style={styles.secondaryText}>
+        <Text style={[styles.secondaryTitle, { color: t.text }]} numberOfLines={1}>
+          Start another game
+        </Text>
+        <Text style={[styles.secondarySub, { color: t.muted }]} numberOfLines={1}>
+          {open > 1 ? `${count(open)} tables are already open` : 'a second table, same rules'}
+        </Text>
+      </View>
+      <View style={styles.pushRight}>
+        <Icon name="chevron" color={t.muted} />
+      </View>
+    </Pressable>
+  );
+}
+
+/** The drawn line counts in words, as the counting screen does. */
+const count = (n: number): string =>
+  ['no', 'one', 'two', 'three', 'four', 'five', 'six'][n] ?? String(n);
 
 /**
  * H8 · what the card looks like before the night is read off the disk.
@@ -363,7 +452,9 @@ function Row({
         </Text>
         {!waiting && (
           <View style={styles.pushRight}>
-            <Icon name="arrow" color={t.muted} />
+            {/* A row goes somewhere and a card opens something: the boards
+                draw the first with a chevron and the second with an arrow. */}
+            <Icon name="chevron" color={t.muted} />
           </View>
         )}
       </View>
@@ -451,27 +542,55 @@ const styles = StyleSheet.create({
 
   cards: { paddingHorizontal: home.gutter, gap: home.cardGapOuter },
   card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     paddingTop: home.cardPadTop,
     paddingHorizontal: home.cardPadH,
     paddingBottom: home.cardPadBottom,
     borderRadius: radius.card,
-    gap: home.cardGap,
   },
+  // The card's three lines. `min-width: 0` in every sense that matters here:
+  // the text column shrinks so the arrow keeps its place, rather than the
+  // arrow being pushed off the edge by a long table name.
+  cardBody: { flex: 1, minWidth: 0, gap: home.cardGap },
+  cardArrow: { flexShrink: 0 },
   // Nothing above the title on the idle card, so it opens a little further
   // down and breathes a little tighter.
-  cardIdle: { paddingTop: home.cardPadTopIdle, gap: home.cardGapIdle },
+  cardIdle: { paddingTop: home.cardPadTopIdle },
   cardUnsettled: { borderWidth: 1 },
-  cardStatus: { ...type.cardStatus, textTransform: 'uppercase' },
+  cardStatus: { ...type.cardStatus, textTransform: 'uppercase', flexShrink: 1 },
   cardTitle: type.cardTitle,
   cardMeta: { ...type.cardMeta, opacity: 0.62 },
-  settle: {
-    alignSelf: 'flex-start',
-    marginTop: 4,
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: radius.pressable,
-  },
+  cardMetaQuiet: type.cardMeta,
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  settle: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   settleLabel: type.homeDock,
+
+  // "Start another game": dashed, secondary, and never absent while a game is
+  // on. The 44 is the floor under everything tappable on this screen.
+  secondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: home.tap,
+    paddingVertical: home.secondaryPadV,
+    paddingHorizontal: home.secondaryPadH,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  plus: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryText: { flex: 1, minWidth: 0, gap: 2 },
+  secondaryTitle: type.secondary,
+  secondarySub: type.destinationSub,
 
   rows: { marginTop: home.listGap, marginHorizontal: home.rowGutter },
   row: { paddingVertical: home.rowPadV, gap: home.rowGap },

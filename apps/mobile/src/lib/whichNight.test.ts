@@ -1,6 +1,13 @@
 import { DatabaseSync } from 'node:sqlite';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CURRENT_NIGHT, isTonight } from './whichNight';
+import {
+  CURRENT_NIGHT,
+  FIRST_TABLE,
+  MAIN_TABLE,
+  isTonight,
+  renamedForSecondTable,
+  tableNameProblem,
+} from './whichNight';
 
 /**
  * Which night the app opens on.
@@ -159,5 +166,31 @@ describe('whether it is tonight', () => {
     for (const [seeded, status, expected] of table) {
       expect(isTonight({ seeded, status })).toBe(expected);
     }
+  });
+});
+
+/**
+ * What the tables are called.
+ *
+ * A club can run two games at once, and two cards on the home screen are told
+ * apart by nothing but their names. The rules are small and they are the only
+ * thing standing between a host and two identical cards with money on both, so
+ * they live here as values rather than inside a screen.
+ */
+describe('naming a table', () => {
+  it('renames the first table only while it is still called Tonight', () => {
+    expect(renamedForSecondTable(FIRST_TABLE)).toBe(MAIN_TABLE);
+    // A table the host has already named keeps the name they gave it.
+    expect(renamedForSecondTable('Kitchen table')).toBeNull();
+    expect(renamedForSecondTable(MAIN_TABLE)).toBeNull();
+  });
+
+  it('refuses a name that would leave two cards saying the same thing', () => {
+    expect(tableNameProblem('Kitchen table', ['Main table'])).toBeNull();
+    expect(tableNameProblem('   ', ['Main table'])).toBe('empty');
+    // "Tonight" cannot mean this table when the other one is also tonight.
+    expect(tableNameProblem('Tonight', ['Main table'])).toBe('reserved');
+    expect(tableNameProblem('main TABLE', ['Main table'])).toBe('taken');
+    expect(tableNameProblem(' Kitchen table ', ['Kitchen table'])).toBe('taken');
   });
 });
