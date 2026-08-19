@@ -21,27 +21,29 @@ directory and keep the names exactly as they are.**
 
 ## How this repo serves them
 
-GitHub Pages, in **branch mode**, pointed at this repository's `/docs` folder. That puts
-`index.html` at the site root, so the link is short enough to paste into a message:
+GitHub Pages, published by `.github/workflows/pages.yml` on every push to `main`.
+The workflow copies this folder to the site root, so `index.html` is the entry
+point and the link is short enough to paste into a message:
 
 ```
 https://jiggamane.github.io/poker-cash-games-app/
 ```
 
-with the rest at `/before.html`, `/night.html`, `/after.html`.
+with the rest at `/before.html`, `/night.html`, `/after.html`. **Those addresses
+are the ones this file has always given out and they have not changed.**
 
-To turn it on (one time, in the GitHub UI):
+The same workflow also publishes the app itself, one folder down at `/app/`, so
+a host away from the machine can open the current build on a phone — see
+`phone-preview.md`. That is why the boards are deployed by a workflow rather
+than by Pages' branch mode: branch mode can serve a folder that is committed,
+and the app is built, not committed.
 
-1. **Settings → Pages**
-2. **Source:** *Deploy from a branch*
-3. **Branch:** the branch holding these files, **Folder:** `/docs`
-4. **Save.** First build takes a minute or two.
+`.nojekyll` sits beside the boards so Pages copies the files through untouched
+instead of running them past Jekyll — which would also drop the app's `_expo/`
+bundle.
 
-`.nojekyll` sits beside the boards so Pages copies the files through untouched instead of
-running them past Jekyll.
-
-Nothing here is specific to GitHub Pages — Netlify, Vercel, Cloudflare Pages, or an S3
-bucket with public read all work the same way. Serve the folder, no framework preset, no
+Nothing about the boards themselves depends on any of this. Netlify, Vercel,
+Cloudflare Pages, or an S3 bucket with public read all serve them the same way. Serve the folder, no framework preset, no
 redirects, no rewrites, no trailing-slash rules. Four files, served as-is.
 
 ## What to know before looking at them
@@ -63,6 +65,8 @@ screen counts that the boards must agree with.
 ## Access
 
 Pages on a public repository is public, and these contain the product design in full.
-There is no unlisted tier: anyone who finds the URL can read them. If that matters, host
+There is no unlisted tier: anyone who finds the URL can read them. **The app preview at
+`/app/` is public on the same terms** — a stranger who guesses the URL gets the app, with
+its own empty database and no way into anybody's data, but they get it. If that matters, host
 them somewhere with basic-auth or a Cloudflare Access rule instead — nothing in the files
 depends on being public.
