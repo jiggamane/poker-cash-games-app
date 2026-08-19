@@ -216,6 +216,9 @@ export default function RuleEditor() {
                 <TextInput
                   value={String(rule.amount)}
                   onChangeText={(v) => set({ amount: money(Math.max(0, Number(v.replace(/\D/g, '')) || 0)) })}
+                  // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
+                  // to a digits-only keyboard.
+                  testID="amount"
                   keyboardType="number-pad"
                   style={[styles.setText, { color: t.text }]}
                 />
@@ -276,6 +279,9 @@ export default function RuleEditor() {
                   <View style={[styles.shareBox, { borderColor: t.hairline, backgroundColor: t.surface }]}>
                     <TextInput
                       value={String(shares.find((c) => c.playerId === p.id)?.amount ?? 0)}
+                      // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
+                      // to a digits-only keyboard.
+                      testID="amount"
                       keyboardType="number-pad"
                       onChangeText={(v) =>
                         set({

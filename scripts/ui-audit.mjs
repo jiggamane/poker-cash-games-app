@@ -21,6 +21,8 @@
  *     under the status bar or the home indicator, the indicator's own colour —
  *     cannot be measured here. They are device checks.
  *   · The keypad-up state needs a keyboard, which the browser does not raise.
+ *     WHICH keyboard an amount field asks for is checked (A8); where the
+ *     footer sits once it is up is not.
  *   · Row heights across SE and Pro Max need those widths; pass them with
  *     UI_AUDIT_WIDTH.
  */
@@ -179,6 +181,24 @@ const ROOM = `
     }
   }
 
+  // ---- A8 · money raises a digits keypad ----------------------------------
+  //
+  // Every amount field is marked with testID "amount" at the source, so this
+  // is the whole set rather than a guess at which boxes hold money. A decimal
+  // keyboard is a finding too: amounts are integers in minor units and Money
+  // refuses anything fractional, so a keypad offering a dot offers a value the
+  // engine will throw on.
+  for (const el of document.querySelectorAll('[data-testid="amount"]')) {
+    const mode = el.getAttribute('inputmode') ?? el.inputMode ?? '';
+    if (mode !== 'numeric') {
+      findings.push({
+        check: 'amount-keyboard',
+        detail: mode === '' ? 'no inputmode — raises the full keyboard' : 'inputmode ' + mode,
+        where: el.getAttribute('placeholder') || el.value || 'an amount field',
+      });
+    }
+  }
+
   // ---- 1 · only lists scroll ----------------------------------------------
   const doc = document.scrollingElement;
   if (doc && doc.scrollHeight > doc.clientHeight + 1) {
@@ -254,5 +274,7 @@ if (failures === 0) {
     console.log(`  ${String(n).padStart(4)}  ${check}`);
   }
 }
-console.log('not measurable here: safe-area checks (2, 5, 10), the keypad state (7), the boards (3).');
+console.log(
+  'not measurable here: safe-area checks (2, 5, 10), where the footer sits with the keyboard up (7), the boards (3).',
+);
 await browser.close();

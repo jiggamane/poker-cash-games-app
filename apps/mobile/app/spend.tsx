@@ -248,6 +248,9 @@ export default function SpendScreen() {
                   onChangeText={(v) =>
                     setShares((s) => ({ ...s, [pid]: v.replace(/[^0-9]/g, '') }))
                   }
+                  // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
+                  // to a digits-only keyboard.
+                  testID="amount"
                   keyboardType="number-pad"
                   placeholder="0"
                   placeholderTextColor={t.muted}
