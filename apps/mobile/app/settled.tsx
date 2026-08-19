@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, settle, type Money, type PlayerId } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
@@ -136,6 +136,26 @@ export default function NightResults() {
             {me === null ? 'Nothing to move: everyone left level.' : 'You owe nobody.'}
           </Text>
         )}
+
+        {/* E7. Settling and paying are separate — the book closed at the
+            table, the cash moves over the following week — so who has
+            actually handed money over is its own screen and not a state of
+            this one.
+            Offered on the WHOLE settlement, not on the reader's own share: a
+            host who owes nobody is exactly the person chasing everyone else,
+            and gating this on their own transfers hid the screen from them. */}
+        {result.transfers.length > 0 && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push('/payments')}
+            style={({ pressed }) => [styles.toPayments, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Text style={[styles.toPaymentsLabel, { color: t.text }]}>Who has paid</Text>
+            <View style={styles.toPaymentsChevron}>
+              <Icon name="chevron" color={t.muted} />
+            </View>
+          </Pressable>
+        )}
       </View>
     </Screen>
   );
@@ -212,5 +232,15 @@ const styles = StyleSheet.create({
   },
   transferText: type.rowName,
   transferAmount: { ...type.figure, marginLeft: 'auto' },
+  toPayments: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
+    paddingVertical: 15,
+  },
+  toPaymentsLabel: type.rowName,
+  toPaymentsChevron: { marginLeft: 'auto' },
+
   none: { ...type.footnote, paddingHorizontal: 4 },
 });

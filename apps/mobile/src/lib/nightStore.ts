@@ -94,6 +94,25 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
         PRIMARY KEY (session_id, player_id)
       );
 
+      -- Who has actually handed over the money — E7.
+      --
+      -- SETTLING AND PAYING ARE SEPARATE. The book closes at the table and the
+      -- cash moves over the following week, so this is not a ledger entry and
+      -- it changes no figure: a settled night stays settled whether or not
+      -- anybody has paid. One row per transfer that HAS been paid; a transfer
+      -- with no row here is waiting.
+      --
+      -- Keyed by the pair, which is safe because the settlement gives a
+      -- debtor and a creditor at most one transfer between them: paying
+      -- someone either finishes the debtor or empties the creditor.
+      CREATE TABLE IF NOT EXISTS night_payment (
+        session_id     TEXT NOT NULL,
+        from_player_id TEXT NOT NULL,
+        to_player_id   TEXT NOT NULL,
+        paid_at        TEXT NOT NULL,
+        PRIMARY KEY (session_id, from_player_id, to_player_id)
+      );
+
       -- What a settled night settled at, frozen at the moment it closed.
       --
       -- Only ever written for nights that arrive from the server: a night
@@ -163,6 +182,12 @@ export interface Night {
   entries: LedgerEntry[];
   /** The host's end-of-night count, for players still seated. */
   finalCounts: Map<PlayerId, Money>;
+  /**
+   * When each settled-up transfer was paid — E7. Keyed by `transferKey`, and
+   * absent means waiting. It settles nothing: a night is settled by its
+   * ledger, and this is the week afterwards.
+   */
+  paidAt: Map<string, string>;
   rules: MoneyRule[];
   /**
    * The player row this device belongs to, when it is known. It decides whose
@@ -425,6 +450,11 @@ async function readNight(row: NightRow): Promise<Night> {
     sessionId,
   );
 
+  const paid = await db.getAllAsync<{ from_player_id: string; to_player_id: string; paid_at: string }>(
+    `SELECT from_player_id, to_player_id, paid_at FROM night_payment WHERE session_id = ?`,
+    sessionId,
+  );
+
   return {
     sessionId,
     groupName: row.group_name,
@@ -447,6 +477,7 @@ async function readNight(row: NightRow): Promise<Night> {
       spendGroup: e.spend_group,
     })),
     finalCounts: new Map(counts.map((c) => [c.player_id, c.amount as Money])),
+    paidAt: new Map(paid.map((p) => [transferKey(p.from_player_id, p.to_player_id), p.paid_at])),
     occurredAt: Object.fromEntries(entries.map((e) => [e.id, e.occurred_at])),
     noteOf: Object.fromEntries(entries.filter((e) => e.note).map((e) => [e.id, e.note!])),
     seeded: row.seed_version !== null,
@@ -467,7 +498,13 @@ interface Seed {
 async function forgetNight(sessionId: string): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {
-    for (const table of ['night_count', 'night_entry', 'night_player', 'night_settlement']) {
+    for (const table of [
+      'night_count',
+      'night_entry',
+      'night_payment',
+      'night_player',
+      'night_settlement',
+    ]) {
       await db.runAsync(`DELETE FROM ${table} WHERE session_id = ?`, sessionId);
     }
     await db.runAsync(`DELETE FROM night WHERE session_id = ?`, sessionId);
@@ -903,6 +940,49 @@ export async function seatAndBuyIn(name: string, amount: Money): Promise<PlayerI
   return id;
 }
 
+/**
+ * How one transfer is named, in the one place that decides it.
+ *
+ * The settlement is recomputed from the ledger every time anybody looks at it,
+ * so a payment cannot point at a transfer by identity — there isn't one. It
+ * points at the pair, and this is the only spelling of that.
+ */
+export const transferKey = (from: PlayerId, to: PlayerId): string => `${from}>${to}`;
+
+/**
+ * Mark one transfer paid — E7.
+ *
+ * NOT A LEDGER ENTRY, and deliberately not append-only: nothing about the
+ * night's result depends on it, so there is nothing here that needs to be
+ * unfalsifiable. The book closed at the table; this is the cash arriving over
+ * the following week.
+ *
+ * WHAT IS NOT BUILT: unmarking. E7 draws Mark paid on waiting rows and draws
+ * nothing on paid ones, so there is no way back from a mis-tap. Flagged rather
+ * than invented — but it is a real trap and the state that answers it is on
+ * the handoff's own "not drawn" list.
+ */
+export async function markPaid(from: PlayerId, to: PlayerId): Promise<void> {
+  if (night === null) return;
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO night_payment (session_id, from_player_id, to_player_id, paid_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT (session_id, from_player_id, to_player_id) DO NOTHING`,
+    night.sessionId,
+    from,
+    to,
+    new Date().toISOString(),
+  );
+  const row = await db.getFirstAsync<NightRow>(
+    `SELECT * FROM night WHERE session_id = ?`,
+    night.sessionId,
+  );
+  if (row === null) return;
+  night = await readNight(row);
+  emit();
+}
+
 /** The host's end-of-night count for one player. Overwrites: counting again is normal. */
 export async function setFinalCount(playerId: PlayerId, amount: Money): Promise<void> {
   if (night === null) throw new Error('No night is open.');
@@ -1169,6 +1249,7 @@ export async function startNight(input: {
     ],
     entries: [],
     finalCounts: new Map(),
+    paidAt: new Map(),
     rules: [...input.rules],
     ...(input.meId === undefined ? {} : { meId: input.meId }),
     occurredAt: {},

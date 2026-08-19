@@ -128,6 +128,8 @@ export default function RootLayout() {
          * dismiss.
          */}
         <Stack.Screen name="settled" />
+        {/* E7 is a PUSH: the week after the night is a place you come back to. */}
+        <Stack.Screen name="payments" />
 
         {/* Sheets. Each of these ends with one action and then gets out. */}
         <Stack.Screen name="player" options={SHEET} />
@@ -145,6 +147,7 @@ export default function RootLayout() {
         <Stack.Screen name="sign-in" options={SHEET} />
         <Stack.Screen name="member" options={SHEET} />
         <Stack.Screen name="hand-over" options={SHEET} />
+        <Stack.Screen name="nudge" options={SHEET} />
         <Stack.Screen name="new-group" options={SHEET} />
         <Stack.Screen name="new-night" options={SHEET} />
         {/* C3, over Players. Its reset and its QR replace this sheet's own

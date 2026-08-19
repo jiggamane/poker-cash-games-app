@@ -129,9 +129,12 @@ export default function HandOver() {
         </Text>
       </View>
 
+      {/* ONE TEXT NODE. Interpolating the name mid-sentence splits it into
+          three, and the fragment either side of the name wraps on its own. */}
       <Text style={[styles.footnote, { color: t.muted }]}>
-        Only a claimed player can be admin. Once handed over, only
-        {chosen === undefined ? ' they' : ` ${chosen.name}`} can hand it back — you cannot take it.
+        {`Only a claimed player can be admin. Once handed over, only ${
+          chosen === undefined ? 'they' : chosen.name
+        } can hand it back — you cannot take it.`}
       </Text>
     </Sheet>
   );

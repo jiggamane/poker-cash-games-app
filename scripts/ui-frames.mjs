@@ -68,6 +68,12 @@ const asked = process.argv.slice(2).filter((a) => !a.startsWith('--'));
  * empty sheet to a drawn full one reports a difference that is the check's own
  * fault. The ids are the sample night's, which are named for this.
  *
+ * `unreachable` marks a pair whose state cannot be opened by URL at all — a
+ * screen that only exists after a night has been counted and settled. The app
+ * renders its empty case, and comparing that to a full drawing measures
+ * nothing. It reports as not measurable rather than as drift, because a check
+ * that cannot see something must say so rather than guess.
+ *
  * `known` names a check whose difference has been decided — `{ footer: 'why' }`.
  * It prints the reason instead of the delta, because a check that keeps
  * reporting a settled question teaches people to skim the report. Unlike
@@ -80,6 +86,7 @@ const PAIRS = [
   ['/new-group', 'Journey Map 1 - Club and people', 'GR3 New group · step 1'],
   ['/players', 'Journey Map 1 - Club and people', 'GR4 Players', { skip: ['footer'] }],
   ['/member', 'Journey Map 1 - Club and people', 'GR5 Player · edit'],
+  ['/hand-over', 'Journey Map 1 - Club and people', 'GR9 Hand over admin'],
   ['/settings', 'Journey Map 1 - Club and people', 'GR7 Settings', { skip: ['footer'] }],
   ['/club-rules', 'Journey Map 1 - Club and people', 'GR8 Money rules', { skip: ['footer'] }],
   ['/bill-rules', 'Journey Map 1 - Club and people', 'L5 Bill rules', {
@@ -141,6 +148,18 @@ const PAIRS = [
     },
   ],
   ['/settled', 'Journey Map 3 - Settle and the book', 'E6 Night settled'],
+  [
+    '/payments',
+    'Journey Map 3 - Settle and the book',
+    'E7 Payments',
+    { unreachable: 'only exists once a night has been counted and settled' },
+  ],
+  [
+    '/nudge',
+    'Journey Map 2 - The night',
+    'E8 Nudge the table',
+    { unreachable: 'only exists once a night has been counted and settled' },
+  ],
   ['/games', 'Journey Map 3 - Settle and the book', '1A My games · Regular', { skip: ['footer'] }],
   ['/stats', 'Journey Map 3 - Settle and the book', 'G4 My stats', { skip: ['footer'] }],
 ];
@@ -370,6 +389,7 @@ await browser.close();
 // ---- the report ------------------------------------------------------------
 const pad = (s, n) => String(s ?? '—').padEnd(n);
 let off = 0;
+let unmeasured = 0;
 console.log(`frame by frame · ${light ? 'light' : 'dark'} · app at 393 × 852\n`);
 for (const { route, label, drawn, built, opts } of rows) {
   if (drawn === null) {
@@ -379,6 +399,11 @@ for (const { route, label, drawn, built, opts } of rows) {
   if (built === null || built.error !== undefined) {
     console.log(`${pad(route, 20)} the app did not render — ${built?.error ?? '?'}`);
     off += 1;
+    continue;
+  }
+  if (opts.unreachable !== undefined) {
+    console.log(`${pad(route, 20)} ${pad(label, 34)} not measurable — ${opts.unreachable}`);
+    unmeasured += 1;
     continue;
   }
   const notes = [];
@@ -431,9 +456,11 @@ for (const { route, label, drawn, built, opts } of rows) {
   }
 }
 console.log('\n' + '─'.repeat(72));
+const measured = rows.length - unmeasured;
 console.log(
-  off === 0
-    ? `every pair matches · ${rows.length} screens`
-    : `${off} of ${rows.length} differ · drawn → built`,
+  (off === 0
+    ? `every pair matches · ${measured} screens`
+    : `${off} of ${measured} differ · drawn → built`) +
+    (unmeasured === 0 ? '' : ` · ${unmeasured} not measurable here`),
 );
 console.log('copy, figures and seat counts are not compared: the board draws one night, the app renders another.');
