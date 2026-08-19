@@ -1,4 +1,5 @@
-import * as SQLite from 'expo-sqlite';
+import type * as SQLite from 'expo-sqlite';
+import { database } from './db';
 import type { EntryId, LedgerEntry, OutboxItem, OutboxStore } from '@poker-club/core';
 
 /**
@@ -20,50 +21,40 @@ import type { EntryId, LedgerEntry, OutboxItem, OutboxStore } from '@poker-club/
  * nowhere at all.
  */
 
-const DB_NAME = 'poker-club.db';
+/** The queue's tables, on the app's one connection. See `db.ts`. */
+const getDb = (): Promise<SQLite.SQLiteDatabase> =>
+  database('outbox', async (db) => {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS outbox_op (
+        id          TEXT PRIMARY KEY NOT NULL,
+        session_id  TEXT NOT NULL,
+        op_order    INTEGER NOT NULL,
+        kind        TEXT NOT NULL,
+        payload     TEXT NOT NULL,
+        attempts    INTEGER NOT NULL DEFAULT 0,
+        last_error  TEXT
+      );
+      CREATE INDEX IF NOT EXISTS outbox_op_order_idx ON outbox_op (op_order);
 
-let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+      CREATE TABLE IF NOT EXISTS seq_high_water (
+        session_id  TEXT PRIMARY KEY NOT NULL,
+        seq         INTEGER NOT NULL
+      );
 
-async function getDb(): Promise<SQLite.SQLiteDatabase> {
-  if (!dbPromise) {
-    dbPromise = SQLite.openDatabaseAsync(DB_NAME).then(async (db) => {
-      await db.execAsync(`
-        PRAGMA journal_mode = WAL;
+      -- One row, counting up forever. A queue that reset its numbering after
+      -- being emptied would put tomorrow's operations before yesterday's
+      -- unsent ones.
+      CREATE TABLE IF NOT EXISTS outbox_counter (
+        id     INTEGER PRIMARY KEY CHECK (id = 1),
+        value  INTEGER NOT NULL
+      );
+      INSERT OR IGNORE INTO outbox_counter (id, value) VALUES (1, 0);
+    `);
 
-        CREATE TABLE IF NOT EXISTS outbox_op (
-          id          TEXT PRIMARY KEY NOT NULL,
-          session_id  TEXT NOT NULL,
-          op_order    INTEGER NOT NULL,
-          kind        TEXT NOT NULL,
-          payload     TEXT NOT NULL,
-          attempts    INTEGER NOT NULL DEFAULT 0,
-          last_error  TEXT
-        );
-        CREATE INDEX IF NOT EXISTS outbox_op_order_idx ON outbox_op (op_order);
-
-        CREATE TABLE IF NOT EXISTS seq_high_water (
-          session_id  TEXT PRIMARY KEY NOT NULL,
-          seq         INTEGER NOT NULL
-        );
-
-        -- One row, counting up forever. A queue that reset its numbering after
-        -- being emptied would put tomorrow's operations before yesterday's
-        -- unsent ones.
-        CREATE TABLE IF NOT EXISTS outbox_counter (
-          id     INTEGER PRIMARY KEY CHECK (id = 1),
-          value  INTEGER NOT NULL
-        );
-        INSERT OR IGNORE INTO outbox_counter (id, value) VALUES (1, 0);
-      `);
-
-      // Entries queued by an older build, carried over rather than dropped:
-      // they are money the server has not seen yet.
-      await migrateLegacyOutbox(db);
-      return db;
-    });
-  }
-  return dbPromise;
-}
+    // Entries queued by an older build, carried over rather than dropped:
+    // they are money the server has not seen yet.
+    await migrateLegacyOutbox(db);
+  });
 
 /**
  * Move anything left in the pre-operation-log `outbox` table across.
@@ -169,6 +160,26 @@ export class SqliteOutboxStore implements OutboxStore {
         );
       }
     });
+  }
+
+  /**
+   * Record that a session already has entries up to `seq`, without queuing one.
+   *
+   * The high-water mark is normally raised by `add`, because normally every
+   * entry a device knows about passed through the queue on its way in. The
+   * sample night does not: it is written straight into the ledger tables, and
+   * without this the first entry a host makes on it would be allocated seq 1 —
+   * the number the seed's first buy-in already has. Two entries with one seq
+   * is a ledger that cannot be put in order.
+   */
+  async noteSeq(sessionId: string, seq: number): Promise<void> {
+    const db = await getDb();
+    await db.runAsync(
+      `INSERT INTO seq_high_water (session_id, seq) VALUES (?, ?)
+       ON CONFLICT (session_id) DO UPDATE SET seq = MAX(seq, excluded.seq)`,
+      sessionId,
+      seq,
+    );
   }
 
   async pending(limit: number): Promise<OutboxItem[]> {

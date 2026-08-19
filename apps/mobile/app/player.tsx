@@ -1,13 +1,21 @@
 import { useMemo } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, formatSigned, resolveLedger, type Money } from '@poker-club/core';
+import {
+  formatMoney,
+  formatSigned,
+  resolveLedger,
+  type EffectiveEntry,
+  type Money,
+} from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { lastRebuyAmount, standingOf, useNight } from '../src/lib/nightStore';
+import { usePending } from '../src/lib/pending';
+import { Pill } from '../src/components/Pill';
 
 /**
  * The player card — T2 at the table, T4 cashed out. 08-tonight-home.md.
@@ -23,6 +31,18 @@ import { lastRebuyAmount, standingOf, useNight } from '../src/lib/nightStore';
  *
  * The two secondaries are NOT red. Cashing out is a normal, expected act; only
  * ending the night is destructive, and that lives behind a hold in the dock.
+ *
+ * N12 — CORRECTED AND VOIDED ROWS. The ledger is append-only and the list says
+ * so: a corrected entry keeps its place, struck through and at the amount it
+ * was written at, and the correction is its own row underneath naming what it
+ * replaces. Nothing is edited and nothing disappears, because five people are
+ * relying on this record and a figure that can silently change is not a record.
+ * The totals in the card above come from the engine, which counts the
+ * correction only.
+ *
+ * N11 — QUEUED. A row still in the outbox is marked. It is written down and it
+ * is already in the figures; what has not happened is the rest of the table
+ * seeing it.
  */
 export default function PlayerCard() {
   const t = useTheme();
@@ -30,6 +50,7 @@ export default function PlayerCard() {
   const night = useNight();
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
+  const pending = usePending(night?.sessionId);
 
   if (night === null || ledger === null) {
     return <Sheet title="Player">{null}</Sheet>;
@@ -49,6 +70,7 @@ export default function PlayerCard() {
   const seated = standing?.atTable === true;
 
   const mine = ledger.entries.filter((e) => e.playerId === player.id);
+  const rows = entryRows(mine, night, pending.ids);
   const first = mine[0];
   const lastOut = [...mine].reverse().find((e) => e.type === 'cashout');
 
@@ -173,35 +195,53 @@ export default function PlayerCard() {
       <View style={styles.list}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Entries</Text>
 
-        {mine.map((e, i) => (
+        {rows.map((r, i) => (
           <Pressable
-            key={e.id}
+            key={r.key}
             accessibilityRole="button"
-            onPress={() => router.push({ pathname: '/entry', params: { id: e.id } })}
+            onPress={() => router.push({ pathname: '/entry', params: { id: r.entryId } })}
             style={({ pressed }) => [
               styles.row,
               {
                 borderBottomColor: t.hairline,
-                borderBottomWidth: i === mine.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
                 opacity: pressed ? 0.6 : 1,
               },
             ]}
           >
-            <Text style={[styles.time, { color: t.muted }]}>{clock(night.occurredAt[e.id])}</Text>
+            <Text style={[styles.time, { color: t.muted }]}>{clock(r.at)}</Text>
             <View style={styles.entryText}>
-              <Text style={[styles.entryType, { color: e.voided ? t.muted : t.text }]}>
-                {label(e.type, mine, i)}
-              </Text>
+              <View style={styles.entryHead}>
+                <Text
+                  style={[
+                    styles.entryType,
+                    r.struck && styles.struck,
+                    { color: r.struck ? t.muted : t.text },
+                  ]}
+                >
+                  {r.title}
+                </Text>
+                {r.mark !== undefined && <Pill label={r.mark.label} tone={r.mark.tone} />}
+              </View>
               <Text style={[styles.provenance, { color: t.muted }]} numberOfLines={1}>
-                {provenance(e, mine, i, night)}
+                {r.sub}
               </Text>
             </View>
-            <Text style={[styles.entryAmount, { color: t.text }]}>{formatMoney(e.amount)}</Text>
+            <Text style={[styles.entryAmount, { color: r.struck ? t.muted : t.text }]}>
+              {formatMoney(r.amount)}
+            </Text>
           </Pressable>
         ))}
 
-        {mine.length === 0 && (
+        {rows.length === 0 && (
           <Text style={[styles.note, { color: t.muted }]}>Nothing logged for them yet.</Text>
+        )}
+
+        {rows.some((r) => r.mark?.label === 'queued') && (
+          <Text style={[styles.queuedNote, { color: t.muted }]}>
+            A queued entry is written down and safe. It reaches the others when the phone gets a
+            signal; nothing is lost and nothing is guessed.
+          </Text>
         )}
       </View>
 
@@ -250,58 +290,142 @@ function StatPair({
   );
 }
 
-/** "First buy-in", "Second rebuy", "Cashed out" — what the line is. */
-function label(
-  kind: 'buyin' | 'rebuy' | 'cashout' | 'expense',
-  all: readonly { type: string }[],
-  index: number,
-): string {
-  if (kind === 'cashout') return 'Cashed out';
-  if (kind === 'buyin') return 'Buy-in';
-  const nth = all.slice(0, index + 1).filter((e) => e.type === 'rebuy').length;
-  return `${ordinal(nth)} rebuy`;
+/**
+ * "Buy-in", "Rebuy", "Cashed out" — WHAT the line is, and nothing more.
+ *
+ * Which rebuy it was belongs to the line underneath, where T2 puts it. Saying
+ * "Second rebuy" in both places printed the same three words twice, one above
+ * the other, and left no room for what the sub-line is actually for: what has
+ * happened to this entry since.
+ */
+function label(kind: 'buyin' | 'rebuy' | 'cashout' | 'expense'): string {
+  return kind === 'cashout' ? 'Cashed out' : kind === 'buyin' ? 'Buy-in' : 'Rebuy';
 }
 
 /**
- * The line under it: how deep this entry is, and what has happened to it since.
+ * One drawn row per thing that happened — N12.
  *
- * The drawn strings carry a "logged by Ivo" clause. Nothing in the app knows
- * who is holding the phone yet — there is no host identity in the store — so
- * that clause is left off rather than filled with a guess.
+ * The engine folds a correction into the entry it corrects, which is right for
+ * the arithmetic and wrong for the list: the screen has to show that the
+ * amount changed, when, and from what. So a corrected entry becomes TWO rows —
+ * the original at the amount it was written at, struck through, and the
+ * correction underneath it — and a voided one stays where it is, struck
+ * through, at nothing.
  *
- * A VOIDED entry has no written copy in the bundle (rev 8, § "What is not
- * settled"). The row must exist, so it uses the word this app already shipped
- * rather than a new sentence invented here. Flagged, not solved.
+ * Both rows open the same entry, because that is where the correction is made
+ * and there is only one entry underneath them.
+ *
+ * WHAT IS NOT BUILT: the drawn sub-line says "corrected by Marek at 23:10".
+ * Nothing records WHO made a correction — the ledger has no author column on
+ * the device or the server — so the clause is left off rather than filled with
+ * a guess. Flagged, not solved.
+ *
+ * A twice-corrected entry shows the first amount and the last, not the step
+ * between. The chain is in the ledger and the entry screen follows it; the
+ * card is a person's night, not an audit trail of one line.
  */
-function provenance(
-  e: { id: string; type: string; corrected: boolean; voided: boolean; originalAmount: Money },
+interface EntryRow {
+  key: string;
+  /** The ledger's own order. The list is a timeline and reads as one. */
+  seq: number;
+  /** Which entry tapping the row corrects. Always the base entry. */
+  entryId: string;
+  at: string | undefined;
+  title: string;
+  sub: string;
+  amount: Money;
+  struck: boolean;
+  mark?: { label: string; tone: 'plain' | 'muted' | 'amber' };
+}
+
+function entryRows(
+  mine: readonly EffectiveEntry[],
+  night: NonNullable<ReturnType<typeof useNight>>,
+  queued: ReadonlySet<string>,
+): EntryRow[] {
+  const out: EntryRow[] = [];
+
+  mine.forEach((e, i) => {
+    const at = night.occurredAt[e.id];
+    const name = label(e.type);
+    const gone = e.voided || e.corrected;
+
+    /* The row that replaced it, for both the time it happened and the amount. */
+    const correction = e.corrected
+      ? [...night.entries]
+          .filter((x) => x.correctsEntryId === e.id && x.type === 'correction')
+          .sort((a, b) => b.seq - a.seq)[0]
+      : undefined;
+    const when = correction === undefined ? undefined : night.occurredAt[correction.id];
+
+    out.push({
+      key: e.id,
+      seq: e.seq,
+      entryId: e.id,
+      at,
+      title: name,
+      // The pill says the line no longer counts and the strike shows it, so
+      // the sub-line says the one thing neither can: when it was replaced.
+      // A plain void keeps its depth — which rebuy this was is still what a
+      // reader is looking for.
+      sub:
+        e.corrected && when !== undefined
+          ? `replaced at ${clock(when)}`
+          : depth(e, mine, i),
+      // The original line keeps the figure it was written at. Showing the
+      // corrected amount here would put the same money on the screen twice.
+      amount: gone ? e.originalAmount : e.amount,
+      struck: gone,
+      // The board marks BOTH the voided line and the superseded one VOIDED —
+      // in an append-only ledger a correction is a reversal plus a new row,
+      // and the reader is being told the same thing either way: this line no
+      // longer counts. The sub-line says which of the two it was.
+      mark: gone
+        ? { label: 'voided', tone: 'muted' }
+        : queued.has(e.id)
+          ? { label: 'queued', tone: 'muted' }
+          : undefined,
+    });
+
+    if (!e.corrected) return;
+
+    out.push({
+      key: `${e.id}:correction`,
+      // A correction happened when it happened. Pinning it under the line it
+      // replaces would put 11:54 between 09:45 and 10:36, and the time column
+      // is the one thing on this screen a reader trusts to be in order. The
+      // two rows name each other instead.
+      seq: correction?.seq ?? e.seq,
+      entryId: e.id,
+      at: when,
+      // The money is still a rebuy; what is new is that it replaces one. The
+      // pill carries that, so the title stays what the line IS.
+      title: name,
+      sub: `replaces the ${clock(at)} ${name.toLowerCase()}`,
+      amount: e.amount,
+      struck: false,
+      mark: { label: 'correction', tone: 'plain' },
+    });
+  });
+
+  return out.sort((a, b) => a.seq - b.seq);
+}
+
+/** How deep this entry is: first buy-in, second rebuy, chips counted. */
+function depth(
+  e: { type: string },
   all: readonly { type: string }[],
   index: number,
-  night: NonNullable<ReturnType<typeof useNight>>,
 ): string {
-  if (e.voided) return 'voided';
-
-  const depth =
-    e.type === 'cashout'
-      ? 'stack counted · seat closed'
-      : e.type === 'buyin'
-        ? 'first buy-in'
-        : `${ordinal(all.slice(0, index + 1).filter((x) => x.type === 'rebuy').length)} rebuy`;
-
-  if (!e.corrected) return depth;
-
-  const correction = [...night.entries]
-    .filter((x) => x.correctsEntryId === e.id)
-    .sort((a, b) => b.seq - a.seq)[0];
-  const at = correction === undefined ? undefined : night.occurredAt[correction.id];
-
-  return `${depth} · corrected from ${formatMoney(e.originalAmount)}${
-    at === undefined ? '' : ` at ${clock(at)}`
-  }`;
+  return e.type === 'cashout'
+    ? 'stack counted · seat closed'
+    : e.type === 'buyin'
+      ? 'first buy-in'
+      : `${ordinal(all.slice(0, index + 1).filter((x) => x.type === 'rebuy').length)} rebuy`;
 }
 
 const ordinal = (n: number): string =>
-  n === 1 ? 'First' : n === 2 ? 'Second' : n === 3 ? 'Third' : `${n}th`;
+  n === 1 ? 'first' : n === 2 ? 'second' : n === 3 ? 'third' : `${n}th`;
 
 const clock = (iso: string | undefined): string =>
   iso === undefined
@@ -335,9 +459,12 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4 },
   time: { ...type.time, width: 44 },
   entryText: { gap: 2, flexShrink: 1 },
+  entryHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  struck: { textDecorationLine: 'line-through' },
   entryType: type.entryType,
   provenance: type.entryProvenance,
   entryAmount: { ...type.entryAmount, marginLeft: 'auto' },
+  queuedNote: { ...type.footnote, marginTop: 16, paddingHorizontal: 15 },
 
   settledNote: { marginTop: 14, marginHorizontal: 20, paddingTop: 12, borderTopWidth: 1 },
   settledText: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },

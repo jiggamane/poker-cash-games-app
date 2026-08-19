@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
-import { Platform } from 'react-native';
-import * as SQLite from 'expo-sqlite';
+import type * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
+import { database } from './db';
 import { money, type Money, type MoneyRule, type PlayerId } from '@poker-club/core';
 
 /**
@@ -21,15 +21,6 @@ import { money, type Money, type MoneyRule, type PlayerId } from '@poker-club/co
  * can never move. What the last game actually ran with becomes the next
  * game's suggestion — not the club's setting, which only Settings changes.
  */
-
-/*
- * WEB PREVIEW ONLY. expo-sqlite's browser build stores its file in OPFS, which
- * a sandboxed page cannot open — so on web the same SQLite runs in memory
- * instead. It means a browser preview starts from the seed every time it is
- * loaded and remembers nothing, which is what you want from a preview and
- * would be a bug anywhere else. Phones are untouched: they get the real file.
- */
-const DB_NAME = Platform.OS === 'web' ? ':memory:' : 'poker-club.db';
 
 /** Standing is per club: the same person can be admin here and a name there. */
 export type Standing = 'admin' | 'member' | 'name_only';
@@ -57,51 +48,45 @@ export interface Club {
 /** What the app falls back to when a club has said nothing. */
 export const APP_DEFAULT_BUY_IN = money(500);
 
-let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+/** The club's tables, on the app's one connection. See `db.ts`. */
+const getDb = (): Promise<SQLite.SQLiteDatabase> =>
+  database('club', async (db) => {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS club (
+        id             TEXT PRIMARY KEY NOT NULL,
+        name           TEXT NOT NULL,
+        currency       TEXT NOT NULL DEFAULT 'USD',
+        default_buy_in INTEGER,
+        rules_json     TEXT NOT NULL DEFAULT '[]',
+        created_at     TEXT NOT NULL
+      );
 
-async function getDb(): Promise<SQLite.SQLiteDatabase> {
-  if (!dbPromise) {
-    dbPromise = SQLite.openDatabaseAsync(DB_NAME).then(async (db) => {
-      await db.execAsync(`
-        CREATE TABLE IF NOT EXISTS club (
-          id             TEXT PRIMARY KEY NOT NULL,
-          name           TEXT NOT NULL,
-          currency       TEXT NOT NULL DEFAULT 'USD',
-          default_buy_in INTEGER,
-          rules_json     TEXT NOT NULL DEFAULT '[]',
-          created_at     TEXT NOT NULL
-        );
+      -- The roster. ONE list: standing is a column, not a second table, and
+      -- an outstanding invite is a flag on the row rather than a pending
+      -- queue somewhere else.
+      CREATE TABLE IF NOT EXISTS club_member (
+        club_id   TEXT NOT NULL,
+        id        TEXT NOT NULL,
+        name      TEXT NOT NULL,
+        standing  TEXT NOT NULL DEFAULT 'name_only',
+        invited   INTEGER NOT NULL DEFAULT 0,
+        pays_kitty INTEGER NOT NULL DEFAULT 1,
+        -- Removing somebody keeps every night they played. The ledger keeps
+        -- what they already played, always; this only stops them appearing
+        -- when players are seated.
+        removed   INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (club_id, id)
+      );
 
-        -- The roster. ONE list: standing is a column, not a second table, and
-        -- an outstanding invite is a flag on the row rather than a pending
-        -- queue somewhere else.
-        CREATE TABLE IF NOT EXISTS club_member (
-          club_id   TEXT NOT NULL,
-          id        TEXT NOT NULL,
-          name      TEXT NOT NULL,
-          standing  TEXT NOT NULL DEFAULT 'name_only',
-          invited   INTEGER NOT NULL DEFAULT 0,
-          pays_kitty INTEGER NOT NULL DEFAULT 1,
-          -- Removing somebody keeps every night they played. The ledger keeps
-          -- what they already played, always; this only stops them appearing
-          -- when players are seated.
-          removed   INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (club_id, id)
-        );
-
-        -- What the last session actually ran with, overrides included. It is
-        -- the middle layer of the chain and nothing else reads it.
-        CREATE TABLE IF NOT EXISTS club_last_game (
-          club_id    TEXT PRIMARY KEY NOT NULL,
-          buy_in     INTEGER,
-          rules_json TEXT
-        );
-      `);
-      return db;
-    });
-  }
-  return dbPromise;
-}
+      -- What the last session actually ran with, overrides included. It is
+      -- the middle layer of the chain and nothing else reads it.
+      CREATE TABLE IF NOT EXISTS club_last_game (
+        club_id    TEXT PRIMARY KEY NOT NULL,
+        buy_in     INTEGER,
+        rules_json TEXT
+      );
+    `);
+  });
 
 // ---------------------------------------------------------------------------
 // The store

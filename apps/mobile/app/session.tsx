@@ -9,6 +9,7 @@ import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { useElapsed } from '../src/lib/elapsed';
 import { defaultBuyIn, standingsOf, useNight } from '../src/lib/nightStore';
+import { usePending } from '../src/lib/pending';
 
 /**
  * Tonight — T1, with T3 (the drawer), T3b (the hold) and T5 (nobody in yet).
@@ -32,6 +33,9 @@ import { defaultBuyIn, standingsOf, useNight } from '../src/lib/nightStore';
 export default function Session() {
   const t = useTheme();
   const night = useNight();
+  /* N11: entries this phone has written and nobody else can see yet. Asked
+     for by session so a second table's queue is not counted onto this one. */
+  const pending = usePending(night?.sessionId);
   const [drawer, setDrawer] = useState(false);
 
   /*
@@ -96,6 +100,7 @@ export default function Session() {
       footer={
         <Dock
           variant={empty ? 'empty-table' : 'resting'}
+          waiting={pending.waiting}
           open={drawer}
           onOpenChange={setDrawer}
           onRebuy={() => {
