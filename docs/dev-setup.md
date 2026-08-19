@@ -52,6 +52,13 @@ npm start
 Scan the QR code with your phone's camera (iOS) or the Expo Go app (Android).
 The app opens on your phone and reloads as you edit. No build, no cable.
 
+**Away from this computer?** The QR code needs the dev server running on the
+same wifi, so it is no use from a train. Every merge to `main` also publishes
+the app to <https://jiggamane.github.io/poker-cash-games-app/app/>, which opens
+on any phone with nothing running anywhere. Read `phone-preview.md` first — it
+is the real app, but a browser cannot keep its data and cannot do the native
+gestures.
+
 Right now this shows a **scaffold smoke screen**, not a designed screen — it
 exists to prove the plumbing works. The real screens come from
 `design/Style Guide v2.dc.html`.

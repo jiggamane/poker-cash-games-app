@@ -35,3 +35,6 @@ pgdata/
 # ui-check output
 apps/mobile/.web/
 .ui-check/
+
+# Assembled site
+_site/

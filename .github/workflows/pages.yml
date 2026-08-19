@@ -1,0 +1,87 @@
+# Publish the site: the design boards, and the app you can open on a phone.
+#
+# The point of this workflow is that NOBODY HAS TO RUN IT. Every merge to main
+# rebuilds the app and republishes it, so a host who is away from the machine
+# opens one URL and sees whatever last shipped. docs/phone-preview.md is the
+# whole story, including what a browser cannot show you.
+#
+# It publishes docs/ at the site root as well, so the boards keep the exact
+# URLs PUBLISHING.md handed out.
+name: Publish the site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'docs/**'
+      - 'scripts/site-build.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and let a newer one win: what is published should be
+# the newest merge, not whichever job happened to finish last.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      # The money tests gate the publish for the same reason they gate a merge:
+      # a preview that settles a night wrongly is worse than no preview.
+      - run: npm run check
+
+      - name: Build the app for the browser
+        env:
+          # Pages serves a project site from /<repo>/, and the app one below
+          # that. apps/mobile/app.config.js explains why this is an env var.
+          WEB_BASE_URL: /${{ github.event.repository.name }}/app
+          # Optional. Set these two as repository secrets to sign in and sync
+          # from the preview; without them the app runs on-device only, which
+          # is a real mode and worth testing on its own. Both are safe to
+          # publish — see apps/mobile/.env.example.
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm --workspace @poker-club/mobile run export:web
+
+      - name: Assemble the site
+        run: node scripts/site-build.mjs "/${{ github.event.repository.name }}/app"
+
+      # `enablement` turns Pages on if it is off, so this works without anyone
+      # visiting the settings page.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
