@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,7 +6,7 @@ import { useTheme, useThemeName } from '../src/design/useTheme';
 import { home, radius, type } from '../src/design/tokens';
 import { Icon, type IconName } from '../src/components/Icon';
 import { currencyFor } from '../src/data/currencies';
-import { loadClubs, useClub, type Club } from '../src/lib/clubStore';
+import { useClub, type Club } from '../src/lib/clubStore';
 import { useElapsed } from '../src/lib/elapsed';
 import { useOnline } from '../src/lib/online';
 import { toggleTheme } from '../src/lib/themeStore';
@@ -47,21 +46,6 @@ export default function ClubHome() {
   const night = useNight();
   const ledger = useLedger();
   const online = useOnline();
-
-  // Seeded from tonight the first time: the players at that table are the
-  // club's roster, and whoever holds the phone is its admin.
-  useEffect(() => {
-    void loadClubs(
-      night === null
-        ? undefined
-        : {
-            name: night.groupName,
-            players: night.players.map((p) => ({ id: p.id, name: p.name })),
-            rules: night.rules,
-            ...(night.meId === undefined ? {} : { meId: night.meId }),
-          },
-    ).catch(() => {});
-  }, [night]);
 
   /*
    * WHO IS READING. The admin of a club is the person whose phone opened it,

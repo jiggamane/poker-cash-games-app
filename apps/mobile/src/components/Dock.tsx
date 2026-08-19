@@ -23,9 +23,15 @@ const HOLD_MS = 1500;
  * `variant` inverts the pair for an empty table: seating becomes the primary
  * and Bill goes dead, because there is nothing to split until somebody is in
  * for something.
+ *
+ * `waiting` is N11's count of entries the queue is still holding. It takes the
+ * hint's place rather than sitting beside it: the hint says what is behind the
+ * row, which a host learns once, and the count says the table is looking at an
+ * older night than this phone is, which is news every time.
  */
 export function Dock({
   variant = 'resting',
+  waiting = 0,
   open,
   onOpenChange,
   onRebuy,
@@ -35,6 +41,8 @@ export function Dock({
   onEnd,
 }: {
   variant?: 'resting' | 'empty-table';
+  /** Entries written down here that the rest of the table cannot see yet. */
+  waiting?: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onRebuy: () => void;
@@ -106,9 +114,14 @@ export function Dock({
         <Text style={[open ? styles.labelOpen : styles.label, { color: open ? t.text : t.muted }]}>
           Table admin
         </Text>
-        {!open && (
-          <Text style={[styles.hint, { color: t.dim }]}>seat · cash out · end</Text>
-        )}
+        {!open &&
+          (waiting > 0 ? (
+            <Text style={[styles.waiting, { color: t.muted }]}>
+              {waiting} waiting
+            </Text>
+          ) : (
+            <Text style={[styles.hint, { color: t.dim }]}>seat · cash out · end</Text>
+          ))}
       </Pressable>
 
       {open && (
@@ -239,6 +252,8 @@ const styles = StyleSheet.create({
   label: type.dockLabel,
   labelOpen: type.dockLabelOpen,
   hint: { ...type.dockHint, marginLeft: 'auto' },
+  // Heavier than the hint it replaces: the board sets the count at 13/700.
+  waiting: { fontSize: 13, fontWeight: '700', marginLeft: 'auto' },
 
   drawer: { gap: 8 },
   row: {

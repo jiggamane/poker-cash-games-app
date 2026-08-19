@@ -303,6 +303,9 @@ export default function NewNight() {
                   onChangeText={(v) =>
                     setPicked((p) => ({ ...p, [m.id]: v.replace(/[^0-9]/g, '') }))
                   }
+                  // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
+                  // to a digits-only keyboard.
+                  testID="amount"
                   keyboardType="number-pad"
                   style={[
                     styles.amount,

@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
-import { Platform } from 'react-native';
-import * as SQLite from 'expo-sqlite';
+import type * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
+import { database } from './db';
 import {
   formatMoney,
   money,
@@ -15,7 +15,7 @@ import {
   type PlayerId,
   type ResolvedLedger,
 } from '@poker-club/core';
-import { recordEntry } from './ledgerRepo';
+import { outbox, recordEntry } from './ledgerRepo';
 import {
   CURRENT_NIGHT,
   FIRST_TABLE,
@@ -37,131 +37,133 @@ import {
  * column would be a second, untested implementation of the same sum.
  */
 
-/*
- * WEB PREVIEW ONLY. expo-sqlite's browser build stores its file in OPFS, which
- * a sandboxed page cannot open — so on web the same SQLite runs in memory
- * instead. It means a browser preview starts from the seed every time it is
- * loaded and remembers nothing, which is what you want from a preview and
- * would be a bug anywhere else. Phones are untouched: they get the real file.
- */
-const DB_NAME = Platform.OS === 'web' ? ':memory:' : 'poker-club.db';
+/** The night's tables, on the app's one connection. See `db.ts`. */
+const getDb = (): Promise<SQLite.SQLiteDatabase> =>
+  database('night', async (db) => {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS night (
+        session_id  TEXT PRIMARY KEY NOT NULL,
+        group_name  TEXT NOT NULL,
+        started_at  TEXT NOT NULL,
+        status      TEXT NOT NULL DEFAULT 'open',
+        rules_json  TEXT NOT NULL,
+        -- Which player row is the person holding this phone. Null until
+        -- somebody claims their place; nothing in the money depends on it,
+        -- only on which figures a screen calls yours.
+        me_id       TEXT,
+        -- The host's confirmation of money that could not be accounted for.
+        -- Part of the night's record, not a UI flag: it is what allows a
+        -- night that does not add up to be closed at all.
+        ack_json    TEXT
+      );
 
-let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+      CREATE TABLE IF NOT EXISTS night_player (
+        session_id  TEXT NOT NULL,
+        id          TEXT NOT NULL,
+        name        TEXT NOT NULL,
+        at_table    INTEGER NOT NULL,
+        PRIMARY KEY (session_id, id)
+      );
 
-async function getDb(): Promise<SQLite.SQLiteDatabase> {
-  if (!dbPromise) {
-    dbPromise = SQLite.openDatabaseAsync(DB_NAME).then(async (db) => {
-      await db.execAsync(`
-        ${Platform.OS === 'web' ? '' : 'PRAGMA journal_mode = WAL;'}
+      -- Append-only, exactly as on the server: a correction is a new row.
+      CREATE TABLE IF NOT EXISTS night_entry (
+        session_id        TEXT NOT NULL,
+        id                TEXT NOT NULL,
+        seq               INTEGER NOT NULL,
+        type              TEXT NOT NULL,
+        player_id         TEXT,
+        payer_id          TEXT,
+        amount            INTEGER NOT NULL,
+        corrects_entry_id TEXT,
+        occurred_at       TEXT NOT NULL,
+        -- What the money was for: "Pizza", "Drinks". Display only — the
+        -- engine never reads it, which is why it is not on LedgerEntry.
+        note              TEXT,
+        -- A spend with no person behind it: 'kitty' or 'unpaid'. Mirrors the
+        -- server column added in migration 0004.
+        covered_by        TEXT,
+        -- Ties the several fronters of one spend back into one thing bought.
+        spend_group       TEXT,
+        PRIMARY KEY (session_id, id)
+      );
 
-        CREATE TABLE IF NOT EXISTS night (
-          session_id  TEXT PRIMARY KEY NOT NULL,
-          group_name  TEXT NOT NULL,
-          started_at  TEXT NOT NULL,
-          status      TEXT NOT NULL DEFAULT 'open',
-          rules_json  TEXT NOT NULL,
-          -- Which player row is the person holding this phone. Null until
-          -- somebody claims their place; nothing in the money depends on it,
-          -- only on which figures a screen calls yours.
-          me_id       TEXT,
-          -- The host's confirmation of money that could not be accounted for.
-          -- Part of the night's record, not a UI flag: it is what allows a
-          -- night that does not add up to be closed at all.
-          ack_json    TEXT
-        );
+      CREATE TABLE IF NOT EXISTS night_count (
+        session_id  TEXT NOT NULL,
+        player_id   TEXT NOT NULL,
+        amount      INTEGER NOT NULL,
+        PRIMARY KEY (session_id, player_id)
+      );
 
-        CREATE TABLE IF NOT EXISTS night_player (
-          session_id  TEXT NOT NULL,
-          id          TEXT NOT NULL,
-          name        TEXT NOT NULL,
-          at_table    INTEGER NOT NULL,
-          PRIMARY KEY (session_id, id)
-        );
+      -- Who has actually handed over the money — E7.
+      --
+      -- SETTLING AND PAYING ARE SEPARATE. The book closes at the table and the
+      -- cash moves over the following week, so this is not a ledger entry and
+      -- it changes no figure: a settled night stays settled whether or not
+      -- anybody has paid. One row per transfer that HAS been paid; a transfer
+      -- with no row here is waiting.
+      --
+      -- Keyed by the pair, which is safe because the settlement gives a
+      -- debtor and a creditor at most one transfer between them: paying
+      -- someone either finishes the debtor or empties the creditor.
+      CREATE TABLE IF NOT EXISTS night_payment (
+        session_id     TEXT NOT NULL,
+        from_player_id TEXT NOT NULL,
+        to_player_id   TEXT NOT NULL,
+        paid_at        TEXT NOT NULL,
+        PRIMARY KEY (session_id, from_player_id, to_player_id)
+      );
 
-        -- Append-only, exactly as on the server: a correction is a new row.
-        CREATE TABLE IF NOT EXISTS night_entry (
-          session_id        TEXT NOT NULL,
-          id                TEXT NOT NULL,
-          seq               INTEGER NOT NULL,
-          type              TEXT NOT NULL,
-          player_id         TEXT,
-          payer_id          TEXT,
-          amount            INTEGER NOT NULL,
-          corrects_entry_id TEXT,
-          occurred_at       TEXT NOT NULL,
-          -- What the money was for: "Pizza", "Drinks". Display only — the
-          -- engine never reads it, which is why it is not on LedgerEntry.
-          note              TEXT,
-          -- A spend with no person behind it: 'kitty' or 'unpaid'. Mirrors the
-          -- server column added in migration 0004.
-          covered_by        TEXT,
-          -- Ties the several fronters of one spend back into one thing bought.
-          spend_group       TEXT,
-          PRIMARY KEY (session_id, id)
-        );
+      -- What a settled night settled at, frozen at the moment it closed.
+      --
+      -- Only ever written for nights that arrive from the server: a night
+      -- this phone recorded is recomputed from its own rows on demand, and
+      -- there is nothing to preserve. A pulled night, though, may one day
+      -- meet a newer settlement engine, and the figures the room actually
+      -- paid each other are not a thing a later version gets to revise.
+      CREATE TABLE IF NOT EXISTS night_settlement (
+        session_id  TEXT PRIMARY KEY NOT NULL,
+        computed_at TEXT NOT NULL,
+        payload     TEXT NOT NULL
+      );
+    `);
 
-        CREATE TABLE IF NOT EXISTS night_count (
-          session_id  TEXT NOT NULL,
-          player_id   TEXT NOT NULL,
-          amount      INTEGER NOT NULL,
-          PRIMARY KEY (session_id, player_id)
-        );
-
-        -- What a settled night settled at, frozen at the moment it closed.
-        --
-        -- Only ever written for nights that arrive from the server: a night
-        -- this phone recorded is recomputed from its own rows on demand, and
-        -- there is nothing to preserve. A pulled night, though, may one day
-        -- meet a newer settlement engine, and the figures the room actually
-        -- paid each other are not a thing a later version gets to revise.
-        CREATE TABLE IF NOT EXISTS night_settlement (
-          session_id  TEXT PRIMARY KEY NOT NULL,
-          computed_at TEXT NOT NULL,
-          payload     TEXT NOT NULL
-        );
-      `);
-
-      /*
-       * Phones that already hold a night were created before the bill was
-       * redrawn, and CREATE TABLE IF NOT EXISTS will not add a column to them.
-       * Adding it twice is the expected outcome on every later launch, so the
-       * failure is the success case and is swallowed on purpose.
-       */
-      for (const column of ['covered_by TEXT', 'spend_group TEXT']) {
-        try {
-          await db.execAsync(`ALTER TABLE night_entry ADD COLUMN ${column};`);
-        } catch {
-          // Already there.
-        }
+    /*
+     * Phones that already hold a night were created before the bill was
+     * redrawn, and CREATE TABLE IF NOT EXISTS will not add a column to them.
+     * Adding it twice is the expected outcome on every later launch, so the
+     * failure is the success case and is swallowed on purpose.
+     */
+    for (const column of ['covered_by TEXT', 'spend_group TEXT']) {
+      try {
+        await db.execAsync(`ALTER TABLE night_entry ADD COLUMN ${column};`);
+      } catch {
+        // Already there.
       }
-      for (const column of [
-        'me_id TEXT',
-        // Which sample night this is, or NULL if it is a real one. See
-        // SEED_VERSION in data/sampleNight.
-        'seed_version INTEGER',
-        // Carried by nights arriving from the server. A night this phone
-        // recorded has them on its session row upstream; locally they are
-        // display only, which is why they may be null on every existing row.
-        'stakes TEXT',
-        'default_buyin INTEGER',
-        'ended_at TEXT',
-        // What this table is called. A club can run two at once, so the club's
-        // name (group_name) is not enough to tell them apart. Null on every
-        // row written before tables had names, which reads as "Tonight".
-        'table_name TEXT',
-      ]) {
-        try {
-          await db.execAsync(`ALTER TABLE night ADD COLUMN ${column};`);
-        } catch {
-          // Already there.
-        }
+    }
+    for (const column of [
+      'me_id TEXT',
+      // Which sample night this is, or NULL if it is a real one. See
+      // SEED_VERSION in data/sampleNight.
+      'seed_version INTEGER',
+      // Carried by nights arriving from the server. A night this phone
+      // recorded has them on its session row upstream; locally they are
+      // display only, which is why they may be null on every existing row.
+      'stakes TEXT',
+      'default_buyin INTEGER',
+      'ended_at TEXT',
+      // What this table is called. A club can run two at once, so the club's
+      // name (group_name) is not enough to tell them apart. Null on every
+      // row written before tables had names, which reads as "Tonight".
+      'table_name TEXT',
+    ]) {
+      try {
+        await db.execAsync(`ALTER TABLE night ADD COLUMN ${column};`);
+      } catch {
+        // Already there.
       }
+    }
 
-      return db;
-    });
-  }
-  return dbPromise;
-}
+  });
 
 export interface Night {
   sessionId: string;
@@ -180,6 +182,12 @@ export interface Night {
   entries: LedgerEntry[];
   /** The host's end-of-night count, for players still seated. */
   finalCounts: Map<PlayerId, Money>;
+  /**
+   * When each settled-up transfer was paid — E7. Keyed by `transferKey`, and
+   * absent means waiting. It settles nothing: a night is settled by its
+   * ledger, and this is the week afterwards.
+   */
+  paidAt: Map<string, string>;
   rules: MoneyRule[];
   /**
    * The player row this device belongs to, when it is known. It decides whose
@@ -442,6 +450,11 @@ async function readNight(row: NightRow): Promise<Night> {
     sessionId,
   );
 
+  const paid = await db.getAllAsync<{ from_player_id: string; to_player_id: string; paid_at: string }>(
+    `SELECT from_player_id, to_player_id, paid_at FROM night_payment WHERE session_id = ?`,
+    sessionId,
+  );
+
   return {
     sessionId,
     groupName: row.group_name,
@@ -464,6 +477,7 @@ async function readNight(row: NightRow): Promise<Night> {
       spendGroup: e.spend_group,
     })),
     finalCounts: new Map(counts.map((c) => [c.player_id, c.amount as Money])),
+    paidAt: new Map(paid.map((p) => [transferKey(p.from_player_id, p.to_player_id), p.paid_at])),
     occurredAt: Object.fromEntries(entries.map((e) => [e.id, e.occurred_at])),
     noteOf: Object.fromEntries(entries.filter((e) => e.note).map((e) => [e.id, e.note!])),
     seeded: row.seed_version !== null,
@@ -484,7 +498,13 @@ interface Seed {
 async function forgetNight(sessionId: string): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {
-    for (const table of ['night_count', 'night_entry', 'night_player', 'night_settlement']) {
+    for (const table of [
+      'night_count',
+      'night_entry',
+      'night_payment',
+      'night_player',
+      'night_settlement',
+    ]) {
       await db.runAsync(`DELETE FROM ${table} WHERE session_id = ?`, sessionId);
     }
     await db.runAsync(`DELETE FROM night WHERE session_id = ?`, sessionId);
@@ -494,6 +514,8 @@ async function forgetNight(sessionId: string): Promise<void> {
 async function seedNight(seed: Seed, seedVersion: number): Promise<void> {
   const db = await getDb();
   const sessionId = randomUUID();
+
+  let seq = 0;
 
   await db.withTransactionAsync(async () => {
     await db.runAsync(
@@ -517,7 +539,6 @@ async function seedNight(seed: Seed, seedVersion: number): Promise<void> {
       );
     }
 
-    let seq = 0;
     for (const e of seed.entries) {
       seq += 1;
       await db.runAsync(
@@ -526,7 +547,13 @@ async function seedNight(seed: Seed, seedVersion: number): Promise<void> {
             occurred_at, note, covered_by, spend_group)
          VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?)`,
         sessionId,
-        randomUUID(),
+        // NAMED, not random. The seed's players already have `seed-` ids, and
+        // an entry with a fresh UUID every install is the one part of the
+        // fixture nothing can point at — the frame check cannot open the
+        // correction sheet on a known line, and a bug report cannot name the
+        // row it happened on. Ids only have to be unique within a session, and
+        // a stale seed is deleted before this runs.
+        `seed-entry-${seq}`,
         seq,
         e.type,
         e.playerId ?? null,
@@ -539,6 +566,11 @@ async function seedNight(seed: Seed, seedVersion: number): Promise<void> {
       );
     }
   });
+
+  // The seed writes straight into the ledger, so the queue has never seen
+  // these seqs. Told about them, the next entry the host makes continues the
+  // night's numbering instead of starting again at 1 on top of it.
+  await outbox.noteSeq(sessionId, seq);
 }
 
 // ---------------------------------------------------------------------------
@@ -908,6 +940,49 @@ export async function seatAndBuyIn(name: string, amount: Money): Promise<PlayerI
   return id;
 }
 
+/**
+ * How one transfer is named, in the one place that decides it.
+ *
+ * The settlement is recomputed from the ledger every time anybody looks at it,
+ * so a payment cannot point at a transfer by identity — there isn't one. It
+ * points at the pair, and this is the only spelling of that.
+ */
+export const transferKey = (from: PlayerId, to: PlayerId): string => `${from}>${to}`;
+
+/**
+ * Mark one transfer paid — E7.
+ *
+ * NOT A LEDGER ENTRY, and deliberately not append-only: nothing about the
+ * night's result depends on it, so there is nothing here that needs to be
+ * unfalsifiable. The book closed at the table; this is the cash arriving over
+ * the following week.
+ *
+ * WHAT IS NOT BUILT: unmarking. E7 draws Mark paid on waiting rows and draws
+ * nothing on paid ones, so there is no way back from a mis-tap. Flagged rather
+ * than invented — but it is a real trap and the state that answers it is on
+ * the handoff's own "not drawn" list.
+ */
+export async function markPaid(from: PlayerId, to: PlayerId): Promise<void> {
+  if (night === null) return;
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO night_payment (session_id, from_player_id, to_player_id, paid_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT (session_id, from_player_id, to_player_id) DO NOTHING`,
+    night.sessionId,
+    from,
+    to,
+    new Date().toISOString(),
+  );
+  const row = await db.getFirstAsync<NightRow>(
+    `SELECT * FROM night WHERE session_id = ?`,
+    night.sessionId,
+  );
+  if (row === null) return;
+  night = await readNight(row);
+  emit();
+}
+
 /** The host's end-of-night count for one player. Overwrites: counting again is normal. */
 export async function setFinalCount(playerId: PlayerId, amount: Money): Promise<void> {
   if (night === null) throw new Error('No night is open.');
@@ -1174,6 +1249,7 @@ export async function startNight(input: {
     ],
     entries: [],
     finalCounts: new Map(),
+    paidAt: new Map(),
     rules: [...input.rules],
     ...(input.meId === undefined ? {} : { meId: input.meId }),
     occurredAt: {},

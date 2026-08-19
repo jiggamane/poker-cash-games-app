@@ -36,6 +36,11 @@ export default function Settings() {
   const { session, loading, configured } = useSession();
   const night = useNight();
   const club = useClub();
+  /* Whether this phone runs the group, read exactly as home reads it: a reader
+     is the host unless the club positively says somebody else is. */
+  const adminRow = club?.members.find((m) => m.standing === 'admin');
+  const meId = night?.meId;
+  const admin = adminRow === undefined || meId === undefined || adminRow.id === meId;
 
   const [queued, setQueued] = useState<number | null>(null);
   const [syncing, setSyncing] = useState(false);
@@ -263,19 +268,22 @@ export default function Settings() {
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The exits</Text>
 
+        {/* GR9. Only the admin sees it — there is nothing to hand over
+            otherwise — and it is an exit: you stop running the group. */}
+        {admin && <Action label="Hand over admin" onPress={() => router.push('/hand-over')} />}
+
         {/*
-         * SPECIFIED, NOT DRAWN, and blocked on decisions rev 13 leaves open:
-         * whether a club can have two admins and how admin is handed over,
-         * whether you can leave with an unsettled debt, and whether deleting a
-         * club destroys nights other people played in. A destructive control
-         * whose behaviour nobody has decided is worse than no control, so it
-         * says what it is waiting for instead.
+         * LEAVING AND DELETING ARE STILL SPECIFIED, NOT DRAWN. Rev 18 answered
+         * the admin question — GR9, one admin at a time, above — and left the
+         * other two open: whether you can leave with an unsettled debt, and
+         * whether deleting a club destroys nights other people played in. A
+         * destructive control whose behaviour nobody has decided is worse than
+         * no control, so it says what it is waiting for instead.
          */}
         <Text style={[styles.note, { color: t.muted }]}>
           Leaving and deleting a club are not built. Both wait on decisions the group has not
-          taken: whether a club can have a second admin and how it is handed over, whether
-          somebody can leave with money outstanding, and what happens to nights other people
-          played in.
+          taken: whether somebody can leave with money outstanding, and what happens to nights
+          other people played in.
         </Text>
       </View>
     </Screen>

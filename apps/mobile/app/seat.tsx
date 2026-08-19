@@ -156,6 +156,9 @@ export default function Seat() {
           <TextInput
             value={typed}
             onChangeText={(v) => setStake(v.replace(/[^0-9]/g, ''))}
+            // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
+            // to a digits-only keyboard.
+            testID="amount"
             keyboardType="number-pad"
             selectTextOnFocus
             style={[styles.stakeValue, { color: stakeOk ? t.text : t.muted }]}

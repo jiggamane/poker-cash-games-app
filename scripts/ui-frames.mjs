@@ -52,42 +52,116 @@ const shots = process.argv.includes('--shots');
 const asked = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 
 /**
- * Route → the frame it is drawn as.
+ * Route → the frame it is drawn as, and what not to compare on it.
  *
  * Where a route covers more than one frame — /pick is both the buy-in and the
  * cash-out picker — the frame named is the one the route opens in by default.
+ *
+ * `skip: ['footer']` is for a screen that has no pinned footer in either the
+ * drawing or the build. The measurement then lands on whatever content happens
+ * to sit at the bottom — a settings section, the last row of a list — and
+ * reports a difference between two things that are not the same object.
+ *
+ * `at` is the URL to open when the bare route is not the state the frame
+ * draws. A screen that is always pushed with a parameter — the player card,
+ * one entry — renders its empty case when it is opened cold, and comparing an
+ * empty sheet to a drawn full one reports a difference that is the check's own
+ * fault. The ids are the sample night's, which are named for this.
+ *
+ * `unreachable` marks a pair whose state cannot be opened by URL at all — a
+ * screen that only exists after a night has been counted and settled. The app
+ * renders its empty case, and comparing that to a full drawing measures
+ * nothing. It reports as not measurable rather than as drift, because a check
+ * that cannot see something must say so rather than guess.
+ *
+ * `known` names a check whose difference has been decided — `{ footer: 'why' }`.
+ * It prints the reason instead of the delta, because a check that keeps
+ * reporting a settled question teaches people to skim the report. Unlike
+ * `skip` it still measures: if the drawn side changes, the reason is there to
+ * be re-read against it.
  */
 const PAIRS = [
   ['/', 'Journey Map 1 - Club and people', 'H3 Home · live'],
-  ['/groups', 'Journey Map 1 - Club and people', 'GR2 Your groups'],
+  ['/groups', 'Journey Map 1 - Club and people', 'GR2 Your groups', { skip: ['footer'] }],
   ['/new-group', 'Journey Map 1 - Club and people', 'GR3 New group · step 1'],
-  ['/players', 'Journey Map 1 - Club and people', 'GR4 Players'],
+  ['/players', 'Journey Map 1 - Club and people', 'GR4 Players', { skip: ['footer'] }],
   ['/member', 'Journey Map 1 - Club and people', 'GR5 Player · edit'],
-  ['/settings', 'Journey Map 1 - Club and people', 'GR7 Settings'],
-  ['/club-rules', 'Journey Map 1 - Club and people', 'GR8 Money rules'],
-  ['/bill-rules', 'Journey Map 1 - Club and people', 'L5 Bill rules'],
-  ['/piggy-bank-rules', 'Journey Map 1 - Club and people', 'L6 Piggy bank rules'],
+  ['/hand-over', 'Journey Map 1 - Club and people', 'GR9 Hand over admin'],
+  ['/settings', 'Journey Map 1 - Club and people', 'GR7 Settings', { skip: ['footer'] }],
+  ['/club-rules', 'Journey Map 1 - Club and people', 'GR8 Money rules', { skip: ['footer'] }],
+  ['/bill-rules', 'Journey Map 1 - Club and people', 'L5 Bill rules', {
+      known: {
+        panel:
+          'drawn as a pushed screen, built as a sheet — 09-navigation: a screen ' +
+          'that ends with a Save is a sheet, and the two vocabularies must not mix',
+      },
+    }],
+  ['/piggy-bank-rules', 'Journey Map 1 - Club and people', 'L6 Piggy bank rules', {
+      known: {
+        panel:
+          'drawn as a pushed screen, built as a sheet — 09-navigation: a screen ' +
+          'that ends with a Save is a sheet, and the two vocabularies must not mix',
+      },
+    }],
   ['/new-night', 'Journey Map 1 - Club and people', 'O1 New session'],
   ['/money-rules', 'Journey Map 1 - Club and people', 'O4 Money rules'],
   ['/rule', 'Journey Map 1 - Club and people', 'O5 Rule editor'],
 
   ['/session', 'Journey Map 2 - The night', 'T1 Tonight · resting'],
-  ['/player', 'Journey Map 2 - The night', 'T2 Player card · at the table'],
+  ['/player', 'Journey Map 2 - The night', 'T2 Player card · at the table', { at: '/player?id=seed-petr' }],
   ['/pick', 'Journey Map 2 - The night', 'N4 Buy-in · pick a player'],
-  ['/entry', 'Journey Map 2 - The night', 'N6 Rebuy · amount'],
+  ['/entry', 'Journey Map 2 - The night', 'N10 Correct an entry', { at: '/entry?id=seed-entry-6' }],
   ['/seat', 'Journey Map 2 - The night', 'N7 Seat a new player'],
-  ['/log', 'Journey Map 2 - The night', 'N3 One player'],
-  ['/bill', 'Journey Map 2 - The night', 'L1 The bill'],
-  ['/spend', 'Journey Map 2 - The night', 'L2 Add a spend'],
-  ['/watch', 'Journey Map 2 - The night', 'X1a Watching a live night'],
+  // N3 is retired (rev 17): the player card is T2, the sheet. /log is the
+  // amount keypad an entry is made on.
+  ['/log', 'Journey Map 2 - The night', 'N5 First buy-in · amount'],
+  ['/bill', 'Journey Map 2 - The night', 'L1 The bill', {
+      known: {
+        panel:
+          'drawn as a pushed screen, built as a sheet — 09-navigation: a screen ' +
+          'that ends with a Save is a sheet, and the two vocabularies must not mix',
+      },
+    }],
+  ['/spend', 'Journey Map 2 - The night', 'L2 Add a spend', {
+      known: {
+        panel:
+          'drawn as a pushed screen, built as a sheet — 09-navigation: a screen ' +
+          'that ends with a Save is a sheet, and the two vocabularies must not mix',
+      },
+    }],
+  ['/watch', 'Journey Map 2 - The night', 'X1a Watching a live night', { skip: ['footer'] }],
 
   ['/count-up', 'Journey Map 3 - Settle and the book', 'E2 Count up'],
   ['/stands', 'Journey Map 3 - Settle and the book', 'E2b Where everyone stands'],
   ['/deductions', 'Journey Map 3 - Settle and the book', 'E3 Deductions'],
-  ['/settle-up', 'Journey Map 3 - Settle and the book', 'E4 Settle up'],
+  [
+    '/settle-up',
+    'Journey Map 3 - Settle and the book',
+    'E4 Settle up',
+    {
+      known: {
+        footer:
+          'the drawn footer carries Share and Export; both are absent by decision — ' +
+          'they had no destination, and a dead control on the last screen of the ' +
+          'night is worse than none',
+      },
+    },
+  ],
   ['/settled', 'Journey Map 3 - Settle and the book', 'E6 Night settled'],
-  ['/games', 'Journey Map 3 - Settle and the book', '1A My games · Regular'],
-  ['/stats', 'Journey Map 3 - Settle and the book', 'G4 My stats'],
+  [
+    '/payments',
+    'Journey Map 3 - Settle and the book',
+    'E7 Payments',
+    { unreachable: 'only exists once a night has been counted and settled' },
+  ],
+  [
+    '/nudge',
+    'Journey Map 2 - The night',
+    'E8 Nudge the table',
+    { unreachable: 'only exists once a night has been counted and settled' },
+  ],
+  ['/games', 'Journey Map 3 - Settle and the book', '1A My games · Regular', { skip: ['footer'] }],
+  ['/stats', 'Journey Map 3 - Settle and the book', 'G4 My stats', { skip: ['footer'] }],
 ];
 
 /**
@@ -128,6 +202,11 @@ const MEASURE = `(arg) => {
     for (const el of inside) {
       const t = (el.textContent || '').trim();
       if (!/^\\d{1,2}:\\d{2}$/.test(t)) continue;
+      // ONLY AT THE VERY TOP. A clock face is not the only 9:41 on a board —
+      // a ledger draws the time of every entry, a settled night draws when it
+      // ended — and taking the first one found put zero halfway down the
+      // frame and reported the title as sitting fifty points above the screen.
+      if (box(el).top - origin.top > 60) continue;
       const row = el.parentElement ?? el;
       zero = Math.max(zero, box(row).bottom);
       break;
@@ -164,9 +243,13 @@ const MEASURE = `(arg) => {
   }) ?? null;
   if (panelEl !== null) zero = box(panelEl).top;
 
+  // A BOARD DRAWS THE SCREEN BEHIND THE SHEET. Its own h1 is that screen's
+  // name — "Your groups" under the New group sheet — and taking it compares
+  // our sheet's title against the title of something else entirely. When
+  // there is a panel, the title is the heading inside it.
   const titleEl =
     side === 'board'
-      ? root.querySelector('h1, h2')
+      ? (panelEl?.querySelector('h1, h2, h3') ?? root.querySelector('h1, h2'))
       : document.querySelector('#screen-title, #sheet-title');
   const title =
     titleEl === null
@@ -243,7 +326,7 @@ const pairs = asked.length > 0 ? PAIRS.filter((p) => asked.includes(p[0])) : PAI
 if (shots) fs.mkdirSync(OUT, { recursive: true });
 
 const rows = [];
-for (const [route, board, label] of pairs) {
+for (const [route, board, label, opts = {}] of pairs) {
   const file = path.resolve(BOARDS, board + '.dc.html');
   const frameLabel = light ? `${label} · light` : label;
 
@@ -286,7 +369,7 @@ for (const [route, board, label] of pairs) {
   const appPage = await appCtx.newPage();
   let built = null;
   try {
-    await appPage.goto(BASE + route, { waitUntil: 'networkidle' });
+    await appPage.goto(BASE + (opts.at ?? route), { waitUntil: 'networkidle' });
     await appPage.waitForTimeout(500);
     built = await appPage.evaluate(eval(`(${MEASURE})`), { side: 'app' });
     if (shots) {
@@ -299,15 +382,16 @@ for (const [route, board, label] of pairs) {
   }
   await appCtx.close();
 
-  rows.push({ route, label, drawn, built });
+  rows.push({ route, label, drawn, built, opts });
 }
 await browser.close();
 
 // ---- the report ------------------------------------------------------------
 const pad = (s, n) => String(s ?? '—').padEnd(n);
 let off = 0;
+let unmeasured = 0;
 console.log(`frame by frame · ${light ? 'light' : 'dark'} · app at 393 × 852\n`);
-for (const { route, label, drawn, built } of rows) {
+for (const { route, label, drawn, built, opts } of rows) {
   if (drawn === null) {
     console.log(`${pad(route, 20)} no frame called “${label}”`);
     continue;
@@ -317,46 +401,66 @@ for (const { route, label, drawn, built } of rows) {
     off += 1;
     continue;
   }
+  if (opts.unreachable !== undefined) {
+    console.log(`${pad(route, 20)} ${pad(label, 34)} not measurable — ${opts.unreachable}`);
+    unmeasured += 1;
+    continue;
+  }
   const notes = [];
+  const decided = [];
+  const known = opts.known ?? {};
+  /** A difference on `check`, filed as drift unless that check is settled. */
+  const differs = (check, text) => {
+    if (known[check] === undefined) notes.push(text);
+    else if (!decided.includes(known[check])) decided.push(known[check]);
+  };
+
   if (built.ground !== null && drawn.ground !== built.ground)
-    notes.push(`ground ${drawn.ground} → ${built.ground}`);
+    differs('ground', `ground ${drawn.ground} → ${built.ground}`);
   if (drawn.title !== null && built.title !== null) {
     if (!near(drawn.title.size, built.title.size))
-      notes.push(`title ${drawn.title.size} → ${built.title.size}`);
+      differs('title', `title ${drawn.title.size} → ${built.title.size}`);
     if (drawn.title.weight !== built.title.weight)
-      notes.push(`weight ${drawn.title.weight} → ${built.title.weight}`);
+      differs('title', `weight ${drawn.title.weight} → ${built.title.weight}`);
     if (!near(drawn.title.tracking, built.title.tracking, 0.3))
-      notes.push(`tracking ${drawn.title.tracking} → ${built.title.tracking}`);
+      differs('title', `tracking ${drawn.title.tracking} → ${built.title.tracking}`);
     if (!near(drawn.title.top, built.title.top, 4))
-      notes.push(`title top ${drawn.title.top} → ${built.title.top}`);
+      differs('title', `title top ${drawn.title.top} → ${built.title.top}`);
   } else if (drawn.title !== null) {
-    notes.push('no title found in the build');
+    differs('title', 'no title found in the build');
   }
   // The drawn footer includes the home-indicator band; the browser has no
   // safe-area inset to stand in for it, so anything inside 25 is that gap.
-  if (!near(drawn.footer, built.footer, 25)) notes.push(`footer ${drawn.footer} → ${built.footer}`);
+  if (!(opts.skip ?? []).includes('footer') && !near(drawn.footer, built.footer, 25))
+    differs('footer', `footer ${drawn.footer} → ${built.footer}`);
   if (drawn.panel !== null || built.panel !== null) {
     if (drawn.panel === null || built.panel === null) {
-      notes.push(`panel ${drawn.panel === null ? 'none' : 'drawn'} → ${built.panel === null ? 'none' : 'built'}`);
+      differs(
+        'panel',
+        `panel ${drawn.panel === null ? 'none' : 'drawn'} → ${built.panel === null ? 'none' : 'built'}`,
+      );
     } else {
       if (drawn.panel.colour !== built.panel.colour)
-        notes.push(`panel ${drawn.panel.colour} → ${built.panel.colour}`);
+        differs('panel', `panel ${drawn.panel.colour} → ${built.panel.colour}`);
       if (!near(drawn.panel.radius, built.panel.radius, 1))
-        notes.push(`radius ${drawn.panel.radius} → ${built.panel.radius}`);
+        differs('panel', `radius ${drawn.panel.radius} → ${built.panel.radius}`);
     }
   }
 
+  const settled = decided.map((why) => `decided: ${why}`);
   if (notes.length === 0) {
-    console.log(`${pad(route, 20)} ${pad(label, 34)} ok`);
+    console.log(`${pad(route, 20)} ${pad(label, 34)} ${['ok', ...settled].join(' · ')}`);
   } else {
     off += 1;
-    console.log(`${pad(route, 20)} ${pad(label, 34)} ${notes.join(' · ')}`);
+    console.log(`${pad(route, 20)} ${pad(label, 34)} ${[...notes, ...settled].join(' · ')}`);
   }
 }
 console.log('\n' + '─'.repeat(72));
+const measured = rows.length - unmeasured;
 console.log(
-  off === 0
-    ? `every pair matches · ${rows.length} screens`
-    : `${off} of ${rows.length} differ · drawn → built`,
+  (off === 0
+    ? `every pair matches · ${measured} screens`
+    : `${off} of ${measured} differ · drawn → built`) +
+    (unmeasured === 0 ? '' : ` · ${unmeasured} not measurable here`),
 );
 console.log('copy, figures and seat counts are not compared: the board draws one night, the app renders another.');

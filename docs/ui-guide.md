@@ -183,6 +183,47 @@ that flag as a preview of the day Figtree is bundled, not as today's build.
 
 ---
 
+## The two standing checks
+
+`ui-check` compares one screen to one frame. Two tools ask broader questions of
+the whole app, and both are run before a merge.
+
+```bash
+node scripts/ui-audit.mjs            # the rules, on every route, in both themes
+node scripts/ui-frames.mjs           # every route against the frame it was drawn as
+node scripts/ui-frames.mjs --shots   # …and write the pictures side by side
+```
+
+**`ui-audit`** holds each screen to the things stated as rules rather than as
+pixels: the surface ladder, 4.5:1 on text, nothing breaking mid-word, only
+lists scrolling, and A8 — every field marked `testID="amount"` raises a
+digits-only keyboard. Nothing here needs a board, which is the point: these
+hold whether or not a frame exists for the state.
+
+**`ui-frames`** measures ground, title, footer and panel on both sides of each
+pair. Its map carries four annotations, and which one a difference gets is a
+judgement worth making explicitly:
+
+| | |
+|---|---|
+| `at` | the URL to open, when the bare route is not the state the frame draws — a screen always pushed with a parameter renders its empty case cold |
+| `skip: ['footer']` | neither side has a pinned footer, so the measurement lands on whatever content happens to be at the bottom |
+| `known: { footer: 'why' }` | this check's difference has been **decided**. It still measures; it prints the reason instead of the delta |
+| `unreachable` | the state cannot be opened by URL at all — E7 and E8 exist only after a night is counted and settled. Reports as not measurable, never as a match |
+
+The distinction that matters: `skip` and `unreachable` say the tool cannot see
+it, `known` says somebody looked and chose. A check that keeps reporting a
+settled question teaches people to skim the report, and a check that quietly
+passes something it never measured is worse than no check.
+
+**What neither can see**, and why a pass is not more than it is: the safe-area
+insets are 0 in a browser, so the footer's 28 above the screen bottom and the
+home indicator's own colour are device checks; the browser raises no keyboard,
+so where the footer sits once it is up is a device check too; and row heights
+across SE and Pro Max need those widths (`UI_AUDIT_WIDTH`).
+
+---
+
 ## Checklist for a new screen
 
 1. Find it in `docs/screen-specs/`.

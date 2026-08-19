@@ -5,6 +5,7 @@ import * as Linking from 'expo-linking';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
 import { completeSignInFromUrl } from '../src/lib/authLink';
+import { loadClubs } from '../src/lib/clubStore';
 import { openNight } from '../src/lib/nightStore';
 import { loadThemeChoice } from '../src/lib/themeStore';
 
@@ -44,9 +45,31 @@ export default function RootLayout() {
      * inert, with nothing anywhere saying why. That is indistinguishable from
      * a working first run right up until the host tries to seat somebody.
      */
-    void openNight().catch((e) => {
-      console.error('openNight failed — the app has no local database', e);
-    });
+    void openNight()
+      .then((night) =>
+        /*
+         * THE CLUB IS LOADED HERE TOO, for the same reason and one more.
+         * Every screen below home reads `useClub` — the setup sheet, the
+         * rules, the roster — and nothing loads it but the screen that
+         * happens to be first. That held only while home was guaranteed to
+         * be first, which a deep link, a restored route or a notification
+         * are each enough to break; the screen then renders its empty state
+         * for ever, with no error and no way forward.
+         *
+         * It is chained rather than parallel because the club seeds itself
+         * from tonight the first time — the players at that table are its
+         * roster — so it has to know the night before it asks.
+         */
+        loadClubs({
+          name: night.groupName,
+          players: night.players.map((p) => ({ id: p.id, name: p.name })),
+          rules: night.rules,
+          ...(night.meId === undefined ? {} : { meId: night.meId }),
+        }),
+      )
+      .catch((e) => {
+        console.error('openNight failed — the app has no local database', e);
+      });
   }, []);
 
   // Whether the reader has overridden the phone's theme. Read once, here, for
@@ -105,6 +128,8 @@ export default function RootLayout() {
          * dismiss.
          */}
         <Stack.Screen name="settled" />
+        {/* E7 is a PUSH: the week after the night is a place you come back to. */}
+        <Stack.Screen name="payments" />
 
         {/* Sheets. Each of these ends with one action and then gets out. */}
         <Stack.Screen name="player" options={SHEET} />
@@ -121,6 +146,8 @@ export default function RootLayout() {
         <Stack.Screen name="rule" options={SHEET} />
         <Stack.Screen name="sign-in" options={SHEET} />
         <Stack.Screen name="member" options={SHEET} />
+        <Stack.Screen name="hand-over" options={SHEET} />
+        <Stack.Screen name="nudge" options={SHEET} />
         <Stack.Screen name="new-group" options={SHEET} />
         <Stack.Screen name="new-night" options={SHEET} />
         {/* C3, over Players. Its reset and its QR replace this sheet's own

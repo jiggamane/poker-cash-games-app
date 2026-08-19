@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
+import { useKeyboardUp } from '../lib/keyboard';
 import { chrome, space, type } from '../design/tokens';
 import { Icon } from './Icon';
 import { Pill } from './Pill';
@@ -56,6 +57,7 @@ export function Sheet({
 }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardUp = useKeyboardUp();
   const close = onClose ?? (() => router.back());
 
   /*
@@ -166,11 +168,24 @@ export function Sheet({
             </ScrollView>
 
             {footer !== undefined && (
-              /* doc 15 § 5 check 2 — the button's bottom edge sits 28 above
-                 the screen bottom: 6 of footer pad plus the 22 the home
-                 indicator band occupies. On a phone the inset already covers
-                 the band, so the pad is what is left of the 28. */
-              <View style={[styles.footer, { paddingBottom: insets.bottom > 0 ? 28 : 6 }]}>
+              /*
+               * doc 15 § 5 check 2 — the button's bottom edge sits 28 above
+               * the screen bottom: 6 of footer pad plus the 22 the home
+               * indicator band occupies. On a phone the inset already covers
+               * the band, so the pad is what is left of the 28.
+               *
+               * WITH THE KEYBOARD UP that band is behind the keyboard, and
+               * A8 puts the button directly on the keyboard's top edge. Left
+               * in place the pad holds it 28 above the edge it should sit on,
+               * and on a short phone that gap is what pushes the field being
+               * typed into off the screen.
+               */
+              <View
+                style={[
+                  styles.footer,
+                  { paddingBottom: keyboardUp ? 6 : insets.bottom > 0 ? 28 : 6 },
+                ]}
+              >
                 {footer}
               </View>
             )}
