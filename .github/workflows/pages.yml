@@ -39,9 +39,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 22, not the 20 in package.json's engines: whichNight.test.ts opens a
+      # database through `node:sqlite`, and that module does not exist before
+      # Node 22. On 20 the suite does not fail an assertion, it fails to load.
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - run: npm ci
