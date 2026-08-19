@@ -144,6 +144,7 @@ export default function RootLayout() {
         <Stack.Screen name="rule" options={SHEET} />
         <Stack.Screen name="sign-in" options={SHEET} />
         <Stack.Screen name="member" options={SHEET} />
+        <Stack.Screen name="hand-over" options={SHEET} />
         <Stack.Screen name="new-group" options={SHEET} />
         <Stack.Screen name="new-night" options={SHEET} />
         {/* C3, over Players. Its reset and its QR replace this sheet's own

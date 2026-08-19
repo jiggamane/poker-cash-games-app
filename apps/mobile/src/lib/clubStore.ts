@@ -367,6 +367,24 @@ export async function makeAdmin(clubId: string, id: PlayerId): Promise<void> {
   await loadClubs();
 }
 
+/**
+ * How many nights each person has sat at — GR9's sub-line.
+ *
+ * A count of rows, not a sum of money, so it stays here: `night_player` holds
+ * one row per person per session and the answer is how many distinct sessions
+ * carry their id. Settled or not makes no difference — the question is how
+ * long they have been part of this, and a night in progress is part of it.
+ *
+ * Keyed by player id, and a person with no nights is simply absent.
+ */
+export async function nightsPlayed(): Promise<Map<PlayerId, number>> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ id: string; n: number }>(
+    `SELECT id, COUNT(DISTINCT session_id) AS n FROM night_player GROUP BY id`,
+  );
+  return new Map(rows.map((r) => [r.id, r.n]));
+}
+
 /** Removing keeps their nights. Unsettled amounts stay on the night they came from. */
 export async function removeMember(clubId: string, id: PlayerId): Promise<void> {
   const db = await getDb();
