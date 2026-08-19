@@ -13,6 +13,38 @@ nothing but a phone:
 The design boards keep the address they always had, one level up, at
 <https://jiggamane.github.io/poker-cash-games-app/>.
 
+## One switch has to be on, and it is off today
+
+**GitHub Pages is not enabled on this repository**, so the URL above 404s until
+it is. The workflow builds the site fine and then fails on its last step with
+`Create Pages site failed: Resource not accessible by integration` — that is
+GitHub refusing to turn Pages on from a workflow, not the build going wrong.
+
+It is a settings change, and it can be made from a phone:
+
+**Settings → Pages → Build and deployment → Source: GitHub Actions.**
+
+Then **Actions → Publish the site → the latest run → Re-run all jobs**, and the
+site is up a couple of minutes later. Every merge after that publishes on its
+own.
+
+Two things can stop that page letting you save:
+
+- **This repository is private, and Pages on a private repository needs a paid
+  GitHub plan** (Pro, Team or Enterprise). On the free plan the choice is to pay
+  or to make the repository public — and public means the whole history, not
+  just the boards. Nothing in the code is a secret today: there are no keys in
+  it, `.env` is gitignored, and the anon key is designed to be published. That
+  is a decision about the design and the ledger being readable by anyone, not a
+  security one.
+- **Actions may be denied write access.** Settings → Actions → General →
+  Workflow permissions → **Read and write permissions**. If that is set to
+  read-only, the workflow cannot create the Pages site whatever the plan is.
+
+Turning Pages on also brings the design boards up for the first time —
+`PUBLISHING.md` describes the arrangement, but the switch was never flipped, so
+those URLs have never resolved either.
+
 ## It rebuilds itself
 
 `.github/workflows/pages.yml` runs on every push to `main`. It runs
