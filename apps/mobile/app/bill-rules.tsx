@@ -45,8 +45,15 @@ export default function BillRules() {
   const night = useNight();
 
   const rule = night?.rules.find((r) => r.destination === 'bill');
-  const [pick, setPick] = useState<Split>(rule === undefined ? 'by_win' : splitOf(rule));
+  /*
+   * The choice OVERLAYS the rule rather than copying it at mount. A sheet can
+   * be built before the night has come off the device, and a copy taken then
+   * is a copy of nothing: the screen would show `by_win` whatever the group
+   * actually agreed, with Save live to write it over.
+   */
+  const [picked, setPicked] = useState<Split | null>(null);
   const [busy, setBusy] = useState(false);
+  const pick: Split = picked ?? (rule === undefined ? 'by_win' : splitOf(rule));
 
   if (night === null) return <Sheet title="Bill rules">{null}</Sheet>;
 
@@ -64,13 +71,14 @@ export default function BillRules() {
   return (
     <Sheet
       title="Bill rules"
+      badge="admin only"
       sub="what happens to the bill when the night is counted"
       footer={
         rule === undefined ? (
           <Button label="Back to the bill" variant="secondary" onPress={() => router.back()} />
         ) : (
           <Button
-            label="Save"
+            label="Save the rule"
             variant="primary"
             disabled={busy || pick === splitOf(rule)}
             onPress={() => void save()}
@@ -89,7 +97,7 @@ export default function BillRules() {
               accessibilityRole="radio"
               accessibilityState={{ checked: on }}
               disabled={rule === undefined}
-              onPress={() => setPick(o.key)}
+              onPress={() => setPicked(o.key)}
               style={({ pressed }) => [
                 styles.option,
                 {

@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { resolveLedger, type MoneyRule, type PlayerId } from '@poker-club/core';
+import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { nameOf, saveRule, standingsOf, toggleRule, useNight } from '../src/lib/nightStore';
+import { nameOf, saveRule, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
  * Piggy bank rules — L6. 11-bill-and-piggy-bank.md.
@@ -20,11 +22,32 @@ import { nameOf, saveRule, standingsOf, toggleRule, useNight } from '../src/lib/
  * "Off for tonight" reads backwards on purpose: the FILLED chip is the player
  * switched off. Everyone else stays at full strength and nobody is greyed,
  * because the people paying into the piggy bank are not disabled.
+ *
+ * NOTHING HERE IS WRITTEN UNTIL SAVE. L6 draws one button and the screen is
+ * why: taking a person out of the piggy bank is an argument being settled at
+ * the table — someone brought the food, someone else is already out — and it
+ * is normal to switch two names and put one back. Writing each tap through
+ * meant the ledger moved under a conversation that had not finished, and the
+ * only way back was to remember what it used to be.
  */
+
+/** What the screen is holding, before it is written. Null until something is touched. */
+interface Draft {
+  active: boolean;
+  exempt: readonly PlayerId[];
+}
+
 export default function PiggyBankRules() {
   const t = useTheme();
   const night = useNight();
   const [busy, setBusy] = useState(false);
+  /*
+   * The draft OVERLAYS the rule rather than copying it at mount. A sheet can
+   * be built before the night has come off the device, and a copy taken then
+   * is a copy of nothing — it would show the rule's defaults, let them be
+   * saved, and quietly overwrite what the group actually agreed.
+   */
+  const [draft, setDraft] = useState<Draft | null>(null);
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
   const rule = night?.rules.find((r) => r.destination === 'kitty');
@@ -42,24 +65,49 @@ export default function PiggyBankRules() {
     );
   }
 
-  const exempt = new Set(rule.exemptPlayerIds ?? []);
+  const shown: Draft = draft ?? { active: rule.active, exempt: rule.exemptPlayerIds ?? [] };
+  const exempt = new Set(shown.exempt);
   const seated = standingsOf(night, ledger).filter((s) => s.played);
 
-  async function setExempt(id: PlayerId, off: boolean) {
-    if (busy || rule === undefined) return;
+  const changed =
+    shown.active !== rule.active ||
+    shown.exempt.length !== (rule.exemptPlayerIds ?? []).length ||
+    shown.exempt.some((id) => !(rule.exemptPlayerIds ?? []).includes(id));
+
+  function setExempt(id: PlayerId, off: boolean) {
+    const next = new Set(shown.exempt);
+    if (off) next.add(id);
+    else next.delete(id);
+    setDraft({ active: shown.active, exempt: [...next] });
+  }
+
+  async function save() {
+    if (busy || rule === undefined || !changed) return;
     setBusy(true);
     try {
-      const next = new Set(rule.exemptPlayerIds ?? []);
-      if (off) next.add(id);
-      else next.delete(id);
-      await saveRule({ ...rule, exemptPlayerIds: [...next] });
+      // One write. The switch and the chips are one decision about tonight,
+      // and saving them separately would leave a half-applied rule behind if
+      // the second write failed.
+      await saveRule({ ...rule, active: shown.active, exemptPlayerIds: shown.exempt });
+      router.back();
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Sheet title="The piggy bank" sub="a cut of the wins, held for the group">
+    <Sheet
+      title="The piggy bank"
+      badge="admin only"
+      footer={
+        <Button
+          label="Save for tonight"
+          variant="primary"
+          disabled={busy || !changed}
+          onPress={() => void save()}
+        />
+      }
+    >
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <View style={styles.cardLeft}>
           <Text style={[styles.label, { color: t.muted }]}>Charged on every win</Text>
@@ -77,9 +125,9 @@ export default function PiggyBankRules() {
         <View style={[styles.row, { borderBottomColor: t.hairline }]}>
           <Text style={[styles.rowLabel, { color: t.text }]}>Piggy bank on tonight</Text>
           <Switch
-            value={rule.active}
+            value={shown.active}
             disabled={busy}
-            onValueChange={(on) => void toggleRule(rule.id, on)}
+            onValueChange={(on) => setDraft({ active: on, exempt: shown.exempt })}
             trackColor={{ true: t.win, false: t.quietOutline }}
             thumbColor="#FFFFFF"
             style={styles.switch}
@@ -111,7 +159,7 @@ export default function PiggyBankRules() {
                 accessibilityState={{ selected: off }}
                 accessibilityLabel={`${p.name}${off ? ' is out of the piggy bank tonight' : ' pays into the piggy bank'}`}
                 disabled={busy}
-                onPress={() => void setExempt(p.id, !off)}
+                onPress={() => setExempt(p.id, !off)}
                 style={({ pressed }) => [
                   styles.chip,
                   off
@@ -126,8 +174,9 @@ export default function PiggyBankRules() {
           })}
         </View>
         <Text style={[styles.explain, { color: t.muted }]}>
-          A filled name is sitting this one out. It applies to tonight only and never touches the
-          group’s own setting.
+          A filled name is sitting this one out. Switching someone off applies to this night only
+          and never touches the group’s own setting. The piggy bank is charged on wins, so a player
+          who finishes down never pays into it.
         </Text>
       </View>
     </Sheet>

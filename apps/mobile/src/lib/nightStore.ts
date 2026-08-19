@@ -526,7 +526,13 @@ async function seedNight(seed: Seed, seedVersion: number): Promise<void> {
             occurred_at, note, covered_by, spend_group)
          VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?)`,
         sessionId,
-        randomUUID(),
+        // NAMED, not random. The seed's players already have `seed-` ids, and
+        // an entry with a fresh UUID every install is the one part of the
+        // fixture nothing can point at — the frame check cannot open the
+        // correction sheet on a known line, and a bug report cannot name the
+        // row it happened on. Ids only have to be unique within a session, and
+        // a stale seed is deleted before this runs.
+        `seed-entry-${seq}`,
         seq,
         e.type,
         e.playerId ?? null,
