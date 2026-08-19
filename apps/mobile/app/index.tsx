@@ -99,7 +99,13 @@ export default function ClubHome() {
   const symbol = currencyFor(club?.currency ?? 'USD').symbol;
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+    <SafeAreaView
+      // Home does not use `Screen`, so it carries the marks itself — see
+      // scripts/ui-frames.mjs.
+      nativeID="app-root"
+      style={[styles.screen, { backgroundColor: t.ground }]}
+      edges={['top', 'bottom']}
+    >
       <View style={styles.header}>
         <Text style={[styles.eyebrow, { color: t.muted }]} numberOfLines={1}>
           {host ? 'Your group' : `Hosted by ${admin?.name ?? '—'}`}
@@ -108,7 +114,12 @@ export default function ClubHome() {
         {club === null ? (
           <Skeleton width="70%" height={31.8} />
         ) : (
-          <Text style={[styles.clubName, { color: t.text }]} numberOfLines={2} ellipsizeMode="tail">
+          <Text
+            nativeID="screen-title"
+            style={[styles.clubName, { color: t.text }]}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
             {club.name}
           </Text>
         )}

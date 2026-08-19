@@ -1,3 +1,18 @@
+# Rev 18 — 19 August 2026 · flow logic board, the test-round cut, one variant to test
+
+Cumulative on rev 17. **Boards are now five**, plus the test-round board. Every frame is still 393 × 852.
+Nothing in rev 17 is reversed — this revision adds two boards, one variant frame, and closes three comments.
+
+| # | Change | Status |
+|---|---|---|
+| S108 | **Board 5 · Flow logic is new.** Every scenario as screens and transitions, no frames: a node is a screen from the spec, an arrow is what the user does. Four node types — screen in the spec · return to a screen already shown (dashed) · state, not a screen (black) · missing or undecided (amber). It exists to prove the logic closes: every path has a way in, a way out and a defined end state. Read it before wiring navigation. | FINAL |
+| S109 | **The test round has its own cut, drawn: `boards/Test Version.dc.html`** — 10 screens, both themes, one fixed club and no accounts. Out of scope for the test: club switching · accounts and sign-in · invites and claiming · the roster · Sessions · My stats. In scope: the full money model — buy-ins, rebuys, the piggy bank, the bill, the host fee, all resolved at the close. Players are names typed at the table as they arrive; the admin's phone holds the night. | FINAL for the test round |
+| S109b | ⚠ **Namespace warning.** The test-version board numbers its own screens **T1–T10** (T1 Home · first run … T10 Settings). Those are *test-version* screen numbers and are **not** the app's T-series (T1 Tonight · resting … T5). Same letter, different namespace. Build the test round from that board's own numbers and do not map them onto the app's T-series. | OPEN — rename if it bites |
+| S110 | **`T1v Tonight · tighter` is drawn as a variant to test, not to approve.** Player rows 68 → 50 (padding 22 → 13), the Rebuy / Bill pair 75 → 63 (Rebuy padding 20 → 13, Bill 14 → 9, its glyph 20 → 18), admin strip 14 → 10. Type, colour and copy untouched. It buys 12 points from the dock and 18 per row — **eight visible players before the list scrolls instead of six** on 393 × 852. **`T1` in section 04 remains the current design until the variant wins.** What to watch: Rebuy is tapped mid-conversation without looking, and at 63 it clears the 44 minimum but is no longer the one obviously oversized target. | DRAWN, for testing |
+| S111 | **`GR8` money rules is rebuilt in the `O4` idiom** — one hairline list, caption, title with chevron, one detail line, toggle right, "Add a rule" last. The group and the game now present money rules **identically**; the only difference is which level you are editing (S103's two settings). Closes the comment that GR8 and O4 read as two different features. | FINAL |
+| S112 | **"people" removed from the `GR7` Settings subtitle.** Copy only. | FINAL |
+| S113 | **Board layout pass across boards 1–4.** Caption cards share one height per tier so every mockup sits on one baseline (row subgrid), row gaps 22, section spacing 52 above the section rule. No frame content changed. | FINAL |
+
 # Rev 17 — 18 August 2026 · four picks closed, the T-series named, money rules as two settings
 
 | # | Change | Status |

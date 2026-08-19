@@ -128,7 +128,14 @@ export function Screen({
   );
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
+    <SafeAreaView
+      // `scripts/ui-frames.mjs` measures the screen's ground here. Without it
+      // the tool reads the page's own body colour, which belongs to the
+      // browser and not to the design.
+      nativeID="app-root"
+      style={[styles.screen, { backgroundColor: t.ground }]}
+      edges={['top', 'bottom']}
+    >
       {/*
        * A SCREEN NEVER SCROLLS AS A WHOLE — only what is inside it does.
        *

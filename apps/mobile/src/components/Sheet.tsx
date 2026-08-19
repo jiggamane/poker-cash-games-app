@@ -92,6 +92,9 @@ export function Sheet({
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View
+            // Measured here by `scripts/ui-frames.mjs`: a sheet is held against
+            // its drawn panel, not against the screen it happens to cover.
+            nativeID="sheet-root"
             style={[
               styles.panel,
               { backgroundColor: t.sheet, borderTopColor: t.sheetEdge },
