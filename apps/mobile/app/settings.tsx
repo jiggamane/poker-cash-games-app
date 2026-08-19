@@ -18,7 +18,7 @@ import { useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
 
 /**
- * Settings — GR7. Four sections: the group, the money, the people, the exits.
+ * Settings — GR7. Four sections: the group, the money, the players, the exits.
  *
  * It is also the only place an account is mentioned.
  *
@@ -123,7 +123,10 @@ export default function Settings() {
     <Screen
       title="Settings"
       backTo="the club"
-      meta={club?.name}
+      /* GR7's subtitle is the club and your standing in it — "people" came
+         out of it in rev 18, and the standing is what a reader needs: this
+         screen shows different things to an admin and to a member. */
+      meta={club === null ? undefined : `${club.name} · you are admin`}
     >
       <View style={styles.list}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>The group</Text>

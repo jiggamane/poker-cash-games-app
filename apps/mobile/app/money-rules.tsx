@@ -1,20 +1,25 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, resolveLedger, settle, type MoneyRule } from '@poker-club/core';
+import { formatMoney, resolveLedger, settle, type Money, type MoneyRule } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
-import { nameOf, toggleRule, useNight } from '../src/lib/nightStore';
+import { space, type } from '../src/design/tokens';
+import { nameOf, toggleRule, useNight, type Night } from '../src/lib/nightStore';
 
 /**
  * Money rules — O4. Everything that takes money off the table at settle-up.
  *
- * A rule is described by TAGS rather than by a sentence of settings, because
- * the question a host actually has is "will this take 10% off my win or 10% of
- * the pot", and three short tags answer it at a glance where a paragraph does
- * not.
+ * ONE HAIRLINE LIST, not a stack of cards — the O4 idiom, which GR8 now shares
+ * (rev 18 § 3). A caption, then one row per rule: its name with a chevron, one
+ * line describing it, and the switch at the right. "Add a rule" is the last
+ * row rather than a button somewhere else, so the list ends where a reader is
+ * already looking.
+ *
+ * The line under a name says the three things a host actually asks — how much,
+ * who pays, and where it goes — in that order, because "10% off my win" and
+ * "10% of the pot" are different evenings.
  *
  * The switch turns a rule off without deleting it. Groups have a piggy bank they
  * skip on somebody's birthday, and deleting the rule to skip it once means
@@ -59,71 +64,57 @@ export default function MoneyRules() {
       sub="What comes off the table at settle-up, in the order it is taken. Nothing here touches a hand while it is being played."
       sentence
     >
-      <View style={styles.cards}>
-        {rules.map((rule) => {
+      <Text style={[styles.caption, { color: t.muted }]}>Tonight’s rules</Text>
+
+      <View style={styles.list}>
+        {rules.map((rule, i) => {
           const taken = preview?.deductions.find((d) => d.ruleId === rule.id)?.total;
           return (
             <View
               key={rule.id}
               style={[
-                styles.card,
-                { backgroundColor: t.surface, borderColor: t.hairline },
-                !rule.active && styles.off,
+                styles.row,
+                {
+                  borderBottomColor: t.hairline,
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                },
               ]}
             >
-              <View style={styles.cardTop}>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => open(rule)}
-                  style={({ pressed }) => [styles.cardName, { opacity: pressed ? 0.6 : 1 }]}
-                >
-                  <Text style={[styles.name, { color: rule.active ? t.text : t.muted }]}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => open(rule)}
+                style={({ pressed }) => [styles.rowText, { opacity: pressed ? 0.6 : 1 }]}
+              >
+                <View style={styles.nameLine}>
+                  <Text
+                    style={[styles.name, { color: rule.active ? t.text : t.muted }]}
+                    numberOfLines={1}
+                  >
                     {rule.name}
                   </Text>
-                  <Icon name="chevron" color={t.muted} />
-                </Pressable>
+                  <Icon name="chevron" color={t.muted} size={15} />
+                </View>
+                <Text style={[styles.detail, { color: t.muted }]} numberOfLines={1}>
+                  {describe(rule, night, ledger.totalExpenses, rule.active ? taken : undefined)}
+                </Text>
+              </Pressable>
 
-                <Switch on={rule.active} onPress={() => void toggleRule(rule.id, !rule.active)} />
-              </View>
-
-              <View style={styles.tags}>
-                {tagsFor(rule).map((tag) => (
-                  <View key={tag} style={[styles.tag, { backgroundColor: t.raised }]}>
-                    <Text style={[styles.tagText, { color: t.text }]}>{tag}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <Text style={[styles.note, { color: t.muted }]}>
-                {rule.destination === 'bill'
-                  ? `${formatMoney(ledger.totalExpenses)} spent so far · paid back to whoever bought it`
-                  : rule.collectorPlayerId === ''
-                    ? 'Held by the group — nobody named yet'
-                    : `Held by ${nameOf(night, rule.collectorPlayerId)}`}
-                {taken !== undefined && rule.active ? ` · ${formatMoney(taken)} tonight` : ''}
-              </Text>
+              <Switch on={rule.active} onPress={() => void toggleRule(rule.id, !rule.active)} />
             </View>
           );
         })}
 
-        {(['kitty', 'bill', 'host_fee'] as const)
-          .filter((d) => !rules.some((r) => r.destination === d))
-          .map((d) => (
-            <Pressable
-              key={d}
-              accessibilityRole="button"
-              onPress={() => create(d)}
-              style={({ pressed }) => [
-                styles.add,
-                { borderColor: t.dashed, opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <Icon name="plus" color={t.text} />
-              <Text style={[styles.addLabel, { color: t.text }]}>
-                {d === 'kitty' ? 'A piggy bank' : d === 'bill' ? 'Food & drinks' : 'A host fee'}
-              </Text>
-            </Pressable>
-          ))}
+        {/* Last row, and the only way in from here. The three dashed cards it
+            replaces asked the reader to choose a destination before they had
+            seen the editor that explains what one is. */}
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => create('kitty')}
+          style={({ pressed }) => [styles.row, styles.addRow, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Icon name="plus" color={t.text} size={15} />
+          <Text style={[styles.addLabel, { color: t.text }]}>Add a rule</Text>
+        </Pressable>
       </View>
 
       <Text style={[styles.footnote, { color: t.muted }]}>
@@ -135,30 +126,44 @@ export default function MoneyRules() {
 }
 
 /**
- * Three tags, in the order the question is asked: how much, who pays, out of
- * what. A percentage rule has no split to describe — everyone pays a slice of
- * their own win — so it says what it is taken from instead.
+ * "$170 fixed · split by winners · Marek collects".
+ *
+ * The board's own grammar, in the board's own order: how much, who pays, who
+ * ends up holding it — and, for a rule that has taken something tonight, what
+ * it has taken. A bill states what has been spent instead of an amount,
+ * because a bill's amount IS the spending.
  */
-function tagsFor(rule: MoneyRule): string[] {
+function describe(
+  rule: MoneyRule,
+  night: Night,
+  spent: Money,
+  taken?: Money,
+): string {
   const how =
-    rule.amountKind === 'percent'
-      ? `${rule.amount}% OF THE WIN`
-      : rule.destination === 'bill'
-        ? 'THE REAL BILL'
-        : `FIXED · ${formatMoney(rule.amount)}`;
+    rule.destination === 'bill'
+      ? `${formatMoney(spent)} spent so far`
+      : rule.amountKind === 'percent'
+        ? `${rule.amount}% of win`
+        : `${formatMoney(rule.amount)} fixed`;
 
   const who =
     rule.split === 'custom'
-      ? 'SPLIT BY HAND'
-      : rule.charge === 'winners_only'
-        ? rule.split === 'by_percent'
-          ? 'WINNERS · BY WIN SIZE'
-          : 'SPLIT BY WINNERS'
-        : 'EVERYONE, FLAT';
+      ? 'split by hand'
+      : rule.charge === 'everyone_flat'
+        ? 'everyone at the table'
+        : rule.split === 'by_percent'
+          ? 'winners, by size of win'
+          : 'split by winners';
 
-  const from = rule.basis === 'net_after_others' ? 'AFTER THE OTHERS' : 'OFF THE GROSS';
+  const holder =
+    rule.destination === 'bill'
+      ? 'paid back to whoever bought it'
+      : rule.collectorPlayerId === ''
+        ? 'held by the group'
+        : `${nameOf(night, rule.collectorPlayerId)} collects`;
 
-  return rule.amountKind === 'percent' ? [how, who, from] : [how, who];
+  const tail = taken === undefined ? '' : ` · ${formatMoney(taken)} tonight`;
+  return `${how} · ${who} · ${holder}${tail}`;
 }
 
 /** 44 × 26, knob 20. Filled when on — no colour, because colour is money. */
@@ -182,23 +187,16 @@ function Switch({ on, onPress }: { on: boolean; onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  cards: { marginHorizontal: space.card, gap: 10 },
-  card: {
-    borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    gap: 9,
-  },
-  off: { opacity: 0.55 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  cardName: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
-  name: { fontSize: 18, fontWeight: '700' },
-
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  tag: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: 6 },
-  tagText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.66 },
-  note: { fontSize: 13.5, fontWeight: '400', lineHeight: 20 },
+  caption: { ...type.sectionLabel, marginHorizontal: space.page, marginBottom: 2 },
+  list: { marginHorizontal: space.page },
+  // doc 15 § 3: a sheet's body rows are 15 / 4 with a hairline between them.
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
+  rowText: { flex: 1, minWidth: 0, gap: 4 },
+  nameLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  name: { fontSize: 18, fontWeight: '700', flexShrink: 1 },
+  detail: { fontSize: 13.5, fontWeight: '400' },
+  addRow: { gap: 11, borderBottomWidth: 0 },
+  addLabel: { fontSize: 15, fontWeight: '700' },
 
   track: {
     marginLeft: 'auto',
@@ -210,18 +208,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   knob: { width: 20, height: 20, borderRadius: 10 },
-
-  add: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
-    paddingVertical: 15,
-    paddingHorizontal: 16,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-  },
-  addLabel: { fontSize: 15, fontWeight: '700' },
 
   footnote: { ...type.footnote, marginHorizontal: space.page, marginTop: 18 },
 });

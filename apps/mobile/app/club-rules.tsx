@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, type MoneyRule } from '@poker-club/core';
-import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
@@ -35,20 +34,10 @@ export default function ClubMoneyRules() {
     <Screen
       title="Money rules"
       backTo="Settings"
-      meta={`${club.name} · what a new night opens with`}
-      footer={
-        <Button
-          label="Add a rule"
-          variant="primary"
-          onPress={() =>
-            router.push({
-              pathname: '/rule',
-              params: { scope: 'club', destination: 'kitty', order: String(rules.length + 1) },
-            })
-          }
-        />
-      }
+      meta="what every new night starts from"
     >
+      <Text style={[styles.caption, { color: t.muted }]}>Group defaults</Text>
+
       <View style={styles.list}>
         {rules.map((r, i) => (
           <Pressable
@@ -59,27 +48,76 @@ export default function ClubMoneyRules() {
               styles.row,
               {
                 borderBottomColor: t.hairline,
-                borderBottomWidth: i === rules.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                borderBottomWidth: StyleSheet.hairlineWidth,
                 opacity: pressed ? 0.6 : 1,
               },
             ]}
           >
             <View style={styles.rowText}>
-              <Text style={[styles.name, { color: t.text }]}>{r.name}</Text>
+              <View style={styles.nameLine}>
+                <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>{r.name}</Text>
+                <Icon name="chevron" color={t.muted} size={15} />
+              </View>
               <Text style={[styles.detail, { color: t.muted }]} numberOfLines={1}>
                 {describe(r)}
               </Text>
             </View>
-            <Icon name="chevron" color={t.muted} />
           </Pressable>
         ))}
 
-        {rules.length === 0 && (
-          <Text style={[styles.empty, { color: t.muted }]}>
-            This club takes nothing off the table. Every night opens with no deductions until a
-            rule is added here.
-          </Text>
-        )}
+        {/* A DESTINATION THE CLUB HAS NOT SET IS STILL A ROW. GR8 draws it —
+            "Host fee · not set" — because the absence is the setting: a night
+            opens with that option unselected, and a reader who cannot see the
+            row cannot know that. */}
+        {(['bill', 'kitty', 'host_fee'] as const)
+          .filter((d) => !rules.some((r) => r.destination === d))
+          .map((d) => (
+            <Pressable
+              key={d}
+              accessibilityRole="button"
+              onPress={() =>
+                router.push({
+                  pathname: '/rule',
+                  params: { scope: 'club', destination: d, order: String(rules.length + 1) },
+                })
+              }
+              style={({ pressed }) => [
+                styles.row,
+                {
+                  borderBottomColor: t.hairline,
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                  opacity: pressed ? 0.6 : 1,
+                },
+              ]}
+            >
+              <View style={styles.rowText}>
+                <View style={styles.nameLine}>
+                  <Text style={[styles.name, { color: t.muted }]} numberOfLines={1}>
+                    {d === 'bill' ? 'Food & drinks' : d === 'kitty' ? 'Group piggy bank' : 'Host fee'}
+                  </Text>
+                  <Icon name="chevron" color={t.muted} size={15} />
+                </View>
+                <Text style={[styles.detail, { color: t.muted }]} numberOfLines={1}>
+                  not set — a night opens with nothing selected
+                </Text>
+              </View>
+            </Pressable>
+          ))}
+
+        {/* The list ends where the reader is already looking. */}
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
+            router.push({
+              pathname: '/rule',
+              params: { scope: 'club', destination: 'kitty', order: String(rules.length + 1) },
+            })
+          }
+          style={({ pressed }) => [styles.row, styles.addRow, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Icon name="plus" color={t.text} size={15} />
+          <Text style={[styles.addLabel, { color: t.text }]}>Add a rule</Text>
+        </Pressable>
       </View>
 
       {/* The one honest way to promote what a night actually ran with into the
@@ -101,12 +139,10 @@ export default function ClubMoneyRules() {
       )}
 
       <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <Text style={[styles.blockTitle, { color: t.text }]}>Where a night gets its rules</Text>
+        <Text style={[styles.blockTitle, { color: t.text }]}>Group default, not law</Text>
         <Text style={[styles.blockBody, { color: t.muted }]}>
-          A night copies these when it opens and then owns its copy. Changing a rule here never
-          reaches a night that is already running, and can never reach one that has been settled.
-          What the last game ran with — including anything overridden that evening — is what the
-          next night is offered first; this screen is what it falls back to.
+          A night copies these when it opens and can override any of them from the house rules.
+          Changing them here never touches a night already running, or a night already settled.
         </Text>
       </View>
     </Screen>
@@ -134,12 +170,15 @@ function describe(r: MoneyRule): string {
 }
 
 const styles = StyleSheet.create({
-  list: { marginTop: 20, marginHorizontal: space.page },
+  caption: { ...type.sectionLabel, marginTop: 20, marginHorizontal: space.page, marginBottom: 2 },
+  list: { marginHorizontal: space.page },
+  nameLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  addRow: { gap: 11, borderBottomWidth: 0 },
+  addLabel: { fontSize: 15, fontWeight: '700' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
-  rowText: { gap: 4, flexShrink: 1 },
+  rowText: { flex: 1, minWidth: 0, gap: 4 },
   name: type.rowName,
   detail: type.rowDetail,
-  empty: { ...type.footnote, paddingHorizontal: 4 },
 
   promote: {
     alignSelf: 'flex-start',
