@@ -93,3 +93,17 @@ export function useElapsed(startedAt: string): string {
 
   return elapsedLabel(startedAt, now);
 }
+
+/**
+ * "20:05" — a wall clock, 24 hour, as every board draws it.
+ *
+ * One function rather than three copies of the same options object: the night
+ * screen, the setup sheet and the start-time editor all print this figure, and
+ * a locale that turned one of them into "8:05 PM" while the others stayed at
+ * 24 hour would read as two different clocks on two screens of one flow.
+ */
+export const clockLabel = (at: string | Date): string =>
+  (typeof at === 'string' ? new Date(at) : at).toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });

@@ -1,57 +1,134 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { formatMoney, money, type Money, type PlayerId } from '@poker-club/core';
+import {
+  Animated,
+  Easing,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import {
+  formatMoney,
+  money,
+  ruleDetail,
+  type Money,
+  type MoneyRule,
+  type PlayerId,
+} from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Field } from '../src/components/Field';
 import { Icon } from '../src/components/Icon';
+import { RuleFields, ruleProblem } from '../src/components/RuleFields';
+import { RuleList } from '../src/components/RuleList';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { currencyFor } from '../src/data/currencies';
+import { clockLabel } from '../src/lib/elapsed';
 import {
   addMember,
   inheritedFor,
+  playHistory,
   rememberLastGame,
   useClub,
   type Inherited,
+  type PlayHistory,
 } from '../src/lib/clubStore';
-import { startNight, tableNameProblem, useOpenGames } from '../src/lib/nightStore';
+import { draftRule, startNight, tableNameProblem, useOpenGames } from '../src/lib/nightStore';
 
 /**
- * Setting up the game. 12-the-group.md § 2.
+ * Opening a night — O1, and every detour off it.
  *
- * BECAUSE EVERY RULE ARRIVES PRE-FILLED, STARTING A GAME IS ADDING PLAYERS AND
- * THEIR FIRST BUY-INS. The inherited rules appear as a summary, not a form,
- * with one row into the house rules for the rare evening where something has
- * to change — and that row is deliberately not the thing your thumb lands on.
+ * ONE SHEET, NOT A WIZARD. `01-product-logic.md` § 5: "O1 holds every setting
+ * and one button confirms them; seating and the money rules are edited on
+ * their own screens and return." So this is one route whose CONTENT IS
+ * REPLACED per step, which is what `09-navigation.md` prescribes for a
+ * multi-step flow — O2 replaces O1's content, O5 replaces the rules step's —
+ * and it is also the only thing that can work: a sheet may not push, so the
+ * old "Change the house rules" row had to dismiss this sheet and push the
+ * CLUB's rules instead, which threw away every player already ticked and
+ * edited the wrong layer of the chain into the bargain.
  *
- * What arrives is the chain: this game → last game → club default → app
- * default. The summary says which layer answered, because "same as last time"
- * and "the club's setting" are different promises.
+ * WHICH LAYER THE RULES ON THIS SCREEN BELONG TO is the point of the fix. Rev
+ * 18: "the group carries defaults; the game carries its own, seeded from the
+ * group's, overriding it for that game only and never writing back." Editing
+ * here therefore changes tonight and only tonight — nothing is written until
+ * the table opens, and the club's own setting is untouched by all of it.
+ *
+ * The rules row must not be the thing your thumb lands on. Every rule arrives
+ * pre-filled from last night, so opening a night stays what it is: adding
+ * players and confirming their first buy-ins.
  */
+type Step = 'game' | 'players' | 'rules' | 'rule' | 'buy-in' | 'start';
+
+/** Where the close and a completed step return to. The flow is one level deep. */
+const PARENT: Record<Step, Step | null> = {
+  game: null,
+  players: 'game',
+  rules: 'game',
+  rule: 'rules',
+  'buy-in': 'game',
+  start: 'game',
+};
+
 export default function NewNight() {
   const t = useTheme();
   const club = useClub();
   const open = useOpenGames();
 
   const [inherited, setInherited] = useState<Inherited | null>(null);
+  const [history, setHistory] = useState<Map<PlayerId, PlayHistory>>(new Map());
+
+  /*
+   * TONIGHT'S OWN COPY OF EVERY SETTING, held here until the table opens.
+   *
+   * `null` means "still whatever was inherited" — the difference matters,
+   * because the summary says which layer answered and "same as last time" stops
+   * being true the moment a host has changed something.
+   */
+  const [rules, setRules] = useState<MoneyRule[] | null>(null);
+  const [buyIn, setBuyIn] = useState<Money | null>(null);
+  const [startedAt, setStartedAt] = useState<Date>(() => new Date());
+  const [timeSet, setTimeSet] = useState(false);
+
   const [picked, setPicked] = useState<Record<PlayerId, string>>({});
   const [busy, setBusy] = useState(false);
-  /** O2, folded into O1: a name typed here joins the roster and sits down. */
+  /** O2: a name typed into the field creates a player and seats them. */
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
+  const [search, setSearch] = useState('');
   /** What to call this table, asked only when it is not the club's only one. */
   const [tableName, setTableName] = useState('');
+
+  const [step, setStep] = useState<Step>('game');
+  /** +1 going deeper, −1 coming back — the direction the content slides from. */
+  const direction = useRef<1 | -1>(1);
+  /** The rule being edited, and whether Save adds it or replaces it. */
+  const [draft, setDraft] = useState<{ rule: MoneyRule; isNew: boolean } | null>(null);
 
   useEffect(() => {
     if (club === null) return;
     void inheritedFor(club).then(setInherited).catch(() => {});
+    void playHistory().then(setHistory).catch(() => {});
   }, [club]);
 
-  if (club === null || inherited === null) return <Sheet title="Set up the game">{null}</Sheet>;
+  const go = (next: Step, dir: 1 | -1 = 1) => {
+    direction.current = dir;
+    setStep(next);
+  };
+  const back = () => {
+    const parent = PARENT[step];
+    if (parent === null) router.back();
+    else go(parent, -1);
+  };
+
+  if (club === null || inherited === null) return <Sheet title="New session">{null}</Sheet>;
 
   const currency = currencyFor(club.currency);
+  const liveRules = rules ?? inherited.rules;
+  const liveBuyIn = buyIn ?? inherited.buyIn;
 
   const seats = Object.entries(picked)
     .map(([playerId, amount]) => ({
@@ -92,6 +169,14 @@ export default function NewNight() {
    */
   const me = club.members.find((m) => m.standing === 'admin');
 
+  /** The one primary, on the two steps that carry it. */
+  const openLabel =
+    seats.length === 0
+      ? 'Pick who is playing'
+      : nameProblem !== null
+        ? 'Name this table'
+        : `Open the table · ${clockLabel(startedAt)}`;
+
   async function openTable() {
     if (seats.length === 0 || busy || club === null || inherited === null) return;
     setBusy(true);
@@ -99,9 +184,10 @@ export default function NewNight() {
       await startNight({
         clubId: club.id,
         groupName: club.name,
-        rules: inherited.rules,
+        rules: liveRules,
         seats,
-        buyIn: inherited.buyIn,
+        buyIn: liveBuyIn,
+        ...(timeSet ? { startedAt } : {}),
         ...(second ? { tableName: tableName.trim() } : {}),
         // The club's roster is where a non-playing collector gets their name.
         nameOfCollector: (id) => club.members.find((m) => m.id === id)?.name,
@@ -109,7 +195,7 @@ export default function NewNight() {
       });
       // What the night actually ran with becomes the next night's suggestion,
       // and only that — the club's own setting is untouched.
-      await rememberLastGame(club.id, inherited.buyIn, inherited.rules);
+      await rememberLastGame(club.id, liveBuyIn, liveRules);
       router.dismissTo('/');
       router.push('/session');
     } finally {
@@ -120,306 +206,933 @@ export default function NewNight() {
   /*
    * ADDING SOMEBODY IS PART OF SETTING UP THE GAME, not an errand before it.
    *
-   * Without this the roster was read-only here, and the empty-club case had no
-   * way out at all: a group created with "Add players later" landed on a sheet
-   * whose own copy told the host to go to Players — a screen this sheet cannot
-   * reach, because `09-navigation.md` forbids a sheet from pushing. The route
-   * was close the sheet, Settings, Players, back, back, and open it again, and
-   * every one of those taps is one an admin makes standing at a table.
-   *
    * A name typed here does both halves at once: it joins the club's roster for
    * good, and it is ticked for tonight at the inherited buy-in — which is what
    * O2 means by "a name typed into the field creates a player and seats them".
    */
   async function add() {
     const name = newName.trim();
-    if (club === null || inherited === null || name === '' || adding) return;
+    if (club === null || name === '' || adding) return;
     if (club.members.some((m) => m.name.toLowerCase() === name.toLowerCase())) return;
     setAdding(true);
     try {
       const id = await addMember(club.id, name);
-      setPicked((p) => ({ ...p, [id]: String(inherited.buyIn) }));
+      setPicked((p) => ({ ...p, [id]: String(liveBuyIn) }));
       setNewName('');
     } finally {
       setAdding(false);
     }
   }
 
-  const typed = newName.trim();
-  const taken = club.members.some((m) => m.name.toLowerCase() === typed.toLowerCase());
+  const toggleSeat = (id: PlayerId) =>
+    setPicked((p) => {
+      const next = { ...p };
+      if (next[id] !== undefined) delete next[id];
+      else next[id] = String(liveBuyIn);
+      return next;
+    });
+
+  const editRule = (rule: MoneyRule, isNew: boolean) => {
+    setDraft({ rule, isNew });
+    go('rule');
+  };
+
+  function saveDraft() {
+    if (draft === null) return;
+    const saved = { ...draft.rule, name: draft.rule.name.trim() };
+    setRules(
+      draft.isNew
+        ? [...liveRules, saved]
+        : liveRules.map((r) => (r.id === saved.id ? saved : r)),
+    );
+    setDraft(null);
+    go('rules', -1);
+  }
+
+  function removeDraft() {
+    if (draft === null) return;
+    setRules(liveRules.filter((r) => r.id !== draft.rule.id));
+    setDraft(null);
+    go('rules', -1);
+  }
+
+  const sorted = [...liveRules].sort((a, b) => a.sortOrder - b.sortOrder);
+  const active = sorted.filter((r) => r.active);
+  const nextOrder = sorted.reduce((max, r) => Math.max(max, r.sortOrder), 0) + 1;
+  const seatedCount = Object.keys(picked).length;
+
+  // -------------------------------------------------------------------------
+  // The header, the footer and the body, chosen by step. One sheet, one close.
+  // -------------------------------------------------------------------------
+
+  const title =
+    step === 'game'
+      ? 'New session'
+      : step === 'players'
+        ? 'Add players'
+        : step === 'rules'
+          ? 'Money rules'
+          : step === 'rule'
+            ? draft === null || draft.rule.name.trim() === ''
+              ? 'New rule'
+              : draft.rule.name
+            : step === 'buy-in'
+              ? 'Default buy-in'
+              : 'Start time';
+
+  const problem = draft === null ? null : ruleProblem(draft.rule, money(0));
+
+  const footer =
+    step === 'game' || step === 'rules' ? (
+      <Button
+        label={openLabel}
+        variant="primary"
+        disabled={seats.length === 0 || nameProblem !== null || busy}
+        onPress={() => void openTable()}
+      />
+    ) : step === 'players' ? (
+      <Button
+        label={`Done · ${seatedCount} seated`}
+        variant="primary"
+        onPress={() => go('game', -1)}
+      />
+    ) : step === 'rule' ? (
+      <>
+        <Button
+          label={problem ?? 'Save rule'}
+          variant="primary"
+          disabled={problem !== null}
+          onPress={saveDraft}
+        />
+        {draft?.isNew === false && (
+          <Button label="Remove this rule" variant="destructive" onPress={removeDraft} />
+        )}
+      </>
+    ) : (
+      <Button label="Save" variant="primary" onPress={() => go('game', -1)} />
+    );
 
   return (
     <Sheet
-      title="Set up the game"
-      sub={club.name}
-      footer={
-        <Button
-          label={
-            seats.length === 0
-              ? 'Pick who is playing'
-              : nameProblem !== null
-                ? 'Name this table'
-                : `Open the table · ${seats.length} ${seats.length === 1 ? 'player' : 'players'}`
-          }
-          variant="primary"
-          disabled={seats.length === 0 || nameProblem !== null || busy}
-          onPress={() => void openTable()}
-        />
-      }
+      title={title}
+      {...(step === 'game' ? { sub: club.name } : {})}
+      {...(step === 'players' ? { meta: `${seatedCount} seated` } : {})}
+      onClose={back}
+      footer={footer}
     >
-      {/* A second table is named before it is opened: two cards on home with
-          money on both are told apart by nothing else. The first table is not
-          asked — while it is the only one it is "Tonight". */}
-      {second && (
-        <View style={styles.tableName}>
-          <Field
-            label="This table"
-            value={tableName}
-            onChangeText={setTableName}
-            placeholder="Kitchen table"
-            autoCapitalize="sentences"
-            hint={
-              nameProblem === 'reserved'
-                ? 'Tonight is both tables now — this one needs a name of its own'
-                : nameProblem === 'taken'
-                  ? 'That name is taken by a table already open'
-                  : others.length === 1
-                    ? `${others[0]} is already open`
-                    : `${others.length} tables are already open`
-            }
-          />
-        </View>
-      )}
+      <StepBody step={step} direction={direction.current}>
+        {step === 'game' && (
+          <>
+            {/* A second table is named before it is opened: two cards on home
+                with money on both are told apart by nothing else. The first
+                table is not asked — while it is the only one it is "Tonight". */}
+            {second && (
+              <View style={styles.tableName}>
+                <Field
+                  label="This table"
+                  value={tableName}
+                  onChangeText={setTableName}
+                  placeholder="Kitchen table"
+                  autoCapitalize="sentences"
+                  hint={
+                    nameProblem === 'reserved'
+                      ? 'Tonight is both tables now — this one needs a name of its own'
+                      : nameProblem === 'taken'
+                        ? 'That name is taken by a table already open'
+                        : others.length === 1
+                          ? `${others[0]} is already open`
+                          : `${others.length} tables are already open`
+                  }
+                />
+              </View>
+            )}
 
-      {/* A summary, not a form. */}
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <View style={styles.cardRow}>
-          <Text style={[styles.cardLabel, { color: t.muted }]}>Buy-in</Text>
-          {/* The club's own symbol, because this figure is the club's money and
-              this is the screen that says which money that is. */}
-          <Text style={[styles.cardValue, { color: t.text }]}>
-            {formatMoney(inherited.buyIn, currency.symbol)}
-          </Text>
-        </View>
-        {/*
-         * A NIGHT DOES NOT PICK A CURRENCY. It is a club default — the top row
-         * of the settings table in 12-the-group.md § 2 — and a book whose
-         * column changed money halfway through would be unreadable. So it is
-         * stated here, where the game is set up, and changed in the group.
-         */}
-        <View style={styles.cardRow}>
-          <Text style={[styles.cardLabel, { color: t.muted }]}>Currency</Text>
-          <Text style={[styles.cardValue, { color: t.text }]}>
-            {`${currency.code} · ${currency.name}`}
-          </Text>
-        </View>
-        <View style={styles.cardRow}>
-          <Text style={[styles.cardLabel, { color: t.muted }]}>Comes off the table</Text>
-          <Text style={[styles.cardValue, { color: t.text }]}>
-            {inherited.rules.length === 0
-              ? 'nothing'
-              : inherited.rules.map((r) => r.name.toLowerCase()).join(' · ')}
-          </Text>
-        </View>
-        <Text style={[styles.from, { color: t.dim }]}>from the {inherited.from}</Text>
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: t.muted }]}>The game</Text>
 
-        {/*
-         * A SHEET NEVER PUSHES — `09-navigation.md`: "if a sheet needs to go
-         * somewhere that is a place, it dismisses first". This used to push
-         * Money rules straight out of the sheet, stacking Chrome A on top of
-         * Chrome B: a round back button over a grabber, the two vocabularies
-         * mixed on one screen, and a back button whose label said Settings
-         * when back actually landed on this sheet.
-         */}
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            router.back();
-            router.push('/club-rules');
-          }}
-          style={({ pressed }) => [
-            styles.change,
-            { borderTopColor: t.hairline, opacity: pressed ? 0.6 : 1 },
-          ]}
-        >
-          <Text style={[styles.changeLabel, { color: t.muted }]}>Change the house rules</Text>
-          <Icon name="chevron" color={t.muted} />
-        </Pressable>
-      </View>
+              {/*
+                ⚠ ONE DRAWN ROW IS MISSING: **Stakes**, "$5 / $5".
+                `03-data-model.md` gains `stakes { small, big }` and the
+                straddle fields at group level in rev 18 § 5.2, and none of it
+                is built — there is nowhere for the figure to be read from or
+                written to, and no screen anywhere else in the app shows it.
+                Drawing the row against nothing would be a control that forgets
+                what you tell it, which is worse than a row that is not there.
+                Flagged for the group settings, where the field belongs.
+              */}
+              <SettingRow
+                label="Default buy-in"
+                value={formatMoney(liveBuyIn, currency.symbol)}
+                onPress={() => go('buy-in')}
+              />
+              {/*
+               * A NIGHT DOES NOT PICK A CURRENCY. It is a club default — the top
+               * row of the settings table in 12-the-group.md § 2 — and a book
+               * whose column changed money halfway through would be unreadable.
+               * So it is stated here, where the game is set up, and changed in
+               * the group: no chevron, because this row does not go anywhere.
+               */}
+              <SettingRow label="Currency" value={`${currency.code} · ${currency.name}`} />
+              <SettingRow
+                label="Start time"
+                sub="stamps every entry from here"
+                value={clockLabel(startedAt)}
+                onPress={() => go('start')}
+              />
+              <SettingRow
+                label="Money rules"
+                // What will actually come off, which is not the same as what
+                // was inherited: a rule switched off for tonight takes nothing,
+                // and naming it here would say it does.
+                sub={
+                  active.length === 0
+                    ? 'nothing comes off the table'
+                    : active.map((r) => r.name).join(' · ')
+                }
+                value={rules === null ? sameAs(inherited) : 'set for tonight'}
+                quiet
+                onPress={() => go('rules')}
+                last
+              />
+            </View>
 
-      <View style={styles.list}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Who is playing</Text>
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: t.muted }]}>
+                {`Seated · ${seatedCount} of ${club.members.length}`}
+              </Text>
 
-        {/*
-          ⚠ COPY NOT DRAWN. The design has no state for a club with no admin,
-          because it was written for one that always has exactly one. Flagged
-          rather than left silent: the alternative is a host finding out after
-          the night that it was recorded against nobody.
-        */}
-        {me === undefined && club.members.length > 0 && (
-          <Text style={[styles.warn, { color: t.amber }]}>
-            Nobody on this roster is marked as you, so this night will not count towards your
-            stats. Open your own name in Settings · Players and tap Standing.
-          </Text>
+              {/*
+                ⚠ COPY NOT DRAWN. The design has no state for a club with no
+                admin, because it was written for one that always has exactly
+                one. Flagged rather than left silent: the alternative is a host
+                finding out after the night that it was recorded against nobody.
+              */}
+              {me === undefined && club.members.length > 0 && <NoHost />}
+
+              <View style={styles.chips}>
+                {club.members
+                  .filter((m) => picked[m.id] !== undefined)
+                  .map((m) => (
+                    <SeatChip
+                      key={m.id}
+                      name={m.name}
+                      host={m.id === me?.id}
+                      amount={formatMoney(money(Number(picked[m.id]) || 0), currency.symbol)}
+                      onPress={() => go('players')}
+                    />
+                  ))}
+
+                <FindChip onPress={() => go('players')} />
+              </View>
+
+              {/*
+                ⚠ COPY NOT DRAWN. O1 is drawn with four people already seated,
+                so it has no empty state and no words for one. Flagged rather
+                than left blank: an empty chip row with nothing but a dashed
+                "Find a player" beside a button reading "Pick who is playing"
+                is a screen that says the same thing twice and explains neither.
+              */}
+              {seatedCount === 0 && (
+                <Text style={[styles.empty, { color: t.muted }]}>
+                  {club.members.length === 0
+                    ? 'Nobody on the roster yet. Add the first name and they can play tonight.'
+                    : 'Nobody is seated yet. Find a player to start the table.'}
+                </Text>
+              )}
+            </View>
+          </>
         )}
 
-        {club.members.map((m, i) => {
+        {step === 'players' && (
+          <Players
+            members={club.members.map((m) => ({
+              id: m.id,
+              name: m.name,
+              host: m.id === me?.id,
+            }))}
+            history={history}
+            picked={picked}
+            search={search}
+            onSearch={setSearch}
+            onToggle={toggleSeat}
+            onAmount={(id, v) => setPicked((p) => ({ ...p, [id]: v.replace(/[^0-9]/g, '') }))}
+            newName={newName}
+            onNewName={setNewName}
+            onAdd={() => void add()}
+            adding={adding}
+          />
+        )}
+
+        {step === 'rules' &&
+          (sorted.length === 0 ? (
+            <NoRules
+              onStart={(destination) => editRule(draftRule(destination, nextOrder), true)}
+              onSkip={() => go('game', -1)}
+            />
+          ) : (
+            <>
+              <RuleList
+                caption="Tonight’s rules"
+                rules={sorted}
+                describe={(rule) =>
+                  ruleDetail(rule, {
+                    collectorName: club.members.find((m) => m.id === rule.collectorPlayerId)?.name,
+                  })
+                }
+                onOpen={(rule) => editRule(rule, false)}
+                onToggle={(rule, active) =>
+                  setRules(liveRules.map((r) => (r.id === rule.id ? { ...r, active } : r)))
+                }
+                onAdd={() => editRule(draftRule('kitty', nextOrder), true)}
+              />
+              <Text style={[styles.footnote, { color: t.muted }]}>
+                These belong to tonight. They are copied from the {inherited.from} and changing one
+                here changes this game only — the group keeps its own.
+              </Text>
+            </>
+          ))}
+
+        {step === 'rule' && draft !== null && (
+          <RuleFields
+            rule={draft.rule}
+            onChange={(patch) =>
+              setDraft((d) => (d === null ? d : { ...d, rule: { ...d.rule, ...patch } }))
+            }
+            people={seats.map((s) => ({ id: s.playerId, name: s.name }))}
+            // The whole roster holds money, not only the seats — O6, and the
+            // treasurer who never plays. `startNight` writes a collector who is
+            // not seated onto the night as a player who is not at the table,
+            // so naming one here is a thing the night can actually honour.
+            collectors={club.members.map((m) => ({ id: m.id, name: m.name }))}
+            spent={money(0)}
+          />
+        )}
+
+        {step === 'buy-in' && (
+          <Amount
+            value={liveBuyIn}
+            symbol={currency.symbol}
+            presets={[200, 500, 1000]}
+            onChange={setBuyIn}
+            note="What a seat costs tonight. Everyone is seated at this figure and any of them can be typed over before the table opens."
+          />
+        )}
+
+        {step === 'start' && (
+          <StartTime
+            at={startedAt}
+            onChange={(d) => {
+              setStartedAt(d);
+              setTimeSet(true);
+            }}
+          />
+        )}
+      </StepBody>
+    </Sheet>
+  );
+}
+
+/** "same as last time" — the board's string, and only for the layer it is true of. */
+const sameAs = (inherited: Inherited): string =>
+  inherited.from === 'last game'
+    ? 'same as last time'
+    : // ⚠ COPY NOT DRAWN. O1 draws the last-game case only; a club that has
+      // never played reads its own layer rather than a promise that is false.
+      `the ${inherited.from}`;
+
+/**
+ * A row in *The game* — label, an optional line under it, the value at the
+ * right, and a chevron when there is somewhere to go.
+ *
+ * A row without a chevron does not move: the currency is stated here and
+ * changed in the group, and a chevron on it would be a promise this sheet
+ * cannot keep.
+ */
+function SettingRow({
+  label,
+  sub,
+  value,
+  quiet = false,
+  last = false,
+  onPress,
+}: {
+  label: string;
+  sub?: string;
+  value: string;
+  /** A value that is a state rather than a figure sets lighter — "same as last time". */
+  quiet?: boolean;
+  last?: boolean;
+  onPress?: () => void;
+}) {
+  const t = useTheme();
+  const body = (
+    <>
+      <View style={styles.rowText}>
+        <Text style={[styles.rowLabel, { color: t.text }]}>{label}</Text>
+        {sub !== undefined && (
+          <Text style={[styles.rowSub, { color: t.muted }]} numberOfLines={1}>
+            {sub}
+          </Text>
+        )}
+      </View>
+      <Text
+        style={[quiet ? styles.rowQuiet : styles.rowValue, { color: quiet ? t.muted : t.text }]}
+        numberOfLines={1}
+      >
+        {value}
+      </Text>
+      {onPress !== undefined && <Icon name="chevron" color={t.muted} size={13} />}
+    </>
+  );
+
+  const style = [
+    styles.row,
+    { borderBottomColor: t.hairline, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth },
+  ];
+
+  if (onPress === undefined) return <View style={style}>{body}</View>;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [...style, { opacity: pressed ? 0.6 : 1 }]}
+    >
+      {body}
+    </Pressable>
+  );
+}
+
+/** A seated player. The buy-in rides on the chip, because that is what was agreed. */
+function SeatChip({
+  name,
+  host,
+  amount,
+  onPress,
+}: {
+  name: string;
+  host: boolean;
+  amount: string;
+  onPress: () => void;
+}) {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chip,
+        { backgroundColor: t.surface, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+      ]}
+    >
+      <Text style={[styles.chipName, { color: t.text }]}>{name}</Text>
+      {host && <Text style={[styles.chipHost, { color: t.muted }]}>HOST</Text>}
+      <Text style={[styles.chipAmount, { color: t.muted }]}>{amount}</Text>
+    </Pressable>
+  );
+}
+
+/** Dashed, because dashed always means "creates something". */
+function FindChip({ onPress }: { onPress: () => void }) {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chip,
+        styles.findChip,
+        { borderColor: t.dashed, opacity: pressed ? 0.6 : 1 },
+      ]}
+    >
+      <Icon name="plus" color={t.text} size={15} />
+      <Text style={[styles.chipName, { color: t.text }]}>Find a player</Text>
+    </Pressable>
+  );
+}
+
+function NoHost() {
+  const t = useTheme();
+  return (
+    <Text style={[styles.warn, { color: t.amber }]}>
+      Nobody on this roster is marked as you, so this night will not count towards your stats. Open
+      your own name in Settings · Players and tap Standing.
+    </Text>
+  );
+}
+
+/**
+ * O2 · Add players.
+ *
+ * Search, then the roster most-recent-first, each row saying when they last
+ * played and how many nights they have — the six people who played last week
+ * are the six about to play tonight, and a host should not scroll past a name
+ * from March to find them.
+ *
+ * ⚠ ONE DEPARTURE FROM THE DRAWING, flagged rather than quiet: a seated row
+ * carries its buy-in as a field where O2 draws the word SEATED. Per-player
+ * amounts are editable at exactly this moment and nowhere else — after this
+ * they are ledger entries — and the board has no other place for them.
+ */
+function Players({
+  members,
+  history,
+  picked,
+  search,
+  onSearch,
+  onToggle,
+  onAmount,
+  newName,
+  onNewName,
+  onAdd,
+  adding,
+}: {
+  members: ReadonlyArray<{ id: PlayerId; name: string; host: boolean }>;
+  history: Map<PlayerId, PlayHistory>;
+  picked: Record<PlayerId, string>;
+  search: string;
+  onSearch: (v: string) => void;
+  onToggle: (id: PlayerId) => void;
+  onAmount: (id: PlayerId, v: string) => void;
+  newName: string;
+  onNewName: (v: string) => void;
+  onAdd: () => void;
+  adding: boolean;
+}) {
+  const t = useTheme();
+  const query = search.trim().toLowerCase();
+
+  const rows = useMemo(() => {
+    const listed = members.filter((m) => query === '' || m.name.toLowerCase().includes(query));
+    return [...listed].sort((a, b) => {
+      const la = history.get(a.id)?.last ?? '';
+      const lb = history.get(b.id)?.last ?? '';
+      if (la !== lb) return la < lb ? 1 : -1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [members, history, query]);
+
+  const typed = newName.trim();
+  const taken = members.some((m) => m.name.toLowerCase() === typed.toLowerCase());
+
+  return (
+    <>
+      <View style={[styles.search, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+        <TextInput
+          value={search}
+          onChangeText={onSearch}
+          placeholder="Search by name"
+          placeholderTextColor={t.muted}
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={[styles.searchText, { color: t.text }]}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: t.muted }]}>Most recent first</Text>
+
+        {rows.map((m) => {
           const on = picked[m.id] !== undefined;
           return (
             <View
               key={m.id}
               style={[
                 styles.row,
-                {
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth: i === club.members.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                },
+                { borderBottomColor: t.hairline, borderBottomWidth: StyleSheet.hairlineWidth },
               ]}
             >
               <Pressable
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: on }}
-                onPress={() =>
-                  setPicked((p) => {
-                    const next = { ...p };
-                    if (on) delete next[m.id];
-                    else next[m.id] = String(inherited.buyIn);
-                    return next;
-                  })
-                }
-                style={styles.pick}
+                onPress={() => onToggle(m.id)}
+                style={({ pressed }) => [styles.rowText, { opacity: pressed ? 0.6 : 1 }]}
               >
-                <View style={[styles.box, { borderColor: on ? t.text : t.dashed }]}>
-                  {on && <Icon name="check" color={t.text} size={13} />}
-                </View>
-                <Text style={[styles.name, { color: on ? t.text : t.muted }]}>{m.name}</Text>
+                <Text style={[styles.rowName, { color: t.text }]} numberOfLines={1}>
+                  {m.name}
+                </Text>
+                <Text style={[styles.rowSub, { color: t.muted }]} numberOfLines={1}>
+                  {played(history.get(m.id), m.host)}
+                </Text>
               </Pressable>
 
-              {/* Per-player amounts are editable at exactly this moment and
-                  nowhere else — after this they are ledger entries. */}
-              {on && (
-                <TextInput
-                  value={picked[m.id]}
-                  onChangeText={(v) =>
-                    setPicked((p) => ({ ...p, [m.id]: v.replace(/[^0-9]/g, '') }))
-                  }
-                  // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
-                  // to a digits-only keyboard.
-                  testID="amount"
-                  keyboardType="number-pad"
-                  style={[
-                    styles.amount,
-                    { color: t.text, backgroundColor: t.ground, borderColor: t.hairline },
+              {on ? (
+                <>
+                  <Icon name="check" color={t.win} size={16} />
+                  <TextInput
+                    value={picked[m.id]}
+                    onChangeText={(v) => onAmount(m.id, v)}
+                    // A8: this is money. `scripts/ui-audit.mjs` holds every one of
+                    // these to a digits-only keyboard.
+                    testID="amount"
+                    keyboardType="number-pad"
+                    style={[
+                      styles.amount,
+                      { color: t.text, backgroundColor: t.surface, borderColor: t.hairline },
+                    ]}
+                  />
+                </>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => onToggle(m.id)}
+                  style={({ pressed }) => [
+                    styles.addPill,
+                    { backgroundColor: t.text, opacity: pressed ? 0.7 : 1 },
                   ]}
-                />
+                >
+                  <Text style={[styles.addPillLabel, { color: t.onFill }]}>Add</Text>
+                </Pressable>
               )}
             </View>
           );
         })}
 
-        {club.members.length === 0 && (
+        {rows.length === 0 && (
           <Text style={[styles.empty, { color: t.muted }]}>
-            Nobody on the roster yet. Add the first name below and they can play tonight.
+            {query === ''
+              ? 'Nobody on the roster yet. Add the first name below and they can play tonight.'
+              : `Nobody called “${search.trim()}” — type the name below to add them.`}
           </Text>
         )}
+      </View>
 
-        {/* At the foot of the roster, where O2 puts it. */}
-        <View style={styles.add}>
-          <TextInput
-            value={newName}
-            onChangeText={setNewName}
-            onSubmitEditing={() => void add()}
-            placeholder="New player — type a name"
-            placeholderTextColor={t.muted}
-            autoCapitalize="words"
-            returnKeyType="done"
-            style={[
-              styles.addField,
-              {
-                color: t.text,
-                backgroundColor: t.surface,
-                borderColor: typed === '' ? t.dashed : t.hairline,
-                borderStyle: typed === '' ? 'dashed' : 'solid',
-              },
-            ]}
-          />
+      {/* At the foot of the roster, where O2 puts it. */}
+      <View style={styles.add}>
+        <TextInput
+          value={newName}
+          onChangeText={onNewName}
+          onSubmitEditing={onAdd}
+          placeholder="New player — type a name"
+          placeholderTextColor={t.muted}
+          autoCapitalize="words"
+          returnKeyType="done"
+          style={[
+            styles.addField,
+            {
+              color: t.text,
+              backgroundColor: t.surface,
+              borderColor: typed === '' ? t.dashed : t.hairline,
+              borderStyle: typed === '' ? 'dashed' : 'solid',
+            },
+          ]}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: typed === '' || taken || adding }}
+          disabled={typed === '' || taken || adding}
+          onPress={onAdd}
+          style={({ pressed }) => [
+            styles.addButton,
+            { borderColor: t.quietOutline, opacity: typed === '' || taken ? 0.4 : pressed ? 0.6 : 1 },
+          ]}
+        >
+          <Text style={[styles.addLabel, { color: t.text }]}>Add</Text>
+        </Pressable>
+      </View>
+
+      {taken && <Text style={[styles.empty, { color: t.muted }]}>{`${typed} is already here`}</Text>}
+    </>
+  );
+}
+
+/** "played 28 July · 26 nights", "host", or nothing they have ever done. */
+function played(h: PlayHistory | undefined, host: boolean): string {
+  const nights =
+    h === undefined || h.nights === 0
+      ? 'has not played yet'
+      : `${h.nights} ${h.nights === 1 ? 'night' : 'nights'}`;
+  const last =
+    h?.last == null
+      ? null
+      : new Date(h.last).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+  return [last === null ? null : `played ${last}`, host ? 'host' : nights]
+    .filter((p) => p !== null)
+    .join(' · ');
+}
+
+/**
+ * O3 · Money rules, empty.
+ *
+ * Three starting points, each of which creates a pre-filled rule rather than an
+ * empty form — nobody knows what a "destination" is until they have seen one —
+ * and the skip stated out loud, because a group that deducts nothing is a
+ * normal group and not an unfinished setup.
+ */
+function NoRules({
+  onStart,
+  onSkip,
+}: {
+  onStart: (destination: MoneyRule['destination']) => void;
+  onSkip: () => void;
+}) {
+  const t = useTheme();
+  const starters = [
+    { destination: 'bill' as const, name: 'Food & drinks', detail: 'a bill, split between the winners' },
+    { destination: 'kitty' as const, name: 'Group piggy bank', detail: 'a share of each win, saved up' },
+    { destination: 'host_fee' as const, name: 'Host fee', detail: 'a flat amount for the house' },
+  ];
+
+  return (
+    <>
+      <View style={[styles.blank, { borderColor: t.dashed }]}>
+        <Text style={[styles.blankTitle, { color: t.text }]}>No rules yet</Text>
+        <Text style={[styles.blankBody, { color: t.muted }]}>
+          A rule takes money off the table at settle-up — a bill to split, a piggy bank that carries
+          over, a fee for the host. Most clubs set these once and never touch them again.
+        </Text>
+        <Button label="Add the first rule" variant="secondary" onPress={() => onStart('kitty')} />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: t.muted }]}>Start from a common one</Text>
+        {starters.map((s) => (
           <Pressable
+            key={s.destination}
             accessibilityRole="button"
-            accessibilityState={{ disabled: typed === '' || taken || adding }}
-            disabled={typed === '' || taken || adding}
-            onPress={() => void add()}
+            onPress={() => onStart(s.destination)}
             style={({ pressed }) => [
-              styles.addButton,
+              styles.row,
               {
-                borderColor: t.quietOutline,
-                opacity: typed === '' || taken ? 0.4 : pressed ? 0.6 : 1,
+                borderBottomColor: t.hairline,
+                borderBottomWidth: StyleSheet.hairlineWidth,
+                opacity: pressed ? 0.6 : 1,
               },
             ]}
           >
-            <Text style={[styles.addLabel, { color: t.text }]}>Add</Text>
+            <View style={styles.rowText}>
+              <Text style={[styles.rowName, { color: t.text }]}>{s.name}</Text>
+              <Text style={[styles.rowSub, { color: t.muted }]}>{s.detail}</Text>
+            </View>
+            <Text style={[styles.use, { color: t.muted }]}>USE</Text>
           </Pressable>
-        </View>
-
-        {taken && (
-          <Text style={[styles.empty, { color: t.muted }]}>{`${typed} is already here`}</Text>
-        )}
+        ))}
       </View>
-    </Sheet>
+
+      <Button label="Skip — no deductions" variant="text" onPress={onSkip} style={styles.skip} />
+    </>
+  );
+}
+
+/**
+ * A figure being set — the buy-in, in the O5 idiom: the number large, then the
+ * presets, then a box to type one that is not on the list.
+ */
+function Amount({
+  value,
+  symbol,
+  presets,
+  onChange,
+  note,
+}: {
+  value: Money;
+  symbol: string;
+  presets: readonly number[];
+  onChange: (v: Money) => void;
+  note: string;
+}) {
+  const t = useTheme();
+  return (
+    <View style={styles.section}>
+      <View style={styles.figureRow}>
+        <Text style={[styles.figure, { color: t.text }]}>{formatMoney(value, symbol)}</Text>
+        <Text style={[styles.figureUnit, { color: t.muted }]}>a seat</Text>
+      </View>
+
+      <View style={styles.presets}>
+        {presets.map((v) => (
+          <Button
+            key={v}
+            label={formatMoney(money(v), symbol)}
+            variant="preset"
+            selected={value === v}
+            onPress={() => onChange(money(v))}
+            style={styles.preset}
+          />
+        ))}
+        <View style={[styles.setBox, { borderColor: t.quietOutline }]}>
+          <TextInput
+            value={String(value)}
+            onChangeText={(v) => onChange(money(Math.max(0, Number(v.replace(/\D/g, '')) || 0)))}
+            // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
+            // to a digits-only keyboard.
+            testID="amount"
+            keyboardType="number-pad"
+            style={[styles.setText, { color: t.text }]}
+          />
+        </View>
+      </View>
+
+      <Text style={[styles.explain, { color: t.muted }]}>{note}</Text>
+    </View>
+  );
+}
+
+/**
+ * The start time.
+ *
+ * ⚠ COPY AND LAYOUT NOT DRAWN. O1 draws the row and says the time is editable
+ * — "a host who opens the app at 20:40 for a game that started at 20:05 sets
+ * it back" — but no editor for it exists on any board. Built in the same idiom
+ * as the other figures on this sheet and flagged here rather than left
+ * unbuilt, because an un-editable start time is a wrong elapsed clock on the
+ * night screen for the rest of the evening.
+ *
+ * It only ever goes BACKWARDS. A game cannot have started in the future, and
+ * an entry stamped before its own night is a ledger that will not read back.
+ */
+function StartTime({ at, onChange }: { at: Date; onChange: (d: Date) => void }) {
+  const t = useTheme();
+  const back = (minutes: number) => onChange(new Date(at.getTime() - minutes * 60_000));
+
+  return (
+    <View style={styles.section}>
+      <View style={styles.figureRow}>
+        <Text style={[styles.figure, { color: t.text }]}>{clockLabel(at)}</Text>
+        <Text style={[styles.figureUnit, { color: t.muted }]}>tonight</Text>
+      </View>
+
+      <View style={styles.presets}>
+        {[5, 15, 30, 60].map((m) => (
+          <Button
+            key={m}
+            label={m === 60 ? '−1 h' : `−${m}`}
+            variant="preset"
+            onPress={() => back(m)}
+            style={styles.preset}
+          />
+        ))}
+      </View>
+
+      <Button label="Now" variant="secondary" onPress={() => onChange(new Date())} />
+
+      <Text style={[styles.explain, { color: t.muted }]}>
+        Every entry is stamped from here, and the running time on the night screen counts up from
+        it. Set it back to when the first hand was dealt.
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * One step's content, sliding in from the direction it came from.
+ *
+ * The transition is the only thing telling a person that the sheet changed
+ * rather than the whole screen: nothing moves at the top — grabber, title and
+ * close stay exactly where they were — so without it a tap on a row reads as a
+ * redraw. 22 points and 180ms, which is a step and not a journey.
+ */
+function StepBody({
+  step,
+  direction,
+  children,
+}: {
+  step: Step;
+  direction: 1 | -1;
+  children: React.ReactNode;
+}) {
+  const anim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    anim.setValue(0);
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 180,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [step, anim]);
+
+  return (
+    <Animated.View
+      style={{
+        opacity: anim,
+        transform: [
+          {
+            translateX: anim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [direction * 22, 0],
+            }),
+          },
+        ],
+      }}
+    >
+      {children}
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: space.card,
-    marginBottom: 22,
-    paddingTop: 14,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderRadius: radius.card,
+  section: { marginHorizontal: space.page, marginBottom: 20 },
+  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
+  tableName: { marginHorizontal: space.card, marginBottom: 14 },
+
+  // doc 15 § 3: a sheet's rows are 15 / 4 with a hairline between them.
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
+  rowText: { flex: 1, minWidth: 0, gap: 3 },
+  rowLabel: { fontSize: 17, fontWeight: '500' },
+  rowName: { fontSize: 17, fontWeight: '600' },
+  rowSub: { fontSize: 13, fontWeight: '400' },
+  rowValue: { fontSize: 17, fontWeight: '600', fontVariant: ['tabular-nums'], flexShrink: 1, textAlign: 'right' },
+  rowQuiet: { fontSize: 15, fontWeight: '400', flexShrink: 1, textAlign: 'right' },
+
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 4, paddingTop: 2 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: 1,
   },
-  cardRow: { flexDirection: 'row', alignItems: 'baseline', gap: 12 },
-  cardLabel: { fontSize: 12.5, fontWeight: '600' },
-  cardValue: { ...type.rowName, marginLeft: 'auto', flexShrink: 1, textAlign: 'right' },
-  from: { fontSize: 12, fontWeight: '400' },
-  change: {
+  findChip: { borderWidth: 1.5, borderStyle: 'dashed' },
+  chipName: { fontSize: 15, fontWeight: '600' },
+  chipHost: { fontSize: 11, fontWeight: '600', letterSpacing: 0.66 },
+  chipAmount: { fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'] },
+
+  empty: { ...type.footnote, paddingHorizontal: 4, paddingTop: 8 },
+  warn: { ...type.footnote, paddingHorizontal: 4, paddingBottom: 10, lineHeight: 18 },
+  footnote: { ...type.footnote, marginHorizontal: space.page, marginTop: 18 },
+
+  search: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginTop: 6,
-    paddingVertical: 13,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    marginHorizontal: space.card,
+    marginBottom: 18,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
   },
-  changeLabel: { ...type.meta, fontWeight: '500' },
+  searchText: { flex: 1, fontSize: 16, fontWeight: '400', padding: 0 },
 
-  list: { marginHorizontal: space.page },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  tableName: { marginHorizontal: space.card, marginBottom: 14 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 4 },
-  pick: { flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 },
-  box: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  name: { ...type.rowName, flexShrink: 1 },
   amount: {
     ...type.figure,
-    marginLeft: 'auto',
-    minWidth: 104,
+    // A FIXED WIDTH, not a minimum. A TextInput with no width of its own takes
+    // whatever the row will give it, which on a seated row is everything the
+    // name was using — "Lena" rendered as "L." beside a field three times the
+    // size it needs.
+    width: 104,
+    flexGrow: 0,
+    flexShrink: 0,
     textAlign: 'right',
     borderWidth: 1,
     borderRadius: radius.pressable,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  empty: { ...type.footnote, paddingHorizontal: 4 },
-  warn: { ...type.footnote, paddingHorizontal: 4, paddingBottom: 10, lineHeight: 18 },
+  addPill: { paddingVertical: 9, paddingHorizontal: 14, borderRadius: 8 },
+  addPillLabel: { fontSize: 13, fontWeight: '700' },
 
-  add: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 14, paddingHorizontal: 4 },
+  add: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: space.page,
+    marginTop: 14,
+    paddingHorizontal: 4,
+  },
   addField: {
     ...type.body,
     flex: 1,
@@ -435,4 +1148,47 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   addLabel: { fontSize: 15, fontWeight: '700' },
+
+  blank: {
+    marginHorizontal: space.card,
+    marginBottom: 22,
+    paddingVertical: 22,
+    paddingHorizontal: 18,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    gap: 10,
+  },
+  blankTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
+  blankBody: { ...type.footnote, paddingBottom: 4 },
+  use: { fontSize: 12, fontWeight: '700', letterSpacing: 1.1 },
+  skip: { marginHorizontal: space.card },
+
+  figureRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 10,
+    paddingHorizontal: 4,
+    paddingBottom: 12,
+  },
+  figure: {
+    fontSize: 56,
+    fontWeight: '800',
+    letterSpacing: -2.24,
+    lineHeight: 54,
+    fontVariant: ['tabular-nums'],
+  },
+  figureUnit: { fontSize: 22, fontWeight: '700', paddingBottom: 5 },
+  presets: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  preset: { flex: 1, height: 44, paddingHorizontal: 0 },
+  setBox: {
+    flex: 1,
+    height: 44,
+    borderRadius: radius.pressable,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  setText: { fontSize: 16, fontWeight: '700', textAlign: 'center', width: '100%', padding: 0 },
+  explain: { ...type.footnote, paddingHorizontal: 4, paddingTop: 12 },
 });

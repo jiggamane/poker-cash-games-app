@@ -36,6 +36,7 @@ import { Pill } from './Pill';
 export function Sheet({
   title,
   badge,
+  meta,
   sub,
   sentence = false,
   children,
@@ -45,6 +46,11 @@ export function Sheet({
   title: string;
   /** A status pill after the title, in the same row. */
   badge?: string;
+  /**
+   * A count at the right of the title row, before the close — O2's "4 seated".
+   * Quiet by design: it is the state of the thing being edited, not a status.
+   */
+  meta?: string;
   /** One line under the title. */
   sub?: string;
   /** A sub-line that is a sentence sets at 400/1.5 rather than 500. */
@@ -116,6 +122,11 @@ export function Sheet({
                   {title}
                 </Text>
                 {badge !== undefined && <Pill label={badge} />}
+                {meta !== undefined && (
+                  <Text style={[styles.meta, { color: t.muted }]} numberOfLines={1}>
+                    {meta}
+                  </Text>
+                )}
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Close"
@@ -123,6 +134,7 @@ export function Sheet({
                   hitSlop={12}
                   style={({ pressed }) => [
                     styles.close,
+                    meta !== undefined && styles.closeAfterMeta,
                     { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 },
                   ]}
                 >
@@ -235,6 +247,9 @@ const styles = StyleSheet.create({
   },
   titleRowAlone: { paddingBottom: 14 },
   title: { ...type.sheetTitle, flexShrink: 1 },
+  // 600 13px, pushed right — the meta takes the free space so the close sits
+  // beside it rather than both of them fighting for the same auto margin.
+  meta: { fontSize: 13, fontWeight: '600', marginLeft: 'auto' },
   close: {
     marginLeft: 'auto',
     width: chrome.close,
@@ -243,6 +258,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  closeAfterMeta: { marginLeft: 0 },
   sub: { ...type.sheetSub, paddingBottom: 14, paddingHorizontal: chrome.sheetTitlePadH },
   sentence: { ...type.sheetSentence, paddingBottom: 14, paddingHorizontal: chrome.sheetTitlePadH },
 
