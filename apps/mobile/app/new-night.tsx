@@ -100,6 +100,9 @@ export default function NewNight() {
         clubId: club.id,
         groupName: club.name,
         rules: inherited.rules,
+        // Copied at birth like the rules, and for the same reason: a night is
+        // settled with what it opened with.
+        roundingMode: inherited.roundingMode,
         seats,
         buyIn: inherited.buyIn,
         ...(second ? { tableName: tableName.trim() } : {}),
@@ -109,7 +112,7 @@ export default function NewNight() {
       });
       // What the night actually ran with becomes the next night's suggestion,
       // and only that — the club's own setting is untouched.
-      await rememberLastGame(club.id, inherited.buyIn, inherited.rules);
+      await rememberLastGame(club.id, inherited.buyIn, inherited.rules, inherited.roundingMode);
       router.dismissTo('/');
       router.push('/session');
     } finally {

@@ -111,6 +111,35 @@ export interface MoneyRule {
    */
   customShares?: ReadonlyArray<{ playerId: PlayerId; amount: Money }>;
   /**
+   * What the host typed against a name at settle-up, in place of what the
+   * split would have given that person.
+   *
+   * THE COUNT IS THE COUNT; A SHARE IS A DECISION. Chips are counted and the
+   * gross result follows from them — there is nothing to negotiate. But who
+   * carries how much of the bill, and what somebody puts into the piggy bank,
+   * is the room's to settle, and it is settled out loud at the end of a night:
+   * "Petr's only been here an hour, put him down for fifty." A rule that can
+   * express every split anyone has ever agreed does not exist, so this is the
+   * escape hatch, and it is deliberately per person rather than a mode the
+   * whole rule switches into.
+   *
+   * A named person pays exactly this and the rule's split no longer touches
+   * them. Where the rule has a fixed total to cover — a bill IS its expenses —
+   * whatever is left over is divided between the people who were NOT named,
+   * by the same split as before, so the total still comes out whole. Name
+   * everybody and the amounts must therefore add up to that total exactly;
+   * `settle()` refuses rather than quietly moving somebody's figure.
+   *
+   * A percentage rule has no total to preserve, so a named person simply pays
+   * what was typed and everyone else pays their percentage.
+   *
+   * It rides on the SESSION's snapshot of the rule, never on the group — like
+   * `exemptPlayerIds` below, and for the same reason: it is an answer about
+   * one night, and carrying it into next week would charge Petr fifty dollars
+   * for ever.
+   */
+  manualCharges?: ReadonlyArray<{ playerId: PlayerId; amount: Money }>;
+  /**
    * People this rule does not charge tonight.
    *
    * A group's kitty is a standing arrangement and somebody sitting out of it

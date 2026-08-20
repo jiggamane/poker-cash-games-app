@@ -144,6 +144,13 @@ export default function RootLayout() {
         <Stack.Screen name="house-rules" options={SHEET} />
         <Stack.Screen name="money-rules" options={SHEET} />
         <Stack.Screen name="rule" options={SHEET} />
+        {/* How coarsely the group settles — a money rule, so it ends with a
+            Save and is therefore a sheet. Opened from both layers of the
+            chain: tonight's money rules, and the club's. */}
+        <Stack.Screen name="rounding" options={SHEET} />
+        {/* One person's share of one rule, set by hand at the end of the
+            night. E3 promises the tap; this is what it opens. */}
+        <Stack.Screen name="share" options={SHEET} />
         <Stack.Screen name="sign-in" options={SHEET} />
         <Stack.Screen name="member" options={SHEET} />
         <Stack.Screen name="hand-over" options={SHEET} />

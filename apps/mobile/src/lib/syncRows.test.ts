@@ -54,6 +54,7 @@ describe('the session row', () => {
       'book_id',
       'default_buyin',
       'id',
+      'rounding_mode',
       'seat_count',
       'stakes',
       'started_at',

@@ -14,6 +14,8 @@ import {
   type Player,
   type PlayerId,
   type ResolvedLedger,
+  type RoundingMode,
+  type SettlementInput,
 } from '@poker-club/core';
 import { outbox, recordEntry } from './ledgerRepo';
 import {
@@ -155,6 +157,11 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
       // name (group_name) is not enough to tell them apart. Null on every
       // row written before tables had names, which reads as "Tonight".
       'table_name TEXT',
+      // How coarsely this night settles, copied off the club when it opened.
+      // Null on every night recorded before the setting existed, and null
+      // reads as whole dollars — which is exactly what those nights ran at,
+      // so an old night re-derives to the figures it closed with.
+      'rounding_mode TEXT',
     ]) {
       try {
         await db.execAsync(`ALTER TABLE night ADD COLUMN ${column};`);
@@ -189,6 +196,12 @@ export interface Night {
    */
   paidAt: Map<string, string>;
   rules: MoneyRule[];
+  /**
+   * How coarsely this night settles — the group's rounding rule, snapshotted
+   * when the night opened, exactly like the rules beside it. Null is whole
+   * dollars. Changing the club's setting never moves a night already running.
+   */
+  roundingMode: RoundingMode | null;
   /**
    * The player row this device belongs to, when it is known. It decides whose
    * figures a screen calls yours — never what any of them are.
@@ -251,6 +264,26 @@ export function useLedger(): ResolvedLedger | null {
 export const nameOf = (n: Night | null, id: PlayerId | null | undefined): string =>
   n?.players.find((p) => p.id === id)?.name ?? 'Someone';
 
+/**
+ * The night, as the engine wants it.
+ *
+ * ONE ASSEMBLY, read by every screen that settles. Ten screens were each
+ * building this object by hand, which was fine while it had four fields and
+ * stopped being fine the moment it had five: a screen that forgot the group's
+ * rounding rule would show a different set of figures from the screen beside
+ * it, and the host would have no way of telling which was the night.
+ */
+export function settlementInput(n: Night): SettlementInput {
+  return {
+    players: n.players,
+    entries: n.entries,
+    finalCounts: n.finalCounts,
+    rules: n.rules,
+    ...(n.roundingMode === null ? {} : { roundingMode: n.roundingMode }),
+    ...(n.acknowledgement ? { acknowledgedDiscrepancy: n.acknowledgement } : {}),
+  };
+}
+
 export { isTonight, FIRST_TABLE, MAIN_TABLE, tableNameProblem } from './whichNight';
 
 // ---------------------------------------------------------------------------
@@ -271,6 +304,8 @@ interface NightRow {
   ended_at: string | null;
   /** What a seat cost. Carried by pulled nights; null on locally started ones. */
   default_buyin: number | null;
+  /** How coarsely to settle. Null is whole dollars. */
+  rounding_mode: RoundingMode | null;
 }
 
 /**
@@ -463,6 +498,7 @@ async function readNight(row: NightRow): Promise<Night> {
     ...(row.ended_at ? { endedAt: row.ended_at } : {}),
     status: row.status,
     rules: JSON.parse(row.rules_json),
+    roundingMode: row.rounding_mode ?? null,
     ...(row.me_id ? { meId: row.me_id } : {}),
     players: players.map((p) => ({ id: p.id, name: p.name, atTable: p.at_table === 1 })),
     entries: entries.map((e) => ({
@@ -816,13 +852,7 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
 
   if (night.meId !== undefined) {
     try {
-      const settled = settle({
-        players: night.players,
-        entries: night.entries,
-        finalCounts: night.finalCounts,
-        rules: night.rules,
-        ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
-      });
+      const settled = settle(settlementInput(night));
       const me = settled.players.find((p) => p.playerId === night.meId);
       if (me !== undefined) {
         result = me.finalPosition;
@@ -1058,6 +1088,74 @@ export async function toggleRule(ruleId: string, active: boolean): Promise<void>
   await writeRules(night.rules.map((r) => (r.id === ruleId ? { ...r, active } : r)));
 }
 
+/**
+ * What one person carries of one rule, decided by hand at the end of the night.
+ *
+ * THE COUNT IS THE COUNT; A SHARE IS A DECISION. Nothing here can move a chip
+ * count or a gross result — those come off the table. What it moves is a
+ * SHARE, and the engine takes it from there: the named person pays exactly
+ * this, and on a rule with a fixed total to cover the difference is re-divided
+ * between the people who have NOT been named, by the rule's own split. So a
+ * host correcting Petr's bill share never leaves the bar short, and never
+ * silently restates a figure somebody else already agreed to.
+ *
+ * Pass null to withdraw it and put that person back on the split.
+ *
+ * It is written onto TONIGHT's snapshot of the rule and never onto the club's,
+ * for the same reason a sit-out is: it is an answer about one night, and next
+ * week's game must open from the rule the group actually has.
+ */
+export async function setManualCharge(
+  ruleId: string,
+  playerId: PlayerId,
+  amount: Money | null,
+): Promise<void> {
+  if (night === null) return;
+  await writeRules(
+    night.rules.map((r) => {
+      if (r.id !== ruleId) return r;
+      const rest = (r.manualCharges ?? []).filter((m) => m.playerId !== playerId);
+      const next = amount === null ? rest : [...rest, { playerId, amount }];
+      // Dropped entirely when empty rather than left as [], so a rule nobody
+      // has touched is byte-identical to the one the night opened with.
+      const { manualCharges: _cleared, ...bare } = r;
+      return next.length === 0 ? bare : { ...bare, manualCharges: next };
+    }),
+  );
+}
+
+/** Put everybody on this rule back on its split. */
+export async function clearManualCharges(ruleId: string): Promise<void> {
+  if (night === null) return;
+  await writeRules(
+    night.rules.map((r) => {
+      if (r.id !== ruleId) return r;
+      const { manualCharges: _cleared, ...bare } = r;
+      return bare;
+    }),
+  );
+}
+
+/**
+ * How coarsely TONIGHT settles.
+ *
+ * A night is settled with what it opened with, so this changes tonight and
+ * nothing else — the club's own default is set in Settings and reaches the
+ * next night. It is stored on the session row beside the rules, which is what
+ * carries it into the frozen record when the night closes.
+ */
+export async function setNightRounding(mode: RoundingMode | null): Promise<void> {
+  if (night === null) return;
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE night SET rounding_mode = ? WHERE session_id = ?`,
+    mode,
+    night.sessionId,
+  );
+  night = { ...night, roundingMode: mode };
+  emit();
+}
+
 async function writeRules(rules: MoneyRule[]): Promise<void> {
   if (night === null) return;
   const ordered = [...rules].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -1114,6 +1212,12 @@ export async function startNight(input: {
    */
   buyIn?: Money;
   rules: readonly MoneyRule[];
+  /**
+   * How coarsely the group settles, copied onto the night at birth like the
+   * rules. Omitted — a caller written before the setting existed — is whole
+   * dollars, which is what every night so far has run at.
+   */
+  roundingMode?: RoundingMode | null;
   seats: ReadonlyArray<{ playerId: PlayerId; name: string; buyIn: Money }>;
   meId?: PlayerId;
   /**
@@ -1251,6 +1355,7 @@ export async function startNight(input: {
     finalCounts: new Map(),
     paidAt: new Map(),
     rules: [...input.rules],
+    roundingMode: input.roundingMode ?? null,
     ...(input.meId === undefined ? {} : { meId: input.meId }),
     occurredAt: {},
     noteOf: {},
@@ -1295,6 +1400,8 @@ export interface ImportedNight {
   entries: Array<LedgerEntry & { occurredAt: string; note: string | null }>;
   counts: Array<{ playerId: string; amount: number }>;
   acknowledgement?: DiscrepancyAcknowledgement;
+  /** How coarsely it was settled. Absent is whole dollars. */
+  roundingMode?: RoundingMode | null;
 }
 
 /** How many nights this phone did not already have. */
@@ -1312,8 +1419,9 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
     await db.withTransactionAsync(async () => {
       await db.runAsync(
         `INSERT INTO night
-           (session_id, group_name, started_at, status, rules_json, ack_json, stakes, default_buyin, ended_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           (session_id, group_name, started_at, status, rules_json, ack_json, stakes, default_buyin, ended_at,
+            rounding_mode)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         n.sessionId,
         n.groupName,
         n.startedAt,
@@ -1323,6 +1431,7 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
         n.stakes,
         n.defaultBuyIn,
         n.endedAt,
+        n.roundingMode ?? null,
       );
 
       // The people, too. A roster is what a group IS, and somebody reading
@@ -1389,6 +1498,7 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
           entries: n.entries,
           finalCounts: new Map(n.counts.map((c) => [c.playerId, c.amount as Money])),
           rules: n.rules,
+          ...(n.roundingMode == null ? {} : { roundingMode: n.roundingMode }),
           ...(n.acknowledgement ? { acknowledgedDiscrepancy: n.acknowledgement } : {}),
         });
         await db.runAsync(

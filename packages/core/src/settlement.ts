@@ -20,11 +20,13 @@
 
 import {
   allocate,
+  granularityOf,
   money,
   percentOf,
   subtract,
   sum,
   type Money,
+  type RoundingMode,
   ZERO,
 } from './money';
 import { endedWith, reconcile, resolveLedger, type ResolvedLedger } from './ledger';
@@ -69,6 +71,18 @@ export interface SettlementInput {
   /** The host's end-of-night count, for players still seated. */
   finalCounts: ReadonlyMap<PlayerId, Money>;
   rules: readonly MoneyRule[];
+  /**
+   * How coarsely the group settles — a group rule, snapshotted onto the night
+   * like the rules themselves. Unset means whole dollars, which is what every
+   * night before this setting existed ran at, so an old record re-derives to
+   * exactly the figures it closed with.
+   *
+   * It reaches the DEDUCTIONS and nothing else. A gross result is chips
+   * counted off a table and rounding it would be inventing or destroying
+   * money; what a rule takes off the winners is a division the group is
+   * entitled to make in round numbers.
+   */
+  roundingMode?: RoundingMode | null;
   /**
    * Set only when the count does not balance and the host has confirmed the
    * missing amount. Without it, a night that does not add up cannot be closed.
@@ -163,6 +177,21 @@ export function settle(input: SettlementInput): SettlementResult {
         );
       }
     }
+    // A hand-typed share is the host overruling the split for one person. It
+    // still has to be an amount: a negative charge would pay somebody for
+    // being at the table, out of the pockets of everyone else on the rule.
+    for (const manual of rule.manualCharges ?? []) {
+      if (!known.has(manual.playerId)) {
+        throw new SettlementError(
+          `Rule "${rule.name}" has a hand-typed share for ${manual.playerId}, who is not in the player list`,
+        );
+      }
+      if (!Number.isInteger(manual.amount) || manual.amount < 0) {
+        throw new SettlementError(
+          `Rule "${rule.name}" has a hand-typed share of ${manual.amount}, which is not a whole non-negative amount.`,
+        );
+      }
+    }
   }
 
   /** Lookup used by custom splits, which name their own payers. */
@@ -214,8 +243,14 @@ export function settle(input: SettlementInput): SettlementResult {
   const credited = new Map<PlayerId, Money>(participants.map((p) => [p.id, ZERO]));
   const deductions: Deduction[] = [];
 
+  // The group's rounding rule, resolved once. `granularityOf` refuses 'cents'
+  // rather than silently settling in dollars, and it refuses it HERE — before
+  // a single figure is computed — so a night configured for money this build
+  // cannot represent fails loudly instead of taking the wrong amounts.
+  const granularity = granularityOf(input.roundingMode);
+
   for (const spec of deductionOrder(input.rules, ledger)) {
-    const deduction = applyDeduction(spec, { ledger, atTable, byId, gross, charged });
+    const deduction = applyDeduction(spec, { ledger, atTable, byId, gross, charged, granularity });
     if (deduction.total === 0 && deduction.charges.length === 0) continue;
 
     for (const c of deduction.charges) {
@@ -375,11 +410,13 @@ interface DeductionContext {
   byId: ReadonlyMap<PlayerId, Player>;
   gross: ReadonlyMap<PlayerId, Money>;
   charged: ReadonlyMap<PlayerId, Money>;
+  /** The group's rounding rule, in whole units. 1 is whole dollars. */
+  granularity: number;
 }
 
 function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   const { rule, reimbursesExpenses } = spec;
-  const { ledger, atTable, byId, gross, charged } = ctx;
+  const { ledger, atTable, byId, gross, charged, granularity } = ctx;
 
   const { name, destination, id: ruleId } = rule;
 
@@ -409,6 +446,22 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   // against a name is already an explicit answer.
   const exempt = new Set(rule.exemptPlayerIds ?? []);
   if (custom === null && exempt.size > 0) payers = payers.filter((p) => !exempt.has(p.id));
+
+  // A HAND-TYPED SHARE NAMES ITS OWN PAYER. It goes in after the winners-only
+  // filter and after the exemptions, both of which it is deliberately louder
+  // than: the reason a host reaches for it is usually that the split did not
+  // charge the right person, and a figure typed against a name at the end of a
+  // night is the most explicit answer the app can be given.
+  const manual = new Map<PlayerId, Money>(
+    (rule.manualCharges ?? []).map((m) => [m.playerId, m.amount]),
+  );
+  if (manual.size > 0) {
+    const already = new Set(payers.map((p) => p.id));
+    for (const id of manual.keys()) {
+      const person = byId.get(id);
+      if (person !== undefined && !already.has(id)) payers = [...payers, person];
+    }
+  }
 
   // Somebody really spent this money, so it has to be shared by someone.
   if (payers.length === 0 && reimbursesExpenses) payers = everyone.filter((p) => !exempt.has(p.id));
@@ -442,14 +495,15 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   const usePercent = rule.amountKind === 'percent' && !reimbursesExpenses && !isBill;
   const fixedTotal = isBill || reimbursesExpenses ? ledger.billableExpenses : rule.amount;
 
-  const nothingToDo = payers.length === 0 || (!usePercent && fixedTotal === 0);
+  const nothingToDo =
+    payers.length === 0 || (!usePercent && fixedTotal === 0 && manual.size === 0);
   if (nothingToDo) {
     return { ruleId, name, destination, total: ZERO, charges: [], credits: [] };
   }
 
   let charges: Array<{ playerId: PlayerId; amount: Money }>;
 
-  if (custom) {
+  if (custom !== null && manual.size === 0) {
     // The host typed these, so they must add up to the amount being covered
     // exactly — the design makes that field blocking rather than a warning.
     const typed = sum(custom.map((c) => c.amount));
@@ -460,25 +514,71 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
     }
     charges = custom.filter((c) => c.amount > 0).map((c) => ({ playerId: c.playerId, amount: c.amount }));
   } else if (usePercent) {
-    // Each payer is charged a percentage of their own share. Losers have
-    // nothing to take a percentage of, so they pay nothing.
+    // Each payer is charged a percentage of their own share, rounded to the
+    // group's granularity. Losers have nothing to take a percentage of, so
+    // they pay nothing — unless the host has typed a figure against their name,
+    // which is the one thing that puts a loser on a percentage rule at all.
+    //
+    // A percentage has no total to preserve: what it charges is what the
+    // collector receives, so one changed figure changes the rule's total and
+    // nobody else's share moves.
     charges = payers
       .map((p) => ({
         playerId: p.id,
-        amount: percentOf(money(Math.max(basisFor(p.id), 0)), rule.amount),
+        amount:
+          manual.get(p.id) ??
+          percentOf(money(Math.max(basisFor(p.id), 0)), rule.amount, granularity),
       }))
       .filter((c) => c.amount > 0);
   } else {
     // A fixed sum, divided between the payers. allocate() is what guarantees
     // the parts add back up to the whole.
-    const weights =
-      rule.split === 'by_percent'
-        ? payers.map((p) => Math.max(basisFor(p.id), 0))
-        : payers.map(() => 1);
+    //
+    // WHAT THE HOST TYPED COMES OFF THE TOP, and the REST is divided between
+    // the people they did not name. That is what makes editing one person's
+    // bill share a statement about that person: the bar is still owed exactly
+    // what the bar is owed, and the difference lands on everybody else rather
+    // than quietly going missing.
+    const pinned = payers.filter((p) => manual.has(p.id));
+    const spread = payers.filter((p) => !manual.has(p.id));
 
-    const parts = allocate(fixedTotal, weights);
+    const byHand = sum(pinned.map((p) => manual.get(p.id)!));
+    if (byHand > fixedTotal) {
+      throw new SettlementError(
+        `Rule "${name}" has hand-typed shares totalling ${byHand}, but only ${fixedTotal} needs covering.`,
+      );
+    }
+    const rest = money(fixedTotal - byHand);
+    if (spread.length === 0 && rest !== 0) {
+      throw new SettlementError(
+        `Rule "${name}" has hand-typed shares totalling ${byHand}, which leaves ${rest} of the ` +
+          `${fixedTotal} with nobody to carry it. Name somebody for it, or change a share.`,
+      );
+    }
+
+    const amounts = new Map<PlayerId, Money>(pinned.map((p) => [p.id, manual.get(p.id)!]));
+
+    if (spread.length > 0) {
+      // A custom split that has been overruled for one person keeps the typed
+      // figures as the WEIGHTS for everybody else. They are still the host's
+      // own statement of who carries more, and re-dividing by them is the only
+      // reading of "change Petr's share" that leaves the total whole.
+      const weights =
+        custom !== null
+          ? spread.map((p) => Math.max(custom.find((c) => c.playerId === p.id)?.amount ?? 0, 0))
+          : rule.split === 'by_percent'
+            ? spread.map((p) => Math.max(basisFor(p.id), 0))
+            : spread.map(() => 1);
+
+      const parts = allocate(rest, weights, granularity);
+      spread.forEach((p, i) => amounts.set(p.id, parts[i]));
+    }
+
+    // In payer order — size of win, then name — which is the order the
+    // deductions screen reads down and the order a leftover unit was handed
+    // out in.
     charges = payers
-      .map((p, i) => ({ playerId: p.id, amount: parts[i] }))
+      .map((p) => ({ playerId: p.id, amount: amounts.get(p.id) ?? ZERO }))
       .filter((c) => c.amount > 0);
   }
 

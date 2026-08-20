@@ -19,6 +19,7 @@
  * value, not the value itself.
  */
 
+import type { RoundingMode } from './money';
 import type { MoneyRule, RuleCharge, RuleSplit } from './types';
 
 /**
@@ -57,4 +58,61 @@ export function ruleTerms(rule: Pick<MoneyRule, 'amountKind' | 'amount' | 'split
 /** "Bill · by size of win". The whole row label, name included. */
 export function ruleLabel(rule: Pick<MoneyRule, 'name' | 'amountKind' | 'amount' | 'split' | 'charge'>): string {
   return `${rule.name} · ${ruleTerms(rule)}`;
+}
+
+/**
+ * How coarsely the group settles, offered as a row of chips.
+ *
+ * The four the interface offers, and the labels are the decided copy: rev 18's
+ * S14 draws the rounding control as an open chip row reading
+ * "Cent · Dollar · 10s · 50s · 100s · 1k". `RoundingMode` still carries all
+ * six values because they are written into `book.rounding_mode` on the server
+ * — a stored night set to fifties keeps settling in fifties and reads back
+ * correctly below. What is OFFERED is these four: cents needs amounts held in
+ * minor units, which is not built, and fifties has never been asked for.
+ */
+export const ROUNDING_CHOICES: ReadonlyArray<{ mode: RoundingMode; chip: string }> = [
+  { mode: 'dollars', chip: 'Dollar' },
+  { mode: 'tens', chip: '10s' },
+  { mode: 'hundreds', chip: '100s' },
+  { mode: 'thousands', chip: '1k' },
+];
+
+/**
+ * The rounding rule as a row's value — "Whole dollars".
+ *
+ * ⚠ ONE STRING IS DRAWN AND FIVE ARE NOT. L5 draws the rounding row reading
+ * "Whole dollars" and no frame shows the row in any other state, so the rest
+ * are written to the same grammar and FLAGGED rather than passed off as
+ * decided copy (`11-bill-and-piggy-bank.md`, and the handoff's rule that a
+ * missing string is raised, not invented).
+ */
+export function roundingLabel(mode: RoundingMode | null | undefined): string {
+  switch (mode ?? 'dollars') {
+    case 'cents':
+      return 'Cents';
+    case 'dollars':
+      return 'Whole dollars';
+    case 'tens':
+      return 'Nearest 10';
+    case 'fifties':
+      return 'Nearest 50';
+    case 'hundreds':
+      return 'Nearest 100';
+    case 'thousands':
+      return 'Nearest 1,000';
+  }
+}
+
+/**
+ * What the rule does, for the line under its name.
+ *
+ * Says nothing at all at whole dollars: that is what every night has always
+ * done, and a row explaining the absence of a setting is noise on a screen
+ * whose whole job is to make the settings that ARE unusual visible.
+ */
+export function roundingSentence(mode: RoundingMode | null | undefined): string {
+  return (mode ?? 'dollars') === 'dollars'
+    ? 'What each rule takes is worked out to the dollar'
+    : `What each rule takes is rounded to the ${roundingLabel(mode).replace('Nearest ', '')}`;
 }

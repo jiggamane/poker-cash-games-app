@@ -159,6 +159,10 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
         entries: night.entries,
         finalCounts: night.finalCounts,
         rules: night.rules,
+        // The host's rounding rule, through `night_header`. Settling without it
+        // would put a different set of figures on this screen from the ones the
+        // room is looking at.
+        ...(night.roundingMode === null ? {} : { roundingMode: night.roundingMode }),
       });
     } catch {
       return null;

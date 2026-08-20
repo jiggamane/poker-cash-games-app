@@ -1,12 +1,20 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, resolveLedger, settle, type Money, type MoneyRule } from '@poker-club/core';
+import {
+  formatMoney,
+  resolveLedger,
+  roundingLabel,
+  roundingSentence,
+  settle,
+  type Money,
+  type MoneyRule,
+} from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
-import { nameOf, toggleRule, useNight, type Night } from '../src/lib/nightStore';
+import { nameOf, type Night, settlementInput, toggleRule, useNight } from '../src/lib/nightStore';
 
 /**
  * Money rules — O4. Everything that takes money off the table at settle-up.
@@ -32,12 +40,7 @@ export default function MoneyRules() {
   const preview = useMemo(() => {
     if (night === null) return null;
     try {
-      return settle({
-        players: night.players,
-        entries: night.entries,
-        finalCounts: night.finalCounts,
-        rules: night.rules,
-      });
+      return settle(settlementInput(night));
     } catch {
       return null;
     }
@@ -114,6 +117,33 @@ export default function MoneyRules() {
         >
           <Icon name="plus" color={t.text} size={15} />
           <Text style={[styles.addLabel, { color: t.text }]}>Add a rule</Text>
+        </Pressable>
+      </View>
+
+      {/*
+        * Governs every rule above it at once, so it is under its own caption
+        * rather than in the list: a reader looking down that list is looking
+        * for things with a switch, and this has nothing to switch off.
+        */}
+      <Text style={[styles.caption, styles.afterList, { color: t.muted }]}>How it is rounded</Text>
+
+      <View style={styles.list}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
+          style={({ pressed }) => [styles.row, styles.addRow, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <View style={styles.rowText}>
+            <View style={styles.nameLine}>
+              <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
+                {roundingLabel(night.roundingMode)}
+              </Text>
+              <Icon name="chevron" color={t.muted} size={15} />
+            </View>
+            <Text style={[styles.detail, { color: t.muted }]} numberOfLines={1}>
+              {roundingSentence(night.roundingMode)}
+            </Text>
+          </View>
         </Pressable>
       </View>
 
@@ -195,6 +225,7 @@ const styles = StyleSheet.create({
   nameLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name: { fontSize: 18, fontWeight: '700', flexShrink: 1 },
   detail: { fontSize: 13.5, fontWeight: '400' },
+  afterList: { marginTop: 18 },
   addRow: { gap: 11, borderBottomWidth: 0 },
   addLabel: { fontSize: 15, fontWeight: '700' },
 

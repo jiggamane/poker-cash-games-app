@@ -7,7 +7,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
-import { markPaid, nameOf, transferKey, useNight } from '../src/lib/nightStore';
+import { markPaid, nameOf, settlementInput, transferKey, useNight } from '../src/lib/nightStore';
 
 /**
  * Who has paid — E7. 13-after-the-night.md.
@@ -29,13 +29,7 @@ export default function Payments() {
   const result = useMemo(() => {
     if (night === null) return null;
     try {
-      return settle({
-        players: night.players,
-        entries: night.entries,
-        finalCounts: night.finalCounts,
-        rules: night.rules,
-        ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
-      });
+      return settle(settlementInput(night));
     } catch {
       return null;
     }

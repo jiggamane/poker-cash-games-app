@@ -1,4 +1,10 @@
-import type { DiscrepancyAcknowledgement, LedgerEntry, Money, MoneyRule } from '@poker-club/core';
+import type {
+  DiscrepancyAcknowledgement,
+  LedgerEntry,
+  Money,
+  MoneyRule,
+  RoundingMode,
+} from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { importNights, type ImportedNight } from './nightStore';
 import { READS } from './pullReads';
@@ -103,6 +109,13 @@ async function pullBook(bookId: string, groupName: string): Promise<number> {
       stakes: s.stakes,
       defaultBuyIn: s.default_buyin,
       rules,
+      /*
+       * The settlement's own inputs are the authority on a settled night: the
+       * session row is written once, when the night opens, and a host who
+       * changed the rounding before closing would leave the two disagreeing.
+       * The snapshot is what the figures were actually produced from.
+       */
+      roundingMode: roundingOf(settlement) ?? s.rounding_mode ?? null,
       // Everybody the book knows, seated according to this night. A roster is
       // group-wide; who was at the table is not.
       players: people.map((p) => ({
@@ -141,6 +154,21 @@ function acknowledgementOf(s: SettlementRow | undefined): DiscrepancyAcknowledge
       ? {}
       : { absorbedByPlayerId: s.discrepancy_absorbed_by }),
   };
+}
+
+/**
+ * The rounding rule a settled night was actually settled under.
+ *
+ * Read off `inputs_snapshot` — the very object `settle()` was handed — rather
+ * than off the session row, which was written when the night opened and cannot
+ * know about a change made before it closed. Absent, on every night settled
+ * before the setting existed, is whole dollars.
+ */
+function roundingOf(s: SettlementRow | undefined): RoundingMode | null {
+  const inputs = s?.inputs_snapshot;
+  if (inputs === null || typeof inputs !== 'object') return null;
+  const mode = (inputs as { roundingMode?: unknown }).roundingMode;
+  return typeof mode === 'string' ? (mode as RoundingMode) : null;
 }
 
 const toEntry = (e: EntryRow): LedgerEntry & { occurredAt: string; note: string | null } => ({
@@ -187,6 +215,7 @@ interface SessionRow {
   status: string;
   stakes: string | null;
   default_buyin: number;
+  rounding_mode: RoundingMode | null;
 }
 
 interface EntryRow {
@@ -220,6 +249,8 @@ interface RuleRow {
 interface SettlementRow {
   session_id: string;
   rules_snapshot: unknown;
+  /** The `NightSnapshot` the figures came from — it carries the rounding rule. */
+  inputs_snapshot: unknown;
   discrepancy_amount: number;
   discrepancy_confirmed_by: string | null;
   discrepancy_confirmed_at: string | null;

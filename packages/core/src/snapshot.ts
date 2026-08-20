@@ -1,5 +1,5 @@
 import type { SettlementInput } from './settlement';
-import type { Money } from './money';
+import type { Money, RoundingMode } from './money';
 import type {
   DiscrepancyAcknowledgement,
   LedgerEntry,
@@ -29,6 +29,16 @@ export interface NightSnapshot {
   entries: LedgerEntry[];
   /** A Map does not survive JSON, so it travels as pairs and comes back a Map. */
   finalCounts: Array<[PlayerId, number]>;
+  /**
+   * How coarsely the group settled that night.
+   *
+   * A GROUP RULE THE NIGHT WAS SETTLED UNDER, so it belongs here beside the
+   * ledger and not with the club: a group that moves to hundreds in November
+   * must not make last March's night re-derive to different figures. Absent —
+   * every night written before the setting existed — means whole dollars,
+   * which is exactly what those nights ran at.
+   */
+  roundingMode?: RoundingMode | null;
   /** When each entry happened. Not used by the engine; kept for reading back. */
   occurredAt?: Record<string, string>;
 }
@@ -42,6 +52,7 @@ export function snapshotOf(
     players: [...input.players],
     entries: [...input.entries],
     finalCounts: [...input.finalCounts.entries()],
+    ...(input.roundingMode == null ? {} : { roundingMode: input.roundingMode }),
     ...(occurredAt === undefined ? {} : { occurredAt }),
   };
 }
@@ -72,6 +83,7 @@ export function inputFromSnapshot(
       (Array.isArray(s.finalCounts) ? s.finalCounts : []).map(([id, n]) => [id, n as Money]),
     ),
     rules: Array.isArray(rules) ? (rules as MoneyRule[]) : [],
+    ...(s.roundingMode == null ? {} : { roundingMode: s.roundingMode }),
     ...(acknowledgedDiscrepancy === undefined ? {} : { acknowledgedDiscrepancy }),
   };
 }

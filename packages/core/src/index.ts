@@ -18,6 +18,8 @@ export * from './outbox';
 export * from './ruleText';
 /* One person's night as the working — in, out, result, bill, back, kitty. */
 export * from './working';
+/* What one person was set to by hand, and how much there is left to set. */
+export * from './overrides';
 /*
  * Recovered from claude/auth-not-working, where they were written and tested
  * against the same money core. A night's rules snapshot and the re-derivation

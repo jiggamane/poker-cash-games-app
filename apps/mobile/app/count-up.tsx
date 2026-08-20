@@ -14,7 +14,7 @@ import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { standingsOf, useNight } from '../src/lib/nightStore';
+import { settlementInput, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
  * Count up — E2, step 1 of 3. 13-after-the-night.md.
@@ -42,12 +42,7 @@ export default function CountUp() {
     return <Screen title="Count up" backTo="Tonight">{null}</Screen>;
   }
 
-  const reconciliation = checkReconciliation({
-    players: night.players,
-    entries: night.entries,
-    finalCounts: night.finalCounts,
-    rules: night.rules,
-  });
+  const reconciliation = checkReconciliation(settlementInput(night));
 
   /**
    * Only people with chips in front of them owe a count. Somebody who busted

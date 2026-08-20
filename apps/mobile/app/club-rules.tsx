@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, type MoneyRule } from '@poker-club/core';
+import { formatMoney, roundingLabel, roundingSentence, type MoneyRule } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { block, radius, space, type } from '../src/design/tokens';
-import { setClubRules, useClub } from '../src/lib/clubStore';
+import { setClubRounding, setClubRules, useClub } from '../src/lib/clubStore';
 import { useNight } from '../src/lib/nightStore';
 
 /**
@@ -120,13 +120,47 @@ export default function ClubMoneyRules() {
         </Pressable>
       </View>
 
+      {/*
+        * ROUNDING IS A MONEY RULE, and this is where the group's money rules
+        * are. It is not a rule ROW — it has no destination, no collector and
+        * nobody it charges; it governs every rule in the list above at once,
+        * which is why it sits under its own caption rather than in the list
+        * where a reader would look for a switch that turns it off.
+        */}
+      <Text style={[styles.caption, { color: t.muted }]}>How it is rounded</Text>
+
+      <View style={styles.list}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push({ pathname: '/rounding', params: { scope: 'club' } })}
+          style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <View style={styles.rowText}>
+            <View style={styles.nameLine}>
+              <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
+                {roundingLabel(club.roundingMode)}
+              </Text>
+              <Icon name="chevron" color={t.muted} size={15} />
+            </View>
+            <Text style={[styles.detail, { color: t.muted }]} numberOfLines={1}>
+              {roundingSentence(club.roundingMode)}
+            </Text>
+          </View>
+        </Pressable>
+      </View>
+
       {/* The one honest way to promote what a night actually ran with into the
           club's own layer. Without it the middle layer would quietly outrank
           this screen for ever. */}
       {night !== null && night.rules.length > 0 && (
         <Pressable
           accessibilityRole="button"
-          onPress={() => void setClubRules(club.id, night.rules)}
+          onPress={() => {
+            void setClubRules(club.id, night.rules.map(asClubDefault));
+            if (night.roundingMode !== club.roundingMode) {
+              void setClubRounding(club.id, night.roundingMode);
+            }
+          }}
           style={({ pressed }) => [
             styles.promote,
             { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 },
@@ -148,6 +182,20 @@ export default function ClubMoneyRules() {
     </Screen>
   );
 }
+
+/**
+ * The rule as the GROUP holds it, with tonight's answers taken back off.
+ *
+ * A sit-out and a hand-typed share are both answers about ONE night — the type
+ * says so of each of them — and promoting a night's rules is a statement about
+ * every night from here on. Carried across, they would charge Petr fifty
+ * dollars for the bill every week, and excuse Lena the piggy bank for ever,
+ * with nothing on any screen saying why.
+ */
+const asClubDefault = (rule: MoneyRule): MoneyRule => {
+  const { manualCharges: _byHand, exemptPlayerIds: _satOut, ...standing } = rule;
+  return standing;
+};
 
 /** "10% off each win · winners · held by Radka". */
 function describe(r: MoneyRule): string {

@@ -163,7 +163,7 @@ select expect_text(
 
 select expect_eq(
   (select count(*) from (
-     select id, started_at, ended_at, status, stakes, default_buyin from session
+     select id, started_at, ended_at, status, stakes, default_buyin, rounding_mode from session
    ) x),
   1, 'every night of that book, and no night of any other');
 
