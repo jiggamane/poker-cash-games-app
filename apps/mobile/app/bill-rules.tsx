@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { MoneyRule } from '@poker-club/core';
+import { roundingLabel, type MoneyRule } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
@@ -124,10 +124,23 @@ export default function BillRules() {
         })}
       </View>
 
-      <View style={styles.row}>
+      {/*
+        * L5 draws this row and gives it a value. It was that value, hard-coded,
+        * for as long as rounding was not a setting — which made it a label
+        * describing behaviour rather than a row stating a rule. It now reads
+        * tonight's own setting and opens it, which is what a row with a value
+        * on the right has always looked like it does.
+        */}
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
+        style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+      >
         <Text style={[styles.rowLabel, { color: t.text }]}>Rounding</Text>
-        <Text style={[styles.rowValue, { color: t.muted }]}>Whole dollars</Text>
-      </View>
+        <Text style={[styles.rowValue, { color: t.muted }]}>
+          {roundingLabel(night.roundingMode)}
+        </Text>
+      </Pressable>
 
       <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <Text style={[styles.blockTitle, { color: t.text }]}>When it is charged</Text>

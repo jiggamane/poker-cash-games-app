@@ -2,10 +2,11 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatMoney, type MoneyRule } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
+import { RoundingRow } from '../src/components/RoundingRow';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { block, radius, space, type } from '../src/design/tokens';
-import { setClubRules, useClub } from '../src/lib/clubStore';
+import { setClubRounding, setClubRules, useClub } from '../src/lib/clubStore';
 import { useNight } from '../src/lib/nightStore';
 
 /**
@@ -120,13 +121,20 @@ export default function ClubMoneyRules() {
         </Pressable>
       </View>
 
+      <RoundingRow mode={club.roundingMode} scope="club" />
+
       {/* The one honest way to promote what a night actually ran with into the
           club's own layer. Without it the middle layer would quietly outrank
           this screen for ever. */}
       {night !== null && night.rules.length > 0 && (
         <Pressable
           accessibilityRole="button"
-          onPress={() => void setClubRules(club.id, night.rules)}
+          onPress={() => {
+            void setClubRules(club.id, night.rules.map(asClubDefault));
+            if (night.roundingMode !== club.roundingMode) {
+              void setClubRounding(club.id, night.roundingMode);
+            }
+          }}
           style={({ pressed }) => [
             styles.promote,
             { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 },
@@ -148,6 +156,20 @@ export default function ClubMoneyRules() {
     </Screen>
   );
 }
+
+/**
+ * The rule as the GROUP holds it, with tonight's answers taken back off.
+ *
+ * A sit-out and a hand-typed share are both answers about ONE night — the type
+ * says so of each of them — and promoting a night's rules is a statement about
+ * every night from here on. Carried across, they would charge Petr fifty
+ * dollars for the bill every week, and excuse Lena the piggy bank for ever,
+ * with nothing on any screen saying why.
+ */
+const asClubDefault = (rule: MoneyRule): MoneyRule => {
+  const { manualCharges: _byHand, exemptPlayerIds: _satOut, ...standing } = rule;
+  return standing;
+};
 
 /** "10% off each win · winners · held by Radka". */
 function describe(r: MoneyRule): string {

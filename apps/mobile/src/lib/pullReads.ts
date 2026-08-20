@@ -15,7 +15,8 @@
  */
 export const READS = {
   book: 'id, group_name',
-  session: 'id, started_at, ended_at, status, stakes, default_buyin',
+  /** `rounding_mode` is how the night settles, not how it is displayed. */
+  session: 'id, started_at, ended_at, status, stakes, default_buyin, rounding_mode',
   /**
    * A name and nothing else — `claimed_by_user_id` is deliberately absent. A
    * member reading the roster has no business knowing which of the others have

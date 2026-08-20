@@ -51,10 +51,18 @@ gross less whatever earlier rules already took off them.
 
 ## Rounding, stated once
 
-- A percentage **floors**, so a rule can never take more than it says.
+- A percentage rounds **half up**, per the handoff's worked night: 5% of $430 is
+  21.5 and charges $22. (An earlier draft of this document said *floors*. The
+  code has never floored — see *Rounding granularity* below.)
 - Dividing a total between people uses **largest remainder**: everyone gets their
   floor, then the leftover units go to whoever was cut by the most, ties broken
   by position. No unit is ever invented or lost.
+- Both take the group's **granularity** — `SettlementInput.roundingMode`,
+  whole dollars unless the group says otherwise. It reaches the deductions and
+  nothing else: a gross result is chips counted off a table, and rounding one
+  would invent or destroy money.
+- A share the host typed by hand is charged **exactly as typed**, round or not.
+  It is an explicit answer and nothing is applied on top of it.
 - Nothing else rounds anywhere.
 
 ## Determinism
@@ -196,7 +204,9 @@ differed, and that was the layout being wrong.
 
 ## Rounding granularity — SETTLED
 
-A group may round to 10s, 50s or 100s. The parts must still sum exactly to the
+A group may round to 10s, 100s or 1k — the four chips the interface offers are
+Dollar · 10s · 100s · 1k (`ROUNDING_CHOICES`), and `RoundingMode` additionally
+carries `fifties` because `book.rounding_mode` on the server does. The parts must still sum exactly to the
 total, so when a leftover is smaller than one whole unit it goes **entirely to
 whoever is furthest from their exact share** — the mathematically fairest single
 recipient. That one person's share is then not a round unit, which is the price
@@ -217,6 +227,7 @@ of the total staying exact; everyone else's is.
 | 10s | $60 / $60 / $50 |
 | 50s | $70 / $50 / $50 |
 | 100s | $100 / $70 / $0 |
+| 1k | $170 / $0 / $0 |
 
 Tested to sum exactly across every granularity, and to leave at most one person
 holding a non-round share.
@@ -224,6 +235,33 @@ holding a non-round share.
 **Still open:** `roundingMode: 'cents'`. Amounts are currently whole units, so
 cents needs the move to minor units that `04-money-math.md` describes. Cheap to
 do, but it is a data migration, not a setting.
+
+## Hand-typed shares — SETTLED
+
+`MoneyRule.manualCharges` is the host setting one person's share of one rule at
+the end of the night, from the deductions screen. The count is not negotiable;
+a share is, and it is negotiated out loud in the room.
+
+- The named person is charged **exactly** what was typed, whatever the split
+  would have given them. It is louder than `winners_only` and louder than
+  `exemptPlayerIds`, because the reason a host reaches for it is usually that
+  the split charged the wrong person.
+- On a rule with a **total to cover** — a bill is its expenses; a fixed sum is
+  the sum it states — the typed figures come off the top and the remainder is
+  divided between the people who have **not** been named, by the rule's own
+  split and at the group's granularity. So the bar is owed exactly what the bar
+  is owed, and somebody already agreed with is never silently restated.
+- On a **percentage** rule there is no total to preserve: what it charges is
+  what the collector receives, so one changed figure moves that rule's total and
+  nobody else's share.
+- `settle()` refuses, naming the gap, if the typed figures come to more than
+  there is to cover, or if everybody is named and they do not add up.
+- It rides on the **session's** copy of the rule, never on the group's —
+  `club-rules.tsx` strips it (and `exemptPlayerIds`) when promoting tonight's
+  rules to the club default.
+
+Tests: `hand-typed-shares.test.ts`, which asserts `verifyNight()` finds nothing
+on every case.
 
 ## No-winner nights — SETTLED
 

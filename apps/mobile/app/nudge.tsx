@@ -6,7 +6,7 @@ import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { nameOf, transferKey, useNight } from '../src/lib/nightStore';
+import { nameOf, settlementInput, transferKey, useNight } from '../src/lib/nightStore';
 
 /**
  * Nudge the table — E8. 13-after-the-night.md.
@@ -35,13 +35,7 @@ export default function Nudge() {
   const result = useMemo(() => {
     if (night === null) return null;
     try {
-      return settle({
-        players: night.players,
-        entries: night.entries,
-        finalCounts: night.finalCounts,
-        rules: night.rules,
-        ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
-      });
+      return settle(settlementInput(night));
     } catch {
       return null;
     }

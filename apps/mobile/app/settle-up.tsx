@@ -17,7 +17,7 @@ import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { nameOf, setAcknowledgement, setStatus, standingsOf, useNight } from '../src/lib/nightStore';
+import { nameOf, setAcknowledgement, setStatus, settlementInput, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
  * Settle up — E4, step 3 of 3 — and E5 when the night does not add up.
@@ -50,13 +50,7 @@ export default function SettleUp() {
     try {
       return {
         ok: true as const,
-        value: settle({
-          players: night.players,
-          entries: night.entries,
-          finalCounts: night.finalCounts,
-          rules: night.rules,
-          ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
-        }),
+        value: settle(settlementInput(night)),
       };
     } catch {
       return { ok: false as const };
@@ -205,12 +199,7 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
   const t = useTheme();
   const ledger = resolveLedger(night.entries);
 
-  const reconciliation = checkReconciliation({
-    players: night.players,
-    entries: night.entries,
-    finalCounts: night.finalCounts,
-    rules: night.rules,
-  });
+  const reconciliation = checkReconciliation(settlementInput(night));
 
   const short = reconciliation.difference < 0;
   const off = Math.abs(reconciliation.difference) as Money;

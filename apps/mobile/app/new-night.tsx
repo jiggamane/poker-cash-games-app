@@ -185,6 +185,11 @@ export default function NewNight() {
         clubId: club.id,
         groupName: club.name,
         rules: liveRules,
+        // Copied at birth like the rules, and for the same reason: a night is
+        // settled with what it opened with. Nothing on this sheet edits it —
+        // the rounding rule is changed from tonight's money rules, or from the
+        // club's, and this is only where the club's answer is carried across.
+        roundingMode: inherited.roundingMode,
         seats,
         buyIn: liveBuyIn,
         ...(timeSet ? { startedAt } : {}),
@@ -195,7 +200,7 @@ export default function NewNight() {
       });
       // What the night actually ran with becomes the next night's suggestion,
       // and only that — the club's own setting is untouched.
-      await rememberLastGame(club.id, liveBuyIn, liveRules);
+      await rememberLastGame(club.id, liveBuyIn, liveRules, inherited.roundingMode);
       router.dismissTo('/');
       router.push('/session');
     } finally {

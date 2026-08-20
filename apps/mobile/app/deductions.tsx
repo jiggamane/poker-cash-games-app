@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   formatMoney,
   formatSigned,
+  manualChargeOf,
   reconcile,
   resolveLedger,
   settle,
@@ -18,7 +19,8 @@ import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius } from '../src/design/tokens';
-import { nameOf, useNight } from '../src/lib/nightStore';
+import { clearManualCharges, nameOf, settlementInput, useNight } from '../src/lib/nightStore';
+import { useIsAdmin } from '../src/lib/whoIsReading';
 
 /**
  * Deductions — E3, step 2 of 3, and E3b when the bill is not in yet.
@@ -36,19 +38,21 @@ import { nameOf, useNight } from '../src/lib/nightStore';
 export default function Deductions() {
   const t = useTheme();
   const night = useNight();
+  /*
+   * WHO MAY RESTATE A FIGURE. Everybody at the table is entitled to SEE the
+   * deductions — that is the point of the screen — and one person is entitled
+   * to change them. A power the reader does not have is REMOVED, not disabled
+   * (`12-the-group.md` § 4.1), so a member gets the same table without the
+   * pencils and without the taps.
+   */
+  const admin = useIsAdmin();
 
   const result = useMemo(() => {
     if (night === null) return null;
     try {
       return {
         ok: true as const,
-        value: settle({
-          players: night.players,
-          entries: night.entries,
-          finalCounts: night.finalCounts,
-          rules: night.rules,
-          ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
-        }),
+        value: settle(settlementInput(night)),
       };
     } catch (e) {
       /*
@@ -154,6 +158,19 @@ export default function Deductions() {
 
   const winners = players.filter((p) => p.grossResult > 0);
 
+  /*
+   * WHICH RULE A COLUMN IS. The BILL and KITTY columns are destinations, and
+   * tapping a cell has to open the rule behind it — so the column has to know
+   * which one it is. The first rule with that destination, which is the same
+   * one `deductionOrder()` reimburses: a group with two bills is not a shape
+   * the design has anywhere, and picking the first is at least the same choice
+   * the engine makes.
+   */
+  const ruleFor = (destination: Deduction['destination']): MoneyRule | undefined =>
+    [...night.rules]
+      .filter((r) => r.active && r.destination === destination)
+      .sort((a, b) => a.sortOrder - b.sortOrder || (a.id < b.id ? -1 : 1))[0];
+
   return (
     <Screen
       title="Deductions"
@@ -188,6 +205,7 @@ export default function Deductions() {
             deduction={d}
             rule={night.rules.find((r) => r.id === d.ruleId)}
             night={night}
+            admin={admin}
             basisFor={(playerId) => {
               const p = players.find((x) => x.playerId === playerId);
               if (p === undefined) return 0 as Money;
@@ -253,23 +271,38 @@ export default function Deductions() {
                   {p.grossResult < 0 ? '−' : ''}
                   {Math.abs(p.grossResult).toLocaleString('en-US')}
                 </Text>
-                {/* Losers show gross and net only: both rules charge winners,
-                    and an empty cell says that better than a zero. */}
-                <Text
-                  style={[styles.money, styles.num, styles.billCol, { color: t.offTable, backgroundColor: t.offTableFaint }]}
-                  numberOfLines={1}
-                >
-                  {won ? dash(bill, true) : ''}
-                </Text>
+                {/*
+                  * A loser's cells are usually empty, and that is a fact about
+                  * the rules rather than about the reader: both charge winners,
+                  * and an empty cell says so better than a zero. It is drawn
+                  * from the FIGURE now rather than from whether they won, so a
+                  * share the host typed against a loser's name — the one thing
+                  * that puts one on a rule at all — appears where it belongs
+                  * instead of vanishing.
+                  */}
+                <Cell
+                  width={styles.billCol}
+                  wash={t.offTableFaint}
+                  color={t.offTable}
+                  text={dash(bill, true)}
+                  byHand={handSet(ruleFor('bill'), p.playerId)}
+                  rule={ruleFor('bill')}
+                  playerId={p.playerId}
+                  admin={admin}
+                />
                 <Text style={[styles.money, styles.backCol, styles.num, { color: t.text }]} numberOfLines={1}>
                   {won && back > 0 ? `+${back.toLocaleString('en-US')}` : ''}
                 </Text>
-                <Text
-                  style={[styles.money, styles.num, styles.piggyCol, { color: t.offTable, backgroundColor: t.offTableWash }]}
-                  numberOfLines={1}
-                >
-                  {won ? dash(kitty, true) : ''}
-                </Text>
+                <Cell
+                  width={styles.piggyCol}
+                  wash={t.offTableWash}
+                  color={t.offTable}
+                  text={dash(kitty, true)}
+                  byHand={handSet(ruleFor('kitty'), p.playerId)}
+                  rule={ruleFor('kitty')}
+                  playerId={p.playerId}
+                  admin={admin}
+                />
                 <Text
                   style={[styles.net, styles.num, styles.netCol, { color: moneyColor(t, p.finalPosition) }]}
                   numberOfLines={1}
@@ -281,7 +314,12 @@ export default function Deductions() {
           })}
 
         <Text style={[styles.previewNote, { color: t.muted }]}>
-          Provisional until you settle. Tap any figure above to change it.
+          {admin
+            ? 'Provisional until you settle. Tap any figure above to change it.'
+            : /* ⚠ COPY NOT DRAWN. E3 is the host's screen and its line promises
+                 a tap only the host has. Saying the first half without the
+                 second is the honest half of a drawn string, not a new one. */
+              'Provisional until the host settles.'}
         </Text>
       </View>
 
@@ -309,6 +347,61 @@ export default function Deductions() {
   );
 }
 
+/** Was this person's share of this rule typed by the host rather than split? */
+const handSet = (rule: MoneyRule | undefined, playerId: PlayerId): boolean =>
+  rule !== undefined && manualChargeOf(rule, playerId) !== undefined;
+
+/**
+ * One washed cell of the preview table — and, for the host, the way in.
+ *
+ * IT IS PRESSABLE EVEN WHEN IT IS EMPTY, which is the point: putting a share on
+ * somebody the rule does not charge is exactly the case a host reaches for, and
+ * an empty cell is the only place on the screen that stands for "this person,
+ * this rule, nothing yet".
+ *
+ * ⚠ TREATMENT NOT DRAWN. E3 draws these cells as figures in a column wash and
+ * has no state for one the host set by hand. A dot after the figure is the
+ * lightest mark that survives a 46px column with tabular numerals in it; the
+ * itemised block above the table is where it is said in words.
+ */
+function Cell({
+  width,
+  wash,
+  color,
+  text,
+  byHand,
+  rule,
+  playerId,
+  admin,
+}: {
+  width: object;
+  wash: string;
+  color: string;
+  text: string;
+  byHand: boolean;
+  rule: MoneyRule | undefined;
+  playerId: PlayerId;
+  admin: boolean;
+}) {
+  const open = () =>
+    rule !== undefined &&
+    router.push({ pathname: '/share', params: { rule: rule.id, player: playerId } });
+
+  return (
+    <Pressable
+      accessibilityRole={admin && rule !== undefined ? 'button' : 'none'}
+      disabled={!admin || rule === undefined}
+      onPress={open}
+      style={({ pressed }) => [width, { backgroundColor: wash, opacity: pressed ? 0.6 : 1 }]}
+    >
+      <Text style={[styles.money, styles.num, styles.cellFill, { color }]} numberOfLines={1}>
+        {text}
+        {byHand && text !== '' ? '·' : ''}
+      </Text>
+    </Pressable>
+  );
+}
+
 /**
  * One rule, itemised.
  *
@@ -319,16 +412,19 @@ function Block({
   deduction,
   rule,
   night,
+  admin,
   basisFor,
 }: {
   deduction: Deduction;
   rule: MoneyRule | undefined;
   night: NonNullable<ReturnType<typeof useNight>>;
+  admin: boolean;
   basisFor: (playerId: PlayerId) => Money;
 }) {
   const t = useTheme();
   const percent = rule?.amountKind === 'percent';
   const empty = deduction.total === 0;
+  const byHand = (rule?.manualCharges ?? []).length;
 
   return (
     <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
@@ -349,14 +445,44 @@ function Block({
         </Text>
       )}
 
+      {/*
+        * WHAT A HAND-SET RULE SAYS ABOUT ITSELF, and the one control that
+        * undoes the lot. A host who has typed four figures at 1am and lost the
+        * thread needs a way back to the rule as agreed that does not involve
+        * remembering what each of them was.
+        *
+        * ⚠ COPY NOT DRAWN — no frame shows a rule with a hand-set share in it.
+        */}
+      {byHand > 0 && rule !== undefined && (
+        <Pressable
+          accessibilityRole={admin ? 'button' : 'none'}
+          disabled={!admin}
+          onPress={() => void clearManualCharges(rule.id)}
+          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        >
+          <Text style={[styles.blockNote, { color: t.muted }]}>
+            {byHand === 1 ? 'One share is set by hand' : `${byHand} shares are set by hand`}
+            {admin ? ' · put everyone back on the split' : ''}
+          </Text>
+        </Pressable>
+      )}
+
       <View style={styles.blockRows}>
         {(deduction.charges.length > 0 ? deduction.charges : placeholders(night, rule)).map(
           (c, i, all) => (
             <Pressable
               key={c.playerId}
-              accessibilityRole="button"
+              accessibilityRole={admin ? 'button' : 'none'}
+              disabled={!admin || rule === undefined}
+              /*
+               * THE PENCIL NOW MEANS WHAT IT DRAWS. It used to open the rule —
+               * which is the answer to "this split is wrong", not to "Petr's
+               * share is wrong", and the two are different arguments. E3's own
+               * line under the table has promised the second one all along.
+               */
               onPress={() =>
-                rule !== undefined && router.push({ pathname: '/rule', params: { id: rule.id } })
+                rule !== undefined &&
+                router.push({ pathname: '/share', params: { rule: rule.id, player: c.playerId } })
               }
               style={({ pressed }) => [
                 percent ? styles.workingRow : styles.chargeRow,
@@ -367,9 +493,12 @@ function Block({
             >
               <Text style={[percent ? styles.workingName : styles.chargeName, { color: t.text }]}>
                 {nameOf(night, c.playerId)}
+                {handSet(rule, c.playerId) && (
+                  <Text style={{ color: t.muted }}> · by hand</Text>
+                )}
               </Text>
 
-              {percent && rule !== undefined && (
+              {percent && rule !== undefined && !handSet(rule, c.playerId) && (
                 <Text style={[styles.working, { color: t.muted }]}>
                   {rule.amount}% of {formatMoney(basisFor(c.playerId))}
                 </Text>
@@ -379,7 +508,7 @@ function Block({
                 {c.amount === 0 ? '—' : formatMoney(c.amount)}
               </Text>
 
-              {!percent && <Icon name="pencil" color={t.muted} size={14} />}
+              {!percent && admin && <Icon name="pencil" color={t.muted} size={14} />}
             </Pressable>
           ),
         )}
@@ -513,6 +642,7 @@ const styles = StyleSheet.create({
   /* The two columns that take money off the table are tinted the bone colour,
      at two strengths, so the eye can follow one rule down the table. The
      header cell rounds its top corners by 5, which is where the column starts. */
+  cellFill: { width: '100%' },
   billCol: { width: 46 },
   backCol: { width: 44 },
   piggyCol: { width: 46 },

@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { resolveLedger, ruleDetail, settle, type MoneyRule } from '@poker-club/core';
+import { RoundingRow } from '../src/components/RoundingRow';
 import { RuleList } from '../src/components/RuleList';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { StyleSheet, Text } from 'react-native';
 import { space, type } from '../src/design/tokens';
-import { nameOf, toggleRule, useNight } from '../src/lib/nightStore';
+import { nameOf, settlementInput, toggleRule, useNight } from '../src/lib/nightStore';
 
 /**
  * Money rules — O4, tonight's level. Everything that takes money off the table
@@ -28,12 +29,7 @@ export default function MoneyRules() {
   const preview = useMemo(() => {
     if (night === null) return null;
     try {
-      return settle({
-        players: night.players,
-        entries: night.entries,
-        finalCounts: night.finalCounts,
-        rules: night.rules,
-      });
+      return settle(settlementInput(night));
     } catch {
       return null;
     }
@@ -75,6 +71,11 @@ export default function MoneyRules() {
           })
         }
       />
+
+      {/* Governs every rule above it at once, so it is under its own caption
+          rather than in the list: a reader looking down that list is looking
+          for things with a switch, and this has nothing to switch off. */}
+      <RoundingRow mode={night.roundingMode} scope="night" />
 
       <Text style={[styles.footnote, { color: t.muted }]}>
         These belong to tonight. A night is settled with the rules it opened with, so editing one

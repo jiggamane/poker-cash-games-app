@@ -7,6 +7,7 @@ import {
   type Money,
   type OutboxItem,
   type PlayerId,
+  type RoundingMode,
 } from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { SqliteOutboxStore } from './outboxStore';
@@ -80,6 +81,8 @@ export async function queueSessionOpen(args: {
   stakes?: string;
   players: ReadonlyArray<{ id: string; name: string; atTable: boolean }>;
   rules: readonly MoneyRule[];
+  /** How coarsely the night settles. Null, or absent, is whole dollars. */
+  roundingMode?: RoundingMode | null;
 }): Promise<void> {
   const { sessionId, groupName } = args;
   if (!isUuid(sessionId)) return;
@@ -96,6 +99,7 @@ export async function queueSessionOpen(args: {
         defaultBuyIn: args.defaultBuyIn,
         ...(args.stakes === undefined ? {} : { stakes: args.stakes }),
         seatCount: Math.min(Math.max(args.players.length, 1), 30),
+        roundingMode: args.roundingMode ?? null,
       },
     },
   });

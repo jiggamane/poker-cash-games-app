@@ -6,7 +6,7 @@ import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { nameOf, useNight } from '../src/lib/nightStore';
+import { nameOf, settlementInput, useNight } from '../src/lib/nightStore';
 
 /**
  * House rules — B1. What the night will take off the table, and why.
@@ -30,12 +30,7 @@ export default function HouseRules() {
   const preview = useMemo(() => {
     if (night === null) return null;
     try {
-      return settle({
-        players: night.players,
-        entries: night.entries,
-        finalCounts: night.finalCounts,
-        rules: night.rules,
-      });
+      return settle(settlementInput(night));
     } catch {
       return null;
     }

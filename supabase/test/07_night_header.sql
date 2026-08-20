@@ -89,6 +89,24 @@ select expect_eq(
   (select player_count from night_header('a4000000-0000-0000-0000-000000000001'))::bigint,
   3, 'and the seat count is the seats, not the roster');
 
+-- The rounding rule travels with the header so a watcher settles the night to
+-- the host's figures rather than to their own. Null here, which is whole
+-- dollars, and the point of asserting it is that the column is THERE.
+select expect_eq(
+  (select count(*) from night_header('a4000000-0000-0000-0000-000000000001')
+    where rounding_mode is null),
+  1, 'and the night carries its rounding rule — unset, which is whole dollars');
+
+update session set rounding_mode = 'hundreds'
+ where id = 'a4000000-0000-0000-0000-000000000001';
+
+select expect_text(
+  (select rounding_mode from night_header('a4000000-0000-0000-0000-000000000001')),
+  'hundreds', 'and a group that settles in hundreds says so through the header');
+
+update session set rounding_mode = null
+ where id = 'a4000000-0000-0000-0000-000000000001';
+
 -- =============================================================================
 -- 2. A CLAIMED MEMBER READS IT
 -- =============================================================================

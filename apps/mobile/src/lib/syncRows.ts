@@ -1,4 +1,4 @@
-import type { LedgerEntry, MoneyRule, PlayerId } from '@poker-club/core';
+import type { LedgerEntry, MoneyRule, PlayerId, RoundingMode } from '@poker-club/core';
 
 /**
  * Every row the app ever writes to the server, as data rather than as calls.
@@ -40,6 +40,13 @@ export interface SessionOpenPayload {
     defaultBuyIn: number;
     stakes?: string;
     seatCount: number;
+    /**
+     * How coarsely this night settles, copied off the club at birth. Null is
+     * whole dollars. Written once, with the row: the authoritative record of
+     * what a night was actually settled under is the settlement's own
+     * `inputs_snapshot`, which is written at close.
+     */
+    roundingMode?: RoundingMode | null;
   };
 }
 
@@ -109,6 +116,7 @@ export const sessionRow = (p: SessionOpenPayload, bookId: string): RowWrite => (
     seat_count: p.session.seatCount,
     started_at: p.session.startedAt,
     stakes: p.session.stakes ?? null,
+    rounding_mode: p.session.roundingMode ?? null,
     status: 'live',
   },
 });

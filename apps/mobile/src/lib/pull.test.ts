@@ -21,7 +21,9 @@ describe('what the pull reads', () => {
   });
 
   it('takes everything a night is opened with, and how it ended', () => {
-    expect(READS.session).toBe('id, started_at, ended_at, status, stakes, default_buyin');
+    expect(READS.session).toBe(
+      'id, started_at, ended_at, status, stakes, default_buyin, rounding_mode',
+    );
   });
 
   it('takes only a player’s id and name — never who claimed them', () => {

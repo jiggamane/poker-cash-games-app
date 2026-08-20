@@ -2,7 +2,13 @@ import { useSyncExternalStore } from 'react';
 import type * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
 import { database } from './db';
-import { money, type Money, type MoneyRule, type PlayerId } from '@poker-club/core';
+import {
+  money,
+  type Money,
+  type MoneyRule,
+  type PlayerId,
+  type RoundingMode,
+} from '@poker-club/core';
 import { dropPlayerFromPlay, renamePlayerInPlay } from './nightStore';
 import { clubForBook, rosterAdditions, sameName, type RosterPerson } from './rosterMerge';
 import { drain, queueRosterPlayer } from './sync';
@@ -51,6 +57,15 @@ export interface Club {
   /** The club's own default, which the app default fills in when unset. */
   defaultBuyIn: Money;
   rules: MoneyRule[];
+  /**
+   * How coarsely this group settles. Null — every club that existed before the
+   * setting did — means whole dollars, which is what they have all been doing.
+   *
+   * It sits beside `rules` rather than inside one because it is not a rule's
+   * term: it governs every rule at once, and a group that rounds to hundreds
+   * rounds the bill and the piggy bank alike.
+   */
+  roundingMode: RoundingMode | null;
   members: Member[];
 }
 
@@ -97,19 +112,31 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
     `);
 
     /*
-     * Which book on the server this club is. A club is made on the phone and a
-     * book is made by the queue, neither ever telling the other, so a pull had
-     * no way to know which local club a book's roster belonged to and put it
-     * nowhere. Null until a pull matches them by name, once.
+     * Columns a phone that already holds a club will not have.
+     *
+     *   book_id       — which book on the server this club is. A club is made
+     *                   on the phone and a book is made by the queue, neither
+     *                   ever telling the other, so a pull had no way to know
+     *                   which local club a book's roster belonged to and put it
+     *                   nowhere. Null until a pull matches them by name, once.
+     *   rounding_mode — how coarsely the group settles, and what the last game
+     *                   actually ran at. Null is whole dollars, which is what
+     *                   every club has been doing.
      *
      * CREATE TABLE IF NOT EXISTS will not add a column to a phone that already
-     * has the table, so the ALTER runs every launch and fails on all but the
-     * first. The failure is the success case.
+     * has the table, so these run every launch and fail on all but the first.
+     * The failure is the success case.
      */
-    try {
-      await db.execAsync(`ALTER TABLE club ADD COLUMN book_id TEXT;`);
-    } catch {
-      // Already there.
+    for (const [table, column] of [
+      ['club', 'book_id TEXT'],
+      ['club', 'rounding_mode TEXT'],
+      ['club_last_game', 'rounding_mode TEXT'],
+    ] as const) {
+      try {
+        await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column};`);
+      } catch {
+        // Already there.
+      }
     }
   });
 
@@ -157,6 +184,7 @@ interface ClubRow {
   default_buy_in: number | null;
   rules_json: string;
   book_id: string | null;
+  rounding_mode: RoundingMode | null;
 }
 
 interface MemberRow {
@@ -222,6 +250,7 @@ export async function loadClubs(seed?: {
       currency: c.currency,
       defaultBuyIn: (c.default_buy_in ?? APP_DEFAULT_BUY_IN) as Money,
       rules: JSON.parse(c.rules_json) as MoneyRule[],
+      roundingMode: c.rounding_mode ?? null,
       members: members
         .filter((m) => m.club_id === c.id)
         .map((m) => ({
@@ -341,6 +370,22 @@ export async function setClubBuyIn(clubId: string, amount: Money): Promise<void>
 export async function setClubRules(clubId: string, rules: readonly MoneyRule[]): Promise<void> {
   const db = await getDb();
   await db.runAsync(`UPDATE club SET rules_json = ? WHERE id = ?`, JSON.stringify(rules), clubId);
+  await loadClubs();
+}
+
+/**
+ * How coarsely this group settles, from tomorrow.
+ *
+ * The club's layer of the chain, so it reaches the NEXT night and never the
+ * one running in the kitchen — same as every rule beside it. Tonight's own
+ * rounding is changed on tonight's money rules, which writes the session.
+ */
+export async function setClubRounding(
+  clubId: string,
+  mode: RoundingMode | null,
+): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE club SET rounding_mode = ? WHERE id = ?`, mode, clubId);
   await loadClubs();
 }
 
@@ -657,6 +702,8 @@ export async function importRoster(book: {
 export interface Inherited {
   buyIn: Money;
   rules: MoneyRule[];
+  /** How coarsely to settle. Null is whole dollars. */
+  roundingMode: RoundingMode | null;
   /** Where the buy-in came from, for a screen that wants to say so. */
   from: 'last game' | 'club default' | 'app default';
 }
@@ -671,22 +718,40 @@ export interface Inherited {
  */
 export async function inheritedFor(club: Club): Promise<Inherited> {
   const db = await getDb();
-  const last = await db.getFirstAsync<{ buy_in: number | null; rules_json: string | null }>(
-    `SELECT buy_in, rules_json FROM club_last_game WHERE club_id = ?`,
-    club.id,
-  );
+  const last = await db.getFirstAsync<{
+    buy_in: number | null;
+    rules_json: string | null;
+    rounding_mode: RoundingMode | null;
+  }>(`SELECT buy_in, rules_json, rounding_mode FROM club_last_game WHERE club_id = ?`, club.id);
 
   if (last?.buy_in != null) {
     return {
       buyIn: last.buy_in as Money,
       rules: last.rules_json ? (JSON.parse(last.rules_json) as MoneyRule[]) : club.rules,
+      /*
+       * The middle layer answers only for what it recorded. A club_last_game
+       * row written before rounding existed says nothing about it, and reading
+       * its null as "whole dollars" would let one old row outrank the setting
+       * the group has since made in Settings, for ever.
+       */
+      roundingMode: last.rounding_mode ?? club.roundingMode,
       from: 'last game',
     };
   }
   if (club.defaultBuyIn !== APP_DEFAULT_BUY_IN) {
-    return { buyIn: club.defaultBuyIn, rules: club.rules, from: 'club default' };
+    return {
+      buyIn: club.defaultBuyIn,
+      rules: club.rules,
+      roundingMode: club.roundingMode,
+      from: 'club default',
+    };
   }
-  return { buyIn: APP_DEFAULT_BUY_IN, rules: club.rules, from: 'app default' };
+  return {
+    buyIn: APP_DEFAULT_BUY_IN,
+    rules: club.rules,
+    roundingMode: club.roundingMode,
+    from: 'app default',
+  };
 }
 
 /**
@@ -699,13 +764,16 @@ export async function rememberLastGame(
   clubId: string,
   buyIn: Money,
   rules: readonly MoneyRule[],
+  roundingMode: RoundingMode | null = null,
 ): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    `INSERT INTO club_last_game (club_id, buy_in, rules_json) VALUES (?, ?, ?)
-     ON CONFLICT (club_id) DO UPDATE SET buy_in = excluded.buy_in, rules_json = excluded.rules_json`,
+    `INSERT INTO club_last_game (club_id, buy_in, rules_json, rounding_mode) VALUES (?, ?, ?, ?)
+     ON CONFLICT (club_id) DO UPDATE SET buy_in = excluded.buy_in, rules_json = excluded.rules_json,
+       rounding_mode = excluded.rounding_mode`,
     clubId,
     buyIn,
     JSON.stringify(rules),
+    roundingMode,
   );
 }

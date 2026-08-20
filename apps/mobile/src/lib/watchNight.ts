@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import type { LedgerEntry, Money, MoneyRule, Player, PlayerId } from '@poker-club/core';
+import type {
+  LedgerEntry,
+  Money,
+  MoneyRule,
+  Player,
+  PlayerId,
+  RoundingMode,
+} from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { READS } from './pullReads';
 
@@ -31,6 +38,17 @@ export interface WatchedNight {
   players: Player[];
   entries: Array<LedgerEntry & { occurredAt: string; note: string | null }>;
   rules: MoneyRule[];
+  /**
+   * How coarsely the host settles this night — through `night_header`, because
+   * a watcher cannot read `session` at all.
+   *
+   * X1 IS THE SAME NIGHT, and the watcher's copy of the settlement is computed
+   * on their own device. Without this they would settle in whole dollars while
+   * the host settles in hundreds, and two people looking at the same night
+   * would see two different sets of figures with nothing on either screen to
+   * explain the difference.
+   */
+  roundingMode: RoundingMode | null;
   finalCounts: Map<PlayerId, Money>;
 }
 
@@ -86,6 +104,7 @@ export async function loadWatchedNight(sessionId: string): Promise<WatchedNight 
     })),
     entries: entries.map(toEntry),
     rules: rules.map(toRule).sort((a, b) => a.sortOrder - b.sortOrder),
+    roundingMode: header.rounding_mode ?? null,
     finalCounts: new Map(counts.map((c) => [c.player_id, c.counted_chips as Money])),
   };
 }
@@ -171,6 +190,8 @@ interface HeaderRow {
   started_at: string;
   ended_at: string | null;
   status: string;
+  /** Added by 0013. Null on every night opened before rounding was a setting. */
+  rounding_mode: RoundingMode | null;
 }
 
 /**

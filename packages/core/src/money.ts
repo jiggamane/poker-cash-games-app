@@ -1,10 +1,14 @@
 /**
  * Money — whole currency units, always an integer.
  *
- * The design is explicit: whole units, no cents, no rounding settings. This
- * module is the only place allowed to make a number into Money, which means
- * there is exactly one gate a fractional value would have to get through, and
- * it throws.
+ * The design is explicit: whole units, no cents. This module is the only place
+ * allowed to make a number into Money, which means there is exactly one gate a
+ * fractional value would have to get through, and it throws.
+ *
+ * How COARSELY a group settles is a separate question and it is a group rule —
+ * see `RoundingMode` at the foot of this file. It never makes an amount
+ * fractional; it makes it a rounder whole number, and it is carried into the
+ * settlement rather than applied to a figure on its way to a screen.
  *
  * Everything here is pure. This file is imported by BOTH the app and the
  * server edge function, so the settlement math has one implementation rather
@@ -76,17 +80,30 @@ export function sum(values: readonly Money[]): Money {
  * never from a pooled total, so the parts of a percentage rule are simply
  * summed rather than allocated.
  *
+ * `granularity` is the group's rounding rule — see `granularityOf()`. At 1,
+ * which is what every night has run at so far, this is exactly what it always
+ * was: half up to the nearest whole unit. At 100 it is half up to the nearest
+ * hundred, so 5% of a $1,620 win charges $100 rather than $81. That is not an
+ * approximation of the percentage; it is what the group asked for, and a table
+ * that settles in hundreds does not want to be handed a figure ending in 1.
+ *
  * Where a fixed total has to be divided between people instead, use allocate()
  * — that is what guarantees the pieces add back up to the whole.
  */
-export function percentOf(amount: Money, wholePercent: number): Money {
+export function percentOf(amount: Money, wholePercent: number, granularity = 1): Money {
   if (!Number.isInteger(wholePercent) || wholePercent < 0 || wholePercent > 100) {
     throw new MoneyError(`Percentage must be a whole number 0–100, got ${wholePercent}`);
   }
   if (amount < 0) throw new MoneyError(`Cannot take a percentage of a negative amount (${amount})`);
+  if (!Number.isInteger(granularity) || granularity < 1) {
+    throw new MoneyError(`Granularity must be a whole number of at least 1, got ${granularity}`);
+  }
   // Integer arithmetic throughout — adding half the divisor before flooring is
-  // half-up without ever creating a fractional value.
-  return money(Math.floor((amount * wholePercent + 50) / 100));
+  // half-up without ever creating a fractional value. The divisor is
+  // 100 × granularity, so half of it is 50 × granularity and is still whole.
+  return money(
+    Math.floor((amount * wholePercent + 50 * granularity) / (100 * granularity)) * granularity,
+  );
 }
 
 /**

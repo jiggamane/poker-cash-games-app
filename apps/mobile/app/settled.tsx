@@ -8,7 +8,7 @@ import { NightResult } from '../src/components/NightResult';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { nameOf, useNight } from '../src/lib/nightStore';
+import { nameOf, settlementInput, useNight } from '../src/lib/nightStore';
 
 /**
  * The night's results — X1c. Rev 15, `14-invite-and-watcher.md`.
@@ -42,13 +42,7 @@ export default function NightResults() {
   const result = useMemo(() => {
     if (night === null) return null;
     try {
-      return settle({
-        players: night.players,
-        entries: night.entries,
-        finalCounts: night.finalCounts,
-        rules: night.rules,
-        ...(night.acknowledgement ? { acknowledgedDiscrepancy: night.acknowledgement } : {}),
-      });
+      return settle(settlementInput(night));
     } catch {
       return null;
     }
