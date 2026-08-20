@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatMoney, type Money } from '@poker-club/core';
 import { useTheme, useThemeName } from '../src/design/useTheme';
@@ -32,6 +32,24 @@ import {
  * `flex: 1` between the rows and the dock. Spread that slack into the rows
  * instead and the screen looks fine on the phone it was built on and pushes
  * content under the fold on every other one.
+ *
+ * THE CARD LIST IS THE ONE THING THAT SCROLLS — doc 10 § H3, "past three live
+ * cards the card list scrolls; the rows and dock stay put". It is the only
+ * block here whose height is unbounded: the header is three lines, the rows
+ * are three fixed 74s and the dock is one, but a club can open a table and
+ * then another, each card ~90pt, and the list grows with them. Every other
+ * child of this column is intrinsic and refuses to shrink, so once the cards
+ * outgrew the phone they simply pushed the rows and the dock off the bottom —
+ * with nothing to scroll, because nothing on this screen scrolled.
+ *
+ * `flexShrink` is the fix, exactly as it is on `Sheet`: the scroller keeps
+ * its content height while there is room (one game still sits directly under
+ * the club name, where the boards draw it) and gives space back only when
+ * there is none left, at which point it scrolls instead of overflowing.
+ *
+ * The header stays OUTSIDE it. A scroller that carries the club name is the
+ * screen scrolling, which is the one thing `scripts/ui-audit.mjs` checks for
+ * and `Screen` exists to prevent: the name is what says which club this is.
  *
  * WHAT IS NOT HERE. No "Last night" card: a settled night is history the
  * moment it is settled, and history is a list, not the top of the home screen.
@@ -119,7 +137,11 @@ export default function ClubHome() {
         )}
       </View>
 
-      <View style={styles.cards}>
+      <ScrollView
+        style={styles.cards}
+        contentContainerStyle={styles.cardList}
+        showsVerticalScrollIndicator={false}
+      >
         {loading ? (
           <CardSkeleton />
         ) : games.length === 0 ? (
@@ -152,7 +174,7 @@ export default function ClubHome() {
             {host && <StartAnother open={live.length} />}
           </>
         )}
-      </View>
+      </ScrollView>
 
       <View style={styles.rows}>
         <Row name="The group" sub="players, money rules, the piggy bank" to="/players" />
@@ -535,7 +557,14 @@ const styles = StyleSheet.create({
   clubName: type.homeTitle,
   banner: { ...type.cardMeta, marginTop: 3 },
 
-  cards: { paddingHorizontal: home.gutter, gap: home.cardGapOuter },
+  // The scroller itself: content height while it fits, and no more than the
+  // room the header, the rows and the dock leave it. `flexGrow: 0` keeps the
+  // slack below the rows the only flexible thing on the screen, so a club with
+  // one game is still drawn exactly where the boards draw it.
+  cards: { flexGrow: 0, flexShrink: 1 },
+  // The cards' own gutter and gaps ride the content, not the scroller — a
+  // ScrollView's padding belongs to what moves.
+  cardList: { paddingHorizontal: home.gutter, gap: home.cardGapOuter },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
