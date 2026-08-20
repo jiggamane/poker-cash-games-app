@@ -40,6 +40,7 @@ Consequences, stated so nobody has to rediscover them:
 | Type scale (§ 1) | Every role in `type`: `groupLabel` 13/400, `homeTitle` 30/800/1.06, `cardTitle` 21/800, `cardMeta` 13/400, `cardStatus` 11/700 caps +.1em, `destination` 21/800, `destinationSub` 12.5/400, `secondary` 15.5/700, `homeDock` 13.5/600. Nothing on the screen is below 12.5 except the tracked uppercase 11. |
 | Spacing (§ 2) | `home` in the same file, measured from the safe-area inset: 26 / 5 / 20 header, 20 and 22 gutters, card 14·18·16 (18 top when idle), 9 inside (7 idle), 20 down to the rows, rows 17 + 4 + 17, dock 13/16 with 8 and 10, 4 off the foot. |
 | The spacer | One `flex: 1` between the row list and the dock, and it is the only flexible thing on the screen. Rows are intrinsic. |
+| Scroll (§ H3) | The card list — and only the card list — scrolls. `flexGrow: 0, flexShrink: 1` on the scroller, the `Sheet` idiom: content height while there is room, and it gives space back rather than growing past the phone. The header, the rows and the dock stay put. |
 | Dock (§ 3) | Two content-width pills, labels always visible, never a tab bar and never icon-only, plus the 44pt theme button at the right end of the same row. A member sees Settings and the theme button — the invite is removed, not disabled. |
 | Theme button | New: `src/lib/themeStore.ts` remembers the choice, `useTheme` prefers it over the phone, and the icon shows the theme you will get. Present in every state including loading and offline. |
 | Colour (§ 6) | Applied, including two new tokens — `disabled` and `dockFill` — and four corrected values: `amber`, the light `hairline`, both `dashed`, and the live green on the inverted card (`onFillWin` → `#0E8A4F`). |
@@ -135,6 +136,7 @@ Run at 393 × 852 in both themes.
 | 2 | Long table name | The card title truncates on one line; the status label is never allowed to. ✅ |
 | 3 | Six seated, six rows reachable | Home states the count; the list is the session screen's. ✅ |
 | 4 | No row shorter than 74pt | 75pt of content plus its hairline. The 1 over comes from a 22 line box on a 21 title, which is the 1.05 the app uses everywhere to keep a descender inside its box. ✅ |
+| 4b | The list scrolls, the dock stays fixed | Measured at 393 × 852 by cloning cards into the built screen. Up to five the layout is unchanged. At eight the card list caps at 459pt and scrolls; the rows end at 804 and the dock at 852 — both on the glass. Before this, eight cards put the dock at 1119, 267pt below the bottom of the phone, with nothing on the screen able to scroll. ✅ |
 | 5 | Two games live | Both cards named and equal weight, "Start another game" still present. ✅ |
 | 6 | Live plus unsettled | Both cards visible, Settle up reachable from the amber card, starting another still allowed. ✅ |
 | 7 | `₾128,400` | Symbol comes from the club, no shrink-to-fit anywhere. ✅ |
