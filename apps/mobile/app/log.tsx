@@ -75,6 +75,17 @@ export default function Log() {
 
   const counting = kind === 'cashout' || kind === 'count';
   const [typed, setTyped] = useState<string>(counting ? '0' : String(suggested));
+  /*
+   * Whether the figure on screen was TYPED or merely SUGGESTED.
+   *
+   * A prefilled amount is an offer, not text the host entered, and the keypad
+   * has to treat the two differently: typing 7 against a suggested $1,000 means
+   * seventy-five, not ten thousand and seventy-five. So the first key pressed
+   * clears the suggestion — a digit replaces it, delete wipes it — and every
+   * key after that appends as normal. Tapping a preset makes it a suggestion
+   * again, because that is exactly what it is.
+   */
+  const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);
 
   if (night === null || ledger === null) return <Sheet title="Tonight">{null}</Sheet>;
@@ -103,6 +114,37 @@ export default function Log() {
      it is the number the room argues about, and finding it out after the fact
      is worse than seeing it as you count. */
   const nightSoFar = (amount + alreadyOut - inFor) as Money;
+
+  /*
+   * WHAT THE ROW OFFERS, read off the ledger rather than off the keypad.
+   *
+   * Two figures a host actually reaches for on a rebuy: what this table buys
+   * in for, and what this player put in last time. The row used to be the
+   * opening figure and double it, which meant both chips were derived from the
+   * same suggestion — they moved together, and on the route in that carries a
+   * prefilled amount they froze at whatever the ledger said when the sheet was
+   * pushed, while the night went on underneath.
+   *
+   * So: the standard is tonight's most common first buy-in, and the second
+   * chip is this player's own last rebuy — M16's figure, per player, read live
+   * so it follows them down the night. Until they have rebought, and when
+   * their last rebuy IS the standard and the chip would say nothing the first
+   * one has not already said, it falls back to double: N6's drawn row.
+   */
+  const standard = defaultBuyIn(ledger);
+  const lastRebuy =
+    kind === 'rebuy' && player !== undefined ? rebuyPrefill(ledger, player) : null;
+  const ownLast =
+    lastRebuy !== null && lastRebuy.from === 'last rebuy' && lastRebuy.amount !== standard
+      ? lastRebuy.amount
+      : null;
+  const second = ownLast ?? money(standard * 2);
+
+  /** Put a suggested figure up, ready to be replaced whole by the next digit. */
+  function choose(value: Money | null) {
+    setTyped(value === null ? '' : String(value));
+    setTouched(false);
+  }
 
   const tag =
     kind === 'cashout'
@@ -193,29 +235,27 @@ export default function Log() {
       ) : (
         <View style={styles.presets}>
           {/*
-            LAST rather than DEFAULT when the figure is this player's own last
-            rebuy — M17. The interface never explains where the amount came
+            LAST rather than STANDARD when the figure is this player's own last
+            rebuy — M17. The interface never explains where an amount came
             from; this one word is the whole of what it is allowed to say.
           */}
           <Preset
-            label={formatMoney(suggested)}
-            caption={resolved.from === 'last rebuy' && suggested === resolved.amount
-              ? 'LAST'
-              : 'DEFAULT'}
-            on={amount === suggested}
-            onPress={() => setTyped(String(suggested))}
+            label={formatMoney(standard)}
+            caption={kind === 'rebuy' ? 'STANDARD' : 'DEFAULT'}
+            on={amount === standard}
+            onPress={() => choose(standard)}
           />
           <Preset
-            label={formatMoney(money(suggested * 2))}
-            caption="X2"
-            on={amount === suggested * 2}
-            onPress={() => setTyped(String(suggested * 2))}
+            label={formatMoney(second)}
+            caption={ownLast === null ? 'X2' : 'LAST'}
+            on={amount === second}
+            onPress={() => choose(second)}
           />
           <Preset
             label="Custom"
             caption="SET"
-            on={amount !== suggested && amount !== suggested * 2}
-            onPress={() => setTyped('')}
+            on={amount !== standard && amount !== second}
+            onPress={() => choose(null)}
           />
         </View>
       )}
@@ -226,8 +266,14 @@ export default function Log() {
       </View>
 
       <Keypad
-        onDigits={(d) => setTyped((cur) => appendDigits(cur, d))}
-        onBackspace={() => setTyped((cur) => cur.slice(0, -1))}
+        onDigits={(d) => {
+          setTyped((cur) => appendDigits(touched ? cur : '', d));
+          setTouched(true);
+        }}
+        onBackspace={() => {
+          setTyped((cur) => (touched ? cur.slice(0, -1) : ''));
+          setTouched(true);
+        }}
       />
     </Sheet>
   );
