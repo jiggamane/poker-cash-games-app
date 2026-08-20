@@ -55,20 +55,29 @@ npm run db:verify  # applies every migration to a throwaway Postgres and asserts
 
 ## What the design says, and where
 
-`design/handoff-2026-08-13/` is the current handoff and it wins over anything
-older. Read its `CHANGELOG.md` first — it is cumulative and each entry names
-what it supersedes. Two files govern every screen:
+`design/handoff-rev18/` is the current handoff — rev 18, cut 19 August — and it
+wins over anything older, `design/handoff-2026-08-13/` (rev 14) included. Start
+at its `START-HERE.md`, then `docs/CHANGELOG.md`, which is cumulative and names
+what each revision supersedes. **Where a board and a spec disagree, the spec
+wins on behaviour and the board wins on layout.** Three files govern every
+screen:
 
-- **`09-navigation.md`** — a screen is either PUSHED (Chrome A: round back
+- **`docs/09-navigation.md`** — a screen is either PUSHED (Chrome A: round back
   button, and *nothing at all* in the top-right corner) or a SHEET (Chrome B:
   grabber, close, swipe down). If it ends with a Save, an Add or a confirm it is
   a sheet; if it is a place you can stay in it is a push. The two vocabularies
   must never mix: which one is on screen is the only thing telling a person
-  whether to swipe or tap back.
-- **`08-tonight-home.md`** — the live session screen, in full.
+  whether to swipe or tap back. A multi-step flow REPLACES ONE SHEET'S CONTENT
+  and keeps one close; a sheet never pushes.
+- **`docs/15-screen-geometry.md`** — the frame, the sheet object, the gaps and
+  the surfaces. Everything else assumes it.
+- **`docs/08-tonight-home.md`** — the live session screen, in full.
 
-The `screens-*.html` files in that folder are the pixel source: every dimension,
+`boards/` holds the six boards, and they are the pixel source: every dimension,
 weight and colour is inline on the element. Copy them; do not re-derive them.
+`boards/Journey Map 5 - Flow logic.dc.html` is the journey map — read it before
+wiring any navigation. `reference/screens-*.html` are the older per-set build
+references and lose to the boards where they disagree.
 
 **Copy is final.** Every label was written deliberately, several of them to
 defuse an argument at a table. If a string is missing for a state that is not
