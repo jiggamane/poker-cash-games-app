@@ -77,6 +77,14 @@ describe('the player and seat rows', () => {
     expect(keys(w.row)).toEqual(['book_id', 'display_name', 'id']);
   });
 
+  it('carries a rename up, rather than leaving the server on the old name', () => {
+    const w = playerRow({ groupName: 'g', player: { id: PETR, name: 'Petr K.' } }, BOOK);
+    expect(w.onConflict).toBe('id');
+    expect(w.ignoreDuplicates).toBeUndefined();
+    // Three columns and no more: a rename must not touch claimed_by_user_id.
+    expect(keys(w.row)).toEqual(['book_id', 'display_name', 'id']);
+  });
+
   it('resolves a seat on the pair, since a seat has no id of its own', () => {
     const w = seatRow({ sessionId: SESSION, playerId: PETR });
     expect(w.onConflict).toBe('session_id,player_id');

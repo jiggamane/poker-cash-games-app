@@ -1,6 +1,7 @@
 import type { DiscrepancyAcknowledgement, LedgerEntry, Money, MoneyRule } from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { importNights, type ImportedNight } from './nightStore';
+import { importRoster } from './clubStore';
 import { READS } from './pullReads';
 
 /**
@@ -27,41 +28,62 @@ export interface PullResult {
   added: number;
   /** Books the account can see at all. Zero means "you belong to nothing yet". */
   books: number;
+  /** People this phone did not have before. */
+  players: number;
 }
 
 export async function pullBooks(): Promise<PullResult> {
-  if (!isSupabaseConfigured) return { added: 0, books: 0 };
+  const nothing = { added: 0, books: 0, players: 0 };
+  if (!isSupabaseConfigured) return nothing;
 
   const { data: auth } = await supabase.auth.getSession();
-  if (auth.session === null) return { added: 0, books: 0 };
+  if (auth.session === null) return nothing;
 
   const books = await rows<{ id: string; group_name: string }>('book', (q) =>
     q.select(READS.book),
   );
-  if (books.length === 0) return { added: 0, books: 0 };
+  if (books.length === 0) return nothing;
 
   let added = 0;
-  for (const book of books) added += await pullBook(book.id, book.group_name);
-  return { added, books: books.length };
+  let players = 0;
+  for (const book of books) {
+    const result = await pullBook(book.id, book.group_name);
+    added += result.nights;
+    players += result.players;
+  }
+  return { added, books: books.length, players };
 }
 
-async function pullBook(bookId: string, groupName: string): Promise<number> {
+async function pullBook(
+  bookId: string,
+  groupName: string,
+): Promise<{ nights: number; players: number }> {
+  // THE ROSTER FIRST, and before the check for nights below. A book with people
+  // in it and no night yet is an ordinary thing — a host who set the group up
+  // on Tuesday for a game on Friday — and returning early on the night count
+  // sent that phone away with the roster it came for still on the server.
+  const people = await rows<{ id: string; display_name: string }>('player', (q) =>
+    q.select(READS.player).eq('book_id', bookId),
+  );
+  const roster = await importRoster({
+    id: bookId,
+    groupName,
+    players: people.map((p) => ({ id: p.id, name: p.display_name })),
+  });
+
   const sessions = await rows<SessionRow>('session', (q) =>
     q
       .select(READS.session)
       .eq('book_id', bookId)
       .order('started_at', { ascending: true }),
   );
-  if (sessions.length === 0) return 0;
+  if (sessions.length === 0) return { nights: 0, players: roster.added };
 
   const ids = sessions.map((s) => s.id);
 
-  // Six reads for a whole book, rather than six per night. A home game is a
-  // handful of nights and a few hundred rows; anything cleverer would be
+  // Five more reads for a whole book, rather than five per night. A home game
+  // is a handful of nights and a few hundred rows; anything cleverer would be
   // pagination nobody needs yet.
-  const people = await rows<{ id: string; display_name: string }>('player', (q) =>
-    q.select(READS.player).eq('book_id', bookId),
-  );
   const currentRules = await rows<RuleRow>('money_rule', (q) =>
     q.select(READS.money_rule).eq('book_id', bookId).order('sort_order', { ascending: true }),
   );
@@ -118,7 +140,7 @@ async function pullBook(bookId: string, groupName: string): Promise<number> {
     };
   });
 
-  return importNights(nights);
+  return { nights: await importNights(nights), players: roster.added };
 }
 
 /**
