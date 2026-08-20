@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
@@ -10,10 +10,11 @@ import {
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
+import { HoldButton } from '../src/components/HoldButton';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { lastRebuyAmount, standingOf, useNight } from '../src/lib/nightStore';
+import { lastRebuyAmount, rebuy as writeRebuy, standingOf, useNight } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
 import { Pill } from '../src/components/Pill';
 
@@ -51,6 +52,9 @@ export default function PlayerCard() {
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
   const pending = usePending(night?.sessionId);
+  /* Only against a double write while one is in flight. Two deliberate holds
+     are two deliberate rebuys, and the ledger should have both. */
+  const [writing, setWriting] = useState(false);
 
   if (night === null || ledger === null) {
     return <Sheet title="Player">{null}</Sheet>;
@@ -92,6 +96,33 @@ export default function PlayerCard() {
 
   const rebuy = lastRebuyAmount(ledger, player.id);
 
+  /*
+   * THE QUICK REBUY COMMITS HERE, without an amount screen in the way.
+   *
+   * That is what the hold is paying for. The figure is already resolved — it
+   * is this player's own last rebuy — so the screen the amount sheet would
+   * have shown would only be asking the host to confirm a number they can
+   * already read on the button. What it would NOT have done is tell them
+   * afterwards that anything happened.
+   *
+   * Holding does both: the wipe is the confirmation going in, and the write
+   * landing IS the confirmation coming out — the row appears in ENTRIES with
+   * its timestamp, and IN FOR above it goes up by the same amount, both live
+   * off the store. Nothing has to announce itself, because the screen the
+   * host is already looking at is the receipt.
+   */
+  const playerId = player.id;
+
+  async function quickRebuy() {
+    if (writing) return;
+    setWriting(true);
+    try {
+      await writeRebuy(playerId, rebuy);
+    } finally {
+      setWriting(false);
+    }
+  }
+
   return (
     <Sheet
       title={player.name}
@@ -118,18 +149,16 @@ export default function PlayerCard() {
       footer={
         seated ? (
           <>
-            {/* Pre-filled per M16: their last rebuy tonight, then tonight's
+            {/* The amount is M16's: their last rebuy tonight, then tonight's
                 buy-in, then the group default. Where it came from is
-                deliberately not printed anywhere — M17. */}
-            <Button
+                deliberately not printed anywhere — M17 — so the button can
+                only show the figure, which is the whole reason it has to be
+                held rather than tapped. Other amount is the way to a
+                different one. */}
+            <HoldButton
               label={`Rebuy ${formatMoney(rebuy)}`}
-              variant="primary"
-              onPress={() =>
-                router.push({
-                  pathname: '/log',
-                  params: { player: player.id, kind: 'rebuy', amount: String(rebuy) },
-                })
-              }
+              sub="Hold 1.5s"
+              onComplete={() => void quickRebuy()}
             />
             <View style={styles.pair}>
               <Button
