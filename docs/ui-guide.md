@@ -183,22 +183,44 @@ that flag as a preview of the day Figtree is bundled, not as today's build.
 
 ---
 
-## The two standing checks
+## The three standing checks
 
-`ui-check` compares one screen to one frame. Two tools ask broader questions of
-the whole app, and both are run before a merge.
+`ui-check` compares one screen to one frame. Three tools ask broader questions
+of the whole app, and all three are run before a merge.
 
 ```bash
 node scripts/ui-audit.mjs            # the rules, on every route, in both themes
 node scripts/ui-frames.mjs           # every route against the frame it was drawn as
+node scripts/ui-journeys.mjs         # a night in the millions, played through
 node scripts/ui-frames.mjs --shots   # …and write the pictures side by side
 ```
 
 **`ui-audit`** holds each screen to the things stated as rules rather than as
 pixels: the surface ladder, 4.5:1 on text, nothing breaking mid-word, only
-lists scrolling, and A8 — every field marked `testID="amount"` raises a
-digits-only keyboard. Nothing here needs a board, which is the point: these
-hold whether or not a frame exists for the state.
+lists scrolling, A8 — every field marked `testID="amount"` raises a
+digits-only keyboard, and the footer never ends up behind it — and that no
+FIGURE is cut off, outside the box that holds it, or off the phone. Nothing
+here needs a board, which is the point: these hold whether or not a frame
+exists for the state.
+
+A truncated word is a nuisance; a truncated NUMBER is a lie. "−4,5…" reads as
+a different amount from −4,543, so names may ellipsise and figures may not.
+
+**`ui-journeys`** plays a big night through the built app — three rebuys in the
+millions, counted, settled, a payment marked, the rest nudged — and asks the
+same three questions at every stop. It exists because the audit has two blind
+spots that between them hid every real fault:
+
+- **A screen no URL reaches.** Deductions, Settle up, Who has paid: none of
+  them exist until a night is counted and closed. Opened cold they render their
+  empty state and the audit measures nothing.
+- **A figure bigger than the seed's.** The sample night buys in at $500 and
+  every column fits it. A real table played for a hundred times that.
+
+Substituting long strings into the DOM was tried instead and abandoned: it
+cannot tell a slot guarded by `formatToFit` from one with no guard at all, so
+it reports states the app will never render, and a check that cries wolf is
+worse than no check.
 
 **`ui-frames`** measures ground, title, footer and panel on both sides of each
 pair. Its map carries four annotations, and which one a difference gets is a
@@ -216,11 +238,18 @@ it, `known` says somebody looked and chose. A check that keeps reporting a
 settled question teaches people to skim the report, and a check that quietly
 passes something it never measured is worse than no check.
 
-**What neither can see**, and why a pass is not more than it is: the safe-area
-insets are 0 in a browser, so the footer's 28 above the screen bottom and the
-home indicator's own colour are device checks; the browser raises no keyboard,
-so where the footer sits once it is up is a device check too; and row heights
-across SE and Pro Max need those widths (`UI_AUDIT_WIDTH`).
+**What none of them can see**, and why a pass is not more than it is: the
+safe-area insets are 0 in a browser, so the footer's 28 above the screen bottom
+and the home indicator's own colour are device checks; a fake `visualViewport`
+stands in for the browser's keyboard, which is the build installed to a home
+screen, but `KeyboardAvoidingView` on a phone is still a device check; and row
+heights across SE and Pro Max need those widths (`UI_AUDIT_WIDTH`).
+
+**Money that has to fit a fixed box** goes through `formatToFit`, with the
+threshold named at the call site where somebody can measure it — exact while it
+fits, `formatCompact` past that. Do not reach for `formatCompact` directly
+where there is room: turning $2,880 into $2.9k on a card that holds both loses
+three dollars and gains nothing.
 
 ---
 

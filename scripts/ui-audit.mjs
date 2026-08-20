@@ -20,9 +20,10 @@
  *     against them — the footer button 28 above the screen bottom, nothing
  *     under the status bar or the home indicator, the indicator's own colour —
  *     cannot be measured here. They are device checks.
- *   · The keypad-up state needs a keyboard, which the browser does not raise.
- *     WHICH keyboard an amount field asks for is checked (A8); where the
- *     footer sits once it is up is not.
+ *   · The NATIVE keypad-up state. A fake `visualViewport` stands in for the
+ *     browser's keyboard and the footer is checked against it (A8), which is
+ *     the build installed to a home screen — but `KeyboardAvoidingView` on a
+ *     phone is a device check still.
  *   · Row heights across SE and Pro Max need those widths; pass them with
  *     UI_AUDIT_WIDTH. A figure that fits at 393 can still be cut at 375, so
  *     the clipping check is worth running at both.
@@ -306,6 +307,41 @@ const ROOM = `
 })()
 `;
 
+/**
+ * A keyboard, stood in for.
+ *
+ * The browser raises none, so the one thing that goes wrong when it does —
+ * the footer button ending up behind the keys, with no way to reach it but
+ * scrolling the whole document — could not be seen here at all. It was found
+ * at a table instead, on the sheet that seats a player, where Seat and buy in
+ * simply could not be tapped.
+ *
+ * `visualViewport` is what a real browser shrinks when the keyboard opens, so
+ * a fake one that can be shrunk on demand is a faithful stand-in for it. This
+ * is NOT the native path — that is `KeyboardAvoidingView` and still a device
+ * check — but the app is installed to a home screen and used as a web app,
+ * and this is that build.
+ */
+const KEYBOARD = 336;
+
+const FAKE_VIEWPORT = `({ height, keyboard }) => {
+  let h = height;
+  const target = new EventTarget();
+  Object.defineProperty(window, 'visualViewport', {
+    configurable: true,
+    get: () => ({
+      get height() { return h; },
+      offsetTop: 0,
+      addEventListener: target.addEventListener.bind(target),
+      removeEventListener: target.removeEventListener.bind(target),
+    }),
+  });
+  window.__raiseKeyboard = () => {
+    h = height - keyboard;
+    target.dispatchEvent(new Event('resize'));
+  };
+}`;
+
 const browser = await chromium.launch();
 const routes = asked.length > 0 ? asked : ROUTES;
 let failures = 0;
@@ -318,11 +354,34 @@ for (const route of routes) {
       colorScheme: scheme,
     });
     const page = await ctx.newPage();
+    // One argument only — Playwright passes a single value through.
+    await page.addInitScript(eval(`(${FAKE_VIEWPORT})`), { height: HEIGHT, keyboard: KEYBOARD });
     let findings = [];
     try {
       await page.goto(BASE + route, { waitUntil: 'networkidle' });
       await page.waitForTimeout(450);
       findings = await page.evaluate(ROOM);
+
+      // A8 · the footer rises with the keyboard and is never covered.
+      const hasField = (await page.locator('input, textarea').count()) > 0;
+      if (hasField) {
+        await page.evaluate(() => window.__raiseKeyboard());
+        await page.waitForTimeout(350);
+        const covered = await page.evaluate((keys) => {
+          const foot = document.querySelector('#sheet-footer');
+          if (foot === null) return null;
+          const r = foot.getBoundingClientRect();
+          const top = window.innerHeight - keys;
+          return r.bottom > top + 1 ? { bottom: Math.round(r.bottom), top } : null;
+        }, KEYBOARD);
+        if (covered !== null) {
+          findings.push({
+            check: 'footer-under-keyboard',
+            detail: `ends at ${covered.bottom}, the keyboard starts at ${covered.top}`,
+            where: route,
+          });
+        }
+      }
     } catch (e) {
       findings = [{ check: 'did-not-render', detail: String(e).split('\n')[0], where: route }];
     }
