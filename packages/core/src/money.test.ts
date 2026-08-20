@@ -3,7 +3,9 @@ import {
   allocate,
   add,
   formatMoney,
+  formatCompact,
   formatSigned,
+  formatSignedCompact,
   money,
   MoneyError,
   percentOf,
@@ -238,5 +240,64 @@ describe('formatting', () => {
     expect(formatSigned(money(1482))).toBe('+$1,482');
     expect(formatSigned(money(-1230))).toBe('−$1,230'); // U+2212
     expect(formatSigned(money(0))).toBe('$0');
+  });
+
+  describe('formatCompact() — for a column that cannot grow', () => {
+    it('leaves anything under a thousand alone', () => {
+      // "0.6k" is longer to read than "625" AND wrong. Nothing is gained.
+      expect(formatCompact(money(625))).toBe('$625');
+      expect(formatCompact(money(999))).toBe('$999');
+      expect(formatCompact(money(0))).toBe('$0');
+    });
+
+    it('abbreviates from a thousand, at three significant digits', () => {
+      expect(formatCompact(money(1000))).toBe('$1k');
+      expect(formatCompact(money(7000))).toBe('$7k');
+      expect(formatCompact(money(18500))).toBe('$18.5k');
+      // The decimal stops at a hundred: "525.6k" is seven glyphs and went
+      // through the side of the column this exists for.
+      expect(formatCompact(money(99900))).toBe('$99.9k');
+      expect(formatCompact(money(525600))).toBe('$526k');
+      // Promoted rather than printed as a figure nobody writes.
+      expect(formatCompact(money(999999))).toBe('$1M');
+      expect(formatCompact(money(999499))).toBe('$999k');
+    });
+
+    it('is never more than six glyphs, whatever the amount', () => {
+      // What the deductions columns are sized against: a minus, four digits
+      // and a suffix. They pass no symbol — the header says what the column
+      // is, and a dollar sign repeated six times down a 56pt cell is what
+      // pushed the digits out of it.
+      for (const n of [999, 1000, 18500, 99900, 525600, 999499, 1_000_000, 987_654_321]) {
+        expect(formatCompact(money(-n), '').length).toBeLessThanOrEqual(6);
+      }
+    });
+
+    it('abbreviates from a million', () => {
+      expect(formatCompact(money(1000000))).toBe('$1M');
+      expect(formatCompact(money(1240000))).toBe('$1.2M');
+      expect(formatCompact(money(50071500))).toBe('$50.1M');
+    });
+
+    it('uses the minus the boards set, and the club’s own symbol', () => {
+      expect(formatCompact(money(-4543))).toBe('−$4.5k'); // U+2212
+      expect(formatCompact(money(7000), '₾')).toBe('₾7k');
+    });
+
+    it('never returns something longer than the figure it replaces', () => {
+      // The whole point. If a compact form is wider than the exact one, the
+      // column is worse off for the rounding and the rule is broken.
+      for (const n of [1000, 1500, 12345, 99999, 100000, 999499, 999999, 1000000, 12345678, 2_000_000_000]) {
+        expect(formatCompact(money(n)).length).toBeLessThanOrEqual(
+          formatMoney(money(n)).length,
+        );
+      }
+    });
+
+    it('signs a result the way formatSigned does', () => {
+      expect(formatSignedCompact(money(5957))).toBe('+$6k');
+      expect(formatSignedCompact(money(-3500))).toBe('−$3.5k');
+      expect(formatSignedCompact(money(0))).toBe('$0');
+    });
   });
 });

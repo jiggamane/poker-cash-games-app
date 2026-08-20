@@ -3,7 +3,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   formatMoney,
-  formatSigned,
+  formatSignedToFit,
+  formatToFit,
   resolveLedger,
   type EffectiveEntry,
   type Money,
@@ -175,15 +176,21 @@ export default function PlayerCard() {
       }
     >
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <StatPair label="In for" value={formatMoney(inFor)} tight={result !== undefined} />
+        <StatPair label="In for" value={formatToFit(inFor, FITS)} tight={result !== undefined} />
         <StatPair
           label="Counted"
-          value={counted === undefined ? '—' : formatMoney(counted)}
+          value={counted === undefined ? '—' : formatToFit(counted, FITS)}
           muted={counted === undefined}
           tight={result !== undefined}
         />
         {result !== undefined && (
-          <StatPair label="Night" value={formatSigned(result)} color={moneyColor(t, result)} tight push />
+          <StatPair
+            label="Night"
+            value={formatSignedToFit(result, FITS)}
+            color={moneyColor(t, result)}
+            tight
+            push
+          />
         )}
         {result === undefined && (
           <Text style={[styles.cardNote, { color: t.muted }]}>
@@ -257,6 +264,20 @@ export default function PlayerCard() {
     </Sheet>
   );
 }
+
+/*
+ * WHERE THIS CARD RUNS OUT OF ROOM.
+ *
+ * Three figures side by side at 30/800, tabular, inside a card 20 in from each
+ * edge with 22 between them: about 105 points each, which is a currency symbol
+ * and four digits — "$9,999" — and no more. A fifth digit is what put "$18,500"
+ * half outside its own cell on a real night.
+ *
+ * Past that the figure is abbreviated rather than cut, and the exact amount is
+ * still on the screen: every entry under this card carries its own full
+ * figure, and they are what this is the sum of.
+ */
+const FITS = 10_000;
 
 /** A label over a figure, two or three across the summary card. */
 function StatPair({

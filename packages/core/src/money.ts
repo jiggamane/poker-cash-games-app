@@ -180,6 +180,97 @@ export function formatSigned(amount: Money, currencySymbol = '$'): string {
 }
 
 /**
+ * A figure short enough for a column: 7k, 18.5k, 1.24M.
+ *
+ * ONLY WHERE THE ROOM IS FIXED AND THE EXACT FIGURE IS ELSEWHERE. This rounds,
+ * and rounding money is a thing to do deliberately and rarely — the deductions
+ * preview and the summary figures on a player card, where a wider number would
+ * be cut in half by its own cell and "−4,5…" reads as an amount nobody owes.
+ * Every one of those screens states the exact figure somewhere a tap away.
+ *
+ * Under a thousand nothing is abbreviated: "625" is already short and "0.6k"
+ * would be both longer to read and wrong. From a thousand it is `k`, from a
+ * million `M`.
+ *
+ * THREE SIGNIFICANT DIGITS AND NO MORE, which is what actually bounds the
+ * width: a decimal while the scaled figure is under a hundred — 7k, 18.5k —
+ * and none above it, 526k rather than 525.6k. That last one is not a nicety.
+ * At one decimal throughout, "−525.6k" is seven glyphs and went straight
+ * through the side of a 56-point column; "−526k" is five and does not.
+ * A round result drops its decimal too: 7k, never 7.0k.
+ *
+ * The sign is the same U+2212 the boards set, for the same reason: a minus is
+ * the width of a digit and a hyphen is not.
+ */
+export function formatCompact(amount: Money, currencySymbol = '$'): string {
+  const sign = amount < 0 ? '\u2212' : '';
+  const n = Math.abs(amount);
+  if (n < 1_000) return `${sign}${currencySymbol}${n.toLocaleString('en-US')}`;
+
+  /*
+   * The unit is chosen AFTER rounding, not before. 999,999 divided by a
+   * thousand is 999.999, which rounds to 1000.0 and prints "1000k" — a figure
+   * nobody writes, and wider than the "1M" it means.
+   */
+  for (const [unit, suffix] of [
+    [1_000, 'k'],
+    [1_000_000, 'M'],
+  ] as const) {
+    const scaled = n / unit;
+    const shown = scaled.toFixed(scaled < 100 ? 1 : 0).replace(/\.0$/, '');
+    if (Number(shown) < 1_000) return `${sign}${currencySymbol}${shown}${suffix}`;
+  }
+  // Past a billion the app has bigger problems than a column width.
+  return `${sign}${currencySymbol}${(n / 1_000_000).toFixed(0)}M`;
+}
+
+/**
+ * The same, with the sign always shown — a compact `formatSigned`.
+ *
+ * `$0` has no sign, because zero is not a win or a loss and drawing it as one
+ * is the single most confusing thing a results column can do.
+ */
+export function formatSignedCompact(amount: Money, currencySymbol = '$'): string {
+  if (amount === 0) return `${currencySymbol}0`;
+  return amount > 0
+    ? `+${formatCompact(amount, currencySymbol)}`
+    : formatCompact(amount, currencySymbol);
+}
+
+/**
+ * Exact while it fits, compact past that — for a big figure in a fixed box.
+ *
+ * The rounding in `formatCompact` buys width, and width is only worth buying
+ * when there is none left: turning $2,880 into $2.9k on a card with room for
+ * both loses three dollars and gains nothing. So the caller names the point at
+ * which its own box runs out, and everything under that is printed in full.
+ *
+ * `exactBelow` is a property of the LAYOUT, not of the money — how many digits
+ * that column holds at that size — so it belongs at the call site, where
+ * somebody can measure it, and not in a constant here.
+ */
+export function formatToFit(
+  amount: Money,
+  exactBelow: number,
+  currencySymbol = '$',
+): string {
+  return Math.abs(amount) < exactBelow
+    ? formatMoney(amount, currencySymbol)
+    : formatCompact(amount, currencySymbol);
+}
+
+/** The same, signed: a result that stays a result however wide it gets. */
+export function formatSignedToFit(
+  amount: Money,
+  exactBelow: number,
+  currencySymbol = '$',
+): string {
+  return Math.abs(amount) < exactBelow
+    ? formatSigned(amount, currencySymbol)
+    : formatSignedCompact(amount, currencySymbol);
+}
+
+/**
  * How coarsely a group wants divided amounts rounded.
  *
  * This is a money rule, not a display setting: it changes what people actually

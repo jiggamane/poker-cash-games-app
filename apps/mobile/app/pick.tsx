@@ -38,8 +38,16 @@ export default function Pick() {
   const rows = standings.filter((s) => s.atTable);
   const notSeated = standings.filter((s) => !s.atTable);
 
+  /*
+   * `from` tells the amount screen that the picker is part of THIS act rather
+   * than a place to come back to. Pushed without it, logging a rebuy popped
+   * one screen and landed the host back on "Who's playing?" — the entry made,
+   * the picker still open, and nothing saying the money had gone in. Back from
+   * the amount screen still returns here, which is the point of not simply
+   * replacing this route: picking the wrong person has to be undoable.
+   */
   const go = (playerId: string, kind: 'buyin' | 'rebuy' | 'cashout') =>
-    router.push({ pathname: '/log', params: { player: playerId, kind } });
+    router.push({ pathname: '/log', params: { player: playerId, kind, from: 'pick' } });
 
   return (
     <Sheet

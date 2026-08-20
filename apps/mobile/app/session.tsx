@@ -1,7 +1,13 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { router, useFocusEffect } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, formatSigned, resolveLedger, type Money } from '@poker-club/core';
+import { Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import {
+  formatMoney,
+  formatSigned,
+  formatToFit,
+  resolveLedger,
+  type Money,
+} from '@poker-club/core';
 import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
@@ -30,6 +36,21 @@ import { usePending } from '../src/lib/pending';
  * reconcile against. Before anyone cashes out they are the same number, and a
  * number printed twice reads as two facts, so the smaller one hides.
  */
+/*
+ * WHERE THE MONEY CARD RUNS OUT OF ROOM.
+ *
+ * The headline is 44/800 tabular — about 26 points a glyph — beside a right
+ * column that needs roughly 130 for "$99,999 total in". The card's inside is
+ * 321 at 393 wide, which leaves the figure seven glyphs: "$99,999" and no
+ * more. A real night went past that and the right column was pushed clean
+ * outside the card, over the edge of the screen, with nothing clipping it.
+ *
+ * Both figures use the same threshold on purpose. Abbreviating one and not the
+ * other would put "$10.5M" beside "$10,515,400" in one card and read as two
+ * different scales rather than two different sums.
+ */
+const CARD_FITS = 100_000;
+
 export default function Session() {
   const t = useTheme();
   const night = useNight();
@@ -126,10 +147,17 @@ export default function Session() {
         />
       }
     >
-      {/* Tapping anywhere off the panel closes the drawer. */}
-      <Pressable
-        accessibilityRole={drawer ? 'button' : 'none'}
-        disabled={!drawer}
+      {/*
+       * Tapping anywhere off the panel closes the drawer.
+       *
+       * MOUNTED ONLY WHILE IT IS OPEN. Left in place and merely disabled, this
+       * wrapper marks the entire table `aria-disabled` — every row, every
+       * figure, all evening — and a screen reader announces the night as
+       * unavailable when nothing is wrong with it. There is no scrim to catch
+       * a tap when there is no drawer to close, so there is no element either.
+       */}
+      <PressableOrPlain
+        wrap={drawer}
         onPress={() => setDrawer(false)}
         style={styles.body}
       >
@@ -142,13 +170,15 @@ export default function Session() {
         >
           <View style={styles.cardLeft}>
             <Text style={[styles.tableLabel, { color: t.muted }]}>On the table</Text>
-            <Text style={[styles.tableFigure, { color: t.text }]}>{formatMoney(onTable)}</Text>
+            <Text style={[styles.tableFigure, { color: t.text }]} numberOfLines={1}>
+              {formatToFit(onTable, CARD_FITS)}
+            </Text>
           </View>
 
           <View style={styles.cardRight}>
             {totalIn !== onTable && (
-              <Text style={[styles.totalIn, { color: t.muted }]}>
-                {formatMoney(totalIn)} total in
+              <Text style={[styles.totalIn, { color: t.muted }]} numberOfLines={1}>
+                {formatToFit(totalIn, CARD_FITS)} total in
               </Text>
             )}
             <Text style={[styles.seats, { color: t.dim }]}>
@@ -231,7 +261,7 @@ export default function Session() {
             })}
           </ScrollView>
         )}
-      </Pressable>
+      </PressableOrPlain>
     </Screen>
   );
 }
@@ -240,6 +270,32 @@ export default function Session() {
  * The running time IS the live tag — there is no "LIVE" word any more. Green
  * dot, green figure, green at 14% behind them.
  */
+/**
+ * A tap-catcher while the drawer is open, and nothing at all when it is not.
+ *
+ * Two elements rather than one disabled one, because the disabled version is
+ * not invisible: it carries `aria-disabled` over everything inside it, and
+ * what is inside it is the whole table.
+ */
+function PressableOrPlain({
+  wrap,
+  onPress,
+  style,
+  children,
+}: {
+  wrap: boolean;
+  onPress: () => void;
+  style: ViewStyle;
+  children: ReactNode;
+}) {
+  if (!wrap) return <View style={style}>{children}</View>;
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel="Close the table admin drawer" onPress={onPress} style={style}>
+      {children}
+    </Pressable>
+  );
+}
+
 function LiveTag({ startedAt, empty }: { startedAt: string; empty: boolean }) {
   const t = useTheme();
   // Ticks itself. It used to be computed once per render, which on this screen
@@ -289,10 +345,13 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
   },
   cardEmpty: { paddingVertical: 12 },
-  cardLeft: { gap: 8 },
+  cardLeft: { gap: 8, flexShrink: 1 },
   tableLabel: type.tableLabel,
   tableFigure: type.tableFigure,
-  cardRight: { marginLeft: 'auto', alignItems: 'flex-end', gap: 3 },
+  // The right column keeps its width and the figure beside it gives, never
+  // the other way round: three lines of small print reflow into a column of
+  // single words long before a headline runs out of room.
+  cardRight: { marginLeft: 'auto', alignItems: 'flex-end', gap: 3, flexShrink: 0 },
   totalIn: type.tableTotal,
   seats: type.tableSeats,
 
