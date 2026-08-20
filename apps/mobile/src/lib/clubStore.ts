@@ -3,6 +3,9 @@ import type * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
 import { database } from './db';
 import { money, type Money, type MoneyRule, type PlayerId } from '@poker-club/core';
+import { dropPlayerFromPlay, renamePlayerInPlay } from './nightStore';
+import { clubForBook, rosterAdditions, sameName, type RosterPerson } from './rosterMerge';
+import { drain, queueRosterPlayer } from './sync';
 
 /**
  * The club, on this phone. 12-the-group.md.
@@ -37,6 +40,12 @@ export interface Member {
 
 export interface Club {
   id: string;
+  /**
+   * The server book this club is the local copy of, once a pull has said which
+   * one it is. Null on a club that has never met the server — which is every
+   * club until somebody signs in, and is not a fault.
+   */
+  bookId: string | null;
   name: string;
   currency: string;
   /** The club's own default, which the app default fills in when unset. */
@@ -86,6 +95,22 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
         rules_json TEXT
       );
     `);
+
+    /*
+     * Which book on the server this club is. A club is made on the phone and a
+     * book is made by the queue, neither ever telling the other, so a pull had
+     * no way to know which local club a book's roster belonged to and put it
+     * nowhere. Null until a pull matches them by name, once.
+     *
+     * CREATE TABLE IF NOT EXISTS will not add a column to a phone that already
+     * has the table, so the ALTER runs every launch and fails on all but the
+     * first. The failure is the success case.
+     */
+    try {
+      await db.execAsync(`ALTER TABLE club ADD COLUMN book_id TEXT;`);
+    } catch {
+      // Already there.
+    }
   });
 
 // ---------------------------------------------------------------------------
@@ -131,6 +156,7 @@ interface ClubRow {
   currency: string;
   default_buy_in: number | null;
   rules_json: string;
+  book_id: string | null;
 }
 
 interface MemberRow {
@@ -191,6 +217,7 @@ export async function loadClubs(seed?: {
   state = {
     clubs: rows.map((c) => ({
       id: c.id,
+      bookId: c.book_id ?? null,
       name: c.name,
       currency: c.currency,
       defaultBuyIn: (c.default_buy_in ?? APP_DEFAULT_BUY_IN) as Money,
@@ -213,6 +240,47 @@ export async function loadClubs(seed?: {
 // ---------------------------------------------------------------------------
 // Writing
 // ---------------------------------------------------------------------------
+
+/**
+ * Send what has just been queued, without making anybody wait for it.
+ *
+ * The same fire-and-forget as every ledger entry: a roster change is written to
+ * the phone and is on screen before this is called, and a failure here simply
+ * leaves it in the queue for the next drain. See `docs/storage-and-sync.md`.
+ */
+const push = (): void => {
+  void drain().catch(() => {});
+};
+
+/**
+ * The group's name, which is how a payload names the book — the phone never
+ * learns the book's id. Null means the club is not loaded, and a payload that
+ * cannot name its book is not worth queueing.
+ */
+const nameOfClub = (clubId: string): string | null =>
+  state.clubs.find((c) => c.id === clubId)?.name ?? null;
+
+/** One roster row, on its way to the book. Call it after `loadClubs`. */
+async function queueUp(clubId: string, person: RosterPerson): Promise<void> {
+  const groupName = nameOfClub(clubId);
+  if (groupName === null) return;
+  await queueRosterPlayer(clubId, groupName, person);
+  push();
+}
+
+/** The roster row carrying this name, removed or not. The roster's own identity test. */
+async function memberNamed(
+  clubId: string,
+  name: string,
+): Promise<{ id: PlayerId; removed: number } | null> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ id: string; name: string; removed: number }>(
+    `SELECT id, name, removed FROM club_member WHERE club_id = ?`,
+    clubId,
+  );
+  const hit = rows.find((r) => sameName(r.name, name));
+  return hit === undefined ? null : { id: hit.id, removed: hit.removed };
+}
 
 export async function switchClub(clubId: string): Promise<void> {
   state = { ...state, currentId: clubId };
@@ -241,14 +309,17 @@ export async function createClub(input: {
 
   for (const name of input.playerNames ?? []) {
     if (name.trim() === '') continue;
+    const memberId = randomUUID();
     await db.runAsync(
       `INSERT INTO club_member (club_id, id, name, standing, invited, pays_kitty, removed)
        VALUES (?, ?, ?, 'name_only', 0, 1, 0)`,
       id,
-      randomUUID(),
+      memberId,
       name.trim(),
     );
+    await queueRosterPlayer(id, input.name.trim(), { id: memberId, name: name.trim() });
   }
+  push();
 
   await loadClubs();
   await switchClub(id);
@@ -276,30 +347,93 @@ export async function setClubRules(clubId: string, rules: readonly MoneyRule[]):
 /**
  * Add somebody by name. They exist immediately and can play the same evening —
  * naming comes first and the invite second, always.
+ *
+ * The row is written here, queued for the book, and that is the whole of it.
+ * They reach every screen that shows people because every screen reads this
+ * list: `useClub` is what GR4, GR5, the setup sheet and the seat sheet all draw
+ * from, so there is nowhere else to put them.
+ *
+ * Somebody already on the roster under this name is HANDED BACK rather than
+ * added again — including somebody who was removed, who is un-removed instead.
+ * Two rows with one name is a ledger that cannot tell them apart, and the
+ * server refuses it outright: `player_unique_name_per_book`.
  */
 export async function addMember(clubId: string, name: string): Promise<PlayerId> {
   const db = await getDb();
+  const trimmed = name.trim();
+  if (trimmed === '') throw new Error('A player needs a name.');
+
+  const existing = await memberNamed(clubId, trimmed);
+  if (existing !== null) {
+    if (existing.removed === 1) {
+      await db.runAsync(
+        `UPDATE club_member SET removed = 0 WHERE club_id = ? AND id = ?`,
+        clubId,
+        existing.id,
+      );
+      await loadClubs();
+    }
+    // Queued even though nothing changed here. Every roster row added before
+    // the queue carried them is on this phone and on no server, and this is
+    // the one moment somebody is asking about that person by name.
+    await queueUp(clubId, { id: existing.id, name: trimmed });
+    return existing.id;
+  }
+
   const id = randomUUID();
   await db.runAsync(
     `INSERT INTO club_member (club_id, id, name, standing, invited, pays_kitty, removed)
      VALUES (?, ?, ?, 'name_only', 0, 1, 0)`,
     clubId,
     id,
-    name.trim(),
+    trimmed,
   );
   await loadClubs();
+  await queueUp(clubId, { id, name: trimmed });
   return id;
 }
 
+/**
+ * The id the group already has for this name, minting one if it does not.
+ *
+ * What the seat sheet calls when a name is typed at the table. It used to mint
+ * an id inside the NIGHT — so a player the group had known for months became a
+ * second person the moment the host typed their name instead of tapping their
+ * chip, with their history split between two rows nothing would ever join up.
+ */
+export async function rosterIdFor(clubId: string, name: string): Promise<PlayerId> {
+  return addMember(clubId, name);
+}
+
+/**
+ * Rename somebody, everywhere the name is.
+ *
+ * Three places, and they used to be one: the roster, the nights still in play,
+ * and the book on the server. A rename that stopped at the roster left the old
+ * name on Tonight until the night ended and on every other phone for ever.
+ *
+ * A settled night keeps the name it was played and paid under. See
+ * `renamePlayerInPlay`.
+ */
 export async function renameMember(clubId: string, id: PlayerId, name: string): Promise<void> {
   const db = await getDb();
+  const trimmed = name.trim();
+  if (trimmed === '') return;
+
+  const clash = await memberNamed(clubId, trimmed);
+  if (clash !== null && clash.id !== id) {
+    throw new Error(`${trimmed} is already on the roster.`);
+  }
+
   await db.runAsync(
     `UPDATE club_member SET name = ? WHERE club_id = ? AND id = ?`,
-    name.trim(),
+    trimmed,
     clubId,
     id,
   );
   await loadClubs();
+  await renamePlayerInPlay(id, trimmed);
+  await queueUp(clubId, { id, name: trimmed });
 }
 
 export async function setPaysKitty(clubId: string, id: PlayerId, pays: boolean): Promise<void> {
@@ -385,11 +519,105 @@ export async function nightsPlayed(): Promise<Map<PlayerId, number>> {
   return new Map(rows.map((r) => [r.id, r.n]));
 }
 
-/** Removing keeps their nights. Unsettled amounts stay on the night they came from. */
+/**
+ * Removing keeps their nights. Unsettled amounts stay on the night they came
+ * from, and a settled night is never touched at all.
+ *
+ * It also takes them out of a night still in play that they had not started —
+ * "stops them appearing when players are seated", which is what the roster row
+ * on the seat sheet now IS. A night where they hold money keeps them.
+ *
+ * Nothing is queued: the book has no notion of a removed player, and a row on
+ * the server is what every night that names them still points at.
+ */
 export async function removeMember(clubId: string, id: PlayerId): Promise<void> {
   const db = await getDb();
   await db.runAsync(`UPDATE club_member SET removed = 1 WHERE club_id = ? AND id = ?`, clubId, id);
   await loadClubs();
+  await dropPlayerFromPlay(id);
+}
+
+// ---------------------------------------------------------------------------
+// The roster, arriving FROM the server
+// ---------------------------------------------------------------------------
+
+/** What a book's roster did to this phone. */
+export interface RosterImport {
+  /** The local club it landed in — made here if there was not one. */
+  clubId: string;
+  /** People this phone had never heard of. */
+  added: number;
+}
+
+/**
+ * Fold a book's roster into this phone's.
+ *
+ * THE OTHER HALF OF `pull.ts`, and the half that was missing. A pull brought
+ * back every night in the book and not one person: `night_player` filled up,
+ * `club_member` stayed exactly as it was, and a member who had just claimed
+ * their place landed on a Players screen reading "Nobody on the roster yet"
+ * while their nights sat one screen away with six names in them. Nothing about
+ * it looked like a failure, which is the worst kind.
+ *
+ * IT ADDS AND NEVER RENAMES — see `rosterAdditions`. Names travel the other
+ * way, up through the queue, and a pull that also wrote them back would make
+ * the two ends argue with the winner decided by whichever ran last.
+ *
+ * The club is stamped with the book's id the first time the two are matched, so
+ * a group renamed on either side still lands in the same place next time.
+ */
+export async function importRoster(book: {
+  id: string;
+  groupName: string;
+  players: readonly RosterPerson[];
+}): Promise<RosterImport> {
+  const db = await getDb();
+  const clubs = await db.getAllAsync<{ id: string; name: string; book_id: string | null }>(
+    `SELECT id, name, book_id FROM club ORDER BY created_at`,
+  );
+
+  let clubId = clubForBook(
+    clubs.map((c) => ({ id: c.id, bookId: c.book_id, name: c.name })),
+    book,
+  );
+
+  if (clubId === null) {
+    clubId = randomUUID();
+    await db.runAsync(
+      `INSERT INTO club (id, name, currency, default_buy_in, rules_json, created_at, book_id)
+       VALUES (?, ?, 'USD', ?, '[]', ?, ?)`,
+      clubId,
+      book.groupName,
+      APP_DEFAULT_BUY_IN,
+      new Date().toISOString(),
+      book.id,
+    );
+  } else {
+    await db.runAsync(`UPDATE club SET book_id = ? WHERE id = ? AND book_id IS NULL`, book.id, clubId);
+  }
+
+  const known = await db.getAllAsync<{ id: string; name: string }>(
+    `SELECT id, name FROM club_member WHERE club_id = ?`,
+    clubId,
+  );
+
+  // Removed people are in `known` on purpose: somebody the admin took off the
+  // roster must not come back every time the book is read.
+  const added = rosterAdditions(known, book.players);
+  for (const p of added) {
+    await db.runAsync(
+      `INSERT INTO club_member (club_id, id, name, standing, invited, pays_kitty, removed)
+       VALUES (?, ?, ?, 'name_only', 0, 1, 0)`,
+      clubId,
+      p.id,
+      p.name,
+    );
+  }
+
+  // Whether or not anybody was added: the club may have just been made, or
+  // just been stamped, and every screen below Home reads this state.
+  await loadClubs();
+  return { clubId, added: added.length };
 }
 
 // ---------------------------------------------------------------------------

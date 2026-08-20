@@ -6,6 +6,7 @@ import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { makeAdmin, removeMember, renameMember, setPaysKitty, useClub } from '../src/lib/clubStore';
+import { sameName } from '../src/lib/rosterMerge';
 
 /**
  * A player — GR5.
@@ -39,6 +40,17 @@ export default function MemberSheet() {
   }
 
   const renamed = name.trim() !== '' && name.trim() !== member.name;
+  /*
+   * TWO PEOPLE CANNOT SHARE A NAME IN ONE GROUP. The roster refuses it when a
+   * name is added and the server refuses it outright — `player_unique_name_per_book`
+   * — so a rename onto a name already here would halt the queue behind it.
+   *
+   * ⚠ COPY BORROWED. GR4's own label for this exact state ("X is already here")
+   * standing in on GR5's button, because GR5 was drawn without it. Flagged
+   * rather than invented, and it wants review.
+   */
+  const clash =
+    renamed && club.members.some((m) => m.id !== member.id && sameName(m.name, name));
 
   return (
     <Sheet
@@ -47,9 +59,9 @@ export default function MemberSheet() {
       footer={
         <>
           <Button
-            label={renamed ? 'Save the name' : 'Done'}
+            label={clash ? `${name.trim()} is already here` : renamed ? 'Save the name' : 'Done'}
             variant="primary"
-            disabled={busy}
+            disabled={busy || clash}
             onPress={() => {
               if (!renamed) return router.back();
               setBusy(true);

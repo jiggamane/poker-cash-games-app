@@ -135,6 +135,40 @@ select expect_eq(
   (select amount from money_rule where id = 'c5000000-0000-0000-0000-000000000002'),
   10, 'editing a rule updates it rather than adding a second');
 
+-- --- the roster, between nights ---------------------------------------------
+-- A player added on GR4 with no game running. There is no session behind this
+-- one: a person belongs to the BOOK, and the roster is the group, not a night.
+-- Until the queue carried these, somebody added between games reached the
+-- server only if a later night happened to seat them.
+insert into player (id, book_id, display_name)
+values ('c3000000-0000-0000-0000-000000000004',
+        'c2000000-0000-0000-0000-000000000001', 'Kuba')
+on conflict (id) do update set display_name = excluded.display_name;
+
+select expect_eq((select count(*) from player), 4,
+  'a player added between nights reaches the book');
+
+-- A rename REPLACES the name, unlike a night or an entry. GR5 wrote it to the
+-- phone and nowhere else, and every member who pulled the book saw the old one.
+insert into player (id, book_id, display_name)
+values ('c3000000-0000-0000-0000-000000000004',
+        'c2000000-0000-0000-0000-000000000001', 'Kuba N.')
+on conflict (id) do update set display_name = excluded.display_name;
+
+select expect_eq((select count(*) from player), 4, 'a rename does not add a second person');
+select expect_eq(
+  (select count(*) from player
+    where id = 'c3000000-0000-0000-0000-000000000004' and display_name = 'Kuba N.'),
+  1, 'a rename is what the book ends up holding');
+
+-- Two people cannot share a name in one book: the ledger could not tell them
+-- apart. The app refuses it on the way in; this is the backstop.
+select expect_rejected(
+  $$insert into player (id, book_id, display_name)
+    values ('c3000000-0000-0000-0000-000000000005',
+            'c2000000-0000-0000-0000-000000000001', '  kuba n. ')$$,
+  'a second player with a name the book already holds');
+
 -- =============================================================================
 -- 2. THE MONEY — entries as the queue sends them
 -- =============================================================================

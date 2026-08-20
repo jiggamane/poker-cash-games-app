@@ -53,6 +53,17 @@ Dana the money is **not the app's business** and is never recorded. A night is
 FINAL the moment it is counted, deducted and settled. Nothing about payment can
 change a single figure afterwards.
 
+**The roster travels UP, never down.** A person is added, renamed and removed on
+the phone that keeps the book, and the queue carries that to the server. A pull
+ADDS people this phone has never heard of and never renames one it has — see
+`rosterAdditions` in `apps/mobile/src/lib/rosterMerge.ts`. Both ends writing
+names would make them argue, with the winner decided by whichever ran last.
+
+A pull matches a book to a club on this phone by the `book_id` stamped on it, or
+by name the first time, and stamps it then. A club made on the phone and a book
+made by the queue otherwise never learn about each other, and a roster arriving
+from the server has nowhere to land.
+
 That fourth one is a load-bearing simplification. It means a settled night is
 **immutable**, which means sync is a **set union rather than a merge**, which is
 why none of what follows needs conflict resolution.
@@ -63,6 +74,8 @@ why none of what follows needs conflict resolution.
 
 | | On the phone (SQLite) | On the server (Postgres) |
 | --- | --- | --- |
+| The group | `club` (`book_id` names the book) | `book` |
+| Who is in the group | `club_member` | `player` |
 | The night | `night` | `session` |
 | Who played | `night_player` | `player` + `session_seat` |
 | The money | `night_entry` | `ledger_entry` |
@@ -84,6 +97,9 @@ column is what goes to the server, in order, whenever there is a connection.
 
 | Moment | Written locally | Queued for the server |
 | --- | --- | --- |
+| **Add a player to the group** | `club_member` | `book` (first time only), `player` |
+| **Rename a player** | `club_member`, `night_player` for every night still in play | `player` |
+| **Remove a player** | `club_member.removed`, and `night_player` where they hold nothing | — the book keeps the row every night still points at |
 | **Open a night** | `night`, `night_player`, rules | `book` (first time only), `player`, `session`, `session_seat`, `money_rule` |
 | **Seat someone** | `night_player` | `player`, `session_seat` |
 | **Buy-in / rebuy / cash-out / expense** | `night_entry` | `ledger_entry` |
