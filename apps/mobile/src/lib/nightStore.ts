@@ -16,6 +16,7 @@ import {
   type ResolvedLedger,
 } from '@poker-club/core';
 import { outbox, recordEntry } from './ledgerRepo';
+import { queuePlayer, queueSessionOpen } from './sync';
 import {
   CURRENT_NIGHT,
   FIRST_TABLE,
@@ -634,7 +635,16 @@ export async function buyIn(playerId: PlayerId, amount: Money): Promise<void> {
   return append({ type: 'buyin', playerId, amount });
 }
 
-/** Mark someone as playing tonight. Idempotent. */
+/**
+ * Mark someone as playing tonight. Idempotent.
+ *
+ * QUEUED AS WELL AS WRITTEN. Their seat is a row on the server —
+ * `session_seat` — and the buy-in that put them there is queued a moment later
+ * with a foreign key pointing at it. Only a night OPENING used to queue seats,
+ * so anybody who sat down after the first hand had their money arrive ahead of
+ * the seat it belonged to, which the server refuses; the queue then halts, and
+ * halts on every night behind it.
+ */
 export async function seat(playerId: PlayerId): Promise<void> {
   if (night === null) return;
   const player = night.players.find((p) => p.id === playerId);
@@ -651,24 +661,38 @@ export async function seat(playerId: PlayerId): Promise<void> {
     players: night.players.map((p) => (p.id === playerId ? { ...p, atTable: true } : p)),
   };
   emit();
+
+  await queuePlayer(night.sessionId, night.groupName, {
+    id: playerId,
+    name: player.name,
+    atTable: true,
+  });
 }
 
 /**
- * Add somebody to the roster without seating them.
+ * Put somebody in tonight's night without seating them.
  *
- * The roster outlives a night: it is who the group is. Somebody can be on it
- * and not playing tonight — the treasurer who holds the piggy bank is exactly that,
- * and so is anyone who came to watch.
+ * They can be in it and not playing — the treasurer who holds the piggy bank is
+ * exactly that, and so is anyone who came to watch.
+ *
+ * THE ID COMES FROM THE ROSTER where there is one. The group's list of people
+ * is `clubStore`'s, not this file's, and a night that minted its own id for
+ * somebody the group already knows made a second person out of one human:
+ * their nights split in two, their stats halved, and the name appearing twice
+ * the moment both lists were on one screen. `rosterIdFor` resolves the name to
+ * the row the group already has and hands the id down here.
  */
-export async function addPlayer(name: string): Promise<PlayerId> {
+export async function addPlayer(name: string, playerId?: PlayerId): Promise<PlayerId> {
   if (night === null) throw new Error('No night is open.');
   const trimmed = name.trim();
 
-  const existing = night.players.find((p) => p.name.toLowerCase() === trimmed.toLowerCase());
+  const existing = night.players.find(
+    (p) => p.id === playerId || p.name.toLowerCase() === trimmed.toLowerCase(),
+  );
   if (existing !== undefined) return existing.id;
 
   const db = await getDb();
-  const id = randomUUID();
+  const id = playerId ?? randomUUID();
   await db.runAsync(
     `INSERT INTO night_player (session_id, id, name, at_table) VALUES (?, ?, ?, 0)`,
     night.sessionId,
@@ -677,7 +701,80 @@ export async function addPlayer(name: string): Promise<PlayerId> {
   );
   night = { ...night, players: [...night.players, { id, name: trimmed, atTable: false }] };
   emit();
+
+  // In the book, but in no seat. `player` is a row on the book and needs no
+  // session behind it, which is exactly what somebody not playing yet is.
+  await queuePlayer(night.sessionId, night.groupName, { id, name: trimmed, atTable: false });
   return id;
+}
+
+/**
+ * A name changed on the roster, in every night still in play.
+ *
+ * A SETTLED NIGHT IS NEVER TOUCHED. It is immutable — the figures were agreed
+ * and paid under the names it carries — so a rename applies from here forward
+ * and the book keeps what it said at the time.
+ *
+ * Every table still running does move, not only the one loaded: a club can run
+ * two at once, and a name that changed on one screen and not the other is the
+ * confusion this whole file is being joined up to end.
+ */
+export async function renamePlayerInPlay(id: PlayerId, name: string): Promise<void> {
+  const trimmed = name.trim();
+  if (trimmed === '') return;
+
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE night_player SET name = ?
+      WHERE id = ?
+        AND session_id IN (SELECT session_id FROM night WHERE status != 'settled')`,
+    trimmed,
+    id,
+  );
+
+  if (night === null || night.status === 'settled') return;
+  night = {
+    ...night,
+    players: night.players.map((p) => (p.id === id ? { ...p, name: trimmed } : p)),
+  };
+  emit();
+}
+
+/**
+ * Somebody removed from the group, taken out of the nights they had not yet
+ * played in.
+ *
+ * REMOVING KEEPS EVERY NIGHT THEY PLAYED — `12-the-group.md` is explicit, and
+ * an unsettled amount stays on the night it came from. So this deletes only a
+ * row that carries nothing: not at the table, no entry of theirs anywhere in
+ * that night, and the night not settled. Anything else is left exactly where it
+ * is, which is why this is a no-op far more often than not.
+ */
+export async function dropPlayerFromPlay(id: PlayerId): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `DELETE FROM night_player
+      WHERE id = ?
+        AND at_table = 0
+        AND session_id IN (SELECT session_id FROM night WHERE status != 'settled')
+        AND NOT EXISTS (
+          SELECT 1 FROM night_entry e
+           WHERE e.session_id = night_player.session_id
+             AND (e.player_id = night_player.id OR e.payer_id = night_player.id))`,
+    id,
+  );
+
+  if (night === null || night.status === 'settled') return;
+  const gone =
+    (await db.getFirstAsync<{ id: string }>(
+      `SELECT id FROM night_player WHERE session_id = ? AND id = ?`,
+      night.sessionId,
+      id,
+    )) === null;
+  if (!gone) return;
+
+  night = { ...night, players: night.players.filter((p) => p.id !== id) };
+  emit();
 }
 
 /**
@@ -934,8 +1031,12 @@ export async function voidSpend(entryIds: readonly string[]): Promise<void> {
  * One act, not two: a player with no buy-in is not at the table, and the
  * design's button says so — "Seat Kuba · log buy-in".
  */
-export async function seatAndBuyIn(name: string, amount: Money): Promise<PlayerId> {
-  const id = await addPlayer(name);
+export async function seatAndBuyIn(
+  name: string,
+  amount: Money,
+  playerId?: PlayerId,
+): Promise<PlayerId> {
+  const id = await addPlayer(name, playerId);
   await buyIn(id, amount);
   return id;
 }
@@ -1233,6 +1334,41 @@ export async function startNight(input: {
     );
   }
 
+  const players = [
+    ...input.seats.map((s) => ({ id: s.playerId, name: s.name, atTable: true })),
+    ...[...collectors].map(([id, name]) => ({ id, name, atTable: false })),
+  ];
+
+  /** What the table bought in for, where the night itself was not told. */
+  const biggest = input.seats.reduce<number | undefined>(
+    (max, s) => (s.buyIn > 0 && (max === undefined || s.buyIn > max) ? s.buyIn : max),
+    undefined,
+  );
+
+  /*
+   * THE NIGHT'S EXISTENCE, QUEUED BEFORE ITS MONEY.
+   *
+   * The book, the session, everybody in it, their seats and the rules it opened
+   * with — all of it ahead of the first buy-in in the same one queue, because
+   * that is the order the server's foreign keys require. `sync.ts` has been
+   * able to send this since the server half landed and nothing ever called it,
+   * so a host signed in recorded entries that reached a server with no session
+   * to put them in: the insert was refused, the queue halted at it, and every
+   * night behind it stayed on the phone for ever.
+   */
+  await queueSessionOpen({
+    sessionId,
+    groupName: input.groupName,
+    startedAt: startedAt.toISOString(),
+    // NEVER ZERO: `session.default_buyin` is checked greater than zero, and a
+    // night opened without one — the buy-in is optional here and nullable in
+    // the local column — would be refused and halt the queue at the head. What
+    // the table actually bought in for is the honest answer when nobody said.
+    defaultBuyIn: input.buyIn ?? biggest ?? money(500),
+    players,
+    rules: input.rules,
+  });
+
   // Everything after this point is the ledger's own business, so the night is
   // loaded first and the buy-ins are appended through the same path every
   // other entry takes.
@@ -1243,10 +1379,7 @@ export async function startNight(input: {
     tableName,
     startedAt: startedAt.toISOString(),
     status: 'open',
-    players: [
-      ...input.seats.map((s) => ({ id: s.playerId, name: s.name, atTable: true })),
-      ...[...collectors].map(([id, name]) => ({ id, name, atTable: false })),
-    ],
+    players,
     entries: [],
     finalCounts: new Map(),
     paidAt: new Map(),

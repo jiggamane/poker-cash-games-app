@@ -72,13 +72,22 @@ export default function Settings() {
   async function fetchMine() {
     setFetching(true);
     try {
-      const { added, books } = await pullBooks();
+      const { added, books, players } = await pullBooks();
+      // The roster comes down with the nights, and can come down without them:
+      // a group set up on the server with no game played yet is people and
+      // nothing else, and "nothing new" would have been a lie about it.
+      const nights = `${added} ${added === 1 ? 'night' : 'nights'}`;
+      const people = `${players} ${players === 1 ? 'player' : 'players'}`;
       setFetched(
         books === 0
           ? 'You do not belong to a book yet — claim an invite first.'
-          : added === 0
+          : added === 0 && players === 0
             ? 'Nothing new. Every night on the server is already on this phone.'
-            : `${added} ${added === 1 ? 'night' : 'nights'} came down.`,
+            : added === 0
+              ? `${people} came down.`
+              : players === 0
+                ? `${nights} came down.`
+                : `${nights} and ${people} came down.`,
       );
     } catch (e) {
       setFetched(explainServerError(e));

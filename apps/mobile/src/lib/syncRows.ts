@@ -113,10 +113,21 @@ export const sessionRow = (p: SessionOpenPayload, bookId: string): RowWrite => (
   },
 });
 
+/**
+ * A person on the roster.
+ *
+ * NOT `ignoreDuplicates`, for the same reason a money rule is not: a name is
+ * the other thing a host edits, and GR5's rename wrote it to the phone and
+ * nowhere else. Every night that player had already been in kept the old name
+ * on the server for ever, and the one place it showed was the phone of the
+ * member who pulled the book — the person least able to explain it.
+ *
+ * Only these three columns are named, so `claimed_by_user_id` is untouched by
+ * a rename: renaming somebody does not un-claim them.
+ */
 export const playerRow = (p: PlayerPayload, bookId: string): RowWrite => ({
   table: 'player',
   onConflict: 'id',
-  ignoreDuplicates: true,
   row: { id: p.player.id, book_id: bookId, display_name: p.player.name },
 });
 

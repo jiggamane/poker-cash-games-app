@@ -129,6 +129,37 @@ export async function queuePlayer(
   }
 }
 
+/**
+ * A roster row, with no night behind it.
+ *
+ * A person belongs to the BOOK, not to a session — `player` has a `book_id` and
+ * no session at all — so adding somebody on GR4 with no game running is a
+ * complete operation in itself. Until this existed, the only thing that ever
+ * queued a player was a night opening, so somebody added between games reached
+ * the server if and only if a later night happened to seat them, and a rename
+ * never reached it at all.
+ *
+ * `sessionId` on the queued item is the CLUB's id here. Nothing in the drain
+ * reads it for a `player.upsert` — the payload carries the group's name and the
+ * book is resolved from that — and the queue needs a non-empty scope for the
+ * row, so it carries the scope this operation actually has. It passes the uuid
+ * gate for the same reason a session does: a club id is a uuid the phone minted.
+ */
+export async function queueRosterPlayer(
+  clubId: string,
+  groupName: string,
+  player: { id: string; name: string },
+): Promise<void> {
+  if (!isUuid(clubId) || !isUuid(player.id)) return;
+
+  await enqueueOp<PlayerPayload>(outbox, {
+    id: `player:${player.id}`,
+    sessionId: clubId,
+    kind: 'player.upsert',
+    payload: { groupName, player: { id: player.id, name: player.name } },
+  });
+}
+
 export async function queueRule(
   sessionId: string,
   groupName: string,
