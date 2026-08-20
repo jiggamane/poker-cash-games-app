@@ -385,6 +385,36 @@ export async function nightsPlayed(): Promise<Map<PlayerId, number>> {
   return new Map(rows.map((r) => [r.id, r.n]));
 }
 
+/** One person's history with the club, as O2's roster row states it. */
+export interface PlayHistory {
+  nights: number;
+  /** ISO of the most recent night they sat at, or null if they never have. */
+  last: string | null;
+}
+
+/**
+ * How many nights each person has sat at, and when the last one was — O2's
+ * sub-line, "played 28 July · 26 nights".
+ *
+ * The roster is sorted most-recent-first from this, which is the whole reason
+ * it exists: the six people who played last week are the six about to play
+ * tonight, and a host should not scroll past a name from March to find them.
+ *
+ * Keyed by player id, and a person who has never played is simply absent.
+ */
+export async function playHistory(): Promise<Map<PlayerId, PlayHistory>> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ id: string; n: number; last: string | null }>(
+    `SELECT np.id AS id,
+            COUNT(DISTINCT np.session_id) AS n,
+            MAX(n.started_at) AS last
+       FROM night_player np
+       JOIN night n ON n.session_id = np.session_id
+      GROUP BY np.id`,
+  );
+  return new Map(rows.map((r) => [r.id as PlayerId, { nights: r.n, last: r.last }]));
+}
+
 /** Removing keeps their nights. Unsettled amounts stay on the night they came from. */
 export async function removeMember(clubId: string, id: PlayerId): Promise<void> {
   const db = await getDb();

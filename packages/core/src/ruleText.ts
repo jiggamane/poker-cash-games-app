@@ -19,6 +19,7 @@
  * value, not the value itself.
  */
 
+import { formatMoney, type Money } from './money';
 import type { MoneyRule, RuleCharge, RuleSplit } from './types';
 
 /**
@@ -57,4 +58,60 @@ export function ruleTerms(rule: Pick<MoneyRule, 'amountKind' | 'amount' | 'split
 /** "Bill · by size of win". The whole row label, name included. */
 export function ruleLabel(rule: Pick<MoneyRule, 'name' | 'amountKind' | 'amount' | 'split' | 'charge'>): string {
   return `${rule.name} · ${ruleTerms(rule)}`;
+}
+
+/**
+ * The line under a rule's name on the O4 list — "how much · who pays · who
+ * holds it", in that order, because "10% off my win" and "10% of the pot" are
+ * different evenings.
+ *
+ * It lives here rather than on a screen because the same sentence is now read
+ * at four moments — the club's defaults, the game being set up, tonight's
+ * rules, and the deductions being checked — and a sentence written four times
+ * is four sentences. A bill states what has been spent instead of an amount,
+ * because a bill's amount IS the spending.
+ *
+ * `taken` is what the rule has actually taken so far tonight, appended only
+ * where the engine has a figure to give. Nothing here computes anything: every
+ * number is passed in, already worked out.
+ */
+export function ruleDetail(
+  rule: Pick<
+    MoneyRule,
+    'amountKind' | 'amount' | 'split' | 'charge' | 'destination' | 'collectorPlayerId'
+  >,
+  context: {
+    /** What the bill has cost so far. Only read for a bill-destination rule. */
+    spent?: Money;
+    /** What this rule has taken tonight, if the night can say yet. */
+    taken?: Money;
+    /** The collector's name, resolved by whoever holds the roster. */
+    collectorName?: string;
+  } = {},
+): string {
+  const how =
+    rule.destination === 'bill'
+      ? `${formatMoney(context.spent ?? (0 as Money))} spent so far`
+      : rule.amountKind === 'percent'
+        ? `${rule.amount}% of win`
+        : `${formatMoney(rule.amount)} fixed`;
+
+  const who =
+    rule.split === 'custom'
+      ? 'split by hand'
+      : rule.charge === 'everyone_flat'
+        ? 'everyone at the table'
+        : rule.split === 'by_percent'
+          ? 'winners, by size of win'
+          : 'split by winners';
+
+  const holder =
+    rule.destination === 'bill'
+      ? 'paid back to whoever bought it'
+      : rule.collectorPlayerId === '' || context.collectorName === undefined
+        ? 'held by the group'
+        : `${context.collectorName} collects`;
+
+  const tail = context.taken === undefined ? '' : ` · ${formatMoney(context.taken)} tonight`;
+  return `${how} · ${who} · ${holder}${tail}`;
 }

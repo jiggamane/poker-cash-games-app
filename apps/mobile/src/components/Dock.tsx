@@ -38,6 +38,7 @@ export function Dock({
   onBill,
   onSeat,
   onCashOut,
+  onRules,
   onEnd,
 }: {
   variant?: 'resting' | 'empty-table';
@@ -49,6 +50,18 @@ export function Dock({
   onBill: () => void;
   onSeat: () => void;
   onCashOut: () => void;
+  /**
+   * Tonight's money rules — O4.
+   *
+   * ⚠ NOT DRAWN ON T3, and flagged rather than quietly added: the drawer is
+   * drawn with three rows. But `09-navigation.md` says money rules open "from
+   * O1, or Tonight", and no control for it is drawn on Tonight either — so the
+   * screen the design says must be reachable while a night runs had no way in
+   * at all, and a rule nobody can turn off is a rule that takes money at 1am
+   * whatever the room has just agreed. The drawer is where this app already
+   * keeps the host-only things you touch once a night, which is what this is.
+   */
+  onRules: () => void;
   onEnd: () => void;
 }) {
   const t = useTheme();
@@ -128,6 +141,7 @@ export function Dock({
         <View style={styles.drawer}>
           <DrawerRow icon="person" label="Seat a player" onPress={onSeat} dim={holding} />
           <DrawerRow icon="cashOut" label="Cash out a player" onPress={onCashOut} dim={holding} />
+          <DrawerRow icon="rules" label="Money rules" onPress={onRules} dim={holding} />
 
           {/* The only way to end a night. Press and keep pressing. */}
           <Pressable
@@ -204,7 +218,7 @@ function DrawerRow({
   onPress,
   dim,
 }: {
-  icon: 'person' | 'cashOut';
+  icon: 'person' | 'cashOut' | 'rules';
   label: string;
   onPress: () => void;
   dim: boolean;

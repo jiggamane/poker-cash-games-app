@@ -284,6 +284,27 @@ export default function Deductions() {
           Provisional until you settle. Tap any figure above to change it.
         </Text>
       </View>
+
+      {/*
+       * THE RULES THEMSELVES, not just one figure inside one of them.
+       *
+       * Every block above opens the rule it belongs to, which is enough while
+       * the argument is about a share. It is not enough when the argument is
+       * about the rule — switching the piggy bank off because somebody brought
+       * the food, or adding a rule for a bill nobody had thought of — and this
+       * is the screen where a room finds that out, because it is the first one
+       * that shows what each rule actually takes.
+       *
+       * Same copy and same treatment as E4's, one step further on: the corner
+       * is empty on a pushed screen, so the way back to the rules is at the
+       * end, where a room that disagrees with a figure is already looking.
+       */}
+      <Button
+        label="Change a rule and look again"
+        variant="chip"
+        style={styles.edit}
+        onPress={() => router.push('/money-rules')}
+      />
     </Screen>
   );
 }
@@ -499,5 +520,6 @@ const styles = StyleSheet.create({
   washTop: { borderTopLeftRadius: 5, borderTopRightRadius: 5 },
 
   previewNote: { fontSize: 11.5, fontWeight: '400', lineHeight: 16.7, paddingTop: 7, paddingHorizontal: 6 },
+  edit: { alignSelf: 'flex-start', marginTop: 14, marginHorizontal: 20 },
 
 });

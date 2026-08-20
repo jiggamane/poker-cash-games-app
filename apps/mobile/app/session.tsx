@@ -7,7 +7,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { useElapsed } from '../src/lib/elapsed';
+import { clockLabel, useElapsed } from '../src/lib/elapsed';
 import { defaultBuyIn, standingsOf, useNight } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
 
@@ -119,6 +119,13 @@ export default function Session() {
             setDrawer(false);
             router.push({ pathname: '/pick', params: { kind: 'cashout' } });
           }}
+          /* O4 over Tonight — `09-navigation.md`: money rules open "from O1,
+             or Tonight". Until now they opened from neither, so a rule agreed
+             before the night could not be changed during it. */
+          onRules={() => {
+            setDrawer(false);
+            router.push('/money-rules');
+          }}
           onEnd={() => {
             setDrawer(false);
             router.push('/count-up');
@@ -166,7 +173,7 @@ export default function Session() {
                 column is still shorter than the figure next to it — so the
                 card does not grow. */}
             <Text style={[styles.started, { color: t.dim }]}>
-              {empty ? 'opened' : 'started'} {clock(night.startedAt)}
+              {empty ? 'opened' : 'started'} {clockLabel(night.startedAt)}
             </Text>
           </View>
         </View>
@@ -256,9 +263,6 @@ function LiveTag({ startedAt, empty }: { startedAt: string; empty: boolean }) {
     </View>
   );
 }
-
-const clock = (iso: string): string =>
-  new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 const styles = StyleSheet.create({
   body: { flex: 1 },
