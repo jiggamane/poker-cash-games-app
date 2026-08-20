@@ -1,14 +1,20 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { formatMoney, money, resolveLedger } from '@poker-club/core';
+import { formatToFit, money, resolveLedger } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { addPlayer, defaultBuyIn, seatAndBuyIn, useNight } from '../src/lib/nightStore';
-import { addMember, rosterIdFor, useClub } from '../src/lib/clubStore';
+import { rosterIdFor, useClub } from '../src/lib/clubStore';
 import { benchFor, sameName } from '../src/lib/rosterMerge';
+
+/*
+ * WHERE THE BUTTON'S LABEL RUNS OUT OF ROOM: it carries the amount — "Seat
+ * Bartholomew · $500" — inside one line of a 353-wide button at 18/700.
+ */
+const NAMED_FITS = 100_000;
 
 /**
  * Seat a new player — N7.
@@ -102,25 +108,6 @@ export default function Seat() {
   }
 
   /**
-   * Roster only, no buy-in yet — for adding somebody who is not playing.
-   *
-   * It adds them to the GROUP, which is what the button says and what it did
-   * not do: it put a row in tonight's night and nowhere else, so somebody added
-   * by the one control labelled "roster" was gone by the next game.
-   */
-  async function justAdd() {
-    if (!valid || busy) return;
-    setBusy(true);
-    try {
-      if (club === null) await addPlayer(trimmed);
-      else await addMember(club.id, trimmed);
-      setName('');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  /**
    * A chip tapped: into the night, then straight to their first buy-in.
    *
    * The buy-in sheet takes a player id and reads it off the night, so somebody
@@ -148,28 +135,27 @@ export default function Seat() {
       sub="Seats them tonight and adds them to the group roster. They can be invited later."
       sentence
       footer={
-        <>
-          <Button
-            label={
-              trimmed === ''
-                ? 'Type a name'
-                : clash
-                  ? `${trimmed} is already here`
-                  : !stakeOk
-                    ? 'Set a first buy-in'
-                    : `Seat ${trimmed} · ${formatMoney(money(amount))}`
-            }
-            variant="primary"
-            disabled={!valid || busy}
-            onPress={commit}
-          />
-          <Button
-            label="Add to the roster only"
-            variant="secondary"
-            disabled={!valid || busy}
-            onPress={() => void justAdd()}
-          />
-        </>
+        /*
+         * ONE BUTTON, as N7 draws it. There was a second — "Add to the roster
+         * only" — and it did what Players already does, sitting directly under
+         * a button that seats somebody and takes their money. Two controls a
+         * thumb-width apart, one of which is a ledger write and one of which
+         * is not, is the wrong thing to hand a host at one in the morning.
+         */
+        <Button
+          label={
+            trimmed === ''
+              ? 'Type a name'
+              : clash
+                ? `${trimmed} is already here`
+                : !stakeOk
+                  ? 'Set a first buy-in'
+                  : `Seat ${trimmed} · ${formatToFit(money(amount), NAMED_FITS)}`
+          }
+          variant="primary"
+          disabled={!valid || busy}
+          onPress={commit}
+        />
       }
     >
       <View style={styles.field}>
@@ -180,10 +166,29 @@ export default function Seat() {
             value={name}
             onChangeText={setName}
             onSubmitEditing={commit}
+            accessibilityLabel="The new player’s name"
             placeholder="Their name"
             placeholderTextColor={t.muted}
             returnKeyType="done"
             autoCapitalize="words"
+            /*
+             * NO AUTOFILL, NO AUTOCORRECT, NO SPELLCHECK.
+             *
+             * iOS was offering the phone owner's own contact card above this
+             * field — "AutoFill Contact · Andro Gegechkory" — on a field whose
+             * whole purpose is to name SOMEBODY ELSE. It covered the footer
+             * with a bar nobody wanted and filled in the one name that is
+             * certainly wrong.
+             *
+             * Autocorrect is worse than useless here: these are names, often
+             * short ones, often not in the keyboard's language, and the roster
+             * chips above already offer everyone the group knows. A keyboard
+             * that "fixes" Tomáš to something else writes that into the ledger.
+             */
+            autoComplete="off"
+            textContentType="none"
+            autoCorrect={false}
+            spellCheck={false}
             style={[styles.inputText, { color: t.text }]}
           />
         </View>
@@ -227,7 +232,14 @@ export default function Seat() {
             // to a digits-only keyboard.
             testID="amount"
             keyboardType="number-pad"
+            accessibilityLabel="Their first buy-in"
+            autoComplete="off"
+            textContentType="none"
+            autoCorrect={false}
             selectTextOnFocus
+            // Nine digits is a hundred million, which is past any table and
+            // short of the point where the figure stops fitting its own box.
+            maxLength={9}
             style={[styles.stakeValue, { color: stakeOk ? t.text : t.muted }]}
           />
         </View>

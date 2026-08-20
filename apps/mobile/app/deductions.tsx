@@ -2,9 +2,11 @@ import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
+  formatCompact,
   formatMoney,
-  formatSigned,
+  formatSignedCompact,
   manualChargeOf,
+  money,
   reconcile,
   resolveLedger,
   settle,
@@ -237,13 +239,18 @@ export default function Deductions() {
         <View style={styles.headRow}>
           <Text style={styles.cellName} />
           <Text style={[styles.head, styles.num, { color: t.muted }]} numberOfLines={1}>GROSS</Text>
+          {/* BILL AND BACK ARE ONE COLUMN. They are one rule seen from two
+              sides — what the split charges you, and what you fronted and get
+              returned — and a person who did both had the two halves of their
+              own bill in cells two apart with a sign to reconcile. One signed
+              figure is what actually happens to them, and the column it frees
+              goes to the four that were being cut off. */}
           <Text
             style={[styles.head, styles.num, styles.billCol, styles.washTop, { color: t.offTable, backgroundColor: t.offTableFaint }]}
             numberOfLines={1}
           >
             BILL
           </Text>
-          <Text style={[styles.head, styles.backCol, styles.num, { color: t.muted }]} numberOfLines={1}>BACK</Text>
           <Text
             style={[styles.head, styles.num, styles.piggyCol, styles.washTop, { color: t.offTable, backgroundColor: t.offTableWash }]}
             numberOfLines={1}
@@ -268,10 +275,17 @@ export default function Deductions() {
                   {p.name}
                 </Text>
                 <Text style={[styles.gross, styles.num, { color: t.muted }]} numberOfLines={1}>
-                  {p.grossResult < 0 ? '−' : ''}
-                  {Math.abs(p.grossResult).toLocaleString('en-US')}
+                  {compact(p.grossResult)}
                 </Text>
                 {/*
+                  * BILL AND BACK ARE ONE CELL. They are one rule seen from two
+                  * sides — what the split charges you, and what you fronted and
+                  * get returned — and a person who did both had the two halves
+                  * of their own bill two columns apart with a sign to
+                  * reconcile. One signed figure is what actually happens to
+                  * them, and the column it frees goes to the four that were
+                  * being cut off.
+                  *
                   * A loser's cells are usually empty, and that is a fact about
                   * the rules rather than about the reader: both charge winners,
                   * and an empty cell says so better than a zero. It is drawn
@@ -283,21 +297,18 @@ export default function Deductions() {
                 <Cell
                   width={styles.billCol}
                   wash={t.offTableFaint}
-                  color={t.offTable}
-                  text={dash(bill, true)}
+                  color={back > bill ? t.text : t.offTable}
+                  text={signed(money(back - bill))}
                   byHand={handSet(ruleFor('bill'), p.playerId)}
                   rule={ruleFor('bill')}
                   playerId={p.playerId}
                   admin={admin}
                 />
-                <Text style={[styles.money, styles.backCol, styles.num, { color: t.text }]} numberOfLines={1}>
-                  {won && back > 0 ? `+${back.toLocaleString('en-US')}` : ''}
-                </Text>
                 <Cell
                   width={styles.piggyCol}
                   wash={t.offTableWash}
                   color={t.offTable}
-                  text={dash(kitty, true)}
+                  text={signed(money(-kitty))}
                   byHand={handSet(ruleFor('kitty'), p.playerId)}
                   rule={ruleFor('kitty')}
                   playerId={p.playerId}
@@ -307,7 +318,7 @@ export default function Deductions() {
                   style={[styles.net, styles.num, styles.netCol, { color: moneyColor(t, p.finalPosition) }]}
                   numberOfLines={1}
                 >
-                  {formatSigned(p.finalPosition)}
+                  {formatSignedCompact(p.finalPosition)}
                 </Text>
               </View>
             );
@@ -567,8 +578,16 @@ const amountFor = (
     .filter((c) => c.playerId === playerId)
     .reduce((sum, c) => sum + c.amount, 0) as Money;
 
-const dash = (m: Money, negative = false): string =>
-  m === 0 ? '' : `${negative ? '−' : ''}${m.toLocaleString('en-US')}`;
+/*
+ * THE PREVIEW IS A COLUMN THAT CANNOT GROW, so its figures are compact and
+ * carry no currency symbol — the header says what the column is and the symbol
+ * repeated six times down a 46pt cell is what pushed the digits out of it.
+ * Every one of these appears exactly, in full, in the rule block above.
+ */
+const compact = (m: Money): string => formatCompact(m, '').replace(/^\u2212/, '−');
+
+/** A cell that is empty at nought: a zero share is a rule that did not apply. */
+const signed = (m: Money): string => (m === 0 ? '' : formatSignedCompact(m, ''));
 
 const styles = StyleSheet.create({
   failure: { fontSize: 13.5, fontWeight: '400', lineHeight: 20, marginHorizontal: 20 },
@@ -636,17 +655,16 @@ const styles = StyleSheet.create({
   head: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.85, paddingVertical: 4, paddingHorizontal: 6 },
   num: { textAlign: 'right', fontVariant: ['tabular-nums'] },
   cellName: { flex: 1, fontSize: 14, fontWeight: '600', paddingVertical: 5, paddingHorizontal: 6 },
-  gross: { width: 52, fontSize: 13, fontWeight: '500', paddingVertical: 5, paddingHorizontal: 6 },
+  gross: { width: 62, fontSize: 13, fontWeight: '500', paddingVertical: 5, paddingHorizontal: 6 },
   money: { fontSize: 13, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 6 },
   net: { fontSize: 15, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 6 },
   /* The two columns that take money off the table are tinted the bone colour,
      at two strengths, so the eye can follow one rule down the table. The
      header cell rounds its top corners by 5, which is where the column starts. */
   cellFill: { width: '100%' },
-  billCol: { width: 46 },
-  backCol: { width: 44 },
-  piggyCol: { width: 46 },
-  netCol: { width: 76 },
+  billCol: { width: 56 },
+  piggyCol: { width: 56 },
+  netCol: { width: 84 },
   washTop: { borderTopLeftRadius: 5, borderTopRightRadius: 5 },
 
   previewNote: { fontSize: 11.5, fontWeight: '400', lineHeight: 16.7, paddingTop: 7, paddingHorizontal: 6 },

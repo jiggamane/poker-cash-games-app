@@ -20,11 +20,17 @@
  *     against them — the footer button 28 above the screen bottom, nothing
  *     under the status bar or the home indicator, the indicator's own colour —
  *     cannot be measured here. They are device checks.
- *   · The keypad-up state needs a keyboard, which the browser does not raise.
- *     WHICH keyboard an amount field asks for is checked (A8); where the
- *     footer sits once it is up is not.
+ *   · The NATIVE keypad-up state. A fake `visualViewport` stands in for the
+ *     browser's keyboard and the footer is checked against it (A8), which is
+ *     the build installed to a home screen — but `KeyboardAvoidingView` on a
+ *     phone is a device check still.
  *   · Row heights across SE and Pro Max need those widths; pass them with
- *     UI_AUDIT_WIDTH.
+ *     UI_AUDIT_WIDTH. A figure that fits at 393 can still be cut at 375, so
+ *     the clipping check is worth running at both.
+ *   · IT ONLY SEES THE FIGURES THE SEEDED NIGHT HOLDS, which are small. A
+ *     column that fits $500 and not $500,000 passes here and fails at a real
+ *     table. `scripts/ui-journeys.mjs` plays a big night through the app and
+ *     runs these same checks on what comes out.
  */
 
 import { createRequire } from 'node:module';
@@ -199,6 +205,78 @@ const ROOM = `
     }
   }
 
+  // ---- A FIGURE IS NEVER CUT OFF ------------------------------------------
+  //
+  // A truncated word is a nuisance; a truncated NUMBER is a lie. "−4,5…" reads
+  // as a different amount from −4,543, and on a screen whose whole job is
+  // money that is the one thing that must never happen. Names may ellipsise.
+  //
+  // Two ways it goes wrong and both are checked: the text is wider than the
+  // box that holds it (clipped, with or without an ellipsis), or the box
+  // itself has been pushed past the edge of the phone.
+  const FIGURE = /^[-+\u2212]?[^0-9]{0,3}[0-9][0-9.,\u00a0 ]*(k|M)?[^0-9]{0,3}$/;
+
+  for (const el of all) {
+    const own = [...el.childNodes]
+      .filter((n) => n.nodeType === 3)
+      .map((n) => n.textContent.trim())
+      .join('');
+    if (own === '' || !FIGURE.test(own) || !/[0-9]/.test(own)) continue;
+    const s = getComputedStyle(el);
+    if (s.visibility === 'hidden' || s.opacity === '0' || s.display === 'none') continue;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) continue;
+
+    // Clipped: the text needs more room than the box gives it. One pixel of
+    // slack for the sub-pixel widths a browser rounds to.
+    if (el.scrollWidth > el.clientWidth + 1) {
+      findings.push({
+        check: 'figure-clipped',
+        detail: own + ' needs ' + px(el.scrollWidth) + ' in ' + px(el.clientWidth),
+        where: own,
+      });
+      continue;
+    }
+
+    // Off the phone. The right edge is the one that goes; the left is checked
+    // too because a row that overflows can push its first cell out instead.
+    if (r.right > window.innerWidth + 1 || r.left < -1) {
+      findings.push({
+        check: 'figure-off-screen',
+        detail: px(r.left) + '\u2026' + px(r.right) + ' in ' + window.innerWidth,
+        where: own,
+      });
+      continue;
+    }
+
+    // OUT OF THE CARD THAT HOLDS IT, which is how this actually goes wrong:
+    // nothing clips, nothing leaves the screen, and a figure simply sits
+    // outside the box it belongs to with a border ruled through it. The box is
+    // the nearest ancestor that draws itself — a fill or a rounded edge.
+    const box = (() => {
+      for (let n = el.parentElement; n !== null; n = n.parentElement) {
+        const st = getComputedStyle(n);
+        const filled = rgb(st.backgroundColor);
+        const rounded = (parseFloat(st.borderTopLeftRadius) || 0) >= 6;
+        if ((filled !== null && filled.a > 0.01) || rounded) return n;
+      }
+      return null;
+    })();
+    if (box !== null && box !== el) {
+      const b = box.getBoundingClientRect();
+      const pad = getComputedStyle(box);
+      const right = b.right - (parseFloat(pad.paddingRight) || 0);
+      const left = b.left + (parseFloat(pad.paddingLeft) || 0);
+      if (r.right > right + 1 || r.left < left - 1) {
+        findings.push({
+          check: 'figure-out-of-its-box',
+          detail: px(r.left) + '\u2026' + px(r.right) + ' in ' + px(left) + '\u2026' + px(right),
+          where: own,
+        });
+      }
+    }
+  }
+
   // ---- 1 · only lists scroll ----------------------------------------------
   const doc = document.scrollingElement;
   if (doc && doc.scrollHeight > doc.clientHeight + 1) {
@@ -229,6 +307,41 @@ const ROOM = `
 })()
 `;
 
+/**
+ * A keyboard, stood in for.
+ *
+ * The browser raises none, so the one thing that goes wrong when it does —
+ * the footer button ending up behind the keys, with no way to reach it but
+ * scrolling the whole document — could not be seen here at all. It was found
+ * at a table instead, on the sheet that seats a player, where Seat and buy in
+ * simply could not be tapped.
+ *
+ * `visualViewport` is what a real browser shrinks when the keyboard opens, so
+ * a fake one that can be shrunk on demand is a faithful stand-in for it. This
+ * is NOT the native path — that is `KeyboardAvoidingView` and still a device
+ * check — but the app is installed to a home screen and used as a web app,
+ * and this is that build.
+ */
+const KEYBOARD = 336;
+
+const FAKE_VIEWPORT = `({ height, keyboard }) => {
+  let h = height;
+  const target = new EventTarget();
+  Object.defineProperty(window, 'visualViewport', {
+    configurable: true,
+    get: () => ({
+      get height() { return h; },
+      offsetTop: 0,
+      addEventListener: target.addEventListener.bind(target),
+      removeEventListener: target.removeEventListener.bind(target),
+    }),
+  });
+  window.__raiseKeyboard = () => {
+    h = height - keyboard;
+    target.dispatchEvent(new Event('resize'));
+  };
+}`;
+
 const browser = await chromium.launch();
 const routes = asked.length > 0 ? asked : ROUTES;
 let failures = 0;
@@ -241,11 +354,34 @@ for (const route of routes) {
       colorScheme: scheme,
     });
     const page = await ctx.newPage();
+    // One argument only — Playwright passes a single value through.
+    await page.addInitScript(eval(`(${FAKE_VIEWPORT})`), { height: HEIGHT, keyboard: KEYBOARD });
     let findings = [];
     try {
       await page.goto(BASE + route, { waitUntil: 'networkidle' });
       await page.waitForTimeout(450);
       findings = await page.evaluate(ROOM);
+
+      // A8 · the footer rises with the keyboard and is never covered.
+      const hasField = (await page.locator('input, textarea').count()) > 0;
+      if (hasField) {
+        await page.evaluate(() => window.__raiseKeyboard());
+        await page.waitForTimeout(350);
+        const covered = await page.evaluate((keys) => {
+          const foot = document.querySelector('#sheet-footer');
+          if (foot === null) return null;
+          const r = foot.getBoundingClientRect();
+          const top = window.innerHeight - keys;
+          return r.bottom > top + 1 ? { bottom: Math.round(r.bottom), top } : null;
+        }, KEYBOARD);
+        if (covered !== null) {
+          findings.push({
+            check: 'footer-under-keyboard',
+            detail: `ends at ${covered.bottom}, the keyboard starts at ${covered.top}`,
+            where: route,
+          });
+        }
+      }
     } catch (e) {
       findings = [{ check: 'did-not-render', detail: String(e).split('\n')[0], where: route }];
     }

@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { formatMoney, formatSigned, money, resolveLedger, type Money } from '@poker-club/core';
+import {
+  formatMoney,
+  formatSigned,
+  formatToFit,
+  money,
+  resolveLedger,
+  type Money,
+} from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Keypad, appendDigits } from '../src/components/Keypad';
@@ -37,12 +44,14 @@ type Kind = 'buyin' | 'rebuy' | 'cashout' | 'count';
  */
 export default function Log() {
   const t = useTheme();
-  const { player, newPlayer, kind = 'buyin', amount: prefill } = useLocalSearchParams<{
+  const { player, newPlayer, kind = 'buyin', amount: prefill, from } = useLocalSearchParams<{
     player?: string;
     newPlayer?: string;
     kind?: Kind;
     /** What the caller has already resolved — the player card's rebuy figure. */
     amount?: string;
+    /** 'pick' when the picker was opened only to reach this screen. */
+    from?: string;
   }>();
 
   const night = useNight();
@@ -187,7 +196,12 @@ export default function Log() {
       else if (kind === 'rebuy') await rebuy(player!, value);
       else if (newPlayer !== undefined) await seatAndBuyIn(newPlayer, value);
       else await buyIn(player!, value);
-      router.back();
+      // The entry is made, so everything opened to make it goes away. Counting
+      // is the exception: `count-up` and `settle-up` push this sheet from a
+      // screen the host is working DOWN, and each saved stack returns them to
+      // the list with one more filled in.
+      if (from === 'pick') router.dismissTo('/session');
+      else router.back();
     } finally {
       setBusy(false);
     }
@@ -240,13 +254,13 @@ export default function Log() {
             from; this one word is the whole of what it is allowed to say.
           */}
           <Preset
-            label={formatMoney(standard)}
+            label={formatToFit(standard, PRESET_FITS)}
             caption={kind === 'rebuy' ? 'STANDARD' : 'DEFAULT'}
             on={amount === standard}
             onPress={() => choose(standard)}
           />
           <Preset
-            label={formatMoney(second)}
+            label={formatToFit(second, PRESET_FITS)}
             caption={ownLast === null ? 'X2' : 'LAST'}
             on={amount === second}
             onPress={() => choose(second)}
@@ -278,6 +292,15 @@ export default function Log() {
     </Sheet>
   );
 }
+
+/*
+ * WHERE A PRESET RUNS OUT OF ROOM.
+ *
+ * Three of them across the sheet: about 108 points each, at 18/700, which is
+ * five glyphs — "$9,999". X2 of a table already buying in for five figures is
+ * the one that goes, and it went right through the side of its own button.
+ */
+const PRESET_FITS = 10_000;
 
 /** $500 / $1,000 / Custom. Filled when chosen — 44px, per the button rules. */
 function Preset({

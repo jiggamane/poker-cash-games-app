@@ -18,6 +18,8 @@
     "//ui": "Fonts, web export and a server for scripts/ui-check.mjs — the tool that holds a built screen against the board it was drawn from. Foreground; Ctrl-C stops it. See docs/ui-guide.md.",
     "ui": "bash scripts/ui-up.sh",
     "db:bundle": "bash scripts/db-bundle.sh",
+    "//journeys": "Play a big night through the built app and check that no figure on any screen is cut off, outside its card, or off the phone. Reaches the screens no URL can — deductions, settle up, who has paid. Needs `npm run ui` running.",
+    "journeys": "node scripts/ui-journeys.mjs",
     "//audit": "Re-check every settled night on the server and report the failure rate. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY exported in the shell — never written to a file. See docs/verification.md.",
     "audit": "vite-node scripts/audit.ts"
   },

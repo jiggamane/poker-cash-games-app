@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
-import { useKeyboardUp } from '../lib/keyboard';
+import { useKeyboardInset, useKeyboardUp } from '../lib/keyboard';
 import { chrome, space, type } from '../design/tokens';
 import { Icon } from './Icon';
 import { Pill } from './Pill';
@@ -64,6 +64,8 @@ export function Sheet({
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardUp = useKeyboardUp();
+  /* Web only, and 0 everywhere else: see `useKeyboardInset`. */
+  const covered = useKeyboardInset();
   const close = onClose ?? (() => router.back());
 
   /*
@@ -96,7 +98,7 @@ export function Sheet({
          * its grabber where they were.
          */}
         <KeyboardAvoidingView
-          style={[styles.fill, styles.bottom]}
+          style={[styles.fill, styles.bottom, covered > 0 && { paddingBottom: covered }]}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View
@@ -193,9 +195,12 @@ export function Sheet({
                * typed into off the screen.
                */
               <View
+                // Named so `scripts/ui-audit.mjs` can find the one block that
+                // must never end up behind the keyboard.
+                nativeID="sheet-footer"
                 style={[
                   styles.footer,
-                  { paddingBottom: keyboardUp ? 6 : insets.bottom > 0 ? 28 : 6 },
+                  { paddingBottom: keyboardUp || covered > 0 ? 6 : insets.bottom > 0 ? 28 : 6 },
                 ]}
               >
                 {footer}
