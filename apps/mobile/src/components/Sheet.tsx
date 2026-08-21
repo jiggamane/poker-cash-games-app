@@ -1,6 +1,7 @@
 import { useRef, type ReactNode } from 'react';
 import {
   Animated,
+  Dimensions,
   KeyboardAvoidingView,
   PanResponder,
   Platform,
@@ -8,6 +9,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -63,7 +65,39 @@ export function Sheet({
 }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
+  const window = useWindowDimensions();
   const keyboardUp = useKeyboardUp();
+
+  /*
+   * HOW TALL A SHEET IS ALLOWED TO BE — doc 15 § 3 and § 4.7.
+   *
+   * A sheet hugs its content (`flexShrink`, below) and stops at a cap. The cap
+   * is the safe-area inset plus `chrome.sheetGap`, so what is left above the
+   * panel is the strip of the screen behind that every board draws under the
+   * clock — never the clock itself, and never the Dynamic Island.
+   *
+   * Below 700 points of usable height the peek is given up: on a phone that
+   * small a short sheet floating in the middle of the glass wastes the only
+   * dimension there is, so every sheet takes the whole cap. `usable` is the
+   * phone less both insets — 647 on an SE, 728 on a 13 mini, 759 here.
+   *
+   * THE PHONE, AND NOT THE WINDOW. Expo leaves Android on `adjustResize`, so
+   * the window is what is left above the keyboard — a Pixel's 915 becomes
+   * something near 600 the moment a name or an amount is tapped. Measuring
+   * that would push the phone under the floor mid-keystroke and snap the panel
+   * to the top of the screen while somebody was typing into it. `screen` is
+   * the glass and does not move. iOS reports the two the same; the web
+   * keyboard never touches `innerHeight` at all (it shrinks `visualViewport`,
+   * which is what `useKeyboardInset` reads), and there `screen` is the
+   * monitor rather than the viewport — so the web takes the window.
+   *
+   * Reading `Dimensions` in render is not reactive on its own; the window
+   * hook above is what re-renders on a rotation, and this is re-read when it
+   * does.
+   */
+  const height = Platform.OS === 'web' ? window.height : Dimensions.get('screen').height;
+  const cap = insets.top + chrome.sheetGap;
+  const full = height - insets.top - insets.bottom < chrome.sheetFullHeightBelow;
   /* Web only, and 0 everywhere else: see `useKeyboardInset`. */
   const covered = useKeyboardInset();
   const close = onClose ?? (() => router.back());
@@ -107,7 +141,8 @@ export function Sheet({
             nativeID="sheet-root"
             style={[
               styles.panel,
-              { backgroundColor: t.sheet, borderTopColor: t.sheetEdge },
+              { marginTop: cap, backgroundColor: t.sheet, borderTopColor: t.sheetEdge },
+              full && styles.panelFull,
             ]}
           >
             <View {...pan.panHandlers}>
@@ -224,15 +259,23 @@ const styles = StyleSheet.create({
   // put the action of a short one (New player, a confirm) in the middle of a
   // panel with a hand's width of nothing under it. Shrinking rather than
   // growing gives both: a short sheet is short, and one with more in it than
-  // fits stops 18 from the top and scrolls inside, which is where the boards
-  // draw the tall ones.
+  // fits stops at the cap and scrolls inside, which is where the boards draw
+  // the tall ones — 80 down on the reference frame, and 772 tall.
+  //
+  // `marginTop` is the cap and is set on the element rather than here: it is
+  // the safe-area inset plus `chrome.sheetGap`, and the inset is only known at
+  // render. It was a flat 18 in this block until docs/sheet-heights.md, which
+  // is not a gap below anything — on a Dynamic Island phone it is 41 points
+  // behind the island, and the grabber and the title went under it.
   panel: {
     flexShrink: 1,
-    marginTop: chrome.sheetTop,
     borderTopLeftRadius: chrome.sheetRadius,
     borderTopRightRadius: chrome.sheetRadius,
     borderTopWidth: 1,
   },
+  // doc 15 § 4.7 · a short phone gives up the peek and every sheet fills to
+  // the cap. Growing as well as shrinking is the whole difference.
+  panelFull: { flexGrow: 1 },
   grabberRow: { alignItems: 'center', paddingTop: 9, paddingBottom: 2 },
   grabber: {
     width: chrome.grabberWidth,

@@ -13,6 +13,14 @@
  *   npm run ui                     # build and serve first
  *   node scripts/ui-audit.mjs      # then this
  *   node scripts/ui-audit.mjs /session /bill --verbose
+ *   node scripts/ui-audit.mjs --sheets-only
+ *
+ * TWO PASSES. The first is every route in both themes at one size, which is
+ * the older question. The second is SHEET GEOMETRY across the device matrix in
+ * doc 15 § 4 — how tall each of the 21 sheets ends up on an SE, a mini, the
+ * reference phone, a Pro Max and two Androids, and whether the panel stops
+ * where the boards stop it. Sheet height is the one measurement that changes
+ * with the phone, so measuring it at one size measures almost nothing.
  *
  * WHAT IT CANNOT SEE, and why, so nobody reads a pass as more than it is:
  *
@@ -20,6 +28,9 @@
  *     against them — the footer button 28 above the screen bottom, nothing
  *     under the status bar or the home indicator, the indicator's own colour —
  *     cannot be measured here. They are device checks.
+ *     THE SHEET PASS IS THE EXCEPTION: it stands a real inset up (see
+ *     `FAKE_SAFE_AREA`) because sheet height is measured FROM the inset and a
+ *     zero one hides the whole class of bug.
  *   · The NATIVE keypad-up state. A fake `visualViewport` stands in for the
  *     browser's keyboard and the footer is checked against it (A8), which is
  *     the build installed to a home screen — but `KeyboardAvoidingView` on a
@@ -42,7 +53,18 @@ const BASE = process.env.UI_CHECK_BASE ?? 'http://127.0.0.1:4321';
 const WIDTH = Number(process.env.UI_AUDIT_WIDTH ?? 393);
 const HEIGHT = Number(process.env.UI_AUDIT_HEIGHT ?? 852);
 const verbose = process.argv.includes('--verbose');
+const sheetsOnly = process.argv.includes('--sheets-only');
 const asked = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+
+/**
+ * The sheet geometry constants, kept beside `chrome` in the app's tokens and
+ * repeated here because this file is plain node. `Sheet.geometry.test.ts`
+ * asserts these two numbers against the tokens, so a change in one that is not
+ * made in the other fails `npm run check` rather than quietly weakening this
+ * pass.
+ */
+const SHEET_GAP = 21;
+const SHEET_FULL_HEIGHT_BELOW = 700;
 
 /** Every route in the app. The layout is not one. */
 const ROUTES = [
@@ -342,12 +364,173 @@ const FAKE_VIEWPORT = `({ height, keyboard }) => {
   };
 }`;
 
+
+/**
+ * A SAFE AREA, STOOD UP.
+ *
+ * The browser reports none, and a sheet's height is measured FROM the inset —
+ * so with a zero one the panel's cap lands at 21 instead of 80 and the whole
+ * class of bug this pass exists for is invisible. Faking it is not a liberty:
+ * it is the only way to ask the question at all outside a phone.
+ *
+ * `react-native-safe-area-context` on the web appends a hidden, fixed 0 × 0
+ * div to the body whose padding is `env(safe-area-inset-*)`, reads its
+ * computed padding, and re-reads it on `transitionend`. So: watch for that div
+ * going in, paint real padding onto it, and fire the event. Inline padding
+ * beats `env()`, and the observer's callback is a microtask — it runs after
+ * the provider's synchronous append-listen-read, so the listener is already
+ * attached by the time the event is dispatched.
+ */
+const FAKE_SAFE_AREA = `({ top, bottom }) => {
+  const isProbe = (el) =>
+    el instanceof HTMLElement &&
+    el.style.position === 'fixed' &&
+    el.style.visibility === 'hidden' &&
+    el.style.transitionProperty === 'padding';
+
+  const paint = (el) => {
+    el.style.setProperty('padding-top', top + 'px', 'important');
+    el.style.setProperty('padding-bottom', bottom + 'px', 'important');
+    // Chromium answers 'webkitTransitionEnd' to the library's feature test;
+    // both are dispatched so the stand-in does not rest on that detail.
+    for (const name of ['webkitTransitionEnd', 'transitionend'])
+      el.dispatchEvent(new Event(name));
+  };
+
+  new MutationObserver((records) => {
+    for (const r of records) for (const n of r.addedNodes) if (isProbe(n)) paint(n);
+  }).observe(document, { childList: true, subtree: true });
+}`;
+
+/**
+ * doc 15 § 4 · the worked examples, and two Androids.
+ *
+ * The four iPhones and their insets are the handoff's own table. THE HANDOFF
+ * NAMES NO ANDROID DEVICE — these two are the platform's numbers, not the
+ * design's, and they are here because the rule under test is written against
+ * the inset rather than against a screen size, so it should hold at any inset.
+ * A Pixel-class phone reports a 24dp status bar and a 24dp gesture bar; the
+ * small one is the shortest Android worth drawing for and lands under the
+ * 700-point floor, the same as an SE.
+ *
+ *   [ name, width, height, inset top, inset bottom ]
+ */
+const DEVICES = [
+  ['iPhone SE 3', 375, 667, 20, 0],
+  ['iPhone 13 mini', 375, 812, 50, 34],
+  ['iPhone 16 / 15 / 14', 393, 852, 59, 34],
+  ['iPhone 16 Pro Max', 430, 932, 62, 34],
+  ['Android · Pixel-class', 412, 915, 24, 24],
+  ['Android · small', 360, 640, 24, 24],
+];
+
+/** The sheets, from the `SHEET` list in `app/_layout.tsx`. */
+const SHEET_ROUTES = [
+  '/player', '/pick', '/log', '/entry', '/seat', '/bill', '/spend', '/bill-rules',
+  '/piggy-bank-rules', '/house-rules', '/money-rules', '/rule', '/rounding', '/share',
+  '/sign-in', '/member', '/hand-over', '/nudge', '/new-group', '/new-night', '/invite',
+];
+
+/**
+ * What a sheet's height has to be, and the four ways it goes wrong.
+ *
+ * The rule, from doc 15 § 3 and § 4.7 and from the boards: a sheet HUGS ITS
+ * CONTENT and is anchored to the bottom of the phone, until it reaches a cap
+ * at `inset.top + 21` — the 80 that fifteen of the thirty-five drawn sheet
+ * states sit at on the 393 × 852 frame. At the cap it stops growing and the
+ * body scrolls inside it. Below 700 points of usable height there is no peek
+ * at all and every sheet is full-height.
+ *
+ * `gap` and `floor` are passed in rather than imported: this file is plain
+ * node and the tokens are TypeScript. They are asserted against the tokens by
+ * `Sheet.geometry.test.ts`, so the two cannot drift apart in silence.
+ */
+const SHEET = `({ insetTop, insetBottom, gap, floor }) => {
+  const px = (v) => Math.round(v * 10) / 10;
+  const panel = document.querySelector('#sheet-root');
+  if (panel === null) return { none: true };
+
+  const b = panel.getBoundingClientRect();
+  const vh = window.innerHeight;
+  const cap = insetTop + gap;
+  const usable = vh - insetTop - insetBottom;
+  const findings = [];
+  const at = 'top ' + px(b.top) + ', ' + px(b.height) + ' tall';
+
+  // ---- the cap · nothing rises into the status bar or the island ---------
+  if (b.top < cap - 1) {
+    findings.push({
+      check: 'sheet-above-its-cap',
+      detail:
+        px(b.top) + ' is ' + px(cap - b.top) + ' above the cap of ' + cap +
+        (b.top < insetTop
+          ? ' — and ' + px(insetTop - b.top) + ' of it is under the status bar'
+          : ''),
+    });
+  }
+
+  // ---- § 4.7 · a short phone gives up the peek ---------------------------
+  if (usable < floor && b.top > cap + 1) {
+    findings.push({
+      check: 'sheet-not-full-height',
+      detail:
+        'usable ' + usable + ' is under ' + floor + ', so this should sit at ' +
+        cap + ' — it sits at ' + px(b.top),
+    });
+  }
+
+  // ---- anchored to the foot of the phone ---------------------------------
+  if (Math.abs(vh - b.bottom) > 1) {
+    findings.push({
+      check: 'sheet-not-anchored',
+      detail: 'ends at ' + px(b.bottom) + ', the screen ends at ' + vh,
+    });
+  }
+
+  // ---- the primary action stays inside the panel -------------------------
+  //
+  // The footer is the point of a sheet. When the panel is capped and the body
+  // does not yield, this is where it shows: the button is drawn past the
+  // panel's own bottom edge, off the glass, with nothing to scroll to reach
+  // it. That is the bug flexShrink was added for and this is its regression.
+  const foot = document.querySelector('#sheet-footer');
+  if (foot !== null) {
+    const f = foot.getBoundingClientRect();
+    if (f.bottom > b.bottom + 1 || f.top < b.top - 1) {
+      findings.push({
+        check: 'sheet-footer-outside-the-panel',
+        detail: px(f.top) + '…' + px(f.bottom) + ' in a panel of ' + px(b.top) + '…' + px(b.bottom),
+      });
+    }
+  }
+
+  // ---- at the cap, the body scrolls --------------------------------------
+  //
+  // "A sheet never scrolls as a whole; only the body scrolls." A capped panel
+  // with content taller than it and no scroller is content nobody can read.
+  const bodies = [...panel.querySelectorAll('*')].filter((el) =>
+    /(auto|scroll)/.test(getComputedStyle(el).overflowY),
+  );
+  const overflowing = [...panel.querySelectorAll('*')].some((el) => {
+    const r = el.getBoundingClientRect();
+    return r.height > 0 && (r.bottom > b.bottom + 1 || r.top < b.top - 1);
+  });
+  if (overflowing && !bodies.some((el) => el.scrollHeight > el.clientHeight + 1)) {
+    findings.push({
+      check: 'sheet-content-unreachable',
+      detail: 'something is drawn outside the panel and nothing inside it scrolls',
+    });
+  }
+
+  return { none: false, at, cap, usable, top: px(b.top), height: px(b.height), findings };
+}`;
+
 const browser = await chromium.launch();
 const routes = asked.length > 0 ? asked : ROUTES;
 let failures = 0;
 const tally = new Map();
 
-for (const route of routes) {
+for (const route of sheetsOnly ? [] : routes) {
   for (const scheme of ['dark', 'light']) {
     const ctx = await browser.newContext({
       viewport: { width: WIDTH, height: HEIGHT },
@@ -401,16 +584,94 @@ for (const route of routes) {
   }
 }
 
-console.log('\n' + '─'.repeat(64));
-if (failures === 0) {
-  console.log(`clean · ${routes.length} routes × 2 themes at ${WIDTH} × ${HEIGHT}`);
-} else {
-  console.log(`${failures} findings at ${WIDTH} × ${HEIGHT}`);
-  for (const [check, n] of [...tally].sort((a, b) => b[1] - a[1])) {
-    console.log(`  ${String(n).padStart(4)}  ${check}`);
+if (!sheetsOnly) {
+  console.log('\n' + '─'.repeat(64));
+  if (failures === 0) {
+    console.log(`clean · ${routes.length} routes × 2 themes at ${WIDTH} × ${HEIGHT}`);
+  } else {
+    console.log(`${failures} findings at ${WIDTH} × ${HEIGHT}`);
+    for (const [check, n] of [...tally].sort((a, b) => b[1] - a[1])) {
+      console.log(`  ${String(n).padStart(4)}  ${check}`);
+    }
+  }
+  console.log(
+    'not measurable here: safe-area checks (2, 5, 10), where the footer sits with the keyboard up (7), the boards (3).',
+  );
+}
+
+// ---- pass two · sheet geometry across the device matrix -------------------
+const sheetRoutes = asked.length > 0 ? asked.filter((r) => SHEET_ROUTES.includes(r)) : SHEET_ROUTES;
+let sheetFailures = 0;
+const sheetTally = new Map();
+
+if (sheetRoutes.length > 0) {
+  console.log('\n' + '═'.repeat(64));
+  console.log('sheet geometry · doc 15 § 3 and § 4.7');
+  console.log(
+    `a sheet hugs its content and stops at inset.top + ${SHEET_GAP}; under ` +
+      `${SHEET_FULL_HEIGHT_BELOW} points of usable height it is full-height.`,
+  );
+
+  for (const [name, w, h, top, bottom] of DEVICES) {
+    const usable = h - top - bottom;
+    console.log(
+      `\n${name} · ${w} × ${h} · insets ${top}/${bottom} · usable ${usable} · ` +
+        `cap ${top + SHEET_GAP}${usable < SHEET_FULL_HEIGHT_BELOW ? ' · all full-height' : ''}`,
+    );
+    for (const route of sheetRoutes) {
+      const ctx = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: 'dark' });
+      const page = await ctx.newPage();
+      await page.addInitScript(eval(`(${FAKE_SAFE_AREA})`), { top, bottom });
+      let m = null;
+      try {
+        await page.goto(BASE + route, { waitUntil: 'networkidle' });
+        await page.waitForTimeout(450);
+        m = await page.evaluate(eval(`(${SHEET})`), {
+          insetTop: top,
+          insetBottom: bottom,
+          gap: SHEET_GAP,
+          floor: SHEET_FULL_HEIGHT_BELOW,
+        });
+      } catch (e) {
+        m = { error: String(e).split('\n')[0] };
+      }
+      await ctx.close();
+
+      if (m === null || m.error !== undefined) {
+        console.log(`  ${route.padEnd(20)} did not render — ${m?.error ?? '?'}`);
+        continue;
+      }
+      if (m.none) {
+        // Not every route in the list draws a sheet cold: some need a night the
+        // web build has no database for and render an empty push instead.
+        if (verbose) console.log(`  ${route.padEnd(20)} no sheet on this route`);
+        continue;
+      }
+      if (m.findings.length === 0) {
+        if (verbose) console.log(`  ${route.padEnd(20)} ${m.at}  ok`);
+        continue;
+      }
+      sheetFailures += m.findings.length;
+      console.log(`  ${route.padEnd(20)} ${m.at}`);
+      for (const f of m.findings) {
+        sheetTally.set(f.check, (sheetTally.get(f.check) ?? 0) + 1);
+        console.log(`      ${f.check.padEnd(30)} ${f.detail}`);
+      }
+    }
+  }
+
+  console.log('\n' + '─'.repeat(64));
+  if (sheetFailures === 0) {
+    console.log(
+      `sheets clean · ${sheetRoutes.length} routes × ${DEVICES.length} devices`,
+    );
+  } else {
+    console.log(`${sheetFailures} sheet findings across ${DEVICES.length} devices`);
+    for (const [check, n] of [...sheetTally].sort((a, b) => b[1] - a[1])) {
+      console.log(`  ${String(n).padStart(4)}  ${check}`);
+    }
   }
 }
-console.log(
-  'not measurable here: safe-area checks (2, 5, 10), where the footer sits with the keyboard up (7), the boards (3).',
-);
+
 await browser.close();
+process.exit(failures + sheetFailures > 0 ? 1 : 0);
