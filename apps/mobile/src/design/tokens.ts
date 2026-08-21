@@ -572,7 +572,34 @@ export const chrome = {
   metaIndent: 68,
 
   /** The sheet panel. */
-  sheetTop: 18,
+  /*
+   * WHERE THE TOP OF A SHEET STOPS, and it is measured from the safe area
+   * rather than from the glass.
+   *
+   * Every board that draws a sheet with more in it than fits — 15 of the 35
+   * drawn sheet states — puts the panel's top edge at exactly 80 on the
+   * 393 × 852 reference frame, built as `38 status row + 30 of the screen
+   * behind at .32 + 12 of gap`. Doc 15 assumes a 59pt top inset on that
+   * device, so the 80 is `inset + 21`, and it is the 21 that travels: a notch
+   * phone (47) lands at 68, an Android status bar (24) at 45, and on all three
+   * the same strip of the screen behind stays visible under the clock.
+   *
+   * It used to be a flat 18 from the top of the window, which is not a gap at
+   * all — on a phone that is 41 points BEHIND the Dynamic Island, and the
+   * grabber and the sheet's own title were under it on every sheet tall enough
+   * to reach the cap.
+   *
+   * doc 15 § 3 words the same rule as "top edge at inset + 10". The boards
+   * draw 21 and CLAUDE.md gives the board the last word on layout, so 21 is
+   * what is built; the doc's 10 is noted in docs/sheet-heights.md.
+   */
+  sheetGap: 21,
+  /**
+   * doc 15 § 4.7 — below 700 points of usable height every sheet is
+   * full-height. The SE has 647 and promotes; the 13 mini has 728 and keeps
+   * its peek, which is what the worked-examples table in § 4 says.
+   */
+  sheetFullHeightBelow: 700,
   sheetRadius: 26,
   sheetTitlePadTop: 12,
   sheetTitlePadH: 22,
