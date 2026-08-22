@@ -35,9 +35,10 @@
  *     browser's keyboard and the footer is checked against it (A8), which is
  *     the build installed to a home screen — but `KeyboardAvoidingView` on a
  *     phone is a device check still.
- *   · Row heights across SE and Pro Max need those widths; pass them with
- *     UI_AUDIT_WIDTH. A figure that fits at 393 can still be cut at 375, so
- *     the clipping check is worth running at both.
+ *   · THE ROUTE PASS RUNS AT 393 AND AT 360, because a label that fits at 393
+ *     can still be cut at 375 — it used to run at 393 alone and leave the rest
+ *     to whoever remembered UI_AUDIT_WIDTH, which is how B3 lived through a
+ *     clean pass. A Pro Max width is still a hand run: UI_AUDIT_WIDTH=430.
  *   · IT ONLY SEES THE FIGURES THE SEEDED NIGHT HOLDS, which are small. A
  *     column that fits $500 and not $500,000 passes here and fails at a real
  *     table. `scripts/ui-journeys.mjs` plays a big night through the app and
@@ -50,7 +51,25 @@ const require_ = createRequire(import.meta.url);
 const { chromium } = require_('playwright');
 
 const BASE = process.env.UI_CHECK_BASE ?? 'http://127.0.0.1:4321';
-const WIDTH = Number(process.env.UI_AUDIT_WIDTH ?? 393);
+/*
+ * THE WIDTHS THE ROUTE PASS RUNS AT, and why it is no longer one.
+ *
+ * It ran at 393 alone, and the note at the top of this file already said what
+ * was wrong with that — "a figure that fits at 393 can still be cut at 375" —
+ * and left it to whoever remembered to export UI_AUDIT_WIDTH. Nobody did, so
+ * in practice the narrow phones were never measured at all. B3 is what that
+ * cost: "Custom" on /log fitted its button at 393 by half a point and hung out
+ * of both sides of it at 375 and 360, on every phone anyone actually owns, for
+ * as long as the screen has existed, under a clean pass.
+ *
+ * So: the reference phone and the narrowest device in the matrix, every run.
+ * 360 is the Android small in DEVICES and is the width everything is tightest
+ * at. UI_AUDIT_WIDTH still pins it to one width when you want one.
+ */
+const WIDTHS =
+  process.env.UI_AUDIT_WIDTH === undefined
+    ? [393, 360]
+    : [Number(process.env.UI_AUDIT_WIDTH)];
 const HEIGHT = Number(process.env.UI_AUDIT_HEIGHT ?? 852);
 const verbose = process.argv.includes('--verbose');
 const sheetsOnly = process.argv.includes('--sheets-only');
@@ -300,6 +319,60 @@ const ROOM = `
     }
   }
 
+  // ---- A LABEL STAYS INSIDE THE CONTROL THAT HOLDS IT ---------------------
+  //
+  // The figure checks above are about numbers, because a truncated number is a
+  // lie. This one is about the CONTROL, and it catches the thing that keeps
+  // going wrong on a row of chips: a word that is wider than the padding box
+  // of the button drawn around it, so it sits on — or through — its own edge.
+  //
+  // Nothing else here could see it. It does not clip (a Pressable draws no
+  // overflow rule, so the label simply hangs out of both sides), it does not
+  // leave the phone, and figure-out-of-its-box skips it the moment the label
+  // is a word rather than an amount. "Custom" on /log came out through both
+  // sides of its button on every phone narrower than 393, from the day the
+  // screen was built, and the audit printed a clean pass over it — B3. B2 was
+  // the same fault on /rounding, caught only because that label was a figure.
+  //
+  // Measured off the label's own BOX, never off a range rect: a label with
+  // numberOfLines is clipped and ellipsised, so its box is the clipped box and
+  // says the truth, while a range still reports the full untruncated width and
+  // would report every ellipsised row in the app as a finding.
+  for (const control of document.querySelectorAll('[role="button"]')) {
+    // Only the innermost control: a row that is itself pressable and holds
+    // pressable children measures its children's labels against its own
+    // padding, which is not what either box is for.
+    if (control.querySelector('[role="button"]') !== null) continue;
+    const cs = getComputedStyle(control);
+    if (cs.visibility === 'hidden' || cs.display === 'none' || cs.opacity === '0') continue;
+    const cb = control.getBoundingClientRect();
+    if (cb.width < 8 || cb.height < 8) continue;
+
+    const padLeft = cb.left + (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.borderLeftWidth) || 0);
+    const padRight = cb.right - (parseFloat(cs.paddingRight) || 0) - (parseFloat(cs.borderRightWidth) || 0);
+
+    for (const el of control.querySelectorAll('*')) {
+      const own = [...el.childNodes]
+        .filter((n) => n.nodeType === 3)
+        .map((n) => n.textContent.trim())
+        .join('');
+      if (own === '') continue;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      // Half a point of slack for the sub-pixel widths a browser rounds to.
+      if (r.left < padLeft - 0.5 || r.right > padRight + 0.5) {
+        findings.push({
+          check: 'label-out-of-its-control',
+          detail:
+            own + ' at ' + px(r.left) + '…' + px(r.right) +
+            ' in a padding box of ' + px(padLeft) + '…' + px(padRight),
+          where: label(control),
+          box: { w: px(r.width), control: px(padRight - padLeft) },
+        });
+      }
+    }
+  }
+
   // ---- 1 · only lists scroll ----------------------------------------------
   const doc = document.scrollingElement;
   if (doc && doc.scrollHeight > doc.clientHeight + 1) {
@@ -531,66 +604,69 @@ const routes = asked.length > 0 ? asked : ROUTES;
 let failures = 0;
 const tally = new Map();
 
-for (const route of sheetsOnly ? [] : routes) {
-  for (const scheme of ['dark', 'light']) {
-    const ctx = await browser.newContext({
-      viewport: { width: WIDTH, height: HEIGHT },
-      colorScheme: scheme,
-    });
-    const page = await ctx.newPage();
-    // One argument only — Playwright passes a single value through.
-    await page.addInitScript(eval(`(${FAKE_VIEWPORT})`), { height: HEIGHT, keyboard: KEYBOARD });
-    let findings = [];
-    try {
-      await page.goto(BASE + route, { waitUntil: 'networkidle' });
-      await page.waitForTimeout(450);
-      findings = await page.evaluate(ROOM);
+for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
+  for (const route of routes) {
+    for (const scheme of ['dark', 'light']) {
+      const ctx = await browser.newContext({
+        viewport: { width: WIDTH, height: HEIGHT },
+        colorScheme: scheme,
+      });
+      const page = await ctx.newPage();
+      // One argument only — Playwright passes a single value through.
+      await page.addInitScript(eval(`(${FAKE_VIEWPORT})`), { height: HEIGHT, keyboard: KEYBOARD });
+      let findings = [];
+      try {
+        await page.goto(BASE + route, { waitUntil: 'networkidle' });
+        await page.waitForTimeout(450);
+        findings = await page.evaluate(ROOM);
 
-      // A8 · the footer rises with the keyboard and is never covered.
-      const hasField = (await page.locator('input, textarea').count()) > 0;
-      if (hasField) {
-        await page.evaluate(() => window.__raiseKeyboard());
-        await page.waitForTimeout(350);
-        const covered = await page.evaluate((keys) => {
-          const foot = document.querySelector('#sheet-footer');
-          if (foot === null) return null;
-          const r = foot.getBoundingClientRect();
-          const top = window.innerHeight - keys;
-          return r.bottom > top + 1 ? { bottom: Math.round(r.bottom), top } : null;
-        }, KEYBOARD);
-        if (covered !== null) {
-          findings.push({
-            check: 'footer-under-keyboard',
-            detail: `ends at ${covered.bottom}, the keyboard starts at ${covered.top}`,
-            where: route,
-          });
+        // A8 · the footer rises with the keyboard and is never covered.
+        const hasField = (await page.locator('input, textarea').count()) > 0;
+        if (hasField) {
+          await page.evaluate(() => window.__raiseKeyboard());
+          await page.waitForTimeout(350);
+          const covered = await page.evaluate((keys) => {
+            const foot = document.querySelector('#sheet-footer');
+            if (foot === null) return null;
+            const r = foot.getBoundingClientRect();
+            const top = window.innerHeight - keys;
+            return r.bottom > top + 1 ? { bottom: Math.round(r.bottom), top } : null;
+          }, KEYBOARD);
+          if (covered !== null) {
+            findings.push({
+              check: 'footer-under-keyboard',
+              detail: `ends at ${covered.bottom}, the keyboard starts at ${covered.top}`,
+              where: route,
+            });
+          }
         }
+      } catch (e) {
+        findings = [{ check: 'did-not-render', detail: String(e).split('\n')[0], where: route }];
       }
-    } catch (e) {
-      findings = [{ check: 'did-not-render', detail: String(e).split('\n')[0], where: route }];
-    }
 
-    if (findings.length > 0) {
-      failures += findings.length;
-      console.log(`\n${route} · ${scheme}`);
-      for (const f of findings) {
-        tally.set(f.check, (tally.get(f.check) ?? 0) + 1);
-        const box = f.box === undefined ? '' : ` ${JSON.stringify(f.box)}`;
-        console.log(`  ${f.check.padEnd(18)} ${f.detail}${verbose ? box : ''}  — “${f.where}”`);
+      if (findings.length > 0) {
+        failures += findings.length;
+        console.log(`\n${route} · ${scheme} · ${WIDTH} wide`);
+        for (const f of findings) {
+          tally.set(f.check, (tally.get(f.check) ?? 0) + 1);
+          const box = f.box === undefined ? '' : ` ${JSON.stringify(f.box)}`;
+          console.log(`  ${f.check.padEnd(24)} ${f.detail}${verbose ? box : ''}  — “${f.where}”`);
+        }
+      } else if (verbose) {
+        console.log(`${route} · ${scheme} · ${WIDTH} wide  ok`);
       }
-    } else if (verbose) {
-      console.log(`${route} · ${scheme}  ok`);
+      await ctx.close();
     }
-    await ctx.close();
   }
 }
 
 if (!sheetsOnly) {
   console.log('\n' + '─'.repeat(64));
+  const sizes = WIDTHS.map((w) => `${w} × ${HEIGHT}`).join(' and ');
   if (failures === 0) {
-    console.log(`clean · ${routes.length} routes × 2 themes at ${WIDTH} × ${HEIGHT}`);
+    console.log(`clean · ${routes.length} routes × 2 themes at ${sizes}`);
   } else {
-    console.log(`${failures} findings at ${WIDTH} × ${HEIGHT}`);
+    console.log(`${failures} findings at ${sizes}`);
     for (const [check, n] of [...tally].sort((a, b) => b[1] - a[1])) {
       console.log(`  ${String(n).padStart(4)}  ${check}`);
     }

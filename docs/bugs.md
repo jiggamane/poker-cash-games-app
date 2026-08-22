@@ -72,6 +72,55 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B3 — "Custom" hangs out of both sides of its own button on the amount sheet
+
+```
+Screen      /log — the preset row on N5 buy-in, N6 rebuy
+Seen        at 360 the word runs 257.7…321.0 inside a padding box that ends at
+            263.7…315.0: six points out of the left of its button and six out
+            of the right, touching the rounded edge on both sides. At 375 the
+            same, smaller. The caption under it — STANDARD, X2, SET — sat on
+            the ground below the chip rather than inside it, and the figure was
+            17px where doc 10's type scale says 16.
+Expected    the board's chip: one object, the figure over its caption, on a
+            raised surface, and choosing it swaps the fill
+Found       22 Aug, reported from the phone; measured at 360 and 375
+Locked by   npm run check:ui — ui-audit.mjs, "label-out-of-its-control", and
+            the route pass now runs at 360 as well as 393, which is the half of
+            the lock that actually matters here
+Status      fixed in this commit
+```
+
+Three faults, and the one that breaks the screen is **B2 again**. `Button` pads
+24 a side, which is right for a button carrying a sentence and four times too
+much for a third of a sheet: a slot at 360 is 101 wide, so 24 a side leaves 53
+points for a word that needs 63. Same 24, same shape of failure, a different
+screen — and it is fixed the same way B2 was: here, not in `Button`, where the
+24 is correct for every other caller.
+
+The other two came from the same decision. The row was a `Button` with a caption
+printed underneath it, and the board draws no such thing: it draws one chip
+holding the figure over its caption, on a raised surface, and choosing it swaps
+the fill. Built as the board draws it, the caption is inside the chip, the
+figure is at doc 10's 16, and there is no padding left to overflow.
+
+**Why nothing saw it.** Two gaps, and both are now closed:
+
+- `figure-out-of-its-box` — the check that caught B2 — only looks at FIGURES,
+  because the doctrine it was written for is that a truncated number is a lie.
+  "Custom" is a word, so the check skipped it. `label-out-of-its-control` asks
+  the other question: does any label, figure or not, stay inside the padding box
+  of the control drawn around it.
+- The route pass only ever ran at 393, where "Custom" fitted **by half a point**.
+  The note at the top of `ui-audit.mjs` already said what was wrong with that —
+  "a figure that fits at 393 can still be cut at 375" — and left it to whoever
+  remembered to export `UI_AUDIT_WIDTH`. Nobody did. It now runs at 360 too,
+  every time, because a check that only goes red at a width it never runs at is
+  not a lock.
+
+Against the old build the new pass reports the finding twice, once per theme.
+Against the new one, and across all 37 routes at both widths, zero.
+
 ### B2 — the "100s" chip is drawn outside its own box on Rounding
 
 ```

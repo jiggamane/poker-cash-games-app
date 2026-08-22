@@ -19,8 +19,11 @@ intended.
 
 The three check columns are what runs in `npm run check:ui`:
 
-- **Rules** — `ui-audit.mjs` pass 1. Every route in both themes: the surface
-  ladder, the contrast floor, what may scroll, what may break mid-word.
+- **Rules** — `ui-audit.mjs` pass 1. Every route in both themes, at 393 and at
+  360: the surface ladder, the contrast floor, what may scroll, what may break
+  mid-word, and whether a label stays inside the control drawn around it. The
+  narrow width is there because B3 fitted its button at 393 by half a point and
+  hung out of both sides of it at 360.
 - **Sheet** — `ui-audit.mjs` pass 2. The 21 sheets across six devices — four
   iPhones and two Androids — against the height cap. Only sheets have one.
 - **Night** — `ui-journeys.mjs`. A big night played through, checking no figure
@@ -110,3 +113,10 @@ top of this table is the thing that catches it if it does not.
 
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
+
+**`/log`** — the preset row is the board's own chip (one object: figure over
+caption, raised surface, fill swap on choose), not `Button variant="preset"`
+with the caption printed underneath. That is deliberate and B3 in `docs/bugs.md`
+says why: `Button` pads 24 a side and a third of a sheet has not got it to give.
+`/share` still has the older shape and the same 24; it is not drawn on any
+board, so nothing here says what it should be instead.
