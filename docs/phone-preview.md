@@ -104,7 +104,14 @@ Everything above is a preview. The app on a phone, keeping its data, is an
 - **iOS** needs a paid Apple Developer account before a build can be installed
   on a phone at all — cloud-built or not. There is no way around that one.
 
-Both also need the three lines `apps/mobile/app.json` is deliberately holding
-back — the EAS project id, `updates.url` and `runtimeVersion` — which the file
-says to restore together with the first real build. Read that note before
-running `eas build`; it explains what each one breaks in Expo Go.
+Both also need the three lines `apps/mobile/app.json` deliberately does not
+carry — the EAS project id, `updates.url` and `runtimeVersion`. They now live in
+`apps/mobile/app.config.js`, behind `EAS_PROJECT`, because two of the three are
+right for a standalone build and wrong for Expo Go. Read the comment there
+before running `eas build`; it explains what each one breaks.
+
+**And there is a third way, which is the one an iPhone without a developer
+account actually has:** `eas update` publishes the app to Expo, and Expo Go
+opens it from a link with no dev server and no laptop anywhere. That is a real
+night on a real phone, keeping its data. `live-test.md` is the procedure, and it
+is written for the night before rather than for a browse.

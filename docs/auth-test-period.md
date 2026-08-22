@@ -187,8 +187,11 @@ Three things worth knowing before reading its verdict:
   it clears the token locally, without asking the server's permission, because
   the server is exactly what is refusing to give it.
 - **A real build has no `.env`.** It is gitignored, so it never reaches the EAS
-  builder — see the `//env` note in `apps/mobile/eas.json`. A build that signs in
-  fine over the QR code and refuses everything once installed is this.
+  builder. The two `EXPO_PUBLIC_` lines get there as EAS environment variables
+  (`eas env:create`) or as an `env` block on the profile in
+  `apps/mobile/eas.json` — neither of which exists yet, because no build has
+  been made. A build that signs in fine over the QR code and refuses everything
+  once installed is this.
 
 ---
 
