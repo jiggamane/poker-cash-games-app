@@ -13,9 +13,15 @@ import {
   formatMoney,
   money,
   ruleDetail,
+  stakesLabel,
+  stakesSummary,
+  straddleLabel,
+  withStraddle,
   type Money,
   type MoneyRule,
   type PlayerId,
+  type Stakes,
+  type StraddleMode,
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Field } from '../src/components/Field';
@@ -61,7 +67,7 @@ import { draftRule, startNight, tableNameProblem, useOpenGames } from '../src/li
  * pre-filled from last night, so opening a night stays what it is: adding
  * players and confirming their first buy-ins.
  */
-type Step = 'game' | 'players' | 'rules' | 'rule' | 'buy-in' | 'start';
+type Step = 'game' | 'players' | 'rules' | 'rule' | 'stakes' | 'buy-in' | 'start';
 
 /** Where the close and a completed step return to. The flow is one level deep. */
 const PARENT: Record<Step, Step | null> = {
@@ -69,6 +75,7 @@ const PARENT: Record<Step, Step | null> = {
   players: 'game',
   rules: 'game',
   rule: 'rules',
+  stakes: 'game',
   'buy-in': 'game',
   start: 'game',
 };
@@ -90,6 +97,7 @@ export default function NewNight() {
    */
   const [rules, setRules] = useState<MoneyRule[] | null>(null);
   const [buyIn, setBuyIn] = useState<Money | null>(null);
+  const [stakes, setStakes] = useState<Stakes | null>(null);
   const [startedAt, setStartedAt] = useState<Date>(() => new Date());
   const [timeSet, setTimeSet] = useState(false);
 
@@ -129,6 +137,9 @@ export default function NewNight() {
   const currency = currencyFor(club.currency);
   const liveRules = rules ?? inherited.rules;
   const liveBuyIn = buyIn ?? inherited.buyIn;
+  const liveStakes = stakes ?? inherited.stakes;
+  /** The straddle in words, or null when there is none — O1 draws no line. */
+  const straddle = straddleLabel(liveStakes, currency.symbol);
 
   const seats = Object.entries(picked)
     .map(([playerId, amount]) => ({
@@ -185,6 +196,11 @@ export default function NewNight() {
         clubId: club.id,
         groupName: club.name,
         rules: liveRules,
+        // Snapshotted at birth like everything else on this sheet, and in
+        // words, because the blinds are the one setting nothing computes with
+        // — see `startNight`. What the night states it was played at can never
+        // move afterwards, however the group is reconfigured.
+        stakes: stakesSummary(liveStakes, currency.symbol),
         // Copied at birth like the rules, and for the same reason: a night is
         // settled with what it opened with. Nothing on this sheet edits it —
         // the rounding rule is changed from tonight's money rules, or from the
@@ -200,7 +216,13 @@ export default function NewNight() {
       });
       // What the night actually ran with becomes the next night's suggestion,
       // and only that — the club's own setting is untouched.
-      await rememberLastGame(club.id, liveBuyIn, liveRules, inherited.roundingMode);
+      await rememberLastGame(
+        club.id,
+        liveBuyIn,
+        liveRules,
+        inherited.roundingMode,
+        liveStakes,
+      );
       router.dismissTo('/');
       router.push('/session');
     } finally {
@@ -281,9 +303,11 @@ export default function NewNight() {
             ? draft === null || draft.rule.name.trim() === ''
               ? 'New rule'
               : draft.rule.name
-            : step === 'buy-in'
-              ? 'Default buy-in'
-              : 'Start time';
+            : step === 'stakes'
+              ? 'Stakes'
+              : step === 'buy-in'
+                ? 'Default buy-in'
+                : 'Start time';
 
   const problem = draft === null ? null : ruleProblem(draft.rule, money(0));
 
@@ -356,15 +380,28 @@ export default function NewNight() {
               <Text style={[styles.sectionLabel, { color: t.muted }]}>The game</Text>
 
               {/*
-                ⚠ ONE DRAWN ROW IS MISSING: **Stakes**, "$5 / $5".
-                `03-data-model.md` gains `stakes { small, big }` and the
-                straddle fields at group level in rev 18 § 5.2, and none of it
-                is built — there is nowhere for the figure to be read from or
-                written to, and no screen anywhere else in the app shows it.
-                Drawing the row against nothing would be a control that forgets
-                what you tell it, which is worse than a row that is not there.
-                Flagged for the group settings, where the field belongs.
-              */}
+               * THE FIRST ROW THE BOARD DRAWS, and for a long time the one row
+               * that was not here. `03-data-model.md` carries `{ small, big }`
+               * on the Group and on the Session, rev 18 § 5.2 adds the straddle
+               * beside them, and none of it existed — so the row was flagged
+               * out rather than drawn against nothing, which was right at the
+               * time and stopped being right once home started promising
+               * "you'll set the buy-in and blinds once, here".
+               *
+               * It reads the same three layers as the buy-in and the rules —
+               * this game → last game → club default → app default — and, like
+               * them, editing it here changes tonight and only tonight.
+               */}
+              <SettingRow
+                label="Stakes"
+                // ⚠ COPY NOT DRAWN. O1 draws no line under this row, because it
+                // draws a game with no straddle. A straddle that is being
+                // played is not a thing to leave a host to find out at the
+                // table, so it is said here in the row's own sub-line.
+                {...(straddle === null ? {} : { sub: straddle })}
+                value={stakesLabel(liveStakes, currency.symbol)}
+                onPress={() => go('stakes')}
+              />
               <SettingRow
                 label="Default buy-in"
                 value={formatMoney(liveBuyIn, currency.symbol)}
@@ -511,6 +548,10 @@ export default function NewNight() {
             collectors={club.members.map((m) => ({ id: m.id, name: m.name }))}
             spent={money(0)}
           />
+        )}
+
+        {step === 'stakes' && (
+          <Blinds stakes={liveStakes} symbol={currency.symbol} onChange={setStakes} />
         )}
 
         {step === 'buy-in' && (
@@ -919,6 +960,151 @@ function NoRules({
 }
 
 /**
+ * The stakes — the blinds, and whether a straddle is played.
+ *
+ * ⚠ THE EDITOR ITSELF IS NOT DRAWN. O1 draws the ROW and its chevron; no board
+ * anywhere draws what opens. What rev 18 § 6 does specify is the two controls
+ * this is made of, by name and to the point, because they were drawn for
+ * exactly this setting on group creation:
+ *
+ *   · "Numeric cell (blinds)" — flex 1, 11 × 12, radius 8, hairline border,
+ *     caption 700 10 letterspaced and uppercase over a 600 18 tabular value.
+ *   · "Pill segmented pick (straddle)" — 6 × 10, radius 6, 600 12, inactive
+ *     transparent with a hairline border, active filled with the foreground
+ *     and its label inverted; sitting in a 9 × 12 hairline field under a
+ *     700 10 uppercase label.
+ *
+ * So this is assembled from drawn parts rather than invented, which is the
+ * most the handoff allows without a board. Flagged here rather than left
+ * unbuilt: the row is the first thing on the screen and a chevron that opens
+ * nothing is worse than either.
+ *
+ * NO PRESETS, unlike the buy-in beside it. A buy-in has three figures a room
+ * argues between; blinds are two numbers a group settled on once and will type
+ * once, and a preset row of guesses would be four controls pretending to be a
+ * decision.
+ */
+function Blinds({
+  stakes,
+  symbol,
+  onChange,
+}: {
+  stakes: Stakes;
+  symbol: string;
+  onChange: (s: Stakes) => void;
+}) {
+  const t = useTheme();
+  const modes: ReadonlyArray<{ mode: StraddleMode; label: string }> = [
+    { mode: 'none', label: 'No' },
+    { mode: 'optional', label: 'Optional' },
+    { mode: 'mandatory', label: 'Mandatory' },
+  ];
+
+  return (
+    <View style={styles.section}>
+      <View style={styles.figureRow}>
+        <Text style={[styles.figure, { color: t.text }]}>{stakesLabel(stakes, symbol)}</Text>
+      </View>
+
+      <View style={styles.cells}>
+        <Cell
+          caption="Small blind"
+          value={stakes.small}
+          symbol={symbol}
+          onChange={(small) => onChange({ ...stakes, small })}
+        />
+        <Cell
+          caption="Big blind"
+          value={stakes.big}
+          symbol={symbol}
+          onChange={(big) => onChange({ ...stakes, big })}
+        />
+      </View>
+
+      <View style={[styles.straddle, { borderColor: t.hairline }]}>
+        <Text style={[styles.straddleLabel, { color: t.muted }]}>Straddle</Text>
+        <View style={styles.pills}>
+          {modes.map(({ mode, label }) => {
+            const on = stakes.straddle === mode;
+            return (
+              <Pressable
+                key={mode}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                onPress={() => onChange(withStraddle(stakes, mode))}
+                style={({ pressed }) => [
+                  styles.pill,
+                  {
+                    backgroundColor: on ? t.text : 'transparent',
+                    borderColor: on ? t.text : t.hairline,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Text style={[styles.pillLabel, { color: on ? t.onFill : t.muted }]}>{label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* The figure only exists while there is a straddle to have one — see
+          `withStraddle`, which is where the two are kept in step. */}
+      {stakes.straddle !== 'none' && (
+        <View style={styles.cells}>
+          <Cell
+            // "Amount", not "Straddle" — it sits directly under the field
+            // whose own label already says STRADDLE, and the word twice in
+            // twelve points reads as two settings rather than one.
+            caption="Amount"
+            value={stakes.straddleAmount ?? money(0)}
+            symbol={symbol}
+            onChange={(straddleAmount) => onChange({ ...stakes, straddleAmount })}
+          />
+        </View>
+      )}
+
+      <Text style={[styles.explain, { color: t.muted }]}>
+        What tonight is played at. Nothing in the ledger is worked out from the blinds — they are
+        recorded so the night says what it was, and so the next one opens at the same game.
+      </Text>
+    </View>
+  );
+}
+
+/** Rev 18 § 6's "numeric cell": a caption over a figure you can type into. */
+function Cell({
+  caption,
+  value,
+  symbol,
+  onChange,
+}: {
+  caption: string;
+  value: Money;
+  symbol: string;
+  onChange: (v: Money) => void;
+}) {
+  const t = useTheme();
+  return (
+    <View style={[styles.cell, { borderColor: t.hairline }]}>
+      <Text style={[styles.cellCaption, { color: t.muted }]}>{caption}</Text>
+      <View style={styles.cellFigure}>
+        <Text style={[styles.cellSymbol, { color: t.muted }]}>{symbol}</Text>
+        <TextInput
+          value={String(value)}
+          onChangeText={(v) => onChange(money(Math.max(0, Number(v.replace(/\D/g, '')) || 0)))}
+          // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
+          // to a digits-only keyboard.
+          testID="amount"
+          keyboardType="number-pad"
+          style={[styles.cellValue, { color: t.text }]}
+        />
+      </View>
+    </View>
+  );
+}
+
+/**
  * A figure being set — the buy-in, in the O5 idiom: the number large, then the
  * presets, then a box to type one that is not on the list.
  */
@@ -1184,6 +1370,42 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   figureUnit: { fontSize: 22, fontWeight: '700', paddingBottom: 5 },
+  // Rev 18 § 6 · "numeric cell (blinds)" and "pill segmented pick (straddle)",
+  // to the point. Both were drawn for this setting on group creation, so the
+  // figures here are copied rather than chosen.
+  cells: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  cell: {
+    flex: 1,
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  cellCaption: { fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
+  cellFigure: { flexDirection: 'row', alignItems: 'center', gap: 1, paddingTop: 3 },
+  cellSymbol: { fontSize: 18, fontWeight: '600' },
+  cellValue: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+    padding: 0,
+  },
+  straddle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  straddleLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
+  pills: { flexDirection: 'row', gap: 6, marginLeft: 'auto' },
+  pill: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1 },
+  pillLabel: { fontSize: 12, fontWeight: '600' },
+
   presets: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   preset: { flex: 1, height: 44, paddingHorizontal: 0 },
   setBox: {

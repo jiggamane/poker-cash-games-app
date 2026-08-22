@@ -8,6 +8,7 @@ import {
   type MoneyRule,
   type PlayerId,
   type RoundingMode,
+  type Stakes,
 } from '@poker-club/core';
 import { dropPlayerFromPlay, renamePlayerInPlay } from './nightStore';
 import { clubForBook, rosterAdditions, sameName, type RosterPerson } from './rosterMerge';
@@ -66,11 +67,66 @@ export interface Club {
    * rounds the bill and the piggy bank alike.
    */
   roundingMode: RoundingMode | null;
+  /**
+   * What this group plays at — M8's blinds and straddle, the first row of *The
+   * game* on O1 and the top of the settings list on GR7.
+   *
+   * NULL MEANS THE GROUP HAS NEVER SAID, which is a different thing from
+   * playing at the app's default, and the difference is the whole reason this
+   * is nullable rather than seeded. `defaultBuyIn` learned that the hard way:
+   * it stores the app default as its own value and `inheritedFor` has to
+   * compare against the constant to guess whether anybody chose it.
+   */
+  stakes: Stakes | null;
   members: Member[];
 }
 
 /** What the app falls back to when a club has said nothing. */
 export const APP_DEFAULT_BUY_IN = money(500);
+
+/**
+ * And what it falls back to for the blinds.
+ *
+ * $5 / $5 is not invented here: it is the game O1 is drawn playing, and the
+ * canonical night in the handoff is played at it. A group that plays something
+ * else says so on the first night and never sees this figure again.
+ */
+export const APP_DEFAULT_STAKES: Stakes = {
+  small: money(5),
+  big: money(5),
+  straddle: 'none',
+  straddleAmount: null,
+};
+
+/**
+ * The stakes off a `stakes_json` column, or null when the column has nothing
+ * in it — which is every row written before the setting existed.
+ *
+ * Parsing is defensive because this column is the only one on either table
+ * holding a shape rather than a scalar: a half-written row would otherwise
+ * take the club list down on launch, and a club with no blinds recorded is a
+ * club that inherits, which is a state the chain already knows how to be in.
+ */
+function readStakes(json: string | null): Stakes | null {
+  if (json == null || json === '') return null;
+  try {
+    const raw = JSON.parse(json) as Partial<Stakes>;
+    if (typeof raw.small !== 'number' || typeof raw.big !== 'number') return null;
+    return {
+      small: money(raw.small),
+      big: money(raw.big),
+      straddle: raw.straddle ?? 'none',
+      straddleAmount:
+        raw.straddle === undefined ||
+        raw.straddle === 'none' ||
+        typeof raw.straddleAmount !== 'number'
+          ? null
+          : money(raw.straddleAmount),
+    };
+  } catch {
+    return null;
+  }
+}
 
 /** The club's tables, on the app's one connection. See `db.ts`. */
 const getDb = (): Promise<SQLite.SQLiteDatabase> =>
@@ -131,6 +187,11 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
       ['club', 'book_id TEXT'],
       ['club', 'rounding_mode TEXT'],
       ['club_last_game', 'rounding_mode TEXT'],
+      // The blinds and the straddle, at both layers of the chain. JSON rather
+      // than four columns because they are one setting: a row holding a small
+      // blind and no big one is not a state the app has words for.
+      ['club', 'stakes_json TEXT'],
+      ['club_last_game', 'stakes_json TEXT'],
     ] as const) {
       try {
         await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column};`);
@@ -185,6 +246,7 @@ interface ClubRow {
   rules_json: string;
   book_id: string | null;
   rounding_mode: RoundingMode | null;
+  stakes_json: string | null;
 }
 
 interface MemberRow {
@@ -251,6 +313,7 @@ export async function loadClubs(seed?: {
       defaultBuyIn: (c.default_buy_in ?? APP_DEFAULT_BUY_IN) as Money,
       rules: JSON.parse(c.rules_json) as MoneyRule[],
       roundingMode: c.rounding_mode ?? null,
+      stakes: readStakes(c.stakes_json ?? null),
       members: members
         .filter((m) => m.club_id === c.id)
         .map((m) => ({
@@ -387,6 +450,23 @@ export async function setClubRounding(
   const db = await getDb();
   await db.runAsync(`UPDATE club SET rounding_mode = ? WHERE id = ?`, mode, clubId);
   await loadClubs();
+}
+
+/**
+ * The group's own blinds — GR7's *Stakes* row, and the layer O1 seeds from.
+ *
+ * Like every other club default this changes what the NEXT night opens with
+ * and nothing about a night already running: a game copies its stakes at birth
+ * and settles with what it opened with.
+ */
+export async function setClubStakes(clubId: string, stakes: Stakes): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE club SET stakes_json = ? WHERE id = ?`, JSON.stringify(stakes), clubId);
+  state = {
+    ...state,
+    clubs: state.clubs.map((c) => (c.id === clubId ? { ...c, stakes } : c)),
+  };
+  emit();
 }
 
 /**
@@ -704,6 +784,11 @@ export interface Inherited {
   rules: MoneyRule[];
   /** How coarsely to settle. Null is whole dollars. */
   roundingMode: RoundingMode | null;
+  /**
+   * What the table plays at. Always answered — a night has to state its blinds
+   * somewhere, so the chain runs to the app default rather than to null.
+   */
+  stakes: Stakes;
   /** Where the buy-in came from, for a screen that wants to say so. */
   from: 'last game' | 'club default' | 'app default';
 }
@@ -722,7 +807,20 @@ export async function inheritedFor(club: Club): Promise<Inherited> {
     buy_in: number | null;
     rules_json: string | null;
     rounding_mode: RoundingMode | null;
-  }>(`SELECT buy_in, rules_json, rounding_mode FROM club_last_game WHERE club_id = ?`, club.id);
+    stakes_json: string | null;
+  }>(
+    `SELECT buy_in, rules_json, rounding_mode, stakes_json FROM club_last_game WHERE club_id = ?`,
+    club.id,
+  );
+
+  /*
+   * The stakes run the same three layers, and — like rounding beside them — the
+   * middle layer answers only for what it actually recorded. A club_last_game
+   * row written before blinds existed says nothing about them, and reading its
+   * silence as an answer would let one old row outrank the group's own setting
+   * for ever.
+   */
+  const stakes = readStakes(last?.stakes_json ?? null) ?? club.stakes ?? APP_DEFAULT_STAKES;
 
   if (last?.buy_in != null) {
     return {
@@ -735,6 +833,7 @@ export async function inheritedFor(club: Club): Promise<Inherited> {
        * the group has since made in Settings, for ever.
        */
       roundingMode: last.rounding_mode ?? club.roundingMode,
+      stakes,
       from: 'last game',
     };
   }
@@ -743,6 +842,7 @@ export async function inheritedFor(club: Club): Promise<Inherited> {
       buyIn: club.defaultBuyIn,
       rules: club.rules,
       roundingMode: club.roundingMode,
+      stakes,
       from: 'club default',
     };
   }
@@ -750,6 +850,7 @@ export async function inheritedFor(club: Club): Promise<Inherited> {
     buyIn: APP_DEFAULT_BUY_IN,
     rules: club.rules,
     roundingMode: club.roundingMode,
+    stakes,
     from: 'app default',
   };
 }
@@ -765,15 +866,18 @@ export async function rememberLastGame(
   buyIn: Money,
   rules: readonly MoneyRule[],
   roundingMode: RoundingMode | null = null,
+  stakes: Stakes | null = null,
 ): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    `INSERT INTO club_last_game (club_id, buy_in, rules_json, rounding_mode) VALUES (?, ?, ?, ?)
+    `INSERT INTO club_last_game (club_id, buy_in, rules_json, rounding_mode, stakes_json)
+     VALUES (?, ?, ?, ?, ?)
      ON CONFLICT (club_id) DO UPDATE SET buy_in = excluded.buy_in, rules_json = excluded.rules_json,
-       rounding_mode = excluded.rounding_mode`,
+       rounding_mode = excluded.rounding_mode, stakes_json = excluded.stakes_json`,
     clubId,
     buyIn,
     JSON.stringify(rules),
     roundingMode,
+    stakes === null ? null : JSON.stringify(stakes),
   );
 }

@@ -11,6 +11,8 @@
 // './money' to money.ts, but does not resolve './money.js' to it.
 export * from './money';
 export * from './types';
+/* What a game is played at — the blinds and the straddle, as one value. */
+export * from './stakes';
 export * from './ledger';
 export * from './settlement';
 export * from './outbox';

@@ -95,6 +95,32 @@ const ROUTES = [
   '/rounding', '/share',
 ];
 
+/*
+ * ROWS THE BOARD DRAWS THAT THE SCREEN MUST STILL SHOW.
+ *
+ * Every other check in this file asks whether what is on the screen obeys the
+ * rules. None of them can see something that is NOT on the screen, and that is
+ * a whole class of fault on its own: O1 shipped without its first drawn row —
+ * *Stakes*, "$5 / $5" — for weeks, and no tool in the repo could say so. The
+ * frame check measures the panel, the sheet pass measures its height, the room
+ * pass measures contrast and overflow, and a screen missing a row passes all
+ * three, because everything still on it is perfectly correct.
+ *
+ * So: the literal words the board puts on a screen, per route. A row deleted,
+ * renamed, or flagged back out of existence takes this red.
+ *
+ * KEEP IT TO WHAT THE BOARD ACTUALLY DRAWS. This is not a place to pin copy
+ * that seemed nice — every string below is on an artboard in
+ * `design/handoff-rev18/boards/`, and the point is broken by the first one
+ * that is not. A screen may hold MORE than its board (O1 states the currency,
+ * which is drawn nowhere); it may not hold less.
+ */
+const DRAWN = {
+  // Journey Map 1 · "O1 New session" — the four rows of *The game*, and the
+  // dashed chip that seats somebody.
+  '/new-night': ['Stakes', 'Default buy-in', 'Start time', 'Money rules', 'Find a player'],
+};
+
 const ROOM = `
 (() => {
   const px = (v) => Math.round(v * 100) / 100;
@@ -619,6 +645,21 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
         await page.goto(BASE + route, { waitUntil: 'networkidle' });
         await page.waitForTimeout(450);
         findings = await page.evaluate(ROOM);
+
+        // The rows the board draws, still on the screen — see DRAWN.
+        for (const word of DRAWN[route] ?? []) {
+          const seen = await page.evaluate(
+            (w) => (document.body.innerText || '').includes(w),
+            word,
+          );
+          if (!seen) {
+            findings.push({
+              check: 'drawn-row-missing',
+              detail: `the board draws “${word}” and the screen does not`,
+              where: route,
+            });
+          }
+        }
 
         // A8 · the footer rises with the keyboard and is never covered.
         const hasField = (await page.locator('input, textarea').count()) > 0;
