@@ -42,6 +42,7 @@ entry names the thing that now goes red if the bug returns:
 | An amount, a split, a settlement | a test in `packages/core` |
 | A figure cut off, outside its card, off the phone | `ui-journeys.mjs` |
 | A rule the handoff states as a rule — surfaces, contrast, what may scroll | `ui-audit.mjs` |
+| A row the board draws that the screen does not show at all | `ui-audit.mjs`, `DRAWN` |
 | A sheet's height on some particular phone | `ui-audit.mjs` sheet pass, and `Sheet.geometry.test.ts` |
 | A measurement that should match the board | `ui-check.mjs` against the frame |
 
@@ -71,6 +72,71 @@ conversation and have not been written down. Say what they were and they go in.*
 ---
 
 ## Fixed
+
+### B5 — a night forgot the group's rounding the moment it was reloaded
+
+```
+Screen      not a screen — startNight, and every settlement figure downstream
+Seen        a group that settles to tens opens a night; the night settles to
+            tens until something reloads it from SQLite, and to whole dollars
+            for ever afterwards. The server's copy said whole dollars from the
+            start: `queueSessionOpen` has carried `roundingMode` since the
+            server half landed and its only caller never passed it.
+Expected    the night settles at what the group set, tonight and on next
+            launch, on this phone and on the server's copy of it
+Found       22 Aug, reading the INSERT while adding the stakes beside it
+Locked by   nothing yet — see below
+Status      fixed in this commit
+```
+
+M7 is explicit that rounding **changes computed amounts, not just formatting**,
+so this is a money bug and not a display one. `startNight` put the mode on the
+in-memory night and left it out of the row it wrote, and the mapper at the other
+end reads `rounding_mode` off that row: correct all evening, wrong on the next
+launch, and wrong on the server from the first second.
+
+**Locked by nothing yet, and the field says so on purpose.** The three screen
+tools cannot see it — nothing is cut off, no rule is broken, the screen is
+right. What would see it is a test over `startNight` and `openNightById`
+together, and there is no harness for either: they are the two functions in
+`nightStore` that need a real `expo-sqlite`, and every test in `src/lib` today
+is over a pure module. That harness is worth building and is a bigger job than
+this fix.
+
+### B4 — O1 shipped without the first row the board draws
+
+```
+Screen      O1 New session — /new-night, *The game*
+Seen        four rows: Default buy-in, Currency, Start time, Money rules. The
+            board draws Stakes first, "$5 / $5", with a chevron. Home told
+            hosts "You'll set the buy-in and blinds once, here" and there was
+            nowhere on the screen to set a blind.
+Expected    the drawn row, reading the same three layers as the buy-in beside
+            it — this game → last game → club default → app default
+Found       22 Aug, checking the screen against the board
+Locked by   npm run check:ui — ui-audit.mjs, "drawn-row-missing"
+Status      fixed in this commit
+```
+
+The row was not forgotten. It was flagged out, in a comment on the exact line it
+belonged on, because rev 18 § 5.2 adds `stakes { small, big }` and the straddle
+to the Group and none of it was built: *"drawing the row against nothing would
+be a control that forgets what you tell it."* That was the right call in the
+moment and it is why this is a design bug rather than a careless one.
+
+What made it a bug anyway is that the flag outlived its reason. The comment was
+addressed to whoever built the group settings; nobody did, and meanwhile home
+started promising the blinds could be set here. A flag is a note to a future
+session, and a note nothing can read out loud is indistinguishable from a screen
+that is simply wrong.
+
+**Why nothing saw it.** Every check in this repo asks whether what is on the
+screen is correct. The frame check measures the panel, the sheet pass measures
+its height, the rule pass measures contrast and overflow — and a screen missing
+a row passes all three, because everything still on it is perfectly correct. The
+new `DRAWN` pass in `ui-audit.mjs` asks the other question: are the words the
+board puts on this screen on it. Removing "Stakes" from O1 now takes it red at
+both widths and both themes, which was checked by doing exactly that.
 
 ### B3 — "Custom" hangs out of both sides of its own button on the amount sheet
 

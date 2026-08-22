@@ -1312,6 +1312,19 @@ export async function startNight(input: {
    * the card is that it now differs between them.
    */
   buyIn?: Money;
+  /**
+   * What the table plays at, already in words — "$5 / $5", or with the
+   * straddle after it.
+   *
+   * A STRING, AND DELIBERATELY. The blinds are the one setting on a night that
+   * nothing computes with: no clock, no schedule, no figure in the settlement
+   * reads them. What they are for is being stated — on the night, and to a
+   * watcher, whose `session.stakes` column upstream is text and has always
+   * been. Formatting needs the club's currency symbol, which lives in
+   * `clubStore`; resolving it in the caller keeps this file from reaching
+   * across into another store's tables, exactly as `nameOfCollector` does.
+   */
+  stakes?: string;
   rules: readonly MoneyRule[];
   /**
    * How coarsely the group settles, copied onto the night at birth like the
@@ -1386,8 +1399,9 @@ export async function startNight(input: {
 
   await db.runAsync(
     `INSERT INTO night
-       (session_id, group_name, table_name, started_at, status, rules_json, me_id, default_buyin)
-     VALUES (?, ?, ?, ?, 'open', ?, ?, ?)`,
+       (session_id, group_name, table_name, started_at, status, rules_json, me_id, default_buyin,
+        stakes, rounding_mode)
+     VALUES (?, ?, ?, ?, 'open', ?, ?, ?, ?, ?)`,
     sessionId,
     input.groupName,
     tableName,
@@ -1395,6 +1409,8 @@ export async function startNight(input: {
     JSON.stringify(input.rules),
     input.meId ?? null,
     input.buyIn ?? null,
+    input.stakes ?? null,
+    input.roundingMode ?? null,
   );
 
   for (const seat of input.seats) {
@@ -1476,8 +1492,14 @@ export async function startNight(input: {
     // the local column — would be refused and halt the queue at the head. What
     // the table actually bought in for is the honest answer when nobody said.
     defaultBuyIn: input.buyIn ?? biggest ?? money(500),
+    ...(input.stakes === undefined ? {} : { stakes: input.stakes }),
     players,
     rules: input.rules,
+    // Sent as well as stored. `sync.ts` has carried this since the server half
+    // landed and this — its only caller — was not passing it, so every night a
+    // signed-in host opened reached the server saying it settled in whole
+    // dollars whatever the group had actually set.
+    roundingMode: input.roundingMode ?? null,
   });
 
   // Everything after this point is the ledger's own business, so the night is

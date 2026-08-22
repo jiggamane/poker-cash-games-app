@@ -23,7 +23,8 @@ The three check columns are what runs in `npm run check:ui`:
   360: the surface ladder, the contrast floor, what may scroll, what may break
   mid-word, and whether a label stays inside the control drawn around it. The
   narrow width is there because B3 fitted its button at 393 by half a point and
-  hung out of both sides of it at 360.
+  hung out of both sides of it at 360. It also holds a screen to the rows its
+  board draws — see **Drawn rows** below.
 - **Sheet** — `ui-audit.mjs` pass 2. The 21 sheets across six devices — four
   iPhones and two Androids — against the height cap. Only sheets have one.
 - **Night** — `ui-journeys.mjs`. A big night played through, checking no figure
@@ -97,6 +98,23 @@ recorded per screen, so there is no way to tell which of the thirty-seven it
 actually settled. Ticking them off from here is cheaper than trusting a memory
 of it.
 
+## Drawn rows
+
+`ui-audit.mjs` carries a `DRAWN` map: route → the literal words that route's
+board puts on the screen. A row deleted, renamed or flagged back out of
+existence takes the rule pass red.
+
+It exists because of B4. Every other check in the repo asks whether what is on a
+screen is correct, and a screen missing a row passes all of them — everything
+still on it is right. O1 shipped for weeks without *Stakes*, the first row of
+its own board, and no tool here could say so.
+
+**Only O1 is filled in.** Every other route's list is empty, and each one is a
+few minutes with a board. Keep it to what the board actually draws: a screen may
+hold **more** than its board — O1 states the currency, which is drawn nowhere —
+but never less, and the pass is worth nothing the moment a string is in it that
+nobody drew.
+
 ## A coverage hole this file found
 
 `/rounding` and `/share` were in the sheet pass but not in the rule pass. Both
@@ -113,6 +131,14 @@ top of this table is the thing that catches it if it does not.
 
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
+
+**`/new-night`** — O1's *The game* is the board's four rows in the board's
+order: Stakes, Default buy-in, Start time, Money rules. Currency sits among them
+and is drawn nowhere; it is stated here and changed in the group, which is why
+it alone has no chevron. The Stakes row's editor is not drawn either — no board
+opens it — and is assembled from the two controls rev 18 § 6 names for exactly
+this setting, the numeric cell and the pill segmented pick. B4 in `docs/bugs.md`
+is the history, and `DRAWN` is what now holds the four rows in place.
 
 **`/log`** — the preset row is the board's own chip (one object: figure over
 caption, raised surface, fill swap on choose), not `Button variant="preset"`
