@@ -35,8 +35,9 @@ merge.
 
 Two things still hold, and they are the whole of the condition:
 
-- **`npm run check` passes first**, and `npm run db:verify` too if you touched
-  `supabase/`. A red merge is worse than a stranded branch.
+- **`npm run check` passes first**, and `npm run check:ui` too if you touched
+  `apps/mobile`, and `npm run db:verify` too if you touched `supabase/`. A red
+  merge is worse than a stranded branch.
 - **Push the branch as well as `main`.** It costs nothing and it is what makes
   the work recoverable if a merge ever goes wrong.
 
@@ -45,13 +46,64 @@ is genuinely a question rather than an answer — a spike, an approach you would
 not defend — say so and leave it on the branch. That judgement is yours, and it
 is the only case where the merge waits.
 
+### Two sessions must not open the same file
+
+The stranded-branch problem is solved. This is the one that replaced it, and it
+is why fixes have been disappearing.
+
+On 20 August eight sessions ran in parallel off the same commit. Three of them
+edited `deductions.tsx`. Two each edited `log.tsx`, `session.tsx`,
+`money-rules.tsx`, `new-night.tsx`, `seat.tsx` and `player.tsx`. Every one of
+those merges then had to be adjudicated by hand — whose version of the screen
+survives — and the merge commit for `38d02e9` is three paragraphs of exactly
+that.
+
+**A conflict resolution is a coin toss between two correct fixes.** Branch B
+forked before branch A's fix landed. B wins its region of the file, and A's fix
+is gone. Nothing broke, nobody was careless, the tests still pass, and the bug is
+back on the phone. That is the whole mechanism, and it will keep producing "I
+fixed that last week" for as long as parallel sessions share files.
+
+So:
+
+- **Parallel sessions are fine only on disjoint files.** Decide the split before
+  starting them, by screen — one session owns `deductions.tsx`, and no other
+  session opens it that day.
+- **A shared component is a shared file.** `Sheet.tsx`, `Button.tsx`,
+  `RuleList.tsx`, `tokens.ts` are touched from everywhere. Anything app-wide —
+  a sweep over every sheet, a token change — runs **alone**, with nothing else
+  in flight.
+- **When in doubt, run them one after another.** Two sessions in sequence cost
+  an hour. One silently reverted fix costs the next three sessions, and it is
+  found by scanning the app on a phone rather than by a red check.
+
+If you do hit a conflict in a screen, `docs/bugs.md` is the thing to read before
+resolving it: an entry there tells you that the side you are about to discard
+was a deliberate fix for a named fault, which the diff alone will not.
+
 ## Checks
 
 ```bash
 npm run check      # typecheck + the money tests. Both must pass before a merge.
+npm run check:ui   # the screens: every route against the handoff's rules, all 21
+                   # sheets across six devices, and a big night played through
+                   # checking no figure is cut off. Run it before a merge if you
+                   # touched apps/mobile. Needs Playwright.
 npm run db:verify  # applies every migration to a throwaway Postgres and asserts
                    # the money invariants. Run it if you touched supabase/.
 ```
+
+`check` is seconds and is for every commit. `check:ui` builds the app and drives
+a browser, so it is a minute or two and is for the merge. They are deliberately
+two names: folding them into one would make the fast one slow enough to start
+being skipped, and the fast one is the one that runs constantly.
+
+**A screen bug that neither of them can see is not finished being fixed.** The
+tools existed and ran only when somebody remembered, and twenty-one sheets were
+wrong on every phone from the first day until the 21st. Write the bug in
+`docs/bugs.md` before fixing it, and name the check that now goes red if it
+comes back. `docs/screens.md` is the ledger of which screens are watched by
+what, and which have been held against their boards.
 
 ## What the design says, and where
 

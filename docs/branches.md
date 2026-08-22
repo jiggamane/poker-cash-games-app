@@ -105,3 +105,30 @@ not a transplant. Everything they need is already in `main`: `invites.ts`,
 
 Nothing else is outstanding. The other nine branches hold only files `main` has
 deliberately replaced.
+
+---
+
+## 22 August: the second failure mode
+
+The stranded-branch problem above is fixed — every session merges to `main` now,
+and nothing has been left behind since the 14th. This is the one that took its
+place, recorded here because it produced the same symptom from the opposite
+cause: **work that was done, and then was not there any more.**
+
+Before, the fix was on a branch nobody merged. Now the fix is merged and then
+overwritten by the next merge.
+
+On 20 August eight sessions ran off the same commit. Three edited
+`deductions.tsx`; six other screens were opened by two sessions each. Every one
+of those merges had to be resolved by hand, and each resolution picks a winner
+per region of the file. A branch that forked before another branch's fix landed
+wins its region and takes the fix out with it. Nothing goes red — the tests are
+all in `packages/core` and none of them has ever seen a screen.
+
+The rule is now in `CLAUDE.md` under *Two sessions must not open the same file*:
+parallel sessions only on disjoint files, app-wide sweeps run alone.
+
+The other half is that screens are now checked. `npm run check:ui` runs the
+three tools that existed and never ran — see `docs/screens.md` for what each one
+covers, and `docs/bugs.md` for the rule that every fix names the check that locks
+it.
