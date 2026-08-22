@@ -17,21 +17,6 @@ cd "$(dirname "$0")/.."
 
 BUILD=apps/mobile/.web
 
-bash scripts/ui-fonts.sh
-
-stale=1
-if [ -f "$BUILD/index.html" ]; then
-  # Anything under app/ or src/ newer than the build means the build is old.
-  newer="$(find apps/mobile/app apps/mobile/src packages -newer "$BUILD/index.html" \
-            -name '*.ts' -o -newer "$BUILD/index.html" -name '*.tsx' 2>/dev/null | head -1)"
-  [ -z "$newer" ] && stale=0
-fi
-
-if [ "$stale" = 1 ]; then
-  echo "building the web export…"
-  npm --workspace @poker-club/mobile run export:web >/dev/null
-else
-  echo "web export is current — skipping the build (delete $BUILD to force one)."
-fi
+bash scripts/ui-build.sh
 
 exec node scripts/ui-serve.mjs "$BUILD" "${UI_CHECK_PORT:-4321}"

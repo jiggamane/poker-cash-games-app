@@ -195,7 +195,21 @@ function compare(before: Money | null, after: Money): string {
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', gap: 8, paddingHorizontal: space.card, paddingBottom: 14 },
   chipSlot: { flex: 1, alignItems: 'center', gap: 3 },
-  chip: { width: '100%' },
+  /*
+   * `paddingHorizontal: 4`, against Button's base 24.
+   *
+   * The base is sized for a button with a sentence on it — "Settle to the
+   * hundred" — and every other preset row in the app has three or four chips
+   * across. This one has SIX: at 393 a slot is about 52 wide, and 24 a side
+   * leaves 4 points for the word. "100s" needs 38, so it was drawn 3.6 outside
+   * its own box in both themes, which `ui-audit` reports as
+   * figure-out-of-its-box and a person reads as a chip whose label is touching
+   * its neighbour's.
+   *
+   * Fixed here rather than in Button: the 24 is right for every other caller,
+   * and this row is the outlier. Copy is final, so "100s" cannot be shortened.
+   */
+  chip: { width: '100%', paddingHorizontal: 4 },
   chipCaption: { fontSize: 9, fontWeight: '700', letterSpacing: 0.72, height: 12 },
 
   value: { fontSize: 20, fontWeight: '700', marginHorizontal: space.page, paddingHorizontal: 4 },
