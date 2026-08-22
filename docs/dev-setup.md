@@ -59,6 +59,11 @@ on any phone with nothing running anywhere. Read `phone-preview.md` first — it
 is the real app, but a browser cannot keep its data and cannot do the native
 gestures.
 
+**Keeping the book on it, at a real table, away from here?** That is a third
+thing again, and it is `live-test.md` — what an iPhone can and cannot run, how
+to get the app onto one without a laptop at the table, and what to set up the
+night before.
+
 Right now this shows a **scaffold smoke screen**, not a designed screen — it
 exists to prove the plumbing works. The real screens come from
 `design/Style Guide v2.dc.html`.
