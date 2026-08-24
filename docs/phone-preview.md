@@ -13,37 +13,20 @@ nothing but a phone:
 The design boards keep the address they always had, one level up, at
 <https://jiggamane.github.io/poker-cash-games-app/>.
 
-## One switch has to be on, and it is off today
+## The switch is on now
 
-**GitHub Pages is not enabled on this repository**, so the URL above 404s until
-it is. The workflow builds the site fine and then fails on its last step with
-`Create Pages site failed: Resource not accessible by integration` — that is
-GitHub refusing to turn Pages on from a workflow, not the build going wrong.
+It was not, for the first three weeks. This file used to say that Pages had
+never been enabled and that the URL above 404s until somebody turns it on, and
+that was true when it was written — `configure-pages` was being refused with
+`Resource not accessible by integration`, and Pages on a private repository
+needs a paid plan.
 
-It is a settings change, and it can be made from a phone:
-
-**Settings → Pages → Build and deployment → Source: GitHub Actions.**
-
-Then **Actions → Publish the site → the latest run → Re-run all jobs**, and the
-site is up a couple of minutes later. Every merge after that publishes on its
-own.
-
-Two things can stop that page letting you save:
-
-- **This repository is private, and Pages on a private repository needs a paid
-  GitHub plan** (Pro, Team or Enterprise). On the free plan the choice is to pay
-  or to make the repository public — and public means the whole history, not
-  just the boards. Nothing in the code is a secret today: there are no keys in
-  it, `.env` is gitignored, and the anon key is designed to be published. That
-  is a decision about the design and the ledger being readable by anyone, not a
-  security one.
-- **Actions may be denied write access.** Settings → Actions → General →
-  Workflow permissions → **Read and write permissions**. If that is set to
-  read-only, the workflow cannot create the Pages site whatever the plan is.
-
-Turning Pages on also brings the design boards up for the first time —
-`PUBLISHING.md` describes the arrangement, but the switch was never flipped, so
-those URLs have never resolved either.
+Both halves have since been settled: the repository is public, and every run of
+**Publish the site** since 19 August has deployed, `deploy-pages` included. So
+the URL resolves, the design boards at the root resolve, and there is nothing
+to switch on. It is left written down because the failure it describes is one
+GitHub reports on the last step of an otherwise green-looking build, which is
+worth recognising if it ever comes back.
 
 ## It rebuilds itself
 
@@ -115,3 +98,11 @@ account actually has:** `eas update` publishes the app to Expo, and Expo Go
 opens it from a link with no dev server and no laptop anywhere. That is a real
 night on a real phone, keeping its data. `live-test.md` is the procedure, and it
 is written for the night before rather than for a browse.
+
+That one no longer needs a keyboard either. `.github/workflows/expo-go.yml`
+runs it on a runner — **Actions → Put the app in Expo Go → Run workflow** — and
+the run's summary is the link the phone opens. It wants `EXPO_TOKEN` as a
+repository secret, and says so plainly instead of failing halfway if it is
+missing. It is deliberately not automatic the way this preview is: republishing
+a browser page costs nothing, while publishing an update changes what the phone
+at a table loads next time it is opened.

@@ -82,6 +82,16 @@ owns that.
 
 ### 2 · Route A — publish the app to Expo
 
+**Without a Mac, this is a page on a phone.** `.github/workflows/expo-go.yml`
+runs exactly the command below on a GitHub runner: **Actions → Put the app in
+Expo Go → Run workflow**, on `main`. It gates on `npm run check` first, and the
+run's summary is the link to the published update — open that on the iPhone and
+it hands off to Expo Go. It needs one secret, `EXPO_TOKEN`, made at
+<https://expo.dev/settings/access-tokens> as the account that owns the project,
+and the workflow says so and stops if it is missing rather than failing halfway.
+The rest of this section is the same thing at a keyboard, and everything it
+warns about applies to the workflow too.
+
 ```bash
 cd apps/mobile
 npx eas-cli@latest login      # the same account as the phone
@@ -120,6 +130,12 @@ probably what you want: with the keys in, the night queues itself up for the
 server and goes up whenever there is signal, and with them out the app is purely
 local. Neither choice can lose a night — the queue is a table on the phone, not
 memory — so do not spend the evening on it.
+
+The workflow has no `.env` to bake in — a runner checks out the repository and
+`.env` is gitignored — so it takes the same two values from repository secrets
+instead, `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`, exactly
+as `pages.yml` does. Set neither and the published app is purely local, which is
+a real mode and the one a first night is testing.
 
 ### 3 · Prove it, in the only way that counts
 

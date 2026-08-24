@@ -1,0 +1,104 @@
+# Put the app in Expo Go — the route an iPhone without a paid Apple Developer
+# account actually has.
+#
+# docs/live-test.md describes this as something you do on a Mac: `eas-cli login`
+# then `npm run publish:go`. That works, and it is still the right thing when
+# there is a Mac in front of you. This workflow is the same command run by the
+# repository instead, for the case the whole point of Expo Go is — no laptop.
+# You start it from the Actions tab, which is a page a phone can open, and a
+# minute later the update is on Expo and the phone can fetch it over cellular.
+#
+# Deliberately manual. `pages.yml` republishes the browser preview on every
+# merge because looking at a screen costs nothing; this one changes what the
+# phone at a table will load the next time it is opened, and that is a decision
+# somebody makes, not something that happens while a night is being recorded.
+# (To make it automatic anyway: add `push: { branches: [main] }` below.)
+name: Put the app in Expo Go
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One publish at a time. Never cancel one in flight: a half-published update is
+# a worse thing to leave behind than a queued one.
+concurrency:
+  group: expo-go
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 22 for the same reason pages.yml pins it: whichNight.test.ts opens a
+      # database through `node:sqlite`, which does not exist before Node 22.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # The gate, before anything reaches a phone. docs/live-test.md: "If check
+      # is red, stop — do not take a build to a table on a red check." That is
+      # the sentence this step is.
+      - run: npm run check
+
+      - name: Check the token is there before spending two minutes
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            {
+              echo "## Nothing was published"
+              echo
+              echo 'There is no `EXPO_TOKEN` secret on this repository, so there is no'
+              echo 'way to sign in to Expo from here.'
+              echo
+              echo 'Make one at <https://expo.dev/settings/access-tokens>, signed in as'
+              echo 'the account that owns the project — `938b4629-9a41-4ddf-bcd8-86bb4e4696b3`,'
+              echo 'which is the same account the iPhone'"'"'s Expo Go has to be signed into.'
+              echo 'Then put it in **Settings → Secrets and variables → Actions → New'
+              echo 'repository secret**, named `EXPO_TOKEN`, and run this again.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::no EXPO_TOKEN secret — see the run summary"
+            exit 1
+          fi
+
+      - name: Publish the update
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          # Optional, and the same two secrets pages.yml uses. With them the
+          # night queues itself up for the server and goes up whenever there is
+          # signal; without them the app is purely local. Neither can lose a
+          # night — the queue is a table on the phone — so this is not worth an
+          # evening. apps/mobile/.env.example says why both are safe to publish.
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          set -o pipefail
+          npm run publish:go --workspace @poker-club/mobile -- --non-interactive \
+            2>&1 | tee "$RUNNER_TEMP/update.log"
+
+      # `eas update` prints the link to the published update, and that link is
+      # the whole deliverable — it is what the phone opens. The Actions log is
+      # awkward to read on a phone and the summary is not, so it goes here.
+      - name: Say where it is
+        if: always()
+        run: |
+          log="$RUNNER_TEMP/update.log"
+          [ -f "$log" ] || exit 0
+          {
+            echo "## The update"
+            echo
+            echo 'Open this on the iPhone. It hands off to Expo Go, which has to be'
+            echo 'signed in to the account that owns the project — otherwise it will'
+            echo 'refuse the update without saying so.'
+            echo
+            echo '```'
+            cat "$log"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
