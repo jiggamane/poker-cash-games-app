@@ -33,20 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 22 for the same reason pages.yml pins it: whichNight.test.ts opens a
-      # database through `node:sqlite`, which does not exist before Node 22.
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-
-      - run: npm ci
-
-      # The gate, before anything reaches a phone. docs/live-test.md: "If check
-      # is red, stop — do not take a build to a table on a red check." That is
-      # the sentence this step is.
-      - run: npm run check
-
+      # First, before `npm ci` and the test suite: a missing secret is a
+      # settings fact, and it should come back in ten seconds rather than
+      # after two minutes of work that was never going to be published.
       - name: Check the token is there before spending two minutes
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -67,6 +56,20 @@ jobs:
             echo "::error::no EXPO_TOKEN secret — see the run summary"
             exit 1
           fi
+
+      # 22 for the same reason pages.yml pins it: whichNight.test.ts opens a
+      # database through `node:sqlite`, which does not exist before Node 22.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # The gate, before anything reaches a phone. docs/live-test.md: "If check
+      # is red, stop — do not take a build to a table on a red check." That is
+      # the sentence this step is.
+      - run: npm run check
 
       - name: Publish the update
         env:
