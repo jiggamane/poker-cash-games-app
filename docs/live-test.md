@@ -103,17 +103,20 @@ in Expo Go, over cellular, with nothing running on the laptop.
 
 Two things can go wrong here, and both are worth knowing before you are tired:
 
-- **It asks to run `eas update:configure`.** Let it install what it wants, but
-  if it offers to write a `runtimeVersion` into `app.json`, **decline it, or
-  delete it afterwards.** `app.config.js` supplies the right value for each
-  case, and Expo Go refuses outright any update that carries a runtime version —
-  which is a silent refusal, not an error you can read.
-- **It complains that no runtime version is configured.** That is the one place
-  to experiment: `runtimeVersion: { policy: 'sdkVersion' }` produces
-  `exposdk:54.0.0`, which is the string Expo Go itself reports, so it is the one
-  runtime version Expo Go will accept. It is not in `app.config.js` because the
-  policy has been deprecated once already and a config that hard-errors on the
-  laptop is worse than a flag you add by hand if you are asked for it.
+- **It says it has configured a `runtimeVersion` for you.** Stop and read which
+  one. This is settled now — `app.config.js` stamps `exposdk:54.0.0` under
+  `EAS_PROJECT=go` and that is what Expo Go opens — but the failure it fixes is
+  worth recognising, because it does not look like a failure. Run #4 on
+  28 August published green, from a workflow whose every step passed, and put an
+  update stamped `0.1.0` on Expo. Expo Go is one fixed native build calling
+  itself `exposdk:54.0.0`; it takes only updates stamped to match, and it turns
+  away the rest **without a word on the screen.** eas-cli had found no runtime
+  version, judged that an oversight, and written the standalone build's answer
+  into `app.json` on the runner.
+- **So a missing runtime version is not a neutral state.** Leaving it out does
+  not publish an unstamped update — it publishes a wrongly stamped one. If you
+  ever see `Runtime version 0.1.0` in the publish table, the update is real, the
+  link works, and no phone will open it.
 - **`npm run publish:go` fails outright.** Then Route A is not available tonight
   and you are on Route B. Do not spend an hour on it; B is the one that is known
   to work — set a timer for twenty minutes and mean it.

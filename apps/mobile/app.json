@@ -27,7 +27,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "//updates": "NOT IN THIS FILE, ON PURPOSE \u2014 and no longer missing either: app.config.js adds updates.url and runtimeVersion when EAS_PROJECT says which kind of build is being made. Expo Go supplies its own runtime and REFUSES any update carrying a runtimeVersion, so the two cases genuinely differ and cannot both live in a static file. Read the comment in app.config.js before changing this.",
+    "//updates": "NOT IN THIS FILE, ON PURPOSE \u2014 and no longer missing either: app.config.js adds updates.url and runtimeVersion when EAS_PROJECT says which kind of build is being made. BOTH cases carry a runtimeVersion and they differ: Expo Go is one fixed native build calling itself exposdk:54.0.0 and opens only updates stamped to match, while a standalone build stamps the app version. Leave it out and eas update writes the standalone one in for you, publishes happily, and the phone silently will not open it. Read the comment in app.config.js before changing this.",
     "//eas": "THE EAS PROJECT ID IS NOT IN THIS FILE, ON PURPOSE. An id here makes Expo Go prompt for an Expo login on every start, which breaks the scan-a-QR-code loop for no benefit while developing. app.config.js adds it \u2014 with updates.url, and with runtimeVersion when a standalone build asks for it \u2014 only when EAS_PROJECT is set, so publishing and developing each get the config they need. The project is 938b4629-9a41-4ddf-bcd8-86bb4e4696b3, and app.config.js is the one place it is written down."
   }
 }
