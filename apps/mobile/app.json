@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "The Poker Club",
-    "slug": "poker-club",
+    "//slug": "MUST MATCH THE PROJECT ON expo.dev, which is poker-cash-games-manager — not the app's name, and not this repo's. `eas update` compares this field against the slug of the project named by extra.eas.projectId and refuses to publish when they disagree, which is how the first successful-looking publish failed: token fine, project found, slug wrong. The display name above is what a person sees and is free to differ.",
+    "slug": "poker-cash-games-manager",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
