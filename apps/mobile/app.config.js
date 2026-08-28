@@ -35,15 +35,21 @@ const EAS_PROJECT_ID = '938b4629-9a41-4ddf-bcd8-86bb4e4696b3';
  * dev server, which never asks.
  *
  * `runtimeVersion` is the one that cannot be shared. It says which native build
- * a bundle is allowed to land on, and EXPO GO REFUSES ANY UPDATE THAT CARRIES
- * ONE — Expo Go is a single fixed native build and identifies itself as
- * `exposdk:54.0.0`, so an update stamped `0.1.0` is, correctly, not for it. A
- * standalone build is the exact opposite: without a runtime version, JavaScript
- * expecting newer native code can land on an older build and crash it.
+ * a bundle is allowed to land on. Expo Go is a single fixed native build that
+ * identifies itself as `exposdk:54.0.0` and opens ONLY updates stamped exactly
+ * that, so an update stamped `0.1.0` is, correctly, not for it — and it is
+ * turned away in silence. A standalone build is the exact opposite: without a
+ * runtime version, JavaScript expecting newer native code can land on an older
+ * build and crash it.
+ *
+ * Note what this is NOT: an argument for leaving `go` without one. `eas update`
+ * treats a missing runtime version as an oversight and supplies the standalone
+ * answer itself. Omitting it does not publish an unstamped update, it publishes
+ * a wrongly stamped one.
  *
  * So there are two answers and no third:
  *
- *   EAS_PROJECT=go     id + updates.url, NO runtimeVersion.
+ *   EAS_PROJECT=go     id + updates.url, runtimeVersion `exposdk:54.0.0`.
  *                      `eas update` then publishes something Expo Go can open
  *                      from a link, with no dev server and no laptop — which is
  *                      the only way to put this app on an iPhone that is not a
@@ -83,9 +89,31 @@ module.exports = ({ config }) => {
     updates: { ...out.updates, url: `https://u.expo.dev/${EAS_PROJECT_ID}` },
   };
 
-  if (mode === 'build') {
-    out = { ...out, runtimeVersion: { policy: 'appVersion' } };
-  }
+  /*
+   * BOTH modes must state a runtime version, and they must state DIFFERENT ones.
+   *
+   * Leaving `go` without one does not mean the update goes out without one. It
+   * means `eas update` fills the gap itself: it runs its own configure step,
+   * writes `{"policy":"appVersion"}` into app.json on whatever machine is
+   * publishing, and stamps the update `0.1.0`. Run #4 on 28 August is that
+   * exact story — green workflow, real update, and an update Expo Go will not
+   * open, because Expo Go is one fixed native build that calls itself
+   * `exposdk:54.0.0` and takes only updates stamped to match. The refusal is
+   * silent, which is what makes this worth six lines of comment.
+   *
+   * So `go` says `exposdk:54.0.0` and gets opened; `build` says the app version
+   * and keeps JavaScript off native code too old for it.
+   *
+   * The literal, not `{ policy: 'sdkVersion' }` which derives the same string:
+   * that policy has been deprecated once already, and this is the one value in
+   * this file that must never quietly stop resolving. It is pinned to the SDK
+   * — apps/mobile/AGENTS.md says the SDK moves only with Expo Go in the App
+   * Store, and this line moves in the same commit or the publish breaks.
+   */
+  out =
+    mode === 'build'
+      ? { ...out, runtimeVersion: { policy: 'appVersion' } }
+      : { ...out, runtimeVersion: `exposdk:${out.sdkVersion ?? '54.0.0'}` };
 
   return out;
 };
