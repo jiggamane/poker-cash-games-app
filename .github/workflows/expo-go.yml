@@ -17,6 +17,25 @@ name: Put the app in Expo Go
 
 on:
   workflow_dispatch:
+    inputs:
+      # WHICH APP THIS PUBLISHES, ASKED RATHER THAN INFERRED.
+      #
+      # The Supabase project reaches the app as two EXPO_PUBLIC_ variables, and
+      # Expo substitutes those INTO THE BUNDLE at publish time. So the answer is
+      # fixed the moment this workflow runs: an update published without them is
+      # an app that can never sign in, never sync and never share, on any phone,
+      # until a further update replaces it. The phone cannot be told afterwards.
+      #
+      # Both secrets used to be quietly optional here, which meant the ordinary
+      # way to publish a local-only app by accident was to press the button. The
+      # update was real, the run was green, and the only place the difference
+      # showed was Settings → Account on the phone, hours later, reading "No
+      # server is configured for this build". So the run says which one it is
+      # making, and stops before `npm ci` when it cannot make the one asked for.
+      server:
+        description: 'Talk to the Supabase project (sign in, sync, share). Off = this phone only.'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -57,6 +76,60 @@ jobs:
             exit 1
           fi
 
+      # The same fail-fast, for the two secrets that decide whether the update
+      # can reach the server at all. Same ten seconds, same reason: this is a
+      # settings page, not a build failure, and it is a page a phone can open.
+      - name: Check the project keys are there, if the update is to have a server
+        env:
+          WANT_SERVER: ${{ inputs.server }}
+          SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ "$WANT_SERVER" != "true" ]; then
+            echo "server=no" >> "$GITHUB_ENV"
+            echo "Publishing an on-device-only update, as asked."
+            exit 0
+          fi
+
+          # `if` rather than `[ … ] && …`: every run step here is `bash -e`, and
+          # a bare test that comes out false is a failed command under it.
+          missing=""
+          if [ -z "$SUPABASE_URL" ]; then missing="$missing EXPO_PUBLIC_SUPABASE_URL"; fi
+          if [ -z "$SUPABASE_KEY" ]; then missing="$missing EXPO_PUBLIC_SUPABASE_ANON_KEY"; fi
+
+          if [ -n "$missing" ]; then
+            {
+              echo "## Nothing was published"
+              echo
+              echo 'This run was asked for an update that talks to the Supabase project,'
+              echo 'and the repository is missing:'
+              echo
+              for name in $missing; do echo "- \`$name\`"; done
+              echo
+              echo 'Both go in **Settings → Secrets and variables → Actions → New repository'
+              echo 'secret**, and both are safe to put there — the anon key is designed to be'
+              echo 'public and ships inside the app bundle either way; the row-level security'
+              echo 'policies in `supabase/migrations` are what protect the data. Never put a'
+              echo '`service_role` or `sb_secret_` key here: the app refuses to start with one.'
+              echo
+              echo 'The values, from the Supabase dashboard for project'
+              echo '`eciozeeqywpgqlxqmprl` (docs/setup-supabase.md):'
+              echo
+              echo '- `EXPO_PUBLIC_SUPABASE_URL` — Project Settings → Data API. It looks like'
+              echo '  `https://eciozeeqywpgqlxqmprl.supabase.co`, not the dashboard address.'
+              echo '- `EXPO_PUBLIC_SUPABASE_ANON_KEY` — Project Settings → API Keys. The one'
+              echo '  labelled `anon` / `public`, or the `sb_publishable_…` one. Copy it whole.'
+              echo
+              echo 'Then run this again. To publish the on-device-only app deliberately'
+              echo 'instead, run it with **Talk to the Supabase project** unticked.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::the update was to have a server; not set:$missing — see the run summary"
+            exit 1
+          fi
+
+          echo "server=yes" >> "$GITHUB_ENV"
+          echo "Publishing an update that carries the Supabase project."
+
       # 22 for the same reason pages.yml pins it: whichNight.test.ts opens a
       # database through `node:sqlite`, which does not exist before Node 22.
       - uses: actions/setup-node@v4
@@ -74,13 +147,12 @@ jobs:
       - name: Publish the update
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          # Optional, and the same two secrets pages.yml uses. With them the
-          # night queues itself up for the server and goes up whenever there is
-          # signal; without them the app is purely local. Neither can lose a
-          # night — the queue is a table on the phone — so this is not worth an
-          # evening. apps/mobile/.env.example says why both are safe to publish.
-          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          # Baked into the bundle by Expo at publish time, which is why the step
+          # above refuses to get this far without them. Passed as empty strings
+          # when the run asked for the on-device-only app, so that choice is
+          # honoured even on a repository that has the secrets set.
+          EXPO_PUBLIC_SUPABASE_URL: ${{ inputs.server && secrets.EXPO_PUBLIC_SUPABASE_URL || '' }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ inputs.server && secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY || '' }}
         run: |
           set -o pipefail
           npm run publish:go --workspace @poker-club/mobile -- --non-interactive \
@@ -89,6 +161,10 @@ jobs:
       # `eas update` prints the link to the published update, and that link is
       # the whole deliverable — it is what the phone opens. The Actions log is
       # awkward to read on a phone and the summary is not, so it goes here.
+      #
+      # With it, the one property of the update that no link and no publish
+      # table shows: which of the two apps this is. A host reads that here or
+      # discovers it at a table.
       - name: Say where it is
         if: always()
         run: |
@@ -96,6 +172,19 @@ jobs:
           [ -f "$log" ] || exit 0
           {
             echo "## The update"
+            echo
+            if [ "${server:-no}" = "yes" ]; then
+              echo '**It talks to the Supabase project.** On the phone, Settings → Account'
+              echo 'offers a sign-in rather than saying no server is configured, and'
+              echo 'Settings → Connection answers *Connected*. Signing in needs an address'
+              echo 'that has been invited in the dashboard — signups are closed on purpose'
+              echo '(docs/auth-test-period.md). The night records either way.'
+            else
+              echo '**It is on-device only.** Nothing leaves the phone: no sign-in, no sync,'
+              echo 'no sharing, and no "no connection" banner, because a local app has'
+              echo 'nothing to be out of touch with. Everything else works, including'
+              echo 'closing a night and reading its settlement.'
+            fi
             echo
             echo 'Open this on the iPhone. It hands off to Expo Go, which has to be'
             echo 'signed in to the account that owns the project — otherwise it will'
