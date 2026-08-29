@@ -227,6 +227,51 @@ account you own.
 
 ---
 
+## The host's own seat
+
+Everything above is about a *player* being recognised. The host is the one
+person the whole document takes for granted, and on a freshly seeded phone they
+were not recognised at all.
+
+`sampleNight` lays down the handoff's canonical night so a screen can be held
+against the frame it was drawn from, and `meId` has to point at one of its
+seats. It pointed at **Marek** — a name out of the design's example. That is the
+right thing for a fixture and the wrong thing for a person: the host opened the
+app and found their buy-ins, the You on the results and the whole of My stats
+filed under somebody in a spec, with nothing on any screen saying which of the
+seven names was supposed to be them.
+
+Three things now hold.
+
+**The seat has the host's name.** `hostSeat.ts` owns it — `HOST_ID`, which never
+moves, and `HOST_NAME`, which is what the seed and the roster both read. Keeping
+the id is the point: a fresh one would strand the `club_member` row beside the
+night's and put two of the same person in the group. A phone that had already
+seeded itself is repaired once, on the name it was given rather than on a name
+the host typed, so saying something else sticks.
+
+**Saying "this is me" moves the money's idea of you.** Standing is the club's
+answer to which row is the phone's; `meId` is the night's. `makeAdmin` used to
+move only the first, which left the two out of step — and `useIsAdmin` reads
+*out of step* as **not the host**, so correcting the roster mid-game took the
+write controls off the person recording it. It now moves both, across every
+table still running.
+
+**A settled night is never restamped.** `CLAIM_LIVE_NIGHTS` stops at
+`status != 'settled'`, the same line `renamePlayerInPlay` draws. A result
+already filed under a seat stays filed there. It is a real limit — a host who
+names themselves after settling a night keeps that night on the old seat — and
+the fix for it is the ledger's own, not a rewrite of the book.
+
+None of this is a credential, and none of it grants anything. It is the same
+note-to-ourselves `rememberClaimedSeat` writes, at the other end of the same
+question: **which of these names is the person holding the phone.** The
+authoritative answer still arrives the way this document says it does — a member
+claims their place from an invite — and this is only what the app says before
+anybody has.
+
+---
+
 ## The other three answers
 
 ### Link properties

@@ -73,6 +73,46 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B13 — the phone's own figures were filed under somebody out of the design
+
+```
+Screen      not one screen — home's "What you paid", E6's You row, G4 My stats,
+            and every control useIsAdmin draws
+Seen        the app opens with the host being Marek, a name out of the handoff's
+            canonical night. Saying "this is me" on the roster changed the
+            roster and nothing else: the night went on attributing the host's
+            buy-ins and their result to the seeded guess, My stats stayed empty,
+            and the host lost the write controls on their own live game
+Expected    the host is themselves, by name; and saying so once moves whose
+            figures are called yours on every table still running
+Found       29 Aug, on the phone
+Locked by   npm run check — hostSeat.test.ts, "never overwrites a name the host
+            chose" and "never rewrites a night that is settled"
+Status      fixed in this commit
+```
+
+Two halves, and the second is the one that had teeth.
+
+The **name** was a seed problem. `sampleNight` has to stamp `meId` onto
+somebody, and it stamped the canonical night's Marek — so a screen could be held
+against the frame it was drawn from, which was worth doing and was never meant
+to be the answer a person read. `hostSeat.ts` gives that seat the host's name
+instead, keeping the id, and repairs the roster's copy of the row once. Keeping
+the id is the whole trick: a fresh one would have stranded the club_member row
+beside the night's and put two of the same person in the group.
+
+The **standing** was a correctness problem. `useIsAdmin` asks whether the club's
+admin *is* the night's `meId`, and `makeAdmin` only ever moved the first of the
+two. So the one control in the app for saying who you are put the two answers
+out of step, and out of step means not admin — the host tapped their own name
+and the app stopped letting them record a buy-in. `makeAdmin` now moves both.
+
+`CLAIM_LIVE_NIGHTS` stops at a settled night on purpose, the same line
+`renamePlayerInPlay` draws: a result already filed under a seat stays filed
+there. That is a real limit and not an oversight — a host who names themselves
+after settling a night keeps that night's result on the old seat, and the honest
+fix for it is the ledger's own, not a rewrite of the book.
+
 ### B5 — a night forgot the group's rounding the moment it was reloaded
 
 ```
