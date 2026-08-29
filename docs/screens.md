@@ -112,8 +112,13 @@ its own board, and no tool here could say so.
 **Only O1 is filled in.** Every other route's list is empty, and each one is a
 few minutes with a board. Keep it to what the board actually draws: a screen may
 hold **more** than its board — O1 states the currency, which is drawn nowhere —
-but never less, and the pass is worth nothing the moment a string is in it that
-nobody drew.
+and the pass is worth nothing the moment a string is in it that nobody drew.
+
+Holding **less** is the fault this catches, so a row may only leave the map when
+a decision says the row itself is gone — never because a screen stopped showing
+it. One has: O1's *Start time*, on 29 August. When that happens the comment
+beside the entry says which decision, and there is a note further down this file
+saying it too.
 
 ## A coverage hole this file found
 
@@ -132,13 +137,33 @@ top of this table is the thing that catches it if it does not.
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
 
-**`/new-night`** — O1's *The game* is the board's four rows in the board's
-order: Stakes, Default buy-in, Start time, Money rules. Currency sits among them
-and is drawn nowhere; it is stated here and changed in the group, which is why
-it alone has no chevron. The Stakes row's editor is not drawn either — no board
-opens it — and is assembled from the two controls rev 18 § 6 names for exactly
-this setting, the numeric cell and the pill segmented pick. B4 in `docs/bugs.md`
-is the history, and `DRAWN` is what now holds the four rows in place.
+**`/new-night`** — O1's *The game* is the board's rows in the board's order:
+Stakes, Default buy-in, Money rules. Currency sits among them and is drawn
+nowhere. The Stakes row's editor is not drawn either — no board opens it — and
+is assembled from the two controls rev 18 § 6 names for exactly this setting,
+the numeric cell and the pill segmented pick. B4 in `docs/bugs.md` is the
+history, and `DRAWN` is what holds those rows in place.
+
+Two of those rows changed on **29 August**, and both are departures from the
+board that the next session should not "fix" back:
+
+- **Start time is gone.** The board draws the row and rev 18 says the figure is
+  editable; a night is now stamped with the clock at the moment its table is
+  opened, and there is nothing left to set. This is the only route where the
+  screen deliberately holds **less** than its board, so *Start time* came out
+  of `DRAWN` — with a comment there saying why, because a missing drawn row is
+  otherwise exactly the fault that check exists to catch. The primary still
+  reads "Open the table · 20:05"; that figure is the phone's clock now, kept on
+  the minute by `useNow`, so a sheet left open while people are seated does not
+  go on promising the minute it was opened in.
+- **Currency opens a picker.** It used to be the one row with no chevron —
+  stated here, changed in the group — which was the wrong half of a true rule.
+  The currency is still the GROUP's (`03-data-model.md` carries it there and
+  nowhere else) and the row's sub-line says so; what changed is that setting the
+  game up is where a host is thinking about it, and a club created in dollars by
+  a default nobody chose had no obvious way out. The picker is O2's search box
+  over the ISO 4217 list: a code, a symbol or the name of the money all match,
+  and the whole list is underneath for somebody who does not know the code.
 
 **`/log`** — the preset row is the board's own chip (one object: figure over
 caption, raised surface, fill swap on choose), not `Button variant="preset"`

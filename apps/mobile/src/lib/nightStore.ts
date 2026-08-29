@@ -1335,10 +1335,14 @@ export async function startNight(input: {
   seats: ReadonlyArray<{ playerId: PlayerId; name: string; buyIn: Money }>;
   meId?: PlayerId;
   /**
-   * When the game actually began. Defaults to now, and O1 lets it be set back:
-   * a host who opens the app at 20:40 for a game that started at 20:05 is the
-   * ordinary case, and this is the figure the elapsed clock and every entry's
-   * stamp are read from.
+   * When the game began. Defaults to now, which since 29 August is what every
+   * night gets: O1 used to carry an editable *Start time* row and no longer
+   * does — the stamp is taken when the table is opened, because that is the
+   * moment somebody is standing at the table pressing the button.
+   *
+   * The parameter stays for a caller that knows better than the clock — a
+   * night restored from the server carries its own — and because the figure is
+   * not cosmetic: the elapsed clock and every entry's stamp read from it.
    */
   startedAt?: Date;
   /**
