@@ -140,7 +140,9 @@ export default function Settings() {
       /* GR7's subtitle is the club and your standing in it — "people" came
          out of it in rev 18, and the standing is what a reader needs: this
          screen shows different things to an admin and to a member. */
-      meta={club === null ? undefined : `${club.name} · you are admin`}
+      meta={
+        club === null ? undefined : `${club.name} · you are ${admin ? 'admin' : 'a member'}`
+      }
     >
       <View style={styles.list}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>The group</Text>
@@ -177,6 +179,27 @@ export default function Settings() {
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The people</Text>
 
+        {/*
+         * WHICH OF THE NAMES IS YOU.
+         *
+         * ⚠ COPY NOT DRAWN. GR7 has no row for this, because it was written for
+         * a club whose host had always been themselves. On a phone the app
+         * seeded, they are not: the roster opens with a table of people out of
+         * the design's canonical night and one of them is silently carrying the
+         * host's own figures. This is mine and it wants review — but a screen
+         * that says "you are admin" while naming nobody is the state that let a
+         * host play a whole night filed under somebody else.
+         *
+         * It goes to GR5, which is where the two corrections live: the name
+         * field, and *this is me* on a different row.
+         */}
+        {adminRow !== undefined && (
+          <FactAction
+            label="You"
+            value={adminRow.name}
+            onPress={() => router.push({ pathname: '/member', params: { id: adminRow.id } })}
+          />
+        )}
         <Action label="Players" onPress={() => router.push('/players')} />
         <Fact
           label="Invited"
@@ -313,6 +336,50 @@ function Fact({ label, value, last = false }: { label: string; value: string; la
         {value}
       </Text>
     </View>
+  );
+}
+
+/**
+ * A fact you can correct — the value on the right and the chevron after it.
+ *
+ * `Fact` and `Action` are the two halves of this list and neither one fits a
+ * row that both states something and leads somewhere. Rather than a third
+ * layout it is the two of them side by side: `Fact`'s value, `Action`'s
+ * chevron, and the same row metrics as everything above and below it.
+ */
+function FactAction({
+  label,
+  value,
+  onPress,
+  last = false,
+}: {
+  label: string;
+  value: string;
+  onPress: () => void;
+  last?: boolean;
+}) {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.row,
+        {
+          borderBottomColor: t.hairline,
+          borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth,
+          opacity: pressed ? 0.6 : 1,
+        },
+      ]}
+    >
+      <Text style={[styles.label, { color: t.text }]}>{label}</Text>
+      <Text style={[styles.value, { color: t.muted }]} numberOfLines={1}>
+        {value}
+      </Text>
+      {/* No `marginLeft: auto` here: the value has already taken the space and
+          the chevron only follows it. */}
+      <Icon name="chevron" color={t.muted} />
+    </Pressable>
   );
 }
 

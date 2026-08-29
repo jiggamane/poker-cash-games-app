@@ -15,9 +15,18 @@
  */
 
 import { money, type LedgerEntry, type MoneyRule, type Player } from '@poker-club/core';
+import { HOST_ID, HOST_NAME } from '../lib/hostSeat';
 
 const DANA = 'seed-dana';
-const MAREK = 'seed-marek';
+/*
+ * THE SEAT THE PHONE BELONGS TO, and the one place in this fixture that is not
+ * the design's. Everything else here is the handoff's canonical night to the
+ * letter; this row is the host, because `meId` below has to point at somebody
+ * and a name out of a spec is the wrong somebody to hand a person's own
+ * figures to. The id is unchanged — see `hostSeat.ts` — so every entry, rule
+ * and roster row that already names this person still does.
+ */
+const HOST = HOST_ID;
 const LENA = 'seed-lena';
 const TOMAS = 'seed-tomas';
 const IVO = 'seed-ivo';
@@ -26,7 +35,7 @@ const RADKA = 'seed-radka';
 
 const players: Player[] = [
   { id: DANA, name: 'Dana', atTable: true },
-  { id: MAREK, name: 'Marek', atTable: true },
+  { id: HOST, name: HOST_NAME, atTable: true },
   { id: LENA, name: 'Lena', atTable: true },
   { id: TOMAS, name: 'Tomáš', atTable: true },
   { id: IVO, name: 'Ivo', atTable: true },
@@ -70,12 +79,12 @@ type SeedEntry = Omit<LedgerEntry, 'id' | 'seq'> & { occurredAt: string; note?: 
 const entries: SeedEntry[] = [
   { type: 'buyin', playerId: LENA, amount: money(1000), occurredAt: at('20:06') }, // double
   { type: 'buyin', playerId: PETR, amount: money(500), occurredAt: at('20:07') },
-  { type: 'buyin', playerId: MAREK, amount: money(500), occurredAt: at('20:09') },
+  { type: 'buyin', playerId: HOST, amount: money(500), occurredAt: at('20:09') },
   { type: 'buyin', playerId: IVO, amount: money(500), occurredAt: at('20:11') },
   { type: 'buyin', playerId: DANA, amount: money(500), occurredAt: at('20:41') }, // late
   { type: 'rebuy', playerId: PETR, amount: money(500), occurredAt: at('21:12') },
   { type: 'rebuy', playerId: IVO, amount: money(500), occurredAt: at('21:35') },
-  { type: 'expense', payerId: MAREK, amount: money(120), occurredAt: at('21:48'), note: 'Pizza' },
+  { type: 'expense', payerId: HOST, amount: money(120), occurredAt: at('21:48'), note: 'Pizza' },
   { type: 'rebuy', playerId: PETR, amount: money(500), occurredAt: at('22:03') },
   { type: 'expense', payerId: LENA, amount: money(50), occurredAt: at('22:20'), note: 'Drinks' },
   { type: 'buyin', playerId: TOMAS, amount: money(500), occurredAt: at('22:34') },
@@ -106,7 +115,7 @@ const rules: MoneyRule[] = [
     // The expenses are the amount; the rule only says how it is shared.
     amountKind: 'fixed', amount: money(170), basis: 'gross',
     charge: 'winners_only', destination: 'bill', split: 'by_percent',
-    collectorPlayerId: MAREK, sortOrder: 1,
+    collectorPlayerId: HOST, sortOrder: 1,
   },
 ];
 
@@ -124,7 +133,7 @@ const rules: MoneyRule[] = [
  * is replaced on launch. A night the host STARTED carries no version at all and
  * is never touched by any of this — see `openNight`.
  */
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 
 export const SEED = {
   groupName: 'The Thursday game',
@@ -133,10 +142,14 @@ export const SEED = {
   entries,
   rules,
   /*
-   * Whoever is holding this phone. It is a seeded guess and nothing more —
-   * the real answer arrives when a member claims their place from an invite,
-   * and until then it is what lets "What you paid" and My stats say YOUR
-   * figures rather than everybody's.
+   * Whoever is holding this phone — the host, by name, rather than a stand-in
+   * out of the design's example. It is what lets "What you paid" and My stats
+   * say YOUR figures rather than everybody's, and it is what the results screen
+   * reads to decide which row is called You.
+   *
+   * STILL ONLY THE OPENING ANSWER. A member who claims their place from an
+   * invite says so for themselves, and so does a host who taps *this is me* on
+   * a roster row — `makeAdmin` moves this onto every table still running.
    */
-  meId: MAREK,
+  meId: HOST,
 };

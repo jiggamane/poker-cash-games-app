@@ -17,6 +17,7 @@ import {
   type RoundingMode,
   type SettlementInput,
 } from '@poker-club/core';
+import { CLAIM_LIVE_NIGHTS } from './hostSeat';
 import { outbox, recordEntry } from './ledgerRepo';
 import { queuePlayer, queueSessionOpen } from './sync';
 import {
@@ -773,6 +774,35 @@ export async function renamePlayerInPlay(id: PlayerId, name: string): Promise<vo
     ...night,
     players: night.players.map((p) => (p.id === id ? { ...p, name: trimmed } : p)),
   };
+  emit();
+}
+
+/**
+ * Say which seat at the table is the person holding this phone.
+ *
+ * WHAT IT MOVES IS WHOSE FIGURES ARE CALLED YOURS, and nothing else. Home's
+ * "What you paid", the row the results screen labels You, and what My stats
+ * adds up are all read off `meId`; not one figure in the ledger is touched by
+ * it, and the settlement does not know it exists.
+ *
+ * IT USED TO BE SET ONCE, AT BIRTH, AND NEVER AGAIN. A night is stamped with
+ * the club's admin when it opens, so a host who said *this is me* on their own
+ * roster row halfway through a game changed the roster and nothing else: the
+ * night went on attributing their buy-ins and their result to whoever the seed
+ * had guessed, My stats stayed empty, and — because `useIsAdmin` asks whether
+ * the club's admin IS the night's me — the host lost the controls on their own
+ * live game the moment they corrected it. Saying who you are is not something
+ * the app can afford to accept and ignore.
+ *
+ * Every table still running moves, and a settled one never does: see
+ * `CLAIM_LIVE_NIGHTS`.
+ */
+export async function setMeSeat(id: PlayerId): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(CLAIM_LIVE_NIGHTS, id);
+
+  if (night === null || night.status === 'settled') return;
+  night = { ...night, meId: id };
   emit();
 }
 

@@ -10,7 +10,8 @@ import {
   type RoundingMode,
   type Stakes,
 } from '@poker-club/core';
-import { dropPlayerFromPlay, renamePlayerInPlay } from './nightStore';
+import { HOST_ID, NAME_THE_HOST, RETIRED_HOST_NAMES } from './hostSeat';
+import { dropPlayerFromPlay, renamePlayerInPlay, setMeSeat } from './nightStore';
 import { clubForBook, rosterAdditions, sameName, type RosterPerson } from './rosterMerge';
 import { drain, queueRosterPlayer } from './sync';
 
@@ -199,6 +200,23 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
         // Already there.
       }
     }
+
+    /*
+     * THE HOST'S OWN ROW, GIVEN THE HOST'S NAME.
+     *
+     * A stale seeded NIGHT is replaced on launch — `SEED_VERSION` exists for
+     * exactly that — but the club seeded beside it is not: `loadClubs` seeds
+     * only when there is no club at all, so the roster's copy of this person
+     * keeps whichever name it met on the very first launch, for ever. A phone
+     * that had already opened the app would have shown the night's new name on
+     * every screen and the old one on Players, which is worse than either.
+     *
+     * So it is repaired here, where the columns are, and it repairs itself
+     * ONCE: the WHERE clause matches only a name out of an old seed, so the
+     * second launch finds nothing and a name the host typed is never touched.
+     * See `hostSeat.ts`.
+     */
+    await db.runAsync(NAME_THE_HOST, HOST_ID, ...RETIRED_HOST_NAMES);
   });
 
 // ---------------------------------------------------------------------------
@@ -623,6 +641,16 @@ export async function makeAdmin(clubId: string, id: PlayerId): Promise<void> {
       id,
     );
   });
+  /*
+   * AND THE NIGHT FOLLOWS. Standing is the club's answer to "who is holding
+   * this phone" and `meId` is the night's, and until now only the first of them
+   * moved — so the row this call had just named as you went on being somebody
+   * else everywhere the money is: home's "What you paid", the You on the
+   * results, My stats, and `useIsAdmin`, which locked the host out of the very
+   * game they were recording. One tap, one answer, both places. See `setMeSeat`
+   * for what it does and does not reach.
+   */
+  await setMeSeat(id);
   await loadClubs();
 }
 
