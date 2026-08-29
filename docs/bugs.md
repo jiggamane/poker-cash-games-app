@@ -73,6 +73,60 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B6 — B3 again, on the share sheet, for a week after B3 was fixed
+
+```
+Screen      /share — the preset row, opened by tapping any figure on E3
+            Deductions
+Seen        at 360 the word "Custom" runs 257.69…320.97 inside a padding box
+            that ends at 263.66…314.98: six points out of the left of its
+            button and six out of the right, touching the rounded edge on both
+            sides. Both themes. The captions — BY THE RULE, NOTHING, SET — sat
+            on the ground below the chips rather than inside them.
+Expected    the board's chip, the same object /log already uses: the figure
+            over its caption, on a raised surface, choosing it swaps the fill
+Found       29 Aug, reported from the phone
+Locked by   npm run check:ui — ui-audit.mjs, "label-out-of-its-control", with
+            /share now opened WITH ITS PARAMS (the new `PARAMS` map) so the row
+            is on screen when the pass runs; and ui-journeys.mjs, which now
+            taps a charge on Deductions and measures the sheet on a night in
+            the millions
+Status      fixed in this commit
+```
+
+**This is not a new bug. It is B3, in the second of the two places B3 lived.**
+B3 rebuilt the chip in `log.tsx`, wrote down why, and left `share.tsx` on the
+shape it had just replaced — same `Button variant="preset"`, same 24 points of
+padding a side, same word coming out through both sides of its own button. The
+measurement above is B3's measurement, to the hundredth of a point, on a
+different route eight days later.
+
+So the fix is not the chip a second time. The chip is now
+`apps/mobile/src/components/Preset.tsx` and both screens draw it, which is the
+only version of this fix that cannot half-land again. A copied component is a
+bug with a delay fuse: `docs/screens.md` even recorded the divergence — *"/share
+still has the older shape and the same 24"* — and recording it is not the same
+as it being anybody's next job.
+
+**Why nothing saw it.** `/share` has been in the audit's `ROUTES` since B2 put
+it there, and the pass has been opening it at `/share` with no arguments the
+whole time. The sheet needs to be told which rule and which person; without them
+it renders its empty fallback — a titled sheet with no body — and every check
+passes over it, because a sheet holding nothing holds nothing wrong. Seventeen
+route-passes' worth of green over a screen whose body was never built.
+
+Two things close it, and the first is the one that matters:
+
+- `ui-audit.mjs` now carries a `PARAMS` map, and `/share` is opened at
+  `?rule=kitchen&player=seed-lena` — the seeded night's own bill and somebody it
+  charges. Against the old build the pass reports the finding twice, once per
+  theme, at 360; against the new one, nothing. Any other screen that is nothing
+  without its arguments gets a line in that map.
+- `ui-journeys.mjs` now taps a charge on Deductions, which is how a host reaches
+  this sheet, and measures it with the big night's figures on it. It is the only
+  path to `/share` that has a real night behind it — the browser build keeps its
+  database in memory, so no URL can carry one.
+
 ### B5 — a night forgot the group's rounding the moment it was reloaded
 
 ```

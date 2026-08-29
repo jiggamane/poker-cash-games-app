@@ -96,6 +96,35 @@ const ROUTES = [
 ];
 
 /*
+ * ROUTES THAT ARE NOTHING WITHOUT THEIR PARAMS.
+ *
+ * A route in the list above is opened at its bare path, and a screen that
+ * needs to be told WHICH rule and WHICH person renders its empty fallback
+ * instead — a titled sheet with no body. Every check in this file then passes
+ * over it, because a sheet holding nothing holds nothing wrong, and the route
+ * counts as covered in the tally at the top of `docs/screens.md`.
+ *
+ * That is how B6 lived: /share has been in ROUTES since B2 added it, and what
+ * the pass measured all that time was the fallback. Its preset row — the one
+ * carrying "Custom", the exact string B3 was about — was never on screen at
+ * any width, in either theme, on any run.
+ *
+ * So a route may name a query string, and it is opened with it. The values
+ * below are the seeded night's own (`apps/mobile/src/data/sampleNight.ts`):
+ * the bill, and somebody sitting at it. The seeded night is still being played,
+ * so the figures on it are zero — what this pass needs is the ROW, and the
+ * widest thing on it is the word "Custom" either way. `ui-journeys.mjs` is
+ * where the sheet meets real money. Add a line here for any other screen whose
+ * real state needs an argument.
+ */
+const PARAMS = {
+  '/share': '?rule=kitchen&player=seed-lena',
+};
+
+/** The URL a route is actually opened at. */
+const urlOf = (route) => BASE + route + (PARAMS[route] ?? '');
+
+/*
  * ROWS THE BOARD DRAWS THAT THE SCREEN MUST STILL SHOW.
  *
  * Every other check in this file asks whether what is on the screen obeys the
@@ -642,7 +671,7 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
       await page.addInitScript(eval(`(${FAKE_VIEWPORT})`), { height: HEIGHT, keyboard: KEYBOARD });
       let findings = [];
       try {
-        await page.goto(BASE + route, { waitUntil: 'networkidle' });
+        await page.goto(urlOf(route), { waitUntil: 'networkidle' });
         await page.waitForTimeout(450);
         findings = await page.evaluate(ROOM);
 
@@ -742,7 +771,7 @@ if (sheetRoutes.length > 0) {
       await page.addInitScript(eval(`(${FAKE_SAFE_AREA})`), { top, bottom });
       let m = null;
       try {
-        await page.goto(BASE + route, { waitUntil: 'networkidle' });
+        await page.goto(urlOf(route), { waitUntil: 'networkidle' });
         await page.waitForTimeout(450);
         m = await page.evaluate(eval(`(${SHEET})`), {
           insetTop: top,

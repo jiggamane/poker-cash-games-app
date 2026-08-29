@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import {
   chargeCeiling,
   formatMoney,
+  formatToFit,
   manualChargeOf,
   money,
   resolveLedger,
@@ -16,9 +17,10 @@ import {
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Keypad, appendDigits } from '../src/components/Keypad';
+import { PRESET_FITS, Preset } from '../src/components/Preset';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { block, radius, space, type } from '../src/design/tokens';
+import { block, space, type } from '../src/design/tokens';
 import { nameOf, setManualCharge, settlementInput, useNight } from '../src/lib/nightStore';
 import { useIsAdmin } from '../src/lib/whoIsReading';
 
@@ -256,14 +258,22 @@ export default function Share() {
         )}
       </View>
 
+      {/* The chip row is `src/components/Preset.tsx` — the same object as on
+          the amount sheet, and shared rather than copied because this screen
+          spent a week on the shape B3 replaced there. See B6 in docs/bugs.md. */}
       <View style={styles.presets}>
         <Preset
-          label={formatMoney(money(onTheSplit))}
+          label={formatToFit(money(onTheSplit), PRESET_FITS)}
           caption="BY THE RULE"
           on={amount === onTheSplit && onTheSplit !== 0}
           onPress={() => setTyped(String(onTheSplit))}
         />
-        <Preset label={formatMoney(money(0))} caption="NOTHING" on={amount === 0} onPress={() => setTyped('0')} />
+        <Preset
+          label={formatMoney(money(0))}
+          caption="NOTHING"
+          on={amount === 0}
+          onPress={() => setTyped('0')}
+        />
         <Preset
           label="Custom"
           caption="SET"
@@ -325,27 +335,6 @@ function safeSettle(input: Parameters<typeof settle>[0] | null): SettlementResul
   }
 }
 
-/** $170 / $0 / Custom. Filled when chosen — 44px, per the button rules. */
-function Preset({
-  label,
-  caption,
-  on,
-  onPress,
-}: {
-  label: string;
-  caption: string;
-  on: boolean;
-  onPress: () => void;
-}) {
-  const t = useTheme();
-  return (
-    <View style={styles.presetSlot}>
-      <Button label={label} variant="preset" selected={on} onPress={onPress} style={styles.preset} />
-      <Text style={[styles.presetCaption, { color: on ? t.text : t.muted }]}>{caption}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   amountRow: { alignItems: 'center', paddingTop: 10, paddingBottom: 14, gap: 6 },
   amount: { fontSize: 60, fontWeight: '800', letterSpacing: -3, fontVariant: ['tabular-nums'] },
@@ -377,7 +366,4 @@ const styles = StyleSheet.create({
   otherNow: { fontSize: 15, fontWeight: '700', width: 74, textAlign: 'right', fontVariant: ['tabular-nums'] },
 
   presets: { flexDirection: 'row', gap: 8, paddingHorizontal: space.card, paddingBottom: 14 },
-  presetSlot: { flex: 1, alignItems: 'center', gap: 3 },
-  preset: { width: '100%', height: 44 },
-  presetCaption: { fontSize: 9, fontWeight: '700', letterSpacing: 0.72 },
 });
