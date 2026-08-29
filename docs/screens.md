@@ -82,14 +82,14 @@ is settled when it is not.
 | `/settings` | push | ✓ | — | — | ☐ |
 | `/settle-up` | push | ✓ | — | ✓ | ☐ |
 | `/settled` | push | ✓ | — | ✓ | ☐ |
-| `/share` | sheet | ✓ | ✓ | — | ☐ |
+| `/share` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/sign-in` | sheet | ✓ | ✓ | — | ☐ |
 | `/spend` | sheet | ✓ | ✓ | — | ☐ |
 | `/stands` | push | ✓ | — | ✓ | ☐ |
 | `/stats` | push | ✓ | — | — | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**37 screens · 37 under the rule pass · 21 under the sheet pass · 9 under a big
+**37 screens · 37 under the rule pass · 21 under the sheet pass · 10 under a big
 night · 0 conformed.**
 
 That last zero is honest rather than pessimistic. Screens have been held against
@@ -132,6 +132,12 @@ prints exactly what a script that checks all 37 prints. Both are in `ROUTES`
 now. **When a screen is added, it goes in both lists** — and the count at the
 top of this table is the thing that catches it if it does not.
 
+There is a second version of that hole, and B14 is it: a route can be in every
+list and still be measured empty, because the screen needs an argument to have a
+body at all. A count of routes cannot see that — the tally says 37 either way.
+**A screen that takes params gets a line in the audit's `PARAMS` map**, and if
+its real state needs a night rather than a URL, a step in `ui-journeys.mjs`.
+
 ## Notes per screen
 
 *Add a line here when a screen is conformed, or when something about it is worth
@@ -165,9 +171,17 @@ board that the next session should not "fix" back:
   over the ISO 4217 list: a code, a symbol or the name of the money all match,
   and the whole list is underneath for somebody who does not know the code.
 
-**`/log`** — the preset row is the board's own chip (one object: figure over
-caption, raised surface, fill swap on choose), not `Button variant="preset"`
-with the caption printed underneath. That is deliberate and B3 in `docs/bugs.md`
-says why: `Button` pads 24 a side and a third of a sheet has not got it to give.
-`/share` still has the older shape and the same 24; it is not drawn on any
-board, so nothing here says what it should be instead.
+**`/log` and `/share`** — the preset row is the board's own chip (one object:
+figure over caption, raised surface, fill swap on choose), not `Button
+variant="preset"` with the caption printed underneath. That is deliberate and B3
+in `docs/bugs.md` says why: `Button` pads 24 a side and a third of a sheet has
+not got it to give. It is ONE component now —
+`apps/mobile/src/components/Preset.tsx` — because for a week it was two, one of
+them fixed and one of them not, which is B14.
+
+**`/share`** — nothing draws this sheet on any board, and it is nothing without
+its arguments: opened bare it renders a titled sheet with no body, which is what
+the rule pass measured for seventeen runs while the bug in B14 sat on it. The
+audit's `PARAMS` map now opens it with the seeded night's bill on it, and
+`ui-journeys.mjs` reaches it the way a host does — by tapping a charge on
+Deductions — which is the only path that has a real night behind it.

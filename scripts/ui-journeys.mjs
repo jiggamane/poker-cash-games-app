@@ -257,6 +257,29 @@ await page.waitForTimeout(1000);
 await tap('Apply the money rules');
 await stop('deductions');
 
+/*
+ * ONE SHARE, SET BY HAND — the only way to reach /share with a night on it.
+ *
+ * The sheet takes a rule and a person as arguments, so the route pass in
+ * `ui-audit.mjs` opens it with the seeded night's own (see PARAMS there) and
+ * gets figures in the hundreds. This is the other half: the biggest winner of
+ * a night in the millions, whose share of the bill is the widest figure the
+ * chip row will ever hold. Tapping a charge is how a host gets here — E3's
+ * "Tap any figure above to change it."
+ */
+/* The charge ROW, not the name: the same name is printed in the preview grid
+   below, where only the money cells are pressable and the last match is a row
+   that does nothing. */
+await page
+  .locator('[role="button"]:visible')
+  .filter({ hasText: players[0].name })
+  .first()
+  .click({ timeout: 15_000 });
+await page.waitForTimeout(900);
+await stop('a share, by hand');
+await page.getByLabel('Close').last().click();
+await page.waitForTimeout(900);
+
 await tap('See who pays whom');
 await stop('settle up');
 
