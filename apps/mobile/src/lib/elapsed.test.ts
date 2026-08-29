@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { elapsedLabel, msUntilNextLabelChange } from './elapsed';
+import { clockLabel, elapsedLabel, msUntilNextLabelChange, msUntilNextMinute } from './elapsed';
 
 /**
  * The running time is the live tag (S51), so this figure is the whole of the
@@ -94,5 +94,33 @@ describe('when the label next changes', () => {
     const wait = msUntilNextLabelChange(START, at(-5 * MINUTE));
     expect(wait).toBeGreaterThan(0);
     expect(wait).toBeLessThanOrEqual(MINUTE);
+  });
+});
+
+/**
+ * The wall clock on O1's primary. The start time stopped being a setting on
+ * 29 August — a night is stamped when the table opens — so this figure is the
+ * phone's clock, and a sheet left open while people are seated must not go on
+ * promising the minute it was opened in.
+ */
+describe('the wall clock', () => {
+  it('waits until the clock reads a different minute', () => {
+    const on = new Date('2026-08-16T20:05:00.000Z').getTime();
+    expect(msUntilNextMinute(on + 20_000)).toBe(40_000);
+    expect(msUntilNextMinute(on + 59_999)).toBe(1);
+  });
+
+  it('waits a whole minute when it is asked exactly on one', () => {
+    // A zero-delay timer would spin, and the label has not changed yet anyway.
+    expect(msUntilNextMinute(new Date('2026-08-16T20:05:00.000Z').getTime())).toBe(MINUTE);
+  });
+
+  it('lands on a moment the clock really does read differently', () => {
+    for (let ms = 0; ms < 3 * 60 * MINUTE; ms += 9_973) {
+      const now = at(ms);
+      expect(clockLabel(new Date(now + msUntilNextMinute(now)))).not.toBe(
+        clockLabel(new Date(now)),
+      );
+    }
   });
 });

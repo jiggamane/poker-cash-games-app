@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useTheme } from '../design/useTheme';
 import { radius, space, type } from '../design/tokens';
-import { CURRENCIES, currencyFor, searchCurrencies } from '../data/currencies';
+import {
+  COMMON_CURRENCIES,
+  CURRENCIES,
+  currencyFor,
+  searchCurrencies,
+} from '../data/currencies';
 
 /**
  * Picking the currency a group keeps its book in.
@@ -17,9 +22,10 @@ import { CURRENCIES, currencyFor, searchCurrencies } from '../data/currencies';
  * the same control, because they are what a table in this app has actually
  * been using. Anything picked by search joins them, so the choice is always
  * visible as a selected chip rather than only as text in a box.
+ *
+ * The four live in `data/currencies.ts` because O1's picker shows the same
+ * four above its own list, and two copies would drift.
  */
-const COMMON = ['USD', 'EUR', 'GBP', 'CZK'] as const;
-
 export function CurrencyField({
   value,
   onChange,
@@ -39,9 +45,9 @@ export function CurrencyField({
 
   // The four, plus whatever was searched for, so the picked one is never
   // off-screen after the box is cleared.
-  const chips = COMMON.some((c) => c === picked.code)
-    ? CURRENCIES.filter((c) => COMMON.some((k) => k === c.code))
-    : [...CURRENCIES.filter((c) => COMMON.some((k) => k === c.code)), picked];
+  const chips = COMMON_CURRENCIES.includes(picked.code)
+    ? CURRENCIES.filter((c) => COMMON_CURRENCIES.includes(c.code))
+    : [...CURRENCIES.filter((c) => COMMON_CURRENCIES.includes(c.code)), picked];
 
   function pick(code: string) {
     onChange(code);

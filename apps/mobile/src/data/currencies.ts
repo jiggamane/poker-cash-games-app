@@ -195,6 +195,18 @@ const BY_CODE = new Map(CURRENCIES.map((c) => [c.code, c]));
 export const DEFAULT_CURRENCY = 'USD';
 
 /**
+ * The few a table in this app has actually been using.
+ *
+ * NOT A RANKING and not a shortlist of what matters in the world — every one
+ * of the hundred and fifty-six is reachable by typing three letters. This is
+ * what goes in front of a person who has not typed anything yet, so that the
+ * common answer is one tap and the rest is one search. It was four chips on
+ * the group sheet before it was a name; both screens read it from here so
+ * they cannot come to differ.
+ */
+export const COMMON_CURRENCIES: readonly string[] = ['USD', 'EUR', 'GBP', 'CZK'];
+
+/**
  * A TIEBREAK, AND NOTHING ELSE. Symbols are not unique — `£` is the pound and
  * the Falkland Islands pound, `$` belongs to a dozen countries — and a list
  * that answers "£" with the Falklands because F comes before G is a list that

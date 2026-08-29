@@ -107,3 +107,36 @@ export const clockLabel = (at: string | Date): string =>
     hour: '2-digit',
     minute: '2-digit',
   });
+
+/**
+ * How long until the wall clock reads a different minute.
+ *
+ * The same shape as `msUntilNextLabelChange` and for the same reason: a
+ * fixed interval either burns renders or shows a stale figure for up to its
+ * own length. "20:05" changes exactly on the minute, so that is when to look
+ * again — and a clock sitting exactly on one waits a whole minute rather than
+ * no time at all, because a zero-delay timer would spin.
+ */
+export function msUntilNextMinute(now: number): number {
+  return MINUTE - (((now % MINUTE) + MINUTE) % MINUTE);
+}
+
+/**
+ * The wall clock, kept current.
+ *
+ * O1's primary reads "Open the table · 20:05", and since the start time
+ * stopped being a setting that figure is the phone's own clock: the stamp the
+ * night will carry the moment the button is pressed. A sheet can sit open for
+ * half an hour while a host seats people, so a figure computed once at mount
+ * would promise a time the night is not going to get.
+ */
+export function useNow(): Date {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setTimeout(() => setNow(Date.now()), msUntilNextMinute(now));
+    return () => clearTimeout(id);
+  }, [now]);
+
+  return new Date(now);
+}

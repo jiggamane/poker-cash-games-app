@@ -114,11 +114,24 @@ const ROUTES = [
  * `design/handoff-rev18/boards/`, and the point is broken by the first one
  * that is not. A screen may hold MORE than its board (O1 states the currency,
  * which is drawn nowhere); it may not hold less.
+ *
+ * A row leaves this map ONLY when a decision has removed the row itself — not
+ * because a screen stopped showing one. Exactly one has, and the entry below
+ * names it.
  */
 const DRAWN = {
-  // Journey Map 1 · "O1 New session" — the four rows of *The game*, and the
-  // dashed chip that seats somebody.
-  '/new-night': ['Stakes', 'Default buy-in', 'Start time', 'Money rules', 'Find a player'],
+  /*
+   * Journey Map 1 · "O1 New session" — the rows of *The game*, and the dashed
+   * chip that seats somebody.
+   *
+   * *Start time* is drawn there and is deliberately NOT here. The row was
+   * removed on 29 August: a night is stamped with the clock at the moment its
+   * table is opened, so there is nothing left to set. This is the one place in
+   * this map where the screen holds less than its board, and it is a decision
+   * rather than the fault B4 exists to catch — `docs/screens.md` says so
+   * beside the note that lists the board's rows.
+   */
+  '/new-night': ['Stakes', 'Default buy-in', 'Money rules', 'Find a player'],
 };
 
 const ROOM = `

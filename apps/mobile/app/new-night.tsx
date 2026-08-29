@@ -31,13 +31,20 @@ import { RuleList } from '../src/components/RuleList';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { currencyFor } from '../src/data/currencies';
-import { clockLabel } from '../src/lib/elapsed';
+import {
+  COMMON_CURRENCIES,
+  CURRENCIES,
+  currencyFor,
+  searchCurrencies,
+  type Currency,
+} from '../src/data/currencies';
+import { clockLabel, useNow } from '../src/lib/elapsed';
 import {
   addMember,
   inheritedFor,
   playHistory,
   rememberLastGame,
+  setClubCurrency,
   useClub,
   type Inherited,
   type PlayHistory,
@@ -67,7 +74,7 @@ import { draftRule, startNight, tableNameProblem, useOpenGames } from '../src/li
  * pre-filled from last night, so opening a night stays what it is: adding
  * players and confirming their first buy-ins.
  */
-type Step = 'game' | 'players' | 'rules' | 'rule' | 'stakes' | 'buy-in' | 'start';
+type Step = 'game' | 'players' | 'rules' | 'rule' | 'stakes' | 'buy-in' | 'currency';
 
 /** Where the close and a completed step return to. The flow is one level deep. */
 const PARENT: Record<Step, Step | null> = {
@@ -77,7 +84,7 @@ const PARENT: Record<Step, Step | null> = {
   rule: 'rules',
   stakes: 'game',
   'buy-in': 'game',
-  start: 'game',
+  currency: 'game',
 };
 
 export default function NewNight() {
@@ -98,8 +105,8 @@ export default function NewNight() {
   const [rules, setRules] = useState<MoneyRule[] | null>(null);
   const [buyIn, setBuyIn] = useState<Money | null>(null);
   const [stakes, setStakes] = useState<Stakes | null>(null);
-  const [startedAt, setStartedAt] = useState<Date>(() => new Date());
-  const [timeSet, setTimeSet] = useState(false);
+  /** What the primary says the table will be stamped at, kept on the minute. */
+  const now = useNow();
 
   const [picked, setPicked] = useState<Record<PlayerId, string>>({});
   const [busy, setBusy] = useState(false);
@@ -107,6 +114,8 @@ export default function NewNight() {
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
   const [search, setSearch] = useState('');
+  /** What has been typed into the currency search — a code, a symbol or a name. */
+  const [currencyQuery, setCurrencyQuery] = useState('');
   /** What to call this table, asked only when it is not the club's only one. */
   const [tableName, setTableName] = useState('');
 
@@ -186,7 +195,7 @@ export default function NewNight() {
       ? 'Pick who is playing'
       : nameProblem !== null
         ? 'Name this table'
-        : `Open the table · ${clockLabel(startedAt)}`;
+        : `Open the table · ${clockLabel(now)}`;
 
   async function openTable() {
     if (seats.length === 0 || busy || club === null || inherited === null) return;
@@ -208,7 +217,8 @@ export default function NewNight() {
         roundingMode: inherited.roundingMode,
         seats,
         buyIn: liveBuyIn,
-        ...(timeSet ? { startedAt } : {}),
+        // No start time goes on: `startNight` stamps the night with the clock
+        // at the moment the table opens, which is this instant.
         ...(second ? { tableName: tableName.trim() } : {}),
         // The club's roster is where a non-playing collector gets their name.
         nameOfCollector: (id) => club.members.find((m) => m.id === id)?.name,
@@ -307,7 +317,7 @@ export default function NewNight() {
               ? 'Stakes'
               : step === 'buy-in'
                 ? 'Default buy-in'
-                : 'Start time';
+                : 'Currency';
 
   const problem = draft === null ? null : ruleProblem(draft.rule, money(0));
 
@@ -337,6 +347,11 @@ export default function NewNight() {
           <Button label="Remove this rule" variant="destructive" onPress={removeDraft} />
         )}
       </>
+    ) : step === 'currency' ? (
+      // Nothing is held back to be saved here: picking a row writes the group
+      // and returns, so this button is the way out for somebody who opened the
+      // list and did not want anything from it.
+      <Button label="Done" variant="primary" onPress={() => go('game', -1)} />
     ) : (
       <Button label="Save" variant="primary" onPress={() => go('game', -1)} />
     );
@@ -408,18 +423,24 @@ export default function NewNight() {
                 onPress={() => go('buy-in')}
               />
               {/*
-               * A NIGHT DOES NOT PICK A CURRENCY. It is a club default — the top
-               * row of the settings table in 12-the-group.md § 2 — and a book
-               * whose column changed money halfway through would be unreadable.
-               * So it is stated here, where the game is set up, and changed in
-               * the group: no chevron, because this row does not go anywhere.
+               * A NIGHT DOES NOT PICK A CURRENCY — the money a book is written
+               * in belongs to the GROUP (`12-the-group.md` § 2, the top row of
+               * its settings table), and a book whose column changed money
+               * halfway through would be unreadable.
+               *
+               * What used to follow from that was a row with no chevron: the
+               * currency stated here and changed only in the group. It was the
+               * wrong half of the rule to enforce. Setting the game up is the
+               * one moment a host is thinking about what the table plays for,
+               * and the club was created in dollars by a default nobody chose
+               * — so this row opens the picker, and the sub-line says which
+               * layer it writes, because that part is still true.
                */}
-              <SettingRow label="Currency" value={`${currency.code} · ${currency.name}`} />
               <SettingRow
-                label="Start time"
-                sub="stamps every entry from here"
-                value={clockLabel(startedAt)}
-                onPress={() => go('start')}
+                label="Currency"
+                sub="the group's book"
+                value={`${currency.code} · ${currency.name}`}
+                onPress={() => go('currency')}
               />
               <SettingRow
                 label="Money rules"
@@ -564,12 +585,15 @@ export default function NewNight() {
           />
         )}
 
-        {step === 'start' && (
-          <StartTime
-            at={startedAt}
-            onChange={(d) => {
-              setStartedAt(d);
-              setTimeSet(true);
+        {step === 'currency' && (
+          <Currencies
+            picked={currency.code}
+            query={currencyQuery}
+            onQuery={setCurrencyQuery}
+            onPick={(code) => {
+              void setClubCurrency(club.id, code);
+              setCurrencyQuery('');
+              go('game', -1);
             }}
           />
         )}
@@ -1159,48 +1183,125 @@ function Amount({
 }
 
 /**
- * The start time.
+ * Picking the money this group keeps its book in.
  *
- * ⚠ COPY AND LAYOUT NOT DRAWN. O1 draws the row and says the time is editable
- * — "a host who opens the app at 20:40 for a game that started at 20:05 sets
- * it back" — but no editor for it exists on any board. Built in the same idiom
- * as the other figures on this sheet and flagged here rather than left
- * unbuilt, because an un-editable start time is a wrong elapsed clock on the
- * night screen for the rest of the evening.
+ * ⚠ LAYOUT NOT DRAWN. No board opens this — O1 states the currency and never
+ * offered to change it — so it is assembled from the two things on this sheet
+ * that are drawn: O2's search box, and the sheet row underneath it.
  *
- * It only ever goes BACKWARDS. A game cannot have started in the future, and
- * an entry stamped before its own night is a ledger that will not read back.
+ * SEARCH IS THE LIST'S FRONT DOOR, not a filter bolted onto it. There are a
+ * hundred and fifty-six of these and nobody scrolls to Zambia: a code, a
+ * symbol or the name of the money all match, and `searchCurrencies` ranks the
+ * exact code first so three letters land on the one that was meant. The whole
+ * list is still underneath, in the order the table is written, because "pick
+ * from the list" is what a person who does not know the code needs.
  */
-function StartTime({ at, onChange }: { at: Date; onChange: (d: Date) => void }) {
+function Currencies({
+  picked,
+  query,
+  onQuery,
+  onPick,
+}: {
+  /** The code the group is on now. */
+  picked: string;
+  query: string;
+  onQuery: (v: string) => void;
+  onPick: (code: string) => void;
+}) {
   const t = useTheme();
-  const back = (minutes: number) => onChange(new Date(at.getTime() - minutes * 60_000));
+  const q = query.trim();
+
+  /** `null` while nothing is typed — which is a different thing from no matches. */
+  const matches = useMemo(() => (q === '' ? null : searchCurrencies(q, 12)), [q]);
+  /** The four that were chips, plus whichever one the group is actually on. */
+  const common = useMemo(
+    () => CURRENCIES.filter((c) => COMMON_CURRENCIES.includes(c.code) || c.code === picked),
+    [picked],
+  );
+  const rest = useMemo(
+    () => CURRENCIES.filter((c) => !common.some((k) => k.code === c.code)),
+    [common],
+  );
+
+  const row = (c: Currency) => (
+    <Pressable
+      key={c.code}
+      accessibilityRole="button"
+      accessibilityLabel={`${c.code} · ${c.name}`}
+      accessibilityState={{ selected: c.code === picked }}
+      onPress={() => onPick(c.code)}
+      style={({ pressed }) => [
+        styles.row,
+        {
+          borderBottomColor: t.hairline,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          opacity: pressed ? 0.6 : 1,
+        },
+      ]}
+    >
+      <View style={styles.rowText}>
+        <Text style={[styles.rowName, { color: t.text }]}>{c.code}</Text>
+        <Text style={[styles.rowSub, { color: t.muted }]} numberOfLines={1}>
+          {c.name}
+        </Text>
+      </View>
+      <Text style={[styles.symbol, { color: t.muted }]} numberOfLines={1}>
+        {c.symbol}
+      </Text>
+      {c.code === picked && <Icon name="check" color={t.win} size={16} />}
+    </Pressable>
+  );
 
   return (
-    <View style={styles.section}>
-      <View style={styles.figureRow}>
-        <Text style={[styles.figure, { color: t.text }]}>{clockLabel(at)}</Text>
-        <Text style={[styles.figureUnit, { color: t.muted }]}>tonight</Text>
+    <>
+      <View style={[styles.search, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+        <TextInput
+          value={query}
+          onChangeText={onQuery}
+          placeholder="Code, symbol or name — USD, €, koruna"
+          placeholderTextColor={t.muted}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          returnKeyType="done"
+          onSubmitEditing={() => {
+            const first = matches?.[0];
+            if (first !== undefined) onPick(first.code);
+          }}
+          style={[styles.searchText, { color: t.text }]}
+        />
       </View>
 
-      <View style={styles.presets}>
-        {[5, 15, 30, 60].map((m) => (
-          <Button
-            key={m}
-            label={m === 60 ? '−1 h' : `−${m}`}
-            variant="preset"
-            onPress={() => back(m)}
-            style={styles.preset}
-          />
-        ))}
-      </View>
-
-      <Button label="Now" variant="secondary" onPress={() => onChange(new Date())} />
-
-      <Text style={[styles.explain, { color: t.muted }]}>
-        Every entry is stamped from here, and the running time on the night screen counts up from
-        it. Set it back to when the first hand was dealt.
+      <Text style={[styles.note, { color: t.muted }]}>
+        The group keeps one book, so this is the money every night in it is counted in — past ones
+        included. It renames the column; no figure is converted.
       </Text>
-    </View>
+
+      {matches === null ? (
+        <>
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: t.muted }]}>Common</Text>
+            {common.map(row)}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: t.muted }]}>Every currency</Text>
+            {rest.map(row)}
+          </View>
+        </>
+      ) : (
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: t.muted }]}>
+            {matches.length === 0 ? 'Nothing found' : 'Best match first'}
+          </Text>
+          {matches.map(row)}
+          {matches.length === 0 && (
+            <Text style={[styles.empty, { color: t.muted }]}>
+              {`No currency called “${q}”. Three letters of the code, the symbol, or the name of the money all find one.`}
+            </Text>
+          )}
+        </View>
+      )}
+    </>
   );
 }
 
@@ -1264,6 +1365,9 @@ const styles = StyleSheet.create({
   rowName: { fontSize: 17, fontWeight: '600' },
   rowSub: { fontSize: 13, fontWeight: '400' },
   rowValue: { fontSize: 17, fontWeight: '600', fontVariant: ['tabular-nums'], flexShrink: 1, textAlign: 'right' },
+  // What a figure in this money is written with — "Kč", or the code again
+  // where CLDR has no glyph. Quiet: the code above it is what identifies it.
+  symbol: { fontSize: 15, fontWeight: '500', flexShrink: 0, textAlign: 'right' },
   rowQuiet: { fontSize: 15, fontWeight: '400', flexShrink: 1, textAlign: 'right' },
 
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 4, paddingTop: 2 },
@@ -1284,6 +1388,8 @@ const styles = StyleSheet.create({
   empty: { ...type.footnote, paddingHorizontal: 4, paddingTop: 8 },
   warn: { ...type.footnote, paddingHorizontal: 4, paddingBottom: 10, lineHeight: 18 },
   footnote: { ...type.footnote, marginHorizontal: space.page, marginTop: 18 },
+  // The same words as a footnote, said before the thing instead of after it.
+  note: { ...type.footnote, marginHorizontal: space.page, marginBottom: 18 },
 
   search: {
     flexDirection: 'row',

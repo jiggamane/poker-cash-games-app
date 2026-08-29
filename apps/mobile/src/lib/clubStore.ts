@@ -442,6 +442,25 @@ export async function renameClub(clubId: string, name: string): Promise<void> {
   await loadClubs();
 }
 
+/**
+ * What money this group's book is written in — ISO 4217, one code.
+ *
+ * IT RENAMES THE COLUMN; IT CONVERTS NOTHING. A group keeps one book, so every
+ * figure already in it — tonight's buy-ins, last month's settlement — is read
+ * back under the new symbol at the same number. That is right for the case
+ * this exists for (a club that was set up in dollars by the default and plays
+ * in korunas) and it is why the picker says so in as many words.
+ *
+ * Unlike the buy-in and the rules there is no per-night layer to overrule:
+ * `03-data-model.md` carries the currency on the group and nowhere else, and a
+ * book whose column changed money halfway down would be unreadable.
+ */
+export async function setClubCurrency(clubId: string, code: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE club SET currency = ? WHERE id = ?`, code.toUpperCase(), clubId);
+  await loadClubs();
+}
+
 export async function setClubBuyIn(clubId: string, amount: Money): Promise<void> {
   const db = await getDb();
   await db.runAsync(`UPDATE club SET default_buy_in = ? WHERE id = ?`, amount, clubId);

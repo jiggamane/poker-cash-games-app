@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { CURRENCIES, currencyFor, DEFAULT_CURRENCY, searchCurrencies } from './currencies';
+import {
+  COMMON_CURRENCIES,
+  CURRENCIES,
+  currencyFor,
+  DEFAULT_CURRENCY,
+  searchCurrencies,
+} from './currencies';
 
 /**
  * The list itself is data and cannot be wrong in an interesting way; what can
@@ -27,6 +33,16 @@ describe('the list', () => {
 
   it('has the default in it', () => {
     expect(currencyFor(DEFAULT_CURRENCY).name).toBe('US Dollar');
+  });
+
+  it('names only real currencies as the common few', () => {
+    // Two screens put these in front of somebody who has typed nothing — the
+    // group sheet's chips and O1's picker. A code with a typo in it would show
+    // as a chip called itself and set the book to money that does not exist.
+    for (const code of COMMON_CURRENCIES) {
+      expect(CURRENCIES.some((c) => c.code === code)).toBe(true);
+    }
+    expect(COMMON_CURRENCIES).toContain(DEFAULT_CURRENCY);
   });
 });
 
