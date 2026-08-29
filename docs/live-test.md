@@ -137,8 +137,42 @@ memory — so do not spend the evening on it.
 The workflow has no `.env` to bake in — a runner checks out the repository and
 `.env` is gitignored — so it takes the same two values from repository secrets
 instead, `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`, exactly
-as `pages.yml` does. Set neither and the published app is purely local, which is
-a real mode and the one a first night is testing.
+as `pages.yml` does. It asks which app you want: **Talk to the Supabase
+project** is ticked by default and the run stops in ten seconds, before `npm
+ci`, if the secrets for it are not there — with the summary saying which secret,
+where it goes and where its value comes from. Untick it and the published app is
+purely local, which is a real mode and the one a first night is testing.
+
+### 2a · Turning the server on for a phone that already has the app
+
+The two values are read **once, when the update is bundled**, so the app on the
+phone cannot be told about a project afterwards — not by signing in, not by a
+setting, not by anything on the phone. An update published without them is an
+app that will never sync, and Settings → Account says so: *"No server is
+configured for this build, so nothing leaves the phone."*
+
+The cure is another publish, and **nothing is re-downloaded**: Expo Go fetches
+whatever is newest on the `expo-go` branch when it opens. So, all of it from a
+phone:
+
+1. **Settings → Secrets and variables → Actions → New repository secret**, twice:
+   `EXPO_PUBLIC_SUPABASE_URL` (Supabase → Project Settings → Data API —
+   `https://eciozeeqywpgqlxqmprl.supabase.co`, not the dashboard address) and
+   `EXPO_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API Keys — the `anon` /
+   `public` one, or `sb_publishable_…`, copied whole). Both are safe in a
+   repository secret and in the bundle; the row-level security policies are what
+   protect the data. A `service_role` or `sb_secret_` key is not, and the app
+   refuses to start with one.
+2. **Actions → Put the app in Expo Go → Run workflow**, on `main`, leaving
+   **Talk to the Supabase project** ticked.
+3. Open Expo Go and **open the project twice.** The first launch downloads the
+   new update; the second is the one running it.
+4. Check it took: Settings → Account offers a sign-in instead of the sentence
+   above, and **Connection** answers *Connected*.
+
+Then sign in — with an address that has been invited in the Supabase dashboard,
+because signups are closed on purpose (`auth-test-period.md`). A night records
+either way; signing in is what puts a copy on the server.
 
 ### 3 · Prove it, in the only way that counts
 
