@@ -6,8 +6,8 @@ import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
-import { space, type } from '../src/design/tokens';
-import { markPaid, nameOf, settlementInput, transferKey, useNight } from '../src/lib/nightStore';
+import { radius, space, type } from '../src/design/tokens';
+import { nameOf, setPaid, settlementInput, transferKey, useNight } from '../src/lib/nightStore';
 
 /**
  * Who has paid — E7. 13-after-the-night.md.
@@ -18,9 +18,26 @@ import { markPaid, nameOf, settlementInput, transferKey, useNight } from '../src
  * moved — and marking a payment is not a ledger entry.
  *
  * One row per transfer the settlement produced, with the state under the
- * names and Mark paid on waiting rows only. A paid row keeps its place: the
- * list is the whole week's business and a row that vanished when it was
- * finished would leave the host counting what is left instead of reading it.
+ * names. A paid row keeps its place: the list is the whole week's business and
+ * a row that vanished when it was finished would leave the host counting what
+ * is left instead of reading it.
+ *
+ * THE WHOLE ROW IS THE TICK, AND IT GOES BOTH WAYS.
+ *
+ * A host clears this list standing in a doorway with a phone in one hand, four
+ * transfers landing in the same two minutes. What that wants is a checklist:
+ * one tap per row, anywhere on the row, and one tap back off when the tap was
+ * the wrong row. The board draws the tap target as a `Mark paid` chip on the
+ * right of a waiting row — the chip is still there and still says that, it is
+ * simply no longer the only place the tap lands.
+ *
+ * NOTHING HERE IS REQUIRED. Not one figure, screen or state in this app reads
+ * `paidAt`: the night is settled by its ledger and it stays settled whether
+ * this list is untouched, half ticked, or ticked wrong. A host who settles in
+ * cash at the table and never opens this screen has lost nothing, which is why
+ * the ticks carry no warning, no prompt, no red, and no completion of any kind
+ * — and why a paid row can go back to waiting with the same one tap that
+ * marked it.
  */
 export default function Payments() {
   const t = useTheme();
@@ -76,55 +93,82 @@ export default function Payments() {
       }
     >
       <View style={styles.list}>
-        {rows.map((r, i) => (
-          <View
-            key={r.key}
-            style={[
-              styles.row,
-              {
-                borderBottomColor: t.hairline,
-                borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
-              },
-            ]}
-          >
-            <View style={styles.who}>
-              <View style={styles.names}>
-                <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
-                  {nameOf(night, r.fromPlayerId)}
-                </Text>
-                <Icon name="arrow" color={t.muted} />
-                <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
-                  {nameOf(night, r.toPlayerId)}
+        {rows.map((r) => {
+          const paid = r.paidAt !== undefined;
+          const from = nameOf(night, r.fromPlayerId);
+          const to = nameOf(night, r.toPlayerId);
+          return (
+            <Pressable
+              key={r.key}
+              /*
+               * A checkbox, not a button, and it says so: a screen reader
+               * announces the state it is in and that tapping changes it,
+               * rather than announcing an action that sounds one-way.
+               */
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: paid }}
+              accessibilityLabel={`${from} to ${to}, ${formatMoney(r.amount)}, ${
+                paid ? 'marked paid' : 'waiting'
+              }`}
+              accessibilityHint={
+                paid ? 'Double tap to put it back to waiting.' : 'Double tap to mark it paid.'
+              }
+              onPress={() => void setPaid(r.fromPlayerId, r.toPlayerId, !paid)}
+              style={({ pressed }) => [
+                styles.row,
+                /*
+                 * The two states as drawn: a paid row is a washed block with
+                 * no outline, a waiting one is an outline with no wash. The
+                 * wash is the tick you can see from arm's length — the glyph
+                 * on the right is the one you can see up close.
+                 */
+                paid
+                  ? { backgroundColor: t.winWash }
+                  : { borderWidth: 1, borderColor: t.hairline },
+                pressed ? { opacity: 0.6 } : null,
+              ]}
+            >
+              <View style={styles.who}>
+                <View style={styles.names}>
+                  <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
+                    {from}
+                  </Text>
+                  <Icon name="arrow" color={t.muted} />
+                  <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
+                    {to}
+                  </Text>
+                </View>
+                <Text style={[styles.state, { color: t.muted }]}>
+                  {r.paidAt === undefined ? 'waiting' : `marked paid ${clock(r.paidAt)}`}
                 </Text>
               </View>
-              <Text style={[styles.state, { color: t.muted }]}>
-                {r.paidAt === undefined ? 'waiting' : `marked paid ${clock(r.paidAt)}`}
+
+              {/* Green only once it has landed. A figure still owed is not a
+                  win to anybody yet — it is a thing somebody has to remember. */}
+              <Text style={[styles.amount, { color: paid ? t.win : t.text }]}>
+                {formatMoney(r.amount)}
               </Text>
-            </View>
 
-            {/* Green only once it has landed. A figure still owed is not a
-                win to anybody yet — it is a thing somebody has to remember. */}
-            <Text
-              style={[styles.amount, { color: r.paidAt === undefined ? t.text : t.win }]}
-            >
-              {formatMoney(r.amount)}
-            </Text>
-
-            {r.paidAt === undefined && (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Mark ${nameOf(night, r.fromPlayerId)}'s payment to ${nameOf(
-                  night,
-                  r.toPlayerId,
-                )} as paid`}
-                onPress={() => void markPaid(r.fromPlayerId, r.toPlayerId)}
-                style={({ pressed }) => [styles.mark, { opacity: pressed ? 0.6 : 1 }]}
-              >
-                <Text style={[styles.markLabel, { color: t.text }]}>Mark paid</Text>
-              </Pressable>
-            )}
-          </View>
-        ))}
+              {paid ? (
+                /*
+                 * ⚠ NOT DRAWN. E7 puts nothing at all on the right of a paid
+                 * row, because in rev 18 a paid row could not be tapped. Once
+                 * it can, the row needs to say so, and a filled tick is the
+                 * one mark that reads as "this is done, and it is a control"
+                 * without a word of invented copy. Flagged for the designer
+                 * rather than passed off as decided.
+                 */
+                <View style={[styles.tick, { backgroundColor: t.win }]}>
+                  <Icon name="check" color={t.ground} size={14} />
+                </View>
+              ) : (
+                <View style={[styles.mark, { borderColor: t.outline }]}>
+                  <Text style={[styles.markLabel, { color: t.text }]}>Mark paid</Text>
+                </View>
+              )}
+            </Pressable>
+          );
+        })}
 
         {rows.length === 0 && (
           <Text style={[styles.none, { color: t.muted }]}>
@@ -147,20 +191,51 @@ const clock = (iso: string): string =>
 
 const styles = StyleSheet.create({
   list: { marginHorizontal: space.page },
+
+  /*
+   * A row is the block E7 draws, not a hairline-separated line: radius 8,
+   * `16px 10px`, gap 12, and 8 between one row and the next. The block is what
+   * lets a paid row carry a wash — a hairline list has nothing to fill.
+   *
+   * `alignItems: center` and nothing fixed about the height: the names may run
+   * to two lines under large text and the row grows with them.
+   */
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+    marginBottom: 8,
+    borderRadius: radius.pressable,
   },
   who: { flexShrink: 1, gap: 3 },
   names: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name: type.rowName,
   state: type.meta,
-  amount: { ...type.rowName, marginLeft: 'auto' },
-  mark: { paddingVertical: 6, paddingLeft: 12 },
+  // Never shrinks. The names either side of it may wrap; a figure may not.
+  amount: { ...type.rowName, marginLeft: 'auto', flexShrink: 0 },
+
+  /* The waiting row's chip, as drawn: 700 13, `9px 12px`, radius 6, 1.5px. */
+  mark: {
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    flexShrink: 0,
+  },
   markLabel: { fontSize: 13, fontWeight: '700' },
+
+  /* The tick that replaces it, at the height of the chip's own glyph box. */
+  tick: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+
   none: { ...type.footnote, paddingHorizontal: 8, paddingTop: 14 },
 
   foot: { gap: 14 },

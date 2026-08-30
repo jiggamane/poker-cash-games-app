@@ -1111,30 +1111,44 @@ export async function seatAndBuyIn(
 export const transferKey = (from: PlayerId, to: PlayerId): string => `${from}>${to}`;
 
 /**
- * Mark one transfer paid — E7.
+ * Tick one transfer paid, or tick it back off — E7.
  *
  * NOT A LEDGER ENTRY, and deliberately not append-only: nothing about the
  * night's result depends on it, so there is nothing here that needs to be
  * unfalsifiable. The book closed at the table; this is the cash arriving over
  * the following week.
  *
- * WHAT IS NOT BUILT: unmarking. E7 draws Mark paid on waiting rows and draws
- * nothing on paid ones, so there is no way back from a mis-tap. Flagged rather
- * than invented — but it is a real trap and the state that answers it is on
- * the handoff's own "not drawn" list.
+ * IT GOES BOTH WAYS, which is the point. A row of ticks that only ever fills
+ * up is a row nobody dares tap: the host is one mis-tap from a night that says
+ * Petr has paid when Petr has not, with no way back. So `paid` is a state the
+ * host sets, not an event they file — passing false deletes the row and the
+ * transfer is waiting again, exactly as if it had never been touched.
+ *
+ * There is nothing to lose by deleting it. The row carries one fact, the time
+ * of a tap, and it is the tap that was wrong.
  */
-export async function markPaid(from: PlayerId, to: PlayerId): Promise<void> {
+export async function setPaid(from: PlayerId, to: PlayerId, paid: boolean): Promise<void> {
   if (night === null) return;
   const db = await getDb();
-  await db.runAsync(
-    `INSERT INTO night_payment (session_id, from_player_id, to_player_id, paid_at)
-     VALUES (?, ?, ?, ?)
-     ON CONFLICT (session_id, from_player_id, to_player_id) DO NOTHING`,
-    night.sessionId,
-    from,
-    to,
-    new Date().toISOString(),
-  );
+  if (paid) {
+    await db.runAsync(
+      `INSERT INTO night_payment (session_id, from_player_id, to_player_id, paid_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT (session_id, from_player_id, to_player_id) DO NOTHING`,
+      night.sessionId,
+      from,
+      to,
+      new Date().toISOString(),
+    );
+  } else {
+    await db.runAsync(
+      `DELETE FROM night_payment
+        WHERE session_id = ? AND from_player_id = ? AND to_player_id = ?`,
+      night.sessionId,
+      from,
+      to,
+    );
+  }
   const row = await db.getFirstAsync<NightRow>(
     `SELECT * FROM night WHERE session_id = ?`,
     night.sessionId,

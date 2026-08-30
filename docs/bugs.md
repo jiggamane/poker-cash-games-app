@@ -73,6 +73,52 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B21 — a tick on Who has paid was a one-way door
+
+```
+Screen      E7 /payments
+Seen        Mark paid marks. Nothing unmarks. Tap the wrong row — four
+            transfers land in the same two minutes and the rows differ by one
+            name — and the night says Petr has paid when Petr has not, for
+            good. The trap was known: nightStore's own comment on `markPaid`
+            named it and left it, because rev 18 draws no control on a paid
+            row.
+Expected    one touch to tick a transfer settled, the same touch to tick it
+            back off, and no obligation to tick anything at all
+Found       30 Aug, from the host's own account of clearing the list
+Locked by   npm run check:ui — ui-journeys.mjs, "and comes back off". The
+            journey plays a night to this screen (no URL reaches it), ticks a
+            transfer, unticks it, and asserts the row reads waiting again
+Status      fixed in this commit
+```
+
+**The fix is smaller than the trap.** `markPaid` becomes `setPaid(from, to,
+paid)`: false deletes the row rather than filing a correction, which is right
+here and nowhere else in this app — the ledger is append-only because a night's
+result has to be unfalsifiable, and this is not the ledger. It carries one
+fact, the time of a tap, and it is the tap that was wrong.
+
+On the screen, the whole row is the tick. The board draws the target as a `Mark
+paid` chip on the right of a waiting row; the chip is still there and still says
+that, it is simply no longer the only place the tap lands. A host clearing this
+list is standing in a doorway with a phone in one hand, and a checklist wants a
+row, not a 66-point word.
+
+**What was deliberately NOT added: any obligation.** No screen, figure or state
+in this app reads `paidAt` — the night is settled by its ledger and stays
+settled whether the list is untouched, half ticked, or ticked wrong. So the
+ticks got no prompt, no warning, no red, and no completion. A host who settles
+in cash at the table and never opens this screen has lost nothing, and that is
+the property the reversible tick protects rather than the one it costs.
+
+⚠ **One departure from rev 18, flagged rather than quiet.** E7 puts nothing on
+the right of a paid row. Once that row can be tapped it has to say so, so a
+paid row carries a filled tick where the chip was. It invents no copy — the
+state line under the names still reads `marked paid 00:19`, as drawn — but it
+is a mark the designer has not seen. The washed block behind a paid row and the
+outline around a waiting one ARE drawn, and were not built; they are now, which
+is what makes a ticked row readable at arm's length.
+
 ### B20 — correcting a $500 buy-in to $50 wrote $50,050
 
 ```
