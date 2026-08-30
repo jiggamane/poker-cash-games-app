@@ -78,7 +78,21 @@ export default function NightResults() {
 
   return (
     <Screen title={nightDate(night.startedAt)} meta={metaLine(night, ledger)} backTo="the club">
-      <NightResult result={result} ledger={ledger} loggedBy={null} />
+      {/*
+       * A ROW IS A DOOR INTO THAT PERSON'S NIGHT — T2/T4, the same player card
+       * the table opens during the game, now with what the rules took off them
+       * under it. E6 leaves this open ("whether the deductions block is
+       * tappable through to the individual entries"), and the answer a host
+       * actually needs is the one a player asks out loud a week later: *why is
+       * my number this*. The row says what came off; the card says which rebuy,
+       * which spend, and at what time.
+       */}
+      <NightResult
+        result={result}
+        ledger={ledger}
+        loggedBy={null}
+        onOpenPlayer={(id) => router.push({ pathname: '/player', params: { id } })}
+      />
 
       {/*
        * DELIBERATE DEVIATION, and the only one on this screen.

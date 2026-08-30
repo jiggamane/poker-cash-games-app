@@ -730,6 +730,39 @@ async function playANight(name, rebuys) {
   await tap('Close the session', { wait: 1600 });
   await stop('night settled');
 
+  /*
+   * A PLAYER'S OWN NIGHT, OPENED OFF THE RESULTS LIST.
+   *
+   * E6's rows carry the working now — `in … · out … · bill −… · piggy bank −…`
+   * — and each one opens the player card behind it with what the rules took and
+   * where that left them. Both halves are invisible to every other
+   * check in the repo: no URL reaches a settled night with money on it, so the
+   * route pass measures the seeded mid-count book and sees neither. This is a
+   * night in the millions, which is also the width the line is tightest at.
+   */
+  const working = () => page.getByText(/^in .* \u00b7 out /).count();
+  await holds(
+    'the row carries the working',
+    (await working()) > 0,
+    'no row on E6 says what came off that person',
+  );
+
+  /* By the row's own label — "Dana · their night". Filtering the row by its
+     text cannot work here: the row reads as the name AND the working AND the
+     net, and it is the name that comes first. */
+  await page.getByLabel(/\u00b7 their night$/).first().click({ timeout: 15_000 });
+  await page.waitForTimeout(900);
+  await stop('night settled · one player');
+  await holds(
+    'and the card says what came off',
+    /* Exactly, because E6 behind the sheet has a section label reading "The
+       table · after deductions" and a loose match finds that too. */
+    (await page.getByText('After deductions', { exact: true }).count()) === 1,
+    'the player card opened from E6 without the deductions that made its figure',
+  );
+  await page.getByLabel('Close').last().click();
+  await page.waitForTimeout(900);
+
   await tap('Who has paid');
   await stop('who has paid');
 
