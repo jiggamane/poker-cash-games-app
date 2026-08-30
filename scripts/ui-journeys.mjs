@@ -454,6 +454,24 @@ const tap = async (words, opts = {}) => {
   await page.waitForTimeout(opts.wait ?? 800);
 };
 
+/**
+ * Something that has to be TRUE on the screen we are standing on.
+ *
+ * `stop()` measures; this asserts. Both count into the same `failures`, so a
+ * behaviour that has quietly stopped working takes the gate red exactly as a
+ * cut-off figure does — which is the only reason a behaviour belongs in a
+ * check named after layout: these screens are the ones no URL reaches, so this
+ * is the only tool that can stand on them at all.
+ */
+async function holds(what, ok, detail) {
+  if (ok) {
+    console.log(`  ${what.padEnd(26)} ok`);
+    return;
+  }
+  failures += 1;
+  console.log(`  ${what.padEnd(26)} FAILED — ${detail}`);
+}
+
 /** Type digits on the keypad, which replaces whatever the preset held. */
 const punch = async (digits) => {
   for (const d of digits) {
@@ -670,6 +688,30 @@ async function playANight(name, rebuys) {
 
   await tap('Mark paid', { wait: 900 });
   await stop('who has paid · one in');
+
+  /*
+   * ONE TOUCH ON, ONE TOUCH OFF — and the second half is the one that rots.
+   *
+   * Ticking a payment used to be a one-way door: E7 drew `Mark paid` on
+   * waiting rows and nothing on paid ones, so a mis-tap left the host looking
+   * at a night that said Petr had paid when Petr had not. The way back is
+   * built now, and it is invisible to every other check in this repo — it is
+   * a behaviour, not a measurement, and no URL reaches this screen. So it is
+   * asserted here, on the row the tap above just ticked. See B21.
+   */
+  const ticked = () => page.getByText(/^marked paid/).count();
+  await holds('a tick lands', (await ticked()) === 1, `${await ticked()} rows read as paid, not 1`);
+  await page.getByText(/^marked paid/).first().click({ timeout: 15_000 });
+  await page.waitForTimeout(900);
+  await holds(
+    'and comes back off',
+    (await ticked()) === 0,
+    'the row stayed paid — a mis-tap is one-way again',
+  );
+  await stop('who has paid · ticked back off');
+
+  // And on again, so the screens after this one see the night mid-payment.
+  await tap('Mark paid', { wait: 900 });
 
   await tap('Nudge the table');
   await stop('nudge the table');
