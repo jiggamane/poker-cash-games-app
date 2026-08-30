@@ -196,9 +196,22 @@ export default function PlayerCard() {
         standing?.played !== true
           ? 'on the roster'
           : seated
-            ? standing.returned
-              ? 'back in'
-              : 'seated'
+            ? /*
+               * NOBODY IS SEATED AT A TABLE THAT CLOSED. The badge is the
+               * state of the person and it was reading "seated" on a night
+               * settled three weeks ago, because seated is what they were when
+               * the game stopped. What happened to them is that their chips
+               * were counted — the card's own middle figure — so that is what
+               * it says once the night is settled.
+               *
+               * ⚠ NOT DRAWN. T2 and T4 draw a live night only; the word is the
+               * card's own COUNTED, lower-cased to match the badges beside it.
+               */
+              nightSettlement !== null
+              ? 'counted'
+              : standing.returned
+                ? 'back in'
+                : 'seated'
             : standing.cashedOut === 0
               ? 'busted out'
               : 'cashed out'

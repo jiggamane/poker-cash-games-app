@@ -249,10 +249,16 @@ export function NightResult({
  * rename this line — it is where the money went, not what the rule was called.
  */
 function workingLine(result: SettlementResult, p: SettlementResult['players'][number]): string {
-  const parts = [
-    `in ${formatToFit(p.boughtIn, ROW_FITS)}`,
-    `out ${formatToFit(p.endedWith, ROW_FITS)}`,
-  ];
+  /*
+   * IN AND OUT GO WHEN THERE WAS NEITHER, which is one row and one row only:
+   * the collector who holds the piggy bank and never sat down. "in $0 · out $0"
+   * is two figures saying nothing about somebody whose whole appearance here is
+   * the money they are holding for everyone else. Anybody who played has an in.
+   */
+  const parts =
+    p.boughtIn === 0 && p.endedWith === 0
+      ? []
+      : [`in ${formatToFit(p.boughtIn, ROW_FITS)}`, `out ${formatToFit(p.endedWith, ROW_FITS)}`];
 
   for (const d of playerDeductions(result, p.playerId)) {
     if (d.charged > 0) {

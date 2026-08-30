@@ -747,16 +747,17 @@ async function playANight(name, rebuys) {
     'no row on E6 says what came off that person',
   );
 
-  await page
-    .locator('[role="button"]:visible')
-    .filter({ hasText: /^in .* \u00b7 out / })
-    .first()
-    .click({ timeout: 15_000 });
+  /* By the row's own label — "Dana · their night". Filtering the row by its
+     text cannot work here: the row reads as the name AND the working AND the
+     net, and it is the name that comes first. */
+  await page.getByLabel(/\u00b7 their night$/).first().click({ timeout: 15_000 });
   await page.waitForTimeout(900);
   await stop('night settled · one player');
   await holds(
     'and the card says what came off',
-    (await page.getByText('After deductions').count()) === 1,
+    /* Exactly, because E6 behind the sheet has a section label reading "The
+       table · after deductions" and a loose match finds that too. */
+    (await page.getByText('After deductions', { exact: true }).count()) === 1,
     'the player card opened from E6 without the deductions that made its figure',
   );
   await page.getByLabel('Close').last().click();
