@@ -256,6 +256,49 @@ board that the next session should not "fix" back:
   over the ISO 4217 list: a code, a symbol or the name of the money all match,
   and the whole list is underneath for somebody who does not know the code.
 
+A third changed on **30 August**, and it is an addition rather than a departure:
+
+- **Rounding is a row of *The game*.** How coarsely the table settles is a money
+  rule — it changes what people actually pay — and it was reachable only from
+  tonight's money rules or from the club's, both of which are places you go
+  once the table is already open. A group playing for thousands played the
+  first hand on whole dollars and found out at settle-up. The step behind the
+  row is the same four chips as `/rounding`, off `ROUNDING_CHOICES` in core so
+  the list is written once, and picking one writes tonight's night only — the
+  club keeps its own default, exactly as it does for the rules and the buy-in.
+  No board draws it, so it is held by the audit's `DECIDED` map rather than by
+  `DRAWN`, and the two are deliberately separate: `DRAWN` is worth something
+  only while every string in it is on an artboard.
+
+**`/money-rules` and `/deductions`** — both carry the bill and the person who
+paid it, as of **30 August**. `11-bill-and-piggy-bank.md` has always allowed a
+spend added during settle-up — "recalculates every winner's share and every
+transfer" — and the engine always did; the bill hung off the table's own admin
+drawer, which is the one part of the night when the bar tab has not arrived yet.
+B25 in `docs/bugs.md` is the history. The list is one component,
+`src/components/SpendList.tsx`, on both screens and using the sheet the bill
+already used: "Covered by" is four cases with a sum rule on one of them, and a
+second implementation of that is the one that goes wrong — B14's lesson, and
+`frontedSentence` moved into the same file for the same reason.
+
+**`/deductions` is the one of those two that the route pass cannot check.** The
+seeded night is mid-count, so the bare route renders E3's *Not yet* state, which
+correctly has no bill on it — asking for the row there would be red on a screen
+behaving perfectly. `ui-journeys.mjs` owns it instead: with the count in, it taps
+*Add a spend* on that screen, types a figure on the pad, names who paid, and
+asserts the spend lands on the bill. Same shape as `/share`, for the same reason.
+
+**`/spend`** — the keypad is on BOTH states now. It used to be drawn only when
+adding, so L3 — whose first row the spec calls *Amount* — showed a figure with
+no way to change it, and a spend logged at $1,200 instead of $120 could only be
+voided. That is B24, and it was hiding a second fault: the sheet can mount before
+the night store answers, so the edit state opened on $0 with the note and the
+fronters blank. The state is seeded once per spend, by id, when the night
+arrives. The three note prefills above the field — *Food*, *Drinks*, *Venue* —
+are gone: they were the only row of chips under a big money figure, which on
+`/log`, `/entry` and `/share` is the preset row, and they read as three preset
+amounts. The keypad on every amount screen is held by the audit's `KEYPAD` list.
+
 **`/log` and `/share`** — the preset row is the board's own chip (one object:
 figure over caption, raised surface, fill swap on choose), not `Button
 variant="preset"` with the caption printed underneath. That is deliberate and B3

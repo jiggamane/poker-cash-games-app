@@ -19,10 +19,17 @@ import {
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
+import { SpendList } from '../src/components/SpendList';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius } from '../src/design/tokens';
-import { clearManualCharges, nameOf, settlementInput, useNight } from '../src/lib/nightStore';
+import {
+  clearManualCharges,
+  nameOf,
+  settlementInput,
+  spendsOf,
+  useNight,
+} from '../src/lib/nightStore';
 import { useIsAdmin } from '../src/lib/whoIsReading';
 
 /**
@@ -49,6 +56,17 @@ export default function Deductions() {
    * pencils and without the taps.
    */
   const admin = useIsAdmin();
+
+  /*
+   * The bill as spends, for the block at the foot of the screen. The
+   * settlement below reads the same ledger through `settlementInput`; this is
+   * the same resolution, held once, and it adds nothing up of its own.
+   */
+  const bill = useMemo(() => {
+    if (night === null) return null;
+    const ledger = resolveLedger(night.entries);
+    return { total: ledger.totalExpenses, spends: spendsOf(night, ledger) };
+  }, [night]);
 
   const result = useMemo(() => {
     if (night === null) return null;
@@ -77,7 +95,7 @@ export default function Deductions() {
     }
   }, [night]);
 
-  if (night === null || result === null) {
+  if (night === null || result === null || bill === null) {
     return <Screen title="Deductions" backTo="Count up">{null}</Screen>;
   }
 
@@ -334,6 +352,26 @@ export default function Deductions() {
               'Provisional until the host settles.'}
         </Text>
       </View>
+
+      {/*
+       * THE BILL ITSELF, and who has actually put money in.
+       *
+       * A bar tab arrives after the count — the block above says so with a row
+       * of em dashes — and this is the screen the room is looking at when it
+       * does. `11-bill-and-piggy-bank.md` under "After the count": *"A spend
+       * added during settle-up is allowed and recalculates every winner's share
+       * and every transfer."* It always was allowed; there was no way to do it
+       * from here, so the host left the flow, went back to the table, opened
+       * the drawer and the bill, added it, and walked forward through the count
+       * again. Everything above this recomputes off the engine, so a spend
+       * added here redraws the shares, the preview and the total in one go.
+       */}
+      <SpendList
+        total={bill.total}
+        spends={bill.spends}
+        nameFor={(id) => nameOf(night, id)}
+        canAdd={admin}
+      />
 
       {/*
        * THE RULES THEMSELVES, not just one figure inside one of them.

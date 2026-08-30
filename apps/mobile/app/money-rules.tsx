@@ -2,12 +2,13 @@ import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { resolveLedger, ruleDetail, settle, type MoneyRule } from '@poker-club/core';
 import { RoundingRow } from '../src/components/RoundingRow';
+import { SpendList } from '../src/components/SpendList';
 import { RuleList } from '../src/components/RuleList';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { StyleSheet, Text } from 'react-native';
 import { space, type } from '../src/design/tokens';
-import { nameOf, settlementInput, toggleRule, useNight } from '../src/lib/nightStore';
+import { nameOf, settlementInput, spendsOf, toggleRule, useNight } from '../src/lib/nightStore';
 
 /**
  * Money rules — O4, tonight's level. Everything that takes money off the table
@@ -70,6 +71,18 @@ export default function MoneyRules() {
             params: { destination: 'kitty', order: String(nextOrder), draft: '1' },
           })
         }
+      />
+
+      {/* WHAT IS ACTUALLY ON THE BILL, and who put the money in.
+          A bill rule in the list above says how the spending is split; it
+          cannot say what has been spent, and the amount and the person who
+          covered it were reachable only from the table's own drawer. This is
+          the screen a host opens when the argument is about the deductions, so
+          the spends are on it — `src/components/SpendList.tsx`. */}
+      <SpendList
+        total={ledger.totalExpenses}
+        spends={spendsOf(night, ledger)}
+        nameFor={(id) => nameOf(night, id)}
       />
 
       {/* Governs every rule above it at once, so it is under its own caption
