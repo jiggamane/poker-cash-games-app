@@ -730,6 +730,38 @@ async function playANight(name, rebuys) {
   await tap('Close the session', { wait: 1600 });
   await stop('night settled');
 
+  /*
+   * A PLAYER'S OWN NIGHT, OPENED OFF THE RESULTS LIST.
+   *
+   * E6's rows carry the working now — `in … · out … · bill −… · piggy bank −…`
+   * — and each one opens the player card behind it with what the rules took and
+   * where that left them. Both halves are invisible to every other
+   * check in the repo: no URL reaches a settled night with money on it, so the
+   * route pass measures the seeded mid-count book and sees neither. This is a
+   * night in the millions, which is also the width the line is tightest at.
+   */
+  const working = () => page.getByText(/^in .* \u00b7 out /).count();
+  await holds(
+    'the row carries the working',
+    (await working()) > 0,
+    'no row on E6 says what came off that person',
+  );
+
+  await page
+    .locator('[role="button"]:visible')
+    .filter({ hasText: /^in .* \u00b7 out / })
+    .first()
+    .click({ timeout: 15_000 });
+  await page.waitForTimeout(900);
+  await stop('night settled · one player');
+  await holds(
+    'and the card says what came off',
+    (await page.getByText('After deductions').count()) === 1,
+    'the player card opened from E6 without the deductions that made its figure',
+  );
+  await page.getByLabel('Close').last().click();
+  await page.waitForTimeout(900);
+
   await tap('Who has paid');
   await stop('who has paid');
 

@@ -20,7 +20,7 @@
  */
 
 import { formatMoney, type Money, type RoundingMode } from './money';
-import type { MoneyRule, RuleCharge, RuleSplit } from './types';
+import type { MoneyRule, RuleCharge, RuleDestination, RuleSplit } from './types';
 
 /**
  * How a fixed total was divided, in the design's own words.
@@ -171,4 +171,31 @@ export function roundingSentence(mode: RoundingMode | null | undefined): string 
   return (mode ?? 'dollars') === 'dollars'
     ? 'What each rule takes is worked out to the dollar'
     : `What each rule takes is rounded to the ${roundingLabel(mode).replace('Nearest ', '')}`;
+}
+
+/**
+ * Where a rule's money went, in one or two words — "bill", "piggy bank".
+ *
+ * The long form of this sentence is on O2 and reads "…· the piggy bank", and
+ * these are those same words with the article off, so a line that has to name
+ * a destination in a row of figures says what every other screen says. The
+ * stored value is `kitty` and no reader ever sees that word: see
+ * `RuleDestination`.
+ *
+ * It is here rather than on a screen because three screens now name a
+ * destination — the club's rules, settle-up, and the second line of a player's
+ * row on E6 — and a fourth spelling of "piggy bank" is how an interface starts
+ * disagreeing with itself about what it calls the money.
+ */
+export function destinationWord(destination: RuleDestination): string {
+  switch (destination) {
+    case 'bill':
+      return 'bill';
+    case 'kitty':
+      return 'piggy bank';
+    case 'host_fee':
+      return 'host';
+    case 'next_pot':
+      return 'next pot';
+  }
 }

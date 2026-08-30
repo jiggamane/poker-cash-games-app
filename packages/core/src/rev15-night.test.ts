@@ -20,11 +20,11 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { money, sum, type Money } from './money';
-import { ruleLabel, splitSentence } from './ruleText';
+import { money, sum, ZERO, type Money } from './money';
+import { destinationWord, ruleLabel, splitSentence } from './ruleText';
 import { settle } from './settlement';
 import type { LedgerEntry, MoneyRule, Player, PlayerId } from './types';
-import { workingRows } from './working';
+import { playerDeductions, workingRows } from './working';
 
 const DANA = 'dana';
 const MAREK = 'marek';
@@ -291,5 +291,86 @@ describe('X1c — the working, as it is drawn', () => {
 
   it('says nothing at all about somebody who was not at this night', () => {
     expect(workingRows(drawn, billFirst, 'nobody')).toEqual([]);
+  });
+});
+
+describe('E6 — what came off one person, gathered by kind', () => {
+  /*
+   * The second line of a player's row on the results screen. The figures are
+   * the ones the rules took above, seen one person at a time: the screen prints
+   * this and adds nothing to it, which is the only reason the row can be
+   * trusted to reconcile with the net beside it.
+   */
+  it('gives Lena her piggy bank, her bill, and the food she fronted', () => {
+    expect(playerDeductions(result, LENA)).toEqual([
+      { destination: 'kitty', charged: 22, credited: 0 },
+      { destination: 'bill', charged: 29, credited: 50 },
+    ]);
+  });
+
+  it('is in the order the night applied the rules', () => {
+    // The night above runs the piggy bank first. `sampleNight` runs the bill
+    // first, and X1c draws it that way — the order is the night's, not this
+    // function's.
+    const billFirst = [
+      { ...rules[1], sortOrder: 1 },
+      { ...rules[0], sortOrder: 2 },
+    ];
+    const drawn = settle({ players, entries, finalCounts, rules: billFirst });
+    expect(playerDeductions(drawn, LENA).map((d) => d.destination)).toEqual(['bill', 'kitty']);
+  });
+
+  it('charges the biggest winner the most and credits her nothing', () => {
+    expect(playerDeductions(result, DANA)).toEqual([
+      { destination: 'kitty', charged: 81, credited: 0 },
+      { destination: 'bill', charged: 110, credited: 0 },
+    ]);
+  });
+
+  it('says nothing at all about a loser, who was charged nothing', () => {
+    expect(playerDeductions(result, TOMAS)).toEqual([]);
+    expect(playerDeductions(result, 'nobody')).toEqual([]);
+  });
+
+  it('gives the collector what they hold, with nothing charged to them', () => {
+    expect(playerDeductions(result, KITTY)).toEqual([
+      { destination: 'kitty', charged: 0, credited: 126 },
+    ]);
+  });
+
+  it('adds up with the gross to the net the row prints beside it', () => {
+    // out − in − charges + back = finalPosition. If this ever stops holding,
+    // the second line on E6 is describing a different night from the figure
+    // next to it.
+    for (const p of result.players) {
+      const took = playerDeductions(result, p.playerId);
+      const charged = sum(took.map((d) => d.charged));
+      const credited = sum(took.map((d) => d.credited));
+      expect(p.endedWith - p.boughtIn - charged + credited).toBe(p.finalPosition);
+    }
+  });
+
+  it('gathers two rules of one kind into one line', () => {
+    // Two bills is not two answers to "what did the food cost me".
+    const twoBills = [
+      { ...rules[1], id: 'bill-a', amount: money(100), sortOrder: 1 },
+      { ...rules[1], id: 'bill-b', amount: money(70), sortOrder: 2 },
+    ];
+    const night = settle({ players, entries, finalCounts, rules: twoBills });
+    const lena = playerDeductions(night, LENA);
+    expect(lena).toHaveLength(1);
+    expect(lena[0]!.destination).toBe('bill');
+    expect(lena[0]!.charged).toBe(
+      sum(night.deductions.map((d) => d.charges.find((c) => c.playerId === LENA)?.amount ?? ZERO)),
+    );
+  });
+
+  it('names each kind the way the rest of the app names it', () => {
+    // Never the stored word: `kitty` is what the ledger holds and "piggy bank"
+    // is what every screen says.
+    expect(destinationWord('bill')).toBe('bill');
+    expect(destinationWord('kitty')).toBe('piggy bank');
+    expect(destinationWord('host_fee')).toBe('host');
+    expect(destinationWord('next_pot')).toBe('next pot');
   });
 });

@@ -320,6 +320,17 @@ audit's `PARAMS` map on the seeded night's cashed-out player, and the journey
 cashes Petr out mid-night to reach the same card with the night's own figures on
 it.
 
+**`/player` is now two screens in one, and the second is new.** While a night
+is being played it is T2/T4 exactly as before. Once the night is settled it is
+the record of one person's night, opened from a row on E6: the same card and the
+same entries, plus what they fronted for the table and an AFTER DEDUCTIONS block
+carrying the working — the bill, what came back, the piggy bank, and the
+position they add up to. Nothing on it is a control. The footer is one *Close*,
+and the entry rows stop being doors into `/entry`, because `settle()` recomputes
+from the ledger every time it is read and a correction made here would move a
+figure five people have already been paid on. `ui-journeys.mjs` opens it off the
+results list at every scale it plays.
+
 **`/share`** — nothing draws this sheet on any board, and it is nothing without
 its arguments: opened bare it renders a titled sheet with no body, which is what
 the rule pass measured for seventeen runs while the bug in B14 sat on it. The
@@ -329,7 +340,7 @@ Deductions — which is the only path that has a real night behind it.
 
 ## What E6 asks for that this build does not have
 
-`design/handoff-E6/`, cut 30 August, is the settled screen. Four things in it
+`design/handoff-E6/`, cut 30 August, is the settled screen. Five things in it
 are open, and three of them are questions for whoever cuts the next revision.
 
 **The way through to E7.** The handoff removes the *Who has paid* row and says
@@ -350,6 +361,28 @@ the honest reading — every row the same weight — and it keeps its own read-o
 band, which is not a status pill and not E6's to remove. Its meta line is
 untouched for the same reason: "kept by Marek · 4h 36m · 6 players" is rev 15's
 and names somebody a watcher cannot ask.
+
+**Whether a row opens anything — answered for the players, not for the
+deductions.** The cut's own open list asks "whether the deductions block is
+tappable through to the individual entries". The deductions block is not: it is
+totals, and it stays totals. A PLAYER's row is, and it opens their card, because
+the question a settled night gets asked a week later is *why is my number this*
+and no screen in the app could answer it. That door brings two deviations from
+the logic doc with it, both marked in `NightResult.tsx`:
+
+* **The second line carries the working, not just in and out.** E6 draws
+  `in ${in} · out ${out}` and puts the deductions below as totals only. The net
+  beside that line is already after deductions, so the only arithmetic the row
+  invites — out minus in — disagreed with the figure printed next to it, with
+  nothing on the screen to explain the gap. The line reads
+  `in $500 · out $620 · bill −$29 · back +$120 · piggy bank −$50` now, a term
+  only where there is money in it, and the row reconciles. The totals block
+  below is untouched. The words are `destinationWord`'s and the figures are
+  `playerDeductions`', both in `packages/core` — no screen adds this up.
+* **A chevron where the row is a door.** E6 draws none, and `/watch` still has
+  none: it is reading somebody else's night over the wire and has no card on
+  this phone to open. Where the row does open something it carries the same mark
+  every other list in the app uses for one.
 
 **The deductions qualifier.** The board draws `collected on the side` and the
 logic doc says to "replace that qualifier with whatever the group's money rules

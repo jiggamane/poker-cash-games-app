@@ -19,7 +19,7 @@
 import type { Money } from './money';
 import { ruleLabel } from './ruleText';
 import type { SettlementResult } from './settlement';
-import type { MoneyRule, PlayerId } from './types';
+import type { MoneyRule, PlayerId, RuleDestination } from './types';
 
 export type WorkingRowKind = 'in' | 'out' | 'result' | 'charge' | 'credit';
 
@@ -135,4 +135,52 @@ function creditLabel(destination: 'bill' | 'kitty' | 'host_fee' | 'next_pot'): s
   return destination === 'bill'
     ? 'Back to you · fronted the bill'
     : 'Back to you · you collect it';
+}
+
+/**
+ * What the rules took off ONE person, and gave back, gathered by kind.
+ *
+ * `workingRows` above is the same money spelled out a rule at a time, which is
+ * what a screen with room for it shows. This is the compressed form, for the
+ * one line under a name on E6: `bill −$29 · back +$120 · piggy −$50`. Two bill
+ * rules on one night are one `bill` here, because the reader is being told
+ * where their money went and not how many rules were involved in sending it.
+ *
+ * IT IS IN CORE FOR THE REASON EVERY SUM IS. A screen that filtered the
+ * deductions and added up the charges against a name would be a second
+ * implementation of what `settle()` already worked out — `deductions.tsx` had
+ * exactly that, and this replaces it.
+ *
+ * Order is the night's own: rules apply in `sortOrder` and the deductions come
+ * back in that order, so the bill precedes the piggy bank on the screen if it
+ * preceded it in the settlement.
+ */
+export interface PlayerDeduction {
+  destination: RuleDestination;
+  /** What came off them. Never negative — the sign is the reader's screen's. */
+  charged: Money;
+  /** What came back: they fronted the bill, or they hold what the rule takes. */
+  credited: Money;
+}
+
+export function playerDeductions(
+  result: SettlementResult,
+  playerId: PlayerId,
+): PlayerDeduction[] {
+  const byKind = new Map<RuleDestination, PlayerDeduction>();
+
+  for (const d of result.deductions) {
+    const charged = d.charges.find((c) => c.playerId === playerId)?.amount ?? 0;
+    const credited = d.credits.find((c) => c.playerId === playerId)?.amount ?? 0;
+    if (charged === 0 && credited === 0) continue;
+
+    const running = byKind.get(d.destination);
+    byKind.set(d.destination, {
+      destination: d.destination,
+      charged: ((running?.charged ?? 0) + charged) as Money,
+      credited: ((running?.credited ?? 0) + credited) as Money,
+    });
+  }
+
+  return [...byKind.values()];
 }

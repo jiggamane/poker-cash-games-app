@@ -1,11 +1,20 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import {
   formatMoney,
   formatSignedToFit,
   formatToFit,
   resolveLedger,
+  settle,
+  workingRows,
   type EffectiveEntry,
   type Money,
 } from '@poker-club/core';
@@ -15,7 +24,13 @@ import { HoldButton } from '../src/components/HoldButton';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
-import { lastRebuyAmount, rebuy as writeRebuy, standingOf, useNight } from '../src/lib/nightStore';
+import {
+  lastRebuyAmount,
+  rebuy as writeRebuy,
+  settlementInput,
+  standingOf,
+  useNight,
+} from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
 import { Pill } from '../src/components/Pill';
 
@@ -52,6 +67,27 @@ export default function PlayerCard() {
   const night = useNight();
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
+  /*
+   * THE SETTLEMENT, AND ONLY ONCE THE BOOK IS CLOSED.
+   *
+   * A night still being played has no answer to what the rules took — the bill
+   * is not in, nobody is counted, and `settle()` refuses a count that does not
+   * balance, which is the close gate doing its job. So this is null all evening
+   * and the card is exactly what it has always been; it fills in at the moment
+   * the night is settled, which is also the moment this card became reachable
+   * from E6.
+   *
+   * The same `settlementInput` every other screen settles from, so the figures
+   * here cannot disagree with the row that was tapped to get here.
+   */
+  const nightSettlement = useMemo(() => {
+    if (night === null || night.status !== 'settled') return null;
+    try {
+      return settle(settlementInput(night));
+    } catch {
+      return null;
+    }
+  }, [night]);
   const pending = usePending(night?.sessionId);
   /* Only against a double write while one is in flight. Two deliberate holds
      are two deliberate rebuys, and the ledger should have both. */
@@ -75,9 +111,38 @@ export default function PlayerCard() {
   const seated = standing?.atTable === true;
 
   const mine = ledger.entries.filter((e) => e.playerId === player.id);
-  const rows = entryRows(mine, night, pending.ids);
+  /*
+   * WHAT THEY PUT ON THE TABLE FOR EVERYONE — the pizza, the beers, the taxi.
+   *
+   * A spend carries a PAYER, not a player, so none of it was on this card:
+   * somebody who fronted the whole bar tab had a night's worth of entries with
+   * their own money nowhere in it, and the only place it appeared was a total
+   * on the deductions screen. It belongs here — it is a movement of their money
+   * on this night, which is what this list is — and it is kept out of `mine`
+   * above so that "since 20:40" still means when they sat down and a correction
+   * still opens the last thing they were charged for.
+   */
+  const fronted = ledger.entries.filter((e) => e.type === 'expense' && e.payerId === player.id);
+  const rows = entryRows(mine, fronted, night, pending.ids);
   const first = mine[0];
   const lastOut = [...mine].reverse().find((e) => e.type === 'cashout');
+
+  /*
+   * The rules, once they have run — one row per charge and per reimbursement,
+   * in the order the night applied them, and the position they add up to.
+   *
+   * `workingRows` is the engine's, and its first three rows are In, Out and
+   * Result, which the card above already carries at four times the size. What
+   * is left is the part the card cannot show: what came off, what came back,
+   * and where that leaves them.
+   */
+  const settlement = nightSettlement?.players.find((p) => p.playerId === player.id) ?? null;
+  const working =
+    nightSettlement === null
+      ? []
+      : workingRows(nightSettlement, night.rules, player.id).filter(
+          (r) => r.kind === 'charge' || r.kind === 'credit',
+        );
 
   /*
    * What they have taken off the table: their cash-outs, plus the count in
@@ -148,7 +213,19 @@ export default function PlayerCard() {
             : `left ${clock(night.occurredAt[lastOut.id])}`
       }
       footer={
-        seated ? (
+        /*
+         * A CLOSED BOOK HAS NO CONTROLS ON IT.
+         *
+         * This card is reachable from E6 now, weeks after the night ended, and
+         * the two buttons below it would offer are a rebuy into a game nobody
+         * is playing and a correction to a settlement everybody has already
+         * been paid on. `settle()` recomputes from the ledger every time it is
+         * read, so a correction here would silently move a figure five people
+         * agreed on. One way out, and it is the door.
+         */
+        nightSettlement !== null ? (
+          <Button label="Close" variant="secondary" onPress={() => router.back()} />
+        ) : seated ? (
           <>
             {/* The amount is M16's: their last rebuy tonight, then tonight's
                 buy-in, then the group default. Where it came from is
@@ -233,10 +310,16 @@ export default function PlayerCard() {
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Entries</Text>
 
         {rows.map((r, i) => (
-          <Pressable
+          /* Read-only once the night is settled, for the reason the footer
+             gives: every row here is a way into a correction, and the book is
+             closed. The row itself is identical either way. */
+          <PressableOrPlain
             key={r.key}
-            accessibilityRole="button"
-            onPress={() => router.push({ pathname: '/entry', params: { id: r.entryId } })}
+            press={
+              nightSettlement === null
+                ? () => router.push({ pathname: '/entry', params: { id: r.entryId } })
+                : undefined
+            }
             style={({ pressed }) => [
               styles.row,
               {
@@ -267,7 +350,7 @@ export default function PlayerCard() {
             <Text style={[styles.entryAmount, { color: r.struck ? t.muted : t.text }]}>
               {formatMoney(r.amount)}
             </Text>
-          </Pressable>
+          </PressableOrPlain>
         ))}
 
         {rows.length === 0 && (
@@ -282,7 +365,81 @@ export default function PlayerCard() {
         )}
       </View>
 
-      {!seated && result !== undefined && (
+      {/*
+       * WHAT THE RULES TOOK, AND WHERE THAT LEFT THEM — the working.
+       *
+       * The card at the top is the table's answer: chips in, chips out, and the
+       * difference. This is the room's — the bill, the piggy bank, and what
+       * came back to whoever fronted the food — and it is the half a player
+       * actually argues about a week later. It is drawn only on a settled
+       * night, because until the rules have run there is nothing here that is
+       * not a guess.
+       *
+       * X1c's rows, in X1c's order (`working.ts`), on the sheet that survived
+       * it. Nothing on this screen adds anything up: the rows are the engine's,
+       * the labels come off the night's own rule snapshot — so a night settled
+       * under an older bill still names the split it was settled with — and the
+       * figure at the foot is `finalPosition`, which is what the row on E6 says
+       * and what the transfers were built from.
+       *
+       * ⚠ THREE STRINGS ARE NOT DRAWN, and are flagged rather than passed off
+       * as decided copy — the handoff's rule. "After deductions" is E6's own
+       * section label with the table dropped off the front of it; "Their night"
+       * is the summary card's "Night" in the pronoun the note below already
+       * uses; and the empty line is written to the same grammar. No board draws
+       * this block on this sheet at all, because no board draws this sheet
+       * after a night has been settled.
+       */}
+      {settlement !== null && (
+        <View style={[styles.after, { borderTopColor: t.hairline }]}>
+          <Text style={[styles.sectionLabel, { color: t.muted }]}>After deductions</Text>
+
+          {working.map((r) => (
+            <View key={r.key} style={styles.afterRow}>
+              <Text style={[styles.afterLabel, { color: t.text }]} numberOfLines={2}>
+                {r.label}
+              </Text>
+              <Text
+                style={[styles.afterValue, { color: r.offTable ? t.offTable : t.text }]}
+                numberOfLines={1}
+                {...cappedFigure}
+              >
+                {formatSignedToFit(r.amount, AFTER_FITS)}
+              </Text>
+            </View>
+          ))}
+
+          {working.length === 0 && (
+            <Text style={[styles.note, styles.afterNone, { color: t.muted }]}>
+              No rule touched them tonight.
+            </Text>
+          )}
+
+          <View style={[styles.afterTotal, { borderTopColor: t.hairline }]}>
+            <Text style={[styles.afterTotalLabel, { color: t.text }]}>Their night</Text>
+            <Text
+              style={[
+                styles.afterTotalValue,
+                {
+                  color:
+                    settlement.finalPosition === 0
+                      ? t.muted
+                      : moneyColor(t, settlement.finalPosition),
+                },
+              ]}
+              numberOfLines={1}
+              {...cappedFigure}
+            >
+              {formatSignedToFit(settlement.finalPosition, AFTER_FITS)}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/* Only while the deductions are still ahead of them. Once the night is
+          settled the block above IS what came off, and a line promising it is
+          still to happen would be describing a night that has ended. */}
+      {!seated && result !== undefined && settlement === null && (
         <View style={[styles.settledNote, { borderTopColor: t.hairline }]}>
           {/* The drawn line names the sample player and so carries her pronoun;
               this is the same sentence with the pronoun that fits everyone. */}
@@ -321,6 +478,22 @@ export default function PlayerCard() {
  * for it in the size or in this threshold.
  */
 const FITS = 1_000;
+
+/*
+ * AND WHERE THE WORKING UNDER IT DOES, which is a different number because it
+ * is a different shape of row.
+ *
+ * One figure to a line rather than three: 320 points inside the sheet's own
+ * margins at 360, a label at 14/400 that may wrap to two lines and give, and a
+ * figure at 14/600 — 15/800 on the total — that may not. "−$999,999" is about
+ * 81 points at the total's weight and 90 at the reader's text cap, which leaves
+ * the label 220 and the two rules that fit least — "Kitchen & drinks · by size
+ * of win" and "Back to you · fronted the bill" — take two lines and fit. So a
+ * million is where this abbreviates, the same place E6's own row does: the two
+ * screens are read one after the other and a figure that changed between them
+ * would read as a different figure.
+ */
+const AFTER_FITS = 1_000_000;
 
 /**
  * A label over a figure, two or three across the summary card.
@@ -384,6 +557,32 @@ function StatPair({
 }
 
 /**
+ * An entry row that is a door, or the same row and nothing else.
+ *
+ * A settled night's rows lead nowhere — see the footer — and the way NOT to do
+ * that is to render a `Pressable` with no handler: it is still a button to a
+ * screen reader, still announces itself as one, and still takes a tap that does
+ * nothing, which reads as an app that has stopped responding. So the element
+ * itself changes, and the row inside it does not.
+ */
+function PressableOrPlain({
+  press,
+  style,
+  children,
+}: {
+  press?: () => void;
+  style: (state: { pressed: boolean }) => StyleProp<ViewStyle>;
+  children: ReactNode;
+}) {
+  if (press === undefined) return <View style={style({ pressed: false })}>{children}</View>;
+  return (
+    <Pressable accessibilityRole="button" onPress={press} style={style}>
+      {children}
+    </Pressable>
+  );
+}
+
+/**
  * "Buy-in", "Rebuy", "Cashed out" — WHAT the line is, and nothing more.
  *
  * Which rebuy it was belongs to the line underneath, where T2 puts it. Saying
@@ -392,7 +591,14 @@ function StatPair({
  * happened to this entry since.
  */
 function label(kind: 'buyin' | 'rebuy' | 'cashout' | 'expense'): string {
-  return kind === 'cashout' ? 'Cashed out' : kind === 'buyin' ? 'Buy-in' : 'Rebuy';
+  return kind === 'cashout'
+    ? 'Cashed out'
+    : kind === 'buyin'
+      ? 'Buy-in'
+      : kind === 'expense'
+        ? /* The bill's own word for one of these, and its section label. */
+          'Spend'
+        : 'Rebuy';
 }
 
 /**
@@ -433,10 +639,38 @@ interface EntryRow {
 
 function entryRows(
   mine: readonly EffectiveEntry[],
+  fronted: readonly EffectiveEntry[],
   night: NonNullable<ReturnType<typeof useNight>>,
   queued: ReadonlySet<string>,
 ): EntryRow[] {
   const out: EntryRow[] = [];
+
+  /*
+   * WHAT THEY BOUGHT FOR THE TABLE, in the same timeline as their chips.
+   *
+   * The note is the row — "Pizza", "Beers" — exactly as the bill draws it, and
+   * an empty note leaves the word alone rather than inventing a description of
+   * something nobody described. A voided spend keeps its place struck through,
+   * for the reason every other voided row does: the ledger has it.
+   */
+  for (const e of fronted) {
+    const note = night.noteOf[e.id] ?? '';
+    out.push({
+      key: e.id,
+      seq: e.seq,
+      entryId: e.id,
+      at: night.occurredAt[e.id],
+      title: note === '' ? label('expense') : note,
+      sub: 'fronted the bill',
+      amount: e.voided ? e.originalAmount : e.amount,
+      struck: e.voided,
+      mark: e.voided
+        ? { label: 'voided', tone: 'muted' }
+        : queued.has(e.id)
+          ? { label: 'queued', tone: 'muted' }
+          : undefined,
+    });
+  }
 
   mine.forEach((e, i) => {
     const at = night.occurredAt[e.id];
@@ -572,6 +806,44 @@ const styles = StyleSheet.create({
   provenance: type.entryProvenance,
   entryAmount: { ...type.entryAmount, marginLeft: 'auto' },
   queuedNote: { ...type.footnote, marginTop: 16, paddingHorizontal: 15 },
+
+  /*
+   * THE WORKING, under the entries and over the note.
+   *
+   * E6's deductions block at this sheet's own margin: a rule top, a rule above
+   * the total, 14 for a row and 15/800 for the figure it comes to. It is the
+   * same furniture as the results screen the reader has just come from on
+   * purpose — the block is the per-person half of the totals they were looking
+   * at there, and a second visual language would read as a second subject.
+   */
+  after: { marginTop: 16, marginHorizontal: 20, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 5 },
+  afterRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
+  afterLabel: { fontSize: 14, fontWeight: '400', flexShrink: 1 },
+  /* NEVER SHRINKS — B18. The label beside it is words and gives instead. */
+  afterValue: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontSize: 14,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  afterNone: { marginHorizontal: 0 },
+  afterTotal: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    marginTop: 1,
+    paddingTop: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  afterTotalLabel: { fontSize: 13, fontWeight: '700', letterSpacing: 0.52, textTransform: 'uppercase' },
+  afterTotalValue: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontSize: 15,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+  },
 
   settledNote: { marginTop: 14, marginHorizontal: 20, paddingTop: 12, borderTopWidth: 1 },
   settledText: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
