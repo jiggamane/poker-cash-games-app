@@ -47,9 +47,20 @@ export function ruleProblem(rule: MoneyRule, spent: Money): string | null {
  *   HOW MUCH   a percentage of each win, or a fixed sum to be shared out
  *   CHARGED TO the winners only, or everyone at the table
  *   SPLIT      evenly, in proportion to the win, or typed in by hand
- *   TAKEN FROM the gross win, or what is left after the earlier rules
  *
- * Two of those combinations are refused rather than left to fail later:
+ * THERE IS NO "TAKEN FROM" HERE ANY MORE. It asked whether a rule came off the
+ * gross win or off what the rules above it had left, and it was the one setting
+ * on this sheet that nobody could answer without holding the whole order of the
+ * rules in their head — three screens then had to explain the answer in words
+ * ("off each win, after the other rules", "% of each win after the bill") and
+ * one of them got it the wrong way round. Every rule is now taken off the gross
+ * win, which is what every rule in the app has been set to since the sample
+ * night. `MoneyRule.basis` survives in core and in the engine because it is
+ * written into `book.rules` on the server: a night already stored as
+ * `net_after_others` still settles exactly as it did, and reads back correctly.
+ * Nothing in the interface writes it any more, and `draftRule` makes 'gross'.
+ *
+ * Two combinations are refused rather than left to fail later:
  *
  *   A PERCENTAGE CHARGED TO EVERYONE is meaningless — a percentage of a loss
  *   is not a thing, so the charge locks to winners the moment you pick one.
@@ -255,22 +266,6 @@ export function RuleFields({
           )}
         </Section>
       )}
-
-      <Section label="Taken from">
-        <Segment
-          options={[
-            { key: 'gross', label: 'The gross win' },
-            { key: 'net_after_others', label: 'What is left after the others' },
-          ]}
-          value={rule.basis}
-          onChange={(k) => onChange({ basis: k as MoneyRule['basis'] })}
-        />
-        <Text style={[styles.explain, { color: t.muted }]}>
-          Rules run in order. "What is left" means this one is taken after the rules above it have
-          already come off, which is how a piggy bank ends up smaller than the same percentage of the
-          gross.
-        </Text>
-      </Section>
 
       {!isBill && (
         <Section label="Collected by">

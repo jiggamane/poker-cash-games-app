@@ -186,9 +186,16 @@ export default function PiggyBankRules() {
 const rate = (rule: MoneyRule): string =>
   rule.amountKind === 'percent' ? `${rule.amount}%` : `$${rule.amount.toLocaleString('en-US')}`;
 
+/*
+ * "5% of each win". It used to end "of each win after the bill" when the rule's
+ * basis was `net_after_others`; the rule editor no longer offers that choice —
+ * see `RuleFields.tsx` — so the qualifier described a setting nothing can
+ * reach. The engine still honours a basis stored on an older night, so the
+ * money is unchanged; this sentence just stops naming a switch that is gone.
+ */
 const charge = (rule: MoneyRule): string =>
   rule.amountKind === 'percent'
-    ? `${rule.amount}% of each ${rule.basis === 'gross' ? 'win' : 'win after the bill'}`
+    ? `${rule.amount}% of each win`
     : `$${rule.amount.toLocaleString('en-US')} each`;
 
 const styles = StyleSheet.create({

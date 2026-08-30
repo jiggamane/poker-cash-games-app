@@ -73,6 +73,82 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B24 — a spend added after the count was allowed by the engine and unreachable from the screen
+
+```
+Screen      E3 deductions, and O4 tonight's money rules
+Seen        the bar tab arrives at 1am, the count is in, and the only way onto
+            the bill is: back out of the ending flow, find the table, open the
+            admin drawer, open the bill, add it, then walk forward through
+            Count up → Deductions → Settle up again
+Expected    the bill and the person who paid it on the two screens where the
+            deductions are actually argued about
+Found       30 Aug, from the handoff — 11-bill-and-piggy-bank.md, "After the
+            count": "A spend added during settle-up is allowed and recalculates
+            every winner's share and every transfer"
+Locked by   npm run check:ui — ui-audit.mjs, DECIDED, which opens /money-rules
+            and /deductions and asks for "The bill" and "Add a spend" by name;
+            and ui-journeys.mjs, which adds one from Deductions mid-run and
+            checks it lands on the bill it was added to
+Status      fixed in this commit
+```
+
+**The engine allowed it all along.** Nothing needed changing in `packages/core`:
+E3 recomputes off `settle()` on every render, so a spend added there already
+redrew every share, the preview grid and the total. What was missing was a door.
+The bill hung off the table's own admin drawer, which is a place you can only be
+while the game is still running — the one part of the night when the bar tab has
+*not* arrived yet.
+
+`src/components/SpendList.tsx` is the list, on both screens, so the amount and
+the person who fronted it are one tap from the figures they change. The spend
+sheet itself is unchanged and unduplicated: "Covered by" is four cases with a
+sum rule on one of them, and a second implementation of that on the deductions
+screen is the second implementation that goes wrong. `frontedSentence` moved
+into the same file for the same reason — the bill had been the only screen
+saying "Marek and Dana fronted it", and it is now said on three.
+
+### B23 — a spend logged at the wrong amount could not be corrected, only voided
+
+```
+Screen      L3 the spend, opened on a spend already on the bill
+Seen        the amount drawn large at the top of the sheet and no keypad
+            anywhere on it. $1,200 typed instead of $120 could be voided and
+            re-entered, and nothing else
+Expected    L3's own first row — "Rows: Amount, Note, then Covered by" — with
+            the amount editable, the way every other logged figure in the app is
+Found       30 Aug, reading the sheet against 11-bill-and-piggy-bank.md § L3
+Locked by   npm run check — moneyScreens.contract.test.ts, which fails if the
+            pad goes back behind `existing === undefined`; and
+            npm run check:ui — ui-audit.mjs, KEYPAD, which opens every screen
+            where an amount is typed and looks for the pad's backspace key
+Status      fixed in this commit
+```
+
+The pad was rendered `{existing === undefined && <Keypad …>}`. Adding a spend
+was right; correcting one showed a figure with no way to touch it.
+
+**A void is not a correction here.** The ledger is append-only by design, so
+voiding writes a reversal that stays visible to everyone for ever — which is
+exactly what it is for when a spend did not happen, and exactly the wrong shape
+for a typo. The bill then reads as a spend, a reversal and a second spend, and
+the room spends a minute working out that all three are one round of drinks.
+
+**And it was hiding a second fault.** `useTypedAmount` captures its opening
+figure on the FIRST render, and on that render `useNight()` can still be null —
+the sheet mounts before the store answers. The spend being edited is undefined
+at that moment, so the pad opened on nought, and the sheet drew **$0** over a
+spend logged at $120, with the note and the fronters blank beside it. Nothing on
+the screen contradicted the figure while there was no pad, so it looked like a
+sheet that had simply not loaded. The state is now seeded once per spend, by id,
+when the night actually arrives — once, so the night object changing on every
+entry anybody logs cannot throw away a figure the host is halfway through
+typing.
+
+The figure is an OFFER, not text the host typed, which is B20's distinction:
+the first key replaces the whole amount rather than appending to it, so
+correcting $1,200 to $120 is three keys and not nine deletions.
+
 ### B22 — Count up could read "done" with a whole cash-out missing
 
 ```

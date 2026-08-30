@@ -148,12 +148,9 @@ function explain(
           : 'splits between the winners'
         : 'split between everyone at the table';
 
-  const outOf =
-    rule.amountKind === 'percent'
-      ? rule.basis === 'net_after_others'
-        ? 'off each win, after the other rules'
-        : 'off each win'
-      : null;
+  /* Always the gross win: "Taken from" is gone from the rule editor, so there
+     is no longer an "after the other rules" case for this line to describe. */
+  const outOf = rule.amountKind === 'percent' ? 'off each win' : null;
 
   const holder =
     rule.destination === 'bill'

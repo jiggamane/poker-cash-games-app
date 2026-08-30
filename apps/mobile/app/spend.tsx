@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { formatMoney, money, resolveLedger, type Money, type PlayerId } from '@poker-club/core';
@@ -17,9 +17,6 @@ import {
   type Cover,
 } from '../src/lib/nightStore';
 
-/** The three words the chips write into the note. They are prefills, not types. */
-const PREFILLS = ['Food', 'Drinks', 'Venue'];
-
 /**
  * Add a spend — L2 — and edit one — L3. 11-bill-and-piggy-bank.md.
  *
@@ -27,9 +24,18 @@ const PREFILLS = ['Food', 'Drinks', 'Venue'];
  * time is stamped on save and there is no time field, because a round of
  * drinks is bought now and back-dating it changes nothing about the money.
  *
- * THERE IS NO TYPE ON A SPEND. The chips above the note are prefills that write
- * a word into the note; nothing but the amount affects the arithmetic, and an
- * empty note is valid — the bill then shows the amount alone.
+ * THERE IS NO TYPE ON A SPEND, and there are no prefills above the note either.
+ * L2 drew a chip row writing `Food`, `Drinks` or `Venue` into the field, and on
+ * the built screen it was the only row of chips sitting under a big money
+ * figure — which on every other amount sheet in this app (/log, /entry, /share)
+ * is the preset row. It read as three preset amounts and it was three words.
+ * Nothing but the amount affects the arithmetic, an empty note is valid, and
+ * the bill row shows the amount alone when there is no note.
+ *
+ * THE KEYPAD IS ON BOTH STATES. It used to be drawn only when adding, so L3's
+ * Amount row — "Rows: Amount, Note, then Covered by" — had a figure on it and
+ * no way to change it: a spend logged at $1,200 instead of $120 could only be
+ * voided and typed again. See B23 in `docs/bugs.md`.
  *
  * Covered by has four cases and they are not decoration: one player is repaid
  * exactly what they fronted, several players must sum to the spend before Save
@@ -52,10 +58,11 @@ export default function SpendScreen() {
 
   /*
    * The keypad's own rule about a figure already on screen —
-   * `src/components/typedAmount.ts`, and B20. Nothing changes here today: a
-   * new spend opens on zero, which the pad has always treated as an empty
-   * field, and an existing one draws no keypad at all. It is on the shared
-   * state so that it stays right the day either of those does change.
+   * `src/components/typedAmount.ts`, and B20. A new spend opens on nought,
+   * which the pad has always treated as an empty field; an existing one opens
+   * on what was logged, as an OFFER, so the first key replaces the whole
+   * figure rather than appending a digit to it. Correcting a $1,200 spend to
+   * $120 is three keys, not nine deletions.
    */
   const field = useTypedAmount(existing?.amount ?? 0);
   const [note, setNote] = useState<string>(existing?.note ?? '');
@@ -69,6 +76,37 @@ export default function SpendScreen() {
   const [shares, setShares] = useState<Record<string, string>>(
     Object.fromEntries((existing?.fronters ?? []).map((f) => [f.playerId, String(f.amount)])),
   );
+
+  /*
+   * THE SPEND BEING EDITED, once the night is actually here.
+   *
+   * Every `useState` above captures its opening value on the FIRST render, and
+   * on that render `useNight()` can still be null — the sheet mounts before the
+   * store has answered, which is the whole reason the guard below exists. The
+   * spend is then undefined, so the sheet opens on nought with no note and
+   * nobody covering it, over a spend logged at $120 by Marek. It never showed
+   * while this state drew no keypad, because nothing on the screen contradicted
+   * the figure.
+   *
+   * Seeded ONCE PER SPEND, by id. The night object changes on every entry
+   * anybody logs, and re-seeding on each of those would throw away a figure the
+   * host is halfway through typing.
+   */
+  const seeded = useRef<string | null>(null);
+  useEffect(() => {
+    if (existing === undefined || seeded.current === existing.id) return;
+    seeded.current = existing.id;
+    field.offer(existing.amount);
+    setNote(existing.note);
+    setCover(
+      existing.coveredBy !== null
+        ? { kind: existing.coveredBy }
+        : { kind: 'players', ids: existing.fronters.map((f) => f.playerId) },
+    );
+    setShares(Object.fromEntries(existing.fronters.map((f) => [f.playerId, String(f.amount)])));
+    // `field` is a fresh object each render; the spend is what this watches.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existing]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -170,21 +208,6 @@ export default function SpendScreen() {
         <View style={styles.labelRow}>
           <Text style={[styles.label, { color: t.muted }]}>NOTE</Text>
           <Text style={[styles.optional, { color: t.dim }]}>optional</Text>
-        </View>
-        <View style={styles.chips}>
-          {PREFILLS.map((word) => (
-            <Pressable
-              key={word}
-              accessibilityRole="button"
-              onPress={() => setNote(word)}
-              style={({ pressed }) => [
-                styles.chip,
-                { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <Text style={[styles.chipLabel, { color: t.text }]}>{word}</Text>
-            </Pressable>
-          ))}
         </View>
         <TextInput
           value={note}
@@ -295,9 +318,7 @@ export default function SpendScreen() {
 
       {error !== null && <Text style={[styles.error, { color: t.danger }]}>{error}</Text>}
 
-      {existing === undefined && (
-        <Keypad {...field.keys} />
-      )}
+      <Keypad {...field.keys} />
     </Sheet>
   );
 }

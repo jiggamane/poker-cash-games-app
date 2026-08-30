@@ -12,6 +12,9 @@ import {
 import {
   formatMoney,
   money,
+  ROUNDING_CHOICES,
+  roundingLabel,
+  roundingSentence,
   ruleDetail,
   stakesLabel,
   stakesSummary,
@@ -20,6 +23,7 @@ import {
   type Money,
   type MoneyRule,
   type PlayerId,
+  type RoundingMode,
   type Stakes,
   type StraddleMode,
 } from '@poker-club/core';
@@ -74,7 +78,15 @@ import { draftRule, startNight, tableNameProblem, useOpenGames } from '../src/li
  * pre-filled from last night, so opening a night stays what it is: adding
  * players and confirming their first buy-ins.
  */
-type Step = 'game' | 'players' | 'rules' | 'rule' | 'stakes' | 'buy-in' | 'currency';
+type Step =
+  | 'game'
+  | 'players'
+  | 'rules'
+  | 'rule'
+  | 'stakes'
+  | 'buy-in'
+  | 'rounding'
+  | 'currency';
 
 /** Where the close and a completed step return to. The flow is one level deep. */
 const PARENT: Record<Step, Step | null> = {
@@ -84,6 +96,7 @@ const PARENT: Record<Step, Step | null> = {
   rule: 'rules',
   stakes: 'game',
   'buy-in': 'game',
+  rounding: 'game',
   currency: 'game',
 };
 
@@ -105,6 +118,13 @@ export default function NewNight() {
   const [rules, setRules] = useState<MoneyRule[] | null>(null);
   const [buyIn, setBuyIn] = useState<Money | null>(null);
   const [stakes, setStakes] = useState<Stakes | null>(null);
+  /*
+   * Tonight's rounding. `undefined` is this sheet's "still whatever was
+   * inherited" — it cannot be `null` like the three above it, because `null`
+   * is a rounding rule in its own right: it is how whole dollars are stored,
+   * and how `RoundingMode` has always said "the default every night has had".
+   */
+  const [rounding, setRounding] = useState<RoundingMode | undefined>(undefined);
   /** What the primary says the table will be stamped at, kept on the minute. */
   const now = useNow();
 
@@ -147,6 +167,11 @@ export default function NewNight() {
   const liveRules = rules ?? inherited.rules;
   const liveBuyIn = buyIn ?? inherited.buyIn;
   const liveStakes = stakes ?? inherited.stakes;
+  /* Never null here: the chips offer 'dollars' as a value of its own, and the
+     night stores it back as null, which is the same rule written the way the
+     server column has always spelled it. */
+  const liveRounding: RoundingMode = rounding ?? inherited.roundingMode ?? 'dollars';
+  const storedRounding: RoundingMode | null = liveRounding === 'dollars' ? null : liveRounding;
   /** The straddle in words, or null when there is none — O1 draws no line. */
   const straddle = straddleLabel(liveStakes, currency.symbol);
 
@@ -211,10 +236,13 @@ export default function NewNight() {
         // move afterwards, however the group is reconfigured.
         stakes: stakesSummary(liveStakes, currency.symbol),
         // Copied at birth like the rules, and for the same reason: a night is
-        // settled with what it opened with. Nothing on this sheet edits it —
-        // the rounding rule is changed from tonight's money rules, or from the
-        // club's, and this is only where the club's answer is carried across.
-        roundingMode: inherited.roundingMode,
+        // settled with what it opened with. It is SET here now as well as
+        // inherited: how coarsely the table settles is a thing a group decides
+        // about the game it is about to play, and sending a host to tonight's
+        // money rules to change it meant opening the table first, on the wrong
+        // setting. Editing here changes tonight and only tonight; the club's
+        // own default is untouched, exactly as the rules and the buy-in are.
+        roundingMode: storedRounding,
         seats,
         buyIn: liveBuyIn,
         // No start time goes on: `startNight` stamps the night with the clock
@@ -230,7 +258,7 @@ export default function NewNight() {
         club.id,
         liveBuyIn,
         liveRules,
-        inherited.roundingMode,
+        storedRounding,
         liveStakes,
       );
       router.dismissTo('/');
@@ -317,7 +345,9 @@ export default function NewNight() {
               ? 'Stakes'
               : step === 'buy-in'
                 ? 'Default buy-in'
-                : 'Currency';
+                : step === 'rounding'
+                  ? 'Rounding'
+                  : 'Currency';
 
   const problem = draft === null ? null : ruleProblem(draft.rule, money(0));
 
@@ -455,6 +485,25 @@ export default function NewNight() {
                 value={rules === null ? sameAs(inherited) : 'set for tonight'}
                 quiet
                 onPress={() => go('rules')}
+              />
+              {/*
+               * HOW COARSELY THE TABLE SETTLES, on the screen that opens it.
+               *
+               * A money rule, not a display setting — it changes what people
+               * actually pay — and it governs every rule above it at once,
+               * which is why it is its own row rather than a field inside one.
+               * It was reachable only from tonight's money rules or from the
+               * club's, both of which are places you go AFTER the table is
+               * open; a group playing for thousands therefore played the first
+               * hand on whole dollars and found out at settle-up. The same four
+               * choices as `/rounding`, off `ROUNDING_CHOICES` in core, so the
+               * list is written once.
+               */}
+              <SettingRow
+                label="Rounding"
+                sub="what a rule takes is worked out to this"
+                value={roundingLabel(liveRounding)}
+                onPress={() => go('rounding')}
                 last
               />
             </View>
@@ -584,6 +633,8 @@ export default function NewNight() {
             note="What a seat costs tonight. Everyone is seated at this figure and any of them can be typed over before the table opens."
           />
         )}
+
+        {step === 'rounding' && <Rounding picked={liveRounding} onPick={setRounding} />}
 
         {step === 'currency' && (
           <Currencies
@@ -1183,6 +1234,72 @@ function Amount({
 }
 
 /**
+ * HOW COARSELY THE TABLE SETTLES — the four chips, before the night exists.
+ *
+ * S14 draws this control as an open chip row and `ROUNDING_CHOICES` in core is
+ * the list — Dollar · 10s · 100s · 1k — so it is written once and both screens
+ * that offer it read the same four.
+ *
+ * The chips are this sheet's own preset row at `flex: 1`, the same object the
+ * buy-in uses. B2 is why that is worth saying: the row on `/rounding` is drawn
+ * for the board's six, and at 24 points of padding a side a 52-point slot left
+ * four for a word that needed thirty-eight, so "100s" came out through the side
+ * of its own box. Four across this sheet at 393 is about 85 a slot with no
+ * horizontal padding at all, which "Dollar" clears twice over.
+ *
+ * IT SAYS WHAT IT DOES NOT TOUCH, because that is the first thing a host asks
+ * and the answer is not obvious. Nothing anybody counted moves: buy-ins,
+ * cash-outs and every result are exactly what they were. What is rounded is a
+ * DIVISION — what a rule takes off the winners — and the parts still add back
+ * up to the whole, so the bar is owed what the bar is owed. Said in the same
+ * words as `/rounding`, off `roundingSentence` in core rather than written
+ * twice.
+ *
+ * ⚠ LAYOUT NOT DRAWN on this sheet. No board puts rounding on O1 — it was a row
+ * on tonight's money rules and nowhere else. Assembled from the two things here
+ * that are drawn: the preset row, and the sentence under it.
+ */
+function Rounding({
+  picked,
+  onPick,
+}: {
+  picked: RoundingMode;
+  onPick: (mode: RoundingMode) => void;
+}) {
+  const t = useTheme();
+  return (
+    <View style={styles.section}>
+      <View style={styles.presets}>
+        {ROUNDING_CHOICES.map((c) => (
+          <Button
+            key={c.mode}
+            label={c.chip}
+            variant="preset"
+            selected={c.mode === picked}
+            onPress={() => onPick(c.mode)}
+            style={styles.preset}
+          />
+        ))}
+      </View>
+
+      <Text style={[styles.roundValue, { color: t.text }]}>{roundingLabel(picked)}</Text>
+      <Text style={[styles.explain, { color: t.muted }]}>{roundingSentence(picked)}.</Text>
+
+      <Text style={[styles.explain, { color: t.muted }]}>
+        It touches nothing anybody counts. Buy-ins, cash-outs and everyone’s result are exactly
+        what they were — what is rounded is what a rule takes off the winners, and the shares
+        still add up to the whole.
+      </Text>
+
+      <Text style={[styles.explain, { color: t.muted }]}>
+        Tonight’s, like the rules and the buy-in. The group keeps its own default, and this game
+        is settled with what it opened with.
+      </Text>
+    </View>
+  );
+}
+
+/**
  * Picking the money this group keeps its book in.
  *
  * ⚠ LAYOUT NOT DRAWN. No board opens this — O1 states the currency and never
@@ -1524,4 +1641,8 @@ const styles = StyleSheet.create({
   },
   setText: { fontSize: 16, fontWeight: '700', textAlign: 'center', width: '100%', padding: 0 },
   explain: { ...type.footnote, paddingHorizontal: 4, paddingTop: 12 },
+  /* The rounding rule in words, over its own explanation. Not the 56pt figure
+     the buy-in and the blinds use: "Whole dollars" is thirteen glyphs and would
+     be off the side of the sheet before the reader's text setting touched it. */
+  roundValue: { fontSize: 20, fontWeight: '700', paddingHorizontal: 4, paddingTop: 4 },
 });

@@ -662,6 +662,44 @@ async function playANight(name, rebuys) {
   await stop('deductions');
 
   /*
+   * A SPEND ADDED AFTER THE COUNT, from the screen the room is standing on.
+   *
+   * `11-bill-and-piggy-bank.md`, "After the count": *"A spend added during
+   * settle-up is allowed and recalculates every winner's share and every
+   * transfer."* The engine always allowed it. Until 30 August no screen in the
+   * ending flow could reach it — the bill hung off the table's own drawer — so
+   * a bar tab arriving at 1am meant leaving the flow, going back to the table,
+   * opening the drawer and the bill, adding it, and walking forward through the
+   * count a second time.
+   *
+   * Only this file can check it. The route pass opens /spend bare, with nothing
+   * behind it and no way in; this is the path a host actually takes, with a
+   * real night's figures on the screen it returns to.
+   *
+   * THE KEYPAD IS ASSERTED FIRST because the sheet used to draw one only when
+   * adding, and the state this journey reaches next — the same sheet reopened
+   * on a logged spend — had a figure on it and nothing to change it with. B23.
+   */
+  await tap('Add a spend', { wait: 900 });
+  await stop('a spend, after the count');
+  await holds(
+    'the spend keypad',
+    (await page.getByLabel('Delete').count()) > 0,
+    'no keypad on the spend sheet — the amount cannot be typed',
+  );
+  await page.getByPlaceholder('What it was').fill('Late pizza');
+  await punch('60');
+  /* The person who paid it, which is half of what a spend is. */
+  await tap(players[0].name, { last: true });
+  await tap(/^Add .* to the bill$/, { last: true, wait: 1400 });
+  await stop('deductions · a spend added after the count');
+  await holds(
+    'the spend reaches the bill',
+    (await page.evaluate(() => document.body.innerText)).includes('Late pizza'),
+    'a spend added from Deductions is not on the bill it was added to',
+  );
+
+  /*
    * ONE SHARE, SET BY HAND — the only way to reach /share with a night on it.
    *
    * The sheet takes a rule and a person as arguments, so the route pass in

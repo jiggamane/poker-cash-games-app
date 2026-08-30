@@ -196,6 +196,97 @@ const DRAWN = {
   ],
 };
 
+/*
+ * ROWS A DECISION PUT ON A SCREEN THAT NO BOARD DRAWS.
+ *
+ * `DRAWN` above is the board's own words and is kept pure — every string in it
+ * is on an artboard, which is what makes it worth anything. This is the other
+ * half of the same fault: a row the design never drew, added because a decision
+ * was taken, is exactly as invisible to every other check in this file and
+ * exactly as easy for a later pass to delete by accident. O1 shipped for weeks
+ * without *Stakes* and nothing could say so; the rows below would go the same
+ * way.
+ *
+ * Each entry names the decision, because a row nobody can trace back to one
+ * does not belong on a screen at all.
+ */
+const DECIDED = {
+  /*
+   * 30 Aug · rounding is set when the game is opened, not only after it.
+   *
+   * How coarsely the table settles is a money rule — it changes what people
+   * pay — and it was reachable only from tonight's money rules or the club's,
+   * both of which are places you go once the table is already open. A group
+   * playing for thousands played the first hand on whole dollars.
+   */
+  '/new-night': ['Rounding'],
+
+  /*
+   * 30 Aug · the bill, and who paid it, on the two screens where the deductions
+   * are actually argued about.
+   *
+   * `11-bill-and-piggy-bank.md` under "After the count" has always allowed a
+   * spend added during settle-up. The engine allowed it; no screen in the
+   * ending flow could reach it, so the host left the flow, found the table,
+   * opened the drawer and the bill, and walked forward through the count again.
+   */
+  '/money-rules': ['The bill', 'Add a spend'],
+
+  /*
+   * /deductions is NOT here, and the reason is the one PARAMS is about.
+   *
+   * The seeded night is mid-count, so opening the route bare renders E3's
+   * "Not yet" state — no stack counted, no figures, and correctly no bill. A
+   * row asked for here would be red on a screen that is behaving perfectly, and
+   * the fix for that would be to stop asking, which is how a check quietly
+   * stops checking. The bill on E3 is real only once a night has been counted,
+   * so `ui-journeys.mjs` owns it: mid-run, with the count in, it taps *Add a
+   * spend* on that screen, types a figure on the pad, names who paid it, and
+   * asserts the spend lands on the bill it was added to.
+   */
+};
+
+/*
+ * WORDS A DECISION HAS REMOVED, which must be on NO screen.
+ *
+ * The mirror of the two maps above, and it exists because removing a control
+ * from an app is not one edit. "Taken from" was a segmented control in the rule
+ * editor, and the setting behind it was then explained in words on the house
+ * rules and on the piggy-bank rules — three screens, one of which had the
+ * sentence the wrong way round. Deleting the control leaves the sentences, and
+ * nothing in this file could see them: a screen explaining a setting that no
+ * longer exists is perfectly laid out.
+ *
+ * Checked on EVERY route rather than per screen, because "wherever it appears"
+ * is the actual requirement. Keep this list to strings specific enough that an
+ * unrelated screen cannot say them by accident.
+ */
+const GONE = [
+  // 30 Aug · every rule is taken off the gross win. `MoneyRule.basis` survives
+  // in core so a night already stored as `net_after_others` still settles as it
+  // did — see the header of `src/components/RuleFields.tsx` — but nothing in
+  // the interface offers the choice or describes it any more.
+  'Taken from',
+  'after the other rules',
+  'win after the bill',
+  'What is left after the others',
+];
+
+/*
+ * SCREENS WHERE AN AMOUNT IS TYPED ON THE APP'S OWN PAD.
+ *
+ * A keypad rather than the system keyboard, for the reason `Keypad.tsx` gives:
+ * the amount is the whole point of the screen and a keyboard sliding up covers
+ * both the running figure and the button that commits it. A screen in this list
+ * with no pad on it is a figure that cannot be changed — which is what L3 was,
+ * for as long as the spend sheet drew its pad only when adding. See B23.
+ *
+ * The backspace key is what is looked for: every pad has exactly one, it is
+ * labelled rather than drawn with a glyph the DOM can match, and unlike the
+ * digits it cannot be a figure that happens to be on the screen.
+ */
+const KEYPAD = ['/log', '/spend', '/share'];
+
 const ROOM = `
 (() => {
   const px = (v) => Math.round(v * 100) / 100;
@@ -741,6 +832,48 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
             findings.push({
               check: 'drawn-row-missing',
               detail: `the board draws “${word}” and the screen does not`,
+              where: route,
+            });
+          }
+        }
+
+        /* Rows a decision put there that no board draws — see DECIDED. */
+        for (const word of DECIDED[route] ?? []) {
+          const seen = await page.evaluate(
+            (w) => (document.body.innerText || '').toLowerCase().includes(w.toLowerCase()),
+            word,
+          );
+          if (!seen) {
+            findings.push({
+              check: 'decided-row-missing',
+              detail: `a decision put “${word}” on this screen and it is not there`,
+              where: route,
+            });
+          }
+        }
+
+        /* Words a decision has removed — see GONE. Every route, every time. */
+        for (const word of GONE) {
+          const seen = await page.evaluate(
+            (w) => (document.body.innerText || '').toLowerCase().includes(w.toLowerCase()),
+            word,
+          );
+          if (seen) {
+            findings.push({
+              check: 'removed-copy-still-here',
+              detail: `“${word}” was taken out of the app and this screen still says it`,
+              where: route,
+            });
+          }
+        }
+
+        /* An amount screen with no pad is a figure nobody can change — KEYPAD. */
+        if (KEYPAD.includes(route)) {
+          const pads = await page.getByLabel('Delete').count();
+          if (pads === 0) {
+            findings.push({
+              check: 'keypad-missing',
+              detail: 'an amount is typed here and there is no keypad to type it on',
               where: route,
             });
           }

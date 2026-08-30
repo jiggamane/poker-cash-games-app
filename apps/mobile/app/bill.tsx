@@ -6,6 +6,7 @@ import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Pill } from '../src/components/Pill';
 import { Sheet } from '../src/components/Sheet';
+import { frontedSentence } from '../src/components/SpendList';
 import { useTheme } from '../src/design/useTheme';
 import { block, radius, space, type } from '../src/design/tokens';
 import { nameOf, spendsOf, useNight, type Spend } from '../src/lib/nightStore';
@@ -150,18 +151,15 @@ function splitSentence(rule: MoneyRule | undefined): string {
     : 'The winners pay the same share each, whatever they won.';
 }
 
-/** "Marek fronted it", "Marek and Dana fronted it", "the piggy bank paid". */
-function fronted(spend: Spend, night: NonNullable<ReturnType<typeof useNight>>): string {
-  if (spend.coveredBy === 'kitty') return 'the piggy bank paid';
-  if (spend.coveredBy === 'unpaid') return 'nobody has paid for it yet';
-
-  const names = spend.fronters.map((f) => nameOf(night, f.playerId));
-  const list =
-    names.length === 1
-      ? names[0]!
-      : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]!}`;
-  return `${list} fronted it`;
-}
+/**
+ * "Marek fronted it", "Marek and Dana fronted it", "the piggy bank paid".
+ *
+ * The sentence itself is `frontedSentence` in `src/components/SpendList.tsx`,
+ * because the same list of spends is now read on tonight's money rules and on
+ * the deductions step as well as here.
+ */
+const fronted = (spend: Spend, night: NonNullable<ReturnType<typeof useNight>>): string =>
+  frontedSentence(spend, (id) => nameOf(night, id));
 
 const styles = StyleSheet.create({
   card: {
