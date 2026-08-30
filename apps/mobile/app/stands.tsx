@@ -1,7 +1,13 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { endedWith, formatMoney, formatSigned, resolveLedger, type Money } from '@poker-club/core';
+import {
+  endedWith,
+  formatSignedToFit,
+  formatToFit,
+  resolveLedger,
+  type Money,
+} from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
@@ -66,11 +72,11 @@ export default function Stands() {
               <View style={styles.rowText}>
                 <Text style={[styles.name, { color: t.text }]}>{s.name}</Text>
                 <Text style={[styles.detail, { color: t.muted }]}>
-                  in {formatMoney(s.boughtIn)} · out {formatMoney(s.out)}
+                  in {formatToFit(s.boughtIn, ROW_FITS)} · out {formatToFit(s.out, ROW_FITS)}
                 </Text>
               </View>
               <Text style={[styles.result, { color: moneyColor(t, s.result) }]}>
-                {formatSigned(s.result)}
+                {formatSignedToFit(s.result, ROW_FITS)}
               </Text>
             </View>
           ))}
@@ -91,7 +97,7 @@ export default function Stands() {
               <View style={styles.rowText}>
                 <Text style={[styles.name, { color: t.muted }]}>{s.name}</Text>
                 <Text style={[styles.detail, { color: t.muted }]}>
-                  in {formatMoney(s.boughtIn)}
+                  in {formatToFit(s.boughtIn, ROW_FITS)}
                 </Text>
               </View>
               <Text style={[styles.result, { color: t.muted }]}>—</Text>
@@ -161,3 +167,19 @@ const styles = StyleSheet.create({
   },
   noteText: type.footnote,
 });
+
+/*
+ * WHAT A RANKED ROW HOLDS EXACTLY.
+ *
+ * The same list as E5's, drawn once more, and it runs out of room the same way:
+ * an in-and-out line at 13/400 sharing what is left of the row with the result
+ * at 18/700. There is no avatar and no chevron here so the row is the wider of
+ * the two, but the fault it produces is identical — nothing clips, the line
+ * simply wraps, and "in $500 · out" ends up sitting above "$239,002,480".
+ *
+ * ONE THRESHOLD FOR BOTH SCREENS, and it is E5's, the tighter of the two. They
+ * are the same six rows a host reads twice within a minute of each other, and a
+ * table that abbreviates on one of them and not the other reads as a figure
+ * that changed rather than a column that is narrower.
+ */
+const ROW_FITS = 100_000;
