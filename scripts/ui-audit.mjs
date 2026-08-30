@@ -287,6 +287,53 @@ const GONE = [
  */
 const KEYPAD = ['/log', '/spend', '/share'];
 
+/*
+ * SCREENS WHOSE HEAD MOVES WITH THE BODY, and how much of it.
+ *
+ * Check 1 in doc 15 § 5 — "no screen scrolls as a whole; only lists scroll" —
+ * is a rule against an ACCIDENT: the head used to sit inside the scroll view
+ * on every screen, so a long body carried the title and the back button off
+ * the top and left the reader with no way to say where they were. That is
+ * still the default and still what goes red below.
+ *
+ * A screen may now opt out, per screen, by passing `headScroll` to `Screen`:
+ *
+ *   'meta'  the title row is pinned and the line under it scrolls away
+ *   'all'   the whole head goes, back button included — a screen that is one
+ *           long list and nothing else
+ *
+ * This map is the list of screens that have, and it is a two-way check rather
+ * than a mute. A route on it must actually scroll what it says it scrolls; a
+ * route off it may scroll nothing. So the fault this file was written to catch
+ * comes back red the moment a screen picks the behaviour up by accident, and
+ * a screen that was given it on purpose says so here, in the place somebody
+ * resolving a conflict in `Screen.tsx` will look.
+ */
+const HEAD_SCROLLS = {
+  // 30 Aug. My stats is read for a while — a month can be a dozen nights — and
+  // the club name is part of what is being read.
+  '/stats': 'meta',
+  // 30 Aug. The roster reaches thirty-odd rows and there is nothing else on
+  // the screen; 90 points of pinned chrome cost a row and a half on every
+  // phone and say nothing the list does not.
+  '/players': 'all',
+};
+
+/** Which side of the scroller each half of the head ended up on. */
+const HEAD_PROBE = `
+(() => {
+  const inScroller = (id) => {
+    const el = document.getElementById(id);
+    if (el === null) return null;
+    for (let n = el.parentElement; n !== null; n = n.parentElement) {
+      if (/(auto|scroll)/.test(getComputedStyle(n).overflowY)) return true;
+    }
+    return false;
+  };
+  return { title: inScroller('screen-title'), meta: inScroller('screen-meta') };
+})()
+`;
+
 const ROOM = `
 (() => {
   const px = (v) => Math.round(v * 100) / 100;
@@ -852,6 +899,46 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
         await page.goto(urlOf(route), { waitUntil: 'networkidle' });
         await page.waitForTimeout(450);
         findings = await page.evaluate(ROOM);
+
+        /*
+         * The head, for the screens that have asked for a moving one — see
+         * HEAD_SCROLLS. The room pass flags any scroller carrying the title;
+         * here that finding is dropped for a route that asked for it, and the
+         * opposite is asserted in its place, so the behaviour cannot quietly
+         * stop working either.
+         */
+        const wanted = HEAD_SCROLLS[route];
+        if (wanted !== undefined) {
+          findings = findings.filter(
+            (f) =>
+              f.check !== 'screen-scrolls' ||
+              !String(f.detail).startsWith('a scroller holds the title'),
+          );
+        }
+        {
+          const head = await page.evaluate(HEAD_PROBE);
+          const titleShould = wanted === 'all';
+          if (head.title !== null && head.title !== titleShould) {
+            findings.push({
+              check: 'head-scroll',
+              detail: titleShould
+                ? 'this screen asks for a scrolling title and its title is pinned'
+                : 'the title is inside a scroller and this screen never asked for that',
+              where: route,
+            });
+          }
+          // A screen with no meta line has nothing to say here.
+          const metaShould = wanted !== undefined;
+          if (head.meta !== null && head.meta !== metaShould) {
+            findings.push({
+              check: 'head-scroll',
+              detail: metaShould
+                ? 'the line under the title is pinned and this screen asks for it to scroll'
+                : 'the line under the title scrolls and this screen never asked for that',
+              where: route,
+            });
+          }
+        }
 
         /*
          * The rows the board draws, still on the screen — see DRAWN.

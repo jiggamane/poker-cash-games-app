@@ -34,6 +34,7 @@ export function Screen({
   footer,
   footerPad = true,
   scroll = true,
+  headScroll = 'none',
   dimmed = false,
 }: {
   title: string;
@@ -75,6 +76,27 @@ export function Screen({
   /** Off when the screen manages its own scrolling — a list with a dock. */
   scroll?: boolean;
   /**
+   * HOW MUCH OF THE HEAD THE BODY CARRIES AWAY WITH IT.
+   *
+   * `none` — the default, and what doc 15 § 5 check 1 states as the rule: the title,
+   * the meta line and the lede stay put and only the body moves.
+   *
+   * `meta` — the title row is pinned and the line under it scrolls away. The
+   * thing that says WHERE YOU ARE stays; the thing that says what you are
+   * looking at is part of what you are looking at, and on a screen a person
+   * scrolls for a while it is a strip of chrome held over the content for no
+   * reason. My stats is the first screen on it.
+   *
+   * `all` — the whole head goes with the body, back button included. For a
+   * screen that is a single long list and nothing else: the roster reaches
+   * about thirty rows and pinning 90 points of chrome over them costs a row
+   * and a half on every phone. Back is still there — it is one flick up.
+   *
+   * `scroll={false}` screens do their own scrolling and always keep the whole
+   * head, because there is no scroller here to put it in.
+   */
+  headScroll?: 'none' | 'meta' | 'all';
+  /**
    * Everything above the footer drops to .4 while the table-admin drawer is
    * open. The drawer is not a navigation state — it is the dock expanding in
    * place — so the screen stays mounted and simply steps back.
@@ -85,40 +107,48 @@ export function Screen({
 
   const badgeNode = typeof badge === 'string' ? <Pill label={badge} /> : badge;
 
-  const head = (
+  const titleRow = (
+    <View style={styles.titleRow}>
+      {backTo !== undefined && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Back to ${backTo}`}
+          onPress={() => router.back()}
+          hitSlop={10}
+          style={({ pressed }) => [
+            styles.back,
+            { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 },
+          ]}
+        >
+          <Icon name="back" color={t.text} />
+        </Pressable>
+      )}
+      {/* The frames draw a title on one line because their back chevron sits
+          on a row of its own; Chrome A puts the two together, which costs the
+          title 48pt. Where that is not enough it WRAPS — an ellipsis would
+          drop a word, and "Where everyone st…" is not a screen title. */}
+      {/* Named so `scripts/ui-audit.mjs` can tell a screen's own title from a
+          big figure inside its body, and hold the rule that a screen never
+          scrolls as a whole. */}
+      <Text nativeID="screen-title" style={[styles.title, { color: t.text }]} numberOfLines={2}>
+        {title}
+      </Text>
+
+      {badgeNode}
+      {trailing !== undefined && <View style={styles.trailing}>{trailing}</View>}
+    </View>
+  );
+
+  /* The second line, and the paragraph under it when a screen has one. Named
+     so `ui-audit.mjs` can say which side of the scroller it ended up on. */
+  const sub = (
     <>
-      <View style={styles.titleRow}>
-        {backTo !== undefined && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Back to ${backTo}`}
-            onPress={() => router.back()}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.back,
-              { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 },
-            ]}
-          >
-            <Icon name="back" color={t.text} />
-          </Pressable>
-        )}
-        {/* The frames draw a title on one line because their back chevron sits
-            on a row of its own; Chrome A puts the two together, which costs the
-            title 48pt. Where that is not enough it WRAPS — an ellipsis would
-            drop a word, and "Where everyone st…" is not a screen title. */}
-        {/* Named so `scripts/ui-audit.mjs` can tell a screen's own title from a
-            big figure inside its body, and hold the rule that a screen never
-            scrolls as a whole. */}
-        <Text nativeID="screen-title" style={[styles.title, { color: t.text }]} numberOfLines={2}>
-          {title}
-        </Text>
-
-        {badgeNode}
-        {trailing !== undefined && <View style={styles.trailing}>{trailing}</View>}
-      </View>
-
       {meta !== undefined && (
-        <Text style={[styles.meta, { color: t.muted }]} numberOfLines={1}>
+        <Text
+          nativeID="screen-meta"
+          style={[styles.meta, { color: t.muted }]}
+          numberOfLines={1}
+        >
           {meta}
         </Text>
       )}
@@ -126,6 +156,10 @@ export function Screen({
       {lede !== undefined && <Text style={[styles.lede, { color: t.muted }]}>{lede}</Text>}
     </>
   );
+
+  // Nothing moves without a scroller to move in: `scroll={false}` screens roll
+  // their own and keep the whole head.
+  const moving = scroll ? headScroll : 'none';
 
   return (
     <SafeAreaView
@@ -137,13 +171,20 @@ export function Screen({
       edges={['top', 'bottom']}
     >
       {/*
-       * A SCREEN NEVER SCROLLS AS A WHOLE — only what is inside it does.
+       * WHAT STAYS PUT, AND WHAT THE BODY TAKES WITH IT.
        *
-       * The head used to sit inside the scroll view, so a screen with a long
+       * The head used to sit inside the scroll view on every screen, so a long
        * body scrolled its own title off the top: the one thing telling a
-       * person where they are left first, and the back button with it. The
-       * title, the meta line and the lede ARE the screen; the body is what it
-       * holds, and the body is the only thing that moves.
+       * person where they are left first, and the back button with it. That is
+       * why `headScroll` defaults to `none` and why doc 15 § 5 check 1 is
+       * written the way it is — a screen does not scroll as a whole by
+       * accident, and a screen that has not asked to still cannot.
+       *
+       * A screen may now ask. `meta` keeps the title row and lets the line
+       * under it go; `all` sends the head down with the body, and is for a
+       * screen that is one long list. Both are per screen and deliberate, and
+       * `ui-audit.mjs` holds the list — a screen off it that scrolls its title
+       * is still the bug this comment was written about.
        *
        * `flexShrink` bounds the scroller. A ScrollView is as tall as its
        * content unless something says otherwise, and in a column with a pinned
@@ -153,13 +194,16 @@ export function Screen({
        * the same fix; see `Sheet`.
        */}
       <View style={[styles.fixed, dimmed && styles.dimmed]}>
-        {head}
+        {moving !== 'all' && titleRow}
+        {moving === 'none' && sub}
         {scroll ? (
           <ScrollView
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
             style={styles.body}
           >
+            {moving === 'all' && titleRow}
+            {moving !== 'none' && sub}
             {children}
           </ScrollView>
         ) : (

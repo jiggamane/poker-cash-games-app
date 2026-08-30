@@ -45,9 +45,14 @@ export default function Roster() {
   const invited = club?.members.filter((m) => m.invited).length ?? 0;
 
   return (
+    // ONE LONG LIST, so the whole head goes with it. The roster is the only
+    // thing on this screen and it reaches thirty-odd rows; holding 90 points
+    // of title and count over them costs a row and a half on every phone, and
+    // buys nothing — the list says what the screen is. Back is one flick up.
     <Screen
       title="Players"
       backTo="the club"
+      headScroll="all"
       meta={
         club === null
           ? undefined
