@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   checkReconciliation,
   formatMoney,
+  formatToFit,
   resolveLedger,
   type Money,
   type PlayerId,
@@ -98,13 +99,34 @@ export default function CountUp() {
     >
       {/* Counted, against what should be there. One figure and its target — a
           host wants to know how far off they are without doing the subtraction. */}
+      {/*
+       * WHERE THIS CARD RUNS OUT OF ROOM.
+       *
+       * The two figures share ONE LINE with the "n TO GO" label pinned to its
+       * right, and the line has no more room than the phone is wide: 280 points
+       * inside the card on a 360, less 12 of gap and 51 for "5 TO GO", which
+       * leaves about 217. The pair costs 195 of that at "$99,999 of $99,999"
+       * — 30/800 for the count, 17/800 for its target — and 221 at six digits.
+       *
+       * So a seven-figure table did not fit, and NOTHING CLIPPED IT: the line
+       * simply wrapped, the target dropped underneath the count, and "ALL IN"
+       * was squeezed into a column two characters wide. It read as a card that
+       * had broken rather than a table that was large. See `docs/bugs.md`.
+       *
+       * Both figures take the same threshold, for the reason S1's money card
+       * gives: abbreviating one and not the other would put "$2.4M" beside
+       * "$2,352,880" in one card and read as two scales rather than two sums.
+       * The exact difference is never lost by this — a night that does not
+       * balance names it to the unit on E5, "Off by $1,620", which is the
+       * screen that exists for exactly that question.
+       */}
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <View style={styles.cardText}>
           <Text style={[styles.label, { color: t.muted }]}>COUNTED</Text>
           <Text style={[styles.cardFigure, { color: t.text }]}>
-            {formatMoney(countedTotal)}
+            {formatToFit(countedTotal, CARD_FITS)}
             <Text style={[styles.cardOf, { color: t.muted }]}>
-              {' '}of {formatMoney(reconciliation.chipsOnTable)}
+              {' '}of {formatToFit(reconciliation.chipsOnTable, CARD_FITS)}
             </Text>
           </Text>
         </View>
@@ -229,6 +251,9 @@ function leftAt(
 
 const clock = (d: Date): string =>
   d.getTime() === 0 ? '' : d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+/** See the note beside the card: five digits is what the line holds at 360. */
+const CARD_FITS = 100_000;
 
 const styles = StyleSheet.create({
   card: {

@@ -6,6 +6,8 @@ import {
   endedWith,
   formatMoney,
   formatSigned,
+  formatSignedToFit,
+  formatToFit,
   resolveLedger,
   settle,
   type Money,
@@ -284,11 +286,11 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
             <View style={styles.rowText}>
               <Text style={[styles.name, { color: t.text }]}>{s.name}</Text>
               <Text style={[styles.detail, { color: t.muted }]}>
-                in {formatMoney(s.boughtIn)} · out {formatMoney(s.out)}
+                in {formatToFit(s.boughtIn, ROW_FITS)} · out {formatToFit(s.out, ROW_FITS)}
               </Text>
             </View>
             <Text style={[styles.result, { color: moneyColor(t, s.result) }]}>
-              {formatSigned(s.result)}
+              {formatSignedToFit(s.result, ROW_FITS)}
             </Text>
             <Icon name="chevron" color={t.muted} />
           </Pressable>
@@ -378,6 +380,13 @@ const styles = StyleSheet.create({
   // and a lede sits under a title.
   alertBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
 
+  /*
+   * WHERE THE COUNTED ROW RUNS OUT OF ROOM — see ROW_FITS at the foot of this
+   * file. Everything fixed on the row is named here: an avatar of 36, a chevron
+   * of about 16, four gaps of 12 and 8 of padding, which is 108 of a 316-wide
+   * row on a 360 phone. What is left is shared by the name over its in-and-out
+   * line and the result beside it.
+   */
   countRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 4 },
   avatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   initial: { fontSize: 14, fontWeight: '700' },
@@ -393,3 +402,23 @@ const styles = StyleSheet.create({
 
   footerRow: { flexDirection: 'row', gap: 10 },
 });
+
+/*
+ * WHAT THE COUNTED ROW ON E5 HOLDS EXACTLY.
+ *
+ * Roughly 208 points are shared by the in-and-out line at 13/400 and the result
+ * at 18/700 (see `countRow` above for where the rest of the row goes). At five
+ * digits that is "in $99,999 · out $99,999" beside "−$99,999" — 140 and 78, and
+ * it just fits. At six it is 155 and 89 and it does not.
+ *
+ * Nothing clipped when it stopped fitting, which is why this lived: the row
+ * simply grew and the RESULT ITSELF broke across two lines, "−$1,201,400" as
+ * "−$1,201," over "400". A number split down the middle is the one thing a
+ * money column may never do. See `docs/bugs.md`.
+ *
+ * The in-and-out line and the result take the same threshold: they are the same
+ * fact stated twice and abbreviating one of them alone reads as two scales.
+ * The exact figures are a tap away on the row itself — it opens that person's
+ * count — which is the condition `formatCompact` sets for rounding at all.
+ */
+const ROW_FITS = 100_000;

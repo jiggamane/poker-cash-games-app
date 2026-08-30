@@ -73,6 +73,117 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B17 — the big-night check had quietly been playing a night in the thousands
+
+```
+Screen      none — the check itself, ui-journeys.mjs
+Seen        the run printed "every figure fits · 11 screens of a night in the
+            millions" while the largest figure it had drawn all run was
+            $14,900. Its rebuys were the digits 7000, 2500 and 900, typed on
+            the keypad, and the note beside them said the keypad APPENDS them
+            to the suggested buy-in — "so these land on top of it and come out
+            in the millions, which is the point". The keypad replaces. It has
+            replaced since `appendDigits` began resetting on the first key.
+Expected    a night whose figures are the size the check exists to catch
+Found       30 Aug, running the check and reading what it had drawn
+Locked by   itself, now that the amounts are written out in full rather than
+            described: SCALES in ui-journeys.mjs names the two nights, and each
+            run prints what was on the table and the widest figure it drew, so
+            a run that has stopped testing what it says it tests says so on its
+            own last line
+Status      fixed in this commit
+```
+
+**Nothing was broken. The check was passing over screens it never drew.** Every
+seven-figure column this file was written to guard — the count-up card, the two
+in-and-out lists, the results chips — went unmeasured from whenever that keypad
+behaviour changed until today, under a green run each time, and B15 and B16
+below are what was sitting behind it the whole while.
+
+The lesson is the one in the comment rather than the code: **the note explained
+the behaviour instead of stating the amounts.** `7000` meant a $5,007,000 rebuy
+only if you believed the sentence next to it. The scales are written out now, in
+dollars, and the run reports the table it actually played.
+
+Three other things came out of the same look, and each was a hole of its own:
+
+- The run started at `/session`, so `/` was never underneath it in history and
+  `goBack` walked off the app. **My stats and Sessions had never been measured
+  with a real night on them** — both draw a 40-point headline, the widest type
+  in the app, off a total that grows with every night played. It now loads the
+  club and crosses to Tonight as a route change rather than a second document
+  load, which keeps the in-memory database and puts the club back under the run.
+- The run counted every stack correctly first time. **E5, "It doesn't add up",
+  had never been on screen** — the one screen that states two of the night's
+  largest figures in a single sentence. Everyone is now counted with a hundred,
+  which lands on E5 by design, and the run reads the difference off it.
+- It ran at 393, the phone the boards were drawn at. **Every fault below is
+  invisible at 393 and plain at 360**, which is the narrowest device in the
+  matrix and the one the route pass has been running at since B3. This runs at
+  360 now.
+
+### B15 — Count up's total wrapped, and squeezed "ALL IN" into two characters
+
+```
+Screen      E2 count-up — the COUNTED card
+Seen        at 360 on a table past six figures, "$2,352,880 of $2,352,880" did
+            not fit the card's one line: the target dropped underneath the
+            count and the label beside them broke into "ALL" over "IN". At
+            $239M it is the same picture with wider figures. Nothing clipped —
+            the box simply grew — so every check in ui-journeys.mjs passed over
+            it, all three of which ask about width
+Expected    one line, whatever the table is worth: 280 points inside the card
+            at 360, less 12 of gap and 51 for "5 TO GO", is about 217, and the
+            pair costs 195 at "$99,999 of $99,999" and 221 at six digits
+Found       30 Aug, in the screenshots of the run B17 repaired
+Locked by   npm run check:ui — ui-journeys.mjs, "wrapped", which is a fourth
+            question the file now asks: a money slot may not fall onto a second
+            line. Against the old build it reports the card at both the
+            millions and the ceiling scale; against the new one, nothing
+Status      fixed in this commit
+```
+
+Both figures take `formatToFit` at 100,000 — the same threshold S1's money card
+uses, for the reason written there: abbreviating one of a pair and not the other
+puts "$2.4M" beside "$2,352,880" in one card and reads as two scales rather than
+two sums. **No precision is lost by it.** The exact difference is what this card
+is for, and it is stated to the unit one screen along: a night that does not
+balance says "OFF BY $2,352,380" on E5.
+
+**Why nothing saw it.** The three checks in `ui-journeys.mjs` all measured
+width — clipped, off-screen, out of its box — and a wrap is what happens when a
+box is allowed to grow instead. A slot is told from a sentence by what is left
+when the figures are removed: twelve characters or fewer ("of", "in · out",
+"Rebuy") is a slot, and anything wordier is prose, which is allowed to wrap and
+mostly mentions money.
+
+### B16 — a result split down the middle on the two in-and-out lists
+
+```
+Screen      E5 settle-up (out of balance) and E2b stands — the counted rows
+Seen        at 360 on a seven-figure night, "−$1,201,400" broke across two
+            lines inside its own cell, and the line under the name went with
+            it: "in $1,201,500 · out" over "$100". On E5 the row is tighter by
+            an avatar and a chevron, so it went first
+Expected    a figure on one line. A number split in half is the thing this
+            app's format helpers exist to prevent — "−$1,201," over "400" is
+            not a shorter way of writing −$1,201,400, it is two other numbers
+Found       30 Aug, by the "wrapped" check above, on the first run that reached
+            E5 at all
+Locked by   npm run check:ui — ui-journeys.mjs, "wrapped". Against the old
+            build E5 reports six findings at the ceiling scale and two at
+            millions, and stands one; against the new one, nothing
+Status      fixed in this commit
+```
+
+`ROW_FITS` is 100,000 on both screens, and it is E5's number on both: about 208
+points are shared by the in-and-out line at 13/400 and the result at 18/700,
+which holds "in $99,999 · out $99,999" beside "−$99,999" and does not hold six
+digits. Stands is the roomier of the two and could have carried a higher one —
+it takes E5's anyway, because they are the same six rows a host reads twice
+within a minute, and a table that abbreviates on one and not the other reads as
+a figure that changed rather than a column that is narrower.
+
 ### B14 — B3 again, on the share sheet, for a week after B3 was fixed
 
 ```

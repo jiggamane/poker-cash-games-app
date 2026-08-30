@@ -27,10 +27,17 @@ The three check columns are what runs in `npm run check:ui`:
   board draws — see **Drawn rows** below.
 - **Sheet** — `ui-audit.mjs` pass 2. The 21 sheets across six devices — four
   iPhones and two Androids — against the height cap. Only sheets have one.
-- **Night** — `ui-journeys.mjs`. A big night played through, checking no figure
-  is cut off, outside its card, or off the phone. Only reaches the nine screens
-  a night actually produces, which is the point: those are the ones no URL opens
-  and the ones a host stares at for ten minutes.
+- **Night** — `ui-journeys.mjs`. A whole night played through, checking no
+  figure is cut off, outside its card, off the phone, or broken across two
+  lines. Only reaches the fifteen stops a night actually produces, which is the
+  point: those are the ones no URL opens and the ones a host stares at for ten
+  minutes. It runs at 360, the narrowest device in the matrix — B15 and B16 both
+  fit at 393 and wrapped at 360 — and it plays the night at three sizes of
+  table: **thousands**, which proves nothing is abbreviated that had room to be
+  exact; **millions**, which is what breaks the columns; and **ceiling**, nine
+  digits, which is all the keypad will take. Each run prints what was on the
+  table and the widest figure it drew, because B17 was a run that had stopped
+  testing what it said it tested and said so nowhere.
 
 **Conformed** is the one no script can fill in. It means somebody opened
 `docs/screen-specs/`, found this screen, and held the built thing against the
@@ -59,7 +66,7 @@ is settled when it is not.
 | `/count-up` | push | ✓ | — | ✓ | ☐ |
 | `/deductions` | push | ✓ | — | ✓ | ☐ |
 | `/entry` | sheet | ✓ | ✓ | — | ☐ |
-| `/games` | push | ✓ | — | — | ☐ |
+| `/games` | push | ✓ | — | ✓ | ☐ |
 | `/groups` | push | ✓ | — | — | ☐ |
 | `/hand-over` | sheet | ✓ | ✓ | — | ☐ |
 | `/house-rules` | sheet | ✓ | ✓ | — | ☐ |
@@ -86,11 +93,16 @@ is settled when it is not.
 | `/sign-in` | sheet | ✓ | ✓ | — | ☐ |
 | `/spend` | sheet | ✓ | ✓ | — | ☐ |
 | `/stands` | push | ✓ | — | ✓ | ☐ |
-| `/stats` | push | ✓ | — | — | ☐ |
+| `/stats` | push | ✓ | — | ✓ | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**37 screens · 37 under the rule pass · 21 under the sheet pass · 10 under a big
+**37 screens · 37 under the rule pass · 21 under the sheet pass · 12 under a big
 night · 0 conformed.**
+
+`/games` and `/stats` joined the last of those on 30 August. They are where a
+night's figures live once the evening is over, and the run had never reached
+them: it started at `/session`, so the club was not underneath it in history and
+there was no way back out to them. See B17.
 
 That last zero is honest rather than pessimistic. Screens have been held against
 their boards — `2e687a9` did a pass over the whole app — but it was never
