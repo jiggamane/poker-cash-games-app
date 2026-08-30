@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { formatSigned, type Money } from '@poker-club/core';
 import { useTheme } from '../design/useTheme';
-import { radius, space, type } from '../design/tokens';
+import { cappedFigure, unscaledLabel, radius, space, type } from '../design/tokens';
 import { largestResult, niceScale, plotBar } from '../lib/nightsChart';
 
 /**
@@ -129,7 +129,19 @@ export function NightsChart({
 
       <View style={styles.dates}>
         {nights.map((night) => (
-          <Text key={night.id} numberOfLines={1} style={[styles.date, { color: t.muted }]}>
+          /*
+           * THE AXIS DOES NOT SCALE. Eight dates share the plot's width, so each
+           * has about 32 points at 360 and "15 Aug" needs 30 of them. A tenth
+           * more text and the date reads "15 …", which is worse than a small
+           * date: the chart is furniture, and every figure it stands for is
+           * spelled out in full in the list underneath it. See B18.
+           */
+          <Text
+            key={night.id}
+            numberOfLines={1}
+            {...unscaledLabel}
+            style={[styles.date, { color: t.muted }]}
+          >
             {night.label}
           </Text>
         ))}

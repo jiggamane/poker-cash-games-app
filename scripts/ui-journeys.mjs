@@ -197,6 +197,76 @@ const readShortfall = (page) =>
  * characters or fewer left: "of", "in · out", "Rebuy". Anything wordier is prose
  * and is left alone.
  */
+/**
+ * THE PHONE'S TEXT SIZE, which is not the browser's and is not 100%.
+ *
+ * Every `Text` in react-native scales with the reader's system text setting
+ * unless it is told not to, and this app tells it nothing anywhere: there is no
+ * `allowFontScaling` and no `maxFontSizeMultiplier` in any of the thirty-seven
+ * screens. Meanwhile every card, gap and padding is a fixed number of points off
+ * a board. So the figures grow and the boxes do not.
+ *
+ * That is how "$28,500" came back off a real phone as "$28,5…" while this file
+ * reported the same screen clean: the browser renders at 100%, the phone was on
+ * one of the larger text settings, and the thresholds had been measured to the
+ * point with no margin at all — nine points of slack on Tonight's card and six
+ * on the player card's three figures. Anything above 100% spends both.
+ *
+ * So every screen is measured TWICE, at 100% and at STRAIN, and the second one
+ * is the one that finds things. It is done at the measurement rather than by
+ * replaying the whole night: the multiplier is applied to what is on screen,
+ * the screen is measured, and it is put back — a few hundred milliseconds a
+ * stop rather than another minute a scale.
+ *
+ * It multiplies FONT SIZE ONLY, which is what the phone does. Padding, gaps and
+ * card widths stay where the board put them, because that is the whole problem.
+ */
+const STRAIN = Number(
+  process.argv.find((a) => a.startsWith('--strain='))?.slice('--strain='.length) ?? 1.2,
+);
+
+/**
+ * Multiply every font size on the page by `f`, remembering the original.
+ *
+ * A FIGURE THAT SAYS IT IS CAPPED IS CAPPED. `maxFontSizeMultiplier` is the prop
+ * that stops a figure growing on a phone, and react-native-web drops it — it is
+ * native-only — so nothing about it survives into the DOM on its own. The app
+ * spreads `cappedFigure` from the tokens instead, which carries the prop AND a
+ * `data-fontcap` beside it for exactly this: without it, this pass reports every
+ * capped figure as broken at a size the device will never draw it at.
+ */
+const strain = (f) => `
+(() => {
+  for (const el of document.querySelectorAll('*')) {
+    const cs = getComputedStyle(el);
+    if (el.dataset.baseFont === undefined) {
+      el.dataset.baseFont = parseFloat(cs.fontSize) || 0;
+      el.dataset.baseLine = cs.lineHeight === 'normal' ? '' : parseFloat(cs.lineHeight) || '';
+    }
+    /* The cap is inherited: a figure's own span carries it, and so does the
+       nested one inside it, which is a child of the element that declared it. */
+    const capped = el.closest('[data-fontcap]');
+    const factor = capped === null ? ${f} : Math.min(${f}, Number(capped.dataset.fontcap));
+    const base = Number(el.dataset.baseFont);
+    if (base > 0) el.style.fontSize = base * factor + 'px';
+    if (el.dataset.baseLine !== '') el.style.lineHeight = Number(el.dataset.baseLine) * factor + 'px';
+  }
+})()
+`;
+
+/** Put the page back the way the stylesheet had it. */
+const unstrain = `
+(() => {
+  for (const el of document.querySelectorAll('*')) {
+    if (el.dataset.baseFont === undefined) continue;
+    el.style.fontSize = '';
+    el.style.lineHeight = '';
+    delete el.dataset.baseFont;
+    delete el.dataset.baseLine;
+  }
+})()
+`;
+
 const CHECK = `
 (() => {
   const px = (v) => Math.round(v * 100) / 100;
@@ -334,13 +404,36 @@ let scale = '';
 /** Measure wherever we are, report it, and keep the picture if asked. */
 async function stop(name) {
   await page.waitForTimeout(500);
-  const found = await page.evaluate(CHECK);
+  const found = (await page.evaluate(CHECK)).map((f) => ({ ...f, at: '100%' }));
   seen.push(`${scale} · ${name}`);
   if (shots) {
     await page.screenshot({
       path: path.join(OUT, `${WIDTH}-${scale}-${name}`.replace(/\W+/g, '-') + '.png'),
     });
   }
+
+  // And again with the reader's text turned up — see the note on `strain`.
+  await page.evaluate(strain(STRAIN));
+  await page.waitForTimeout(350);
+  const strained = await page.evaluate(CHECK);
+  if (shots && strained.length > 0) {
+    await page.screenshot({
+      path: path.join(OUT, `${WIDTH}-${scale}-${name}-large-text`.replace(/\W+/g, '-') + '.png'),
+    });
+  }
+  await page.evaluate(unstrain);
+  await page.waitForTimeout(150);
+
+  /* Only what the strained pass found ON TOP of the plain one: a figure that is
+     already cut off at 100% is one fault, not two, and reporting it twice buries
+     the ones that only large text produces. */
+  const plain = new Set(found.map((f) => f.check + ' ' + f.what));
+  for (const f of strained) {
+    if (!plain.has(f.check + ' ' + f.what)) {
+      found.push({ ...f, at: `${Math.round(STRAIN * 100)}% text` });
+    }
+  }
+
   if (found.length === 0) {
     console.log(`  ${name.padEnd(26)} ok`);
     return;
@@ -348,7 +441,7 @@ async function stop(name) {
   failures += found.length;
   console.log(`  ${name.padEnd(26)} ${found.length} cut off`);
   for (const f of found) {
-    console.log(`    ${f.check.padEnd(15)} ${f.what}  — ${f.detail}`);
+    console.log(`    ${f.check.padEnd(15)} ${f.what}  — ${f.detail}  · ${f.at}`);
   }
 }
 
@@ -421,6 +514,23 @@ async function playANight(name, rebuys) {
 
   await tap('Petr');
   await stop('player card');
+  await page.getByLabel('Close').last().click();
+  await page.waitForTimeout(900);
+
+  /*
+   * AND THE CARD OF SOMEBODY WHO HAS ALREADY GONE, which is a different card.
+   *
+   * Petr is seated, so his card carries TWO figures and an em dash: what he is
+   * in for, and nothing counted yet. Dana cashed out during play, so hers
+   * carries THREE — in for, counted, and the night's result beside them — and
+   * three figures in a card drawn for that width is the tightest money on the
+   * phone. It had never been measured: every run opened a seated player.
+   *
+   * It is the card a host looks at most, too. Everybody's ends up in this state
+   * by the end of the night.
+   */
+  await tap('Dana', { last: true });
+  await stop('player card · cashed out');
   await page.getByLabel('Close').last().click();
   await page.waitForTimeout(900);
 

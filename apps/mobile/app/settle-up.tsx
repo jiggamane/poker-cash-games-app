@@ -18,7 +18,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
 import { nameOf, setAcknowledgement, setStatus, settlementInput, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
@@ -289,7 +289,11 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
                 in {formatToFit(s.boughtIn, ROW_FITS)} · out {formatToFit(s.out, ROW_FITS)}
               </Text>
             </View>
-            <Text style={[styles.result, { color: moneyColor(t, s.result) }]}>
+            <Text
+              style={[styles.result, { color: moneyColor(t, s.result) }]}
+              numberOfLines={1}
+              {...cappedFigure}
+            >
               {formatSignedToFit(s.result, ROW_FITS)}
             </Text>
             <Icon name="chevron" color={t.muted} />
@@ -393,7 +397,8 @@ const styles = StyleSheet.create({
   rowText: { gap: 2, flexShrink: 1 },
   name: type.rowName,
   detail: type.rowDetail,
-  result: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+  // Never shrinks: the name and its in-and-out line may wrap, a figure may not.
+  result: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', flexShrink: 0, fontVariant: ['tabular-nums'] },
 
   footnote: type.footnote,
   writeOff: { textDecorationLine: 'underline' },
@@ -421,4 +426,4 @@ const styles = StyleSheet.create({
  * The exact figures are a tap away on the row itself — it opens that person's
  * count — which is the condition `formatCompact` sets for rounding at all.
  */
-const ROW_FITS = 100_000;
+const ROW_FITS = 10_000;

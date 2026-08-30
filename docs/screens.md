@@ -39,6 +39,13 @@ The three check columns are what runs in `npm run check:ui`:
   table and the widest figure it drew, because B17 was a run that had stopped
   testing what it said it tested and said so nowhere.
 
+  **Every stop is measured twice** — at 100% and at 120% text — because a
+  browser only ever renders the first and a phone is usually not on it. B18 is
+  what that missed: figures that scale with the reader's text setting inside
+  cards that are a fixed number of points off a board. A figure that declares a
+  cap (`cappedFigure` in the tokens) is strained only as far as its cap, so the
+  pass measures what the device will actually draw.
+
 **Conformed** is the one no script can fill in. It means somebody opened
 `docs/screen-specs/`, found this screen, and held the built thing against the
 drawn thing with `ui-check.mjs` — every padding, gap, size, weight and radius.

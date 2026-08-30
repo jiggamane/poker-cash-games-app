@@ -11,7 +11,7 @@ import {
 import { Button } from '../src/components/Button';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, type } from '../src/design/tokens';
+import { cappedFigure, unscaledLabel, radius, type } from '../src/design/tokens';
 import { standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
@@ -75,7 +75,11 @@ export default function Stands() {
                   in {formatToFit(s.boughtIn, ROW_FITS)} · out {formatToFit(s.out, ROW_FITS)}
                 </Text>
               </View>
-              <Text style={[styles.result, { color: moneyColor(t, s.result) }]}>
+              <Text
+                style={[styles.result, { color: moneyColor(t, s.result) }]}
+                numberOfLines={1}
+                {...cappedFigure}
+              >
                 {formatSignedToFit(s.result, ROW_FITS)}
               </Text>
             </View>
@@ -150,7 +154,8 @@ const styles = StyleSheet.create({
   rowText: { gap: 3, flexShrink: 1 },
   name: type.rowName,
   detail: type.rowDetail,
-  result: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+  // Never shrinks: the name and its in-and-out line may wrap, a figure may not.
+  result: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', flexShrink: 0, fontVariant: ['tabular-nums'] },
 
   // `14px 22px 0` · `12px 18px` · radius 8, dashed. It had been built as a
   // card — radius 14, on the card's 20 margin — which made a provisional note
@@ -182,4 +187,4 @@ const styles = StyleSheet.create({
  * table that abbreviates on one of them and not the other reads as a figure
  * that changed rather than a column that is narrower.
  */
-const ROW_FITS = 100_000;
+const ROW_FITS = 10_000;

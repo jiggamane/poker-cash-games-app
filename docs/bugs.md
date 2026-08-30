@@ -73,6 +73,84 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B18 — money grew with the phone's text setting; the cards did not
+
+```
+Screen      S1 session, T2 player (cashed out), E2 count-up, E2b stands,
+            E5 settle-up, X1c settled, 1A/1B stats and games, the nights chart
+Seen        two photographs from a real phone. Tonight read "$28,5…" where the
+            table was $28,500. The player sheet of somebody who had cashed out
+            read "IN FOR $1,500 · COUNTED $3,200 · +$1,7" with the third figure
+            hanging off the side of its own card and the word NIGHT above it
+            cut in half by the edge of the screen
+Expected    the whole figure, or a k/M form of it, inside the card
+Found       30 Aug, from the phone, against a run of check:ui that was clean
+Locked by   npm run check:ui — ui-journeys.mjs measures every screen TWICE now,
+            once at 100% and once at 120% text, and reports what only the
+            second pass finds. Against the old build it reports 25 findings
+            across the three scales; against the new one, nothing
+Status      fixed in this commit
+```
+
+**The width was never the problem, and that is why nothing caught it.** Both
+photographs are a 393-point phone — the card is 89.7% of the screen in each, and
+393 is where a 20-point margin puts it. What was different was the TEXT: every
+`Text` in react-native scales with the reader's system text size unless it is
+told not to, and there was no `allowFontScaling` and no `maxFontSizeMultiplier`
+anywhere in the thirty-seven screens. Meanwhile every card, gap and padding is a
+fixed number of points off a board drawn at 402 × 874. The figures grew and the
+boxes did not.
+
+Rendering the seeded night at 393 with the font sizes multiplied by 1.2 —
+nothing else changed — reproduces both photographs, down to which glyph the
+ellipsis lands on.
+
+**The thresholds had no margin to spend.** They had been measured to the point
+at 100%, which is the one text size a browser ever renders:
+
+| Slot | Held | Needed | Survived up to |
+|---|---|---|---|
+| Tonight's headline at 360 | 166 pt | 164 pt for `$99,999` | **101%** |
+| The player card's three figures at 360 | 244 pt | 248 pt as drawn | **didn't** |
+
+The player card's row is the second line of that table: it was already over its
+own card at 360 at normal text size, before any of this. It had never been
+measured, because every run of `ui-journeys.mjs` opened a SEATED player, whose
+card carries two figures and an em dash. Three figures only appear once somebody
+has cashed out — which is every player by the end of the night, and the card a
+host looks at most.
+
+Three things, then:
+
+- **A cap.** `moneyMaxFontScale` in the tokens, spread onto a figure as
+  `cappedFigure`, is 1.1 — a tenth is what the narrowest phone has room for, and
+  the working is in the comment there. A cap rather than switching scaling off,
+  because a reader who needs larger text should get it; the figure stops growing
+  at the point where the card can still hold it whole.
+- **Thresholds with room in them.** Tonight and Count up go from 100,000 to
+  10,000, the two in-and-out lists from 100,000 to 10,000, the player card from
+  10,000 to 1,000. The settled sheet's result, the two history headlines and the
+  basis of a percentage take one for the first time.
+- **A figure never shrinks.** `flexShrink: 0` on the result in four places. The
+  name beside it may wrap and a label may ellipsise; a figure may not, and when
+  both were allowed to give it was the figure that went — "−$150" came apart
+  into "−" on one line and "$150" on the next.
+
+**Why the check could not see it, and what it does now.** It measured at 100%
+because that is what a browser does. It now measures every stop a second time
+with every font size multiplied — padding, gaps and card widths left alone,
+which is exactly what the phone does — and reports only what the second pass
+adds. `maxFontSizeMultiplier` is native-only and react-native-web drops it, so a
+capped figure would have looked broken at a size the device will never draw it
+at; `cappedFigure` carries a `data-fontcap` beside the prop so the pass can
+honour the cap. The two are one constant in the tokens for that reason.
+
+**What is still open.** The cap is on the figures this pass measures, not on the
+app. Nothing stops a screen that has not been through here from drawing a fixed
+box around text that scales, and the general fix — one `Text` wrapper every
+screen imports — is an app-wide sweep, which CLAUDE.md says runs alone with
+nothing else in flight. It is not this commit.
+
 ### B17 — the big-night check had quietly been playing a night in the thousands
 
 ```
