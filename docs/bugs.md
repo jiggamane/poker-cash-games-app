@@ -73,6 +73,58 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B15 — the night's result hangs out of the player card on a narrow phone
+
+```
+Screen      H4 · /player, the summary card, once a player is cashed out
+Seen        at 360, a player in for $8,500 who counts $1,000 draws −$7,500 at
+            250.13…351.02 inside a card that ends at 324: twenty-seven points
+            of the result outside the box holding it, and past the card's
+            rounded corner. At 393 the same card is correct.
+Expected    three figures inside the card at any amount the night can produce
+Found       30 Aug, from the phone — reported as the spacing between the three
+            looking wrong, which is the same fault one step earlier
+Locked by   npm run check:ui — ui-journeys.mjs now cashes a player out and
+            measures his card ("player card · cashed out"), AND THE GATE RUNS
+            THAT PASS AT 360 as well as 393, which is the half that matters:
+            at 393 the old card is clean. Plus ui-audit.mjs's PARAMS, which
+            opens /player on the seeded night's cashed-out player so the
+            three-up state is in the route pass at both widths at all.
+Status      fixed in this commit
+```
+
+**The spacing and the overflow are the same bug at two amounts.** T4 draws the
+row as a fixed 22 between the first two pairs and `margin-left: auto` on the
+third. That hands every point of slack to one gap, so what the spacing *is*
+depends on how wide the figures happen to be: at the drawn amounts it is 22 and
+50, which reads as a row that was never composed; at four digits in all three it
+is 22 and none, and then the auto margin pushes the result out of the card
+entirely. The row is `space-between` now with a floor of 8, so the gaps are
+equal, they move together, and the last figure stops at the card's edge instead
+of past it.
+
+It is a deliberate deviation from an approved board, and `player.tsx` says so
+over `StatPair`. The board is right about everything except that the spacing is
+a property of the content: three figures at 30/800 are 270 points of the 288 a
+360-wide phone has inside that card, and no fixed gap can be correct at both
+ends of that range.
+
+**Why nothing saw it.** Three gaps, and each one is now closed:
+
+- **The state was not reachable by any check.** `/player` opened bare says
+  "Nobody by that name tonight", so the route pass measured one line of copy —
+  the same fault as B14, on the next route. It is in the audit's `PARAMS` map
+  now, opened on Dana, who the seeded night has already cashed out.
+- **The journey never cashed anybody out.** It played a big night and counted
+  everybody at the end, which reaches the three-up card on no screen at all. It
+  now cashes Petr out mid-night and measures his card — with a count chosen to
+  make the row as wide as the FITS threshold allows, which is where it breaks.
+- **The journey ran at one width.** This is B3's lesson a third time, in the
+  other tool: `ui-audit.mjs` learned it in August and `ui-journeys.mjs` did not,
+  so the pass that plays a real night only ever played it on a 393-wide phone.
+  `ui-gate.sh` runs it at 360 too. Against the old build that run reports the
+  finding above; the 393 run reports nothing, which is exactly the point.
+
 ### B14 — B3 again, on the share sheet, for a week after B3 was fixed
 
 ```

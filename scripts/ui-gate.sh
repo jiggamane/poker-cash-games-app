@@ -70,7 +70,15 @@ node scripts/ui-audit.mjs || failed=1
 
 echo
 echo "── a big night played through, checking no figure is cut off ──"
+#
+# AT BOTH WIDTHS, for the reason the audit's route pass runs at both: a figure
+# that fits at 393 can still be outside its card at 360, and the check that only
+# runs at the width where it fits is not a lock. B15 is the worked example —
+# the player card's third figure hangs 27 points out of the card at 360 and is
+# perfectly inside it at 393, so a pass at 393 alone reported nothing wrong for
+# as long as the bug existed. The second run costs about 45 seconds.
 node scripts/ui-journeys.mjs || failed=1
+UI_AUDIT_WIDTH=360 node scripts/ui-journeys.mjs || failed=1
 
 echo
 if [ "$failed" = 0 ]; then

@@ -28,9 +28,11 @@ The three check columns are what runs in `npm run check:ui`:
 - **Sheet** — `ui-audit.mjs` pass 2. The 21 sheets across six devices — four
   iPhones and two Androids — against the height cap. Only sheets have one.
 - **Night** — `ui-journeys.mjs`. A big night played through, checking no figure
-  is cut off, outside its card, or off the phone. Only reaches the nine screens
-  a night actually produces, which is the point: those are the ones no URL opens
-  and the ones a host stares at for ten minutes.
+  is cut off, outside its card, or off the phone. Only reaches the screens a
+  night actually produces, which is the point: those are the ones no URL opens
+  and the ones a host stares at for ten minutes. **It runs at 393 and at 360**,
+  for the reason the rule pass does — B15's figure is 27 points outside its card
+  at 360 and perfectly inside it at 393.
 
 **Conformed** is the one no script can fill in. It means somebody opened
 `docs/screen-specs/`, found this screen, and held the built thing against the
@@ -137,6 +139,12 @@ list and still be measured empty, because the screen needs an argument to have a
 body at all. A count of routes cannot see that — the tally says 37 either way.
 **A screen that takes params gets a line in the audit's `PARAMS` map**, and if
 its real state needs a night rather than a URL, a step in `ui-journeys.mjs`.
+`/player` was the second one found — the route pass had been measuring the line
+"Nobody by that name tonight" for as long as the route has existed.
+
+And a third version: a screen can be measured, at real figures, and still only
+at a width where it happens to fit. That is B3's lesson, and `ui-journeys.mjs`
+had not learned it — the gate runs it at 360 as well as 393 now.
 
 ## Notes per screen
 
@@ -178,6 +186,15 @@ in `docs/bugs.md` says why: `Button` pads 24 a side and a third of a sheet has
 not got it to give. It is ONE component now —
 `apps/mobile/src/components/Preset.tsx` — because for a week it was two, one of
 them fixed and one of them not, which is B14.
+
+**`/player`** — the summary card is two stat pairs and a note while somebody is
+seated, and three figures side by side once they are counted. The three-up state
+is the only place in the app where three figures at 30/800 share a row, and it
+is `space-between` with a floor rather than the fixed gap and `margin-left: auto`
+T4 draws — B15 says why, and `StatPair` carries the deviation. Opened bare the
+route says "Nobody by that name tonight", so it is in the audit's `PARAMS` map
+on the seeded night's cashed-out player, and the journey cashes a player out to
+reach the same card with a real night's figures on it.
 
 **`/share`** — nothing draws this sheet on any board, and it is nothing without
 its arguments: opened bare it renders a titled sheet with no body, which is what

@@ -119,6 +119,11 @@ const ROUTES = [
  */
 const PARAMS = {
   '/share': '?rule=kitchen&player=seed-lena',
+  // Dana is the one the seeded night has already cashed out, so this is the
+  // summary card with all THREE figures on it. Bare, the route renders one
+  // line — "Nobody by that name tonight" — which is what the pass measured
+  // until B15.
+  '/player': '?id=seed-dana',
 };
 
 /** The URL a route is actually opened at. */

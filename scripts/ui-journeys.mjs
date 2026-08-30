@@ -213,6 +213,33 @@ await stop('tonight');
 
 await tap('Petr');
 await stop('player card');
+
+/*
+ * AND THE SAME CARD ONCE HE IS COUNTED — the state with THREE figures on it.
+ *
+ * The summary card is two stat pairs and a note while a player is seated and
+ * three figures side by side once they are not, and the three-up state is the
+ * one that runs out of room: it is the only place in the app where three
+ * figures at 30/800 share one row. Nothing measured it. `/player` opened bare
+ * says "Nobody by that name tonight", the audit's PARAMS map now opens it on
+ * the seeded night's cashed-out player, and this is the same card with the big
+ * night's figures on it. B15.
+ *
+ * Cashing him out here also takes him off the count-up list, which is correct
+ * and is what the screen is for: a stack counted during play is never counted
+ * again.
+ */
+await tap('Cash out');
+/*
+ * A COUNT CHOSEN TO MAKE THE ROW AS WIDE AS IT CAN BE. He is in for $8,500, so
+ * counting $1,000 leaves −$7,500: four digits in all three figures, one of them
+ * signed, which is the widest the card can ever be asked to hold while the
+ * amounts are still printed in full. Anything larger is compacted by FITS and
+ * comes back narrower. See the note over FITS in `app/player.tsx`.
+ */
+await punch('1000');
+await tap(/^Cash .* out$/, { last: true, wait: 1400 });
+await stop('player card · cashed out');
 await page.getByLabel('Close').last().click();
 await page.waitForTimeout(900);
 
