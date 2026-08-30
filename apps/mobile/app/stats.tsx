@@ -83,7 +83,11 @@ export default function MyStats() {
   const periodLabel = PERIODS.find((p) => p.value === period)!.label;
 
   return (
-    <Screen title="My stats" backTo="the club" meta={night?.groupName}>
+    // The club name goes with the body. On a month with a dozen nights this
+    // screen scrolls for a while, and the line naming the club is part of what
+    // is being read rather than chrome that has to be held over it. The title
+    // and the way back stay put — see `headScroll` in `Screen`.
+    <Screen title="My stats" backTo="the club" meta={night?.groupName} headScroll="meta">
       <View style={[styles.card, { backgroundColor: t.surface }]}>
         <View style={styles.cardTop}>
           <Text style={[styles.cardLabel, { color: t.muted }]}>
