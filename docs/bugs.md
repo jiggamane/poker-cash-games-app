@@ -73,6 +73,48 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B21 — Count up could read "done" with a whole cash-out missing
+
+```
+Screen      E2 count-up — the status block
+Seen        COUNTED $2,880 of $2,880, both figures agreeing, on a night whose
+            books are $2,120 light: a player left at 23:15 and their cash-out
+            was never entered. The card is neutral, the primary unblocks, and
+            nothing on the screen names the money that walked out of the door
+Expected    the whole equation on screen in every state — everything bought in
+            against everything cashed out plus everything counted — so a host
+            can check the sum rather than take the card's word for it
+Found       30 Aug, in the E2 handoff, which is the design's own reading of
+            the same block: "a comparison against the money still on the
+            table, which hides half the sum"
+Locked by   npm run check — packages/core/src/balance.test.ts, which asserts
+            all four terms of the equation and holds the state at *counting*
+            while any stack is uncounted, including on the night where the two
+            sums meet by coincidence; AND npm run check:ui — ui-audit.mjs's
+            DRAWN map, which now names both column headings, so a later pass
+            that drops one to buy width goes red rather than shipping
+Status      fixed in this commit
+```
+
+**This one was never a rendering fault, and that is what is interesting about
+it.** Every figure on the old card was correct. `chipsOnTable` is buy-ins less
+cash-outs and `counted` is what the host has entered, and comparing them is the
+right test — it is the one the settlement gate has always run, and it still is.
+The fault is that the subtraction happens *before* the comparison a person can
+see: the missing cash-out is taken off both sides, the two figures that survive
+agree, and the screen has no way to say what was removed. A host cannot audit a
+sum whose terms are not on the screen.
+
+So the block states four numbers where it stated two, and `left` — the countdown,
+and then the verdict — is exactly `−reconcile().difference`, the same figure the
+close gate is computed from. `balance.test.ts` asserts that identity directly, so
+the block and the gate cannot come to disagree about a night.
+
+**And the second half of it: a screen that only says BALANCED is not checkable.**
+Both sums stay on screen in all three states, the strip keeps its height, and
+green appears in exactly one of them. The old card had one more way to be
+believed than it had ways to be wrong.
+
 ### B20 — correcting a $500 buy-in to $50 wrote $50,050
 
 ```

@@ -110,9 +110,18 @@ what, and which have been held against their boards.
 `design/handoff-rev18/` is the current handoff — rev 18, cut 19 August — and it
 wins over anything older, `design/handoff-2026-08-13/` (rev 14) included. Start
 at its `START-HERE.md`, then `docs/CHANGELOG.md`, which is cumulative and names
-what each revision supersedes. **Where a board and a spec disagree, the spec
-wins on behaviour and the board wins on layout.** Three files govern every
-screen:
+what each revision supersedes.
+
+**One partial cut sits on top of it.** `design/handoff-E2/`, cut 30 August, and
+it covers exactly one thing: the status block on E2 Count up, which it replaces
+with the whole equation — bought in against cashed out plus counted — and the
+list grouping the block depends on. It supersedes rev 18 *there* and nowhere
+else; everything rev 18 says about every other screen still stands. Its logic
+doc is the behaviour, its board is the layout, and layout **2a** with colour
+option **2f** is the one that was built.
+
+**Where a board and a spec disagree, the spec wins on behaviour and the board
+wins on layout.** Three files govern every screen:
 
 - **`docs/09-navigation.md`** — a screen is either PUSHED (Chrome A: round back
   button, and *nothing at all* in the top-right corner) or a SHEET (Chrome B:

@@ -15,6 +15,8 @@ export * from './types';
 export * from './stakes';
 export * from './ledger';
 export * from './settlement';
+/* The whole equation behind E2's balance check — in, out, counted, left. */
+export * from './balance';
 export * from './outbox';
 /* What a rule's terms are in words, read off the night's own snapshot. */
 export * from './ruleText';

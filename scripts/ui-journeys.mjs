@@ -45,6 +45,7 @@ import { createRequire } from 'node:module';
 
 const require_ = createRequire(import.meta.url);
 const { chromium } = require_('playwright');
+import { launchOptions } from './chromium.mjs';
 
 const BASE = process.env.UI_CHECK_BASE ?? 'http://127.0.0.1:4321';
 /*
@@ -129,13 +130,21 @@ for (const name of SCALE_NAMES) {
 const readStacks = (page) =>
   page.evaluate(() => {
     const lines = document.body.innerText.split('\n').map((l) => l.trim());
-    const num = (s) => Number((s.match(/[\d,]+/)?.[0] ?? '0').replace(/,/g, ''));
     const players = [];
     for (let i = 0; i < lines.length; i++) {
-      if (!/^in \$[\d,.]+M?k?$/.test(lines[i])) continue;
-      // The name is the line above, and only for someone still to be counted:
-      // a player already gone reads "cashed out 23:15 · in $500".
-      players.push({ name: lines[i - 1], in: num(lines[i]) });
+      /*
+       * THE ROW THAT IS STILL ASKING. Under *Still seated*, somebody with no
+       * count reads "not counted yet" and the name is the line above it.
+       *
+       * It used to look for "in $500" instead, which every seated row carried
+       * until the E2 block was rebuilt on 30 August. Counted rows show their
+       * figure now, so that pattern matched NOBODY, this returned an empty
+       * list, the loop below counted nobody, and the run walked into a Next
+       * that was still blocked and sat there until Playwright timed it out.
+       * Match on the ask, which is the thing that means "this one is left".
+       */
+      if (lines[i] !== 'not counted yet') continue;
+      players.push({ name: lines[i - 1] });
     }
     return { players };
   });
@@ -387,7 +396,7 @@ const CHECK = `
 })()
 `;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(launchOptions());
 const ctx = await browser.newContext({
   viewport: { width: WIDTH, height: HEIGHT },
   colorScheme: light ? 'light' : 'dark',
@@ -612,7 +621,7 @@ async function playANight(name, rebuys) {
   /* Every stack counted and the money still not adding up goes straight to E5
      rather than to the deductions — count-up.tsx says so — which is how a host
      who has miscounted actually gets here. */
-  await tap('Apply the money rules', { wait: 1200 });
+  await tap('Next', { wait: 1200 });
   await stop('it doesn’t add up');
   const off = await readShortfall(page);
   await tap('Fix', { wait: 1400 });
@@ -631,7 +640,7 @@ async function playANight(name, rebuys) {
   await page.getByLabel(/^Back to/).last().click();
   await page.waitForTimeout(1000);
 
-  await tap('Apply the money rules');
+  await tap('Next');
   await stop('deductions');
 
   /*
