@@ -5,7 +5,7 @@ import { type } from '../design/tokens';
 import { Icon } from './Icon';
 
 /** How long the end-of-night row has to be held. Rev 7, D9. */
-const HOLD_MS = 1500;
+const HOLD_MS = 1000;
 
 /**
  * The dock — 08-tonight-home.md.
@@ -146,7 +146,7 @@ export function Dock({
           {/* The only way to end a night. Press and keep pressing. */}
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="End this poker night. Hold for one and a half seconds."
+            accessibilityLabel="End this poker night. Hold for one second."
             onPressIn={startHold}
             onPressOut={cancelHold}
             style={[
@@ -173,7 +173,7 @@ export function Dock({
                 {holding ? 'Keep holding…' : 'End this poker night'}
               </Text>
               <Text style={[styles.endSub, { color: holding ? t.text : t.muted }]}>
-                {holding ? 'Release to cancel' : 'Hold 1.5s · counting starts, no rebuys'}
+                {holding ? 'Release to cancel' : 'Hold 1s · counting starts, no rebuys'}
               </Text>
             </View>
           </Pressable>

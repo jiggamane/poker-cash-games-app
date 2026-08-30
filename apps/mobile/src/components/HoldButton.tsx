@@ -4,14 +4,14 @@ import { useTheme } from '../design/useTheme';
 import { control, radius, type } from '../design/tokens';
 
 /** How long a hold has to be held. The dock's end-of-night row set it — rev 7, D9. */
-const HOLD_MS = 1500;
+const HOLD_MS = 1000;
 
 /**
  * A filled primary that is held rather than tapped.
  *
  * The gesture already exists once, on the dock's end-of-night row, and it is
  * the same gesture here down to the millisecond: a left-to-right wipe over
- * 1.5s, the copy swapping to "Keep holding… / Release to cancel", and a
+ * 1s, the copy swapping to "Keep holding… / Release to cancel", and a
  * release before the end reverting silently — no dialog, no toast, no ledger
  * write (08-tonight-home.md, H3b).
  *
@@ -74,7 +74,7 @@ export function HoldButton({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${label}. Hold for one and a half seconds.`}
+      accessibilityLabel={`${label}. Hold for one second.`}
       onPressIn={startHold}
       onPressOut={cancelHold}
       style={[styles.box, { backgroundColor: t.text }]}

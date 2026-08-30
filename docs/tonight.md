@@ -92,7 +92,7 @@ Two things to know about that screen:
 
 ## Ending the night
 
-**Table admin → End this poker night**, and *hold* for a second and a half.
+**Table admin → End this poker night**, and *hold* for a second.
 There is no tap path to it, deliberately.
 
 Then: **count every stack → deductions → settle up → Close the session.**

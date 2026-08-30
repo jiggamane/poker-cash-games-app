@@ -158,7 +158,7 @@ export default function PlayerCard() {
                 different one. */}
             <HoldButton
               label={`Rebuy ${formatMoney(rebuy)}`}
-              sub="Hold 1.5s"
+              sub="Hold 1s"
               onComplete={() => void quickRebuy()}
             />
             <View style={styles.pair}>
