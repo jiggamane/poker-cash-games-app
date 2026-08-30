@@ -446,10 +446,22 @@ export const type = {
   dockEnd: { fontSize: 16.5, fontWeight: '700' },
   dockEndSub: { fontSize: 12.5, fontWeight: '400' },
 
-  /** The player card's stat pairs, at two and at three across. */
+  /**
+   * The player card's stat pairs, at two and at three across.
+   *
+   * TWO ACROSS IS THE BOARD'S 32 AND THREE ACROSS IS 28, WHERE T4 DRAWS 30.
+   * The board is right about the ratio, and it drew it at the amounts it drew:
+   * $500, $2,120 and +$1,620. A night in the millions is wider. At 30, with the
+   * reader's text at `moneyMaxFontScale`, three of those figures come to about
+   * 284 points inside a card that holds 288 on a 360-wide phone — nothing left
+   * for the two gaps, and the last figure ends up outside the card, which is
+   * B19's second half. Two points of size give back fourteen of width. It is
+   * the three-up figure that changes because it is already a different size
+   * from the two-up one, so it is never seen beside its own twin.
+   */
   statPairLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
   statPairValue: { fontSize: 32, fontWeight: '800', letterSpacing: -1.28, lineHeight: 32, ...tabular },
-  statPairValueTight: { fontSize: 30, fontWeight: '800', letterSpacing: -1.2, lineHeight: 30, ...tabular },
+  statPairValueTight: { fontSize: 28, fontWeight: '800', letterSpacing: -1.12, lineHeight: 28, ...tabular },
   /** The note beside them, at 104 wide. */
   statPairNote: { fontSize: 12, fontWeight: '400', lineHeight: 16.8 },
   /** An entry on the player card: what it was, over where it came from. */

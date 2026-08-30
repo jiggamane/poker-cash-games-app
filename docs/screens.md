@@ -156,6 +156,15 @@ list and still be measured empty, because the screen needs an argument to have a
 body at all. A count of routes cannot see that — the tally says 37 either way.
 **A screen that takes params gets a line in the audit's `PARAMS` map**, and if
 its real state needs a night rather than a URL, a step in `ui-journeys.mjs`.
+`/player` was the second one found — the route pass had been measuring the line
+"Nobody by that name tonight" for as long as the route has existed.
+
+And a third version, which is B19: a screen can be in the night pass, at real
+figures, in the right state, and still be the SEEDED figures. Dana's card is the
+three-up state at $500 · $2,120 · +$1,620 whatever size of table is being
+played, because the rebuys never touch her — so the state was measured and the
+amounts were not. The journey cashes a player out mid-night now, which puts the
+night's own figures on the card it is testing.
 
 ## Notes per screen
 
@@ -197,6 +206,19 @@ in `docs/bugs.md` says why: `Button` pads 24 a side and a third of a sheet has
 not got it to give. It is ONE component now —
 `apps/mobile/src/components/Preset.tsx` — because for a week it was two, one of
 them fixed and one of them not, which is B14.
+
+**`/player`** — the summary card is two stat pairs and a note while somebody is
+seated, and three figures side by side once they are counted. The three-up state
+is the only place in the app where three figures share a row, and it carries two
+deliberate deviations from T4, both from B19 and both written where they are
+made: the row is `space-between` with a floor of 8 rather than a fixed 22 and
+`margin-left: auto`, and the three-up figure is 28 where the board draws 30 —
+two points that buy fourteen of width, which is what a night in the millions
+needs at the reader's text cap. The two-up figure is still the board's 32.
+Opened bare the route says "Nobody by that name tonight", so it is in the
+audit's `PARAMS` map on the seeded night's cashed-out player, and the journey
+cashes Petr out mid-night to reach the same card with the night's own figures on
+it.
 
 **`/share`** — nothing draws this sheet on any board, and it is nothing without
 its arguments: opened bare it renders a titled sheet with no body, which is what

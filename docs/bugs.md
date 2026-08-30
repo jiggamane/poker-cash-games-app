@@ -73,6 +73,64 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B19 — the night's result hangs out of the player card, and the three figures were never spaced
+
+```
+Screen      H4 · T4 · /player, the summary card, once a player is cashed out
+Seen        two faults, one drawn and one measured. The row put a fixed 22
+            between the first two pairs and pushed the third to the edge, so at
+            $500 · $2,120 · +$1,620 the gaps were 22 and 50 — the spacing was
+            whatever the figures left over. And on a night in the millions the
+            same row put "−$1.2M" at 233.9…330.8 inside a card that ends at
+            324, at the reader's text cap: six points of the result outside its
+            own card, and twelve at 30/800 before the size came down
+Expected    three figures evenly spaced, all of them inside the card, at any
+            amount the night can produce and at any text size the phone allows
+Found       30 Aug, from the phone — reported as the spacing looking wrong,
+            which is the same decision one amount earlier
+Locked by   npm run check:ui — ui-journeys.mjs, the new "player card · counted
+            out" stop: it cashes Petr out mid-night and measures his card at
+            each of the three sizes of table, at 100% and at the text cap.
+            Putting either half of the fix back takes it red — the old spacing
+            with the new size, or the new spacing at the old 30/800. Plus
+            ui-audit.mjs's PARAMS, which opens /player on the seeded night's
+            cashed-out player so the three-up state is in the route pass at all
+Status      fixed in this commit
+```
+
+**The spacing and the overflow are one decision at two amounts.** T4 draws the
+row as a fixed 22 between the first two pairs and `margin-left: auto` on the
+third. That hands every point of slack to one gap, so what the spacing *is*
+depends on how wide the figures happen to be: at the drawn amounts it reads as
+a row nobody composed, and at a night's real amounts the auto margin pushes the
+result off the card. It is `space-between` with a floor of 8 now — equal gaps
+that grow and shrink together, the last figure still ending at the card's edge
+rather than past it, and the middle label centred over its own figure.
+
+Spacing alone did not close it. Three figures at 30/800 are 284 points of the
+288 a 360-wide phone has inside that card once `moneyMaxFontScale` has let them
+grow, which leaves nothing to space them with; the three-up size is 28 now,
+which is 14 points back. The two-up figure stays at the board's 32 — the three-up
+one was already a different size, so the one that moved is the one that is never
+seen beside its own twin. Both deviations are written where they are made:
+`StatPair` in `player.tsx` and `statPairValueTight` in the tokens.
+
+**Why nothing saw it.** Three gaps, and the first two are B14's, one route along:
+
+- **The state was not reachable by any check.** `/player` opened bare says
+  "Nobody by that name tonight", so the route pass measured one line of copy.
+  It is in the audit's `PARAMS` map now, opened on Dana, whom the seeded night
+  has already cashed out.
+- **The journey never cashed anybody out.** B17's rewrite added Dana's card,
+  which is the three-up state at the SEED's figures — $500, $2,120, +$1,620,
+  small at every scale, because the rebuys never touch her. The night's own
+  figures never reached this card. It now cashes Petr out mid-night for $100,
+  which makes the result the whole of what he came in with: the widest of the
+  three, at whatever size of table is being played.
+- **And it took the text cap to show it.** At 100% the millions card is inside
+  its box at either size and either spacing. B18's second pass is what turns
+  this one red, which is the argument for that pass in one line.
+
 ### B18 — money grew with the phone's text setting; the cards did not
 
 ```

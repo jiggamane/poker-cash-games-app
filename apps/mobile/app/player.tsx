@@ -211,6 +211,7 @@ export default function PlayerCard() {
           value={counted === undefined ? '—' : formatToFit(counted, FITS)}
           muted={counted === undefined}
           tight={result !== undefined}
+          align="middle"
         />
         {result !== undefined && (
           <StatPair
@@ -218,7 +219,7 @@ export default function PlayerCard() {
             value={formatSignedToFit(result, FITS)}
             color={moneyColor(t, result)}
             tight
-            push
+            align="end"
           />
         )}
         {result === undefined && (
@@ -297,36 +298,76 @@ export default function PlayerCard() {
 /*
  * WHERE THIS CARD RUNS OUT OF ROOM.
  *
- * Three figures side by side at 30/800, tabular, inside a card 20 in from each
- * edge with 22 between them: about 105 points each, which is a currency symbol
- * and four digits — "$9,999" — and no more. A fifth digit is what put "$18,500"
- * half outside its own cell on a real night.
+ * Three figures side by side at 28/800, tabular, inside a card 20 in from each
+ * edge. Past this threshold the figure is abbreviated rather than cut, and the
+ * exact amount is still on the screen: every entry under this card carries its
+ * own full figure, and they are what this is the sum of.
  *
- * Past that the figure is abbreviated rather than cut, and the exact amount is
- * still on the screen: every entry under this card carries its own full
- * figure, and they are what this is the sum of.
+ * THE ARITHMETIC IS AT 360 AND AT THE TEXT CAP, which is the only place it
+ * bites. "Fits at 393" is the whole of B3 and "fits at 100% text" is the whole
+ * of B18, and this card has now been both. On a 360-wide phone it holds 288
+ * points inside its padding, the row keeps 8 of that for its two gaps at the
+ * worst, and `moneyMaxFontScale` lets every figure grow a tenth past what a
+ * browser draws. So the three together have 272 points at 110%, which is 247 at
+ * 100%, and the widest a row can be is one big figure, one small one, and their
+ * difference — "$1000M" beside "$100" beside "−$1000M" is 255 at 30 and 238 at
+ * 28. That is what the two points of size were for; B19 is the night in the
+ * millions that spent them.
+ *
+ * ⚠ MEASURED IN THE STACK THE APP ACTUALLY PAINTS IN. Figtree, which the boards
+ * ask for and the app does not yet bundle, is about 11% wider at the same size,
+ * and it would take this row back over its budget. Bundling the typeface means
+ * measuring this again — `scripts/ui-check.mjs --figtree` is where — and paying
+ * for it in the size or in this threshold.
  */
 const FITS = 1_000;
 
-/** A label over a figure, two or three across the summary card. */
+/**
+ * A label over a figure, two or three across the summary card.
+ *
+ * WHERE EACH ONE SITS IS THE ROW'S DECISION, NOT ITS OWN. The pairs used to
+ * place themselves: a fixed 22 between the first two and `margin-left: auto` on
+ * the third, which is what T4 draws. That hands ALL the slack to one gap, so
+ * the spacing is a side effect of how wide the figures happen to be — $500 next
+ * to $2,120 sat 22 apart with 50 points of nothing before the result, and a
+ * night in the millions had 22 and none at all. The row is `space-between` now:
+ * the gaps are equal, they grow and shrink together, and the composition holds
+ * at any figure the night produces.
+ *
+ * DELIBERATE DEVIATION from T4 and from `08-tonight-home.md` § H4, which both
+ * say the third pair is pushed right with `margin-left: auto`. It still ends at
+ * the card's right edge — what changes is that the middle pair stops being
+ * wherever the first one left it. The drawn spacing is only correct for the
+ * drawn figures: on a night in the millions the same 22 and auto put the result
+ * outside the card at 360 with the reader's text turned up, which is B19.
+ *
+ * `align` is which of the three this is, and it decides how the label sits over
+ * the figure: left at the start, centred in the middle, right at the end.
+ */
 function StatPair({
   label,
   value,
   color,
   muted = false,
   tight = false,
-  push = false,
+  align = 'start',
 }: {
   label: string;
   value: string;
   color?: string;
   muted?: boolean;
   tight?: boolean;
-  push?: boolean;
+  align?: 'start' | 'middle' | 'end';
 }) {
   const t = useTheme();
   return (
-    <View style={[styles.stat, push && styles.statPush]}>
+    <View
+      style={[
+        styles.stat,
+        align === 'middle' && styles.statMiddle,
+        align === 'end' && styles.statPush,
+      ]}
+    >
       <Text style={[styles.statLabel, { color: t.muted }]}>{label}</Text>
       <Text
         style={[
@@ -485,10 +526,20 @@ const clock = (iso: string | undefined): string =>
     : new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 const styles = StyleSheet.create({
+  /*
+   * THE GAPS ARE WHATEVER IS LEFT, SHARED EQUALLY — see the note above StatPair.
+   *
+   * `gap` under `space-between` is a FLOOR, not a spacing: the row hands out
+   * its slack evenly and only falls back to this when there is none. It is the
+   * one number here that has to be measured rather than chosen — the widest
+   * three figures the card can hold are 270 points of the 288 a 360-wide phone
+   * gives it, so 8 is what is left to divide.
+   */
   card: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 22,
+    justifyContent: 'space-between',
+    gap: 8,
     marginTop: 10,
     marginHorizontal: 20,
     marginBottom: 14,
@@ -500,11 +551,15 @@ const styles = StyleSheet.create({
   // 4 between the caps label and the figure, as H2 draws it — 6 pushed the
   // three pairs a row taller than the card they sit in was drawn for.
   stat: { gap: 4 },
-  statPush: { marginLeft: 'auto', alignItems: 'flex-end' },
+  // The middle pair centres its label over its figure; the last one right-aligns
+  // both, because it ends at the card's edge. Neither pushes any more: the row
+  // places them.
+  statMiddle: { alignItems: 'center' },
+  statPush: { alignItems: 'flex-end' },
   statLabel: type.statPairLabel,
   statValue: type.statPairValue,
   statValueTight: type.statPairValueTight,
-  cardNote: { ...type.statPairNote, marginLeft: 'auto', maxWidth: 104, textAlign: 'right' },
+  cardNote: { ...type.statPairNote, maxWidth: 104, textAlign: 'right' },
 
   list: { marginHorizontal: 20 },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 4 },

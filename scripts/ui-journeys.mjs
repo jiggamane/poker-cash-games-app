@@ -514,6 +514,28 @@ async function playANight(name, rebuys) {
 
   await tap('Petr');
   await stop('player card');
+
+  /*
+   * AND THE SAME CARD THE MOMENT HE IS COUNTED OUT, which is the widest the
+   * three-up row can be asked to get on a night this size.
+   *
+   * Dana's card below is the three-up state at the SEED's figures. This is the
+   * same state at the night's own: he is in for whatever this scale rebought,
+   * and counting out at $100 — a stack he has lost, which is legal at every
+   * scale because it is never more than the table holds — makes the result the
+   * whole of what he came in with. That is the widest of the three figures and
+   * the one T4 puts last, so the row is as wide as this night can draw it.
+   * Nothing else in the app puts three figures at 28/800 in one row, and until
+   * B19 the row was spaced so that all the slack went to one gap.
+   *
+   * Cashing him out here also takes him off the count-up list, which is correct
+   * and is what that screen is for: a stack counted during play is never
+   * counted again.
+   */
+  await tap('Cash out');
+  await punch('100');
+  await tap(/^Cash .* out$/, { last: true, wait: 1400 });
+  await stop('player card · counted out');
   await page.getByLabel('Close').last().click();
   await page.waitForTimeout(900);
 
