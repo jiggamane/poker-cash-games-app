@@ -29,7 +29,7 @@ The three check columns are what runs in `npm run check:ui`:
   iPhones and two Androids — against the height cap. Only sheets have one.
 - **Night** — `ui-journeys.mjs`. A whole night played through, checking no
   figure is cut off, outside its card, off the phone, or broken across two
-  lines. Only reaches the fifteen stops a night actually produces, which is the
+  lines. Only reaches the twenty stops a night actually produces, which is the
   point: those are the ones no URL opens and the ones a host stares at for ten
   minutes. It runs at 360, the narrowest device in the matrix — B15 and B16 both
   fit at 393 and wrapped at 360 — and it plays the night at three sizes of
@@ -72,7 +72,7 @@ is settled when it is not.
 | `/club-rules` | push | ✓ | — | — | ☐ |
 | `/count-up` | push | ✓ | — | ✓ | ☐ |
 | `/deductions` | push | ✓ | — | ✓ | ☐ |
-| `/entry` | sheet | ✓ | ✓ | — | ☐ |
+| `/entry` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/games` | push | ✓ | — | ✓ | ☐ |
 | `/groups` | push | ✓ | — | — | ☐ |
 | `/hand-over` | sheet | ✓ | ✓ | — | ☐ |

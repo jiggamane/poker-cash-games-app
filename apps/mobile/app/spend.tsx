@@ -3,10 +3,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { formatMoney, money, resolveLedger, type Money, type PlayerId } from '@poker-club/core';
 import { Button } from '../src/components/Button';
-import { Keypad, appendDigits } from '../src/components/Keypad';
+import { Keypad } from '../src/components/Keypad';
+import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, radius, space, type } from '../src/design/tokens';
 import {
   addSpend,
   spendsOf,
@@ -49,9 +50,14 @@ export default function SpendScreen() {
     [night, ledger, id],
   );
 
-  const [typed, setTyped] = useState<string>(
-    existing === undefined ? '0' : String(existing.amount),
-  );
+  /*
+   * The keypad's own rule about a figure already on screen —
+   * `src/components/typedAmount.ts`, and B20. Nothing changes here today: a
+   * new spend opens on zero, which the pad has always treated as an empty
+   * field, and an existing one draws no keypad at all. It is on the shared
+   * state so that it stays right the day either of those does change.
+   */
+  const field = useTypedAmount(existing?.amount ?? 0);
   const [note, setNote] = useState<string>(existing?.note ?? '');
   const [cover, setCover] = useState<CoverPick>(
     existing === undefined
@@ -68,7 +74,7 @@ export default function SpendScreen() {
 
   if (night === null || ledger === null) return <Sheet title="A spend">{null}</Sheet>;
 
-  const amount = typed === '' ? 0 : Number(typed);
+  const amount = amountOf(field.typed);
   const seated = standingsOf(night, ledger).filter((s) => s.played);
 
   /*
@@ -149,7 +155,14 @@ export default function SpendScreen() {
         </>
       }
     >
-      <Text style={[styles.amount, { color: amount > 0 ? t.text : t.muted }]}>
+      <Text
+        {...cappedFigure}
+        style={[
+          styles.amount,
+          typedFigureSize(formatMoney(money(amount)), 68),
+          { color: amount > 0 ? t.text : t.muted },
+        ]}
+      >
         {formatMoney(money(amount))}
       </Text>
 
@@ -283,10 +296,7 @@ export default function SpendScreen() {
       {error !== null && <Text style={[styles.error, { color: t.danger }]}>{error}</Text>}
 
       {existing === undefined && (
-        <Keypad
-          onDigits={(d) => setTyped((c) => appendDigits(c, d))}
-          onBackspace={() => setTyped((c) => (c.length <= 1 ? '0' : c.slice(0, -1)))}
-        />
+        <Keypad {...field.keys} />
       )}
     </Sheet>
   );

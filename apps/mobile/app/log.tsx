@@ -11,11 +11,12 @@ import {
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
-import { Keypad, appendDigits } from '../src/components/Keypad';
+import { Keypad } from '../src/components/Keypad';
 import { PRESET_FITS, Preset } from '../src/components/Preset';
 import { Sheet } from '../src/components/Sheet';
+import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, radius, space, type } from '../src/design/tokens';
 import {
   buyIn,
   cashOut,
@@ -84,23 +85,18 @@ export default function Log() {
       : resolved.amount;
 
   const counting = kind === 'cashout' || kind === 'count';
-  const [typed, setTyped] = useState<string>(counting ? '0' : String(suggested));
   /*
-   * Whether the figure on screen was TYPED or merely SUGGESTED.
-   *
-   * A prefilled amount is an offer, not text the host entered, and the keypad
-   * has to treat the two differently: typing 7 against a suggested $1,000 means
-   * seventy-five, not ten thousand and seventy-five. So the first key pressed
-   * clears the suggestion — a digit replaces it, delete wipes it — and every
-   * key after that appends as normal. Tapping a preset makes it a suggestion
-   * again, because that is exactly what it is.
+   * Whether the figure on screen was TYPED or merely SUGGESTED lives in
+   * `src/components/typedAmount.ts` — it is the keypad's own rule and it now
+   * reaches every screen that has one. It used to be these two lines and
+   * nothing else in the app had them, which is B20.
    */
-  const [touched, setTouched] = useState(false);
+  const field = useTypedAmount(counting ? 0 : suggested);
   const [busy, setBusy] = useState(false);
 
   if (night === null || ledger === null) return <Sheet title="Tonight">{null}</Sheet>;
 
-  const amount = typed === '' ? 0 : Number(typed);
+  const amount = amountOf(field.typed);
 
   const inFor = ((player && ledger.boughtInByPlayer.get(player)) ?? 0) as Money;
   const alreadyOut = ((player && ledger.cashedOutByPlayer.get(player)) ?? 0) as Money;
@@ -149,12 +145,6 @@ export default function Log() {
       ? lastRebuy.amount
       : null;
   const second = ownLast ?? money(standard * 2);
-
-  /** Put a suggested figure up, ready to be replaced whole by the next digit. */
-  function choose(value: Money | null) {
-    setTyped(value === null ? '' : String(value));
-    setTouched(false);
-  }
 
   const tag =
     kind === 'cashout'
@@ -225,7 +215,17 @@ export default function Log() {
       }
     >
       <View style={styles.amountRow}>
-        <Text style={[styles.amount, { color: overTable ? t.loss : valid ? t.text : t.muted }]}>
+        {/* The board's 68, stepped down once the figure is longer than the
+            board ever drew, and capped against the reader's text setting.
+            `typedAmount.ts` and B20. */}
+        <Text
+          {...cappedFigure}
+          style={[
+            styles.amount,
+            typedFigureSize(formatMoney(money(amount)), 68),
+            { color: overTable ? t.loss : valid ? t.text : t.muted },
+          ]}
+        >
           {formatMoney(money(amount))}
         </Text>
         {overTable && (
@@ -258,19 +258,19 @@ export default function Log() {
             label={formatToFit(standard, PRESET_FITS)}
             caption={kind === 'rebuy' ? 'STANDARD' : 'DEFAULT'}
             on={amount === standard}
-            onPress={() => choose(standard)}
+            onPress={() => field.offer(standard)}
           />
           <Preset
             label={formatToFit(second, PRESET_FITS)}
             caption={ownLast === null ? 'X2' : 'LAST'}
             on={amount === second}
-            onPress={() => choose(second)}
+            onPress={() => field.offer(second)}
           />
           <Preset
             label="Custom"
             caption="SET"
             on={amount !== standard && amount !== second}
-            onPress={() => choose(null)}
+            onPress={() => field.offer(null)}
           />
         </View>
       )}
@@ -280,16 +280,7 @@ export default function Log() {
         <Text style={[styles.stampText, { color: t.text }]}>Stamped {stamped}</Text>
       </View>
 
-      <Keypad
-        onDigits={(d) => {
-          setTyped((cur) => appendDigits(touched ? cur : '', d));
-          setTouched(true);
-        }}
-        onBackspace={() => {
-          setTyped((cur) => (touched ? cur.slice(0, -1) : ''));
-          setTouched(true);
-        }}
-      />
+      <Keypad {...field.keys} />
     </Sheet>
   );
 }
