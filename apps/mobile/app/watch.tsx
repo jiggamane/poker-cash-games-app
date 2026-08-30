@@ -174,7 +174,13 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
   return (
     <Screen
       title={ended ? nightDate(night.startedAt) : 'Tonight'}
-      badge={<Status label={ended ? 'SETTLED' : 'WATCHING'} />}
+      /*
+       * WATCHING, and nothing once the night has ended. E6: a confirmed result
+       * states no status of its own, and nothing at all is placed to the right
+       * of its title. While the night is still running the badge is not a
+       * result — it says what this reader is doing — so it stays.
+       */
+      badge={ended ? undefined : <Status label="WATCHING" />}
       meta={metaLine(night, ended)}
       backTo="the club"
       scroll={false}
@@ -186,15 +192,19 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
             <Live night={night} ledger={ledger} me={me} />
           </>
         ) : (
-          /* The same three blocks the host reads on `settled.tsx`. Same data,
-             different projection — the only difference is what follows them. */
-          <NightResult
-            result={result}
-            rules={night.rules}
-            me={me}
-            hostName={night.hostName}
-            readOnly
-          />
+          /*
+           * THE SAME SCREEN THE HOST READS on `settled.tsx`, and after E6 it
+           * is the same in every particular: the prize pool, the table, the
+           * deductions. X1c gave the two readers different projections of the
+           * same night because each of them got their own card and their own
+           * settlement line; E6 draws every player a row of the same weight,
+           * so there is nothing left for the two to disagree about. What still
+           * differs is the band under it, and the band is this screen's.
+           *
+           * `hostName` is who signs off a difference here — a watcher cannot
+           * ask the host what happened at 00:52, so the pill says who did.
+           */
+          <NightResult result={result} ledger={ledger} loggedBy={night.hostName} />
         )}
 
         {/*

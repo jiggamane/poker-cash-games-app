@@ -65,7 +65,11 @@ export default function Stands() {
               key={s.id}
               style={[
                 styles.ranked,
-                { backgroundColor: s.result >= 0 ? t.winWash : t.lossWash },
+                {
+                  borderBottomColor: t.hairline,
+                  /* The list closes on the group below it, or on the note. */
+                  borderBottomWidth: i === counted.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                },
               ]}
             >
               <Text style={[styles.rank, { color: t.muted }]}>{i + 1}</Text>
@@ -121,23 +125,30 @@ export default function Stands() {
 
 const styles = StyleSheet.create({
   group: { marginTop: 16, marginHorizontal: 22 },
-  // E2b sets the second group `16px 4px 0` — 16 above it, and 4 of inset so
-  // its rows step in from the washed blocks above rather than lining up with
-  // their bled edge.
-  groupAfter: { marginTop: 16, paddingHorizontal: 4 },
+  // E2b set the second group `16px 4px 0` — 16 above it, and 4 of inset so its
+  // rows stepped in from the washed blocks above rather than lining up with
+  // their bled edge. The blocks are hairline rows now and bleed past nothing,
+  // so the inset has nothing to step in from: the two lists share one left
+  // edge, which is what they were always meant to look like.
+  groupAfter: { marginTop: 16 },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
 
-  // The ranked rows are blocks rather than hairline rows: a wash of their own
-  // colour is what makes the order readable at a glance.
+  // HAIRLINE ROWS, like every other results list in the app since E6.
+  //
+  // They were washed blocks, green and red, and the note here said the wash
+  // "is what makes the order readable at a glance". It is not: the rank number
+  // in the first column is, and it is exact where a wash is only a direction.
+  // What the fill actually did was say a second time, in a colour that has to
+  // survive a phone at arm's length, what the sign in front of each figure had
+  // already said — and turn seven rows into seven objects of two kinds on a
+  // screen whose whole point is that the ranking is provisional.
   ranked: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginHorizontal: -6,
-    marginBottom: 3,
     paddingVertical: 11,
-    paddingHorizontal: 10,
-    borderRadius: radius.pressable,
+    paddingHorizontal: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   rank: { width: 16, fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] },
 
