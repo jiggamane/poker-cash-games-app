@@ -516,6 +516,30 @@ async function playANight(name, rebuys) {
   await stop('player card');
 
   /*
+   * THE CORRECTION SHEET, WITH THE NIGHT'S LARGEST ENTRY IN IT — B20.
+   *
+   * Nothing had ever pressed a key on /entry. The route pass reaches it, but
+   * only its first step: the amount step is behind a tap, so the big figure and
+   * the chip row it now draws were never measured, and the chip is the exact
+   * object B3 and B14 were about. Petr's newest rebuy is the biggest entry the
+   * night has — $1.2m at the millions scale, $99m at the ceiling — so the chip
+   * that offers it back is as wide as this screen can ever ask for.
+   *
+   * The two closes are the flow's own shape: the first goes back a step to the
+   * menu, the second leaves the sheet. If either stops working this stop fails
+   * on the tap after it rather than passing quietly.
+   */
+  await tap('Rebuy', { last: true });
+  await stop('correct an entry');
+  await tap('Change the amount');
+  await stop('correct an entry · the amount');
+  await page.getByLabel('Close').last().click();
+  await page.waitForTimeout(600);
+  await stop('correct an entry · back a step');
+  await page.getByLabel('Close').last().click();
+  await page.waitForTimeout(700);
+
+  /*
    * AND THE SAME CARD THE MOMENT HE IS COUNTED OUT, which is the widest the
    * three-up row can be asked to get on a night this size.
    *

@@ -73,6 +73,101 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B20 — correcting a $500 buy-in to $50 wrote $50,050
+
+```
+Screen      N10 /entry, the "Change the amount" step — and /share behind it
+Seen        the step opens on the amount as logged, $500. Tapping 5 then 0 —
+            which is what a host does to fix a buy-in typed at ten times its
+            size — left $50,050 on screen and offered to "Correct to $50,050".
+            The only way to a figure smaller than the one being corrected was
+            nine presses of delete. There was no chip row either, so a
+            half-typed figure could not be put back without leaving the sheet,
+            and the sheet's close dismissed the whole thing rather than going
+            back a step
+Expected    the keypad /log has had since the day it was drawn: a figure the
+            screen offers is REPLACED by the first key, and only a figure the
+            host has typed is appended to. Delete wipes an offer whole. A
+            preset puts an offer back up
+Found       30 Aug, correcting an entry on the phone
+Locked by   npm run check — apps/mobile/src/components/typedAmount.test.ts,
+            "a suggested figure is replaced whole by the first digit". The
+            screen itself by npm run check:ui — ui-journeys.mjs now stops on
+            "correct an entry · the amount", which is the first time any check
+            has pressed a key on this sheet
+Status      fixed in this commit
+```
+
+**One rule, four screens, one implementation of it.** The replace-an-offer rule
+was eleven lines inside `log.tsx` — a `touched` flag and two inline handlers —
+and every other screen with a keypad had written its own answer:
+
+| screen | opened on | what the first key did |
+|---|---|---|
+| `/log` | the standard buy-in, or this player's last rebuy | replaced it — correct |
+| `/entry` | the amount as logged | **appended to it** |
+| `/share` | what the split charges them | replaced it — but after a preset was tapped, **appended** |
+| `/spend` | zero, and it draws no keypad when editing one | replaced it — correct |
+
+`/spend` was the only one already right by accident: it opens on `0`, and
+`appendDigits` has always treated a lone zero as an empty field. Change the
+figure it opens on — which is one line, and the obvious thing to do the day
+somebody wants to edit a spend's amount — and it joins the second row.
+
+It is worst on `/entry` and that is not a coincidence: a correction is nearly
+always a figure being made SMALLER, so every digit of the wrong amount is
+directly in the way of the right one. `/log` never feels it, because a rebuy
+typed against a suggested $500 is usually a bigger number and the host is
+typing from the first digit anyway.
+
+`src/components/typedAmount.ts` is now the only place that decides, and
+`Keypad.tsx` points at it. This is `CLAUDE.md`'s rule about arithmetic applied
+to the thing arithmetic is typed on: a screen that keeps its own copy of the
+keypad's rule is a second, untested implementation of it, and the four above had
+drifted into three different behaviours without anybody changing their minds.
+
+**Why nothing saw it.** No check has ever pressed a key on `/entry`.
+`ui-journeys.mjs` punches digits on `/log` and takes the result on trust — B17
+is the same blind spot one screen along, and it says so in its own entry: "the
+note explained the behaviour instead of stating the amounts". The lock here is a
+unit test rather than a journey for that reason. It asserts the arithmetic of
+the keypad in figures — `offer(500)` then `5` then `0` is fifty — where a
+browser pass would assert that a screen looks right while typing something else
+entirely.
+
+**And the check it needed found a third fault the moment it ran.** The lock
+above is a unit test, but a drawn chip row that nothing measures is B14 waiting
+to happen, so `ui-journeys.mjs` now stops on the correction sheet with the
+night's largest entry in it. Its first run reported `$1,200,000` running from
+−7 to 367 on a 360-wide phone. That is not the chip and it is not new: it is the
+typed figure itself, at the 68 the board drew with `$500` in it, and `/log`
+draws the same figure at the same size — the journey had simply never stopped on
+a screen with a keypad. Both are fixed together, and both halves are needed:
+
+- `cappedFigure` on the figure, which is B18's treatment and which the boards'
+  fixed cards already have. It holds the reader's text setting to 110%.
+- **the figure steps down as it lengthens** — `typedFigureSize`, past the eight
+  characters the board itself drew. The cap alone is not enough: `$99,000,000`
+  at 68 is 382 points across at 110%, still off both edges.
+
+Nothing shorter than `$999,999` changes size. The step is what a calculator's
+display does, and it is the only honest option here — an abbreviated figure in
+the field you are typing into is a lie about what the button is about to commit,
+so `formatToFit` is right for the chip beside it and wrong for the figure above
+it.
+
+Two more things went with it, both on the correction step and both making it the
+amount sheet the rest of the app draws:
+
+- **The chip row.** `AS LOGGED` and `Custom`, the shared `Preset` from
+  `src/components/Preset.tsx` — so the figure as it stands is one tap away
+  after a wrong key, which is the whole reason `/log` has the row. Neither
+  word is invented: "as logged" is already on the card above it.
+- **The close goes back a step.** `09-navigation.md` § sheets: a flow replaces
+  the sheet's content and keeps one close, and that close is a step back — the
+  shape `new-night.tsx` and `invite.tsx` already use. A mis-tap on "Change the
+  amount" used to cost the host the entry they had opened.
+
 ### B19 — the night's result hangs out of the player card, and the three figures were never spaced
 
 ```

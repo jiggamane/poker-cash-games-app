@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, money, resolveLedger } from '@poker-club/core';
+import { formatMoney, formatToFit, money, resolveLedger } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
-import { Keypad, appendDigits } from '../src/components/Keypad';
+import { Keypad } from '../src/components/Keypad';
+import { PRESET_FITS, Preset } from '../src/components/Preset';
 import { Sheet } from '../src/components/Sheet';
+import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, radius, space, type } from '../src/design/tokens';
 import { correctEntry, nameOf, useNight, voidEntry } from '../src/lib/nightStore';
 
 /**
@@ -28,7 +30,16 @@ export default function EntryPage() {
   const night = useNight();
 
   const [mode, setMode] = useState<'menu' | 'amount'>('menu');
-  const [typed, setTyped] = useState('');
+  /*
+   * THE SAME KEYPAD AS EVERY OTHER AMOUNT IN THE APP, and it was not before.
+   *
+   * The logged figure is put up as an OFFER when the step opens, so the first
+   * key replaces it — see `typedAmount.ts`. This screen used to seed the same
+   * figure as plain text and append to it, which is the wrong way round
+   * everywhere and worst here: a correction is nearly always a figure being
+   * made SMALLER, and $500 with `5` `0` typed after it came out at $50,050.
+   */
+  const field = useTypedAmount();
   const [busy, setBusy] = useState(false);
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
@@ -56,7 +67,7 @@ export default function EntryPage() {
           ? 'cash out'
           : 'expense';
 
-  const amount = typed === '' ? 0 : Number(typed);
+  const amount = amountOf(field.typed, entry.amount);
   const valid = amount > 0 && amount !== entry.amount;
 
   async function apply(action: 'correct' | 'void') {
@@ -74,6 +85,14 @@ export default function EntryPage() {
   return (
     <Sheet
       title="One entry"
+      /*
+       * 09-navigation.md § sheets: a flow REPLACES ONE SHEET'S CONTENT and
+       * keeps one close, and the close goes back a step — the same shape as
+       * New session and Invite. Without it the only way out of the amount
+       * step was to dismiss the whole sheet, so a mis-tap on "Change the
+       * amount" cost the host the entry they had opened.
+       */
+      onClose={mode === 'amount' ? () => setMode('menu') : undefined}
       footer={
         mode === 'amount' ? (
           <Button
@@ -96,17 +115,22 @@ export default function EntryPage() {
         </Text>
       </View>
 
-      <Text style={[styles.explain, { color: t.muted }]}>
-        The ledger is append-only. A correction does not erase this line — it writes a reversal
-        underneath it, and both stay visible to everyone.
-      </Text>
+      {/* The sentence belongs to the choice, so it is on the step where the
+          choice is made. On the amount step it would push the keypad off a
+          short phone to say a thing that was read one tap ago. */}
+      {mode === 'menu' && (
+        <Text style={[styles.explain, { color: t.muted }]}>
+          The ledger is append-only. A correction does not erase this line — it writes a reversal
+          underneath it, and both stay visible to everyone.
+        </Text>
+      )}
 
       {mode === 'menu' ? (
         <View style={styles.list}>
           <Pressable
             accessibilityRole="button"
             onPress={() => {
-              setTyped(String(entry.amount));
+              field.offer(entry.amount);
               setMode('amount');
             }}
             style={({ pressed }) => [
@@ -139,14 +163,43 @@ export default function EntryPage() {
       ) : (
         <>
           <View style={styles.amountRow}>
-            <Text style={[styles.amount, { color: valid ? t.text : t.muted }]}>
+            <Text
+              {...cappedFigure}
+              style={[
+                styles.amount,
+                typedFigureSize(formatMoney(money(amount)), 68),
+                { color: valid ? t.text : t.muted },
+              ]}
+            >
               {formatMoney(money(amount))}
             </Text>
           </View>
-          <Keypad
-            onDigits={(d) => setTyped((cur) => appendDigits(cur, d))}
-            onBackspace={() => setTyped((cur) => cur.slice(0, -1))}
-          />
+          {/*
+            THE CHIP ROW THE OTHER AMOUNT SHEETS HAVE. Two figures are worth
+            offering on a correction and there are only two: the amount as it
+            stands, which is how a host backs out of a half-typed figure without
+            leaving the sheet, and an empty field to type into. Same object as
+            /log and /share — `src/components/Preset.tsx`, and B14's lesson.
+
+            "as logged" is the words this screen already uses for the entry as
+            it stands, on the card above. Nothing here is invented copy.
+          */}
+          <View style={styles.presets}>
+            <Preset
+              label={formatToFit(entry.amount, PRESET_FITS)}
+              caption="AS LOGGED"
+              on={amount === entry.amount}
+              onPress={() => field.offer(entry.amount)}
+            />
+            <Preset
+              label="Custom"
+              caption="SET"
+              on={amount !== entry.amount}
+              onPress={() => field.offer(null)}
+            />
+          </View>
+
+          <Keypad {...field.keys} />
         </>
       )}
     </Sheet>
@@ -185,7 +238,9 @@ const styles = StyleSheet.create({
   rowLabel: type.rowName,
   rowHint: { ...type.meta, marginLeft: 'auto' },
 
-  amountRow: { alignItems: 'center', paddingTop: 6, paddingBottom: 20 },
+  amountRow: { alignItems: 'center', paddingTop: 6, paddingBottom: 16 },
+  // The row on /log, to the point: `gap:8; padding:0 20px 16px`.
+  presets: { flexDirection: 'row', gap: 8, paddingHorizontal: space.card, paddingBottom: 16 },
   amount: { fontSize: 68, fontWeight: '800', letterSpacing: -3.4, fontVariant: ['tabular-nums'] },
 
   note: { ...type.footnote, marginHorizontal: space.page },

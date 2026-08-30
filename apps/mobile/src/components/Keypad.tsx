@@ -13,6 +13,11 @@ import { Icon } from './Icon';
  *
  * `00` sits where a decimal point would: at a table where buy-ins are 500 and
  * 1,000, two zeros is the key you actually want.
+ *
+ * What a key MEANS against a figure that is already on screen — replace it or
+ * append to it — is `typedAmount.ts`, beside this file. It is the half of this
+ * control no board draws and the half that four screens each got to decide for
+ * themselves until B20.
  */
 export function Keypad({
   onDigits,
@@ -54,13 +59,6 @@ export function Keypad({
       </Pressable>
     </View>
   );
-}
-
-/** Append digits to a typed amount, refusing a leading zero and silly lengths. */
-export function appendDigits(current: string, digits: string): string {
-  const next = (current === '0' ? '' : current) + digits;
-  const trimmed = next.replace(/^0+(?=\d)/, '');
-  return trimmed.length > 9 ? current : trimmed;
 }
 
 const styles = StyleSheet.create({

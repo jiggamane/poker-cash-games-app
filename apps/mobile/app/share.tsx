@@ -16,11 +16,12 @@ import {
   type SettlementResult,
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
-import { Keypad, appendDigits } from '../src/components/Keypad';
+import { Keypad } from '../src/components/Keypad';
 import { PRESET_FITS, Preset } from '../src/components/Preset';
 import { Sheet } from '../src/components/Sheet';
+import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { block, space, type } from '../src/design/tokens';
+import { block, cappedFigure, space, type } from '../src/design/tokens';
 import { nameOf, setManualCharge, settlementInput, useNight } from '../src/lib/nightStore';
 import { useIsAdmin } from '../src/lib/whoIsReading';
 
@@ -74,7 +75,12 @@ export default function Share() {
   const now = useMemo(() => safeSettle(night === null ? null : settlementInput(night)), [night]);
 
   const rule = night?.rules.find((r) => r.id === ruleId);
-  const [typed, setTyped] = useState<string | null>(null);
+  /*
+   * Nothing typed yet, because what they are on is not known until the engine
+   * has settled the night below. `amountOf` takes that as the fallback, so an
+   * untouched field shows the live figure rather than one frozen at mount.
+   */
+  const field = useTypedAmount();
   const [busy, setBusy] = useState(false);
 
   if (night === null || ledger === null || rule === undefined || player === undefined) {
@@ -96,7 +102,7 @@ export default function Share() {
   });
   const onTheSplit = chargeIn(withoutMine, rule.id, player);
   /* What is in the field: what the host has typed, else what they are on. */
-  const amount = typed === null ? (set ?? onTheSplit) : typed === '' ? 0 : Number(typed);
+  const amount = amountOf(field.typed, set ?? onTheSplit);
 
   const total = ruleTotal(rule, ledger);
   const ceiling = chargeCeiling(rule, ledger, player);
@@ -202,7 +208,14 @@ export default function Share() {
       }
     >
       <View style={styles.amountRow}>
-        <Text style={[styles.amount, { color: over ? t.loss : valid ? t.text : t.muted }]}>
+        <Text
+          {...cappedFigure}
+          style={[
+            styles.amount,
+            typedFigureSize(formatMoney(money(Number.isFinite(amount) ? amount : 0)), 60),
+            { color: over ? t.loss : valid ? t.text : t.muted },
+          ]}
+        >
           {formatMoney(money(Number.isFinite(amount) ? amount : 0))}
         </Text>
         <Text style={[styles.of, { color: t.muted }]}>
@@ -266,26 +279,23 @@ export default function Share() {
           label={formatToFit(money(onTheSplit), PRESET_FITS)}
           caption="BY THE RULE"
           on={amount === onTheSplit && onTheSplit !== 0}
-          onPress={() => setTyped(String(onTheSplit))}
+          onPress={() => field.offer(onTheSplit)}
         />
         <Preset
           label={formatMoney(money(0))}
           caption="NOTHING"
           on={amount === 0}
-          onPress={() => setTyped('0')}
+          onPress={() => field.offer(0)}
         />
         <Preset
           label="Custom"
           caption="SET"
           on={amount !== onTheSplit && amount !== 0}
-          onPress={() => setTyped('')}
+          onPress={() => field.offer(null)}
         />
       </View>
 
-      <Keypad
-        onDigits={(d) => setTyped((cur) => appendDigits(cur ?? '', d))}
-        onBackspace={() => setTyped((cur) => (cur ?? String(set ?? onTheSplit)).slice(0, -1))}
-      />
+      <Keypad {...field.keys} />
     </Sheet>
   );
 }
