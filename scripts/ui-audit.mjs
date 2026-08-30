@@ -49,6 +49,7 @@ import { createRequire } from 'node:module';
 
 const require_ = createRequire(import.meta.url);
 const { chromium } = require_('playwright');
+import { launchOptions } from './chromium.mjs';
 
 const BASE = process.env.UI_CHECK_BASE ?? 'http://127.0.0.1:4321';
 /*
@@ -166,6 +167,33 @@ const DRAWN = {
    * beside the note that lists the board's rows.
    */
   '/new-night': ['Stakes', 'Default buy-in', 'Money rules', 'Find a player'],
+
+  /*
+   * `design/handoff-E2/boards/Settled Status.dc.html`, layout 2a — the balance
+   * block, which is the whole of that handoff.
+   *
+   * BOTH SUMS ARE HERE ON PURPOSE. The block it replaced showed one figure
+   * against the chips still on the table, which is the same arithmetic with
+   * half of it off screen: a night missing a cash-out reads DONE, because the
+   * money nobody entered was subtracted out of both sides before they were
+   * compared. "A screen that only says BALANCED is not checkable" is the
+   * handoff's own sentence, and this is what holds it — a later pass that
+   * drops a column to buy width takes this red rather than shipping.
+   *
+   * The seeded night is mid-count, so the strip reads the countdown and the
+   * two groups below are both drawn. Its verdict states are covered by
+   * `balance.test.ts` and played through in `ui-journeys.mjs`.
+   */
+  '/count-up': [
+    'BOUGHT IN',
+    'ACCOUNTED FOR',
+    'LEFT TO ACCOUNT FOR',
+    'Still seated',
+    'not counted yet',
+    'Count',
+    'Already confirmed',
+    'Next',
+  ],
 };
 
 const ROOM = `
@@ -672,7 +700,7 @@ const SHEET = `({ insetTop, insetBottom, gap, floor }) => {
   return { none: false, at, cap, usable, top: px(b.top), height: px(b.height), findings };
 }`;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(launchOptions());
 const routes = asked.length > 0 ? asked : ROUTES;
 let failures = 0;
 const tally = new Map();
@@ -693,10 +721,20 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
         await page.waitForTimeout(450);
         findings = await page.evaluate(ROOM);
 
-        // The rows the board draws, still on the screen — see DRAWN.
+        /*
+         * The rows the board draws, still on the screen — see DRAWN.
+         *
+         * CASE-INSENSITIVE, because `innerText` is what the reader sees and a
+         * section label is uppercased by the stylesheet rather than by the
+         * string. The map is written in the board's own casing — "Still
+         * seated" is what the artboard says — and matching literally made the
+         * first two entries after O1 red on a screen that was drawing them
+         * perfectly. This check asks whether a row is THERE; whether it is
+         * cased and weighted as drawn is what `ui-check.mjs` measures.
+         */
         for (const word of DRAWN[route] ?? []) {
           const seen = await page.evaluate(
-            (w) => (document.body.innerText || '').includes(w),
+            (w) => (document.body.innerText || '').toLowerCase().includes(w.toLowerCase()),
             word,
           );
           if (!seen) {

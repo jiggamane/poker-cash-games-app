@@ -43,8 +43,17 @@ import { createRequire } from 'node:module';
 
 const require_ = createRequire(import.meta.url);
 const { chromium } = require_('playwright');
+import { launchOptions } from './chromium.mjs';
 
 const BASE = process.env.UI_CHECK_BASE ?? 'http://127.0.0.1:4321';
+/*
+ * Rev 18's boards, which is where all but one frame lives.
+ *
+ * A pair may name `boards:` of its own when a later partial cut has redrawn
+ * that screen — `design/handoff-E2/` is the first, and holding E2 against the
+ * block it replaced would report the new screen as drift from a drawing that
+ * has been superseded.
+ */
 const BOARDS = 'design/handoff-rev18/boards';
 const OUT = process.env.UI_FRAMES_OUT ?? '.ui-check/frames';
 const light = process.argv.includes('--light');
@@ -131,7 +140,20 @@ const PAIRS = [
     }],
   ['/watch', 'Journey Map 2 - The night', 'X1a Watching a live night', { skip: ['footer'] }],
 
-  ['/count-up', 'Journey Map 3 - Settle and the book', 'E2 Count up'],
+  /*
+   * E2 is drawn in `design/handoff-E2/`, not on Journey Map 3 — that cut
+   * supersedes the status block rev 18 drew, and only that block. The frame is
+   * the whole screen at layout 2a, mid-count.
+   *
+   * NO LIGHT TWIN EXISTS YET, which the handoff says outright under *Still to
+   * draw*, so `--light` finds no frame for this pair and says so.
+   */
+  [
+    '/count-up',
+    'Settled Status',
+    'E2 Count up · combined',
+    { boards: 'design/handoff-E2/boards' },
+  ],
   ['/stands', 'Journey Map 3 - Settle and the book', 'E2b Where everyone stands'],
   ['/deductions', 'Journey Map 3 - Settle and the book', 'E3 Deductions'],
   [
@@ -321,13 +343,13 @@ async function serveVendored(page) {
   });
 }
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(launchOptions());
 const pairs = asked.length > 0 ? PAIRS.filter((p) => asked.includes(p[0])) : PAIRS;
 if (shots) fs.mkdirSync(OUT, { recursive: true });
 
 const rows = [];
 for (const [route, board, label, opts = {}] of pairs) {
-  const file = path.resolve(BOARDS, board + '.dc.html');
+  const file = path.resolve(opts.boards ?? BOARDS, board + '.dc.html');
   const frameLabel = light ? `${label} · light` : label;
 
   // ---- the drawing ---------------------------------------------------------
