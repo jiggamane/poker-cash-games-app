@@ -1,43 +1,48 @@
 import { useMemo } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, settle, type Money, type PlayerId } from '@poker-club/core';
+import { router } from 'expo-router';
+import { StyleSheet } from 'react-native';
+import { prizePool, resolveLedger, settle } from '@poker-club/core';
 import { Button } from '../src/components/Button';
-import { Icon } from '../src/components/Icon';
 import { NightResult } from '../src/components/NightResult';
 import { Screen } from '../src/components/Screen';
-import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
-import { nameOf, settlementInput, useNight } from '../src/lib/nightStore';
+import { space } from '../src/design/tokens';
+import { settlementInput, useNight } from '../src/lib/nightStore';
 
 /**
- * The night's results — X1c. Rev 15, `14-invite-and-watcher.md`.
+ * The night, settled — E6. `design/handoff-E6/`, cut 30 August.
  *
  * ONE screen for two situations: the night you have just closed, and a night
  * you open from a list three weeks later. They are the same facts, so they are
  * the same screen.
  *
- * REBUILT FROM 1C TO X1c, and the container moved with the layout. 1C (rev 10)
- * drew this as a sheet of net rows carrying their whole calculation as inline
- * tokens — "in 1,000 · out 1,430 · bill 29 +50 back". Rev 15 draws the same
- * night as a PUSH: your own net at the top with the working underneath it as
- * full rows, then the settlement, then everyone else ranked. Two reasons the
- * push is right beyond the drawing saying so — a settled night is a place you
- * stay and read rather than something you confirm and dismiss, and `09` puts
- * exactly that on the push side of the line.
+ * REBUILT FROM X1c, AND MOSTLY BY SUBTRACTION. X1c ended in the reader: their
+ * own card, a SETTLEMENT panel telling them whether they were square, the
+ * transfers they owed, and a way through to who had paid. E6 takes all of it
+ * off, and the reasoning is one line of `START-HERE.md` — *a confirmed result
+ * states no status of its own*. The status belongs to the counting screens,
+ * where the figures are still being entered and the answer is still in doubt;
+ * here the book is closed, and a screen that keeps saying so is a screen still
+ * arguing with itself.
  *
- * WHAT THE HOST GETS THAT A WATCHER DOES NOT is the payments. X1c ends in a
- * read-only band because a watcher never marks a payment paid; the host is the
- * one doing the marking, so the band is replaced by the transfers. Everything
- * above that is `NightResult`, shared with `watch.tsx` — the same data, a
- * different projection, which is what the spec asks for.
+ * WHAT IS LEFT is the record: the date, when it ran, what went through the
+ * table, what each person's night came to, and what came off the top. Every
+ * player is a row of the same weight — no "You," prefix, no highlighted row —
+ * because the host reading this is one of seven people at a table and not the
+ * subject of the page.
+ *
+ * The screen is a PUSH and stays one: a settled night is a place you stay and
+ * read rather than something you confirm and dismiss, and `09-navigation.md`
+ * puts exactly that on the push side of the line. The top-right corner is
+ * empty, which E6 restates as its own rule — nothing is placed to the right of
+ * the title.
  */
 export default function NightResults() {
-  const t = useTheme();
   const night = useNight();
-  /** Whose results these are. The night knows, unless nobody has claimed it. */
-  const { me: asked } = useLocalSearchParams<{ me?: PlayerId }>();
-  const me = asked ?? night?.meId ?? null;
+
+  const ledger = useMemo(
+    () => (night === null ? null : resolveLedger(night.entries)),
+    [night],
+  );
 
   const result = useMemo(() => {
     if (night === null) return null;
@@ -48,7 +53,7 @@ export default function NightResults() {
     }
   }, [night]);
 
-  if (night === null) {
+  if (night === null || ledger === null) {
     return (
       <Screen title="The night" backTo="the club">
         {null}
@@ -71,124 +76,72 @@ export default function NightResults() {
     );
   }
 
-  const mine = me === null ? [] : result.transfers.filter((tr) => tr.fromPlayerId === me);
-  const shown = me === null ? result.transfers : mine;
-
   return (
-    <Screen
-      title={nightDate(night.startedAt)}
-      badge={<Status label="SETTLED" />}
-      meta={metaLine(night)}
-      backTo="the club"
-    >
-      {night.acknowledgement !== undefined && (
-        <View style={[styles.alert, { backgroundColor: t.dangerWash, borderColor: t.dangerEdge }]}>
-          <Text style={[styles.alertLabel, { color: t.danger }]}>
-            Closed {formatMoney(Math.abs(night.acknowledgement.amount) as Money)} out
-          </Text>
-          <Text style={[styles.alertBody, { color: t.text }]}>
-            The count did not add up and the host confirmed it. The difference is carried by
-            “Unaccounted” below rather than spread quietly across everyone.
-          </Text>
-        </View>
-      )}
-
-      <NightResult
-        result={result}
-        rules={night.rules}
-        me={me}
-        hostName={null}
-        readOnly={false}
-      />
+    <Screen title={nightDate(night.startedAt)} meta={metaLine(night, ledger)} backTo="the club">
+      <NightResult result={result} ledger={ledger} loggedBy={null} />
 
       {/*
-       * Where X1c's read-only band goes for a host: the payments themselves.
+       * DELIBERATE DEVIATION, and the only one on this screen.
        *
-       * S46 says this section is the READER'S OWN payments, which needs a
-       * reader. The night names one as soon as somebody has claimed their
-       * place; until then it shows the whole settlement under its own honest
-       * title rather than passing off everyone's transfers as yours.
+       * E6 removes the `Who has paid` disclosure row and says payments live on
+       * E7, "reached from elsewhere". Elsewhere is not drawn and does not
+       * exist: this screen is the only route into `/payments` in the whole
+       * app, and taking the row off without putting the route back would leave
+       * a host with no way to reach the screen they chase the week's money on.
+       *
+       * So the row is gone as E6 asks — no disclosure, no chevron, nothing
+       * that reads as a block of its own — and what is left is a chip in the
+       * flexible space at the end, which is the same thing E5 does two screens
+       * earlier for the same reason: the corner of a pushed screen is empty,
+       * so the way through sits at the bottom where somebody who has finished
+       * reading is already looking. Delete it the moment E7 has a door drawn
+       * somewhere else.
        */}
-      <View style={styles.transfers}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>
-          {me === null ? 'Who pays whom' : 'What you paid'}
-        </Text>
-        {shown.map((tr, i) => (
-          <View key={`${tr.fromPlayerId}-${tr.toPlayerId}-${i}`} style={styles.transfer}>
-            <Text style={[styles.transferText, { color: t.text }]}>
-              {me === null ? nameOf(night, tr.fromPlayerId) : 'You'}
-            </Text>
-            <Icon name="arrow" color={t.muted} />
-            <Text style={[styles.transferText, { color: t.text }]}>
-              {nameOf(night, tr.toPlayerId)}
-            </Text>
-            <Text style={[styles.transferAmount, { color: t.text }]}>{formatMoney(tr.amount)}</Text>
-          </View>
-        ))}
-        {shown.length === 0 && (
-          <Text style={[styles.none, { color: t.muted }]}>
-            {me === null ? 'Nothing to move: everyone left level.' : 'You owe nobody.'}
-          </Text>
-        )}
-
-        {/* E7. Settling and paying are separate — the book closed at the
-            table, the cash moves over the following week — so who has
-            actually handed money over is its own screen and not a state of
-            this one.
-            Offered on the WHOLE settlement, not on the reader's own share: a
-            host who owes nobody is exactly the person chasing everyone else,
-            and gating this on their own transfers hid the screen from them. */}
-        {result.transfers.length > 0 && (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push('/payments')}
-            style={({ pressed }) => [styles.toPayments, { opacity: pressed ? 0.6 : 1 }]}
-          >
-            <Text style={[styles.toPaymentsLabel, { color: t.text }]}>Who has paid</Text>
-            <View style={styles.toPaymentsChevron}>
-              <Icon name="chevron" color={t.muted} />
-            </View>
-          </Pressable>
-        )}
-      </View>
+      {result.transfers.length > 0 && (
+        <Button
+          label="Who has paid"
+          variant="chip"
+          style={styles.toPayments}
+          onPress={() => router.push('/payments')}
+        />
+      )}
     </Screen>
   );
 }
 
 /**
- * The SETTLED pill.
+ * "20:05 → 06:38 · 10h 46m · 7 players".
  *
- * NOT the `Pill` component: 999px belongs to the host's live badge alone, and
- * this is X1c's 7px status pill in card fill with a hairline round it. The two
- * mean different things and must not look alike.
+ * BOTH WALL-CLOCK TIMES, 24-hour, and then the duration. A night that crosses
+ * midnight ends at a smaller number than it started at, which reads as wrong
+ * until the duration resolves it — which is why E6 asks for all three and not
+ * for the elapsed time alone.
+ *
+ * The local night's `endedAt` is set the moment counting starts. Where it is
+ * missing — a night imported, or one closed before the field existed — the last
+ * entry's own timestamp IS the moment the last chip moved. Using the clock
+ * instead would make a night settled in March grow longer every time somebody
+ * opened it.
+ *
+ * The player count is the prize pool's, so the line and the block under it
+ * cannot disagree about how many people were at the table.
  */
-function Status({ label }: { label: string }) {
-  const t = useTheme();
+function metaLine(
+  night: NonNullable<ReturnType<typeof useNight>>,
+  ledger: ReturnType<typeof resolveLedger>,
+): string {
+  const stamps = Object.values(night.occurredAt);
+  const last = stamps.length === 0 ? null : stamps.reduce((a, b) => (a > b ? a : b));
+  const ended = night.endedAt ?? last;
+  const players = prizePool(ledger).players;
   return (
-    <View style={[styles.status, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-      <Text style={[styles.statusLabel, { color: t.muted }]}>{label}</Text>
-    </View>
+    `${clock(night.startedAt)} → ${ended === null ? '—' : clock(ended)} · ` +
+    `${elapsed(night.startedAt, ended)} · ${players} ${players === 1 ? 'player' : 'players'}`
   );
 }
 
-/**
- * "4h 36m · 6 players".
- *
- * X1c's meta reads "kept by Marek · 4h 36m · 6 players". The host is reading
- * their own night here, so naming them to themselves is dropped and the rest
- * stands.
- *
- * The local night carries no end time — `Night` has `startedAt` and a status,
- * and nothing that says when the last chip moved. The last entry's own
- * timestamp IS that moment, and using the clock instead would make a night
- * settled in March grow longer every time somebody opened it.
- */
-function metaLine(night: NonNullable<ReturnType<typeof useNight>>): string {
-  const players = night.players.filter((p) => p.atTable).length;
-  const stamps = Object.values(night.occurredAt);
-  const last = stamps.length === 0 ? null : stamps.reduce((a, b) => (a > b ? a : b));
-  return `${elapsed(night.startedAt, last)} · ${players} players`;
-}
+const clock = (iso: string): string =>
+  new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 
 function elapsed(startedAt: string, endedAt: string | null): string {
   const end = endedAt === null ? Date.now() : new Date(endedAt).getTime();
@@ -196,45 +149,15 @@ function elapsed(startedAt: string, endedAt: string | null): string {
   return `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`;
 }
 
+/*
+ * "Sat 29 Aug". SHORT, so the title holds one line at full width — the long
+ * weekday put "Wednesday 29 Aug" against the back button at 30/800 and wrapped
+ * it, and E6 asks for one line because nothing sits to the right of it to
+ * absorb the second.
+ */
 const nightDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+  new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 
 const styles = StyleSheet.create({
-  status: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: 7, borderWidth: 1 },
-  statusLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.05 },
-
-  alert: {
-    marginHorizontal: space.card,
-    marginTop: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: radius.pressable,
-    borderWidth: 1,
-    gap: 6,
-  },
-  alertLabel: type.label,
-  alertBody: { fontSize: 13, fontWeight: '400', lineHeight: 19 },
-
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  transfers: { marginTop: 24, marginHorizontal: space.page },
-  transfer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-  },
-  transferText: type.rowName,
-  transferAmount: { ...type.figure, marginLeft: 'auto' },
-  toPayments: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 8,
-    paddingVertical: 15,
-  },
-  toPaymentsLabel: type.rowName,
-  toPaymentsChevron: { marginLeft: 'auto' },
-
-  none: { ...type.footnote, paddingHorizontal: 4 },
+  toPayments: { marginHorizontal: space.card, marginTop: 20 },
 });

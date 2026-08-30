@@ -236,12 +236,11 @@ export default function Log() {
       </View>
 
       {counting ? (
-        <View
-          style={[
-            styles.result,
-            { backgroundColor: nightSoFar >= 0 ? t.winWash : t.lossWash },
-          ]}
-        >
+        /* The block is the card fill in both directions. It was the win or the
+           loss wash, and the figure beside the label is already signed and
+           already coloured — see NightResult, which is where E6 states the
+           rule: the green and the red sit only on the figures. */
+        <View style={[styles.result, { backgroundColor: t.surface }]}>
           <Text style={[styles.resultLabel, { color: t.text }]}>{name}’s night</Text>
           <Text style={[styles.resultFigure, { color: moneyColor(t, nightSoFar) }]}>
             {formatSigned(nightSoFar)}

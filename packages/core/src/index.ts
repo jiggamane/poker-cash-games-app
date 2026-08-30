@@ -22,6 +22,8 @@ export * from './outbox';
 export * from './ruleText';
 /* One person's night as the working — in, out, result, bill, back, kitty. */
 export * from './working';
+/* The whole night in one line — what went through the table, and by how many. */
+export * from './summary';
 /* What one person was set to by hand, and how much there is left to set. */
 export * from './overrides';
 /*

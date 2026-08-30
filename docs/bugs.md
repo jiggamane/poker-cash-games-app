@@ -73,6 +73,45 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B23 — a settled night said it was settled three times, and tinted every row while it did
+
+```
+Screen      E6 settled, and the results rows wherever they are drawn —
+            /settled, /watch, /stands, /settle-up, /log
+Seen        a SETTLED pill beside the title, a SETTLEMENT / "You are square"
+            panel under the reader's own card, and every player's row filled
+            with a green or a red wash behind a figure that was already green
+            or red
+Expected    handoff-E6: the status appears once, on the prize pool line, or
+            not at all; hairline rows; the green and the red on the figures
+Found       30 Aug, in `design/handoff-E6/`, cut the same day
+Locked by   npm run check:ui — ui-audit.mjs, `tinted-result-row`: every signed
+            amount in the app is walked up to the row that holds it, and a
+            tinted fill anywhere on the way is a finding
+Status      fixed in dbfb72d
+```
+
+**The pill and the panel are the half that had no cost and still had to go.**
+Neither was wrong alone. X1c drew a status beside the title because a night you
+open three weeks later has to say what it is, and it drew a settlement panel
+because a reader wants their own answer first. On one screen they say the same
+thing twice in two vocabularies, and somebody who has just closed a night reads
+the second one as a second question.
+
+**The wash is the half that cost something.** A filled row is an object, and
+seven of them are seven objects of two kinds — which is a ranking the sign in
+front of each figure had already given, drawn again in a colour that has to
+survive a phone at arm's length in bad light. It also made the reader's own row
+a different weight from everybody else's, on a screen whose subject is a table
+and not a person.
+
+Nothing could see either of them. Both are drawing decisions inside a
+component, and the audit's checks were about surfaces, contrast, overflow and
+what may scroll — a wash passes every one of them. `tinted-result-row` is
+anchored on the FIGURE rather than on a colour name, so it holds whatever the
+next wash gets called, and it is not scoped to the results screens: the rule is
+about what a signed figure may sit on, wherever one is drawn.
+
 ### B22 — Count up could read "done" with a whole cash-out missing
 
 ```

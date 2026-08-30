@@ -305,16 +305,23 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
 }
 
 /**
- * A name and a signed figure on a wash of its own colour.
+ * A name and a signed figure, outlined rather than filled.
  *
  * No currency symbol: in a row of six the sign is the information, and six
  * dollar signs are six pieces of noise.
+ *
+ * IT WAS FILLED with the win or the loss wash, and E6's rule applies here for
+ * the same reason it applies to the settled screen — the green and the red sit
+ * only on the figures. A chip that carries a signed number AND a coloured
+ * ground states one fact twice, and the ground is the half that has to survive
+ * a phone at arm's length in bad light. The outline keeps the chip an object
+ * without giving it an opinion.
  */
 function NetChip({ name, amount }: { name: string; amount: Money }) {
   const t = useTheme();
   const won = amount >= 0;
   return (
-    <View style={[styles.chip, { backgroundColor: won ? t.winWash : t.lossWash }]}>
+    <View style={[styles.chip, { borderColor: t.hairline }]}>
       <Text style={[styles.chipName, { color: t.text }]}>{name}</Text>
       <Text style={[styles.chipFigure, { color: won ? t.win : t.loss }]}>
         {formatSigned(amount, '')}
@@ -353,12 +360,15 @@ const styles = StyleSheet.create({
   section: { marginTop: space.section, marginHorizontal: space.page },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 4 },
+  // A point of padding back on each side, which is what the 1px outline takes:
+  // an outlined chip and a filled one are the same object at the same size.
   chip: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 7,
-    paddingVertical: 10,
-    paddingHorizontal: 13,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderWidth: 1,
     borderRadius: radius.pressable,
   },
   chipName: type.netName,

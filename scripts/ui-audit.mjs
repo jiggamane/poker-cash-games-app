@@ -500,6 +500,47 @@ const ROOM = `
     }
   }
 
+  // ---- E6 · a result never sits on a fill of its own colour ---------------
+  //
+  // design/handoff-E6: the green and the red sit ONLY on the figures. A washed
+  // row says a second time, in a colour that has to survive a phone at arm's
+  // length in bad light, what the sign in front of the number said first — and
+  // it makes the row an object, when E6's whole point is that no row on a
+  // settled night is emphasised over another. Seven rows in two colours are a
+  // ranking the column of signed figures had already given.
+  //
+  // ANCHORED ON THE FIGURE, not on a colour name, so it holds whatever the
+  // next wash gets called: find every signed amount in the app, walk up the
+  // row that holds it, and fail if anything on the way there is painted a
+  // tint. A tint is a background with an alpha strictly between 0 and 1 — an
+  // opaque fill is a level of the surface ladder, and check 8 above already
+  // has an opinion about those.
+  //
+  // It is deliberately not scoped to the results screens. The fill was on four
+  // of them and the rule is about what a signed figure may sit on, wherever
+  // one is drawn.
+  const SIGNED = /^[+\\u2212]\\$[\\d,]/;
+  for (const el of all) {
+    if (!SIGNED.test((el.textContent || '').trim())) continue;
+    // The leaf holding the figure, not every ancestor that contains it.
+    if ([...el.children].some((c) => SIGNED.test((c.textContent || '').trim()))) continue;
+    for (let n = el.parentElement; n !== null; n = n.parentElement) {
+      const r = n.getBoundingClientRect();
+      // Past the width of the list this is no longer the row, it is the screen.
+      if (r.width >= window.innerWidth - 8) break;
+      const paint = getComputedStyle(n).backgroundColor;
+      const c = rgb(paint);
+      if (c === null || c.a <= 0 || c.a > 0.99) continue;
+      findings.push({
+        check: 'tinted-result-row',
+        detail: paint + ' behind ' + label(el),
+        where: label(n),
+        box: { w: px(r.width), h: px(r.height) },
+      });
+      break;
+    }
+  }
+
   return findings;
 })()
 `;
