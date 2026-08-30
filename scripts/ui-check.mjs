@@ -44,6 +44,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
+/* Which Chromium, resolved the same way for every tool in here. */
+import { launchOptions } from './chromium.mjs';
 
 const require_ = createRequire(import.meta.url);
 
@@ -125,30 +127,6 @@ const EXTRACT = (selector) => {
 };
 
 /*
- * Find a Chromium.
- *
- * PLAYWRIGHT_CHROMIUM wins if it is set. Otherwise, if the machine keeps its
- * browsers somewhere central (PLAYWRIGHT_BROWSERS_PATH, which the sandboxes
- * set), look for the binary there — the directory is versioned, so the path
- * cannot be written down. Failing both, let Playwright find its own.
- */
-function chromiumPath() {
-  if (process.env.PLAYWRIGHT_CHROMIUM) return process.env.PLAYWRIGHT_CHROMIUM;
-
-  const store = process.env.PLAYWRIGHT_BROWSERS_PATH;
-  if (!store || !fs.existsSync(store)) return undefined;
-
-  const candidates = fs
-    .readdirSync(store)
-    .filter((d) => d.startsWith('chromium-'))
-    .sort()
-    .reverse()
-    .map((d) => path.join(store, d, 'chrome-linux', 'chrome'));
-
-  return candidates.find((c) => fs.existsSync(c));
-}
-
-/*
  * Is Figtree on this machine at all?
  *
  * Without it the boards cannot render the typeface they name, and every width
@@ -210,8 +188,7 @@ async function noticeFonts(page) {
 }
 
 async function open() {
-  const executablePath = chromiumPath();
-  return chromium.launch(executablePath ? { executablePath } : {});
+  return chromium.launch(launchOptions());
 }
 
 /** The app, at the size the frames are drawn at. */

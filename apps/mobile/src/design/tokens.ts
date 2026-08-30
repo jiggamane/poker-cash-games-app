@@ -127,6 +127,35 @@ export interface Theme {
   dangerStrong: string;
   /** What the hold wipes across that row: the same colour at 34%. */
   dangerWipe: string;
+
+  /*
+   * THE BALANCE BLOCK ON E2, which is the one place in the app where a card
+   * carries a verdict on its own edge and a bar underneath it.
+   *
+   * Four alphas of colours that already exist — no new hue, per the E2 handoff
+   * and the note at the top of this file. They are named for the role rather
+   * than measured at the call site so the light twin, which the handoff leaves
+   * to us, is derived once here instead of once per state.
+   */
+  /** The 1px border of a block that has come out right: the win colour at 45%. */
+  winStrong: string;
+  /** The rule above its footer strip: the same colour at 35%. */
+  winEdge: string;
+  /** The unrun part of a progress bar: the opposite colour at 16%. */
+  track: string;
+  /** The share of that bar a discrepancy takes: the loss colour at 28%. */
+  dangerTrack: string;
+  /**
+   * Its footer strip while the count is still running, where the two end
+   * states use a wash of their own colour.
+   *
+   * ONE STEP OFF THE CARD, AWAY FROM THE SURFACE IN EACH THEME — lighter on
+   * ink, white on paper. The board draws white at 5% over the dark card and
+   * leaves the light twin to us, and the obvious twin (ink at 5%, so a darker
+   * band) puts `muted` on #E8E8ED at 4.13:1 — under the floor, and it is the
+   * tally of counted stacks that sits there.
+   */
+  strip: string;
   /** A row inside the table-admin drawer. */
   drawerFill: string;
   /** The drawer's own edge, one step stronger than a hairline. */
@@ -177,6 +206,11 @@ export const darkTheme: Theme = {
   dockFill: 'rgba(255,255,255,0.08)',
   dangerStrong: 'rgba(240,112,92,0.55)',
   dangerWipe: 'rgba(240,112,92,0.34)',
+  winStrong: 'rgba(111,207,151,0.45)',
+  winEdge: 'rgba(111,207,151,0.35)',
+  track: 'rgba(255,255,255,0.16)',
+  dangerTrack: 'rgba(240,112,92,0.28)',
+  strip: '#1E1E22',
   drawerFill: 'rgba(255,255,255,0.07)',
   drawerEdge: 'rgba(255,255,255,0.16)',
   offTableFaint: 'rgba(217,211,196,0.055)',
@@ -227,6 +261,11 @@ export const lightTheme: Theme = {
   dockFill: 'rgba(12,13,15,0.06)',
   dangerStrong: 'rgba(176,58,40,0.55)',
   dangerWipe: 'rgba(176,58,40,0.34)',
+  winStrong: 'rgba(10,122,61,0.45)',
+  winEdge: 'rgba(10,122,61,0.35)',
+  track: 'rgba(12,13,15,0.16)',
+  dangerTrack: 'rgba(176,58,40,0.28)',
+  strip: '#FFFFFF',
   drawerFill: 'rgba(12,13,15,0.05)',
   drawerEdge: 'rgba(12,13,15,0.15)',
   offTableFaint: 'rgba(120,102,68,0.05)',
