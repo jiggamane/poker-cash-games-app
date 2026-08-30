@@ -14,7 +14,7 @@ import { Icon } from '../src/components/Icon';
 import { HoldButton } from '../src/components/HoldButton';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
 import { lastRebuyAmount, rebuy as writeRebuy, standingOf, useNight } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
 import { Pill } from '../src/components/Pill';
@@ -306,7 +306,7 @@ export default function PlayerCard() {
  * still on the screen: every entry under this card carries its own full
  * figure, and they are what this is the sum of.
  */
-const FITS = 10_000;
+const FITS = 1_000;
 
 /** A label over a figure, two or three across the summary card. */
 function StatPair({
@@ -333,6 +333,8 @@ function StatPair({
           tight ? styles.statValueTight : styles.statValue,
           { color: color ?? (muted ? t.muted : t.text) },
         ]}
+        numberOfLines={1}
+        {...cappedFigure}
       >
         {value}
       </Text>

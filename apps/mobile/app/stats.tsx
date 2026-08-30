@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatSigned, type Money } from '@poker-club/core';
+import { formatSigned, formatSignedToFit, type Money } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
 import { NightsChart } from '../src/components/NightsChart';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
 import { SAMPLE_HISTORY } from '../src/data/sampleHistory';
 import {
   formatNightDate,
@@ -114,8 +114,12 @@ export default function MyStats() {
           </View>
         </View>
 
-        <Text style={[styles.figure, { color: moneyColor(t, stats.net as Money) }]}>
-          {formatSigned(stats.net as Money)}
+        <Text
+          style={[styles.figure, { color: moneyColor(t, stats.net as Money) }]}
+          numberOfLines={1}
+          {...cappedFigure}
+        >
+          {formatSignedToFit(stats.net as Money, HEAD_FITS)}
         </Text>
 
         {/* The count, then the average — in that order, always. */}
@@ -256,3 +260,16 @@ const styles = StyleSheet.create({
   rowResult: { ...type.figure, marginLeft: 'auto' },
   empty: { ...type.footnote, paddingHorizontal: 4, paddingTop: 8 },
 });
+
+/*
+ * WHERE THE HEADLINE RUNS OUT OF ROOM.
+ *
+ * 40/800 is the widest type in the app, inside a card 20 in from each edge with
+ * 18 of padding — about 264 points on a 360 phone. That holds seven glyphs and
+ * not the eight a table in the millions produces, and this total only ever goes
+ * up: it is every night the reader has played, added together.
+ *
+ * The exact figure is never lost. Every night that makes it up is a row in the
+ * list below with its own result printed in full.
+ */
+const HEAD_FITS = 100_000;

@@ -12,7 +12,7 @@ import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
 import { clockLabel, useElapsed } from '../src/lib/elapsed';
 import { defaultBuyIn, standingsOf, useNight } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
@@ -49,7 +49,7 @@ import { usePending } from '../src/lib/pending';
  * other would put "$10.5M" beside "$10,515,400" in one card and read as two
  * different scales rather than two different sums.
  */
-const CARD_FITS = 100_000;
+const CARD_FITS = 10_000;
 
 export default function Session() {
   const t = useTheme();
@@ -177,14 +177,22 @@ export default function Session() {
         >
           <View style={styles.cardLeft}>
             <Text style={[styles.tableLabel, { color: t.muted }]}>On the table</Text>
-            <Text style={[styles.tableFigure, { color: t.text }]} numberOfLines={1}>
+            <Text
+              style={[styles.tableFigure, { color: t.text }]}
+              numberOfLines={1}
+              {...cappedFigure}
+            >
               {formatToFit(onTable, CARD_FITS)}
             </Text>
           </View>
 
           <View style={styles.cardRight}>
             {totalIn !== onTable && (
-              <Text style={[styles.totalIn, { color: t.muted }]} numberOfLines={1}>
+              <Text
+                style={[styles.totalIn, { color: t.muted }]}
+                numberOfLines={1}
+                {...cappedFigure}
+              >
                 {formatToFit(totalIn, CARD_FITS)} total in
               </Text>
             )}

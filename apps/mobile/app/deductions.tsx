@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   formatCompact,
+  formatToFit,
   formatMoney,
   formatSignedCompact,
   manualChargeOf,
@@ -511,7 +512,7 @@ function Block({
 
               {percent && rule !== undefined && !handSet(rule, c.playerId) && (
                 <Text style={[styles.working, { color: t.muted }]}>
-                  {rule.amount}% of {formatMoney(basisFor(c.playerId))}
+                  {rule.amount}% of {formatToFit(basisFor(c.playerId), WORKING_FITS)}
                 </Text>
               )}
 
@@ -671,3 +672,13 @@ const styles = StyleSheet.create({
   edit: { alignSelf: 'flex-start', marginTop: 14, marginHorizontal: 20 },
 
 });
+
+/*
+ * THE BASIS OF A PERCENTAGE, in the working line under a name.
+ *
+ * 13/400 sharing a row with the name and the charge. Seven figures fit; the
+ * eight of a table in the hundreds of millions did not, and the line wrapped
+ * under a larger text setting. The basis is that player's gross, which is
+ * stated in full in the preview grid at the foot of this screen.
+ */
+const WORKING_FITS = 10_000_000;

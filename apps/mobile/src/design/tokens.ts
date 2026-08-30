@@ -259,6 +259,52 @@ export const lightTheme: Theme = {
  */
 export const tabular: TextStyle = { fontVariant: ['tabular-nums'] };
 
+/**
+ * HOW FAR A FIGURE IN A FIXED BOX MAY GROW with the reader's text setting.
+ *
+ * Every `Text` in react-native scales with the system text size unless it is
+ * told otherwise, and nothing in this app told it otherwise. Meanwhile every
+ * card, gap and padding is a fixed number of points off a board drawn at
+ * 402 × 874. So a reader on one of the larger settings got figures that grew
+ * inside boxes that did not, and the money came back off a real phone as
+ * "$28,5…" and as "+$1,7…" hanging off the side of the card. See B18.
+ *
+ * A cap rather than `allowFontScaling={false}`, because turning it off entirely
+ * says a reader who needs larger text may not have it. A tenth is what the
+ * narrowest phone in the matrix has room for: Tonight's headline is 166 points
+ * wide at 360 and the widest thing that can go in it is "$99.9M" at 147, which
+ * leaves 1.13 and no more. So: 1.1, and the figure stops growing there.
+ *
+ * IT ONLY BELONGS ON A FIGURE IN A BOX THE BOARD FIXED. Prose, labels, buttons
+ * and anything that may wrap should keep scaling all the way — they get taller,
+ * which costs nothing, rather than wider, which costs the number.
+ */
+export const moneyMaxFontScale = 1.1;
+
+/**
+ * Spread this onto a figure that sits in a box the board fixed.
+ *
+ * `maxFontSizeMultiplier` is the prop that does the work on a phone. `dataSet`
+ * is how the CHECK sees it: react-native-web drops the native-only prop, so a
+ * browser has no way of knowing a figure is capped, and `ui-journeys.mjs` — which
+ * turns the text up to find exactly this class of fault — would go on reporting
+ * screens that are fine on the device it is standing in for. A check that cries
+ * wolf is worse than no check.
+ *
+ * The two live here together so they cannot drift apart, which is the whole
+ * reason this is a constant rather than two props typed out at each call site.
+ */
+export const cappedFigure = {
+  maxFontSizeMultiplier: moneyMaxFontScale,
+  dataSet: { fontcap: String(moneyMaxFontScale) },
+} as const;
+
+/** The same, for furniture that must not grow at all — see `NightsChart`. */
+export const unscaledLabel = {
+  allowFontScaling: false,
+  dataSet: { fontcap: '1' },
+} as const;
+
 /*
  * Taken from the drawn screens, not from the token doc.
  *

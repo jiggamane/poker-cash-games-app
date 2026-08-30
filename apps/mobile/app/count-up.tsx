@@ -14,7 +14,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
 import { settlementInput, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
@@ -123,7 +123,11 @@ export default function CountUp() {
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         <View style={styles.cardText}>
           <Text style={[styles.label, { color: t.muted }]}>COUNTED</Text>
-          <Text style={[styles.cardFigure, { color: t.text }]}>
+          <Text
+            style={[styles.cardFigure, { color: t.text }]}
+            numberOfLines={1}
+            {...cappedFigure}
+          >
             {formatToFit(countedTotal, CARD_FITS)}
             <Text style={[styles.cardOf, { color: t.muted }]}>
               {' '}of {formatToFit(reconciliation.chipsOnTable, CARD_FITS)}
@@ -253,7 +257,7 @@ const clock = (d: Date): string =>
   d.getTime() === 0 ? '' : d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 /** See the note beside the card: five digits is what the line holds at 360. */
-const CARD_FITS = 100_000;
+const CARD_FITS = 10_000;
 
 const styles = StyleSheet.create({
   card: {

@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import {
   formatMoney,
   formatSigned,
+  formatSignedToFit,
   workingRows,
   type Money,
   type MoneyRule,
@@ -9,7 +10,7 @@ import {
   type SettlementResult,
 } from '@poker-club/core';
 import { moneyColor, useTheme } from '../design/useTheme';
-import { radius, space, type } from '../design/tokens';
+import { cappedFigure, unscaledLabel, radius, space, type } from '../design/tokens';
 
 /**
  * A night that has ended — X1c. Rev 15, `14-invite-and-watcher.md`.
@@ -71,8 +72,12 @@ export function NightResult({
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
           <View style={styles.cardHead}>
             <Text style={[styles.seatName, { color: t.text }]}>You, {mine.name}</Text>
-            <Text style={[styles.netBig, { color: moneyColor(t, mine.finalPosition) }]}>
-              {formatSigned(mine.finalPosition)}
+            <Text
+              style={[styles.netBig, { color: moneyColor(t, mine.finalPosition) }]}
+              numberOfLines={1}
+              {...cappedFigure}
+            >
+              {formatSignedToFit(mine.finalPosition, RESULT_FITS)}
             </Text>
           </View>
 
@@ -93,6 +98,8 @@ export function NightResult({
                           : t.text,
                     },
                   ]}
+                  numberOfLines={1}
+                  {...cappedFigure}
                 >
                   {row.signed ? formatSigned(row.amount) : formatMoney(row.amount)}
                 </Text>
@@ -190,8 +197,14 @@ const styles = StyleSheet.create({
   },
   cardHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   seatName: { fontSize: 19, fontWeight: '700', flexShrink: 1 },
+  /*
+   * NEVER SHRINKS, for the same reason `workValue` does not: the name beside it
+   * is a name and may give way, the figure may not. Left to shrink it clipped
+   * "+$227,051,831" to "+$227,051,8…", which is a different amount.
+   */
   netBig: {
     marginLeft: 'auto',
+    flexShrink: 0,
     fontSize: 28,
     fontWeight: '800',
     letterSpacing: -0.84,
@@ -207,7 +220,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   workLabel: { fontSize: 13.5, fontWeight: '400', flexShrink: 1 },
-  workValue: { marginLeft: 'auto', fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  /*
+   * NEVER SHRINKS. The label beside it does — it is a sentence and may take two
+   * lines — and when both were allowed to give, "−$150" came apart into "−" on
+   * one line and "$150" on the next, which reads as a dash and an amount rather
+   * than a deduction. A figure and its sign are one thing. See B18.
+   */
+  workValue: {
+    marginLeft: 'auto',
+    fontSize: 15,
+    fontWeight: '700',
+    flexShrink: 0,
+    fontVariant: ['tabular-nums'],
+  },
 
   settlement: {
     marginHorizontal: space.card,
@@ -237,3 +262,16 @@ const styles = StyleSheet.create({
   resultNameMine: { fontSize: 16, fontWeight: '700', flexShrink: 1 },
   resultNet: { marginLeft: 'auto', fontSize: 17, fontWeight: '700', fontVariant: ['tabular-nums'] },
 });
+
+/*
+ * WHAT THE RESULT LINE ON THE SETTLED SHEET HOLDS EXACTLY.
+ *
+ * 28/800 beside the reader's own name, inside a card 20 in from each edge with
+ * 18 of padding: 284 points at 360, and the name has to live in it too. Six
+ * digits — "+$999,999" at 140 — leaves the name 130 and still fits at the cap;
+ * eight did not, and the figure was the thing that gave.
+ *
+ * The exact figure is directly underneath, in the working: In, Out, Result, and
+ * every deduction that came off it.
+ */
+const RESULT_FITS = 1_000_000;
