@@ -25,7 +25,7 @@ that is four to six terms — too long for 393 points.
 
 The row is 40 points collapsed instead of 60, so **eight players fit at rest** on 393 × 852 with the
 prize-pool block, the deductions block and the footer all on screen (frame `2a`). Opening a row costs
-about 104 points, and the list — which already scrolls — loses about two and a half rows (frame `2b`).
+about 147 points, and the list — which already scrolls — loses about two and a half rows (frame `2b`).
 
 ## Collapsed row
 
@@ -50,7 +50,7 @@ Header identical to the collapsed row (name, net, chevron up), then a detail blo
 hairline top, `gap:6`, label 400 13px muted left, figure 500 13px primary right, tabular. A `Net` line
 closes it — 700 13px both sides, `padding-top:7`, hairline top, figure in the money colour.
 
-Total height ≈ 144.
+Total height ≈ 190 (≈ 211 when a rounding term is present).
 
 Lines, in this order, as drawn:
 

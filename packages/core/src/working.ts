@@ -16,7 +16,7 @@
  * correctly. See `ruleText.ts`.
  */
 
-import type { Money } from './money';
+import { money, type Money } from './money';
 import { destinationTerm, ruleLabel } from './ruleText';
 import type { SettlementResult } from './settlement';
 import {
@@ -27,7 +27,14 @@ import {
   type RuleDestination,
 } from './types';
 
-export type WorkingRowKind = 'in' | 'out' | 'result' | 'charge' | 'credit' | 'holding';
+export type WorkingRowKind =
+  | 'in'
+  | 'out'
+  | 'result'
+  | 'charge'
+  | 'credit'
+  | 'holding'
+  | 'rounding';
 
 export interface WorkingRow {
   /** Stable across renders — the rule id where there is one. */
@@ -87,8 +94,15 @@ export function workingRows(
     { key: 'out', label: 'Out', amount: person.endedWith, kind: 'out', signed: false, offTable: false },
     {
       key: 'result',
+      /*
+       * OUT LESS IN, AND NOT `grossResult` — which since the rounding addendum
+       * carries the step inside it. Three rows reading 1,000 / 965 / +35 would
+       * be the one place in the app where the arithmetic on screen is wrong,
+       * so the step gets a row of its own below and this one stays the
+       * subtraction of the two above it.
+       */
       label: 'Result',
-      amount: person.grossResult,
+      amount: money(person.endedWith - person.boughtIn),
       kind: 'result',
       signed: true,
       offTable: false,
@@ -135,6 +149,20 @@ export function workingRows(
         offTable: false,
       });
     }
+  }
+
+  /* The step, last and above whatever total the screen draws — the same place
+     E6's receipt puts it, and for the same reason: it is theirs, it is part of
+     their night, and it is not a rule taking anything off them. */
+  if (person.roundedBy !== 0) {
+    rows.push({
+      key: 'rounding',
+      label: `Rounded to $${result.rounding.step.toLocaleString('en-US')}`,
+      amount: person.roundedBy,
+      kind: 'rounding',
+      signed: true,
+      offTable: false,
+    });
   }
 
   return rows;
@@ -250,10 +278,22 @@ export function nightScore(result: SettlementResult, playerId: PlayerId): NightS
   const person = result.players.find((p) => p.playerId === playerId);
   if (person === undefined) return { score: 0 as Money, held: 0 as Money };
 
-  const held = playerDeductions(result, playerId).reduce(
+  /*
+   * TWO THINGS ARE HELD RATHER THAN WON, and the second arrived with the
+   * rounding step. The float is the piggy bank's own money sitting in the
+   * collector's pocket; `roundingAbsorbed` is what the same pocket paid out to
+   * make everybody's stack a round number. A collector who is $16 lighter
+   * because the table settles in tens is not $16 worse at poker.
+   *
+   * Their own stack rounding is NOT here. `roundedBy` is already inside
+   * `grossResult`, it is theirs, and it stays in their score — which is what
+   * makes it a term on their receipt above the `Net` rather than below it.
+   */
+  const float = playerDeductions(result, playerId).reduce(
     (running, d) => (running + d.held) as Money,
     0 as Money,
   );
+  const held = (float - person.roundingAbsorbed) as Money;
 
   return { score: (person.finalPosition - held) as Money, held };
 }
@@ -381,7 +421,31 @@ export function receiptRows(result: SettlementResult, playerId: PlayerId): Recei
     }
   }
 
+  /*
+   * THE STEP, LAST AND ABOVE THE NET — `E2-rounding.md`, "player receipts gain
+   * one term, `Rounded to $10 +$5`, between the piggy bank line and Net".
+   *
+   * It is a term rather than a correction to `Cashed out` because the count is
+   * kept: the first line is what was really in front of them, and this is what
+   * the table agreed to call it. A receipt that quietly printed $970 for a
+   * stack of $965 would be the one line on the screen nobody could check
+   * against the tin.
+   */
+  if (person.roundedBy !== 0) {
+    rows.push({
+      key: 'rounding',
+      label: `Rounded to ${stepLabel(result.rounding.step)}`,
+      amount: person.roundedBy,
+      signed: true,
+    });
+  }
+
   return rows;
+}
+
+/** "$10". The step as it is written wherever it is named. */
+function stepLabel(step: number): string {
+  return `$${step.toLocaleString('en-US')}`;
 }
 
 /**
@@ -416,17 +480,30 @@ export interface ResultRow {
 }
 
 export function resultRows(result: SettlementResult): ResultRow[] {
+  /*
+   * WHAT CAME BACK THAT IS ACTUALLY THEIRS — a bill they fronted, and nothing
+   * else. Asked directly, off `playerDeductions`, rather than as
+   * `credited − held`: that subtraction was the same figure until the rounding
+   * step, which put a second thing in `held` and made it read `credited − float
+   * − absorbed`. On the seeded night that came to $20 and the collector
+   * reappeared in the list with a score of $0 — B27 undone by arithmetic that
+   * happened to agree.
+   */
+  const ownMoneyBack = (playerId: PlayerId): Money =>
+    playerDeductions(result, playerId).reduce(
+      (running, d) => (running + d.credited) as Money,
+      0 as Money,
+    );
+
   return result.players
     .map((player) => ({ player, ...nightScore(result, player.playerId) }))
     .filter(
-      ({ player, held }) =>
+      ({ player }) =>
         player.playerId === UNACCOUNTED_ID ||
         player.boughtIn > 0 ||
         player.endedWith > 0 ||
         player.charged > 0 ||
-        /* What came back that is actually theirs — the float has already been
-           taken out of it, so a pure collector fails here and leaves. */
-        player.credited - held > 0,
+        ownMoneyBack(player.playerId) > 0,
     )
     /* Biggest win first, on the figure the row prints: a column sorted by
        something it does not show reads as a column that is not sorted. */

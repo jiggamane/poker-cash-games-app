@@ -6,13 +6,16 @@ import {
   composition,
   formatMoney,
   formatToFit,
+  granularityOf,
   resolveLedger,
+  roundToStep,
   type BalanceCheck,
   type Money,
   type PlayerId,
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
+import { RoundingBar } from '../src/components/RoundingBar';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { useTheme } from '../src/design/useTheme';
@@ -115,6 +118,25 @@ export default function CountUp() {
     >
       <BalanceBlock balance={balance} />
 
+      {/*
+       * THE STEP, AND THIS IS THE SCREEN THAT OWNS IT —
+       * `design/handoff-E2/docs/E2-rounding.md`, cut 31 August. Directly under
+       * the balance block and above the player list, because rounding changes
+       * what a stack is worth and so has to be decided where stacks are
+       * entered. E4 and E6 draw the same bar and open the same sheet; only this
+       * one is where it is set.
+       *
+       * ⚠ The addendum's frames `5a`–`5d` sit on the rev-18 E2 chrome — the
+       * `COUNTED $2,610 of $2,880` strip and an `Apply the money rules` button
+       * — which layout 2a superseded. Its own warning says to take the row and
+       * the sheet and anchor them under the NEW block, which is what this is.
+       */}
+      <RoundingBar
+        mode={night.roundingMode}
+        onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
+        style={styles.rounding}
+      />
+
       <Group label="Still seated" first>
         {seated.map((p) => (
           <SeatedRow
@@ -123,6 +145,7 @@ export default function CountUp() {
             name={p.name}
             boughtIn={p.boughtIn}
             count={night.finalCounts.get(p.id)}
+            step={granularityOf(night.roundingMode)}
           />
         ))}
       </Group>
@@ -354,14 +377,31 @@ function SeatedRow({
   name,
   boughtIn,
   count,
+  step,
 }: {
   id: PlayerId;
   name: string;
   boughtIn: Money;
   count: Money | undefined;
+  /** The night's rounding step, in whole units. 1 is off. */
+  step: number;
 }) {
   const t = useTheme();
   const waiting = count === undefined;
+
+  /*
+   * THE FIGURE IS THE ROUNDED ONE AND THE COUNT IS KEPT UNDERNEATH — rule 6 of
+   * `E2-rounding.md`, and the whole of what makes the step safe to offer. The
+   * row settles at $970 and says, in the line under the name, that $965 is what
+   * was in front of them: `in $500 · counted $963`. A stack is never silently
+   * rewritten, and a host who is asked "that is not what I had" can point at
+   * the number they typed.
+   *
+   * The sub-line says nothing about the count when nothing moved, which is
+   * every stack on a night settling as counted.
+   */
+  const shown = count === undefined ? undefined : roundToStep(count, step);
+  const moved = count !== undefined && shown !== count;
 
   return (
     <Pressable
@@ -381,7 +421,11 @@ function SeatedRow({
             drawn in the off-table hue for a reason other than off-table money:
             it is what marks the rows the host still has to work through. */}
         <Text style={[styles.detail, { color: waiting ? t.offTable : t.muted }]}>
-          {waiting ? 'not counted yet' : `in ${formatMoney(boughtIn)}`}
+          {waiting
+            ? 'not counted yet'
+            : moved
+              ? `in ${formatToFit(boughtIn, ROW_FITS)} · counted ${formatToFit(count, ROW_FITS)}`
+              : `in ${formatMoney(boughtIn)}`}
         </Text>
       </View>
 
@@ -391,7 +435,9 @@ function SeatedRow({
         </View>
       ) : (
         <>
-          <Text style={[styles.figure, { color: t.text }]}>{formatMoney(count)}</Text>
+          <Text style={[styles.figure, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
+            {formatToFit(shown!, ROW_FITS)}
+          </Text>
           <Icon name="pencil" color={t.muted} size={15} />
         </>
       )}
@@ -462,7 +508,34 @@ const clock = (at: string | undefined): string =>
  */
 const BLOCK_FITS = 100_000;
 
+/*
+ * WHERE THE ROW'S SECOND LINE RUNS OUT.
+ *
+ * `in $500` alone has never needed to shorten: it is one figure at 13/400 on a
+ * line with nothing else on it. Since the rounding step it can carry two —
+ * `in $500 · counted $963`, which is what keeps a snapped stack checkable — and
+ * two figures plus their words is a different measurement. At the millions
+ * scale and 120% text, `in $500 · counted $2,352,480` wrapped to a second line
+ * and the row grew under it.
+ *
+ * A MILLION IS WHERE ALL THREE FIGURES ABBREVIATE — the stack on the right and
+ * both figures under the name, on one threshold, because a row that shortened
+ * one of them and not the others would read as three different kinds of number.
+ * Every night a person actually plays is exact; the synthetic seven-figure
+ * tables `ui-journeys.mjs` runs are the only ones that ever compact, and they
+ * are the reason the threshold exists.
+ *
+ * The stack on the right gave first and it gave the most. It is 19/700 against
+ * the sub-line's 12.5/400, so a glyph of it is worth nearly two down there —
+ * `$2,352,500` on the right cost the line under it about seventy points, which
+ * is `· counted $2.4M` and the whole of what would not fit.
+ */
+const ROW_FITS = 1_000_000;
+
 const styles = StyleSheet.create({
+  /* Under the block's own bottom margin, above the first group's label. */
+  rounding: { marginTop: 4 },
+
   // ---- the block --------------------------------------------------------
   block: {
     marginTop: 8,
@@ -535,7 +608,14 @@ const styles = StyleSheet.create({
   confirmedRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13 },
   rowText: { gap: 3, flexShrink: 1 },
   name: type.rowName,
-  detail: type.rowDetail,
+  /*
+   * 12.5, WHICH IS THE BOARD'S — `Result Formula Options.dc.html` draws this
+   * line at `400 12.5px` and the app's shared `rowDetail` is 13. Half a point,
+   * and it is on the one line in the app that now carries two figures and two
+   * words: since the rounding step it reads `in $1,000 · counted $1,432`, and
+   * every fraction of it is spent.
+   */
+  detail: { ...type.rowDetail, fontSize: 12.5 },
   figure: { ...type.figure, marginLeft: 'auto' },
 
   countChip: {

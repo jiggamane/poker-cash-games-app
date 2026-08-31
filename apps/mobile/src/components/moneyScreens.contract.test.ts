@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { granularityOf, ROUNDING_CHOICES, roundingLabel } from '@poker-club/core';
+import {
+  granularityOf,
+  money,
+  ROUNDING_CHOICES,
+  roundingLabel,
+  roundingRowLabel,
+  roundingRowValue,
+} from '@poker-club/core';
 
 /**
  * THREE DECISIONS OF 30 AUGUST, HELD BY SOMETHING THAT RUNS IN SECONDS.
@@ -126,26 +133,49 @@ describe('the spend entry types its amount on the app’s own pad', () => {
 describe('the game settings set how coarsely the table settles', () => {
   const setup = read('apps/mobile/app/new-night.tsx');
 
-  /* The four the user asked for, and the four `/rounding` has always offered:
-     to the dollar, to tens, to hundreds, to thousands. */
-  it('offers the dollar, tens, hundreds and thousands', () => {
+  /*
+   * THE FOUR `E2-rounding.md` NAMES, cut 31 August: Off, $10, $50, $100. They
+   * were Dollar · 10s · 100s · 1k while the setting only reached what a rule
+   * divides at; now it snaps the stacks themselves, and the steps are the ones
+   * a room actually counts in. `thousands` still resolves for an old night —
+   * it is simply no longer offered.
+   */
+  it('offers off, ten, fifty and a hundred', () => {
     expect(ROUNDING_CHOICES.map((c) => c.mode)).toEqual([
       'dollars',
       'tens',
+      'fifties',
       'hundreds',
-      'thousands',
     ]);
-    expect(ROUNDING_CHOICES.map((c) => granularityOf(c.mode))).toEqual([1, 10, 100, 1000]);
-    expect(ROUNDING_CHOICES.map((c) => c.chip)).toEqual(['Dollar', '10s', '100s', '1k']);
+    expect(ROUNDING_CHOICES.map((c) => granularityOf(c.mode))).toEqual([1, 10, 50, 100]);
+    expect(ROUNDING_CHOICES.map((c) => c.chip)).toEqual([
+      'Off',
+      'Nearest $10',
+      'Nearest $50',
+      'Nearest $100',
+    ]);
   });
 
   it('names each of them the way every other screen does', () => {
     expect(ROUNDING_CHOICES.map((c) => roundingLabel(c.mode))).toEqual([
       'Whole dollars',
       'Nearest 10',
+      'Nearest 50',
       'Nearest 100',
-      'Nearest 1,000',
     ]);
+  });
+
+  it('says what the night is set to, in the words the row uses', () => {
+    // One string for E2, E4 and E6 — a second spelling on any of them is the
+    // app disagreeing with itself about what the night is set to.
+    expect(roundingRowLabel(null)).toBe('Rounding · off');
+    expect(roundingRowLabel('tens')).toBe('Rounding · nearest $10');
+    expect(roundingRowValue(null)).toBe('stacks as counted');
+    expect(roundingRowValue('tens')).toBe('stacks snap to $10');
+    /* Where there is a settled remainder, the row answers the question it
+       actually gets asked: who paid for the rounding. */
+    expect(roundingRowValue('tens', money(16))).toBe('−$16 → piggy');
+    expect(roundingRowValue('tens', money(-16))).toBe('+$16 → piggy');
   });
 
   it('has a rounding step of its own, reached from the game', () => {

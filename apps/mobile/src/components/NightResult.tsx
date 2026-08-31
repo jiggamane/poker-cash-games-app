@@ -11,9 +11,11 @@ import {
   type Money,
   type PlayerId,
   type ResolvedLedger,
+  type RoundingMode,
   type SettlementResult,
 } from '@poker-club/core';
 import { Icon } from './Icon';
+import { RoundingBar } from './RoundingBar';
 import { moneyColor, useTheme, useThemeName } from '../design/useTheme';
 import { block, cappedFigure, space, type } from '../design/tokens';
 
@@ -70,6 +72,8 @@ export function NightResult({
   result,
   ledger,
   loggedBy,
+  roundingMode,
+  onChangeRounding,
 }: {
   result: SettlementResult;
   /** Where the prize pool is counted from. Resolved, so voids are gone. */
@@ -80,6 +84,17 @@ export function NightResult({
    * night that balanced needs no explanation.
    */
   loggedBy: string | null;
+  /**
+   * The step the night settled at, for the row under the deductions. It is on
+   * the night rather than on the result because a night that never rounded
+   * still has a setting, and the row says `off` rather than vanishing.
+   */
+  roundingMode?: RoundingMode | null;
+  /**
+   * Open the rounding sheet. Left out — a closed night, or a watcher reading
+   * somebody else's — the row is text and carries no chevron.
+   */
+  onChangeRounding?: () => void;
 }) {
   const t = useTheme();
   const tinted = useThemeName() === 'dark';
@@ -329,6 +344,31 @@ export function NightResult({
           </View>
         </View>
       )}
+
+      {/*
+       * THE STEP, AS THE LAST LINE OF THE DEDUCTIONS BLOCK —
+       * `design/handoff-E2/docs/E2-rounding.md`, "Where it surfaces
+       * afterwards", frames `3a`–`3d`. E2 owns it; this screen shows it and
+       * says what it cost, which is the piggy bank's business and so belongs
+       * under the block that names the piggy bank.
+       *
+       * IT IS THE CONTROL ROW AND NOT A DEDUCTION LINE. What the rounding moved
+       * is not one of the totals above it — those are the rules' — so it sits
+       * below the `TOTAL` rather than inside it, and the block still adds up to
+       * what `settle()` says leaves the table.
+       *
+       * A CLOSED NIGHT DOES NOT OPEN IT (rule 8). Every figure on this screen
+       * was derived at the step it closed with; a row that still looked like a
+       * door would be offering to re-round a record of what people paid.
+       */}
+      {result.rounding.on && (
+        <RoundingBar
+          mode={roundingMode}
+          remainder={result.rounding.remainder}
+          {...(onChangeRounding === undefined ? {} : { onPress: onChangeRounding })}
+          style={styles.rounding}
+        />
+      )}
     </>
   );
 }
@@ -509,6 +549,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
+  /* Under the deductions block's own bottom rule, at the page's edge. */
+  rounding: { marginTop: 10 },
+
   deductionTotal: {
     flexDirection: 'row',
     alignItems: 'baseline',

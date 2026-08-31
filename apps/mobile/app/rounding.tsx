@@ -4,41 +4,50 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   formatMoney,
   granularityOf,
-  money,
-  resolveLedger,
   ROUNDING_CHOICES,
-  roundingLabel,
-  settle,
+  stackRounding,
   type Money,
   type RoundingMode,
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
+import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { block, space, type } from '../src/design/tokens';
+import { space, type } from '../src/design/tokens';
 import { setClubRounding, useClub } from '../src/lib/clubStore';
-import { setNightRounding, settlementInput, useNight } from '../src/lib/nightStore';
+import { setNightRounding, useNight } from '../src/lib/nightStore';
 import { useIsAdmin } from '../src/lib/whoIsReading';
 
 /**
- * Rounding — how coarsely the group settles.
+ * Rounding — the step the night settles at.
  *
- * A MONEY RULE, NOT A DISPLAY SETTING, which is the whole reason it is a sheet
- * with a Save rather than a toggle in a list: it changes what people actually
- * pay. A group playing for thousands does not want to be handed a bill share of
- * $56 and a piggy-bank charge of $81, and doing that arithmetic in somebody's
- * head at 1am is how a settle-up turns into an argument.
+ * REBUILT 31 AUGUST from `design/handoff-E2/docs/E2-rounding.md`, and what
+ * changed is what the setting DOES. It used to reach one thing: how coarsely a
+ * RULE DIVIDES, so a bill share came out at $60 rather than $56. This sheet
+ * said as much, at length, under a heading reading *What it does not touch* —
+ * "nothing anybody counted… a chip count is a chip count". The addendum
+ * reverses exactly that: the stacks snap to the step as they are entered, the
+ * nets and the transfers follow, and the difference goes to the piggy bank.
  *
- * It governs every rule at once — the bill and the piggy bank alike — so it
- * sits beside the rules rather than inside one. Rev 18's S14 draws it as an
- * open chip row and names the chips: Cent · Dollar · 10s · 50s · 100s · 1k.
- * Four are offered here, per `ROUNDING_CHOICES` in core.
+ * The old objection was the right objection. Rounding a count invents or
+ * destroys money, and six nets rounded independently sum to something the table
+ * has not got. The answer is that the difference is computed ONCE, named, and
+ * given somewhere to go — see `stacks.ts`, and rule 5 of the addendum, which
+ * allows it exactly one destination.
  *
- * WHAT IT NEVER TOUCHES is said on the screen, because it is the first thing a
- * host will ask: a chip count is a chip count and a gross result follows from
- * it. Rounding a result would be inventing or destroying money. What is rounded
- * is a DIVISION — what a rule takes off the winners — and the parts still add
- * back up to the whole, so the bar is owed exactly what the bar is owed.
+ * WHY IT IS STILL ONE SETTING. The step is `RoundingMode`, the same value that
+ * has always been snapshotted onto the night, and it still governs the rule
+ * divisions as well. A table settling in fifties wants both, and two controls
+ * both called Rounding meaning different things is how an interface starts
+ * disagreeing with itself.
+ *
+ * WHERE IT IS REACHED FROM. E2 owns it — "rounding changes what a stack is
+ * worth, so it has to be decided where stacks are entered" — and E4 and E6 show
+ * the same row and open this same sheet. The game's own settings still reach it
+ * before the first stack is counted, which is a decision of 30 August that
+ * fixed a real fault (a group playing for thousands played the first hand on
+ * whole dollars) and which the addendum's own open item 1 asks about rather
+ * than forbids. The club scope is that default, one level up.
  */
 export default function Rounding() {
   const t = useTheme();
@@ -59,22 +68,33 @@ export default function Rounding() {
   if (night === null && !forClub) return <Sheet title="Rounding">{null}</Sheet>;
 
   /*
-   * WHAT IT WOULD DO TONIGHT, off the engine rather than off a formula written
-   * here. A number a host can compare against the one on the deductions screen
-   * is worth more than any amount of explaining, and the rule in `CLAUDE.md` is
-   * that a screen never does its own arithmetic.
+   * LOCKED ONCE THE NIGHT IS CLOSED — rule 8. Every figure on a settled night
+   * was derived at the step it closed with, and a record that could be
+   * re-rounded afterwards is a record that does not say what anybody paid.
    */
-  const preview = (mode: RoundingMode): Money | null => {
-    if (night === null) return null;
-    try {
-      return settle({ ...settlementInput(night), roundingMode: mode }).totalOffTable;
-    } catch {
-      return null;
-    }
-  };
+  const closed = !forClub && night !== null && night.status === 'settled';
 
-  const now = preview(choice);
-  const unchanged = (picked ?? current) === current;
+  /*
+   * WHAT THE STEP WOULD COST, off the engine rather than off a formula written
+   * here. The sub-line under each row is the WORST SINGLE STACK, not an
+   * average: it is the figure an admin gets asked about at the table, and an
+   * average answers a question nobody asks. Recomputed on every entry, which
+   * here means every render, because `stackRounding` is pure and cheap.
+   */
+  const counts = night?.finalCounts ?? new Map<string, Money>();
+  const nothingCounted = counts.size === 0;
+  const rawTotal = [...counts.values()].reduce((a, b) => (a + b) as Money, 0 as Money);
+
+  function subline(mode: RoundingMode): string | null {
+    if (forClub) return null;
+    if (nothingCounted) return 'No stacks counted yet';
+    if (granularityOf(mode) === 1) {
+      return `Stacks as counted · ${formatMoney(rawTotal)} so far`;
+    }
+    return `No stack moves by more than ${formatMoney(
+      stackRounding(counts, granularityOf(mode)).worst,
+    )}`;
+  }
 
   async function save() {
     if (busy) return;
@@ -90,18 +110,21 @@ export default function Rounding() {
   }
 
   /* A power the reader does not have is removed, not disabled. */
-  if (!admin) {
+  if (!admin || closed) {
     return (
       <Sheet
         title="Rounding"
-        sub={roundingLabel(current)}
+        sub={rowLabel(current)}
         footer={<Button label="Close" variant="secondary" onPress={() => router.back()} />}
       >
-        <Text style={[styles.note, { color: t.muted }]}>
-          {sentence(current)}
-        </Text>
-        <Text style={[styles.note, { color: t.muted }]}>
-          Only the person who runs the group can change it.
+        <Text style={[styles.body, { color: t.muted }]}>{BODY}</Text>
+        <Text style={[styles.body, { color: t.muted }]}>
+          {closed
+            ? /* ⚠ NOT DRAWN. The addendum says only "locked once the night is
+                 closed"; no frame shows the sheet in that state. Written to the
+                 grammar of the sentence above it. */
+              'This night is closed. What it settled at is part of the record now.'
+            : 'Only the person who runs the group can change it.'}
         </Text>
       </Sheet>
     );
@@ -111,127 +134,95 @@ export default function Rounding() {
     <Sheet
       title="Rounding"
       badge="admin only"
-      sub={
-        forClub
-          ? 'how coarsely every new night settles'
-          : 'how coarsely tonight settles, once the rules are applied'
-      }
       footer={
         <Button
-          label={unchanged ? 'Saved' : `Settle to the ${chipOf(choice).toLowerCase()}`}
+          label="Apply"
           variant="primary"
-          disabled={busy || unchanged}
+          disabled={busy}
           onPress={() => void save()}
         />
       }
     >
-      <View style={styles.chips}>
-        {ROUNDING_CHOICES.map((c) => (
-          <View key={c.mode} style={styles.chipSlot}>
-            <Button
-              label={c.chip}
-              variant="preset"
-              selected={c.mode === choice}
+      {/* Body copy, verbatim from the addendum. */}
+      <Text style={[styles.body, { color: t.muted }]}>
+        {forClub
+          ? 'The group’s default. A night copies it when it opens, so this reaches the next game and never the one being played.'
+          : BODY}
+      </Text>
+
+      <View style={styles.rows}>
+        {ROUNDING_CHOICES.map((c) => {
+          const on = c.mode === choice;
+          const sub = subline(c.mode);
+
+          return (
+            <Pressable
+              key={c.mode}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: on }}
+              accessibilityLabel={c.chip}
               onPress={() => setPicked(c.mode)}
-              style={styles.chip}
-            />
-            <Text style={[styles.chipCaption, { color: c.mode === choice ? t.text : t.muted }]}>
-              {c.mode === current ? 'NOW' : granularityOf(c.mode) === 1 ? '' : `×${granularityOf(c.mode)}`}
-            </Text>
-          </View>
-        ))}
+              style={({ pressed }) => [
+                styles.row,
+                { borderTopColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+              ]}
+            >
+              <View style={styles.rowText}>
+                <Text style={[styles.rowLabel, { color: t.text }]}>{c.chip}</Text>
+                {sub !== null && (
+                  <Text style={[styles.rowSub, { color: t.muted }]} numberOfLines={1}>
+                    {sub}
+                  </Text>
+                )}
+              </View>
+              {/* A CHECK, NOT A FILL AND NOT A RADIO — the addendum says so, and
+                  it is the mark this app already uses for a settled thing. */}
+              {on && <Icon name="check" color={t.text} size={18} />}
+            </Pressable>
+          );
+        })}
       </View>
-
-      <Text style={[styles.value, { color: t.text }]}>{roundingLabel(choice)}</Text>
-      <Text style={[styles.note, { color: t.muted }]}>{sentence(choice)}</Text>
-
-      {now !== null && (
-        <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-          <Text style={[styles.blockTitle, { color: t.text }]}>Tonight, at this setting</Text>
-          <Text style={[styles.blockBody, { color: t.muted }]}>
-            {formatMoney(now)} would leave the table
-            {compare(preview(current ?? 'dollars'), now)}
-          </Text>
-        </View>
-      )}
-
-      <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <Text style={[styles.blockTitle, { color: t.text }]}>What it does not touch</Text>
-        <Text style={[styles.blockBody, { color: t.muted }]}>
-          Nothing anybody counted. Buy-ins, cash-outs and the chips in front of a player are
-          exactly what they were, and so is everyone’s result. What is rounded is what a rule
-          takes off the winners — and the shares still add up to the whole, so a bill of{' '}
-          {formatMoney(money(170))} is still a bill of {formatMoney(money(170))}.
-        </Text>
-      </View>
-
-      {forClub && (
-        <Text style={[styles.footnote, { color: t.muted }]}>
-          The group’s default. A night copies it when it opens, so this reaches the next game and
-          never the one being played.
-        </Text>
-      )}
     </Sheet>
   );
 }
 
-/** "Every share is worked out to the nearest 100." */
-function sentence(mode: RoundingMode | null): string {
-  return (mode ?? 'dollars') === 'dollars'
-    ? 'Every share a rule takes is worked out to the dollar. This is what the app has always done.'
-    : `Every share a rule takes is worked out to the nearest ${granularityOf(mode).toLocaleString('en-US')}.`;
-}
+/**
+ * Body copy, verbatim (`E2-rounding.md`, "The sheet").
+ *
+ * Copy is final. The one word that is not the doc's is none: this is the
+ * paragraph as written, and the sentence about what is kept underneath is the
+ * one that answers the question the old sheet spent three blocks on.
+ */
+const BODY =
+  'Set it here and it governs the whole night: stacks snap to the step as they are entered, ' +
+  'and the nets and transfers follow. What was counted is kept underneath. Changeable until ' +
+  'the night is closed.';
 
-const chipOf = (mode: RoundingMode): string =>
-  ROUNDING_CHOICES.find((c) => c.mode === mode)?.chip ?? 'Dollar';
-
-/** " · $6 more than now", or nothing at all when it makes no difference. */
-function compare(before: Money | null, after: Money): string {
-  if (before === null || before === after) return '';
-  const gap = Math.abs(after - before) as Money;
-  return ` · ${formatMoney(gap)} ${after > before ? 'more' : 'less'} than now`;
-}
+/** "Rounding · nearest $10", for the sub-line of a sheet that cannot change it. */
+const rowLabel = (mode: RoundingMode | null): string =>
+  granularityOf(mode) === 1 ? 'Off' : `Nearest $${granularityOf(mode).toLocaleString('en-US')}`;
 
 const styles = StyleSheet.create({
-  chips: { flexDirection: 'row', gap: 8, paddingHorizontal: space.card, paddingBottom: 14 },
-  chipSlot: { flex: 1, alignItems: 'center', gap: 3 },
-  /*
-   * `paddingHorizontal: 4`, against Button's base 24.
-   *
-   * The base is sized for a button with a sentence on it — "Settle to the
-   * hundred" — and every other preset row in the app has three or four chips
-   * across. This one has SIX: at 393 a slot is about 52 wide, and 24 a side
-   * leaves 4 points for the word. "100s" needs 38, so it was drawn 3.6 outside
-   * its own box in both themes, which `ui-audit` reports as
-   * figure-out-of-its-box and a person reads as a chip whose label is touching
-   * its neighbour's.
-   *
-   * Fixed here rather than in Button: the 24 is right for every other caller,
-   * and this row is the outlier. Copy is final, so "100s" cannot be shortened.
-   */
-  chip: { width: '100%', paddingHorizontal: 4 },
-  chipCaption: { fontSize: 9, fontWeight: '700', letterSpacing: 0.72, height: 12 },
-
-  value: { fontSize: 20, fontWeight: '700', marginHorizontal: space.page, paddingHorizontal: 4 },
-  note: {
+  body: {
     ...type.rowDetail,
     lineHeight: 20,
     marginHorizontal: space.page,
-    marginTop: 6,
+    marginBottom: 4,
     paddingHorizontal: 4,
   },
 
-  block: {
-    marginTop: 14,
-    marginHorizontal: space.card,
-    paddingVertical: block.padV,
-    paddingHorizontal: block.padH,
-    borderWidth: 1,
-    borderRadius: block.radius,
-    gap: block.gap,
+  rows: { marginTop: 10, marginHorizontal: space.page },
+  /* One rule above each, so the four read as a list rather than as four
+     objects — the sheet's own edges close the block top and bottom. */
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 13,
+    paddingHorizontal: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  blockTitle: type.blockTitle,
-  blockBody: type.blockBody,
-
-  footnote: { ...type.footnote, marginTop: 16, marginHorizontal: space.page },
+  rowText: { gap: 2, flexShrink: 1 },
+  rowLabel: { fontSize: 16, fontWeight: '600' },
+  rowSub: { fontSize: 12.5, fontWeight: '400', fontVariant: ['tabular-nums'] },
 });

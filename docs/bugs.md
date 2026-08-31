@@ -213,6 +213,112 @@ board for and the night a host most needs the row.
 The filter now lives in `resultRows` in core, named rather than inlined, and the
 hole is a case in it rather than a hope about it.
 
+### B31 — the collector came back into the table, holding nothing
+
+```
+Screen      E6 settled — the player rows, /settled and /watch
+Seen        on a night settled at a step: `Radka  $0`, a row between two people
+            who had played, for the collector who never sat down. B27 had
+            taken her out of the list a day earlier
+Expected    a pure collector is not a row. Their whole appearance in the
+            settlement is money they hold for the room, and a rounding
+            remainder is more of it, not less
+Found       31 Aug, in a screenshot of the settled night, after the rounding
+            step went in
+Locked by   npm run check — `stacks.test.ts`, "the rounding step does not put
+            the collector back in the list", which settles the same night at
+            all four steps and asserts the list is the three who played
+Status      fixed in HEAD
+```
+
+**Arithmetic that happened to agree, and then stopped agreeing.** The list kept
+somebody whose own money had come back to them — a fronted bill — and the test
+for that was `credited − held`, because `held` was the float and nothing else.
+The rounding remainder put a second thing in `held`, so the expression became
+`credited − float − absorbed`, which on the seeded night is $20, which is
+greater than zero, which is a row.
+
+Nothing was wrong with either half. `held` is right to carry both — a collector
+who is $20 lighter because the table rounded is holding $20 less for the room,
+not losing $20 at poker — and the filter was right about what it wanted. What
+was wrong was reaching it by subtraction from a figure that could grow a term.
+It asks `playerDeductions` for the bill credits directly now, which is the thing
+it actually means and cannot pick up a third meaning later.
+
+### B30 — a snapped stack said what it really was, and wrapped saying it
+
+```
+Screen      E2 count up — a seated player's row, second line
+Seen        `in $500 · counted $2,352,480` on two lines at 120% text, on a
+            night in the millions, the row growing under it. One figure on
+            that line has always fitted; the rounding step put two on it
+Expected    one line at every text size the app is measured at
+Found       31 Aug, by ui-journeys.mjs, on the run that first played a night
+            through with a step set
+Locked by   npm run check:ui — ui-journeys.mjs, "figures cut off", on the
+            `count up · rounded` stop, which exists for this
+Status      fixed in HEAD
+```
+
+**The line grew a figure and kept a measurement.** `in $500` is one amount at
+13/400 with nothing beside it, and it never needed to shorten. Rule 6 of
+`E2-rounding.md` — the raw count is kept under the rounded one, so a stack is
+never silently rewritten — makes it two, and two amounts plus their words is a
+different line. It abbreviates at ten thousand now, which puts the worst case at
+`in $500 · counted $2.4m`.
+
+**It was found by the check that was written the same hour**, which is the whole
+argument for `docs/bugs.md`: the stop that caught it — `count up · rounded` —
+exists because the journey now sets a step and plays the rest of the night at
+it, and the fault is one no static route could reach.
+
+### B29 — the app had one word for two settings, and was about to have two
+
+```
+Screen      /rounding, and the E2 · E4 · E6 rows that now reach it
+Seen        `E2-rounding.md` arrives asking for a control called Rounding,
+            with steps of $10 / $50 / $100, set at the count. The app already
+            had a control called Rounding, with steps of $10 / $100 / $1k, set
+            on the game — and the two mean different things: the new one snaps
+            the STACKS, the old one snaps what a RULE DIVIDES. Built as drawn,
+            a host would have had two rows with the same label, in the same
+            night, doing different arithmetic
+Expected    one setting called Rounding, doing both, with one sheet behind it
+            however many screens reach it
+Found       31 Aug, reading `rounding.tsx` before building the addendum
+Locked by   npm run check — `moneyScreens.contract.test.ts`, which holds the
+            four steps and the row's words; and `stacks.test.ts`, which settles
+            the same night at all four and hands each to `verifyNight`
+Status      fixed in HEAD
+```
+
+**Neither control was wrong; the collision was.** The addendum does not know the
+app rounds rule shares — its own open item 3 asks for exactly that, as future
+work — so it names the setting it wants without knowing the name is taken. A
+build that followed it literally would have shipped the fault `CLAUDE.md` keeps
+naming: an interface disagreeing with itself, in the one place where the
+disagreement is about money.
+
+So the step is **one value read two ways**. `RoundingMode` has been snapshotted
+onto the night since rev 18; `stacks.ts` reads it for the counts and
+`granularityOf` goes on reading it for the divisions. A table settling in
+fifties wants both, and the sheet says both in one sentence.
+
+**The old sheet argued the opposite, at length.** Under a heading reading *What
+it does not touch* it said: "nothing anybody counted… a chip count is a chip
+count, and rounding a result would be inventing or destroying money." That was
+the right objection and the addendum answers it rather than ignoring it — the
+money invented or destroyed is `Σ rounded − Σ raw`, computed once instead of six
+times, named, and given the one destination the doc allows it. Six nets rounded
+independently sum to something the table has not got; three stacks rounded and
+one remainder named do not.
+
+**What has no answer, and so is not built: a group with no piggy bank.** The
+remainder may go to exactly one place. Without that rule there is nowhere to put
+it, so the stacks settle as counted and the step goes on doing what it always
+did to the rules. `SettlementResult.rounding.on` is what says which happened, and
+no frame draws the sheet in that state.
+
 ### B27 — the piggy bank was drawn as somebody's win
 
 ```

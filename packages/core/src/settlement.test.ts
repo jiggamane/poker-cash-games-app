@@ -860,10 +860,10 @@ describe('a whole night', () => {
 describe('matchTransfers()', () => {
   it('pairs the biggest debtor with the biggest creditor', () => {
     const transfers = matchTransfers([
-      { playerId: 'a', name: 'a', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(-500) },
-      { playerId: 'b', name: 'b', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(-300) },
-      { playerId: 'c', name: 'c', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(600) },
-      { playerId: 'd', name: 'd', boughtIn: money(0), endedWith: money(0), grossResult: money(0), charged: money(0), credited: money(0), finalPosition: money(200) },
+      { playerId: 'a', name: 'a', finalPosition: money(-500) },
+      { playerId: 'b', name: 'b', finalPosition: money(-300) },
+      { playerId: 'c', name: 'c', finalPosition: money(600) },
+      { playerId: 'd', name: 'd', finalPosition: money(200) },
     ]);
 
     // a owes 500, b owes 300; c is owed 600, d is owed 200.

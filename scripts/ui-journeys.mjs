@@ -652,6 +652,63 @@ async function playANight(name, rebuys) {
   await tap(/^Save .*count$/, { last: true, wait: 900 });
   await stop('count up · balanced');
 
+  /*
+   * THE ROUNDING STEP, SET WHERE THE STACKS ARE ENTERED —
+   * `design/handoff-E2/docs/E2-rounding.md`, cut 31 August.
+   *
+   * E2 owns the setting, and this is the only check in the repo that can reach
+   * it with real stacks behind it: the route pass opens /rounding cold, where
+   * nothing has been counted and every sub-line reads "No stacks counted yet",
+   * so the figure the sheet exists to show — the worst single distortion — is
+   * never computed there. Here there is a counted night in the millions.
+   *
+   * IT IS LEFT ON for the rest of the run on purpose. Everything after this
+   * point — the deductions, the transfers, the receipts, who has paid — is
+   * then measured on a night that actually rounded, which is the only way to
+   * find out whether a rounded figure fits where an unrounded one did.
+   */
+  await holds(
+    'the step is on the count screen',
+    (await page.locator('[aria-label^="Rounding · off"]:visible').count()) === 1,
+    'E2 does not carry the rounding row, which it owns',
+  );
+
+  await page.locator('[aria-label^="Rounding · "]:visible').first().click({ timeout: 15_000 });
+  await page.waitForTimeout(900);
+  await stop('rounding');
+  await holds(
+    'and the sheet says what each step would cost',
+    (await page.getByText(/^No stack moves by more than /).count()) > 0,
+    'the rounding sheet offers steps without saying what they would do',
+  );
+
+  await tap('Nearest $50');
+  await tap('Apply', { wait: 1200 });
+  await holds(
+    'and the row says what the night is set to',
+    (await page.locator('[aria-label^="Rounding · nearest $50"]:visible').count()) === 1,
+    'the step was applied and the row on E2 did not follow it',
+  );
+
+  /*
+   * AND SAYS IT IN FULL, which nothing else here can see.
+   *
+   * `Rounding · nearest $50` reads as prose to the cut-off pass — take the
+   * figure out and nineteen characters are left, well past the twelve that
+   * makes a run of text a slot — so an ellipsis in the middle of it passes
+   * every check in this file. It happened: at 360 the two halves of the row are
+   * about five points too long together, and the label was the half giving way,
+   * leaving `Rounding · neares…` beside a value that only restated it.
+   */
+  await holds(
+    'and says it in full at 360',
+    await page.locator('#rounding-label:visible').first().evaluate(
+      (el) => el.scrollWidth <= el.clientWidth + 1,
+    ),
+    'the rounding row truncates its own label',
+  );
+  await stop('count up · rounded');
+
   await tap('See where everyone stands');
   await stop('where everyone stands');
   // Back the way a person goes, for the same reason as above.
@@ -793,6 +850,27 @@ async function playANight(name, rebuys) {
     'and the float says who is holding it',
     (await page.getByText(/^collected by /).count()) > 0,
     'the deductions block took money off the table and named nobody as holding it',
+  );
+
+  /*
+   * AND THE STEP IS ON THE RECORD, read-only.
+   *
+   * `E2-rounding.md` rule 8: locked once the night is closed. The row states
+   * what the night settled at — every figure above it was derived at that step
+   * — and opens nothing, so a settled record cannot be re-rounded.
+   */
+  /* VISIBLE ONLY. The screen this one was pushed on top of is still in the
+     document — expo-router keeps a stack mounted — so an unscoped count finds
+     E4's copy of the same row and reports both of these backwards. */
+  await holds(
+    'the settled night says what it rounded to',
+    (await page.locator(':text-is("Rounding · nearest $50"):visible').count()) === 1,
+    'a night settled at a step does not say so',
+  );
+  await holds(
+    'and does not offer to change it',
+    (await page.locator('[aria-label^="Rounding · nearest $50"]:visible').count()) === 0,
+    'the rounding row on a closed night is still a door',
   );
 
   await tap('Who has paid');

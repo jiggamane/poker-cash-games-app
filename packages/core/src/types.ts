@@ -199,15 +199,39 @@ export interface PlayerSettlement {
   name: string;
   /** Everything they put on the table. */
   boughtIn: Money;
-  /** What they took off it: cash-outs plus any chips still in front of them. */
+  /**
+   * What they took off it: cash-outs plus any chips still in front of them,
+   * AS COUNTED. The rounding step never rewrites this — see `roundedBy`.
+   */
   endedWith: Money;
-  /** endedWith − boughtIn, before any rule applies. */
+  /** endedWith − boughtIn, plus `roundedBy`, before any rule applies. */
   grossResult: Money;
+  /**
+   * What the rounding step did to their own stack — `rounded − counted`,
+   * signed, and already inside `grossResult`.
+   *
+   * It is theirs: a stack that snapped up is money they settle with, and it is
+   * a term on their receipt between the piggy bank and the Net. Zero on a
+   * night that settles as counted, which is every night before 31 August.
+   */
+  roundedBy: Money;
+  /**
+   * The whole room's rounding remainder, carried by the piggy bank's collector
+   * and nobody else.
+   *
+   * NOT THEIRS, which is the whole reason it is a field of its own rather than
+   * folded into `charged`: they are the tin, and `nightScore` takes it back out
+   * of their score the same way it takes out the piggy bank itself.
+   */
+  roundingAbsorbed: Money;
   /** What the rules took off them. */
   charged: Money;
   /** What they are owed as a collector or an expense payer. */
   credited: Money;
-  /** grossResult − charged + credited. Positions across everyone sum to zero. */
+  /**
+   * grossResult − charged + credited − roundingAbsorbed. Positions across
+   * everyone sum to zero.
+   */
   finalPosition: Money;
 }
 

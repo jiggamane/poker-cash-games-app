@@ -389,6 +389,72 @@ audit's `PARAMS` map now opens it with the seeded night's bill on it, and
 `ui-journeys.mjs` reaches it the way a host does — by tapping a charge on
 Deductions — which is the only path that has a real night behind it.
 
+## Rounding, and the one setting that means two things
+
+`design/handoff-E2/docs/E2-rounding.md`, cut 31 August. **The step is set at the
+count and governs the night**: stacks snap to it as they are entered, the nets
+are computed from the rounded stacks, the transfers derive from the rounded
+nets, and the difference goes to the piggy bank — the only place the addendum
+allows it to go.
+
+**It is the setting this app already had, doing one more thing.** `RoundingMode`
+has been on the night since rev 18, snapshotted like the rules, and until now it
+reached exactly one place: how coarsely a RULE DIVIDES, so a bill share came out
+at $60 rather than $56. The `/rounding` sheet said so at length, under a heading
+reading *What it does not touch* — "nothing anybody counted… a chip count is a
+chip count, and rounding a result would be inventing or destroying money".
+
+That objection was right and the addendum answers it rather than ignoring it:
+the money invented or destroyed is `Σ rounded − Σ raw`, it is computed **once**
+instead of six times, and it is given a name and somewhere to go. Six nets
+rounded independently sum to something the table has not got; three stacks
+rounded and one remainder named do not.
+
+**One setting, not two.** A table settling in fifties wants both effects, and
+two controls both called Rounding meaning different things is exactly how an
+interface starts disagreeing with itself. So the step is one value, read two
+ways — `stacks.ts` for the counts, `granularityOf` for the divisions — and the
+sheet is one sheet with several doors into it.
+
+**Where it is, and who owns it.**
+
+| Screen | What it does |
+|---|---|
+| **E2 Count up** | Owns it. The bar sits under the balance block, above the list, in every state including before the first stack is counted. |
+| **E4 Settle up** | Shows it above the transfers, valued `+$16 → piggy`. Changing it here recomputes the list underneath. |
+| **E6 Settled** | Shows it under the deductions block, and only when the night actually rounded. Read-only: rule 8 locks the step once the night is closed. |
+| **Money rules / club rules** | The existing `RoundingRow` — a captioned rule row with a sentence — reaching the same sheet. The club scope is the default a night copies when it opens. |
+
+`RoundingBar` is the addendum's row and `RoundingRow` is the money-rules entry;
+both read their words from `ruleText.ts`, so the several places that name the
+step cannot drift apart.
+
+**The steps changed with the meaning.** Dollar · 10s · 100s · 1k became
+**Off · $10 · $50 · $100**, which are the four the addendum names and the four a
+room actually counts in. `thousands` and `cents` are still in `RoundingMode` and
+still resolve — an old night settled at either re-derives to the figures it
+closed with, which is the whole reason the mode is snapshotted — they are simply
+no longer offered.
+
+**Two things the addendum does not cover, and what this build does.**
+
+* **No piggy bank, no snapping.** The remainder has exactly one permitted
+  destination and a group without a piggy-bank rule has not got it. Settling
+  anyway would hand the table money nobody put in, so their stacks settle as
+  counted and the step goes on doing what it always did to the rules.
+  `SettlementResult.rounding.on` is what says which happened. **Open**, in the
+  sense that no frame draws the sheet in that state.
+* **Set before the count as well as at it.** The doc says E2 owns it; the game's
+  own settings have reached it since 30 August, because a group playing for
+  thousands played the first hand on whole dollars. The addendum's own open
+  item 1 asks whether the group's rules carry a default step rather than
+  forbidding one, so both doors stay.
+
+⚠ **One string is not drawn**: the closed-night sheet's second line, *"This
+night is closed. What it settled at is part of the record now."* Rule 8 names
+the state and no frame shows it; written to the grammar of the body copy above
+it and flagged in `rounding.tsx` rather than passed off as decided copy.
+
 ## What E6 asks for that this build does not have
 
 `design/handoff-E6/`, cut 30 August, is the settled screen. Five things in it
@@ -471,6 +537,28 @@ is marked in `NightResult.tsx`:
   the addendum's own open item is "whether the expanded receipt is also the
   route into the individual entries, or whether that stays with **Full
   ledger**". Neither is drawn, so neither is built. **Open.**
+
+**Which layout ships is the one thing still open on E6.**
+`design/handoff-E6/docs/E6-results-columns.md`, cut 31 August, offers a
+**columns** layout — `game · food · piggy · net`, four computed figures on the
+row, nothing tappable — against the receipt rows this build has. The doc is
+explicit that they are alternatives and not layers, and leaves the choice open;
+its own read is *"receipt rows for the list, and the columns layout as the Full
+ledger view behind the footer button"*.
+
+**Receipt rows are what is built**, on that read and because they were already
+here. The columns layout is **not** built: it would net the bill's two parts
+into one `food` figure — the thing `E6-row-formula.md` exists to prevent — and
+the Full ledger button it would hang off is board furniture that
+`E6-row-formula.md` explicitly says not to take. Building a route off a "my
+read" would be inventing a screen. **Open, and one word decides it.**
+
+The addendum's three corrections apply either way and all three already hold:
+order is `net` descending (`resultRows` sorts on the printed figure), the
+receipt's first line reads `Cashed out`, and this screen never said
+`THROUGH THE TABLE` or `OFF THE TABLE` — its labels come from
+`E6-results-logic.md`, which governs the prize-pool and deductions blocks and
+draws them as `PRIZE POOL` and `DEDUCTIONS`.
 
 **A row prints a score, not a balance — and the float is named underneath.**
 B27, and the one deviation on this screen that changes a figure rather than a

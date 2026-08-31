@@ -17,6 +17,8 @@ export * from './ledger';
 export * from './settlement';
 /* The whole equation behind E2's balance check — in, out, counted, left. */
 export * from './balance';
+/* Rounding as it applies to the stacks themselves — the step E2 owns. */
+export * from './stacks';
 export * from './outbox';
 /* What a rule's terms are in words, read off the night's own snapshot. */
 export * from './ruleText';

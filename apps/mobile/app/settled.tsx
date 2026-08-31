@@ -95,7 +95,17 @@ export default function NightResults() {
        * and the entry list is reachable from the night while it is being
        * played. `docs/screens.md` carries this as an open item.
        */}
-      <NightResult result={result} ledger={ledger} loggedBy={null} />
+      {/*
+       * THE STEP IS SHOWN AND NOT SETTABLE. `E2-rounding.md` rule 8 locks it
+       * once the night is closed, and this screen only ever draws a closed one
+       * — so the row states what the night settled at and opens nothing.
+       */}
+      <NightResult
+        result={result}
+        ledger={ledger}
+        loggedBy={null}
+        roundingMode={night.roundingMode}
+      />
 
       {/*
        * DELIBERATE DEVIATION, and the only one on this screen.

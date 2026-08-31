@@ -7,6 +7,7 @@ screens now divide the work of stating the balance between them.
 START-HERE.md                            this file
 docs/E6-results-logic.md                 the logic: inputs, the state pill, deductions, ordering, strings
 docs/E6-row-formula.md                   addendum, 31 Aug: what a player row shows, and the receipt behind it
+docs/E6-results-columns.md               addendum, 31 Aug: the columns layout, row order, label fixes
 boards/Game Summary.dc.html              the board — 1b is the build (bright), 1d is the same screen dark
 boards/Result Formula Options.dc.html    the row treatment — 2a–2d are the build, both themes
 ```
@@ -18,6 +19,13 @@ Open the board straight from `boards/` in a browser, no server. `support.js` sit
 **`1b` in both themes** — hairline player rows, no tinted fills. `1d` on the board is the identical screen
 in the dark theme; build the pair. `1a` and `1c` are the tinted-row alternative — reading reference, do not
 build.
+
+## Addendum, 31 August — two layouts on the table
+
+`docs/E6-results-columns.md` adds a **columns** layout (`game · food · piggy · net`, frames `6a`/`6b`) as an
+alternative to the receipt rows, and carries three corrections that apply either way: order is `net`
+descending, `PRIZEPOOL` / `DEDUCTIONS` replace `THROUGH THE TABLE` / `OFF THE TABLE`, and the receipt line
+reads `Cashed out`. Rounding on this screen is display-only — it is owned by E2, see `handoff-E2/`.
 
 ## Addendum, 31 August — the row states the result, tapping it states the reason
 

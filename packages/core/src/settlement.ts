@@ -30,6 +30,7 @@ import {
   ZERO,
 } from './money';
 import { endedWith, reconcile, resolveLedger, type ResolvedLedger } from './ledger';
+import { stackRounding, type StackRounding } from './stacks';
 import {
   UNACCOUNTED_ID,
   UNACCOUNTED_NAME,
@@ -77,10 +78,27 @@ export interface SettlementInput {
    * night before this setting existed ran at, so an old record re-derives to
    * exactly the figures it closed with.
    *
-   * It reaches the DEDUCTIONS and nothing else. A gross result is chips
-   * counted off a table and rounding it would be inventing or destroying
-   * money; what a rule takes off the winners is a division the group is
-   * entitled to make in round numbers.
+   * IT REACHES TWO THINGS SINCE 31 AUGUST, and this comment used to say it
+   * reached one. It has always been the granularity a RULE DIVIDES at — what
+   * the bill takes off each winner. `E2-rounding.md` adds the other: the
+   * STACKS THEMSELVES snap to it as they are counted, and the nets and the
+   * transfers follow from the rounded stacks.
+   *
+   * The sentence that stood here — *a gross result is chips counted off a
+   * table and rounding it would be inventing or destroying money* — was right
+   * about the objection and wrong about the conclusion. The addendum answers
+   * it: the money invented or destroyed is `Σ rounded − Σ raw`, it is computed
+   * once rather than six times, and **the piggy bank absorbs it**. What is
+   * counted is kept either way — `finalCounts` is never rewritten, and every
+   * figure below is derived from it, so changing the step recomputes from the
+   * raw count and never rounds twice.
+   *
+   * NO PIGGY BANK, NO SNAPPING. The remainder is the only thing standing
+   * between a rounded night and a night that does not sum to zero, and the
+   * addendum gives it exactly one destination. A group with no piggy-bank rule
+   * has nowhere to put it, so their stacks settle as counted and the step goes
+   * on doing what it always did to the rules. `StackRounding.on` says which
+   * happened.
    */
   roundingMode?: RoundingMode | null;
   /**
@@ -97,6 +115,17 @@ export interface SettlementResult {
   deductions: Deduction[];
   /** What leaves the table in total — "$296 leaves the table". */
   totalOffTable: Money;
+  /**
+   * What the step did to the stacks, and what it cost the piggy bank.
+   *
+   * `on` is false when the night settles as counted — either the step is off,
+   * or there is no piggy bank to carry the remainder. `remainder` is the money
+   * the rounding invented (positive) or destroyed (negative); the collector
+   * carries the opposite of it, which is why it is not in anybody's score.
+   */
+  rounding: StackRounding;
+  /** Who carries the remainder. Absent when nothing was rounded. */
+  roundingCollector?: PlayerId;
   transfers: Transfer[];
   /** Present only when the night was closed over a confirmed discrepancy. */
   acknowledgedDiscrepancy?: DiscrepancyAcknowledgement;
@@ -197,21 +226,62 @@ export function settle(input: SettlementInput): SettlementResult {
   /** Lookup used by custom splits, which name their own payers. */
   const byId = new Map(input.players.map((p) => [p.id, p]));
 
+  // The group's rounding rule, resolved once. `granularityOf` refuses 'cents'
+  // rather than silently settling in dollars, and it refuses it HERE — before
+  // a single figure is computed — so a night configured for money this build
+  // cannot represent fails loudly instead of taking the wrong amounts.
+  const granularity = granularityOf(input.roundingMode);
+
+  // --- 0. The step, and whether anything can carry its remainder ------------
+  //
+  // `E2-rounding.md`: stacks snap to the step, nets follow from the rounded
+  // stacks, and the difference goes to the piggy bank — the only place it may
+  // go. A night with no piggy-bank rule has nowhere to put it, so it settles as
+  // counted; `on` is what says which of the two happened, and every screen
+  // reads it rather than re-deciding.
+  //
+  // THE COLLECTOR IS THE RULE'S, not a person the settlement picks. It is the
+  // same name the piggy bank's own money goes to, because the remainder IS
+  // piggy-bank money: a stack that rounded up was funded out of the tin.
+  const piggy = input.rules.find((r) => r.active && r.destination === 'kitty');
+  const roundingCollector = granularity > 1 ? piggy?.collectorPlayerId : undefined;
+
+  const rounding = stackRounding(
+    input.finalCounts,
+    roundingCollector === undefined ? 1 : granularity,
+  );
+
+  /* What each person's own stack moved by, and what the room owes for the lot.
+     Both are zero when nothing was rounded, which is the ordinary night. */
+  const roundedBy = (id: PlayerId): Money => rounding.counted.get(id)?.by ?? ZERO;
+
   // --- 1. What each player did on their own ---------------------------------
+  //
+  // ON THE ROUNDED STACK, per the addendum's rule 3: every stack is rounded and
+  // then the nets are computed, so a rule charging a percentage of a win is
+  // charging a percentage of the win the night actually settles at. What is
+  // NOT rounded is anything derived — `endedWith` below stays the raw count, so
+  // the receipt can print what was really on the table and name the step as its
+  // own term rather than quietly rewriting the first line.
   const gross = new Map<PlayerId, Money>();
   for (const p of players) {
     const boughtIn = ledger.boughtInByPlayer.get(p.id) ?? ZERO;
-    gross.set(p.id, subtract(endedWith(ledger, p.id, input.finalCounts), boughtIn));
+    gross.set(
+      p.id,
+      money(subtract(endedWith(ledger, p.id, input.finalCounts), boughtIn) + roundedBy(p.id)),
+    );
   }
 
   // Gross results always sum to the count difference — exactly zero on a night
-  // that balances. Anything else means the arithmetic itself is wrong, which is
-  // a different thing from money being missing, and is never recoverable.
+  // that balances — plus whatever the step invented or destroyed. Anything else
+  // means the arithmetic itself is wrong, which is a different thing from money
+  // being missing, and is never recoverable.
   const grossTotal = sum([...players.map((p) => gross.get(p.id)!)]);
-  if (grossTotal !== reconciliation.difference) {
+  const expected = money(reconciliation.difference + rounding.remainder);
+  if (grossTotal !== expected) {
     throw new SettlementError(
-      `Gross results sum to ${grossTotal} but the count is off by ${reconciliation.difference}. ` +
-        `The two must agree — refusing to settle.`,
+      `Gross results sum to ${grossTotal} but the count is off by ${reconciliation.difference} ` +
+        `and rounding moved ${rounding.remainder}. They must agree — refusing to settle.`,
     );
   }
 
@@ -243,12 +313,6 @@ export function settle(input: SettlementInput): SettlementResult {
   const credited = new Map<PlayerId, Money>(participants.map((p) => [p.id, ZERO]));
   const deductions: Deduction[] = [];
 
-  // The group's rounding rule, resolved once. `granularityOf` refuses 'cents'
-  // rather than silently settling in dollars, and it refuses it HERE — before
-  // a single figure is computed — so a night configured for money this build
-  // cannot represent fails loudly instead of taking the wrong amounts.
-  const granularity = granularityOf(input.roundingMode);
-
   for (const spec of deductionOrder(input.rules, ledger)) {
     const deduction = applyDeduction(spec, { ledger, atTable, byId, gross, charged, granularity });
     if (deduction.total === 0 && deduction.charges.length === 0) continue;
@@ -263,19 +327,35 @@ export function settle(input: SettlementInput): SettlementResult {
   }
 
   // --- 3. Where everyone stands ---------------------------------------------
+  //
+  // THE REMAINDER COMES OFF ONE NAME, and it is the last thing to happen. Every
+  // stack that rounded up was funded from somewhere and every stack that
+  // rounded down left something behind; `rounding.remainder` is the net of all
+  // of it, and the piggy bank's collector carries it so that the positions
+  // still sum to zero.
+  //
+  // IT IS NOT PART OF THEIR NIGHT. `nightScore` in `working.ts` takes it back
+  // out again, exactly as it takes out the piggy bank itself — a collector who
+  // is $16 lighter because the table rounded is not $16 worse at poker. What
+  // they hold for the room changed; what they won did not.
   const settlements: PlayerSettlement[] = participants.map((p) => {
     const g = gross.get(p.id)!;
     const ch = charged.get(p.id)!;
     const cr = credited.get(p.id)!;
+    const absorbed = p.id === roundingCollector ? rounding.remainder : ZERO;
     return {
       playerId: p.id,
       name: p.name,
       boughtIn: ledger.boughtInByPlayer.get(p.id) ?? ZERO,
+      /* THE RAW COUNT, always. What was counted is kept — the step is a term
+         of its own on the receipt, never a rewrite of the first line. */
       endedWith: endedWith(ledger, p.id, input.finalCounts),
       grossResult: g,
+      roundedBy: roundedBy(p.id),
+      roundingAbsorbed: absorbed,
       charged: ch,
       credited: cr,
-      finalPosition: money(g - ch + cr),
+      finalPosition: money(g - ch + cr - absorbed),
     };
   });
 
@@ -292,6 +372,8 @@ export function settle(input: SettlementInput): SettlementResult {
     players: settlements,
     deductions,
     totalOffTable: sum(deductions.map((d) => d.total)),
+    rounding,
+    ...(roundingCollector !== undefined && rounding.on ? { roundingCollector } : {}),
     transfers: matchTransfers(settlements),
     ...(ack ? { acknowledgedDiscrepancy: ack } : {}),
   };
@@ -306,7 +388,13 @@ export function settle(input: SettlementInput): SettlementResult {
  * important for a settlement everyone is watching — it is obvious and it is
  * reproducible.
  */
-export function matchTransfers(settlements: readonly PlayerSettlement[]): Transfer[] {
+export function matchTransfers(
+  /* The three fields it actually reads. Narrower than `PlayerSettlement` on
+     purpose: who pays whom follows from the positions and the names, and a
+     signature that asked for the whole settlement would have to be widened
+     every time one gains a field. */
+  settlements: ReadonlyArray<Pick<PlayerSettlement, 'playerId' | 'name' | 'finalPosition'>>,
+): Transfer[] {
   // Biggest first, ties broken by name ascending, so the same night always
   // produces the same list of payments no matter what order the data arrived in.
   const bySize = (a: { remaining: number; name: string }, b: { remaining: number; name: string }) =>

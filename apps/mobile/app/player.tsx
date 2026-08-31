@@ -163,7 +163,9 @@ export default function PlayerCard() {
   const settlement = nightSettlement?.players.find((p) => p.playerId === player.id) ?? null;
   const allWorking =
     nightSettlement === null ? [] : workingRows(nightSettlement, night.rules, player.id);
-  const working = allWorking.filter((r) => r.kind === 'charge' || r.kind === 'credit');
+  const working = allWorking.filter(
+    (r) => r.kind === 'charge' || r.kind === 'credit' || r.kind === 'rounding',
+  );
 
   /*
    * THE FLOAT IS BELOW THE LINE, not in it — B27, and the same split E6 makes

@@ -19,7 +19,7 @@
  * value, not the value itself.
  */
 
-import { formatMoney, type Money, type RoundingMode } from './money';
+import { formatMoney, granularityOf, type Money, type RoundingMode } from './money';
 import type { MoneyRule, RuleCharge, RuleDestination, RuleSplit } from './types';
 
 /**
@@ -128,11 +128,61 @@ export function ruleDetail(
  * minor units, which is not built, and fifties has never been asked for.
  */
 export const ROUNDING_CHOICES: ReadonlyArray<{ mode: RoundingMode; chip: string }> = [
-  { mode: 'dollars', chip: 'Dollar' },
-  { mode: 'tens', chip: '10s' },
-  { mode: 'hundreds', chip: '100s' },
-  { mode: 'thousands', chip: '1k' },
+  { mode: 'dollars', chip: 'Off' },
+  { mode: 'tens', chip: 'Nearest $10' },
+  { mode: 'fifties', chip: 'Nearest $50' },
+  { mode: 'hundreds', chip: 'Nearest $100' },
 ];
+
+/*
+ * THE FOUR ROWS THE SHEET DRAWS, and they changed on 31 August.
+ *
+ * They used to be Dollar · 10s · 100s · 1k, four chips in a row, because the
+ * setting only reached what a RULE DIVIDES at and "settle to the nearest
+ * hundred" is a thing you say about a division. `E2-rounding.md` moves the
+ * setting to the count, where it snaps the stacks themselves, and names its own
+ * four: Off, $10, $50, $100. `Off` is a listed option and not the absence of a
+ * choice — the doc says so in as many words.
+ *
+ * `thousands` and `cents` are still in `RoundingMode` and still resolve: an old
+ * night settled at either re-derives to the figures it closed with, which is
+ * the whole reason the mode is snapshotted. They are simply no longer offered.
+ */
+
+/**
+ * The control row, as it reads on E2, E4 and E6 — `Rounding · nearest $10`.
+ *
+ * ONE STRING FOR THREE SCREENS. Only E2 owns the setting; the other two draw
+ * the same row and open the same sheet, and a second spelling of it on either
+ * would be the app disagreeing with itself about what the night is set to.
+ */
+export function roundingRowLabel(mode: RoundingMode | null | undefined): string {
+  const step = granularityOf(mode);
+  return step === 1 ? 'Rounding · off' : `Rounding · nearest $${step.toLocaleString('en-US')}`;
+}
+
+/**
+ * What that row says on its right — `stacks snap to $10`, or where a remainder
+ * exists, where it went: `+$16 → piggy`.
+ *
+ * The second form is E4's, drawn on frames `4a`–`4d`, and it is the more useful
+ * one wherever there is a settled figure to name: the question a row about
+ * rounding actually gets asked is not what the step is but who paid for it.
+ */
+export function roundingRowValue(
+  mode: RoundingMode | null | undefined,
+  remainder?: Money | null,
+): string {
+  const step = granularityOf(mode);
+  if (step === 1) return 'stacks as counted';
+  if (remainder === null || remainder === undefined || remainder === 0) {
+    return `stacks snap to $${step.toLocaleString('en-US')}`;
+  }
+  /* Signed, and pointing at where it landed. The piggy bank funds a positive
+     remainder and keeps a negative one; the arrow says which way it went. */
+  const sign = remainder > 0 ? '−' : '+';
+  return `${sign}$${Math.abs(remainder).toLocaleString('en-US')} → piggy`;
+}
 
 /**
  * The rounding rule as a row's value — "Whole dollars".
@@ -161,16 +211,23 @@ export function roundingLabel(mode: RoundingMode | null | undefined): string {
 }
 
 /**
- * What the rule does, for the line under its name.
+ * What the setting does, for the line under its name on the money rules.
+ *
+ * REWRITTEN 31 AUGUST, because the setting grew a second effect and this
+ * sentence described only the first. It said "what each rule takes is rounded
+ * to the 10", which is still true and is no longer the half a host cares
+ * about: since `E2-rounding.md` the stacks themselves snap to the step as they
+ * are counted, and that is the change a person sees.
  *
  * Says nothing at all at whole dollars: that is what every night has always
  * done, and a row explaining the absence of a setting is noise on a screen
  * whose whole job is to make the settings that ARE unusual visible.
  */
 export function roundingSentence(mode: RoundingMode | null | undefined): string {
-  return (mode ?? 'dollars') === 'dollars'
-    ? 'What each rule takes is worked out to the dollar'
-    : `What each rule takes is rounded to the ${roundingLabel(mode).replace('Nearest ', '')}`;
+  const step = granularityOf(mode);
+  return step === 1
+    ? 'Stacks are counted as they are, and each rule works out to the dollar'
+    : `Stacks snap to $${step.toLocaleString('en-US')}, and so does what each rule takes`;
 }
 
 /**

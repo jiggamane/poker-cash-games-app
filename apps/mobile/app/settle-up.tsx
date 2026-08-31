@@ -15,6 +15,7 @@ import {
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
+import { RoundingBar } from '../src/components/RoundingBar';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
@@ -65,7 +66,7 @@ export default function SettleUp() {
 
   if (!result.ok) return <OutOfBalance night={night} />;
 
-  const { deductions, players, transfers } = result.value;
+  const { deductions, players, transfers, rounding } = result.value;
 
   /**
    * Money that leaves the table for good, as opposed to money going back to
@@ -127,6 +128,22 @@ export default function SettleUp() {
         </>
       }
     >
+      {/*
+       * THE STEP, ABOVE THE TRANSFERS AND NOT OWNED HERE —
+       * `design/handoff-E2/docs/E2-rounding.md`, frames `4a`–`4d`. The
+       * transfers are derived from the rounded nets, so they are multiples of
+       * the step for free and are never rounded a second time; this row is what
+       * says so, and what says who paid for it. Changing it here recomputes the
+       * list underneath, because the sheet writes the night and the screen
+       * reads it.
+       */}
+      <RoundingBar
+        mode={night.roundingMode}
+        remainder={rounding.remainder}
+        onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
+        style={styles.rounding}
+      />
+
       <View style={styles.list}>
         {transfers.map((tr, i) => {
           const piggy = offTable.get(tr.toPlayerId);
@@ -340,6 +357,8 @@ const inWords = (n: number): string =>
   String(n);
 
 const styles = StyleSheet.create({
+  /* Above the transfers, under the lede that counts them. */
+  rounding: { marginBottom: 4 },
   list: { marginHorizontal: space.page },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
   piggyRow: {
