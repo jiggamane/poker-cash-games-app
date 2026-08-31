@@ -5,6 +5,7 @@ import { database } from './db';
 import {
   formatMoney,
   money,
+  nightScore,
   resolveLedger,
   settle,
   type LedgerEntry,
@@ -982,7 +983,14 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
       const settled = settle(settlementInput(night));
       const me = settled.players.find((p) => p.playerId === night.meId);
       if (me !== undefined) {
-        result = me.finalPosition;
+        /*
+         * THE SCORE, NOT THE BALANCE — B27, and the same figure E6 prints.
+         * A host who collects the piggy bank ends the night holding the room's
+         * money, which `finalPosition` includes and which is not a result: on
+         * a lifetime total it is the one figure that compounds, a club's float
+         * banked as winnings every night they held it.
+         */
+        result = nightScore(settled, night.meId).score;
         played = true;
       }
     } catch {

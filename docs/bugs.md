@@ -182,6 +182,97 @@ The figure is an OFFER, not text the host typed, which is B20's distinction:
 the first key replaces the whole amount rather than appending to it, so
 correcting $1,200 to $120 is three keys and not nine deletions.
 
+### B27 — the piggy bank was drawn as somebody's win
+
+```
+Screen      E6 settled, wherever the results rows are drawn — /settled,
+            /watch — the player card at /player, and My stats at /stats
+            and /games
+Seen        `The piggy bank  +$126` sitting at the top of THE TABLE · AFTER
+            DEDUCTIONS on the seeded night, above five people who had played
+            all night for less, with no in and no out under the name. On the
+            club's own night it is a person: Radka collects, never sits down,
+            and reads a $126 win. A host who plays AND collects reads their
+            own night $126 heavy on both E6 and their card
+Expected    a row prints what the night did to that person. Money they are
+            holding for the room is named once, under the deduction it came
+            from, beside the person holding it — not added into a score
+Found       31 Aug, from the table
+Locked by   npm run check — `packages/core/src/rev15-night.test.ts`,
+            "B27 — the float is not a win" and "E6 — who gets a row on the
+            results list": `nightScore` splits the engine's figure, and
+            `resultRows` is the list the screen draws
+Status      fixed in HEAD
+```
+
+**Nothing was wrong with the arithmetic, and that is why it lasted.** `settle()`
+is right to put the float in `finalPosition`: the transfers really do have to
+move $126 to whoever is holding the envelope, and a settlement that left it out
+would not sum to zero. Every test passed, every figure reconciled, and the
+screen still told one person at the table that they had won money they had not
+won.
+
+What was wrong was the column. `finalPosition` answers *what is this person owed
+when the room breaks up*, and a results row asks *how did their night go* —
+two questions with one number behind them, and E6 printed the wrong one. So
+`nightScore` divides that number instead of restating it: `score + held ===
+finalPosition`, always, and a screen picks the half it is actually asking about.
+
+**The bill is the case that proves the split is not "credits are suspicious".**
+Marek fronts $120 for the pizza and is credited $120. That is his — he spent it
+at the shop, he is out of pocket until the table pays him, and it belongs in his
+score. The piggy bank's $126 is not his in any sense: he is the envelope. The
+line between the two is the destination, which is the same line `workingRows`
+has drawn since it was written — a bill pays back an outlay, every other kind
+hands over a float.
+
+**Where the money went instead.** Under the deduction it came from, as
+`collected by {name}`. That is a string no board draws, and it is flagged as
+such in the component: no board takes the float off the row, so no board has
+had to name the holder. It is the one place on the screen where the question
+"who has the $126" has an answer, and it is next to the figure.
+
+**Three screens keep `finalPosition`, and it is the same decision, not an
+oversight.** S3 settle-up and E7 who-has-paid are the screens that answer *what
+is this person owed when the room breaks up*, and the float is genuinely part of
+that — somebody has to hand the collector the envelope. E3's preview grid
+(`deductions.tsx`) is the same question one screen earlier: it is the table's
+payouts about to happen, drawn against the rules that produced them. The screens
+that changed are the ones asking *how did their night go* — E6's rows, the
+player card's "Their night", and My stats, which had been banking a club's float
+as winnings every night the reader held it.
+
+### B26 — the hole quietly stopped being drawn
+
+```
+Screen      E6 settled — the player rows, /settled and /watch
+Seen        on a night closed $200 short, six rows summing to $200 more than
+            the table held, and no `Unaccounted` row anywhere. The pill above
+            still said `$200 SHORT`, so the screen contradicted itself: money
+            was missing, and the list of where the money went did not mention
+            it
+Expected    `Unaccounted` is the one row that must never be filtered out,
+            because it IS the hole — its own comment said so
+Found       31 Aug, reading the filter while fixing B27
+Locked by   npm run check — `packages/core/src/rev15-night.test.ts`,
+            "E6 — who gets a row on the results list" / "never drops the hole"
+Status      fixed in HEAD
+```
+
+**A comment is not a check.** The filter read `boughtIn > 0 || endedWith > 0 ||
+charged > 0 || credited > 0` under a paragraph explaining that `Unaccounted`
+must survive it — and `Unaccounted` fails all four. It bought in nothing, ended
+with nothing, and no rule charges it, because it is not at the table. Its whole
+existence is a `grossResult`, which the filter never looked at.
+
+It was invisible for the ordinary reason: the seeded night balances, the
+canonical night balances, and every frame is drawn from one of them. The row
+only exists on a night that did not balance, which is the night nobody has a
+board for and the night a host most needs the row.
+
+The filter now lives in `resultRows` in core, named rather than inlined, and the
+hole is a case in it rather than a hope about it.
+
 ### B23 — a settled night said it was settled three times, and tinted every row while it did
 
 ```

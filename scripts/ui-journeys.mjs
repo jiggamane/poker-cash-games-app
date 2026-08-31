@@ -733,18 +733,39 @@ async function playANight(name, rebuys) {
   /*
    * A PLAYER'S OWN NIGHT, OPENED OFF THE RESULTS LIST.
    *
-   * E6's rows carry the working now — `in … · out … · bill −… · piggy bank −…`
+   * E6's rows carry the working now — `$… in, $… out, bill: −… +…, piggy: −…`
    * — and each one opens the player card behind it with what the rules took and
    * where that left them. Both halves are invisible to every other
    * check in the repo: no URL reaches a settled night with money on it, so the
    * route pass measures the seeded mid-count book and sees neither. This is a
    * night in the millions, which is also the width the line is tightest at.
+   *
+   * THE PATTERN IS THE FORMAT, deliberately. The line was rewritten on 31 Aug
+   * because the middle-dot form wrapped to three lines here, and a check that
+   * only asked "is there a second line" would have passed both. Figure first,
+   * comma between the terms — if that changes again, this goes red and somebody
+   * re-measures the row rather than finding out on a phone.
    */
-  const working = () => page.getByText(/^in .* \u00b7 out /).count();
+  const working = () => page.getByText(/^\$[\d,]+ in, \$[\d,]+ out/).count();
   await holds(
     'the row carries the working',
     (await working()) > 0,
-    'no row on E6 says what came off that person',
+    'no row on E6 says what came off that person, in the short form',
+  );
+
+  /*
+   * B27 — THE FLOAT IS NAMED, NOT BANKED.
+   *
+   * The piggy bank's money is no longer any player's result, so the one place
+   * it is now attributed is the line under its own deduction. If that line goes
+   * missing, the seeded club's $126 leaves the screen entirely: nothing else on
+   * E6 says who is holding it, and nobody would notice until the night the
+   * collector was asked for it.
+   */
+  await holds(
+    'and the float says who is holding it',
+    (await page.getByText(/^collected by /).count()) > 0,
+    'the deductions block took money off the table and named nobody as holding it',
   );
 
   /* By the row's own label — "Dana · their night". Filtering the row by its

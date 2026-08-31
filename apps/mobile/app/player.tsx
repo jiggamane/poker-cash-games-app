@@ -12,6 +12,7 @@ import {
   formatMoney,
   formatSignedToFit,
   formatToFit,
+  nightScore,
   resolveLedger,
   settle,
   workingRows,
@@ -160,12 +161,30 @@ export default function PlayerCard() {
    * and where that leaves them.
    */
   const settlement = nightSettlement?.players.find((p) => p.playerId === player.id) ?? null;
-  const working =
-    nightSettlement === null
-      ? []
-      : workingRows(nightSettlement, night.rules, player.id).filter(
-          (r) => r.kind === 'charge' || r.kind === 'credit',
-        );
+  const allWorking =
+    nightSettlement === null ? [] : workingRows(nightSettlement, night.rules, player.id);
+  const working = allWorking.filter((r) => r.kind === 'charge' || r.kind === 'credit');
+
+  /*
+   * THE FLOAT IS BELOW THE LINE, not in it — B27, and the same split E6 makes
+   * two screens away. Somebody who holds the piggy bank ends the night with the
+   * room's $126 in their pocket, and the engine is right to put it in
+   * `finalPosition`, because the transfers really do have to move it. It is
+   * still not what their night came to, and a card that totals it into "Their
+   * night" tells the one person at the table who cannot check it that they won
+   * money they did not win.
+   *
+   * So the rows above the total are what happened to their own money, the
+   * total is `nightScore`'s `score`, and what they are carrying home for
+   * everybody else is its own line underneath. The two together are still
+   * `finalPosition` exactly — `nightScore` divides that figure and never
+   * restates it.
+   */
+  const holding = allWorking.filter((r) => r.kind === 'holding');
+  /* Zero where there is no settlement, which is also the only case the block
+     below is not drawn in — so the fallback is never the figure on screen. */
+  const theirNight =
+    nightSettlement === null ? (0 as Money) : nightScore(nightSettlement, player.id).score;
 
   /*
    * What they have taken off the table: their cash-outs, plus the count in
@@ -414,8 +433,9 @@ export default function PlayerCard() {
        * it. Nothing on this screen adds anything up: the rows are the engine's,
        * the labels come off the night's own rule snapshot — so a night settled
        * under an older bill still names the split it was settled with — and the
-       * figure at the foot is `finalPosition`, which is what the row on E6 says
-       * and what the transfers were built from.
+       * figure at the foot is `nightScore`'s score, which is what the row on E6
+       * says. What the transfers were built from is that plus the float on the
+       * line under it, which together are `finalPosition` — see B27 above.
        *
        * ⚠ THREE STRINGS ARE NOT DRAWN, and are flagged rather than passed off
        * as decided copy — the handoff's rule. "After deductions" is E6's own
@@ -455,19 +475,31 @@ export default function PlayerCard() {
             <Text
               style={[
                 styles.afterTotalValue,
-                {
-                  color:
-                    settlement.finalPosition === 0
-                      ? t.muted
-                      : moneyColor(t, settlement.finalPosition),
-                },
+                { color: theirNight === 0 ? t.muted : moneyColor(t, theirNight) },
               ]}
               numberOfLines={1}
               {...cappedFigure}
             >
-              {formatSignedToFit(settlement.finalPosition, AFTER_FITS)}
+              {formatSignedToFit(theirNight, AFTER_FITS)}
             </Text>
           </View>
+
+          {/* Under the total and outside it, in the colour money that is not
+              theirs is drawn in everywhere else on this card. */}
+          {holding.map((r) => (
+            <View key={r.key} style={styles.afterRow}>
+              <Text style={[styles.afterLabel, { color: t.muted }]} numberOfLines={2}>
+                {r.label}
+              </Text>
+              <Text
+                style={[styles.afterValue, { color: t.muted }]}
+                numberOfLines={1}
+                {...cappedFigure}
+              >
+                {formatSignedToFit(r.amount, AFTER_FITS)}
+              </Text>
+            </View>
+          ))}
         </View>
       )}
 
