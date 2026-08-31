@@ -4,9 +4,11 @@
 screens now divide the work of stating the balance between them.
 
 ```
-START-HERE.md                       this file
-docs/E6-results-logic.md            the logic: inputs, the state pill, deductions, ordering, strings
-boards/Game Summary.dc.html         the board — 1b is the build (bright), 1d is the same screen dark
+START-HERE.md                            this file
+docs/E6-results-logic.md                 the logic: inputs, the state pill, deductions, ordering, strings
+docs/E6-row-formula.md                   addendum, 31 Aug: what a player row shows, and the receipt behind it
+boards/Game Summary.dc.html              the board — 1b is the build (bright), 1d is the same screen dark
+boards/Result Formula Options.dc.html    the row treatment — 2a–2d are the build, both themes
 ```
 
 Open the board straight from `boards/` in a browser, no server. `support.js` sits next to it.
@@ -16,6 +18,15 @@ Open the board straight from `boards/` in a browser, no server. `support.js` sit
 **`1b` in both themes** — hairline player rows, no tinted fills. `1d` on the board is the identical screen
 in the dark theme; build the pair. `1a` and `1c` are the tinted-row alternative — reading reference, do not
 build.
+
+## Addendum, 31 August — the row states the result, tapping it states the reason
+
+`docs/E6-row-formula.md` changes one thing in the logic doc: the `in $100 · out $250` sub-line under a
+player's name is **removed**. A collapsed row is name and net only, 40 points instead of 60, so eight
+players fit at rest; tapping a row opens the full receipt — cash out, buy-in, each bill term, the piggy
+bank, and `Net`. Dark keeps the tinted row fill, bright is hairlines with colour only on the figure.
+Read that doc for the measurements, the line order and the copy changes (`PRIZEPOOL`, `DEDUCTIONS`,
+`Cashed out`).
 
 ## What changed against the shipped screen
 

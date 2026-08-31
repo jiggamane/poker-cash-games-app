@@ -657,6 +657,23 @@ const ROOM = `
   // It is deliberately not scoped to the results screens. The fill was on four
   // of them and the rule is about what a signed figure may sit on, wherever
   // one is drawn.
+  //
+  // ONE EXCEPTION, BY NAME AND BY THEME. E6-row-formula.md, cut 31 August,
+  // puts the fill back on an E6 player row IN THE DARK THEME ONLY: at 13% on
+  // #0A0A0B the wash reads as a band rather than as emphasis, which is the
+  // thing B23 was about. The bright theme has no such alpha and keeps the
+  // hairlines, so the rule still holds there — and it holds in dark for every
+  // signed figure that is not one of these rows.
+  //
+  // Anchored on the row's own testID and on prefers-color-scheme, so a fill
+  // that leaks into the bright theme is still a finding, and so is a tint on
+  // anything that is not this row.
+  //
+  // NO BACKTICKS ANYWHERE IN HERE. This whole block is a template literal
+  // handed to page.evaluate, and one backtick in a comment ends the string
+  // several hundred lines early — which is a syntax error in a file the gate
+  // runs before it runs anything else.
+  const darkRowAllowed = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const SIGNED = /^[+\\u2212]\\$[\\d,]/;
   for (const el of all) {
     if (!SIGNED.test((el.textContent || '').trim())) continue;
@@ -666,6 +683,7 @@ const ROOM = `
       const r = n.getBoundingClientRect();
       // Past the width of the list this is no longer the row, it is the screen.
       if (r.width >= window.innerWidth - 8) break;
+      if (darkRowAllowed && n.getAttribute('data-testid') === 'e6-row') break;
       const paint = getComputedStyle(n).backgroundColor;
       const c = rgb(paint);
       if (c === null || c.a <= 0 || c.a > 0.99) continue;

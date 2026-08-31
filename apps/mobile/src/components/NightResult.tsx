@@ -1,10 +1,10 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
-  destinationShort,
   formatSignedToFit,
   formatToFit,
-  playerDeductions,
   prizePool,
+  receiptRows,
   resultRows,
   ruleCollector,
   UNACCOUNTED_ID,
@@ -14,11 +14,12 @@ import {
   type SettlementResult,
 } from '@poker-club/core';
 import { Icon } from './Icon';
-import { moneyColor, useTheme } from '../design/useTheme';
+import { moneyColor, useTheme, useThemeName } from '../design/useTheme';
 import { block, cappedFigure, space, type } from '../design/tokens';
 
 /**
- * A night that has ended — E6. `design/handoff-E6/`, cut 30 August.
+ * A night that has ended — E6. `design/handoff-E6/`, cut 30 August, with the
+ * row addendum of 31 August (`docs/E6-row-formula.md`) on top of it.
  *
  * REBUILT FROM X1c, and what changed is mostly what is no longer here. X1c drew
  * a confirmed result as three blocks about the reader — their own card with the
@@ -30,33 +31,35 @@ import { block, cappedFigure, space, type } from '../design/tokens';
  *     twice. Both are gone. What is left is one pill on the prize pool line,
  *     and `docs/E6-results-logic.md` is blunt about it: a status pill appears
  *     NOWHERE ELSE on this screen.
- *   · NO ROW IS EMPHASISED. No tinted fill, no "You," prefix, no personal card.
- *     A confirmed night is a record of what happened to seven people, and the
- *     reader's own row is one of the seven. The green and the red are on the
- *     figures alone — which is also the only place they carry any information,
- *     a washed row saying nothing the sign beside it had not already said.
+ *   · NO ROW IS EMPHASISED. No "You," prefix, no personal card. A confirmed
+ *     night is a record of what happened to seven people, and the reader's own
+ *     row is one of the seven. (The fill is the one part of this the addendum
+ *     took back, in the dark theme only — see the rows below.)
  *   · THE IN-VERSUS-OUT COMPARISON BELONGS TO E2, the counting screen, where
  *     the figures are still being entered and the comparison is still a
  *     question. Here it is settled, and re-asking it reads as doubt.
  *
- * TWO THINGS HAVE CHANGED SINCE E6 WAS CUT, both about the player rows and
- * both asked for at the table:
+ * TWO THINGS HAVE CHANGED SINCE E6 WAS CUT, both about the player rows:
  *
+ *   · THE ROW STATES THE RESULT; TAPPING IT STATES THE REASON. The addendum's
+ *     own sentence. The `in $100 · out $250` sub-line is gone — it was two of
+ *     five terms, which invites the reader to do maths that does not
+ *     reconcile — and a collapsed row is a name and a net at 40 points instead
+ *     of 60, so eight players fit at rest. Opening one draws the whole
+ *     receipt, `receiptRows` line for line, closed by the same figure the row
+ *     was already showing. One row is open at a time.
  *   · A ROW PRINTS A SCORE, NOT A BALANCE. Whoever holds the piggy bank ends
  *     the night with the room's money in their pocket, and E6 drew it as their
  *     result — a $126 win, sorted above people who had played all night for
- *     less. The float now comes out of the figure and is named once, under the
- *     deduction it came from, beside the person holding it. Nothing has moved:
- *     the transfers still hand it over, because `finalPosition` is untouched.
- *     See B27, and `nightScore` in `working.ts`.
- *   · THE WORKING LINE IS THE SHORT FORM — `$500 in, $620 out, bill: −$29
- *     +$120`. It was a middle-dot list with the word before the figure and a
- *     `back` term standing on its own, and it wrapped to three lines on a
- *     360-wide phone. See `workingLine` below.
+ *     less. The float comes out of the figure, out of the receipt behind it,
+ *     and is named once under the deduction it came from, beside the person
+ *     holding it. Nothing has moved: the transfers still hand it over, because
+ *     `finalPosition` is untouched. See B27, and `nightScore` in `working.ts`.
  *
  * NOTHING HERE ADDS ANYTHING UP. The pool comes off `prizePool()`, the rows
- * and their order off `resultRows()`, the deductions off `settle()`, and the
- * difference off the reconciliation. See `CLAUDE.md`.
+ * and their order off `resultRows()`, each receipt off `receiptRows()`, its
+ * `Net` off `nightScore()`, the deductions off `settle()`, and the difference
+ * off the reconciliation. See `CLAUDE.md`.
  *
  * SHARED BY `settled.tsx` AND `watch.tsx` — the host's own record and a
  * watcher's read-only view of it are the same facts, and E6 draws every player
@@ -67,7 +70,6 @@ export function NightResult({
   result,
   ledger,
   loggedBy,
-  onOpenPlayer,
 }: {
   result: SettlementResult;
   /** Where the prize pool is counted from. Resolved, so voids are gone. */
@@ -78,19 +80,23 @@ export function NightResult({
    * night that balanced needs no explanation.
    */
   loggedBy: string | null;
-  /**
-   * Open one person's night. Left out, the rows are text and nothing else.
-   *
-   * IT IS A PROP RATHER THAN A ROUTE because the two callers hold different
-   * nights: `settled.tsx` is reading the one on this phone, which the player
-   * card can also read, and `watch.tsx` is reading somebody else's over the
-   * wire, which it cannot. A component that pushed `/player` itself would put
-   * a door on the watcher's screen that opens onto the wrong night.
-   */
-  onOpenPlayer?: (playerId: PlayerId) => void;
 }) {
   const t = useTheme();
+  const tinted = useThemeName() === 'dark';
   const pool = prizePool(ledger);
+
+  /*
+   * ONE ROW OPEN AT A TIME, which the addendum states as a rule and which is
+   * also the only way the list stays readable: a receipt is about 104 points,
+   * and two of them open push everything below the fold on a phone that was
+   * showing all eight players a moment earlier.
+   *
+   * IT LIVES HERE RATHER THAN IN A ROUTE. The receipt is the row saying more
+   * about itself, not a place you go — `09-navigation.md` would make a
+   * destination a push and give it a back button, and there is nothing here to
+   * go back from.
+   */
+  const [openRow, setOpenRow] = useState<PlayerId | null>(null);
 
   /*
    * ONE ROW PER PERSON THE NIGHT HAPPENED TO — `resultRows`, which is the
@@ -126,64 +132,133 @@ export function NightResult({
       </View>
 
       <View style={styles.table}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>The table · after deductions</Text>
+        <Text style={[styles.sectionLabel, styles.tableLabel, { color: t.muted }]}>
+          The table · after deductions
+        </Text>
         {table.map(({ player: p, score }, i) => {
-          const line = [
-            /* The last row closes on the deductions block's own rule. Two
-               hairlines 10 points apart read as a box, and doc 15 does not
-               put a box inside a box. */
-            styles.row,
-            {
-              borderBottomColor: t.hairline,
-              borderBottomWidth: i === table.length - 1 ? 0 : StyleSheet.hairlineWidth,
-            },
-          ];
+          const open = openRow === p.playerId;
+          const receipt = receiptRows(result, p.playerId);
 
           /*
-           * THE HOLE IS NOT A PERSON, so its row is not a door. `Unaccounted`
-           * holds the confirmed shortfall and has no card behind it — the
-           * player screen would open on "Nobody by that name tonight", which
-           * is the app telling the truth about a row it should not have
-           * offered. What that money is is on the pill above.
+           * THE HOLE IS NOT A PERSON, so its row does not open. `Unaccounted`
+           * holds the confirmed shortfall: it bought nothing, cashed out
+           * nothing and no rule charged it, so its receipt is empty and a
+           * chevron would promise a block with one line in it. What that money
+           * is is on the pill above.
            */
-          const opens = onOpenPlayer !== undefined && p.playerId !== UNACCOUNTED_ID;
+          const opens = p.playerId !== UNACCOUNTED_ID && receipt.length > 0;
 
-          const body = (
-            <>
-              <View style={styles.rowText}>
-                <Text style={[styles.rowName, { color: t.text }]}>{p.name}</Text>
-                <Text style={[styles.rowDetail, { color: t.muted }]}>{workingLine(result, p)}</Text>
-              </View>
-              {/*
-              * Muted at exactly zero, which `moneyColor` is not: it falls back
-              * to the text colour, and on this screen a black figure in a column
-              * of green and red reads as a third state rather than as no state.
-              * E6 names the colour for $0 and it is the muted one.
-             */}
-              <Text
-                style={[styles.rowNet, { color: score === 0 ? t.muted : moneyColor(t, score) }]}
-                numberOfLines={1}
-                {...cappedFigure}
-              >
-                {formatSignedToFit(score, ROW_FITS)}
-              </Text>
-              {opens && <Icon name="chevron" color={t.muted} />}
-            </>
-          );
+          /*
+           * DARK KEEPS THE TINT, BRIGHT KEEPS THE HAIRLINE, and that split is
+           * the addendum's, spelled out on frames 2a and 2c. B23 took the fill
+           * off every row in both themes; this puts it back in one, for the
+           * reason the doc gives — at 13% on `#0A0A0B` the wash reads as a
+           * band rather than as emphasis, and the bright theme has no such
+           * alpha, so there it stays hairlines with the colour on the figure
+           * alone. `ui-audit.mjs` knows about the exception by name.
+           *
+           * The tokens are 14% and 12% where the board says 13% for both — one
+           * point of alpha, invisible at any size, against a change to
+           * `tokens.ts`, which `CLAUDE.md` says runs alone with nothing else in
+           * flight. `docs/screens.md` records it beside the loss-hex note.
+           */
+          const fill =
+            !tinted || score === 0
+              ? undefined
+              : { backgroundColor: score > 0 ? t.winTint : t.dangerWash };
 
-          return !opens ? (
-            <View key={p.playerId} style={line}>
-              {body}
-            </View>
-          ) : (
+          return (
             <Pressable
               key={p.playerId}
+              testID="e6-row"
               accessibilityRole="button"
+              /* ⚠ NOT DRAWN. No board writes a screen-reader label, and this is
+                 the row's own two facts in the order it says them. */
               accessibilityLabel={`${p.name} · their night`}
-              onPress={() => onOpenPlayer?.(p.playerId)}
-              style={({ pressed }) => [...line, { opacity: pressed ? 0.6 : 1 }]}
+              accessibilityState={{ expanded: opens ? open : undefined }}
+              disabled={!opens}
+              onPress={() => setOpenRow(open ? null : p.playerId)}
+              style={({ pressed }) => [
+                styles.row,
+                fill,
+                open && styles.rowOpen,
+                /* The last row closes on the deductions block's own rule. Two
+                   hairlines 10 points apart read as a box, and doc 15 does not
+                   put a box inside a box. */
+                tinted
+                  ? null
+                  : {
+                      borderBottomColor: t.hairline,
+                      borderBottomWidth:
+                        i === table.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                    },
+                { opacity: pressed && opens ? 0.6 : 1 },
+              ]}
             >
-              {body}
+              <View style={styles.rowHead}>
+                <Text style={[styles.rowName, { color: t.text }]} numberOfLines={1}>
+                  {p.name}
+                </Text>
+                {/*
+                 * Muted at exactly zero, which `moneyColor` is not: it falls
+                 * back to the text colour, and on this screen a black figure in
+                 * a column of green and red reads as a third state rather than
+                 * as no state. E6 names the colour for $0 and it is the muted
+                 * one.
+                 */}
+                <Text
+                  style={[styles.rowNet, { color: score === 0 ? t.muted : moneyColor(t, score) }]}
+                  numberOfLines={1}
+                  {...cappedFigure}
+                >
+                  {formatSignedToFit(score, ROW_FITS)}
+                </Text>
+                {opens && (
+                  <Icon name={open ? 'chevronUp' : 'chevronDown'} color={t.muted} size={13} />
+                )}
+              </View>
+
+              {/*
+               * THE RECEIPT — every term behind the figure above it, closed by
+               * the figure above it. `receiptRows` is the engine's and so is
+               * the `Net`: this block prints them and adds nothing, which is
+               * the only reason the last line can be trusted to be the same
+               * number as the first.
+               */}
+              {open && (
+                <View style={[styles.receipt, { borderTopColor: t.hairline }]}>
+                  {receipt.map((r) => (
+                    <View key={r.key} style={styles.receiptRow}>
+                      <Text style={[styles.receiptLabel, { color: t.muted }]} numberOfLines={1}>
+                        {r.label}
+                      </Text>
+                      <Text
+                        style={[styles.receiptValue, { color: t.text }]}
+                        numberOfLines={1}
+                        {...cappedFigure}
+                      >
+                        {r.signed
+                          ? formatSignedToFit(r.amount, ROW_FITS)
+                          : formatToFit(r.amount, ROW_FITS)}
+                      </Text>
+                    </View>
+                  ))}
+
+                  <View style={[styles.receiptTotal, { borderTopColor: t.hairline }]}>
+                    <Text style={[styles.receiptNetLabel, { color: t.text }]}>Net</Text>
+                    <Text
+                      style={[
+                        styles.receiptNetValue,
+                        { color: score === 0 ? t.muted : moneyColor(t, score) },
+                      ]}
+                      numberOfLines={1}
+                      {...cappedFigure}
+                    >
+                      {formatSignedToFit(score, ROW_FITS)}
+                    </Text>
+                  </View>
+                </View>
+              )}
             </Pressable>
           );
         })}
@@ -256,74 +331,6 @@ export function NightResult({
       )}
     </>
   );
-}
-
-/**
- * The second line under a name — `$500 in, $620 out, bill: −$29 +$120, piggy: −$50`.
- *
- * SHORT, AND THAT IS THE WHOLE OF THIS REVISION. It used to read
- * `in $500 · out $620 · bill −$29 · back +$120 · piggy −$50` and the three
- * things wrong with it were all length: the word came before its figure so the
- * eye met a label where a column of figures had trained it to expect money;
- * `back` was a term of its own, sitting one middle dot away from the charge it
- * belonged to and reading as an unrelated movement; and at 360 points the
- * result was three wrapped lines under a name.
- *
- * So the figure leads, a comma separates the terms, and each kind is one term
- * with its charge and its reimbursement inside it — `bill: −$29 +$120` is one
- * bill seen from both sides, which is what it is. The kinds are
- * `destinationShort`'s, so "piggy bank" is "piggy" here and stays "piggy bank"
- * on every screen with room for it.
- *
- * DELIBERATE DEVIATION from `E6-results-logic.md`, which draws this line as
- * `in ${in} · out ${out}` and says the deductions block below carries "totals
- * only — no per-player breakdown". The totals block is untouched; what changed
- * is that a person's own row says what came off THEM, because the row without
- * it cannot be checked: E6 prints a net that is already after deductions, so a
- * reader who does the only arithmetic the row invites — out minus in — gets a
- * figure that disagrees with the one printed beside it, and has nothing on the
- * screen to explain the gap. With the charges on the line the row reconciles:
- * out − in − charges + back = the figure on the right.
- *
- * WHAT IS NOT ON THIS LINE IS THE FLOAT. A collector's piggy bank is not their
- * money and is not in the figure beside this line either, so a term for it here
- * would be the one term that did not reconcile. It is named once, under the
- * deduction it came from, with the person holding it.
- *
- * A term appears only when there is money in it, so a night with no rules is
- * the line E6 draws, unchanged, and a loser charged nothing keeps it too.
- *
- * NOTHING HERE ADDS ANYTHING UP: `playerDeductions` is the engine's, and the
- * words are `destinationShort`'s, so a group that renames its rules does not
- * rename this line — it is where the money went, not what the rule was called.
- */
-function workingLine(result: SettlementResult, p: SettlementResult['players'][number]): string {
-  /*
-   * IN AND OUT GO WHEN THERE WAS NEITHER — somebody who fronted the food and
-   * never sat down. "$0 in, $0 out" is two figures saying nothing about a
-   * person whose whole appearance here is money they are owed. Anybody who
-   * played has an in.
-   */
-  const parts =
-    p.boughtIn === 0 && p.endedWith === 0
-      ? []
-      : [`${formatToFit(p.boughtIn, ROW_FITS)} in`, `${formatToFit(p.endedWith, ROW_FITS)} out`];
-
-  for (const d of playerDeductions(result, p.playerId)) {
-    /* Charge then reimbursement, in that order and inside one term: they are
-       one bill, and the pairing is `working.ts`'s at one line's width. */
-    const terms: string[] = [];
-    if (d.charged > 0) {
-      terms.push(formatSignedToFit((0 - d.charged) as Money, ROW_FITS));
-    }
-    if (d.credited > 0) terms.push(formatSignedToFit(d.credited, ROW_FITS));
-
-    /* A kind that only handed them the float — they collect it and were never
-       charged — contributes no term, and so no empty `piggy:` either. */
-    if (terms.length > 0) parts.push(`${destinationShort(d.destination)}: ${terms.join(' ')}`);
-  }
-
-  return parts.join(', ');
 }
 
 /**
@@ -408,24 +415,73 @@ const styles = StyleSheet.create({
   },
   loggedBy: { fontSize: 12, fontWeight: '600' },
 
-  table: { marginHorizontal: space.card, gap: 4 },
+  table: { marginHorizontal: space.card },
   sectionLabel: { ...type.label, paddingHorizontal: 2 },
+  /* `0 4px 7px` on the board. The rows carry their own 3 below them, so the
+     list has no gap of its own and this is the only space above the first. */
+  tableLabel: { paddingBottom: 7 },
 
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7, paddingHorizontal: 2 },
-  rowText: { gap: 1, flexShrink: 1 },
-  rowName: { fontSize: 15, fontWeight: '700' },
-  rowDetail: { fontSize: 11.5, fontWeight: '400', fontVariant: ['tabular-nums'] },
   /*
-   * NEVER SHRINKS. The name and its in-and-out line beside it may wrap — they
-   * are words and a fragment — and a figure may not: left to give, "−$12,000"
-   * came apart into a dash on one line and an amount on the next, which reads
-   * as two things. See B18.
+   * `9px 10px` inside, `0 -6px 3px` outside, radius 8 — the collapsed row is
+   * 40 points tall, against the 60 the in-and-out sub-line cost, which is what
+   * puts eight players on a 393-wide phone with the deductions block still on
+   * screen. The negative margin is the board's: the fill runs 6 points wider
+   * than the list either side, so the text inside it lines up with the section
+   * label above rather than being inset from it.
+   */
+  row: {
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    marginHorizontal: -6,
+    marginBottom: 3,
+    borderRadius: 8,
+  },
+  /* An open row keeps its top padding and grows 2 at the foot — `9px 10px 11px`. */
+  rowOpen: { paddingBottom: 11 },
+  rowHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  rowName: { fontSize: 17, fontWeight: '600', flexShrink: 1 },
+  /*
+   * NEVER SHRINKS. The name beside it may give — it is a word — and a figure
+   * may not: left to shrink, "−$12,000" came apart into a dash on one line and
+   * an amount on the next, which reads as two things. See B18.
    */
   rowNet: {
     marginLeft: 'auto',
     flexShrink: 0,
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+
+  /* `10px 2px 0` under a hairline, 6 between the lines. */
+  receipt: {
+    marginTop: 9,
+    paddingTop: 10,
+    paddingHorizontal: 2,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 6,
+  },
+  receiptRow: { flexDirection: 'row', gap: 12 },
+  receiptLabel: { fontSize: 13, fontWeight: '400', flexShrink: 1 },
+  receiptValue: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontSize: 13,
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
+  },
+  receiptTotal: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingTop: 7,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  receiptNetLabel: { fontSize: 13, fontWeight: '700' },
+  receiptNetValue: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontSize: 13,
+    fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
 
@@ -474,35 +530,35 @@ const styles = StyleSheet.create({
  * WHERE EACH COLUMN RUNS OUT, measured at 360 — the narrowest phone in the
  * device matrix and the width everything is tightest at.
  *
- * A PLAYER ROW holds 316 points between the card margins: the name and its
- * working line at 11.5/400 on the left, the net at 18/800 on the right, 10
- * between them, and — where the row is a door — a chevron and its own gap,
- * about 22 more. Three figures on one line, "$999,999 in, $999,999 out" at
- * 156 and "−$999,999" at 93, leave 35 spare. Seven digits fit and eight do
- * not, so a million is where this row stops printing in full.
+ * A COLLAPSED ROW holds about 308 points inside its own padding: the name at
+ * 17/600 on the left, the net at 18/700 on the right, 12 between them, and a
+ * 13-point chevron with a gap of its own. The name gives and the figure does
+ * not, so the question is only how much the figure may take — "−$999,999" at
+ * 93 leaves 190 for a name, which is more than any name needs. Seven digits
+ * fit and eight do not, so a million is where this row stops printing in full.
  *
- * THE SHORT FORM BOUGHT ABOUT A LINE BACK. `in $500 · out $620 · bill −$29 ·
- * back +$120 · piggy −$50` is 62 characters and wrapped to three lines on this
- * phone; `$500 in, $620 out, bill: −$29 +$120, piggy: −$50` is 49 and takes
- * two. The saving is the four words that were never figures — a `back` term of
- * its own, and "bank" — and it is why the terms pair up rather than run flat.
+ * DROPPING THE SUB-LINE IS WHAT BOUGHT THE ROOM. The row was a name, a working
+ * line of four to six terms, and a net; at 360 the terms wrapped to three
+ * lines and the row stood 60 points tall or more. It is 40 now, which is eight
+ * players at rest on a 393-wide phone with the deductions block still on
+ * screen, and the terms are in the receipt where each one has a line of its
+ * own and nothing has to be abbreviated at all.
  *
- * THE WORKING LINE IS STILL ALLOWED TO WRAP, and past three or four terms it
- * does. That is the one thing on this row that may: it is words and fragments,
- * the name above it is a word, and the score beside them is a figure with
- * `flexShrink: 0` — B18 is what happens when a figure gives instead. Two
- * legible lines beat one cut one.
+ * THE RECEIPT is the roomiest thing on the screen: a label at 13/400 on the
+ * left, a figure at 13/500 on the right, one term per line. It is drawn inside
+ * the row's own padding, so it has about 4 points less than the head above it
+ * and 5 points less type — a figure that fits the net fits here.
  *
- * IT IS A WIDER ROW THAN E5'S, which stops at ten thousand: the sub-line runs
- * 11.5 rather than 13, and there is no avatar. The two screens abbreviate at
- * different points because they are different widths — what would read as "a
- * figure that changed" is a column that visibly is not the same column.
+ * IT IS A WIDER ROW THAN E5'S, which stops at ten thousand: there is no avatar
+ * and no sub-line. The two screens abbreviate at different points because they
+ * are different widths — what would read as "a figure that changed" is a column
+ * that visibly is not the same column.
  *
- * THE CHEVRON IS ONLY THERE WHEN THE ROW OPENS SOMETHING. E6 draws no chevron,
- * and on `watch.tsx` — where there is no night on this phone to open — there
- * still is none. Where the row IS a door it carries the same mark every other
- * list in the app uses for one, because a door nothing points at is a door
- * nobody finds.
+ * THE CHEVRON POINTS AT WHAT THE ROW DOES — down into itself when closed, up
+ * when open. It is not the row-end chevron every list in the app uses for a
+ * door, because this row is not a door: it opens in place and there is nothing
+ * to go back from. A row with no receipt behind it — `Unaccounted`, which
+ * bought nothing and was charged nothing — has no chevron and does not press.
  *
  * THE POOL FIGURE has the pill beside it and 27/800 to spend: about 209 points
  * once the pill and its gap are out, which is thirteen glyphs. "$9,999,999" is

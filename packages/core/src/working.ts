@@ -17,7 +17,7 @@
  */
 
 import type { Money } from './money';
-import { ruleLabel } from './ruleText';
+import { destinationTerm, ruleLabel } from './ruleText';
 import type { SettlementResult } from './settlement';
 import {
   UNACCOUNTED_ID,
@@ -290,6 +290,98 @@ export function ruleCollector(result: SettlementResult, ruleId: string): RuleCol
   if (person === undefined) return null;
 
   return { playerId: credit.playerId, name: person.name, amount: credit.amount };
+}
+
+/**
+ * ONE PLAYER'S RECEIPT — every term behind the figure on their E6 row, in the
+ * order the money moved. `design/handoff-E6/docs/E6-row-formula.md`, cut 31
+ * August.
+ *
+ * IT REPLACES A SUB-LINE THAT COULD NOT BE MADE TO FIT. E6 as cut drew
+ * `in $100 · out $250` under the name; a settled row actually has four to six
+ * terms behind it — the bill can charge a share AND credit back what somebody
+ * paid at the counter, and the piggy bank takes its cut — and two of them on a
+ * line invites the reader to do arithmetic that does not reconcile. The row
+ * now states the result; tapping it states the reason.
+ *
+ * WHAT THE ADDENDUM FIXES, and this function with it:
+ *
+ *   · NOTHING IS NETTED. The two bill terms stay separate, because somebody
+ *     who paid the bill at the counter needs to see the credit rather than a
+ *     merged `+$188`.
+ *   · THE ORDER IS FIXED — cash out, buy-in, then the deductions in the order
+ *     the group's rules define them, which is the order `settle()` applied
+ *     them in.
+ *   · `Bought in` IS NEGATIVE and `Cashed out` positive, so the block reads as
+ *     a balance rather than as two totals. Signs are explicit everywhere but
+ *     the first line.
+ *   · A TERM OF $0 IS NOT RENDERED.
+ *
+ * THE FLOAT IS NOT A TERM (B27). A collector's piggy bank is not money the
+ * night did to them, so it is not in this list and not in the `Net` it closes
+ * on — that is `nightScore`'s score, and the two agree to the dollar because
+ * these rows ARE the terms of it. Where the float went is named under the
+ * deduction it came from.
+ *
+ * THE COPY IS GENDERLESS, which the board is not: it draws `Bill · his share`
+ * and `Bill · he paid it` because the sample player is Petr, and the addendum
+ * says in as many words that the code uses `· share` and `· paid it`.
+ */
+export interface ReceiptRow {
+  /** Stable across renders. */
+  key: string;
+  /** "Cashed out", "Bought in", "Bill · share", "Bill · paid it", "Piggy bank". */
+  label: string;
+  /** Signed as drawn: what comes off is negative here. */
+  amount: Money;
+  /** Show a `+` on a positive. False for `Cashed out` alone. */
+  signed: boolean;
+}
+
+export function receiptRows(result: SettlementResult, playerId: PlayerId): ReceiptRow[] {
+  const person = result.players.find((p) => p.playerId === playerId);
+  if (person === undefined) return [];
+
+  const rows: ReceiptRow[] = [];
+
+  if (person.endedWith !== 0) {
+    rows.push({ key: 'out', label: 'Cashed out', amount: person.endedWith, signed: false });
+  }
+  if (person.boughtIn !== 0) {
+    rows.push({
+      key: 'in',
+      label: 'Bought in',
+      amount: (0 - person.boughtIn) as Money,
+      signed: true,
+    });
+  }
+
+  for (const d of playerDeductions(result, playerId)) {
+    const term = destinationTerm(d.destination);
+
+    if (d.charged > 0) {
+      /* The qualifier only where there are two terms to tell apart. A piggy
+         bank takes one bite and "Piggy bank · share" would be explaining a
+         distinction the row does not have. */
+      rows.push({
+        key: `${d.destination}:charge`,
+        label: d.credited > 0 ? `${term} · share` : term,
+        amount: (0 - d.charged) as Money,
+        signed: true,
+      });
+    }
+
+    if (d.credited > 0) {
+      rows.push({
+        key: `${d.destination}:credit`,
+        label: `${term} · paid it`,
+        amount: d.credited,
+        signed: true,
+      });
+    }
+  }
+
+  return rows;
 }
 
 /**

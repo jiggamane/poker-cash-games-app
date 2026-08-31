@@ -21,10 +21,17 @@
 
 import { describe, expect, it } from 'vitest';
 import { money, sum, ZERO, type Money } from './money';
-import { destinationShort, destinationWord, ruleLabel, splitSentence } from './ruleText';
+import { destinationTerm, destinationWord, ruleLabel, splitSentence } from './ruleText';
 import { settle } from './settlement';
 import { UNACCOUNTED_ID, type LedgerEntry, type MoneyRule, type Player, type PlayerId } from './types';
-import { nightScore, playerDeductions, resultRows, ruleCollector, workingRows } from './working';
+import {
+  nightScore,
+  playerDeductions,
+  receiptRows,
+  resultRows,
+  ruleCollector,
+  workingRows,
+} from './working';
 
 const DANA = 'dana';
 const MAREK = 'marek';
@@ -379,13 +386,13 @@ describe('E6 — what came off one person, gathered by kind', () => {
     );
   });
 
-  it('names each kind short enough for the row, and only where it has to', () => {
-    // "piggy bank" is eleven characters of a 316-point line; every other
-    // destination is already as short as it goes.
-    expect(destinationShort('kitty')).toBe('piggy');
-    expect(destinationShort('bill')).toBe('bill');
-    expect(destinationShort('host_fee')).toBe('host');
-    expect(destinationShort('next_pot')).toBe('next pot');
+  it('names each kind as a term where one opens a line', () => {
+    // The receipt draws "Bill · share" and "Piggy bank" — the same words as
+    // every sentence in the app, capitalised in the one place they lead.
+    expect(destinationTerm('kitty')).toBe('Piggy bank');
+    expect(destinationTerm('bill')).toBe('Bill');
+    expect(destinationTerm('host_fee')).toBe('Host');
+    expect(destinationTerm('next_pot')).toBe('Next pot');
   });
 
   it('names each kind the way the rest of the app names it', () => {
@@ -547,5 +554,78 @@ describe('E6 — who gets a row on the results list', () => {
     const hole = resultRows(night).find((r) => r.player.playerId === UNACCOUNTED_ID);
     expect(hole).toBeDefined();
     expect(hole!.score).toBe(200);
+  });
+});
+
+describe('E6 — the receipt behind a row', () => {
+  /*
+   * `design/handoff-E6/docs/E6-row-formula.md`, cut 31 August. The row states
+   * the result; this is the reason, and the doc draws it line for line.
+   */
+  it('draws Lena’s night in the order the money moved', () => {
+    // The night runs the piggy bank first, so it precedes the bill here — the
+    // order is the group's rules', not this function's.
+    expect(receiptRows(result, LENA)).toEqual([
+      { key: 'out', label: 'Cashed out', amount: 1430, signed: false },
+      { key: 'in', label: 'Bought in', amount: -1000, signed: true },
+      { key: 'kitty:charge', label: 'Piggy bank', amount: -22, signed: true },
+      { key: 'bill:charge', label: 'Bill · share', amount: -29, signed: true },
+      { key: 'bill:credit', label: 'Bill · paid it', amount: 50, signed: true },
+    ]);
+  });
+
+  it('keeps the two bill terms apart, and nets nothing', () => {
+    // The whole of the addendum's first rule: somebody who paid at the counter
+    // needs to see the credit, not a merged figure.
+    const marek = receiptRows(result, MAREK).filter((r) => r.key.startsWith('bill'));
+    expect(marek.map((r) => [r.label, r.amount])).toEqual([
+      ['Bill · share', -31],
+      ['Bill · paid it', 120],
+    ]);
+  });
+
+  it('drops the qualifier where there is only one term to name', () => {
+    // Dana pays the bill and fronted nothing, so there is no share to tell
+    // apart from anything.
+    expect(receiptRows(result, DANA).map((r) => r.label)).toEqual([
+      'Cashed out',
+      'Bought in',
+      'Piggy bank',
+      'Bill',
+    ]);
+  });
+
+  it('renders no term of $0 — a loser who cashed out nothing', () => {
+    expect(receiptRows(result, TOMAS)).toEqual([
+      { key: 'in', label: 'Bought in', amount: -500, signed: true },
+    ]);
+  });
+
+  it('signs everything but the cash out', () => {
+    const rows = receiptRows(result, LENA);
+    expect(rows.filter((r) => !r.signed).map((r) => r.label)).toEqual(['Cashed out']);
+  });
+
+  it('adds up to the Net the row prints above it — every player, every time', () => {
+    /*
+     * The one assertion that makes the block worth drawing. A receipt whose
+     * last line is not the sum of the lines above it is six numbers and an
+     * argument, and the screen prints the engine's `Net` rather than a total
+     * of its own — so this is what holds the two together.
+     */
+    for (const p of result.players) {
+      const rows = receiptRows(result, p.playerId);
+      expect(sum(rows.map((r) => r.amount))).toBe(nightScore(result, p.playerId).score);
+    }
+  });
+
+  it('leaves the float out of the receipt and out of its Net — B27', () => {
+    // The collector's row is gone from the list entirely, and asking for their
+    // receipt gives the terms of a night they did not play: none.
+    expect(receiptRows(result, KITTY)).toEqual([]);
+  });
+
+  it('says nothing at all about somebody who was not at this night', () => {
+    expect(receiptRows(result, 'nobody')).toEqual([]);
   });
 });

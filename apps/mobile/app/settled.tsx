@@ -79,20 +79,23 @@ export default function NightResults() {
   return (
     <Screen title={nightDate(night.startedAt)} meta={metaLine(night, ledger)} backTo="the club">
       {/*
-       * A ROW IS A DOOR INTO THAT PERSON'S NIGHT — T2/T4, the same player card
-       * the table opens during the game, now with what the rules took off them
-       * under it. E6 leaves this open ("whether the deductions block is
-       * tappable through to the individual entries"), and the answer a host
-       * actually needs is the one a player asks out loud a week later: *why is
-       * my number this*. The row says what came off; the card says which rebuy,
-       * which spend, and at what time.
+       * A ROW OPENS INTO ITSELF, not into another screen — the receipt, per
+       * `E6-row-formula.md`, cut 31 August.
+       *
+       * IT USED TO PUSH THE PLAYER CARD, because the question a settled night
+       * gets asked a week later is *why is my number this* and no screen in
+       * the app could answer it. The receipt answers it in place: cash out,
+       * buy-in, every term of the bill, the piggy bank, and the same `Net` the
+       * row was already showing. The door existed for a question that now has
+       * an answer where the question is asked.
+       *
+       * The addendum leaves open "whether the expanded receipt is also the
+       * route into the individual entries, or whether that stays with Full
+       * ledger". Neither is drawn, so neither is built: a row does one thing,
+       * and the entry list is reachable from the night while it is being
+       * played. `docs/screens.md` carries this as an open item.
        */}
-      <NightResult
-        result={result}
-        ledger={ledger}
-        loggedBy={null}
-        onOpenPlayer={(id) => router.push({ pathname: '/player', params: { id } })}
-      />
+      <NightResult result={result} ledger={ledger} loggedBy={null} />
 
       {/*
        * DELIBERATE DEVIATION, and the only one on this screen.

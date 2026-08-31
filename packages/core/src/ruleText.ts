@@ -201,19 +201,16 @@ export function destinationWord(destination: RuleDestination): string {
 }
 
 /**
- * The same destination where a row has no width for it — "piggy".
+ * The same destination as a term at the head of a line — "Bill", "Piggy bank".
  *
- * ONE PLACE, NOT A FOURTH SPELLING. `destinationWord` above is the whole
- * phrase and stays the phrase everywhere there is room for it; this is the
- * one abbreviation, and it exists because E6's player row now carries the
- * whole working — in, out, and every kind that touched the person — on a line
- * 316 points wide. "piggy bank" spent eleven characters of it saying the
- * second word nobody needs beside a figure.
- *
- * Every other destination is already short, so this is `kitty` and nothing
- * else. A new destination that needs shortening gets a case here rather than
- * a `.replace()` on a screen.
+ * `destinationWord` above is the phrase inside a sentence and stays lower case
+ * there; this is the same phrase where it opens a row of its own, which is the
+ * only place in the app a destination is capitalised. E6's receipt draws
+ * `Bill · share` and `Piggy bank`, and a screen doing its own `.toUpperCase()`
+ * on the first letter is a screen that will get "Next Pot" wrong the day a
+ * destination is two words with a small one second.
  */
-export function destinationShort(destination: RuleDestination): string {
-  return destination === 'kitty' ? 'piggy' : destinationWord(destination);
+export function destinationTerm(destination: RuleDestination): string {
+  const word = destinationWord(destination);
+  return word.charAt(0).toUpperCase() + word.slice(1);
 }

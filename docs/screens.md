@@ -416,33 +416,61 @@ and names somebody a watcher cannot ask.
 **Whether a row opens anything — answered for the players, not for the
 deductions.** The cut's own open list asks "whether the deductions block is
 tappable through to the individual entries". The deductions block is not: it is
-totals, and it stays totals. A PLAYER's row is, and it opens their card, because
-the question a settled night gets asked a week later is *why is my number this*
-and no screen in the app could answer it. That door brings two deviations from
-the logic doc with it, both marked in `NightResult.tsx`:
+totals, and it stays totals. A PLAYER's row is, and the 31 August addendum
+decides what it opens into: itself. Everything below is that row, and all of it
+is marked in `NightResult.tsx`:
 
-* **The second line carries the working, not just in and out.** E6 draws
-  `in ${in} · out ${out}` and puts the deductions below as totals only. The net
-  beside that line is already after deductions, so the only arithmetic the row
-  invites — out minus in — disagreed with the figure printed next to it, with
-  nothing on the screen to explain the gap. The line reads
-  `$500 in, $620 out, bill: −$29 +$120, piggy: −$50` now, a term only where
-  there is money in it, and the row reconciles. The totals block below is
-  untouched. The words are `destinationShort`'s and the figures are
-  `playerDeductions`', both in `packages/core` — no screen adds this up.
+* **The row states the result; tapping it states the reason.**
+  `design/handoff-E6/docs/E6-row-formula.md`, cut 31 August, is an addendum to
+  the logic doc and it settles this: the `in ${in} · out ${out}` sub-line is
+  **removed**, a collapsed row is a name and a net at 40 points instead of 60,
+  and the arithmetic arrives when the row is opened — `Cashed out`,
+  `Bought in`, each bill term, the piggy bank, and a `Net` that closes it.
+  Every term that is not zero appears and **nothing is netted**: a player who
+  paid at the counter sees `Bill · share −$54` and `Bill · paid it +$242`
+  rather than a merged figure. One row is open at a time.
 
-  **It was rewritten short on 31 August**, and the three things that changed
-  are all length: the figure comes before its word, a comma replaces the middle
-  dot, and each kind is ONE term with its charge and its reimbursement inside it
-  — `bill: −$29 +$120` is one bill seen from both sides rather than a charge and
-  an unrelated `back`. The old form was 62 characters and took three lines on a
-  360-wide phone; this is 49 and takes two. `destinationShort` is the one place
-  "piggy bank" is abbreviated, and every screen with room for it still says the
-  whole phrase.
-* **A chevron where the row is a door.** E6 draws none, and `/watch` still has
-  none: it is reading somebody else's night over the wire and has no card on
-  this phone to open. Where the row does open something it carries the same mark
-  every other list in the app uses for one.
+  The rows and their figures are `receiptRows` and `nightScore` in
+  `packages/core` — the screen prints them and adds nothing, which is the only
+  reason the last line of the receipt can be trusted to be the same number as
+  the first. The copy is genderless (`· share`, `· paid it`); the board says
+  "his" because the sample player is Petr, and the doc says so.
+
+  **The sub-line went because it could not be made to reconcile.** It was
+  rewritten short on 31 August — `$500 in, $620 out, bill: −$29 +$120` — and
+  the addendum landed the same day with the better answer: two of five terms on
+  a line invite the reader to do maths that comes out wrong, and the row is
+  393 points wide however the terms are spelled.
+
+* **Dark keeps a tinted row fill; bright does not.** The one place B23 is
+  deliberately reversed, and only in one theme. `rgba(111,207,151,.13)` on a
+  win and `rgba(240,112,92,.13)` on a loss, radius 8, no hairline — the doc's
+  reason is that at 13% on `#0A0A0B` the wash reads as a band rather than as
+  emphasis. The bright theme has no such alpha and stays hairlines with the
+  colour on the figure alone. `ui-audit.mjs` carries the exception by name:
+  `tinted-result-row` skips a node marked `e6-row` **only** under
+  `prefers-color-scheme: dark`, so a fill leaking into the bright theme is
+  still a finding.
+
+  The tokens are `winTint` at 14% and `dangerWash` at 12% where the board says
+  13% for both. One point of alpha, invisible at any size, against an edit to
+  `tokens.ts` — which `CLAUDE.md` says runs alone with nothing else in flight.
+  Same call as the loss hex below.
+
+* **A chevron that opens the row, not one that leaves it.** Down closed, up
+  open, 13 × 13 at stroke 2.4 — `chevronDown` is new in `Icon.tsx` and is
+  `chevronUp` upside down at the same weight, because a row that opens and
+  closes may not appear to change its stroke while doing it. `/watch` gets the
+  receipt too: it is reading somebody else's night over the wire, and the
+  receipt is made of figures that came with it.
+
+* **The row no longer opens the player card, and that is a loss worth naming.**
+  It used to push T2/T4, because *why is my number this* had no answer anywhere
+  in the app. The receipt answers it where the question is asked. What the card
+  also had — which rebuy, which spend, at what time — is not in the receipt, and
+  the addendum's own open item is "whether the expanded receipt is also the
+  route into the individual entries, or whether that stays with **Full
+  ledger**". Neither is drawn, so neither is built. **Open.**
 
 **A row prints a score, not a balance — and the float is named underneath.**
 B27, and the one deviation on this screen that changes a figure rather than a

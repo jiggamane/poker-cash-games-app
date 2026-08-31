@@ -35,6 +35,8 @@ export type IconName =
   | 'close'
   /** The dock's disclosure, pointing at the drawer it opens. */
   | 'chevronUp'
+  /** Its opposite: a row that opens downward into itself — E6's receipt. */
+  | 'chevronDown'
   /** Seat a player. */
   | 'person'
   /** Cash a player out — a seat emptying, not a warning. */
@@ -248,6 +250,24 @@ export function Icon({
         <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
           <Path
             d="M5 15l7-7 7 7"
+            stroke={color}
+            strokeWidth={2.4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    /* The same glyph the other way up, at the same weight, because a row that
+       opens and closes may not appear to change its stroke while doing it.
+       `Result Formula Options.dc.html` draws the pair at 13 on a 24 box. */
+    case 'chevronDown': {
+      const s = size ?? 16;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M5 9l7 7 7-7"
             stroke={color}
             strokeWidth={2.4}
             strokeLinecap="round"
