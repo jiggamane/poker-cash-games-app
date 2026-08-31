@@ -213,6 +213,99 @@ board for and the night a host most needs the row.
 The filter now lives in `resultRows` in core, named rather than inlined, and the
 hole is a case in it rather than a hope about it.
 
+### B32 — the whole app settled up in dollars, whatever the group played in
+
+```
+Screen      thirty-one of them. Every screen that draws an amount: Tonight,
+            Count up, Deductions, Settle up, the settled night, the player
+            card, the log, the rules, My stats — all of it
+Seen        a club picks its currency when it is made, changes it from the
+            game's own settings, and reads it back on Settings → Currency.
+            Every figure in the app is still a dollar. A group keeping its
+            book in koruna counts Kč5,000 onto the table and is told it owes
+            $1,750
+Expected    the group's own currency, everywhere an amount is drawn
+Found       31 Aug, from the table
+Locked by   npm run check — `moneyScreens.contract.test.ts`, "every figure in
+            the app is written in the group's own currency": no screen may
+            import a formatter straight from core, no screen may write a
+            symbol into its own markup, and the module they all import from
+            has no default. And npm run check:ui — `ui-currency.mjs`, a third
+            pass that walks the money screens with the book kept in CHF
+Status      fixed in HEAD
+```
+
+**Every formatter has taken a currency symbol since the day it was written.**
+`formatMoney(amount, currencySymbol = '$')` — the parameter was there, the
+default was there, and in 141 call sites across the app nobody ever passed one.
+That is the whole bug, and it is worth being precise about the shape of it: this
+was never a missing feature. It was a default that was right for the club that
+happened to be seeded and silently wrong for every other one.
+
+**So the fix is an import, not a hundred and forty arguments.** Threading the
+symbol through every call site would have fixed today's screens and lost the
+next one somebody wrote, because the default is what a call site gets for saying
+nothing. `apps/mobile/src/lib/money.ts` re-exports every formatter bound to the
+club's own symbol and **has no default to fall back on**; the app imports from
+there, and a new call site is right by construction. The contract test holds the
+other half — nothing may reach past it to core — because an import is exactly
+the kind of thing that comes back one file at a time.
+
+**It stays out of `packages/core` for the reason core is pure.** The edge
+functions import it, and there one process settles other people's books; a
+module-level "current currency" there would be a fact about whichever night was
+touched last. The app has one group open at a time, and the club store already
+knows which.
+
+**Three things it turned out to be, beyond the formatters.** A `$` typed
+straight into the JSX on the seat sheet, where the symbol stands alone in front
+of a text input rather than in front of a figure — which is why every grep for a
+formatter missed it. The rounding copy, where the step is an amount:
+`Nearest $10`, `stacks snap to $10`, `Rounded to $10 +$5`. And `ruleDetail` in
+core, which built `$170 spent so far` out of a default of its own.
+
+### B33 — and then none of the figures fit
+
+```
+Screen      Tonight, Count up, Settle up, the club card
+Seen        with the book kept in CHF at 360 × 852 and 120% text: the buy-in
+            on Tonight running 206 points into 163, both figures on Count
+            up's balance block over their edges, `CHF2,120 cashed out` 17
+            points past the block, and `in CHF500 · out CHF2,120` wrapping to
+            two lines on three screens
+Expected    a figure inside its box in any currency the app offers
+Found       31 Aug, immediately after B32, by measuring it
+Locked by   npm run check:ui — `ui-currency.mjs`
+Status      fixed in HEAD
+```
+
+**Fixing B32 is what caused it, and it was entirely predictable.** Every
+`exactBelow` threshold in this app was measured against a one-character `$`.
+`Kč` is two glyphs and `CHF` is three, so a three-letter currency puts two extra
+digits' worth of width in front of every amount in the app — width that was
+never there and that no check could see, because both screen tools run on the
+seeded club and the seeded club keeps its book in dollars.
+
+**A glyph of symbol costs about what a digit costs**, so the fix is one rule in
+one place: each extra glyph moves the abbreviation threshold down a decade. `$`
+is unchanged, `Kč` abbreviates at a tenth, `CHF` at a hundredth. Twenty
+thresholds stay where they were measured and none of them has to be re-measured
+per currency.
+
+**At three glyphs the figure gives one back as well.** Abbreviating earlier is
+not enough on its own: `CHF4.5k` is seven glyphs where `$4,500` is six, so the
+column is still worse off than it was drawn for. Dropping the decimal —
+`CHF5k`, five glyphs — is what actually buys the room back, and it is the same
+trade `formatCompact` already makes above a hundred.
+
+**One thing is left, and it is left deliberately.** At 360 with a three-letter
+currency, `in CHF500 · out CHF0` on the settle-up row takes two lines. Both
+figures are under a thousand so no abbreviation can shorten them, and the only
+other lever is cutting one, which is B12 and is never the better answer. So
+`ui-currency.mjs` is looser than `ui-journeys.mjs` by exactly one rule, with the
+reason written at the top of it: **a clip is a fault and a wrap is not**. What
+may never happen is a figure going off the side of its box.
+
 ### B31 — the collector came back into the table, holding nothing
 
 ```

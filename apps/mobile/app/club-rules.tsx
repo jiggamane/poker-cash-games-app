@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, type MoneyRule } from '@poker-club/core';
+import { type MoneyRule } from '@poker-club/core';
+import { formatMoney } from '../src/lib/money';
 import { Icon } from '../src/components/Icon';
 import { RoundingRow } from '../src/components/RoundingRow';
 import { Screen } from '../src/components/Screen';

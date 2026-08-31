@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { roundingRowLabel, roundingRowValue, type Money, type RoundingMode } from '@poker-club/core';
+import { type Money, type RoundingMode } from '@poker-club/core';
+import { roundingRowLabel, roundingRowValue } from '../lib/money';
 import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';
 import { space } from '../design/tokens';

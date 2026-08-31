@@ -209,6 +209,13 @@ export function formatSigned(amount: Money, currencySymbol = '$'): string {
  * would be both longer to read and wrong. From a thousand it is `k`, from a
  * million `M`.
  *
+ * `decimal: false` GIVES A GLYPH BACK, and it exists for one reason: the
+ * currency symbol in front of the figure is not always one character wide.
+ * `CHF4.5k` is seven glyphs where `$4,500` is six, so a book kept in a
+ * three-letter currency needs the figure to be shorter than the dollar version
+ * rather than the same length. `CHF5k` is five. See `fitFor` in the app's
+ * `money.ts`, which is the only caller that asks for it.
+ *
  * THREE SIGNIFICANT DIGITS AND NO MORE, which is what actually bounds the
  * width: a decimal while the scaled figure is under a hundred — 7k, 18.5k —
  * and none above it, 526k rather than 525.6k. That last one is not a nicety.
@@ -219,7 +226,7 @@ export function formatSigned(amount: Money, currencySymbol = '$'): string {
  * The sign is the same U+2212 the boards set, for the same reason: a minus is
  * the width of a digit and a hyphen is not.
  */
-export function formatCompact(amount: Money, currencySymbol = '$'): string {
+export function formatCompact(amount: Money, currencySymbol = '$', decimal = true): string {
   const sign = amount < 0 ? '\u2212' : '';
   const n = Math.abs(amount);
   if (n < 1_000) return `${sign}${currencySymbol}${n.toLocaleString('en-US')}`;
@@ -234,7 +241,7 @@ export function formatCompact(amount: Money, currencySymbol = '$'): string {
     [1_000_000, 'M'],
   ] as const) {
     const scaled = n / unit;
-    const shown = scaled.toFixed(scaled < 100 ? 1 : 0).replace(/\.0$/, '');
+    const shown = scaled.toFixed(decimal && scaled < 100 ? 1 : 0).replace(/\.0$/, '');
     if (Number(shown) < 1_000) return `${sign}${currencySymbol}${shown}${suffix}`;
   }
   // Past a billion the app has bigger problems than a column width.
@@ -247,11 +254,15 @@ export function formatCompact(amount: Money, currencySymbol = '$'): string {
  * `$0` has no sign, because zero is not a win or a loss and drawing it as one
  * is the single most confusing thing a results column can do.
  */
-export function formatSignedCompact(amount: Money, currencySymbol = '$'): string {
+export function formatSignedCompact(
+  amount: Money,
+  currencySymbol = '$',
+  decimal = true,
+): string {
   if (amount === 0) return `${currencySymbol}0`;
   return amount > 0
-    ? `+${formatCompact(amount, currencySymbol)}`
-    : formatCompact(amount, currencySymbol);
+    ? `+${formatCompact(amount, currencySymbol, decimal)}`
+    : formatCompact(amount, currencySymbol, decimal);
 }
 
 /**

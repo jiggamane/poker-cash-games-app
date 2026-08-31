@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { formatToFit, money, resolveLedger } from '@poker-club/core';
+import { money, resolveLedger } from '@poker-club/core';
+import { formatToFit, moneySymbol } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
@@ -224,7 +225,12 @@ export default function Seat() {
       <View style={[styles.stake, { borderColor: t.hairline }]}>
         <Text style={[styles.stakeLabel, { color: t.text }]}>First buy-in</Text>
         <View style={[styles.stakeField, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-          <Text style={[styles.stakeCurrency, { color: stakeOk ? t.text : t.muted }]}>$</Text>
+          {/* The group's own, not a dollar sign. It is the one place in this
+              app where the symbol stands alone rather than in front of a
+              figure, which is exactly how it stayed a dollar for so long. */}
+          <Text style={[styles.stakeCurrency, { color: stakeOk ? t.text : t.muted }]}>
+            {moneySymbol()}
+          </Text>
           <TextInput
             value={typed}
             onChangeText={(v) => setStake(v.replace(/[^0-9]/g, ''))}

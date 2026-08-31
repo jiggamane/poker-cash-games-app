@@ -3,8 +3,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   chargeCeiling,
-  formatMoney,
-  formatToFit,
   manualChargeOf,
   money,
   resolveLedger,
@@ -15,6 +13,7 @@ import {
   type PlayerId,
   type SettlementResult,
 } from '@poker-club/core';
+import { formatMoney, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Keypad } from '../src/components/Keypad';
 import { PRESET_FITS, Preset } from '../src/components/Preset';

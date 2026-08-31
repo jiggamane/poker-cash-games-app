@@ -59,7 +59,7 @@ if [ "$up" != 1 ]; then
   exit 1
 fi
 
-# --- both passes; run the second even if the first fails ---------------------
+# --- all three passes; each runs even if the one before it failed ------------
 # A run that stops at the first failure hides the rest, and the whole point is
 # to see everything that is wrong in one go rather than one bug per round trip.
 failed=0
@@ -71,6 +71,10 @@ node scripts/ui-audit.mjs || failed=1
 echo
 echo "── a big night played through, checking no figure is cut off ──"
 node scripts/ui-journeys.mjs || failed=1
+
+echo
+echo "── the same screens in a three-letter currency ──"
+node scripts/ui-currency.mjs || failed=1
 
 echo
 if [ "$failed" = 0 ]; then

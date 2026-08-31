@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, type Money, type PlayerId } from '@poker-club/core';
+import { type Money, type PlayerId } from '@poker-club/core';
+import { formatMoney } from '../lib/money';
 import { Icon } from './Icon';
 import { Pill } from './Pill';
 import { useTheme } from '../design/useTheme';

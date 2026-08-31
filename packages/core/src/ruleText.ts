@@ -87,14 +87,18 @@ export function ruleDetail(
     taken?: Money;
     /** The collector's name, resolved by whoever holds the roster. */
     collectorName?: string;
+    /** The group's own money. A book kept in koruna says so on its rules too. */
+    currencySymbol?: string;
   } = {},
 ): string {
+  const money = (amount: Money): string => formatMoney(amount, context.currencySymbol ?? '$');
+
   const how =
     rule.destination === 'bill'
-      ? `${formatMoney(context.spent ?? (0 as Money))} spent so far`
+      ? `${money(context.spent ?? (0 as Money))} spent so far`
       : rule.amountKind === 'percent'
         ? `${rule.amount}% of win`
-        : `${formatMoney(rule.amount)} fixed`;
+        : `${money(rule.amount)} fixed`;
 
   const who =
     rule.split === 'custom'
@@ -112,7 +116,7 @@ export function ruleDetail(
         ? 'held by the group'
         : `${context.collectorName} collects`;
 
-  const tail = context.taken === undefined ? '' : ` · ${formatMoney(context.taken)} tonight`;
+  const tail = context.taken === undefined ? '' : ` · ${money(context.taken)} tonight`;
   return `${how} · ${who} · ${holder}${tail}`;
 }
 
@@ -127,12 +131,38 @@ export function ruleDetail(
  * correctly below. What is OFFERED is these four: cents needs amounts held in
  * minor units, which is not built, and fifties has never been asked for.
  */
-export const ROUNDING_CHOICES: ReadonlyArray<{ mode: RoundingMode; chip: string }> = [
-  { mode: 'dollars', chip: 'Off' },
-  { mode: 'tens', chip: 'Nearest $10' },
-  { mode: 'fifties', chip: 'Nearest $50' },
-  { mode: 'hundreds', chip: 'Nearest $100' },
+export const ROUNDING_MODES: readonly RoundingMode[] = [
+  'dollars',
+  'tens',
+  'fifties',
+  'hundreds',
 ];
+
+/**
+ * The four rows, named in the group's own money.
+ *
+ * A FUNCTION RATHER THAN A CONSTANT, since 31 August, because three of the four
+ * names carry an amount — and an amount in this app is written in whatever
+ * currency the group keeps its book in. A frozen array reading `Nearest $10` is
+ * a list of four strings that are wrong for every group that does not play in
+ * dollars.
+ */
+export function roundingChoices(
+  currencySymbol = '$',
+): ReadonlyArray<{ mode: RoundingMode; chip: string }> {
+  return ROUNDING_MODES.map((mode) => {
+    const step = granularityOf(mode);
+    return {
+      mode,
+      chip: step === 1 ? 'Off' : `Nearest ${stepAmount(step, currencySymbol)}`,
+    };
+  });
+}
+
+/** "$10", "€50" — a step written as money, which is what it is. */
+function stepAmount(step: number, currencySymbol: string): string {
+  return `${currencySymbol}${step.toLocaleString('en-US')}`;
+}
 
 /*
  * THE FOUR ROWS THE SHEET DRAWS, and they changed on 31 August.
@@ -156,9 +186,12 @@ export const ROUNDING_CHOICES: ReadonlyArray<{ mode: RoundingMode; chip: string 
  * the same row and open the same sheet, and a second spelling of it on either
  * would be the app disagreeing with itself about what the night is set to.
  */
-export function roundingRowLabel(mode: RoundingMode | null | undefined): string {
+export function roundingRowLabel(
+  mode: RoundingMode | null | undefined,
+  currencySymbol = '$',
+): string {
   const step = granularityOf(mode);
-  return step === 1 ? 'Rounding · off' : `Rounding · nearest $${step.toLocaleString('en-US')}`;
+  return step === 1 ? 'Rounding · off' : `Rounding · nearest ${stepAmount(step, currencySymbol)}`;
 }
 
 /**
@@ -172,16 +205,17 @@ export function roundingRowLabel(mode: RoundingMode | null | undefined): string 
 export function roundingRowValue(
   mode: RoundingMode | null | undefined,
   remainder?: Money | null,
+  currencySymbol = '$',
 ): string {
   const step = granularityOf(mode);
   if (step === 1) return 'stacks as counted';
   if (remainder === null || remainder === undefined || remainder === 0) {
-    return `stacks snap to $${step.toLocaleString('en-US')}`;
+    return `stacks snap to ${stepAmount(step, currencySymbol)}`;
   }
   /* Signed, and pointing at where it landed. The piggy bank funds a positive
      remainder and keeps a negative one; the arrow says which way it went. */
   const sign = remainder > 0 ? '−' : '+';
-  return `${sign}$${Math.abs(remainder).toLocaleString('en-US')} → piggy`;
+  return `${sign}${currencySymbol}${Math.abs(remainder).toLocaleString('en-US')} → piggy`;
 }
 
 /**
@@ -223,11 +257,14 @@ export function roundingLabel(mode: RoundingMode | null | undefined): string {
  * done, and a row explaining the absence of a setting is noise on a screen
  * whose whole job is to make the settings that ARE unusual visible.
  */
-export function roundingSentence(mode: RoundingMode | null | undefined): string {
+export function roundingSentence(
+  mode: RoundingMode | null | undefined,
+  currencySymbol = '$',
+): string {
   const step = granularityOf(mode);
   return step === 1
-    ? 'Stacks are counted as they are, and each rule works out to the dollar'
-    : `Stacks snap to $${step.toLocaleString('en-US')}, and so does what each rule takes`;
+    ? 'Stacks are counted as they are, and each rule works out to the unit'
+    : `Stacks snap to ${stepAmount(step, currencySymbol)}, and so does what each rule takes`;
 }
 
 /**

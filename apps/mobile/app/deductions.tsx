@@ -2,10 +2,6 @@ import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
-  formatCompact,
-  formatToFit,
-  formatMoney,
-  formatSignedCompact,
   manualChargeOf,
   money,
   reconcile,
@@ -16,6 +12,13 @@ import {
   type MoneyRule,
   type PlayerId,
 } from '@poker-club/core';
+import {
+  formatCompactUnmarked,
+  formatMoney,
+  formatSignedCompact,
+  formatSignedCompactUnmarked,
+  formatToFit,
+} from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
@@ -623,10 +626,10 @@ const amountFor = (
  * repeated six times down a 46pt cell is what pushed the digits out of it.
  * Every one of these appears exactly, in full, in the rule block above.
  */
-const compact = (m: Money): string => formatCompact(m, '').replace(/^\u2212/, '−');
+const compact = (m: Money): string => formatCompactUnmarked(m).replace(/^\u2212/, '−');
 
 /** A cell that is empty at nought: a zero share is a rule that did not apply. */
-const signed = (m: Money): string => (m === 0 ? '' : formatSignedCompact(m, ''));
+const signed = (m: Money): string => (m === 0 ? '' : formatSignedCompactUnmarked(m));
 
 const styles = StyleSheet.create({
   failure: { fontSize: 13.5, fontWeight: '400', lineHeight: 20, marginHorizontal: 20 },

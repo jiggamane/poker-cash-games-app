@@ -4,15 +4,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   checkReconciliation,
   endedWith,
-  formatMoney,
-  formatSigned,
-  formatSignedToFit,
-  formatToFit,
   resolveLedger,
   settle,
   type Money,
   type PlayerId,
 } from '@poker-club/core';
+import { formatMoney, formatSignedToFit, formatSignedUnmarked, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
@@ -341,7 +338,7 @@ function NetChip({ name, amount }: { name: string; amount: Money }) {
     <View style={[styles.chip, { borderColor: t.hairline }]}>
       <Text style={[styles.chipName, { color: t.text }]}>{name}</Text>
       <Text style={[styles.chipFigure, { color: won ? t.win : t.loss }]}>
-        {formatSigned(amount, '')}
+        {formatSignedUnmarked(amount)}
       </Text>
     </View>
   );

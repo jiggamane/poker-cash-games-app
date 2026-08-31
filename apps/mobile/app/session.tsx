@@ -1,13 +1,8 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
-import {
-  formatMoney,
-  formatSigned,
-  formatToFit,
-  resolveLedger,
-  type Money,
-} from '@poker-club/core';
+import { resolveLedger, type Money } from '@poker-club/core';
+import { formatMoney, formatSigned, formatToFit } from '../src/lib/money';
 import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';

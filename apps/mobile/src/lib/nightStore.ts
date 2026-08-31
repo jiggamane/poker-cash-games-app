@@ -3,7 +3,6 @@ import type * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
 import { database } from './db';
 import {
-  formatMoney,
   money,
   nightScore,
   resolveLedger,
@@ -18,6 +17,7 @@ import {
   type RoundingMode,
   type SettlementInput,
 } from '@poker-club/core';
+import { formatMoney } from './money';
 import { CLAIM_LIVE_NIGHTS } from './hostSeat';
 import { outbox, recordEntry } from './ledgerRepo';
 import { queuePlayer, queueSessionOpen } from './sync';

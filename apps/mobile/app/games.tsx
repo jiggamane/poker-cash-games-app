@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatSigned, formatSignedToFit, type Money } from '@poker-club/core';
+import { type Money } from '@poker-club/core';
+import { formatSigned, formatSignedToFit } from '../src/lib/money';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';

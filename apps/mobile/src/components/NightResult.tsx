@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   columnsFit,
-  formatSignedToFit,
-  formatToFit,
   prizePool,
   receiptRows,
   resultColumns,
@@ -16,6 +14,7 @@ import {
   type RoundingMode,
   type SettlementResult,
 } from '@poker-club/core';
+import { formatSignedToFit, formatToFit } from '../lib/money';
 import { Icon } from './Icon';
 import { RoundingBar } from './RoundingBar';
 import { moneyColor, useTheme, useThemeName } from '../design/useTheme';

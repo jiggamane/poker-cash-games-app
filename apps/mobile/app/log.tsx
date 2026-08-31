@@ -1,14 +1,8 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import {
-  formatMoney,
-  formatSigned,
-  formatToFit,
-  money,
-  resolveLedger,
-  type Money,
-} from '@poker-club/core';
+import { money, resolveLedger, type Money } from '@poker-club/core';
+import { formatMoney, formatSigned, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Keypad } from '../src/components/Keypad';

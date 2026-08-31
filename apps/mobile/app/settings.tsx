@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
-import { formatMoney } from '@poker-club/core';
+import { formatMoney } from '../src/lib/money';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
@@ -172,7 +172,7 @@ export default function Settings() {
           value={
             club === null || currency === null
               ? '—'
-              : formatMoney(club.defaultBuyIn, currency.symbol)
+              : formatMoney(club.defaultBuyIn)
           }
         />
         <Action label="Money rules" onPress={() => router.push('/club-rules')} last />

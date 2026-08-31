@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
+import { useMoneySymbol } from '../lib/money';
 import { useKeyboardInset, useKeyboardUp } from '../lib/keyboard';
 import { chrome, space, type } from '../design/tokens';
 import { Icon } from './Icon';
@@ -64,6 +65,12 @@ export function Sheet({
   onClose?: () => void;
 }) {
   const t = useTheme();
+  /* SUBSCRIBED, NOT READ. `money.ts` reads the group's symbol at call time, so
+     the figures below are right whenever they are drawn — but nothing would
+     redraw them when the currency changes. Both chromes take the subscription
+     instead of every screen taking it, which is thirty-seven screens covered by
+     two lines. */
+  useMoneySymbol();
   const insets = useSafeAreaInsets();
   const window = useWindowDimensions();
   const keyboardUp = useKeyboardUp();

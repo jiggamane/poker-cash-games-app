@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { formatMoney, money, type Money, type MoneyRule } from '@poker-club/core';
+import { money, type Money, type MoneyRule } from '@poker-club/core';
+import { formatMoney } from '../lib/money';
 import { Button } from './Button';
 import { useTheme } from '../design/useTheme';
 import { radius, space, type } from '../design/tokens';

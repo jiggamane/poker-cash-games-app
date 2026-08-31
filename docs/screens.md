@@ -389,6 +389,45 @@ audit's `PARAMS` map now opens it with the seeded night's bill on it, and
 `ui-journeys.mjs` reaches it the way a host does — by tapping a charge on
 Deductions — which is the only path that has a real night behind it.
 
+## The group's own money
+
+Every amount in the app is written in the currency the group keeps its book in.
+It is picked when the group is made, changed from the **Currency** row in the
+game's own settings, and read back on Settings. Until 31 August exactly two
+screens looked at the answer and the other thirty-one drew dollars — B32.
+
+**The app imports its formatters from `src/lib/money.ts`, never from core.**
+Every formatter in `packages/core` has taken a currency symbol since it was
+written and defaults to `$` when nobody passes one, which is what let this
+happen: 141 call sites, none of them passing anything. The app's own module
+binds all of them to the club's symbol and **has no default**, so a new call
+site is right by construction rather than by remembering. `roundingChoices`,
+`roundingRowLabel`, `roundingRowValue`, `roundingSentence`, `ruleDetail`,
+`stakesLabel` and the rest go the same way — the step and the stakes are amounts
+too.
+
+Core stays pure: the Supabase edge functions import it, and there one process
+settles other people's books, so a module-level "current currency" would be a
+fact about whichever night was touched last.
+
+**Two escapes, both named rather than optional.** `formatUnmarked` and its
+siblings draw a figure with no symbol at all — E3's preview grid and E4's net
+chips, both narrow columns that name their currency once at the head instead of
+six times down a 46-point cell. They are separate names on purpose: an override
+argument would put the default back.
+
+**A wider symbol abbreviates earlier — B33.** Every width in this app was
+measured against a one-character `$`, and `CHF` is three. Each extra glyph moves
+the abbreviation threshold down a decade, and at three glyphs the figure drops
+its decimal as well (`CHF5k`, not `CHF4.5k`). One rule in one place; twenty
+thresholds stay where the boards put them.
+
+`npm run check:ui` walks the money screens a third time with the book kept in
+CHF (`ui-currency.mjs`). It is looser than the journeys by one rule, with the
+reason at the top of the file: **a clip is a fault and a wrap is not**. At 360
+`in CHF500 · out CHF0` takes two lines, both figures are under a thousand so
+nothing can shorten them, and cutting one would be B12.
+
 ## Rounding, and the one setting that means two things
 
 `design/handoff-E2/docs/E2-rounding.md`, cut 31 August. **The step is set at the

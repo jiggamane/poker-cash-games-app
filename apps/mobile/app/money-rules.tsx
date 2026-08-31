@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
-import { resolveLedger, ruleDetail, settle, type MoneyRule } from '@poker-club/core';
+import { resolveLedger, settle, type MoneyRule } from '@poker-club/core';
+import { ruleDetail } from '../src/lib/money';
 import { RoundingRow } from '../src/components/RoundingRow';
 import { SpendList } from '../src/components/SpendList';
 import { RuleList } from '../src/components/RuleList';

@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatMoney, resolveLedger, settle, type Money, type MoneyRule } from '@poker-club/core';
+import { resolveLedger, settle, type Money, type MoneyRule } from '@poker-club/core';
+import { formatMoney } from '../src/lib/money';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';

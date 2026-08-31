@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { formatSigned, type Money } from '@poker-club/core';
+import { type Money } from '@poker-club/core';
+import { formatSigned } from '../lib/money';
 import { useTheme } from '../design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../design/tokens';
 import { largestResult, niceScale, plotBar } from '../lib/nightsChart';

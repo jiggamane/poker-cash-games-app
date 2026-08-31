@@ -242,6 +242,22 @@ const subscribe = (l: () => void) => {
 };
 const snapshot = () => state;
 
+/**
+ * The club, read without a hook.
+ *
+ * `useClub` is the same answer for a component that wants to re-render when it
+ * changes. This is for the two places that cannot ask that way: `money.ts`,
+ * which formats amounts inside plain functions, and anything else that needs
+ * the book's own currency at call time rather than at render time.
+ */
+export function currentClub(): Club | null {
+  const { clubs, currentId } = state;
+  return clubs.find((c) => c.id === currentId) ?? clubs[0] ?? null;
+}
+
+/** Subscribe to the club from outside React. Returns the unsubscribe. */
+export const onClubChange = subscribe;
+
 export function useClubs(): State {
   return useSyncExternalStore(subscribe, snapshot, snapshot);
 }

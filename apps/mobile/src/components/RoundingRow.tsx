@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { roundingLabel, roundingSentence, type RoundingMode } from '@poker-club/core';
+import { roundingLabel, type RoundingMode } from '@poker-club/core';
+import { roundingSentence } from '../lib/money';
 import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';
 import { space, type } from '../design/tokens';

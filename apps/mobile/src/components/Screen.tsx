@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
+import { useMoneySymbol } from '../lib/money';
 import { chrome, space, type } from '../design/tokens';
 import { Icon } from './Icon';
 import { Pill } from './Pill';
@@ -104,6 +105,12 @@ export function Screen({
   dimmed?: boolean;
 }) {
   const t = useTheme();
+  /* SUBSCRIBED, NOT READ. `money.ts` reads the group's symbol at call time, so
+     the figures below are right whenever they are drawn — but nothing would
+     redraw them when the currency changes. Both chromes take the subscription
+     instead of every screen taking it, which is thirty-seven screens covered by
+     two lines. */
+  useMoneySymbol();
 
   const badgeNode = typeof badge === 'string' ? <Pill label={badge} /> : badge;
 

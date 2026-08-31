@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
-  formatMoney,
   granularityOf,
-  ROUNDING_CHOICES,
   stackRounding,
   type Money,
   type RoundingMode,
 } from '@poker-club/core';
+import {
+  formatMoney,
+  roundingChoices,
+} from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
@@ -151,7 +153,7 @@ export default function Rounding() {
       </Text>
 
       <View style={styles.rows}>
-        {ROUNDING_CHOICES.map((c) => {
+        {roundingChoices().map((c) => {
           const on = c.mode === choice;
           const sub = subline(c.mode);
 

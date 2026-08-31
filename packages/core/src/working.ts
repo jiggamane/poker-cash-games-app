@@ -83,6 +83,7 @@ export function workingRows(
   result: SettlementResult,
   rules: readonly MoneyRule[],
   playerId: PlayerId,
+  currencySymbol = '$',
 ): WorkingRow[] {
   const person = result.players.find((p) => p.playerId === playerId);
   if (person === undefined) return [];
@@ -157,7 +158,7 @@ export function workingRows(
   if (person.roundedBy !== 0) {
     rows.push({
       key: 'rounding',
-      label: `Rounded to $${result.rounding.step.toLocaleString('en-US')}`,
+      label: `Rounded to ${stepLabel(result.rounding.step, currencySymbol)}`,
       amount: person.roundedBy,
       kind: 'rounding',
       signed: true,
@@ -378,7 +379,11 @@ export interface ReceiptRow {
   signed: boolean;
 }
 
-export function receiptRows(result: SettlementResult, playerId: PlayerId): ReceiptRow[] {
+export function receiptRows(
+  result: SettlementResult,
+  playerId: PlayerId,
+  currencySymbol = '$',
+): ReceiptRow[] {
   const person = result.players.find((p) => p.playerId === playerId);
   if (person === undefined) return [];
 
@@ -434,7 +439,7 @@ export function receiptRows(result: SettlementResult, playerId: PlayerId): Recei
   if (person.roundedBy !== 0) {
     rows.push({
       key: 'rounding',
-      label: `Rounded to ${stepLabel(result.rounding.step)}`,
+      label: `Rounded to ${stepLabel(result.rounding.step, currencySymbol)}`,
       amount: person.roundedBy,
       signed: true,
     });
@@ -443,9 +448,9 @@ export function receiptRows(result: SettlementResult, playerId: PlayerId): Recei
   return rows;
 }
 
-/** "$10". The step as it is written wherever it is named. */
-function stepLabel(step: number): string {
-  return `$${step.toLocaleString('en-US')}`;
+/** "$10", "€50". The step as money, in the group's own. */
+function stepLabel(step: number, currencySymbol: string): string {
+  return `${currencySymbol}${step.toLocaleString('en-US')}`;
 }
 
 /**

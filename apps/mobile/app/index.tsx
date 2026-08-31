@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { formatMoney, type Money } from '@poker-club/core';
+import { type Money } from '@poker-club/core';
+import { formatMoney } from '../src/lib/money';
 import { useTheme, useThemeName } from '../src/design/useTheme';
 import { home, radius, type } from '../src/design/tokens';
 import { Icon, type IconName } from '../src/components/Icon';
-import { currencyFor } from '../src/data/currencies';
 import { useClub, type Club } from '../src/lib/clubStore';
 import { useElapsed } from '../src/lib/elapsed';
 import { useOnline } from '../src/lib/online';
@@ -98,8 +98,6 @@ export default function ClubHome() {
       ? null
       : ((ledger.boughtInByPlayer.get(meId) ?? 0) as Money);
 
-  const symbol = currencyFor(club?.currency ?? 'USD').symbol;
-
   return (
     <SafeAreaView
       // Home does not use `Screen`, so it carries the marks itself — see
@@ -146,7 +144,7 @@ export default function ClubHome() {
           <CardSkeleton />
         ) : games.length === 0 ? (
           host ? (
-            <StartCard club={club} fresh={fresh} symbol={symbol} />
+            <StartCard club={club} fresh={fresh} />
           ) : null
         ) : (
           <>
@@ -155,16 +153,15 @@ export default function ClubHome() {
                 <LiveCard
                   key={game.sessionId}
                   game={game}
-                  symbol={symbol}
                   /* One table and the card says what the ledger is doing;
                      two and it says what the table costs, because that is
                      the thing that now differs between them. */
                   meta={
                     !host && mine !== null && game.sessionId === night?.sessionId
-                      ? `you’re in for ${formatMoney(mine, symbol)} · ${game.seated} at the table`
+                      ? `you’re in for ${formatMoney(mine)} · ${game.seated} at the table`
                       : games.length === 1
                         ? `${game.seated} at the table · the ledger is open`
-                        : `${game.seated} at the table · ${game.buyIn === null ? '—' : formatMoney(game.buyIn, symbol)}`
+                        : `${game.seated} at the table · ${game.buyIn === null ? '—' : formatMoney(game.buyIn)}`
                   }
                 />
               ) : (
@@ -223,7 +220,7 @@ export default function ClubHome() {
  * its own, and it never wraps and never truncates: "PLAYING NOW · 3H…" is
  * worse than no status at all.
  */
-function LiveCard({ game, meta }: { game: OpenGame; symbol: string; meta: string }) {
+function LiveCard({ game, meta }: { game: OpenGame; meta: string }) {
   const t = useTheme();
   const running = useElapsed(game.startedAt);
   return (
@@ -267,7 +264,7 @@ async function goTo(sessionId: string, to = '/session'): Promise<void> {
 }
 
 /** H1 and H5 · no game running: the stakes are inherited, and the tap opens the night. */
-function StartCard({ club, fresh, symbol }: { club: Club | null; fresh: boolean; symbol: string }) {
+function StartCard({ club, fresh }: { club: Club | null; fresh: boolean }) {
   const t = useTheme();
   return (
     <Pressable
@@ -286,7 +283,7 @@ function StartCard({ club, fresh, symbol }: { club: Club | null; fresh: boolean;
         <Text style={[styles.cardMeta, { color: t.onFill }]} numberOfLines={1}>
           {fresh
             ? 'You’ll set the buy-in and blinds once, here'
-            : `${formatMoney(club?.defaultBuyIn ?? (0 as Money), symbol)} buy-in · same rules as last time`}
+            : `${formatMoney(club?.defaultBuyIn ?? (0 as Money))} buy-in · same rules as last time`}
         </Text>
       </View>
       <View style={styles.cardArrow}>

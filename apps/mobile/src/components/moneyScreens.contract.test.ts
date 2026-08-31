@@ -4,11 +4,12 @@ import path from 'node:path';
 import {
   granularityOf,
   money,
-  ROUNDING_CHOICES,
+  roundingChoices,
   roundingLabel,
   roundingRowLabel,
   roundingRowValue,
 } from '@poker-club/core';
+import { currencyFor } from '../data/currencies';
 
 /**
  * THREE DECISIONS OF 30 AUGUST, HELD BY SOMETHING THAT RUNS IN SECONDS.
@@ -141,14 +142,14 @@ describe('the game settings set how coarsely the table settles', () => {
    * it is simply no longer offered.
    */
   it('offers off, ten, fifty and a hundred', () => {
-    expect(ROUNDING_CHOICES.map((c) => c.mode)).toEqual([
+    expect(roundingChoices().map((c) => c.mode)).toEqual([
       'dollars',
       'tens',
       'fifties',
       'hundreds',
     ]);
-    expect(ROUNDING_CHOICES.map((c) => granularityOf(c.mode))).toEqual([1, 10, 50, 100]);
-    expect(ROUNDING_CHOICES.map((c) => c.chip)).toEqual([
+    expect(roundingChoices().map((c) => granularityOf(c.mode))).toEqual([1, 10, 50, 100]);
+    expect(roundingChoices().map((c) => c.chip)).toEqual([
       'Off',
       'Nearest $10',
       'Nearest $50',
@@ -157,7 +158,7 @@ describe('the game settings set how coarsely the table settles', () => {
   });
 
   it('names each of them the way every other screen does', () => {
-    expect(ROUNDING_CHOICES.map((c) => roundingLabel(c.mode))).toEqual([
+    expect(roundingChoices().map((c) => roundingLabel(c.mode))).toEqual([
       'Whole dollars',
       'Nearest 10',
       'Nearest 50',
@@ -238,5 +239,126 @@ describe('the deductions settings reach the bill and the person who paid', () =>
     const journeys = read('scripts/ui-journeys.mjs');
     expect(journeys).toContain("await tap('Add a spend'");
     expect(journeys).toContain('the spend reaches the bill');
+  });
+});
+
+describe('every figure in the app is written in the group’s own currency', () => {
+  /*
+   * B32. `formatMoney(amount)` has taken a currency symbol since the day it was
+   * written and defaulted to `$` when nobody passed one — and for thirty-one
+   * screens, nobody ever did. A club keeping its book in koruna picked its
+   * currency at setup, saw it on the settings screen, and settled up in
+   * dollars everywhere else.
+   *
+   * THE FIX IS AN IMPORT, so this is a test about imports. `src/lib/money.ts`
+   * binds every formatter to the club's own symbol and has no default to fall
+   * back on; a screen that reaches past it to core gets the dollar back, and
+   * that is exactly the kind of thing that returns one file at a time.
+   */
+  const MONEY_FORMATTERS = [
+    'formatMoney',
+    'formatSigned',
+    'formatToFit',
+    'formatSignedToFit',
+    'formatCompact',
+    'formatSignedCompact',
+    'stakesLabel',
+    'straddleLabel',
+    'stakesSummary',
+    'roundingChoices',
+    'roundingRowLabel',
+    'roundingRowValue',
+    'roundingSentence',
+    'ruleDetail',
+  ];
+
+  /** Every screen and component, which is where a figure is drawn. */
+  const screens = (): string[] => {
+    const out: string[] = [];
+    const walk = (dir: string) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) walk(full);
+        else if (/\.tsx?$/.test(e.name) && !/\.test\.tsx?$/.test(e.name)) out.push(full);
+      }
+    };
+    walk(path.join(root, 'apps/mobile/app'));
+    walk(path.join(root, 'apps/mobile/src'));
+    return out.filter((f) => !f.endsWith(path.join('src', 'lib', 'money.ts')));
+  };
+
+  it('takes its formatters from src/lib/money, never straight from core', () => {
+    const offenders: string[] = [];
+
+    for (const file of screens()) {
+      const source = fs.readFileSync(file, 'utf8');
+      /* The core import block, if there is one. Only its named imports matter:
+         a type import of `Money` is not a formatter. */
+      const block = /import \{([^}]*)\} from '@poker-club\/core';/.exec(source);
+      if (block === null) continue;
+      const named = block[1]!.split(',').map((n) => n.trim());
+      const wrong = named.filter((n) => MONEY_FORMATTERS.includes(n));
+      if (wrong.length > 0) {
+        offenders.push(`${path.relative(root, file)} → ${wrong.join(', ')}`);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('and no screen writes a currency symbol into its own markup', () => {
+    /*
+     * The other way a dollar sign survives a sweep: a `$` typed straight into
+     * the JSX, with no formatter anywhere near it. There was exactly one — the
+     * buy-in field on the seat sheet, where the symbol stands alone in front of
+     * a text input rather than in front of a figure, which is why every grep
+     * for a formatter missed it for a month.
+     */
+    const offenders: string[] = [];
+    for (const file of screens()) {
+      /* The ISO table is the one place a currency symbol is DATA. Every glyph
+         in the app comes out of it, `$` included. */
+      if (file.endsWith(path.join('src', 'data', 'currencies.ts'))) continue;
+      const source = fs.readFileSync(file, 'utf8');
+      const lines = source.split('\n');
+      lines.forEach((line, i) => {
+        if (/^\s*[*/]/.test(line)) return; // a comment may say $ as much as it likes
+        if (/>\s*\$\s*<|['\"]\$['\"]/.test(line)) {
+          offenders.push(`${path.relative(root, file)}:${i + 1}`);
+        }
+      });
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('and the module it takes them from has no default to fall back on', () => {
+    // A default is what let this happen the first time. If one comes back, a
+    // screen that says nothing gets a dollar sign again and nothing goes red.
+    const money = read('apps/mobile/src/lib/money.ts');
+    expect(money).not.toMatch(/currencySymbol = '\$'/);
+    expect(money).toContain('currentClub()?.currency');
+  });
+
+  it('draws the currency the club is actually keeping its book in', () => {
+    // The symbol comes off the stored ISO code, through the same table the
+    // setup sheet picks from — not off a list this file keeps.
+    expect(currencyFor('CZK').symbol).toBe('Kč');
+    expect(currencyFor('EUR').symbol).toBe('€');
+    expect(currencyFor('GBP').symbol).toBe('£');
+    expect(currencyFor('USD').symbol).toBe('$');
+  });
+
+  it('names the group’s money in the rounding copy too', () => {
+    // The step is an amount, so it is written in the group's currency wherever
+    // it is named — the row, its value, the four rows of the sheet.
+    expect(roundingRowLabel('tens', 'Kč')).toBe('Rounding · nearest Kč10');
+    expect(roundingRowValue('tens', null, '€')).toBe('stacks snap to €10');
+    expect(roundingRowValue('tens', money(16), '£')).toBe('−£16 → piggy');
+    expect(roundingChoices('€').map((c) => c.chip)).toEqual([
+      'Off',
+      'Nearest €10',
+      'Nearest €50',
+      'Nearest €100',
+    ]);
   });
 });

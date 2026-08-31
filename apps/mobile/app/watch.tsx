@@ -1,13 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import {
-  formatMoney,
-  resolveLedger,
-  settle,
-  type Money,
-  type PlayerId,
-} from '@poker-club/core';
+import { resolveLedger, settle, type Money, type PlayerId } from '@poker-club/core';
+import { formatMoney } from '../src/lib/money';
 import { NightResult } from '../src/components/NightResult';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';

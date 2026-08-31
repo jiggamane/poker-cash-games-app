@@ -1,13 +1,8 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import {
-  endedWith,
-  formatSignedToFit,
-  formatToFit,
-  resolveLedger,
-  type Money,
-} from '@poker-club/core';
+import { endedWith, resolveLedger, type Money } from '@poker-club/core';
+import { formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';

@@ -10,15 +10,8 @@ import {
   View,
 } from 'react-native';
 import {
-  formatMoney,
   money,
-  ROUNDING_CHOICES,
   roundingLabel,
-  roundingSentence,
-  ruleDetail,
-  stakesLabel,
-  stakesSummary,
-  straddleLabel,
   withStraddle,
   type Money,
   type MoneyRule,
@@ -27,6 +20,15 @@ import {
   type Stakes,
   type StraddleMode,
 } from '@poker-club/core';
+import {
+  formatMoney,
+  roundingChoices,
+  roundingSentence,
+  ruleDetail,
+  stakesLabel,
+  stakesSummary,
+  straddleLabel,
+} from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Field } from '../src/components/Field';
 import { Icon } from '../src/components/Icon';
@@ -173,7 +175,7 @@ export default function NewNight() {
   const liveRounding: RoundingMode = rounding ?? inherited.roundingMode ?? 'dollars';
   const storedRounding: RoundingMode | null = liveRounding === 'dollars' ? null : liveRounding;
   /** The straddle in words, or null when there is none — O1 draws no line. */
-  const straddle = straddleLabel(liveStakes, currency.symbol);
+  const straddle = straddleLabel(liveStakes);
 
   const seats = Object.entries(picked)
     .map(([playerId, amount]) => ({
@@ -234,7 +236,7 @@ export default function NewNight() {
         // words, because the blinds are the one setting nothing computes with
         // — see `startNight`. What the night states it was played at can never
         // move afterwards, however the group is reconfigured.
-        stakes: stakesSummary(liveStakes, currency.symbol),
+        stakes: stakesSummary(liveStakes),
         // Copied at birth like the rules, and for the same reason: a night is
         // settled with what it opened with. It is SET here now as well as
         // inherited: how coarsely the table settles is a thing a group decides
@@ -444,12 +446,12 @@ export default function NewNight() {
                 // played is not a thing to leave a host to find out at the
                 // table, so it is said here in the row's own sub-line.
                 {...(straddle === null ? {} : { sub: straddle })}
-                value={stakesLabel(liveStakes, currency.symbol)}
+                value={stakesLabel(liveStakes)}
                 onPress={() => go('stakes')}
               />
               <SettingRow
                 label="Default buy-in"
-                value={formatMoney(liveBuyIn, currency.symbol)}
+                value={formatMoney(liveBuyIn)}
                 onPress={() => go('buy-in')}
               />
               {/*
@@ -496,7 +498,7 @@ export default function NewNight() {
                * club's, both of which are places you go AFTER the table is
                * open; a group playing for thousands therefore played the first
                * hand on whole dollars and found out at settle-up. The same four
-               * choices as `/rounding`, off `ROUNDING_CHOICES` in core, so the
+               * choices as `/rounding`, off `roundingChoices()` in core, so the
                * list is written once.
                */}
               <SettingRow
@@ -529,7 +531,7 @@ export default function NewNight() {
                       key={m.id}
                       name={m.name}
                       host={m.id === me?.id}
-                      amount={formatMoney(money(Number(picked[m.id]) || 0), currency.symbol)}
+                      amount={formatMoney(money(Number(picked[m.id]) || 0))}
                       onPress={() => go('players')}
                     />
                   ))}
@@ -1078,7 +1080,7 @@ function Blinds({
   return (
     <View style={styles.section}>
       <View style={styles.figureRow}>
-        <Text style={[styles.figure, { color: t.text }]}>{stakesLabel(stakes, symbol)}</Text>
+        <Text style={[styles.figure, { color: t.text }]}>{stakesLabel(stakes)}</Text>
       </View>
 
       <View style={styles.cells}>
@@ -1200,7 +1202,7 @@ function Amount({
   return (
     <View style={styles.section}>
       <View style={styles.figureRow}>
-        <Text style={[styles.figure, { color: t.text }]}>{formatMoney(value, symbol)}</Text>
+        <Text style={[styles.figure, { color: t.text }]}>{formatMoney(value)}</Text>
         <Text style={[styles.figureUnit, { color: t.muted }]}>a seat</Text>
       </View>
 
@@ -1208,7 +1210,7 @@ function Amount({
         {presets.map((v) => (
           <Button
             key={v}
-            label={formatMoney(money(v), symbol)}
+            label={formatMoney(money(v))}
             variant="preset"
             selected={value === v}
             onPress={() => onChange(money(v))}
@@ -1236,7 +1238,7 @@ function Amount({
 /**
  * HOW COARSELY THE TABLE SETTLES — the four chips, before the night exists.
  *
- * S14 draws this control as an open chip row and `ROUNDING_CHOICES` in core is
+ * S14 draws this control as an open chip row and `roundingChoices()` in core is
  * the list — Dollar · 10s · 100s · 1k — so it is written once and both screens
  * that offer it read the same four.
  *
@@ -1270,7 +1272,7 @@ function Rounding({
   return (
     <View style={styles.section}>
       <View style={styles.presets}>
-        {ROUNDING_CHOICES.map((c) => (
+        {roundingChoices().map((c) => (
           <Button
             key={c.mode}
             label={c.chip}

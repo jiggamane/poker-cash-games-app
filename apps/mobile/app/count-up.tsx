@@ -4,8 +4,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   balanceCheck,
   composition,
-  formatMoney,
-  formatToFit,
   granularityOf,
   resolveLedger,
   roundToStep,
@@ -13,6 +11,7 @@ import {
   type Money,
   type PlayerId,
 } from '@poker-club/core';
+import { formatMoney, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
@@ -232,7 +231,11 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
   const rest = Math.abs(balance.left);
   const empty = run === 0 && rest === 0;
 
-  const sub = composition(balance, (m) => formatMoney(m));
+  /* THE BLOCK'S OWN THRESHOLD, not the exact figure. This line sits under
+     ACCOUNTED FOR in the same box as the figure above it, and a book kept in a
+     three-letter currency put `CHF2,120 cashed out` 17 points past the edge of
+     it. `formatToFit` is what every other figure in this block already uses. */
+  const sub = composition(balance, (m) => formatToFit(m, BLOCK_FITS));
 
   return (
     <View style={[styles.block, { backgroundColor: t.surface, borderColor: c.edge }]}>

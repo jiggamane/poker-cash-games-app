@@ -9,9 +9,6 @@ import {
   type ViewStyle,
 } from 'react-native';
 import {
-  formatMoney,
-  formatSignedToFit,
-  formatToFit,
   nightScore,
   resolveLedger,
   settle,
@@ -19,6 +16,7 @@ import {
   type EffectiveEntry,
   type Money,
 } from '@poker-club/core';
+import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { HoldButton } from '../src/components/HoldButton';
