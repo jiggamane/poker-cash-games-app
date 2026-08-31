@@ -760,6 +760,24 @@ async function playANight(name, rebuys) {
     (await page.getByText('After deductions', { exact: true }).count()) === 1,
     'the player card opened from E6 without the deductions that made its figure',
   );
+  /*
+   * AND THAT THE CHIPS COMING OFF THE TABLE ARE A ROW — B26.
+   *
+   * The card's middle figure is what they were counted out for, and until this
+   * check the only person whose exit appeared in ENTRIES was one who cashed out
+   * while the game was still running: the end-of-night count is not a ledger
+   * entry, so the list under the figure added up to their buy-ins alone.
+   *
+   * Either provenance line satisfies it, because either is that person's chips
+   * leaving: "seat closed" is a cash-out mid-game, "at the close" is the host's
+   * count. What may not happen is neither — a card with a COUNTED figure and
+   * nothing under it saying where the figure came from.
+   */
+  await holds(
+    'the counted stack is a row',
+    (await page.getByText(/^stack counted( · seat closed| at the close)$/).count()) === 1,
+    'the card names what they were counted out for and no row under it says where it came from',
+  );
   await page.getByLabel('Close').last().click();
   await page.waitForTimeout(900);
 

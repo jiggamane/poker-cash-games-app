@@ -370,6 +370,18 @@ from the ledger every time it is read and a correction made here would move a
 figure five people have already been paid on. `ui-journeys.mjs` opens it off the
 results list at every scale it plays.
 
+**Every movement of that person's money is a row, including the one that is not
+in the ledger.** ENTRIES was the ledger's own rows and nothing else, so the only
+person whose chips leaving the table appeared on their card was one who cashed
+out mid-game — the end-of-night count is `night.finalCounts`, a map E2 fills in,
+and everybody counted at the close had a column that added up to their buy-ins
+alone under a card reading COUNTED $2,480. That is B26. The count is a row now,
+last, at the night's end time — `endedAt`, falling back to the last entry's
+stamp, which is E6's own rule in `metaLine` so that the row and the card it
+opens cannot date the same night differently. It is the one row on this list
+that is not a door: there is no entry behind it to correct, and a count is
+changed on E2. `ui-journeys.mjs` holds it as "the counted stack is a row".
+
 **`/share`** — nothing draws this sheet on any board, and it is nothing without
 its arguments: opened bare it renders a titled sheet with no body, which is what
 the rule pass measured for seventeen runs while the bug in B14 sat on it. The
