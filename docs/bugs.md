@@ -182,6 +182,37 @@ The figure is an OFFER, not text the host typed, which is B20's distinction:
 the first key replaces the whole amount rather than appending to it, so
 correcting $1,200 to $120 is three keys and not nine deletions.
 
+### B28 — the hole quietly stopped being drawn
+
+```
+Screen      E6 settled — the player rows, /settled and /watch
+Seen        on a night closed $200 short, six rows summing to $200 more than
+            the table held, and no `Unaccounted` row anywhere. The pill above
+            still said `$200 SHORT`, so the screen contradicted itself: money
+            was missing, and the list of where the money went did not mention
+            it
+Expected    `Unaccounted` is the one row that must never be filtered out,
+            because it IS the hole — its own comment said so
+Found       31 Aug, reading the filter while fixing B27
+Locked by   npm run check — `packages/core/src/rev15-night.test.ts`,
+            "E6 — who gets a row on the results list" / "never drops the hole"
+Status      fixed in HEAD
+```
+
+**A comment is not a check.** The filter read `boughtIn > 0 || endedWith > 0 ||
+charged > 0 || credited > 0` under a paragraph explaining that `Unaccounted`
+must survive it — and `Unaccounted` fails all four. It bought in nothing, ended
+with nothing, and no rule charges it, because it is not at the table. Its whole
+existence is a `grossResult`, which the filter never looked at.
+
+It was invisible for the ordinary reason: the seeded night balances, the
+canonical night balances, and every frame is drawn from one of them. The row
+only exists on a night that did not balance, which is the night nobody has a
+board for and the night a host most needs the row.
+
+The filter now lives in `resultRows` in core, named rather than inlined, and the
+hole is a case in it rather than a hope about it.
+
 ### B27 — the piggy bank was drawn as somebody's win
 
 ```
@@ -241,37 +272,6 @@ payouts about to happen, drawn against the rules that produced them. The screens
 that changed are the ones asking *how did their night go* — E6's rows, the
 player card's "Their night", and My stats, which had been banking a club's float
 as winnings every night the reader held it.
-
-### B26 — the hole quietly stopped being drawn
-
-```
-Screen      E6 settled — the player rows, /settled and /watch
-Seen        on a night closed $200 short, six rows summing to $200 more than
-            the table held, and no `Unaccounted` row anywhere. The pill above
-            still said `$200 SHORT`, so the screen contradicted itself: money
-            was missing, and the list of where the money went did not mention
-            it
-Expected    `Unaccounted` is the one row that must never be filtered out,
-            because it IS the hole — its own comment said so
-Found       31 Aug, reading the filter while fixing B27
-Locked by   npm run check — `packages/core/src/rev15-night.test.ts`,
-            "E6 — who gets a row on the results list" / "never drops the hole"
-Status      fixed in HEAD
-```
-
-**A comment is not a check.** The filter read `boughtIn > 0 || endedWith > 0 ||
-charged > 0 || credited > 0` under a paragraph explaining that `Unaccounted`
-must survive it — and `Unaccounted` fails all four. It bought in nothing, ended
-with nothing, and no rule charges it, because it is not at the table. Its whole
-existence is a `grossResult`, which the filter never looked at.
-
-It was invisible for the ordinary reason: the seeded night balances, the
-canonical night balances, and every frame is drawn from one of them. The row
-only exists on a night that did not balance, which is the night nobody has a
-board for and the night a host most needs the row.
-
-The filter now lives in `resultRows` in core, named rather than inlined, and the
-hole is a case in it rather than a hope about it.
 
 ### B23 — a settled night said it was settled three times, and tinted every row while it did
 

@@ -302,7 +302,7 @@ export function ruleCollector(result: SettlementResult, ruleId: string): RuleCol
  *   · THE HOLE. `Unaccounted` bought in nothing, ended with nothing and was
  *     charged nothing, so every plausible "did this person play" test drops
  *     it — and the screen did drop it, silently, on exactly the nights it
- *     mattered most (B26). It is named here so it cannot be dropped again.
+ *     mattered most (B28). It is named here so it cannot be dropped again.
  *   · THE COLLECTOR WHO NEVER SAT DOWN. Their whole appearance in the
  *     settlement is the room's float, and a float is not a night (B27). They
  *     go, and the money is named against the deduction it came from instead.

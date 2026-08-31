@@ -523,9 +523,9 @@ describe('E6 — who gets a row on the results list', () => {
     expect(resultRows(night).find((r) => r.player.playerId === RADKA)!.score).toBe(60);
   });
 
-  it('never drops the hole — B26', () => {
+  it('never drops the hole — B28', () => {
     /*
-     * B26 in one assertion. `Unaccounted` bought in nothing, ended with
+     * B28 in one assertion. `Unaccounted` bought in nothing, ended with
      * nothing, was charged nothing and was credited nothing, so every test of
      * "did this person play" says no — and the row that IS the missing money
      * was the row the screen quietly stopped drawing.

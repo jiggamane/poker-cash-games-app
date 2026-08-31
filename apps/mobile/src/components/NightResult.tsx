@@ -96,7 +96,7 @@ export function NightResult({
    * ONE ROW PER PERSON THE NIGHT HAPPENED TO — `resultRows`, which is the
    * engine's answer to who that is and in what order, for the reason every sum
    * in this app is the engine's. Two names it does not return are the point of
-   * it: the hole is not dropped (B26) and the collector's float is not a night
+   * it: the hole is not dropped (B28) and the collector's float is not a night
    * (B27). See `working.ts`.
    */
   const table = resultRows(result);
