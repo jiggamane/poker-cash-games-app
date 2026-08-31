@@ -538,27 +538,51 @@ is marked in `NightResult.tsx`:
   route into the individual entries, or whether that stays with **Full
   ledger**". Neither is drawn, so neither is built. **Open.**
 
-**Which layout ships is the one thing still open on E6.**
-`design/handoff-E6/docs/E6-results-columns.md`, cut 31 August, offers a
-**columns** layout — `game · food · piggy · net`, four computed figures on the
-row, nothing tappable — against the receipt rows this build has. The doc is
-explicit that they are alternatives and not layers, and leaves the choice open;
-its own read is *"receipt rows for the list, and the columns layout as the Full
-ledger view behind the footer button"*.
+**Which layout ships: the columns.** `design/handoff-E6/docs/E6-results-columns.md`,
+cut 31 August, offered a **columns** layout — `game · food · piggy · net`, four
+computed figures on the row, nothing tappable — against the receipt rows, said
+they were alternatives rather than layers, and left the choice open. The owner
+picked the columns: *the table style with the deductions all in open view*.
 
-**Receipt rows are what is built**, on that read and because they were already
-here. The columns layout is **not** built: it would net the bill's two parts
-into one `food` figure — the thing `E6-row-formula.md` exists to prevent — and
-the Full ledger button it would hang off is board furniture that
-`E6-row-formula.md` explicitly says not to take. Building a route off a "my
-read" would be inventing a screen. **Open, and one word decides it.**
+**The whole formula is on the row.** `game` is what happened at the table with
+no deductions in it; `food` is their share of the bill netted with whatever they
+paid at the counter, which is the one thing this layout nets and the trade it
+makes; `piggy` is their contribution in its own column, never merged into food;
+`net` is the three added up, and it is the same `nightScore` figure the receipt
+rows printed. That identity is asserted twice — in `rev15-night.test.ts` for
+every player of the canonical night, and in `ui-journeys.mjs` against the
+figures actually on the phone, which is where a column could be drawn in the
+wrong order or a cell dropped.
 
-The addendum's three corrections apply either way and all three already hold:
-order is `net` descending (`resultRows` sorts on the printed figure), the
-receipt's first line reads `Cashed out`, and this screen never said
-`THROUGH THE TABLE` or `OFF THE TABLE` — its labels come from
-`E6-results-logic.md`, which governs the prize-pool and deductions blocks and
-draws them as `PRIZE POOL` and `DEDUCTIONS`.
+**The receipt rows are still here, and are not a second opinion.** Four numeric
+columns is the ceiling at 393 points, so a night whose rules reach past the bill
+and the piggy bank — a host's fee, a next pot — cannot be drawn this way and
+gets the receipt rows, which have a line per kind. `columnsFit()` in
+`packages/core` is that test, and the screen does not re-decide it. Everything
+`E6-row-formula.md` asked for still holds on that path: the collapsed row is a
+name and a net, one row opens at a time, the two bill terms stay apart, and dark
+keeps its tinted fill.
+
+**Two deviations from the board, both about width.** `food` and `piggy` are 60
+points where the board draws 58 and 50: the board's night has two-figure piggy
+contributions and this app is measured against tables in the millions, where the
+same cell holds `−$118k` and `−$12M` — six glyphs, 53 and 56 points, clipped in
+both. The name gives those twelve points up; it is the one thing in the row that
+may ellipsise. And every column abbreviates at ten thousand rather than at the
+million a full-width row does, because they are different widths and one
+threshold for both would have to be the tighter of the two everywhere.
+
+⚠ **The footnote is the board's, less its example.** It is drawn as "…plus
+whatever they paid at the counter — Petr paid $242 and owed $54, so +$188", and
+those are the sample night's figures against the sample night's name. A real
+night printing them would be explaining itself with somebody else's money, so
+the two sentences about the columns are verbatim and the illustration is
+dropped rather than rewritten.
+
+The addendum's three corrections apply either way and all three hold: order is
+`net` descending, the receipt's first line reads `Cashed out`, and this screen
+never said `THROUGH THE TABLE` or `OFF THE TABLE` — its labels come from
+`E6-results-logic.md`, which draws them as `PRIZE POOL` and `DEDUCTIONS`.
 
 **A row prints a score, not a balance — and the float is named underneath.**
 B27, and the one deviation on this screen that changes a figure rather than a

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
+  columnsFit,
   formatSignedToFit,
   formatToFit,
   prizePool,
   receiptRows,
+  resultColumns,
   resultRows,
   ruleCollector,
   UNACCOUNTED_ID,
@@ -17,7 +19,7 @@ import {
 import { Icon } from './Icon';
 import { RoundingBar } from './RoundingBar';
 import { moneyColor, useTheme, useThemeName } from '../design/useTheme';
-import { block, cappedFigure, space, type } from '../design/tokens';
+import { block, cappedFigure, space, type, unscaledLabel } from '../design/tokens';
 
 /**
  * A night that has ended — E6. `design/handoff-E6/`, cut 30 August, with the
@@ -113,6 +115,11 @@ export function NightResult({
    */
   const [openRow, setOpenRow] = useState<PlayerId | null>(null);
 
+  /* Which layout this night can be drawn in. The engine's answer — see
+     `columnsFit` — because it is a question about the night's rules and not
+     about the screen. */
+  const columns = columnsFit(result);
+
   /*
    * ONE ROW PER PERSON THE NIGHT HAPPENED TO — `resultRows`, which is the
    * engine's answer to who that is and in what order, for the reason every sum
@@ -150,6 +157,252 @@ export function NightResult({
         <Text style={[styles.sectionLabel, styles.tableLabel, { color: t.muted }]}>
           The table · after deductions
         </Text>
+
+        {/*
+         * TWO LAYOUTS, AND THIS SCREEN PICKS. `E6-results-columns.md` offers
+         * them as alternatives rather than layers, and columns is the one that
+         * ships: the whole formula on the row, nothing behind a tap, so a table
+         * settling up reads it at once instead of opening seven receipts one at
+         * a time.
+         *
+         * Four numeric columns is the ceiling at 393 points, so a night whose
+         * rules reach past the bill and the piggy bank cannot be drawn this way
+         * — there is no fifth column and no honest place to hide a host's fee.
+         * That night gets the receipt rows, which have a line per kind.
+         * `columnsFit` is the engine's test and this screen does not re-decide
+         * it.
+         */}
+        {columns ? (
+          <ColumnTable result={result} />
+        ) : (
+          <ReceiptList result={result} openRow={openRow} setOpenRow={setOpenRow} tinted={tinted} />
+        )}
+      </View>
+
+      {deductions.length > 0 && (
+        <View style={[styles.deductions, { borderColor: t.hairline }]}>
+          <View style={styles.deductionsHead}>
+            <Text style={[styles.sectionLabel, { color: t.muted }]}>Deductions</Text>
+            <Text style={[styles.qualifier, { color: t.muted }]}>collected on the side</Text>
+          </View>
+
+          {/*
+           * NO PAYER NAME, still: who paid what is the working, and the
+           * working is not on this screen. E6's "totals only" is about the
+           * people the money came OFF, and that half is untouched.
+           *
+           * WHO IT WENT TO IS A DIFFERENT QUESTION, and it is here because
+           * taking the float off the collector's own row is what put it here:
+           * a room that has just handed $126 to somebody is owed the name of
+           * the somebody, once, next to the figure. A bill has no such name —
+           * it goes back to whoever fronted the food, which is a list — so it
+           * carries no second line and `ruleCollector` returns nothing for it.
+           *
+           * ⚠ "collected by {name}" IS NOT DRAWN ANYWHERE. No board has this
+           * line, because no board takes the float off the row. It is written
+           * to the grammar of the qualifier above it — lower case, muted, a
+           * statement about the row rather than a label on it — and it is
+           * flagged here rather than passed off as decided copy.
+           */}
+          {deductions.map((d) => {
+            const collector = ruleCollector(result, d.ruleId);
+
+            return (
+              <View key={d.ruleId} style={styles.deductionRow}>
+                <View style={styles.deductionText}>
+                  <Text style={[styles.deductionLabel, { color: t.text }]} numberOfLines={1}>
+                    {d.name}
+                  </Text>
+                  {collector !== null && (
+                    <Text style={[styles.deductionHolder, { color: t.muted }]} numberOfLines={1}>
+                      collected by {collector.name}
+                    </Text>
+                  )}
+                </View>
+                <Text
+                  style={[styles.deductionValue, { color: t.text }]}
+                  numberOfLines={1}
+                  {...cappedFigure}
+                >
+                  {formatToFit(d.total, ROW_FITS)}
+                </Text>
+              </View>
+            );
+          })}
+
+          <View style={[styles.deductionTotal, { borderTopColor: t.hairline }]}>
+            <Text style={[styles.totalLabel, { color: t.text }]}>Total</Text>
+            {/* `totalOffTable` IS the sum of the lines above, computed by the
+                engine. The screen does not re-add its own column. */}
+            <Text
+              style={[styles.totalValue, { color: t.text }]}
+              numberOfLines={1}
+              {...cappedFigure}
+            >
+              {formatToFit(result.totalOffTable, ROW_FITS)}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/*
+       * THE STEP, AS THE LAST LINE OF THE DEDUCTIONS BLOCK —
+       * `design/handoff-E2/docs/E2-rounding.md`, "Where it surfaces
+       * afterwards", frames `3a`–`3d`. E2 owns it; this screen shows it and
+       * says what it cost, which is the piggy bank's business and so belongs
+       * under the block that names the piggy bank.
+       *
+       * IT IS THE CONTROL ROW AND NOT A DEDUCTION LINE. What the rounding moved
+       * is not one of the totals above it — those are the rules' — so it sits
+       * below the `TOTAL` rather than inside it, and the block still adds up to
+       * what `settle()` says leaves the table.
+       *
+       * A CLOSED NIGHT DOES NOT OPEN IT (rule 8). Every figure on this screen
+       * was derived at the step it closed with; a row that still looked like a
+       * door would be offering to re-round a record of what people paid.
+       */}
+      {result.rounding.on && (
+        <RoundingBar
+          mode={roundingMode}
+          remainder={result.rounding.remainder}
+          {...(onChangeRounding === undefined ? {} : { onPress: onChangeRounding })}
+          style={styles.rounding}
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * The columns — `E6-results-columns.md`, frames `6a` and `6b`.
+ *
+ *     name            game     food    piggy      net
+ *     103              64       58       50        74
+ *
+ * NO COLUMN GAP, and that is the board's: the numeric cells take their space as
+ * a left padding instead, so the hairline runs unbroken across the row rather
+ * than stopping and starting four times. Here that is one border on the row,
+ * which is the same rule drawn once.
+ *
+ * NOTHING IS TAPPABLE. The doc says so in its own comparison table, and it
+ * follows from the layout: there is nothing left to open.
+ *
+ * THE SAME IN BOTH THEMES — hairlines and no fill, on `6a` as on `6b`. The dark
+ * tint belongs to the receipt rows, which are an object per player; four
+ * columns are a table, and a table with a coloured band behind every row is a
+ * ranking drawn twice.
+ */
+function ColumnTable({ result }: { result: SettlementResult }) {
+  const t = useTheme();
+  const rows = resultColumns(result);
+
+  /* A column nobody has a figure in is not drawn — the same discipline as the
+     deductions block, where a kind with a total of $0 is absent. A night with
+     no bill has no `food` to explain. */
+  const food = rows.some((r) => r.food !== 0);
+  const piggy = rows.some((r) => r.piggy !== 0);
+
+  return (
+    <>
+      <View style={styles.colHead}>
+        <View style={styles.colName} />
+        <Text style={[styles.colLabel, styles.colGame, { color: t.muted }]} {...unscaledLabel}>
+          game
+        </Text>
+        {food && (
+          <Text style={[styles.colLabel, styles.colFood, { color: t.muted }]} {...unscaledLabel}>
+            food
+          </Text>
+        )}
+        {piggy && (
+          <Text style={[styles.colLabel, styles.colPiggy, { color: t.muted }]} {...unscaledLabel}>
+            piggy
+          </Text>
+        )}
+        <Text style={[styles.colLabel, styles.colNet, { color: t.muted }]} {...unscaledLabel}>
+          net
+        </Text>
+      </View>
+
+      {rows.map((r) => (
+        <View key={r.player.playerId} style={[styles.colRow, { borderTopColor: t.hairline }]}>
+          <Text style={[styles.colNameText, styles.colName, { color: t.text }]} numberOfLines={1}>
+            {r.player.name}
+          </Text>
+          <Cell amount={r.game} style={styles.colGame} />
+          {food && <Cell amount={r.food} style={styles.colFood} />}
+          {piggy && <Cell amount={r.piggy} style={styles.colPiggy} />}
+          <Text
+            style={[
+              styles.colFigure,
+              styles.colNetFigure,
+              styles.colNet,
+              { color: r.net === 0 ? t.muted : moneyColor(t, r.net) },
+            ]}
+            numberOfLines={1}
+            {...cappedFigure}
+          >
+            {formatSignedToFit(r.net, COLUMN_FITS)}
+          </Text>
+        </View>
+      ))}
+
+      {/*
+       * ⚠ THE BOARD'S FOOTNOTE, LESS ITS EXAMPLE. It is drawn as "…plus
+       * whatever they paid at the counter — Petr paid $242 and owed $54, so
+       * +$188", and those are the sample night's figures against the sample
+       * night's name. A real night printing them would be explaining itself
+       * with somebody else's money. The two sentences that are about the
+       * columns rather than about the sample are verbatim; the illustration is
+       * dropped rather than rewritten with figures nobody asked this screen to
+       * compute.
+       */}
+      <Text style={[styles.colFootnote, { color: t.muted }]}>
+        Game = cashed out less bought in. Food = their share of the bill, plus whatever they paid
+        at the counter.
+      </Text>
+    </>
+  );
+}
+
+/** One muted figure in a column. Never wraps, never grows past the cap. */
+function Cell({ amount, style }: { amount: Money; style: object }) {
+  const t = useTheme();
+  return (
+    <Text
+      style={[styles.colFigure, style, { color: t.muted }]}
+      numberOfLines={1}
+      {...cappedFigure}
+    >
+      {formatSignedToFit(amount, COLUMN_FITS)}
+    </Text>
+  );
+}
+
+/**
+ * The receipt rows — `E6-row-formula.md`, frames `2a`–`2d`.
+ *
+ * NOT DEAD CODE AND NOT A SECOND OPINION. It is what a night too complicated
+ * for four columns gets: one line per kind, so a host's fee or a next-pot rule
+ * has somewhere to be named. The columns above are the layout that ships and
+ * this is the layout that catches what will not fit in it.
+ */
+function ReceiptList({
+  result,
+  openRow,
+  setOpenRow,
+  tinted,
+}: {
+  result: SettlementResult;
+  openRow: PlayerId | null;
+  setOpenRow: (id: PlayerId | null) => void;
+  tinted: boolean;
+}) {
+  const t = useTheme();
+  const table = resultRows(result);
+
+  return (
+    <>
         {table.map(({ player: p, score }, i) => {
           const open = openRow === p.playerId;
           const receipt = receiptRows(result, p.playerId);
@@ -277,98 +530,6 @@ export function NightResult({
             </Pressable>
           );
         })}
-      </View>
-
-      {deductions.length > 0 && (
-        <View style={[styles.deductions, { borderColor: t.hairline }]}>
-          <View style={styles.deductionsHead}>
-            <Text style={[styles.sectionLabel, { color: t.muted }]}>Deductions</Text>
-            <Text style={[styles.qualifier, { color: t.muted }]}>collected on the side</Text>
-          </View>
-
-          {/*
-           * NO PAYER NAME, still: who paid what is the working, and the
-           * working is not on this screen. E6's "totals only" is about the
-           * people the money came OFF, and that half is untouched.
-           *
-           * WHO IT WENT TO IS A DIFFERENT QUESTION, and it is here because
-           * taking the float off the collector's own row is what put it here:
-           * a room that has just handed $126 to somebody is owed the name of
-           * the somebody, once, next to the figure. A bill has no such name —
-           * it goes back to whoever fronted the food, which is a list — so it
-           * carries no second line and `ruleCollector` returns nothing for it.
-           *
-           * ⚠ "collected by {name}" IS NOT DRAWN ANYWHERE. No board has this
-           * line, because no board takes the float off the row. It is written
-           * to the grammar of the qualifier above it — lower case, muted, a
-           * statement about the row rather than a label on it — and it is
-           * flagged here rather than passed off as decided copy.
-           */}
-          {deductions.map((d) => {
-            const collector = ruleCollector(result, d.ruleId);
-
-            return (
-              <View key={d.ruleId} style={styles.deductionRow}>
-                <View style={styles.deductionText}>
-                  <Text style={[styles.deductionLabel, { color: t.text }]} numberOfLines={1}>
-                    {d.name}
-                  </Text>
-                  {collector !== null && (
-                    <Text style={[styles.deductionHolder, { color: t.muted }]} numberOfLines={1}>
-                      collected by {collector.name}
-                    </Text>
-                  )}
-                </View>
-                <Text
-                  style={[styles.deductionValue, { color: t.text }]}
-                  numberOfLines={1}
-                  {...cappedFigure}
-                >
-                  {formatToFit(d.total, ROW_FITS)}
-                </Text>
-              </View>
-            );
-          })}
-
-          <View style={[styles.deductionTotal, { borderTopColor: t.hairline }]}>
-            <Text style={[styles.totalLabel, { color: t.text }]}>Total</Text>
-            {/* `totalOffTable` IS the sum of the lines above, computed by the
-                engine. The screen does not re-add its own column. */}
-            <Text
-              style={[styles.totalValue, { color: t.text }]}
-              numberOfLines={1}
-              {...cappedFigure}
-            >
-              {formatToFit(result.totalOffTable, ROW_FITS)}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {/*
-       * THE STEP, AS THE LAST LINE OF THE DEDUCTIONS BLOCK —
-       * `design/handoff-E2/docs/E2-rounding.md`, "Where it surfaces
-       * afterwards", frames `3a`–`3d`. E2 owns it; this screen shows it and
-       * says what it cost, which is the piggy bank's business and so belongs
-       * under the block that names the piggy bank.
-       *
-       * IT IS THE CONTROL ROW AND NOT A DEDUCTION LINE. What the rounding moved
-       * is not one of the totals above it — those are the rules' — so it sits
-       * below the `TOTAL` rather than inside it, and the block still adds up to
-       * what `settle()` says leaves the table.
-       *
-       * A CLOSED NIGHT DOES NOT OPEN IT (rule 8). Every figure on this screen
-       * was derived at the step it closed with; a row that still looked like a
-       * door would be offering to re-round a record of what people paid.
-       */}
-      {result.rounding.on && (
-        <RoundingBar
-          mode={roundingMode}
-          remainder={result.rounding.remainder}
-          {...(onChangeRounding === undefined ? {} : { onPress: onChangeRounding })}
-          style={styles.rounding}
-        />
-      )}
     </>
   );
 }
@@ -469,6 +630,57 @@ const styles = StyleSheet.create({
    * than the list either side, so the text inside it lines up with the section
    * label above rather than being inset from it.
    */
+  /*
+   * `1fr 64px 58px 50px 74px` — the board's grid, in the only two things react
+   * native has: a name that takes what is left, and four fixed cells.
+   *
+   * NO COLUMN GAP. Each numeric cell carries 8 of left padding instead, which
+   * is what lets the hairline run unbroken across the row — a rule that stopped
+   * and started four times would read as five little tables.
+   */
+  colHead: { flexDirection: 'row', alignItems: 'flex-end', paddingBottom: 7 },
+  colName: { flex: 1, minWidth: 0 },
+  colNameText: { fontSize: 16, fontWeight: '600' },
+  colLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+    textAlign: 'right',
+    paddingLeft: 8,
+  },
+  colGame: { width: 64 },
+  /*
+   * 60 AND 60 WHERE THE BOARD DRAWS 58 AND 50 — the one deviation in this
+   * table, and it is about what the columns have to hold rather than about how
+   * they look.
+   *
+   * The board's night has two-figure piggy contributions: `−$23` is four
+   * glyphs and fifty points is generous for it. This app is measured against
+   * tables in the millions, where the same cell holds `−$118k` and `−$12M` —
+   * six glyphs of compacted figure, which came to 53 and 56 points against the
+   * board's 50 and was clipped in both. The name gives the twelve points up;
+   * it is the one thing in the row that may ellipsise.
+   */
+  colFood: { width: 60 },
+  colPiggy: { width: 60 },
+  colNet: { width: 74 },
+  colRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 9,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  colFigure: {
+    fontSize: 14,
+    fontWeight: '400',
+    textAlign: 'right',
+    paddingLeft: 8,
+    fontVariant: ['tabular-nums'],
+  },
+  colNetFigure: { fontSize: 16, fontWeight: '700' },
+  colFootnote: { fontSize: 11.5, fontWeight: '400', lineHeight: 17, paddingTop: 9 },
+
   row: {
     paddingVertical: 9,
     paddingHorizontal: 10,
@@ -609,5 +821,23 @@ const styles = StyleSheet.create({
  * one thing on this screen that abbreviates early.
  */
 const ROW_FITS = 1_000_000;
+
+/*
+ * WHERE A COLUMN RUNS OUT, which is far earlier than a row does — that is the
+ * price of putting four figures on one line.
+ *
+ * The narrowest is `piggy` at 50 points with 8 of that spent on the padding
+ * that keeps the hairline whole. Forty-two points at 14/400 tabular is about
+ * six glyphs, and "−$1,620" is seven. `cappedFigure` holds the phone's text
+ * setting at the money cap so this does not move underneath the measurement,
+ * and `formatSignedToFit` shortens what is left: a table playing for tens of
+ * thousands reads "−$12.9K" here and the exact figure on the player's own row
+ * in the ledger.
+ *
+ * Ten thousand rather than the row's million, and the two are deliberately not
+ * the same number: they are different columns at different widths, and one
+ * threshold for both would have to be the tighter of the two everywhere.
+ */
+const COLUMN_FITS = 10_000;
 const POOL_FITS = 10_000_000;
 const PILL_FITS = 100_000;

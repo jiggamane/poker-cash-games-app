@@ -788,54 +788,69 @@ async function playANight(name, rebuys) {
   await stop('night settled');
 
   /*
-   * THE ROW STATES THE RESULT; TAPPING IT STATES THE REASON.
+   * THE WHOLE FORMULA ON THE ROW — `E6-results-columns.md`, frames 6a/6b, and
+   * the layout that ships. Four columns, `game · food · piggy · net`, every
+   * deduction in open view and nothing behind a tap.
    *
-   * `E6-row-formula.md`, cut 31 August. A collapsed row is a name and a net —
-   * the `in … · out …` sub-line is gone — and the arithmetic behind the figure
-   * arrives when the row is opened: cash out, buy-in, each bill term, the
-   * piggy bank, and a `Net` that has to be the same figure the row was already
-   * showing.
-   *
-   * BOTH HALVES ARE INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches
-   * a settled night with money on it, so the route pass measures the seeded
-   * mid-count book and sees neither. This is a night in the millions, which is
-   * also the width the receipt is tightest at.
+   * IT IS INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches a settled
+   * night with money on it, so the route pass measures the seeded mid-count
+   * book and sees none of this. And this is the night where it is tightest —
+   * millions and a rounding step, four figures on a 360-wide row.
    */
-  const rows = () => page.getByLabel(/\u00b7 their night$/);
   await holds(
-    'the row is a name and a net',
-    (await rows().count()) > 0 && (await page.getByText(/^in .* \u00b7 out /).count()) === 0,
-    'E6 still carries the in-and-out sub-line the addendum removed',
+    'the row carries the whole formula',
+    (await page.locator(':text-is("game"):visible').count()) === 1 &&
+      (await page.locator(':text-is("food"):visible').count()) === 1 &&
+      (await page.locator(':text-is("piggy"):visible').count()) === 1 &&
+      (await page.locator(':text-is("net"):visible').count()) === 1,
+    'E6 does not draw the four columns',
   );
 
-  await rows().first().click({ timeout: 15_000 });
-  await page.waitForTimeout(700);
-  await stop('night settled · one row open');
-
-  /* The receipt's own two ends: the first line the doc draws and the last. */
   await holds(
-    'and opens into the receipt behind it',
-    (await page.getByText('Cashed out', { exact: true }).count()) === 1 &&
-      (await page.getByText('Net', { exact: true }).count()) === 1,
-    'tapping a row on E6 did not open the receipt',
+    'and nothing is hidden behind a tap',
+    (await page.getByLabel(/\u00b7 their night$/).count()) === 0 &&
+      (await page.getByText('Cashed out', { exact: true }).count()) === 0,
+    'E6 still draws the receipt rows the columns layout replaced',
   );
 
   /*
-   * ONE ROW OPEN AT A TIME, which is a rule in the doc and the only thing
-   * keeping the list on one screen. Opening a second has to close the first,
-   * and the check for that is that there is still exactly one `Net`.
+   * AND THE ARITHMETIC THE ROW INVITES COMES OUT RIGHT.
+   *
+   * Four figures on a line invite exactly one sum, and a reader who does it has
+   * to arrive at the figure printed beside them. `rev15-night.test.ts` asserts
+   * that of the engine; this asserts it of what is actually on the phone, which
+   * is where a column could be drawn in the wrong order or a cell dropped.
    */
-  await rows().nth(1).click({ timeout: 15_000 });
-  await page.waitForTimeout(700);
   await holds(
-    'and only one row is open at a time',
-    (await page.getByText('Net', { exact: true }).count()) === 1,
-    'opening a second row on E6 left the first one open',
+    'and the three columns add up to the fourth on screen',
+    await page.evaluate(() => {
+      const money = (s) => {
+        const t = (s || '').trim().replace(/[,$]/g, '').replace(/\u2212/g, '-');
+        if (/[KMB]$/i.test(t)) return null; // an abbreviated figure cannot be summed
+        const n = Number(t.replace('+', ''));
+        return Number.isFinite(n) ? n : null;
+      };
+      const cells = [...document.querySelectorAll('div')].filter((d) => {
+        const kids = [...d.children];
+        return (
+          kids.length >= 3 &&
+          kids.length <= 5 &&
+          kids.every((k) => k.children.length === 0) &&
+          kids.slice(1).every((k) => /^[+\u2212]?\$/.test((k.textContent || '').trim()))
+        );
+      });
+      if (cells.length === 0) return false;
+      return cells.every((row) => {
+        const figures = [...row.children].slice(1).map((k) => money(k.textContent));
+        if (figures.some((f) => f === null)) return true; // abbreviated: skip
+        const net = figures.pop();
+        return figures.reduce((a, b) => a + b, 0) === net;
+      });
+    }),
+    'a row of columns on E6 does not add up to the net beside it',
   );
 
-  /* Closed again, so the screens that follow are measured at rest. */
-  await rows().nth(1).click({ timeout: 15_000 });
-  await page.waitForTimeout(700);
+  await stop('night settled · the columns');
 
   /*
    * B27 — THE FLOAT IS NAMED, NOT BANKED.

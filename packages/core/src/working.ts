@@ -479,6 +479,91 @@ export interface ResultRow {
   held: Money;
 }
 
+/**
+ * THE COLUMNS LAYOUT — `design/handoff-E6/docs/E6-results-columns.md`, cut 31
+ * August, frames `6a` and `6b`.
+ *
+ *     name            game     food    piggy      net
+ *
+ * The alternative to the receipt rows, and the one that ships: every deduction
+ * is on the row rather than behind a tap, so a table settling up can read the
+ * whole thing at once instead of opening seven receipts one at a time. The doc
+ * is explicit that the two are alternatives and not layers.
+ *
+ * WHAT EACH COLUMN IS:
+ *
+ *   · `game` — what happened at the table, with no deductions in it. It is
+ *     `grossResult`, which is cashed out less bought in AT THE STEP THE NIGHT
+ *     SETTLED AT: a stack that snapped to $970 settles at $970, so the column
+ *     is what the night actually paid out on. The raw count is kept on E2 and
+ *     in the ledger.
+ *   · `food` — their share of the bill NETTED with anything they paid at the
+ *     counter. One figure per person, and the one place this layout nets
+ *     anything: whoever covered the bill shows a credit. It is the trade the
+ *     doc makes for putting the whole formula on the row.
+ *   · `piggy` — their contribution, its own column, never merged into food.
+ *   · `net` — `game + food + piggy`, and the same figure the receipt rows print.
+ *
+ * THE IDENTITY IS EXACT, and it is what makes the layout honest: the four
+ * columns are not four independently computed figures that ought to agree, they
+ * are a decomposition of one. `net` is `nightScore`'s score, and the three
+ * before it sum to it — asserted in `rev15-night.test.ts` for every player of
+ * every night the suite settles.
+ *
+ * WHAT IS NOT HERE, AND WHY THE RECEIPT ROWS SURVIVE. Four numeric columns is
+ * the ceiling at 393 points, so a group whose rules reach past food and piggy —
+ * a host's fee, a next-pot rule — cannot be drawn this way. `columnsFit()`
+ * below is that test, and a night that fails it gets the receipt rows instead.
+ * Neither layout is the fallback for the other in any other sense: this is the
+ * one that ships, and that one is what a night too complicated for it uses.
+ */
+export interface ResultColumns {
+  player: PlayerSettlement;
+  /** Cashed out less bought in, at the step the night settled at. */
+  game: Money;
+  /** Their share of the bill, netted with what they paid at the counter. */
+  food: Money;
+  /** What the piggy bank took off them. Never merged into `food`. */
+  piggy: Money;
+  /** `game + food + piggy`, and the figure the row is sorted on. */
+  net: Money;
+}
+
+/**
+ * Whether this night can be drawn in columns at all.
+ *
+ * False the moment a rule sends money anywhere but the bill or the piggy bank.
+ * There is no fifth column to put it in and no honest place to hide it — folding
+ * a host's fee into `piggy` would put one group's money under another group's
+ * name — so the night gets the receipt rows, where every kind has a line.
+ */
+export function columnsFit(result: SettlementResult): boolean {
+  return result.deductions.every(
+    (d) => d.total === 0 || d.destination === 'bill' || d.destination === 'kitty',
+  );
+}
+
+export function resultColumns(result: SettlementResult): ResultColumns[] {
+  return resultRows(result).map(({ player, score }) => {
+    const took = playerDeductions(result, player.playerId);
+    const of = (destination: RuleDestination): Money => {
+      const d = took.find((x) => x.destination === destination);
+      /* Charged is money off them and credited is money back to them, so the
+         column is the second less the first — one signed figure, which is what
+         a person who both owes the bill and paid it actually experienced. */
+      return d === undefined ? (0 as Money) : ((d.credited - d.charged) as Money);
+    };
+
+    return {
+      player,
+      game: player.grossResult,
+      food: of('bill'),
+      piggy: of('kitty'),
+      net: score,
+    };
+  });
+}
+
 export function resultRows(result: SettlementResult): ResultRow[] {
   /*
    * WHAT CAME BACK THAT IS ACTUALLY THEIRS — a bill they fronted, and nothing

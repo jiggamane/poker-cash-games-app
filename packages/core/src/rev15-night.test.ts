@@ -25,9 +25,11 @@ import { destinationTerm, destinationWord, ruleLabel, splitSentence } from './ru
 import { settle } from './settlement';
 import { UNACCOUNTED_ID, type LedgerEntry, type MoneyRule, type Player, type PlayerId } from './types';
 import {
+  columnsFit,
   nightScore,
   playerDeductions,
   receiptRows,
+  resultColumns,
   resultRows,
   ruleCollector,
   workingRows,
@@ -627,5 +629,77 @@ describe('E6 — the receipt behind a row', () => {
 
   it('says nothing at all about somebody who was not at this night', () => {
     expect(receiptRows(result, 'nobody')).toEqual([]);
+  });
+});
+
+describe('E6 — the columns layout', () => {
+  /*
+   * `design/handoff-E6/docs/E6-results-columns.md`, frames 6a/6b. The whole
+   * formula on the row instead of behind a tap, which is only safe if the four
+   * figures really are a decomposition of one — so that is what is asserted,
+   * for every player, rather than four numbers checked one at a time.
+   */
+  it('draws the night the board draws', () => {
+    const cols = resultColumns(result).map((c) => [c.player.name, c.game, c.food, c.piggy, c.net]);
+    expect(cols).toEqual([
+      // Dana wins 1,620, owes 110 of the bill and 81 of the piggy bank.
+      ['Dana', 1620, -110, -81, 1429],
+      // Marek fronted the pizza: 120 back against a share of 31 is +89.
+      ['Marek', 460, 89, -23, 526],
+      // Lena fronted the drinks: 50 back against 29 is +21.
+      ['Lena', 430, 21, -22, 429],
+      ['Tomáš', -500, 0, 0, -500],
+      ['Ivo', -780, 0, 0, -780],
+      ['Petr', -1230, 0, 0, -1230],
+    ]);
+  });
+
+  it('nets the two halves of the bill into one figure, which is the trade', () => {
+    // The receipt rows keep them apart on purpose; this layout cannot, and the
+    // doc says so. What it may never do is lose one of them.
+    const marek = resultColumns(result).find((c) => c.player.playerId === MAREK)!;
+    const receipt = receiptRows(result, MAREK).filter((r) => r.key.startsWith('bill'));
+    expect(marek.food).toBe(sum(receipt.map((r) => r.amount)));
+  });
+
+  it('never merges the piggy bank into the food', () => {
+    const dana = resultColumns(result).find((c) => c.player.playerId === DANA)!;
+    expect(dana.piggy).toBe(-81);
+    expect(dana.food).toBe(-110);
+  });
+
+  it('adds the three columns up to the fourth, for everybody', () => {
+    /*
+     * THE ASSERTION THE LAYOUT STANDS ON. Four figures on a row invite exactly
+     * one piece of arithmetic, and a reader who does it has to arrive at the
+     * figure printed beside them.
+     */
+    for (const c of resultColumns(result)) {
+      expect(c.game + c.food + c.piggy).toBe(c.net);
+      expect(c.net).toBe(nightScore(result, c.player.playerId).score);
+    }
+  });
+
+  it('is the same list, in the same order, as the rows it replaces', () => {
+    expect(resultColumns(result).map((c) => c.player.playerId)).toEqual(
+      resultRows(result).map((r) => r.player.playerId),
+    );
+  });
+
+  it('fits this night, and not one with a third kind of deduction', () => {
+    expect(columnsFit(result)).toBe(true);
+
+    // A host's fee has no column and no honest place to hide: folding it into
+    // `piggy` would put one group's money under another group's name.
+    const withFee = [
+      ...rules,
+      {
+        ...rules[0]!, id: 'fee', name: 'Host fee', destination: 'host_fee' as const,
+        amountKind: 'fixed' as const, amount: money(20), split: 'evenly' as const,
+        collectorPlayerId: DANA, sortOrder: 3,
+      },
+    ];
+    const night = settle({ players, entries, finalCounts, rules: withFee });
+    expect(columnsFit(night)).toBe(false);
   });
 });
