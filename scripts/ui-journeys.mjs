@@ -731,35 +731,62 @@ async function playANight(name, rebuys) {
   await stop('night settled');
 
   /*
-   * A PLAYER'S OWN NIGHT, OPENED OFF THE RESULTS LIST.
+   * THE ROW STATES THE RESULT; TAPPING IT STATES THE REASON.
    *
-   * E6's rows carry the working now — `$… in, $… out, bill: −… +…, piggy: −…`
-   * — and each one opens the player card behind it with what the rules took and
-   * where that left them. Both halves are invisible to every other
-   * check in the repo: no URL reaches a settled night with money on it, so the
-   * route pass measures the seeded mid-count book and sees neither. This is a
-   * night in the millions, which is also the width the line is tightest at.
+   * `E6-row-formula.md`, cut 31 August. A collapsed row is a name and a net —
+   * the `in … · out …` sub-line is gone — and the arithmetic behind the figure
+   * arrives when the row is opened: cash out, buy-in, each bill term, the
+   * piggy bank, and a `Net` that has to be the same figure the row was already
+   * showing.
    *
-   * THE PATTERN IS THE FORMAT, deliberately. The line was rewritten on 31 Aug
-   * because the middle-dot form wrapped to three lines here, and a check that
-   * only asked "is there a second line" would have passed both. Figure first,
-   * comma between the terms — if that changes again, this goes red and somebody
-   * re-measures the row rather than finding out on a phone.
+   * BOTH HALVES ARE INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches
+   * a settled night with money on it, so the route pass measures the seeded
+   * mid-count book and sees neither. This is a night in the millions, which is
+   * also the width the receipt is tightest at.
    */
-  const working = () => page.getByText(/^\$[\d,]+ in, \$[\d,]+ out/).count();
+  const rows = () => page.getByLabel(/\u00b7 their night$/);
   await holds(
-    'the row carries the working',
-    (await working()) > 0,
-    'no row on E6 says what came off that person, in the short form',
+    'the row is a name and a net',
+    (await rows().count()) > 0 && (await page.getByText(/^in .* \u00b7 out /).count()) === 0,
+    'E6 still carries the in-and-out sub-line the addendum removed',
   );
+
+  await rows().first().click({ timeout: 15_000 });
+  await page.waitForTimeout(700);
+  await stop('night settled · one row open');
+
+  /* The receipt's own two ends: the first line the doc draws and the last. */
+  await holds(
+    'and opens into the receipt behind it',
+    (await page.getByText('Cashed out', { exact: true }).count()) === 1 &&
+      (await page.getByText('Net', { exact: true }).count()) === 1,
+    'tapping a row on E6 did not open the receipt',
+  );
+
+  /*
+   * ONE ROW OPEN AT A TIME, which is a rule in the doc and the only thing
+   * keeping the list on one screen. Opening a second has to close the first,
+   * and the check for that is that there is still exactly one `Net`.
+   */
+  await rows().nth(1).click({ timeout: 15_000 });
+  await page.waitForTimeout(700);
+  await holds(
+    'and only one row is open at a time',
+    (await page.getByText('Net', { exact: true }).count()) === 1,
+    'opening a second row on E6 left the first one open',
+  );
+
+  /* Closed again, so the screens that follow are measured at rest. */
+  await rows().nth(1).click({ timeout: 15_000 });
+  await page.waitForTimeout(700);
 
   /*
    * B27 — THE FLOAT IS NAMED, NOT BANKED.
    *
    * The piggy bank's money is no longer any player's result, so the one place
    * it is now attributed is the line under its own deduction. If that line goes
-   * missing, the seeded club's $126 leaves the screen entirely: nothing else on
-   * E6 says who is holding it, and nobody would notice until the night the
+   * missing, the seeded club's money leaves the screen entirely: nothing else
+   * on E6 says who is holding it, and nobody would notice until the night the
    * collector was asked for it.
    */
   await holds(
@@ -767,40 +794,6 @@ async function playANight(name, rebuys) {
     (await page.getByText(/^collected by /).count()) > 0,
     'the deductions block took money off the table and named nobody as holding it',
   );
-
-  /* By the row's own label — "Dana · their night". Filtering the row by its
-     text cannot work here: the row reads as the name AND the working AND the
-     net, and it is the name that comes first. */
-  await page.getByLabel(/\u00b7 their night$/).first().click({ timeout: 15_000 });
-  await page.waitForTimeout(900);
-  await stop('night settled · one player');
-  await holds(
-    'and the card says what came off',
-    /* Exactly, because E6 behind the sheet has a section label reading "The
-       table · after deductions" and a loose match finds that too. */
-    (await page.getByText('After deductions', { exact: true }).count()) === 1,
-    'the player card opened from E6 without the deductions that made its figure',
-  );
-  /*
-   * AND THAT THE CHIPS COMING OFF THE TABLE ARE A ROW — B26.
-   *
-   * The card's middle figure is what they were counted out for, and until this
-   * check the only person whose exit appeared in ENTRIES was one who cashed out
-   * while the game was still running: the end-of-night count is not a ledger
-   * entry, so the list under the figure added up to their buy-ins alone.
-   *
-   * Either provenance line satisfies it, because either is that person's chips
-   * leaving: "seat closed" is a cash-out mid-game, "at the close" is the host's
-   * count. What may not happen is neither — a card with a COUNTED figure and
-   * nothing under it saying where the figure came from.
-   */
-  await holds(
-    'the counted stack is a row',
-    (await page.getByText(/^stack counted( · seat closed| at the close)$/).count()) === 1,
-    'the card names what they were counted out for and no row under it says where it came from',
-  );
-  await page.getByLabel('Close').last().click();
-  await page.waitForTimeout(900);
 
   await tap('Who has paid');
   await stop('who has paid');

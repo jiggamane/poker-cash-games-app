@@ -312,6 +312,20 @@ anchored on the FIGURE rather than on a colour name, so it holds whatever the
 next wash gets called, and it is not scoped to the results screens: the rule is
 about what a signed figure may sit on, wherever one is drawn.
 
+**Amended 31 August, and only in the dark theme.**
+`design/handoff-E6/docs/E6-row-formula.md` puts a fill back on an E6 player row
+— `rgba(111,207,151,.13)` on a win, `rgba(240,112,92,.13)` on a loss — with the
+reason spelled out: at 13% on `#0A0A0B` it reads as a band, not as emphasis,
+which is the thing this entry was about. The bright theme has no such alpha and
+keeps the hairlines. This is not a reopening: the fill that was wrong was the
+one on **both** themes, and the pill and the panel above are still gone.
+
+`tinted-result-row` now skips a node marked `e6-row` under
+`prefers-color-scheme: dark` and nothing else, so the rule still holds for every
+other signed figure in the app, and a fill leaking into the bright theme is
+still a finding. The exception is by name and by theme rather than by screen,
+which is what keeps it from quietly becoming "results screens may do anything".
+
 ### B22 — Count up could read "done" with a whole cash-out missing
 
 ```
