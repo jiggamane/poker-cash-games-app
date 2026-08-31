@@ -123,7 +123,30 @@ export default function PlayerCard() {
    * still opens the last thing they were charged for.
    */
   const fronted = ledger.entries.filter((e) => e.type === 'expense' && e.payerId === player.id);
-  const rows = entryRows(mine, fronted, night, pending.ids);
+
+  /*
+   * THE STACK THE HOST COUNTED, which is not in the ledger and is still the
+   * biggest thing that happened to their money — B26.
+   *
+   * A cash-out during play is an entry, so the one person who left early had a
+   * row saying where their chips went. Everybody counted at the close had
+   * none: the count lives in `night.finalCounts`, a map E2 fills in, and this
+   * list only ever read the ledger. So the card said COUNTED $2,480 and the
+   * column under it added up to a $500 buy-in, which is the one arithmetic a
+   * player actually does on this screen.
+   *
+   * Only for somebody still seated: a player who cashed out is off the
+   * count-up list by then, and their row is already here.
+   *
+   * ITS TIME IS THE NIGHT'S END, AND E6 ALREADY DECIDED WHERE THAT COMES FROM
+   * — `endedAt` when the night has one, and otherwise the last entry's own
+   * stamp, which is the moment the last chip moved. `settled.tsx`'s `metaLine`
+   * is the same fallback for the same reason, and this card is opened off that
+   * row: two screens read one after the other may not put the end of the same
+   * night at two different times.
+   */
+  const countedStack = seated ? night.finalCounts.get(player.id) : undefined;
+  const rows = entryRows(mine, fronted, night, pending.ids, countedStack, closedAt(night));
   const first = mine[0];
   const lastOut = [...mine].reverse().find((e) => e.type === 'cashout');
 
@@ -149,11 +172,10 @@ export default function PlayerCard() {
    * front of them if the host has already counted it. Nothing at all until one
    * of those exists.
    */
-  const finalCount = night.finalCounts.get(player.id);
   const counted = seated
-    ? finalCount === undefined
+    ? countedStack === undefined
       ? undefined
-      : ((finalCount + (standing?.cashedOut ?? 0)) as Money)
+      : ((countedStack + (standing?.cashedOut ?? 0)) as Money)
     : standing?.played === true
       ? ((standing.cashedOut ?? 0) as Money)
       : undefined;
@@ -329,7 +351,7 @@ export default function PlayerCard() {
           <PressableOrPlain
             key={r.key}
             press={
-              nightSettlement === null
+              nightSettlement === null && r.entryId !== undefined
                 ? () => router.push({ pathname: '/entry', params: { id: r.entryId } })
                 : undefined
             }
@@ -640,8 +662,13 @@ interface EntryRow {
   key: string;
   /** The ledger's own order. The list is a timeline and reads as one. */
   seq: number;
-  /** Which entry tapping the row corrects. Always the base entry. */
-  entryId: string;
+  /**
+   * Which entry tapping the row corrects. Always the base entry — and absent
+   * on the counted stack, which is not one: there is no ledger row behind it
+   * to correct, and E2 is where a count is changed. The row is drawn as plain
+   * text rather than as a door that does nothing.
+   */
+  entryId?: string;
   at: string | undefined;
   title: string;
   sub: string;
@@ -655,8 +682,41 @@ function entryRows(
   fronted: readonly EffectiveEntry[],
   night: NonNullable<ReturnType<typeof useNight>>,
   queued: ReadonlySet<string>,
+  countedStack: Money | undefined,
+  closed: string | undefined,
 ): EntryRow[] {
   const out: EntryRow[] = [];
+
+  /*
+   * THE COUNT, LAST — B26.
+   *
+   * It is the end of their night by definition, so it sorts after every seq
+   * the ledger can hold rather than being given one: a count is not an entry
+   * and inventing a seq for it would put a non-ledger row into the ledger's
+   * own ordering.
+   *
+   * ⚠ THE PROVENANCE LINE IS NOT DRAWN. H4's cash-out row is "stack counted ·
+   * seat closed", which is this movement when a player leaves mid-game; no
+   * board draws the same row for the end-of-night count, because no board
+   * draws this card after a night has been counted. So it is H4's sentence
+   * with the half that is not true here replaced by when it happened, and it
+   * is flagged rather than passed off as decided copy. The title is the word
+   * the card above, the badge and E2 all already use for this money.
+   *
+   * A count of $0 is a real, entered count — a busted stack — and gets its row
+   * like any other. "Not counted yet" is the undefined case, and draws nothing.
+   */
+  if (countedStack !== undefined) {
+    out.push({
+      key: 'final-count',
+      seq: Number.MAX_SAFE_INTEGER,
+      at: closed,
+      title: 'Counted',
+      sub: 'stack counted at the close',
+      amount: countedStack,
+      struck: false,
+    });
+  }
 
   /*
    * WHAT THEY BOUGHT FOR THE TABLE, in the same timeline as their chips.
@@ -766,6 +826,21 @@ function depth(
 
 const ordinal = (n: number): string =>
   n === 1 ? 'first' : n === 2 ? 'second' : n === 3 ? 'third' : `${n}th`;
+
+/**
+ * When the night stopped being played — E6's own answer, reused.
+ *
+ * `endedAt` is the field, and a night that never passed through it falls back
+ * to the last entry's stamp: the last chip to move is when the table stopped.
+ * `settled.tsx` § metaLine says the same thing at more length; the point of
+ * repeating the rule and not the reasoning is that the row on E6 and the card
+ * it opens have to agree.
+ */
+function closedAt(night: NonNullable<ReturnType<typeof useNight>>): string | undefined {
+  if (night.endedAt !== undefined) return night.endedAt;
+  const stamps = Object.values(night.occurredAt);
+  return stamps.length === 0 ? undefined : stamps.reduce((a, b) => (a > b ? a : b));
+}
 
 const clock = (iso: string | undefined): string =>
   iso === undefined

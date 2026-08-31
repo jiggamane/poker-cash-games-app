@@ -73,6 +73,39 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B26 — the stack a player was counted out for is on the card and in no row under it
+
+```
+Screen      T2/T4 the player card, on a night that has been counted or settled
+Seen        Andro's card reads IN FOR $500 · COUNTED $2,480 · NIGHT +$1,980,
+            and ENTRIES below it is two rows: the $500 buy-in and the $120
+            pizza he fronted. Nothing on the list says where $2,480 came from.
+            Dana, who cashed out at 23:15 while the game was still running, has
+            her "Cashed out · stack counted · seat closed · $2,120" row — so
+            the same movement of the same money is a row for one player at the
+            table and invisible for the other five
+Expected    the money coming off the table gets a row like the money going on
+            it: one entry per thing that happened, and the column reconciles
+            with the figure above it
+Found       31 Aug, reading the card against its own summary
+Locked by   npm run check:ui — ui-journeys.mjs, "the counted stack is a row",
+            asserted on the settled card it opens off E6
+Status      fixed in this commit
+```
+
+**Only a cash-out was ever an entry.** The end-of-night count is not in the
+ledger and never has been — it is `night.finalCounts`, a map the host fills in
+on E2 — so `entryRows` had nothing to draw for it, and the one person who
+happened to leave early was the only one whose exit showed up.
+
+That is the whole of the fault, and it is worse than a missing line: the list
+is the thing a player reads to check the figure above it, and for anybody
+counted at the close it added up to their buy-ins alone. `08-tonight-home.md`
+§ H4 draws the row for the cash-out case and no board draws this one, because
+no board draws this card after a night has been settled — so the row is H4's,
+at the count's own amount, with a provenance line flagged in `player.tsx` as
+undrawn rather than passed off as decided copy.
+
 ### B25 — a spend added after the count was allowed by the engine and unreachable from the screen
 
 ```
