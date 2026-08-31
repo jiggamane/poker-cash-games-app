@@ -21,10 +21,10 @@
 
 import { describe, expect, it } from 'vitest';
 import { money, sum, ZERO, type Money } from './money';
-import { destinationWord, ruleLabel, splitSentence } from './ruleText';
+import { destinationShort, destinationWord, ruleLabel, splitSentence } from './ruleText';
 import { settle } from './settlement';
-import type { LedgerEntry, MoneyRule, Player, PlayerId } from './types';
-import { playerDeductions, workingRows } from './working';
+import { UNACCOUNTED_ID, type LedgerEntry, type MoneyRule, type Player, type PlayerId } from './types';
+import { nightScore, playerDeductions, resultRows, ruleCollector, workingRows } from './working';
 
 const DANA = 'dana';
 const MAREK = 'marek';
@@ -303,8 +303,8 @@ describe('E6 — what came off one person, gathered by kind', () => {
    */
   it('gives Lena her piggy bank, her bill, and the food she fronted', () => {
     expect(playerDeductions(result, LENA)).toEqual([
-      { destination: 'kitty', charged: 22, credited: 0 },
-      { destination: 'bill', charged: 29, credited: 50 },
+      { destination: 'kitty', charged: 22, credited: 0, held: 0 },
+      { destination: 'bill', charged: 29, credited: 50, held: 0 },
     ]);
   });
 
@@ -322,8 +322,8 @@ describe('E6 — what came off one person, gathered by kind', () => {
 
   it('charges the biggest winner the most and credits her nothing', () => {
     expect(playerDeductions(result, DANA)).toEqual([
-      { destination: 'kitty', charged: 81, credited: 0 },
-      { destination: 'bill', charged: 110, credited: 0 },
+      { destination: 'kitty', charged: 81, credited: 0, held: 0 },
+      { destination: 'bill', charged: 110, credited: 0, held: 0 },
     ]);
   });
 
@@ -332,21 +332,35 @@ describe('E6 — what came off one person, gathered by kind', () => {
     expect(playerDeductions(result, 'nobody')).toEqual([]);
   });
 
-  it('gives the collector what they hold, with nothing charged to them', () => {
+  it('gives the collector the float as HELD, not as money credited to them', () => {
+    // B27. The whole of that bug in one assertion: the $126 is in `held`, so a
+    // screen totalling `credited` cannot pick it up and call it a win.
     expect(playerDeductions(result, KITTY)).toEqual([
-      { destination: 'kitty', charged: 0, credited: 126 },
+      { destination: 'kitty', charged: 0, credited: 0, held: 126 },
+    ]);
+  });
+
+  it('keeps a fronted bill as the fronter’s own money, not as a float', () => {
+    // The other side of the same split: Marek is out of pocket $120 until the
+    // table pays him, and that is his — it belongs in his score.
+    expect(playerDeductions(result, MAREK)).toEqual([
+      { destination: 'kitty', charged: 23, credited: 0, held: 0 },
+      { destination: 'bill', charged: 31, credited: 120, held: 0 },
     ]);
   });
 
   it('adds up with the gross to the net the row prints beside it', () => {
-    // out − in − charges + back = finalPosition. If this ever stops holding,
-    // the second line on E6 is describing a different night from the figure
-    // next to it.
+    // out − in − charges + back = the score, and the float sits outside it. If
+    // this ever stops holding, the second line on E6 is describing a different
+    // night from the figure next to it.
     for (const p of result.players) {
       const took = playerDeductions(result, p.playerId);
       const charged = sum(took.map((d) => d.charged));
       const credited = sum(took.map((d) => d.credited));
-      expect(p.endedWith - p.boughtIn - charged + credited).toBe(p.finalPosition);
+      const { score, held } = nightScore(result, p.playerId);
+
+      expect(p.endedWith - p.boughtIn - charged + credited).toBe(score);
+      expect(score + held).toBe(p.finalPosition);
     }
   });
 
@@ -365,6 +379,15 @@ describe('E6 — what came off one person, gathered by kind', () => {
     );
   });
 
+  it('names each kind short enough for the row, and only where it has to', () => {
+    // "piggy bank" is eleven characters of a 316-point line; every other
+    // destination is already as short as it goes.
+    expect(destinationShort('kitty')).toBe('piggy');
+    expect(destinationShort('bill')).toBe('bill');
+    expect(destinationShort('host_fee')).toBe('host');
+    expect(destinationShort('next_pot')).toBe('next pot');
+  });
+
   it('names each kind the way the rest of the app names it', () => {
     // Never the stored word: `kitty` is what the ledger holds and "piggy bank"
     // is what every screen says.
@@ -372,5 +395,157 @@ describe('E6 — what came off one person, gathered by kind', () => {
     expect(destinationWord('kitty')).toBe('piggy bank');
     expect(destinationWord('host_fee')).toBe('host');
     expect(destinationWord('next_pot')).toBe('next pot');
+  });
+});
+
+describe('B27 — the float is not a win', () => {
+  /*
+   * The piggy bank's $126 was drawn on E6 as the collector's own result: a row
+   * reading `The piggy bank  +$126`, sorted into the column of wins above
+   * people who had played all night for less. Nothing was wrong with the
+   * arithmetic — the transfers really do have to hand that money over — and
+   * that is exactly why it survived so long. What was wrong was the column it
+   * was printed in.
+   *
+   * `nightScore` splits the engine's one figure into the two questions a
+   * screen can ask of it, and `ruleCollector` is where the float goes instead:
+   * named once, under the deduction it came from.
+   */
+  it('leaves the collector with a score of nothing, holding the whole $126', () => {
+    expect(nightScore(result, KITTY)).toEqual({ score: 0, held: 126 });
+  });
+
+  it('takes nothing off a player who collects nothing', () => {
+    expect(nightScore(result, DANA)).toEqual({ score: 1429, held: 0 });
+    expect(nightScore(result, TOMAS)).toEqual({ score: -500, held: 0 });
+  });
+
+  it('leaves a fronted bill inside the score, because it is their own money', () => {
+    // Marek is owed $120 for the pizza. That is not a float — he spent it.
+    expect(nightScore(result, MAREK)).toEqual({ score: 526, held: 0 });
+  });
+
+  it('splits a player who collects AND plays, without losing a dollar of either', () => {
+    // The host holds the piggy bank and sits at the table: two things at once,
+    // and the row has to say only the first.
+    const hostHolds = [{ ...rules[0], collectorPlayerId: DANA }, rules[1]!];
+    const night = settle({ players, entries, finalCounts, rules: hostHolds });
+
+    const dana = night.players.find((p) => p.playerId === DANA)!;
+    expect(dana.finalPosition).toBe(1555); // 1429 + the 126 she is holding
+    expect(nightScore(night, DANA)).toEqual({ score: 1429, held: 126 });
+  });
+
+  it('always divides the engine’s figure rather than restating it', () => {
+    for (const p of result.players) {
+      const { score, held } = nightScore(result, p.playerId);
+      expect(score + held).toBe(p.finalPosition);
+      expect(held).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('says nothing about somebody who was not at this night', () => {
+    expect(nightScore(result, 'nobody')).toEqual({ score: 0, held: 0 });
+  });
+
+  it('names who is holding the piggy bank, and how much', () => {
+    expect(ruleCollector(result, 'kitty')).toEqual({
+      playerId: KITTY,
+      name: 'The piggy bank',
+      amount: 126,
+    });
+  });
+
+  it('names nobody for a bill — it goes back to whoever fronted the food', () => {
+    // Two people fronted, so there is no collector to name, and naming either
+    // one of them would be naming the wrong person.
+    expect(ruleCollector(result, 'bill')).toBeNull();
+  });
+
+  it('names nobody for a rule that did not run', () => {
+    expect(ruleCollector(result, 'no-such-rule')).toBeNull();
+  });
+
+  it('hands the collector exactly what the deduction block prints', () => {
+    // The line sits under the total, so the two may never disagree.
+    const kitty = result.deductions.find((d) => d.ruleId === 'kitty')!;
+    expect(ruleCollector(result, 'kitty')!.amount).toBe(kitty.total);
+  });
+});
+
+describe('E6 — who gets a row on the results list', () => {
+  /*
+   * The list is what happened to whom. `settle()` answers a wider question,
+   * and the two names it adds are the two this has to decide about.
+   */
+  it('draws the six who played, biggest win first', () => {
+    expect(resultRows(result).map((r) => r.player.playerId)).toEqual([
+      DANA,
+      MAREK,
+      LENA,
+      TOMAS,
+      IVO,
+      PETR,
+    ]);
+  });
+
+  it('prints the score, not the balance — B27', () => {
+    expect(resultRows(result).map((r) => r.score)).toEqual([1429, 526, 429, -500, -780, -1230]);
+  });
+
+  it('leaves out the collector who never sat down — B27', () => {
+    // Their whole appearance in the settlement was the room's $126, drawn as a
+    // win above people who had played all night for less.
+    expect(resultRows(result).map((r) => r.player.playerId)).not.toContain(KITTY);
+  });
+
+  it('keeps a collector who also played, on their own score alone — B27', () => {
+    const hostHolds = [{ ...rules[0], collectorPlayerId: DANA }, rules[1]!];
+    const night = settle({ players, entries, finalCounts, rules: hostHolds });
+    const dana = resultRows(night).find((r) => r.player.playerId === DANA)!;
+
+    expect(dana.score).toBe(1429);
+    expect(dana.held).toBe(126);
+  });
+
+  it('keeps somebody who only fronted the food, because that money is theirs', () => {
+    // Radka pays for the pizza, never sits down, and is out of pocket until
+    // the table pays her back. That is a night, and it gets a row.
+    const RADKA = 'radka';
+    const withRadka = [...players, { id: RADKA, name: 'Radka', atTable: false }];
+    const paid: LedgerEntry[] = [
+      ...entries,
+      { id: 'x1', seq: 99, type: 'expense', payerId: RADKA, amount: money(60) },
+    ];
+    const night = settle({ players: withRadka, entries: paid, finalCounts, rules });
+
+    expect(resultRows(night).map((r) => r.player.playerId)).toContain(RADKA);
+    expect(resultRows(night).find((r) => r.player.playerId === RADKA)!.score).toBe(60);
+  });
+
+  it('never drops the hole — B26', () => {
+    /*
+     * B26 in one assertion. `Unaccounted` bought in nothing, ended with
+     * nothing, was charged nothing and was credited nothing, so every test of
+     * "did this person play" says no — and the row that IS the missing money
+     * was the row the screen quietly stopped drawing.
+     */
+    const short = new Map(finalCounts);
+    short.set(PETR, money(70)); // $200 of chips nobody can account for
+    const night = settle({
+      players,
+      entries,
+      finalCounts: short,
+      rules,
+      acknowledgedDiscrepancy: {
+        amount: money(-200),
+        confirmedByUserId: DANA,
+        confirmedAt: '2026-08-29T06:38:00.000Z',
+      },
+    });
+
+    const hole = resultRows(night).find((r) => r.player.playerId === UNACCOUNTED_ID);
+    expect(hole).toBeDefined();
+    expect(hole!.score).toBe(200);
   });
 });

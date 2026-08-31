@@ -414,14 +414,49 @@ the logic doc with it, both marked in `NightResult.tsx`:
   beside that line is already after deductions, so the only arithmetic the row
   invites — out minus in — disagreed with the figure printed next to it, with
   nothing on the screen to explain the gap. The line reads
-  `in $500 · out $620 · bill −$29 · back +$120 · piggy bank −$50` now, a term
-  only where there is money in it, and the row reconciles. The totals block
-  below is untouched. The words are `destinationWord`'s and the figures are
+  `$500 in, $620 out, bill: −$29 +$120, piggy: −$50` now, a term only where
+  there is money in it, and the row reconciles. The totals block below is
+  untouched. The words are `destinationShort`'s and the figures are
   `playerDeductions`', both in `packages/core` — no screen adds this up.
+
+  **It was rewritten short on 31 August**, and the three things that changed
+  are all length: the figure comes before its word, a comma replaces the middle
+  dot, and each kind is ONE term with its charge and its reimbursement inside it
+  — `bill: −$29 +$120` is one bill seen from both sides rather than a charge and
+  an unrelated `back`. The old form was 62 characters and took three lines on a
+  360-wide phone; this is 49 and takes two. `destinationShort` is the one place
+  "piggy bank" is abbreviated, and every screen with room for it still says the
+  whole phrase.
 * **A chevron where the row is a door.** E6 draws none, and `/watch` still has
   none: it is reading somebody else's night over the wire and has no card on
   this phone to open. Where the row does open something it carries the same mark
   every other list in the app uses for one.
+
+**A row prints a score, not a balance — and the float is named underneath.**
+B27, and the one deviation on this screen that changes a figure rather than a
+line of text. Whoever holds the piggy bank ends the night with the room's money
+in their pocket, and `finalPosition` includes it, correctly: the transfers have
+to hand it over. E6 drew that figure, so the seeded club's collector read a
+`+$126` win in the column of wins, above five people who had played all night
+for less, and a host who collects AND plays read their own night $126 heavy.
+
+The row now prints `nightScore`'s `score` — `finalPosition` less what they are
+only holding — and the float is named once, under the deduction it came from,
+as `collected by {name}`. Nothing about the settlement moved: `score + held`
+is `finalPosition` exactly, and settle-up and *Who has paid* are untouched.
+A bill is deliberately not a float: money back for the pizza is the fronter's
+own, it stays in their score, and `ruleCollector` names nobody for it.
+
+Two things follow from it. The collector who never sat down leaves the player
+list entirely — their whole appearance there was the float — and the player
+card at `/player` makes the same split, with its "Their night" total on the
+score and the float on its own line below, so the two screens cannot disagree
+about one person's number.
+
+⚠ **`collected by {name}` is not drawn on any board**, because no board takes
+the float off the row. It is flagged in `NightResult.tsx` rather than passed
+off as decided copy, and it is written to the grammar of the qualifier beside
+it.
 
 **The deductions qualifier.** The board draws `collected on the side` and the
 logic doc says to "replace that qualifier with whatever the group's money rules

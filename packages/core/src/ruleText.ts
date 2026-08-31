@@ -199,3 +199,21 @@ export function destinationWord(destination: RuleDestination): string {
       return 'next pot';
   }
 }
+
+/**
+ * The same destination where a row has no width for it — "piggy".
+ *
+ * ONE PLACE, NOT A FOURTH SPELLING. `destinationWord` above is the whole
+ * phrase and stays the phrase everywhere there is room for it; this is the
+ * one abbreviation, and it exists because E6's player row now carries the
+ * whole working — in, out, and every kind that touched the person — on a line
+ * 316 points wide. "piggy bank" spent eleven characters of it saying the
+ * second word nobody needs beside a figure.
+ *
+ * Every other destination is already short, so this is `kitty` and nothing
+ * else. A new destination that needs shortening gets a case here rather than
+ * a `.replace()` on a screen.
+ */
+export function destinationShort(destination: RuleDestination): string {
+  return destination === 'kitty' ? 'piggy' : destinationWord(destination);
+}
