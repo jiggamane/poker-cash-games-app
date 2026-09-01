@@ -888,6 +888,27 @@ async function playANight(name, rebuys) {
   await stop('night settled · the formula');
 
   /*
+   * AND `7e` IS BEHIND *FULL LEDGER* — `02-E6-results-row.md`, cut 1 September:
+   * the four-column table "stays as the full-screen variant behind the *Full
+   * ledger* button, where columns are worth the width". The formula line above
+   * is what E6 lists; this is the other half of the same decision, and this is
+   * the only check that opens the door. The route pass reaches `/ledger` on the
+   * seeded mid-count night, where there is no table to draw.
+   */
+  await tap('Full ledger');
+  await holds(
+    'the full ledger draws the four columns',
+    (await page.locator(':text-is("game"):visible').count()) === 1 &&
+      (await page.locator(':text-is("food"):visible').count()) === 1 &&
+      (await page.locator(':text-is("piggy"):visible').count()) === 1 &&
+      (await page.locator(':text-is("net"):visible').count()) === 1,
+    'Full ledger does not draw the four columns',
+  );
+  await stop('full ledger · the columns');
+
+  await tap('Back to the night');
+
+  /*
    * B27 — THE FLOAT IS NAMED, NOT BANKED.
    *
    * The piggy bank's money is no longer any player's result, so the one place

@@ -595,9 +595,18 @@ export function resultRows(result: SettlementResult): ResultRow[] {
         player.charged > 0 ||
         ownMoneyBack(player.playerId) > 0,
     )
-    /* Biggest win first, on the figure the row prints: a column sorted by
-       something it does not show reads as a column that is not sorted. */
-    .sort((a, b) => b.score - a.score);
+    /*
+     * Biggest win first, on the figure the row prints: a column sorted by
+     * something it does not show reads as a column that is not sorted.
+     *
+     * TIES BREAK ON NAME, A→Z — `01-the-flow.md` § Sorting, cut 1 September.
+     * Without it two people who both ended $23 down came back in whatever
+     * order `result.players` happened to hold them, which is entry order, so
+     * the same settled night drew its list differently on two phones. The doc
+     * also says the order does not change while the screen is open, and a
+     * total order is what makes that true rather than incidental.
+     */
+    .sort((a, b) => b.score - a.score || (a.player.name < b.player.name ? -1 : 1));
 }
 
 /**

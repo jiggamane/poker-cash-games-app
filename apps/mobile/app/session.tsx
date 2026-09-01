@@ -1,15 +1,21 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
-import { resolveLedger, type Money } from '@poker-club/core';
-import { formatMoney, formatSigned, formatToFit } from '../src/lib/money';
+import { resolveLedger, resultBeforeDeductions, type Money } from '@poker-club/core';
+import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
 import { clockLabel, useElapsed } from '../src/lib/elapsed';
-import { defaultBuyIn, standingsOf, useNight } from '../src/lib/nightStore';
+import {
+  cashedOutAt,
+  defaultBuyIn,
+  standingsOf,
+  useNight,
+  type Standing,
+} from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
 
 /**
@@ -46,6 +52,28 @@ import { usePending } from '../src/lib/pending';
  */
 const CARD_FITS = 10_000;
 
+/*
+ * WHERE THE TABLE ROW RUNS OUT OF ROOM, and it is the sub-line that decides it.
+ *
+ * A settled row carries three figures now: the signed result on the right at
+ * 19/700, and `in $500 · out $2,120` under the name at 12/400 behind a `23:15`.
+ * At 360 — the narrowest phone in the matrix — the list is 316 wide, the row
+ * spends 4 on its padding, 24 on its two gaps and 8 on the chevron, and the
+ * result takes about 80 of what is left. That leaves roughly 200 points for a
+ * line that starts with 34 points of clock it cannot shorten.
+ *
+ * ONE THRESHOLD FOR ALL THREE, which is the rule every other row in this app
+ * follows and for the same reason: a row that abbreviated the figure under the
+ * name and printed the one beside it in full would read as two scales rather
+ * than as one person's night.
+ *
+ * TIGHTER THAN COUNT UP'S MILLION, deliberately. E2's sub-line carries the same
+ * two figures with no clock in front of them and no chevron behind them, which
+ * is about forty points this row does not have. The two screens are different
+ * widths, so one threshold across both would have to be this one everywhere.
+ */
+const ROW_FITS = 10_000;
+
 export default function Session() {
   const t = useTheme();
   const night = useNight();
@@ -79,15 +107,25 @@ export default function Session() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   /**
-   * Most money in first. Everyone who has played stays in the list, including
-   * whoever has already gone — a host closing the night needs the people who
-   * left as much as the people still sitting there.
+   * SEAT ORDER, AND NO LONGER MOST MONEY IN FIRST —
+   * `design/handoff-count-up-to-settled/docs/05-active-vs-settled.md`, cut 1
+   * September: "Groups never reorder. Within a group, seat order."
+   *
+   * The old sort ranked the table by buy-in, which put a rebuy at the top and
+   * moved somebody's row under the host's thumb every time they recorded one.
+   * With the list grouped, the ranking has nothing left to say either: whoever
+   * is in for the most is not the thing the two groups are about.
+   *
+   * `standingsOf` maps `night.players`, which is the roster in the order the
+   * seats were filled, so seat order is what comes back unsorted.
+   *
+   * Everyone who has played stays in the list, including whoever has already
+   * gone — a host closing the night needs the people who left as much as the
+   * people still sitting there.
    */
   const standings = useMemo(() => {
     if (night === null || ledger === null) return [];
-    return standingsOf(night, ledger)
-      .filter((s) => s.played)
-      .sort((a, b) => b.boughtIn - a.boughtIn || (a.name < b.name ? -1 : 1));
+    return standingsOf(night, ledger).filter((s) => s.played);
   }, [night, ledger]);
 
   if (night === null || ledger === null) {
@@ -95,7 +133,10 @@ export default function Session() {
   }
 
   const seated = standings.filter((s) => s.atTable);
-  const out = standings.length - seated.length;
+  /* Settled, on this screen, means the admin has taken their stack. The two
+     lists are the two groups, and neither is re-derived below. */
+  const gone = standings.filter((s) => !s.atTable);
+  const out = gone.length;
 
   const onTable = seated.reduce((sum, s) => sum + s.boughtIn, 0) as Money;
   const totalIn = ledger.totalBoughtIn;
@@ -227,52 +268,164 @@ export default function Session() {
             showsVerticalScrollIndicator={false}
             scrollEnabled={!drawer}
           >
-            {standings.map((s, i) => {
-              /*
-               * One row, two meanings. While somebody is seated the figure is
-               * what they are in for; once they have cashed out it is their
-               * night's result, in the green/red pair. Two fields, never one
-               * formatted number — they are not the same kind of fact.
-               */
-              const result = (s.cashedOut - s.boughtIn) as Money;
-              return (
-                <Pressable
-                  key={s.id}
-                  accessibilityRole="button"
-                  disabled={drawer}
-                  onPress={() => router.push({ pathname: '/player', params: { id: s.id } })}
-                  style={({ pressed }) => [
-                    styles.row,
-                    {
-                      borderBottomColor: t.hairline,
-                      borderBottomWidth:
-                        i === standings.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                      opacity: pressed ? 0.6 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[styles.name, { color: s.atTable ? t.text : t.muted }]}
-                    numberOfLines={1}
-                  >
-                    {s.name}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.amount,
-                      { color: s.atTable ? t.text : moneyColor(t, result) },
-                    ]}
-                  >
-                    {s.atTable ? formatMoney(s.boughtIn) : formatSigned(result)}
-                  </Text>
-                  <Icon name="chevron" color={t.muted} />
-                </Pressable>
-              );
-            })}
+            {/*
+             * TWO GROUPS, AND THE HEADER IS LOAD-BEARING —
+             * `05-active-vs-settled.md`. The right-hand column means two
+             * different things on this list: for somebody still playing it is
+             * MONEY IN, unsigned; for somebody who has cashed out it is a
+             * signed RESULT BEFORE DEDUCTIONS. Nothing else on the row says
+             * which, so the group header is the whole of what tells $500 and
+             * +$1,620 apart, and it is not decoration.
+             *
+             * DO NOT SHORTEN "result before deductions" TO "result". The doc
+             * says so in as many words, and the reason is what has not come
+             * off yet: the bill, the piggy bank and the rounding step all land
+             * later, so a row calling itself a *result* would be the third
+             * different figure the same person is shown for the same night.
+             *
+             * BOTH HEADERS ARE ALWAYS DRAWN, INCLUDING AT ZERO. "An empty
+             * group renders its header with `· 0` rather than disappearing, so
+             * the admin can see that nobody has cashed out yet" — a group that
+             * vanished would leave the host reading an ungrouped list whose
+             * one remaining header they have no reason to still be reading.
+             */}
+            <Group label="Still playing" count={seated.length} first />
+            {seated.map((s) => (
+              <PlayerRow key={s.id} standing={s} drawer={drawer} />
+            ))}
+
+            <Group label="Cashed out" count={out} qualifier="result before deductions" />
+            {gone.map((s) => (
+              /* The clock is read here, off the night this render already has,
+                 rather than inside the row — a row that subscribed to the store
+                 for one timestamp would be six subscriptions to the thing that
+                 drew it. */
+              <PlayerRow key={s.id} standing={s} drawer={drawer} at={cashedOutAt(night, s.id)} />
+            ))}
           </ScrollView>
         )}
       </PressableOrPlain>
     </Screen>
+  );
+}
+
+/**
+ * A group header — `STILL PLAYING · 5`, `CASHED OUT · 1 · RESULT BEFORE
+ * DEDUCTIONS`. 11.5/700 at `.1em`, muted, uppercase, `0 2px 8px`, and 20
+ * above it except at the top of the list.
+ *
+ * THE COUNT IS ALWAYS THERE, ZERO INCLUDED, and it is live. The doc is
+ * explicit about it and about why: at zero the header is what says nobody has
+ * cashed out yet, which is a fact a host wants at the moment they are deciding
+ * whether the night is over.
+ *
+ * THE QUALIFIER IS ONLY ON THE GROUP THAT NEEDS IT. It states what the
+ * right-hand column of the rows beneath it means, and only one of the two
+ * groups changes that meaning.
+ */
+function Group({
+  label,
+  count,
+  qualifier,
+  first = false,
+}: {
+  label: string;
+  count: number;
+  qualifier?: string;
+  first?: boolean;
+}) {
+  const t = useTheme();
+  return (
+    <Text
+      style={[styles.groupLabel, !first && styles.groupAfter, { color: t.muted }]}
+      numberOfLines={1}
+    >
+      {`${label} · ${count}${qualifier === undefined ? '' : ` · ${qualifier}`}`}
+    </Text>
+  );
+}
+
+/**
+ * One person on the table list, in one of its two states.
+ *
+ * ACTIVE IS THE ROW THIS SCREEN ALREADY HAD — the doc's own instruction, and
+ * the reason nothing else on Tonight moves. Name at full strength, money in
+ * unsigned, a chevron.
+ *
+ * SETTLED CHANGES IN EXACTLY FOUR WAYS, which is the whole list:
+ *
+ *   1. The name drops to MUTED — not dim. The dim token is below AA at 17
+ *      points and this is somebody's name.
+ *   2. A sub-line appears giving the derivation, `23:15 · in $500 · out
+ *      $2,120`. It is the only place the components of the signed figure are
+ *      visible, so it carries substantive data and takes the muted token too.
+ *   3. The figure becomes SIGNED and takes a money colour — green above zero,
+ *      red below, primary text at exactly zero.
+ *   4. The chevron stays and dims. A settled player's sheet is still worth
+ *      opening, so the door is still there; it is just no longer the thing to
+ *      do next.
+ *
+ * THE FIGURE IS THE ENGINE'S. `resultBeforeDeductions` is one subtraction and
+ * this screen used to do it inline — which was a second implementation of the
+ * sum E2 makes on the same two figures one screen along. See `CLAUDE.md`.
+ */
+function PlayerRow({
+  standing: s,
+  drawer,
+  at,
+}: {
+  standing: Standing;
+  drawer: boolean;
+  /** When they left, on a settled row. Read by the caller off its own night. */
+  at?: string | undefined;
+}) {
+  const t = useTheme();
+  const settled = !s.atTable;
+  const result = resultBeforeDeductions(s.boughtIn, s.cashedOut);
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={drawer}
+      onPress={() => router.push({ pathname: '/player', params: { id: s.id } })}
+      style={({ pressed }) => [
+        settled ? styles.rowSettled : styles.row,
+        { borderBottomColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+      ]}
+    >
+      <View style={styles.rowText}>
+        <Text style={[styles.name, { color: settled ? t.muted : t.text }]} numberOfLines={1}>
+          {s.name}
+        </Text>
+        {settled && (
+          <Text style={[styles.sub, { color: t.muted }]} numberOfLines={1} {...cappedFigure}>
+            {[
+              ...(at === undefined ? [] : [clockLabel(at)]),
+              `in ${formatToFit(s.boughtIn, ROW_FITS)}`,
+              `out ${formatToFit(s.cashedOut, ROW_FITS)}`,
+            ].join(' · ')}
+          </Text>
+        )}
+      </View>
+
+      <Text
+        style={[
+          styles.amount,
+          {
+            color: settled
+              ? result === 0
+                ? t.text
+                : moneyColor(t, result)
+              : t.text,
+          },
+        ]}
+        numberOfLines={1}
+        {...cappedFigure}
+      >
+        {settled ? formatSignedToFit(result, ROW_FITS) : formatToFit(s.boughtIn, ROW_FITS)}
+      </Text>
+      <Icon name="chevron" color={settled ? t.dim : t.muted} />
+    </Pressable>
   );
 }
 
@@ -365,15 +518,60 @@ const styles = StyleSheet.create({
   // --- the table -----------------------------------------------------------
   list: { flex: 1, marginHorizontal: 22 },
   listContent: { paddingBottom: 8 },
+
+  /*
+   * `11.5 / 700 / .1em`, muted, uppercase, `0 2px 8px`, and 20 above it — the
+   * doc's Tonight scale, which is deliberately not E2's: this screen's rows
+   * are 17 and 19 against E2's 15.5 and 18, and a header shared between them
+   * would be half a point wrong on one of the two.
+   */
+  groupLabel: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    letterSpacing: 1.15,
+    textTransform: 'uppercase',
+    paddingHorizontal: 2,
+    paddingBottom: 8,
+  },
+  groupAfter: { paddingTop: 20 },
+
+  /*
+   * `14px 2px` ACTIVE, `11px 2px` SETTLED — the settled row is shorter by 3
+   * points a side because it is taller by a sub-line, so the two states end up
+   * within a few points of each other and the list does not visibly jolt when
+   * somebody cashes out and their row changes group.
+   *
+   * A HAIRLINE UNDER EVERY ROW, the last one included. The doc says every row;
+   * the list is two groups now, so "all but the last" would have to mean all
+   * but the last of each — and a group ending on nothing, 20 points above the
+   * next header, reads as the list having stopped.
+   */
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 22,
-    paddingHorizontal: 4,
+    paddingVertical: 14,
+    paddingHorizontal: 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  rowSettled: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  rowText: { flexShrink: 1, minWidth: 0, gap: 3 },
   name: { ...type.tableName, flexShrink: 1 },
-  amount: { ...type.tableAmount, marginLeft: 'auto' },
+  /* 12/400 muted and tabular. It carries the two figures behind the signed one
+     beside it, so it is the row's substantive line and takes the muted token
+     rather than the dim one — `05-active-vs-settled.md` § Contrast. */
+  sub: { fontSize: 12, fontWeight: '400', fontVariant: ['tabular-nums'] },
+  /* NEVER SHRINKS. The name gives — it is a word — and a figure may not: left
+     to shrink, "+$1,620" comes apart into a sign on one line and an amount on
+     the next. See B18. */
+  amount: { ...type.tableAmount, marginLeft: 'auto', flexShrink: 0 },
 
   blank: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: space.page },
   blankTitle: { fontSize: 19, fontWeight: '700' },

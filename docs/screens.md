@@ -78,6 +78,7 @@ is settled when it is not.
 | `/hand-over` | sheet | ✓ | ✓ | — | ☐ |
 | `/house-rules` | sheet | ✓ | ✓ | — | ☐ |
 | `/invite` | sheet | ✓ | ✓ | — | ☐ |
+| `/ledger` | push | ✓ | — | ✓ | ☐ |
 | `/log` | sheet | ✓ | ✓ | — | ☐ |
 | `/member` | sheet | ✓ | ✓ | — | ☐ |
 | `/money-rules` | sheet | ✓ | ✓ | — | ☐ |
@@ -103,8 +104,14 @@ is settled when it is not.
 | `/stats` | push | ✓ | — | ✓ | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**37 screens · 37 under the rule pass · 21 under the sheet pass · 12 under a big
+**38 screens · 38 under the rule pass · 21 under the sheet pass · 13 under a big
 night · 0 conformed.**
+
+`/ledger` is the thirty-eighth, added 1 September: format `7e`, the four-column
+table, which stopped being E6's default in the same cut and became what *Full
+ledger* opens. The route pass reaches it cold and gets its "these rules cannot
+be drawn in columns" state, because the seeded night is not settled; the night
+pass opens it for real by tapping the button on a settled night.
 
 `/games` and `/stats` joined the last of those on 30 August. They are where a
 night's figures live once the evening is over, and the run had never reached
@@ -145,16 +152,25 @@ it. One has: O1's *Start time*, on 29 August. When that happens the comment
 beside the entry says which decision, and there is a note further down this file
 saying it too.
 
-**E6 could not be filled in, and the reason is worth writing down** rather than
-leaving it to look like nobody got round to it. `/settled` reads the night the
-app currently holds, and the seeded night is still being played — so the rule
-pass, which opens every route cold, gets the *Not settled* fallback and never
-sees `PRIZEPOOL`, `NET, AFTER DEDUCTIONS` or `DEDUCTIONS` at all. A
+**T1 went in on 1 September**, with the two group headers and the qualifier that
+makes the right-hand column readable — `STILL PLAYING`, `CASHED OUT`, `RESULT
+BEFORE DEDUCTIONS`. E2's three replaced *Still seated* and *Already confirmed*
+in the same cut. Those two strings left the map because the groups themselves
+were replaced, which is the one reason a row may leave it; B32 in
+`docs/bugs.md` is the fault they were replaced over.
+
+**E6 still could not be filled in, and the reason is worth writing down** rather
+than leaving it to look like nobody got round to it. `/settled` reads the night
+the app currently holds, and the seeded night is still being played — so the
+rule pass, which opens every route cold, gets the *Not settled* fallback and
+never sees `PRIZEPOOL`, `NET, AFTER DEDUCTIONS` or `DEDUCTIONS` at all. A
 `DRAWN` entry for it would go red on a screen that is correct. `ui-journeys.mjs`
 does reach the real one — it plays a night through and stops on it — but it runs
 its own overflow checks rather than the rule pass, so the map is not available
 there either. Giving the route pass a settled night to open is the fix, and it
-is a job of its own.
+is a job of its own. Meanwhile the night pass carries the assertions the map
+would have: the three terms are on the row, and they add up to the net beside
+them on screen.
 
 ## The head, and what scrolls with it
 
@@ -197,9 +213,19 @@ gone`, `Apply the money rules`. All of it is superseded.
 
 Do not edit that file to say so; it says "GENERATED · do not edit" at the top
 and it is the honest record of what the 12 August boards drew. The current
-measurements for this screen are inline on
-`design/handoff-E2/boards/Settled Status.dc.html`, layout **2a**, colour option
-**2f** — that is what `count-up.tsx` was built from and what to hold it against.
+measurements for this screen are on **two** boards now, and they cover different
+halves of it:
+
+- the block, the bar and the strip — `design/handoff-E2/boards/Settled Status.dc.html`,
+  layout **2a**, colour option **2f**;
+- the player list, its three groups and its type scale —
+  `design/handoff-count-up-to-settled/boards/Cashed Out States.dc.html`, frame
+  **1a**, with the scale written out in that cut's `docs/05`.
+
+⚠ The E2 frames on the second board sit on the OLD E2 chrome — an `Apply the
+money rules` button and a `78% accounted for` strip, both superseded by layout
+2a. Take the list off it and nothing else, exactly as the rounding addendum's
+own warning says of its frames.
 The extractor still points at the old board directory and reads frames at
 402 × 874; pointing it at the newer cuts is a job of its own.
 
@@ -259,6 +285,75 @@ night's own figures on the card it is testing.
 
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
+
+**`/session`, `/count-up` and `/ledger`** — 1 September, the count-up-to-settled
+cut (`design/handoff-count-up-to-settled/`). The player lists on the two screens
+that show one while the night is still open, and the ledger behind E6's footer.
+
+⚠ **THIS CUT AND THE E6 REDRAW LANDED THE SAME AFTERNOON, from two sessions, on
+the same screen.** They agree about the row — both put the night's terms under
+the name as a sentence — and the redraw is the broader piece: it rebuilds E6
+from the rev-18 frame and makes the formula generic over rule destinations, so a
+host's fee has somewhere to go. **The redraw won E6 in the merge**, whole, and
+this cut kept the two screens it did not touch plus the ledger its footer note
+asked for. What is written below is what that resolution left standing.
+
+*What was decided, and built.* Settled players are grouped, muted and signed on
+Tonight and E2 alike, because the right-hand column changes meaning between an
+active row and a settled one and nothing else on the row said so — B32. Two
+groups on Tonight, three on E2, seat order within each, headers drawn at `· 0`.
+And `7e`, the four-column table, is `/ledger` now, behind the *Full ledger*
+button the frame has always drawn and the E6 footer had no destination for.
+
+*The one place this cut overrides a doc it otherwise carries forward.* A counted
+row on E2 prints **the signed result, computed from the raw count**, where
+`E2-rounding.md` rule 6 put the rounded stack there. `05-active-vs-settled.md`
+is nine days newer, is about this exact column, and says `result = counted −
+boughtIn` with "neither figure has had the bill, the piggy bank or rounding
+applied". Taking the rounded figure instead would leave `in $500 · counted $965`
+sitting under `+$470`, which is a row whose own two figures do not produce the
+third. Rule 6's guarantee is intact: the count is never rewritten and is still
+printed under the name, and what the night will settle that stack at is on the
+rounding bar directly above the list. **Worth putting back to the designer**,
+because it is the one place the two cuts have to be read against each other.
+
+*And one the two SESSIONS disagree about, left as it landed.* `02-E6-results-row.md`
+says a term of exactly zero still prints — "Never omit a term to save width; the
+row's whole argument is that the same three terms appear in the same order for
+everybody." The shipped `resultFormula` drops a zero term instead. Both are
+defensible and they are answers to different questions: the doc is describing a
+row with three FIXED terms, where a gap would read as a missing figure, and the
+built row is generic over whatever rules a night has, where a `$0` term for a
+rule that did nothing is noise. Nobody has decided which the row is. **Ask** —
+and note the doc's rule, applied to a night with no bill and no piggy bank,
+prints `food $0 · piggy $0` on every row, which no board draws either.
+
+*Left open on the two list screens, and flagged rather than invented:*
+
+- **No fade on E2 at eight players.** The doc keeps `1a` (fade) and `1c`
+  (recessed slab) open and says three groups plus eight players overflows E2 by
+  61 points. This app's E2 scrolls as a whole screen rather than as a list
+  inside a fixed frame, so neither treatment applies as drawn; the type scale is
+  `1a`'s, which is the build. If the fold matters more than the whole-screen
+  scroll, `1c` is the alternative and the doc states the trade.
+- **Whether a settled player on Tonight can be un-cashed-out**, and what the row
+  does meanwhile. The doc lists it as open; the row is a door either way — the
+  chevron stays, dimmed.
+- **Whether `CASHED OUT EARLIER` on E2 should collapse**, given it can never
+  change from that screen. Drawn open, built open.
+- **No transition** is specified for a row moving between groups when somebody
+  cashes out, and none is built. The row moves and nothing is left behind.
+
+*And on `/ledger`, which is a screen no board draws as a screen:* the chrome is
+this app's own push, the title is the button's own words rather than invented
+copy, and the table scrolls — the doc leaves "whether `7e` there is scrollable
+or paged" open, and paging a table nobody has drawn a pager for would be
+inventing two things instead of one.
+
+*And one glyph.* The doc asks for E2's tick at stroke 2.4; the app's shared
+`check` is 2.2 and is drawn on four other screens. Two tenths of a point against
+a change to a shared component, which `CLAUDE.md` says runs alone and with
+nothing else in flight. Left alone deliberately.
 
 **`/stats` and `/players`** — 30 August, and a departure from doc 15 § 5 check
 1 that the next session should not "fix" back. My stats scrolls the club name
@@ -551,14 +646,25 @@ layout and nothing else:
   own. The word `settled` is the last term of the meta line, which is where the
   frame puts it too.
 
-**The one thing on the frame that has nowhere to go: `Full ledger`.** It draws a
-pair of outlined buttons at the foot, `Full ledger` and `Close`. There is no full
-ledger in this app — no screen lists a night's entries, the row addendum left
-"whether that stays with **Full ledger**" open, and it is open below. A button
-that goes nowhere on the last screen of a night is the one thing that footer may
-not be, so the left slot holds `Who has paid`, which is a real route and is
-otherwise unreachable. **Put `Full ledger` there the day there is a ledger to
-open.**
+**`Full ledger` has somewhere to go now, and the footer is the frame's again.**
+It draws a pair of outlined buttons at the foot, `Full ledger` and `Close`. That
+left slot held `Who has paid` until 1 September, with a note saying why — there
+was no full ledger in this app — and saying what would replace it: *put `Full
+ledger` there the day there is a ledger to open*. `02-E6-results-row.md`, cut 1
+September, is that day. It keeps the four-column table `7e` "as the full-screen
+variant behind the *Full ledger* button, where columns are worth the width", and
+`/ledger` is that screen — the same four terms this row says as a sentence, said
+as a table, off the same `resultColumns`.
+
+**`Who has paid` went back to being a chip** in the flexible space above the
+footer, which is where it was before it borrowed the slot. The deviation it
+represents is unchanged and still the one to answer first: E6 says payments live
+on E7 "reached from elsewhere", elsewhere is not drawn, and `/settled` is the
+only route into `/payments` in the app.
+
+**What `Full ledger` is still NOT** is the entry list — which rebuy, which
+spend, at what time. No board draws one, and `/ledger` does not pretend to be
+it.
 
 **And the top-right corner stays empty.** The frame draws a home glyph and
 `Share` in it, and the E4 frame draws a home glyph and `Edit`. `09-navigation.md`
@@ -605,7 +711,8 @@ they are tested, they are cheap, and `receiptRows` is still what the player card
 draws.
 
 **What no layout here has ever carried:** which rebuy, which spend, at what
-time. That is the full ledger, and it is not drawn. **Open.**
+time. That is an entry list, no board draws one, and `/ledger` is not it —
+`/ledger` is `7e`, the same four terms in columns. **Open.**
 
 ## A row prints a score, not a balance
 
@@ -663,8 +770,9 @@ It is not: it is totals, and it stays totals.
 payments "live on E7, reached from elsewhere". Elsewhere does not exist:
 `/settled` is the only route into `/payments` in the app, and `ui-journeys.mjs`
 reaches that screen by tapping it. It is marked `DELIBERATE DEVIATION` in
-`settled.tsx`. **This is the one to answer first**, and answering it frees the
-footer slot `Full ledger` wants.
+`settled.tsx`. **This is the one to answer first.** It is back to being a chip
+above the footer as of 1 September: `Full ledger` now exists and has taken the
+footer slot the frame draws it in.
 
 **One colour, off by three units.** E6 gives the bright red as `#A93A2A`; the
 token is `#B03A28`, which every earlier bright board drew and which is used in

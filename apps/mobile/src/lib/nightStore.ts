@@ -1792,6 +1792,28 @@ export interface Standing {
   returned: boolean;
 }
 
+/**
+ * When somebody left the table — the clock on their last cash-out.
+ *
+ * `05-active-vs-settled.md` puts the time at the head of the settled row's
+ * sub-line on Tonight (`23:15 · in $500 · out $2,120`), and E2 has said
+ * `cashed out 23:15` on its confirmed rows since it was built. Two screens
+ * asking the same question of the same ledger, so it is asked once here —
+ * count-up.tsx had a private copy of exactly this and Tonight was about to
+ * grow a second one.
+ *
+ * THE LAST ONE, not the first: somebody who cashed out, bought back in and
+ * cashed out again left at the second time. `seq` rather than the clock,
+ * because the ledger's order is the ledger's and a phone's clock can go
+ * backwards.
+ */
+export function cashedOutAt(night: Night, playerId: PlayerId): string | undefined {
+  const out = [...night.entries]
+    .filter((e) => e.type === 'cashout' && e.playerId === playerId)
+    .sort((a, b) => b.seq - a.seq)[0];
+  return out === undefined ? undefined : night.occurredAt[out.id];
+}
+
 export function standingsOf(night: Night, ledger: ResolvedLedger): Standing[] {
   return night.players
     .map((p) => {

@@ -894,3 +894,68 @@ describe('E4 — the rounding sheet states what a step would cost', () => {
     expect(transfersInWords(11)).toBe('11 transfers');
   });
 });
+
+describe('the sorting and the invariants the flow doc names', () => {
+  /*
+   * `design/handoff-count-up-to-settled/docs/01-the-flow.md`, cut 1 September.
+   * The row format it decides is asserted above, against `resultFormula`; this
+   * is the other half of that doc — the order the rows come in, and the four
+   * sums that have to hold for the terms on a row to be worth adding up.
+   */
+  it('sorts net descending and breaks a tie on the name, A→Z', () => {
+    /*
+     * § Sorting: "Ties break on name, A→Z" and "the order does not change
+     * while the screen is open". Two people level on the night came back in
+     * entry order before this, so the same settled night drew its list in two
+     * orders on two phones — a total order is what makes the second sentence
+     * true rather than incidental.
+     */
+    const level: LedgerEntry[] = [
+      e({ type: 'buyin', playerId: DANA, amount: money(500) }),
+      e({ type: 'buyin', playerId: MAREK, amount: money(500) }),
+      e({ type: 'buyin', playerId: LENA, amount: money(500) }),
+    ];
+    const flat = settle({
+      players,
+      entries: level,
+      finalCounts: new Map<PlayerId, Money>([
+        [DANA, money(500)],
+        [MAREK, money(500)],
+        [LENA, money(500)],
+      ]),
+      rules: [],
+    });
+    expect(resultRows(flat).map((r) => r.player.name)).toEqual(['Dana', 'Lena', 'Marek']);
+  });
+
+  /*
+   * § Invariants, which says of these four: "These hold for every night and
+   * are worth asserting in tests." They are what makes the formula row honest
+   * — terms and a net a reader is invited to add up — and each one fails in a
+   * different way, so they are four assertions rather than one.
+   */
+  const cols = () => resultColumns(result);
+  const piggyTotal = () => result.deductions.find((d) => d.destination === 'kitty')!.total;
+
+  it('Σ game = 0 — the table is zero-sum once every stack is counted', () => {
+    expect(sum(cols().map((c) => c.game))).toBe(ZERO);
+  });
+
+  it('Σ food = 0 — shares and payments cancel, or the bill was not fully attributed', () => {
+    expect(sum(cols().map((c) => c.food))).toBe(ZERO);
+  });
+
+  it('Σ piggy = −piggyTotal', () => {
+    expect(sum(cols().map((c) => c.piggy))).toBe(0 - piggyTotal());
+  });
+
+  it('Σ net = −piggyTotal — the only money that leaves the table is the group’s cut', () => {
+    /*
+     * THE ONE THAT CATCHES THE MOST. The bill goes back to whoever fronted it,
+     * so it nets out of the room; the piggy bank does not, and the difference
+     * between those two is the whole reason food and piggy are separate terms
+     * rather than one deduction figure.
+     */
+    expect(sum(cols().map((c) => c.net))).toBe(0 - piggyTotal());
+  });
+});

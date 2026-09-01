@@ -89,7 +89,7 @@ const SHEET_FULL_HEIGHT_BELOW = 700;
 /** Every route in the app. The layout is not one. */
 const ROUTES = [
   '/', '/session', '/pick', '/seat', '/entry', '/log', '/player', '/bill', '/spend',
-  '/count-up', '/stands', '/deductions', '/settle-up', '/settled', '/payments', '/nudge',
+  '/count-up', '/stands', '/deductions', '/settle-up', '/settled', '/ledger', '/payments', '/nudge',
   '/games', '/stats', '/players', '/member', '/groups', '/new-group', '/new-night',
   '/settings', '/club-rules', '/money-rules', '/rule', '/bill-rules', '/piggy-bank-rules',
   '/house-rules', '/sign-in', '/claim', '/invite', '/watch', '/hand-over',
@@ -188,12 +188,49 @@ const DRAWN = {
     'BOUGHT IN',
     'ACCOUNTED FOR',
     'LEFT TO ACCOUNT FOR',
-    'Still seated',
+    /*
+     * THE THREE GROUPS — `design/handoff-count-up-to-settled/boards/Cashed Out
+     * States.dc.html`, frame `1a`, and `docs/05-active-vs-settled.md`.
+     *
+     * They replace *Still seated* and *Already confirmed*, which were the two
+     * this list had until 1 September. The middle header's qualifier is here
+     * with them because it is the load-bearing part: the right-hand column
+     * means a stack above it and a signed result below it, and nothing else on
+     * the row says which. The doc's own sentence — "do not shorten it to
+     * *result*" — is a string this can hold to.
+     *
+     * A HEADER IS DRAWN AT ZERO TOO, so none of these three can go missing on
+     * a night at any stage of its count. That is what makes them worth asking
+     * for here rather than only on the seeded mid-count night.
+     */
+    'STILL TO COUNT',
+    'COUNTED',
+    'RESULT BEFORE DEDUCTIONS',
+    'CASHED OUT EARLIER',
     'not counted yet',
     'Count',
-    'Already confirmed',
     'Next',
   ],
+
+  /*
+   * `Cashed Out States.dc.html`, frame `2a` — the game screen with treatment
+   * `1a` applied, which is the reference for Tonight. Nothing else on this
+   * screen changed and nothing else is asked for here.
+   *
+   * The seeded night has somebody already cashed out, so both groups are
+   * drawn. Were it a fresh table, CASHED OUT would still be on screen at `· 0`
+   * — which is the rule these two strings exist to hold.
+   */
+  '/session': ['STILL PLAYING', 'CASHED OUT', 'RESULT BEFORE DEDUCTIONS'],
+
+  /*
+   * ⚠ NO `/settled` ENTRY, still, and it is not an oversight — see the
+   * paragraph in `docs/screens.md`. `/settled` reads the night the app holds,
+   * the seeded night is still being played, so the route pass opens the *Not
+   * settled* fallback and would go red on a screen that is behaving perfectly.
+   * The kicker and the formula line are held by `ui-journeys.mjs`, which plays
+   * a night through to settled and stops on it.
+   */
 };
 
 /*

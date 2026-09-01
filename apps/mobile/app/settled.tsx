@@ -5,6 +5,7 @@ import { prizePool, resolveLedger, settle } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { NightResult } from '../src/components/NightResult';
 import { Screen } from '../src/components/Screen';
+import { space } from '../src/design/tokens';
 import { settlementInput, useNight } from '../src/lib/nightStore';
 
 /**
@@ -82,33 +83,35 @@ export default function NightResults() {
       backTo="the club"
       /*
        * THE PAIR AT THE FOOT, as the frame draws it — two outlined buttons of
-       * equal width, `14px 20px 6px`, 14 between them.
+       * equal width, `14px 20px 6px`, 14 between them. `Full ledger` beside
+       * `Close`, which is the frame's own pair.
        *
-       * ⚠ ONE OF THEM IS NOT THE FRAME'S. It draws `Full ledger` beside
-       * `Close`, and there is no full ledger anywhere in this app: no screen
-       * lists a night's entries, the addendum left "whether that stays with
-       * Full ledger" open, and `docs/screens.md` carries it as open. A button
-       * that goes nowhere on the last screen of a night is the one thing this
-       * footer may not be — the same reason Share and Export are absent from
-       * E4 — so the slot holds the route that does exist and is otherwise
-       * unreachable.
+       * IT HELD `Who has paid` UNTIL TODAY, and the note that put it there said
+       * why and said what would replace it: "there is no full ledger anywhere
+       * in this app … put `Full ledger` here the day there is a ledger to
+       * open." `02-E6-results-row.md`, cut 1 September, is that day — it keeps
+       * the four-column table `7e` "as the full-screen variant behind the *Full
+       * ledger* button", and `/ledger` is that screen. So the slot goes back to
+       * the label the frame draws on it.
        *
-       * `Who has paid` was a chip in the flexible space until now, for the
-       * reason below: E6 removes the disclosure row and says payments live
-       * "elsewhere", and elsewhere is not drawn. In the footer it is the same
-       * deviation, stated once, in the shape the frame gives it. Put `Full
-       * ledger` here the day there is a ledger to open.
+       * AND `Who has paid` GOES BACK TO BEING A CHIP above the footer, which is
+       * where it was before it borrowed this slot. The deviation it represents
+       * is unchanged and is still the same one: E6 takes the disclosure row off
+       * and says payments live "elsewhere", elsewhere is not drawn, and this
+       * screen is the only route into `/payments` in the app. Delete the chip
+       * the day E7 has a door drawn somewhere else.
        */
       footer={
         <View style={styles.pair}>
-          {result.transfers.length > 0 && (
-            <Button
-              label="Who has paid"
-              variant="secondary"
-              style={styles.half}
-              onPress={() => router.push('/payments')}
-            />
-          )}
+          {/* Only where there is a table behind it — a night whose rules reach
+              past the bill and the piggy bank has no four columns to draw, and
+              `/ledger` says so rather than drawing a term short. */}
+          <Button
+            label="Full ledger"
+            variant="secondary"
+            style={styles.half}
+            onPress={() => router.push('/ledger')}
+          />
           {/* CLOSES THE RECORD, WHICH IS ALL IT DOES. The night is already
               settled — this is the way out of reading it, and it is `back`
               because the screen is a push: from the ending flow that is the
@@ -150,6 +153,20 @@ export default function NightResults() {
         roundingMode={night.roundingMode}
       />
 
+      {/*
+       * WHO HAS PAID, back in the flexible space it occupied before the footer
+       * borrowed it — see the note on the footer above. It is a chip rather
+       * than a disclosure row because E6 takes the row off; it is here at all
+       * because this screen is the only route into `/payments` in the app.
+       */}
+      {result.transfers.length > 0 && (
+        <Button
+          label="Who has paid"
+          variant="chip"
+          style={styles.toPayments}
+          onPress={() => router.push('/payments')}
+        />
+      )}
     </Screen>
   );
 }
@@ -217,4 +234,7 @@ const styles = StyleSheet.create({
      footer, so all this row says is that the two share the width. */
   pair: { flexDirection: 'row', gap: 14 },
   half: { flex: 1 },
+  /* The chip's own gutter and the 20 above it — the same it had before the
+     footer borrowed its slot. */
+  toPayments: { marginHorizontal: space.card, marginTop: 20 },
 });
