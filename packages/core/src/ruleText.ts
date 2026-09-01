@@ -308,3 +308,60 @@ export function destinationTerm(destination: RuleDestination): string {
   const word = destinationWord(destination);
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
+
+/**
+ * The same destination as a COLUMN HEAD — "food", "piggy".
+ *
+ * A third spelling, and it earns its place: `destinationWord` above is what the
+ * money is called in a sentence ("· the piggy bank") and this is what it is
+ * called in the two or three characters a formula line can spare —
+ * `game +$1,620 · food −$54 · piggy −$23`, under a name on the results screen.
+ * The words are the columns board's own (`E6-results-columns.md`, `game · food
+ * · piggy · net`), which is why a bill reads **food** here and `bill` there: the
+ * head of a column is naming what the money bought, not which rule took it, and
+ * the rule's own name — "Kitchen & drinks" — is printed in full further down the
+ * same screen.
+ *
+ * ⚠ TWO OF THESE ARE NOT DRAWN. No board puts a host's fee or a next-pot rule
+ * on a formula line, because no board draws a night that has one. They are
+ * written to the grammar of the two that are — one lower-case word, the shortest
+ * that is still the money — and flagged here rather than passed off as decided
+ * copy.
+ */
+export function formulaWord(destination: RuleDestination): string {
+  switch (destination) {
+    case 'bill':
+      return 'food';
+    case 'kitty':
+      return 'piggy';
+    case 'host_fee':
+      return 'host';
+    case 'next_pot':
+      return 'next pot';
+  }
+}
+
+/**
+ * A SMALL COUNT AS A WORD — "seven", not "7".
+ *
+ * E4 states the number of transfers in words above the list ("Seven transfers
+ * clear the night") for a reason it gives itself: a wrong count is visible in a
+ * word in a way it is not in a digit, and the room is about to hand over cash on
+ * it. The rounding sheet then states the same count per step ("seven
+ * transfers"), so the two have to spell it the same way.
+ *
+ * LOWER CASE, and a caller that starts a sentence with it capitalises it. Ten is
+ * where it stops: past that a word is harder to read than the figure, and a
+ * night with eleven transfers has other problems.
+ */
+export function countWord(n: number): string {
+  return (
+    ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'][n] ??
+    String(n)
+  );
+}
+
+/** "seven transfers", "one transfer" — the count and what it counts. */
+export function transfersInWords(n: number): string {
+  return `${countWord(n)} ${n === 1 ? 'transfer' : 'transfers'}`;
+}

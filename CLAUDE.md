@@ -119,16 +119,20 @@ stands. Read them newest first:
 - **`design/handoff-count-up-to-settled/`, cut 1 September — start here.** The
   ending flow as one thing: E2 counts, E4 agrees the transfers, E6 reads the
   night back. It decides two things and carries the other two docs forward
-  unchanged. **E6's row is format `7a`** — name, `game · food · piggy` on a grey
-  sub-line, the net hard right — with `7e`, the four-column table, kept behind
-  *Full ledger*. **Settled players are grouped, muted and signed** on Tonight
-  and on E2 alike, because the right-hand column changes meaning between an
-  active row and a settled one and nothing else on the row said so. Its `docs/03`
-  and `docs/04` are byte-identical to the E2 cut's two docs; where it and an
-  older cut disagree about a screen it speaks on, this one wins.
-- **`design/handoff-E6/`, cut 30–31 August.** The settled night. Its columns
-  layout is now `/ledger` rather than E6's own list; its receipt rows are still
-  what a night too complicated for three terms gets.
+  unchanged. **E6's row states the night's terms under the name** — `game
+  +$1,620 · food −$54 · piggy −$23` — with `7e`, the four-column table, kept
+  behind *Full ledger*, which is `/ledger`. **Settled players are grouped, muted
+  and signed** on Tonight and on E2 alike, because the right-hand column changes
+  meaning between an active row and a settled one and nothing else on the row
+  said so. Its `docs/03` and `docs/04` are byte-identical to the E2 cut's two
+  docs; where it and an older cut disagree about a screen it speaks on, this one
+  wins.
+- **`design/handoff-E6/`, cut 30–31 August, and the rev-18 E6 frame on top of
+  it.** The settled night, rebuilt from the frame the owner pointed at: the
+  three-figure summary, the formula line, the rule outcomes at the foot. Its
+  columns layout is `/ledger` now; its receipt rows are still what the player
+  card draws. `docs/screens.md` records where this and the 1 September cut
+  disagree — one place, about a term of `$0` — and that it is unanswered.
 - **`design/handoff-E2/`, cut 30–31 August.** The status block on E2 Count up,
   which it replaces with the whole equation — bought in against cashed out plus
   counted — and the rounding step, which E2 owns. Its logic doc is the

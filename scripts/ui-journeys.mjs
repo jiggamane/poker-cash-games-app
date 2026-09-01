@@ -782,86 +782,118 @@ async function playANight(name, rebuys) {
   await tap('See who pays whom');
   await stop('settle up');
 
+  /*
+   * E4 SAYS WHERE THE FLOAT WENT, IN WORDS — frame `4a`'s own sentence, and the
+   * reader's only clue that part of what they are about to hand over is the
+   * group's money rather than somebody's winnings.
+   *
+   * TWO WAYS IT HAS ALREADY GONE WRONG. It read "The kitty is set aside for the
+   * group", which is the STORED value of the destination and a word no reader is
+   * ever meant to see; and it was driven off the collectors who are NOT at the
+   * table, so a night where a player holds the piggy bank said nothing about it
+   * at all. Both are B35. The sentence is asserted rather than the mechanism
+   * because the sentence is what a room reads.
+   */
+  /* VISIBLE ONLY, and this is the fault the first run of it found: expo-router
+     keeps the whole stack mounted, so an unscoped count reads the screen
+     UNDERNEATH — E3's preview grid, whose piggy-bank column head said `KITTY`
+     until 1 September. `:text()` matches the smallest element holding the
+     string, and `:visible` drops everything the pushed screen is covering. */
+  await holds(
+    'settle up says the piggy bank is set aside',
+    (await page.locator(':text("is set aside for the group"):visible').count()) === 1 &&
+      (await page.locator(':text-matches("\\bkitty\\b", "i"):visible').count()) === 0,
+    'E4 does not name the piggy bank, or calls it the kitty',
+  );
+
   const largest = await biggest();
 
   await tap('Close the session', { wait: 1600 });
   await stop('night settled');
 
   /*
-   * THE WHOLE FORMULA ON THE ROW — `02-E6-results-row.md`, format `7a`, which
-   * is the layout that ships as of 1 September. The same four terms the
-   * columns carried, on one row per player: the name and `game · food · piggy`
-   * on a grey sub-line, the net hard right.
+   * THE WHOLE NIGHT ON THE ROW — the E6 frame's results list, carrying the
+   * columns addendum's terms as a sentence under the name:
+   * `game +$1,620 · food −$54 · piggy −$23`, every deduction in open view and
+   * nothing behind a tap.
    *
    * IT IS INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches a settled
    * night with money on it, so the route pass measures the seeded mid-count
    * book and sees none of this. And this is the night where it is tightest —
-   * millions and a rounding step, three figures and their words on one
-   * 360-wide line.
+   * millions and a rounding step, four terms on a 360-wide row.
    */
+  const formula = await page.evaluate(() => {
+    const rows = [];
+    for (const el of document.querySelectorAll('div')) {
+      if (el.children.length !== 0) continue;
+      const line = (el.textContent || '').trim();
+      /* EITHER SPACE. The label and its figure are joined by a NON-BREAKING one
+         — see the note in `NightResult.tsx`: it is what stops a wrapped line
+         breaking inside a number. This check is the reason it is worth saying
+         twice: written for the ordinary space, it read every row as having no
+         formula at all and reported the layout missing. */
+      if (!/^game[\s\u00a0][+\u2212]\$/.test(line)) continue;
+      // leaf → the name-and-line column → the row, whose other child is the net.
+      const row = el.parentElement && el.parentElement.parentElement;
+      if (row === null) continue;
+      const net = [...row.children]
+        .map((c) => (c.textContent || '').trim())
+        .find((s) => /^[+−]\$/.test(s));
+      rows.push({ line, net: net === undefined ? null : net });
+    }
+    return rows;
+  });
+
   await holds(
     'the row carries the whole formula',
-    (await page.locator('text=/^game .+ \u00b7 food .+ \u00b7 piggy .+$/').count()) > 0,
-    'E6 does not draw the three terms under the name',
+    formula.length > 0 && formula.every((r) => / · /.test(r.line) && r.net !== null),
+    'E6 does not draw the night as a formula under the name',
   );
 
   await holds(
     'and nothing is hidden behind a tap',
-    (await page.getByLabel(/\u00b7 their night$/).count()) === 0 &&
+    (await page.getByLabel(/· their night$/).count()) === 0 &&
       (await page.getByText('Cashed out', { exact: true }).count()) === 0,
-    'E6 still draws the receipt rows format 7a replaced',
+    'E6 still draws the receipt rows the formula line replaced',
   );
 
   /*
-   * AND THE ARITHMETIC THE ROW INVITES COMES OUT RIGHT.
+   * AND THE ARITHMETIC THE LINE INVITES COMES OUT RIGHT.
    *
-   * Three terms over a net invite exactly one sum, and a reader who does it has
-   * to arrive at the figure printed beside them. `rev15-night.test.ts` asserts
-   * that of the engine; this asserts it of what is actually on the phone, which
-   * is where a term could be drawn in the wrong order or dropped to buy width.
+   * A line of terms under a figure invites exactly one sum, and a reader who
+   * does it has to arrive at that figure. `rev15-night.test.ts` asserts that of
+   * the engine; this asserts it of what is actually on the phone, which is where
+   * a term could be dropped or a line drawn under the wrong name.
    */
+  const money = (s) => {
+    const t = (s || '').trim().replace(/[,$]/g, '').replace(/−/g, '-');
+    if (/[KMB]$/i.test(t)) return null; // an abbreviated figure cannot be summed
+    const n = Number(t.replace('+', ''));
+    return Number.isFinite(n) ? n : null;
+  };
+
   await holds(
-    'and the three terms add up to the net beside them',
-    await page.evaluate(() => {
-      const money = (s) => {
-        const t = (s || '').trim().replace(/[,$]/g, '').replace(/\u2212/g, '-');
-        if (/[KMB]$/i.test(t)) return null; // an abbreviated figure cannot be summed
-        const n = Number(t.replace('+', ''));
-        return Number.isFinite(n) ? n : null;
-      };
-      const subs = [...document.querySelectorAll('*')].filter(
-        (el) =>
-          el.children.length === 0 &&
-          /^game .+ \u00b7 food .+ \u00b7 piggy .+$/.test((el.textContent || '').trim()),
-      );
-      if (subs.length === 0) return false;
-      return subs.every((sub) => {
-        /* sub-line → the text column → the row, whose last child is the net. */
-        const row = sub.parentElement && sub.parentElement.parentElement;
-        if (row === null) return false;
-        const net = money(row.lastElementChild && row.lastElementChild.textContent);
-        const terms = sub.textContent
-          .trim()
-          .split(' \u00b7 ')
-          .map((part) => money(part.split(' ').slice(1).join(' ')));
-        // Abbreviated anywhere on the row and there is no sum to check.
-        if (net === null || terms.some((t) => t === null)) return true;
-        return terms.reduce((a, b) => a + b, 0) === net;
-      });
+    'and every term adds up to the net beside it',
+    formula.every((r) => {
+      /* The separator between terms keeps its ordinary spaces, so the line still
+         splits on ' · '; inside a term the space is non-breaking. */
+      const terms = r.line.split(' · ').map((term) => money(term.split(/[\s\u00a0]+/).pop()));
+      const net = money(r.net);
+      if (net === null || terms.some((f) => f === null)) return true; // abbreviated: skip
+      return terms.reduce((a, b) => a + b, 0) === net;
     }),
-    'a row on E6 does not add up to the net beside it',
+    'a formula line on E6 does not add up to the net beside it',
   );
 
   await stop('night settled · the formula');
 
   /*
-   * AND `7e` IS STILL THERE, behind *Full ledger*.
-   *
-   * The columns were the layout that shipped until this cut and they are not
-   * deleted — `02-E6-results-row.md` keeps them "as the full-screen variant
-   * behind the *Full ledger* button, where columns are worth the width". This
-   * is the only check that opens that door: the route pass reaches `/ledger`
-   * on the seeded mid-count night, which has no table to draw.
+   * AND `7e` IS BEHIND *FULL LEDGER* — `02-E6-results-row.md`, cut 1 September:
+   * the four-column table "stays as the full-screen variant behind the *Full
+   * ledger* button, where columns are worth the width". The formula line above
+   * is what E6 lists; this is the other half of the same decision, and this is
+   * the only check that opens the door. The route pass reaches `/ledger` on the
+   * seeded mid-count night, where there is no table to draw.
    */
   await tap('Full ledger');
   await holds(
@@ -887,8 +919,8 @@ async function playANight(name, rebuys) {
    */
   await holds(
     'and the float says who is holding it',
-    (await page.getByText(/^collected by /).count()) > 0,
-    'the deductions block took money off the table and named nobody as holding it',
+    (await page.getByText(/\u00b7 held by /).count()) > 0,
+    'the block took money off the table and named nobody as holding it',
   );
 
   /*

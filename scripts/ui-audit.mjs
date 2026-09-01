@@ -228,8 +228,8 @@ const DRAWN = {
    * paragraph in `docs/screens.md`. `/settled` reads the night the app holds,
    * the seeded night is still being played, so the route pass opens the *Not
    * settled* fallback and would go red on a screen that is behaving perfectly.
-   * Format `7a`'s kicker and its three terms are held by `ui-journeys.mjs`,
-   * which plays a night through to settled and stops on it.
+   * The kicker and the formula line are held by `ui-journeys.mjs`, which plays
+   * a night through to settled and stops on it.
    */
 };
 

@@ -163,7 +163,7 @@ were replaced, which is the one reason a row may leave it; B32 in
 than leaving it to look like nobody got round to it. `/settled` reads the night
 the app currently holds, and the seeded night is still being played — so the
 rule pass, which opens every route cold, gets the *Not settled* fallback and
-never sees `PRIZE POOL`, `NET, AFTER DEDUCTIONS` or `DEDUCTIONS` at all. A
+never sees `PRIZEPOOL`, `NET, AFTER DEDUCTIONS` or `DEDUCTIONS` at all. A
 `DRAWN` entry for it would go red on a screen that is correct. `ui-journeys.mjs`
 does reach the real one — it plays a night through and stops on it — but it runs
 its own overflow checks rather than the rule pass, so the map is not available
@@ -286,17 +286,24 @@ night's own figures on the card it is testing.
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
 
-**`/session`, `/count-up` and `/settled`** — 1 September, the count-up-to-settled
-cut (`design/handoff-count-up-to-settled/`). Three decisions and five things it
-left open; every one of the five is a question for the designer rather than a
-job somebody forgot.
+**`/session`, `/count-up` and `/ledger`** — 1 September, the count-up-to-settled
+cut (`design/handoff-count-up-to-settled/`). The player lists on the two screens
+that show one while the night is still open, and the ledger behind E6's footer.
 
-*What was decided.* Settled players are grouped, muted and signed on Tonight and
-E2 alike, because the right-hand column changes meaning between an active row
-and a settled one and nothing else on the row said so — B32. E6's list is format
-`7a`: one row per player, `game · food · piggy` on a grey sub-line, the net hard
-right. `7e`, the four-column table that shipped from 31 August to this cut, is
-not deleted — it is `/ledger` now, behind *Full ledger*.
+⚠ **THIS CUT AND THE E6 REDRAW LANDED THE SAME AFTERNOON, from two sessions, on
+the same screen.** They agree about the row — both put the night's terms under
+the name as a sentence — and the redraw is the broader piece: it rebuilds E6
+from the rev-18 frame and makes the formula generic over rule destinations, so a
+host's fee has somewhere to go. **The redraw won E6 in the merge**, whole, and
+this cut kept the two screens it did not touch plus the ledger its footer note
+asked for. What is written below is what that resolution left standing.
+
+*What was decided, and built.* Settled players are grouped, muted and signed on
+Tonight and E2 alike, because the right-hand column changes meaning between an
+active row and a settled one and nothing else on the row said so — B32. Two
+groups on Tonight, three on E2, seat order within each, headers drawn at `· 0`.
+And `7e`, the four-column table, is `/ledger` now, behind the *Full ledger*
+button the frame has always drawn and the E6 footer had no destination for.
 
 *The one place this cut overrides a doc it otherwise carries forward.* A counted
 row on E2 prints **the signed result, computed from the raw count**, where
@@ -310,37 +317,43 @@ printed under the name, and what the night will settle that stack at is on the
 rounding bar directly above the list. **Worth putting back to the designer**,
 because it is the one place the two cuts have to be read against each other.
 
-*Left open, and flagged rather than invented:*
+*And one the two SESSIONS disagree about, left as it landed.* `02-E6-results-row.md`
+says a term of exactly zero still prints — "Never omit a term to save width; the
+row's whole argument is that the same three terms appear in the same order for
+everybody." The shipped `resultFormula` drops a zero term instead. Both are
+defensible and they are answers to different questions: the doc is describing a
+row with three FIXED terms, where a gap would read as a missing figure, and the
+built row is generic over whatever rules a night has, where a `$0` term for a
+rule that did nothing is noise. Nobody has decided which the row is. **Ask** —
+and note the doc's rule, applied to a night with no bill and no piggy bank,
+prints `food $0 · piggy $0` on every row, which no board draws either.
 
-- **Every row prints all three terms, `$0` ones included.** `02-E6-results-row.md`
-  says never to omit one. On a night with no bill and no piggy bank that reads
-  `food $0 · piggy $0` on all eight rows, which no board draws. The rule was
-  followed rather than second-guessed; ask.
-- **Truncation on the `7a` sub-line is not chosen.** The doc offers two
-  candidates and recommends truncating the name. The name does ellipsise, and
-  the sub-line takes the app's own `…ToFit` compaction rather than a truncation
-  rule — at 360 with a table in the millions, three exact figures on one line
-  are not close to fitting, and this app is measured there. Nothing is ever
-  half-printed and no term is dropped.
-- **Where *Full ledger* lands is not drawn.** It is a chip at the foot of the
-  list it replaced, which is what `/settled` already does for *Who has paid*.
-  `/watch` does not get one: it draws somebody else's night from a different
-  source, and `/ledger` reads the night this phone holds.
+*Left open on the two list screens, and flagged rather than invented:*
+
 - **No fade on E2 at eight players.** The doc keeps `1a` (fade) and `1c`
   (recessed slab) open and says three groups plus eight players overflows E2 by
   61 points. This app's E2 scrolls as a whole screen rather than as a list
   inside a fixed frame, so neither treatment applies as drawn; the type scale is
   `1a`'s, which is the build. If the fold matters more than the whole-screen
   scroll, `1c` is the alternative and the doc states the trade.
-- **The `7a` row is not tappable**, and the doc sends a tap to the player's
-  receipt (frame `7d`). Wiring it would put the row into two states the chosen
-  format does not draw — this app already opens `7d` in place under the receipt
-  rows, which is the layout `7a` replaced.
+- **Whether a settled player on Tonight can be un-cashed-out**, and what the row
+  does meanwhile. The doc lists it as open; the row is a door either way — the
+  chevron stays, dimmed.
+- **Whether `CASHED OUT EARLIER` on E2 should collapse**, given it can never
+  change from that screen. Drawn open, built open.
+- **No transition** is specified for a row moving between groups when somebody
+  cashes out, and none is built. The row moves and nothing is left behind.
 
-*And one glyph.* The doc asks for the tick at stroke 2.4; the app's shared
+*And on `/ledger`, which is a screen no board draws as a screen:* the chrome is
+this app's own push, the title is the button's own words rather than invented
+copy, and the table scrolls — the doc leaves "whether `7e` there is scrollable
+or paged" open, and paging a table nobody has drawn a pager for would be
+inventing two things instead of one.
+
+*And one glyph.* The doc asks for E2's tick at stroke 2.4; the app's shared
 `check` is 2.2 and is drawn on four other screens. Two tenths of a point against
-a change to a shared component, which `CLAUDE.md` says runs alone with nothing
-else in flight. Left alone deliberately.
+a change to a shared component, which `CLAUDE.md` says runs alone and with
+nothing else in flight. Left alone deliberately.
 
 **`/stats` and `/players`** — 30 August, and a departure from doc 15 § 5 check
 1 that the next session should not "fix" back. My stats scrolls the club name
@@ -443,14 +456,17 @@ it.
 
 **`/player` is now two screens in one, and the second is new.** While a night
 is being played it is T2/T4 exactly as before. Once the night is settled it is
-the record of one person's night, opened from a row on E6: the same card and the
+the record of one person's night: the same card and the
 same entries, plus what they fronted for the table and an AFTER DEDUCTIONS block
 carrying the working — the bill, what came back, the piggy bank, and the
 position they add up to. Nothing on it is a control. The footer is one *Close*,
 and the entry rows stop being doors into `/entry`, because `settle()` recomputes
 from the ledger every time it is read and a correction made here would move a
-figure five people have already been paid on. `ui-journeys.mjs` opens it off the
-results list at every scale it plays.
+figure five people have already been paid on. ⚠ **Nothing opens it once the night is
+closed.** E6's rows stopped being doors when the whole formula went onto the row,
+and the route in was that door — so the settled card is built, tested and
+currently unreachable. It is the same hole `Full ledger` is, and the same answer
+would fill both. **Open.**
 
 **Every movement of that person's money is a row, including the one that is not
 in the ledger.** ENTRIES was the ledger's own rows and nothing else, so the only
@@ -543,12 +559,29 @@ sheet is one sheet with several doors into it.
 |---|---|
 | **E2 Count up** | Owns it. The bar sits under the balance block, above the list, in every state including before the first stack is counted. |
 | **E4 Settle up** | Shows it above the transfers, valued `+$16 → piggy`. Changing it here recomputes the list underneath. |
-| **E6 Settled** | Shows it under the deductions block, and only when the night actually rounded. Read-only: rule 8 locks the step once the night is closed. |
+| **E6 Settled** | Shows it under the rule-outcome block, and only when the night actually rounded. Read-only: rule 8 locks the step once the night is closed. |
 | **Money rules / club rules** | The existing `RoundingRow` — a captioned rule row with a sentence — reaching the same sheet. The club scope is the default a night copies when it opens. |
 
 `RoundingBar` is the addendum's row and `RoundingRow` is the money-rules entry;
 both read their words from `ruleText.ts`, so the several places that name the
 step cannot drift apart.
+
+**One sheet, two sets of sub-lines** — frames `5b`/`5d` against `4b`/`4d`, and
+the difference is which question the step is being asked. E2 is entering stacks,
+so a step is worth knowing as the worst distortion it puts on ONE stack: *No
+stack moves by more than $3*. E4 has counted them and is looking at a list of
+payments, so a step is worth knowing as what it costs the tin and how many
+payments it leaves: *+$16 to the piggy bank · seven transfers*, and `Off` states
+the tin's whole total instead because there is no remainder to name. The
+paragraph at the top of the sheet swaps with them; both strings are the board's.
+
+The route says which: `/rounding?scope=night&from=settle`. **It is four whole
+re-settles, one per step, and that is deliberate** — the remainder and the number
+of transfers are both downstream of every rounded stack, every rule and the
+matching that pairs debtors with creditors, so working either out on the screen
+would be a second implementation of `settle()` with nothing checking it. Locked
+by `rev15-night.test.ts`, "E4 — the rounding sheet states what a step would
+cost".
 
 **The steps changed with the meaning.** Dollar · 10s · 100s · 1k became
 **Off · $10 · $50 · $100**, which are the four the addendum names and the four a
@@ -576,177 +609,223 @@ night is closed. What it settled at is part of the record now."* Rule 8 names
 the state and no frame shows it; written to the grammar of the body copy above
 it and flagged in `rounding.tsx` rather than passed off as decided copy.
 
-## What E6 asks for that this build does not have
+## The settled night, and which board it is drawn from
 
-`design/handoff-E6/`, cut 30 August, is the settled screen. Five things in it
-are open, and three of them are questions for whoever cuts the next revision.
+**The frame is the rev-18 E6 frame, and that is a reversal worth stating
+plainly.** `13-after-the-night.md` says of it, in bold, *"Do not build this
+layout"* — superseded by `1C` from `design/Player History.dc.html`, which is not
+in this repo — and `design/handoff-E6/`, cut 30 August, then drew its own
+replacement: one compact `PRIZE POOL` line with a status pill on it, the player
+rows under it, and a deductions block with a `TOTAL` row at the foot. That is
+what shipped, and it is what the owner replaced on 1 September, pointing at the
+rev-18 frame instead.
+
+So the layout on screen now is the frame in
+`docs/screen-specs/Screens - After the night.md` § E6 — the pixel source, every
+dimension inline — and it is the layout every one of those documents supersedes.
+**It is the owner's call and it is deliberate; it is not a session losing track
+of which cut wins.** What it carries forward is what the frame does better: the
+three figures across the top read as one sentence about the night, and the
+rule-outcome rows say where the money went, which the handoff-E6 block never did.
+
+**Every decision the later cuts made is still in force.** The frame is the
+layout and nothing else:
+
+* `PRIZEPOOL` / `ENTRIES` / `DEDUCTIONS`, not the frame's `THROUGH THE TABLE`
+  and `OFF THE TABLE` — `E6-results-columns.md` renamed them and the summary
+  uses the new words.
+* **Hairline rows, no fill, in both themes.** The frame washes every row green
+  or red; B23 is what that cost, and `ui-audit.mjs`'s `tinted-result-row` holds
+  it. The colour is on the figure and nowhere else. This is the one place the
+  frame is overruled on colour rather than followed.
+* **`Piggy bank`, never `Kitty`.** The frame draws `Kitty · held by the group`.
+  `kitty` is the stored value of the destination and no reader ever sees it —
+  `destinationWord` in core owns the spelling.
+* **The row states the whole night**, not `in $500 · out $2,120`. See below.
+* **No status pill.** `handoff-E6`: a confirmed result states no status of its
+  own. The word `settled` is the last term of the meta line, which is where the
+  frame puts it too.
+
+**`Full ledger` has somewhere to go now, and the footer is the frame's again.**
+It draws a pair of outlined buttons at the foot, `Full ledger` and `Close`. That
+left slot held `Who has paid` until 1 September, with a note saying why — there
+was no full ledger in this app — and saying what would replace it: *put `Full
+ledger` there the day there is a ledger to open*. `02-E6-results-row.md`, cut 1
+September, is that day. It keeps the four-column table `7e` "as the full-screen
+variant behind the *Full ledger* button, where columns are worth the width", and
+`/ledger` is that screen — the same four terms this row says as a sentence, said
+as a table, off the same `resultColumns`.
+
+**`Who has paid` went back to being a chip** in the flexible space above the
+footer, which is where it was before it borrowed the slot. The deviation it
+represents is unchanged and still the one to answer first: E6 says payments live
+on E7 "reached from elsewhere", elsewhere is not drawn, and `/settled` is the
+only route into `/payments` in the app.
+
+**What `Full ledger` is still NOT** is the entry list — which rebuy, which
+spend, at what time. No board draws one, and `/ledger` does not pretend to be
+it.
+
+**And the top-right corner stays empty.** The frame draws a home glyph and
+`Share` in it, and the E4 frame draws a home glyph and `Edit`. `09-navigation.md`
+is FINAL on chrome and wins over anything drawn: a pushed screen has a round
+back button on its title line and *nothing at all* in the top-right. `Share` on
+a settled night has no destination either — `/share` is one person's share of one
+rule, and the watcher link lives in Settings — so this is not a control being
+withheld, it is a control with nowhere to point.
+
+## The row: the whole night as a sentence
+
+    Dana                                                        +$1,543
+    game +$1,620 · food −$54 · piggy −$23
+
+`resultFormula` in `packages/core` is what decides the terms, their order and
+their names. `game` is what happened at the table with no deductions in it, at
+the step the night settled at; `food` is their share of the bill netted with
+whatever they paid at the counter, which is the one thing the line nets and the
+trade it makes; `piggy` is their contribution, never merged into food; and there
+is a term per kind after that, so a host's fee or a next-pot rule has somewhere
+to be named. The words are the columns board's — `formulaWord` in `ruleText.ts`
+— and a bill reads `food` there because the head of a column names what the money
+bought, not which rule took it. The rule's own name is printed in full in the
+block below.
+
+**`Σ terms === net === nightScore().score`, always.** That is the assertion the
+line stands on, and it is asserted twice: in `rev15-night.test.ts` for every
+player of the canonical night, and in `ui-journeys.mjs` against the figures
+actually on the phone, which is where a term could be dropped or a line drawn
+under the wrong name.
+
+**A single term is not drawn at all.** A loser nothing was charged to has
+`game −$500` and a `−$500` beside it, and the line would be explaining the
+figure with the figure. The hole (`Unaccounted`) is the same case.
+
+**Nothing is behind a tap, and two layouts went to make that true.**
+`E6-row-formula.md` (31 Aug) put the terms in a receipt the row opened into;
+`E6-results-columns.md` (31 Aug) put them in four columns on the row and said
+the two were alternatives rather than layers; both are gone, and the line is
+what replaced them. It is the columns decomposition — same figures, same order,
+same engine — as a sentence, which is what lets it hold a night the columns
+could not fit. `resultColumns`, `columnsFit` and `receiptRows` stay in core:
+they are tested, they are cheap, and `receiptRows` is still what the player card
+draws.
+
+**What no layout here has ever carried:** which rebuy, which spend, at what
+time. That is an entry list, no board draws one, and `/ledger` is not it —
+`/ledger` is `7e`, the same four terms in columns. **Open.**
+
+## A row prints a score, not a balance
+
+B27, and it now holds on every screen that prints a result rather than a
+balance. Whoever holds the piggy bank ends the night with the room's money in
+their pocket, and `finalPosition` includes it, correctly: the transfers have to
+hand it over. A results row asks a different question, and `nightScore` divides
+the engine's figure rather than restating it — `score + held` is `finalPosition`
+exactly.
+
+Three screens print the score: E6's rows, the player card's "Their night", and
+My stats. **E4's `Night's net` is the third, and it was still printing the
+balance until 1 September** — see B34. Three screens keep the balance and it is
+the same decision, not an oversight: E4's transfer list, E7's *Who has paid* and
+E3's preview grid all answer *what is this person owed when the room breaks up*.
+
+**Where the float is named instead:** in the rule-outcome block, on the line for
+the deduction it came from.
+
+    Kitchen & drinks → Lena, Marek                                 $170
+    Group piggy bank · held by Radka                                $126
+
+`ruleOutcomes` in core supplies the rule's own name, its total and who was
+credited; the component writes the sentence. The arrow is a repayment — those
+two fronted the food and are out of pocket until the table pays them — and
+`held by` is a float, which is the room's money in somebody's pocket. A rule
+nobody has been credited for reads `held by the group`, which is the frame's own
+string.
+
+**The lines sum to `DEDUCTIONS` in the summary above**, which is why there is no
+`TOTAL` row: the total is already on the screen, at the top, as one of the three
+things the night was. `totalOffTable` is that figure and the block adds up
+nothing.
+
+⚠ **`held by {name}` is not drawn on any board.** No board takes the float off
+the row, so no board has had to name the holder. The frame draws
+`Kitty · held by the group`, which is this sentence for a rule with no
+collector. It is flagged in `NightResult.tsx` rather than passed off as decided
+copy.
+
+## What E6 asks for that this build still does not have
+
+**The player's view of the screen.** The cut says so itself: the admin view is
+decided, and whether a player sees their own row emphasised, and where their own
+settlement sits, is not drawn. `/watch` renders the admin body, which is the
+honest reading — every row the same weight — and it keeps its own read-only
+band, which is not a status pill and not E6's to remove. Its meta line is rev
+15's, "kept by Marek · 4h 36m · 6 players · settled", and names somebody a
+watcher cannot ask.
+
+**Whether the deductions block is tappable through to the individual entries.**
+It is not: it is totals, and it stays totals.
 
 **The way through to E7.** The handoff removes the *Who has paid* row and says
 payments "live on E7, reached from elsewhere". Elsewhere does not exist:
 `/settled` is the only route into `/payments` in the app, and `ui-journeys.mjs`
-reaches that screen by tapping the row. Removing it outright would leave a host
-with no way to open the screen they chase the week's money on. So the row is
-gone as asked — no disclosure, no chevron, nothing that reads as a block — and a
-chip sits in the flexible space at the end instead, which is what E5 does two
-screens earlier for the same reason. It is marked `DELIBERATE DEVIATION` in
-`settled.tsx` and should be deleted the moment E7 has a door drawn somewhere
-else. **This is the one to answer first.**
-
-**The player's view of the screen.** The cut says so itself: the admin view is
-decided, and whether a player sees their own row emphasised, and where their own
-settlement sits, is not drawn. `/watch` renders the admin body for now, which is
-the honest reading — every row the same weight — and it keeps its own read-only
-band, which is not a status pill and not E6's to remove. Its meta line is
-untouched for the same reason: "kept by Marek · 4h 36m · 6 players" is rev 15's
-and names somebody a watcher cannot ask.
-
-**Whether a row opens anything — answered for the players, not for the
-deductions.** The cut's own open list asks "whether the deductions block is
-tappable through to the individual entries". The deductions block is not: it is
-totals, and it stays totals. A PLAYER's row is, and the 31 August addendum
-decides what it opens into: itself. Everything below is that row, and all of it
-is marked in `NightResult.tsx`:
-
-* **The row states the result; tapping it states the reason.**
-  `design/handoff-E6/docs/E6-row-formula.md`, cut 31 August, is an addendum to
-  the logic doc and it settles this: the `in ${in} · out ${out}` sub-line is
-  **removed**, a collapsed row is a name and a net at 40 points instead of 60,
-  and the arithmetic arrives when the row is opened — `Cashed out`,
-  `Bought in`, each bill term, the piggy bank, and a `Net` that closes it.
-  Every term that is not zero appears and **nothing is netted**: a player who
-  paid at the counter sees `Bill · share −$54` and `Bill · paid it +$242`
-  rather than a merged figure. One row is open at a time.
-
-  The rows and their figures are `receiptRows` and `nightScore` in
-  `packages/core` — the screen prints them and adds nothing, which is the only
-  reason the last line of the receipt can be trusted to be the same number as
-  the first. The copy is genderless (`· share`, `· paid it`); the board says
-  "his" because the sample player is Petr, and the doc says so.
-
-  **The sub-line went because it could not be made to reconcile.** It was
-  rewritten short on 31 August — `$500 in, $620 out, bill: −$29 +$120` — and
-  the addendum landed the same day with the better answer: two of five terms on
-  a line invite the reader to do maths that comes out wrong, and the row is
-  393 points wide however the terms are spelled.
-
-* **Dark keeps a tinted row fill; bright does not.** The one place B23 is
-  deliberately reversed, and only in one theme. `rgba(111,207,151,.13)` on a
-  win and `rgba(240,112,92,.13)` on a loss, radius 8, no hairline — the doc's
-  reason is that at 13% on `#0A0A0B` the wash reads as a band rather than as
-  emphasis. The bright theme has no such alpha and stays hairlines with the
-  colour on the figure alone. `ui-audit.mjs` carries the exception by name:
-  `tinted-result-row` skips a node marked `e6-row` **only** under
-  `prefers-color-scheme: dark`, so a fill leaking into the bright theme is
-  still a finding.
-
-  The tokens are `winTint` at 14% and `dangerWash` at 12% where the board says
-  13% for both. One point of alpha, invisible at any size, against an edit to
-  `tokens.ts` — which `CLAUDE.md` says runs alone with nothing else in flight.
-  Same call as the loss hex below.
-
-* **A chevron that opens the row, not one that leaves it.** Down closed, up
-  open, 13 × 13 at stroke 2.4 — `chevronDown` is new in `Icon.tsx` and is
-  `chevronUp` upside down at the same weight, because a row that opens and
-  closes may not appear to change its stroke while doing it. `/watch` gets the
-  receipt too: it is reading somebody else's night over the wire, and the
-  receipt is made of figures that came with it.
-
-* **The row no longer opens the player card, and that is a loss worth naming.**
-  It used to push T2/T4, because *why is my number this* had no answer anywhere
-  in the app. The receipt answers it where the question is asked. What the card
-  also had — which rebuy, which spend, at what time — is not in the receipt, and
-  the addendum's own open item is "whether the expanded receipt is also the
-  route into the individual entries, or whether that stays with **Full
-  ledger**". Neither is drawn, so neither is built. **Open.**
-
-**Which layout ships: the columns.** `design/handoff-E6/docs/E6-results-columns.md`,
-cut 31 August, offered a **columns** layout — `game · food · piggy · net`, four
-computed figures on the row, nothing tappable — against the receipt rows, said
-they were alternatives rather than layers, and left the choice open. The owner
-picked the columns: *the table style with the deductions all in open view*.
-
-**The whole formula is on the row.** `game` is what happened at the table with
-no deductions in it; `food` is their share of the bill netted with whatever they
-paid at the counter, which is the one thing this layout nets and the trade it
-makes; `piggy` is their contribution in its own column, never merged into food;
-`net` is the three added up, and it is the same `nightScore` figure the receipt
-rows printed. That identity is asserted twice — in `rev15-night.test.ts` for
-every player of the canonical night, and in `ui-journeys.mjs` against the
-figures actually on the phone, which is where a column could be drawn in the
-wrong order or a cell dropped.
-
-**The receipt rows are still here, and are not a second opinion.** Four numeric
-columns is the ceiling at 393 points, so a night whose rules reach past the bill
-and the piggy bank — a host's fee, a next pot — cannot be drawn this way and
-gets the receipt rows, which have a line per kind. `columnsFit()` in
-`packages/core` is that test, and the screen does not re-decide it. Everything
-`E6-row-formula.md` asked for still holds on that path: the collapsed row is a
-name and a net, one row opens at a time, the two bill terms stay apart, and dark
-keeps its tinted fill.
-
-**Two deviations from the board, both about width.** `food` and `piggy` are 60
-points where the board draws 58 and 50: the board's night has two-figure piggy
-contributions and this app is measured against tables in the millions, where the
-same cell holds `−$118k` and `−$12M` — six glyphs, 53 and 56 points, clipped in
-both. The name gives those twelve points up; it is the one thing in the row that
-may ellipsise. And every column abbreviates at ten thousand rather than at the
-million a full-width row does, because they are different widths and one
-threshold for both would have to be the tighter of the two everywhere.
-
-⚠ **The footnote is the board's, less its example.** It is drawn as "…plus
-whatever they paid at the counter — Petr paid $242 and owed $54, so +$188", and
-those are the sample night's figures against the sample night's name. A real
-night printing them would be explaining itself with somebody else's money, so
-the two sentences about the columns are verbatim and the illustration is
-dropped rather than rewritten.
-
-The addendum's three corrections apply either way and all three hold: order is
-`net` descending, the receipt's first line reads `Cashed out`, and this screen
-never said `THROUGH THE TABLE` or `OFF THE TABLE` — its labels come from
-`E6-results-logic.md`, which draws them as `PRIZE POOL` and `DEDUCTIONS`.
-
-**A row prints a score, not a balance — and the float is named underneath.**
-B27, and the one deviation on this screen that changes a figure rather than a
-line of text. Whoever holds the piggy bank ends the night with the room's money
-in their pocket, and `finalPosition` includes it, correctly: the transfers have
-to hand it over. E6 drew that figure, so the seeded club's collector read a
-`+$126` win in the column of wins, above five people who had played all night
-for less, and a host who collects AND plays read their own night $126 heavy.
-
-The row now prints `nightScore`'s `score` — `finalPosition` less what they are
-only holding — and the float is named once, under the deduction it came from,
-as `collected by {name}`. Nothing about the settlement moved: `score + held`
-is `finalPosition` exactly, and settle-up and *Who has paid* are untouched.
-A bill is deliberately not a float: money back for the pizza is the fronter's
-own, it stays in their score, and `ruleCollector` names nobody for it.
-
-Two things follow from it. The collector who never sat down leaves the player
-list entirely — their whole appearance there was the float — and the player
-card at `/player` makes the same split, with its "Their night" total on the
-score and the float on its own line below, so the two screens cannot disagree
-about one person's number.
-
-⚠ **`collected by {name}` is not drawn on any board**, because no board takes
-the float off the row. It is flagged in `NightResult.tsx` rather than passed
-off as decided copy, and it is written to the grammar of the qualifier beside
-it.
-
-**The deductions qualifier.** The board draws `collected on the side` and the
-logic doc says to "replace that qualifier with whatever the group's money rules
-actually do". The engine charges deductions to the players and credits them to
-collectors, so the money genuinely is collected off the table and the board's own
-words are true of this app — and copy is final, so they are what is on screen.
-If a group whose rules work some other way needs a different line, that line has
-to be written rather than derived.
+reaches that screen by tapping it. It is marked `DELIBERATE DEVIATION` in
+`settled.tsx`. **This is the one to answer first.** It is back to being a chip
+above the footer as of 1 September: `Full ledger` now exists and has taken the
+footer slot the frame draws it in.
 
 **One colour, off by three units.** E6 gives the bright red as `#A93A2A`; the
 token is `#B03A28`, which every earlier bright board drew and which is used in
 every screen in the app. Changing it is an app-wide edit to `tokens.ts`, which
 `CLAUDE.md` says runs alone and with nothing else in flight. The difference is
-not visible at any size and it is not worth a session's worth of merge risk;
-worth doing on the next pass that touches the palette for its own reasons.
+not visible at any size and it is not worth a session's worth of merge risk.
+
+**The deductions qualifier is gone with the block that carried it.** The
+handoff-E6 block drew `collected on the side` over a list of totals. The frame's
+block is the outcome rows above and each one names its own destination, so there
+is nothing left for a qualifier to say.
 
 One more, smaller: the board puts the meta line at the page's own 22, and Chrome
 A indents it 68 so it sits under the title rather than under the back button.
 The indent is `chrome.metaIndent` and belongs to every pushed screen, so this
 screen keeps it.
+
+## E4 Settle up, as frame `4a` draws it
+
+`design/handoff-E2/boards/Result Formula Options.dc.html`, frames `4a`–`4d`, cut
+31 August. The rounding row and its sheet are `E2-rounding.md`'s and were built
+with it; what changed on 1 September is everything else the frame settles.
+
+**The piggy bank is a payee like anyone else** — `13-after-the-night.md`,
+verbatim, and `4a` draws exactly that: the last row of the same list, the same
+hairline, the same ink, `Karel → Piggy bank`. It used to be an object: a bone
+wash, rounded, inset from the list, because it is the one row where the money
+leaves the table for good. That is true and it is not this screen's business —
+a room reading the list is handing over cash in order, and a row drawn as a
+panel reads as a row that works differently. The bone belongs to E6's outcome
+block, which is where it now is.
+
+**`Night's net` is scores, and the transfers are balances.** The two lists
+disagree on purpose and the disagreement is the point: the transfers move the
+food money and the piggy bank as well as the winnings, and the nets are the
+winnings after the food money and the piggy bank came off. Both come off the
+engine — `resultFormula` for the one, `settle()`'s transfers for the other — and
+neither is computed on the screen. See B34.
+
+**The chips stay outlined.** `4a` fills them, `rgba(111,207,151,.13)` on a win
+and `rgba(240,112,92,.12)` on a loss. B23 is why they are not: a chip carrying a
+signed figure AND a coloured ground states one fact twice, and
+`tinted-result-row` walks every signed figure in the app up to the row that
+holds it. The outline keeps the chip an object without giving it an opinion.
+
+**Share and Export are still absent.** `4a` draws them as a secondary pair under
+`Close the session`. Neither has anywhere to go — `/share` is one person's share
+of one rule, export is phase 4 in `05-build-order.md` — and two dead controls on
+the last screen of the night, at the moment a host most needs to trust what they
+are tapping, is worse than a footer with one button in it. **Open**, and it is
+the same answer as `Full ledger` above: build the destination, then the button.
+
+**The corner stays empty on this screen too.** `4a` draws a home glyph and
+`Edit`; `09-navigation.md` wins. The step count `3 of 3` is text at the right of
+the TITLE row, which is where the frame draws it and what `Screen`'s `trailing`
+is for — text or a tag, never a control.

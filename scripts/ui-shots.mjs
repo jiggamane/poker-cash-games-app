@@ -164,8 +164,8 @@ await tap('Close the session', { wait: 2000 });
 await shot('10-settled');
 await shotTail('10-settled');
 
-/* Format `7e`, which E6's list stopped being on 1 September and which this is
-   now the only picture of — see `02-E6-results-row.md`. */
+/* Format `7e` — the four columns, which E6 stopped listing on 1 September and
+   which `Full ledger` is now the way to. See `02-E6-results-row.md`. */
 await tap('Full ledger', { wait: 1400 });
 await shot('11-ledger');
 

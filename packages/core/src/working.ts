@@ -17,7 +17,7 @@
  */
 
 import { money, type Money } from './money';
-import { destinationTerm, ruleLabel } from './ruleText';
+import { destinationTerm, formulaWord, ruleLabel } from './ruleText';
 import type { SettlementResult } from './settlement';
 import {
   UNACCOUNTED_ID,
@@ -610,39 +610,130 @@ export function resultRows(result: SettlementResult): ResultRow[] {
 }
 
 /**
- * The three terms as one line — `game +$150 · food +$188 · piggy −$23`.
+ * THE FORMULA LINE — one person's night as a sentence under their name.
  *
- * The sub-line of format `7a`, which is the row E6 ships as of
- * `design/handoff-count-up-to-settled/docs/02-E6-results-row.md`, cut 1
- * September. It is here rather than on the screen for the reason every string
- * that names a figure is: the three terms and the order they come in are the
- * whole argument of the row, and a screen assembling them itself is a second
- * place that can disagree with `resultColumns` about what a night did.
+ *     Dana                                                       +$1,543
+ *     game +$1,620 · food −$54 · piggy −$23
  *
- * EVERY TERM ALWAYS PRINTS, INCLUDING A ZERO ONE — `$0`, with no sign, which
- * is what `formatSigned` already returns for it. The doc is explicit: "Never
- * omit a term to save width; the row's whole argument is that the same three
- * terms appear in the same order for everybody." That is a stronger rule than
- * the columns layout's, which drops a column nobody has a figure in, and the
- * difference is deliberate — a column head is a label and a term on a row is
- * part of a sum the reader is checking.
+ * The E6 results row as the board draws it (`docs/screen-specs/Screens - After
+ * the night.md`, E6), carrying the columns addendum's terms instead of the
+ * `in $500 · out $2,120` that sub-line used to hold. It is the same
+ * decomposition `resultColumns` returns, in the same order, off the same
+ * figures — a sentence rather than a grid, which is what lets it hold a night
+ * with a host's fee in it. `columnsFit` has no equivalent here and needs none:
+ * a term is a word and a figure, and a night that grows a fourth kind of
+ * deduction grows a fourth term.
  *
- * ⚠ A NIGHT WITH NEITHER A BILL NOR A PIGGY BANK still draws `food $0 · piggy
- * $0` on every row under this rule. No board draws that night, so the rule is
- * followed rather than second-guessed; `docs/screens.md` carries it as the one
- * thing on this row to put back to the designer.
+ * WHY THE ENGINE DECIDES THE TERMS. Two of the three decisions on this line are
+ * arithmetic wearing a label's clothes — which credits are a float (so the
+ * collector's row prints a score and not a balance, B27) and whether a bill's
+ * two halves net into one figure — and both are already made in this file. The
+ * third, that a term of $0 is not printed, is what keeps the line short enough
+ * to be read: a loser who paid neither the bill nor the piggy bank has one term,
+ * and one term is the net said twice, so the screen draws no line at all.
  *
- * The separator is a middot with a space either side, and the caller supplies
- * the formatter so the group's own currency — and the app's `…ToFit`
- * compaction — reach the terms without this file knowing about either.
+ * THE IDENTITY IS EXACT, and it is the whole reason the line can sit under a
+ * figure it appears to explain: `Σ terms === net === nightScore().score`. The
+ * step the night rounded to is inside `game`, where it belongs — a stack that
+ * snapped to $970 settled at $970 — and the float is outside all of it.
  */
-export function formula(
-  row: Pick<ResultColumns, 'game' | 'food' | 'piggy'>,
-  formatSigned: (amount: Money) => string,
-): string {
-  return [
-    `game ${formatSigned(row.game)}`,
-    `food ${formatSigned(row.food)}`,
-    `piggy ${formatSigned(row.piggy)}`,
-  ].join(' · ');
+export interface FormulaTerm {
+  /** Stable across renders — `game`, or the destination. */
+  key: string;
+  /** `game`, `food`, `piggy` — the columns board's own words. */
+  label: string;
+  /** Signed as printed: what came off them is negative. */
+  amount: Money;
+}
+
+export interface ResultFormula {
+  player: PlayerSettlement;
+  /** The game first, then one term per kind, in the order the night applied them. */
+  terms: FormulaTerm[];
+  /** `Σ terms`, and the figure the row prints. */
+  net: Money;
+  /** The room's money in their hands, and in none of the above. */
+  held: Money;
+}
+
+export function resultFormula(result: SettlementResult): ResultFormula[] {
+  return resultRows(result).map(({ player, score, held }) => {
+    const terms: FormulaTerm[] = [
+      { key: 'game', label: 'game', amount: player.grossResult },
+    ];
+
+    for (const d of playerDeductions(result, player.playerId)) {
+      /* Money back less money off — one signed figure per kind, which is what
+         somebody who both owes the bill and paid it actually experienced. The
+         float is not in `credited` and so is not in this line. */
+      const amount = (d.credited - d.charged) as Money;
+      if (amount !== 0) {
+        terms.push({ key: d.destination, label: formulaWord(d.destination), amount });
+      }
+    }
+
+    return {
+      player,
+      /* A term of $0 goes, unless it is the only one there is: the hole has a
+         figure and no night behind it, and a row with an empty formula under it
+         would read as a row still loading. */
+      terms: terms.length === 1 ? terms : terms.filter((t) => t.amount !== 0),
+      net: score,
+      held,
+    };
+  });
+}
+
+/**
+ * WHERE EACH RULE'S MONEY ENDED UP — the block at the foot of a settled night.
+ *
+ *     Kitchen & drinks → Marek, Lena                                $170
+ *     Group piggy bank · held by Radka                              $126
+ *
+ * The rule-outcome rows, carried over from E6 by `13-after-the-night.md` and
+ * drawn on the board with their totals. `ruleCollector` above answers the same
+ * question for one rule and only where the answer is one person; this answers it
+ * for every rule on the night, and a bill — paid back to a LIST of people who
+ * fronted the food — is the case that needed it.
+ *
+ * THE ROWS SUM TO WHAT THE SUMMARY CALLS `DEDUCTIONS`. `totalOffTable` is that
+ * figure, so the screen prints both and adds up neither.
+ *
+ * `float` is the same line this file has drawn since it was written — a bill
+ * pays back an outlay, every other kind hands over a float — and it is what
+ * tells the screen whether to write "→" or "held by": money going back to
+ * somebody who spent it is a repayment, and money going to a collector is the
+ * room's, sitting in a pocket.
+ */
+export interface RuleOutcome {
+  ruleId: string;
+  /** The rule's own name, off the night's snapshot — "Kitchen & drinks". */
+  name: string;
+  destination: RuleDestination;
+  /** What the rule took in total. Never negative. */
+  total: Money;
+  /** Who has it now, in the settlement's own order. Empty where nobody does. */
+  paidTo: RuleCollector[];
+  /** True where what `paidTo` names is a float rather than a repayment. */
+  float: boolean;
+}
+
+export function ruleOutcomes(result: SettlementResult): RuleOutcome[] {
+  const name = (playerId: PlayerId): string =>
+    result.players.find((p) => p.playerId === playerId)?.name ?? '';
+
+  return result.deductions
+    /* A kind with a total of $0 is not a row — the same discipline the block
+       above it keeps. */
+    .filter((d) => d.total !== 0)
+    .map((d) => ({
+      ruleId: d.ruleId,
+      name: d.name,
+      destination: d.destination,
+      total: d.total,
+      paidTo: d.credits
+        .filter((c) => c.amount !== 0)
+        .map((c) => ({ playerId: c.playerId, name: name(c.playerId), amount: c.amount })),
+      float: d.destination !== 'bill',
+    }));
 }

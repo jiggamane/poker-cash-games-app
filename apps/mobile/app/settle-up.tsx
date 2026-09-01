@@ -3,11 +3,16 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   checkReconciliation,
+  destinationTerm,
+  destinationWord,
   endedWith,
   resolveLedger,
+  resultFormula,
   settle,
+  transfersInWords,
   type Money,
   type PlayerId,
+  type RuleDestination,
 } from '@poker-club/core';
 import { formatMoney, formatSignedToFit, formatSignedUnmarked, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
@@ -26,8 +31,15 @@ import { nameOf, setAcknowledgement, setStatus, settlementInput, standingsOf, us
  * The screen is the list of transfers and nothing else is given equal weight:
  * what a room needs at 1am is who hands what to whom. The count is stated in
  * WORDS above the list, so a wrong number is visible before anybody starts
- * handing over cash. THE KITTY IS A PAYEE LIKE ANYONE ELSE, and reads in bone
- * because it is the one row where the money leaves the table for good.
+ * handing over cash. THE PIGGY BANK IS A PAYEE LIKE ANYONE ELSE — frame `4a`
+ * draws it as the last row of the same list, in the same ink, and this screen
+ * gives it no wash and no panel of its own.
+ *
+ * TWO LISTS THAT DO NOT AGREE, ON PURPOSE. The transfers are balances — what
+ * each person hands over or collects when the room breaks up, the food money
+ * and the piggy bank included. `Night's net` underneath is scores: the same
+ * figures E6 prints, with whatever somebody is holding for the room outside
+ * them. See the note on `net` below, and B27.
  *
  * Every figure comes from the settlement engine. Nothing here does arithmetic
  * of its own; if a number looks wrong, the engine is wrong, and there is a test
@@ -75,26 +87,70 @@ export default function SettleUp() {
    * position, and colouring that row bone would be a lie about what it is.
    */
   const offTable = (() => {
-    const map = new Map<PlayerId, string>();
+    const map = new Map<PlayerId, RuleDestination>();
     const seated = new Set(players.filter((p) => p.boughtIn > 0).map((p) => p.playerId));
     for (const d of deductions) {
       if (d.destination === 'bill') continue;
       for (const c of d.credits) {
-        if (!seated.has(c.playerId)) map.set(c.playerId, word(d.destination));
+        if (!seated.has(c.playerId)) map.set(c.playerId, d.destination);
       }
     }
     return map;
   })();
 
-  /* The night's net is the people who played it. A collector holding the piggy bank
-     is a payee in the list above, not a result. */
-  const net = [...players]
-    .filter((p) => p.boughtIn > 0 || p.endedWith > 0)
-    .sort((a, b) => b.finalPosition - a.finalPosition);
+  /*
+   * THE NIGHT'S NET IS A SCORE, AND THE LIST ABOVE IT IS A BALANCE — B27, and
+   * this is the third screen it applies to.
+   *
+   * The transfers say what each person hands over or collects when the room
+   * breaks up, and the piggy bank is genuinely part of that: somebody has to be
+   * given the envelope, and that is what `finalPosition` answers. A chip down
+   * here answers a different question — how did their night go — and a host who
+   * plays AND holds the piggy bank read their own night $126 heavy in it,
+   * sorted above people who had played all night for more. `resultFormula` is
+   * the engine's answer to both halves: the same list of people E6 draws, in
+   * the same order, on the same figure, with the float outside it and named
+   * where it went.
+   *
+   * So the two lists on this screen deliberately disagree, and the disagreement
+   * is the point: the transfers move the food money and the piggy bank as well
+   * as the winnings, and the nets are the winnings after the food money and the
+   * piggy bank came off. Neither is computed here.
+   */
+  const net = resultFormula(result.value);
 
-  const setAside = [...new Set(offTable.values())];
+  /*
+   * "The piggy bank is set aside for the group."
+   *
+   * `destinationWord` is where that phrase lives, so this screen and the rules
+   * and the receipt all call the money the same thing. It used to say "the
+   * kitty", which is the STORED value and a word no reader is ever meant to see.
+   *
+   * IT IS SAID WHETHER OR NOT THE HOLDER IS SITTING AT THE TABLE, and that is
+   * the fix rather than the phrasing. The sentence used to be driven off the
+   * map above — collectors who are NOT at the table — so a night where a player
+   * holds the piggy bank said nothing about it at all: the float was folded into
+   * that player's own transfer, they were listed by name like anybody else, and
+   * the room handing them the cash had no line anywhere saying part of it was
+   * the group's. The transfers are right either way; this is the sentence that
+   * says what is inside them.
+   */
+  const setAside = [
+    ...new Set(
+      deductions
+        .filter((d) => d.destination !== 'bill' && d.total !== 0)
+        .map((d) => destinationWord(d.destination)),
+    ),
+  ];
+  /* "Seven transfers clear the night" — the count reads as a word, not a digit,
+     and the word comes off `transfersInWords` in core because the rounding sheet
+     behind the row above states the same count for each step it offers. Two
+     spellings of "seven" on one screen is how a room starts counting the list to
+     check. Capitalised here because it opens the sentence. */
+  const counted = transfersInWords(transfers.length);
   const lede =
-    `${inWords(transfers.length)} ${transfers.length === 1 ? 'transfer clears' : 'transfers clear'} the night.` +
+    `${counted.charAt(0).toUpperCase()}${counted.slice(1)} ` +
+    `${transfers.length === 1 ? 'clears' : 'clear'} the night.` +
     (setAside.length > 0 ? ` The ${setAside.join(' and ')} is set aside for the group.` : '');
 
   return (
@@ -137,34 +193,59 @@ export default function SettleUp() {
       <RoundingBar
         mode={night.roundingMode}
         remainder={rounding.remainder}
-        onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
+        /* `from: 'settle'` is what makes the sheet behind this row E4's rather
+           than E2's: same sheet, same four steps, but each one states what it
+           would cost the piggy bank and how many payments it would leave —
+           frame `4b`. E2 owns the setting and states it as a distortion on one
+           stack, which is the question being asked while stacks are entered. */
+        onPress={() =>
+          router.push({ pathname: '/rounding', params: { scope: 'night', from: 'settle' } })
+        }
         style={styles.rounding}
       />
 
       <View style={styles.list}>
         {transfers.map((tr, i) => {
-          const piggy = offTable.get(tr.toPlayerId);
+          /*
+           * THE PIGGY BANK IS A PAYEE LIKE ANYONE ELSE — `13-after-the-night.md`,
+           * verbatim, and frame `4a` draws it that way: the last row of the same
+           * list, the same hairline, the same ink, reading `Karel → Piggy bank`.
+           *
+           * IT USED TO BE AN OBJECT. A bone wash, rounded, inset from the list,
+           * because it is the one row where the money leaves the table for good
+           * — which is true and is not this screen's business: a room reading
+           * this list is handing over cash in order, and a row drawn as a panel
+           * reads as a row that works differently. Where the bone belongs is E6,
+           * on the block that says where the money ended up, and that is where
+           * it now is.
+           *
+           * The name is `destinationTerm`, so a payee that is not a person is
+           * still called what every other screen calls it.
+           */
+          const collected = offTable.get(tr.toPlayerId);
           return (
             <View
               key={`${tr.fromPlayerId}-${tr.toPlayerId}-${i}`}
               style={[
-                piggy === undefined ? styles.row : styles.piggyRow,
-                piggy === undefined
-                  ? {
-                      borderBottomColor: t.hairline,
-                      borderBottomWidth:
-                        i === transfers.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                    }
-                  : { backgroundColor: t.offTableWash },
+                styles.row,
+                {
+                  borderBottomColor: t.hairline,
+                  borderBottomWidth:
+                    i === transfers.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                },
               ]}
             >
-              <Text style={[styles.party, { color: t.text }]}>{nameOf(night, tr.fromPlayerId)}</Text>
-              <Icon name="arrow" color={t.muted} size={18} />
-              <Text style={[styles.party, { color: piggy === undefined ? t.text : t.offTable }]}>
-                {piggy === undefined ? nameOf(night, tr.toPlayerId) : `The ${piggy}`}
+              <Text style={[styles.party, { color: t.text }]} numberOfLines={1}>
+                {nameOf(night, tr.fromPlayerId)}
               </Text>
-              <Text style={[styles.amount, { color: piggy === undefined ? t.text : t.offTable }]}>
-                {formatMoney(tr.amount)}
+              <Icon name="arrow" color={t.muted} size={18} />
+              <Text style={[styles.party, { color: t.text }]} numberOfLines={1}>
+                {collected === undefined
+                  ? nameOf(night, tr.toPlayerId)
+                  : destinationTerm(collected)}
+              </Text>
+              <Text style={[styles.amount, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
+                {formatToFit(tr.amount, ROW_FITS)}
               </Text>
             </View>
           );
@@ -180,8 +261,8 @@ export default function SettleUp() {
       <View style={styles.section}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Night’s net</Text>
         <View style={styles.chips}>
-          {net.map((p) => (
-            <NetChip key={p.playerId} name={p.name} amount={p.finalPosition} />
+          {net.map((f) => (
+            <NetChip key={f.player.playerId} name={f.player.name} amount={f.net} />
           ))}
         </View>
       </View>
@@ -344,32 +425,13 @@ function NetChip({ name, amount }: { name: string; amount: Money }) {
   );
 }
 
-/** What the money is, rather than what the rule that took it is called. */
-const word = (destination: 'bill' | 'kitty' | 'host_fee' | 'next_pot'): string =>
-  destination === 'kitty' ? 'kitty' : destination === 'host_fee' ? 'host' : 'next pot';
-
-/** "Six transfers clear the night" — the count reads as a word, not a digit. */
-const inWords = (n: number): string =>
-  ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'][n] ??
-  String(n);
-
 const styles = StyleSheet.create({
   /* Above the transfers, under the lede that counts them. */
   rounding: { marginBottom: 4 },
   list: { marginHorizontal: space.page },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
-  piggyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginVertical: 6,
-    marginHorizontal: -12,
-    paddingVertical: 15,
-    paddingHorizontal: 12,
-    borderRadius: radius.pressable,
-  },
-  party: type.rowName,
-  amount: { ...type.figure, marginLeft: 'auto' },
+  party: { ...type.rowName, flexShrink: 1 },
+  amount: { ...type.figure, marginLeft: 'auto', flexShrink: 0 },
 
   // 22 above, 22 aside — and the label carries the rows' own 4 of inset so it
   // lines up with the names beneath it rather than with the hairline.
@@ -435,7 +497,15 @@ const styles = StyleSheet.create({
 });
 
 /*
- * WHAT THE COUNTED ROW ON E5 HOLDS EXACTLY.
+ * WHAT THE COUNTED ROW ON E5 HOLDS EXACTLY — and, since the transfer rows above
+ * took the same threshold, what one of those holds too.
+ *
+ * A TRANSFER ROW is two names, an arrow and an amount, and the amount is the one
+ * child that may not give: `formatMoney` never abbreviated, so a table playing
+ * for millions pushed `$1,201,400` into a row already holding two names and the
+ * figure wrapped. It is `formatToFit` at the same ten thousand as the row below,
+ * because they are the same width and the same 19/700 — and the names ellipsise,
+ * which is the right thing for a word and the wrong thing for money.
  *
  * Roughly 208 points are shared by the in-and-out line at 13/400 and the result
  * at 18/700 (see `countRow` above for where the rest of the row goes). At five
