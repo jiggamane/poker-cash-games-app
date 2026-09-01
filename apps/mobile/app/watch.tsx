@@ -197,7 +197,8 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
            * differs is the band under it, and the band is this screen's.
            *
            * `hostName` is who signs off a difference here — a watcher cannot
-           * ask the host what happened at 00:52, so the pill says who did.
+           * ask the host what happened at 00:52, so the block that states the
+           * gap says who logged it.
            */
           <NightResult result={result} ledger={ledger} loggedBy={night.hostName} />
         )}
@@ -321,6 +322,9 @@ function metaLine(night: WatchedNight, ended: boolean): string {
   if (night.hostName !== null) parts.push(`kept by ${night.hostName}`);
   parts.push(elapsed(night.startedAt, night.endedAt));
   if (ended) parts.push(`${night.playerCount} players`);
+  /* AND THE STATE LAST, as `settled.tsx` writes it — E6 takes the status pill
+     off a confirmed result, and this is where the word goes instead. */
+  if (ended) parts.push('settled');
   return parts.join(' · ');
 }
 

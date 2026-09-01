@@ -29,7 +29,21 @@
  *   node scripts/ui-currency.mjs           # needs `npm run ui` serving
  */
 
-import { chromium } from 'playwright';
+/*
+ * PLAYWRIGHT THROUGH `createRequire`, exactly as the other two gate passes take
+ * it — `scripts/ui-audit.mjs` has the note. A bare `import` resolves against
+ * this repo's own `node_modules` and nothing else, and playwright is
+ * deliberately not a dependency here (see the top of `ui-check.mjs`), so on a
+ * machine using the global install this pass died with ERR_MODULE_NOT_FOUND
+ * while the two passes beside it ran clean. `require` honours NODE_PATH; the
+ * ESM loader does not. Same fault the file above was written about: a check
+ * that only runs where somebody has already set the machine up is a check that
+ * does not run.
+ */
+import { createRequire } from 'node:module';
+
+const require_ = createRequire(import.meta.url);
+const { chromium } = require_('playwright');
 import { launchOptions } from './chromium.mjs';
 
 const PORT = process.env.UI_CHECK_PORT ?? '4321';

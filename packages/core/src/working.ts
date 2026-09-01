@@ -17,7 +17,7 @@
  */
 
 import { money, type Money } from './money';
-import { destinationTerm, ruleLabel } from './ruleText';
+import { destinationTerm, formulaWord, ruleLabel } from './ruleText';
 import type { SettlementResult } from './settlement';
 import {
   UNACCOUNTED_ID,
@@ -598,4 +598,133 @@ export function resultRows(result: SettlementResult): ResultRow[] {
     /* Biggest win first, on the figure the row prints: a column sorted by
        something it does not show reads as a column that is not sorted. */
     .sort((a, b) => b.score - a.score);
+}
+
+/**
+ * THE FORMULA LINE — one person's night as a sentence under their name.
+ *
+ *     Dana                                                       +$1,543
+ *     game +$1,620 · food −$54 · piggy −$23
+ *
+ * The E6 results row as the board draws it (`docs/screen-specs/Screens - After
+ * the night.md`, E6), carrying the columns addendum's terms instead of the
+ * `in $500 · out $2,120` that sub-line used to hold. It is the same
+ * decomposition `resultColumns` returns, in the same order, off the same
+ * figures — a sentence rather than a grid, which is what lets it hold a night
+ * with a host's fee in it. `columnsFit` has no equivalent here and needs none:
+ * a term is a word and a figure, and a night that grows a fourth kind of
+ * deduction grows a fourth term.
+ *
+ * WHY THE ENGINE DECIDES THE TERMS. Two of the three decisions on this line are
+ * arithmetic wearing a label's clothes — which credits are a float (so the
+ * collector's row prints a score and not a balance, B27) and whether a bill's
+ * two halves net into one figure — and both are already made in this file. The
+ * third, that a term of $0 is not printed, is what keeps the line short enough
+ * to be read: a loser who paid neither the bill nor the piggy bank has one term,
+ * and one term is the net said twice, so the screen draws no line at all.
+ *
+ * THE IDENTITY IS EXACT, and it is the whole reason the line can sit under a
+ * figure it appears to explain: `Σ terms === net === nightScore().score`. The
+ * step the night rounded to is inside `game`, where it belongs — a stack that
+ * snapped to $970 settled at $970 — and the float is outside all of it.
+ */
+export interface FormulaTerm {
+  /** Stable across renders — `game`, or the destination. */
+  key: string;
+  /** `game`, `food`, `piggy` — the columns board's own words. */
+  label: string;
+  /** Signed as printed: what came off them is negative. */
+  amount: Money;
+}
+
+export interface ResultFormula {
+  player: PlayerSettlement;
+  /** The game first, then one term per kind, in the order the night applied them. */
+  terms: FormulaTerm[];
+  /** `Σ terms`, and the figure the row prints. */
+  net: Money;
+  /** The room's money in their hands, and in none of the above. */
+  held: Money;
+}
+
+export function resultFormula(result: SettlementResult): ResultFormula[] {
+  return resultRows(result).map(({ player, score, held }) => {
+    const terms: FormulaTerm[] = [
+      { key: 'game', label: 'game', amount: player.grossResult },
+    ];
+
+    for (const d of playerDeductions(result, player.playerId)) {
+      /* Money back less money off — one signed figure per kind, which is what
+         somebody who both owes the bill and paid it actually experienced. The
+         float is not in `credited` and so is not in this line. */
+      const amount = (d.credited - d.charged) as Money;
+      if (amount !== 0) {
+        terms.push({ key: d.destination, label: formulaWord(d.destination), amount });
+      }
+    }
+
+    return {
+      player,
+      /* A term of $0 goes, unless it is the only one there is: the hole has a
+         figure and no night behind it, and a row with an empty formula under it
+         would read as a row still loading. */
+      terms: terms.length === 1 ? terms : terms.filter((t) => t.amount !== 0),
+      net: score,
+      held,
+    };
+  });
+}
+
+/**
+ * WHERE EACH RULE'S MONEY ENDED UP — the block at the foot of a settled night.
+ *
+ *     Kitchen & drinks → Marek, Lena                                $170
+ *     Group piggy bank · held by Radka                              $126
+ *
+ * The rule-outcome rows, carried over from E6 by `13-after-the-night.md` and
+ * drawn on the board with their totals. `ruleCollector` above answers the same
+ * question for one rule and only where the answer is one person; this answers it
+ * for every rule on the night, and a bill — paid back to a LIST of people who
+ * fronted the food — is the case that needed it.
+ *
+ * THE ROWS SUM TO WHAT THE SUMMARY CALLS `DEDUCTIONS`. `totalOffTable` is that
+ * figure, so the screen prints both and adds up neither.
+ *
+ * `float` is the same line this file has drawn since it was written — a bill
+ * pays back an outlay, every other kind hands over a float — and it is what
+ * tells the screen whether to write "→" or "held by": money going back to
+ * somebody who spent it is a repayment, and money going to a collector is the
+ * room's, sitting in a pocket.
+ */
+export interface RuleOutcome {
+  ruleId: string;
+  /** The rule's own name, off the night's snapshot — "Kitchen & drinks". */
+  name: string;
+  destination: RuleDestination;
+  /** What the rule took in total. Never negative. */
+  total: Money;
+  /** Who has it now, in the settlement's own order. Empty where nobody does. */
+  paidTo: RuleCollector[];
+  /** True where what `paidTo` names is a float rather than a repayment. */
+  float: boolean;
+}
+
+export function ruleOutcomes(result: SettlementResult): RuleOutcome[] {
+  const name = (playerId: PlayerId): string =>
+    result.players.find((p) => p.playerId === playerId)?.name ?? '';
+
+  return result.deductions
+    /* A kind with a total of $0 is not a row — the same discipline the block
+       above it keeps. */
+    .filter((d) => d.total !== 0)
+    .map((d) => ({
+      ruleId: d.ruleId,
+      name: d.name,
+      destination: d.destination,
+      total: d.total,
+      paidTo: d.credits
+        .filter((c) => c.amount !== 0)
+        .map((c) => ({ playerId: c.playerId, name: name(c.playerId), amount: c.amount })),
+      float: d.destination !== 'bill',
+    }));
 }
