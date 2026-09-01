@@ -273,11 +273,21 @@ export default function Deductions() {
           >
             BILL
           </Text>
+          {/*
+            PIGGY, WHERE THE BOARD DRAWS `KITTY` — the last reader-facing use of
+            the stored value anywhere in the app, and B35 is the entry it belongs
+            to. `kitty` is what the destination is called in the database and no
+            reader is ever meant to see it: the club's rules, settle-up, the
+            receipt and E6's own column all say piggy bank, off
+            `destinationWord`. Not `PIGGY BANK`: the cell is 9.5/700 in a
+            five-column grid measured against figures in the millions, and E6's
+            columns head the same money `piggy` for the same reason.
+          */}
           <Text
             style={[styles.head, styles.num, styles.piggyCol, styles.washTop, { color: t.offTable, backgroundColor: t.offTableWash }]}
             numberOfLines={1}
           >
-            KITTY
+            PIGGY
           </Text>
           <Text style={[styles.head, styles.num, styles.netCol, { color: t.muted }]}>NET</Text>
         </View>

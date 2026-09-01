@@ -73,6 +73,85 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B35 — the app still said "kitty" in two places, and went quiet when a player held it
+
+```
+Screen      E4 settle-up — the lede under the title and the payee on a transfer
+            row — and E3 deductions, the head of the preview grid's fifth column
+Seen        "Seven transfers clear the night. The kitty is set aside for the
+            group." and a row reading "Tomáš → The kitty". `kitty` is the
+            STORED value of a rule's destination; every other screen in the
+            app says "piggy bank". And the sentence appeared only when the
+            collector was NOT at the table, so on a night where a player holds
+            the bank the screen said nothing about the float at all — it was
+            folded into that player's own transfer, they were listed by name
+            like anybody else, and the room handing them the cash had no line
+            anywhere saying part of it was the group's
+            reading `KITTY` over the piggy-bank column
+Expected    frame `4a`: "The piggy bank is set aside for the group", whoever
+            is holding it, and `Piggy bank` as the payee's name. On E3, the word
+            every other screen uses — `PIGGY`, as E6's own column heads it
+Found        1 Sep, reading `4a` against the screen. E3's column head was found
+            by the check written for E4: it counted the word `kitty` anywhere on
+            the page and found it on the screen E4 was pushed on top of
+Locked by   npm run check:ui — ui-journeys.mjs, "settle up says the piggy bank
+            is set aside": the sentence has to be on screen and the word `kitty`
+            may not be VISIBLE anywhere on it. Scoped to what is visible on
+            purpose — expo-router keeps the whole stack mounted, and an
+            unscoped count reads the screen underneath, which is how E3's
+            column head turned up in the first place
+Status      fixed in HEAD
+```
+
+**E3's column is the older half and the board is why it lasted.** The rev-18 E3
+frame draws the head as `KITTY` and copy is final — but the money itself was
+renamed after that frame was cut, and `destinationWord` in core has been the one
+place the spelling lives ever since. Every other screen followed it; this cell
+was a string in markup and followed nothing. It reads `PIGGY` now rather than
+`PIGGY BANK`, because the cell is 9.5/700 in a five-column grid measured against
+figures in the millions and E6's columns head the same money the same way.
+
+**Two faults from one line of code on E4.** `settle-up.tsx` had a private `word()`
+returning `'kitty'`, three months after `destinationWord` in core was written to
+be the single place that spelling lives — and the same map that named the payee
+was also driving the sentence, so the sentence inherited a filter that had
+nothing to do with it. The row filter is right: a collector sitting at the table
+is a person and their row shows their name. The sentence is about the money, and
+the money is set aside either way.
+
+### B34 — the piggy bank was a win again, on Settle up
+
+```
+Screen      E4 settle-up, the `Night's net` chips
+Seen        the chip row printed `finalPosition` — the balance, float included —
+            so a host who plays AND holds the piggy bank read their own night
+            $126 heavy in it, sorted above people who had played all night for
+            more. B27 fixed exactly this figure on E6, the player card and My
+            stats, and named settle-up as a screen that keeps the balance ON
+            PURPOSE. That is true of the TRANSFER LIST and it is not true of
+            the chips underneath: the list answers what somebody is owed when
+            the room breaks up, and a chip answers how their night went
+Expected    the same figure E6's row prints — `nightScore`'s score, the float
+            outside it — on the same people in the same order
+Found        1 Sep, from the table
+Locked by   npm run check — packages/core/src/rev15-night.test.ts, "E6 — the
+            formula line under a name": the chips are `resultFormula` now, which
+            is the list E6 draws and whose net is asserted to be `nightScore`'s
+            score for every player. Nothing yet for the screen READING the
+            wrong half of it — no check can see which of the two figures a chip
+            prints, and the seeded night's collector never sits down, so a
+            journeys assertion would need a night whose rules put the bank in a
+            player's hands. Standing invitation
+Status      fixed in HEAD
+```
+
+**B27 drew the line in the right place and this screen was on the wrong side of
+it.** The entry says three screens keep `finalPosition` and lists settle-up as
+one of them, which is correct about the transfers and was read as correct about
+the whole screen. Two lists sit on E4 and they answer different questions; the
+fix is that they now come from the two functions that answer them, and the
+component chooses neither.
+
 ### B26 — the stack a player was counted out for is on the card and in no row under it
 
 ```
@@ -471,6 +550,13 @@ payouts about to happen, drawn against the rules that produced them. The screens
 that changed are the ones asking *how did their night go* — E6's rows, the
 player card's "Their night", and My stats, which had been banking a club's float
 as winnings every night the reader held it.
+
+**Amended 1 September: settle-up is two screens, and only one of them keeps the
+balance.** The paragraph above lists S3 settle-up among the three that keep
+`finalPosition`, which is right about its TRANSFER LIST and was read as right
+about the whole screen. The `Night's net` chips underneath it were still printing
+the balance a week later. See B34 — the line this entry drew is unchanged; what
+was missed is that one screen asks both questions.
 
 ### B23 — a settled night said it was settled three times, and tinted every row while it did
 

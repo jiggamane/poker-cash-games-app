@@ -3,12 +3,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   granularityOf,
+  settle,
   stackRounding,
+  transfersInWords,
   type Money,
   type RoundingMode,
 } from '@poker-club/core';
 import {
   formatMoney,
+  formatSigned,
   roundingChoices,
 } from '../src/lib/money';
 import { Button } from '../src/components/Button';
@@ -17,7 +20,7 @@ import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { setClubRounding, useClub } from '../src/lib/clubStore';
-import { setNightRounding, useNight } from '../src/lib/nightStore';
+import { settlementInput, setNightRounding, useNight } from '../src/lib/nightStore';
 import { useIsAdmin } from '../src/lib/whoIsReading';
 
 /**
@@ -56,8 +59,21 @@ export default function Rounding() {
   const club = useClub();
   const night = useNight();
   const admin = useIsAdmin();
-  const { scope } = useLocalSearchParams<{ scope?: 'club' | 'night' }>();
+  const { scope, from } = useLocalSearchParams<{
+    scope?: 'club' | 'night';
+    /**
+     * WHICH SCREEN OPENED IT, and it changes what the four rows say about
+     * themselves. E2 is counting stacks, so a step is worth knowing as the worst
+     * distortion it puts on one stack; E4 has already counted them and is about
+     * to hand over cash, so a step is worth knowing as what it costs the piggy
+     * bank and how many payments it leaves. Frames `5a`–`5d` and `4a`–`4d` draw
+     * the two, and the sheet is the same sheet either way — only the sub-lines
+     * and the paragraph differ. E2 is the default: it owns the setting.
+     */
+    from?: 'count' | 'settle';
+  }>();
   const forClub = scope === 'club';
+  const atSettle = !forClub && from === 'settle';
 
   const current: RoundingMode | null = forClub
     ? (club?.roundingMode ?? null)
@@ -87,9 +103,58 @@ export default function Rounding() {
   const nothingCounted = counts.size === 0;
   const rawTotal = [...counts.values()].reduce((a, b) => (a + b) as Money, 0 as Money);
 
+  /*
+   * AND WHAT THE STEP WOULD COST THE ROOM, which is E4's question — frame `4b`,
+   * "each step also states how many transfers it leaves".
+   *
+   * IT IS A WHOLE RE-SETTLE PER ROW, four of them, and that is the only honest
+   * way to answer it: the remainder and the number of payments are both
+   * downstream of every rounded stack, every rule and the matching that pairs
+   * debtors with creditors. Working either out here would be a second
+   * implementation of `settle()` with nothing checking it. Four settles of a
+   * six-player night is arithmetic on a few dozen integers — the engine is pure,
+   * and this sheet is not a screen anybody scrolls.
+   */
+  const atStep = (mode: RoundingMode): ReturnType<typeof settle> | null => {
+    if (night === null) return null;
+    try {
+      return settle({ ...settlementInput(night), roundingMode: mode });
+    } catch {
+      /* A night that does not balance has no transfers to count yet. The row
+         still offers the step; it just cannot say what it would cost. */
+      return null;
+    }
+  };
+
   function subline(mode: RoundingMode): string | null {
     if (forClub) return null;
     if (nothingCounted) return 'No stacks counted yet';
+
+    if (atSettle) {
+      const at = atStep(mode);
+      if (at === null) return null;
+      const transfers = transfersInWords(at.transfers.length);
+      /*
+       * THE REMAINDER, SIGNED FROM THE PIGGY BANK'S SIDE. `+$16 to the piggy
+       * bank` means the tin is $16 up, and `rounding.remainder` is the movement
+       * across the stacks — a positive remainder means the stacks grew and the
+       * tin paid for it, so the sign flips on the way onto this line. The same
+       * flip `roundingRowValue` makes for the row this sheet opens from.
+       */
+      if (granularityOf(mode) === 1) {
+        /* `Off` states the tin's whole total instead: there is no remainder to
+           name, and a row reading "$0 to the piggy bank" would say the piggy
+           bank was not collected. */
+        const piggy = at.deductions.find((d) => d.destination === 'kitty');
+        return (
+          'Nets to the dollar' +
+          (piggy === undefined ? '' : ` · piggy bank ${formatMoney(piggy.total)}`) +
+          ` · ${transfers}`
+        );
+      }
+      return `${formatSigned((0 - at.rounding.remainder) as Money)} to the piggy bank · ${transfers}`;
+    }
+
     if (granularityOf(mode) === 1) {
       return `Stacks as counted · ${formatMoney(rawTotal)} so far`;
     }
@@ -149,7 +214,9 @@ export default function Rounding() {
       <Text style={[styles.body, { color: t.muted }]}>
         {forClub
           ? 'The group’s default. A night copies it when it opens, so this reaches the next game and never the one being played.'
-          : BODY}
+          : atSettle
+            ? AT_SETTLE
+            : BODY}
       </Text>
 
       <View style={styles.rows}>
@@ -199,6 +266,18 @@ const BODY =
   'Set it here and it governs the whole night: stacks snap to the step as they are entered, ' +
   'and the nets and transfers follow. What was counted is kept underneath. Changeable until ' +
   'the night is closed.';
+
+/**
+ * The same paragraph as E4 asks for it — frame `4b`, verbatim.
+ *
+ * E2's version above is about the stacks, because that is what E2 is entering.
+ * By E4 the stacks are counted and what a reader is looking at is a list of
+ * payments, so the paragraph is about the nets and the transfers instead. Two
+ * strings for one sheet, and both are the board's.
+ */
+const AT_SETTLE =
+  'Nets round to the nearest step, both ways. The difference goes to the piggy bank, and the ' +
+  'transfers below follow the rounded nets.';
 
 /** "Rounding · nearest $10", for the sub-line of a sheet that cannot change it. */
 const rowLabel = (mode: RoundingMode | null): string =>
