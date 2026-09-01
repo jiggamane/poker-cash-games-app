@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { balanceCheck, composition } from './balance';
+import { balanceCheck, composition, resultBeforeDeductions } from './balance';
 import { resolveLedger, reconcile } from './ledger';
 import { formatMoney, money, type Money } from './money';
 import type { LedgerEntry, PlayerId } from './types';
@@ -185,5 +185,42 @@ describe('the composition sub-line', () => {
     expect(line(0, 1450)).toBe('$1,450 counted');
     expect(line(2120, 0)).toBe('$2,120 cashed out');
     expect(line(0, 0)).toBe('');
+  });
+});
+
+describe('the result a settled row prints, before any deduction', () => {
+  /*
+   * `05-active-vs-settled.md`, cut 1 September. The same subtraction on both
+   * screens; what differs is only which figure stands for "what came back".
+   */
+  it('is what came back less what went in, on Tonight', () => {
+    // Dana: in $500, out $2,120 — the +$1,620 the board draws on her row.
+    expect(resultBeforeDeductions(money(500), money(2120))).toBe(1620);
+  });
+
+  it('is the same subtraction against a counted stack, on E2', () => {
+    // Marek: in $500, counted $960 — the +$460 the board draws.
+    expect(resultBeforeDeductions(money(500), money(960))).toBe(460);
+  });
+
+  it('is negative for somebody who lost, and zero for somebody level', () => {
+    expect(resultBeforeDeductions(money(1000), money(700))).toBe(-300);
+    expect(resultBeforeDeductions(money(500), money(500))).toBe(0);
+  });
+
+  it('is a loss of the whole buy-in for a stack of nothing', () => {
+    // A busted player's $0 is a count, not a missing one.
+    expect(resultBeforeDeductions(money(500), money(0))).toBe(-500);
+  });
+
+  it('reconciles with the sub-line the row prints under it', () => {
+    /*
+     * THE POINT OF THE FIGURE. `in $500 · counted $960` and `+$460` are the
+     * same two numbers twice, and a host asked "that is not what I had" can
+     * point at the line under the name.
+     */
+    const boughtIn = money(500);
+    const counted = money(963);
+    expect(resultBeforeDeductions(boughtIn, counted)).toBe(counted - boughtIn);
   });
 });

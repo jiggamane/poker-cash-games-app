@@ -788,41 +788,40 @@ async function playANight(name, rebuys) {
   await stop('night settled');
 
   /*
-   * THE WHOLE FORMULA ON THE ROW — `E6-results-columns.md`, frames 6a/6b, and
-   * the layout that ships. Four columns, `game · food · piggy · net`, every
-   * deduction in open view and nothing behind a tap.
+   * THE WHOLE FORMULA ON THE ROW — `02-E6-results-row.md`, format `7a`, which
+   * is the layout that ships as of 1 September. The same four terms the
+   * columns carried, on one row per player: the name and `game · food · piggy`
+   * on a grey sub-line, the net hard right.
    *
    * IT IS INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches a settled
    * night with money on it, so the route pass measures the seeded mid-count
    * book and sees none of this. And this is the night where it is tightest —
-   * millions and a rounding step, four figures on a 360-wide row.
+   * millions and a rounding step, three figures and their words on one
+   * 360-wide line.
    */
   await holds(
     'the row carries the whole formula',
-    (await page.locator(':text-is("game"):visible').count()) === 1 &&
-      (await page.locator(':text-is("food"):visible').count()) === 1 &&
-      (await page.locator(':text-is("piggy"):visible').count()) === 1 &&
-      (await page.locator(':text-is("net"):visible').count()) === 1,
-    'E6 does not draw the four columns',
+    (await page.locator('text=/^game .+ \u00b7 food .+ \u00b7 piggy .+$/').count()) > 0,
+    'E6 does not draw the three terms under the name',
   );
 
   await holds(
     'and nothing is hidden behind a tap',
     (await page.getByLabel(/\u00b7 their night$/).count()) === 0 &&
       (await page.getByText('Cashed out', { exact: true }).count()) === 0,
-    'E6 still draws the receipt rows the columns layout replaced',
+    'E6 still draws the receipt rows format 7a replaced',
   );
 
   /*
    * AND THE ARITHMETIC THE ROW INVITES COMES OUT RIGHT.
    *
-   * Four figures on a line invite exactly one sum, and a reader who does it has
+   * Three terms over a net invite exactly one sum, and a reader who does it has
    * to arrive at the figure printed beside them. `rev15-night.test.ts` asserts
    * that of the engine; this asserts it of what is actually on the phone, which
-   * is where a column could be drawn in the wrong order or a cell dropped.
+   * is where a term could be drawn in the wrong order or dropped to buy width.
    */
   await holds(
-    'and the three columns add up to the fourth on screen',
+    'and the three terms add up to the net beside them',
     await page.evaluate(() => {
       const money = (s) => {
         const t = (s || '').trim().replace(/[,$]/g, '').replace(/\u2212/g, '-');
@@ -830,27 +829,52 @@ async function playANight(name, rebuys) {
         const n = Number(t.replace('+', ''));
         return Number.isFinite(n) ? n : null;
       };
-      const cells = [...document.querySelectorAll('div')].filter((d) => {
-        const kids = [...d.children];
-        return (
-          kids.length >= 3 &&
-          kids.length <= 5 &&
-          kids.every((k) => k.children.length === 0) &&
-          kids.slice(1).every((k) => /^[+\u2212]?\$/.test((k.textContent || '').trim()))
-        );
-      });
-      if (cells.length === 0) return false;
-      return cells.every((row) => {
-        const figures = [...row.children].slice(1).map((k) => money(k.textContent));
-        if (figures.some((f) => f === null)) return true; // abbreviated: skip
-        const net = figures.pop();
-        return figures.reduce((a, b) => a + b, 0) === net;
+      const subs = [...document.querySelectorAll('*')].filter(
+        (el) =>
+          el.children.length === 0 &&
+          /^game .+ \u00b7 food .+ \u00b7 piggy .+$/.test((el.textContent || '').trim()),
+      );
+      if (subs.length === 0) return false;
+      return subs.every((sub) => {
+        /* sub-line → the text column → the row, whose last child is the net. */
+        const row = sub.parentElement && sub.parentElement.parentElement;
+        if (row === null) return false;
+        const net = money(row.lastElementChild && row.lastElementChild.textContent);
+        const terms = sub.textContent
+          .trim()
+          .split(' \u00b7 ')
+          .map((part) => money(part.split(' ').slice(1).join(' ')));
+        // Abbreviated anywhere on the row and there is no sum to check.
+        if (net === null || terms.some((t) => t === null)) return true;
+        return terms.reduce((a, b) => a + b, 0) === net;
       });
     }),
-    'a row of columns on E6 does not add up to the net beside it',
+    'a row on E6 does not add up to the net beside it',
   );
 
-  await stop('night settled · the columns');
+  await stop('night settled · the formula');
+
+  /*
+   * AND `7e` IS STILL THERE, behind *Full ledger*.
+   *
+   * The columns were the layout that shipped until this cut and they are not
+   * deleted — `02-E6-results-row.md` keeps them "as the full-screen variant
+   * behind the *Full ledger* button, where columns are worth the width". This
+   * is the only check that opens that door: the route pass reaches `/ledger`
+   * on the seeded mid-count night, which has no table to draw.
+   */
+  await tap('Full ledger');
+  await holds(
+    'the full ledger draws the four columns',
+    (await page.locator(':text-is("game"):visible').count()) === 1 &&
+      (await page.locator(':text-is("food"):visible').count()) === 1 &&
+      (await page.locator(':text-is("piggy"):visible').count()) === 1 &&
+      (await page.locator(':text-is("net"):visible').count()) === 1,
+    'Full ledger does not draw the four columns',
+  );
+  await stop('full ledger · the columns');
+
+  await tap('Back to the night');
 
   /*
    * B27 — THE FLOAT IS NAMED, NOT BANKED.

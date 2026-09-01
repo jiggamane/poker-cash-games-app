@@ -164,8 +164,14 @@ await tap('Close the session', { wait: 2000 });
 await shot('10-settled');
 await shotTail('10-settled');
 
+/* Format `7e`, which E6's list stopped being on 1 September and which this is
+   now the only picture of — see `02-E6-results-row.md`. */
+await tap('Full ledger', { wait: 1400 });
+await shot('11-ledger');
+
+await tap('Back to the night', { wait: 1400 });
 await tap('Who has paid', { wait: 1400 });
-await shot('11-payments');
+await shot('12-payments');
 
 await browser.close();
 console.log('\ndone.');

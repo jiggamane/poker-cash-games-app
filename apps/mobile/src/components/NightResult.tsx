@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type TextStyle } from 'react-native';
 import {
   columnsFit,
+  formula,
   prizePool,
   receiptRows,
   resultColumns,
@@ -15,6 +16,7 @@ import {
   type SettlementResult,
 } from '@poker-club/core';
 import { formatSignedToFit, formatToFit } from '../lib/money';
+import { Button } from './Button';
 import { Icon } from './Icon';
 import { RoundingBar } from './RoundingBar';
 import { moneyColor, useTheme, useThemeName } from '../design/useTheme';
@@ -75,6 +77,7 @@ export function NightResult({
   loggedBy,
   roundingMode,
   onChangeRounding,
+  onFullLedger,
 }: {
   result: SettlementResult;
   /** Where the prize pool is counted from. Resolved, so voids are gone. */
@@ -96,6 +99,12 @@ export function NightResult({
    * somebody else's — the row is text and carries no chevron.
    */
   onChangeRounding?: () => void;
+  /**
+   * Open the four-column ledger — format `7e`, which `7a` replaced on this
+   * screen and which *Full ledger* is the way back to. Left out, the chip is
+   * absent rather than dead.
+   */
+  onFullLedger?: () => void;
 }) {
   const t = useTheme();
   const tinted = useThemeName() === 'dark';
@@ -153,26 +162,40 @@ export function NightResult({
       </View>
 
       <View style={styles.table}>
-        <Text style={[styles.sectionLabel, styles.tableLabel, { color: t.muted }]}>
-          The table · after deductions
-        </Text>
+        {/*
+         * THE KICKER. `02-E6-results-row.md`: `NET, AFTER DEDUCTIONS`, 700 12,
+         * `.1em`, muted, `0 4px 7px`. It replaces "The table · after
+         * deductions", and the word that changed is the one doing the work —
+         * the column under it is the NET now, not the table, and the row
+         * states the terms that got there.
+         */}
+        <Text style={[styles.kicker, { color: t.muted }]}>Net, after deductions</Text>
 
         {/*
-         * TWO LAYOUTS, AND THIS SCREEN PICKS. `E6-results-columns.md` offers
-         * them as alternatives rather than layers, and columns is the one that
-         * ships: the whole formula on the row, nothing behind a tap, so a table
-         * settling up reads it at once instead of opening seven receipts one at
-         * a time.
+         * TWO LAYOUTS, AND THIS SCREEN PICKS — but the pick is no longer
+         * between the columns and the receipts. `02-E6-results-row.md`, cut 1
+         * September, chose format `7a` over the four other formats it was
+         * drawn against, the columns (`7e`) included:
          *
-         * Four numeric columns is the ceiling at 393 points, so a night whose
-         * rules reach past the bill and the piggy bank cannot be drawn this way
-         * — there is no fifth column and no honest place to hide a host's fee.
-         * That night gets the receipt rows, which have a line per kind.
-         * `columnsFit` is the engine's test and this screen does not re-decide
-         * it.
+         *     Petr                                        +$315
+         *     game +$150 · food +$188 · piggy −$23
+         *
+         * SAME FOUR TERMS, SAME ORDER, ONE ROW INSTEAD OF FIVE CELLS. It is the
+         * only format besides `7e` that puts all eight players above the fold,
+         * and the one that still reads as a list rather than as a spreadsheet.
+         * `7e` is not deleted — it is what *Full ledger* opens, "where columns
+         * are worth the width" — so this screen draws `7a` and `/ledger` draws
+         * the table.
+         *
+         * WHAT STILL DECIDES IS `columnsFit`, unchanged, because the question
+         * it answers has not changed: `7a` names exactly three terms, so a
+         * night whose rules reach past the bill and the piggy bank has nowhere
+         * to put a host's fee and its sub-line would stop adding up to the
+         * figure beside it. That night gets the receipt rows, which have a line
+         * per kind. The engine's test, not this screen's.
          */}
         {columns ? (
-          <ColumnTable result={result} />
+          <FormulaList result={result} />
         ) : (
           <ReceiptList result={result} openRow={openRow} setOpenRow={setOpenRow} tinted={tinted} />
         )}
@@ -268,12 +291,125 @@ export function NightResult({
           style={styles.rounding}
         />
       )}
+
+      {/*
+       * ⚠ WHERE THIS LANDS IS PART-DRAWN. The handoff's own *Still to draw*
+       * names "where the *Full ledger* button lands" as open, but the `7a`
+       * frame does put the button at the FOOT of the screen, under the
+       * deductions — not under the list it is the alternative to. That is what
+       * this is, and it is also where the screen's other way through already
+       * lives: `settled.tsx` puts *Who has paid* directly after it, for the
+       * same reason both are chips rather than rows. The board's *Close* beside
+       * it has no counterpart here — E6 is a push, and a push closes with back.
+       *
+       * ONLY WHERE THERE IS A TABLE TO SHOW. A night drawn in receipt rows is
+       * one the columns cannot hold, so there is no `7e` behind the button.
+       */}
+      {columns && onFullLedger !== undefined && (
+        <Button
+          label="Full ledger"
+          variant="chip"
+          style={styles.toLedger}
+          onPress={onFullLedger}
+        />
+      )}
     </>
   );
 }
 
 /**
- * The columns — `E6-results-columns.md`, frames `6a` and `6b`.
+ * Format `7a` — the row E6 draws at rest.
+ * `design/handoff-count-up-to-settled/docs/02-E6-results-row.md`, cut 1 Sept.
+ *
+ *     Petr                                        +$315
+ *     game +$150 · food +$188 · piggy −$23
+ *
+ * FIFTY POINTS A ROW: 6 padding, 19 of name, 3 of gap, 15 of sub-line, 6
+ * padding, 1 of hairline. Eight rows measure 406 against a 406 viewport, which
+ * is the whole reason the format was chosen over the four it beat — so the doc
+ * says, in bold, do not add vertical padding to the row, and this is the note
+ * that says it here too.
+ *
+ * THE HAIRLINE IS ON TOP OF EVERY ROW, INCLUDING THE FIRST. It closes the gap
+ * under the kicker rather than leaving the list to open on nothing, and it
+ * means the last row does not hang a rule over the block below it.
+ *
+ * COLOUR IS CARRIED BY THE NET ALONE. Name, sub-line and dividers are neutral
+ * in every row, and no row is tinted, filled or badged by its outcome — the
+ * turn-1 frames washed the row green or red and it was dropped, because at
+ * eight rows the screen turned into stripes and the net stopped being the
+ * thing you read. Zero is primary text, not green: the receipt rows use muted
+ * for the same figure and this doc names primary, so they differ by one token
+ * on one value and this comment is the record of it.
+ *
+ * NOTHING IS TAPPABLE — "rows do not reorder, expand or swipe on this screen".
+ * The doc sends a tap to the player's receipt, which is drawn as frame `7d`,
+ * and `7d` is the format this app already opens in place under the receipt
+ * rows. It is not wired from here, because wiring it would put the row into
+ * two states the chosen format does not draw. `docs/screens.md` carries it.
+ */
+function FormulaList({ result }: { result: SettlementResult }) {
+  const t = useTheme();
+  const rows = resultColumns(result);
+
+  return (
+    <>
+      {rows.map((r) => (
+        <View key={r.player.playerId} style={[styles.formulaRow, { borderTopColor: t.hairline }]}>
+          {/*
+           * THE NAME IS THE ONE THING THAT MAY TRUNCATE, which is the doc's own
+           * recommendation between its two candidates: "the name is
+           * recoverable from context at the table; a half-printed sum is not."
+           */}
+          <View style={styles.formulaText}>
+            <Text style={[styles.formulaName, { color: t.text }]} numberOfLines={1}>
+              {r.player.name}
+            </Text>
+            {/*
+             * THE SUB-LINE, WHOLE. The doc leaves truncation open and measures
+             * the widest drawn case at 227 points into 261 — which holds at
+             * four-digit sums and short names and does not at five. This app is
+             * measured against tables in the millions at 360 points and 120%
+             * text, where three terms of exact figures are not close to
+             * fitting, so the terms take the same `…ToFit` compaction every
+             * other figure in the app takes rather than a truncation rule the
+             * design has not chosen. Nothing is ever half-printed and no term
+             * is ever dropped; a seven-figure term reads `+$1.6M`.
+             */}
+            <Text
+              style={[styles.formulaTerms, { color: t.muted }]}
+              numberOfLines={1}
+              {...cappedFigure}
+            >
+              {formula(r, (m) => formatSignedToFit(m, FORMULA_FITS))}
+            </Text>
+          </View>
+
+          <Text
+            style={[
+              styles.formulaNet,
+              { color: r.net === 0 ? t.text : moneyColor(t, r.net) },
+            ]}
+            numberOfLines={1}
+            {...cappedFigure}
+          >
+            {formatSignedToFit(r.net, ROW_FITS)}
+          </Text>
+        </View>
+      ))}
+    </>
+  );
+}
+
+/**
+ * The columns — `E6-results-columns.md`, frames `6a` and `6b`, and format
+ * `7e` on `Result Formula Options.dc.html`. The same table under two names.
+ *
+ * IT NO LONGER SHIPS AS THE DEFAULT and it is not dead either.
+ * `02-E6-results-row.md` measured it against `7a` and kept both: `7e` "fits,
+ * but reads as a spreadsheet", so the list on E6 is `7a` and this is what
+ * *Full ledger* opens, "where columns are worth the width". Exported for the
+ * `/ledger` route, which is that screen.
  *
  *     name            game     food    piggy      net
  *     103              64       58       50        74
@@ -291,7 +427,7 @@ export function NightResult({
  * columns are a table, and a table with a coloured band behind every row is a
  * ranking drawn twice.
  */
-function ColumnTable({ result }: { result: SettlementResult }) {
+export function ColumnTable({ result }: { result: SettlementResult }) {
   const t = useTheme();
   const rows = resultColumns(result);
 
@@ -569,6 +705,9 @@ function State({ difference, loggedBy }: { difference: Money; loggedBy: string |
   );
 }
 
+/** The one thing every figure in this file shares. */
+const tabularNums: TextStyle = { fontVariant: ['tabular-nums'] };
+
 const styles = StyleSheet.create({
   /* `0 20px 12px` · `12px 16px` · radius 12. A block, not a card: the two
      pixels are the difference between this and `space.card`'s 20 of padding. */
@@ -617,6 +756,56 @@ const styles = StyleSheet.create({
 
   table: { marginHorizontal: space.card },
   sectionLabel: { ...type.label, paddingHorizontal: 2 },
+
+  /*
+   * `700 12 / .1em / uppercase / muted`, padding `0 4px 7px` — doc 02's
+   * kicker, and 4 rather than the 2 every other section label on this screen
+   * uses, because it sits over a list whose rows are inset by 4 and a label
+   * half-indented from the column under it reads as a mistake.
+   */
+  kicker: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    paddingHorizontal: 4,
+    paddingBottom: 7,
+  },
+
+  /*
+   * FORMAT 7a — 50 points a row, and the doc is explicit that none of it is
+   * spare: `6 + 19 + 3 + 15 + 6 + 1`. Eight rows against a 406 viewport is why
+   * this format was chosen, so vertical padding added here costs a player off
+   * the fold.
+   */
+  formulaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  /* `min-width: 0` in the only sense React Native has: the column gives so the
+     net keeps its place, rather than the net being pushed off the edge. */
+  formulaText: { flex: 1, minWidth: 0, gap: 3 },
+  formulaName: { fontSize: 16, fontWeight: '600' },
+  formulaTerms: { fontSize: 12.5, fontWeight: '400', ...tabularNums },
+  /*
+   * NEVER SHRINKS, like every other net in this app: left to give, a figure
+   * comes apart into a sign on one line and an amount on the next. See B18.
+   */
+  formulaNet: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontSize: 17,
+    fontWeight: '700',
+    ...tabularNums,
+  },
+  /* At the foot, where the frame draws it and where `Who has paid` follows it.
+     The same gutter and the same 20 of space that chip already takes. */
+  toLedger: { marginHorizontal: space.card, marginTop: 20 },
+
   /* `0 4px 7px` on the board. The rows carry their own 3 below them, so the
      list has no gap of its own and this is the only space above the first. */
   tableLabel: { paddingBottom: 7 },
@@ -838,5 +1027,27 @@ const ROW_FITS = 1_000_000;
  * threshold for both would have to be the tighter of the two everywhere.
  */
 const COLUMN_FITS = 10_000;
+
+/*
+ * WHERE THE THREE TERMS ON ONE LINE RUN OUT — format `7a`'s sub-line, and the
+ * tightest measurement on this screen.
+ *
+ * The doc measures its own widest drawn case — `game +$1,620 · food −$54 ·
+ * piggy −$23` — at 227 points into 261 available at 393, and says in as many
+ * words that it will not fit a five-digit game figure. At 360 the available
+ * width is about 228, so the drawn night itself clears by a point.
+ *
+ * Three exact figures at the millions scale are not close. Ten thousand is
+ * where they start compacting: `game +$1.6M · food −$54 · piggy −$23` is about
+ * 190 points, which holds at 360 with the 120% text run on top of it, and
+ * every night a person actually plays is printed in full because
+ * `formatCompact` leaves anything under a thousand exactly as it is.
+ *
+ * It is the same threshold as the columns and for the same reason — three
+ * figures sharing one line is the same problem as four sharing one row — and
+ * deliberately not the row's million: the net has the whole right-hand side to
+ * itself and does not need to give anything back.
+ */
+const FORMULA_FITS = 10_000;
 const POOL_FITS = 10_000_000;
 const PILL_FITS = 100_000;

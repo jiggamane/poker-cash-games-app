@@ -595,7 +595,54 @@ export function resultRows(result: SettlementResult): ResultRow[] {
         player.charged > 0 ||
         ownMoneyBack(player.playerId) > 0,
     )
-    /* Biggest win first, on the figure the row prints: a column sorted by
-       something it does not show reads as a column that is not sorted. */
-    .sort((a, b) => b.score - a.score);
+    /*
+     * Biggest win first, on the figure the row prints: a column sorted by
+     * something it does not show reads as a column that is not sorted.
+     *
+     * TIES BREAK ON NAME, A→Z — `01-the-flow.md` § Sorting, cut 1 September.
+     * Without it two people who both ended $23 down came back in whatever
+     * order `result.players` happened to hold them, which is entry order, so
+     * the same settled night drew its list differently on two phones. The doc
+     * also says the order does not change while the screen is open, and a
+     * total order is what makes that true rather than incidental.
+     */
+    .sort((a, b) => b.score - a.score || (a.player.name < b.player.name ? -1 : 1));
+}
+
+/**
+ * The three terms as one line — `game +$150 · food +$188 · piggy −$23`.
+ *
+ * The sub-line of format `7a`, which is the row E6 ships as of
+ * `design/handoff-count-up-to-settled/docs/02-E6-results-row.md`, cut 1
+ * September. It is here rather than on the screen for the reason every string
+ * that names a figure is: the three terms and the order they come in are the
+ * whole argument of the row, and a screen assembling them itself is a second
+ * place that can disagree with `resultColumns` about what a night did.
+ *
+ * EVERY TERM ALWAYS PRINTS, INCLUDING A ZERO ONE — `$0`, with no sign, which
+ * is what `formatSigned` already returns for it. The doc is explicit: "Never
+ * omit a term to save width; the row's whole argument is that the same three
+ * terms appear in the same order for everybody." That is a stronger rule than
+ * the columns layout's, which drops a column nobody has a figure in, and the
+ * difference is deliberate — a column head is a label and a term on a row is
+ * part of a sum the reader is checking.
+ *
+ * ⚠ A NIGHT WITH NEITHER A BILL NOR A PIGGY BANK still draws `food $0 · piggy
+ * $0` on every row under this rule. No board draws that night, so the rule is
+ * followed rather than second-guessed; `docs/screens.md` carries it as the one
+ * thing on this row to put back to the designer.
+ *
+ * The separator is a middot with a space either side, and the caller supplies
+ * the formatter so the group's own currency — and the app's `…ToFit`
+ * compaction — reach the terms without this file knowing about either.
+ */
+export function formula(
+  row: Pick<ResultColumns, 'game' | 'food' | 'piggy'>,
+  formatSigned: (amount: Money) => string,
+): string {
+  return [
+    `game ${formatSigned(row.game)}`,
+    `food ${formatSigned(row.food)}`,
+    `piggy ${formatSigned(row.piggy)}`,
+  ].join(' · ');
 }

@@ -124,6 +124,38 @@ export function balanceCheck(
 }
 
 /**
+ * What the night has done to one person so far, before anything comes off it.
+ *
+ * `05-active-vs-settled.md`, cut 1 September. It is the figure a settled row
+ * prints on the two screens that show a player list while the night is still
+ * open, and the two screens read it off different halves of the same equation:
+ *
+ *     Tonight    result = cashedOut − boughtIn      they have left the table
+ *     E2         result = counted   − boughtIn      their stack has been counted
+ *
+ * ONE FUNCTION FOR BOTH, because it is one fact — what came back, less what
+ * went in — and the difference between the screens is only which figure is
+ * available to stand for "what came back". Two subtractions written out on two
+ * screens is exactly the second untested implementation `CLAUDE.md` is about,
+ * and Tonight had one of them inline until now.
+ *
+ * NOTHING HAS BEEN APPLIED TO IT. Not the bill, not the piggy bank, and not
+ * the rounding step — the doc says so in as many words, and it is why the
+ * group header has to read RESULT BEFORE DEDUCTIONS rather than *result*. The
+ * deductions land on E3 and the whole formula lands on E6.
+ *
+ * THE RAW COUNT, THEN, AND NOT THE ROUNDED ONE on E2. A settled row states its
+ * own derivation underneath — `in $500 · counted $965` — and a figure the two
+ * halves of that line do not produce is a figure a host cannot check against
+ * the stack in front of them. What the night will actually settle that stack
+ * at is the step's business, and the step is stated on the bar directly above
+ * this list.
+ */
+export function resultBeforeDeductions(boughtIn: Money, back: Money): Money {
+  return subtract(back, boughtIn);
+}
+
+/**
  * The sub-line under ACCOUNTED FOR: what the figure is made of.
  *
  * NEVER A $0 TERM. "$0 cashed out · $2,880 counted" reads as a night where

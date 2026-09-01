@@ -100,11 +100,20 @@ export default function NightResults() {
        * once the night is closed, and this screen only ever draws a closed one
        * — so the row states what the night settled at and opens nothing.
        */}
+      {/*
+       * FULL LEDGER — format `7e`, which `7a` replaced in the list above and
+       * which `02-E6-results-row.md` keeps "as the full-screen variant behind
+       * the *Full ledger* button". `/ledger` reads THIS night off the store,
+       * which is why the chip is wired from here and not from `NightResult`
+       * itself: `watch.tsx` draws somebody else's night from a different
+       * source, and a button there would open the reader's own.
+       */}
       <NightResult
         result={result}
         ledger={ledger}
         loggedBy={null}
         roundingMode={night.roundingMode}
+        onFullLedger={() => router.push('/ledger')}
       />
 
       {/*

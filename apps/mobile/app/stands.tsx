@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { endedWith, resolveLedger, type Money } from '@poker-club/core';
+import { endedWith, resolveLedger, resultBeforeDeductions } from '@poker-club/core';
 import { formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Screen } from '../src/components/Screen';
@@ -38,7 +38,9 @@ export default function Stands() {
     .filter((s) => !s.atTable || night.finalCounts.has(s.id))
     .map((s) => {
       const out = endedWith(ledger, s.id, night.finalCounts);
-      return { ...s, out, result: (out - s.boughtIn) as Money };
+      /* The same subtraction E2 and Tonight print on their settled rows, and
+         the same function — one figure, one implementation. See `CLAUDE.md`. */
+      return { ...s, out, result: resultBeforeDeductions(s.boughtIn, out) };
     })
     .sort((a, b) => b.result - a.result);
 

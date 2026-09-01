@@ -78,6 +78,7 @@ is settled when it is not.
 | `/hand-over` | sheet | ✓ | ✓ | — | ☐ |
 | `/house-rules` | sheet | ✓ | ✓ | — | ☐ |
 | `/invite` | sheet | ✓ | ✓ | — | ☐ |
+| `/ledger` | push | ✓ | — | ✓ | ☐ |
 | `/log` | sheet | ✓ | ✓ | — | ☐ |
 | `/member` | sheet | ✓ | ✓ | — | ☐ |
 | `/money-rules` | sheet | ✓ | ✓ | — | ☐ |
@@ -103,8 +104,14 @@ is settled when it is not.
 | `/stats` | push | ✓ | — | ✓ | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**37 screens · 37 under the rule pass · 21 under the sheet pass · 12 under a big
+**38 screens · 38 under the rule pass · 21 under the sheet pass · 13 under a big
 night · 0 conformed.**
+
+`/ledger` is the thirty-eighth, added 1 September: format `7e`, the four-column
+table, which stopped being E6's default in the same cut and became what *Full
+ledger* opens. The route pass reaches it cold and gets its "these rules cannot
+be drawn in columns" state, because the seeded night is not settled; the night
+pass opens it for real by tapping the button on a settled night.
 
 `/games` and `/stats` joined the last of those on 30 August. They are where a
 night's figures live once the evening is over, and the run had never reached
@@ -145,16 +152,25 @@ it. One has: O1's *Start time*, on 29 August. When that happens the comment
 beside the entry says which decision, and there is a note further down this file
 saying it too.
 
-**E6 could not be filled in, and the reason is worth writing down** rather than
-leaving it to look like nobody got round to it. `/settled` reads the night the
-app currently holds, and the seeded night is still being played — so the rule
-pass, which opens every route cold, gets the *Not settled* fallback and never
-sees `PRIZE POOL`, `THE TABLE · AFTER DEDUCTIONS` or `DEDUCTIONS` at all. A
+**T1 went in on 1 September**, with the two group headers and the qualifier that
+makes the right-hand column readable — `STILL PLAYING`, `CASHED OUT`, `RESULT
+BEFORE DEDUCTIONS`. E2's three replaced *Still seated* and *Already confirmed*
+in the same cut. Those two strings left the map because the groups themselves
+were replaced, which is the one reason a row may leave it; B32 in
+`docs/bugs.md` is the fault they were replaced over.
+
+**E6 still could not be filled in, and the reason is worth writing down** rather
+than leaving it to look like nobody got round to it. `/settled` reads the night
+the app currently holds, and the seeded night is still being played — so the
+rule pass, which opens every route cold, gets the *Not settled* fallback and
+never sees `PRIZE POOL`, `NET, AFTER DEDUCTIONS` or `DEDUCTIONS` at all. A
 `DRAWN` entry for it would go red on a screen that is correct. `ui-journeys.mjs`
 does reach the real one — it plays a night through and stops on it — but it runs
 its own overflow checks rather than the rule pass, so the map is not available
 there either. Giving the route pass a settled night to open is the fix, and it
-is a job of its own.
+is a job of its own. Meanwhile the night pass carries the assertions the map
+would have: the three terms are on the row, and they add up to the net beside
+them on screen.
 
 ## The head, and what scrolls with it
 
@@ -197,9 +213,19 @@ gone`, `Apply the money rules`. All of it is superseded.
 
 Do not edit that file to say so; it says "GENERATED · do not edit" at the top
 and it is the honest record of what the 12 August boards drew. The current
-measurements for this screen are inline on
-`design/handoff-E2/boards/Settled Status.dc.html`, layout **2a**, colour option
-**2f** — that is what `count-up.tsx` was built from and what to hold it against.
+measurements for this screen are on **two** boards now, and they cover different
+halves of it:
+
+- the block, the bar and the strip — `design/handoff-E2/boards/Settled Status.dc.html`,
+  layout **2a**, colour option **2f**;
+- the player list, its three groups and its type scale —
+  `design/handoff-count-up-to-settled/boards/Cashed Out States.dc.html`, frame
+  **1a**, with the scale written out in that cut's `docs/05`.
+
+⚠ The E2 frames on the second board sit on the OLD E2 chrome — an `Apply the
+money rules` button and a `78% accounted for` strip, both superseded by layout
+2a. Take the list off it and nothing else, exactly as the rounding addendum's
+own warning says of its frames.
 The extractor still points at the old board directory and reads frames at
 402 × 874; pointing it at the newer cuts is a job of its own.
 
@@ -259,6 +285,62 @@ night's own figures on the card it is testing.
 
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
+
+**`/session`, `/count-up` and `/settled`** — 1 September, the count-up-to-settled
+cut (`design/handoff-count-up-to-settled/`). Three decisions and five things it
+left open; every one of the five is a question for the designer rather than a
+job somebody forgot.
+
+*What was decided.* Settled players are grouped, muted and signed on Tonight and
+E2 alike, because the right-hand column changes meaning between an active row
+and a settled one and nothing else on the row said so — B32. E6's list is format
+`7a`: one row per player, `game · food · piggy` on a grey sub-line, the net hard
+right. `7e`, the four-column table that shipped from 31 August to this cut, is
+not deleted — it is `/ledger` now, behind *Full ledger*.
+
+*The one place this cut overrides a doc it otherwise carries forward.* A counted
+row on E2 prints **the signed result, computed from the raw count**, where
+`E2-rounding.md` rule 6 put the rounded stack there. `05-active-vs-settled.md`
+is nine days newer, is about this exact column, and says `result = counted −
+boughtIn` with "neither figure has had the bill, the piggy bank or rounding
+applied". Taking the rounded figure instead would leave `in $500 · counted $965`
+sitting under `+$470`, which is a row whose own two figures do not produce the
+third. Rule 6's guarantee is intact: the count is never rewritten and is still
+printed under the name, and what the night will settle that stack at is on the
+rounding bar directly above the list. **Worth putting back to the designer**,
+because it is the one place the two cuts have to be read against each other.
+
+*Left open, and flagged rather than invented:*
+
+- **Every row prints all three terms, `$0` ones included.** `02-E6-results-row.md`
+  says never to omit one. On a night with no bill and no piggy bank that reads
+  `food $0 · piggy $0` on all eight rows, which no board draws. The rule was
+  followed rather than second-guessed; ask.
+- **Truncation on the `7a` sub-line is not chosen.** The doc offers two
+  candidates and recommends truncating the name. The name does ellipsise, and
+  the sub-line takes the app's own `…ToFit` compaction rather than a truncation
+  rule — at 360 with a table in the millions, three exact figures on one line
+  are not close to fitting, and this app is measured there. Nothing is ever
+  half-printed and no term is dropped.
+- **Where *Full ledger* lands is not drawn.** It is a chip at the foot of the
+  list it replaced, which is what `/settled` already does for *Who has paid*.
+  `/watch` does not get one: it draws somebody else's night from a different
+  source, and `/ledger` reads the night this phone holds.
+- **No fade on E2 at eight players.** The doc keeps `1a` (fade) and `1c`
+  (recessed slab) open and says three groups plus eight players overflows E2 by
+  61 points. This app's E2 scrolls as a whole screen rather than as a list
+  inside a fixed frame, so neither treatment applies as drawn; the type scale is
+  `1a`'s, which is the build. If the fold matters more than the whole-screen
+  scroll, `1c` is the alternative and the doc states the trade.
+- **The `7a` row is not tappable**, and the doc sends a tap to the player's
+  receipt (frame `7d`). Wiring it would put the row into two states the chosen
+  format does not draw — this app already opens `7d` in place under the receipt
+  rows, which is the layout `7a` replaced.
+
+*And one glyph.* The doc asks for the tick at stroke 2.4; the app's shared
+`check` is 2.2 and is drawn on four other screens. Two tenths of a point against
+a change to a shared component, which `CLAUDE.md` says runs alone with nothing
+else in flight. Left alone deliberately.
 
 **`/stats` and `/players`** — 30 August, and a departure from doc 15 § 5 check
 1 that the next session should not "fix" back. My stats scrolls the club name

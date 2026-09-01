@@ -20,7 +20,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { money, sum, ZERO, type Money } from './money';
+import { formatSigned, money, sum, ZERO, type Money } from './money';
 import { destinationTerm, destinationWord, ruleLabel, splitSentence } from './ruleText';
 import { settle } from './settlement';
 import { UNACCOUNTED_ID, type LedgerEntry, type MoneyRule, type Player, type PlayerId } from './types';
@@ -29,6 +29,7 @@ import {
   nightScore,
   playerDeductions,
   receiptRows,
+  formula,
   resultColumns,
   resultRows,
   ruleCollector,
@@ -701,5 +702,103 @@ describe('E6 — the columns layout', () => {
     ];
     const night = settle({ players, entries, finalCounts, rules: withFee });
     expect(columnsFit(night)).toBe(false);
+  });
+});
+
+describe('E6 — the row that ships, format 7a', () => {
+  /*
+   * `design/handoff-count-up-to-settled/docs/02-E6-results-row.md`, cut 1
+   * September. The columns are still built and still correct; what changed is
+   * which layout the screen draws at rest, and the row's sub-line is the one
+   * new string. It says the same three terms in the same order for everybody.
+   */
+  it('states the three terms, in order, each signed', () => {
+    const petr = resultColumns(result).find((c) => c.player.playerId === PETR)!;
+    expect(formula(petr, (m) => formatSigned(m))).toBe(
+      'game −$1,230 · food $0 · piggy $0',
+    );
+  });
+
+  it('prints a term of exactly zero rather than dropping it', () => {
+    // The doc: "Never omit a term to save width; the row's whole argument is
+    // that the same three terms appear in the same order for everybody."
+    const tomas = resultColumns(result).find((c) => c.player.playerId === TOMAS)!;
+    expect(tomas.food).toBe(0);
+    expect(formula(tomas, (m) => formatSigned(m))).toContain('food $0');
+    // And a zero carries no sign — it is neither a win nor a loss.
+    expect(formula(tomas, (m) => formatSigned(m))).not.toContain('+$0');
+  });
+
+  it('writes the credit a person who fronted the food is owed', () => {
+    const marek = resultColumns(result).find((c) => c.player.playerId === MAREK)!;
+    expect(formula(marek, (m) => formatSigned(m))).toBe(
+      'game +$460 · food +$89 · piggy −$23',
+    );
+  });
+
+  it('carries the group\'s own currency through the caller', () => {
+    const dana = resultColumns(result).find((c) => c.player.playerId === DANA)!;
+    expect(formula(dana, (m) => formatSigned(m, 'Kč'))).toBe(
+      'game +Kč1,620 · food −Kč110 · piggy −Kč81',
+    );
+  });
+
+  it('sorts net descending and breaks a tie on the name, A→Z', () => {
+    /*
+     * `01-the-flow.md` § Sorting. Two people level on the night came back in
+     * entry order before this, so the same settled night drew its list in two
+     * orders on two phones.
+     */
+    const level: LedgerEntry[] = [
+      e({ type: 'buyin', playerId: DANA, amount: money(500) }),
+      e({ type: 'buyin', playerId: MAREK, amount: money(500) }),
+      e({ type: 'buyin', playerId: LENA, amount: money(500) }),
+    ];
+    const flat = settle({
+      players,
+      entries: level,
+      finalCounts: new Map<PlayerId, Money>([
+        [DANA, money(500)],
+        [MAREK, money(500)],
+        [LENA, money(500)],
+      ]),
+      rules: [],
+    });
+    expect(resultRows(flat).map((r) => r.player.name)).toEqual(['Dana', 'Lena', 'Marek']);
+  });
+});
+
+describe('the four invariants the flow doc names', () => {
+  /*
+   * `design/handoff-count-up-to-settled/docs/01-the-flow.md` § Invariants, cut
+   * 1 September, which says of these four: "These hold for every night and are
+   * worth asserting in tests." They are what makes the `7a` row honest — three
+   * terms and a net that a reader is invited to add up — and each one fails in
+   * a different way, so they are four assertions rather than one.
+   */
+  const cols = () => resultColumns(result);
+
+  it('Σ game = 0 — the table is zero-sum once every stack is counted', () => {
+    expect(sum(cols().map((c) => c.game))).toBe(ZERO);
+  });
+
+  it('Σ food = 0 — shares and payments cancel, or the bill was not fully attributed', () => {
+    expect(sum(cols().map((c) => c.food))).toBe(ZERO);
+  });
+
+  it('Σ piggy = −piggyTotal', () => {
+    const piggy = result.deductions.find((d) => d.destination === 'kitty');
+    expect(sum(cols().map((c) => c.piggy))).toBe(0 - piggy!.total);
+  });
+
+  it('Σ net = −piggyTotal — the only money that leaves the table is the group’s cut', () => {
+    /*
+     * THE ONE THAT CATCHES THE MOST. The bill goes back to whoever fronted it,
+     * so it nets out of the room; the piggy bank does not, and the difference
+     * between those two is the whole reason `food` and `piggy` are separate
+     * terms rather than one deduction column.
+     */
+    const piggy = result.deductions.find((d) => d.destination === 'kitty');
+    expect(sum(cols().map((c) => c.net))).toBe(0 - piggy!.total);
   });
 });

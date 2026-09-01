@@ -4,23 +4,23 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   balanceCheck,
   composition,
-  granularityOf,
   resolveLedger,
-  roundToStep,
+  resultBeforeDeductions,
   type BalanceCheck,
   type Money,
   type PlayerId,
 } from '@poker-club/core';
-import { formatMoney, formatToFit } from '../src/lib/money';
+import { formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
-import { useTheme } from '../src/design/useTheme';
+import { moneyColor, useTheme } from '../src/design/useTheme';
 import type { Theme } from '../src/design/tokens';
 import { cappedFigure, radius, type } from '../src/design/tokens';
-import { standingsOf, useNight } from '../src/lib/nightStore';
+import { clockLabel } from '../src/lib/elapsed';
+import { cashedOutAt, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
  * Count up — E2, step 1 of 3. `design/handoff-E2/`, cut 30 August, which
@@ -72,6 +72,19 @@ export default function CountUp() {
   const standings = standingsOf(night, ledger).filter((s) => s.played);
   const seated = standings.filter((s) => s.atTable);
   const confirmed = standings.filter((s) => !s.atTable);
+
+  /*
+   * SETTLED, ON THIS SCREEN, IS "THE STACK HAS BEEN SEEN" — counted, or
+   * cashed out earlier in the night. The seated half splits on whether a count
+   * has been entered, which is the split the three groups are.
+   *
+   * `has`, NOT a truthy test. A busted player's stack is $0 and that is a
+   * count: a truthiness test would leave them in STILL TO COUNT forever and
+   * hold the night open on chips that are not there. `balanceCheck` makes the
+   * same distinction for the same reason.
+   */
+  const toCount = seated.filter((s) => !night.finalCounts.has(s.id));
+  const counted = seated.filter((s) => night.finalCounts.has(s.id));
 
   const balance = balanceCheck(
     ledger,
@@ -136,27 +149,60 @@ export default function CountUp() {
         style={styles.rounding}
       />
 
-      <Group label="Still seated" first>
-        {seated.map((p) => (
+      {/*
+       * THREE GROUPS — `05-active-vs-settled.md`, cut 1 September. The list
+       * used to be two: everybody seated in one block, whether or not their
+       * stack had been counted, and everybody who had left in another. That
+       * put the rows the host still has work to do on in the same group as the
+       * rows they had just finished, which is the one distinction the screen
+       * exists to make.
+       *
+       *     STILL TO COUNT · 2
+       *     COUNTED · 3 · RESULT BEFORE DEDUCTIONS
+       *     CASHED OUT EARLIER · 3
+       *
+       * THE MIDDLE HEADER CARRIES THE COLUMN'S MEANING and the other two do
+       * not need to: a row still to count has no figure, and a row cashed out
+       * earlier sits under a header that says what happened to it. Do not
+       * shorten it to *result* — nothing has come off these figures yet.
+       *
+       * GROUPS NEVER REORDER AND NEVER DISAPPEAR. Seat order within each, and
+       * an empty one draws its header with `· 0` rather than vanishing, so the
+       * host can see that nobody is left to count rather than inferring it
+       * from a group that is no longer on screen.
+       */}
+      <Group label="Still to count" count={toCount.length} first>
+        {toCount.map((p) => (
+          <SeatedRow
+            key={p.id}
+            id={p.id}
+            name={p.name}
+            boughtIn={p.boughtIn}
+            count={undefined}
+          />
+        ))}
+      </Group>
+
+      <Group label="Counted" count={counted.length} qualifier="result before deductions">
+        {counted.map((p) => (
           <SeatedRow
             key={p.id}
             id={p.id}
             name={p.name}
             boughtIn={p.boughtIn}
             count={night.finalCounts.get(p.id)}
-            step={granularityOf(night.roundingMode)}
           />
         ))}
       </Group>
 
-      <Group label="Already confirmed">
+      <Group label="Cashed out earlier" count={confirmed.length}>
         {confirmed.map((p) => (
           <ConfirmedRow
             key={p.id}
             name={p.name}
             boughtIn={p.boughtIn}
             cashedOut={p.cashedOut}
-            at={leftAt(night, p.id)}
+            at={cashedOutAt(night, p.id)}
           />
         ))}
       </Group>
@@ -346,65 +392,91 @@ function Sum({
 // The list
 // ---------------------------------------------------------------------------
 
+/**
+ * One of the three groups, header and rows.
+ *
+ * IT NO LONGER DISAPPEARS WHEN IT IS EMPTY, which is the one behavioural
+ * change in this component. `05-active-vs-settled.md`: "The count in each
+ * header is live and always shown, including at zero: an empty group renders
+ * its header with `· 0` rather than disappearing, so the admin can see that
+ * nobody has cashed out yet." A host halfway through a count wants to know
+ * that STILL TO COUNT is down to nothing; a header that vanished at the moment
+ * it became good news is a header that only ever says bad news.
+ *
+ * THE QUALIFIER IS ONLY ON `COUNTED`. It states what the right-hand column of
+ * the rows under it means — a signed result rather than a stack — and the
+ * other two groups do not change that meaning.
+ */
 function Group({
   label,
+  count,
+  qualifier,
   children,
   first = false,
 }: {
   label: string;
+  count: number;
+  qualifier?: string;
   children: ReactNode[];
   first?: boolean;
 }) {
   const t = useTheme();
-  if (children.length === 0) return null;
 
   return (
     <View style={[styles.group, !first && styles.groupAfter]}>
-      <Text style={[styles.sectionLabel, { color: t.muted }]}>{label}</Text>
+      <Text style={[styles.sectionLabel, { color: t.muted }]} numberOfLines={1}>
+        {`${label} · ${count}${qualifier === undefined ? '' : ` · ${qualifier}`}`}
+      </Text>
       {children}
     </View>
   );
 }
 
 /**
- * Somebody with chips still in front of them.
+ * Somebody with chips still in front of them, in one of its two states.
  *
- * Uncounted, the row is tinted and carries the ask — "not counted yet" and a
- * Count chip. Counted, it drops back into the list with its figure and a
- * pencil. The chip is drawn, not a `Button`: the whole row is the target, and
- * a control inside a control gives a host two things to hit where the board
- * draws one.
+ * UNCOUNTED IS THE ROW THIS SCREEN ALREADY HAD, and deliberately so —
+ * `05-active-vs-settled.md`: "Active rows are the rows the screen already has
+ * — unchanged." Tinted, carrying the ask ("not counted yet") and a Count chip.
+ * The chip is drawn, not a `Button`: the whole row is the target, and a control
+ * inside a control gives a host two things to hit where the board draws one.
+ *
+ * COUNTED IS NOW A SETTLED ROW, and it changes in the four ways the doc names:
+ * the name drops to muted, a sub-line gives the derivation, the figure becomes
+ * signed and takes a money colour, and the pencil becomes a green tick.
+ *
+ * ⚠ THE FIGURE IS THE SIGNED RESULT NOW, NOT THE ROUNDED STACK, and that is
+ * the one place this cut overrides the rounding addendum it otherwise carries
+ * forward. `E2-rounding.md` rule 6 put the rounded figure on the row with the
+ * raw count beneath it; `05-active-vs-settled.md` is nine days newer, is about
+ * this exact column, and says `result = counted − boughtIn` with "neither
+ * figure has had the bill, the piggy bank or rounding applied".
+ *
+ * SO BOTH HALVES OF THE ROW ARE RAW, and that is what makes it checkable: `in
+ * $500 · counted $960` and `+$460` are the same two numbers twice, and a host
+ * asked "that is not what I had" can point at the line under the name. A
+ * result derived from the rounded stack over a sub-line quoting the raw one
+ * would be a row whose own two figures do not produce the third — which is the
+ * fault the E6 addendum removed a sub-line to avoid.
+ *
+ * What rule 6 was protecting is untouched: the count is never rewritten, it is
+ * still printed under the name, and what the night will settle that stack at is
+ * stated on the rounding bar directly above this list.
  */
 function SeatedRow({
   id,
   name,
   boughtIn,
   count,
-  step,
 }: {
   id: PlayerId;
   name: string;
   boughtIn: Money;
   count: Money | undefined;
-  /** The night's rounding step, in whole units. 1 is off. */
-  step: number;
 }) {
   const t = useTheme();
   const waiting = count === undefined;
-
-  /*
-   * THE FIGURE IS THE ROUNDED ONE AND THE COUNT IS KEPT UNDERNEATH — rule 6 of
-   * `E2-rounding.md`, and the whole of what makes the step safe to offer. The
-   * row settles at $970 and says, in the line under the name, that $965 is what
-   * was in front of them: `in $500 · counted $963`. A stack is never silently
-   * rewritten, and a host who is asked "that is not what I had" can point at
-   * the number they typed.
-   *
-   * The sub-line says nothing about the count when nothing moved, which is
-   * every stack on a night settling as counted.
-   */
-  const shown = count === undefined ? undefined : roundToStep(count, step);
-  const moved = count !== undefined && shown !== count;
+  const result = count === undefined ? undefined : resultBeforeDeductions(boughtIn, count);
 
   return (
     <Pressable
@@ -419,16 +491,20 @@ function SeatedRow({
       ]}
     >
       <View style={styles.rowText}>
-        <Text style={[styles.name, { color: t.text }]}>{name}</Text>
+        <Text style={[styles.name, { color: waiting ? t.text : t.muted }]} numberOfLines={1}>
+          {name}
+        </Text>
         {/* The sand is the board's, and it is the one thing on this screen
             drawn in the off-table hue for a reason other than off-table money:
             it is what marks the rows the host still has to work through. */}
-        <Text style={[styles.detail, { color: waiting ? t.offTable : t.muted }]}>
+        <Text
+          style={[styles.detail, { color: waiting ? t.offTable : t.muted }]}
+          numberOfLines={1}
+          {...cappedFigure}
+        >
           {waiting
             ? 'not counted yet'
-            : moved
-              ? `in ${formatToFit(boughtIn, ROW_FITS)} · counted ${formatToFit(count, ROW_FITS)}`
-              : `in ${formatMoney(boughtIn)}`}
+            : `in ${formatToFit(boughtIn, ROW_FITS)} · counted ${formatToFit(count, ROW_FITS)}`}
         </Text>
       </View>
 
@@ -438,10 +514,19 @@ function SeatedRow({
         </View>
       ) : (
         <>
-          <Text style={[styles.figure, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
-            {formatToFit(shown!, ROW_FITS)}
+          <Text
+            style={[
+              styles.figure,
+              { color: result === 0 ? t.text : moneyColor(t, result!) },
+            ]}
+            numberOfLines={1}
+            {...cappedFigure}
+          >
+            {formatSignedToFit(result!, ROW_FITS)}
           </Text>
-          <Icon name="pencil" color={t.muted} size={15} />
+          {/* The pencil becomes a tick — the row is done, and it still opens,
+              because a count entered wrong is corrected from here. */}
+          <Icon name="check" color={t.win} size={15} />
         </>
       )}
     </Pressable>
@@ -453,6 +538,15 @@ function SeatedRow({
  * `accountedFor` already, they are NEVER re-counted, and the row does not
  * respond to a tap — the whole thing is muted and carries no glyph, which is
  * the difference between a row you have finished with and a row you can open.
+ *
+ * IT IS A SETTLED ROW TOO, so its figure is the signed result rather than the
+ * cash-out on its own, in the money colours, over the same `in … · out …`
+ * derivation the board draws under the CASHED OUT EARLIER header. The three
+ * kinds of row on this screen now print three kinds of figure — nothing, a
+ * result, a result — and the group headers are what say which.
+ *
+ * NO TICK HERE. There is no pencil to replace: this row was never a door, and
+ * a glyph on it would say it had become one.
  */
 function ConfirmedRow({
   name,
@@ -466,34 +560,33 @@ function ConfirmedRow({
   at: string | undefined;
 }) {
   const t = useTheme();
-  const time = clock(at);
+  const result = resultBeforeDeductions(boughtIn, cashedOut);
+  const time = at === undefined ? '' : clockLabel(at);
 
   return (
     <View style={styles.confirmedRow}>
       <View style={styles.rowText}>
-        <Text style={[styles.name, { color: t.muted }]}>{name}</Text>
-        <Text style={[styles.detail, { color: t.muted }]}>
-          {`cashed out${time === '' ? '' : ` ${time}`} · in ${formatMoney(boughtIn)}`}
+        <Text style={[styles.name, { color: t.muted }]} numberOfLines={1}>
+          {name}
+        </Text>
+        <Text style={[styles.detail, { color: t.muted }]} numberOfLines={1} {...cappedFigure}>
+          {[
+            ...(time === '' ? [] : [time]),
+            `in ${formatToFit(boughtIn, ROW_FITS)}`,
+            `out ${formatToFit(cashedOut, ROW_FITS)}`,
+          ].join(' · ')}
         </Text>
       </View>
-      <Text style={[styles.figure, { color: t.muted }]}>{formatMoney(cashedOut)}</Text>
+      <Text
+        style={[styles.figure, { color: result === 0 ? t.text : moneyColor(t, result) }]}
+        numberOfLines={1}
+        {...cappedFigure}
+      >
+        {formatSignedToFit(result, ROW_FITS)}
+      </Text>
     </View>
   );
 }
-
-/** When they left the table, which is the time on their last cash-out. */
-function leftAt(
-  night: NonNullable<ReturnType<typeof useNight>>,
-  playerId: PlayerId,
-): string | undefined {
-  const out = [...night.entries]
-    .filter((e) => e.type === 'cashout' && e.playerId === playerId)
-    .sort((a, b) => b.seq - a.seq)[0];
-  return out === undefined ? undefined : night.occurredAt[out.id];
-}
-
-const clock = (at: string | undefined): string =>
-  at === undefined ? '' : new Date(at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 /**
  * WHERE THE TWO SUMS RUN OUT OF ROOM.
@@ -586,40 +679,63 @@ const styles = StyleSheet.create({
   tally: { fontSize: 12.5, fontWeight: '400', lineHeight: 17, marginLeft: 'auto', flexShrink: 1 },
 
   // ---- the list ---------------------------------------------------------
+  /*
+   * E2's OWN TYPE SCALE, which `05-active-vs-settled.md` states in full
+   * precisely because it is NOT Tonight's: 15.5 and 18 here against 17 and 19
+   * there, 11.5 of sub-line against 12, and a 12-point group header against an
+   * 11.5-point one. Three groups and eight players is 61 points more than this
+   * screen has, so every half point of it was spent deliberately — a scale
+   * borrowed from the other screen costs a row off the fold.
+   */
   group: { marginHorizontal: 22 },
-  groupAfter: { paddingTop: 16 },
+  groupAfter: { paddingTop: 14 },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
 
+  /** `7px 4px`, hairline under every row. */
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 13,
+    paddingVertical: 7,
     paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  /** Tinted, and pushed 8 out past the list so the tint reads as a block. */
+  /**
+   * Tinted, and pushed 8 out past the list so the tint reads as a block.
+   *
+   * IT KEEPS ITS OWN HEIGHT. The doc's `7px 4px` is the list's, and this row
+   * carries a 34-point Count chip: pulling its padding down to 7 would leave
+   * the tint hugging the chip with nothing around it, and the row is the one
+   * the host is aiming a thumb at. The extra points are the chip's, not the
+   * type's — everything inside it is on the same scale as the rows above.
+   */
   waitingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 13,
+    paddingVertical: 11,
     paddingHorizontal: 12,
     marginHorizontal: -8,
     borderRadius: 8,
   },
-  confirmedRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13 },
-  rowText: { gap: 3, flexShrink: 1 },
-  name: type.rowName,
+  confirmedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 7,
+    paddingHorizontal: 4,
+  },
+  rowText: { gap: 3, flexShrink: 1, minWidth: 0 },
+  name: { ...type.rowName, fontSize: 15.5 },
   /*
-   * 12.5, WHICH IS THE BOARD'S — `Result Formula Options.dc.html` draws this
-   * line at `400 12.5px` and the app's shared `rowDetail` is 13. Half a point,
-   * and it is on the one line in the app that now carries two figures and two
-   * words: since the rounding step it reads `in $1,000 · counted $1,432`, and
-   * every fraction of it is spent.
+   * 11.5 — the doc's E2 sub-line, which is a point lower than the 12.5 this
+   * line was set at when it was measured against E6's board. It is the same
+   * line doing more work: it now carries two figures and their words on every
+   * settled row rather than only on a stack the step moved.
    */
-  detail: { ...type.rowDetail, fontSize: 12.5 },
-  figure: { ...type.figure, marginLeft: 'auto' },
+  detail: { ...type.rowDetail, fontSize: 11.5 },
+  /* NEVER SHRINKS — the name gives, a figure does not. See B18. */
+  figure: { ...type.figure, fontSize: 18, marginLeft: 'auto', flexShrink: 0 },
 
   countChip: {
     marginLeft: 'auto',

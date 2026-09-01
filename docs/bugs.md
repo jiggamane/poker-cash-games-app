@@ -306,6 +306,52 @@ other lever is cutting one, which is B12 and is never the better answer. So
 reason written at the top of it: **a clip is a fault and a wrap is not**. What
 may never happen is a figure going off the side of its box.
 
+### B32 — the same column meant two things, and nothing on the screen said which
+
+```
+Screen      T1 Tonight (/session) and E2 Count up (/count-up) — the player list
+Seen        one list, one right-hand column, two kinds of number in it:
+            `Petr $1,500` (what he is in for) directly above `Dana +$1,620`
+            (what her night came to). Read down, the column says Petr is
+            $1,500 up
+Expected    a reader can tell money-in from a result without doing the
+            arithmetic themselves. The two are different facts and one of them
+            is signed, which is a hint and not an answer — a player level on
+            the night prints `$0`, which is unsigned, and sits under somebody's
+            `$500` buy-in looking like the same kind of figure
+Found       1 Sept, in `design/handoff-count-up-to-settled/docs/05-active-vs-
+            settled.md`, which is the design cut that names it: "the grouping
+            and the group header are load-bearing, not decoration"
+Locked by   npm run check:ui — ui-audit.mjs, `DRAWN`, which now holds
+            `STILL PLAYING` / `CASHED OUT` / `RESULT BEFORE DEDUCTIONS` on
+            /session and the three group headers on /count-up. A pass that
+            ungroups either list, or shortens the qualifier to `result`, goes
+            red rather than shipping
+Status      fixed in HEAD
+```
+
+**The colour was carrying the whole distinction, and colour is not a label.**
+Tonight has drawn a cashed-out player's result in green or red since it was
+built, so the information was there for anybody who already knew the rule. What
+was missing was the rule: nothing on the screen said that the column changes
+meaning partway down it, and a green figure reads as a good number rather than
+as a different kind of number. At exactly zero there was not even a colour.
+
+**E2 had the same fault twice over.** Its list was seated-versus-gone, so the
+rows the host still had work to do on sat in the same group as the rows they had
+just finished — and the counted row printed the stack, so `$960` under `$1,500`
+was two people's chips, one of which was a result and neither of which said so.
+
+Three groups on E2, two on Tonight, and a header on the one group whose column
+changes: `CASHED OUT · 1 · RESULT BEFORE DEDUCTIONS`. **Not shortened to
+`result`**, and the doc is explicit about why — the bill, the piggy bank and the
+rounding step have all still to come off, so a row calling itself a result would
+be the first of three different figures the same person is shown for one night.
+
+**A header is drawn at zero too.** An empty group renders `· 0` rather than
+disappearing, which is what lets a host see that nobody is left to count instead
+of inferring it from a group that is no longer there.
+
 ### B31 — the collector came back into the table, holding nothing
 
 ```
