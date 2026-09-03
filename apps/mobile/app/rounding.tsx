@@ -109,7 +109,7 @@ export default function Rounding() {
    * six-player night is arithmetic on a few dozen integers — the engine is pure,
    * and this sheet is not a screen anybody scrolls.
    *
-   * WHAT IT NO LONGER SAYS IS THE REMAINDER — B29. This line used to read
+   * WHAT IT NO LONGER SAYS IS THE REMAINDER — B36. This line used to read
    * `+$16 to the piggy bank`, the money the step invented and the tin funded.
    * The step redistributes the positions now and leaves nothing over, so there
    * is no remainder to name; what a step changes about the tin is its TOTAL,
@@ -134,7 +134,7 @@ export default function Rounding() {
       const at = atStep(mode);
       if (at === null) return null;
       const transfers = transfersInWords(at.transfers.length);
-      /* The tin's own total at this step, which since B29 is exactly what it
+      /* The tin's own total at this step, which since B36 is exactly what it
          receives — no remainder rides on top of it. A night with no piggy-bank
          rule says nothing about one. */
       const piggy = at.deductions.find((d) => d.destination === 'kitty');
@@ -159,9 +159,11 @@ export default function Rounding() {
      * Flagged for the designer rather than passed off as decided.
      */
     if (step === 1) {
+      /* Short enough to survive the reader's text cap with a nine-digit night
+         in it: the long form ran 329 points into a 281-point row at 120%. */
       return counts.size === 0
-        ? 'Every figure to the dollar'
-        : `Every figure to the dollar · ${formatMoney(rawTotal)} counted so far`;
+        ? 'To the dollar'
+        : `To the dollar · ${formatMoney(rawTotal)} so far`;
     }
     /* Money is whole units, so the tight bound is one under the step. */
     return `No net moves by more than ${formatMoney((step - 1) as Money)}`;

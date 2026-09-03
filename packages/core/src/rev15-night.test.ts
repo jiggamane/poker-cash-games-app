@@ -869,7 +869,7 @@ describe('E4 — the rounding sheet states what a step would cost', () => {
 
   it('leaves no remainder for the piggy bank to carry, at any step', () => {
     /*
-     * REWRITTEN FOR B29. This asserted that the tin absorbed the movement
+     * REWRITTEN FOR B36. This asserted that the tin absorbed the movement
      * across the stacks — `Σ rounded − Σ raw` — which is the gap that change
      * removed. The step redistributes the positions now, so the moves cancel
      * among the parties themselves and there is nothing left to carry.

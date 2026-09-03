@@ -11,6 +11,19 @@ knew they had returned was noticing them again on a phone.
 
 A bug that is written down has a name. A name can be checked.
 
+## Two sessions, one number
+
+Numbers collide. B29 to B32 were each written twice in the first days of
+September, by sessions running in parallel that each took "the next one" from a
+file the other had not pushed yet. Four names for two faults each, which is
+exactly the thing a name is supposed to prevent.
+
+They have been separated: the later of each pair kept its number where code
+already referenced it, and the other moved up past B35. **Before adding an
+entry, `git fetch` and read the highest number on `main`** — and if another
+session might be writing at the same time, say so in the commit rather than
+hoping.
+
 ## The shape of an entry
 
 ```
@@ -385,7 +398,7 @@ other lever is cutting one, which is B12 and is never the better answer. So
 reason written at the top of it: **a clip is a fault and a wrap is not**. What
 may never happen is a figure going off the side of its box.
 
-### B32 — the same column meant two things, and nothing on the screen said which
+### B39 — the same column meant two things, and nothing on the screen said which
 
 ```
 Screen      T1 Tonight (/session) and E2 Count up (/count-up) — the player list
@@ -840,7 +853,96 @@ amount sheet the rest of the app draws:
   shape `new-night.tsx` and `invite.tsx` already use. A mis-tap on "Change the
   amount" used to cost the host the entry they had opened.
 
-### B29 — the piggy bank's rule said $184 and the settlement handed it $200
+### B40 — Out of balance stated a gap its own two figures do not produce
+
+```
+Screen      E5 /settle-up, out of balance — the alert block
+Seen        "OFF BY $20" over "$5,000 went in, $2,860 was counted out." The tag
+            is right and the sentence is not: $5,000 is everything that went in,
+            $2,860 is the final counts alone, and the $2,120 Dana cashed out at
+            23:15 is on neither side of it. Read literally the sentence
+            describes a $2,140 hole
+Expected    two figures from the same side of the cash-outs, and a difference
+            that is the tag. It is the one screen whose whole job is naming
+            which money is missing
+Found       2 Sept, reading the flow for the rework, and still there after the
+            merge
+Locked by   npm run check:ui — ui-journeys.mjs, "and the sentence names the same
+            gap the tag does": it reads both figures out of the rendered
+            sentence and asserts their difference is the figure in the tag above
+            it. Putting the old pairing back takes it red at all three scales
+Status      fixed in this commit
+```
+
+**This is the fault the balance block on E2 was rebuilt to remove**, a screen
+later. `count-up.tsx` says it in its own header: *it used to read `COUNTED
+$2,880 of $2,880` — the count against the chips still on the table. That is half
+a sum.* E5 kept the half sum, on the screen where it does the most damage.
+
+The fix is not new copy but a shared source: both figures now come from
+`balanceCheck()`, which is what E2 states its equation from, so the two screens
+cannot drift apart again.
+
+### B38 — Count up hides half of what it has accounted for
+
+```
+Screen      E2 /count-up, the balance block's right-hand sum
+Seen        "$2,120 cashed out · $2,…" — the line under ACCOUNTED FOR runs out
+            of room and ellipsises the counted figure away. Measured in the
+            browser: 192 points of text in a 139-point box, at 393, in ordinary
+            dollars, on a $5,000 night. Not a large-text case and not a narrow
+            device: it is the default frame on the reference phone
+Expected    both halves of the sum readable. The block exists to state the whole
+            equation — "a screen that only says BALANCED is not checkable" is
+            the handoff's own sentence — and the half that gets clipped is the
+            half saying WHAT has been accounted for
+Found       2 Sept, measuring the flow for the rework. Two things hid it: the
+            route pass opens /count-up cold, where nothing is counted and the
+            line is short enough to fit; and the big-night pass could not see it
+            at all — see B37
+Locked by   npm run check:ui — ui-journeys.mjs, the new "clipped" pass over a
+            line of words carrying money. It is red on the old build at all
+            three scales and green after
+Status      fixed in this commit
+```
+
+The half-block gives each figure about 123 points and this line has to carry two
+of them plus their words. Both sub-lines are two-line boxes now, at a fixed
+height, so the block still never changes size between counting, balanced and off
+balance — which is the rule that matters here: entering a stack must not reflow
+the list under the host's thumb.
+
+`design/handoff-four-screens/` replaces this line with counts rather than
+amounts (`3 counted · 3 cashed out`) and moves the money to a progress line.
+That is the better answer and it is not this fix: it redraws the block, and a
+bug on the current screen should not wait for a redesign.
+
+### B37 — a line that is mostly words but carries money is checked by nobody
+
+```
+Screen      every screen. A hole in the check, not in a screen
+Seen        ui-journeys.mjs runs two passes and B31 fell between them. The
+            "wrapped" pass skips any run with more than 12 characters of
+            non-money text, because that is prose and prose may wrap — the line
+            in B31 has 22. The "clipped" pass only measures elements whose own
+            text is a bare FIGURE: its pattern allows three non-digit characters
+            either side, which is a currency symbol, not a sentence. So a line
+            reading "$2,120 cashed out · $2,390 counted" is prose to the first
+            and not a figure to the second, and hiding money in it costs nothing
+Expected    money that is cut off is reported, whatever words sit around it
+Found       2 Sept, working out which check would catch B31 and finding that
+            none would
+Locked by   itself. The new pass is the check, and B38 is the fault it was
+            written against: red on the old build, green on the new one
+Status      fixed in this commit
+```
+
+**This is the entry that matters of the two.** B38 is one line on one screen; B37
+is the reason a green gate said nothing about it, and it would have said nothing
+about the next one either. Every figure in this app is drawn beside a word
+somewhere.
+
+### B36 — the piggy bank's rule said $184 and the settlement handed it $200
 
 ```
 Screen      E3 deductions, E6 the settled night, E4 settle up — three screens

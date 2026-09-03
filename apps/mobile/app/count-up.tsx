@@ -381,7 +381,23 @@ function Sum({
       >
         {formatToFit(amount, BLOCK_FITS)}
       </Text>
-      <Text style={[styles.sumSub, { color: t.muted }]} numberOfLines={1}>
+      {/*
+        * TWO LINES, AT A FIXED HEIGHT — B38.
+        *
+        * One line held `$2,120 cashed out` and nothing more. The half-block
+        * gives this about 123 points and the line has carried two figures and
+        * their words since the block was rebuilt to state the whole equation:
+        * `$2,120 cashed out · $2,390 counted` is 199 of them, so the counted
+        * half — the half that says WHAT has been accounted for — was ellipsised
+        * away on the reference phone, in ordinary dollars.
+        *
+        * The height is pinned rather than left to the content, because the rule
+        * this block lives by is that it is ONE HEIGHT in every state: counting,
+        * balanced and off balance. A box that grew when the second figure
+        * arrived would reflow the list under the host's thumb at the exact
+        * moment they are entering a stack.
+        */}
+      <Text style={[styles.sumSub, { color: t.muted }]} numberOfLines={2}>
         {sub}
       </Text>
     </View>
@@ -646,7 +662,8 @@ const styles = StyleSheet.create({
   divider: { width: 1, marginVertical: 14 },
   sumLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1 },
   sumFigure: { fontSize: 30, fontWeight: '800', letterSpacing: -0.6, fontVariant: ['tabular-nums'] },
-  sumSub: { fontSize: 12, fontWeight: '400', lineHeight: 16 },
+  /* 32 is two lines of 16, and it does not move between states. */
+  sumSub: { fontSize: 12, fontWeight: '400', lineHeight: 16, height: 32 },
 
   barRow: { paddingHorizontal: 18, paddingBottom: 14 },
   bar: { flexDirection: 'row', height: 8, borderRadius: 3, overflow: 'hidden' },
