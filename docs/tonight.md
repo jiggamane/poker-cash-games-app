@@ -80,6 +80,11 @@ Two things to know about that screen:
 
 - **Rebuy** and **Bill** are on the dock, always. Rebuy pre-fills with that
   player's own last rebuy, so a player who keeps rebuying $1,000 gets $1,000.
+- **The fastest rebuy is one thumb and no taps at all.** Tap the player on
+  Tonight, *hold* **Rebuy $200** for a second, and let go. It writes the entry,
+  tells you what it did — `Maja added $200 · In for $700` — and puts you back on
+  Tonight by itself. Nothing to close. Use **Other amount** when it is not their
+  usual figure.
 - **Seat a player / cash out / end** are behind **Table admin**, one row above.
 - **Nothing is ever deleted.** A mistake is corrected with a new entry — open
   the player, tap the entry, correct or void it. The history keeps both, on

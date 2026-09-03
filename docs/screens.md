@@ -286,6 +286,40 @@ night's own figures on the card it is testing.
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
 
+**`/player`** — 3 September, on the owner's instruction: *"a smooth and
+informative touch-free transition between the rebuy and the return to the Home
+Screen"*. Holding **Rebuy $200** now writes the entry, states what just happened
+in the button's own box — `Maja added $200` over `In for $700 · back to
+Tonight` — sweeps a bar out over 1.1s and dismisses the sheet onto Tonight. No
+tap between releasing the hold and being back at the table.
+`apps/mobile/src/components/Handoff.tsx` is the block; the composition and the
+copy are in `player.tsx` at the quick rebuy.
+
+*What it changed that was decided the other way.* The card's own note said
+*"nothing has to announce itself, because the screen the host is already looking
+at is the receipt"*, and the receipt is still there — the row in ENTRIES, IN FOR
+going up. What it never did was hand the screen back, so the most repeated act
+of the evening ended with the host reading a card they had finished with and
+hunting for the close.
+
+⚠ **NOT DRAWN, ANYWHERE.** `08-tonight-home.md` H3b draws the hold and what a
+release before the end does; no board draws what the app shows once the write
+lands, because until now it showed nothing. Every word is lifted off this screen
+— IN FOR is the card's own label, Tonight is the name at the top of what it
+returns to — and the one new verb is the host's own. **Two states are still
+undrawn and are asks, not inventions**: a write that fails (it falls back to the
+button, which is what this screen has always done with one) and what a
+screen-reader hears, which is the two lines read aloud.
+
+*Reachable by nothing that runs.* The status is behind a one-second hold, so
+`ui-audit.mjs` — which opens `/player` at a URL — cannot see it, and
+`ui-journeys.mjs` logs its rebuys through the dock, which is the other route in
+entirely. `handoff.contract.test.ts` is the lock, and it is a source read: the
+component is drawn, the hold is still there, the copy is those words, the write
+is awaited before the status, and nothing on the sheet navigates while it
+closes. **If the hold path ever gets a browser step, that test is the thing to
+delete.**
+
 **`/session`, `/count-up` and `/stands`** — 3 September, the mixed player list
 rule (`design/handoff-player-list/`). One treatment for every list where some
 players still have money on the table and some are finished, replacing the three
