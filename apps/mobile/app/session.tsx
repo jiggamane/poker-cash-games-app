@@ -108,15 +108,6 @@ export default function Session() {
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
   /**
-   * SEAT ORDER, AND NO LONGER MOST MONEY IN FIRST —
-   * `design/handoff-count-up-to-settled/docs/05-active-vs-settled.md`, cut 1
-   * September: "Groups never reorder. Within a group, seat order."
-   *
-   * The old sort ranked the table by buy-in, which put a rebuy at the top and
-   * moved somebody's row under the host's thumb every time they recorded one.
-   * With the list grouped, the ranking has nothing left to say either: whoever
-   * is in for the most is not the thing the two groups are about.
-   *
    * `standingsOf` maps `night.players`, which is the roster in the order the
    * seats were filled, so seat order is what comes back unsorted.
    *
@@ -133,9 +124,44 @@ export default function Session() {
     return <Screen title="Tonight" backTo="the club">{null}</Screen>;
   }
 
-  const seated = standings.filter((s) => s.atTable);
+  /**
+   * MOST MONEY IN FIRST, in the group that is still playing.
+   *
+   * ⚠ THIS REVERSES A DOCUMENTED DECISION, ON THE OWNER'S INSTRUCTION —
+   * 3 September, "the more player has bought in the higher he should be in the
+   * list". `design/handoff-count-up-to-settled/docs/05-active-vs-settled.md`,
+   * cut 1 September, says "Groups never reorder. Within a group, seat order",
+   * and this screen was changed FROM buy-in order TO seat order to obey it.
+   * Do not put seat order back by reading that doc: `docs/screens.md` carries
+   * which way round it went and why.
+   *
+   * THE ORDER IS THE COLUMN AT THE RIGHT EDGE. Every row in this group draws
+   * what its player is in for, 19/700, so a list sorted by it can be checked by
+   * a reader running a finger down the column — which is the whole argument for
+   * sorting on a key at all, and the reason the group below is left alone.
+   *
+   * WHAT SEAT ORDER WAS PROTECTING, still true and now accepted: logging a
+   * rebuy moves that row up the list, so the row under the host's thumb is not
+   * the row that was there a moment ago. It costs an extra look after a rebuy;
+   * what it buys is that the biggest stacks at the table are the ones at the
+   * top of the screen, which is what a host is watching for.
+   *
+   * TIES KEEP SEAT ORDER — `Array#sort` is stable, so two players in for the
+   * same amount stay in the order their seats were filled rather than swapping
+   * about as unrelated entries land.
+   */
+  const seated = [...standings]
+    .filter((s) => s.atTable)
+    .sort((a, b) => b.boughtIn - a.boughtIn);
+
   /* Settled, on this screen, means the admin has taken their stack. The two
-     lists are the two groups, and neither is re-derived below. */
+     lists are the two groups, and neither is re-derived below.
+
+     LEFT IN SEAT ORDER, and not for want of a rule: the buy-in is not drawn on
+     these rows — the fact is the time they left and the figure at the right is
+     their result — so sorting them by it would be an order the reader cannot
+     see. Ranking them by RESULT is the other candidate and belongs to E2b,
+     `Where everyone stands`, which is the screen that ranks. Asked. */
   const gone = standings.filter((s) => !s.atTable);
   const out = gone.length;
 
