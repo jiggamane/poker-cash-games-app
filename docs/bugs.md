@@ -117,6 +117,50 @@ prints them as a row anyway, marked `by hand`, because a checklist that silently
 omits the step that fails silently is the same fault again: without the hook a
 watcher's screen is simply empty, and nothing anywhere reports an error.
 
+### B42 — a spend the piggy bank paid for stopped the whole night syncing
+
+```
+Screen      — the send queue, not a screen
+Seen        `entryRow` in syncRows.ts sent ten columns and neither `covered_by`
+            nor `spend_group`. Three of the four shapes 0004 gave a spend have
+            no payer, so they went up as an expense with `payer_id` null and no
+            cover — which the shape constraint refuses. The queue drains in
+            order and halts at its first failure, so the refused pizza sat at
+            the head of the line and stopped every entry behind it, on that
+            night and on every night queued after it, indefinitely
+Expected    both columns sent, null included, so all four spend shapes reach
+            the server and the queue never has a row it cannot deliver
+Found       3 Sept, reading the sync path after state-check.sql showed 0004 had
+            been skipped on the live project. Nothing could see it: syncRows.ts
+            omitted the columns, syncRows.test.ts asserted the omission as the
+            expected column list, and 03_sync_contract.sql only ever inserted
+            the one spend shape that predates 0004. Three files agreeing with
+            each other, all wrong the same way
+Locked by   npm run check — syncRows.test.ts, the column list plus three cases
+            for the shapes 0004 added; four tests go red if the columns come
+            back off. And npm run db:verify — 03_sync_contract.sql now sends a
+            kitty spend, an unpaid one and two fronters sharing a spend_group
+            through real Postgres, and rejects both a spend with neither a
+            payer nor a cover and one with both
+Status      fixed in this commit
+```
+
+The host's phone never lost anything — the ledger is local first and the screen
+reads local state. What was lost is the server's copy, which is the watcher's
+view and what a reinstall restores from.
+
+Worth being precise about why the check missed it, because the tripwire was
+already there and working. `syncRows.ts` says in its own header: *if a column
+set changes, the test in `syncRows.test.ts` fails on purpose and names the SQL
+file that has to change with it.* That is exactly right, and it fires when a
+column set CHANGES. Here a migration added two columns and no one changed the
+column set, so all three files stayed consistent with each other and
+inconsistent with the database. A tripwire across two descriptions of a table
+cannot see a third description neither of them was compared against.
+
+Applying 0004 does not fix this. It changes the constraint that rejects the
+row, not the row.
+
 ### B35 — the app still said "kitty" in two places, and went quiet when a player held it
 
 ```

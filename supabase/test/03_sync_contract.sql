@@ -219,6 +219,60 @@ on conflict (id) do nothing;
 
 select expect_eq((select count(*) from ledger_entry), 6, 'a replayed entry does not duplicate');
 
+-- --- The four shapes a spend has ---------------------------------------------
+-- Until this block existed, every expense this file sent had a payer, which is
+-- the one shape of four that 0001 already allowed. The other three arrived on
+-- somebody's phone and were refused here, and because the queue drains in order
+-- and halts at its first failure, the refused row stopped every entry behind it
+-- as well. Nothing could see it: the app's column list, the test asserting that
+-- column list, and this file all left `covered_by` out together.
+--
+-- The columns below are exactly what `entryRow` in syncRows.ts now sends. If
+-- one is added there and not here, `syncRows.test.ts` fails and names this file.
+
+insert into ledger_entry
+  (id, session_id, seq, type, player_id, payer_id, amount, note,
+   corrects_entry_id, occurred_at, covered_by, spend_group)
+values
+  -- the piggy bank paid, so nobody is owed anything back
+  ('c6000000-0000-0000-0000-000000000007', 'c4000000-0000-0000-0000-000000000001',
+   7, 'expense', null, null, 230, 'Beer', null, '2026-08-13T22:10:00Z', 'kitty', null),
+  -- nobody has been named yet: it counts towards the bill and owes no one
+  ('c6000000-0000-0000-0000-000000000008', 'c4000000-0000-0000-0000-000000000001',
+   8, 'expense', null, null, 80, 'Taxi', null, '2026-08-13T22:40:00Z', 'unpaid', null),
+  -- two people split the tab; one spend, one row each, tied by spend_group
+  ('c6000000-0000-0000-0000-000000000009', 'c4000000-0000-0000-0000-000000000001',
+   9, 'expense', null, 'c3000000-0000-0000-0000-000000000001', 60, 'Cake', null,
+   '2026-08-13T22:55:00Z', null, 'c7000000-0000-0000-0000-000000000001'),
+  ('c6000000-0000-0000-0000-00000000000a', 'c4000000-0000-0000-0000-000000000001',
+   10, 'expense', null, 'c3000000-0000-0000-0000-000000000002', 40, 'Cake', null,
+   '2026-08-13T22:56:00Z', null, 'c7000000-0000-0000-0000-000000000001');
+
+select expect_eq((select count(*) from ledger_entry), 10, 'all four spend shapes accepted');
+
+select expect_eq(
+  (select count(*) from ledger_entry
+    where spend_group = 'c7000000-0000-0000-0000-000000000001'),
+  2, 'the two fronters of one spend are findable as one spend');
+
+-- A spend says who is owed for it, and "nobody" is an answer that gets written
+-- down. Both columns null is the shape the app used to send for a kitty spend.
+select expect_rejected(
+  $$insert into ledger_entry
+      (id, session_id, seq, type, player_id, payer_id, amount, occurred_at, covered_by)
+    values (gen_random_uuid(), 'c4000000-0000-0000-0000-000000000001', 95, 'expense',
+            null, null, 100, '2026-08-13T23:00:00Z', null)$$,
+  'a spend with neither a payer nor a cover');
+
+-- And never both: a spend the kitty paid for cannot also owe a person.
+select expect_rejected(
+  $$insert into ledger_entry
+      (id, session_id, seq, type, player_id, payer_id, amount, occurred_at, covered_by)
+    values (gen_random_uuid(), 'c4000000-0000-0000-0000-000000000001', 96, 'expense',
+            null, 'c3000000-0000-0000-0000-000000000001', 100, '2026-08-13T23:00:00Z',
+            'kitty')$$,
+  'a spend with both a payer and a cover');
+
 -- =============================================================================
 -- 3. COUNTING UP — one row per seated player, replaceable
 -- =============================================================================

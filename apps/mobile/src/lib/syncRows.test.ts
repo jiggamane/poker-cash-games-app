@@ -18,6 +18,7 @@ import type { LedgerEntry, MoneyRule } from '@poker-club/core';
 import {
   countRow,
   entryRow,
+  type EntryPayload,
   playerRow,
   ruleRow,
   seatRow,
@@ -107,6 +108,7 @@ describe('the ledger entry row', () => {
     expect(keys(entryRow(SESSION, entry).row)).toEqual([
       'amount',
       'corrects_entry_id',
+      'covered_by',
       'id',
       'note',
       'occurred_at',
@@ -114,8 +116,48 @@ describe('the ledger entry row', () => {
       'player_id',
       'seq',
       'session_id',
+      'spend_group',
       'type',
     ]);
+  });
+
+  // The three spend shapes 0004 added. `payer_id` is null in all of them, so
+  // `covered_by` is the only thing separating a spend the piggy bank paid for
+  // from a row the shape constraint refuses outright.
+  it('sends what covered a spend, not just who fronted it', () => {
+    const kitty: EntryPayload = {
+      id: '66666666-6666-6666-6666-666666666666',
+      seq: 8,
+      type: 'expense',
+      amount: money(54),
+      coveredBy: 'kitty',
+      occurredAt: '2026-08-13T21:48:00.000Z',
+      note: 'Pizza',
+    };
+    expect(entryRow(SESSION, kitty).row.covered_by).toBe('kitty');
+    expect(entryRow(SESSION, kitty).row.payer_id).toBeNull();
+  });
+
+  it('keeps the several fronters of one spend tied together', () => {
+    const share: EntryPayload = {
+      id: '77777777-7777-7777-7777-777777777777',
+      seq: 9,
+      type: 'expense',
+      payerId: PETR,
+      amount: money(27),
+      spendGroup: '88888888-8888-8888-8888-888888888888',
+      occurredAt: '2026-08-13T21:48:00.000Z',
+    };
+    expect(entryRow(SESSION, share).row.spend_group).toBe(
+      '88888888-8888-8888-8888-888888888888',
+    );
+  });
+
+  // An ordinary entry sends both columns as null rather than omitting them:
+  // the column list above is the tripwire, and it only works if it is fixed.
+  it('sends both as null on an entry that is not a spend', () => {
+    expect(entryRow(SESSION, entry).row.covered_by).toBeNull();
+    expect(entryRow(SESSION, entry).row.spend_group).toBeNull();
   });
 
   it('carries its own occurred_at rather than letting the server default it', () => {

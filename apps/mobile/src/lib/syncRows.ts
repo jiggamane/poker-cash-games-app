@@ -161,6 +161,15 @@ export const entryRow = (sessionId: string, e: EntryPayload): RowWrite => ({
     note: e.note ?? null,
     corrects_entry_id: e.correctsEntryId ?? null,
     occurred_at: e.occurredAt,
+    // A spend has four shapes since 0004, and three of them have no payer: one
+    // the piggy bank covered, and one nobody has been named for yet. Both are
+    // `payer_id` null, and the shape constraint wants EXACTLY ONE of the two
+    // columns, so leaving these off does not send a spend without its cover —
+    // it sends a row the server refuses. The queue drains in order and halts at
+    // its first failure, so one piggy-bank pizza stops the whole night, and
+    // every night queued behind it, from ever reaching the server.
+    covered_by: e.coveredBy ?? null,
+    spend_group: e.spendGroup ?? null,
   },
 });
 
