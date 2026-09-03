@@ -78,6 +78,18 @@ run_sql_file() {
   fi
 }
 
+# Same, but hands the output back instead of printing it.
+capture_sql_file() {
+  local file="$1"
+  if [ "${PSQL[0]}" = "su" ]; then
+    local tmp="/tmp/$(basename "$file")"
+    cp "$file" "$tmp"; chmod 644 "$tmp"
+    su postgres -c "psql -h /tmp -p 55432 -U postgres -d poker -v ON_ERROR_STOP=1 -q -f $tmp"
+  else
+    "${PSQL[@]}" -v ON_ERROR_STOP=1 -q < "$file"
+  fi
+}
+
 echo "==> Applying the Supabase shim (local only — the real Supabase provides this)"
 run_sql_file "$TESTS/00_supabase_shim.sql"
 
@@ -95,5 +107,26 @@ for f in "$TESTS"/*.sql; do
   run_sql_file "$f"
 done
 
+# --- The state check has to be right about a database it can see ------------
+# supabase/state-check.sql is what tells a person which migrations their real
+# project is missing. A probe that never matches anything would report a fully
+# migrated project as broken, and one that matches too loosely would report a
+# stale project as fine — the second is how a night gets played against a schema
+# that cannot store its rounding. This database has every migration, so every
+# row must come back `ok`.
+echo "==> Holding supabase/state-check.sql against a fully-migrated database"
+STATE_OUT="$(capture_sql_file "$REPO_ROOT/supabase/state-check.sql")"
+# STATE_CHECK_SHOW=1 prints the table this file would print in the SQL Editor.
+if [ -n "${STATE_CHECK_SHOW:-}" ]; then printf '%s\n' "$STATE_OUT"; fi
+# Row 93 is the pair of dashboard toggles, which no query can see; it prints as
+# `by hand` rather than a verdict. Every other row is a probe and must be ok.
+if printf '%s\n' "$STATE_OUT" | grep -q 'MISSING'; then
+  printf '%s\n' "$STATE_OUT"
+  echo "" >&2
+  echo "state-check.sql calls a migration missing on a database that has all of them." >&2
+  echo "The probe is wrong, not the database. Fix supabase/state-check.sql." >&2
+  exit 1
+fi
+
 echo ""
-echo "OK — schema applies cleanly and every invariant holds."
+echo "OK — schema applies cleanly, every invariant holds, and the state check reads it correctly."
