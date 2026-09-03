@@ -853,6 +853,62 @@ amount sheet the rest of the app draws:
   shape `new-night.tsx` and `invite.tsx` already use. A mis-tap on "Change the
   amount" used to cost the host the entry they had opened.
 
+### B42 — a stack lost its last digit so a name could keep all of its letters
+
+```
+Screen      E2 /count-up, the COUNTED slabs — and every list built on
+            PlayerList.tsx, which is six of them
+Seen        "counted $12,880" at 116 points in a 109-point box, at 120% text on
+            the thousands night. The clipped end is the figure. Both the name
+            and the fact were flexShrink 1, so a row short of room took the
+            shortfall out of whichever was longer, and the fact is longer
+Expected    the name gives and the figure does not. `ledger.tsx` already states
+            that order for its columns — "the name is the one thing in the row
+            that may ellipsise" — and it is the same order for the same reason:
+            a truncated name is still legible, a truncated stack is a different
+            number
+Found       3 Sept, by the journey pass, immediately after giving the counted
+            slab back its chevron. The chevron and its gap are 17 points and
+            they came off the fact
+Locked by   npm run check:ui — ui-journeys.mjs's clipped pass, at 120% text on
+            all three nights. It found this one unprompted
+Status      fixed in this commit
+```
+
+**Worth reading beside B41**, which is the other half of the same afternoon: B41
+was the wrong sentence on the row, this is the right sentence with the wrong
+thing yielding. One fix is per-screen and the other is in the component, and
+that is the division the rule draws — the treatment is shared, the fact is the
+screen's.
+
+### B41 — the cashed-out slab on Count up said the cash-out twice and clipped it
+
+```
+Screen      E2 /count-up, the CASHED OUT EARLIER slabs
+Seen        "13:03 · out CHF2,120" beside the name, with the figure's tail cut
+            off: 150 points of text in a 122-point box at 360 and 120% text,
+            with the group's book kept in CHF. It clips at 393 too. The line is
+            the fact that says what finished them, and what gets cut is money
+Expected    a fact that fits. The board says which fact: on Tonight and on the
+            cash-out picker it is `23:15 · out $2,120`, and on Count up it is
+            `23:15` alone — this is the densest list in the app, three groups
+            under a fixed 140-point balance card, and the cash-out figure is the
+            one term already implied by the result at the right of the same slab
+Found       3 Sept, by the currency pass, applying the mixed player list rule.
+            The screen had been built with Tonight's fact on it, which is the
+            same slab component and a different amount of room
+Locked by   npm run check:ui — ui-currency.mjs, which walks the money screens
+            with a three-letter symbol in front of every figure and fails on any
+            line that carries money and does not fit. Putting `· out …` back
+            takes it red at both widths
+Status      fixed in this commit
+```
+
+**Same component, two facts, and the board is the thing that knows which.**
+`FinishedSlab` takes the fact as a string precisely so the screen decides it:
+the rule fixes the treatment, not the sentence. Copying Tonight's fact onto
+Count up looked like consistency and was the fault.
+
 ### B40 — Out of balance stated a gap its own two figures do not produce
 
 ```

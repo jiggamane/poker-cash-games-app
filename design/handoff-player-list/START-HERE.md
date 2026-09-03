@@ -25,16 +25,17 @@ treatment depends on.
 - **`RESULT BEFORE DEDUCTIONS` comes off every label.** The slab is what says
   "settled", so the label is name and count. `ui-audit.mjs` required that string
   and no longer does.
-- **A finished row is not tappable.** On Tonight that costs the cashed-out
-  player's card its route from this screen; the roster still reaches it.
+- **A finished row is not tappable** — adopted everywhere but one row, and the
+  exception is below.
 - **Where everyone stands inverts**: the finished group is ranked and comes
   first, because only a final result can be ranked, and cashed-out players rank
   alongside counted ones.
 
 ## What it does NOT change, and why
 
-Two things in it are regressions against later decisions, confirmed by the owner
-on 3 September:
+The first two are regressions against later decisions, confirmed by the owner on
+3 September. The third is not a regression at all — it is a correction flow this
+app has and the board was not drawn against.
 
 - **The primary on Count up stays `Next`.** Layout 2a in
   `handoff-E2/docs/E2-balance-check-logic.md` superseded `Apply the money rules`;
@@ -42,6 +43,19 @@ on 3 September:
 - **The balance card keeps its verdict strip and its three states** — balanced,
   short, over. This board draws only the counting state, and the percentage line
   it shows now sits in the strip beside the verdict.
+- **Two finished slabs keep a chevron**, on the rule *a figure is fixed where it
+  was entered*. The ledger is append-only, so a wrong figure is corrected by
+  entering it again, and these are the only doors to the screen that does that:
+  a **counted stack on Count up** reopens the keypad it was typed on (without
+  it, E5's `Fix` hands the host back to a screen where every row is counted and
+  nothing can be changed — the app's one recovery path, leading nowhere), and a
+  **cashed-out player on Tonight** reopens their card (`/player` is the only
+  route to `/entry` anywhere, and the roster opens `/member`, the club record,
+  not the night's card). `CASHED OUT EARLIER` on Count up does not open: that
+  figure was typed on Tonight. Everywhere else a finished slab cannot take a
+  press at all — `FinishedSlab` calls the prop `opens` and only those two rows
+  pass it. A slab that opens something takes the chevron AND the 44 that go with
+  being a target. Question for the owner in `docs/screens.md`.
 
 ## Why the slab does not re-open B23
 
