@@ -133,18 +133,28 @@ const readStacks = (page) =>
     const players = [];
     for (let i = 0; i < lines.length; i++) {
       /*
-       * THE ROW THAT IS STILL ASKING. Under *Still seated*, somebody with no
-       * count reads "not counted yet" and the name is the line above it.
+       * THE ROW THAT IS STILL ASKING — an em dash with a buy-in on the line
+       * before it, which is the shape of an active row under *Still to count*:
+       * name, `in $1,500`, then the em dash and the pencil at the right edge.
+       * The name is two lines back.
        *
-       * It used to look for "in $500" instead, which every seated row carried
-       * until the E2 block was rebuilt on 30 August. Counted rows show their
-       * figure now, so that pattern matched NOBODY, this returned an empty
-       * list, the loop below counted nobody, and the run walked into a Next
-       * that was still blocked and sat there until Playwright timed it out.
-       * Match on the ask, which is the thing that means "this one is left".
+       * THIS MARKER HAS NOW MOVED TWICE and both times it failed the same way,
+       * so read this before changing the screen. It looked for `in $500` until
+       * 30 August, when the rebuilt block gave counted rows a figure too and
+       * the pattern started matching everybody. It looked for `not counted yet`
+       * until 3 September, when the mixed player list rule took that phrase off
+       * the row — the treatment says it now — and the pattern matched NOBODY.
+       * Either way this returns a list the loop below walks in nought steps,
+       * and the run then sits on a blocked Next until Playwright times out: a
+       * timeout on `tap('Next')` is what this looks like from the outside, not
+       * a message about the marker.
+       *
+       * So match on the AFFORDANCE, not on any copy: the em dash and the pencil
+       * are what "this one is left" has always drawn, on every revision of the
+       * screen, and they are what the group label promises.
        */
-      if (lines[i] !== 'not counted yet') continue;
-      players.push({ name: lines[i - 1] });
+      if (lines[i] !== '\u2014' || !/^in /.test(lines[i - 1] ?? '')) continue;
+      players.push({ name: lines[i - 2] });
     }
     return { players };
   });
@@ -681,6 +691,16 @@ async function playANight(name, rebuys) {
   await page.mouse.up();
   await page.waitForTimeout(1400);
   const { players } = await readStacks(page);
+  /* SAY SO HERE RATHER THAN TIMING OUT ON `Next` TWENTY LINES DOWN. Twice now
+     the marker above has stopped matching and the run's only symptom was a
+     30-second Playwright timeout naming a button. This night always has stacks
+     left to count at this point: nobody has been counted yet. */
+  if (players.length === 0) {
+    throw new Error(
+      'readStacks found nobody still to count on /count-up — the marker it ' +
+        'matches on has moved again. See the note above readStacks.',
+    );
+  }
   /* A hundred each to begin with, everybody, which is deliberately wrong: it
      leaves the table short by exactly what the winner is owed, and the app is
      the thing that knows that figure to the unit. */

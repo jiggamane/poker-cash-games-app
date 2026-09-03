@@ -286,6 +286,59 @@ night's own figures on the card it is testing.
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
 
+**`/session`, `/count-up` and `/stands`** — 3 September, the mixed player list
+rule (`design/handoff-player-list/`). One treatment for every list where some
+players still have money on the table and some are finished, replacing the three
+each screen had invented for itself. `isFinished` is the only flag either
+treatment depends on; `apps/mobile/src/components/PlayerList.tsx` is the whole
+of it and its header carries the reasoning.
+
+*What it changed that had been decided the other way.* `RESULT BEFORE
+DEDUCTIONS` came off every group label, because the slab is what says settled
+and the words no longer have to — `ui-audit.mjs` required that string and does
+not any more. And E2b inverted: the finished group is ranked and comes first,
+with cashed-out players ranking alongside counted ones, because only a final
+result can be ranked and a stack that left at eleven is as final as one counted
+at one.
+
+*What was NOT taken, and confirmed by the owner on 3 September.* The primary on
+E2 stays `Next`, and the balance card keeps its verdict strip and its three
+states — the board carries an older frame on both, and later cuts decided them.
+
+*The one place the rule is bent, which is this app's business rather than the
+board's.* **Two finished slabs keep a chevron**, and the rule they share is *a
+figure is fixed where it was entered*. The ledger is append-only, so a wrong
+figure is corrected by entering it again, and these two rows are the only door
+to the screen that does that:
+
+- **A counted stack on Count up** reopens the keypad it was typed on. Without
+  it, E5's `Fix` leads nowhere: out of balance is the one recovery path in the
+  app, the fix is always a count, and the button hands the host back to a screen
+  where every row is counted and nothing on it can be changed.
+- **A cashed-out player on Tonight** reopens their card. `/player` is the only
+  route to `/entry` anywhere in the app, and the roster opens `/member` — the
+  club record — not the night's card. Dropping this chevron does not tidy a
+  finished row, it strands the fix for the most expensive typo of the evening.
+  It is also the same row the count-up-to-settled cut left open below — *whether
+  a settled player on Tonight can be un-cashed-out* — and the same answer: the
+  row is a door either way.
+
+`CASHED OUT EARLIER` on Count up does **not** open, by the same rule read the
+other way: that figure was typed on Tonight, so Tonight's slab is where it is
+retyped. Everywhere else — E2b, the picker, E1 — a finished slab cannot take a
+press at all, because `FinishedSlab` calls the prop `opens` and only those two
+rows pass it.
+
+**Ask**, because the handoff states the ban plainly and this is a considered
+refusal of two of its rows rather than an oversight. If the answer is that the
+chevrons come off, the correction flow needs a home first.
+
+*And one fault it introduced and the currency pass caught* — B41. The slab is
+one component and the fact is a string, so the screen chooses the sentence: the
+board draws `23:15 · out $2,120` on Tonight and on the picker, and `23:15` alone
+on E2, because E2 is the densest list in the app. Building E2 with Tonight's
+fact clipped the money at both widths in a three-letter currency.
+
 **`/session`, `/count-up` and `/ledger`** — 1 September, the count-up-to-settled
 cut (`design/handoff-count-up-to-settled/`). The player lists on the two screens
 that show one while the night is still open, and the ledger behind E6's footer.

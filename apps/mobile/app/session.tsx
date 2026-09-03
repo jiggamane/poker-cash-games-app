@@ -5,6 +5,7 @@ import { resolveLedger, resultBeforeDeductions, type Money } from '@poker-club/c
 import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
+import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
@@ -289,19 +290,65 @@ export default function Session() {
              * vanished would leave the host reading an ungrouped list whose
              * one remaining header they have no reason to still be reading.
              */}
-            <Group label="Still playing" count={seated.length} first />
-            {seated.map((s) => (
-              <PlayerRow key={s.id} standing={s} drawer={drawer} />
-            ))}
+            <PlayerGroup label="Still playing" count={seated.length} first>
+              {seated.map((p, i) => (
+                <ActiveRow
+                  key={p.id}
+                  name={p.name}
+                  fact=""
+                  last={i === seated.length - 1}
+                  {...(drawer ? {} : {
+                    onPress: () => router.push({ pathname: '/player', params: { id: p.id } }),
+                  })}
+                  right={
+                    <>
+                      <Text style={[styles.amount, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
+                        {formatToFit(p.boughtIn, ROW_FITS)}
+                      </Text>
+                      <Icon name="chevron" color={t.muted} />
+                    </>
+                  }
+                />
+              ))}
+            </PlayerGroup>
 
-            <Group label="Cashed out" count={out} qualifier="result before deductions" />
-            {gone.map((s) => (
-              /* The clock is read here, off the night this render already has,
-                 rather than inside the row — a row that subscribed to the store
-                 for one timestamp would be six subscriptions to the thing that
-                 drew it. */
-              <PlayerRow key={s.id} standing={s} drawer={drawer} at={cashedOutAt(night, s.id)} />
-            ))}
+            {/*
+              * THE CASHED-OUT ROW IS A SLAB, AND IT LOSES ITS CHEVRON —
+              * `design/handoff-player-list/`, cut 3 September. It is finished:
+              * there is nothing left to open on it, and a finished slab is not
+              * tappable on any screen in the app.
+              *
+              * IT ALSO LOSES `in $500`. The buy-in has its own column on the
+              * rows above, the slab is one line, and name, time, cash-out and
+              * result are what fit. The label loses its qualifier for the same
+              * reason the slab exists: the treatment says "settled" and the
+              * words no longer have to.
+              *
+              * ⚠ AND IT KEEPS ITS CHEVRON, WHICH THE HANDOFF TAKES AWAY. The
+              * one deviation from the rule in the app, and it is about what
+              * this app has that the board was not drawn against: `/player` is
+              * the ONLY route to `/player` → `/entry`, and `/entry` is the only
+              * way to correct a cash-out typed wrong. The ledger is
+              * append-only, so a correction is the mechanism rather than a
+              * convenience; the roster opens `/member`, the club record, not
+              * the night's card. Dropping the chevron here does not tidy a
+              * finished row, it strands the fix for the most expensive typo of
+              * the evening. `docs/screens.md` carries it and the question.
+              */}
+            <PlayerGroup label="Cashed out" count={out}>
+              {gone.map((p) => (
+                <FinishedSlab
+                  key={p.id}
+                  name={p.name}
+                  fact={goneFact(cashedOutAt(night, p.id), p.cashedOut)}
+                  result={resultBeforeDeductions(p.boughtIn, p.cashedOut)}
+                  fits={ROW_FITS}
+                  {...(drawer ? {} : {
+                    opens: () => router.push({ pathname: '/player', params: { id: p.id } }),
+                  })}
+                />
+              ))}
+            </PlayerGroup>
           </ScrollView>
         )}
       </PressableOrPlain>
@@ -309,125 +356,7 @@ export default function Session() {
   );
 }
 
-/**
- * A group header — `STILL PLAYING · 5`, `CASHED OUT · 1 · RESULT BEFORE
- * DEDUCTIONS`. 11.5/700 at `.1em`, muted, uppercase, `0 2px 8px`, and 20
- * above it except at the top of the list.
- *
- * THE COUNT IS ALWAYS THERE, ZERO INCLUDED, and it is live. The doc is
- * explicit about it and about why: at zero the header is what says nobody has
- * cashed out yet, which is a fact a host wants at the moment they are deciding
- * whether the night is over.
- *
- * THE QUALIFIER IS ONLY ON THE GROUP THAT NEEDS IT. It states what the
- * right-hand column of the rows beneath it means, and only one of the two
- * groups changes that meaning.
- */
-function Group({
-  label,
-  count,
-  qualifier,
-  first = false,
-}: {
-  label: string;
-  count: number;
-  qualifier?: string;
-  first?: boolean;
-}) {
-  const t = useTheme();
-  return (
-    <Text
-      style={[styles.groupLabel, !first && styles.groupAfter, { color: t.muted }]}
-      numberOfLines={1}
-    >
-      {`${label} · ${count}${qualifier === undefined ? '' : ` · ${qualifier}`}`}
-    </Text>
-  );
-}
 
-/**
- * One person on the table list, in one of its two states.
- *
- * ACTIVE IS THE ROW THIS SCREEN ALREADY HAD — the doc's own instruction, and
- * the reason nothing else on Tonight moves. Name at full strength, money in
- * unsigned, a chevron.
- *
- * SETTLED CHANGES IN EXACTLY FOUR WAYS, which is the whole list:
- *
- *   1. The name drops to MUTED — not dim. The dim token is below AA at 17
- *      points and this is somebody's name.
- *   2. A sub-line appears giving the derivation, `23:15 · in $500 · out
- *      $2,120`. It is the only place the components of the signed figure are
- *      visible, so it carries substantive data and takes the muted token too.
- *   3. The figure becomes SIGNED and takes a money colour — green above zero,
- *      red below, primary text at exactly zero.
- *   4. The chevron stays and dims. A settled player's sheet is still worth
- *      opening, so the door is still there; it is just no longer the thing to
- *      do next.
- *
- * THE FIGURE IS THE ENGINE'S. `resultBeforeDeductions` is one subtraction and
- * this screen used to do it inline — which was a second implementation of the
- * sum E2 makes on the same two figures one screen along. See `CLAUDE.md`.
- */
-function PlayerRow({
-  standing: s,
-  drawer,
-  at,
-}: {
-  standing: Standing;
-  drawer: boolean;
-  /** When they left, on a settled row. Read by the caller off its own night. */
-  at?: string | undefined;
-}) {
-  const t = useTheme();
-  const settled = !s.atTable;
-  const result = resultBeforeDeductions(s.boughtIn, s.cashedOut);
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={drawer}
-      onPress={() => router.push({ pathname: '/player', params: { id: s.id } })}
-      style={({ pressed }) => [
-        settled ? styles.rowSettled : styles.row,
-        { borderBottomColor: t.hairline, opacity: pressed ? 0.6 : 1 },
-      ]}
-    >
-      <View style={styles.rowText}>
-        <Text style={[styles.name, { color: settled ? t.muted : t.text }]} numberOfLines={1}>
-          {s.name}
-        </Text>
-        {settled && (
-          <Text style={[styles.sub, { color: t.muted }]} numberOfLines={1} {...cappedFigure}>
-            {[
-              ...(at === undefined ? [] : [clockLabel(at)]),
-              `in ${formatToFit(s.boughtIn, ROW_FITS)}`,
-              `out ${formatToFit(s.cashedOut, ROW_FITS)}`,
-            ].join(' · ')}
-          </Text>
-        )}
-      </View>
-
-      <Text
-        style={[
-          styles.amount,
-          {
-            color: settled
-              ? result === 0
-                ? t.text
-                : moneyColor(t, result)
-              : t.text,
-          },
-        ]}
-        numberOfLines={1}
-        {...cappedFigure}
-      >
-        {settled ? formatSignedToFit(result, ROW_FITS) : formatToFit(s.boughtIn, ROW_FITS)}
-      </Text>
-      <Icon name="chevron" color={settled ? t.dim : t.muted} />
-    </Pressable>
-  );
-}
 
 /**
  * The running time IS the live tag — there is no "LIVE" word any more. Green
@@ -475,6 +404,18 @@ function LiveTag({ startedAt, empty }: { startedAt: string; empty: boolean }) {
     </View>
   );
 }
+
+/**
+ * WHAT FINISHED THEM — `23:15 · out $2,120`.
+ *
+ * No `in $500`: the buy-in has its own column on the rows above this group, the
+ * slab is a single line, and what a reader wants from a settled row is when
+ * they left, what they left with, and the result at the right.
+ */
+const goneFact = (at: string | undefined, cashedOut: Money): string => {
+  const out = `out ${formatToFit(cashedOut, ROW_FITS)}`;
+  return at === undefined ? out : `${clockLabel(at)} · ${out}`;
+};
 
 const styles = StyleSheet.create({
   body: { flex: 1 },

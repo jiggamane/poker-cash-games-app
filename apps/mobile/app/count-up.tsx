@@ -13,6 +13,7 @@ import { formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
+import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
@@ -157,57 +158,126 @@ export default function CountUp() {
        * exists to make.
        *
        *     STILL TO COUNT · 2
-       *     COUNTED · 3 · RESULT BEFORE DEDUCTIONS
+       *     COUNTED · 3
        *     CASHED OUT EARLIER · 3
        *
-       * THE MIDDLE HEADER CARRIES THE COLUMN'S MEANING and the other two do
-       * not need to: a row still to count has no figure, and a row cashed out
-       * earlier sits under a header that says what happened to it. Do not
-       * shorten it to *result* — nothing has come off these figures yet.
+       * THE MIDDLE HEADER USED TO CARRY THE COLUMN'S MEANING —
+       * `COUNTED · 3 · RESULT BEFORE DEDUCTIONS` — because the right-hand
+       * column changes meaning between a row still to count and a row that is
+       * finished, and nothing else on the row said which. The slab says it now
+       * (`design/handoff-player-list/`, cut 3 September), so all three labels
+       * are a name and a count. What has not come off those figures is on the
+       * lede and the rounding bar above them.
        *
        * GROUPS NEVER REORDER AND NEVER DISAPPEAR. Seat order within each, and
        * an empty one draws its header with `· 0` rather than vanishing, so the
        * host can see that nobody is left to count rather than inferring it
        * from a group that is no longer on screen.
        */}
-      <Group label="Still to count" count={toCount.length} first>
-        {toCount.map((p) => (
-          <SeatedRow
-            key={p.id}
-            id={p.id}
-            name={p.name}
-            boughtIn={p.boughtIn}
-            count={undefined}
-          />
-        ))}
-      </Group>
+      <View style={styles.groups}>
+        <PlayerGroup label="Still to count" count={toCount.length} first>
+          {toCount.map((p, i) => (
+            <ActiveRow
+              key={p.id}
+              name={p.name}
+              fact={`in ${formatToFit(p.boughtIn, ROW_FITS)}`}
+              last={i === toCount.length - 1}
+              accessibilityLabel={`Count ${p.name}`}
+              onPress={() =>
+                router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } })
+              }
+              right={
+                <>
+                  <Text style={[styles.waiting, { color: t.dim }]}>—</Text>
+                  <Icon name="pencil" color={t.amber} size={17} />
+                </>
+              }
+            />
+          ))}
+        </PlayerGroup>
 
-      <Group label="Counted" count={counted.length} qualifier="result before deductions">
-        {counted.map((p) => (
-          <SeatedRow
-            key={p.id}
-            id={p.id}
-            name={p.name}
-            boughtIn={p.boughtIn}
-            count={night.finalCounts.get(p.id)}
-          />
-        ))}
-      </Group>
+        {/*
+          * COUNTED AND CASHED OUT ARE THE SAME TREATMENT, and that is the rule:
+          * both are finished, so both are slabs. What differs is the fact each
+          * one carries — the stack for one, the time for the other.
+          *
+          * ⚠ A COUNTED SLAB KEEPS ITS CHEVRON, WHICH THE HANDOFF TAKES AWAY,
+          * and it is the same exception Tonight's cashed-out slab gets. The
+          * rule for this app is *a figure is fixed where it was entered*: this
+          * screen is where a count is typed, so this screen is where a count
+          * typed wrong is retyped. Tapping the slab reopens the same keypad
+          * with the same prefill and overwrites it.
+          *
+          * WITHOUT IT, E5's `Fix` LEADS NOWHERE. Out of balance is the screen
+          * that names a difference and offers to go and fix it, and the fix is
+          * always a count: it hands the host back to this screen with every row
+          * already counted. If none of those rows opens, the button has taken
+          * them to a screen with nothing on it to change, on the one path in
+          * the app that exists for recovering from a mistake.
+          *
+          * CASHED OUT EARLIER DOES NOT OPEN, by the same rule read the other
+          * way: that figure was entered on Tonight, and Tonight's slab is where
+          * it is retyped. Both deviations and the question are in
+          * `docs/screens.md`.
+          */}
+        <PlayerGroup label="Counted" count={counted.length}>
+          {counted.map((p) => (
+            <FinishedSlab
+              key={p.id}
+              name={p.name}
+              fact={`counted ${formatToFit(night.finalCounts.get(p.id)!, ROW_FITS)}`}
+              result={resultBeforeDeductions(p.boughtIn, night.finalCounts.get(p.id)!)}
+              fits={ROW_FITS}
+              accessibilityLabel={`Count ${p.name} again`}
+              opens={() =>
+                router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } })
+              }
+            />
+          ))}
+        </PlayerGroup>
 
-      <Group label="Cashed out earlier" count={confirmed.length}>
-        {confirmed.map((p) => (
-          <ConfirmedRow
-            key={p.id}
-            name={p.name}
-            boughtIn={p.boughtIn}
-            cashedOut={p.cashedOut}
-            at={cashedOutAt(night, p.id)}
-          />
-        ))}
-      </Group>
+        <PlayerGroup label="Cashed out earlier" count={confirmed.length}>
+          {confirmed.map((p) => (
+            <FinishedSlab
+              key={p.id}
+              name={p.name}
+              fact={cashedOutFact(night, p.id, p.cashedOut)}
+              result={resultBeforeDeductions(p.boughtIn, p.cashedOut)}
+              fits={ROW_FITS}
+            />
+          ))}
+        </PlayerGroup>
+      </View>
     </Screen>
   );
 }
+
+/**
+ * WHAT FINISHED THEM — the clock alone, `23:15`.
+ *
+ * SHORTER THAN THE SAME PERSON'S ROW ON TONIGHT, which draws
+ * `23:15 · out $2,120`, and the handoff draws both that way deliberately. This
+ * screen has a third group above and a balance card above that: it is the
+ * densest list in the app, and the cash-out figure is the one term on the slab
+ * that is already implied — the result at the right is what the reader came for
+ * and the buy-in has its own column two groups up.
+ *
+ * It is also what keeps the line inside the slab. `13:03 · out CHF2,120` is
+ * 150 points of a 122-point box at 120% text in a three-letter currency, and
+ * the clipped end of it is money — see B41.
+ *
+ * Where the clock is missing — an imported night, or one closed before the
+ * field existed — the cash-out is what is left to say, the same fallback
+ * `stands.tsx` takes.
+ */
+const cashedOutFact = (
+  night: NonNullable<ReturnType<typeof useNight>>,
+  playerId: PlayerId,
+  cashedOut: Money,
+): string => {
+  const at = cashedOutAt(night, playerId);
+  return at === undefined ? `out ${formatToFit(cashedOut, ROW_FITS)}` : clockLabel(at);
+};
 
 // ---------------------------------------------------------------------------
 // The block
@@ -440,201 +510,8 @@ function Sum({
 // The list
 // ---------------------------------------------------------------------------
 
-/**
- * One of the three groups, header and rows.
- *
- * IT NO LONGER DISAPPEARS WHEN IT IS EMPTY, which is the one behavioural
- * change in this component. `05-active-vs-settled.md`: "The count in each
- * header is live and always shown, including at zero: an empty group renders
- * its header with `· 0` rather than disappearing, so the admin can see that
- * nobody has cashed out yet." A host halfway through a count wants to know
- * that STILL TO COUNT is down to nothing; a header that vanished at the moment
- * it became good news is a header that only ever says bad news.
- *
- * THE QUALIFIER IS ONLY ON `COUNTED`. It states what the right-hand column of
- * the rows under it means — a signed result rather than a stack — and the
- * other two groups do not change that meaning.
- */
-function Group({
-  label,
-  count,
-  qualifier,
-  children,
-  first = false,
-}: {
-  label: string;
-  count: number;
-  qualifier?: string;
-  children: ReactNode[];
-  first?: boolean;
-}) {
-  const t = useTheme();
 
-  return (
-    <View style={[styles.group, !first && styles.groupAfter]}>
-      <Text style={[styles.sectionLabel, { color: t.muted }]} numberOfLines={1}>
-        {`${label} · ${count}${qualifier === undefined ? '' : ` · ${qualifier}`}`}
-      </Text>
-      {children}
-    </View>
-  );
-}
 
-/**
- * Somebody with chips still in front of them, in one of its two states.
- *
- * UNCOUNTED IS THE ROW THIS SCREEN ALREADY HAD, and deliberately so —
- * `05-active-vs-settled.md`: "Active rows are the rows the screen already has
- * — unchanged." Tinted, carrying the ask ("not counted yet") and a Count chip.
- * The chip is drawn, not a `Button`: the whole row is the target, and a control
- * inside a control gives a host two things to hit where the board draws one.
- *
- * COUNTED IS NOW A SETTLED ROW, and it changes in the four ways the doc names:
- * the name drops to muted, a sub-line gives the derivation, the figure becomes
- * signed and takes a money colour, and the pencil becomes a green tick.
- *
- * ⚠ THE FIGURE IS THE SIGNED RESULT NOW, NOT THE ROUNDED STACK, and that is
- * the one place this cut overrides the rounding addendum it otherwise carries
- * forward. `E2-rounding.md` rule 6 put the rounded figure on the row with the
- * raw count beneath it; `05-active-vs-settled.md` is nine days newer, is about
- * this exact column, and says `result = counted − boughtIn` with "neither
- * figure has had the bill, the piggy bank or rounding applied".
- *
- * SO BOTH HALVES OF THE ROW ARE RAW, and that is what makes it checkable: `in
- * $500 · counted $960` and `+$460` are the same two numbers twice, and a host
- * asked "that is not what I had" can point at the line under the name. A
- * result derived from the rounded stack over a sub-line quoting the raw one
- * would be a row whose own two figures do not produce the third — which is the
- * fault the E6 addendum removed a sub-line to avoid.
- *
- * What rule 6 was protecting is untouched: the count is never rewritten, it is
- * still printed under the name, and what the night will settle that stack at is
- * stated on the rounding bar directly above this list.
- */
-function SeatedRow({
-  id,
-  name,
-  boughtIn,
-  count,
-}: {
-  id: PlayerId;
-  name: string;
-  boughtIn: Money;
-  count: Money | undefined;
-}) {
-  const t = useTheme();
-  const waiting = count === undefined;
-  const result = count === undefined ? undefined : resultBeforeDeductions(boughtIn, count);
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={waiting ? `Count ${name}` : `Edit ${name}'s count`}
-      onPress={() => router.push({ pathname: '/log', params: { player: id, kind: 'count' } })}
-      style={({ pressed }) => [
-        waiting
-          ? [styles.waitingRow, { backgroundColor: t.offTableWash }]
-          : [styles.row, { borderBottomColor: t.hairline }],
-        { opacity: pressed ? 0.6 : 1 },
-      ]}
-    >
-      <View style={styles.rowText}>
-        <Text style={[styles.name, { color: waiting ? t.text : t.muted }]} numberOfLines={1}>
-          {name}
-        </Text>
-        {/* The sand is the board's, and it is the one thing on this screen
-            drawn in the off-table hue for a reason other than off-table money:
-            it is what marks the rows the host still has to work through. */}
-        <Text
-          style={[styles.detail, { color: waiting ? t.offTable : t.muted }]}
-          numberOfLines={1}
-          {...cappedFigure}
-        >
-          {waiting
-            ? 'not counted yet'
-            : `in ${formatToFit(boughtIn, ROW_FITS)} · counted ${formatToFit(count, ROW_FITS)}`}
-        </Text>
-      </View>
-
-      {waiting ? (
-        <View style={[styles.countChip, { borderColor: t.quietOutline }]}>
-          <Text style={[styles.countChipLabel, { color: t.text }]}>Count</Text>
-        </View>
-      ) : (
-        <>
-          <Text
-            style={[
-              styles.figure,
-              { color: result === 0 ? t.text : moneyColor(t, result!) },
-            ]}
-            numberOfLines={1}
-            {...cappedFigure}
-          >
-            {formatSignedToFit(result!, ROW_FITS)}
-          </Text>
-          {/* The pencil becomes a tick — the row is done, and it still opens,
-              because a count entered wrong is corrected from here. */}
-          <Icon name="check" color={t.win} size={15} />
-        </>
-      )}
-    </Pressable>
-  );
-}
-
-/**
- * Somebody who left and had their stack agreed. Their money is in
- * `accountedFor` already, they are NEVER re-counted, and the row does not
- * respond to a tap — the whole thing is muted and carries no glyph, which is
- * the difference between a row you have finished with and a row you can open.
- *
- * IT IS A SETTLED ROW TOO, so its figure is the signed result rather than the
- * cash-out on its own, in the money colours, over the same `in … · out …`
- * derivation the board draws under the CASHED OUT EARLIER header. The three
- * kinds of row on this screen now print three kinds of figure — nothing, a
- * result, a result — and the group headers are what say which.
- *
- * NO TICK HERE. There is no pencil to replace: this row was never a door, and
- * a glyph on it would say it had become one.
- */
-function ConfirmedRow({
-  name,
-  boughtIn,
-  cashedOut,
-  at,
-}: {
-  name: string;
-  boughtIn: Money;
-  cashedOut: Money;
-  at: string | undefined;
-}) {
-  const t = useTheme();
-  const result = resultBeforeDeductions(boughtIn, cashedOut);
-  const time = at === undefined ? '' : clockLabel(at);
-
-  return (
-    <View style={styles.confirmedRow}>
-      <View style={styles.rowText}>
-        <Text style={[styles.name, { color: t.muted }]} numberOfLines={1}>
-          {name}
-        </Text>
-        <Text style={[styles.detail, { color: t.muted }]} numberOfLines={1} {...cappedFigure}>
-          {[
-            ...(time === '' ? [] : [time]),
-            `in ${formatToFit(boughtIn, ROW_FITS)}`,
-            `out ${formatToFit(cashedOut, ROW_FITS)}`,
-          ].join(' · ')}
-        </Text>
-      </View>
-      <Text
-        style={[styles.figure, { color: result === 0 ? t.text : moneyColor(t, result) }]}
-        numberOfLines={1}
-        {...cappedFigure}
-      >
-        {formatSignedToFit(result, ROW_FITS)}
-      </Text>
-    </View>
-  );
-}
 
 /**
  * WHERE THE TWO SUMS RUN OUT OF ROOM.
@@ -679,6 +556,9 @@ const ROW_FITS = 1_000_000;
 const styles = StyleSheet.create({
   /* Under the block's own bottom margin, above the first group's label. */
   rounding: { marginTop: 4 },
+  /* The rows' own 22, carried once for all three groups. */
+  groups: { marginHorizontal: 22 },
+  waiting: { fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
   // ---- the block --------------------------------------------------------
   block: {

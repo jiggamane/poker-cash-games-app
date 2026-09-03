@@ -205,9 +205,12 @@ const DRAWN = {
      */
     'STILL TO COUNT',
     'COUNTED',
-    'RESULT BEFORE DEDUCTIONS',
     'CASHED OUT EARLIER',
-    'not counted yet',
+    /* `not counted yet` went with the same decision that took the qualifier off
+       the labels — `design/handoff-player-list/`, 3 September. An active row's
+       fact is what they have IN, and what says they are not counted is the
+       group they are in and the em dash where a result would be. The words were
+       the row apologising for having no figure. */
     'Count',
     'Next',
   ],
@@ -221,7 +224,12 @@ const DRAWN = {
    * drawn. Were it a fresh table, CASHED OUT would still be on screen at `· 0`
    * — which is the rule these two strings exist to hold.
    */
-  '/session': ['STILL PLAYING', 'CASHED OUT', 'RESULT BEFORE DEDUCTIONS'],
+  /* `RESULT BEFORE DEDUCTIONS` came off both labels on 3 September —
+     `design/handoff-player-list/`. The qualifier existed because the row did
+     not say "finished" on its own; the slab says it, so the label is a name and
+     a count. A screen that puts the words back is drawing a row that has
+     stopped carrying its own meaning. */
+  '/session': ['STILL PLAYING', 'CASHED OUT'],
 
   /*
    * ⚠ NO `/settled` ENTRY, still, and it is not an oversight — see the
