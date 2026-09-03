@@ -352,6 +352,62 @@ const CHECK = `
     }
   }
 
+  /*
+   * A LINE THAT IS MOSTLY WORDS BUT CARRIES MONEY — B37, and the hole B38 fell
+   * through.
+   *
+   * The two passes either side of this one each looked at it and decided it was
+   * the other's business. The wrapped pass above skips anything with more than
+   * twelve characters of non-money text, because that is prose and prose is
+   * allowed to wrap. The clipped pass below only measures elements whose own
+   * text is a bare FIGURE — its pattern allows three non-digit characters
+   * either side, which is a currency symbol, not a sentence.
+   *
+   * So "$2,120 cashed out · $2,390 counted" was prose to the first and not a
+   * figure to the second, and it sat ellipsised on the flagship screen of the
+   * last rebuild, at the app's own design width, in ordinary dollars, under a
+   * green gate. Every figure in this app is drawn beside a word somewhere.
+   *
+   * WHAT IT ASKS is narrow on purpose: only whether a line that HAS money in it
+   * fits the box it is in. A name may still ellipsise — names are not money —
+   * and a paragraph may still wrap, because this measures width against
+   * clientWidth, which a wrapped paragraph does not overflow.
+   */
+  for (const el of document.querySelectorAll('div, span, p, h1, h2, h3, a, button')) {
+    const own = [...el.childNodes]
+      .filter((n) => n.nodeType === 3)
+      .map((n) => n.textContent.trim())
+      .join(' ')
+      .trim();
+    if (own === '') continue;
+    /*
+     * STRICTER THAN THE MONEY PATTERN, and it has to be. That one takes any
+     * non-word mark before a digit as a currency sign, which is right where the
+     * wrapped pass uses it — twelve characters of prose is all it allows.
+     * Turned loose on a whole sentence it reads the separators as money:
+     * "06:46 → 10:03 · 3h 17m · 6 players" matched on ":4" and on "· 6", and a
+     * check that reports a meta line as clipped money is a check nobody reads.
+     *
+     * So a figure here is a digit behind a mark that is NOT a separator, or a
+     * number grouped in thousands. That second branch is what keeps a book kept
+     * in CHF — where the symbol is letters and the first branch cannot fire.
+     */
+    if (!/[-+\\u2212]?[^\\w\\s·:\\u2192][0-9]|[0-9]{1,3}(?:,[0-9]{3})+/.test(own)) continue;
+    /* A bare figure is the next pass's, which says more about where it sits. */
+    if (FIGURE.test(own)) continue;
+    const st = getComputedStyle(el);
+    if (st.visibility === 'hidden' || st.opacity === '0' || st.display === 'none') continue;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) continue;
+    if (el.scrollWidth > el.clientWidth + 1) {
+      out.push({
+        check: 'clipped',
+        what: own,
+        detail: px(el.scrollWidth) + ' in ' + px(el.clientWidth),
+      });
+    }
+  }
+
   for (const el of document.querySelectorAll('div, span, p, h1, h2, h3, a, button')) {
     const own = [...el.childNodes]
       .filter((n) => n.nodeType === 3)
@@ -642,6 +698,36 @@ async function playANight(name, rebuys) {
   await tap('Next', { wait: 1200 });
   await stop('it doesn’t add up');
   const off = await readShortfall(page);
+
+  /*
+   * AND THE SENTENCE NAMES THE SAME GAP THE TAG DOES — B40.
+   *
+   * The block states the difference twice on purpose: a tag, so a host knows
+   * there is a problem, and a sentence naming both figures, so they know which
+   * money to go looking for. That only works if the two agree. They did not:
+   * the sentence paired everything bought in against the final counts alone,
+   * leaving whatever was cashed out during play on neither side, so on this
+   * night it described a hole the size of Dana's stack under a tag reading $20.
+   *
+   * Nothing else in the repo can see this. `settlement.test.ts` asserts the
+   * difference off the engine, which was always right; the fault was entirely
+   * in which two of the engine's figures the screen chose to print.
+   */
+  await holds(
+    'and the sentence names the same gap the tag does',
+    await page.evaluate((tag) => {
+      const line = document.body.innerText
+        .split('\n')
+        .map((l) => l.trim())
+        .find((l) => / went in, .* accounted for\./.test(l));
+      if (line === undefined) return false;
+      const figures = [...line.matchAll(/[\d,]{2,}/g)].map((m) => Number(m[0].replace(/,/g, '')));
+      if (figures.length !== 2) return false;
+      return Math.abs(figures[0] - figures[1]) === tag;
+    }, off),
+    'E5 states a gap in words that is not the gap in its own tag',
+  );
+
   await tap('Fix', { wait: 1400 });
 
   /* The rest of the table goes to whoever is first on the list. Their buy-in

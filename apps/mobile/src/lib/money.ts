@@ -166,7 +166,9 @@ export const ruleDetail = (
 export const roundingChoices = () => coreRoundingChoices(moneySymbol());
 export const roundingRowLabel = (mode: RoundingMode | null | undefined): string =>
   coreRoundingRowLabel(mode, moneySymbol());
+/* No symbol: the row's value no longer names the step, only what it applies
+   to. The amount is on the label beside it, which does take one. */
 export const roundingRowValue = (mode: RoundingMode | null | undefined): string =>
-  coreRoundingRowValue(mode, moneySymbol());
+  coreRoundingRowValue(mode);
 export const roundingSentence = (mode: RoundingMode | null | undefined): string =>
   coreRoundingSentence(mode, moneySymbol());

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
+  balanceCheck,
   checkReconciliation,
   destinationTerm,
   destinationWord,
@@ -198,7 +199,7 @@ export default function SettleUp() {
            `4b`. E2 owns the setting and states what the step guarantees, which
            is the question being asked while stacks are entered.
 
-           NO `remainder` PROP any more: since B29 the step redistributes the
+           NO `remainder` PROP any more: since B36 the step redistributes the
            positions and leaves nothing over, so there is no remainder for this
            row to name. */
         onPress={() =>
@@ -311,6 +312,27 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
       return { ...s, out, result: (out - s.boughtIn) as Money };
     });
 
+  /*
+   * THE SAME TWO FIGURES THE COUNT SCREEN COMPARES — B40, and off the same
+   * engine call so they cannot drift.
+   *
+   * The sentence used to read `$5,000 went in, $2,860 was counted out`, which
+   * pairs everything that went in against the final counts alone and leaves the
+   * $2,120 somebody cashed out during play on neither side. Read literally it
+   * described a $2,140 hole under a tag saying $20. That is exactly the fault
+   * the balance block on E2 was rebuilt to remove — *that is half a sum* — and
+   * this screen, whose entire job is naming which money is missing, never got
+   * the same treatment.
+   *
+   * `accountedFor` is the cash-outs plus the counts, which is the other side of
+   * `boughtIn`, and `balanceCheck` is what E2 states its whole equation from.
+   */
+  const balance = balanceCheck(
+    ledger,
+    night.finalCounts,
+    counted.filter((s) => s.atTable).map((s) => s.id),
+  );
+
   async function writeOff() {
     await setAcknowledgement({
       amount: reconciliation.difference,
@@ -351,8 +373,8 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
       <View style={[styles.alert, { backgroundColor: t.dangerWash, borderColor: t.dangerEdge }]}>
         <Text style={[styles.alertLabel, { color: t.danger }]}>Off by {formatMoney(off)}</Text>
         <Text style={[styles.alertBody, { color: t.text }]}>
-          {formatMoney(ledger.totalBoughtIn)} went in, {formatMoney(reconciliation.counted)} was
-          counted out.{' '}
+          {formatMoney(balance.boughtIn)} went in, {formatMoney(balance.accountedFor)} is
+          accounted for.{' '}
           {short
             ? 'Someone’s stack is short, or a buy-in was never written down.'
             : 'A count is too high, or a buy-in was written down twice.'}

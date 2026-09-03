@@ -202,10 +202,7 @@ export function roundingRowLabel(
  * one wherever there is a settled figure to name: the question a row about
  * rounding actually gets asked is not what the step is but who paid for it.
  */
-export function roundingRowValue(
-  mode: RoundingMode | null | undefined,
-  currencySymbol = '$',
-): string {
+export function roundingRowValue(mode: RoundingMode | null | undefined): string {
   const step = granularityOf(mode);
   /*
    * ⚠ COPY NOT DRAWN, and rewritten on 2 September. It read `stacks as counted`
@@ -214,8 +211,15 @@ export function roundingRowValue(
    * `+$16 → piggy`, the remainder — and it is gone because there is no
    * remainder. Flagged for the designer rather than passed off as decided.
    */
-  if (step === 1) return 'exact to the dollar';
-  return `nets land on ${stepAmount(step, currencySymbol)}`;
+  /*
+   * SHORT, BECAUSE THE LABEL BESIDE IT IS LONG. The row is
+   * `Rounding · nearest $50` on the left and this on the right, and at the
+   * reader's text cap the value gets 99 points of a 360-wide row. `nets land on
+   * $50` needed 141 of them and stated the step a second time, which is the
+   * half that was buying nothing — the label has already said $50.
+   */
+  if (step === 1) return 'to the dollar';
+  return 'on the nets';
 }
 
 /**

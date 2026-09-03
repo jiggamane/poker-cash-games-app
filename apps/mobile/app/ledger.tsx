@@ -120,7 +120,7 @@ function ColumnTable({ result }: { result: ReturnType<typeof settle> }) {
   /* And the step, on the same rule as the other two. A night that settled to
      the dollar has no column here; a night that rounded has one, because
      without it `game + food + piggy` is short of the net beside it by exactly
-     what the step moved — see B29. */
+     what the step moved — see B36. */
   const rounded = rows.some((r) => r.rounded !== 0);
 
   return (
