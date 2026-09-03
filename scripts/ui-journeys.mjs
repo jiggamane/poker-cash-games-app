@@ -605,6 +605,46 @@ async function playANight(name, rebuys) {
   }
   await stop('tonight');
 
+  /*
+   * MOST MONEY IN FIRST, and it has to be a check because it has now been
+   * decided both ways.
+   *
+   * The screen sorted the table by buy-in, was changed to seat order on
+   * 1 September to obey `05-active-vs-settled.md`, and was changed back on the
+   * owner's instruction on 3 September. An ordering is exactly the kind of
+   * thing a merge decides by coin toss — nothing breaks, no test goes red, and
+   * the list is quietly back in the other order on the phone. So the order is
+   * asserted here, where a night with three rebuys in it has just been played
+   * and the top of the list is a figure no seed produces.
+   *
+   * It reads the RENDERED column rather than the store, so it is the same
+   * evidence a host has: run a finger down the right edge and the figures never
+   * go up. Compacted figures — $1.2M at the millions scale — are read back
+   * through their suffix, and two that compact to the same string are equal,
+   * which a non-increasing test allows.
+   */
+  await holds(
+    'the table is ordered by what people are in for',
+    await page.evaluate(() => {
+      const lines = document.body.innerText.split('\n').map((l) => l.trim());
+      const from = lines.findIndex((l) => /^still playing · /i.test(l));
+      const to = lines.findIndex((l) => /^cashed out · /i.test(l));
+      if (from === -1 || to <= from) return false;
+      const figures = lines
+        .slice(from + 1, to)
+        .map((l) => /^\D*([\d,.]+)\s*([KkMm])?$/.exec(l))
+        .filter((m) => m !== null)
+        .map((m) => {
+          const n = Number(m[1].replace(/,/g, ''));
+          return n * (m[2] === undefined ? 1 : /[Kk]/.test(m[2]) ? 1e3 : 1e6);
+        })
+        .filter((n) => Number.isFinite(n));
+      if (figures.length < 2) return false;
+      return figures.every((n, i) => i === 0 || figures[i - 1] >= n);
+    }),
+    'Tonight lists a bigger buy-in below a smaller one',
+  );
+
   await tap('Petr');
   await stop('player card');
 

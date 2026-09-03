@@ -358,6 +358,35 @@ groups on Tonight, three on E2, seat order within each, headers drawn at `· 0`.
 And `7e`, the four-column table, is `/ledger` now, behind the *Full ledger*
 button the frame has always drawn and the E6 footer had no destination for.
 
+⚠ **SEAT ORDER NO LONGER HOLDS ON TONIGHT'S STILL-PLAYING GROUP — most money in
+first, on the owner's instruction, 3 September**: *"the more player has bought
+in the higher he should be in the list"*. The doc's sentence is "Groups never
+reorder. Within a group, seat order", and this screen had been changed FROM
+buy-in order TO seat order to obey it, so the reversal is deliberate and the
+doc's own wording is not the thing to read here. **Do not put seat order back
+from `05-active-vs-settled.md`.**
+
+What it costs is what seat order was protecting, and it is still true: logging a
+rebuy moves that row up the list, so the row under the host's thumb is not the
+one that was there a moment ago. What it buys is that the biggest stacks at the
+table are at the top of the screen.
+
+Two things were held to, and the second is a question. The order is only applied
+where the key is DRAWN — every still-playing row carries what its player is in
+for at the right edge, so the sort can be checked by running a finger down the
+column. And **`CASHED OUT` is left in seat order**, because the buy-in is not on
+those rows at all: the fact is when they left and the figure is their result, so
+sorting them by buy-in would be an order the reader cannot see. Ranking them by
+RESULT is the other candidate and it is E2b's job — *Where everyone stands* is
+the screen that ranks. **Ask** whether that group should rank by result here too.
+
+Locked by `npm run check:ui` — `ui-journeys.mjs`, "the table is ordered by what
+people are in for", which reads the rendered column after three rebuys have been
+logged and fails if any figure is larger than the one above it. Verified red with
+the sort removed. An ordering is precisely the kind of change a merge decides by
+coin toss — nothing breaks, no test goes red, and the list is quietly back the
+other way round on the phone — so it is asserted rather than trusted.
+
 *The one place this cut overrides a doc it otherwise carries forward.* A counted
 row on E2 prints **the signed result, computed from the raw count**, where
 `E2-rounding.md` rule 6 put the rounded stack there. `05-active-vs-settled.md`
