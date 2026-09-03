@@ -71,7 +71,7 @@ export default function FullLedger() {
       <Screen
         title="Full ledger"
         backTo="the night"
-        lede="This night's rules take money somewhere the four columns cannot show. Each person's row on the night itself states every one of them."
+        lede="This night's rules take money somewhere the four columns cannot show. The deductions block on the night itself names every one of them and what it took."
         footer={<Button label="Back to the night" variant="primary" onPress={() => router.back()} />}
       >
         {null}

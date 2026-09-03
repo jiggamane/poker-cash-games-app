@@ -303,6 +303,18 @@ describe('the columns carry the step, so the row still adds up', () => {
     }
   });
 
+  it('and the three rule columns add up to `ruled`, which is what E3 prints', () => {
+    /* The deductions preview has four numeric columns and the step is a fifth,
+       so it prints where the RULES leave somebody and says the step lands at
+       settle-up. That figure has to be exact on its own terms. */
+    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
+      for (const r of resultColumns(at(mode))) {
+        expect(r.game + r.food + r.piggy).toBe(r.ruled);
+        expect(r.ruled + r.rounded).toBe(r.net);
+      }
+    }
+  });
+
   it('still lets a rounded night use the columns layout at all', () => {
     /* `columnsFit` is about the RULES reaching past the bill and the piggy
        bank. The step is not a rule and does not take the layout away. */

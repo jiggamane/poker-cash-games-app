@@ -535,7 +535,18 @@ export interface ResultColumns {
   piggy: Money;
   /** What the rounding step moved their position by. Zero at a step of one. */
   rounded: Money;
-  /** `game + food + piggy + rounded`, and the figure the row is sorted on. */
+  /**
+   * `game + food + piggy` — where the RULES leave them, before the step.
+   *
+   * The deductions preview shows this and not `net`, and the reason is width:
+   * four numeric columns is the ceiling at 393 and the step is a fifth. A table
+   * that drew the step would have to shrink the other four, and one that left
+   * it out while printing the rounded net would be a row that does not add up.
+   * So the working screen shows what the rules did, exactly, and says the step
+   * lands at settle-up; `/ledger` has the room for all five.
+   */
+  ruled: Money;
+  /** `ruled + rounded`, and the figure the row is sorted on. */
   net: Money;
 }
 
@@ -576,6 +587,7 @@ export function resultColumns(result: SettlementResult): ResultColumns[] {
          column is short by exactly it. Zero on a night that settled to the
          dollar, which is when the column is not drawn at all. */
       rounded: player.roundedBy,
+      ruled: (score - player.roundedBy) as Money,
       net: score,
     };
   });
