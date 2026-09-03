@@ -192,12 +192,15 @@ export default function SettleUp() {
        */}
       <RoundingBar
         mode={night.roundingMode}
-        remainder={rounding.remainder}
         /* `from: 'settle'` is what makes the sheet behind this row E4's rather
-           than E2's: same sheet, same four steps, but each one states what it
-           would cost the piggy bank and how many payments it would leave —
-           frame `4b`. E2 owns the setting and states it as a distortion on one
-           stack, which is the question being asked while stacks are entered. */
+           than E2's: same sheet, same four steps, but each one states what the
+           piggy bank ends up with and how many payments it would leave — frame
+           `4b`. E2 owns the setting and states what the step guarantees, which
+           is the question being asked while stacks are entered.
+
+           NO `remainder` PROP any more: since B29 the step redistributes the
+           positions and leaves nothing over, so there is no remainder for this
+           row to name. */
         onPress={() =>
           router.push({ pathname: '/rounding', params: { scope: 'night', from: 'settle' } })
         }

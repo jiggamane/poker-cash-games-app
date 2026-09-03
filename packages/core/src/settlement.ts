@@ -30,7 +30,7 @@ import {
   ZERO,
 } from './money';
 import { endedWith, reconcile, resolveLedger, type ResolvedLedger } from './ledger';
-import { stackRounding, type StackRounding } from './stacks';
+import { roundPositions, type PositionRounding } from './stacks';
 import {
   UNACCOUNTED_ID,
   UNACCOUNTED_NAME,
@@ -78,27 +78,22 @@ export interface SettlementInput {
    * night before this setting existed ran at, so an old record re-derives to
    * exactly the figures it closed with.
    *
-   * IT REACHES TWO THINGS SINCE 31 AUGUST, and this comment used to say it
-   * reached one. It has always been the granularity a RULE DIVIDES at — what
-   * the bill takes off each winner. `E2-rounding.md` adds the other: the
-   * STACKS THEMSELVES snap to it as they are counted, and the nets and the
-   * transfers follow from the rounded stacks.
+   * IT REACHES TWO THINGS, and both of them are divisions rather than counts.
+   * It has always been the granularity a RULE DIVIDES at — what the bill takes
+   * off each winner. Since 2 September it is also the step every FINAL POSITION
+   * lands on, apportioned across all the parties at once so that they still sum
+   * to zero.
    *
-   * The sentence that stood here — *a gross result is chips counted off a
-   * table and rounding it would be inventing or destroying money* — was right
-   * about the objection and wrong about the conclusion. The addendum answers
-   * it: the money invented or destroyed is `Σ rounded − Σ raw`, it is computed
-   * once rather than six times, and **the piggy bank absorbs it**. What is
-   * counted is kept either way — `finalCounts` is never rewritten, and every
-   * figure below is derived from it, so changing the step recomputes from the
-   * raw count and never rounds twice.
+   * The sentence that stood here — *a gross result is chips counted off a table
+   * and rounding it would be inventing or destroying money* — was right, and it
+   * was overruled for a month by a rule that snapped the stacks and handed the
+   * difference to the piggy bank. That produced a night where the piggy-bank
+   * rule said $184 and the settlement moved $200, with nothing on the record to
+   * explain the gap. Rounding the positions has no remainder to explain: see
+   * `roundPositions` in `stacks.ts`.
    *
-   * NO PIGGY BANK, NO SNAPPING. The remainder is the only thing standing
-   * between a rounded night and a night that does not sum to zero, and the
-   * addendum gives it exactly one destination. A group with no piggy-bank rule
-   * has nowhere to put it, so their stacks settle as counted and the step goes
-   * on doing what it always did to the rules. `StackRounding.on` says which
-   * happened.
+   * NO STACK IS EVER REWRITTEN. `finalCounts` is what was counted, `endedWith`
+   * reports it, and the balance check compares real money to real money.
    */
   roundingMode?: RoundingMode | null;
   /**
@@ -116,16 +111,14 @@ export interface SettlementResult {
   /** What leaves the table in total — "$296 leaves the table". */
   totalOffTable: Money;
   /**
-   * What the step did to the stacks, and what it cost the piggy bank.
+   * What the step did to the positions.
    *
-   * `on` is false when the night settles as counted — either the step is off,
-   * or there is no piggy bank to carry the remainder. `remainder` is the money
-   * the rounding invented (positive) or destroyed (negative); the collector
-   * carries the opposite of it, which is why it is not in anybody's score.
+   * `on` is false only when the step is off. There is no remainder and no
+   * collector: the apportionment keeps the sum at zero, so every rule collects
+   * exactly what it says it collects. `worst` is the biggest single move and is
+   * always under one step.
    */
-  rounding: StackRounding;
-  /** Who carries the remainder. Absent when nothing was rounded. */
-  roundingCollector?: PlayerId;
+  rounding: PositionRounding;
   transfers: Transfer[];
   /** Present only when the night was closed over a confirmed discrepancy. */
   acknowledgedDiscrepancy?: DiscrepancyAcknowledgement;
@@ -232,56 +225,43 @@ export function settle(input: SettlementInput): SettlementResult {
   // cannot represent fails loudly instead of taking the wrong amounts.
   const granularity = granularityOf(input.roundingMode);
 
-  // --- 0. The step, and whether anything can carry its remainder ------------
+  // --- 0. The step ----------------------------------------------------------
   //
-  // `E2-rounding.md`: stacks snap to the step, nets follow from the rounded
-  // stacks, and the difference goes to the piggy bank — the only place it may
-  // go. A night with no piggy-bank rule has nowhere to put it, so it settles as
-  // counted; `on` is what says which of the two happened, and every screen
-  // reads it rather than re-deciding.
+  // NOTHING HAPPENS HERE ANY MORE, and that is the change of 2 September.
+  // Rounding used to run first, snapping every stack to the step so that the
+  // nets fell out already rounded — which rewrote the count, and left the piggy
+  // bank holding a remainder that no rule accounted for. It now runs LAST, on
+  // the positions, where it can be done without a remainder at all. See
+  // `roundPositions` in `stacks.ts`.
   //
-  // THE COLLECTOR IS THE RULE'S, not a person the settlement picks. It is the
-  // same name the piggy bank's own money goes to, because the remainder IS
-  // piggy-bank money: a stack that rounded up was funded out of the tin.
-  const piggy = input.rules.find((r) => r.active && r.destination === 'kitty');
-  const roundingCollector = granularity > 1 ? piggy?.collectorPlayerId : undefined;
-
-  const rounding = stackRounding(
-    input.finalCounts,
-    roundingCollector === undefined ? 1 : granularity,
-  );
-
-  /* What each person's own stack moved by, and what the room owes for the lot.
-     Both are zero when nothing was rounded, which is the ordinary night. */
-  const roundedBy = (id: PlayerId): Money => rounding.counted.get(id)?.by ?? ZERO;
+  // The step is still one setting read two ways: `granularity` below divides
+  // the rules, and the same number lands the positions at the end.
 
   // --- 1. What each player did on their own ---------------------------------
   //
-  // ON THE ROUNDED STACK, per the addendum's rule 3: every stack is rounded and
-  // then the nets are computed, so a rule charging a percentage of a win is
-  // charging a percentage of the win the night actually settles at. What is
-  // NOT rounded is anything derived — `endedWith` below stays the raw count, so
-  // the receipt can print what was really on the table and name the step as its
-  // own term rather than quietly rewriting the first line.
+  // ON THE COUNT, AS COUNTED. The step no longer reaches back into this: a
+  // gross result is chips off the table less chips bought, and nothing else.
+  // That sentence was in this file once, was overruled by the stack-rounding
+  // rule, and is true again — which is why the balance check on E2 can be
+  // trusted, and why a percentage rule charges a percentage of what somebody
+  // actually won.
   const gross = new Map<PlayerId, Money>();
   for (const p of players) {
     const boughtIn = ledger.boughtInByPlayer.get(p.id) ?? ZERO;
-    gross.set(
-      p.id,
-      money(subtract(endedWith(ledger, p.id, input.finalCounts), boughtIn) + roundedBy(p.id)),
-    );
+    gross.set(p.id, money(subtract(endedWith(ledger, p.id, input.finalCounts), boughtIn)));
   }
 
   // Gross results always sum to the count difference — exactly zero on a night
-  // that balances — plus whatever the step invented or destroyed. Anything else
-  // means the arithmetic itself is wrong, which is a different thing from money
-  // being missing, and is never recoverable.
+  // that balances. Anything else means the arithmetic itself is wrong, which is
+  // a different thing from money being missing, and is never recoverable.
+  //
+  // The step used to be a term of this sum, because it moved the stacks the sum
+  // was taken over. It is not one now, and the check is the plainer for it.
   const grossTotal = sum([...players.map((p) => gross.get(p.id)!)]);
-  const expected = money(reconciliation.difference + rounding.remainder);
-  if (grossTotal !== expected) {
+  if (grossTotal !== reconciliation.difference) {
     throw new SettlementError(
-      `Gross results sum to ${grossTotal} but the count is off by ${reconciliation.difference} ` +
-        `and rounding moved ${rounding.remainder}. They must agree — refusing to settle.`,
+      `Gross results sum to ${grossTotal} but the count is off by ${reconciliation.difference}. ` +
+        'They must agree — refusing to settle.',
     );
   }
 
@@ -326,43 +306,56 @@ export function settle(input: SettlementInput): SettlementResult {
     deductions.push(deduction);
   }
 
-  // --- 3. Where everyone stands ---------------------------------------------
+  // --- 3. Where everyone stands, and the step ---------------------------------
   //
-  // THE REMAINDER COMES OFF ONE NAME, and it is the last thing to happen. Every
-  // stack that rounded up was funded from somewhere and every stack that
-  // rounded down left something behind; `rounding.remainder` is the net of all
-  // of it, and the piggy bank's collector carries it so that the positions
-  // still sum to zero.
+  // THE EXACT POSITION FIRST. Every rule has been applied and nothing has been
+  // rounded, so these are the figures the night really produced and they sum to
+  // zero — the piggy bank included, which is what makes it a party rather than
+  // a leak.
+  const exact = new Map<PlayerId, Money>(
+    participants.map((p) => [
+      p.id,
+      money(gross.get(p.id)! - charged.get(p.id)! + credited.get(p.id)!),
+    ]),
+  );
+
+  const exactTotal = sum([...exact.values()]);
+  if (exactTotal !== 0) {
+    throw new SettlementError(
+      `Final positions do not sum to zero (${exactTotal}). Refusing to settle.`,
+    );
+  }
+
+  // THEN THE STEP, ON ALL OF THEM AT ONCE — `roundPositions`, which lands every
+  // party on the step while keeping the sum at zero. There is no remainder,
+  // nobody absorbs anything, and the piggy bank's figure on the record is the
+  // figure it receives. What each person gave or gained by it is `by`, a term
+  // of its own on their receipt, always under one step.
   //
-  // IT IS NOT PART OF THEIR NIGHT. `nightScore` in `working.ts` takes it back
-  // out again, exactly as it takes out the piggy bank itself — a collector who
-  // is $16 lighter because the table rounded is not $16 worse at poker. What
-  // they hold for the room changed; what they won did not.
-  const settlements: PlayerSettlement[] = participants.map((p) => {
-    const g = gross.get(p.id)!;
-    const ch = charged.get(p.id)!;
-    const cr = credited.get(p.id)!;
-    const absorbed = p.id === roundingCollector ? rounding.remainder : ZERO;
-    return {
-      playerId: p.id,
-      name: p.name,
-      boughtIn: ledger.boughtInByPlayer.get(p.id) ?? ZERO,
-      /* THE RAW COUNT, always. What was counted is kept — the step is a term
-         of its own on the receipt, never a rewrite of the first line. */
-      endedWith: endedWith(ledger, p.id, input.finalCounts),
-      grossResult: g,
-      roundedBy: roundedBy(p.id),
-      roundingAbsorbed: absorbed,
-      charged: ch,
-      credited: cr,
-      finalPosition: money(g - ch + cr - absorbed),
-    };
-  });
+  // A night with no piggy bank rounds exactly as well as one with: the parties
+  // sum to zero either way, which is all the apportionment needs. That was not
+  // true before — the step was switched off entirely when there was no tin to
+  // carry the remainder.
+  const rounding = roundPositions(exact, granularity);
+  const moved = (id: PlayerId): Money => rounding.positions.get(id)?.by ?? ZERO;
+
+  const settlements: PlayerSettlement[] = participants.map((p) => ({
+    playerId: p.id,
+    name: p.name,
+    boughtIn: ledger.boughtInByPlayer.get(p.id) ?? ZERO,
+    /* THE COUNT, always. Nothing in this file rewrites it any more. */
+    endedWith: endedWith(ledger, p.id, input.finalCounts),
+    grossResult: gross.get(p.id)!,
+    roundedBy: moved(p.id),
+    charged: charged.get(p.id)!,
+    credited: credited.get(p.id)!,
+    finalPosition: money(exact.get(p.id)! + moved(p.id)),
+  }));
 
   const positionTotal = sum(settlements.map((s) => s.finalPosition));
   if (positionTotal !== 0) {
     throw new SettlementError(
-      `Final positions do not sum to zero (${positionTotal}). Refusing to settle.`,
+      `Rounded positions do not sum to zero (${positionTotal}). Refusing to settle.`,
     );
   }
 
@@ -373,7 +366,6 @@ export function settle(input: SettlementInput): SettlementResult {
     deductions,
     totalOffTable: sum(deductions.map((d) => d.total)),
     rounding,
-    ...(roundingCollector !== undefined && rounding.on ? { roundingCollector } : {}),
     transfers: matchTransfers(settlements),
     ...(ack ? { acknowledgedDiscrepancy: ack } : {}),
   };

@@ -867,15 +867,30 @@ describe('E4 — the rounding sheet states what a step would cost', () => {
     expect(tens.transfers.length).toBeLessThanOrEqual(off.transfers.length);
   });
 
-  it('names the remainder the piggy bank carries at every step', () => {
+  it('leaves no remainder for the piggy bank to carry, at any step', () => {
+    /*
+     * REWRITTEN FOR B29. This asserted that the tin absorbed the movement
+     * across the stacks — `Σ rounded − Σ raw` — which is the gap that change
+     * removed. The step redistributes the positions now, so the moves cancel
+     * among the parties themselves and there is nothing left to carry.
+     */
     for (const mode of ['tens', 'fifties', 'hundreds'] as const) {
       const night = at(mode);
-      /* `remainder` is the movement across the stacks and the tin funds it, so
-         what the sheet prints is its negative — the same flip
-         `roundingRowValue` makes for the row the sheet opens from. */
-      const carried = sum(night.players.map((p) => p.roundingAbsorbed));
-      expect(carried).toBe(sum(night.players.map((p) => p.roundedBy)));
-      expect(night.rounding.remainder).toBe(carried);
+      expect(sum(night.players.map((p) => p.roundedBy))).toBe(0);
+    }
+  });
+
+  it('gives the piggy bank one total, and it is the one that moves', () => {
+    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
+      const night = at(mode);
+      const rule = night.deductions.find((d) => d.destination === 'kitty');
+      if (rule === undefined) continue;
+      const tin = night.players.find((p) => p.playerId === KITTY);
+      expect(tin?.finalPosition).toBe(rule.total);
+      const moved = night.transfers
+        .filter((t) => t.toPlayerId === KITTY)
+        .reduce((n, t) => n + t.amount, 0);
+      expect(moved).toBe(rule.total);
     }
   });
 

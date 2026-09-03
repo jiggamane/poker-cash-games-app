@@ -840,6 +840,50 @@ amount sheet the rest of the app draws:
   shape `new-night.tsx` and `invite.tsx` already use. A mis-tap on "Change the
   amount" used to cost the host the entry they had opened.
 
+### B29 — the piggy bank's rule said $184 and the settlement handed it $200
+
+```
+Screen      E3 deductions, E6 the settled night, E4 settle up — three screens
+            printing one figure two different ways
+Seen        on any night with the rounding step on. `E2-rounding.md` rule 3
+            snapped every STACK to the step; rule 5 sent the difference,
+            Σ rounded − Σ raw, to the piggy bank. So the piggy-bank rule's
+            total was 5% of the wins and the money the tin actually received
+            was that plus the remainder, and nothing on any screen joined the
+            two. On the four-screens sample night: $184 stated, $200 moved.
+            The count was being rewritten to make it land, too, so the balance
+            block on Count up was comparing money that went in against chips
+            nobody had counted
+Expected    one figure. Whatever a rule says it takes is what the transfer
+            moves and what the record prints
+Found       2 Sept, reading the four-screens handoff against the engine — the
+            Results screen it draws has no rounding row, which left the gap
+            with nowhere at all to be explained
+Locked by   npm run check — stacks.test.ts, "never prints a figure another
+            screen disagrees with", which asserts at every step that the rule's
+            stated total, the collector's final position and the money
+            transferred to them are the same number. Plus verify.ts's
+            night.rounding.conserved: the moves must sum to zero, so no party
+            can absorb a remainder ever again
+Status      fixed by changing the rule, not the screens — the step now lands
+            the POSITIONS, apportioned by largest remainder across every party
+            at once so they still sum to zero. There is no remainder to place.
+            design/handoff-four-screens/docs/rounding.md has the derivation
+```
+
+**The fix is a rule change and it costs something, which is the honest part.**
+Positions must be multiples of the step and must sum to zero, so the collector
+has to be one of the parties that moves — leave the tin out and the players
+alone would have to sum to −$184, which is not a multiple of $10, and no set of
+rounded figures can do it. The tin lands on $190 instead of $184. That trade is
+the right way round: a few dollars moving is survivable, two screens disagreeing
+is not, and it was the disagreement that produced this entry.
+
+It also gives back the sentence the addendum overruled. *Rounding a count
+invents or destroys money* — true, and now nothing rounds a count. `endedWith`
+is what was counted, the balance check is exact, and a percentage rule charges a
+percentage of what somebody actually won.
+
 ### B19 — the night's result hangs out of the player card, and the three figures were never spaced
 
 ```

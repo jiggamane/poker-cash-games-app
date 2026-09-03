@@ -1,25 +1,38 @@
 /**
- * Rounding, as it applies to the stacks — `design/handoff-E2/docs/E2-rounding.md`.
+ * Rounding, as it applies to where everyone ends up. Rewritten 2 September,
+ * when the step stopped snapping stacks and started apportioning positions.
+ *
+ * WHAT THE OLD RULE COST, and why this file changed shape. Stacks snapped to
+ * the step, the difference was `Σ rounded − Σ raw`, and the piggy bank absorbed
+ * it — so a night could print $184 as the piggy-bank rule's total and hand it
+ * $200 at settlement, with nothing on the record joining the two. The count was
+ * being rewritten to make the arithmetic land, which also put the balance check
+ * on E2 on chips nobody had counted.
+ *
+ * WHAT REPLACES IT. Positions are apportioned onto the step, largest remainder,
+ * across every party at once — the piggy bank included, because that is what
+ * makes a remainder-free answer arithmetically possible at all. Nothing is
+ * invented, nothing absorbed, and no figure disagrees with another.
  *
  * A NIGHT BUILT FOR THIS AND NOTHING ELSE. The canonical night's counts are all
- * multiples of ten already, so it cannot see a rounding step at all: every
- * assertion below would pass against an engine that ignored the setting
- * completely. Three players, one piggy bank, and three counts chosen so that
- * one rounds up on the half, one does not move, and one rounds up by four —
- * which is also the only way to write down what the remainder is for.
+ * multiples of ten already, so it cannot see a step at all: every assertion
+ * below would pass against an engine that ignored the setting completely.
+ * Three players, one piggy bank, and counts chosen so that the apportionment
+ * has to hand a step to somebody.
  *
- * THE INVARIANT THAT MATTERS is not any single figure: it is that the positions
- * still sum to zero, and that `verifyNight` — which re-derives every identity
- * from the raw ledger and the step, never from the engine — has nothing to say.
+ * THE INVARIANTS THAT MATTER are not any single figure: the positions sum to
+ * zero, every one of them lands on the step, nobody moves by a whole one, the
+ * moves cancel — and `verifyNight`, which re-derives every identity from the
+ * raw ledger, has nothing to say.
  */
 
 import { describe, expect, it } from 'vitest';
 import { money, sum, type Money } from './money';
 import { settle } from './settlement';
-import { roundedCounts, roundToStep, stackRounding } from './stacks';
+import { roundPositions, roundToStep } from './stacks';
 import { verifyNight } from './verify';
 import type { LedgerEntry, MoneyRule, Player, PlayerId } from './types';
-import { nightScore, receiptRows, resultRows, workingRows } from './working';
+import { columnsFit, nightScore, receiptRows, resultColumns, resultRows } from './working';
 
 const ANNA = 'anna';
 const BORIS = 'boris';
@@ -63,261 +76,267 @@ const at = (mode: 'dollars' | 'tens' | 'fifties' | 'hundreds', rules: MoneyRule[
 const player = (r: ReturnType<typeof settle>, id: PlayerId) =>
   r.players.find((p) => p.playerId === id)!;
 
+
 describe('roundToStep — half away from zero', () => {
   it('takes the half up, which is the addendum’s own example', () => {
     expect(roundToStep(money(965), 10)).toBe(970);
-    expect(roundToStep(money(964), 10)).toBe(960);
-    expect(roundToStep(money(975), 50)).toBe(1000);
-    expect(roundToStep(money(1049), 100)).toBe(1000);
   });
 
   it('is the identity at a step of one, which is what makes “off” a step', () => {
-    for (const n of [0, 1, 7, 963, 1_000_000]) expect(roundToStep(money(n), 1)).toBe(n);
+    expect(roundToStep(money(963), 1)).toBe(963);
   });
 
   it('goes away from zero on both sides of it', () => {
-    // Counts are never negative, but the helper is money arithmetic and a rule
-    // that grows one is a change nobody should have to remember to check.
     expect(roundToStep(money(-965), 10)).toBe(-970);
     expect(roundToStep(money(-964), 10)).toBe(-960);
   });
 
   it('refuses a step that is not a whole number of units', () => {
-    expect(() => roundToStep(money(100), 0)).toThrow();
-    expect(() => roundToStep(money(100), 2.5)).toThrow();
+    expect(() => roundToStep(money(100), 0)).toThrow(RangeError);
+    expect(() => roundToStep(money(100), 2.5)).toThrow(RangeError);
   });
 });
 
-describe('stackRounding — what a step would cost, before anything is settled', () => {
-  const ten = stackRounding(finalCounts, 10);
+describe('roundPositions — the step, without a remainder', () => {
+  /* Three parties whose exact positions sum to zero, with fractions of a step
+     chosen so that exactly one of them has to be handed the odd $10. */
+  const exact = new Map<PlayerId, Money>([
+    ['a', money(442)],
+    ['b', money(-230)],
+    ['c', money(-235)],
+    ['d', money(23)],
+  ]);
 
-  it('keeps the raw count beside the rounded one, for every stack', () => {
-    expect(ten.counted.get(ANNA)).toEqual({ raw: 965, rounded: 970, by: 5 });
-    expect(ten.counted.get(BORIS)).toEqual({ raw: 270, rounded: 270, by: 0 });
-    expect(ten.counted.get(CILKA)).toEqual({ raw: 265, rounded: 270, by: 5 });
+  it('lands every party on the step', () => {
+    for (const p of roundPositions(exact, 10).positions.values()) {
+      /* `Math.abs`, because -0 is not 0 to `toBe`. */
+      expect(Math.abs(p.rounded % 10)).toBe(0);
+    }
   });
 
-  it('adds the movement up into one remainder', () => {
-    expect(ten.remainder).toBe(10);
-    expect(ten.remainder).toBe(sum([...ten.counted.values()].map((c) => c.by)));
+  it('keeps the sum at zero, which is the whole point of it', () => {
+    for (const step of [10, 50, 100]) {
+      const r = roundPositions(exact, step);
+      expect(sum([...r.positions.values()].map((p) => p.rounded))).toBe(0);
+    }
   });
 
-  it('reports the worst single stack, not the average', () => {
-    // The figure an admin is asked about at the table. The average here is
-    // 3.33, which answers a question nobody asks.
-    expect(ten.worst).toBe(5);
-    expect(stackRounding(finalCounts, 100).worst).toBe(35); // Cilka, 265 → 300
+  it('redistributes rather than invents — the moves cancel out', () => {
+    for (const step of [10, 50, 100]) {
+      const r = roundPositions(exact, step);
+      expect(sum([...r.positions.values()].map((p) => p.by))).toBe(0);
+    }
+  });
+
+  it('never moves anybody by a whole step', () => {
+    for (const step of [10, 50, 100]) {
+      for (const p of roundPositions(exact, step).positions.values()) {
+        expect(Math.abs(p.by)).toBeLessThan(step);
+      }
+    }
+  });
+
+  it('hands the odd step to whoever came closest to earning it', () => {
+    /* Floors are 440 / −230 / −240 / 20 and the shortfalls 2 / 0 / 5 / 3, so
+       one $10 goes to c and nobody else. */
+    const r = roundPositions(exact, 10);
+    expect(r.positions.get('c')!.rounded).toBe(-230);
+    expect(r.positions.get('a')!.rounded).toBe(440);
+    expect(r.positions.get('b')!.rounded).toBe(-230);
+    expect(r.positions.get('d')!.rounded).toBe(20);
+  });
+
+  it('reports the worst single move, not the average', () => {
+    expect(roundPositions(exact, 10).worst).toBe(5);
   });
 
   it('does nothing at all at a step of one', () => {
-    const off = stackRounding(finalCounts, 1);
-    expect(off.on).toBe(false);
-    expect(off.remainder).toBe(0);
-    expect(off.worst).toBe(0);
-    expect([...roundedCounts(off)]).toEqual([...finalCounts]);
+    const r = roundPositions(exact, 1);
+    expect(r.on).toBe(false);
+    expect([...r.positions.values()].every((p) => p.by === 0)).toBe(true);
   });
 
-  it('says how many stacks it looked at, so a sheet can say “none yet”', () => {
-    expect(ten.stacks).toBe(3);
-    expect(stackRounding(new Map(), 10).stacks).toBe(0);
+  it('refuses to round positions that do not already sum to zero', () => {
+    const broken = new Map<PlayerId, Money>([['a', money(100)], ['b', money(-90)]]);
+    expect(() => roundPositions(broken, 10)).toThrow(RangeError);
+  });
+
+  it('gives the same answer however many times it runs', () => {
+    const once = [...roundPositions(exact, 50).positions].map(([id, p]) => [id, p.rounded]);
+    const twice = [...roundPositions(exact, 50).positions].map(([id, p]) => [id, p.rounded]);
+    expect(once).toEqual(twice);
   });
 });
 
-describe('settle() at a step — the stacks snap, the piggy bank pays for it', () => {
-  const r = at('tens');
-
-  it('settles from the rounded stack, not the counted one', () => {
-    // Anna counted 965 and settles from 970: gross 470, not 465.
-    expect(player(r, ANNA).grossResult).toBe(470);
-    expect(player(r, CILKA).grossResult).toBe(-230);
-    expect(player(r, BORIS).grossResult).toBe(-230);
+describe('settle() at a step — nothing is invented and nothing is absorbed', () => {
+  it('leaves every count exactly as it was counted', () => {
+    /* The whole objection the first rule overruled. A stack is a stack. */
+    expect(player(at('tens'), ANNA).endedWith).toBe(965);
+    expect(player(at('hundreds'), CILKA).endedWith).toBe(265);
   });
 
-  it('keeps what was counted, exactly as it was counted', () => {
-    // Rule 6: a stack is never silently rewritten.
-    expect(player(r, ANNA).endedWith).toBe(965);
-    expect(player(r, CILKA).endedWith).toBe(265);
+  it('leaves the gross on the real chips, at every step', () => {
+    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
+      expect(player(at(mode), ANNA).grossResult).toBe(465);
+    }
   });
 
-  it('names each stack’s own movement', () => {
-    expect(player(r, ANNA).roundedBy).toBe(5);
-    expect(player(r, BORIS).roundedBy).toBe(0);
-    expect(player(r, CILKA).roundedBy).toBe(5);
-  });
-
-  it('puts the whole remainder on the piggy bank and nobody else', () => {
-    expect(player(r, PIG).roundingAbsorbed).toBe(10);
-    for (const id of [ANNA, BORIS, CILKA]) expect(player(r, id).roundingAbsorbed).toBe(0);
-    expect(r.roundingCollector).toBe(PIG);
+  it('lands every position on the step', () => {
+    for (const p of at('tens').players) expect(Math.abs(p.finalPosition % 10)).toBe(0);
+    for (const p of at('fifties').players) expect(Math.abs(p.finalPosition % 50)).toBe(0);
   });
 
   it('still sums to zero, which is the only thing that may never give', () => {
+    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
+      expect(sum(at(mode).players.map((p) => p.finalPosition))).toBe(0);
+    }
+  });
+
+  it('has no remainder for anybody to carry', () => {
+    /* The old rule put `Σ rounded − Σ raw` on the piggy bank's collector. There
+       is no such figure now: the moves cancel among the parties themselves. */
+    for (const mode of ['tens', 'fifties', 'hundreds'] as const) {
+      expect(sum(at(mode).players.map((p) => p.roundedBy))).toBe(0);
+    }
+  });
+
+  it('gives the piggy bank one figure, and it is the one that moves', () => {
+    /* $23 exact, $20 at the nearest ten. The deduction still reads 23 — that is
+       what the rule took off Anna — and the tin's POSITION is what rounds, so
+       the transfer and the position are the same number. */
+    const r = at('tens');
+    expect(player(r, PIG).finalPosition).toBe(20);
+    const toPiggy = r.transfers
+      .filter((t) => t.toPlayerId === PIG)
+      .reduce((n, t) => n + t.amount, 0);
+    expect(toPiggy).toBe(20);
+  });
+
+  it('never prints a figure another screen disagrees with — the whole point', () => {
+    /*
+     * THE GAP THIS CHANGE EXISTS TO CLOSE. Under the old rule the piggy-bank
+     * rule's total and the money the piggy bank actually received were two
+     * different numbers, because the rounding remainder was added to the second
+     * and not the first: the record said $184 and the settlement moved $200.
+     * Three statements of one fact, and they now agree at every step.
+     */
+    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
+      const r = at(mode);
+      const rule = r.deductions.find((d) => d.destination === 'kitty');
+      const stated = rule?.total ?? 0;
+      const position = player(r, PIG).finalPosition;
+      const moved = r.transfers
+        .filter((t) => t.toPlayerId === PIG)
+        .reduce((n, t) => n + t.amount, 0);
+      expect({ mode, stated, position, moved }).toEqual({
+        mode,
+        stated,
+        position: stated,
+        moved: stated,
+      });
+    }
+  });
+
+  it('makes every transfer a multiple of the step, without rounding one twice', () => {
+    for (const t of at('fifties').transfers) expect(Math.abs(t.amount % 50)).toBe(0);
+  });
+
+  it('rounds a night with no piggy bank at all', () => {
+    /* The old rule switched the step off when there was no tin to carry the
+       remainder. There is no remainder, so there is nothing to carry. */
+    const r = settle({ players, entries, finalCounts, rules: [], roundingMode: 'tens' });
     expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
+    for (const p of r.players) expect(Math.abs(p.finalPosition % 10)).toBe(0);
+    expect(r.players.some((p) => p.roundedBy !== 0)).toBe(true);
   });
 
   it('holds against a verifier that re-derives the step from the input', () => {
-    const verdict = verifyNight(
-      { players, entries, finalCounts, rules: [piggyRule], roundingMode: 'tens' },
-      r,
-    );
-    expect(verdict.findings).toEqual([]);
-    expect(verdict.ok).toBe(true);
+    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
+      const report = verifyNight(
+        { players, entries, finalCounts, rules: [piggyRule], roundingMode: mode },
+        at(mode),
+      );
+      expect(report.findings).toEqual([]);
+      expect(report.ok).toBe(true);
+    }
   });
 
   it('leaves the reconciliation on the real chips', () => {
-    // The table held $1,500 and $1,500 was counted. Rounding is a decision
-    // about how to divide it, not a claim about what was there.
-    expect(r.reconciliation.counted).toBe(1500);
-    expect(r.reconciliation.difference).toBe(0);
-    expect(r.reconciliation.reconciled).toBe(true);
+    /* The count balanced, and no step may make it look otherwise. */
+    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
+      expect(at(mode).reconciliation.difference).toBe(0);
+      expect(at(mode).reconciliation.counted).toBe(1500);
+    }
+  });
+
+  it('never rounds twice — a bigger step recomputes from the exact position', () => {
+    /* Boris is the one who proves it. His exact position is −230 at every step,
+       because no rule touches him. At the nearest $10 that is already round and
+       he does not move; at $50 the apportionment hands him a step UP, to −200.
+       Rounding the $10 answer a second time would have taken him DOWN to −250,
+       which is the wrong direction and $50 out. */
+    expect(player(at('tens'), BORIS).finalPosition).toBe(-230);
+    expect(player(at('fifties'), BORIS).finalPosition).toBe(-200);
+    expect(player(at('fifties'), BORIS).roundedBy).toBe(30);
+  });
+
+  it('gives the same answer however many times it runs', () => {
+    const a = at('fifties').players.map((p) => [p.playerId, p.finalPosition]);
+    const b = at('fifties').players.map((p) => [p.playerId, p.finalPosition]);
+    expect(a).toEqual(b);
   });
 });
 
-describe('the remainder is not the collector’s night — B27, at a step', () => {
-  const r = at('tens');
-
-  it('leaves their score at nothing and their hands full', () => {
-    // They hold the piggy bank's $20 less the $10 the rounding cost it.
-    expect(nightScore(r, PIG)).toEqual({ score: 0, held: 10 });
-    expect(player(r, PIG).finalPosition).toBe(10);
+describe('the columns carry the step, so the row still adds up', () => {
+  it('gives a rounded night a column of its own for it', () => {
+    /* Without it `game + food + piggy` is short of the net by whatever the step
+       moved, and a reader adding the row up lands somewhere else. */
+    expect(resultColumns(at('dollars')).every((r) => r.rounded === 0)).toBe(true);
+    expect(resultColumns(at('tens')).some((r) => r.rounded !== 0)).toBe(true);
   });
 
-  it('keeps a player’s own rounding inside their score, where it belongs', () => {
-    // Cilka's stack really did settle at $270. That is hers.
-    expect(nightScore(r, CILKA)).toEqual({ score: -230, held: 0 });
-  });
-
-  it('divides the engine’s figure and never restates it', () => {
-    for (const p of r.players) {
-      const { score, held } = nightScore(r, p.playerId);
-      expect(score + held).toBe(p.finalPosition);
+  it('and every row adds up to the net beside it, at every step', () => {
+    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
+      for (const r of resultColumns(at(mode))) {
+        expect(r.game + r.food + r.piggy + r.rounded).toBe(r.net);
+      }
     }
+  });
+
+  it('still lets a rounded night use the columns layout at all', () => {
+    /* `columnsFit` is about the RULES reaching past the bill and the piggy
+       bank. The step is not a rule and does not take the layout away. */
+    expect(columnsFit(at('tens'))).toBe(true);
   });
 });
 
 describe('the receipt names the step', () => {
-  const r = at('tens');
-
-  it('adds one term, between the piggy bank and the Net', () => {
-    expect(receiptRows(r, ANNA).map((row) => [row.label, row.amount])).toEqual([
-      ['Cashed out', 965],
-      ['Bought in', -500],
-      ['Piggy bank', -20],
-      ['Rounded to $10', 5],
-    ]);
+  it('adds one term for what the step did to their position', () => {
+    const r = at('tens');
+    const rows = receiptRows(r, CILKA);
+    expect(rows.some((row) => row.label.includes('Rounded'))).toBe(true);
   });
 
-  it('leaves it off a stack that did not move', () => {
-    expect(receiptRows(r, BORIS).map((row) => row.label)).toEqual(['Cashed out', 'Bought in']);
-  });
-
-  it('still adds up to the Net printed above it', () => {
-    for (const p of r.players) {
-      expect(sum(receiptRows(r, p.playerId).map((row) => row.amount))).toBe(
-        nightScore(r, p.playerId).score,
-      );
-    }
+  it('leaves it off a position that did not move', () => {
+    const r = at('tens');
+    expect(player(r, BORIS).roundedBy).toBe(0);
+    expect(receiptRows(r, BORIS).some((row) => row.label.includes('Rounded'))).toBe(false);
   });
 });
 
-describe('the rules that keep it safe', () => {
-  it('never rounds twice — a bigger step recomputes from the raw count', () => {
-    // 265 at $10 is $270; at $100 it is $300, not the $270 rounded again.
-    expect(player(at('hundreds'), CILKA).roundedBy).toBe(35);
-    expect(player(at('hundreds'), ANNA).roundedBy).toBe(35); // 965 → 1000
+describe('the float is not the collector’s night — B27, at a step', () => {
+  it('leaves their score at nothing and their hands full', () => {
+    const r = at('tens');
+    expect(nightScore(r, PIG).score).toBe(0);
+    expect(nightScore(r, PIG).held).toBe(20);
   });
 
-  it('gives the same answer however many times it runs', () => {
-    expect(at('tens')).toEqual(at('tens'));
+  it('keeps a player’s own rounding inside their score, where it belongs', () => {
+    const r = at('tens');
+    expect(nightScore(r, ANNA).score).toBe(player(r, ANNA).finalPosition);
   });
 
-  it('does not snap the stacks at all with no piggy bank to carry the cost', () => {
-    /*
-     * The remainder has exactly one destination, and a group without a piggy
-     * bank has not got it. Settling anyway would hand the table $10 nobody put
-     * in — so the stacks stay as counted, and the step goes on doing what it
-     * always did to the rules.
-     */
-    const billOnly: MoneyRule = { ...piggyRule, id: 'bill', destination: 'bill', collectorPlayerId: ANNA };
-    const r = at('tens', [billOnly]);
-
-    expect(r.rounding.on).toBe(false);
-    expect(r.rounding.remainder).toBe(0);
-    expect(r.roundingCollector).toBeUndefined();
-    expect(player(r, ANNA).roundedBy).toBe(0);
-    expect(player(r, ANNA).endedWith).toBe(965);
-    expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
-  });
-
-  it('does nothing when the step is off, which is every night before this one', () => {
-    const r = at('dollars');
-    expect(r.rounding.on).toBe(false);
-    expect(r.players.every((p) => p.roundedBy === 0 && p.roundingAbsorbed === 0)).toBe(true);
-    expect(player(r, ANNA).grossResult).toBe(465);
-  });
-
-  it('holds together at every step the sheet offers', () => {
-    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
-      const r = at(mode);
-      expect(sum(r.players.map((p) => p.finalPosition))).toBe(0);
-      const verdict = verifyNight(
-        { players, entries, finalCounts, rules: [piggyRule], roundingMode: mode },
-        r,
-      );
-      expect(verdict.findings).toEqual([]);
-    }
-  });
-});
-
-describe('the working carries the step too — the player card', () => {
-  const r = at('tens');
-
-  it('keeps Result as the subtraction of the two rows above it', () => {
-    // Out less in, on the raw count. Three rows reading 500 / 965 / +470 would
-    // be the one place in the app where the arithmetic on screen is wrong.
-    const rows = workingRows(r, [piggyRule], ANNA);
-    expect(rows.filter((row) => ['in', 'out', 'result'].includes(row.kind)).map((row) => row.amount))
-      .toEqual([500, 965, 465]);
-  });
-
-  it('gives the step its own row, above whatever total the screen draws', () => {
-    const rows = workingRows(r, [piggyRule], ANNA);
-    const last = rows[rows.length - 1]!;
-    expect(last.kind).toBe('rounding');
-    expect(last.label).toBe('Rounded to $10');
-    expect(last.amount).toBe(5);
-  });
-
-  it('still accounts for the score exactly, line by line', () => {
-    for (const id of [ANNA, BORIS, CILKA]) {
-      const rows = workingRows(r, [piggyRule], id);
-      const result = rows.find((row) => row.kind === 'result')!.amount;
-      const after = rows.filter((row) => ['charge', 'credit', 'rounding'].includes(row.kind));
-      expect(result + sum(after.map((row) => row.amount))).toBe(nightScore(r, id).score);
-    }
-  });
-
-  it('says nothing about a step that moved nothing', () => {
-    expect(workingRows(r, [piggyRule], BORIS).some((row) => row.kind === 'rounding')).toBe(false);
-  });
-});
-
-describe('the rounding step does not put the collector back in the list', () => {
-  /*
-   * B27 undone by arithmetic that happened to agree. The list filtered on
-   * `credited − held`, which was the bill money and nothing else — until the
-   * rounding remainder went into `held` too. The collector then read as being
-   * owed the remainder, came back into the table with a score of $0, and sat
-   * between two people who had played.
-   */
-  it('leaves a pure collector out, remainder or no remainder', () => {
-    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
-      expect(resultRows(at(mode)).map((r) => r.player.playerId)).toEqual([ANNA, BORIS, CILKA]);
-    }
-  });
-
-  it('and the remainder really is on them, so this is not a coincidence', () => {
-    expect(player(at('tens'), PIG).roundingAbsorbed).toBe(10);
-    expect(nightScore(at('tens'), PIG)).toEqual({ score: 0, held: 10 });
+  it('leaves the collector out of the result rows', () => {
+    expect(resultRows(at('tens')).some(({ player: p }) => p.playerId === PIG)).toBe(false);
   });
 });

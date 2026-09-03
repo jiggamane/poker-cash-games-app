@@ -166,9 +166,7 @@ export const ruleDetail = (
 export const roundingChoices = () => coreRoundingChoices(moneySymbol());
 export const roundingRowLabel = (mode: RoundingMode | null | undefined): string =>
   coreRoundingRowLabel(mode, moneySymbol());
-export const roundingRowValue = (
-  mode: RoundingMode | null | undefined,
-  remainder?: Money | null,
-): string => coreRoundingRowValue(mode, remainder, moneySymbol());
+export const roundingRowValue = (mode: RoundingMode | null | undefined): string =>
+  coreRoundingRowValue(mode, moneySymbol());
 export const roundingSentence = (mode: RoundingMode | null | undefined): string =>
   coreRoundingSentence(mode, moneySymbol());

@@ -280,21 +280,24 @@ export function nightScore(result: SettlementResult, playerId: PlayerId): NightS
   if (person === undefined) return { score: 0 as Money, held: 0 as Money };
 
   /*
-   * TWO THINGS ARE HELD RATHER THAN WON, and the second arrived with the
-   * rounding step. The float is the piggy bank's own money sitting in the
-   * collector's pocket; `roundingAbsorbed` is what the same pocket paid out to
-   * make everybody's stack a round number. A collector who is $16 lighter
-   * because the table settles in tens is not $16 worse at poker.
+   * ONE THING IS HELD RATHER THAN WON: the float, which is the piggy bank's own
+   * money sitting in the collector's pocket.
    *
-   * Their own stack rounding is NOT here. `roundedBy` is already inside
-   * `grossResult`, it is theirs, and it stays in their score — which is what
-   * makes it a term on their receipt above the `Net` rather than below it.
+   * There used to be a second — what that pocket paid out to make everybody's
+   * stack a round number — and since 2 September there is no such payment. The
+   * step redistributes the positions and leaves no remainder for anybody to
+   * carry, so a collector's score is their position less the float and nothing
+   * else.
+   *
+   * Their own rounding is NOT taken out. `roundedBy` is inside `finalPosition`,
+   * it is theirs, and it stays in their score — which is what makes it a term
+   * on their receipt above the `Net` rather than below it.
    */
   const float = playerDeductions(result, playerId).reduce(
     (running, d) => (running + d.held) as Money,
     0 as Money,
   );
-  const held = (float - person.roundingAbsorbed) as Money;
+  const held = float;
 
   return { score: (person.finalPosition - held) as Money, held };
 }
@@ -524,13 +527,15 @@ export interface ResultRow {
  */
 export interface ResultColumns {
   player: PlayerSettlement;
-  /** Cashed out less bought in, at the step the night settled at. */
+  /** Cashed out less bought in. Never rounded — see `rounded`. */
   game: Money;
   /** Their share of the bill, netted with what they paid at the counter. */
   food: Money;
   /** What the piggy bank took off them. Never merged into `food`. */
   piggy: Money;
-  /** `game + food + piggy`, and the figure the row is sorted on. */
+  /** What the rounding step moved their position by. Zero at a step of one. */
+  rounded: Money;
+  /** `game + food + piggy + rounded`, and the figure the row is sorted on. */
   net: Money;
 }
 
@@ -564,6 +569,13 @@ export function resultColumns(result: SettlementResult): ResultColumns[] {
       game: player.grossResult,
       food: of('bill'),
       piggy: of('kitty'),
+      /* WHAT THE STEP MOVED, since 2 September a term of its own. It used to
+         be inside `grossResult` — the stacks were snapped before the gross was
+         taken — so `game + food + piggy` came to the net on its own. The step
+         lands the POSITION now, after every rule, and a table without this
+         column is short by exactly it. Zero on a night that settled to the
+         dollar, which is when the column is not drawn at all. */
+      rounded: player.roundedBy,
       net: score,
     };
   });
@@ -670,6 +682,18 @@ export function resultFormula(result: SettlementResult): ResultFormula[] {
       if (amount !== 0) {
         terms.push({ key: d.destination, label: formulaWord(d.destination), amount });
       }
+    }
+
+    /*
+     * AND WHAT THE STEP MOVED, which is a term like any other since
+     * 2 September. Rounding used to sit inside `grossResult` — the stacks were
+     * snapped before the gross was taken — so the line never had to name it.
+     * It now lands on the POSITION, after every rule, which means a line
+     * reading `game · food · piggy` on a rounded night is short by exactly this
+     * and does not add up to the net beside it.
+     */
+    if (player.roundedBy !== 0) {
+      terms.push({ key: 'rounded', label: 'rounded', amount: player.roundedBy });
     }
 
     return {

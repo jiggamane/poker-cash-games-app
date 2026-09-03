@@ -117,6 +117,11 @@ function ColumnTable({ result }: { result: ReturnType<typeof settle> }) {
      this different from the formula line's rule about a zero TERM. */
   const food = rows.some((r) => r.food !== 0);
   const piggy = rows.some((r) => r.piggy !== 0);
+  /* And the step, on the same rule as the other two. A night that settled to
+     the dollar has no column here; a night that rounded has one, because
+     without it `game + food + piggy` is short of the net beside it by exactly
+     what the step moved — see B29. */
+  const rounded = rows.some((r) => r.rounded !== 0);
 
   return (
     <View style={styles.table}>
@@ -135,6 +140,11 @@ function ColumnTable({ result }: { result: ReturnType<typeof settle> }) {
             piggy
           </Text>
         )}
+        {rounded && (
+          <Text style={[styles.label, styles.rounded, { color: t.muted }]} {...unscaledLabel}>
+            step
+          </Text>
+        )}
         <Text style={[styles.label, styles.net, { color: t.muted }]} {...unscaledLabel}>
           net
         </Text>
@@ -148,6 +158,7 @@ function ColumnTable({ result }: { result: ReturnType<typeof settle> }) {
           <Cell amount={r.game} style={styles.game} />
           {food && <Cell amount={r.food} style={styles.food} />}
           {piggy && <Cell amount={r.piggy} style={styles.piggy} />}
+          {rounded && <Cell amount={r.rounded} style={styles.rounded} />}
           <Text
             style={[
               styles.figure,
@@ -229,6 +240,9 @@ const styles = StyleSheet.create({
    */
   food: { width: 60 },
   piggy: { width: 60 },
+  /* Narrower than the rest: it never holds more than one step under the step,
+     so two digits and a sign is the whole of what it can ever draw. */
+  rounded: { width: 48 },
   net: { width: 74 },
   row: {
     flexDirection: 'row',

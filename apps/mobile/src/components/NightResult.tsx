@@ -257,7 +257,6 @@ export function NightResult({
       {result.rounding.on && (
         <RoundingBar
           mode={roundingMode}
-          remainder={result.rounding.remainder}
           {...(onChangeRounding === undefined ? {} : { onPress: onChangeRounding })}
           style={styles.rounding}
         />

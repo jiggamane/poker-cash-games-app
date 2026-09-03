@@ -678,7 +678,7 @@ async function playANight(name, rebuys) {
   await stop('rounding');
   await holds(
     'and the sheet says what each step would cost',
-    (await page.getByText(/^No stack moves by more than /).count()) > 0,
+    (await page.getByText(/^No net moves by more than /).count()) > 0,
     'the rounding sheet offers steps without saying what they would do',
   );
 

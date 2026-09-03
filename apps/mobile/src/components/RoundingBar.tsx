@@ -34,7 +34,6 @@ import { space } from '../design/tokens';
  */
 export function RoundingBar({
   mode,
-  remainder,
   onPress,
   style,
 }: {
@@ -44,13 +43,12 @@ export function RoundingBar({
    * to know. It turns the value into `+$16 → piggy`, which is the question the
    * row actually gets asked once there is a figure to ask about.
    */
-  remainder?: Money | null;
   onPress?: () => void;
   style?: object;
 }) {
   const t = useTheme();
   const label = roundingRowLabel(mode);
-  const value = roundingRowValue(mode, remainder);
+  const value = roundingRowValue(mode);
 
   const body = (
     <>

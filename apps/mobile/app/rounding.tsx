@@ -4,7 +4,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   granularityOf,
   settle,
-  stackRounding,
   transfersInWords,
   type Money,
   type RoundingMode,
@@ -26,13 +25,15 @@ import { useIsAdmin } from '../src/lib/whoIsReading';
 /**
  * Rounding — the step the night settles at.
  *
- * REBUILT 31 AUGUST from `design/handoff-E2/docs/E2-rounding.md`, and what
- * changed is what the setting DOES. It used to reach one thing: how coarsely a
- * RULE DIVIDES, so a bill share came out at $60 rather than $56. This sheet
- * said as much, at length, under a heading reading *What it does not touch* —
- * "nothing anybody counted… a chip count is a chip count". The addendum
- * reverses exactly that: the stacks snap to the step as they are entered, the
- * nets and the transfers follow, and the difference goes to the piggy bank.
+ * REBUILT 31 AUGUST from `design/handoff-E2/docs/E2-rounding.md`, and CHANGED
+ * AGAIN ON 2 SEPTEMBER — the second change puts back what the first one took
+ * away. This sheet once said, at length, under a heading reading *What it does
+ * not touch*, that the step reached "nothing anybody counted… a chip count is a
+ * chip count". The addendum reversed that and snapped the stacks. It is true
+ * again: nothing here touches a count. What the step lands is the final
+ * POSITIONS, apportioned across every party at once so that they still sum to
+ * zero — no remainder, nothing for the piggy bank to absorb, and no screen
+ * printing a figure another screen disagrees with.
  *
  * The old objection was the right objection. Rounding a count invents or
  * destroys money, and six nets rounded independently sum to something the table
@@ -92,15 +93,8 @@ export default function Rounding() {
    */
   const closed = !forClub && night !== null && night.status === 'settled';
 
-  /*
-   * WHAT THE STEP WOULD COST, off the engine rather than off a formula written
-   * here. The sub-line under each row is the WORST SINGLE STACK, not an
-   * average: it is the figure an admin gets asked about at the table, and an
-   * average answers a question nobody asks. Recomputed on every entry, which
-   * here means every render, because `stackRounding` is pure and cheap.
-   */
+  /* What has been counted so far, for the `Off` row's own sub-line. */
   const counts = night?.finalCounts ?? new Map<string, Money>();
-  const nothingCounted = counts.size === 0;
   const rawTotal = [...counts.values()].reduce((a, b) => (a + b) as Money, 0 as Money);
 
   /*
@@ -108,12 +102,18 @@ export default function Rounding() {
    * "each step also states how many transfers it leaves".
    *
    * IT IS A WHOLE RE-SETTLE PER ROW, four of them, and that is the only honest
-   * way to answer it: the remainder and the number of payments are both
-   * downstream of every rounded stack, every rule and the matching that pairs
+   * way to answer it: what the piggy bank ends up with and the number of
+   * payments are both downstream of every rule and of the matching that pairs
    * debtors with creditors. Working either out here would be a second
    * implementation of `settle()` with nothing checking it. Four settles of a
    * six-player night is arithmetic on a few dozen integers — the engine is pure,
    * and this sheet is not a screen anybody scrolls.
+   *
+   * WHAT IT NO LONGER SAYS IS THE REMAINDER — B29. This line used to read
+   * `+$16 to the piggy bank`, the money the step invented and the tin funded.
+   * The step redistributes the positions now and leaves nothing over, so there
+   * is no remainder to name; what a step changes about the tin is its TOTAL,
+   * and that is what each row states.
    */
   const atStep = (mode: RoundingMode): ReturnType<typeof settle> | null => {
     if (night === null) return null;
@@ -128,39 +128,43 @@ export default function Rounding() {
 
   function subline(mode: RoundingMode): string | null {
     if (forClub) return null;
-    if (nothingCounted) return 'No stacks counted yet';
+    const step = granularityOf(mode);
 
     if (atSettle) {
       const at = atStep(mode);
       if (at === null) return null;
       const transfers = transfersInWords(at.transfers.length);
-      /*
-       * THE REMAINDER, SIGNED FROM THE PIGGY BANK'S SIDE. `+$16 to the piggy
-       * bank` means the tin is $16 up, and `rounding.remainder` is the movement
-       * across the stacks — a positive remainder means the stacks grew and the
-       * tin paid for it, so the sign flips on the way onto this line. The same
-       * flip `roundingRowValue` makes for the row this sheet opens from.
-       */
-      if (granularityOf(mode) === 1) {
-        /* `Off` states the tin's whole total instead: there is no remainder to
-           name, and a row reading "$0 to the piggy bank" would say the piggy
-           bank was not collected. */
-        const piggy = at.deductions.find((d) => d.destination === 'kitty');
-        return (
-          'Nets to the dollar' +
-          (piggy === undefined ? '' : ` · piggy bank ${formatMoney(piggy.total)}`) +
-          ` · ${transfers}`
-        );
-      }
-      return `${formatSigned((0 - at.rounding.remainder) as Money)} to the piggy bank · ${transfers}`;
+      /* The tin's own total at this step, which since B29 is exactly what it
+         receives — no remainder rides on top of it. A night with no piggy-bank
+         rule says nothing about one. */
+      const piggy = at.deductions.find((d) => d.destination === 'kitty');
+      const tin = piggy === undefined ? '' : ` · piggy bank ${formatMoney(piggy.total)}`;
+      return (step === 1 ? 'Nets to the dollar' : `Nets land on ${formatMoney(step as Money)}`) +
+        tin +
+        ` · ${transfers}`;
     }
 
-    if (granularityOf(mode) === 1) {
-      return `Stacks as counted · ${formatMoney(rawTotal)} so far`;
+    /*
+     * AND ON E2, WHAT THE STEP GUARANTEES rather than what it measured.
+     *
+     * It used to be the worst single stack, recomputed on every render, and it
+     * had to be: the old rule snapped each stack on its own, so what a step
+     * would do depended on which stacks had been counted — half way through a
+     * count the sheet could only answer for the half it had. The step lands the
+     * positions now, and the apportionment hands anybody at most one, so the
+     * worst case is a fact about the step: at the nearest $10 nobody's net moves
+     * by more than $9, ever, and the sheet can say so before a stack is in.
+     *
+     * ⚠ COPY NOT DRAWN. The addendum's four sub-lines describe stacks moving.
+     * Flagged for the designer rather than passed off as decided.
+     */
+    if (step === 1) {
+      return counts.size === 0
+        ? 'Every figure to the dollar'
+        : `Every figure to the dollar · ${formatMoney(rawTotal)} counted so far`;
     }
-    return `No stack moves by more than ${formatMoney(
-      stackRounding(counts, granularityOf(mode)).worst,
-    )}`;
+    /* Money is whole units, so the tight bound is one under the step. */
+    return `No net moves by more than ${formatMoney((step - 1) as Money)}`;
   }
 
   async function save() {
