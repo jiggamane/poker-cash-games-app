@@ -36,6 +36,7 @@ import {
   playerDeductions,
   receiptRows,
   resultColumns,
+  gameResults,
   resultFormula,
   resultRows,
   ruleCollector,
@@ -709,6 +710,61 @@ describe('E6 — the columns layout', () => {
     ];
     const night = settle({ players, entries, finalCounts, rules: withFee });
     expect(columnsFit(night)).toBe(false);
+  });
+});
+
+describe('Results — the game results, with the deductions kept out of them', () => {
+  /*
+   * `design/handoff-four-screens/`, screen 3: deductions are not folded into any
+   * player's balance. The row is what they did at the table; the block below is
+   * what the rules took. The formula line above is what this replaced on the
+   * record — it still draws on `/ledger`, where there is room for the working.
+   */
+  const game = (id: PlayerId) =>
+    gameResults(result).find((g) => g.player.playerId === id)!.game;
+
+  it('carries the game result and nothing else', () => {
+    // Dana's night: +1,620 at the table. The 81 of piggy bank and the 110 of
+    // food that used to be inside her row are not in this figure.
+    expect(game(DANA)).toBe(1620);
+    expect(game(MAREK)).toBe(460);
+    expect(game(TOMAS)).toBe(-500);
+  });
+
+  it('sums to zero, which is the check the screen exists to let a room make', () => {
+    /*
+     * THE ASSERTION THIS LAYOUT STANDS ON. Money is neither made nor destroyed
+     * at a poker table, and with the deductions taken out of the rows the list
+     * can say so on its face. Nothing about the rules or the rounding step can
+     * move it: neither touches a gross result.
+     */
+    expect(sum(gameResults(result).map((g) => g.game))).toBe(0);
+  });
+
+  it('is unmoved by the rounding step, at any step', () => {
+    /* The step lands the POSITIONS since B36 and never a count, so a gross
+       result is the same figure whatever the night settles at. */
+    const atStep = (roundingMode: 'dollars' | 'tens' | 'fifties' | 'hundreds') =>
+      settle({ players, entries, finalCounts, rules, roundingMode });
+    for (const mode of ['dollars', 'tens', 'fifties', 'hundreds'] as const) {
+      const night = atStep(mode);
+      expect(sum(gameResults(night).map((g) => g.game))).toBe(0);
+      expect(gameResults(night).find((g) => g.player.playerId === DANA)!.game).toBe(1620);
+    }
+  });
+
+  it('sorts on the figure it prints, biggest win first', () => {
+    /* A column sorted by something it does not show reads as unsorted. The rows
+       list sorts on the net; this one has to sort on the game. */
+    const order = gameResults(result).map((g) => g.game);
+    expect([...order].sort((a, b) => b - a)).toEqual(order);
+  });
+
+  it('is the same people as the rows, and never the collector', () => {
+    expect(new Set(gameResults(result).map((g) => g.player.playerId))).toEqual(
+      new Set(resultRows(result).map((r) => r.player.playerId)),
+    );
+    expect(gameResults(result).map((g) => g.player.playerId)).not.toContain(KITTY);
   });
 });
 

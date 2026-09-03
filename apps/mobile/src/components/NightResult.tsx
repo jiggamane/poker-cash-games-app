@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import {
+  gameResults,
   prizePool,
-  resultFormula,
   ruleOutcomes,
   type Money,
   type ResolvedLedger,
@@ -15,38 +15,48 @@ import { moneyColor, useTheme } from '../design/useTheme';
 import { cappedFigure, radius, space, type, unscaledLabel } from '../design/tokens';
 
 /**
- * A night that has ended — E6, as drawn.
+ * A night that has ended — screen 3 of `design/handoff-four-screens/`, cut
+ * 2 September, which supersedes the rev-18 E6 frame on this screen.
  *
- * THE BOARD IS THE E6 FRAME IN `docs/screen-specs/Screens - After the night.md`
- * (§ E6) and `design/handoff-rev18/reference/screens-after-the-night.html`, which
- * is where every dimension below comes from: the three-figure summary between two
- * rules, `NET, AFTER DEDUCTIONS` over a list of hairline rows, and the
- * rule-outcome block on its bone wash. The pair of buttons the frame puts at the
- * foot belongs to the caller — see `settled.tsx`, where one of the two has
- * nowhere to point.
+ * **DEDUCTIONS ARE NOT FOLDED INTO ANY PLAYER'S BALANCE**, and that is the whole
+ * of what changed. Every layout before this one resolved a row to a net: the E6
+ * frame drew `in $500 · out $2,120`, the columns cut drew four cells, and the
+ * formula line drew `game +$1,620 · food −$54 · piggy −$23` under the name. All
+ * three answered "why is my number this" by showing the working. This one
+ * answers it by not doing the arithmetic on somebody's behalf: the row is what
+ * they did at the table, the deductions are a block of their own underneath, and
+ * who fronted the food or holds the tin is settled at the transfers.
  *
- * THAT FRAME CARRIES THE DECISIONS EVERY LATER CUT MADE, and they are not
- * negotiable just because the layout came back:
+ * The owner's reason, and it is the right one: a bill split flat across eight
+ * people takes $54 off six losers for something that has nothing to do with
+ * poker, and a row that folds it in has stopped being a poker result.
  *
- *   · `PRIZEPOOL` / `ENTRIES` / `DEDUCTIONS` — `E6-results-columns.md` renamed
- *     `THROUGH THE TABLE` and `OFF THE TABLE` and the summary uses the new words.
- *   · HAIRLINE ROWS, NO FILL, in both themes. The frame washes every row green or
- *     red; B23 is what that cost, and `ui-audit.mjs`'s `tinted-result-row` holds
- *     it. The colour is on the figure and nowhere else.
- *   · THE ROW STATES THE WHOLE NIGHT — `game +$1,620 · food −$54 · piggy −$23`,
- *     the columns addendum's terms as a sentence, in place of the frame's
- *     `in $500 · out $2,120`. Two of five terms invite arithmetic that does not
- *     reconcile; all of them reconcile to the figure beside them, and
- *     `resultFormula` is what guarantees it.
+ * WHAT IS LOST IS NOT LOST — `/ledger` draws the whole formula as four columns,
+ * `Full ledger` at the foot of this screen is the way to it, and somebody who
+ * wants to check the sum has a screen for it.
+ *
+ * THE CHECK THIS SCREEN CAN NOW STATE, which no previous layout could: the game
+ * results sum to ZERO. That is what says the game half of the night is sound,
+ * and nothing about the rules or the step can move it.
+ *
+ * -- what this screen kept from every earlier cut --
+ *
+
+ *   · HAIRLINE ROWS, NO FILL, in both themes. B23 is what a washed row cost, and
+ *     `ui-audit.mjs`'s `tinted-result-row` holds it. The colour is on the figure
+ *     and nowhere else.
  *   · THE FLOAT IS NOT A WIN (B27). Whoever holds the piggy bank ends the night
- *     with the room's money in their pocket, and it is out of their row, out of
- *     the line under it, and named once in the block below beside their name.
+ *     with the room's money in their pocket, and it is out of their row and
+ *     named once in the block below beside their name.
  *   · `Piggy bank`, never `Kitty`. The stored value is `kitty` and no reader ever
  *     sees that word — `destinationWord` in core owns the spelling.
+ *   · NO STATUS PILL. A night that balanced says `settled` in the meta line under
+ *     the title and nowhere else; a night that did not still has to explain
+ *     itself, which is the one block below that is conditional.
  *
  * NOTHING HERE ADDS ANYTHING UP. The pool comes off `prizePool()`, the rows and
- * their order off `resultFormula()`, the block off `ruleOutcomes()`, the
- * deductions total off `settle()` and the difference off the reconciliation. See
+ * their order off `gameResults()`, the block off `ruleOutcomes()`, the deductions
+ * total off `settle()` and the difference off the reconciliation. See
  * `CLAUDE.md`.
  *
  * SHARED BY `settled.tsx` AND `watch.tsx` — the host's own record and a watcher's
@@ -85,13 +95,13 @@ export function NightResult({
   const pool = prizePool(ledger);
 
   /*
-   * ONE ROW PER PERSON THE NIGHT HAPPENED TO, with the whole night on it —
-   * `resultFormula`, which is the engine's answer to who that is, in what order,
-   * and what each term of their night was. Two names it does not return are the
-   * point of it: the hole is not dropped (B28) and the collector's float is not
-   * a night (B27). See `working.ts`.
+   * ONE ROW PER PERSON THE NIGHT HAPPENED TO, carrying what they did at the
+   * table and nothing else — `gameResults`, which is the engine's answer to who
+   * that is and in what order. Two names it does not return are the point of it:
+   * the hole is not dropped (B28) and the collector's float is not a night
+   * (B27). See `working.ts`.
    */
-  const rows = resultFormula(result);
+  const rows = gameResults(result);
 
   /* One line per rule that took something, and where it went. A rule with a
      total of $0 is not a line; with no deductions at all the block is absent. */
@@ -100,23 +110,36 @@ export function NightResult({
   return (
     <>
       {/*
-       * THE THREE FIGURES, between a rule and a rule — `0 22px 8px`, hairline
-       * top and bottom, three equal cells of `14px 0`.
+       * THE THREE FIGURES, IN A CARD — `0 20px 18px`, `15px 18px`, radius 14.
        *
        * WHAT THE NIGHT WAS, IN THE ORDER IT IS ASKED: how much money came
        * through the table, how many times somebody bought in, and how much of
-       * it left. The three read across as one sentence, which is why they are
-       * cells in a row and not three cards.
+       * it did not go back to the players. The three read across as one
+       * sentence, which is why they are cells in one card and not three.
+       *
+       * DEDUCTIONS IS IN BONE, the same ink the block at the foot uses, because
+       * it is the one of the three that is not the players' any more. It is the
+       * only figure on this screen drawn in that colour above the block, and it
+       * is what ties the top of the screen to the bottom.
        */}
-      <View
-        style={[
-          styles.summary,
-          { borderTopColor: t.hairline, borderBottomColor: t.hairline },
-        ]}
-      >
-        <Stat label="Prizepool" value={formatToFit(pool.total, SUMMARY_FITS)} />
-        <Stat label={pool.entries === 1 ? 'Entry' : 'Entries'} value={String(pool.entries)} />
-        <Stat label="Deductions" value={formatToFit(result.totalOffTable, SUMMARY_FITS)} />
+      <View style={[styles.summary, { backgroundColor: t.surface }]}>
+        <Stat
+          label="Prizepool"
+          value={formatToFit(pool.total, SUMMARY_FITS)}
+          style={styles.statWide}
+        />
+        <Stat
+          label={pool.entries === 1 ? 'Entry' : 'Entries'}
+          value={String(pool.entries)}
+          style={styles.statEntries}
+        />
+        <Stat
+          label="Deductions"
+          value={formatToFit(result.totalOffTable, SUMMARY_FITS)}
+          style={styles.statRight}
+          tone={t.offTable}
+          align="right"
+        />
       </View>
 
       {/*
@@ -135,10 +158,19 @@ export function NightResult({
 
       <View style={styles.table}>
         <Text style={[styles.sectionLabel, { color: t.muted }]} {...unscaledLabel}>
-          Net, after deductions
+          Game results
         </Text>
 
-        {rows.map(({ player: p, terms, net }, i) => (
+        {/*
+         * ONE FIGURE PER PERSON, AND IT IS THE ONE THEY EARNED. Cashed out less
+         * bought in — no food column, no piggy column, no per-player deduction
+         * anywhere on this row. What the rules took is the block below.
+         *
+         * THESE SUM TO ZERO on a night that balanced, which is the check the
+         * screen exists to let a room make. Nothing about the rules or the
+         * rounding step can move it: neither touches a gross result.
+         */}
+        {rows.map(({ player: p, game }, i) => (
           <View
             key={p.playerId}
             testID="e6-row"
@@ -150,50 +182,9 @@ export function NightResult({
               },
             ]}
           >
-            <View style={styles.rowText}>
-              <Text style={[styles.rowName, { color: t.text }]} numberOfLines={1}>
-                {p.name}
-              </Text>
-
-              {/*
-               * THE FORMULA, AS ONE STRING AND NOT A ROW OF THEM.
-               *
-               * `game +$1,620 · food −$54 · piggy −$23`, wrapping to a second
-               * line on a narrow phone rather than being cut off — it is a
-               * sentence, and a sentence may take two lines where a figure in a
-               * fixed cell may not.
-               *
-               * ONE TERM IS THE NET STATED TWICE, so it is not drawn at all: a
-               * loser nothing was charged to has `game −$500` and a `−$500`
-               * beside it, and the line would be explaining the figure with the
-               * figure. `resultFormula` decides which terms there are; this
-               * decides only whether there is anything left worth printing.
-               */}
-              {terms.length > 1 && (
-                <Text style={[styles.rowFormula, { color: t.muted }]} numberOfLines={2}>
-                  {terms
-                    /*
-                     * A NON-BREAKING SPACE INSIDE EACH TERM, and it is not
-                     * typographic fussiness — it is B18.
-                     *
-                     * At 360 the line is three terms long and has to take a
-                     * second line. With an ordinary space it took it wherever
-                     * it liked, and where it liked was inside a figure:
-                     * `piggy −` on one line and `$600` on the next, a number
-                     * split down the middle, which is the one thing a money
-                     * column may never do. The separator between terms is a
-                     * space either side of a middot and that is where a break
-                     * belongs; `label\u00a0amount` is what makes it the only
-                     * place one can happen.
-                     */
-                    .map(
-                      (term) =>
-                        `${term.label}\u00a0${formatSignedToFit(term.amount, TERM_FITS)}`,
-                    )
-                    .join(' · ')}
-                </Text>
-              )}
-            </View>
+            <Text style={[styles.rowName, { color: t.text }]} numberOfLines={1}>
+              {p.name}
+            </Text>
 
             {/*
              * Muted at exactly zero, which `moneyColor` is not: it falls back to
@@ -201,39 +192,61 @@ export function NightResult({
              * reads as a third state rather than as no state.
              */}
             <Text
-              style={[styles.rowNet, { color: net === 0 ? t.muted : moneyColor(t, net) }]}
+              style={[styles.rowNet, { color: game === 0 ? t.muted : moneyColor(t, game) }]}
               numberOfLines={1}
               {...cappedFigure}
             >
-              {formatSignedToFit(net, ROW_FITS)}
+              {formatSignedToFit(game, ROW_FITS)}
             </Text>
           </View>
         ))}
       </View>
 
       {/*
-       * WHERE THE MONEY THAT LEFT THE TABLE WENT — `14px 20px 0`, `16px 18px`,
-       * radius 8, on the bone wash, 7 between the lines.
+       * WHAT THE RULES TOOK, AND WHO HAS IT — its own card, `14px 20px 0`,
+       * `14px 16px`, radius 14, 10 between the rows.
        *
-       * ONE LINE PER RULE, and the line names the destination rather than the
-       * payers: who paid what is the working, and the working is E3's. What is
-       * here is the half a room asks for at the end — the food money goes back
-       * to the people who fronted it, and the piggy bank is in somebody's
-       * pocket.
+       * IT IS THE OTHER HALF OF THE SCREEN NOW, not a footnote to it. The rows
+       * above say what everybody did at the table; this says what came off the
+       * top and where it went, and the two together are the whole night. That
+       * is why it has a TOTAL of its own: the block has to add up on its own
+       * terms, not lean on a figure at the top of the screen.
        *
-       * THE LINES SUM TO `DEDUCTIONS` IN THE SUMMARY ABOVE, which is why there
-       * is no TOTAL row: the total is already on the screen, at the top, where
-       * it is one of the three things the night was.
+       * ONE LINE PER RULE, and the second line of it names the destination
+       * rather than the payers: who paid what is the working, and the working is
+       * E3's and `/ledger`'s. What is here is the half a room asks for at the
+       * end — the food money goes back to the people who fronted it, and the
+       * piggy bank is in somebody's pocket.
+       *
+       * THE HELD MONEY IS IN BONE, the rest in plain ink. A bill being paid back
+       * is a person getting their own money returned; a float is the room's
+       * money leaving the table for good, and that is the one distinction this
+       * block exists to draw.
+       *
+       * NO "LEAVES THE TABLE" AND NO "TAKEN FROM THE TABLE" — the handoff's own
+       * copy rule for this flow.
        */}
       {outcomes.length > 0 && (
-        <View style={[styles.outcomes, { backgroundColor: t.offTableWash }]}>
+        <View style={[styles.outcomes, { backgroundColor: t.surface }]}>
+          <Text style={[styles.sectionLabel, { color: t.muted }]} {...unscaledLabel}>
+            Deductions
+          </Text>
+
           {outcomes.map((o) => (
             <View key={o.ruleId} style={styles.outcomeRow}>
-              <Text style={[styles.outcomeLabel, { color: t.offTable }]} numberOfLines={2}>
-                {outcomeLine(o)}
-              </Text>
+              <View style={styles.outcomeText}>
+                <Text
+                  style={[styles.outcomeName, { color: o.float ? t.offTable : t.text }]}
+                  numberOfLines={1}
+                >
+                  {o.name}
+                </Text>
+                <Text style={[styles.outcomeHolder, { color: t.muted }]} numberOfLines={1}>
+                  {outcomeHolder(o)}
+                </Text>
+              </View>
               <Text
-                style={[styles.outcomeValue, { color: t.offTable }]}
+                style={[styles.outcomeValue, { color: o.float ? t.offTable : t.text }]}
                 numberOfLines={1}
                 {...cappedFigure}
               >
@@ -241,6 +254,21 @@ export function NightResult({
               </Text>
             </View>
           ))}
+
+          {/* `totalOffTable` IS the sum of the lines above, computed by the
+              engine. The block does not re-add its own column. */}
+          <View style={[styles.outcomeTotal, { borderTopColor: t.hairline }]}>
+            <Text style={[styles.totalLabel, { color: t.text }]} {...unscaledLabel}>
+              Total
+            </Text>
+            <Text
+              style={[styles.totalValue, { color: t.text }]}
+              numberOfLines={1}
+              {...cappedFigure}
+            >
+              {formatToFit(result.totalOffTable, ROW_FITS)}
+            </Text>
+          </View>
         </View>
       )}
 
@@ -266,48 +294,73 @@ export function NightResult({
 }
 
 /**
- * WHAT A RULE'S LINE SAYS, and the two halves of it are two different
- * movements.
+ * WHO HAS A RULE'S MONEY — the second line of its row, under the rule's name.
  *
- * `Kitchen & drinks → Lena, Marek` is money going BACK to people who spent it
- * at the shop: they are out of pocket until the table pays them, so the line
- * names them and the arrow points at them. `Group piggy bank · held by Radka`
- * is not a repayment at all — that money is the room's, and the name is whose
- * pocket it is sitting in. `ruleOutcomes` draws the line between the two;
- * this writes it.
+ * `→ Lena, Marek` is money going BACK to people who spent it at the shop: they
+ * are out of pocket until the table pays them, so the line names them and the
+ * arrow points at them. `held by Radka` is not a repayment at all — that money
+ * is the room's, and the name is whose pocket it is sitting in. `ruleOutcomes`
+ * draws the line between the two; this writes it.
  *
- * ⚠ `held by {name}` IS NOT ON ANY BOARD. The frame draws `Kitty · held by the
- * group`, which is this sentence for a rule with no collector, and no frame
- * draws one that has a collector — because taking the float off the collector's
- * own row (B27) is what put a name here at all. It is written to the grammar of
- * the string that IS drawn, and flagged rather than passed off as decided copy.
+ * ⚠ `held by {name}` IS NOT ON ANY BOARD. The handoff draws `held by the group`,
+ * which is this sentence for a rule with no collector, and no frame draws one
+ * that has a collector — because taking the float off the collector's own row
+ * (B27) is what put a name here at all. Written to the grammar of the string
+ * that IS drawn, and flagged rather than passed off as decided copy.
  */
-function outcomeLine(o: RuleOutcome): string {
+function outcomeHolder(o: RuleOutcome): string {
   if (o.paidTo.length === 0) {
     /* Nobody has it: a bill nobody has been repaid for yet, or a rule whose
        collector the group never named. Both are the same sentence. */
-    return o.float ? `${o.name} · held by the group` : `${o.name} · not paid back yet`;
+    return o.float ? 'held by the group' : 'not paid back yet';
   }
   const names = o.paidTo.map((c) => c.name).join(', ');
-  return o.float ? `${o.name} · held by ${names}` : `${o.name} → ${names}`;
+  return o.float ? `held by ${names}` : `→ ${names}`;
 }
 
-/** One of the three figures across the top, with its label under it. */
-function Stat({ label, value }: { label: string; value: string }) {
+/**
+ * One of the three figures across the top, with its LABEL ABOVE IT.
+ *
+ * The handoff puts the label first and the figure under it, which is the
+ * opposite of the frame this screen used to draw. It reads as a caption to the
+ * number rather than a footnote to it, and it is what lets the three cells take
+ * different widths without the labels drifting apart.
+ */
+function Stat({
+  label,
+  value,
+  style,
+  tone,
+  align,
+}: {
+  label: string;
+  value: string;
+  style: object;
+  /** Bone, for the one of the three that is not the players' any more. */
+  tone?: string;
+  align?: 'right';
+}) {
   const t = useTheme();
   return (
-    <View style={styles.stat}>
+    <View style={[styles.stat, style]}>
+      {/* Uppercased by the token, not by the string: the copy is written the way
+          it is read aloud, and the tracking is what makes 11px legible. */}
       <Text
-        style={[styles.statValue, { color: t.text }]}
+        style={[styles.statLabel, align === 'right' && styles.right, { color: t.muted }]}
+        {...unscaledLabel}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          styles.statValue,
+          align === 'right' && styles.right,
+          { color: tone ?? t.text },
+        ]}
         numberOfLines={1}
         {...cappedFigure}
       >
         {value}
-      </Text>
-      {/* Uppercased by the token, not by the string: the copy is written the way
-          it is read aloud, and the tracking is what makes 11px legible. */}
-      <Text style={[styles.statLabel, { color: t.muted }]} {...unscaledLabel}>
-        {label}
       </Text>
     </View>
   );
@@ -340,18 +393,25 @@ function Difference({ difference, loggedBy }: { difference: Money; loggedBy: str
 }
 
 const styles = StyleSheet.create({
-  /* `0 22px 8px`, a rule top and bottom, three cells of `14px 0` with 3
-     between each figure and its label. The frame's own measurements. */
+  /* `0 20px 18px` · `15px 18px` · radius 14 — the handoff's card. Three cells
+     in a row, the first taking what is left, the second fixed at the width of
+     a two-digit count, the third right-aligned against the card's edge. */
   summary: {
     flexDirection: 'row',
-    marginHorizontal: space.page,
-    marginBottom: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    alignItems: 'flex-start',
+    marginHorizontal: space.card,
+    marginBottom: 18,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    borderRadius: radius.card,
   },
-  stat: { flex: 1, minWidth: 0, paddingVertical: 14, gap: 3 },
-  statValue: { fontSize: 24, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  statLabel: { fontSize: 11, fontWeight: '600', letterSpacing: 0.88, textTransform: 'uppercase' },
+  stat: { minWidth: 0, gap: 4 },
+  statWide: { flex: 1 },
+  statEntries: { width: 74 },
+  statRight: { flexShrink: 0 },
+  right: { textAlign: 'right' },
+  statValue: { fontSize: 26, fontWeight: '800', letterSpacing: -0.7, fontVariant: ['tabular-nums'] },
+  statLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
 
   /* `16px 22px 12px` · `13px 15px` · radius 8 — the alarm shape E5 uses, one
      step quieter, because here it is a fact about a closed night rather than a
@@ -382,10 +442,8 @@ const styles = StyleSheet.create({
 
   /* `11px 4px`, a hairline between rows and none under the last. The frame
      draws a washed rounded row here; B23 is why this one is a hairline. */
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 4 },
-  rowText: { gap: 3, flexShrink: 1 },
-  rowName: { fontSize: 17, fontWeight: '600' },
-  rowFormula: { fontSize: 13, fontWeight: '400', lineHeight: 18, fontVariant: ['tabular-nums'] },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, paddingHorizontal: 4 },
+  rowName: { fontSize: 17, fontWeight: '700', flexShrink: 1 },
   /*
    * NEVER SHRINKS. The name and the line under it may give — they are words —
    * and a figure may not: left to shrink, "−$12,000" came apart into a dash on
@@ -394,30 +452,48 @@ const styles = StyleSheet.create({
   rowNet: {
     marginLeft: 'auto',
     flexShrink: 0,
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
 
-  /* `14px 20px 0` · `16px 18px` · radius 8 · gap 7 — the frame's own, and the
-     20 is deliberate against the list's 22: the block runs two points wider
+  /* `14px 20px 0` · `14px 16px` · radius 14 · gap 10 — the handoff's card, and
+     the 20 is deliberate against the list's 22: the block runs two points wider
      either side, which is what makes it read as a block rather than as two more
      rows of the list above it. */
   outcomes: {
     marginTop: 14,
     marginHorizontal: space.card,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: radius.pressable,
-    gap: 7,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: radius.card,
+    gap: 10,
   },
-  outcomeRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
-  outcomeLabel: { fontSize: 14, fontWeight: '500', flexShrink: 1 },
+  outcomeRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  outcomeText: { gap: 2, flexShrink: 1, minWidth: 0 },
+  outcomeName: { fontSize: 15, fontWeight: '600' },
+  outcomeHolder: { fontSize: 12.5, fontWeight: '400', lineHeight: 17 },
   outcomeValue: {
     marginLeft: 'auto',
     flexShrink: 0,
-    fontSize: 14,
+    fontSize: 17,
     fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  /* The total sits over a hairline, inside the card's own padding. */
+  outcomeTotal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  totalLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
+  totalValue: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontSize: 17,
+    fontWeight: '800',
     fontVariant: ['tabular-nums'],
   },
 
@@ -429,30 +505,27 @@ const styles = StyleSheet.create({
  * WHERE EACH FIGURE ON THIS SCREEN RUNS OUT, measured at 360 — the narrowest
  * phone in the device matrix and the width everything is tightest at.
  *
- * A ROW holds about 308 points inside its own padding: the name and the formula
- * line on the left, the net at 18/700 on the right, 12 between them. The name
- * and the line give and the figure does not, so the only question is how much
- * the figure may take — "−$999,999" at 93 leaves 215 for a name, which is more
- * than any name needs. Seven digits fit and eight do not, so a million is where
- * the net stops printing in full.
+ * A GAME-RESULT ROW holds about 308 points inside its own padding: the name on
+ * the left, the figure at 19/700 on the right, 12 between them. The name gives
+ * and the figure does not, so the only question is how much the figure may
+ * take — "−$999,999" at about 98 leaves 210 for a name, which is more than any
+ * name needs. Seven digits fit and eight do not, so a million is where the
+ * result stops printing in full.
  *
- * A TERM ON THE FORMULA LINE is 13/400 tabular and there are up to four of
- * them, separated by a middot: at full length "game +$99,999 · food −$99,999 ·
- * piggy −$99,999" is about 250 points against the 230 the line has at 360, and
- * it wraps to a second line rather than being cut — which is the right failure
- * for a sentence and the wrong one for a figure. Ten thousand is where the
- * terms start abbreviating, so the common night prints in full and a table
- * playing for millions reads "game +$1.2M" instead of wrapping to three lines.
+ * There is no formula line under it any more, so nothing on this row competes
+ * for that space. What used to abbreviate at ten thousand — the terms of the
+ * formula — has moved to `/ledger`, where it has four columns of its own.
  *
- * A SUMMARY CELL is a third of 316 at 360, which is 105 points, and 24/700
- * tabular spends about 14.4 a glyph — seven of them. "$99,999" is seven and
- * "$999,999" is eight, so the summary abbreviates a decade earlier than the row
- * beside it. That is deliberate and it is not a figure printed twice: the pool
- * is the night's own total and the nets are one person's share of it.
+ * A SUMMARY CELL is the tightest of the three: `PRIZEPOOL` takes what is left
+ * of the card after a fixed 74 for the entry count and whatever `DEDUCTIONS`
+ * needs, which at 360 is about 130 points, and 26/800 tabular spends roughly
+ * 15.6 a glyph — eight of them. "$99,999" is seven and "$999,999" is eight, so
+ * the summary abbreviates a decade earlier than the row beneath it. That is
+ * deliberate and it is not one figure printed twice: the pool is the night's
+ * own total and a result is one person's share of it.
  *
- * `cappedFigure` holds the phone's text setting at the money cap on every one of
- * them, so none of these measurements moves underneath the reader.
+ * `cappedFigure` holds the phone's text setting at the money cap on every one
+ * of them, so none of these measurements moves underneath the reader.
  */
 const ROW_FITS = 1_000_000;
-const TERM_FITS = 10_000;
 const SUMMARY_FITS = 100_000;
