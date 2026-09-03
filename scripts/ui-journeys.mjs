@@ -898,88 +898,87 @@ async function playANight(name, rebuys) {
   await stop('night settled');
 
   /*
-   * THE WHOLE NIGHT ON THE ROW — the E6 frame's results list, carrying the
-   * columns addendum's terms as a sentence under the name:
-   * `game +$1,620 · food −$54 · piggy −$23`, every deduction in open view and
-   * nothing behind a tap.
+   * THE GAME RESULTS, AND NOTHING FOLDED INTO THEM — screen 3 of
+   * `design/handoff-four-screens/`, cut 2 September.
    *
-   * IT IS INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches a settled
-   * night with money on it, so the route pass measures the seeded mid-count
-   * book and sees none of this. And this is the night where it is tightest —
-   * millions and a rounding step, four terms on a 360-wide row.
+   * The record used to resolve every row to a net and explain it underneath:
+   * `game +$1,620 · food −$54 · piggy −$23`. It does not any more. A row is
+   * what somebody did at the table, the deductions are a block of their own
+   * with a total, and the working moved to `/ledger` — which this run opens two
+   * stops from here.
+   *
+   * INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches a settled night
+   * with money on it, so the route pass measures the seeded mid-count book and
+   * sees none of this.
    */
-  const formula = await page.evaluate(() => {
-    const rows = [];
-    for (const el of document.querySelectorAll('div')) {
-      if (el.children.length !== 0) continue;
-      const line = (el.textContent || '').trim();
-      /* EITHER SPACE. The label and its figure are joined by a NON-BREAKING one
-         — see the note in `NightResult.tsx`: it is what stops a wrapped line
-         breaking inside a number. This check is the reason it is worth saying
-         twice: written for the ordinary space, it read every row as having no
-         formula at all and reported the layout missing. */
-      if (!/^game[\s\u00a0][+\u2212]\$/.test(line)) continue;
-      // leaf → the name-and-line column → the row, whose other child is the net.
-      const row = el.parentElement && el.parentElement.parentElement;
-      if (row === null) continue;
-      const net = [...row.children]
-        .map((c) => (c.textContent || '').trim())
-        .find((s) => /^[+−]\$/.test(s));
-      rows.push({ line, net: net === undefined ? null : net });
-    }
-    return rows;
-  });
-
   await holds(
-    'the row carries the whole formula',
-    formula.length > 0 && formula.every((r) => / · /.test(r.line) && r.net !== null),
-    'E6 does not draw the night as a formula under the name',
-  );
-
-  await holds(
-    'and nothing is hidden behind a tap',
-    (await page.getByLabel(/· their night$/).count()) === 0 &&
-      (await page.getByText('Cashed out', { exact: true }).count()) === 0,
-    'E6 still draws the receipt rows the formula line replaced',
+    'the record carries the game results, with nothing folded in',
+    (await page.getByText('Game results', { exact: true }).count()) === 1 &&
+      (await page.getByText(/^game [+\u2212]/).count()) === 0,
+    'E6 still draws a formula under the name, or has lost its Game results list',
   );
 
   /*
-   * AND THE ARITHMETIC THE LINE INVITES COMES OUT RIGHT.
+   * AND THE ONE SUM THE SCREEN EXISTS TO LET A ROOM MAKE.
    *
-   * A line of terms under a figure invites exactly one sum, and a reader who
-   * does it has to arrive at that figure. `rev15-night.test.ts` asserts that of
-   * the engine; this asserts it of what is actually on the phone, which is where
-   * a term could be dropped or a line drawn under the wrong name.
+   * Money is neither made nor destroyed at a poker table, and with the
+   * deductions out of the rows the list says so on its face: the game results
+   * add to nothing. `rev15-night.test.ts` asserts it of the engine; this asserts
+   * it of what is actually on the phone, which is where a row could be dropped,
+   * drawn in the wrong sign, or ordered off a figure it is not showing.
    */
-  const money = (s) => {
-    const t = (s || '').trim().replace(/[,$]/g, '').replace(/−/g, '-');
-    if (/[KMB]$/i.test(t)) return null; // an abbreviated figure cannot be summed
-    const n = Number(t.replace('+', ''));
-    return Number.isFinite(n) ? n : null;
-  };
+  const results = await page.evaluate(() => {
+    const money = (s) => {
+      const t = (s || '').trim().replace(/[,$]/g, '').replace(/\u2212/g, '-');
+      if (/[KMB]$/i.test(t)) return null; // an abbreviated figure cannot be summed
+      const n = Number(t.replace('+', ''));
+      return Number.isFinite(n) ? n : null;
+    };
+    return [...document.querySelectorAll('[data-testid="e6-row"]')].map((row) => {
+      const cells = [...row.querySelectorAll('div, span')].filter((c) => c.children.length === 0);
+      return money(cells[cells.length - 1]?.textContent);
+    });
+  });
 
   await holds(
-    'and every term adds up to the net beside it',
-    formula.every((r) => {
-      /* The separator between terms keeps its ordinary spaces, so the line still
-         splits on ' · '; inside a term the space is non-breaking. */
-      const terms = r.line.split(' · ').map((term) => money(term.split(/[\s\u00a0]+/).pop()));
-      const net = money(r.net);
-      if (net === null || terms.some((f) => f === null)) return true; // abbreviated: skip
-      return terms.reduce((a, b) => a + b, 0) === net;
-    }),
-    'a formula line on E6 does not add up to the net beside it',
+    'and they add up to nothing, as a balanced night must',
+    results.length > 0 &&
+      (results.some((r) => r === null) || results.reduce((a, b) => a + b, 0) === 0),
+    'the game results on E6 do not sum to zero',
   );
 
-  await stop('night settled · the formula');
+  /*
+   * AND THE DEDUCTIONS ARE A BLOCK WITH A TOTAL OF ITS OWN.
+   *
+   * The block has to add up on its own terms rather than lean on the figure at
+   * the top of the screen — that is what makes it the other half of the record
+   * rather than a footnote to it.
+   *
+   * THE COPY RULE IS NOT ASSERTED HERE. The handoff bans "leaves the table" from
+   * the whole flow and `/deductions` still says it in its header card; that
+   * screen is a batch of its own and the words are its to change. Asserting it
+   * from this stop would only report the screen behind this one, because a
+   * pushed route stays mounted underneath.
+   */
+  await holds(
+    'and the deductions block totals itself',
+    (await page.getByText('Total', { exact: true }).count()) >= 1,
+    'the deductions block has no total of its own',
+  );
+
+  await stop('night settled · game results');
 
   /*
    * AND `7e` IS BEHIND *FULL LEDGER* — `02-E6-results-row.md`, cut 1 September:
    * the four-column table "stays as the full-screen variant behind the *Full
-   * ledger* button, where columns are worth the width". The formula line above
-   * is what E6 lists; this is the other half of the same decision, and this is
-   * the only check that opens the door. The route pass reaches `/ledger` on the
-   * seeded mid-count night, where there is no table to draw.
+   * ledger* button, where columns are worth the width".
+   *
+   * IT CARRIES MORE WEIGHT SINCE 2 SEPTEMBER, not less. The record above now
+   * states the game results and keeps the deductions out of them, so this is
+   * the one screen in the app where somebody who wants to see how a deduction
+   * reached them can watch it happen. The route pass reaches `/ledger` on the
+   * seeded mid-count night, where there is no table to draw, so this is the
+   * only check that opens the door with a night behind it.
    */
   await tap('Full ledger');
   await holds(
@@ -1005,7 +1004,9 @@ async function playANight(name, rebuys) {
    */
   await holds(
     'and the float says who is holding it',
-    (await page.getByText(/\u00b7 held by /).count()) > 0,
+    /* The holder is the second line of its own row since 2 September, so it no
+       longer trails a middot after the rule's name — it stands alone under it. */
+    (await page.getByText(/^held by /).count()) > 0,
     'the block took money off the table and named nobody as holding it',
   );
 

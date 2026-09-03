@@ -622,6 +622,47 @@ export function resultRows(result: SettlementResult): ResultRow[] {
 }
 
 /**
+ * THE GAME RESULTS — what everybody did at the table, and nothing else.
+ *
+ *     Petr                                                       +$1,700
+ *     Dana                                                         +$980
+ *
+ * `design/handoff-four-screens/`, screen 3, cut 2 September: **deductions are
+ * not folded into any player's balance.** A row carries what they cashed out
+ * less what they bought in, the deductions sit in their own block below, and
+ * who fronted the food or holds the tin is settled at the transfers.
+ *
+ * WHY THAT IS THE RIGHT WAY ROUND. A bill split flat across eight people takes
+ * $54 off six losers for a reason that has nothing to do with poker, and a row
+ * that folds it in has stopped being a poker result. The formula line answered
+ * the same objection by showing its working; this answers it by not doing the
+ * arithmetic on somebody's behalf in the first place.
+ *
+ * THE CHECK THE SCREEN CAN STATE: these sum to ZERO on a night that balanced,
+ * which is what says the game half of the night is sound. Nothing about the
+ * rules or the rounding can move that, because neither touches a gross result.
+ *
+ * SAME MEMBERSHIP AS `resultRows` — the hole is a row (B28) and the collector's
+ * float is not a night (B36's predecessor, B27) — and the same total order, on
+ * the figure this list actually prints.
+ */
+export interface GameResult {
+  player: PlayerSettlement;
+  /** Cashed out less bought in. Never rounded, never deducted from. */
+  game: Money;
+}
+
+export function gameResults(result: SettlementResult): GameResult[] {
+  return resultRows(result)
+    .map(({ player }) => ({ player, game: player.grossResult }))
+    /* Biggest win first, ties on name A→Z — `01-the-flow.md` § Sorting. Sorted
+       on the figure the row prints, which is why this cannot just reuse
+       `resultRows`' order: that one sorts on the net, and a column sorted by
+       something it does not show reads as a column that is not sorted. */
+    .sort((a, b) => b.game - a.game || (a.player.name < b.player.name ? -1 : 1));
+}
+
+/**
  * THE FORMULA LINE — one person's night as a sentence under their name.
  *
  *     Dana                                                       +$1,543
@@ -645,9 +686,10 @@ export function resultRows(result: SettlementResult): ResultRow[] {
  * and one term is the net said twice, so the screen draws no line at all.
  *
  * THE IDENTITY IS EXACT, and it is the whole reason the line can sit under a
- * figure it appears to explain: `Σ terms === net === nightScore().score`. The
- * step the night rounded to is inside `game`, where it belongs — a stack that
- * snapped to $970 settled at $970 — and the float is outside all of it.
+ * figure it appears to explain: `Σ terms === net === nightScore().score`. Since
+ * B36 the step is a term of its own rather than something hidden inside `game`
+ * — it lands the position, after every rule — and the float is outside all of
+ * it.
  */
 export interface FormulaTerm {
   /** Stable across renders — `game`, or the destination. */
