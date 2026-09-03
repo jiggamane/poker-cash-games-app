@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   balanceCheck,
-  composition,
   resolveLedger,
   resultBeforeDeductions,
   type BalanceCheck,
@@ -277,11 +276,18 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
   const rest = Math.abs(balance.left);
   const empty = run === 0 && rest === 0;
 
-  /* THE BLOCK'S OWN THRESHOLD, not the exact figure. This line sits under
-     ACCOUNTED FOR in the same box as the figure above it, and a book kept in a
-     three-letter currency put `CHF2,120 cashed out` 17 points past the edge of
-     it. `formatToFit` is what every other figure in this block already uses. */
-  const sub = composition(balance, (m) => formatToFit(m, BLOCK_FITS));
+  /*
+   * WHO THE MONEY CAME FROM, NOT HOW MUCH OF IT — `3 counted · 3 cashed out`,
+   * screen 2 of `design/handoff-four-screens/`.
+   *
+   * It used to name the two amounts: `$2,120 cashed out · $2,390 counted`. Two
+   * figures and their words do not fit the 139 points this half of the block
+   * has, and B38 is the entry for what that cost — the counted half was
+   * ellipsised away on the reference phone, in ordinary dollars. Counts of
+   * people fit, they are the half the figure above does not already state, and
+   * they take over the job the strip's tally used to do.
+   */
+  const sub = `${balance.countedPlayers} counted · ${balance.cashedOutPlayers} cashed out`;
 
   return (
     <View style={[styles.block, { backgroundColor: t.surface, borderColor: c.edge }]}>
@@ -292,7 +298,10 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
           /* Never coloured: it is the fixed side of the comparison. */
           figureColor={t.text}
           amount={balance.boughtIn}
-          sub={`${balance.entries} ${balance.entries === 1 ? 'entry' : 'entries'} · ${balance.playersTotal} players`}
+          /* PEOPLE FIRST, THEN BUY-INS — `design/handoff-four-screens/`,
+             screen 2. It reads as the shape of the night rather than as a
+             count of database rows, and it is the same two numbers. */
+          sub={`${balance.playersTotal} ${balance.playersTotal === 1 ? 'player' : 'players'} · ${balance.entries} ${balance.entries === 1 ? 'buy-in' : 'buy-ins'}`}
         />
         <View style={[styles.divider, { backgroundColor: t.hairline }]} />
         <Sum
@@ -326,20 +335,43 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
         <Text style={[styles.verdict, { color: c.stripText }]} numberOfLines={1} {...cappedFigure}>
           {verdict(balance)}
         </Text>
-        {/* The verdict never shrinks and never ellipsises; this does. At 360
-            the two run within a couple of points of the strip's width, and if
-            one of them has to give it is the tally and not the money. */}
+        {/*
+          * HOW FAR ALONG, AS A PERCENTAGE — screen 2 of
+          * `design/handoff-four-screens/`, which draws `78% accounted for`
+          * beside what is still on the table.
+          *
+          * IT TOOK THE TALLY'S PLACE, it did not squeeze in beside it. The
+          * strip used to read `3 of 6 in` here, and that count is now the
+          * sub-line under ACCOUNTED FOR — `3 counted · 3 cashed out`, which
+          * says the same thing and says which half is which. Two statements of
+          * one fact in one card is what this whole pass has been removing.
+          *
+          * The verdict never shrinks and never ellipsises; this does. At 360
+          * the two run within a couple of points of the strip's width, and if
+          * one of them has to give it is the progress and not the money.
+          */}
         <Text style={[styles.tally, { color: t.muted }]} numberOfLines={1}>
-          {balance.state === 'counting'
-            ? `${balance.playersIn} of ${balance.playersTotal} in`
-            : balance.state === 'balanced'
-              ? ''
-              : 'recount, or log it'}
+          {balance.state === 'balanced' ? '' : `${percent(balance)}% accounted for`}
         </Text>
       </View>
     </View>
   );
 }
+
+/**
+ * How much of what went in has been accounted for, as a whole number.
+ *
+ * FLOORED, NEVER ROUNDED UP, and it is the same reason a progress bar never
+ * shows 100% until it is done: `99.6%` reading as `100% accounted for` beside a
+ * verdict saying $20 is missing is the card disagreeing with itself. A night
+ * with nothing bought in is 0 rather than a division by zero.
+ *
+ * IT IS NOT SHOWN WHEN THE NIGHT BALANCES. The strip then reads
+ * `BALANCED — NOTHING MISSING`, which is what 100% would be saying in figures,
+ * and the check mark beside it says it a third time.
+ */
+const percent = (b: BalanceCheck): number =>
+  b.boughtIn === 0 ? 0 : Math.floor((b.accountedFor / b.boughtIn) * 100);
 
 /** The strings, verbatim from the logic doc. */
 const verdict = (b: BalanceCheck): string => {

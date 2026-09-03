@@ -46,6 +46,18 @@ export interface BalanceCheck {
   playersTotal: number;
   /** Of those, the ones whose money is in: gone, or counted. */
   playersIn: number;
+  /**
+   * The two halves of `playersIn`, which is what the block's right-hand
+   * sub-line names — `3 counted · 3 cashed out`.
+   *
+   * They are counts of PEOPLE where `counted` and `cashedOut` above are sums of
+   * money, and the block draws one of each: the figure is the money and the
+   * line under it is who it came from. A screen that worked these out itself
+   * would be deciding again what "in" means, which is the decision the busted
+   * player's $0 turns on.
+   */
+  countedPlayers: number;
+  cashedOutPlayers: number;
   /** Seated players with no count entered. In the order they were given. */
   uncounted: PlayerId[];
 
@@ -108,6 +120,13 @@ export function balanceCheck(
    */
   const playersIn = played.filter((id) => !seatedSet.has(id) || finalCounts.has(id)).length;
 
+  /* Somebody still seated whose stack has been entered, against somebody who
+     left during play. The two are exclusive and together they are `playersIn`:
+     a seated player is counted or not, and a player who has gone is neither
+     counted nor countable. */
+  const countedPlayers = played.filter((id) => seatedSet.has(id) && finalCounts.has(id)).length;
+  const cashedOutPlayers = played.filter((id) => !seatedSet.has(id)).length;
+
   return {
     boughtIn,
     cashedOut,
@@ -117,6 +136,8 @@ export function balanceCheck(
     entries,
     playersTotal: played.length,
     playersIn,
+    countedPlayers,
+    cashedOutPlayers,
     uncounted,
     state:
       uncounted.length > 0 ? 'counting' : left === ZERO ? 'balanced' : left > 0 ? 'short' : 'over',
