@@ -73,27 +73,17 @@ running on your own machine.
 
 ### 1. Apply the migrations
 
-`0005_watcher_access.sql`, `0006_sync_contract_fixes.sql`,
-`0007_player_identity.sql` and `0008_verification.sql`, in that order, on top of
-0001–0003. For a project that already has the earlier ones, run just these four
-files in the SQL Editor.
-For a fresh project, `supabase/schema.sql` is all of them concatenated.
+Do not work from a list of file numbers — this one has been out of date twice.
+Paste `supabase/state-check.sql` into the SQL Editor. It is read-only and returns
+one row per migration, `ok` or `MISSING`, naming the file to run. Run the missing
+ones in numeric order, then run it again: everything except row 93 must say `ok`.
 
-Check they landed:
+`supabase/schema.sql` is every migration concatenated, for a fresh project only.
 
-```sql
-select proname from pg_proc
-where proname in ('redeem_share_token', 'revoke_share_access', 'custom_access_token_hook',
-                  'create_player_invite', 'redeem_player_invite', 'preview_player_invite');
-```
-
-Six rows. Fewer means one of the four files did not run. And one more, for the
-column 0007 adds:
-
-```sql
-select count(*) from information_schema.columns
- where table_name = 'settlement' and column_name = 'verification';
-```
+The four things this document depends on are rows 5, 7, 8 and 92 of that output —
+the watcher grant table, the invite functions, the verification column, and the
+hook's grant to `supabase_auth_admin`. Row 93 is the two toggles below, which no
+query can see.
 
 ### 2. Turn on anonymous sign-ins
 

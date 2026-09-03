@@ -22,16 +22,40 @@ container's network policy denies it — so these two steps have to happen here.
 
 ## Step 1 — apply the database schema
 
-The schema is one file: `supabase/migrations/0001_init.sql`. It has never been
-applied to this project, so it needs running once.
+**Before anything else, find out what is already there.** This project has been
+set up more than once and the schema has grown to thirteen migrations, so the
+question is never "has it been applied" but "how far".
 
-Use whichever of these works:
+Paste the whole of `supabase/state-check.sql` into the SQL Editor and run it. It
+is read-only — it writes nothing and locks nothing — and it returns one row per
+migration saying `ok` or `MISSING`, with the file to run in the last column.
 
-**a. Supabase MCP server** (already configured in `.mcp.json`). Authenticate
-with `/mcp`, then apply the contents of `supabase/migrations/0001_init.sql` to
-project `eciozeeqywpgqlxqmprl`.
+```
+ n  | item                                      | state   | fix
+----+-------------------------------------------+---------+-----------------------------------
+  1 | 0001 schema, append-only ledger, policies | ok      | run supabase/migrations/0001_init.sql
+ ...
+ 13 | 0013 the night carries its rounding       | MISSING | run supabase/migrations/0013_night_rounding.sql
+```
 
-**b. Supabase CLI:**
+Then:
+
+- **Every row `ok`** — the database is current. Nothing to run. Go to step 2.
+- **Some rows `MISSING`** — run exactly those files, in numeric order, in the SQL
+  Editor. Migrations are not idempotent; running one that is already applied
+  fails on "already exists", which is the file telling you it was not needed.
+- **Every row `MISSING`** — a fresh project. `supabase/schema.sql` is all
+  thirteen concatenated, for one paste. Run it **once**.
+
+Re-run `state-check.sql` afterwards; everything except row 93 must say `ok`.
+
+Row 93 is the two dashboard toggles, which no query can see. They are step 2 and
+step 3 of `auth-test-period.md`, and the second of them is the one that fails
+silently: without the access-token hook a watcher's screen is simply empty and
+nothing anywhere reports an error.
+
+Instead of pasting by hand you can use the **Supabase CLI**:
+
 ```bash
 npm install -g supabase
 supabase login
@@ -39,40 +63,24 @@ supabase link --project-ref eciozeeqywpgqlxqmprl
 supabase db push
 ```
 
-**c. By hand:** open the project's SQL Editor in the dashboard, paste the whole
-of `supabase/migrations/0001_init.sql`, and run it.
-
-### Expected result
-
-It should complete with no errors and create these tables in `public`:
-`book`, `player`, `session`, `session_seat`, `ledger_entry`, `money_rule`,
-`final_count`, `settlement`.
+The **Supabase MCP server** in `.mcp.json` is the third route — authenticate with
+`/mcp` and apply the files to project `eciozeeqywpgqlxqmprl`. Neither the MCP
+server nor `supabase.co` is reachable from a remote Claude session; that network
+is denied at the proxy, so a session in the cloud can prepare the SQL but a
+person or a session on your own machine has to run it.
 
 ### If it fails
 
-- **"type ... already exists"** or **"relation ... already exists"** — some of it
-  ran before. Do not blindly re-run. Report exactly which object it complains
-  about, so a follow-up migration can be written rather than the file edited.
-- **"permission denied for schema extensions"** — run just the first two lines
-  as the dashboard's SQL Editor (which runs with higher privileges), then the
-  rest.
-- Anything else — copy the exact error text back. Do not edit
-  `0001_init.sql` to make an error go away; the file is verified against real
-  Postgres by `npm run db:verify` and an edit will silently diverge from what the
-  tests check.
-
-### Verify it worked
-
-In the SQL Editor, this must return 8 rows:
-```sql
-select table_name from information_schema.tables
-where table_schema = 'public' order by table_name;
-```
-
-And this must show `rowsecurity = true` for every one of them:
-```sql
-select tablename, rowsecurity from pg_tables where schemaname = 'public';
-```
+- **"type ... already exists"** or **"relation ... already exists"** — that file
+  had already run. Re-run `state-check.sql` rather than picking through the
+  error; it will tell you which files are genuinely outstanding.
+- **"permission denied for schema extensions"** — run just the first two lines of
+  `0001_init.sql` in the dashboard's SQL Editor, which has higher privileges,
+  then the rest.
+- Anything else — copy the exact error text back. Do not edit a migration to make
+  an error go away; the files are verified against real Postgres by
+  `npm run db:verify` and an edit will silently diverge from what the tests
+  check. Fix it forward, in a new numbered migration.
 
 ---
 
@@ -96,7 +104,7 @@ Do not put the `service_role` key here.
 
 ```bash
 npm install
-npm run check      # 82 tests + typecheck, should pass
+npm run check      # typecheck + the money tests, all green
 ```
 
 Then start the app:

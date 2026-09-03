@@ -86,6 +86,37 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B41 — nothing could say which migrations the live project actually has
+
+```
+Screen      — the database, not a screen
+Seen        `docs/setup-supabase.md` said "the schema is one file:
+            0001_init.sql. It has never been applied to this project", and
+            `docs/auth-test-period.md` said to run 0005 through 0008 on top of
+            0001-0003. There are thirteen migrations. Both lists were written
+            when they were true and neither was updated by the eight files that
+            landed after them, so the only written answer to "is the server up
+            to date" had been wrong for weeks
+Expected    a way to ask the database itself, from the one place a person
+            actually has — the SQL Editor — and get back which files are
+            outstanding by name
+Found       3 Sept, asked to check the Supabase side after a SQL Editor tab was
+            closed. A remote session cannot reach supabase.co (the proxy denies
+            it) so there was no way to check and no document to trust
+Locked by   npm run db:verify — it now runs supabase/state-check.sql against the
+            throwaway database after applying every migration and fails if any
+            row reads MISSING. A probe that stops matching its migration, or a
+            fourteenth migration with no row of its own, takes it red
+Status      fixed in this commit
+```
+
+The half of this that a check can hold is the script. The half it cannot is the
+two dashboard toggles — anonymous sign-ins, and the access-token hook — which
+live in Supabase's own configuration and are invisible to SQL. `state-check.sql`
+prints them as a row anyway, marked `by hand`, because a checklist that silently
+omits the step that fails silently is the same fault again: without the hook a
+watcher's screen is simply empty, and nothing anywhere reports an error.
+
 ### B35 — the app still said "kitty" in two places, and went quiet when a player held it
 
 ```
