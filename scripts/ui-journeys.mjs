@@ -678,7 +678,7 @@ async function playANight(name, rebuys) {
   await stop('rounding');
   await holds(
     'and the sheet says what each step would cost',
-    (await page.getByText(/^No stack moves by more than /).count()) > 0,
+    (await page.getByText(/^No net moves by more than /).count()) > 0,
     'the rounding sheet offers steps without saying what they would do',
   );
 
@@ -788,41 +788,56 @@ async function playANight(name, rebuys) {
   await stop('night settled');
 
   /*
-   * THE WHOLE FORMULA ON THE ROW — `E6-results-columns.md`, frames 6a/6b, and
-   * the layout that ships. Four columns, `game · food · piggy · net`, every
-   * deduction in open view and nothing behind a tap.
+   * WHAT A ROUNDED NIGHT DRAWS, and why it is not the columns.
    *
-   * IT IS INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches a settled
-   * night with money on it, so the route pass measures the seeded mid-count
-   * book and sees none of this. And this is the night where it is tightest —
-   * millions and a rounding step, four figures on a 360-wide row.
+   * `E6-results-columns.md` frames 6a/6b put the whole formula on the row —
+   * `game · food · piggy · net`, nothing behind a tap — and that is the layout
+   * that ships for an ordinary night. THIS night is not one: it settled at the
+   * nearest $50, and since 2 September the step lands the positions rather than
+   * the stacks, so what it moved is a fifth term with no column to sit in.
+   * `columnsFit()` says so and the screen takes the receipt rows instead, which
+   * have a line per term and name this one.
+   *
+   * The columns themselves keep their coverage from the route pass, which opens
+   * /settled cold on the seeded night — no step, four columns.
+   *
+   * INVISIBLE TO EVERY OTHER CHECK IN THE REPO either way: no URL reaches a
+   * settled night with money on it, so nothing else sees a rounded record at
+   * all.
    */
   await holds(
-    'the row carries the whole formula',
-    (await page.locator(':text-is("game"):visible').count()) === 1 &&
-      (await page.locator(':text-is("food"):visible').count()) === 1 &&
-      (await page.locator(':text-is("piggy"):visible').count()) === 1 &&
-      (await page.locator(':text-is("net"):visible').count()) === 1,
-    'E6 does not draw the four columns',
-  );
-
-  await holds(
-    'and nothing is hidden behind a tap',
-    (await page.getByLabel(/\u00b7 their night$/).count()) === 0 &&
-      (await page.getByText('Cashed out', { exact: true }).count()) === 0,
-    'E6 still draws the receipt rows the columns layout replaced',
+    'a rounded night takes the receipt rows, not the columns',
+    (await page.locator(':text-is("game"):visible').count()) === 0 &&
+      (await page.getByLabel(/\u00b7 their night$/).count()) > 0,
+    'E6 drew four columns for a night whose step moved a fifth term into them',
   );
 
   /*
-   * AND THE ARITHMETIC THE ROW INVITES COMES OUT RIGHT.
+   * AND THE STEP IS NAMED ON THE ROW IT MOVED.
    *
-   * Four figures on a line invite exactly one sum, and a reader who does it has
-   * to arrive at the figure printed beside them. `rev15-night.test.ts` asserts
-   * that of the engine; this asserts it of what is actually on the phone, which
-   * is where a column could be drawn in the wrong order or a cell dropped.
+   * This is the whole of B29 seen from the phone. The old rule hid the step
+   * inside somebody's gross and handed the difference to the piggy bank, so no
+   * row ever had to account for it. It is a term now, it belongs to the person
+   * whose position moved, and the receipt has to print it — otherwise a reader
+   * adding their own row up lands somewhere other than the net beside it.
+   */
+  await page.getByLabel(/\u00b7 their night$/).first().click({ timeout: 15_000 });
+  await page.waitForTimeout(700);
+  await holds(
+    'and the receipt names what the step moved',
+    (await page.getByText(/^Rounded to /).count()) > 0,
+    'a rounded night draws a receipt with no line for the rounding',
+  );
+
+  /*
+   * AND THE ARITHMETIC THE RECEIPT INVITES COMES OUT RIGHT.
+   *
+   * Every term above the Net, summed, has to be the Net. `stacks.test.ts`
+   * asserts that of the engine; this asserts it of what is actually on the
+   * phone, which is where a term could be dropped or drawn in the wrong sign.
    */
   await holds(
-    'and the three columns add up to the fourth on screen',
+    'and every term on the receipt adds up to the Net beside it',
     await page.evaluate(() => {
       const money = (s) => {
         const t = (s || '').trim().replace(/[,$]/g, '').replace(/\u2212/g, '-');
@@ -830,24 +845,26 @@ async function playANight(name, rebuys) {
         const n = Number(t.replace('+', ''));
         return Number.isFinite(n) ? n : null;
       };
-      const cells = [...document.querySelectorAll('div')].filter((d) => {
+      /* The open receipt: a stack of two-cell rows ending in one labelled Net. */
+      const rows = [...document.querySelectorAll('div')].filter((d) => {
         const kids = [...d.children];
         return (
-          kids.length >= 3 &&
-          kids.length <= 5 &&
+          kids.length === 2 &&
           kids.every((k) => k.children.length === 0) &&
-          kids.slice(1).every((k) => /^[+\u2212]?\$/.test((k.textContent || '').trim()))
+          /^[+\u2212]?\$/.test((kids[1].textContent || '').trim())
         );
       });
-      if (cells.length === 0) return false;
-      return cells.every((row) => {
-        const figures = [...row.children].slice(1).map((k) => money(k.textContent));
-        if (figures.some((f) => f === null)) return true; // abbreviated: skip
-        const net = figures.pop();
-        return figures.reduce((a, b) => a + b, 0) === net;
-      });
+      const net = rows.find((r) => /^Net$/i.test((r.children[0].textContent || '').trim()));
+      if (!net) return false;
+      const total = money(net.children[1].textContent);
+      if (total === null) return true; // abbreviated: skip
+      const terms = rows
+        .filter((r) => r !== net)
+        .map((r) => money(r.children[1].textContent));
+      if (terms.length === 0 || terms.some((t) => t === null)) return true;
+      return terms.reduce((a, b) => a + b, 0) === total;
     }),
-    'a row of columns on E6 does not add up to the net beside it',
+    'the receipt rows on E6 do not add up to the Net beside them',
   );
 
   await stop('night settled · the columns');

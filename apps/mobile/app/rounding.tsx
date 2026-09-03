@@ -3,7 +3,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   granularityOf,
-  stackRounding,
   type Money,
   type RoundingMode,
 } from '@poker-club/core';
@@ -23,13 +22,15 @@ import { useIsAdmin } from '../src/lib/whoIsReading';
 /**
  * Rounding — the step the night settles at.
  *
- * REBUILT 31 AUGUST from `design/handoff-E2/docs/E2-rounding.md`, and what
- * changed is what the setting DOES. It used to reach one thing: how coarsely a
- * RULE DIVIDES, so a bill share came out at $60 rather than $56. This sheet
- * said as much, at length, under a heading reading *What it does not touch* —
- * "nothing anybody counted… a chip count is a chip count". The addendum
- * reverses exactly that: the stacks snap to the step as they are entered, the
- * nets and the transfers follow, and the difference goes to the piggy bank.
+ * REBUILT 31 AUGUST from `design/handoff-E2/docs/E2-rounding.md`, and CHANGED
+ * AGAIN ON 2 SEPTEMBER — the second change puts back what the first one took
+ * away. This sheet once said, at length, under a heading reading *What it does
+ * not touch*, that the step reached "nothing anybody counted… a chip count is a
+ * chip count". The addendum reversed that and snapped the stacks. It is true
+ * again: nothing here touches a count. What the step lands is the final
+ * POSITIONS, apportioned across every party at once so that they still sum to
+ * zero — no remainder, nothing for the piggy bank to absorb, and no screen
+ * printing a figure another screen disagrees with.
  *
  * The old objection was the right objection. Rounding a count invents or
  * destroys money, and six nets rounded independently sum to something the table
@@ -84,18 +85,35 @@ export default function Rounding() {
    * here means every render, because `stackRounding` is pure and cheap.
    */
   const counts = night?.finalCounts ?? new Map<string, Money>();
-  const nothingCounted = counts.size === 0;
   const rawTotal = [...counts.values()].reduce((a, b) => (a + b) as Money, 0 as Money);
 
+  /*
+   * WHAT THE STEP COSTS, AS A GUARANTEE RATHER THAN A MEASUREMENT.
+   *
+   * It used to be the worst single stack, recomputed off `stackRounding` on
+   * every render, and it had to be: the old rule snapped each stack on its own,
+   * so what a step would do depended on which stacks had been counted. Half way
+   * through a count the sheet could only answer for the half it had.
+   *
+   * The step now lands the POSITIONS, apportioned so that they still sum to
+   * zero, and the apportionment hands anybody at most one step. So the worst
+   * case is a fact about the step rather than about the night: at the nearest
+   * $10 nobody's net moves by more than $9, ever, and the sheet can say so
+   * before a single stack is in.
+   *
+   * ⚠ COPY NOT DRAWN. The addendum's four sub-lines describe stacks moving.
+   * Flagged for the designer rather than passed off as decided.
+   */
   function subline(mode: RoundingMode): string | null {
     if (forClub) return null;
-    if (nothingCounted) return 'No stacks counted yet';
-    if (granularityOf(mode) === 1) {
-      return `Stacks as counted · ${formatMoney(rawTotal)} so far`;
+    const step = granularityOf(mode);
+    if (step === 1) {
+      return counts.size === 0
+        ? 'Every figure to the dollar'
+        : `Every figure to the dollar · ${formatMoney(rawTotal)} counted so far`;
     }
-    return `No stack moves by more than ${formatMoney(
-      stackRounding(counts, granularityOf(mode)).worst,
-    )}`;
+    /* Money is whole units, so the tight bound is one under the step. */
+    return `No net moves by more than ${formatMoney((step - 1) as Money)}`;
   }
 
   async function save() {

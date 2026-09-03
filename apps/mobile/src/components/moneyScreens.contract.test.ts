@@ -171,12 +171,11 @@ describe('the game settings set how coarsely the table settles', () => {
     // app disagreeing with itself about what the night is set to.
     expect(roundingRowLabel(null)).toBe('Rounding · off');
     expect(roundingRowLabel('tens')).toBe('Rounding · nearest $10');
-    expect(roundingRowValue(null)).toBe('stacks as counted');
-    expect(roundingRowValue('tens')).toBe('stacks snap to $10');
-    /* Where there is a settled remainder, the row answers the question it
-       actually gets asked: who paid for the rounding. */
-    expect(roundingRowValue('tens', money(16))).toBe('−$16 → piggy');
-    expect(roundingRowValue('tens', money(-16))).toBe('+$16 → piggy');
+    /* Rewritten 2 September with the rule they describe. The step lands the
+       NETS, never a stack, and there is no remainder state at all — the third
+       assertion here used to be `+$16 → piggy`. */
+    expect(roundingRowValue(null)).toBe('exact to the dollar');
+    expect(roundingRowValue('tens')).toBe('nets land on $10');
   });
 
   it('has a rounding step of its own, reached from the game', () => {
@@ -352,8 +351,7 @@ describe('every figure in the app is written in the group’s own currency', () 
     // The step is an amount, so it is written in the group's currency wherever
     // it is named — the row, its value, the four rows of the sheet.
     expect(roundingRowLabel('tens', 'Kč')).toBe('Rounding · nearest Kč10');
-    expect(roundingRowValue('tens', null, '€')).toBe('stacks snap to €10');
-    expect(roundingRowValue('tens', money(16), '£')).toBe('−£16 → piggy');
+    expect(roundingRowValue('tens', '€')).toBe('nets land on €10');
     expect(roundingChoices('€').map((c) => c.chip)).toEqual([
       'Off',
       'Nearest €10',

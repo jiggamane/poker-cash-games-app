@@ -1,6 +1,5 @@
 import { granularityOf } from './money';
 import { resolveLedger } from './ledger';
-import { roundToStep } from './stacks';
 import { ALGORITHM_VERSION, settle, type SettlementInput, type SettlementResult } from './settlement';
 import { UNACCOUNTED_ID, type PlayerId } from './types';
 
@@ -257,11 +256,11 @@ function checkPlayers(
   // row's own `charged` and `credited` must agree with the deductions that
   // produced them — two statements of one fact, which is exactly the kind that
   // silently drifts apart.
-  /* The step this night should have settled at, and who has to carry what it
-     costs — both re-derived from the input, never taken from the result. */
-  const piggy = input.rules.find((r) => r.active && r.destination === 'kitty');
-  const collector = piggy?.collectorPlayerId;
-  const step = collector === undefined ? 1 : granularityOf(input.roundingMode);
+  /* The step this night should have settled at, re-derived from the input and
+     never taken from the result. It no longer depends on there being a piggy
+     bank: the apportionment keeps the sum at zero on its own, so a group with
+     no tin rounds exactly as well as one with. */
+  const step = granularityOf(input.roundingMode);
 
   const chargedByPlayer = new Map<PlayerId, number>();
   const creditedByPlayer = new Map<PlayerId, number>();
@@ -305,42 +304,34 @@ function checkPlayers(
         p.playerId,
       );
 
-      /*
-       * RE-DERIVED FROM THE STEP AND THE RAW COUNT, never read off the result.
-       * `step` below comes from the night's own rounding mode and its piggy-bank
-       * rule, which is how `settle()` decides it too — but computed here from
-       * the input, so a step applied to the wrong stacks, applied twice, or
-       * applied with no piggy bank to carry the remainder is a finding rather
-       * than a figure the verifier copies.
-       */
-      const counted = input.finalCounts.get(p.playerId);
-      const roundedBy =
-        counted === undefined ? 0 : roundToStep(counted, step) - counted;
+      /* NOTHING ROUNDS A COUNT any more, so the gross is the plain
+         subtraction. A build that has gone back to snapping the stacks fails
+         here rather than somewhere downstream. */
       check(
-        p.roundedBy === roundedBy,
-        'player.roundedBy',
-        `${p.name}'s stack is down as moving ${p.roundedBy}; their count of ${counted ?? 0} at a ` +
-          `step of ${step} moves ${roundedBy}.`,
-        p.playerId,
-      );
-
-      check(
-        p.grossResult === p.endedWith - p.boughtIn + p.roundedBy,
+        p.grossResult === p.endedWith - p.boughtIn,
         'player.gross',
-        `${p.name}'s gross reads ${p.grossResult}; ended with less bought in plus rounding is ` +
-          `${p.endedWith - p.boughtIn + p.roundedBy}.`,
+        `${p.name}'s gross reads ${p.grossResult}; ended with less bought in is ` +
+          `${p.endedWith - p.boughtIn}.`,
         p.playerId,
       );
     }
 
-    /* Only the piggy bank's collector may carry the room's remainder, and only
-       when there is a remainder to carry. Anybody else holding one is money
-       taken off a person for no reason anybody can name. */
+    /* NOBODY MOVES BY A WHOLE STEP. The apportionment floors and then hands out
+       single steps, so every move is inside one — a larger one means the step
+       was applied twice, or applied to something that was already on it. */
     check(
-      p.roundingAbsorbed === 0 || p.playerId === collector,
-      'player.absorbed.whom',
-      `${p.name} carries a rounding remainder of ${p.roundingAbsorbed}, but the piggy bank is ` +
-        `${collector === undefined ? 'not collected by anybody' : `collected by ${collector}`}.`,
+      Math.abs(p.roundedBy) < step || step === 1,
+      'player.roundedBy',
+      `${p.name}'s position moved ${p.roundedBy} in rounding, which is a whole step of ${step} ` +
+        'or more. No apportionment should move anybody that far.',
+      p.playerId,
+    );
+
+    /* And every position lands ON the step. */
+    check(
+      p.finalPosition % step === 0,
+      'player.position.step',
+      `${p.name}'s position of ${p.finalPosition} is not a multiple of the step of ${step}.`,
       p.playerId,
     );
 
@@ -359,27 +350,26 @@ function checkPlayers(
     );
 
     check(
-      p.finalPosition === p.grossResult - p.charged + p.credited - p.roundingAbsorbed,
+      p.finalPosition === p.grossResult - p.charged + p.credited + p.roundedBy,
       'player.position',
-      `${p.name}'s position reads ${p.finalPosition}; gross less charged plus credited less the ` +
-        `rounding they carry is ${p.grossResult - p.charged + p.credited - p.roundingAbsorbed}.`,
+      `${p.name}'s position reads ${p.finalPosition}; gross less charged plus credited plus the ` +
+        `step is ${p.grossResult - p.charged + p.credited + p.roundedBy}.`,
       p.playerId,
     );
   }
 
   /*
-   * THE REMAINDER IS CONSERVED. Every dollar a stack gained by rounding came
-   * out of the piggy bank and every dollar one lost went into it, so the two
-   * columns are the same figure with opposite signs. If this fails the table
-   * has been handed money nobody put in — the rounding version of the zero-sum
-   * check below, and it fails first because it is more specific.
+   * ROUNDING IS A REDISTRIBUTION, NOT A SOURCE. What one position gained by the
+   * step, the others gave up: the moves sum to zero and nobody had to absorb a
+   * remainder. This is the whole of the 2 September change, stated as a number
+   * — if it fails, the table has been handed money nobody put in.
    */
   const moved = result.players.reduce((t, p) => t + p.roundedBy, 0);
-  const carried = result.players.reduce((t, p) => t + p.roundingAbsorbed, 0);
   check(
-    moved === carried,
-    'night.rounding.remainder',
-    `Rounding moved ${moved} across the stacks but ${carried} was carried by the piggy bank.`,
+    moved === 0,
+    'night.rounding.conserved',
+    `Rounding moved ${moved} across the positions instead of nothing. It must redistribute, ` +
+      'never invent.',
   );
 
   // THE ONE THAT MATTERS MOST. Money is neither made nor destroyed at a poker

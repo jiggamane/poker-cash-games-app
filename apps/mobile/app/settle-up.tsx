@@ -136,7 +136,6 @@ export default function SettleUp() {
        */}
       <RoundingBar
         mode={night.roundingMode}
-        remainder={rounding.remainder}
         onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
         style={styles.rounding}
       />

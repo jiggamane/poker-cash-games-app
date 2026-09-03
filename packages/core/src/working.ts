@@ -280,21 +280,24 @@ export function nightScore(result: SettlementResult, playerId: PlayerId): NightS
   if (person === undefined) return { score: 0 as Money, held: 0 as Money };
 
   /*
-   * TWO THINGS ARE HELD RATHER THAN WON, and the second arrived with the
-   * rounding step. The float is the piggy bank's own money sitting in the
-   * collector's pocket; `roundingAbsorbed` is what the same pocket paid out to
-   * make everybody's stack a round number. A collector who is $16 lighter
-   * because the table settles in tens is not $16 worse at poker.
+   * ONE THING IS HELD RATHER THAN WON: the float, which is the piggy bank's own
+   * money sitting in the collector's pocket.
    *
-   * Their own stack rounding is NOT here. `roundedBy` is already inside
-   * `grossResult`, it is theirs, and it stays in their score — which is what
-   * makes it a term on their receipt above the `Net` rather than below it.
+   * There used to be a second — what that pocket paid out to make everybody's
+   * stack a round number — and since 2 September there is no such payment. The
+   * step redistributes the positions and leaves no remainder for anybody to
+   * carry, so a collector's score is their position less the float and nothing
+   * else.
+   *
+   * Their own rounding is NOT taken out. `roundedBy` is inside `finalPosition`,
+   * it is theirs, and it stays in their score — which is what makes it a term
+   * on their receipt above the `Net` rather than below it.
    */
   const float = playerDeductions(result, playerId).reduce(
     (running, d) => (running + d.held) as Money,
     0 as Money,
   );
-  const held = (float - person.roundingAbsorbed) as Money;
+  const held = float;
 
   return { score: (person.finalPosition - held) as Money, held };
 }
@@ -543,8 +546,26 @@ export interface ResultColumns {
  * name — so the night gets the receipt rows, where every kind has a line.
  */
 export function columnsFit(result: SettlementResult): boolean {
-  return result.deductions.every(
-    (d) => d.total === 0 || d.destination === 'bill' || d.destination === 'kitty',
+  /*
+   * A ROUNDED NIGHT HAS A FIFTH TERM AND THERE IS NO FIFTH COLUMN.
+   *
+   * Since 2 September the step lands the POSITIONS rather than the stacks, so
+   * what it moved is no longer inside `grossResult` and no longer inside the
+   * piggy bank either — it is a term of its own between the deductions and the
+   * net. Four figures on a line invite exactly one sum, and a reader who does
+   * it has to arrive at the figure printed beside them; on a rounded night
+   * `game + food + piggy` is short by whatever the step moved.
+   *
+   * So a rounded night takes the receipt rows, which have a line per term and
+   * already name this one. That is the same answer this function gives a night
+   * with a host's fee, for the same reason: the layout cannot say what happened.
+   */
+  const rounded = result.players.some((p) => p.roundedBy !== 0);
+  return (
+    !rounded &&
+    result.deductions.every(
+      (d) => d.total === 0 || d.destination === 'bill' || d.destination === 'kitty',
+    )
   );
 }
 

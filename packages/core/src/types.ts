@@ -201,36 +201,28 @@ export interface PlayerSettlement {
   boughtIn: Money;
   /**
    * What they took off it: cash-outs plus any chips still in front of them,
-   * AS COUNTED. The rounding step never rewrites this — see `roundedBy`.
+   * AS COUNTED. Nothing rounds a count.
    */
   endedWith: Money;
-  /** endedWith − boughtIn, plus `roundedBy`, before any rule applies. */
+  /** endedWith − boughtIn, before any rule applies. Never rounded. */
   grossResult: Money;
   /**
-   * What the rounding step did to their own stack — `rounded − counted`,
-   * signed, and already inside `grossResult`.
+   * What the rounding step did to their POSITION — `rounded − exact`, signed,
+   * and already inside `finalPosition`.
    *
-   * It is theirs: a stack that snapped up is money they settle with, and it is
-   * a term on their receipt between the piggy bank and the Net. Zero on a
-   * night that settles as counted, which is every night before 31 August.
+   * It is theirs, it is a term on their receipt between the piggy bank and the
+   * Net, and it is always less than one step. Zero on a night that settles to
+   * the dollar. Before 2 September this measured their stack instead, which is
+   * the thing the step no longer touches.
    */
   roundedBy: Money;
-  /**
-   * The whole room's rounding remainder, carried by the piggy bank's collector
-   * and nobody else.
-   *
-   * NOT THEIRS, which is the whole reason it is a field of its own rather than
-   * folded into `charged`: they are the tin, and `nightScore` takes it back out
-   * of their score the same way it takes out the piggy bank itself.
-   */
-  roundingAbsorbed: Money;
   /** What the rules took off them. */
   charged: Money;
   /** What they are owed as a collector or an expense payer. */
   credited: Money;
   /**
-   * grossResult − charged + credited − roundingAbsorbed. Positions across
-   * everyone sum to zero.
+   * grossResult − charged + credited, then landed on the step. Positions
+   * across everyone sum to zero, before the step and after it.
    */
   finalPosition: Money;
 }

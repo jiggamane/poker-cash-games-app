@@ -204,18 +204,18 @@ export function roundingRowLabel(
  */
 export function roundingRowValue(
   mode: RoundingMode | null | undefined,
-  remainder?: Money | null,
   currencySymbol = '$',
 ): string {
   const step = granularityOf(mode);
-  if (step === 1) return 'stacks as counted';
-  if (remainder === null || remainder === undefined || remainder === 0) {
-    return `stacks snap to ${stepAmount(step, currencySymbol)}`;
-  }
-  /* Signed, and pointing at where it landed. The piggy bank funds a positive
-     remainder and keeps a negative one; the arrow says which way it went. */
-  const sign = remainder > 0 ? '−' : '+';
-  return `${sign}${currencySymbol}${Math.abs(remainder).toLocaleString('en-US')} → piggy`;
+  /*
+   * ⚠ COPY NOT DRAWN, and rewritten on 2 September. It read `stacks as counted`
+   * and `stacks snap to $10`, which described the rule this build no longer
+   * follows: a stack is never snapped, a NET is. There was a third state —
+   * `+$16 → piggy`, the remainder — and it is gone because there is no
+   * remainder. Flagged for the designer rather than passed off as decided.
+   */
+  if (step === 1) return 'exact to the dollar';
+  return `nets land on ${stepAmount(step, currencySymbol)}`;
 }
 
 /**
