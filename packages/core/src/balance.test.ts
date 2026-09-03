@@ -224,3 +224,52 @@ describe('the result a settled row prints, before any deduction', () => {
     expect(resultBeforeDeductions(boughtIn, counted)).toBe(counted - boughtIn);
   });
 });
+
+describe('who the money came from, as counts of people', () => {
+  /*
+   * The block's right-hand sub-line reads `3 counted · 3 cashed out` — the two
+   * halves of `playersIn`, which is what E2 draws under the ACCOUNTED FOR
+   * figure since 3 September. They are counts of PEOPLE where `counted` and
+   * `cashedOut` are sums of money, and the screen draws one of each.
+   */
+  it('splits the people who are in into counted and gone', () => {
+    const ledger = resolveLedger([
+      e({ type: 'buyin', playerId: 'a', amount: money(500) }),
+      e({ type: 'buyin', playerId: 'b', amount: money(500) }),
+      e({ type: 'buyin', playerId: 'c', amount: money(500) }),
+      e({ type: 'cashout', playerId: 'c', amount: money(700) }),
+    ]);
+    const b = balanceCheck(ledger, new Map([['a', money(400)]]), ['a', 'b']);
+
+    expect(b.countedPlayers).toBe(1);
+    expect(b.cashedOutPlayers).toBe(1);
+    expect(b.playersIn).toBe(2);
+    expect(b.playersTotal).toBe(3);
+  });
+
+  it('counts a busted player as counted — a stack of $0 is a stack', () => {
+    /* The decision `playersIn` turns on, made once more where the screen reads
+       it: somebody counted at nothing is in, not still to count. */
+    const ledger = resolveLedger([
+      e({ type: 'buyin', playerId: 'a', amount: money(500) }),
+      e({ type: 'buyin', playerId: 'b', amount: money(500) }),
+    ]);
+    const b = balanceCheck(ledger, new Map([['a', money(0)]]), ['a', 'b']);
+
+    expect(b.countedPlayers).toBe(1);
+    expect(b.cashedOutPlayers).toBe(0);
+    expect(b.uncounted).toEqual(['b']);
+  });
+
+  it('adds the two of them to the people who are in, always', () => {
+    const ledger = resolveLedger([
+      e({ type: 'buyin', playerId: 'a', amount: money(500) }),
+      e({ type: 'buyin', playerId: 'b', amount: money(500) }),
+      e({ type: 'cashout', playerId: 'b', amount: money(500) }),
+    ]);
+    for (const counts of [new Map(), new Map([['a', money(500)]])] as const) {
+      const b = balanceCheck(ledger, counts, ['a']);
+      expect(b.countedPlayers + b.cashedOutPlayers).toBe(b.playersIn);
+    }
+  });
+});
