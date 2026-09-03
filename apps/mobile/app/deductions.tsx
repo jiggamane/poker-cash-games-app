@@ -6,6 +6,7 @@ import {
   money,
   reconcile,
   resolveLedger,
+  resultColumns,
   settle,
   type Deduction,
   type Money,
@@ -180,7 +181,14 @@ export default function Deductions() {
     })
     .join(' · ');
 
-  const winners = players.filter((p) => p.grossResult > 0);
+  /*
+   * THE PREVIEW TABLE, OFF THE ENGINE — `resultColumns`, the same call
+   * `/ledger` draws, so the working screen and the ledger cannot disagree about
+   * what a rule took off somebody. It decides the membership (the hole is a row,
+   * the collector is not) and the order; this screen decides nothing.
+   */
+  const columns = resultColumns(result.value);
+  const stepped = columns.some((r) => r.rounded !== 0);
 
   /*
    * WHICH RULE A COLUMN IS. The BILL and KITTY columns are destinations, and
@@ -292,70 +300,79 @@ export default function Deductions() {
           <Text style={[styles.head, styles.num, styles.netCol, { color: t.muted }]}>NET</Text>
         </View>
 
-        {players
-          .filter((p) => p.boughtIn > 0 || p.endedWith > 0)
-          .sort((a, b) => b.finalPosition - a.finalPosition)
-          .map((p) => {
-            const bill = amountFor(deductions, 'bill', p.playerId, 'charge');
-            const back = amountFor(deductions, 'bill', p.playerId, 'credit');
-            const kitty = amountFor(deductions, 'kitty', p.playerId, 'charge');
-            const won = winners.some((w) => w.playerId === p.playerId);
+        {columns.map((r) => (
+          <View key={r.player.playerId} style={[styles.bodyRow, { borderBottomColor: t.previewRule }]}>
+            <Text style={[styles.cellName, { color: t.text }]} numberOfLines={1}>
+              {r.player.name}
+            </Text>
+            <Text style={[styles.gross, styles.num, { color: t.muted }]} numberOfLines={1}>
+              {compact(r.game)}
+            </Text>
+            {/*
+              * BILL AND BACK ARE ONE CELL — one rule seen from two sides, what
+              * the split charges you and what you fronted and get returned. A
+              * person who did both had the two halves of their own bill two
+              * columns apart with a sign to reconcile.
+              *
+              * THE FIGURE IS THE ENGINE'S NOW. This screen used to work it out
+              * itself, `credited − charged` per destination per row, which is
+              * the second untested implementation of a sum `resultColumns`
+              * already makes — and makes for `/ledger` too, off the same call.
+              * `CLAUDE.md`: a screen that adds up its own column is a second
+              * implementation of the same sum.
+              *
+              * A loser's cells are usually empty, and that is a fact about the
+              * rules rather than about the reader: both charge winners, and an
+              * empty cell says so better than a zero.
+              */}
+            <Cell
+              width={styles.billCol}
+              wash={t.offTableFaint}
+              color={r.food > 0 ? t.text : t.offTable}
+              text={signed(r.food)}
+              byHand={handSet(ruleFor('bill'), r.player.playerId)}
+              rule={ruleFor('bill')}
+              playerId={r.player.playerId}
+              admin={admin}
+            />
+            <Cell
+              width={styles.piggyCol}
+              wash={t.offTableWash}
+              color={t.offTable}
+              text={signed(r.piggy)}
+              byHand={handSet(ruleFor('kitty'), r.player.playerId)}
+              rule={ruleFor('kitty')}
+              playerId={r.player.playerId}
+              admin={admin}
+            />
+            <Text
+              style={[styles.net, styles.num, styles.netCol, { color: moneyColor(t, r.ruled) }]}
+              numberOfLines={1}
+            >
+              {formatSignedCompact(r.ruled)}
+            </Text>
+          </View>
+        ))}
 
-            return (
-              <View key={p.playerId} style={[styles.bodyRow, { borderBottomColor: t.previewRule }]}>
-                <Text style={[styles.cellName, { color: t.text }]} numberOfLines={1}>
-                  {p.name}
-                </Text>
-                <Text style={[styles.gross, styles.num, { color: t.muted }]} numberOfLines={1}>
-                  {compact(p.grossResult)}
-                </Text>
-                {/*
-                  * BILL AND BACK ARE ONE CELL. They are one rule seen from two
-                  * sides — what the split charges you, and what you fronted and
-                  * get returned — and a person who did both had the two halves
-                  * of their own bill two columns apart with a sign to
-                  * reconcile. One signed figure is what actually happens to
-                  * them, and the column it frees goes to the four that were
-                  * being cut off.
-                  *
-                  * A loser's cells are usually empty, and that is a fact about
-                  * the rules rather than about the reader: both charge winners,
-                  * and an empty cell says so better than a zero. It is drawn
-                  * from the FIGURE now rather than from whether they won, so a
-                  * share the host typed against a loser's name — the one thing
-                  * that puts one on a rule at all — appears where it belongs
-                  * instead of vanishing.
-                  */}
-                <Cell
-                  width={styles.billCol}
-                  wash={t.offTableFaint}
-                  color={back > bill ? t.text : t.offTable}
-                  text={signed(money(back - bill))}
-                  byHand={handSet(ruleFor('bill'), p.playerId)}
-                  rule={ruleFor('bill')}
-                  playerId={p.playerId}
-                  admin={admin}
-                />
-                <Cell
-                  width={styles.piggyCol}
-                  wash={t.offTableWash}
-                  color={t.offTable}
-                  text={signed(money(-kitty))}
-                  byHand={handSet(ruleFor('kitty'), p.playerId)}
-                  rule={ruleFor('kitty')}
-                  playerId={p.playerId}
-                  admin={admin}
-                />
-                <Text
-                  style={[styles.net, styles.num, styles.netCol, { color: moneyColor(t, p.finalPosition) }]}
-                  numberOfLines={1}
-                >
-                  {formatSignedCompact(p.finalPosition)}
-                </Text>
-              </View>
-            );
-          })}
-
+        {/*
+          * WHAT THE RULES LEAVE, AND WHERE THE STEP IS.
+          *
+          * The NET column is `ruled` — gross, less what the rules took, before
+          * the rounding step. Four numeric columns is the ceiling at 393 and
+          * the step is a fifth: drawing it shrank the other four until the net
+          * clipped at the reader's text cap, and leaving it out while printing
+          * the ROUNDED net would be a row that does not add up. So this table
+          * states the rules exactly and says where the rest happens.
+          *
+          * ⚠ THE SECOND SENTENCE IS NOT DRAWN. E3's line promises a tap and
+          * nothing about the step, because the step did not exist when it was
+          * written. Flagged rather than passed off as decided copy.
+          */}
+        {stepped && (
+          <Text style={[styles.previewNote, { color: t.muted }]}>
+            Before rounding — the step lands at settle-up.
+          </Text>
+        )}
         <Text style={[styles.previewNote, { color: t.muted }]}>
           {admin
             ? 'Provisional until you settle. Tap any figure above to change it.'
@@ -617,18 +634,6 @@ const placeholders = (
   rule === undefined
     ? []
     : night.players.filter((p) => p.atTable).map((p) => ({ playerId: p.id, amount: 0 as Money }));
-
-const amountFor = (
-  deductions: readonly Deduction[],
-  destination: Deduction['destination'],
-  playerId: PlayerId,
-  side: 'charge' | 'credit',
-): Money =>
-  deductions
-    .filter((d) => d.destination === destination)
-    .flatMap((d) => (side === 'charge' ? d.charges : d.credits))
-    .filter((c) => c.playerId === playerId)
-    .reduce((sum, c) => sum + c.amount, 0) as Money;
 
 /*
  * THE PREVIEW IS A COLUMN THAT CANNOT GROW, so its figures are compact and
