@@ -520,6 +520,52 @@ A third changed on **30 August**, and it is an addition rather than a departure:
   `DRAWN`, and the two are deliberately separate: `DRAWN` is worth something
   only while every string in it is on an artboard.
 
+**`/deductions` has no table on it any more — 4 September.** *Everyone after
+deductions*, the block at the foot of E3, was five columns under heads reading
+`GROSS BILL PIGGY NET`, in a dashed frame with a `PREVIEW` tag on it. That is
+what rev 18 draws (`13-after-the-night.md` § E3) and what the screen built. It
+is rows now, in the same frame with the same tag: the name, the working under
+it, and the position hard right.
+
+    Dana                                                        +$1,543
+    game +$1,620 · food −$54 · piggy −$23
+
+**It is the change the settled night made on 2 September, one screen earlier in
+the flow**, and the reason is the same one: a grid of figures reads as a second
+ledger beside the rule blocks above it, and every cell in it is already printed
+in full, to the dollar, in the block it came from. What the columns had that the
+blocks have not is the TRANSPOSE — one person, every rule, on one line — and the
+formula line is exactly that. The two screens now say a person's night in one
+shape, off one engine call: `resultFormula`, which E4's `Night's net` list
+already used.
+
+**The screens differ on what they fold in, and that is deliberate.** E6 does not
+fold a deduction into anybody's result — the row is what they did at the table
+and the deductions are a block of their own (`design/handoff-four-screens/`).
+E3's block is titled *Everyone after deductions* and folding them in is the
+whole of what it is for; it is the working, while there is still time to change
+a rule, and it is tagged `PREVIEW` for that reason.
+
+**And it can state the rounding step now.** The table drew `ruled` — the
+position before the step — because four numeric columns is the ceiling at 393
+and the step is a fifth, so the frame carried a line reading *"Before rounding —
+the step lands at settle-up"*, which no board drew. A sentence has no such
+ceiling: the step is a term like any other, the figure on the right is the one
+E4 settles, and the caveat is gone with the grid that needed it.
+
+**⚠ It is a departure from rev 18, which draws the columns.** No later cut
+draws E3 — `handoff-count-up-to-settled` speaks on E2, E4 and E6, and
+`handoff-four-screens` on Tonight, Count up, Results and Settle up; the only
+mention of this screen in either is `05-active-vs-settled.md` saying the
+deductions happen here. So it is decided against the pattern those two cuts set
+for the same figures on the screens either side of it, not by a doc that draws
+E3. The board is still `Screens - After the night.md` § E3 and it
+still draws the grid. **Open, and the one to put in front of the owner.**
+
+`ui-journeys.mjs` holds both halves at its `deductions` stop — no column heads,
+and a formula line under a name — because `/deductions` opened bare is E3's *Not
+yet* state, which has no preview on it at all, so the route pass can see neither.
+
 **`/money-rules` and `/deductions`** — both carry the bill and the person who
 paid it, as of **30 August**. `11-bill-and-piggy-bank.md` has always allowed a
 spend added during settle-up — "recalculates every winner's share and every
@@ -839,11 +885,14 @@ hand it over. A results row asks a different question, and `nightScore` divides
 the engine's figure rather than restating it — `score + held` is `finalPosition`
 exactly.
 
-Three screens print the score: E6's rows, the player card's "Their night", and
-My stats. **E4's `Night's net` is the third, and it was still printing the
-balance until 1 September** — see B34. Three screens keep the balance and it is
-the same decision, not an oversight: E4's transfer list, E7's *Who has paid* and
-E3's preview grid all answer *what is this person owed when the room breaks up*.
+Four screens print the score: E6's rows, the player card's "Their night", My
+stats, and E3's preview. **E4's `Night's net` is the fourth, and it was still
+printing the balance until 1 September** — see B34. E3 joined them when the
+preview stopped doing its own arithmetic and read `resultColumns` instead, and
+it says so more plainly since 4 September, drawing the same `resultFormula` line
+E6 does. Three places keep the balance and it is the same decision, not an
+oversight: E4's transfer list, E7's *Who has paid* and the transfers themselves
+all answer *what is this person owed when the room breaks up*.
 
 **Where the float is named instead:** in the rule-outcome block, on the line for
 the deduction it came from.
