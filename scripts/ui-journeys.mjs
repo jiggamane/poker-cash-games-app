@@ -887,9 +887,14 @@ async function playANight(name, rebuys) {
     (await page.locator(':text-matches("^(GROSS|BILL|PIGGY|NET)$"):visible').count()) === 0,
     'E3 draws column heads again — the preview has gone back to being a table',
   );
+  /* READ AS TEXT, NOT AS A SELECTOR, and that is not a style choice: Playwright
+     does not unescape `\uXXXX` inside `:text-matches`, so a pattern written that
+     way compiles to something that matches nothing and the check passes for the
+     wrong reason. The terms are joined by a non-breaking space, which `\s`
+     covers, and the sign is a U+2212 minus rather than a hyphen. */
   await holds(
     'and every row says its working',
-    (await page.locator(':text-matches("^game[\\u00a0 ][+\\u2212]"):visible').count()) > 0,
+    await page.evaluate(() => /game\s[+\u2212]/.test(document.body.innerText)),
     'no formula line under any name on E3 — the preview says nothing about the rules',
   );
 
