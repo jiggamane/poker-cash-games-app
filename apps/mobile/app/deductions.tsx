@@ -6,27 +6,21 @@ import {
   money,
   reconcile,
   resolveLedger,
-  resultColumns,
+  resultFormula,
   settle,
   type Deduction,
   type Money,
   type MoneyRule,
   type PlayerId,
 } from '@poker-club/core';
-import {
-  formatCompactUnmarked,
-  formatMoney,
-  formatSignedCompact,
-  formatSignedCompactUnmarked,
-  formatToFit,
-} from '../src/lib/money';
+import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { SpendList } from '../src/components/SpendList';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius } from '../src/design/tokens';
+import { cappedFigure, radius } from '../src/design/tokens';
 import {
   clearManualCharges,
   nameOf,
@@ -182,26 +176,29 @@ export default function Deductions() {
     .join(' · ');
 
   /*
-   * THE PREVIEW TABLE, OFF THE ENGINE — `resultColumns`, the same call
-   * `/ledger` draws, so the working screen and the ledger cannot disagree about
-   * what a rule took off somebody. It decides the membership (the hole is a row,
-   * the collector is not) and the order; this screen decides nothing.
+   * EVERYONE AFTER DEDUCTIONS, AS A SENTENCE — `resultFormula`, the same call
+   * E4's night's-net list makes, so the two screens either side of this one
+   * cannot disagree about where the rules leave somebody. It decides the
+   * membership (the hole is a row, the collector is not), the order, and which
+   * terms a person's night has; this screen decides nothing.
+   *
+   * IT USED TO BE A TABLE — GROSS · BILL · PIGGY · NET under column heads, in a
+   * dashed frame, which is what rev 18 drew and what this screen built. The
+   * columns came off the settled night on 2 September and this is that same
+   * change one screen earlier: a grid of figures reads as a second ledger
+   * beside the one above it, and every cell in it is already printed in full,
+   * to the dollar, in the rule block it came from. What the table had that the
+   * blocks have not is the TRANSPOSE — one person, every rule, on one line —
+   * and a formula line is exactly that, in words, in the width of a phone.
+   *
+   * AND IT CAN STATE THE STEP NOW. The table drew `ruled`, the position BEFORE
+   * rounding, because four numeric columns is the ceiling at 393 and the step
+   * is a fifth — so the frame carried a line saying where the rest happened. A
+   * sentence has no such ceiling: the step is a term like any other, the figure
+   * on the right is the one E4 settles, and the caveat is gone with the grid
+   * that needed it.
    */
-  const columns = resultColumns(result.value);
-  const stepped = columns.some((r) => r.rounded !== 0);
-
-  /*
-   * WHICH RULE A COLUMN IS. The BILL and KITTY columns are destinations, and
-   * tapping a cell has to open the rule behind it — so the column has to know
-   * which one it is. The first rule with that destination, which is the same
-   * one `deductionOrder()` reimburses: a group with two bills is not a shape
-   * the design has anywhere, and picking the first is at least the same choice
-   * the engine makes.
-   */
-  const ruleFor = (destination: Deduction['destination']): MoneyRule | undefined =>
-    [...night.rules]
-      .filter((r) => r.active && r.destination === destination)
-      .sort((a, b) => a.sortOrder - b.sortOrder || (a.id < b.id ? -1 : 1))[0];
+  const rows = resultFormula(result.value);
 
   return (
     <Screen
@@ -266,113 +263,63 @@ export default function Deductions() {
           </View>
         </View>
 
-        <View style={styles.headRow}>
-          <Text style={styles.cellName} />
-          <Text style={[styles.head, styles.num, { color: t.muted }]} numberOfLines={1}>GROSS</Text>
-          {/* BILL AND BACK ARE ONE COLUMN. They are one rule seen from two
-              sides — what the split charges you, and what you fronted and get
-              returned — and a person who did both had the two halves of their
-              own bill in cells two apart with a sign to reconcile. One signed
-              figure is what actually happens to them, and the column it frees
-              goes to the four that were being cut off. */}
-          <Text
-            style={[styles.head, styles.num, styles.billCol, styles.washTop, { color: t.offTable, backgroundColor: t.offTableFaint }]}
-            numberOfLines={1}
+        {/*
+         * ONE ROW PER PERSON, AND THE WHOLE OF THEIR NIGHT ON IT.
+         *
+         * `Petr` · `game +$1,620 · food −$54 · piggy −$23` · `+$1,543`. The
+         * name and the working stack on the left, the position sits hard right,
+         * and colour is carried by the position and nothing else — a row is
+         * never tinted or filled by its outcome, which at eight players turns
+         * the frame into stripes and stops the figure being the thing you read.
+         *
+         * THE TERMS ARE THE ENGINE'S, in the engine's order. A term of $0 is not
+         * printed; a person with ONE term has no line at all, because `game
+         * −$500` under a `−$500` is the figure explaining itself.
+         *
+         * A NON-BREAKING SPACE INSIDE EACH TERM, and it is B18 rather than
+         * typography: with an ordinary space the line wrapped wherever it liked
+         * and where it liked was inside a figure — `piggy −` on one line and
+         * `$600` on the next. The separator between terms is a spaced middot,
+         * and that is the only place a break belongs.
+         */}
+        {rows.map(({ player: p, terms, net }, i) => (
+          <View
+            key={p.playerId}
+            testID="e3-preview-row"
+            style={[
+              styles.row,
+              i < rows.length - 1 && {
+                borderBottomColor: t.previewRule,
+                borderBottomWidth: StyleSheet.hairlineWidth,
+              },
+            ]}
           >
-            BILL
-          </Text>
-          {/*
-            PIGGY, WHERE THE BOARD DRAWS `KITTY` — the last reader-facing use of
-            the stored value anywhere in the app, and B35 is the entry it belongs
-            to. `kitty` is what the destination is called in the database and no
-            reader is ever meant to see it: the club's rules, settle-up, the
-            receipt and E6's own column all say piggy bank, off
-            `destinationWord`. Not `PIGGY BANK`: the cell is 9.5/700 in a
-            five-column grid measured against figures in the millions, and E6's
-            columns head the same money `piggy` for the same reason.
-          */}
-          <Text
-            style={[styles.head, styles.num, styles.piggyCol, styles.washTop, { color: t.offTable, backgroundColor: t.offTableWash }]}
-            numberOfLines={1}
-          >
-            PIGGY
-          </Text>
-          <Text style={[styles.head, styles.num, styles.netCol, { color: t.muted }]}>NET</Text>
-        </View>
+            <View style={styles.rowText}>
+              <Text style={[styles.rowName, { color: t.text }]} numberOfLines={1}>
+                {p.name}
+              </Text>
+              {terms.length > 1 && (
+                <Text style={[styles.rowFormula, { color: t.muted }]} numberOfLines={2}>
+                  {terms
+                    .map((term) => `${term.label}\u00a0${formatSignedToFit(term.amount, TERM_FITS)}`)
+                    .join(' · ')}
+                </Text>
+              )}
+            </View>
 
-        {columns.map((r) => (
-          <View key={r.player.playerId} style={[styles.bodyRow, { borderBottomColor: t.previewRule }]}>
-            <Text style={[styles.cellName, { color: t.text }]} numberOfLines={1}>
-              {r.player.name}
-            </Text>
-            <Text style={[styles.gross, styles.num, { color: t.muted }]} numberOfLines={1}>
-              {compact(r.game)}
-            </Text>
-            {/*
-              * BILL AND BACK ARE ONE CELL — one rule seen from two sides, what
-              * the split charges you and what you fronted and get returned. A
-              * person who did both had the two halves of their own bill two
-              * columns apart with a sign to reconcile.
-              *
-              * THE FIGURE IS THE ENGINE'S NOW. This screen used to work it out
-              * itself, `credited − charged` per destination per row, which is
-              * the second untested implementation of a sum `resultColumns`
-              * already makes — and makes for `/ledger` too, off the same call.
-              * `CLAUDE.md`: a screen that adds up its own column is a second
-              * implementation of the same sum.
-              *
-              * A loser's cells are usually empty, and that is a fact about the
-              * rules rather than about the reader: both charge winners, and an
-              * empty cell says so better than a zero.
-              */}
-            <Cell
-              width={styles.billCol}
-              wash={t.offTableFaint}
-              color={r.food > 0 ? t.text : t.offTable}
-              text={signed(r.food)}
-              byHand={handSet(ruleFor('bill'), r.player.playerId)}
-              rule={ruleFor('bill')}
-              playerId={r.player.playerId}
-              admin={admin}
-            />
-            <Cell
-              width={styles.piggyCol}
-              wash={t.offTableWash}
-              color={t.offTable}
-              text={signed(r.piggy)}
-              byHand={handSet(ruleFor('kitty'), r.player.playerId)}
-              rule={ruleFor('kitty')}
-              playerId={r.player.playerId}
-              admin={admin}
-            />
+            {/* Muted at exactly zero, which `moneyColor` is not: it falls back
+                to the text colour, and among green and red a white figure reads
+                as a third state rather than as no state. */}
             <Text
-              style={[styles.net, styles.num, styles.netCol, { color: moneyColor(t, r.ruled) }]}
+              style={[styles.rowNet, { color: net === 0 ? t.muted : moneyColor(t, net) }]}
               numberOfLines={1}
+              {...cappedFigure}
             >
-              {formatSignedCompact(r.ruled)}
+              {formatSignedToFit(net, ROW_FITS)}
             </Text>
           </View>
         ))}
 
-        {/*
-          * WHAT THE RULES LEAVE, AND WHERE THE STEP IS.
-          *
-          * The NET column is `ruled` — gross, less what the rules took, before
-          * the rounding step. Four numeric columns is the ceiling at 393 and
-          * the step is a fifth: drawing it shrank the other four until the net
-          * clipped at the reader's text cap, and leaving it out while printing
-          * the ROUNDED net would be a row that does not add up. So this table
-          * states the rules exactly and says where the rest happens.
-          *
-          * ⚠ THE SECOND SENTENCE IS NOT DRAWN. E3's line promises a tap and
-          * nothing about the step, because the step did not exist when it was
-          * written. Flagged rather than passed off as decided copy.
-          */}
-        {stepped && (
-          <Text style={[styles.previewNote, { color: t.muted }]}>
-            Before rounding — the step lands at settle-up.
-          </Text>
-        )}
         <Text style={[styles.previewNote, { color: t.muted }]}>
           {admin
             ? 'Provisional until you settle. Tap any figure above to change it.'
@@ -430,57 +377,6 @@ export default function Deductions() {
 /** Was this person's share of this rule typed by the host rather than split? */
 const handSet = (rule: MoneyRule | undefined, playerId: PlayerId): boolean =>
   rule !== undefined && manualChargeOf(rule, playerId) !== undefined;
-
-/**
- * One washed cell of the preview table — and, for the host, the way in.
- *
- * IT IS PRESSABLE EVEN WHEN IT IS EMPTY, which is the point: putting a share on
- * somebody the rule does not charge is exactly the case a host reaches for, and
- * an empty cell is the only place on the screen that stands for "this person,
- * this rule, nothing yet".
- *
- * ⚠ TREATMENT NOT DRAWN. E3 draws these cells as figures in a column wash and
- * has no state for one the host set by hand. A dot after the figure is the
- * lightest mark that survives a 46px column with tabular numerals in it; the
- * itemised block above the table is where it is said in words.
- */
-function Cell({
-  width,
-  wash,
-  color,
-  text,
-  byHand,
-  rule,
-  playerId,
-  admin,
-}: {
-  width: object;
-  wash: string;
-  color: string;
-  text: string;
-  byHand: boolean;
-  rule: MoneyRule | undefined;
-  playerId: PlayerId;
-  admin: boolean;
-}) {
-  const open = () =>
-    rule !== undefined &&
-    router.push({ pathname: '/share', params: { rule: rule.id, player: playerId } });
-
-  return (
-    <Pressable
-      accessibilityRole={admin && rule !== undefined ? 'button' : 'none'}
-      disabled={!admin || rule === undefined}
-      onPress={open}
-      style={({ pressed }) => [width, { backgroundColor: wash, opacity: pressed ? 0.6 : 1 }]}
-    >
-      <Text style={[styles.money, styles.num, styles.cellFill, { color }]} numberOfLines={1}>
-        {text}
-        {byHand && text !== '' ? '·' : ''}
-      </Text>
-    </Pressable>
-  );
-}
 
 /**
  * One rule, itemised.
@@ -558,7 +454,7 @@ function Block({
                * THE PENCIL NOW MEANS WHAT IT DRAWS. It used to open the rule —
                * which is the answer to "this split is wrong", not to "Petr's
                * share is wrong", and the two are different arguments. E3's own
-               * line under the table has promised the second one all along.
+               * line under the preview has promised the second one all along.
                */
               onPress={() =>
                 rule !== undefined &&
@@ -635,16 +531,6 @@ const placeholders = (
     ? []
     : night.players.filter((p) => p.atTable).map((p) => ({ playerId: p.id, amount: 0 as Money }));
 
-/*
- * THE PREVIEW IS A COLUMN THAT CANNOT GROW, so its figures are compact and
- * carry no currency symbol — the header says what the column is and the symbol
- * repeated six times down a 46pt cell is what pushed the digits out of it.
- * Every one of these appears exactly, in full, in the rule block above.
- */
-const compact = (m: Money): string => formatCompactUnmarked(m).replace(/^\u2212/, '−');
-
-/** A cell that is empty at nought: a zero share is a rule that did not apply. */
-const signed = (m: Money): string => (m === 0 ? '' : formatSignedCompactUnmarked(m));
 
 const styles = StyleSheet.create({
   failure: { fontSize: 13.5, fontWeight: '400', lineHeight: 20, marginHorizontal: 20 },
@@ -693,36 +579,35 @@ const styles = StyleSheet.create({
   tag: { marginLeft: 'auto', borderWidth: 1, borderStyle: 'dashed', borderRadius: 4, paddingVertical: 2, paddingHorizontal: 6 },
   tagText: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.95 },
 
-  headRow: { flexDirection: 'row', alignItems: 'flex-end' },
-  bodyRow: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth },
   /*
-   * E3 draws every cell in this table at `5px 6px`, `4px 6px` in the header.
-   * They had been built at 4, and the two pixels matter here more than
-   * anywhere: the bill and kitty columns carry a wash running the whole height
-   * of the table, and a wash two pixels short on each side reads as a stack of
-   * separate rectangles rather than as one column to follow down six rows.
+   * THE ROW, AND WHY IT IS NOT A GRID ANY MORE.
    *
-   * The COLUMN WIDTHS are wider than the board's 46/40/44/40/78. The drawn
-   * night's deductions are two digits; a real one is not, and at the board's
-   * widths a $170 bill share wraps to two lines and takes the wash with it.
-   * Wider by four with the same padding keeps the drawn look and survives the
-   * figures the engine actually produces — and every cell is single-line, so
-   * an extreme one clips instead of breaking the table.
+   * `6px` either side is the inset the column cells carried, kept so the names
+   * line up with the note under them and with the label above; `7px` top and
+   * bottom is what the two lines need to sit as one object rather than as a
+   * name with a caption. A hairline between rows and none under the last, which
+   * is the preview's own rule and the same one the rule blocks above follow.
+   *
+   * NO FILL AND NO WASH ANYWHERE ON IT. The columns were tinted so the eye
+   * could follow one rule down six rows; a row that says its own rules needs
+   * nothing of the kind, and a frame of washed stripes is what B23 cost.
    */
-  head: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.85, paddingVertical: 4, paddingHorizontal: 6 },
-  num: { textAlign: 'right', fontVariant: ['tabular-nums'] },
-  cellName: { flex: 1, fontSize: 14, fontWeight: '600', paddingVertical: 5, paddingHorizontal: 6 },
-  gross: { width: 62, fontSize: 13, fontWeight: '500', paddingVertical: 5, paddingHorizontal: 6 },
-  money: { fontSize: 13, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 6 },
-  net: { fontSize: 15, fontWeight: '700', paddingVertical: 5, paddingHorizontal: 6 },
-  /* The two columns that take money off the table are tinted the bone colour,
-     at two strengths, so the eye can follow one rule down the table. The
-     header cell rounds its top corners by 5, which is where the column starts. */
-  cellFill: { width: '100%' },
-  billCol: { width: 56 },
-  piggyCol: { width: 56 },
-  netCol: { width: 84 },
-  washTop: { borderTopLeftRadius: 5, borderTopRightRadius: 5 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 7, paddingHorizontal: 6 },
+  rowText: { flexShrink: 1, minWidth: 0, gap: 2 },
+  rowName: { fontSize: 15, fontWeight: '600' },
+  rowFormula: { fontSize: 12.5, fontWeight: '400', lineHeight: 17.5, fontVariant: ['tabular-nums'] },
+  /*
+   * NEVER SHRINKS — B18. The name and the line under it are words and may give;
+   * a figure may not, and one left to shrink came apart into a dash on one line
+   * and an amount on the next.
+   */
+  rowNet: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontSize: 16,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
 
   previewNote: { fontSize: 11.5, fontWeight: '400', lineHeight: 16.7, paddingTop: 7, paddingHorizontal: 6 },
   edit: { alignSelf: 'flex-start', marginTop: 14, marginHorizontal: 20 },
@@ -734,7 +619,31 @@ const styles = StyleSheet.create({
  *
  * 13/400 sharing a row with the name and the charge. Seven figures fit; the
  * eight of a table in the hundreds of millions did not, and the line wrapped
- * under a larger text setting. The basis is that player's gross, which is
- * stated in full in the preview grid at the foot of this screen.
+ * under a larger text setting. The basis is that player's gross, which is the
+ * first term of that person's line in the preview at the foot of this screen.
  */
 const WORKING_FITS = 10_000_000;
+
+/*
+ * WHERE THE PREVIEW'S OWN FIGURES RUN OUT, measured at 360 — the narrowest
+ * phone in the matrix, and inside a dashed card that takes 12 a side out of the
+ * page's 20.
+ *
+ * A ROW holds about 284 points inside its own padding: the name and the formula
+ * line on the left, the position at 16/700 on the right, 12 between them. The
+ * words give and the figure does not, so the only question is what the figure
+ * may take — "−$999,999" at about 82 leaves 190 for a name, which is more than
+ * any name at this table needs. Seven digits print in full and eight abbreviate.
+ *
+ * A TERM is 12.5/400 tabular and there may be four of them, separated by a
+ * spaced middot: at full length `game +$99,999 · food −$99,999 · piggy −$99,999`
+ * is about 240 against the 272 the line has, so the common night is one line and
+ * a fourth term takes a second — which is the right failure for a sentence and
+ * the wrong one for a figure. Ten thousand is where a term abbreviates, so a
+ * table playing for millions reads `game +$1.2M` instead of wrapping to three.
+ *
+ * `cappedFigure` holds the phone's text setting at the money cap on the
+ * position, so none of this moves underneath the reader.
+ */
+const ROW_FITS = 1_000_000;
+const TERM_FITS = 10_000;

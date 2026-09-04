@@ -865,6 +865,40 @@ async function playANight(name, rebuys) {
   await stop('deductions');
 
   /*
+   * E3'S PREVIEW IS ROWS, NOT A TABLE — 4 September, and it is the same change
+   * the settled night made on the 2nd, one screen earlier in the flow.
+   *
+   * It used to be five columns under heads reading `GROSS BILL PIGGY NET`, each
+   * cell a figure the rule block above it had already printed in full. What the
+   * grid alone could say is the transpose — one person, every rule — and the
+   * formula line says that in words: `game +$1,620 · food −$54 · piggy −$23`.
+   *
+   * ONLY THIS FILE CAN SEE IT. `/deductions` opened bare is E3's *Not yet*
+   * state, which has no preview on it at all, so the route pass measures a
+   * screen where neither the heads nor the lines exist. Both halves are
+   * asserted: the heads are gone AND the lines are there, because a preview
+   * that had quietly stopped rendering would pass the first on its own.
+   *
+   * VISIBLE ONLY — expo-router keeps the stack mounted, and the screens
+   * underneath this one have their own labels.
+   */
+  await holds(
+    'the preview is rows, not a table',
+    (await page.locator(':text-matches("^(GROSS|BILL|PIGGY|NET)$"):visible').count()) === 0,
+    'E3 draws column heads again — the preview has gone back to being a table',
+  );
+  /* READ AS TEXT, NOT AS A SELECTOR, and that is not a style choice: Playwright
+     does not unescape `\uXXXX` inside `:text-matches`, so a pattern written that
+     way compiles to something that matches nothing and the check passes for the
+     wrong reason. The terms are joined by a non-breaking space, which `\s`
+     covers, and the sign is a U+2212 minus rather than a hyphen. */
+  await holds(
+    'and every row says its working',
+    await page.evaluate(() => /game\s[+\u2212]/.test(document.body.innerText)),
+    'no formula line under any name on E3 — the preview says nothing about the rules',
+  );
+
+  /*
    * A SPEND ADDED AFTER THE COUNT, from the screen the room is standing on.
    *
    * `11-bill-and-piggy-bank.md`, "After the count": *"A spend added during
@@ -912,9 +946,9 @@ async function playANight(name, rebuys) {
    * chip row will ever hold. Tapping a charge is how a host gets here — E3's
    * "Tap any figure above to change it."
    */
-  /* The charge ROW, not the name: the same name is printed in the preview grid
-     below, where only the money cells are pressable and the last match is a row
-     that does nothing. */
+  /* The charge ROW, and `.first()` is what makes it that: the same name is
+     printed again in the preview at the foot of the screen, on a row that opens
+     nothing, and a last-match would land there. */
   await page
     .locator('[role="button"]:visible')
     .filter({ hasText: players[0].name })
@@ -942,9 +976,11 @@ async function playANight(name, rebuys) {
    */
   /* VISIBLE ONLY, and this is the fault the first run of it found: expo-router
      keeps the whole stack mounted, so an unscoped count reads the screen
-     UNDERNEATH — E3's preview grid, whose piggy-bank column head said `KITTY`
-     until 1 September. `:text()` matches the smallest element holding the
-     string, and `:visible` drops everything the pushed screen is covering. */
+     UNDERNEATH — at the time, E3's preview grid, whose piggy-bank column head
+     said `KITTY` until 1 September. That grid is rows now and heads nothing,
+     but the mechanism is unchanged and so is the scoping: `:text()` matches the
+     smallest element holding the string, and `:visible` drops everything the
+     pushed screen is covering. */
   await holds(
     'settle up says the piggy bank is set aside',
     (await page.locator(':text("is set aside for the group"):visible').count()) === 1 &&
