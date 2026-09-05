@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     // So the wipe stops at the radius rather than squaring the corners off.
     overflow: 'hidden',
   },
-  wipe: { ...StyleSheet.absoluteFillObject, right: undefined, opacity: 0.18 },
+  wipe: { ...StyleSheet.absoluteFill, right: undefined, opacity: 0.18 },
   label: { ...type.body, fontWeight: '700' },
   sub: { ...type.dockEndSub, opacity: 0.62 },
 });

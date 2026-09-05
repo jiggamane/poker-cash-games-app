@@ -28,6 +28,12 @@ web-build/
 # Local database scratch
 pgdata/
 
+# Agent worktrees. The harness checks a branch out under here for each agent it
+# runs in isolation, so this is one or more live git working trees rather than
+# anything of ours — committing it would nest the repo inside itself. Anything
+# else under `.claude/` (settings, skills) is still tracked.
+.claude/worktrees/
+
 # OS / editor
 .DS_Store
 *.log

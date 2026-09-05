@@ -6,6 +6,7 @@ import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
 import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
+import { NameTag, RebuyBar, TotalTag } from '../src/components/RebuyConfirmation';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
@@ -13,14 +14,11 @@ import { clockLabel, useElapsed } from '../src/lib/elapsed';
 import {
   cashedOutAt,
   defaultBuyIn,
-  nameOf,
   standingsOf,
   useNight,
   type Standing,
 } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
-import { addedLead, clearAdded, useJustAdded } from '../src/lib/justAdded';
-import { JustAddedStrip } from '../src/components/JustAddedStrip';
 
 /**
  * Tonight — T1, with T3 (the drawer), T3b (the hold) and T5 (nobody in yet).
@@ -45,7 +43,7 @@ import { JustAddedStrip } from '../src/components/JustAddedStrip';
  * WHERE THE MONEY CARD RUNS OUT OF ROOM.
  *
  * The headline is 44/800 tabular — about 26 points a glyph — beside a right
- * column that needs roughly 130 for "$99,999 total in". The card's inside is
+ * column that needs roughly 130 for "$99,999 in play". The card's inside is
  * 321 at 393 wide, which leaves the figure seven glyphs: "$99,999" and no
  * more. A real night went past that and the right column was pushed clean
  * outside the card, over the edge of the screen, with nothing clipping it.
@@ -78,16 +76,8 @@ const CARD_FITS = 10_000;
  */
 const ROW_FITS = 10_000;
 
-/**
- * What one player is in for, off the standings the screen already built.
- *
- * The strip states it and so does their row, so it is read from the same place
- * both times — the engine's, via `standingsOf`. Nothing here adds anything up.
- * Zero when the mark names somebody this night has no standing for, which is a
- * night that changed under a mark rather than a figure worth printing.
- */
-const inForOf = (standings: readonly Standing[], id: string): Money =>
-  (standings.find((s) => s.id === id)?.boughtIn ?? 0) as Money;
+/** The board's `gap 10` between the *On the table* figure and a rebuy's tag. */
+const FIGURE_TAG_GAP = 10;
 
 export default function Session() {
   const t = useTheme();
@@ -95,20 +85,20 @@ export default function Session() {
   /* N11: entries this phone has written and nobody else can see yet. Asked
      for by session so a second table's queue is not counted onto this one. */
   const pending = usePending(night?.sessionId);
-  /*
-   * THE REBUY THE PLAYER CARD JUST WROTE, still news.
-   *
-   * The card closes itself after a quick rebuy, so the confirmation the host
-   * was reading goes with it — this screen is where they land, and this is
-   * where the sentence has to be repeated. It is also where the money actually
-   * moved: the rebuy reordered this list under them.
-   *
-   * TONIGHT OWNS THE CLOCK AND THE CLEARING. Two seconds from the strip
-   * appearing, then it fades and `clearAdded` runs. `justAdded.ts` carries why
-   * the reader's clock is the honest one rather than the writer's.
-   */
-  const justAdded = useJustAdded();
   const [drawer, setDrawer] = useState(false);
+
+  /*
+   * HOW MUCH ROOM THE MONEY CARD HAS BESIDE ITS FIGURE, measured rather than
+   * assumed — and only the rebuy's `+$500` tag reads it.
+   *
+   * The card's left column is `flex: 1`, so the row below reports the width
+   * actually available; the figure reports its own. Neither measurement moves
+   * when the tag appears — the figure does not shrink and the right column does
+   * not — so there is no loop here, just two numbers the tag is held against.
+   * `TotalTag` carries the arithmetic and what it costs on a 360 phone.
+   */
+  const [figureRoom, setFigureRoom] = useState(0);
+  const [figureWidth, setFigureWidth] = useState(0);
 
   /*
    * THE DRAWER IS NEVER OPEN WHEN YOU ARRIVE.
@@ -126,29 +116,9 @@ export default function Session() {
    * a swipe down on the sheet, a hardware back, a sheet that dismisses itself
    * after a confirm.
    */
-  /*
-   * AND THE SAME HOOK IS WHAT KEEPS THE STRIP HONEST — see `focused`.
-   *
-   * THIS SCREEN IS STILL MOUNTED UNDER AN OPEN SHEET. `/player` is a
-   * transparent modal: Tonight is behind it, rendering, at .32 through the
-   * scrim. So the mark goes up the instant the rebuy is written — while the
-   * host is still looking at the player card — and a strip rendered on the
-   * mark alone would start its two seconds THERE, behind the sheet, and have
-   * about half of them left by the time the sheet finished closing. The
-   * confirmation would be a flash on arrival, which is the one thing it exists
-   * not to be.
-   *
-   * Focus is the honest signal: a pushed sheet blurs the screen under it, so
-   * mounting the strip on focus starts the clock when the host can actually
-   * read it. Blur unmounts it, which stops the timer without clearing the
-   * mark — so a sheet swiped down at half a second still gets its full two.
-   */
-  const [focused, setFocused] = useState(true);
   useFocusEffect(
     useCallback(() => {
       setDrawer(false);
-      setFocused(true);
-      return () => setFocused(false);
     }, []),
   );
 
@@ -207,8 +177,16 @@ export default function Session() {
      LEFT IN SEAT ORDER, and not for want of a rule: the buy-in is not drawn on
      these rows — the fact is the time they left and the figure at the right is
      their result — so sorting them by it would be an order the reader cannot
-     see. Ranking them by RESULT is the other candidate and belongs to E2b,
-     `Where everyone stands`, which is the screen that ranks. Asked. */
+     see.
+
+     ⚠ AND THE SCREEN THAT USED TO ANSWER THIS IS GONE. Ranking them by RESULT
+     was the other candidate, and this comment sent it to E2b, `Where everyone
+     stands`, "which is the screen that ranks". E2b was deleted on 5 September
+     and E2's own two finished groups rank in its place — so the same argument
+     now applies here, on rows that do draw their result at the right edge.
+     Left alone pending the owner's call rather than changed on the strength of
+     a decision made about a different screen. **Open**, and it is in
+     `docs/screens.md`. */
   const gone = standings.filter((s) => !s.atTable);
   const out = gone.length;
 
@@ -229,26 +207,22 @@ export default function Session() {
       dimmed={drawer}
       footerPad={false}
       footer={
+        /*
+         * THE CONFIRMATION BAR RIDES ON THE DOCK, AND NEVER ON THE TABLE.
+         *
+         * A rebuy tapped on a player card lands here — `RebuyConfirmation.tsx`
+         * — and this is the third of the three places it shows: check, what
+         * happened, Undo, for two seconds. It is a sibling of the dock rather
+         * than a layer over the screen, so it hangs off the dock's top edge and
+         * rises with the drawer instead of being a number kept in step with one.
+         *
+         * The handoff's rule: confirmation may cover chrome and never money.
+         * Everything above this line is the table, and the dock below it stays
+         * uncovered on purpose — a second rebuy is one tap away while the bar
+         * is up.
+         */
         <>
-          {/*
-           * DIRECTLY ABOVE THE DOCK, which is where the thumb already is and
-           * where the sheet's own status was a moment ago — so the eye does
-           * not have to travel to find the same sentence again.
-           *
-           * In the footer rather than at the top of the list because the list
-           * scrolls and this must not: a confirmation that can be scrolled
-           * away from is one the host may never see. It takes no taps —
-           * `pointerEvents="none"` inside — so the Rebuy button under it stays
-           * live for the two seconds it is up.
-           */}
-          {focused && justAdded !== null && (
-            <JustAddedStrip
-              lead={addedLead(nameOf(night, justAdded.playerId))}
-              figure={formatToFit(justAdded.amount, ROW_FITS)}
-              detail={`in for ${formatToFit(inForOf(standings, justAdded.playerId), ROW_FITS)}`}
-              onDone={clearAdded}
-            />
-          )}
+          <RebuyBar />
           <Dock
             variant={empty ? 'empty-table' : 'resting'}
             waiting={pending.waiting}
@@ -308,13 +282,32 @@ export default function Session() {
         >
           <View style={styles.cardLeft}>
             <Text style={[styles.tableLabel, { color: t.muted }]}>On the table</Text>
-            <Text
-              style={[styles.tableFigure, { color: t.text }]}
-              numberOfLines={1}
-              {...cappedFigure}
+            {/*
+             * A REBUY IS ANNOUNCED WHERE THE MONEY IS, AND THIS IS THE MONEY.
+             *
+             * `+$500` slides in beside this figure as it changes and fades to
+             * nothing over the next two seconds. The figure keeps its new
+             * value: the fade removes the announcement, not the fact — it is
+             * `onTable`, read off the ledger, and it was never part of the
+             * announcement at all.
+             *
+             * The row is `flex-start` so the tag's cap lines up with the
+             * figure's rather than its baseline, which is the board.
+             */}
+            <View
+              style={styles.figureRow}
+              onLayout={(e) => setFigureRoom(e.nativeEvent.layout.width)}
             >
-              {formatToFit(onTable, CARD_FITS)}
-            </Text>
+              <Text
+                style={[styles.tableFigure, { color: t.text }]}
+                numberOfLines={1}
+                onLayout={(e) => setFigureWidth(e.nativeEvent.layout.width)}
+                {...cappedFigure}
+              >
+                {formatToFit(onTable, CARD_FITS)}
+              </Text>
+              <TotalTag fits={CARD_FITS} room={figureRoom - figureWidth - FIGURE_TAG_GAP} />
+            </View>
           </View>
 
           <View style={styles.cardRight}>
@@ -324,7 +317,14 @@ export default function Session() {
                 numberOfLines={1}
                 {...cappedFigure}
               >
-                {formatToFit(totalIn, CARD_FITS)} total in
+                {/* `in play`, not `total in` — 5 September, on the owner's
+                    instruction. One word for this figure everywhere it is
+                    drawn: it was `total in` here, `BOUGHT IN` on E2 and
+                    `PRIZEPOOL` on the settled night, one number under three
+                    nouns. `On the table` beside it is a DIFFERENT figure —
+                    what the seated players still have in front of them — and
+                    keeps its own name. */}
+                {formatToFit(totalIn, CARD_FITS)} in play
               </Text>
             )}
             <Text style={[styles.seats, { color: t.dim }]}>
@@ -391,15 +391,24 @@ export default function Session() {
                   name={p.name}
                   fact=""
                   last={i === seated.length - 1}
-                  /* The row a quick rebuy just moved — washed for two seconds
-                     so the reorder can be followed. `PlayerList` owns the
-                     treatment; `justAdded.ts` owns the clock. */
-                  fresh={justAdded?.playerId === p.id}
                   {...(drawer ? {} : {
                     onPress: () => router.push({ pathname: '/player', params: { id: p.id } }),
                   })}
                   right={
                     <>
+                      {/*
+                       * THE SAME `+$500` AS A TAG, BESIDE THE NAME — and it is
+                       * drawn by the row, which is what keeps it on the right
+                       * person. This group is sorted by what people are in for
+                       * and a rebuy is the thing that moves a row UP it, so a
+                       * tag pinned to a position instead of to a player would
+                       * land on whoever the rebuy pushed down.
+                       *
+                       * It rides in `right` because `ActiveRow` is a shared
+                       * component and this is Tonight's alone — the tag's own
+                       * margin puts it back beside the name. See `NameTag`.
+                       */}
+                      <NameTag playerId={p.id} fits={ROW_FITS} />
                       <Text style={[styles.amount, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
                         {formatToFit(p.boughtIn, ROW_FITS)}
                       </Text>
@@ -544,7 +553,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
   },
   cardEmpty: { paddingVertical: 12 },
-  cardLeft: { gap: 8, flexShrink: 1 },
+  /* `flex: 1` rather than `flexShrink: 1`, and the layout is the same one: the
+     right column is content-sized and was already pushed right by its own auto
+     margin. What it buys is that the row inside stretches to the width the
+     column HAS, which is the number the rebuy tag is measured against. */
+  cardLeft: { gap: 8, flex: 1, minWidth: 0 },
+  /* The figure and the `+$500` that announces a change to it — `gap: 10`,
+     tops aligned, and the tag never shrinks the figure it is about. */
+  figureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: FIGURE_TAG_GAP },
   tableLabel: type.tableLabel,
   tableFigure: type.tableFigure,
   // The right column keeps its width and the figure beside it gives, never

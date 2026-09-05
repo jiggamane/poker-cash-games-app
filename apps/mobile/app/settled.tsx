@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
-import { prizePool, resolveLedger, settle } from '@poker-club/core';
+import { StyleSheet } from 'react-native';
+import { gameResults, resolveLedger, settle } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { NightResult } from '../src/components/NightResult';
 import { Screen } from '../src/components/Screen';
@@ -9,32 +9,35 @@ import { space } from '../src/design/tokens';
 import { settlementInput, useNight } from '../src/lib/nightStore';
 
 /**
- * The night, settled — E6. `design/handoff-E6/`, cut 30 August.
+ * The night, settled — `R1 · Results`, from
+ * `design_handoff_rebuy_and_results/Game Results Breakdown.dc.html`, cut
+ * 5 September, which supersedes `design/handoff-four-screens/` on this screen.
  *
  * ONE screen for two situations: the night you have just closed, and a night
  * you open from a list three weeks later. They are the same facts, so they are
  * the same screen.
  *
- * REBUILT FROM X1c, AND MOSTLY BY SUBTRACTION. X1c ended in the reader: their
- * own card, a SETTLEMENT panel telling them whether they were square, the
- * transfers they owed, and a way through to who had paid. E6 takes all of it
- * off, and the reasoning is one line of `START-HERE.md` — *a confirmed result
- * states no status of its own*. The status belongs to the counting screens,
- * where the figures are still being entered and the answer is still in doubt;
- * here the book is closed, and a screen that keeps saying so is a screen still
- * arguing with itself.
- *
- * WHAT IS LEFT is the record: the date, when it ran, what went through the
- * table, what each person's night came to, and what came off the top. Every
- * player is a row of the same weight — no "You," prefix, no highlighted row —
- * because the host reading this is one of seven people at a table and not the
- * subject of the page.
+ * WHAT THE NEW CUT CHANGED is in `NightResult.tsx`, which draws the body: the
+ * deductions are folded back into each person's figure and the working is
+ * printed under their name. What is left here is the frame — the date, when the
+ * night ran, and the one way onward.
  *
  * The screen is a PUSH and stays one: a settled night is a place you stay and
  * read rather than something you confirm and dismiss, and `09-navigation.md`
- * puts exactly that on the push side of the line. The top-right corner is
- * empty, which E6 restates as its own rule — nothing is placed to the right of
- * the title.
+ * puts exactly that on the push side of the line.
+ *
+ * ⚠ THE BOARD DRAWS A **Share** CONTROL IN THE TOP-RIGHT, AND IT IS NOT BUILT.
+ * `09-navigation.md` is unambiguous — *"Right corner: **Empty.** No actions, no
+ * overflow menu, no icons"* — and it says why: which chrome is on screen is the
+ * only thing telling a person whether to swipe down or tap back, so a pushed
+ * screen with a control up there is a screen speaking both vocabularies at
+ * once. Two icons that used to sit in that corner on the night screen were
+ * removed for exactly this. It is a behaviour rule, the spec wins on behaviour,
+ * and where a control may live is not layout. So the corner stays empty —
+ * `Screen` has no way to put a control there in any case, and its `trailing`
+ * slot forbids one by name — and sharing a settled night has no door drawn
+ * anywhere else. Recorded in `docs/screens.md` as open, rather than invented as
+ * a footer button no board draws.
  */
 export default function NightResults() {
   const night = useNight();
@@ -79,72 +82,47 @@ export default function NightResults() {
   return (
     <Screen
       title={nightDate(night.startedAt)}
-      meta={metaLine(night, ledger)}
+      meta={metaLine(night, result)}
       backTo="the club"
       /*
-       * THE PAIR AT THE FOOT, as the frame draws it — two outlined buttons of
-       * equal width, `14px 20px 6px`, 14 between them. `Full ledger` beside
-       * `Close`, which is the frame's own pair.
+       * ONE BUTTON, FULL WIDTH — the board's footer, and the whole of it.
+       * R1 ends by handing the room over to R2, which is `/payments`.
        *
-       * IT HELD `Who has paid` UNTIL TODAY, and the note that put it there said
-       * why and said what would replace it: "there is no full ledger anywhere
-       * in this app … put `Full ledger` here the day there is a ledger to
-       * open." `02-E6-results-row.md`, cut 1 September, is that day — it keeps
-       * the four-column table `7e` "as the full-screen variant behind the *Full
-       * ledger* button", and `/ledger` is that screen. So the slot goes back to
-       * the label the frame draws on it.
+       * IT REPLACES A PAIR AND A CHIP, and all three of those moved rather than
+       * vanishing:
        *
-       * AND `Who has paid` GOES BACK TO BEING A CHIP above the footer, which is
-       * where it was before it borrowed this slot. The deviation it represents
-       * is unchanged and is still the same one: E6 takes the disclosure row off
-       * and says payments live "elsewhere", elsewhere is not drawn, and this
-       * screen is the only route into `/payments` in the app. Delete the chip
-       * the day E7 has a door drawn somewhere else.
+       *   · `Who has paid` IS THIS BUTTON. It was a chip above the footer
+       *     because E6 took the disclosure row off and said payments lived
+       *     "elsewhere" without drawing elsewhere; R1 draws the door, in the
+       *     footer, as the one thing this screen leads to.
+       *   · `Close` GOES. A push carries a back button on its title row, R1
+       *     draws no second way out, and a footer holding two buttons cannot
+       *     hold the one the board draws full width.
+       *   · `Full ledger` IS A CHIP BELOW THE BLOCKS — see the body. It is not
+       *     orphaned and it is not in the footer either.
+       *
+       * ⚠ NO ARROW GLYPH. The board draws `Who pays whom →` with a 15px chevron
+       * after the label. `Button` takes a label and nothing else, it is an
+       * app-wide shared component, and `CLAUDE.md` says anything app-wide runs
+       * in a session with nothing else in flight — which this is not. The word
+       * is the board's; the glyph waits for that session.
        */
       footer={
-        <View style={styles.pair}>
-          {/* Only where there is a table behind it — a night whose rules reach
-              past the bill and the piggy bank has no four columns to draw, and
-              `/ledger` says so rather than drawing a term short. */}
-          <Button
-            label="Full ledger"
-            variant="secondary"
-            style={styles.half}
-            onPress={() => router.push('/ledger')}
-          />
-          {/* CLOSES THE RECORD, WHICH IS ALL IT DOES. The night is already
-              settled — this is the way out of reading it, and it is `back`
-              because the screen is a push: from the ending flow that is the
-              club, and from Sessions it is Sessions. */}
-          <Button
-            label="Close"
-            variant="secondary"
-            style={styles.half}
-            onPress={() => router.back()}
-          />
-        </View>
+        <Button
+          label="Who pays whom"
+          variant="primary"
+          onPress={() => router.push('/payments')}
+        />
       }
     >
       {/*
-       * THE WHOLE NIGHT IS ON THE ROW, and nothing is behind a tap.
+       * THE WHOLE NIGHT, IN THREE BLOCKS, AND NOTHING BEHIND A TAP — see
+       * `NightResult.tsx`, which draws it and carries the argument for folding
+       * the deductions back into the figure.
        *
-       * THE ROW USED TO OPEN — first the player card, then a receipt in place —
-       * because *why is my number this* had no answer anywhere in the app. It
-       * has one now, printed under the name: `game +$1,620 · food −$54 · piggy
-       * −$23`, every term of the night in the order the money moved, adding up
-       * to the figure beside it. A row that opened into the same terms one line
-       * apiece would be the answer twice, and `E6-results-columns.md` is blunt
-       * about which it wants — the deductions in open view, nothing to tap.
-       *
-       * What a receipt never carried either is which rebuy, which spend, at
-       * what time. That is the full ledger, it is not drawn, and it is the one
-       * thing the frame's footer asks for that this app cannot give — see the
-       * footer above and `docs/screens.md`.
-       */}
-      {/*
        * THE STEP IS SHOWN AND NOT SETTABLE. `E2-rounding.md` rule 8 locks it
-       * once the night is closed, and this screen only ever draws a closed one
-       * — so the row states what the night settled at and opens nothing.
+       * once the night is closed, and this screen only ever draws a closed one —
+       * so the row states what the night settled at and opens nothing.
        */}
       <NightResult
         result={result}
@@ -154,19 +132,30 @@ export default function NightResults() {
       />
 
       {/*
-       * WHO HAS PAID, back in the flexible space it occupied before the footer
-       * borrowed it — see the note on the footer above. It is a chip rather
-       * than a disclosure row because E6 takes the row off; it is here at all
-       * because this screen is the only route into `/payments` in the app.
+       * FULL LEDGER, AS A CHIP.
+       *
+       * ⚠ NOT DRAWN ON R1, and it is here because the alternative is orphaning
+       * a screen. `/ledger` is format `7e` — the four-column table, `name game
+       * food piggy net` — and until today the footer of this screen was its only
+       * door in the app. R1's footer is one button and it is not this one.
+       *
+       * IT IS ALSO NOT REDUNDANT, which is the test for whether it should have
+       * survived at all. The FINAL caption above says a person's night as a
+       * sentence, on one line, truncating; `7e` says the same decomposition as
+       * columns, at full width, with the rounding step in a column of its own —
+       * and it is the same `resultColumns` call, so the two cannot disagree.
+       * A night whose rules reach past the bill and the piggy bank has no four
+       * columns to draw, and `/ledger` says so rather than drawing a term short.
+       *
+       * Delete the chip the day R1's *Share* corner or some other screen gives
+       * the ledger a door the board actually draws.
        */}
-      {result.transfers.length > 0 && (
-        <Button
-          label="Who has paid"
-          variant="chip"
-          style={styles.toPayments}
-          onPress={() => router.push('/payments')}
-        />
-      )}
+      <Button
+        label="Full ledger"
+        variant="chip"
+        style={styles.toLedger}
+        onPress={() => router.push('/ledger')}
+      />
     </Screen>
   );
 }
@@ -176,8 +165,9 @@ export default function NightResults() {
  *
  * BOTH WALL-CLOCK TIMES, 24-hour, and then the duration. A night that crosses
  * midnight ends at a smaller number than it started at, which reads as wrong
- * until the duration resolves it — which is why E6 asks for all three and not
- * for the elapsed time alone.
+ * until the duration resolves it — which is why the frame asks for all three
+ * and not for the elapsed time alone. R1's own meta line is the same shape:
+ * `20:05 → 23:45 · 3h 40m · 8 players`.
  *
  * The local night's `endedAt` is set the moment counting starts. Where it is
  * missing — a night imported, or one closed before the field existed — the last
@@ -185,21 +175,25 @@ export default function NightResults() {
  * instead would make a night settled in March grow longer every time somebody
  * opened it.
  *
- * The player count is the prize pool's, so the line and the block under it
- * cannot disagree about how many people were at the table.
+ * THE PLAYER COUNT IS THE RESULT'S OWN, and it is the count of rows the screen
+ * below actually draws. It used to be the prize pool's, off the ledger; R1
+ * draws no prize-pool card any more, and a header saying eight players over a
+ * list of seven would be the header disagreeing with the block under it. B27's
+ * collector — an envelope that never sat down — is not a player, and
+ * `gameResults` is where that is decided.
  */
 function metaLine(
   night: NonNullable<ReturnType<typeof useNight>>,
-  ledger: ReturnType<typeof resolveLedger>,
+  result: ReturnType<typeof settle>,
 ): string {
   const stamps = Object.values(night.occurredAt);
   const last = stamps.length === 0 ? null : stamps.reduce((a, b) => (a > b ? a : b));
   const ended = night.endedAt ?? last;
-  const players = prizePool(ledger).players;
+  const players = gameResults(result).length;
   /*
    * AND IT ENDS WITH THE STATE — the frame's own line, and the only place on
-   * this screen the word `settled` appears. `handoff-E6` takes the status pill
-   * off a confirmed result and this is what is left: a fact about the night, in
+   * this screen the word `settled` appears. A confirmed result carries no
+   * status pill of its own and this is what is left: a fact about the night, in
    * the line of facts about the night, beside when it ran and how many played.
    * A night still being counted says so instead, which is the one other state
    * this screen can be reached in.
@@ -222,19 +216,14 @@ function elapsed(startedAt: string, endedAt: string | null): string {
 
 /*
  * "Sat 29 Aug". SHORT, so the title holds one line at full width — the long
- * weekday put "Wednesday 29 Aug" against the back button at 30/800 and wrapped
- * it, and E6 asks for one line because nothing sits to the right of it to
- * absorb the second.
+ * weekday put "Wednesday 29 Aug" against the back button at 32/800 and wrapped
+ * it, and the frame asks for one line because nothing sits to the right of it
+ * to absorb the second.
  */
 const nightDate = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 
 const styles = StyleSheet.create({
-  /* The frame's `display:flex · gap:14px`. `Screen` owns the margins around a
-     footer, so all this row says is that the two share the width. */
-  pair: { flexDirection: 'row', gap: 14 },
-  half: { flex: 1 },
-  /* The chip's own gutter and the 20 above it — the same it had before the
-     footer borrowed its slot. */
-  toPayments: { marginHorizontal: space.card, marginTop: 20 },
+  /* The chip's own gutter, and 20 between it and the block above. */
+  toLedger: { marginHorizontal: space.card, marginTop: 20 },
 });

@@ -89,7 +89,7 @@ const SHEET_FULL_HEIGHT_BELOW = 700;
 /** Every route in the app. The layout is not one. */
 const ROUTES = [
   '/', '/session', '/pick', '/seat', '/entry', '/log', '/player', '/bill', '/spend',
-  '/count-up', '/stands', '/deductions', '/settle-up', '/settled', '/ledger', '/payments', '/nudge',
+  '/count-up', '/deductions', '/settle-up', '/settled', '/ledger', '/payments', '/nudge',
   '/games', '/stats', '/players', '/member', '/groups', '/new-group', '/new-night',
   '/settings', '/club-rules', '/money-rules', '/rule', '/bill-rules', '/piggy-bank-rules',
   '/house-rules', '/sign-in', '/claim', '/invite', '/watch', '/hand-over',
@@ -185,7 +185,21 @@ const DRAWN = {
    * `balance.test.ts` and played through in `ui-journeys.mjs`.
    */
   '/count-up': [
-    'BOUGHT IN',
+    /*
+     * `IN PLAY` WHERE THE BOARD DRAWS `BOUGHT IN` — 5 September, on the owner's
+     * instruction, and this line is the one that went red for it, which is the
+     * pass working rather than the pass being wrong.
+     *
+     * The same $5,000 was `total in` on Tonight, `BOUGHT IN` here and
+     * `PRIZEPOOL` on E6: one figure under three nouns, on three screens a host
+     * sees inside ten minutes. `/watch` already said `IN PLAY`, so that is the
+     * word everywhere. The half of the equation this row is here to hold is
+     * unchanged — it is still both sides, and still named.
+     *
+     * `docs/screens.md` carries the decision and what it costs. Do not put
+     * `BOUGHT IN` back by reading the board.
+     */
+    'IN PLAY',
     'ACCOUNTED FOR',
     'LEFT TO ACCOUNT FOR',
     /*

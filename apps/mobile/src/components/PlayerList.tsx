@@ -87,7 +87,6 @@ export function ActiveRow({
   onPress,
   accessibilityLabel,
   last = false,
-  fresh = false,
 }: {
   name: string;
   /** What they have in — `in $1,500`, `in $1,000 · 2 buy-ins`. */
@@ -102,28 +101,6 @@ export function ActiveRow({
   accessibilityLabel?: string;
   /** The list closes on the group below it rather than on a rule. */
   last?: boolean;
-  /**
-   * THIS ROW CHANGED A MOMENT AGO — a washed block for two seconds, then gone.
-   *
-   * Passed by ONE screen: Tonight, on the player a quick rebuy was just
-   * written for. The list is sorted by money in, so that rebuy moved the row
-   * up the screen while nobody was watching it; this is what lets the reorder
-   * be followed rather than merely survived. `justAdded.ts` owns the clock.
-   *
-   * THE TREATMENT LIVES HERE, NOT AT THE CALL SITE, which is the whole point
-   * of this file: six screens draw this list, and a highlight defined by
-   * whoever needed one first is exactly the drift the mixed-list rule was
-   * written to end. A second screen that needs it passes the flag.
-   *
-   * IT DOES NOT RE-OPEN B23. That rule took the win/loss wash off ROWS THAT
-   * STATE A RESULT — a green band behind a signed figure says in colour what
-   * the sign already says. An active row's figure is unsigned money in, and
-   * this wash says WHEN, not how they are doing. `ui-audit.mjs` draws the same
-   * line in code: `tinted-result-row` fires on a signed figure inside a
-   * translucent row, so a wash that ever reached a settled slab would fail the
-   * gate rather than needing an exception written for it.
-   */
-  fresh?: boolean;
 }) {
   const t = useTheme();
 
@@ -138,7 +115,7 @@ export function ActiveRow({
       <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
         {name}
       </Text>
-      <Text style={[styles.fact, { color: fresh ? t.win : t.dim }]} numberOfLines={1}>
+      <Text style={[styles.fact, { color: t.dim }]} numberOfLines={1}>
         {fact}
       </Text>
       {right}
@@ -147,13 +124,7 @@ export function ActiveRow({
 
   const frame = [
     styles.row,
-    /* The wash suppresses the hairline under it: a rule running into a rounded
-       fill reads as a mistake, and the block's own edge is the separation. */
-    {
-      borderBottomColor: t.hairline,
-      borderBottomWidth: fresh || last ? 0 : StyleSheet.hairlineWidth,
-    },
-    ...(fresh ? [styles.fresh, { backgroundColor: t.winWash }] : []),
+    { borderBottomColor: t.hairline, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth },
   ];
 
   /* Not a Pressable when there is nothing to press. A disabled one still
@@ -298,20 +269,6 @@ const styles = StyleSheet.create({
     gap: 9,
     paddingVertical: 10,
     minHeight: 44,
-  },
-
-  /*
-   * The wash on a row that just changed — see `fresh` on ActiveRow.
-   *
-   * Inset PAST the list, the way every washed block in this app is: the 10 it
-   * takes on each side is overhang, not padding taken from the text, so
-   * nothing on the row moves when the wash arrives or goes. Radius 8 and no
-   * hairline; the block's edges are the separation while it is there.
-   */
-  fresh: {
-    marginHorizontal: -10,
-    paddingHorizontal: 10,
-    borderRadius: radius.pressable,
   },
 
   /*

@@ -855,14 +855,42 @@ async function playANight(name, rebuys) {
   );
   await stop('count up · rounded');
 
-  await tap('See where everyone stands');
-  await stop('where everyone stands');
-  // Back the way a person goes, for the same reason as above.
-  await page.getByLabel(/^Back to/).last().click();
-  await page.waitForTimeout(1000);
-
   await tap('Next');
   await stop('deductions');
+
+  /*
+   * E3'S PREVIEW IS ROWS, NOT A TABLE — 4 September, and it is the same change
+   * the settled night made on the 2nd, one screen earlier in the flow.
+   *
+   * It used to be five columns under heads reading `GROSS BILL PIGGY NET`, each
+   * cell a figure the rule block above it had already printed in full. What the
+   * grid alone could say is the transpose — one person, every rule — and the
+   * formula line says that in words: `game +$1,620 · food −$54 · piggy −$23`.
+   *
+   * ONLY THIS FILE CAN SEE IT. `/deductions` opened bare is E3's *Not yet*
+   * state, which has no preview on it at all, so the route pass measures a
+   * screen where neither the heads nor the lines exist. Both halves are
+   * asserted: the heads are gone AND the lines are there, because a preview
+   * that had quietly stopped rendering would pass the first on its own.
+   *
+   * VISIBLE ONLY — expo-router keeps the stack mounted, and the screens
+   * underneath this one have their own labels.
+   */
+  await holds(
+    'the preview is rows, not a table',
+    (await page.locator(':text-matches("^(GROSS|BILL|PIGGY|NET)$"):visible').count()) === 0,
+    'E3 draws column heads again — the preview has gone back to being a table',
+  );
+  /* READ AS TEXT, NOT AS A SELECTOR, and that is not a style choice: Playwright
+     does not unescape `\uXXXX` inside `:text-matches`, so a pattern written that
+     way compiles to something that matches nothing and the check passes for the
+     wrong reason. The terms are joined by a non-breaking space, which `\s`
+     covers, and the sign is a U+2212 minus rather than a hyphen. */
+  await holds(
+    'and every row says its working',
+    await page.evaluate(() => /game\s[+\u2212]/.test(document.body.innerText)),
+    'no formula line under any name on E3 — the preview says nothing about the rules',
+  );
 
   /*
    * A SPEND ADDED AFTER THE COUNT, from the screen the room is standing on.
@@ -912,9 +940,9 @@ async function playANight(name, rebuys) {
    * chip row will ever hold. Tapping a charge is how a host gets here — E3's
    * "Tap any figure above to change it."
    */
-  /* The charge ROW, not the name: the same name is printed in the preview grid
-     below, where only the money cells are pressable and the last match is a row
-     that does nothing. */
+  /* The charge ROW, and `.first()` is what makes it that: the same name is
+     printed again in the preview at the foot of the screen, on a row that opens
+     nothing, and a last-match would land there. */
   await page
     .locator('[role="button"]:visible')
     .filter({ hasText: players[0].name })
@@ -942,9 +970,11 @@ async function playANight(name, rebuys) {
    */
   /* VISIBLE ONLY, and this is the fault the first run of it found: expo-router
      keeps the whole stack mounted, so an unscoped count reads the screen
-     UNDERNEATH — E3's preview grid, whose piggy-bank column head said `KITTY`
-     until 1 September. `:text()` matches the smallest element holding the
-     string, and `:visible` drops everything the pushed screen is covering. */
+     UNDERNEATH — at the time, E3's preview grid, whose piggy-bank column head
+     said `KITTY` until 1 September. That grid is rows now and heads nothing,
+     but the mechanism is unchanged and so is the scoping: `:text()` matches the
+     smallest element holding the string, and `:visible` drops everything the
+     pushed screen is covering. */
   await holds(
     'settle up says the piggy bank is set aside',
     (await page.locator(':text("is set aside for the group"):visible').count()) === 1 &&
@@ -958,24 +988,59 @@ async function playANight(name, rebuys) {
   await stop('night settled');
 
   /*
-   * THE GAME RESULTS, AND NOTHING FOLDED INTO THEM — screen 3 of
-   * `design/handoff-four-screens/`, cut 2 September.
+   * THE NIGHT IN THREE BLOCKS — `R1 · Results`, from
+   * `design_handoff_rebuy_and_results/Game Results Breakdown.dc.html`, cut
+   * 5 September.
    *
-   * The record used to resolve every row to a net and explain it underneath:
-   * `game +$1,620 · food −$54 · piggy −$23`. It does not any more. A row is
-   * what somebody did at the table, the deductions are a block of their own
-   * with a total, and the working moved to `/ledger` — which this run opens two
-   * stops from here.
+   * ⚠ THIS LEG WAS THE OTHER WAY ROUND UNTIL TODAY, and the change is the pass
+   * working rather than the pass being weakened. It asked for a `Game results`
+   * list and for NO formula under any name — `design/handoff-four-screens/`,
+   * cut 2 September, whose rule was *deductions are not folded into any
+   * player's balance*. R1 reverses that deliberately: the deductions are folded
+   * back into the figure and the working is printed under the name, because the
+   * objection was never to the arithmetic but to the arithmetic being done on
+   * somebody's behalf without showing it. So what is asserted here is the three
+   * blocks the new board draws, in the order it draws them.
    *
    * INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches a settled night
    * with money on it, so the route pass measures the seeded mid-count book and
    * sees none of this.
    */
+  /* VISIBLE ONLY, for the reason the legs above give: expo-router keeps the
+     whole stack mounted, so an unscoped count reads the screens UNDERNEATH —
+     E3's own title is the word `Deductions`, one push down. */
+  const onScreen = (text) => page.locator(`:text-is("${text}"):visible`).count();
+
   await holds(
-    'the record carries the game results, with nothing folded in',
-    (await page.getByText('Game results', { exact: true }).count()) === 1 &&
-      (await page.getByText(/^game [+\u2212]/).count()) === 0,
-    'E6 still draws a formula under the name, or has lost its Game results list',
+    'the record is drawn in three blocks, table then deductions then final',
+    (await onScreen('At the table')) === 1 &&
+      (await onScreen('Deductions')) === 1 &&
+      (await onScreen('Final')) === 1 &&
+      (await onScreen('before deductions')) === 1 &&
+      (await onScreen('after deductions and compensations')) === 1,
+    'E6 has lost one of R1\u2019s three blocks, or a section\u2019s qualifier',
+  );
+
+  /*
+   * AND THE CAPTION UNDER A NAME, which is what makes the fold honest.
+   *
+   * `1,620 − 54 − 23` — the game, then every charge, then a compensation for
+   * whoever fronted a bill. It is the answer to *why is my number this* that
+   * this screen lost on 3 September (finding 7 of `docs/game-outcomes-cjm.md`)
+   * and has back. A FINAL row with no caption under it is the row that opened
+   * the gap in the first place, so this asserts one is drawn rather than only
+   * that the block exists.
+   *
+   * NO CURRENCY SYMBOL IN IT, which is the board's and is load-bearing: the
+   * figure beside the name carries the symbol and the line under it is the
+   * working. A caption that grew one would be six more amounts on a row.
+   */
+  await holds(
+    'and states the working under the name, without a currency symbol on it',
+    (await page
+      .locator(':text-matches("^[0-9,\u2212][0-9,]* [\u2212+] [0-9,]+"):visible')
+      .count()) > 0,
+    'no FINAL row draws its arithmetic caption',
   );
 
   /*
@@ -1022,8 +1087,34 @@ async function playANight(name, rebuys) {
    */
   await holds(
     'and the deductions block totals itself',
-    (await page.getByText('Total', { exact: true }).count()) >= 1,
+    /*
+     * ⚠ THE TOTAL MOVED, and this line moved with it. It was a `Total` row at
+     * the foot of a card; R1 puts the figure on the section label — `DEDUCTIONS
+     * … $616 total` — which is `docs/game-outcomes-cjm.md` finding 3 answered
+     * by a newer board rather than by an argument. Matched on the word after
+     * the figure so a slab's own amount cannot satisfy it.
+     */
+    (await page.locator(':text-matches("^[^ ]+ total$"):visible').count()) === 1,
     'the deductions block has no total of its own',
+  );
+
+  /*
+   * AND EVERY BILL IS OPEN ON THE FACE OF ITS SLAB.
+   *
+   * R1's rule for this block: *"who paid which bill and for how much is on the
+   * face of the slab, not behind a tap"*. It is what the note under the slabs
+   * promises — whoever paid a bill gets it back in full — and it is the half a
+   * room actually argues about at the end of a night.
+   */
+  await holds(
+    'and every bill says who fronted it',
+    /* `[^ ]+` AND NOT `\S+`: the selector's own parser eats the backslash
+       before Playwright ever sees a regex, so `\S` arrives as a literal `S`
+       and the whole thing matches nothing. Same shape as the `total` matcher
+       above, which is why that one worked and this one did not. */
+    (await page.locator(':text-matches("^[^ ]+ paid$"):visible').count()) > 0 &&
+      (await onScreen('Whoever paid a bill gets it back in full below.')) === 1,
+    'the deduction slabs do not name who fronted a bill',
   );
 
   await stop('night settled · game results');
@@ -1091,35 +1182,79 @@ async function playANight(name, rebuys) {
     'the rounding row on a closed night is still a door',
   );
 
-  await tap('Who has paid');
-  await stop('who has paid');
+  /*
+   * ⚠ `Who has paid` IS `Who pays whom` — `R2 · Who pays whom`, the second half
+   * of the results handoff, cut 5 September. The route is the same, the screen
+   * is redrawn, and the copy this leg walks changed with it. Updated rather
+   * than loosened: every assertion below still asserts the same behaviour, on
+   * the words the new board actually draws.
+   */
+  await tap('Who pays whom');
+  await stop('who pays whom');
 
-  await tap('Mark paid', { wait: 900 });
-  await stop('who has paid · one in');
+  /*
+   * THE WHOLE ROW IS STILL THE TICK. R2 draws a 22px empty circle on the right
+   * of a waiting row as the affordance; the tap lands anywhere on the row,
+   * which is what a host clearing four transfers in a doorway actually needs.
+   * Tapped by the payer's name, which is the leftmost word on it.
+   */
+  /* VISIBLE ONLY, and by attribute rather than by role, for the reason every
+     other leg on this screen gives: the pushed stack stays mounted underneath.
+     A waiting row IS the checkbox — the whole row is the tick — and `Undo` is
+     the one live target inside a settled slab. */
+  const waitingRows = () => page.locator('[role="checkbox"]:visible').count();
+  const settledSlabs = () => page.locator('[aria-label^="Undo "]:visible').count();
+
+  const before = await waitingRows();
+  await holds('the transfers are drawn', before > 0, 'R2 drew no rows to pay');
+
+  await page.locator('[role="checkbox"]:visible').first().click({ timeout: 15_000 });
+  await page.waitForTimeout(900);
+  await stop('who pays whom · one settled');
 
   /*
    * ONE TOUCH ON, ONE TOUCH OFF — and the second half is the one that rots.
    *
-   * Ticking a payment used to be a one-way door: E7 drew `Mark paid` on
-   * waiting rows and nothing on paid ones, so a mis-tap left the host looking
-   * at a night that said Petr had paid when Petr had not. The way back is
-   * built now, and it is invisible to every other check in this repo — it is
-   * a behaviour, not a measurement, and no URL reaches this screen. So it is
-   * asserted here, on the row the tap above just ticked. See B21.
+   * Ticking a payment used to be a one-way door: a mis-tap left the host
+   * looking at a night that said Petr had paid when Petr had not (B21). The way
+   * back is `Undo` on the settled slab now, and it is the ONE live target in a
+   * slab that is otherwise inert and deliberately shorter than a tap target.
+   * That is a behaviour, not a measurement, and no URL reaches this screen — so
+   * it is asserted here, on the row the tap above just settled.
    */
-  const ticked = () => page.getByText(/^marked paid/).count();
-  await holds('a tick lands', (await ticked()) === 1, `${await ticked()} rows read as paid, not 1`);
-  await page.getByText(/^marked paid/).first().click({ timeout: 15_000 });
+  await holds(
+    'a tick moves the row into SETTLED',
+    (await settledSlabs()) === 1 && (await waitingRows()) === before - 1,
+    `${await settledSlabs()} slabs read as settled, not 1`,
+  );
+  await page.locator('[aria-label^="Undo "]:visible').first().click({ timeout: 15_000 });
   await page.waitForTimeout(900);
   await holds(
-    'and comes back off',
-    (await ticked()) === 0,
-    'the row stayed paid — a mis-tap is one-way again',
+    'and Undo puts it back',
+    (await settledSlabs()) === 0 && (await waitingRows()) === before,
+    'the row stayed settled — a mis-tap is one-way again',
   );
-  await stop('who has paid · ticked back off');
+  await stop('who pays whom · undone');
 
   // And on again, so the screens after this one see the night mid-payment.
-  await tap('Mark paid', { wait: 900 });
+  await page.locator('[role="checkbox"]:visible').first().click({ timeout: 15_000 });
+  await page.waitForTimeout(900);
+
+  /*
+   * AND THE HEADER COUNTS WHAT IS LEFT.
+   *
+   * `3 of 8 settled · $946 still to move`, off `paymentProgress` in core. It is
+   * the one line on the screen that has to move when a row does, and it is the
+   * sum this screen used to do inline — three reductions over the transfer list,
+   * which is the second implementation `CLAUDE.md` is about.
+   */
+  await holds(
+    'and the header states how far through the week the room is',
+    (await page
+      .locator(':text-matches("^1 of [0-9]+ settled . .* still to move$"):visible')
+      .count()) === 1,
+    'the R2 header does not count the settled payments',
+  );
 
   await tap('Nudge the table');
   await stop('nudge the table');

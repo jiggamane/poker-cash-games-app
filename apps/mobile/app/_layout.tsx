@@ -104,7 +104,6 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="session" />
         <Stack.Screen name="count-up" />
-        <Stack.Screen name="stands" />
         <Stack.Screen name="deductions" />
         <Stack.Screen name="settle-up" />
         <Stack.Screen name="stats" />

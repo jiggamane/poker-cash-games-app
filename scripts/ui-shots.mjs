@@ -136,11 +136,6 @@ await count('Lena', 1430);
 await shot('04-count-up');
 await shotTail('04-count-up');
 
-await tap('See where everyone stands');
-await shot('05-stands');
-await page.getByLabel(/^Back to/).last().click();
-await page.waitForTimeout(1000);
-
 // The rest, with Petr $20 light, which is how a host actually reaches E5.
 await count('Tomáš', 0);
 await count('Ivo', 220);
@@ -170,7 +165,9 @@ await tap('Full ledger', { wait: 1400 });
 await shot('11-ledger');
 
 await tap('Back to the night', { wait: 1400 });
-await tap('Who has paid', { wait: 1400 });
+/* `Who has paid` until 5 September; R2 titles the same route `Who pays whom`,
+   and the door off R1 is its footer button of the same name. */
+await tap('Who pays whom', { wait: 1400 });
 await shot('12-payments');
 
 await browser.close();

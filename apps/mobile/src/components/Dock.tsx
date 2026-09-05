@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     overflow: 'hidden',
   },
-  wipe: { ...StyleSheet.absoluteFillObject, right: undefined },
+  wipe: { ...StyleSheet.absoluteFill, right: undefined },
   endText: { gap: 2, flexShrink: 1 },
   endLabel: type.dockEnd,
   endSub: type.dockEndSub,

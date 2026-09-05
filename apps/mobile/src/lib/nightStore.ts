@@ -627,7 +627,7 @@ async function append(
   draft: Omit<LedgerEntry, 'id' | 'seq'>,
   occurredAt: Date = new Date(),
   note?: string,
-): Promise<void> {
+): Promise<LedgerEntry> {
   if (night === null) throw new Error('No night is open.');
   const db = await getDb();
 
@@ -659,6 +659,11 @@ async function append(
     noteOf: note === undefined ? night.noteOf : { ...night.noteOf, [entry.id]: note },
   };
   emit();
+  /* The row that was written, for the one caller that has to be able to point
+     at it afterwards: a rebuy's Undo, which voids it by id. Every other caller
+     ignores it, and none of them may edit it — the entry is already in the
+     ledger by the time this returns. */
+  return entry;
 }
 
 /**
@@ -670,7 +675,7 @@ async function append(
  */
 export async function buyIn(playerId: PlayerId, amount: Money): Promise<void> {
   await seat(playerId);
-  return append({ type: 'buyin', playerId, amount });
+  await append({ type: 'buyin', playerId, amount });
 }
 
 /**
@@ -852,21 +857,32 @@ export async function dropPlayerFromPlay(id: PlayerId): Promise<void> {
  * player must still be able to see that it was fixed. A correction writes a
  * new row pointing at the old one; both stay in the feed.
  */
-export function correctEntry(entryId: string, amount: Money): Promise<void> {
-  return append({ type: 'correction', correctsEntryId: entryId, amount });
+export async function correctEntry(entryId: string, amount: Money): Promise<void> {
+  await append({ type: 'correction', correctsEntryId: entryId, amount });
 }
 
 /** The same, for an entry that should never have existed at all. */
-export function voidEntry(entryId: string): Promise<void> {
-  return append({ type: 'void', correctsEntryId: entryId, amount: money(0) });
+export async function voidEntry(entryId: string): Promise<void> {
+  await append({ type: 'void', correctsEntryId: entryId, amount: money(0) });
 }
 
-export function rebuy(playerId: PlayerId, amount: Money): Promise<void> {
-  return append({ type: 'rebuy', playerId, amount });
+/**
+ * A rebuy, and the id of the row it wrote.
+ *
+ * THE ID IS WHAT UNDO POINTS AT. The confirmation bar on Tonight holds a
+ * reversal for two seconds after a quick rebuy — `RebuyConfirmation.tsx` — and
+ * a reversal on this ledger is a VOID ROW against a named entry, never a
+ * delete. So the caller has to be handed the entry it just made; asking the
+ * store for "the newest rebuy" afterwards would be a guess, and a wrong guess
+ * would void somebody else's money.
+ */
+export async function rebuy(playerId: PlayerId, amount: Money): Promise<string> {
+  const entry = await append({ type: 'rebuy', playerId, amount });
+  return entry.id;
 }
 
-export function cashOut(playerId: PlayerId, amount: Money): Promise<void> {
-  return append({ type: 'cashout', playerId, amount });
+export async function cashOut(playerId: PlayerId, amount: Money): Promise<void> {
+  await append({ type: 'cashout', playerId, amount });
 }
 
 /**

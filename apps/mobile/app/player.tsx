@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   Pressable,
@@ -18,9 +18,8 @@ import {
 } from '@poker-club/core';
 import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
-import { Handoff } from '../src/components/Handoff';
 import { Icon } from '../src/components/Icon';
-import { HoldButton } from '../src/components/HoldButton';
+import { announceRebuy } from '../src/components/rebuyAnnouncement';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
@@ -32,7 +31,6 @@ import {
   useNight,
 } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
-import { addedLead, markAdded, useJustAdded } from '../src/lib/justAdded';
 import { Pill } from '../src/components/Pill';
 
 /**
@@ -90,18 +88,13 @@ export default function PlayerCard() {
     }
   }, [night]);
   const pending = usePending(night?.sessionId);
-  /* The rebuy that just landed, if it is this player's — the row below is
-     drawn green while it is. Tonight reads the same mark and clears it. */
-  const justAdded = useJustAdded();
-  /* Only against a double write while one is in flight. Two deliberate holds
-     are two deliberate rebuys, and the ledger should have both. */
+  /* Only against a double write while one is in flight. Two deliberate taps
+     are two deliberate rebuys, and the ledger should have both — that is what
+     the bar's "· 2 entries" is for. */
   const [writing, setWriting] = useState(false);
-  /*
-   * THE REBUY THAT HAS JUST LANDED, and the screen on its way out because of
-   * it. Null all the rest of the time, which is every state this card has ever
-   * had. See `quickRebuy` for what it is and `Handoff` for what it draws.
-   */
-  const [handedOff, setHandedOff] = useState<Money | null>(null);
+  /* The sheet leaves once, however many times the button is tapped while it
+     is leaving. `router.back()` twice would take Tonight with it. */
+  const leaving = useRef(false);
 
   if (night === null || ledger === null) {
     return <Sheet title="Player">{null}</Sheet>;
@@ -157,25 +150,6 @@ export default function PlayerCard() {
    */
   const countedStack = seated ? night.finalCounts.get(player.id) : undefined;
   const rows = entryRows(mine, fronted, night, pending.ids, countedStack, closedAt(night));
-
-  /*
-   * WHICH ROW IS THE ONE THAT JUST LANDED.
-   *
-   * Their newest live rebuy, and only while the mark is theirs. It is read off
-   * the ledger rather than carried in the mark because `rebuy()` does not hand
-   * back an id, and inventing one to pass around would be a second identity
-   * for a row that already has one. The mark is a moment, not a pointer: what
-   * it says is "a rebuy for this player is news", and the newest rebuy is
-   * necessarily the one it means.
-   *
-   * A struck row is never it — a rebuy that has been voided or corrected in
-   * the two seconds since it landed is not news, it is a mistake being fixed,
-   * and the strike is what the reader needs to see.
-   */
-  const freshId =
-    justAdded?.playerId === player.id
-      ? [...mine].reverse().find((e) => e.type === 'rebuy' && !e.voided && !e.corrected)?.id
-      : undefined;
   const first = mine[0];
   const lastOut = [...mine].reverse().find((e) => e.type === 'cashout');
 
@@ -234,54 +208,71 @@ export default function PlayerCard() {
   const rebuy = lastRebuyAmount(ledger, player.id);
 
   /*
-   * THE QUICK REBUY COMMITS HERE, without an amount screen in the way.
+   * THE QUICK REBUY COMMITS HERE, ON A TAP, without an amount screen in the way.
    *
-   * That is what the hold is paying for. The figure is already resolved — it
-   * is this player's own last rebuy — so the screen the amount sheet would
-   * have shown would only be asking the host to confirm a number they can
-   * already read on the button. What it would NOT have done is tell them
-   * afterwards that anything happened.
+   * The figure is already resolved — it is this player's own last rebuy — so
+   * the screen the amount sheet would have shown would only be asking the host
+   * to confirm a number they can already read on the button.
    *
-   * Holding does both: the wipe is the confirmation going in, and the write
-   * landing IS the confirmation coming out — the row appears in ENTRIES with
-   * its timestamp, and IN FOR above it goes up by the same amount, both live
-   * off the store.
+   * THE ENTRY IS WRITTEN ON THE TAP AND NOTHING WAITS ON AN ANIMATION. Kill
+   * the app while the sheet is still sliding away and the rebuy is in the
+   * ledger, because it was in the ledger before anything moved. The write is
+   * awaited before the announcement for the same reason it always was: the
+   * store is the only place the figures come from, and an announcement posted
+   * a frame early would be describing money that is not there yet.
    *
-   * AND THEN THE SHEET LEAVES BY ITSELF — 3 September, and the reason the
-   * receipt is no longer the whole answer. A host at a real table has a stack
-   * counted out in front of them and one hand free; what happened after the
-   * hold was that they were left holding a card they had finished with, and
-   * the way back to the table was to find the close. Two taps on the most
-   * repeated act of the evening, both of them purely for the app's benefit.
+   * AND THE CONFIRMATION IS ON TONIGHT NOW, not in this sheet — the rebuy
+   * handoff, Part 1, board `RB-E Table total`. What used to happen here was
+   * that the button under the thumb became a status and drained a sweep across
+   * itself for 1.1s while the sheet dismissed (`Handoff.tsx`, deleted). It
+   * confirmed the act on the screen that was leaving, which left the figure it
+   * moved — the largest type in the app — changing behind a panel nobody was
+   * looking at. So this hands the sheet straight back and the table says what
+   * happened: `+$500` beside *On the table*, `+$500` on the player's row, and a
+   * bar above the dock holding Undo for two seconds.
+   * `src/components/RebuyConfirmation.tsx` is all three and carries the timing.
    *
-   * So the write is awaited, and the button the thumb is still on becomes a
-   * status that names it — who added how much, what they are in for now — with
-   * a sweep draining across it and the sheet dismissing itself onto Tonight.
-   * `Handoff` is the block and carries the timing.
+   * ⚠ THE HOLD IS GONE, AND THAT REVERSES A DECISION MADE ON 3 SEPTEMBER.
+   * `HoldButton`'s own note says why it was there — "a tap is too cheap" for a
+   * write that lands on five people's money with nothing between the thumb and
+   * the ledger. The handoff draws this button as a tap and answers the same
+   * worry from the other end: Undo is live for two seconds after the write, and
+   * a reversal of a rebuy that happened beats a barrier in front of one that
+   * has not. It is also what makes the handoff's rapid-tap rule possible at
+   * all — two 1s holds do not fit inside a 2s bar. `docs/screens.md` carries
+   * it, because a gesture is exactly the kind of thing a later session puts
+   * back while fixing something else.
    *
-   * WHY THE STATUS WAITS FOR THE WRITE rather than going up the moment the
-   * hold completes. The figure under it is IN FOR, read off the store like
-   * every other figure on this card, and a status posted a frame early would
-   * put the amount BEFORE the rebuy under a sentence announcing the rebuy. The
-   * write is a local row and resolves in milliseconds; what the await buys is
-   * that the two halves of the sentence cannot disagree.
+   * ⚠ NO HAPTIC. The handoff asks for a success haptic on the tap and this app
+   * has no haptics anywhere: `expo-haptics` is not a dependency, and
+   * `apps/mobile/AGENTS.md` pins every version to SDK 54's own manifest and
+   * forbids adding one on the side. Flagged rather than faked with
+   * `Vibration`, which is a buzz and not a success.
    *
-   * ⚠ A FAILED WRITE IS NOT DRAWN, and is not invented here. It falls back to
-   * the button, which is what this screen has always done with one — the row
-   * simply is not there. Copy for it is a thing to ask for.
+   * ⚠ A FAILED WRITE IS NOT DRAWN, and is not invented here. Nothing is
+   * announced and the sheet stays put, which is what this screen has always
+   * done with one — the row simply is not there. Copy for it is a thing to ask
+   * for.
    */
+  /* Both captured before the async hop: the announcement is made after an
+     await, and `player` is a lookup into a store that has moved on by then. */
   const playerId = player.id;
+  const playerName = player.name;
 
   async function quickRebuy() {
-    if (writing || handedOff !== null) return;
+    if (writing) return;
     setWriting(true);
     try {
-      await writeRebuy(playerId, rebuy);
-      /* News, until a screen has shown it. The row below goes green for what
-         is left of this sheet's life, and Tonight picks the same mark up when
-         the sheet closes onto it. */
-      markAdded(playerId, rebuy);
-      setHandedOff(rebuy);
+      const entryId = await writeRebuy(playerId, rebuy);
+      announceRebuy({ playerId, name: playerName, amount: rebuy, entryId });
+      /* One way out, and it is `router.back()` rather than a route by name so
+         it cannot land somewhere the sheet's own close does not. A second tap
+         while the sheet is leaving still writes its rebuy — the bar collapses
+         the two — but it does not pop a second screen. */
+      if (!leaving.current) {
+        leaving.current = true;
+        router.back();
+      }
     } finally {
       setWriting(false);
     }
@@ -338,57 +329,23 @@ export default function PlayerCard() {
           <Button label="Close" variant="secondary" onPress={() => router.back()} />
         ) : seated ? (
           <>
-            {handedOff === null ? (
-              /* The amount is M16's: their last rebuy tonight, then tonight's
-                 buy-in, then the group default. Where it came from is
-                 deliberately not printed anywhere — M17 — so the button can
-                 only show the figure, which is the whole reason it has to be
-                 held rather than tapped. Other amount is the way to a
-                 different one. */
-              <HoldButton
-                label={`Rebuy ${formatMoney(rebuy)}`}
-                sub="Hold 1s"
-                onComplete={() => void quickRebuy()}
-              />
-            ) : (
-              /*
-               * ⚠ NOT DRAWN, and flagged rather than passed off as decided
-               * copy — the handoff's rule. No board draws the app after a
-               * quick rebuy has landed, because until now it drew nothing.
-               * Every word is taken from something this screen already says:
-               * IN FOR is the card's own first label, the figure beside it is
-               * the same figure, and Tonight is the name at the top of the
-               * screen this is returning to. What is genuinely new is the one
-               * verb, and it is the host's — "Maja added $200" is what gets
-               * said out loud at the table when the chips go across.
-               *
-               * The close is `router.back()` and not a route by name, so it
-               * cannot disagree with the two buttons on this same sheet that
-               * are also the way out of it.
-               */
-              <Handoff
-                lead={addedLead(player.name)}
-                figure={formatToFit(handedOff, HANDOFF_FITS)}
-                detail={`In for ${formatToFit(inFor, HANDOFF_FITS)} · back to Tonight`}
-                onDone={() => router.back()}
-              />
-            )}
-            {/*
-             * THE PAIR STAYS PUT WHILE THE SHEET LEAVES, faded and inert.
-             *
-             * Taking them out for the second the status is up would shrink the
-             * footer by a whole row, and the panel hugs its content — so the
-             * sheet would jump down the phone on its way out, which is the
-             * opposite of what the handoff is for. Disabled rather than
-             * hidden: the composition holds, and nothing invites a tap into a
-             * screen that is already closing.
-             */}
+            {/* The amount is M16's: their last rebuy tonight, then tonight's
+                buy-in, then the group default. Where it came from is
+                deliberately not printed anywhere — M17 — so the button can only
+                show the figure. Other amount is the way to a different one.
+
+                A TAP, AND THE TABLE ANSWERS FOR IT. See `quickRebuy` above for
+                what the hold was guarding and what took its place. */}
+            <Button
+              label={`Rebuy ${formatMoney(rebuy)}`}
+              variant="primary"
+              onPress={() => void quickRebuy()}
+            />
             <View style={styles.pair}>
               <Button
                 label="Other amount"
                 variant="secondary"
                 style={styles.half}
-                disabled={handedOff !== null}
                 onPress={() =>
                   router.push({ pathname: '/log', params: { player: player.id, kind: 'rebuy' } })
                 }
@@ -397,7 +354,6 @@ export default function PlayerCard() {
                 label="Cash out"
                 variant="secondary"
                 style={styles.half}
-                disabled={handedOff !== null}
                 onPress={() =>
                   router.push({ pathname: '/log', params: { player: player.id, kind: 'cashout' } })
                 }
@@ -456,84 +412,56 @@ export default function PlayerCard() {
       <View style={styles.list}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Entries</Text>
 
-        {rows.map((r, i) => {
-          /*
-           * THE ROW THAT JUST LANDED IS GREEN, AND ONLY FOR A MOMENT.
-           *
-           * A washed block rather than a coloured figure: the same treatment
-           * the deductions table gives a row that is a different KIND of money,
-           * because that is what this is — the one line on the card the host
-           * has not already read. It suppresses its own hairline, since a rule
-           * running into a rounded fill reads as a mistake.
-           *
-           * ⚠ THE FIGURE STAYS UNSIGNED, as everywhere else this colour is
-           * used tonight. `$500` inside a translucent green row is a movement;
-           * `+$500` would be a result, which is B23 and which `ui-audit.mjs`
-           * fails the build over. See `Handoff`.
-           */
-          const fresh = r.entryId !== undefined && r.entryId === freshId && !r.struck;
-          return (
-            /* Read-only once the night is settled, for the reason the footer
-               gives: every row here is a way into a correction, and the book is
-               closed. The row itself is identical either way.
+        {rows.map((r, i) => (
+          /* Read-only once the night is settled, for the reason the footer
+             gives: every row here is a way into a correction, and the book is
+             closed. The row itself is identical either way.
 
-               AND FOR THE SECOND THE SHEET IS LEAVING. A row tapped during the
-               handoff would push the correction screen, and the sweep would then
-               run out and pop it back off under the host's thumb — the one way
-               `router.back()` could land somewhere nobody asked for. The footer
-               pair is disabled for the same second and for the same reason, so
-               between them nothing on this sheet navigates while it closes. */
-            <PressableOrPlain
-              key={r.key}
-              press={
-                nightSettlement === null && handedOff === null && r.entryId !== undefined
-                  ? () => router.push({ pathname: '/entry', params: { id: r.entryId } })
-                  : undefined
-              }
-              style={({ pressed }) => [
-                styles.row,
-                fresh && styles.rowFresh,
-                {
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth:
-                    fresh || i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                  opacity: pressed ? 0.6 : 1,
-                },
-                fresh && { backgroundColor: t.winWash },
-              ]}
-            >
-              <Text style={[styles.time, { color: fresh ? t.win : t.muted }]}>{clock(r.at)}</Text>
-              <View style={styles.entryText}>
-                <View style={styles.entryHead}>
-                  <Text
-                    style={[
-                      styles.entryType,
-                      r.struck && styles.struck,
-                      { color: r.struck ? t.muted : t.text },
-                    ]}
-                  >
-                    {r.title}
-                  </Text>
-                  {r.mark !== undefined && <Pill label={r.mark.label} tone={r.mark.tone} />}
-                </View>
+             NOTHING GUARDS THE SECOND THE SHEET IS LEAVING ANY MORE, and it no
+             longer needs one. While the confirmation lived here the sheet stayed
+             up for 1.1s after the write with every row still live, and a row
+             tapped in that second pushed the correction screen for the sweep to
+             pop straight back off. The rebuy now leaves on the tap, so there is
+             no interval to protect. */
+          <PressableOrPlain
+            key={r.key}
+            press={
+              nightSettlement === null && r.entryId !== undefined
+                ? () => router.push({ pathname: '/entry', params: { id: r.entryId } })
+                : undefined
+            }
+            style={({ pressed }) => [
+              styles.row,
+              {
+                borderBottomColor: t.hairline,
+                borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                opacity: pressed ? 0.6 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.time, { color: t.muted }]}>{clock(r.at)}</Text>
+            <View style={styles.entryText}>
+              <View style={styles.entryHead}>
                 <Text
-                  style={[styles.provenance, { color: fresh ? t.win : t.muted }]}
-                  numberOfLines={1}
+                  style={[
+                    styles.entryType,
+                    r.struck && styles.struck,
+                    { color: r.struck ? t.muted : t.text },
+                  ]}
                 >
-                  {r.sub}
+                  {r.title}
                 </Text>
+                {r.mark !== undefined && <Pill label={r.mark.label} tone={r.mark.tone} />}
               </View>
-              <Text
-                style={[
-                  styles.entryAmount,
-                  { color: fresh ? t.win : r.struck ? t.muted : t.text },
-                ]}
-              >
-                {formatMoney(r.amount)}
+              <Text style={[styles.provenance, { color: t.muted }]} numberOfLines={1}>
+                {r.sub}
               </Text>
-            </PressableOrPlain>
-          );
-        })}
+            </View>
+            <Text style={[styles.entryAmount, { color: r.struck ? t.muted : t.text }]}>
+              {formatMoney(r.amount)}
+            </Text>
+          </PressableOrPlain>
+        ))}
 
         {rows.length === 0 && (
           <Text style={[styles.note, { color: t.muted }]}>Nothing logged for them yet.</Text>
@@ -689,20 +617,6 @@ const FITS = 1_000;
  * would read as a different figure.
  */
 const AFTER_FITS = 1_000_000;
-
-/*
- * AND WHERE THE HANDOFF'S TWO FIGURES DO.
- *
- * The status block is the footer's full width — 320 at 360 wide, less 48 of
- * its own padding — and it carries one figure to a line: the amount just added,
- * beside a name that shrinks to make room for it, and IN FOR under that at
- * 12.5. "−$999,999" is about 78 points at 15/700 and the name beside it is
- * allowed to ellipsize, so the same million the working block abbreviates at is
- * where this one does. The two are read within a second of each other on a
- * night that big, and a figure that changed scale between them would read as a
- * different figure.
- */
-const HANDOFF_FITS = 1_000_000;
 
 /**
  * A label over a figure, two or three across the summary card.
@@ -1060,17 +974,6 @@ const styles = StyleSheet.create({
   list: { marginHorizontal: 20 },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4 },
-  /* The washed block, inset PAST the list rather than inside it — the same
-     move `offTableWash` rows make on the deductions table, and for the same
-     reason: a fill that stopped at the text would read as a highlighter, one
-     that reaches past the column edges reads as a block. The 8 it takes back
-     on each side is the row's own 4 of padding plus 8 of overhang, so the
-     text does not move when the wash arrives or leaves. */
-  rowFresh: {
-    marginHorizontal: -8,
-    paddingHorizontal: 12,
-    borderRadius: radius.pressable,
-  },
   time: { ...type.time, width: 44 },
   entryText: { gap: 2, flexShrink: 1 },
   entryHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },

@@ -258,7 +258,7 @@ export function Sheet({
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   bottom: { justifyContent: 'flex-end' },
-  scrim: { ...StyleSheet.absoluteFillObject },
+  scrim: { ...StyleSheet.absoluteFill },
 
   // Anchored to the bottom of the phone, and only as tall as it needs to be.
   //

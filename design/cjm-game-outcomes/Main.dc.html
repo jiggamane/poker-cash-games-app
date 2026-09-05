@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #F6F6F8; font-family: -apple-system, 'SF Pro Text', 'Figtree', sans-serif; }
+    a { color: #0B0B0F; } a:hover { color: #4A4D55; }
+  </style>
+</helmet>
+
+<div style="width: 1520px; height: 860px; box-sizing: border-box; padding: 44px 48px; background: #F6F6F8; display: flex; flex-direction: column; gap: 26px">
+
+  <div style="display: flex; flex-direction: column; gap: 9px; max-width: 1080px">
+    <span style="font: 700 10.5px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; letter-spacing: .15em; text-transform: uppercase; color: #8E8E93">The poker club · game outcomes · the calculation</span>
+    <h1 style="margin: 0; font: 800 36px/1.08 -apple-system, 'SF Pro Display', 'Figtree', sans-serif; color: #0B0B0F; letter-spacing: -.035em">One engine, four view models, eleven surfaces</h1>
+    <p style="margin: 0; font: 400 14px/1.62 -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #6C6C70; text-wrap: pretty">Every figure a player ever sees about how their night went comes out of <b>packages/core</b>. No screen adds anything up. The chain below is the whole of it; the artboards to the right are where each stage surfaces, in the order a host walks them. Figures throughout are the seeded canonical night — <b>rev15-night.test.ts</b>, the one the app opens with.</p>
+  </div>
+
+  <div style="display: flex; gap: 14px; align-items: stretch; flex-grow: 1">
+
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; background: #FFFFFF; border-radius: 14px; padding: 18px 18px 20px; border: 1px solid rgba(12,13,15,.08)">
+      <span style="font: 700 9.5px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; letter-spacing: .13em; text-transform: uppercase; color: #8E8E93">Stage 1 · the record</span>
+      <div style="font: 700 15px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F">resolveLedger(entries)</div>
+      <p style="margin: 0; font: 400 12.5px/1.6 -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #6C6C70">The append-only ledger, with voids dropped and corrections folded in. Nothing downstream ever reads a raw entry.</p>
+      <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px">
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>totalBoughtIn</span><span style="font-variant-numeric: tabular-nums; color: #6C6C70">$5,000</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>totalExpenses</span><span style="font-variant-numeric: tabular-nums; color: #6C6C70">$170</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>boughtInByPlayer</span><span style="font-variant-numeric: tabular-nums; color: #6C6C70">6</span></div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; padding-top: 40px"><svg width="20" height="14" viewBox="0 0 20 14" fill="none"><path d="M1 7h17M13 2l5 5-5 5" stroke="#B9BAC0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; background: #FFFFFF; border-radius: 14px; padding: 18px 18px 20px; border: 1px solid rgba(12,13,15,.08)">
+      <span style="font: 700 9.5px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; letter-spacing: .13em; text-transform: uppercase; color: #8E8E93">Stage 2 · does it add up</span>
+      <div style="font: 700 15px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F">balanceCheck(ledger, counts, seated)</div>
+      <p style="margin: 0; font: 400 12.5px/1.6 -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #6C6C70">The whole equation, not half of it: what went in against what is accounted for — cash-outs <i>plus</i> counts. Holds at <span style="color: #7A5410; font-weight: 600">counting</span> until every seated stack is in, so green is only ever the verdict.</p>
+      <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px">
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>boughtIn / accountedFor</span><span style="font-variant-numeric: tabular-nums; color: #6C6C70">$5,000 / $5,000</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>left</span><span style="font-variant-numeric: tabular-nums; color: #6C6C70">$0</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>state</span><span style="font-variant-numeric: tabular-nums; color: #0A5C31; font-weight: 700">balanced</span></div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; padding-top: 40px"><svg width="20" height="14" viewBox="0 0 20 14" fill="none"><path d="M1 7h17M13 2l5 5-5 5" stroke="#B9BAC0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+    <div style="flex: 1.25; display: flex; flex-direction: column; gap: 10px; background: #0B0B0F; border-radius: 14px; padding: 18px 18px 20px">
+      <span style="font: 700 9.5px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; letter-spacing: .13em; text-transform: uppercase; color: #8B8D93">Stage 3 · the settlement</span>
+      <div style="font: 700 15px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #FFFFFF">settle(input)</div>
+      <p style="margin: 0; font: 400 12.5px/1.6 -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #8B8D93">Throws when the count does not balance and nothing has been confirmed — that throw <i>is</i> the gate, and catching it is what turns Settle up into “It doesn’t add up”.</p>
+      <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px">
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #FFFFFF"><span>grossResult · per player</span><span style="font-variant-numeric: tabular-nums; color: #8B8D93">rounding applied</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #FFFFFF"><span>deductions[] · charges + credits</span><span style="font-variant-numeric: tabular-nums; color: #D9D3C4">$296</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #FFFFFF"><span>finalPosition · per player</span><span style="font-variant-numeric: tabular-nums; color: #8B8D93">score + held</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #FFFFFF"><span>transfers[]</span><span style="font-variant-numeric: tabular-nums; color: #8B8D93">6</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #FFFFFF"><span>reconciliation.difference</span><span style="font-variant-numeric: tabular-nums; color: #8B8D93">$0</span></div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; padding-top: 40px"><svg width="20" height="14" viewBox="0 0 20 14" fill="none"><path d="M1 7h17M13 2l5 5-5 5" stroke="#B9BAC0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+    <div style="flex: 1.35; display: flex; flex-direction: column; gap: 10px; background: #FFFFFF; border-radius: 14px; padding: 18px 18px 20px; border: 1px solid rgba(12,13,15,.08)">
+      <span style="font: 700 9.5px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; letter-spacing: .13em; text-transform: uppercase; color: #8E8E93">Stage 4 · view models</span>
+      <div style="font: 700 15px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F">working.ts · summary.ts</div>
+      <p style="margin: 0; font: 400 12.5px/1.6 -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #6C6C70">Which rows there are, in what order, and what each is called. Labels come off the night’s own rule snapshot, so an old night still describes itself correctly.</p>
+      <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 4px">
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>prizePool</span><span style="color: #6C6C70">Settled · card</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>gameResults</span><span style="color: #6C6C70">Settled · rows</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>ruleOutcomes</span><span style="color: #6C6C70">Settled · block</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>resultFormula</span><span style="color: #6C6C70">Deductions · Settle up</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>resultColumns</span><span style="color: #6C6C70">Full ledger</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #0B0B0F"><span>workingRows · nightScore</span><span style="color: #6C6C70">Player card</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; padding-top: 7px; margin-top: 3px; border-top: 1px solid rgba(12,13,15,.1); font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #B03A28"><span>receiptRows · resultRows</span><span style="font-weight: 700">no reader</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; font: 500 12px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; color: #B03A28"><span>playerDeductions · ruleCollector</span><span style="font-weight: 700">no reader</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display: flex; gap: 9px; flex-wrap: wrap">
+    <span style="padding: 5px 9px; border-radius: 5px; background: rgba(10,122,61,.1); font: 700 9.5px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; letter-spacing: .11em; color: #0A5C31">ENGINE — TESTED, ONE IMPLEMENTATION</span>
+    <span style="padding: 5px 9px; border-radius: 5px; background: rgba(138,90,0,.1); font: 700 9.5px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; letter-spacing: .11em; color: #8A5A00">SAME FIGURE, SECOND SURFACE</span>
+    <span style="padding: 5px 9px; border-radius: 5px; background: rgba(176,58,40,.1); font: 700 9.5px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; letter-spacing: .11em; color: #B03A28">DROP, MERGE OR NAME IT</span>
+    <span style="padding: 5px 9px; border-radius: 5px; background: rgba(12,13,15,.06); font: 700 9.5px -apple-system, 'SF Pro Text', 'Figtree', sans-serif; letter-spacing: .11em; color: #6B6F76">DELIBERATE — LEAVE IT</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
