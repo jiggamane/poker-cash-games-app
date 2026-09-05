@@ -367,6 +367,104 @@ is awaited before the status, and nothing on the sheet navigates while it
 closes. **If the hold path ever gets a browser step, that test is the thing to
 delete.**
 
+⚠ **SUPERSEDED ON 5 SEPTEMBER, AND THE BLOCK IT DESCRIBES IS DELETED.** Read
+the entry below before touching either screen. `Handoff.tsx` and
+`handoff.contract.test.ts` are gone; `rebuyConfirmation.contract.test.ts` is
+the lock now.
+
+**`/player` and `/session` — the rebuy is confirmed on Tonight, and it can be
+undone** — 5 September, `design_handoff_rebuy_and_results/` Part 1, board
+`RB-E Table total`. The confirmation moves off the sheet that was tapped and
+onto the table underneath it, which is where the money is: `+$500` beside *On
+the table* as that figure changes, `+$500` as a tag beside the player's name,
+and a bar above the dock holding **Undo** for two seconds. Both tags fade to
+nothing across those two seconds; **the row and the total keep their new
+values**, because they are read off the ledger and were never part of the
+announcement. `src/components/RebuyConfirmation.tsx` draws all three,
+`rebuyAnnouncement.ts` is the state behind them, and the composition is in
+`session.tsx` at the money card, the seated rows and the dock.
+
+*What it changed that was decided the other way, four days ago.* The 3 September
+handoff above confirmed the rebuy **inside the sheet** — the primary became a
+status, a sweep drained across it, the sheet dismissed itself. It fixed the half
+of the problem it was aimed at and left the other half: the act was announced on
+the screen that was leaving, while the figure it moved — the largest type in the
+app — changed behind a panel nobody was looking at. What survives it is the
+finding that the sheet must hand itself back with no tap, and it still does, in
+300ms and with no scrim left behind.
+
+⚠ **THE HOLD IS GONE, AND THAT REVERSES A DOCUMENTED DECISION.** `HoldButton`'s
+own note says why it was there: a quick rebuy commits straight to the ledger
+with nothing between the thumb and five people's money, and *"a tap is too cheap
+for that"*. The handoff draws this button as a tap and answers the same worry
+from the other end — **Undo is live for two seconds after the write**, and a
+reversal of a rebuy that happened beats a barrier in front of one that has not.
+It is also what makes the handoff's own rapid-tap rule possible: two 1s holds do
+not fit inside a 2s bar. `HoldButton` is untouched and still guards the
+end-of-night row in the dock, which is destructive and has no undo.
+
+*Undo is a void, not a delete.* It appends a reversal against every entry the
+bar is carrying — `voidEntry`, the same call `/entry`'s own **Void this entry**
+makes. The rebuy stays in the night's record with its reversal underneath.
+
+*Two taps inside two seconds are one bar* — `Petr rebought $1,000 · 2 entries`,
+and Undo then reverses both. **⚠ Two taps on two DIFFERENT people are not
+drawn**: the collapsed copy names one person, so there is no sentence for two
+and none was invented. The newer announcement replaces the older bar outright,
+and the older rebuy keeps its figures exactly as if its bar had faded. An ask.
+
+⚠ **NO HAPTIC.** The handoff asks for a success haptic on the tap. This app has
+none anywhere: `expo-haptics` is not a dependency and `apps/mobile/AGENTS.md`
+pins every version to SDK 54's own manifest. Flagged rather than faked with
+`Vibration`, which is a buzz and not a success. **It is the one line of the
+behaviour that is not built.**
+
+⚠ **THE ROW'S CAPTION DOES NOT CHANGE, BECAUSE THERE IS NO CAPTION.** The board
+draws `buy-in + 2 rebuys → buy-in + 3 rebuys` under the name on Tonight's row.
+This app's Tonight rows carry no such line — `design/handoff-player-list/`,
+3 September, says the fact sits *beside* the name and never stacked under it,
+and Tonight passes an empty one. Adding it back is a change to that rule and to
+`PlayerList.tsx`, which is a shared component and a session of its own. **Open.**
+
+*Three deviations of measure, all recorded rather than quietly taken.* The board
+draws Tonight at its own scale and this app draws it at `08-tonight-home.md`
+rev 11's, so: the total's tag is the board's **20/800** beside a **44** headline
+rather than the board's 34 — kept absolute, because 26/800 next to a 44 headline
+is a second headline. The name tag is **7 from the name** by way of a −11
+margin, because `ActiveRow` lays out `name · fact · right` on a 9 gap and
+Tonight draws no fact, which costs a second gap. And the bar hangs off the top
+of the dock rather than at the board's `bottom: 122` — the same air measured
+from the other side, so it rises with the drawer and cannot fall out of step
+with a dock that changes height.
+
+⚠ **AND ON A 360-WIDE PHONE THE TOTAL'S TAG STANDS ASIDE**, which is the same
+ten points of headline arriving as a bill. Measured in the built app at 360: the
+card's inside is 288, the right-hand column takes 90 of it and up to 130 with
+`$99,999 in play` on it, and `$4,500` at 44/800 is 124 — which leaves 32 points
+for a tag that needs 55. At 393, the width every board is drawn at, there are 84
+and it fits. So the card measures itself (`figureRoom` in `session.tsx`) and the
+tag is drawn where there is room, because the handoff's hard rule, stated twice,
+is that a confirmation may cover chrome and never money — and that right-hand
+column is money. The row's tag and the bar are unaffected, and the figure still
+changes, which is the fact rather than the announcement of it. **Open**: what
+would buy it back is Tonight's headline at the board's own 34 rather than 44, or
+that right-hand column narrower, and both are a board decision rather than this
+session's.
+
+*The bar's fill is two layers of tokens rather than a fifteenth green.* The
+board's `#1E2620` is the win colour at about 15% over the ground, and `winTint`
+is 14%, so the bar is drawn as the ground with `winTint` over it.
+`tokens.ts` is app-wide and a session that opens it runs alone — `CLAUDE.md`.
+
+*Reachable by nothing that runs, still.* `ui-audit.mjs` opens `/session` at a
+URL, where nothing has just been rebought; `ui-journeys.mjs` logs its rebuys
+through the dock, which is the other route in. So
+`rebuyConfirmation.contract.test.ts` is the lock, and it is two halves: the
+store is tested for real — the collapse, the two clocks, what Undo is handed —
+and the two screens are read as source. **A browser leg that taps `Rebuy $500`
+on the player card, checks the bar, and taps Undo is the check this wants and
+does not have**; `ui-journeys.mjs` was outside this session's files.
+
 **`/session`, `/count-up` and `/stands`** — 3 September, the mixed player list
 rule (`design/handoff-player-list/`). One treatment for every list where some
 players still have money on the table and some are finished, replacing the three
