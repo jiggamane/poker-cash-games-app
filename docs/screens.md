@@ -286,14 +286,38 @@ night's own figures on the card it is testing.
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
 
-**`/player`** — 3 September, on the owner's instruction: *"a smooth and
-informative touch-free transition between the rebuy and the return to the Home
-Screen"*. Holding **Rebuy $200** now writes the entry, states what just happened
-in the button's own box — `Maja added $200` over `In for $700 · back to
-Tonight` — sweeps a bar out over 1.1s and dismisses the sheet onto Tonight. No
-tap between releasing the hold and being back at the table.
-`apps/mobile/src/components/Handoff.tsx` is the block; the composition and the
-copy are in `player.tsx` at the quick rebuy.
+**`/player` and `/session`** — 5 September, on the owner's instruction: the
+`Petr added…` line *"should appear on the game screen too, as the player sheet
+will be auto closed"*, it *"should fade after 2 sec"*, and green for the rebuy
+animation *"is fine"*. So the confirmation is now one mark that crosses two
+screens, and it is green.
+
+- **The status block is a tint, not a fill.** The hold is a control and is
+  filled like one; the moment it completes there is nothing left to press, so
+  the block is redrawn as a *state* — the win colour at 12–14% behind an edge at
+  35%, which is what `tokens.ts` § Pill says a tint means. Same box, same
+  radius, same 56: only the treatment and the words change.
+- **The row that landed is washed green** in ENTRIES, and on Tonight the
+  sentence comes back as a strip above the dock while the row that *moved* is
+  washed too. That second half is doing the more useful job: the list is sorted
+  by money in, so a rebuy reorders it under the host, and the wash is what lets
+  the reorder be followed.
+- **Two seconds, then a 350ms fade** — and the clock belongs to the *reader*,
+  not the writer. `apps/mobile/src/lib/justAdded.ts` holds one mark, set on the
+  write and cleared by the screen that finished showing it. Tonight's strip
+  mounts **on focus**, not on the mark: `/player` is a transparent modal, so
+  Tonight renders underneath it and a strip keyed to the mark alone would spend
+  most of its two seconds behind the sheet.
+
+**THE ONE RULE THE COLOUR IS ALLOWED ON, and it is load-bearing.** `tokens.ts`
+reserves green and red for money won and lost; a rebuy is money *in*. What keeps
+this from reading as a win is that **no figure inside a tinted block is ever
+signed** — `Petr added $500`, never `+$500`. That is also mechanical: `ui-audit.mjs`'s
+`tinted-result-row` check (B23) fails the gate on a signed figure inside a
+translucent row, so a `formatSigned` reaching one of these blocks turns
+`check:ui` red. `handoff.contract.test.ts` asserts the same thing in seconds.
+For the same reason `fresh` is offered by `ActiveRow` and **not** by
+`FinishedSlab`, whose right-hand column *is* a signed result.
 
 *What it changed that was decided the other way.* The card's own note said
 *"nothing has to announce itself, because the screen the host is already looking
@@ -311,14 +335,20 @@ undrawn and are asks, not inventions**: a write that fails (it falls back to the
 button, which is what this screen has always done with one) and what a
 screen-reader hears, which is the two lines read aloud.
 
-*Reachable by nothing that runs.* The status is behind a one-second hold, so
-`ui-audit.mjs` — which opens `/player` at a URL — cannot see it, and
-`ui-journeys.mjs` logs its rebuys through the dock, which is the other route in
-entirely. `handoff.contract.test.ts` is the lock, and it is a source read: the
-component is drawn, the hold is still there, the copy is those words, the write
-is awaited before the status, and nothing on the sheet navigates while it
-closes. **If the hold path ever gets a browser step, that test is the thing to
-delete.**
+*Reachable by nothing that runs.* The whole flow is behind a one-second hold, so
+`ui-audit.mjs` — which opens `/player` and `/session` at a URL — cannot see any
+of it, and `ui-journeys.mjs` logs its rebuys through the dock, which is the
+other route in entirely. `handoff.contract.test.ts` is the lock, and it is a
+source read: the component is drawn, the hold is still there, the copy comes
+from one `addedLead`, the write is awaited before the status, nothing on the
+sheet navigates while it closes, the hold is two seconds, the strip waits for
+focus, and no tinted block imports a signed formatter. **If the hold path ever
+gets a browser step, that test is the thing to delete.**
+
+*Still only the quick rebuy.* The dock's Rebuy → pick → amount route does not
+set the mark, deliberately: that path already puts a full amount screen and a
+named commit button in front of the host, so they know what they did. Worth
+revisiting if the two start to feel like different acts.
 
 **`/session`, `/count-up` and `/stands`** — 3 September, the mixed player list
 rule (`design/handoff-player-list/`). One treatment for every list where some

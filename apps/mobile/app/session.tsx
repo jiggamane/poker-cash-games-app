@@ -13,11 +13,14 @@ import { clockLabel, useElapsed } from '../src/lib/elapsed';
 import {
   cashedOutAt,
   defaultBuyIn,
+  nameOf,
   standingsOf,
   useNight,
   type Standing,
 } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
+import { addedLead, clearAdded, useJustAdded } from '../src/lib/justAdded';
+import { JustAddedStrip } from '../src/components/JustAddedStrip';
 
 /**
  * Tonight — T1, with T3 (the drawer), T3b (the hold) and T5 (nobody in yet).
@@ -75,12 +78,36 @@ const CARD_FITS = 10_000;
  */
 const ROW_FITS = 10_000;
 
+/**
+ * What one player is in for, off the standings the screen already built.
+ *
+ * The strip states it and so does their row, so it is read from the same place
+ * both times — the engine's, via `standingsOf`. Nothing here adds anything up.
+ * Zero when the mark names somebody this night has no standing for, which is a
+ * night that changed under a mark rather than a figure worth printing.
+ */
+const inForOf = (standings: readonly Standing[], id: string): Money =>
+  (standings.find((s) => s.id === id)?.boughtIn ?? 0) as Money;
+
 export default function Session() {
   const t = useTheme();
   const night = useNight();
   /* N11: entries this phone has written and nobody else can see yet. Asked
      for by session so a second table's queue is not counted onto this one. */
   const pending = usePending(night?.sessionId);
+  /*
+   * THE REBUY THE PLAYER CARD JUST WROTE, still news.
+   *
+   * The card closes itself after a quick rebuy, so the confirmation the host
+   * was reading goes with it — this screen is where they land, and this is
+   * where the sentence has to be repeated. It is also where the money actually
+   * moved: the rebuy reordered this list under them.
+   *
+   * TONIGHT OWNS THE CLOCK AND THE CLEARING. Two seconds from the strip
+   * appearing, then it fades and `clearAdded` runs. `justAdded.ts` carries why
+   * the reader's clock is the honest one rather than the writer's.
+   */
+  const justAdded = useJustAdded();
   const [drawer, setDrawer] = useState(false);
 
   /*
@@ -99,9 +126,29 @@ export default function Session() {
    * a swipe down on the sheet, a hardware back, a sheet that dismisses itself
    * after a confirm.
    */
+  /*
+   * AND THE SAME HOOK IS WHAT KEEPS THE STRIP HONEST — see `focused`.
+   *
+   * THIS SCREEN IS STILL MOUNTED UNDER AN OPEN SHEET. `/player` is a
+   * transparent modal: Tonight is behind it, rendering, at .32 through the
+   * scrim. So the mark goes up the instant the rebuy is written — while the
+   * host is still looking at the player card — and a strip rendered on the
+   * mark alone would start its two seconds THERE, behind the sheet, and have
+   * about half of them left by the time the sheet finished closing. The
+   * confirmation would be a flash on arrival, which is the one thing it exists
+   * not to be.
+   *
+   * Focus is the honest signal: a pushed sheet blurs the screen under it, so
+   * mounting the strip on focus starts the clock when the host can actually
+   * read it. Blur unmounts it, which stops the timer without clearing the
+   * mark — so a sheet swiped down at half a second still gets its full two.
+   */
+  const [focused, setFocused] = useState(true);
   useFocusEffect(
     useCallback(() => {
       setDrawer(false);
+      setFocused(true);
+      return () => setFocused(false);
     }, []),
   );
 
@@ -182,39 +229,60 @@ export default function Session() {
       dimmed={drawer}
       footerPad={false}
       footer={
-        <Dock
-          variant={empty ? 'empty-table' : 'resting'}
-          waiting={pending.waiting}
-          open={drawer}
-          onOpenChange={setDrawer}
-          onRebuy={() => {
-            setDrawer(false);
-            router.push({ pathname: '/pick', params: { kind: 'buyin' } });
-          }}
-          onBill={() => {
-            setDrawer(false);
-            router.push('/bill');
-          }}
-          onSeat={() => {
-            setDrawer(false);
-            router.push('/seat');
-          }}
-          onCashOut={() => {
-            setDrawer(false);
-            router.push({ pathname: '/pick', params: { kind: 'cashout' } });
-          }}
-          /* O4 over Tonight — `09-navigation.md`: money rules open "from O1,
-             or Tonight". Until now they opened from neither, so a rule agreed
-             before the night could not be changed during it. */
-          onRules={() => {
-            setDrawer(false);
-            router.push('/money-rules');
-          }}
-          onEnd={() => {
-            setDrawer(false);
-            router.push('/count-up');
-          }}
-        />
+        <>
+          {/*
+           * DIRECTLY ABOVE THE DOCK, which is where the thumb already is and
+           * where the sheet's own status was a moment ago — so the eye does
+           * not have to travel to find the same sentence again.
+           *
+           * In the footer rather than at the top of the list because the list
+           * scrolls and this must not: a confirmation that can be scrolled
+           * away from is one the host may never see. It takes no taps —
+           * `pointerEvents="none"` inside — so the Rebuy button under it stays
+           * live for the two seconds it is up.
+           */}
+          {focused && justAdded !== null && (
+            <JustAddedStrip
+              lead={addedLead(nameOf(night, justAdded.playerId))}
+              figure={formatToFit(justAdded.amount, ROW_FITS)}
+              detail={`in for ${formatToFit(inForOf(standings, justAdded.playerId), ROW_FITS)}`}
+              onDone={clearAdded}
+            />
+          )}
+          <Dock
+            variant={empty ? 'empty-table' : 'resting'}
+            waiting={pending.waiting}
+            open={drawer}
+            onOpenChange={setDrawer}
+            onRebuy={() => {
+              setDrawer(false);
+              router.push({ pathname: '/pick', params: { kind: 'buyin' } });
+            }}
+            onBill={() => {
+              setDrawer(false);
+              router.push('/bill');
+            }}
+            onSeat={() => {
+              setDrawer(false);
+              router.push('/seat');
+            }}
+            onCashOut={() => {
+              setDrawer(false);
+              router.push({ pathname: '/pick', params: { kind: 'cashout' } });
+            }}
+            /* O4 over Tonight — `09-navigation.md`: money rules open "from O1,
+               or Tonight". Until now they opened from neither, so a rule agreed
+               before the night could not be changed during it. */
+            onRules={() => {
+              setDrawer(false);
+              router.push('/money-rules');
+            }}
+            onEnd={() => {
+              setDrawer(false);
+              router.push('/count-up');
+            }}
+          />
+        </>
       }
     >
       {/*
@@ -323,6 +391,10 @@ export default function Session() {
                   name={p.name}
                   fact=""
                   last={i === seated.length - 1}
+                  /* The row a quick rebuy just moved — washed for two seconds
+                     so the reorder can be followed. `PlayerList` owns the
+                     treatment; `justAdded.ts` owns the clock. */
+                  fresh={justAdded?.playerId === p.id}
                   {...(drawer ? {} : {
                     onPress: () => router.push({ pathname: '/player', params: { id: p.id } }),
                   })}

@@ -85,6 +85,11 @@ Two things to know about that screen:
   tells you what it did — `Maja added $200 · In for $700` — and puts you back on
   Tonight by itself. Nothing to close. Use **Other amount** when it is not their
   usual figure.
+- **Green means "just now", and it goes.** The new entry, and the strip that
+  repeats it on Tonight, are green for two seconds and then fade. It is worth a
+  glance: the table list is ordered by money in, so a rebuy usually moves that
+  player **up** the screen, and the green row is which one moved. Green here
+  never means anybody is winning — a result is always a *signed* figure, `+$1,620`.
 - **Seat a player / cash out / end** are behind **Table admin**, one row above.
 - **Nothing is ever deleted.** A mistake is corrected with a new entry — open
   the player, tap the entry, correct or void it. The history keeps both, on

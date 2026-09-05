@@ -32,6 +32,7 @@ import {
   useNight,
 } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
+import { addedLead, markAdded, useJustAdded } from '../src/lib/justAdded';
 import { Pill } from '../src/components/Pill';
 
 /**
@@ -89,6 +90,9 @@ export default function PlayerCard() {
     }
   }, [night]);
   const pending = usePending(night?.sessionId);
+  /* The rebuy that just landed, if it is this player's — the row below is
+     drawn green while it is. Tonight reads the same mark and clears it. */
+  const justAdded = useJustAdded();
   /* Only against a double write while one is in flight. Two deliberate holds
      are two deliberate rebuys, and the ledger should have both. */
   const [writing, setWriting] = useState(false);
@@ -153,6 +157,25 @@ export default function PlayerCard() {
    */
   const countedStack = seated ? night.finalCounts.get(player.id) : undefined;
   const rows = entryRows(mine, fronted, night, pending.ids, countedStack, closedAt(night));
+
+  /*
+   * WHICH ROW IS THE ONE THAT JUST LANDED.
+   *
+   * Their newest live rebuy, and only while the mark is theirs. It is read off
+   * the ledger rather than carried in the mark because `rebuy()` does not hand
+   * back an id, and inventing one to pass around would be a second identity
+   * for a row that already has one. The mark is a moment, not a pointer: what
+   * it says is "a rebuy for this player is news", and the newest rebuy is
+   * necessarily the one it means.
+   *
+   * A struck row is never it — a rebuy that has been voided or corrected in
+   * the two seconds since it landed is not news, it is a mistake being fixed,
+   * and the strike is what the reader needs to see.
+   */
+  const freshId =
+    justAdded?.playerId === player.id
+      ? [...mine].reverse().find((e) => e.type === 'rebuy' && !e.voided && !e.corrected)?.id
+      : undefined;
   const first = mine[0];
   const lastOut = [...mine].reverse().find((e) => e.type === 'cashout');
 
@@ -254,6 +277,10 @@ export default function PlayerCard() {
     setWriting(true);
     try {
       await writeRebuy(playerId, rebuy);
+      /* News, until a screen has shown it. The row below goes green for what
+         is left of this sheet's life, and Tonight picks the same mark up when
+         the sheet closes onto it. */
+      markAdded(playerId, rebuy);
       setHandedOff(rebuy);
     } finally {
       setWriting(false);
@@ -340,7 +367,7 @@ export default function PlayerCard() {
                * are also the way out of it.
                */
               <Handoff
-                lead={`${player.name} added`}
+                lead={addedLead(player.name)}
                 figure={formatToFit(handedOff, HANDOFF_FITS)}
                 detail={`In for ${formatToFit(inFor, HANDOFF_FITS)} · back to Tonight`}
                 onDone={() => router.back()}
@@ -429,56 +456,84 @@ export default function PlayerCard() {
       <View style={styles.list}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Entries</Text>
 
-        {rows.map((r, i) => (
-          /* Read-only once the night is settled, for the reason the footer
-             gives: every row here is a way into a correction, and the book is
-             closed. The row itself is identical either way.
+        {rows.map((r, i) => {
+          /*
+           * THE ROW THAT JUST LANDED IS GREEN, AND ONLY FOR A MOMENT.
+           *
+           * A washed block rather than a coloured figure: the same treatment
+           * the deductions table gives a row that is a different KIND of money,
+           * because that is what this is — the one line on the card the host
+           * has not already read. It suppresses its own hairline, since a rule
+           * running into a rounded fill reads as a mistake.
+           *
+           * ⚠ THE FIGURE STAYS UNSIGNED, as everywhere else this colour is
+           * used tonight. `$500` inside a translucent green row is a movement;
+           * `+$500` would be a result, which is B23 and which `ui-audit.mjs`
+           * fails the build over. See `Handoff`.
+           */
+          const fresh = r.entryId !== undefined && r.entryId === freshId && !r.struck;
+          return (
+            /* Read-only once the night is settled, for the reason the footer
+               gives: every row here is a way into a correction, and the book is
+               closed. The row itself is identical either way.
 
-             AND FOR THE SECOND THE SHEET IS LEAVING. A row tapped during the
-             handoff would push the correction screen, and the sweep would then
-             run out and pop it back off under the host's thumb — the one way
-             `router.back()` could land somewhere nobody asked for. The footer
-             pair is disabled for the same second and for the same reason, so
-             between them nothing on this sheet navigates while it closes. */
-          <PressableOrPlain
-            key={r.key}
-            press={
-              nightSettlement === null && handedOff === null && r.entryId !== undefined
-                ? () => router.push({ pathname: '/entry', params: { id: r.entryId } })
-                : undefined
-            }
-            style={({ pressed }) => [
-              styles.row,
-              {
-                borderBottomColor: t.hairline,
-                borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                opacity: pressed ? 0.6 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.time, { color: t.muted }]}>{clock(r.at)}</Text>
-            <View style={styles.entryText}>
-              <View style={styles.entryHead}>
+               AND FOR THE SECOND THE SHEET IS LEAVING. A row tapped during the
+               handoff would push the correction screen, and the sweep would then
+               run out and pop it back off under the host's thumb — the one way
+               `router.back()` could land somewhere nobody asked for. The footer
+               pair is disabled for the same second and for the same reason, so
+               between them nothing on this sheet navigates while it closes. */
+            <PressableOrPlain
+              key={r.key}
+              press={
+                nightSettlement === null && handedOff === null && r.entryId !== undefined
+                  ? () => router.push({ pathname: '/entry', params: { id: r.entryId } })
+                  : undefined
+              }
+              style={({ pressed }) => [
+                styles.row,
+                fresh && styles.rowFresh,
+                {
+                  borderBottomColor: t.hairline,
+                  borderBottomWidth:
+                    fresh || i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                  opacity: pressed ? 0.6 : 1,
+                },
+                fresh && { backgroundColor: t.winWash },
+              ]}
+            >
+              <Text style={[styles.time, { color: fresh ? t.win : t.muted }]}>{clock(r.at)}</Text>
+              <View style={styles.entryText}>
+                <View style={styles.entryHead}>
+                  <Text
+                    style={[
+                      styles.entryType,
+                      r.struck && styles.struck,
+                      { color: r.struck ? t.muted : t.text },
+                    ]}
+                  >
+                    {r.title}
+                  </Text>
+                  {r.mark !== undefined && <Pill label={r.mark.label} tone={r.mark.tone} />}
+                </View>
                 <Text
-                  style={[
-                    styles.entryType,
-                    r.struck && styles.struck,
-                    { color: r.struck ? t.muted : t.text },
-                  ]}
+                  style={[styles.provenance, { color: fresh ? t.win : t.muted }]}
+                  numberOfLines={1}
                 >
-                  {r.title}
+                  {r.sub}
                 </Text>
-                {r.mark !== undefined && <Pill label={r.mark.label} tone={r.mark.tone} />}
               </View>
-              <Text style={[styles.provenance, { color: t.muted }]} numberOfLines={1}>
-                {r.sub}
+              <Text
+                style={[
+                  styles.entryAmount,
+                  { color: fresh ? t.win : r.struck ? t.muted : t.text },
+                ]}
+              >
+                {formatMoney(r.amount)}
               </Text>
-            </View>
-            <Text style={[styles.entryAmount, { color: r.struck ? t.muted : t.text }]}>
-              {formatMoney(r.amount)}
-            </Text>
-          </PressableOrPlain>
-        ))}
+            </PressableOrPlain>
+          );
+        })}
 
         {rows.length === 0 && (
           <Text style={[styles.note, { color: t.muted }]}>Nothing logged for them yet.</Text>
@@ -1005,6 +1060,17 @@ const styles = StyleSheet.create({
   list: { marginHorizontal: 20 },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4 },
+  /* The washed block, inset PAST the list rather than inside it — the same
+     move `offTableWash` rows make on the deductions table, and for the same
+     reason: a fill that stopped at the text would read as a highlighter, one
+     that reaches past the column edges reads as a block. The 8 it takes back
+     on each side is the row's own 4 of padding plus 8 of overhang, so the
+     text does not move when the wash arrives or leaves. */
+  rowFresh: {
+    marginHorizontal: -8,
+    paddingHorizontal: 12,
+    borderRadius: radius.pressable,
+  },
   time: { ...type.time, width: 44 },
   entryText: { gap: 2, flexShrink: 1 },
   entryHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },

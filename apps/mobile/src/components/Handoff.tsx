@@ -33,14 +33,31 @@ export const HANDOFF_MS = 1100;
  * THE SWEEP DRAINS RATHER THAN FILLS, and that is the whole of how it is told
  * apart from the hold that came a moment before it. A wipe growing
  * left-to-right is the gesture being paid for; one shrinking away is time
- * running out on a screen that is leaving. Same colour, same box, same
- * dimensions — the object does not flash or resize, it changes what it says.
+ * running out on a screen that is leaving.
+ *
+ * IT IS A TINT, NOT A FILL, AND THAT IS THE ONE THING IT SAYS TWICE — 5
+ * September, on the owner's instruction, and `tokens.ts` § Pill states the
+ * rule it obeys: "an outline reads as a control, a tint reads as a state". The
+ * hold is a control and is filled like one. The moment it completes there is
+ * nothing left to press, so the block stops being drawn as a button at all:
+ * the win colour at 12–14% behind an edge at 35%, which is what every other
+ * state in this app is drawn as. The box, its radius and every dimension are
+ * still `HoldButton`'s to the point, so what changes when the two swap is the
+ * treatment and the words — never the shape, and never the position.
+ *
+ * GREEN, ON A REBUY, WITH THE COST STATED. `tokens.ts` opens by reserving
+ * green and red for money won and money lost, and a rebuy is money IN, which
+ * this app draws neutral everywhere else. The owner approved the green for
+ * this animation specifically. What keeps it from reading as a WIN is that the
+ * figure beside it is never signed: `Petr added $500`, not `+$500`. Do not
+ * sign it. `ui-audit.mjs`'s `tinted-result-row` guard enforces exactly that
+ * boundary — a signed figure inside a translucent row is a finding — and it is
+ * the same distinction in code that this paragraph is in prose.
  *
  * ⚠ NOT DRAWN. No board has this state: `08-tonight-home.md` H3b draws the
  * hold and what a release before the end does, and nothing draws what the app
- * shows after the write lands, because until now it showed nothing. The
- * geometry is `HoldButton`'s to the point so that the swap is invisible, and
- * the copy is flagged where it is composed — `player.tsx`, the quick rebuy.
+ * shows after the write lands, because until now it showed nothing. The copy
+ * is flagged where it is composed — `player.tsx`, the quick rebuy.
  */
 export function Handoff({
   lead,
@@ -99,14 +116,14 @@ export function Handoff({
   return (
     <View
       accessibilityLiveRegion="polite"
-      style={[styles.box, { backgroundColor: t.text }]}
+      style={[styles.box, { backgroundColor: t.winTint, borderColor: t.winEdge }]}
     >
       <Animated.View
         pointerEvents="none"
         style={[
           styles.sweep,
           {
-            backgroundColor: t.onFill,
+            backgroundColor: t.win,
             width: left.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
           },
         ]}
@@ -114,18 +131,14 @@ export function Handoff({
       <View style={styles.line}>
         {/* The name gives and the figure does not — B18's rule, on the one row
             in this box where a long name and a big amount compete. */}
-        <Text style={[styles.lead, { color: t.onFill }]} numberOfLines={1}>
+        <Text style={[styles.lead, { color: t.win }]} numberOfLines={1}>
           {lead}
         </Text>
-        <Text
-          style={[styles.figure, { color: t.onFill }]}
-          numberOfLines={1}
-          {...cappedFigure}
-        >
+        <Text style={[styles.figure, { color: t.win }]} numberOfLines={1} {...cappedFigure}>
           {figure}
         </Text>
       </View>
-      <Text style={[styles.detail, { color: t.onFill }]} numberOfLines={1}>
+      <Text style={[styles.detail, { color: t.win }]} numberOfLines={1}>
         {detail}
       </Text>
     </View>
@@ -133,11 +146,19 @@ export function Handoff({
 }
 
 const styles = StyleSheet.create({
-  /* `HoldButton`'s box, to the point. The two swap places inside one footer
-     and a single point of difference would read as the screen jumping. */
+  /*
+   * `HoldButton`'s box, to the point — same height, radius, gap and padding.
+   * The two swap places inside one footer and a single point of difference
+   * would read as the screen jumping.
+   *
+   * The edge is the ONE addition, and it costs nothing: a 1px border draws
+   * inside the box in React Native, so the block is still exactly 56 tall and
+   * still ends where the hold ended.
+   */
   box: {
     minHeight: control.height,
     borderRadius: radius.pressable,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
@@ -145,9 +166,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     overflow: 'hidden',
   },
-  sweep: { ...StyleSheet.absoluteFillObject, right: undefined, opacity: 0.18 },
+  /* Quieter than the hold's 18%: that one is drawn over a solid fill, this one
+     over a 12% tint, and the same alpha on top of it reads as a second block. */
+  sweep: { ...StyleSheet.absoluteFillObject, right: undefined, opacity: 0.14 },
   line: { flexDirection: 'row', alignItems: 'baseline', gap: 6, maxWidth: '100%' },
   lead: { ...type.body, fontWeight: '700', flexShrink: 1 },
   figure: { ...type.body, fontWeight: '700', flexShrink: 0, fontVariant: ['tabular-nums'] },
-  detail: { ...type.dockEndSub, opacity: 0.62 },
+  /* .78 rather than the hold's .62 — the detail is coloured text on a tint
+     here, not white on ink, and it goes under the contrast floor below this. */
+  detail: { ...type.dockEndSub, opacity: 0.78 },
 });
