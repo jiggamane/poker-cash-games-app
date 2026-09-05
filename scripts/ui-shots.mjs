@@ -165,7 +165,9 @@ await tap('Full ledger', { wait: 1400 });
 await shot('11-ledger');
 
 await tap('Back to the night', { wait: 1400 });
-await tap('Who has paid', { wait: 1400 });
+/* `Who has paid` until 5 September; R2 titles the same route `Who pays whom`,
+   and the door off R1 is its footer button of the same name. */
+await tap('Who pays whom', { wait: 1400 });
 await shot('12-payments');
 
 await browser.close();

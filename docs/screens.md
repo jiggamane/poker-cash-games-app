@@ -794,6 +794,137 @@ audit's `PARAMS` map now opens it with the seeded night's bill on it, and
 `ui-journeys.mjs` reaches it the way a host does — by tapping a charge on
 Deductions — which is the only path that has a real night behind it.
 
+**`/settled` and `/payments` are `R1 · Results` and `R2 · Who pays whom`** —
+5 September, off `design_handoff_rebuy_and_results/`, Part 2, whose board is
+`Game Results Breakdown.dc.html`. It supersedes `design/handoff-four-screens/`
+on these two screens and nowhere else; everything that cut says about E2, E3 and
+E4 still stands.
+
+*The reversal, stated plainly.* The four-screens cut's central rule was
+**deductions are not folded into any player's balance**, and `NightResult.tsx`
+argued it at length: the row was what somebody did at the table, the deductions
+were a block of their own, and the arithmetic joining them was behind *Full
+ledger*. The owner's reason was good and is unchanged — a bill split flat across
+eight people takes $54 off six losers for something that has nothing to do with
+poker. **R1 folds them back in and prints the working under the name.** Its
+answer to the same objection is that nobody ever minded the subtraction, they
+minded it being done on their behalf without being shown:
+
+    FINAL                          after deductions and compensations
+    Petr                                                       +$315
+    150 − 54 − 23 + 242 paid
+
+`AT THE TABLE` is the old game-results list, neutral, closing on
+`$5,000 in, $5,000 out · $0`. `DEDUCTIONS` is the old block with every bill open
+on the face of its slab — who fronted it and for how much — and its total on the
+section label. `FINAL` is new, and it is the answer to **finding 7** of
+`docs/game-outcomes-cjm.md`, *"a settled night no longer shows anybody their
+net"*, which is now **done**.
+
+*Colour is reserved for the FINAL block.* Table figures are neutral so nobody
+reads them as the answer. The deduction slabs are the one tinted thing on the
+screen and they carry an unsigned total, so B23 and `tinted-result-row` are
+untouched: no signed figure in this app sits on a fill.
+
+*The caption terms are the engine's.* `resultFormula` gained a `caption` field
+beside its `terms` — the same decomposition with a bill's two halves kept apart,
+because `terms` nets Petr's `−54` and `+242` into a `food +$188` nobody at that
+table did. It is a field on that function rather than a sixth view model: a
+second entry point would be a fourth place to decide which credits are a float.
+`Σ caption === Σ terms === net`, asserted in `rev15-night.test.ts` and in
+`packages/core/src/results-r1.test.ts`, which holds the handoff's own eight-player
+worked example — the finals that sum to −184 — to the dollar. **That night is the
+spec's test case and not the app's seed**: the app is still seeded with the
+canonical night.
+
+*One new night-level view model, `resultTotals`.* Both closing rows are sums
+across a column, which is exactly what `CLAUDE.md` forbids a screen to do, and
+every other view model in `working.ts` is a list of players. `paymentProgress`
+is the same story for R2's header, which did three reductions inline.
+
+⚠ *Deviations, recorded rather than argued away.*
+
+* **`Share` is not built.** R1's header draws `Back to Sessions · Share`.
+  `09-navigation.md` is FINAL on chrome — a pushed screen has *nothing at all*
+  in the top-right — and it is a behaviour rule, which the spec wins. `Screen`'s
+  `trailing` slot forbids a control by name. Sharing a settled night has no door
+  drawn anywhere else in the app. **Open**, and it is the same hole it was
+  before: the rev-18 frame drew `Share` there too and it has never been built.
+* **`#E8E9EC` is not a token.** The board's neutral money sits between `text`
+  and `muted`; `tokens.ts` is app-wide and `CLAUDE.md` says an app-wide change
+  runs in a session with nothing else in flight. The table figures are drawn in
+  `text` meanwhile, which keeps the rule that matters — nothing in that block is
+  green or red — and loses half a step of de-emphasis. Same for the settled
+  slab's `rgba(255,255,255,.05)`, drawn as `drawerFill`.
+* **No arrow glyph on `Who pays whom`.** `Button` takes a label and nothing
+  else, and it is app-wide. The word is the board's.
+* **`Petr paid`, not `Petr paid the delivery`.** A rule's credits are one figure
+  per person however many trips to the shop made them up; the engine has nowhere
+  to keep which errand it was. The drawn sentence with the half we do not know
+  removed, rather than invented.
+* **R2's header figure abbreviates past $100,000.** The meta line is one line
+  of Chrome A that does not wrap and is not capped against the reader's text
+  setting; at 360 and 120% text a nine-digit table drew
+  `0 of 6 settled · $239,003,550 still to move` at 373 points on a 360-point
+  phone, and `ui-journeys.mjs` caught it. `$239.0M` fits, the exact figure is on
+  every row below, and nothing a real home game plays for is touched.
+* **R2's progress bar is under the lists, not under the meta line.** The meta
+  line is a string on Chrome A's title row and nothing may be drawn between it
+  and the body. Moving it up means changing `Screen` — app-wide again — or this
+  screen drawing its own header, which is what Chrome A exists to stop.
+* **The prize-pool card is gone.** `In play · Entries · Deductions` in a card
+  above the rows is the four-screens layout and R1 draws no such card. The money
+  it stated is on the table block's closing row in the board's own words
+  (`$5,000 in, $5,000 out`) and the deductions total is on its section label;
+  what is genuinely lost is the entry count, which lives on Count up. ⚠ This
+  takes `In play` off one of the three screens the 5 September wording decision
+  put it on — Tonight, Count up and `/watch` still say it — because the newer
+  board draws no figure for it to label.
+
+*What the single footer button did to two routes, since neither may be silently
+orphaned.* `/payments` **is** the footer: `Who pays whom →` is the one control
+R1 draws, and the `Who has paid` chip is gone because the door is now drawn.
+`/ledger` **is a chip under the blocks**: R1 does not draw it, `/settled` was its
+only door in the app, and it is not redundant with the caption — the caption is
+one truncating line and `7e` is four columns at full width with the rounding
+step in one of its own, off the same `resultColumns`. `/nudge` is the same case
+one screen along: R2's footer is `Mark the rest settled` / `Mark all settled`,
+so the nudge is a chip above it. **All three chips are deviations and all three
+are doors nothing else in the app opens.** Delete each the day a board draws it
+somewhere else.
+
+*R2, and what it keeps.* Settling and paying are still separate — nothing on
+that screen touches the night's result, and no figure in the app reads `paidAt`.
+The whole waiting row is still the tick (the board draws the affordance as a
+22px empty circle on the right; the tap is not confined to it), and the way back
+off a mis-tap is now `Undo`, the one live target in a settled slab that is
+deliberately 39 tall — under a tap target — with its own hit area padded back
+out to 44. The piggy bank is a recipient like any person and its name is drawn
+in bone; which recipients those are is `paymentProgress`'s answer, off the same
+membership test that keeps a collector's float off anybody's result (B27).
+
+*What went red and was updated, with the reason on the line.* `ui-journeys.mjs`
+asserted `Game results` and **no** formula under a name — the four-screens rule —
+and now asserts R1's three blocks, a caption with no currency symbol in it, the
+total on the section label, and the bill's payers on the slab. Its `Who has paid`
+leg is `Who pays whom`, and its one-touch-on-one-touch-off leg (B21) is the same
+behaviour on `Undo`. `ui-shots.mjs` follows the same rename. No check was
+loosened: every one of them asserts what it asserted before, on the words the new
+board draws.
+
+⚠ *And one trap in `ui-journeys.mjs` worth knowing before writing another leg.*
+A backslash class inside `:text-matches("…")` does not survive: the selector's
+own parser eats it, so `^\S+ paid$` reaches the regex engine as `^S+ paid$` and
+matches nothing. Write `[^ ]+`. It went red once here and would have gone GREEN
+silently on any leg that asserts a count of zero.
+
+⚠ *`ui-audit.mjs` and `ui-journeys.mjs` read `UI_CHECK_BASE`, not
+`UI_CHECK_PORT`.* `ui-gate.sh` serves on `UI_CHECK_PORT` and `ui-currency.mjs`
+honours it, so `UI_CHECK_PORT=4341 npm run check:ui` builds, serves on 4341, and
+then two of the three passes fail to connect to 4321. Set both, or leave the
+port alone. Not fixed here — it is harness plumbing outside this batch's files.
+**Open.**
+
 ## The group's own money
 
 Every amount in the app is written in the currency the group keeps its book in.

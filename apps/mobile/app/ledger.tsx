@@ -30,6 +30,18 @@ import { settlementInput, useNight } from '../src/lib/nightStore';
  * ledger` here the day there is a ledger to open." This is that day, and
  * `settled.tsx` carries the other half of the change.
  *
+ * ⚠ THE DOOR IS A CHIP NOW, NOT A FOOTER BUTTON — 5 September. `R1 · Results`
+ * draws ONE footer button and it is `Who pays whom →`, so `Full ledger` moved
+ * to a chip under the blocks. It is a deviation from R1, which draws no such
+ * chip, and it is there because `/settled` is still this screen's only door in
+ * the app — orphaning a built screen is the worse of the two.
+ *
+ * AND IT IS STILL NOT REDUNDANT with what R1 now prints. R1's FINAL caption
+ * says one person's night as a sentence on one truncating line; `7e` says the
+ * same decomposition as columns at full width, with the rounding step in a
+ * column of its own. Same `resultColumns` call, so the two cannot disagree —
+ * two drawings of one night rather than two answers about it.
+ *
  * WHAT IT IS NOT. It is not the entry list — which rebuy, which spend, at what
  * time — and no board draws one. It is the same four terms E6 says as a
  * sentence, said as a table instead, off the same `resultColumns`: two drawings

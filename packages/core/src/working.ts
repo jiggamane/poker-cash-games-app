@@ -712,10 +712,63 @@ export interface FormulaTerm {
   amount: Money;
 }
 
+/**
+ * THE SAME NIGHT, SPLIT ONE STEP FINER — the caption under an R1 FINAL row.
+ * `design_handoff_rebuy_and_results/Game Results Breakdown.dc.html`, `R1`.
+ *
+ *     Petr                                                        +$315
+ *     150 − 54 − 23 + 242 paid
+ *
+ * `terms` above NETS a bill: one signed figure per kind, because the columns it
+ * was written for have one cell per kind and no room for two. The caption has
+ * a whole line, and R1 spends it on the distinction the netted figure hides —
+ * what the bill CHARGED somebody is the group's rule applying to them, and what
+ * it PAID BACK is their own money returning. Petr's `food +$188` is arithmetic
+ * nobody at the table did; `− 54 … + 242 paid` is what actually happened to him.
+ *
+ * IT IS A FIELD ON THIS FUNCTION RATHER THAN A FUNCTION OF ITS OWN, and that
+ * is the point: the two are one decomposition drawn twice, off one pass over
+ * one player's deductions. A second entry point would be a second place to
+ * decide which credits are a float — the decision this file already makes three
+ * times — and the fourth copy is the one that goes stale.
+ *
+ * THE IDENTITY IS THE SAME ONE: `Σ caption === Σ terms === net ===
+ * nightScore().score`. `rev15-night.test.ts` and `results-r1.test.ts` assert it
+ * of every player of every night the suite settles.
+ *
+ * ORDER IS THE BOARD'S: the game, then every charge in the order the night
+ * applied its rules, then every compensation. A compensation last is what makes
+ * the line readable as a sentence — the deductions happen to everybody and the
+ * repayment happens to one person, so the exception comes after the rule.
+ */
+export type CaptionTermKind = 'game' | 'charge' | 'compensation' | 'rounded';
+
+export interface CaptionTerm {
+  /** Stable across renders. */
+  key: string;
+  /** Signed as printed: a charge is negative, a compensation positive. */
+  amount: Money;
+  kind: CaptionTermKind;
+  /**
+   * The word after the figure, where the board draws one — `paid`.
+   *
+   * ⚠ `rounded` IS NOT DRAWN. No frame on this board shows a night that
+   * settled to a step, and a caption without the term does not add up to the
+   * figure beside it (B36). Written to the grammar of the one word that IS
+   * drawn, and flagged rather than passed off as decided copy.
+   */
+  word: string | null;
+}
+
 export interface ResultFormula {
   player: PlayerSettlement;
   /** The game first, then one term per kind, in the order the night applied them. */
   terms: FormulaTerm[];
+  /**
+   * The same decomposition with the bill's two halves apart — R1's caption.
+   * `Σ caption === Σ terms === net`.
+   */
+  caption: CaptionTerm[];
   /** `Σ terms`, and the figure the row prints. */
   net: Money;
   /** The room's money in their hands, and in none of the above. */
@@ -727,11 +780,42 @@ export function resultFormula(result: SettlementResult): ResultFormula[] {
     const terms: FormulaTerm[] = [
       { key: 'game', label: 'game', amount: player.grossResult },
     ];
+    /* R1's caption, built in the same pass over the same deductions. The game
+       opens it, the charges follow in rule order, and the compensations are
+       collected as we go and appended after them — see `CaptionTerm`. */
+    const caption: CaptionTerm[] = [
+      { key: 'game', amount: player.grossResult, kind: 'game', word: null },
+    ];
+    const compensations: CaptionTerm[] = [];
 
     for (const d of playerDeductions(result, player.playerId)) {
-      /* Money back less money off — one signed figure per kind, which is what
-         somebody who both owes the bill and paid it actually experienced. The
-         float is not in `credited` and so is not in this line. */
+      /* NOT NETTED HERE. `charged` is the rule applying to them and `credited`
+         is their own outlay coming back; the caption is the one drawing of this
+         night that keeps them apart, and it keeps them apart in core so no
+         screen has to decide which credits are its own money and which are the
+         room's. The float is in neither — it is `held`. */
+      if (d.charged !== 0) {
+        caption.push({
+          key: `${d.destination}-charge`,
+          amount: -d.charged as Money,
+          kind: 'charge',
+          word: null,
+        });
+      }
+      if (d.credited !== 0) {
+        compensations.push({
+          key: `${d.destination}-paid`,
+          amount: d.credited,
+          kind: 'compensation',
+          /* The board's own word, and the only one it draws on a caption term. */
+          word: 'paid',
+        });
+      }
+
+      /* And the same kind NETTED, which is what `terms` is: money back less
+         money off, one signed figure, which is what somebody who both owes the
+         bill and paid it experienced as a column. The float is not in
+         `credited` and so is in neither drawing. */
       const amount = (d.credited - d.charged) as Money;
       if (amount !== 0) {
         terms.push({ key: d.destination, label: formulaWord(d.destination), amount });
@@ -750,12 +834,28 @@ export function resultFormula(result: SettlementResult): ResultFormula[] {
       terms.push({ key: 'rounded', label: 'rounded', amount: player.roundedBy });
     }
 
+    caption.push(...compensations);
+    if (player.roundedBy !== 0) {
+      caption.push({
+        key: 'rounded',
+        amount: player.roundedBy,
+        kind: 'rounded',
+        word: 'rounded',
+      });
+    }
+
     return {
       player,
       /* A term of $0 goes, unless it is the only one there is: the hole has a
          figure and no night behind it, and a row with an empty formula under it
          would read as a row still loading. */
       terms: terms.length === 1 ? terms : terms.filter((t) => t.amount !== 0),
+      /* The caption never pushed a zero in the first place — a charge of $0 is
+         not a rule that happened to somebody — so the only thing left to guard
+         is the same one: a lone `game` term is the net said twice, and R1 draws
+         no caption at all under it. That is the screen's call, and both halves
+         of it need the term to be here. */
+      caption,
       net: score,
       held,
     };
@@ -814,4 +914,170 @@ export function ruleOutcomes(result: SettlementResult): RuleOutcome[] {
         .map((c) => ({ playerId: c.playerId, name: name(c.playerId), amount: c.amount })),
       float: d.destination !== 'bill',
     }));
+}
+
+
+/**
+ * THE TWO CLOSING ROWS OF R1 — `Game Results Breakdown.dc.html`, `R1 · Results`.
+ *
+ *     $5,000 in, $5,000 out                                            $0
+ *     Players net                                        −$184 → piggy bank
+ *
+ * One night-level figure per block, and they are the two the board spends a row
+ * on because they are the two a room checks. The first says the table itself is
+ * sound: money is neither made nor destroyed at a poker table, so the game
+ * results add to nothing, and the row states the two sides that produced the
+ * zero rather than only the zero. The second says the finals do NOT add to
+ * nothing — and names where the difference went, because a column of signed
+ * figures summing to −$184 reads as an error until something says it is the
+ * piggy bank.
+ *
+ * WHY IT IS THE ONE NIGHT-LEVEL VIEW MODEL IN THIS FILE. Everything above is a
+ * list of players; these are sums ACROSS that list, which is exactly the column
+ * `CLAUDE.md` forbids a screen to add up. `resultFormula` cannot carry them —
+ * it is an array — and folding them into `prizePool` would put settlement
+ * figures on a function that takes a ledger. So: one export, and it is the
+ * screen's whole arithmetic budget for both closing rows.
+ *
+ * `players` IS Σ `resultFormula().net`, WHICH IS NOT ZERO. Positions across
+ * everyone sum to zero, and then `nightScore` takes each collector's float out
+ * of their score (B27) — so what is left is short by exactly the money that left
+ * the players, and `destinations` names the kinds it left to. A night whose only
+ * rule is a bill has nothing leaving: the bill is charged and paid straight
+ * back, `players` is $0, and `destinations` is empty.
+ */
+export interface ResultTotals {
+  /** Σ what everybody put on the table — the `$5,000 in` of the closing row. */
+  boughtIn: Money;
+  /** Σ what everybody took off it, as counted. */
+  cashedOut: Money;
+  /** Σ the game results. Zero on a night that balanced, and drawn either way. */
+  game: Money;
+  /** Σ the finals. Negative by whatever left the players for good. */
+  players: Money;
+  /**
+   * Where that difference went, in the order the night applied its rules.
+   * Empty where nothing left. The screen spells them with `destinationWord`.
+   */
+  destinations: RuleDestination[];
+}
+
+export function resultTotals(result: SettlementResult): ResultTotals {
+  /*
+   * OFF THE SAME LISTS THE SCREEN DRAWS, not off `result.players`. The two
+   * differ by exactly the parties the night did not happen to — the piggy
+   * bank's own envelope, a collector who never sat down — and a closing row
+   * that summed a different set from the rows above it would be a total that
+   * does not match its own column. That is the fault the row exists to catch.
+   */
+  const rows = resultRows(result);
+  const sum = (ns: readonly number[]): Money => money(ns.reduce((a, b) => a + b, 0));
+
+  return {
+    boughtIn: sum(rows.map((r) => r.player.boughtIn)),
+    cashedOut: sum(rows.map((r) => r.player.endedWith)),
+    game: sum(gameResults(result).map((g) => g.game)),
+    players: sum(rows.map((r) => r.score)),
+    /* A kind with nothing in it is not a destination, and a bill never is: it
+       is charged and paid straight back, so no money leaves the players by it. */
+    destinations: result.deductions
+      .filter((d) => d.total !== 0 && d.destination !== 'bill')
+      .map((d) => d.destination)
+      .filter((d, i, all) => all.indexOf(d) === i),
+  };
+}
+
+/**
+ * WHO PAYS WHOM, AND HOW FAR THROUGH IT THE ROOM IS — `R2 · Who pays whom`.
+ *
+ *     3 of 8 settled · $946 still to move        [########-----]
+ *
+ * The transfers `settle()` produced, split by whether the cash has actually
+ * moved, with the counts and the values that head the two sections and drive
+ * the bar. It is here rather than on the screen because every figure in that
+ * header is a sum over a column — `payments.tsx` did three of them inline, which
+ * is the second implementation `CLAUDE.md` is about.
+ *
+ * SETTLING AND PAYING STAY SEPARATE. Nothing in this function touches the
+ * night's result: a settled night is settled whether or not a single row here
+ * is ticked, and `isPaid` is the app's own record of a week of bank transfers,
+ * passed in rather than read, because core settles other people's books in a
+ * process that has no such record.
+ *
+ * `fraction` IS BY VALUE, NOT BY COUNT — the board's own rule, and the honest
+ * one: eight payments of $1,207 and $87 are not eight eighths of the money.
+ * Zero on a night with nothing to move, so a screen dividing by the total never
+ * has to guard it.
+ */
+export interface TransferLine {
+  /** Stable across renders. */
+  key: string;
+  fromPlayerId: PlayerId;
+  toPlayerId: PlayerId;
+  /** The payer's name, off the settlement rather than the app's roster. */
+  from: string;
+  /** The recipient's — "Dana", or "The piggy bank". */
+  to: string;
+  amount: Money;
+  /**
+   * The recipient is off-the-table money rather than a person having a night:
+   * a rule's collector the night never otherwise touched. Drawn in bone.
+   *
+   * It is the same membership test `resultRows` makes — B27's, which is why the
+   * envelope holding the room's float is not a row on the results screen — and
+   * it is asked here so no screen has to make it a second time.
+   */
+  toOffTable: boolean;
+  /** Whether the cash has moved. The app's record, not the night's. */
+  paid: boolean;
+}
+
+export interface PaymentProgress {
+  /** Every transfer, in the engine's own order. */
+  lines: TransferLine[];
+  waiting: TransferLine[];
+  settled: TransferLine[];
+  /** What the two section labels count. */
+  count: { settled: number; total: number };
+  /** What they state beside the count, and what the header line says. */
+  value: { settled: Money; owed: Money; total: Money };
+  /** `value.settled / value.total`, 0 to 1. Zero where there is nothing to move. */
+  fraction: number;
+}
+
+export function paymentProgress(
+  result: SettlementResult,
+  isPaid: (fromPlayerId: PlayerId, toPlayerId: PlayerId) => boolean,
+): PaymentProgress {
+  const played = new Set(resultRows(result).map((r) => r.player.playerId));
+  const name = (playerId: PlayerId): string =>
+    result.players.find((p) => p.playerId === playerId)?.name ?? '';
+
+  const lines: TransferLine[] = result.transfers.map((tr) => ({
+    key: `${tr.fromPlayerId}>${tr.toPlayerId}`,
+    fromPlayerId: tr.fromPlayerId,
+    toPlayerId: tr.toPlayerId,
+    from: name(tr.fromPlayerId),
+    to: name(tr.toPlayerId),
+    amount: tr.amount,
+    toOffTable: !played.has(tr.toPlayerId),
+    paid: isPaid(tr.fromPlayerId, tr.toPlayerId),
+  }));
+
+  const waiting = lines.filter((l) => !l.paid);
+  const settled = lines.filter((l) => l.paid);
+  const sum = (ls: readonly TransferLine[]): Money =>
+    money(ls.reduce((a, l) => a + l.amount, 0));
+
+  const total = sum(lines);
+  const settledValue = sum(settled);
+
+  return {
+    lines,
+    waiting,
+    settled,
+    count: { settled: settled.length, total: lines.length },
+    value: { settled: settledValue, owed: sum(waiting), total },
+    fraction: total === 0 ? 0 : settledValue / total,
+  };
 }

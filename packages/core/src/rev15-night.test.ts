@@ -856,6 +856,42 @@ describe('E6 — the formula line under a name', () => {
     expect(dana.terms.map((t) => t.label)).toEqual(['game', 'piggy', 'food', 'host']);
     expect(sum(dana.terms.map((t) => t.amount))).toBe(dana.net);
   });
+
+  /*
+   * AND THE SAME NIGHT ONE STEP FINER — R1's caption, which is the same
+   * decomposition with a bill's two halves kept apart.
+   * `design_handoff_rebuy_and_results`, Part 2, cut 5 September, and
+   * `results-r1.test.ts` holds its worked example.
+   *
+   * The canonical night is where it earns its keep, because this one ROUNDS: a
+   * caption that stopped at `game · piggy · food` would be short of the figure
+   * beside it by exactly what the step moved, which is B36 with a new place to
+   * happen.
+   */
+  it('splits a fronted bill in two on the caption, and still adds up', () => {
+    const shape = (id: PlayerId) =>
+      resultFormula(result)
+        .find((f) => f.player.playerId === id)!
+        .caption.map((t) => [t.kind, t.amount]);
+
+    // Marek is charged 31 by the bill and owed 120 for the pizza. `terms` nets
+    // the two into `food +89`; the caption keeps both, and puts the repayment
+    // last.
+    expect(shape(MAREK)).toContainEqual(['charge', -31]);
+    expect(shape(MAREK)).toContainEqual(['compensation', 120]);
+    expect(shape(MAREK)!.at(0)![0]).toBe('game');
+    expect(
+      shape(MAREK).findIndex(([kind]) => kind === 'compensation'),
+    ).toBeGreaterThan(shape(MAREK).findIndex(([kind]) => kind === 'charge'));
+
+    for (const f of resultFormula(result)) {
+      expect(sum(f.caption.map((t) => t.amount))).toBe(f.net);
+      expect(sum(f.caption.map((t) => t.amount))).toBe(sum(f.terms.map((t) => t.amount)));
+      // No term of nothing on the line — a rule that did not touch somebody is
+      // not a `− 0` under their name.
+      expect(f.caption.every((t) => t.amount !== 0)).toBe(true);
+    }
+  });
 });
 
 describe('E6 — where each rule’s money ended up', () => {
