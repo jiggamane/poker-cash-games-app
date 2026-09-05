@@ -36,7 +36,7 @@ const EAS_PROJECT_ID = '938b4629-9a41-4ddf-bcd8-86bb4e4696b3';
  *
  * `runtimeVersion` is the one that cannot be shared. It says which native build
  * a bundle is allowed to land on. Expo Go is a single fixed native build that
- * identifies itself as `exposdk:54.0.0` and opens ONLY updates stamped exactly
+ * identifies itself as `exposdk:57.0.0` and opens ONLY updates stamped exactly
  * that, so an update stamped `0.1.0` is, correctly, not for it — and it is
  * turned away in silence. A standalone build is the exact opposite: without a
  * runtime version, JavaScript expecting newer native code can land on an older
@@ -49,7 +49,7 @@ const EAS_PROJECT_ID = '938b4629-9a41-4ddf-bcd8-86bb4e4696b3';
  *
  * So there are two answers and no third:
  *
- *   EAS_PROJECT=go     id + updates.url, runtimeVersion `exposdk:54.0.0`.
+ *   EAS_PROJECT=go     id + updates.url, runtimeVersion `exposdk:57.0.0`.
  *                      `eas update` then publishes something Expo Go can open
  *                      from a link, with no dev server and no laptop — which is
  *                      the only way to put this app on an iPhone that is not a
@@ -98,10 +98,10 @@ module.exports = ({ config }) => {
    * publishing, and stamps the update `0.1.0`. Run #4 on 28 August is that
    * exact story — green workflow, real update, and an update Expo Go will not
    * open, because Expo Go is one fixed native build that calls itself
-   * `exposdk:54.0.0` and takes only updates stamped to match. The refusal is
+   * `exposdk:57.0.0` and takes only updates stamped to match. The refusal is
    * silent, which is what makes this worth six lines of comment.
    *
-   * So `go` says `exposdk:54.0.0` and gets opened; `build` says the app version
+   * So `go` says `exposdk:57.0.0` and gets opened; `build` says the app version
    * and keeps JavaScript off native code too old for it.
    *
    * The literal, not `{ policy: 'sdkVersion' }` which derives the same string:
@@ -113,7 +113,7 @@ module.exports = ({ config }) => {
   out =
     mode === 'build'
       ? { ...out, runtimeVersion: { policy: 'appVersion' } }
-      : { ...out, runtimeVersion: `exposdk:${out.sdkVersion ?? '54.0.0'}` };
+      : { ...out, runtimeVersion: `exposdk:${out.sdkVersion ?? '57.0.0'}` };
 
   return out;
 };

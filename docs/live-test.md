@@ -104,12 +104,12 @@ in Expo Go, over cellular, with nothing running on the laptop.
 Two things can go wrong here, and both are worth knowing before you are tired:
 
 - **It says it has configured a `runtimeVersion` for you.** Stop and read which
-  one. This is settled now — `app.config.js` stamps `exposdk:54.0.0` under
+  one. This is settled now — `app.config.js` stamps `exposdk:57.0.0` under
   `EAS_PROJECT=go` and that is what Expo Go opens — but the failure it fixes is
   worth recognising, because it does not look like a failure. Run #4 on
   28 August published green, from a workflow whose every step passed, and put an
   update stamped `0.1.0` on Expo. Expo Go is one fixed native build calling
-  itself `exposdk:54.0.0`; it takes only updates stamped to match, and it turns
+  itself `exposdk:57.0.0`; it takes only updates stamped to match, and it turns
   away the rest **without a word on the screen.** eas-cli had found no runtime
   version, judged that an oversight, and written the standalone build's answer
   into `app.json` on the runner.
