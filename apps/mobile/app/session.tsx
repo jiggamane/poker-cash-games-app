@@ -6,6 +6,7 @@ import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
 import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
+import { NameTag, RebuyBar, TotalTag } from '../src/components/RebuyConfirmation';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
@@ -75,6 +76,9 @@ const CARD_FITS = 10_000;
  */
 const ROW_FITS = 10_000;
 
+/** The board's `gap 10` between the *On the table* figure and a rebuy's tag. */
+const FIGURE_TAG_GAP = 10;
+
 export default function Session() {
   const t = useTheme();
   const night = useNight();
@@ -82,6 +86,19 @@ export default function Session() {
      for by session so a second table's queue is not counted onto this one. */
   const pending = usePending(night?.sessionId);
   const [drawer, setDrawer] = useState(false);
+
+  /*
+   * HOW MUCH ROOM THE MONEY CARD HAS BESIDE ITS FIGURE, measured rather than
+   * assumed — and only the rebuy's `+$500` tag reads it.
+   *
+   * The card's left column is `flex: 1`, so the row below reports the width
+   * actually available; the figure reports its own. Neither measurement moves
+   * when the tag appears — the figure does not shrink and the right column does
+   * not — so there is no loop here, just two numbers the tag is held against.
+   * `TotalTag` carries the arithmetic and what it costs on a 360 phone.
+   */
+  const [figureRoom, setFigureRoom] = useState(0);
+  const [figureWidth, setFigureWidth] = useState(0);
 
   /*
    * THE DRAWER IS NEVER OPEN WHEN YOU ARRIVE.
@@ -190,39 +207,56 @@ export default function Session() {
       dimmed={drawer}
       footerPad={false}
       footer={
-        <Dock
-          variant={empty ? 'empty-table' : 'resting'}
-          waiting={pending.waiting}
-          open={drawer}
-          onOpenChange={setDrawer}
-          onRebuy={() => {
-            setDrawer(false);
-            router.push({ pathname: '/pick', params: { kind: 'buyin' } });
-          }}
-          onBill={() => {
-            setDrawer(false);
-            router.push('/bill');
-          }}
-          onSeat={() => {
-            setDrawer(false);
-            router.push('/seat');
-          }}
-          onCashOut={() => {
-            setDrawer(false);
-            router.push({ pathname: '/pick', params: { kind: 'cashout' } });
-          }}
-          /* O4 over Tonight — `09-navigation.md`: money rules open "from O1,
-             or Tonight". Until now they opened from neither, so a rule agreed
-             before the night could not be changed during it. */
-          onRules={() => {
-            setDrawer(false);
-            router.push('/money-rules');
-          }}
-          onEnd={() => {
-            setDrawer(false);
-            router.push('/count-up');
-          }}
-        />
+        /*
+         * THE CONFIRMATION BAR RIDES ON THE DOCK, AND NEVER ON THE TABLE.
+         *
+         * A rebuy tapped on a player card lands here — `RebuyConfirmation.tsx`
+         * — and this is the third of the three places it shows: check, what
+         * happened, Undo, for two seconds. It is a sibling of the dock rather
+         * than a layer over the screen, so it hangs off the dock's top edge and
+         * rises with the drawer instead of being a number kept in step with one.
+         *
+         * The handoff's rule: confirmation may cover chrome and never money.
+         * Everything above this line is the table, and the dock below it stays
+         * uncovered on purpose — a second rebuy is one tap away while the bar
+         * is up.
+         */
+        <>
+          <RebuyBar />
+          <Dock
+            variant={empty ? 'empty-table' : 'resting'}
+            waiting={pending.waiting}
+            open={drawer}
+            onOpenChange={setDrawer}
+            onRebuy={() => {
+              setDrawer(false);
+              router.push({ pathname: '/pick', params: { kind: 'buyin' } });
+            }}
+            onBill={() => {
+              setDrawer(false);
+              router.push('/bill');
+            }}
+            onSeat={() => {
+              setDrawer(false);
+              router.push('/seat');
+            }}
+            onCashOut={() => {
+              setDrawer(false);
+              router.push({ pathname: '/pick', params: { kind: 'cashout' } });
+            }}
+            /* O4 over Tonight — `09-navigation.md`: money rules open "from O1,
+               or Tonight". Until now they opened from neither, so a rule agreed
+               before the night could not be changed during it. */
+            onRules={() => {
+              setDrawer(false);
+              router.push('/money-rules');
+            }}
+            onEnd={() => {
+              setDrawer(false);
+              router.push('/count-up');
+            }}
+          />
+        </>
       }
     >
       {/*
@@ -248,13 +282,32 @@ export default function Session() {
         >
           <View style={styles.cardLeft}>
             <Text style={[styles.tableLabel, { color: t.muted }]}>On the table</Text>
-            <Text
-              style={[styles.tableFigure, { color: t.text }]}
-              numberOfLines={1}
-              {...cappedFigure}
+            {/*
+             * A REBUY IS ANNOUNCED WHERE THE MONEY IS, AND THIS IS THE MONEY.
+             *
+             * `+$500` slides in beside this figure as it changes and fades to
+             * nothing over the next two seconds. The figure keeps its new
+             * value: the fade removes the announcement, not the fact — it is
+             * `onTable`, read off the ledger, and it was never part of the
+             * announcement at all.
+             *
+             * The row is `flex-start` so the tag's cap lines up with the
+             * figure's rather than its baseline, which is the board.
+             */}
+            <View
+              style={styles.figureRow}
+              onLayout={(e) => setFigureRoom(e.nativeEvent.layout.width)}
             >
-              {formatToFit(onTable, CARD_FITS)}
-            </Text>
+              <Text
+                style={[styles.tableFigure, { color: t.text }]}
+                numberOfLines={1}
+                onLayout={(e) => setFigureWidth(e.nativeEvent.layout.width)}
+                {...cappedFigure}
+              >
+                {formatToFit(onTable, CARD_FITS)}
+              </Text>
+              <TotalTag fits={CARD_FITS} room={figureRoom - figureWidth - FIGURE_TAG_GAP} />
+            </View>
           </View>
 
           <View style={styles.cardRight}>
@@ -343,6 +396,19 @@ export default function Session() {
                   })}
                   right={
                     <>
+                      {/*
+                       * THE SAME `+$500` AS A TAG, BESIDE THE NAME — and it is
+                       * drawn by the row, which is what keeps it on the right
+                       * person. This group is sorted by what people are in for
+                       * and a rebuy is the thing that moves a row UP it, so a
+                       * tag pinned to a position instead of to a player would
+                       * land on whoever the rebuy pushed down.
+                       *
+                       * It rides in `right` because `ActiveRow` is a shared
+                       * component and this is Tonight's alone — the tag's own
+                       * margin puts it back beside the name. See `NameTag`.
+                       */}
+                      <NameTag playerId={p.id} fits={ROW_FITS} />
                       <Text style={[styles.amount, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
                         {formatToFit(p.boughtIn, ROW_FITS)}
                       </Text>
@@ -487,7 +553,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
   },
   cardEmpty: { paddingVertical: 12 },
-  cardLeft: { gap: 8, flexShrink: 1 },
+  /* `flex: 1` rather than `flexShrink: 1`, and the layout is the same one: the
+     right column is content-sized and was already pushed right by its own auto
+     margin. What it buys is that the row inside stretches to the width the
+     column HAS, which is the number the rebuy tag is measured against. */
+  cardLeft: { gap: 8, flex: 1, minWidth: 0 },
+  /* The figure and the `+$500` that announces a change to it — `gap: 10`,
+     tops aligned, and the tag never shrinks the figure it is about. */
+  figureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: FIGURE_TAG_GAP },
   tableLabel: type.tableLabel,
   tableFigure: type.tableFigure,
   // The right column keeps its width and the figure beside it gives, never
