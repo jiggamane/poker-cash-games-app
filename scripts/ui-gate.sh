@@ -35,6 +35,20 @@ cd "$(dirname "$0")/.."
 PORT="${UI_CHECK_PORT:-4321}"
 BUILD=apps/mobile/.web
 
+# --- and the passes have to be pointed at the same port ---------------------
+# `ui-serve.mjs` and `ui-currency.mjs` take `UI_CHECK_PORT`; `ui-audit.mjs`,
+# `ui-journeys.mjs`, `ui-frames.mjs` and `ui-shots.mjs` take `UI_CHECK_BASE` and
+# hard-default it to 4321. So setting the port alone served on one port and
+# pointed two of the three passes at another — which does not fail loudly: on a
+# machine with a stale server on 4321 it QUIETLY AUDITS THE WRONG BUILD, and
+# that is a green run that proves nothing.
+#
+# Two agents building different halves of a handoff in parallel hit it on the
+# same afternoon, each having been told to use a port of their own, and both had
+# to work it out from a connection error. Derived here rather than in six
+# scripts, and only when it is not already set, so an explicit base still wins.
+export UI_CHECK_BASE="${UI_CHECK_BASE:-http://127.0.0.1:${PORT}}"
+
 # --- the typeface and the build, the same way `npm run ui` gets them ---------
 bash scripts/ui-build.sh
 
