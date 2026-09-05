@@ -415,7 +415,7 @@ and the older rebuy keeps its figures exactly as if its bar had faded. An ask.
 
 ⚠ **NO HAPTIC.** The handoff asks for a success haptic on the tap. This app has
 none anywhere: `expo-haptics` is not a dependency and `apps/mobile/AGENTS.md`
-pins every version to SDK 54's own manifest. Flagged rather than faked with
+pins every version to SDK 57's own manifest. Flagged rather than faked with
 `Vibration`, which is a buzz and not a success. **It is the one line of the
 behaviour that is not built.**
 
