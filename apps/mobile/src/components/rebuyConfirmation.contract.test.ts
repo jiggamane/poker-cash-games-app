@@ -240,3 +240,43 @@ describe('what Tonight draws, and where', () => {
     expect(bar).not.toMatch(/calm \? 0 : BAR_LEAVE_MS|calm \? 0 : BAR_LIVE_MS/);
   });
 });
+
+/**
+ * The fourth drawn part — 5 September, on the owner's instruction: show the
+ * last rebuy entry on the player sheet in colour, and let it fade after two
+ * seconds.
+ *
+ * The sheet is gone by ~300ms, so this is not for the way out. It is for the
+ * way back in: tapping the same player again inside the two seconds — the "did
+ * that land?" reflex — opens the card with the row that just landed marked.
+ */
+describe('and the row it wrote, on the player card', () => {
+  it('is drawn on the entry list, off the same announcement', () => {
+    expect(card).toContain('<FreshEntryWash entryId={r.entryId} />');
+    expect(bar).toContain('export function FreshEntryWash');
+  });
+
+  it('finds the row by id rather than guessing at the newest rebuy', () => {
+    /* `entryIds` is on the announcement because Undo needs it. A guess would
+       mark somebody else's money; both ids light up after a collapse. */
+    expect(bar).toContain('it.entryIds.includes(entryId)');
+  });
+
+  it('shares the tags’ clock rather than starting a second one', () => {
+    /* One announcement in the app. A second timer here is how the sheet and
+       Tonight end up disagreeing about when the rebuy stopped being news. */
+    const wash = bar.slice(
+      bar.indexOf('export function FreshEntryWash'),
+      bar.indexOf('export function RebuyBar'),
+    );
+    expect(wash).toContain('useTagLife(mine ? it.token : undefined, calm)');
+    expect(wash).not.toContain('setTimeout');
+  });
+
+  it('fades a wash behind the row, never the row itself', () => {
+    /* Fading the row would take the time, the words and the figure down with
+       the colour, and the figure must stay readable throughout. */
+    expect(bar).toMatch(/freshWash: \{\s*position: 'absolute'/);
+    expect(bar).toContain('backgroundColor: t.winWash, opacity');
+  });
+});

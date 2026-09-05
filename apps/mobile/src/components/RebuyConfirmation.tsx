@@ -21,7 +21,7 @@ import {
   useRebuyAnnouncement,
 } from './rebuyAnnouncement';
 import { useTheme } from '../design/useTheme';
-import { cappedFigure } from '../design/tokens';
+import { cappedFigure, radius } from '../design/tokens';
 
 /**
  * THE REBUY IS CONFIRMED ON TONIGHT, NOT IN THE SHEET IT WAS TAPPED IN.
@@ -119,7 +119,7 @@ function useCalm(): boolean {
 }
 
 /* ---------------------------------------------------------------------------
- * The three drawn parts
+ * The four drawn parts
  * ------------------------------------------------------------------------- */
 
 /**
@@ -276,6 +276,50 @@ export function NameTag({ playerId, fits }: { playerId: PlayerId; fits: number }
 }
 
 /**
+ * THE ROW IT WROTE, ON THE PLAYER CARD — the fourth part, and the only one not
+ * on Tonight.
+ *
+ * The owner asked for the last rebuy entry to be shown in colour on the player
+ * sheet, and then for the mark to fade after two seconds. This is both, off
+ * this file's own store and this file's own clock, so there is exactly one
+ * announcement in the app and it cannot disagree with itself.
+ *
+ * WHY IT IS WORTH DRAWING AT ALL, given the sheet is gone by ~300ms. Not for
+ * the way out — nobody reads it there. It is for the way BACK IN: a host who
+ * taps the same player again inside the two seconds, which is the "did that
+ * land?" reflex, opens the card with the entry that just landed already marked.
+ * The alternative was a permanent marker on the newest rebuy, which would have
+ * been a fifth thing with its own rules and no fade.
+ *
+ * IDENTIFIED BY ID, NEVER BY GUESSING. `entryIds` is on the announcement
+ * because Undo needs it, and it is exactly what this needs too: "the newest
+ * rebuy" is a guess, and a wrong guess marks somebody else's money. Both ids
+ * light up when two taps have collapsed into one bar.
+ *
+ * A WASH BEHIND THE ROW, not opacity on the row. Fading the row itself would
+ * take the time, the words and the figure down with the colour, and the figure
+ * is the one thing on that line that must stay readable throughout.
+ */
+export function FreshEntryWash({ entryId }: { entryId: string | undefined }) {
+  const t = useTheme();
+  const it = useRebuyAnnouncement();
+  const calm = useCalm();
+  const mine = it !== null && entryId !== undefined && it.entryIds.includes(entryId);
+  const { opacity } = useTagLife(mine ? it.token : undefined, calm);
+
+  if (!mine) return null;
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={[styles.freshWash, { backgroundColor: t.winWash, opacity }]}
+    />
+  );
+}
+
+/**
  * The bar: check, what happened, Undo.
  *
  * IT CLEARS THE DOCK RATHER THAN COVERING IT, which the handoff says twice and
@@ -396,6 +440,23 @@ export function RebuyBar() {
 const BAR_FITS = 10_000;
 
 const styles = StyleSheet.create({
+  /*
+   * The wash behind a just-written entry row — `FreshEntryWash`.
+   *
+   * Inset PAST the list rather than inside it, which is what every washed block
+   * in this app does: the 8 it takes on each side is the row's own 4 of padding
+   * plus 4 of overhang, so it reads as a block behind the line rather than as a
+   * highlighter over the words. Absolute, so it cannot move the row when it
+   * arrives or goes — the entries list must not reflow while it fades.
+   */
+  freshWash: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: -8,
+    right: -8,
+    borderRadius: radius.pressable,
+  },
   /*
    * `left/right 14`, 48 tall, radius 12, `14 16`, gap 11 — the board. The 14
    * is the dock panel's own inset, so the two edges line up down the screen.
