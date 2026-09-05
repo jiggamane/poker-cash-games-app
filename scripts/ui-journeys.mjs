@@ -855,12 +855,6 @@ async function playANight(name, rebuys) {
   );
   await stop('count up · rounded');
 
-  await tap('See where everyone stands');
-  await stop('where everyone stands');
-  // Back the way a person goes, for the same reason as above.
-  await page.getByLabel(/^Back to/).last().click();
-  await page.waitForTimeout(1000);
-
   await tap('Next');
   await stop('deductions');
 

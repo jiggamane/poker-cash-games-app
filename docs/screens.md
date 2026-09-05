@@ -286,6 +286,53 @@ night's own figures on the card it is testing.
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
 
+**`/stands` is deleted, and `IN PLAY` is the word** — 5 September, on the
+owner's instruction, off the game-outcomes journey map
+(`design/cjm-game-outcomes/`, and `docs/game-outcomes-cjm.md` for the argument).
+Two decisions, and both are deviations from a drawn board, so they are here
+rather than only in a commit.
+
+*E2b is gone.* **Where everyone stands** drew Count up's finished players again
+— same two calls, same two groups, one tap away — and added a sort and a rank
+number. E2's `Counted` and `Cashed out earlier` groups now rank biggest winner
+first in its place, and the screen, its route, its link, and its legs in
+`ui-audit`, `ui-currency`, `ui-frames`, `ui-journeys` and `ui-shots` are
+deleted. The ranking is **within each group, not across the two**: a counted
+slab reopens the keypad and a cashed-out-earlier slab does not, so one heading
+over two affordances would undo what three groups are for. `Still to count`
+keeps seat order — it has no result to rank on.
+
+What that costs, and it is the honest half: E2b ranked *across* the two, so a
+room could read one leaderboard mid-count. Nobody can now. The judgement is that
+the leaderboard was never worth a screen, and that two ranked groups on the
+screen where the counting happens answer the question the room was asking.
+
+⚠ *And it leaves one question with nowhere to go.* `session.tsx` sent Tonight's
+`Cashed out` group to E2b in as many words — *"Ranking them by RESULT is the
+other candidate and belongs to E2b, which is the screen that ranks. Asked."*
+Those rows draw their result at the right edge, so the argument that just won on
+E2 applies to them unchanged. **Open.** Left in seat order rather than changed
+on the strength of a decision made about a different screen.
+
+*One word for money in: `In play`.* $5,000 was `total in` on Tonight,
+`BOUGHT IN` on E2 and `PRIZEPOOL` on E6 — one figure under three nouns, on three
+screens a host sees inside ten minutes, with nothing saying they are the same
+number. `/watch` already said `IN PLAY`, so that is the word and the other three
+now use it.
+
+Two figures keep their own names because they are different numbers, not the
+same number spelled differently: **`On the table`** on Tonight is what the
+seated players still have in front of them ($2,880 against $5,000, and Tonight
+draws both only when they differ), and **`In for`** on the player card is one
+person's stake rather than the night's.
+
+⚠ *Two costs, recorded rather than argued away.* It is a **deviation from the
+four-screens board**, which draws `PRIZEPOOL $5,000` at item 4 of Screen 3; and
+`IN PLAY` is **past tense on a settled night**, where nothing is in play any
+more. `CLAUDE.md` says copy is final and it is being overridden here on the
+owner's instruction. The alternative is a fourth right word for the fourth
+screen, which is the thing being fixed.
+
 **`/player`** — 3 September, on the owner's instruction: *"a smooth and
 informative touch-free transition between the rebuy and the return to the Home
 Screen"*. Holding **Rebuy $200** now writes the entry, states what just happened
@@ -868,9 +915,15 @@ figure with the figure. The hole (`Unaccounted`) is the same case.
 the two were alternatives rather than layers; both are gone, and the line is
 what replaced them. It is the columns decomposition — same figures, same order,
 same engine — as a sentence, which is what lets it hold a night the columns
-could not fit. `resultColumns`, `columnsFit` and `receiptRows` stay in core:
-they are tested, they are cheap, and `receiptRows` is still what the player card
-draws.
+could not fit. `resultColumns` and `columnsFit` stay in core and are drawn by
+`/ledger`.
+
+⚠ `receiptRows` does NOT stay for the reason this paragraph used to give — it
+said *"`receiptRows` is still what the player card draws"*, and the player card
+draws `workingRows`. It, `resultRows`, `playerDeductions` and `ruleCollector`
+are exported, tested and called from nowhere in the app. See finding 4 in
+`docs/game-outcomes-cjm.md`. **Open:** delete them, or write down which screen
+is waiting for them.
 
 **What no layout here has ever carried:** which rebuy, which spend, at what
 time. That is an entry list, no board draws one, and `/ledger` is not it —

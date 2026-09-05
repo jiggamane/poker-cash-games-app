@@ -203,7 +203,7 @@ write('Settled.dc.html', {
   ],
   body: `${pushHead('Sat 29 Aug', { meta: '20:05 → 23:45 · 3h 40m · 6 players · settled' })}
       <div style="display: flex; align-items: flex-start; gap: 12px; margin: 0 20px 18px; padding: 15px 18px; border-radius: 14px; background: ${T.surface}">
-${stat('Prizepool', '$5,000', T.text)}
+${stat('In play', '$5,000', T.text)}
 ${stat('Entries', '9', T.text, 'fixed')}
 ${stat('Deductions', '$296', T.offTable, 'right')}
       </div>

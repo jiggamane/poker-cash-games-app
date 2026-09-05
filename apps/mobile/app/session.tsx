@@ -42,7 +42,7 @@ import { usePending } from '../src/lib/pending';
  * WHERE THE MONEY CARD RUNS OUT OF ROOM.
  *
  * The headline is 44/800 tabular — about 26 points a glyph — beside a right
- * column that needs roughly 130 for "$99,999 total in". The card's inside is
+ * column that needs roughly 130 for "$99,999 in play". The card's inside is
  * 321 at 393 wide, which leaves the figure seven glyphs: "$99,999" and no
  * more. A real night went past that and the right column was pushed clean
  * outside the card, over the edge of the screen, with nothing clipping it.
@@ -160,8 +160,16 @@ export default function Session() {
      LEFT IN SEAT ORDER, and not for want of a rule: the buy-in is not drawn on
      these rows — the fact is the time they left and the figure at the right is
      their result — so sorting them by it would be an order the reader cannot
-     see. Ranking them by RESULT is the other candidate and belongs to E2b,
-     `Where everyone stands`, which is the screen that ranks. Asked. */
+     see.
+
+     ⚠ AND THE SCREEN THAT USED TO ANSWER THIS IS GONE. Ranking them by RESULT
+     was the other candidate, and this comment sent it to E2b, `Where everyone
+     stands`, "which is the screen that ranks". E2b was deleted on 5 September
+     and E2's own two finished groups rank in its place — so the same argument
+     now applies here, on rows that do draw their result at the right edge.
+     Left alone pending the owner's call rather than changed on the strength of
+     a decision made about a different screen. **Open**, and it is in
+     `docs/screens.md`. */
   const gone = standings.filter((s) => !s.atTable);
   const out = gone.length;
 
@@ -256,7 +264,14 @@ export default function Session() {
                 numberOfLines={1}
                 {...cappedFigure}
               >
-                {formatToFit(totalIn, CARD_FITS)} total in
+                {/* `in play`, not `total in` — 5 September, on the owner's
+                    instruction. One word for this figure everywhere it is
+                    drawn: it was `total in` here, `BOUGHT IN` on E2 and
+                    `PRIZEPOOL` on the settled night, one number under three
+                    nouns. `On the table` beside it is a DIFFERENT figure —
+                    what the seated players still have in front of them — and
+                    keeps its own name. */}
+                {formatToFit(totalIn, CARD_FITS)} in play
               </Text>
             )}
             <Text style={[styles.seats, { color: t.dim }]}>

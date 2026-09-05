@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import {
   balanceCheck,
   resolveLedger,
@@ -71,7 +71,6 @@ export default function CountUp() {
    */
   const standings = standingsOf(night, ledger).filter((s) => s.played);
   const seated = standings.filter((s) => s.atTable);
-  const confirmed = standings.filter((s) => !s.atTable);
 
   /*
    * SETTLED, ON THIS SCREEN, IS "THE STACK HAS BEEN SEEN" — counted, or
@@ -84,7 +83,49 @@ export default function CountUp() {
    * same distinction for the same reason.
    */
   const toCount = seated.filter((s) => !night.finalCounts.has(s.id));
-  const counted = seated.filter((s) => night.finalCounts.has(s.id));
+
+  /*
+   * THE TWO FINISHED GROUPS RANK, BIGGEST WINNER FIRST — 5 September, on the
+   * owner's instruction, and it is what replaced `Where everyone stands`.
+   *
+   * E2b was a whole screen whose only job was to draw these same rows in this
+   * same order, off these same two calls, one tap away. Ranking them here
+   * deletes it: the leaderboard a room starts asking for long before the last
+   * stack is counted is now on the screen where the counting happens, and
+   * there is nowhere left for two orderings of one list to disagree.
+   *
+   * THE ORDER IS THE COLUMN AT THE RIGHT EDGE, which is the same argument
+   * Tonight's seated group sorts on. Every row in both groups draws its
+   * result at 19/700 and nothing else numeric, so a list sorted by it can be
+   * checked by a reader running a finger down the column. `Still to count`
+   * is left in seat order because it has no result to rank on — an em dash is
+   * not a position.
+   *
+   * WITHIN A GROUP, NOT ACROSS THE TWO. A counted row reopens the keypad and a
+   * cashed-out-earlier row does not (see the group notes below), so merging
+   * them into one ranked list would put two different affordances under one
+   * heading. Dana at +$1,620 therefore sits below Marek at +$460, in the group
+   * underneath his.
+   *
+   * TIES KEEP SEAT ORDER — `Array#sort` is stable, so two players who ended
+   * level stay in the order their seats were filled rather than swapping about
+   * as unrelated entries land.
+   */
+  const byResult = <S extends { id: PlayerId; boughtIn: Money }>(
+    xs: readonly S[],
+    endedWith: (s: S) => Money,
+  ): S[] =>
+    [...xs].sort(
+      (a, b) =>
+        resultBeforeDeductions(b.boughtIn, endedWith(b)) -
+        resultBeforeDeductions(a.boughtIn, endedWith(a)),
+    );
+
+  const counted = byResult(
+    seated.filter((s) => night.finalCounts.has(s.id)),
+    (s) => night.finalCounts.get(s.id)!,
+  );
+  const confirmed = byResult(standings.filter((s) => !s.atTable), (s) => s.cashedOut);
 
   const balance = balanceCheck(
     ledger,
@@ -109,17 +150,10 @@ export default function CountUp() {
       trailing={<Step label="1 of 3" />}
       footer={
         <>
-          {/* E2b. Not drawn on the new board, which draws the block and the
-              button; it is rev 18's row and rev 18 stands where this handoff
-              is silent, and it is the only way into "Where everyone stands". */}
-          <Pressable
-            accessibilityRole="link"
-            onPress={() => router.push('/stands')}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          >
-            <Text style={[styles.link, { color: t.text }]}>See where everyone stands</Text>
-          </Pressable>
-
+          {/* E2b's link is gone with E2b — 5 September. It was the only way
+              into "Where everyone stands", which drew these same rows in this
+              same order one tap away; the two finished groups rank in place
+              now, so there is nothing behind the link to see. */}
           <Button
             label="Next"
             variant={ready ? 'primary' : 'blocked'}
@@ -363,7 +397,15 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
     <View style={[styles.block, { backgroundColor: t.surface, borderColor: c.edge }]}>
       <View style={styles.sums}>
         <Sum
-          label="BOUGHT IN"
+          /*
+           * ONE WORD FOR THIS FIGURE, APP-WIDE — 5 September, on the owner's
+           * instruction. It read `BOUGHT IN` here, `total in` on Tonight and
+           * `PRIZEPOOL` on the settled night: one number, $5,000, under three
+           * nouns on three screens a host sees inside ten minutes, with
+           * nothing saying they are the same number. `IN PLAY` is the word,
+           * and it is the one `/watch` already used.
+           */
+          label="IN PLAY"
           labelColor={t.muted}
           /* Never coloured: it is the fixed side of the comparison. */
           figureColor={t.text}
@@ -674,12 +716,4 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   countChipLabel: { fontSize: 14, fontWeight: '700' },
-
-  link: {
-    textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '500',
-    textDecorationLine: 'underline',
-    paddingBottom: 2,
-  },
 });

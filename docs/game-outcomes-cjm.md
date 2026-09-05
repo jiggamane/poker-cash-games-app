@@ -29,20 +29,21 @@ snapshot, so a night settled under an older bill still describes itself
 correctly. That part of the app is right, and none of what follows is an
 arithmetic bug.
 
-## The ten surfaces
+## The surfaces
+
+`/stands` was the tenth until 5 September; see finding 8.
 
 | # | Screen | Route | What the engine hands it |
 | --- | --- | --- | --- |
 | 1 | Tonight | `/session` | `totalBoughtIn` · `resultBeforeDeductions` |
 | 2 | Count up (E2) | `/count-up` | `balanceCheck` |
-| 3 | Where everyone stands (E2b) | `/stands` | `endedWith` · `resultBeforeDeductions` |
-| 4 | Deductions (E3) | `/deductions` | `settle().deductions` · `resultFormula` |
-| 5 | Settle up (E4) | `/settle-up` | `settle().transfers` · `resultFormula` |
-| 6 | It doesn't add up (E5) | `/settle-up`, caught | `checkReconciliation` · `balanceCheck` |
-| 7 | The night, settled (E6) | `/settled` | `prizePool` · `gameResults` · `ruleOutcomes` |
-| 8 | Full ledger | `/ledger` | `resultColumns` · `columnsFit` |
-| 9 | The player card | `/player` | `workingRows` · `nightScore` |
-| 10 | Who has paid (E7) | `/payments` | `settle().transfers`, again |
+| 3 | Deductions (E3) | `/deductions` | `settle().deductions` · `resultFormula` |
+| 4 | Settle up (E4) | `/settle-up` | `settle().transfers` · `resultFormula` |
+| 5 | It doesn't add up (E5) | `/settle-up`, caught | `checkReconciliation` · `balanceCheck` |
+| 6 | The night, settled (E6) | `/settled` | `prizePool` · `gameResults` · `ruleOutcomes` |
+| 7 | Full ledger | `/ledger` | `resultColumns` · `columnsFit` |
+| 8 | The player card | `/player` | `workingRows` · `nightScore` |
+| 9 | Who has paid (E7) | `/payments` | `settle().transfers`, again |
 
 `/watch` renders the settled body for a watcher; My stats and My games print
 `nightScore` per night. Both are outside the closing flow and are not drawn.
@@ -71,15 +72,34 @@ Ordered by what a reader loses, not by how much code moves.
 
 ### 1 · The balance card is built once and rewritten as prose
 
-`count-up.tsx` draws the whole equation as a card with a bar and a verdict.
-`settle-up.tsx`'s `OutOfBalance` states the same two figures, off the same
-`balanceCheck` call, as a sentence inside an alert. B40 already had to fix that
-sentence once for pairing the wrong two figures — the card cannot make that
-mistake and the prose can make it again.
+The host sees the same fact twice, in two shapes, on consecutive screens.
 
-**Do:** extract `BalanceBlock` to `src/components/`. E5 draws it in the `short`
-/ `over` paint that `paint()` in `count-up.tsx` already defines and nothing
-currently reaches.
+Count a night $20 light and E2's block goes red in place:
+
+    IN PLAY  $5,000          ACCOUNTED FOR  $4,980
+    6 players · 9 buy-ins    5 counted · 1 cashed out
+    ─────────────────────────────────────────────────
+    ✕  $20 SHORT
+
+Tap Next — E2 sends an unbalanced night straight past the deductions — and E5
+opens with:
+
+    OFF BY $20
+    $5,000 went in, $4,980 is accounted for. Someone's stack is short, or a
+    buy-in was never written down.
+
+Both come off the same `balanceCheck()` call. The card *shows* the two figures;
+the alert *retypes them into a sentence*, which then has to be kept in step with
+the card by hand. It has already drifted once: B40 records the sentence reading
+`$5,000 went in, $2,860 was counted out` — everything in, against the final
+counts alone, leaving the $2,120 somebody cashed out during play on neither
+side. Read literally it described a $2,140 hole under a tag saying $20. The
+card cannot make that mistake; prose can make it again.
+
+**Do:** extract `BalanceBlock` from `count-up.tsx` to `src/components/`. Its
+`paint()` table already has all three states, red included, and E2 already
+reaches red — so E5 draws the same block instead of the alert, and keeps only
+the half that is genuinely its own: the cause, and the three ways out.
 
 ### 2 · Two lists of money that disagree, with nothing saying why
 
@@ -152,19 +172,41 @@ the game result — or give *Full ledger* a name that says it holds your number.
 `/stands` draws Count up's finished players again, off the same two calls, in
 the same two groups. What it adds is a sort and a rank number.
 
-**Do:** rank E2's `Counted` and `Cashed out earlier` groups in place and drop
-the screen and its link. If it stays, take the rows off E2 rather than drawing
-them twice.
+**DONE, 5 September.** The screen, its route, its link off E2 and its legs in
+the four UI passes are deleted. E2's `Counted` and `Cashed out earlier` groups
+rank biggest winner first in their place — within each group, not across the
+two, because a counted row reopens the keypad and a cashed-out-earlier row does
+not, and one heading over two affordances is the thing three groups exist to
+prevent. `Still to count` keeps seat order: an em dash is not a position.
+
+**Still open:** Tonight's `Cashed out` group. `session.tsx` sent this exact
+question to E2b — *"Ranking them by RESULT is the other candidate and belongs to
+E2b, which is the screen that ranks"* — and E2b no longer exists. Those rows do
+draw their result at the right edge, so the argument now applies to them too.
+Left in seat order pending a call rather than changed on the strength of a
+decision made about a different screen.
 
 ### 9 · One number, five nouns
 
 $5,000 is *total in* on Tonight, `BOUGHT IN` on Count up, `PRIZEPOOL` on the
-settled night, `IN PLAY` to a watcher, *In for* per player. A host sees the
-first three inside ten minutes with nothing saying they are one figure.
+settled night, `IN PLAY` to a watcher. A host sees the first three inside ten
+minutes with nothing saying they are one figure.
 
-**Do:** two words for the whole app — one for the live figure, one for the
-closed one. `ruleText.ts` is where the app already keeps the words it must not
-spell two ways.
+**DONE, 5 September. The word is `In play`**, which is what `/watch` already
+called it. Tonight, Count up and the settled night now say it too.
+
+Two figures deliberately keep their own names, because they are different
+numbers and not the same one spelled differently:
+
+- **`On the table`** on Tonight — what the players still seated have in front of
+  them ($2,880), against `In play`'s every dollar the night has to reconcile
+  ($5,000). Tonight draws both, and only when they differ.
+- **`In for`** on the player card — one person's stake, not the night's.
+
+⚠ Two costs, recorded rather than argued away. It is a **deviation from the
+board**, which draws `PRIZEPOOL` on the settled night; and it is **past tense on
+a settled night**, where nothing is in play any more. The alternative is a
+fourth right word for the fourth screen, which is the thing being fixed.
 
 ### 10 · Four row treatments for one player's result
 
