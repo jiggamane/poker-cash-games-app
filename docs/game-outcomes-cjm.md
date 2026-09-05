@@ -40,10 +40,10 @@ arithmetic bug.
 | 3 | Deductions (E3) | `/deductions` | `settle().deductions` · `resultFormula` |
 | 4 | Settle up (E4) | `/settle-up` | `settle().transfers` · `resultFormula` |
 | 5 | It doesn't add up (E5) | `/settle-up`, caught | `checkReconciliation` · `balanceCheck` |
-| 6 | The night, settled (E6) | `/settled` | `prizePool` · `gameResults` · `ruleOutcomes` |
+| 6 | The night, settled (R1) | `/settled` | `gameResults` · `ruleOutcomes` · `resultFormula` · `resultTotals` |
 | 7 | Full ledger | `/ledger` | `resultColumns` · `columnsFit` |
 | 8 | The player card | `/player` | `workingRows` · `nightScore` |
-| 9 | Who has paid (E7) | `/payments` | `settle().transfers`, again |
+| 9 | Who pays whom (R2) | `/payments` | `paymentProgress`, off `settle().transfers` |
 
 `/watch` renders the settled body for a watcher; My stats and My games print
 `nightScore` per night. Both are outside the closing flow and are not drawn.
@@ -166,6 +166,37 @@ de-duplication opened a gap.
 
 **Do:** put the net back on the row as a second, muted figure at the right of
 the game result — or give *Full ledger* a name that says it holds your number.
+
+**DONE, 5 September**, and by neither of those two — by a third answer, off a
+board cut the same day. `design_handoff_rebuy_and_results/` Part 2 redraws the
+settled night as `R1 · Results`: three blocks, `AT THE TABLE` then `DEDUCTIONS`
+then `FINAL`, with the net back on the row at 18/700 and the arithmetic printed
+under the name.
+
+    FINAL                          after deductions and compensations
+    Dana                                                     +$1,543
+    1,620 − 54 − 23
+
+That is the figure a player argues about a week later, in the block that carries
+it, with its terms beside it — and still no row that opens anything, because
+there is nothing left behind a tap. Colour is reserved for that block: the table
+figures above it stay neutral so nobody reads them as the answer.
+
+**It reverses the rule the gap came from**, deliberately. 3 September's cut said
+*deductions are not folded into any player's balance* and it was right about
+what it was defending — a bill split flat across eight people is not a poker
+result. R1 keeps that distinction visible instead of enforcing it by
+subtraction: the game figure is a row of its own in the block above, the
+deduction is a slab of its own in between, and the `− 54` in the caption is the
+reader watching the two meet. Whoever fronted a bill gets a term of their own for
+it, in tan — `+ 242 paid` — because off-table money coming back is not a poker
+result either.
+
+The terms are the engine's: `resultFormula().caption` in `packages/core`, with
+`Σ caption === Σ terms === net` asserted for every player of every night the
+suite settles, and the handoff's own eight-player worked example held to the
+dollar in `results-r1.test.ts`. `ui-journeys.mjs` asserts the caption is on the
+phone; it used to assert the opposite, and the line saying why is beside it.
 
 ### 8 · A whole screen exists to re-sort the screen behind it
 
