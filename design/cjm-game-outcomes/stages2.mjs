@@ -145,6 +145,7 @@ write('OutOfBalance.dc.html', {
     { kind: 'engine', title: 'The throw is the gate', body: '<code>settle()</code> refuses a night that does not balance and has not been confirmed. Catching that is what turns step 3 into this screen — the state is not stored anywhere, so it cannot go stale.' },
     { kind: 'drop', title: 'This is Count up’s balance block, retyped', body: '<code>$5,000 went in, $4,980 is accounted for</code> comes from the same <code>balanceCheck</code> call that paints the block one screen back. B40 already had to fix this sentence once for pairing the wrong two figures — a prose restatement of a card is a thing that drifts.' },
     { kind: 'drop', title: 'And these rows are a fourth row treatment', body: 'Tonight, Count up and Where everyone stands share <code>PlayerList.tsx</code>. This screen hand-rolls its own row for the same three facts.' },
+    { kind: 'drop', title: 'The one screen in the flow that does its own arithmetic', body: '<code>stands.tsx</code> reads <code>resultBeforeDeductions(boughtIn, out)</code>. This screen reads <code>(out - s.boughtIn) as Money</code> — the same subtraction, on the screen, cast past the guard <code>subtract()</code> exists to apply.' },
   ],
   body: `${pushHead('It doesn’t add up')}
       <div style="margin: 8px 20px 18px; padding: 13px 15px; border-radius: 12px; background: ${T.dangerWash}; border: 1px solid ${T.dangerEdge}; display: flex; flex-direction: column; gap: 5px">
