@@ -342,6 +342,16 @@ tap between releasing the hold and being back at the table.
 `apps/mobile/src/components/Handoff.tsx` is the block; the composition and the
 copy are in `player.tsx` at the quick rebuy.
 
+> ⚠ **SUPERSEDED, 5 September — none of the paragraph above is in the app.**
+> The entry below (`RB-E Table total`) replaced it: `Handoff.tsx` and its
+> contract test are deleted, the hold is a tap, and the confirmation is on
+> Tonight rather than on the sheet that is leaving. **The finding it was
+> written for survives** — the host must not be left holding a card they have
+> finished with — and the sheet still dismisses itself, which is the one part
+> of this that is still true. Kept rather than cut because the reasoning is
+> what the replacement argues against, and a session that deletes the record
+> of the first answer makes the second one look arbitrary.
+
 *What it changed that was decided the other way.* The card's own note said
 *"nothing has to announce itself, because the screen the host is already looking
 at is the receipt"*, and the receipt is still there — the row in ENTRIES, IN FOR
@@ -383,6 +393,25 @@ values**, because they are read off the ledger and were never part of the
 announcement. `src/components/RebuyConfirmation.tsx` draws all three,
 `rebuyAnnouncement.ts` is the state behind them, and the composition is in
 `session.tsx` at the money card, the seated rows and the dock.
+
+*And a fourth drawn part, added the same day.* The owner asked for **the last
+rebuy entry to be shown in colour on the player sheet**, fading after two
+seconds like everything else. `FreshEntryWash` is it: a `winWash` block behind
+the entry row, on the announcement's own store and the tags' own clock, so
+there is one announcement in the app and it cannot disagree with itself.
+
+**It is not for the way out.** The sheet is gone by ~300ms, so nobody reads it
+there. It is for the way back **in** — tapping the same player again inside the
+two seconds, which is the *"did that land?"* reflex, opens the card with the row
+that just landed already marked. The alternative put to the owner was a
+permanent marker on the newest rebuy; that was not taken, because it would be a
+fifth rule with no fade in a flow where everything else expires at two seconds.
+
+Two details worth keeping: it finds the row by **`entryIds` off the
+announcement**, never by picking "the newest rebuy" — a guess there marks
+somebody else's money, and both ids light up after a collapse — and it fades a
+**wash behind the row rather than the row's own opacity**, because fading the
+row would take the time, the words and the figure down with the colour.
 
 *What it changed that was decided the other way, four days ago.* The 3 September
 handoff above confirmed the rebuy **inside the sheet** — the primary became a

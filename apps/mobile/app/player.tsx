@@ -20,6 +20,7 @@ import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { announceRebuy } from '../src/components/rebuyAnnouncement';
+import { FreshEntryWash } from '../src/components/RebuyConfirmation';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
@@ -439,6 +440,11 @@ export default function PlayerCard() {
               },
             ]}
           >
+            {/* The row this rebuy wrote, washed green for the same two seconds
+                the tags on Tonight get — and gone with them. Behind the line
+                rather than over it, and identified by the announcement's own
+                `entryIds` rather than by picking the newest rebuy. */}
+            <FreshEntryWash entryId={r.entryId} />
             <Text style={[styles.time, { color: t.muted }]}>{clock(r.at)}</Text>
             <View style={styles.entryText}>
               <View style={styles.entryHead}>
