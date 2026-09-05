@@ -172,8 +172,15 @@ Tonight, Count up and `/stands` share `ActiveRow` and `FinishedSlab` from
 `PlayerList.tsx`. E5's counted list hand-rolls a fourth for the same three
 facts. The transfer row is the same story: E4 and E7 each draw it from scratch.
 
-**Do:** E5 uses `FinishedSlab`; one `TransferRow` with an optional trailing
-slot covers E4 and E7.
+And E5 hand-rolls the arithmetic with it. `stands.tsx:56` reads
+`resultBeforeDeductions(s.boughtIn, out)`; `settle-up.tsx:312` reads
+`(out - s.boughtIn) as Money` — the same subtraction, done on the screen, with
+a cast past the `Money` guard that `subtract()` exists to apply. It is the one
+place in the outcome flow where `CLAUDE.md`'s rule is broken: *a screen that
+adds up its own column is a second, untested implementation of the same sum.*
+
+**Do:** E5 calls `resultBeforeDeductions` and draws `FinishedSlab`; one
+`TransferRow` with an optional trailing slot covers E4 and E7.
 
 ### 11 · "Change a rule and look again" is on two consecutive screens
 
