@@ -1,0 +1,32 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "The journey" },
+    { "id": "page-2", "name": "What to cut" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html", "page": "page-1", "title": "The calculation", "x": 0, "y": 0, "w": 1520, "h": 860 },
+
+    { "file": "Tonight.dc.html", "page": "page-1", "x": 0, "y": 1020, "w": 800, "h": 910 },
+    { "file": "CountUp.dc.html", "page": "page-1", "x": 900, "y": 1020, "w": 800, "h": 910 },
+    { "file": "Stands.dc.html", "page": "page-1", "x": 1800, "y": 1020, "w": 800, "h": 910 },
+    { "file": "Deductions.dc.html", "page": "page-1", "x": 2700, "y": 1020, "w": 800, "h": 910 },
+
+    { "file": "SettleUp.dc.html", "page": "page-1", "x": 0, "y": 2070, "w": 800, "h": 910 },
+    { "file": "OutOfBalance.dc.html", "page": "page-1", "x": 900, "y": 2070, "w": 800, "h": 910 },
+    { "file": "Settled.dc.html", "page": "page-1", "x": 1800, "y": 2070, "w": 800, "h": 910 },
+    { "file": "FullLedger.dc.html", "page": "page-1", "x": 2700, "y": 2070, "w": 800, "h": 910 },
+
+    { "file": "PlayerCard.dc.html", "page": "page-1", "x": 0, "y": 3120, "w": 800, "h": 910 },
+    { "file": "Payments.dc.html", "page": "page-1", "x": 900, "y": 3120, "w": 800, "h": 910 },
+
+    { "file": "Overlap.dc.html", "page": "page-2", "x": 0, "y": 0, "w": 1560, "h": 800 },
+    { "file": "Findings.dc.html", "page": "page-2", "x": 0, "y": 960, "w": 1560, "h": 1620 }
+  ],
+  "annotations": [
+    { "id": "lane-during", "page": "page-1", "x": -300, "y": 1300, "w": 240, "text": "DURING THE NIGHT\n\nOne figure is live and one is final. Nothing has come off the table yet — every result here is out less in." },
+    { "id": "lane-closing", "page": "page-1", "x": -300, "y": 2350, "w": 240, "text": "CLOSING IT\n\nThe three-step wizard. Step 2 applies the rules, step 3 hands out the transfers — and a night that does not balance skips step 2 entirely and lands on screen 6." },
+    { "id": "lane-after", "page": "page-1", "x": -300, "y": 3400, "w": 240, "text": "AFTERWARDS\n\nRead back weeks later, by somebody who cannot ask the host. This is where “why is my number this” has to be answered without a tap." },
+    { "id": "cut-note", "page": "page-2", "x": -300, "y": 60, "w": 240, "text": "None of this is an arithmetic bug. Every figure is one tested engine call. What repeats is the saying of it." }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}
