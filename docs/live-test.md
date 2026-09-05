@@ -55,7 +55,8 @@ count the table, confirm a shortfall, read the deductions, and close the night
 and read its settlement.
 
 What needs the network is signing in, sharing a night with a watcher, and invite
-codes — none of which are being tested on a first night. Leave them alone; the
+codes — none of which are being tested on a first night.
+(`somebody-elses-phone.md` is the procedure for the night they are.) Leave them alone; the
 app is complete without them and nothing is lost by never signing in.
 
 ---

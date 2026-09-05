@@ -70,10 +70,13 @@ the browser, not the code:
 - **Native gestures are not native.** Swipe-down-to-dismiss on a sheet, the back
   gesture, and anything that asks the OS for something — screen brightness for
   the QR code, keep-awake during a night — are stubs or absent in a browser.
-- **A reload away from the root is a 404.** The export is one page and the
-  router reads the URL after it boots; a static host has no `/app/session` to
-  serve. Open the root and navigate in the app. Add-to-Home-Screen always opens
-  the root, so this stops mattering once it is on the home screen.
+- **A reload away from the root is served by the fallback.** The export is one
+  page and the router reads the URL after it boots, so a static host has no
+  `/app/session` to serve — but `scripts/site-build.mjs` publishes a copy of the
+  app as `404.html`, which Pages serves for every path it does not have. A
+  reload works, and so does a link straight to a screen: `…/app/claim?c=CODE`
+  and `…/app/watch?t=TOKEN` both open where they say. That is what makes
+  `somebody-elses-phone.md` possible without anybody installing anything.
 
 ## When a real build is wanted
 
