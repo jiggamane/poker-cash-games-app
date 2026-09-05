@@ -100,6 +100,7 @@ const KIND = {
   merge: ['#8A5A00', 'rgba(138,90,0,.1)', 'ONE COMPONENT'],
   name: ['#0A5C31', 'rgba(10,122,61,.08)', 'NAME IT'],
   gap: ['#3A4CA0', 'rgba(58,76,160,.08)', 'A GAP THIS OPENED'],
+  done: ['#0A5C31', 'rgba(10,122,61,.12)', 'DONE · 5 SEPT'],
 };
 
 const finding = (n, kind, title, where, body, action) => {
@@ -152,12 +153,12 @@ ${finding(6, 'drop', '“Leaves the table” is the one phrase this flow forbids
 ${finding(7, 'gap', 'A settled night no longer shows anybody their net', 'settled.tsx · ledger.tsx',
   'Taking the deductions out of the game-results row was right — a bill split flat across eight people is not a poker result. But it also moved the figure a player argues about a week later ($1,429, not $1,620) behind a button called <b>Full ledger</b>, and no row on the record is tappable.',
   'Put the net back on the row as a second, muted figure at the right of the game result — or give <b>Full ledger</b> a name that says it holds your number.')}
-${finding(8, 'drop', 'A whole screen exists to re-sort the screen behind it', 'stands.tsx',
-  '<b>Where everyone stands</b> draws Count up’s finished players again, off the same two calls, in the same two groups. What it adds is a sort and a rank number — and a second place a provisional result can be read, mid-count, when the answer is still moving.',
-  'Rank Count up’s <b>Counted</b> and <b>Cashed out earlier</b> groups in place and drop the screen and its link. If it stays, take the rows off E2 rather than drawing them twice.')}
-${finding(9, 'merge', 'One number, five nouns', 'session.tsx · count-up.tsx · NightResult.tsx · watch.tsx',
-  '$5,000 is “total in” on Tonight, “BOUGHT IN” on Count up, “PRIZEPOOL” on the settled night, “IN PLAY” to a watcher. A host sees the first three inside ten minutes and has no way to know they are one figure.',
-  'Two words for the whole app: one for the live figure, one for the closed one. <code>ruleText.ts</code> is where the app already keeps the words it must not spell two ways.')}
+${finding(8, 'done', 'A whole screen existed to re-sort the screen behind it', 'stands.tsx — deleted',
+  '<b>Where everyone stands</b> drew Count up’s finished players again, off the same two calls, in the same two groups. What it added was a sort and a rank number. The screen, its route, its link off E2 and its legs in four UI passes are gone; E2’s two finished groups rank biggest winner first in their place — within each group, because a counted slab reopens the keypad and a cashed-out one does not.',
+  'Still open: Tonight’s <b>Cashed out</b> group. <code>session.tsx</code> sent that exact question to E2b, which no longer exists.')}
+${finding(9, 'done', 'One number, four nouns', 'session.tsx · count-up.tsx · NightResult.tsx',
+  '$5,000 was “total in” on Tonight, “BOUGHT IN” on Count up and “PRIZEPOOL” on the settled night — a host sees all three inside ten minutes with nothing saying they are one figure. <code>/watch</code> already said <b>IN PLAY</b>, so that is the word and the other three now use it. <b>On the table</b> and <b>In for</b> keep their own names: different numbers, not the same one spelled differently.',
+  'Two costs, recorded not argued away: it deviates from the board, which draws PRIZEPOOL, and it is past tense on a settled night.')}
 ${finding(10, 'merge', 'Four row treatments for one player’s result', 'PlayerList.tsx · settle-up.tsx',
   'Tonight, Count up and Where everyone stands share <code>ActiveRow</code> and <code>FinishedSlab</code>. E5’s counted list hand-rolls a fourth for the same three facts — name, what finished them, the signed result.',
   'E5 uses <code>FinishedSlab</code>. Same for the transfer row, which Settle up and Who has paid each draw from scratch.')}

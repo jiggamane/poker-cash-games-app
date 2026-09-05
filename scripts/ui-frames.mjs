@@ -154,7 +154,6 @@ const PAIRS = [
     'E2 Count up · combined',
     { boards: 'design/handoff-E2/boards' },
   ],
-  ['/stands', 'Journey Map 3 - Settle and the book', 'E2b Where everyone stands'],
   ['/deductions', 'Journey Map 3 - Settle and the book', 'E3 Deductions'],
   [
     '/settle-up',

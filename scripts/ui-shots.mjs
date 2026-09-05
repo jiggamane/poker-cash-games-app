@@ -136,11 +136,6 @@ await count('Lena', 1430);
 await shot('04-count-up');
 await shotTail('04-count-up');
 
-await tap('See where everyone stands');
-await shot('05-stands');
-await page.getByLabel(/^Back to/).last().click();
-await page.waitForTimeout(1000);
-
 // The rest, with Petr $20 light, which is how a host actually reaches E5.
 await count('Tomáš', 0);
 await count('Ivo', 220);

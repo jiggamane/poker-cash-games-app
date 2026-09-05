@@ -123,8 +123,21 @@ export function NightResult({
        * is what ties the top of the screen to the bottom.
        */}
       <View style={[styles.summary, { backgroundColor: t.surface }]}>
+        {/*
+          * `In play`, NOT `Prizepool` — 5 September, on the owner's
+          * instruction, and it is a deliberate deviation from the board, which
+          * draws `PRIZEPOOL $5,000`. The same $5,000 was `total in` on
+          * Tonight, `BOUGHT IN` on Count up and `IN PLAY` to a watcher: one
+          * figure under four nouns, three of them on screens a host sees
+          * inside ten minutes. One word wins over four right ones.
+          *
+          * ⚠ IT IS PAST TENSE HERE and that is the cost of the rule: nothing
+          * is in play on a night that ended three weeks ago. Recorded in
+          * `docs/screens.md` rather than argued away — the alternative is a
+          * fourth noun for the fourth screen, which is the thing being fixed.
+          */}
         <Stat
-          label="Prizepool"
+          label="In play"
           value={formatToFit(pool.total, SUMMARY_FITS)}
           style={styles.statWide}
         />
@@ -516,7 +529,7 @@ const styles = StyleSheet.create({
  * for that space. What used to abbreviate at ten thousand — the terms of the
  * formula — has moved to `/ledger`, where it has four columns of its own.
  *
- * A SUMMARY CELL is the tightest of the three: `PRIZEPOOL` takes what is left
+ * A SUMMARY CELL is the tightest of the three: `IN PLAY` takes what is left
  * of the card after a fixed 74 for the entry count and whatever `DEDUCTIONS`
  * needs, which at 360 is about 130 points, and 26/800 tabular spends roughly
  * 15.6 a glyph — eight of them. "$99,999" is seven and "$999,999" is eight, so

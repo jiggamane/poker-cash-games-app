@@ -57,7 +57,7 @@ const SYMBOL = 'CHF';
 
 /** The screens a figure is drawn on. The rest carry no money. */
 const ROUTES = [
-  '/', '/session', '/count-up', '/stands', '/deductions', '/settle-up',
+  '/', '/session', '/count-up', '/deductions', '/settle-up',
   '/payments', '/log', '/money-rules', '/club-rules', '/house-rules',
   '/new-night', '/rounding', '/bill', '/spend', '/share', '/stats', '/games',
 ];
