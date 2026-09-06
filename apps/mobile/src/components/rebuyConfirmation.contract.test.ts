@@ -44,6 +44,7 @@ const drawn = (source: string): string =>
   source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
 const card = drawn(read('apps/mobile/app/player.tsx'));
+const keypad = drawn(read('apps/mobile/app/log.tsx'));
 const tonight = drawn(read('apps/mobile/app/session.tsx'));
 const bar = drawn(read('apps/mobile/src/components/RebuyConfirmation.tsx'));
 const store = drawn(read('apps/mobile/src/lib/nightStore.ts'));
@@ -174,6 +175,50 @@ describe('the entry is written on the tap, and Undo voids it', () => {
        the handoff's rapid-tap rule needs the tap. */
     expect(card).not.toContain('HoldButton');
     expect(card).toMatch(/label=\{`Rebuy \$\{formatMoney\(rebuy\)\}`\}/);
+  });
+});
+
+/**
+ * THE SAME REBUY, TYPED — B44.
+ *
+ * *Other amount* on the player card, and the dock's Rebuy through the picker,
+ * both end on `/log`, and a rebuy logged there is the same act as the quick
+ * button's: money into the ledger against a name. It was not confirmed. The
+ * keypad wrote the entry and popped one sheet — onto the player card, with the
+ * bar running on Tonight underneath where nobody could see it — and the dock's
+ * route landed on Tonight with nothing announced at all. So the route used for
+ * every amount that is NOT the standard was the one with no confirmation and
+ * no Undo.
+ *
+ * These hold the keypad to the card's own order: write, announce off the id the
+ * write returned, then leave — and leave to Tonight, whichever way it came,
+ * because Tonight is where the confirmation is drawn.
+ */
+describe('and the same rebuy typed on the amount sheet', () => {
+  it('writes first, announces second, and only then leaves', () => {
+    const written = keypad.indexOf('await rebuy(');
+    const announced = keypad.indexOf('announceRebuy(');
+    const left = keypad.indexOf("router.dismissTo('/session')", announced);
+    expect(written).toBeGreaterThan(-1);
+    expect(announced).toBeGreaterThan(written);
+    expect(left).toBeGreaterThan(announced);
+  });
+
+  it('takes the id of the row it wrote rather than guessing at one later', () => {
+    expect(keypad).toMatch(/const entryId = await rebuy\(/);
+    expect(keypad).toContain('announceRebuy({ playerId, name: playerName, amount: value, entryId })');
+  });
+
+  it('goes to Tonight, where the confirmation is drawn, and not back to the card', () => {
+    /* A `router.back()` from the card's *Other amount* lands on the card,
+       and the bar runs out on the screen underneath it. The dismiss is
+       unconditional for a rebuy — the picker's route already went there. */
+    const rebuyBranch = keypad.slice(
+      keypad.indexOf("if (kind === 'rebuy') {"),
+      keypad.indexOf("if (kind === 'count')"),
+    );
+    expect(rebuyBranch).toContain("router.dismissTo('/session')");
+    expect(rebuyBranch).not.toContain('router.back()');
   });
 });
 

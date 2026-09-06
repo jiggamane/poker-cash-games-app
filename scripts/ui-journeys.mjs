@@ -602,7 +602,33 @@ async function playANight(name, rebuys) {
     await tap(who, { last: true });
     await punch(digits);
     await tap(/^Log .*rebuy$/, { last: true, wait: 1200 });
+
+    /*
+     * AND THE TABLE SAYS SO — B44.
+     *
+     * A rebuy typed on the amount sheet is confirmed exactly as one tapped on
+     * the player card is: the bar above the dock names the person and the
+     * figure and holds Undo for two seconds (`RebuyConfirmation.tsx`). It did
+     * not — this route wrote the entry and said nothing — and no check could
+     * see that, because `ui-audit.mjs` opens `/session` at a URL where nothing
+     * has just been rebought and this file logged its rebuys and moved on.
+     * `docs/screens.md` names this leg as the one the confirmation wanted.
+     *
+     * Read at 1200ms after the tap: the sheet is gone by 300 and the bar holds
+     * until 2300. The sentence is the handoff's, and the figure is matched
+     * loosely because it abbreviates at ten thousand — `$1.2M` at the millions
+     * scale — which is the bar's own rule and not this check's business.
+     */
+    await holds(
+      'the rebuy is confirmed',
+      (await page.getByText(new RegExp(`^Rebuy .+ added to ${who}$`)).count()) > 0 &&
+        (await page.getByText('Undo', { exact: true }).count()) > 0,
+      `no bar naming ${who} on Tonight after a rebuy logged on the amount sheet`,
+    );
   }
+  /* Let the last bar run out before the screen is measured: the stop below is
+     the table at rest, and the bar is 2300 + 160 from a tap 1200 ago. */
+  await page.waitForTimeout(1500);
   await stop('tonight');
 
   /*

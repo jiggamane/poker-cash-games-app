@@ -8,6 +8,7 @@ import { Icon } from '../src/components/Icon';
 import { Keypad } from '../src/components/Keypad';
 import { PRESET_FITS, Preset } from '../src/components/Preset';
 import { Sheet } from '../src/components/Sheet';
+import { announceRebuy } from '../src/components/rebuyAnnouncement';
 import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, radius, space, type } from '../src/design/tokens';
@@ -171,14 +172,58 @@ export default function Log() {
               ? `Log ${name}’s rebuy`
               : `Log ${name}’s buy-in`;
 
+  /*
+   * A REBUY TYPED HERE IS THE SAME REBUY AS ONE TAPPED ON THE CARD, and it
+   * ends the same way: written, announced on Tonight, and the host handed
+   * straight back to the table. B44.
+   *
+   * It did not. `Rebuy $500` on the player card writes the entry and then the
+   * table says what happened — `+$500` beside *On the table*, `+$500` on the
+   * row, a bar above the dock holding Undo for two seconds
+   * (`RebuyConfirmation.tsx`). *Other amount* on the same card comes HERE,
+   * and this screen wrote the entry and popped one sheet — back onto the
+   * player card, with nothing on it saying the money had gone in, and the
+   * confirmation running on the screen underneath where nobody could see it.
+   * The dock's route in was no better: through the picker it landed on
+   * Tonight, but with nothing announced, so the figure changed and nothing
+   * said so. Two ways to add the same $500 to the same player, one confirmed
+   * and one silent — and the silent one is the one used for every amount that
+   * is not the standard, which is the one worth confirming.
+   *
+   * So a rebuy from here does exactly what `quickRebuy` in `player.tsx` does,
+   * in the same order and for the same reasons: the write is awaited, then the
+   * announcement is made off the id it returned, then the sheets go. The
+   * ORDER is the whole of "the entry is written on the tap, not on the
+   * animation" — kill the app as the sheet slides and the rebuy is in the
+   * ledger. The id is what Undo voids, so it is taken from the write rather
+   * than guessed at afterwards.
+   *
+   * AND IT GOES TO TONIGHT, whichever way it was reached. The confirmation is
+   * drawn on Tonight and nowhere else — that is the handoff's decision, the
+   * money is there — so a route that stopped on the player card would leave
+   * the host looking at a sheet while the bar ran out behind it. The card is
+   * one tap away if they want it, and `FreshEntryWash` marks the row that just
+   * landed when they take that tap inside the two seconds.
+   *
+   * `name` and `player` are read before the await, as `quickRebuy` reads its
+   * own: an announcement made after a hop must not name a lookup into a store
+   * that has moved on.
+   */
   async function commit() {
     if (!valid || busy) return;
     setBusy(true);
     try {
       const value = money(amount);
+      if (kind === 'rebuy') {
+        const playerId = player!;
+        const playerName = name;
+        const entryId = await rebuy(playerId, value);
+        announceRebuy({ playerId, name: playerName, amount: value, entryId });
+        router.dismissTo('/session');
+        return;
+      }
       if (kind === 'count') await setFinalCount(player!, value);
       else if (kind === 'cashout') await cashOut(player!, value);
-      else if (kind === 'rebuy') await rebuy(player!, value);
       else if (newPlayer !== undefined) await seatAndBuyIn(newPlayer, value);
       else await buyIn(player!, value);
       // The entry is made, so everything opened to make it goes away. Counting

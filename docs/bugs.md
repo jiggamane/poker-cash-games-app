@@ -86,6 +86,45 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B44 — a rebuy typed on the amount sheet landed without a word
+
+```
+Screen      N6 /log with kind=rebuy — reached by Other amount on the player
+            card and by the dock's Rebuy through the picker — and T1 /session,
+            which is where the confirmation is drawn
+Seen        Rebuy $500 on the player card writes the entry and Tonight says so:
+            +$500 beside On the table, +$500 on the row, a bar above the dock
+            holding Undo for two seconds. Other amount, one button along, opens
+            the keypad; Log Petr's rebuy there wrote the same entry and popped
+            ONE sheet — back onto the player card, nothing on it changed, and
+            the bar (had there been one) running on the screen underneath.
+            Through the dock it landed on Tonight, but announced nothing, so
+            the figure moved and nothing said it had
+Expected    the same act confirmed the same way whichever button started it:
+            write, announce off the id the write returned, then Tonight — the
+            order quickRebuy in player.tsx keeps and for the same reasons. The
+            route with no confirmation and no Undo was the one used for every
+            amount that is not the standard, which is the one worth confirming
+Found       6 Sept, by the owner, on the phone
+Locked by   npm run check — rebuyConfirmation.contract.test.ts reads log.tsx
+            for the order (write, announce, dismissTo('/session')) and for the
+            id being the write's own. And npm run check:ui — ui-journeys.mjs
+            logs its rebuys through the dock and the keypad, and now holds
+            that the bar naming the player is up on Tonight after each one,
+            which is the browser leg screens.md said the confirmation wanted
+Status      fixed in this commit
+```
+
+**Why it was missed on 5 September.** The confirmation was built against the
+card's primary — the handoff's board draws the tap on `Rebuy $500` and nothing
+else — so the announcement was made in `quickRebuy` and nowhere else, and
+`/log` kept the exit it had had since N5: pop one sheet. Every route in was
+right about where the *sheet* should go and none of them asked where the
+*confirmation* was. The write itself was never wrong; the ledger has every one
+of those rebuys. What was missing was the two seconds of Undo, and an Undo that
+guards only the standard amount is guarding the one figure a thumb is least
+likely to have got wrong.
+
 ### B43 — Count up cut short the one figure it exists to state
 
 ```

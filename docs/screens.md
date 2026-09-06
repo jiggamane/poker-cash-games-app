@@ -613,6 +613,18 @@ and the two screens are read as source. **A browser leg that taps `Rebuy $500`
 on the player card, checks the bar, and taps Undo is the check this wants and
 does not have**; `ui-journeys.mjs` was outside this session's files.
 
+*6 September — the keypad's rebuy is the same rebuy, and half of that leg now
+exists.* B44: `/log` with `kind=rebuy` — *Other amount* on the card, and the
+dock's Rebuy through the picker — wrote its entry and confirmed nothing; from
+the card it popped back onto the card while the table underneath stayed
+silent. It now does what `quickRebuy` does, in its order: write, announce off
+the write's own id, then `dismissTo('/session')` whichever way it was reached,
+because Tonight is the only screen the confirmation is drawn on. The contract
+test reads `log.tsx` for that order, and `ui-journeys.mjs` — which logs every
+one of its rebuys on the keypad — now holds that the bar naming the player is
+up on Tonight after each. **Still unwalked in a browser:** the card's own
+`Rebuy $500` tap, and Undo. Both are one `holds` away in the same file.
+
 **`/session`, `/count-up` and `/stands`** — 3 September, the mixed player list
 rule (`design/handoff-player-list/`). One treatment for every list where some
 players still have money on the table and some are finished, replacing the three
