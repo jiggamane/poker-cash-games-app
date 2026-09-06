@@ -205,10 +205,18 @@ the same two groups. What it adds is a sort and a rank number.
 
 **DONE, 5 September.** The screen, its route, its link off E2 and its legs in
 the four UI passes are deleted. E2's `Counted` and `Cashed out earlier` groups
-rank biggest winner first in their place — within each group, not across the
-two, because a counted row reopens the keypad and a cashed-out-earlier row does
-not, and one heading over two affordances is the thing three groups exist to
-prevent. `Still to count` keeps seat order: an em dash is not a position.
+rank biggest winner first in their place. `Still to count` keeps seat order: an
+em dash is not a position.
+
+**And on 6 September the two of them became one.** The ranking was within each
+group and not across them, because a counted row reopens the keypad and a
+cashed-out row does not, and one heading over two affordances was the thing
+three groups existed to prevent. The owner's instruction is that every cash-out
+counts equally here regardless of when it happened — so the finished half is now
+a single ranked group, and the affordance it no longer states in a heading is
+stated by the row: `cashed out 10:45` against `counted $960`, a chevron against
+none, 44 points against 39. Which means E2 now answers the leaderboard question
+E2b was deleted for in one list rather than two — `docs/screens.md`.
 
 **Still open:** Tonight's `Cashed out` group. `session.tsx` sent this exact
 question to E2b — *"Ranking them by RESULT is the other candidate and belongs to

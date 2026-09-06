@@ -166,8 +166,11 @@ export function ActiveRow({
  *     record, not the night's card.
  *
  * The rule the two share is A FIGURE IS FIXED WHERE IT WAS ENTERED, which is
- * also why `CASHED OUT EARLIER` on E2 does *not* open: that figure was typed on
- * Tonight, and Tonight's slab is the one that reopens it.
+ * also why a cashed-out row on E2 does *not* open: that figure was typed on
+ * Tonight, and Tonight's slab is the one that reopens it. Since 6 September
+ * those rows rank in E2's one finished group alongside the counted ones, so
+ * that difference is carried by the row — the chevron, and the 44 below —
+ * rather than by the heading it used to sit under.
  *
  * A SLAB THAT OPENS SOMETHING KEEPS THE CHEVRON AND GROWS TO 44. Both, or
  * neither: 39 is under the hit minimum precisely because nothing on a slab is a

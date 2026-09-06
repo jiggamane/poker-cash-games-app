@@ -114,47 +114,55 @@ export default function CountUp() {
   const toCount = seated.filter((s) => !night.finalCounts.has(s.id));
 
   /*
-   * THE TWO FINISHED GROUPS RANK, BIGGEST WINNER FIRST — 5 September, on the
-   * owner's instruction, and it is what replaced `Where everyone stands`.
+   * ONE FINISHED GROUP, RANKED, AND IT HOLDS EVERYBODY WHOSE MONEY IS IN —
+   * 6 September, on the owner's instruction: *all cash-outs are considered
+   * equally here, regardless of whether they left the game earlier or stayed
+   * till the end.*
    *
-   * E2b was a whole screen whose only job was to draw these same rows in this
-   * same order, off these same two calls, one tap away. Ranking them here
-   * deletes it: the leaderboard a room starts asking for long before the last
-   * stack is counted is now on the screen where the counting happens, and
-   * there is nowhere left for two orderings of one list to disagree.
+   * This screen used to draw two finished groups, `Counted` and `Cashed out
+   * earlier`, each ranked within itself. That split is about HOW a figure
+   * reached the app — typed on this screen at the close, or entered on Tonight
+   * when somebody stood up — and by the time this screen is being read, that is
+   * a fact about the past. What every one of these rows now IS, is a player
+   * whose night is finished and whose result is final. Dana leaving at 10:45
+   * with $2,120 and Andro being counted out at the end with $960 are the same
+   * kind of fact, and the room asking who is up wants them in one order.
+   *
+   * IT ALSO PUTS THE SCREEN BACK IN AGREEMENT WITH ITS OWN BLOCK. The header
+   * reads `Accounted for · 6 counted`, summing counted stacks and cash-outs
+   * into one figure — the cut's S111, which says cash-outs are not called out
+   * separately. Until now the list under it answered that 6 with a 5 and a 1 in
+   * two headings.
    *
    * THE ORDER IS THE COLUMN AT THE RIGHT EDGE, which is the same argument
-   * Tonight's seated group sorts on. Every row in both groups draws its
-   * result at 19/700 and nothing else numeric, so a list sorted by it can be
-   * checked by a reader running a finger down the column. `Still to count`
-   * is left in seat order because it has no result to rank on — an em dash is
-   * not a position.
+   * Tonight's seated group sorts on. Every row here draws its result at 19/700
+   * and nothing else numeric, so a list sorted by it can be checked by a reader
+   * running a finger down the column. `Still to count` is left in seat order
+   * because it has no result to rank on — an em dash is not a position.
    *
-   * WITHIN A GROUP, NOT ACROSS THE TWO. A counted row reopens the keypad and a
-   * cashed-out-earlier row does not (see the group notes below), so merging
-   * them into one ranked list would put two different affordances under one
-   * heading. Dana at +$1,620 therefore sits below Marek at +$460, in the group
-   * underneath his.
+   * ⚠ WHAT THE SPLIT WAS CARRYING, and it does not disappear with the heading:
+   * a counted row reopens the keypad and a cashed-out row does not, because a
+   * figure is fixed where it was entered. Under two headings the group said
+   * which; under one, the ROW has to — so a cashed-out row now reads `cashed
+   * out 10:45` rather than the bare clock it could get away with before, and
+   * keeps the shorter slab that the player-list rule gives a row with nothing
+   * to tap. `docs/screens.md` carries the decision and what it costs.
    *
-   * TIES KEEP SEAT ORDER — `Array#sort` is stable, so two players who ended
-   * level stay in the order their seats were filled rather than swapping about
-   * as unrelated entries land.
+   * TIES KEEP SEAT ORDER — `Array#sort` is stable and `standingsOf` is in seat
+   * order, so two players who ended level stay in the order their seats were
+   * filled rather than swapping about as unrelated entries land. Because the
+   * two kinds are no longer concatenated, that now holds ACROSS them: a counted
+   * player and a cashed-out one who ended level sit in seat order, not with the
+   * counted one always first.
    */
-  const byResult = <S extends { id: PlayerId; boughtIn: Money }>(
-    xs: readonly S[],
-    endedWith: (s: S) => Money,
-  ): S[] =>
-    [...xs].sort(
-      (a, b) =>
-        resultBeforeDeductions(b.boughtIn, endedWith(b)) -
-        resultBeforeDeductions(a.boughtIn, endedWith(a)),
-    );
+  const endedWith = (s: (typeof standings)[number]): Money =>
+    s.atTable ? night.finalCounts.get(s.id)! : s.cashedOut;
 
-  const counted = byResult(
-    seated.filter((s) => night.finalCounts.has(s.id)),
-    (s) => night.finalCounts.get(s.id)!,
+  const finished = [...standings.filter((s) => !s.atTable || night.finalCounts.has(s.id))].sort(
+    (a, b) =>
+      resultBeforeDeductions(b.boughtIn, endedWith(b)) -
+      resultBeforeDeductions(a.boughtIn, endedWith(a)),
   );
-  const confirmed = byResult(standings.filter((s) => !s.atTable), (s) => s.cashedOut);
 
   const balance = balanceCheck(
     ledger,
@@ -213,29 +221,37 @@ export default function CountUp() {
       />
 
       {/*
-       * THREE GROUPS — `05-active-vs-settled.md`, cut 1 September. The list
-       * used to be two: everybody seated in one block, whether or not their
-       * stack had been counted, and everybody who had left in another. That
-       * put the rows the host still has work to do on in the same group as the
-       * rows they had just finished, which is the one distinction the screen
-       * exists to make.
+       * TWO GROUPS — the work, and the result.
        *
-       *     STILL TO COUNT · 2
+       *     STILL TO COUNT · 3
        *     COUNTED · 3
-       *     CASHED OUT EARLIER · 3
        *
-       * THE MIDDLE HEADER USED TO CARRY THE COLUMN'S MEANING —
-       * `COUNTED · 3 · RESULT BEFORE DEDUCTIONS` — because the right-hand
-       * column changes meaning between a row still to count and a row that is
-       * finished, and nothing else on the row said which. The slab says it now
-       * (`design/handoff-player-list/`, cut 3 September), so all three labels
-       * are a name and a count. What has not come off those figures is on the
-       * lede and the rounding bar above them.
+       * IT WAS THREE UNTIL 6 SEPTEMBER. `05-active-vs-settled.md`, cut
+       * 1 September, split the finished half in two — `Counted` and `Cashed out
+       * earlier` — and the owner's instruction merged them: every cash-out
+       * counts equally here, whenever it happened. The split that matters on
+       * this screen is the one it exists to make, which is between a stack the
+       * host still has to type and a result that is final.
        *
-       * GROUPS NEVER REORDER AND NEVER DISAPPEAR. Seat order within each, and
-       * an empty one draws its header with `· 0` rather than vanishing, so the
-       * host can see that nobody is left to count rather than inferring it
-       * from a group that is no longer on screen.
+       * THE HEADER USED TO CARRY THE COLUMN'S MEANING — `COUNTED · 3 · RESULT
+       * BEFORE DEDUCTIONS` — because the right-hand column changes meaning
+       * between a row still to count and a row that is finished, and nothing
+       * else on the row said which. The slab says it now
+       * (`design/handoff-player-list/`, cut 3 September), so both labels are a
+       * name and a count. What has not come off those figures is on the lede
+       * and the rounding bar above them.
+       *
+       * `COUNTED` IS THE BLOCK'S OWN WORD for this group, and the two now agree
+       * to the person: the block reads `Accounted for · 6 counted`, summing
+       * stacks and cash-outs, and the group underneath it holds those same six.
+       * The row says which kind it is — `counted $960` against `cashed out
+       * 10:45` — which is where that distinction belongs now that it is not a
+       * heading.
+       *
+       * GROUPS NEVER REORDER AND NEVER DISAPPEAR. An empty one draws its header
+       * with `· 0` rather than vanishing, so the host can see that nobody is
+       * left to count rather than inferring it from a group that is no longer
+       * on screen.
        */}
       <View style={styles.groups}>
         {/* MEASURED BUT NEVER ANIMATED. A counted row travels from where its
@@ -266,9 +282,11 @@ export default function CountUp() {
         </Ranked>
 
         {/*
-          * COUNTED AND CASHED OUT ARE THE SAME TREATMENT, and that is the rule:
-          * both are finished, so both are slabs. What differs is the fact each
-          * one carries — the stack for one, the time for the other.
+          * COUNTED AND CASHED OUT ARE THE SAME TREATMENT, and since 6 September
+          * they are the same GROUP: both are finished, so both are slabs, and
+          * they rank together. What differs is the fact each one carries — the
+          * stack for one, `cashed out` and the time for the other — and what
+          * happens when it is tapped.
           *
           * ⚠ A COUNTED SLAB KEEPS ITS CHEVRON, WHICH THE HANDOFF TAKES AWAY,
           * and it is the same exception Tonight's cashed-out slab gets. The
@@ -284,65 +302,61 @@ export default function CountUp() {
           * them to a screen with nothing on it to change, on the one path in
           * the app that exists for recovering from a mistake.
           *
-          * CASHED OUT EARLIER DOES NOT OPEN, by the same rule read the other
-          * way: that figure was entered on Tonight, and Tonight's slab is where
-          * it is retyped. Both deviations and the question are in
+          * A CASHED-OUT ROW DOES NOT OPEN, by the same rule read the other way:
+          * that figure was entered on Tonight, and Tonight's slab is where it
+          * is retyped. In one merged group that difference is no longer stated
+          * by a heading, so it is stated by the row — the chevron, and the 44
+          * the player-list rule gives a slab that is a target against the 39 it
+          * gives one that is not. Both deviations and the question are in
           * `docs/screens.md`.
           */}
         <Ranked name="counted" ruler={ruler}>
-          <PlayerGroup label="Counted" count={counted.length}>
-            {counted.map((p) => (
+          <PlayerGroup label="Counted" count={finished.length}>
+            {finished.map((p) => (
               <Travelling key={p.id} id={p.id} group="counted" rank ruler={ruler}>
                 <FinishedSlab
                   name={p.name}
-                  fact={`counted ${formatToFit(night.finalCounts.get(p.id)!, ROW_FITS)}`}
-                  result={resultBeforeDeductions(p.boughtIn, night.finalCounts.get(p.id)!)}
-                  fits={ROW_FITS}
-                  accessibilityLabel={`Count ${p.name} again`}
-                  opens={() =>
-                    router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } })
+                  fact={
+                    p.atTable
+                      ? `counted ${formatToFit(endedWith(p), ROW_FITS)}`
+                      : cashedOutFact(night, p.id, p.cashedOut)
                   }
+                  result={resultBeforeDeductions(p.boughtIn, endedWith(p))}
+                  fits={ROW_FITS}
+                  {...(p.atTable
+                    ? {
+                        accessibilityLabel: `Count ${p.name} again`,
+                        opens: () =>
+                          router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } }),
+                      }
+                    : {})}
                 />
               </Travelling>
             ))}
           </PlayerGroup>
         </Ranked>
 
-        {/* EVERYTHING BELOW THE INSERTION POINT TRAVELS, and this group is
-            below all of it: when a stack lands two groups up, these rows slide
-            with the rest rather than jumping while the rest glide. */}
-        <Ranked name="confirmed" ruler={ruler}>
-          <PlayerGroup label="Cashed out earlier" count={confirmed.length}>
-            {confirmed.map((p) => (
-              <Travelling key={p.id} id={p.id} group="confirmed" ruler={ruler}>
-                <FinishedSlab
-                  name={p.name}
-                  fact={cashedOutFact(night, p.id, p.cashedOut)}
-                  result={resultBeforeDeductions(p.boughtIn, p.cashedOut)}
-                  fits={ROW_FITS}
-                />
-              </Travelling>
-            ))}
-          </PlayerGroup>
-        </Ranked>
       </View>
     </Screen>
   );
 }
 
 /**
- * WHAT FINISHED THEM — the clock alone, `23:15`.
+ * WHAT FINISHED THEM — `cashed out 10:45`, and the words are load-bearing now.
  *
- * SHORTER THAN THE SAME PERSON'S ROW ON TONIGHT, which draws
- * `23:15 · out $2,120`, and the handoff draws both that way deliberately. This
- * screen has a third group above and a balance card above that: it is the
- * densest list in the app, and the cash-out figure is the one term on the slab
- * that is already implied — the result at the right is what the reader came for
- * and the buy-in has its own column two groups up.
+ * IT WAS THE CLOCK ALONE UNTIL 6 SEPTEMBER, and it could be: the row sat under
+ * a heading reading `CASHED OUT EARLIER`, so a bare `10:45` on it was the only
+ * thing left to say. With the two finished groups merged into one ranked list
+ * that heading is gone, and a time on its own beside a name says nothing about
+ * why this row has a result and the row above it opens a keypad. The row has to
+ * carry it, so the row does.
  *
- * It is also what keeps the line inside the slab. `13:03 · out CHF2,120` is
- * 150 points of a 122-point box at 120% text in a three-letter currency, and
- * the clipped end of it is money — see B41.
+ * STILL NOT THE AMOUNT. Tonight draws the same person as `10:45 · out $2,120`
+ * and this screen deliberately does not: the result at the right edge is what
+ * the reader came for, the buy-in has its own column in the group above, and
+ * `13:03 · out CHF2,120` is 150 points of a 122-point box at 120% text in a
+ * three-letter currency — the clipped end of which is money. See B41. Two words
+ * and a clock are cheap; a second figure is not.
  *
  * Where the clock is missing — an imported night, or one closed before the
  * field existed — the cash-out is what is left to say, the same fallback
@@ -354,7 +368,7 @@ const cashedOutFact = (
   cashedOut: Money,
 ): string => {
   const at = cashedOutAt(night, playerId);
-  return at === undefined ? `out ${formatToFit(cashedOut, ROW_FITS)}` : clockLabel(at);
+  return `cashed out ${at === undefined ? formatToFit(cashedOut, ROW_FITS) : clockLabel(at)}`;
 };
 
 // ---------------------------------------------------------------------------
