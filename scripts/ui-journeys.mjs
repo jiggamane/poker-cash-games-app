@@ -1110,19 +1110,21 @@ async function playANight(name, rebuys) {
   await stop('night settled');
 
   /*
-   * THE NIGHT IN THREE BLOCKS — `R1 · Results`, from
-   * `design_handoff_rebuy_and_results/Game Results Breakdown.dc.html`, cut
-   * 5 September.
+   * ONE RANKED LIST BEHIND A TOGGLE — `1a · Settled night`, from
+   * `design/handoff-game-end/`, cut 6 September.
    *
-   * ⚠ THIS LEG WAS THE OTHER WAY ROUND UNTIL TODAY, and the change is the pass
-   * working rather than the pass being weakened. It asked for a `Game results`
-   * list and for NO formula under any name — `design/handoff-four-screens/`,
-   * cut 2 September, whose rule was *deductions are not folded into any
-   * player's balance*. R1 reverses that deliberately: the deductions are folded
-   * back into the figure and the working is printed under the name, because the
-   * objection was never to the arithmetic but to the arithmetic being done on
-   * somebody's behalf without showing it. So what is asserted here is the three
-   * blocks the new board draws, in the order it draws them.
+   * ⚠ THIS LEG ASKED FOR R1'S THREE BLOCKS UNTIL TODAY, and before that for
+   * `design/handoff-four-screens/`'s rule that deductions are never folded into
+   * a player's balance. Each change is the pass following a decision rather
+   * than being weakened. R1 folded the deductions back in and printed the
+   * working under the name; this cut keeps the fold and makes the two figures
+   * ONE list a person switches between, so the ranking itself says what the
+   * deductions did.
+   *
+   * WHAT IS HELD IS THE SWITCH, not the presence of two headings at once. Both
+   * modes are always on screen as the toggle's two halves — the thing that can
+   * break is the list under them not following, which is why the qualifier is
+   * asserted in both positions rather than once.
    *
    * INVISIBLE TO EVERY OTHER CHECK IN THE REPO: no URL reaches a settled night
    * with money on it, so the route pass measures the seeded mid-count book and
@@ -1134,65 +1136,67 @@ async function playANight(name, rebuys) {
   const onScreen = (text) => page.locator(`:text-is("${text}"):visible`).count();
 
   await holds(
-    'the record is drawn in three blocks, table then deductions then final',
-    (await onScreen('At the table')) === 1 &&
+    'the settled night opens on Final, with the deductions above the list',
+    (await onScreen('At the table')) >= 1 &&
+      (await onScreen('Final')) >= 1 &&
       (await onScreen('Deductions')) === 1 &&
-      (await onScreen('Final')) === 1 &&
-      (await onScreen('before deductions')) === 1 &&
-      (await onScreen('after deductions and compensations')) === 1,
-    'E6 has lost one of R1\u2019s three blocks, or a section\u2019s qualifier',
+      (await onScreen('after deductions and compensations')) === 1 &&
+      (await onScreen('before deductions')) === 0,
+    'the settled night does not open on Final with its own qualifier under it',
   );
 
   /*
-   * AND THE CAPTION UNDER A NAME, which is what makes the fold honest.
+   * AND THE LIST FOLLOWS THE TOGGLE, WHICH IS THE WHOLE OF THE INTERACTION.
    *
-   * `1,620 − 54 − 23` — the game, then every charge, then a compensation for
-   * whoever fronted a bill. It is the answer to *why is my number this* that
-   * this screen lost on 3 September (finding 7 of `docs/game-outcomes-cjm.md`)
-   * and has back. A FINAL row with no caption under it is the row that opened
-   * the gap in the first place, so this asserts one is drawn rather than only
-   * that the block exists.
-   *
-   * NO CURRENCY SYMBOL IN IT, which is the board's and is load-bearing: the
-   * figure beside the name carries the symbol and the line under it is the
-   * working. A caption that grew one would be six more amounts on a row.
+   * A toggle whose halves both draw the same list is the one failure this
+   * screen can have that looks completely normal — the figures are all real,
+   * they are simply the wrong mode's. So the qualifier is read on both sides of
+   * the tap, and the nets are summed on the side where the answer is known.
    */
+  await tap('At the table');
+  await page.waitForTimeout(600);
   await holds(
-    'and states the working under the name, without a currency symbol on it',
-    (await page
-      .locator(':text-matches("^[0-9,\u2212][0-9,]* [\u2212+] [0-9,]+"):visible')
-      .count()) > 0,
-    'no FINAL row draws its arithmetic caption',
+    'and the toggle actually swaps the list under it',
+    (await onScreen('before deductions')) === 1 &&
+      (await onScreen('after deductions and compensations')) === 0,
+    'tapping At the table left the Final list on screen',
   );
 
   /*
    * AND THE ONE SUM THE SCREEN EXISTS TO LET A ROOM MAKE.
    *
-   * Money is neither made nor destroyed at a poker table, and with the
-   * deductions out of the rows the list says so on its face: the game results
-   * add to nothing. `rev15-night.test.ts` asserts it of the engine; this asserts
-   * it of what is actually on the phone, which is where a row could be dropped,
-   * drawn in the wrong sign, or ordered off a figure it is not showing.
+   * Money is neither made nor destroyed at a poker table, and At the table is
+   * the mode with no deductions in it, so the column says so on its face:
+   * `Σ atTheTable = 0`, which is the cut's own first check of its worked night.
+   * `settled.test.ts` asserts it of the engine; this asserts it of what is
+   * actually on the phone, which is where a row can be dropped, drawn in the
+   * wrong sign, or ranked off a figure it is not showing.
    */
   const results = await page.evaluate(() => {
     const money = (s) => {
       const t = (s || '').trim().replace(/[,$]/g, '').replace(/\u2212/g, '-');
       if (/[KMB]$/i.test(t)) return null; // an abbreviated figure cannot be summed
-      const n = Number(t.replace('+', ''));
+      const n = Number(t.replace(/^[+]/, '').replace(/^[^0-9+-]+/, ''));
       return Number.isFinite(n) ? n : null;
     };
-    return [...document.querySelectorAll('[data-testid="e6-row"]')].map((row) => {
-      const cells = [...row.querySelectorAll('div, span')].filter((c) => c.children.length === 0);
-      return money(cells[cells.length - 1]?.textContent);
-    });
+    return [...document.querySelectorAll('[data-testid="settled-net"]')].map((el) =>
+      money(el.textContent),
+    );
   });
 
   await holds(
-    'and they add up to nothing, as a balanced night must',
+    'and the table results add up to nothing, as a balanced night must',
     results.length > 0 &&
       (results.some((r) => r === null) || results.reduce((a, b) => a + b, 0) === 0),
-    'the game results on E6 do not sum to zero',
+    `the At the table column sums to ${results.reduce((a, b) => a + (b ?? 0), 0)}, not zero`,
   );
+
+  await stop('night settled · at the table');
+
+  /* Back to Final, which is where the screen opens and what the legs below
+     are written against. */
+  await tap('Final');
+  await page.waitForTimeout(600);
 
   /*
    * AND THE DEDUCTIONS ARE A BLOCK WITH A TOTAL OF ITS OWN.
@@ -1341,9 +1345,12 @@ async function playANight(name, rebuys) {
   /* VISIBLE ONLY, and by attribute rather than by role, for the reason every
      other leg on this screen gives: the pushed stack stays mounted underneath.
      Every transfer row is a checkbox now, paid or not, so the two states are
-     told apart by `aria-checked` rather than by being two different objects. */
-  const rows = () => page.locator('[role="checkbox"]:visible').count();
-  const ticked = () => page.locator('[role="checkbox"][aria-checked="true"]:visible').count();
+     told apart by the row's own test id rather than by being two different
+     objects. `accessibilityState` is what a screen reader gets and does not
+     reach the DOM as an attribute this can select on. */
+  const rows = () =>
+    page.locator('[data-testid="transfer-open"]:visible, [data-testid="transfer-paid"]:visible').count();
+  const ticked = () => page.locator('[data-testid="transfer-paid"]:visible').count();
 
   const before = await rows();
   await holds('the transfers are drawn', before > 0, 'the transfer list drew no rows');
@@ -1353,7 +1360,7 @@ async function playANight(name, rebuys) {
     'a transfer was already ticked before anything was tapped',
   );
 
-  await page.locator('[role="checkbox"]:visible').first().click({ timeout: 15_000 });
+  await page.locator('[data-testid="transfer-open"]:visible').first().click({ timeout: 15_000 });
   await page.waitForTimeout(900);
   await stop('who pays whom · one paid');
 
@@ -1377,7 +1384,7 @@ async function playANight(name, rebuys) {
     `${await ticked()} rows read as paid out of ${await rows()}, not 1 of ${before}`,
   );
 
-  await page.locator('[role="checkbox"][aria-checked="true"]:visible').first().click({ timeout: 15_000 });
+  await page.locator('[data-testid="transfer-paid"]:visible').first().click({ timeout: 15_000 });
   await page.waitForTimeout(900);
   await holds(
     'and tapping it again puts it back',
@@ -1387,7 +1394,7 @@ async function playANight(name, rebuys) {
   await stop('who pays whom · undone');
 
   // And on again, so the screens after this one see the night mid-payment.
-  await page.locator('[role="checkbox"][aria-checked="false"]:visible').first().click({ timeout: 15_000 });
+  await page.locator('[data-testid="transfer-open"]:visible').first().click({ timeout: 15_000 });
   await page.waitForTimeout(900);
 
   /*

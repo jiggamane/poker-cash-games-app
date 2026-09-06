@@ -184,6 +184,12 @@ function TransferRow({ line }: { line: TransferLine }) {
     <Pressable
       accessibilityRole="checkbox"
       accessibilityState={{ checked: line.paid }}
+      /* The state, queryable. `accessibilityState` is the right thing for a
+         screen reader and is not what reaches the DOM as an attribute the night
+         pass can select on, so the two states are named here as well — and what
+         the pass then holds is that a tick never takes a row OUT of the list,
+         which is the regression to the slab treatment. */
+      testID={line.paid ? 'transfer-paid' : 'transfer-open'}
       accessibilityLabel={`${line.from} pays ${line.to} ${formatMoney(line.amount)}`}
       accessibilityHint={line.paid ? 'Double tap to mark it unpaid.' : 'Double tap to mark it paid.'}
       onPress={() => void setPaid(line.fromPlayerId, line.toPlayerId, !line.paid)}

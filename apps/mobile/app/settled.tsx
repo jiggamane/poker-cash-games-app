@@ -299,6 +299,12 @@ function List({ rows, final }: { rows: SettledRow[]; final: boolean }) {
       {rows.map((row) => (
         <View
           key={row.player.playerId}
+          /* The night pass sums these and holds them to zero at the table —
+             `Σ atTheTable = 0` is the cut's own first check, and a row dropped,
+             drawn in the wrong sign or ranked off a figure it is not showing is
+             exactly what that catches. Nothing else in the repo can see it: no
+             URL reaches a settled night with money on it. */
+          testID="settled-row"
           style={[styles.row, { borderTopColor: t.hairline }]}
         >
           <View style={styles.rowText}>
@@ -314,6 +320,7 @@ function List({ rows, final }: { rows: SettledRow[]; final: boolean }) {
            * drops to the compact form rather than truncating.
            */}
           <Text
+            testID="settled-net"
             style={[styles.net, tabular, { color: moneyColor(t, row.net) }]}
             numberOfLines={1}
             {...cappedFigure}
