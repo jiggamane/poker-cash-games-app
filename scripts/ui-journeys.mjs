@@ -848,7 +848,12 @@ async function playANight(name, rebuys) {
     'the folded balance card does not reopen',
   );
   await stop('count up · folded');
-  await tap('Balanced');
+  /*
+   * AND IT STAYS OPEN FROM HERE, which is the screen behaving. A hand on the
+   * line takes the timer out of it — re-arming would fold the card back up
+   * under a reader who had just opened it — so there is no `Balanced` left to
+   * tap, and the rest of this night is played with the comparison showing.
+   */
 
   /*
    * THE ROUNDING STEP, SET WHERE THE STACKS ARE ENTERED —

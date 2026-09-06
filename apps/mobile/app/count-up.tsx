@@ -507,43 +507,43 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
           </Text>
         </View>
       ) : (
-      <>
-      <View style={styles.headline}>
-        <Text
-          style={[styles.gap, { color: c.ink, fontSize: size, lineHeight: size * 1.05, letterSpacing: -0.03 * size }]}
-          numberOfLines={1}
-          {...cappedFigure}
-        >
-          {headline}
-        </Text>
-        <Text style={[styles.share, { color: c.ink }]} numberOfLines={1} {...cappedFigure}>
-          {`${percent(balance)}%`}
-        </Text>
-      </View>
+        <>
+        <View style={styles.headline}>
+          <Text
+            style={[styles.gap, { color: c.ink, fontSize: size, lineHeight: size * 1.05, letterSpacing: -0.03 * size }]}
+            numberOfLines={1}
+            {...cappedFigure}
+          >
+            {headline}
+          </Text>
+          <Text style={[styles.share, { color: c.ink }]} numberOfLines={1} {...cappedFigure}>
+            {`${percent(balance)}%`}
+          </Text>
+        </View>
 
-      <Bar segments={segments(t, tone, balance)} />
+        <Bar segments={segments(t, tone, balance)} />
 
-      <View style={styles.sums}>
-        {/*
-          * ONE WORD FOR THIS FIGURE, APP-WIDE — 5 September, on the owner's
-          * instruction, and it is why this row does not read `Bought in` as
-          * the cut's caption does. The same $5,000 was `total in` on Tonight,
-          * `BOUGHT IN` here and `PRIZEPOOL` on the settled night: one number
-          * under three nouns on three screens a host sees inside ten minutes,
-          * with nothing saying they are the same number. `In play` is the
-          * word. `ui-audit.mjs` holds it and says so in as many words: do not
-          * put `Bought in` back by reading a board. `docs/screens.md` carries
-          * the decision and what deviating costs.
-          */}
-        <Sum
-          caption={`In play · ${balance.playersTotal} ${balance.playersTotal === 1 ? 'player' : 'players'}`}
-          /* Never coloured: it is the fixed side of the comparison. */
-          colour={t.text}
-          amount={balance.boughtIn}
-        />
-        <Sum caption={`Accounted for · ${accounted}`} colour={c.ink} amount={balance.accountedFor} />
-      </View>
-      </>
+        <View style={styles.sums}>
+          {/*
+            * ONE WORD FOR THIS FIGURE, APP-WIDE — 5 September, on the owner's
+            * instruction, and it is why this row does not read `Bought in` as
+            * the cut's caption does. The same $5,000 was `total in` on Tonight,
+            * `BOUGHT IN` here and `PRIZEPOOL` on the settled night: one number
+            * under three nouns on three screens a host sees inside ten minutes,
+            * with nothing saying they are the same number. `In play` is the
+            * word. `ui-audit.mjs` holds it and says so in as many words: do not
+            * put `Bought in` back by reading a board. `docs/screens.md` carries
+            * the decision and what deviating costs.
+            */}
+          <Sum
+            caption={`In play · ${balance.playersTotal} ${balance.playersTotal === 1 ? 'player' : 'players'}`}
+            /* Never coloured: it is the fixed side of the comparison. */
+            colour={t.text}
+            amount={balance.boughtIn}
+          />
+          <Sum caption={`Accounted for · ${accounted}`} colour={c.ink} amount={balance.accountedFor} />
+        </View>
+        </>
       )}
     </Pressable>
   );
