@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#EFEEEB; font-family:-apple-system,'Figtree',sans-serif; }
+  a { color:#786644; } a:hover { color:#0B0B0F; }
+</style>
+</helmet>
+
+<section style="display:flex;flex-direction:column;gap:26px;padding:44px 46px 60px">
+  <div style="display:flex;flex-direction:column;gap:9px;max-width:900px">
+    <div style="font:700 11px 'Figtree',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8378">Turn 2 · where the white button goes</div>
+    <h1 style="margin:0;font:800 30px/1.12 'Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.025em">Who pays whom</h1>
+    <p style="margin:0;font:400 14px/1.6 'Figtree',sans-serif;color:#6C6C70;text-wrap:pretty">Three transfers clear this night: Levani owes Goga and Oto, and the rounding remainder goes to the piggy bank. Tap a row to mark it paid &mdash; the figure at the top counts down and the status pill matches the one on the settled screen, so <a href="#1a">1a</a> and this screen never disagree.</p>
+  </div>
+
+  <div id="2a" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:9px">
+      <span style="font:800 12px 'Figtree',sans-serif;letter-spacing:.06em;color:#0B0B0F;background:#DCD8CC;border-radius:5px;padding:4px 8px">2a</span>
+      <span style="font:600 13px 'Figtree',sans-serif;color:#6C6C70">Transfer list · tap to mark paid</span>
+    </div>
+
+    <div style="background:#07080A;padding:11px;border-radius:56px;flex:none;width:max-content">
+      <div data-screen-label="Who pays whom" style="width:402px;height:874px;border-radius:46px;overflow:hidden;background:#0A0A0B;display:flex;flex-direction:column;box-sizing:border-box;position:relative">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 30px 0;font:600 15px -apple-system,'Figtree',sans-serif;color:#FFFFFF;flex:none"><span>02:06</span><span style="font:500 13px -apple-system,'Figtree',sans-serif;color:#8B8D93">72%</span></div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:22px 20px 0;flex:none">
+          <span style="width:38px;height:38px;border-radius:19px;background:#1C1C20;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></span>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+            <span style="font:500 12.5px -apple-system,'Figtree',sans-serif;letter-spacing:.02em;color:#8B8D93">Mon 7 Sep · 4 players</span>
+            <h2 style="margin:0;font:800 28px/1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.03em">Who pays whom</h2>
+          </div>
+        </div>
+
+        <div style="margin:18px 20px 0;background:#16161A;border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-end;gap:14px;box-sizing:border-box;flex:none">
+          <div style="display:flex;flex-direction:column;gap:4px;flex:none"><span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Left to move</span><span style="font:800 34px/1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.04em;font-variant-numeric:tabular-nums">{{ leftToMove }}</span></div>
+          <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none">
+            <span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Status</span>
+            <sc-if value="{{ allPaid }}" hint-placeholder-val="{{ false }}">
+              <span style="display:flex;align-items:center;gap:7px;padding:6px 11px 6px 9px;border-radius:8px;background:rgba(111,207,151,.14);border:1px solid rgba(111,207,151,.34)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M4 12.5l5 5L20 6.5"></path></svg><span style="font:700 14px -apple-system,'Figtree',sans-serif;color:#6FCF97;white-space:nowrap">Settled</span></span>
+            </sc-if>
+            <sc-if value="{{ someLeft }}" hint-placeholder-val="{{ true }}">
+              <span style="display:flex;align-items:center;padding:6px 11px;border-radius:8px;background:rgba(217,211,196,.13);border:1px solid rgba(217,211,196,.32)"><span style="font:700 14px -apple-system,'Figtree',sans-serif;color:#D9D3C4;font-variant-numeric:tabular-nums;white-space:nowrap">{{ paidCaption }}</span></span>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="margin:14px 22px 0;flex:none"><div onClick="{{ openSheetC }}" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid rgba(255,255,255,.11);border-bottom:1px solid rgba(255,255,255,.11);cursor:pointer"><span style="font:600 15px -apple-system,'Figtree',sans-serif;color:#FFFFFF">{{ roundLabel }}</span><span style="margin-left:auto;font:600 14px -apple-system,'Figtree',sans-serif;color:#D9D3C4;font-variant-numeric:tabular-nums">+&#8382;100 &rarr; piggy</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B8D93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M9 5l7 7-7 7"></path></svg></div></div>
+
+        <div style="flex:1;min-height:0;margin:16px 22px 0;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:12px;padding:0 0 4px;flex:none"><span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8B8D93">Transfers</span><span style="margin-left:auto;font:500 12.5px -apple-system,'Figtree',sans-serif;color:#8B8D93;font-variant-numeric:tabular-nums">{{ paidCount }}</span></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+            <sc-for list="{{ transfers }}" as="t" hint-placeholder-count="3">
+              <div onClick="{{ t.toggle }}" style="display:flex;align-items:center;gap:9px;padding:14px 0;border-top:1px solid rgba(255,255,255,.11);cursor:pointer;flex:none;opacity:{{ t.opacity }};transition:opacity 200ms ease">
+                <span style="font:600 16px -apple-system,'Figtree',sans-serif;color:{{ t.ink }}">{{ t.from }}</span>
+                <svg width="15" height="11" viewBox="0 0 16 12" fill="none" stroke="{{ t.arrow }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M1 6h13M10 2l4 4-4 4"></path></svg>
+                <span style="font:600 16px -apple-system,'Figtree',sans-serif;color:{{ t.ink }}">{{ t.to }}</span>
+                <span style="margin-left:auto;font:700 18px -apple-system,'Figtree',sans-serif;color:{{ t.ink }};font-variant-numeric:tabular-nums;white-space:nowrap">{{ t.amt }}</span>
+                <sc-if value="{{ t.done }}" hint-placeholder-val="{{ false }}">
+                  <span style="width:22px;height:22px;border-radius:11px;background:#6FCF97;display:flex;align-items:center;justify-content:center;flex:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0A0A0B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
+                </sc-if>
+                <sc-if value="{{ t.open }}" hint-placeholder-val="{{ true }}">
+                  <span style="width:22px;height:22px;border-radius:11px;border:1.6px solid rgba(255,255,255,.26);display:block;flex:none;box-sizing:border-box"></span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:9px;padding:12px 0 0;flex:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8D93" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8.4v.01M12 11.6v4.4"></path></svg>
+            <span style="font:400 13px/1.5 -apple-system,'Figtree',sans-serif;color:#8B8D93;text-wrap:pretty">The piggy bank is set aside for the group, so it stays on the book after the night closes.</span>
+          </div>
+        </div>
+
+        <div style="padding:14px 20px 0;display:flex;flex:none"><span onClick="{{ primaryAction }}" style="flex:1;text-align:center;padding:17px 0;border-radius:12px;background:#FFFFFF;color:#0C0D0F;font:700 17px -apple-system,'Figtree',sans-serif;cursor:pointer">{{ primaryLabel }}</span></div>
+        <div style="display:flex;justify-content:center;padding:12px 0 9px;flex:none"><span style="width:140px;height:5px;border-radius:3px;background:rgba(255,255,255,.9);display:block"></span></div>
+
+        <sc-if value="{{ sheetC }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(6,6,8,.62);z-index:2"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#101013;border-top:1px solid rgba(255,255,255,.11);border-radius:26px 26px 0 0;display:flex;flex-direction:column;z-index:3;box-shadow:0 -14px 44px rgba(0,0,0,.45)">
+            <div style="display:flex;justify-content:center;padding:9px 0 2px"><span style="width:38px;height:5px;border-radius:2.5px;background:rgba(255,255,255,.22);display:block"></span></div>
+            <div style="padding:12px 22px 8px;display:flex;flex-direction:column;gap:7px"><h3 style="margin:0;font:800 26px/1.1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.03em">Rounding</h3><span style="font:400 13.5px/1.5 -apple-system,'Figtree',sans-serif;color:#8B8D93;text-wrap:pretty">Changing the step here recomputes the transfers on screen. What was counted is kept underneath. Changeable until the night is closed.</span></div>
+            <div style="margin:0 22px;display:flex;flex-direction:column">
+              <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+                <div onClick="{{ st.pick }}" style="display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid rgba(255,255,255,.11);cursor:pointer">
+                  <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                    <span style="font:600 17px -apple-system,'Figtree',sans-serif;color:#FFFFFF">{{ st.label }}</span>
+                    <span style="font:400 12.5px -apple-system,'Figtree',sans-serif;color:#8B8D93;font-variant-numeric:tabular-nums">{{ st.sub }}</span>
+                  </div>
+                  <sc-if value="{{ st.on }}" hint-placeholder-val="{{ false }}">
+                    <svg style="margin-left:auto;flex:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding:16px 20px 6px;display:flex"><span onClick="{{ applyRounding }}" style="flex:1;text-align:center;padding:18px 0;border-radius:12px;background:#FFFFFF;font:700 17px -apple-system,'Figtree',sans-serif;color:#0C0D0F;box-sizing:border-box;cursor:pointer">Apply</span></div>
+            <div style="display:flex;justify-content:center;padding:10px 0 9px"><span style="width:140px;height:5px;border-radius:3px;background:rgba(255,255,255,.9);display:block"></span></div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+    <span style="width:402px;font:400 13px/1.55 'Figtree',sans-serif;color:#6C6C70;text-wrap:pretty">Each row is a whole tap target; marking one paid ticks it and drops it out of the figure at the top. The piggy bank transfer is drawn in bone, the same colour it carries everywhere else.</span>
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:26px;padding:44px 46px 60px">
+  <div style="display:flex;flex-direction:column;gap:9px;max-width:900px">
+    <div style="font:700 11px 'Figtree',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8378">Turn 1 · settled night, synced to the ranking layout</div>
+    <h1 style="margin:0;font:800 30px/1.12 'Figtree',sans-serif;color:#0B0B0F;letter-spacing:-.025em">Game end · totals card, deductions, one list behind a toggle</h1>
+    <p style="margin:0;font:400 14px/1.6 'Figtree',sans-serif;color:#6C6C70;text-wrap:pretty">Same content both ways: money in play with the two deductions on top, at&nbsp;the&nbsp;table and final as one swapping list, labelled pairs before deductions and arithmetic after.</p>
+  </div>
+
+  <div style="display:flex;align-items:flex-start;gap:40px;flex-wrap:wrap">
+
+    <div id="1a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="font:800 12px 'Figtree',sans-serif;letter-spacing:.06em;color:#0B0B0F;background:#DCD8CC;border-radius:5px;padding:4px 8px">1a</span>
+        <span style="font:600 13px 'Figtree',sans-serif;color:#6C6C70">Totals card · pill toggle · deductions as a two-line block</span>
+      </div>
+
+      <div style="background:#07080A;padding:11px;border-radius:56px;flex:none;width:max-content">
+        <div data-screen-label="Settled night 1a" style="width:402px;height:874px;border-radius:46px;overflow:hidden;background:#0A0A0B;display:flex;flex-direction:column;box-sizing:border-box;position:relative">
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 30px 0;font:600 15px -apple-system,'Figtree',sans-serif;color:#FFFFFF;flex:none"><span>02:04</span><span style="font:500 13px -apple-system,'Figtree',sans-serif;color:#8B8D93">72%</span></div>
+
+          <div style="display:flex;align-items:center;gap:12px;padding:22px 20px 0;flex:none">
+            <span style="width:38px;height:38px;border-radius:19px;background:#1C1C20;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></span>
+            <h2 style="margin:0;font:800 30px/1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.03em">Mon 7 Sep</h2>
+          </div>
+          <div style="padding:8px 20px 0 70px;font:500 13px -apple-system,'Figtree',sans-serif;color:#8B8D93;font-variant-numeric:tabular-nums;flex:none">01:52 &rarr; 01:55 · 0h 03m · 4 players · settled</div>
+
+          <div style="margin:16px 20px 0;background:#16161A;border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-end;gap:14px;box-sizing:border-box;flex:none">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:none"><span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Money in play</span><span style="font:800 34px/1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.04em;font-variant-numeric:tabular-nums">&#8382;6,000</span></div>
+            <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none">
+              <span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Status</span>
+              <span style="display:flex;align-items:center;gap:7px;padding:6px 11px 6px 9px;border-radius:8px;background:rgba(111,207,151,.14);border:1px solid rgba(111,207,151,.34)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M4 12.5l5 5L20 6.5"></path></svg><span style="font:700 14px -apple-system,'Figtree',sans-serif;color:#6FCF97;white-space:nowrap">Settled</span></span>
+            </div>
+          </div>
+
+          <div style="margin:14px 22px 0;display:flex;flex-direction:column;flex:none">
+            <div style="display:flex;align-items:center;gap:12px;padding:0 0 7px"><span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8B8D93">Deductions</span><span style="margin-left:auto;font:500 12.5px -apple-system,'Figtree',sans-serif;color:#8B8D93;font-variant-numeric:tabular-nums">&#8382;200 total</span></div>
+            <div style="display:flex;align-items:baseline;gap:12px;padding:7px 0;border-top:1px solid rgba(255,255,255,.11)"><span style="font:600 14px -apple-system,'Figtree',sans-serif;color:#D9D3C4">Kitchen &amp; drinks</span><span style="font:500 13px -apple-system,'Figtree',sans-serif;color:#8B8D93">Goga paid</span><span style="margin-left:auto;font:700 15px -apple-system,'Figtree',sans-serif;color:#FFFFFF;font-variant-numeric:tabular-nums">&#8382;100</span></div>
+            <div style="display:flex;align-items:baseline;gap:12px;padding:7px 0;border-top:1px solid rgba(255,255,255,.11)"><span style="font:600 14px -apple-system,'Figtree',sans-serif;color:#D9D3C4">Group piggy bank</span><span style="font:500 13px -apple-system,'Figtree',sans-serif;color:#8B8D93">held by the group</span><span style="margin-left:auto;font:700 15px -apple-system,'Figtree',sans-serif;color:#FFFFFF;font-variant-numeric:tabular-nums">&#8382;100</span></div>
+          </div>
+
+          <div style="margin:14px 22px 0;display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:3px;border-radius:12px;background:rgba(255,255,255,.07);box-sizing:border-box;flex:none">
+            <sc-for list="{{ tabsA }}" as="t" hint-placeholder-count="2">
+              <sc-if value="{{ t.on }}" hint-placeholder-val="{{ true }}"><span onClick="{{ t.pick }}" style="width:100%;box-sizing:border-box;text-align:center;padding:9px 0;border-radius:9px;cursor:pointer;background:#FFFFFF;color:#0C0D0F;font:700 13.5px -apple-system,'Figtree',sans-serif">{{ t.label }}</span></sc-if>
+              <sc-if value="{{ t.off }}" hint-placeholder-val="{{ false }}"><span onClick="{{ t.pick }}" style="width:100%;box-sizing:border-box;text-align:center;padding:9px 0;border-radius:9px;cursor:pointer;color:#8B8D93;font:600 13.5px -apple-system,'Figtree',sans-serif">{{ t.label }}</span></sc-if>
+            </sc-for>
+          </div>
+
+          <div style="flex:1;min-height:0;margin:14px 22px 0;display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;gap:12px;padding:0 0 6px;flex:none"><span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8B8D93">{{ listTitleA }}</span><span style="margin-left:auto;font:500 12.5px -apple-system,'Figtree',sans-serif;color:#8B8D93">{{ listNoteA }}</span></div>
+            <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+              <sc-for list="{{ rowsA }}" as="p" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.11);flex:none">
+                  <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                    <span style="font:700 17px -apple-system,'Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.01em">{{ p.name }}</span>
+                    <span style="display:flex;align-items:center;flex-wrap:wrap;gap:2px 9px;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums">
+                      <span style="color:#F0705C;white-space:nowrap">in {{ p.inAmt }}</span>
+                      <span style="color:#6FCF97;white-space:nowrap">out {{ p.outAmt }}</span>
+                      <sc-if value="{{ p.showBill }}" hint-placeholder-val="{{ true }}"><span style="color:#9C9EA5;white-space:nowrap">bill {{ p.billAmt }}<sc-if value="{{ p.showBack }}" hint-placeholder-val="{{ false }}"><span style="color:#6FCF97"> +{{ p.backAmt }} back</span></sc-if></span></sc-if>
+                      <sc-if value="{{ p.showPiggy }}" hint-placeholder-val="{{ true }}"><span style="color:#9C9EA5;white-space:nowrap">piggy bank {{ p.piggyAmt }}</span></sc-if>
+                    </span>
+                  </div>
+                  <span style="margin-left:auto;font:700 19px -apple-system,'Figtree',sans-serif;color:{{ p.color }};font-variant-numeric:tabular-nums;white-space:nowrap">{{ p.net }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ isFinalA }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ openSheetA }}" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid rgba(255,255,255,.11);cursor:pointer;flex:none"><span style="font:600 15px -apple-system,'Figtree',sans-serif;color:#FFFFFF">{{ roundLabel }}</span><span style="margin-left:auto;font:600 14px -apple-system,'Figtree',sans-serif;color:#8B8D93;font-variant-numeric:tabular-nums">{{ roundValue }}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B8D93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M9 5l7 7-7 7"></path></svg></div>
+            </sc-if>
+            <div style="display:flex;align-items:flex-start;gap:9px;padding:11px 0 0;flex:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8D93" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8.4v.01M12 11.6v4.4"></path></svg>
+              <span style="font:400 13px/1.5 -apple-system,'Figtree',sans-serif;color:#8B8D93;text-wrap:pretty">Whoever paid a bill gets it back in full below.</span>
+            </div>
+          </div>
+
+          <div style="padding:14px 20px 0;display:flex;flex:none"><span style="flex:1;text-align:center;padding:17px 0;border-radius:12px;background:#FFFFFF;color:#0C0D0F;font:700 17px -apple-system,'Figtree',sans-serif;cursor:pointer">Who pays whom</span></div>
+          <div style="display:flex;justify-content:center;padding:12px 0 9px;flex:none"><span style="width:140px;height:5px;border-radius:3px;background:rgba(255,255,255,.9);display:block"></span></div>
+
+          <sc-if value="{{ sheetA }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(6,6,8,.62);z-index:2"></div>
+            <div style="position:absolute;left:0;right:0;bottom:0;background:#101013;border-top:1px solid rgba(255,255,255,.11);border-radius:26px 26px 0 0;display:flex;flex-direction:column;z-index:3;box-shadow:0 -14px 44px rgba(0,0,0,.45)">
+              <div style="display:flex;justify-content:center;padding:9px 0 2px"><span style="width:38px;height:5px;border-radius:2.5px;background:rgba(255,255,255,.22);display:block"></span></div>
+              <div style="padding:12px 22px 8px;display:flex;flex-direction:column;gap:7px"><h3 style="margin:0;font:800 26px/1.1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.03em">Rounding</h3><span style="font:400 13.5px/1.5 -apple-system,'Figtree',sans-serif;color:#8B8D93;text-wrap:pretty">Set it here and it governs the whole night: stacks snap to the step as they are entered, and the nets and transfers follow. What was counted is kept underneath. Changeable until the night is closed.</span></div>
+              <div style="margin:0 22px;display:flex;flex-direction:column">
+                <sc-for list="{{ steps }}" as="st" hint-placeholder-count="4">
+                  <div onClick="{{ st.pick }}" style="display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid rgba(255,255,255,.11);cursor:pointer">
+                    <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                      <span style="font:600 17px -apple-system,'Figtree',sans-serif;color:#FFFFFF">{{ st.label }}</span>
+                      <span style="font:400 12.5px -apple-system,'Figtree',sans-serif;color:#8B8D93;font-variant-numeric:tabular-nums">{{ st.sub }}</span>
+                    </div>
+                    <sc-if value="{{ st.on }}" hint-placeholder-val="{{ false }}">
+                      <svg style="margin-left:auto;flex:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:16px 20px 6px;display:flex"><span onClick="{{ applyRounding }}" style="flex:1;text-align:center;padding:18px 0;border-radius:12px;background:#FFFFFF;font:700 17px -apple-system,'Figtree',sans-serif;color:#0C0D0F;box-sizing:border-box;cursor:pointer">Apply</span></div>
+              <div style="display:flex;justify-content:center;padding:10px 0 9px"><span style="width:140px;height:5px;border-radius:3px;background:rgba(255,255,255,.9);display:block"></span></div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+      <span style="width:402px;font:400 13px/1.55 'Figtree',sans-serif;color:#6C6C70;text-wrap:pretty">Deductions read as a plain two-line ledger, not cards, so the ranked list stays the heaviest thing on the screen. Tap either tab to swap the list.</span>
+
+      <div style="width:402px;display:flex;flex-direction:column;gap:10px;padding-top:8px">
+        <span style="font:700 11px 'Figtree',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8A8378">Status states · the card header</span>
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="background:#0A0A0B;border-radius:20px;padding:12px;box-sizing:border-box">
+              <div style="background:#16161A;border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-end;gap:14px;box-sizing:border-box">
+                <div style="display:flex;flex-direction:column;gap:4px;flex:none"><span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Money in play</span><span style="font:800 34px/1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.04em;font-variant-numeric:tabular-nums">&#8382;6,000</span></div>
+                <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none">
+                  <span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Status</span>
+                  <span style="display:flex;align-items:center;gap:7px;padding:6px 11px 6px 9px;border-radius:8px;background:rgba(111,207,151,.14);border:1px solid rgba(111,207,151,.34)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M4 12.5l5 5L20 6.5"></path></svg><span style="font:700 14px -apple-system,'Figtree',sans-serif;color:#6FCF97;white-space:nowrap">Settled</span></span>
+                </div>
+              </div>
+            </div>
+            <span style="font:400 12.5px/1.5 'Figtree',sans-serif;color:#6C6C70">Every transfer marked off. Nothing left to move.</span>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="background:#0A0A0B;border-radius:20px;padding:12px;box-sizing:border-box">
+              <div style="background:#16161A;border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-end;gap:14px;box-sizing:border-box">
+                <div style="display:flex;flex-direction:column;gap:4px;flex:none"><span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Money in play</span><span style="font:800 34px/1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.04em;font-variant-numeric:tabular-nums">&#8382;6,000</span></div>
+                <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none">
+                  <span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Status</span>
+                  <span style="display:flex;align-items:center;gap:7px;padding:6px 11px;border-radius:8px;background:rgba(217,211,196,.13);border:1px solid rgba(217,211,196,.32)"><span style="font:700 14px -apple-system,'Figtree',sans-serif;color:#D9D3C4;font-variant-numeric:tabular-nums;white-space:nowrap">&#8382;400 left</span></span>
+                </div>
+              </div>
+            </div>
+            <span style="font:400 12.5px/1.5 'Figtree',sans-serif;color:#6C6C70">Part settled &mdash; some transfers done, &#8382;400 still owed between players.</span>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="background:#0A0A0B;border-radius:20px;padding:12px;box-sizing:border-box">
+              <div style="background:#16161A;border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-end;gap:14px;box-sizing:border-box">
+                <div style="display:flex;flex-direction:column;gap:4px;flex:none"><span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Money in play</span><span style="font:800 34px/1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.04em;font-variant-numeric:tabular-nums">&#8382;6,000</span></div>
+                <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none">
+                  <span style="font:700 11px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93;white-space:nowrap">Status</span>
+                  <span style="display:flex;align-items:center;gap:7px;padding:6px 11px;border-radius:8px;background:rgba(240,112,92,.13);border:1px solid rgba(240,112,92,.34)"><span style="font:700 14px -apple-system,'Figtree',sans-serif;color:#F0705C;font-variant-numeric:tabular-nums;white-space:nowrap">&#8382;1,000 left</span></span>
+                </div>
+              </div>
+            </div>
+            <span style="font:400 12.5px/1.5 'Figtree',sans-serif;color:#6C6C70">Unsettled &mdash; the full amount is still outstanding, nothing marked off yet.</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;table&quot;,&quot;final&quot;],&quot;default&quot;:&quot;final&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+class Component extends DCLogic {
+  // \u20be200 of deductions (kitchen \u20be100 + piggy \u20be100) split equally between the two winners;
+  // Goga paid the kitchen bill, so he gets it back in full. Finals sum to \u2212\u20be100, which is the piggy bank.
+  static PLAYERS = [
+    { name: 'Goga',   in: 1500, out: 2000, bill: 50, paid: 100, piggy: 50 },
+    { name: 'Oto',    in: 1500, out: 2000, bill: 50, paid: 0,   piggy: 50 },
+    { name: 'Andro',  in: 1500, out: 1500, bill: 0,  paid: 0,   piggy: 0 },
+    { name: 'Levani', in: 1500, out:  500, bill: 0,  paid: 0,   piggy: 0 }
+  ];
+
+  // raw counted stacks, kept behind the rounded figures the screen shows
+  static STACKS = [1963, 2047, 1512, 478];
+  static STEPS = [0, 10, 50, 100];
+
+  state = {
+    modeA: this.props.mode ?? 'final',
+    modeB: this.props.mode ?? 'final',
+    step: this.props.roundingStep ?? 10,
+    pick: this.props.roundingStep ?? 10,
+    sheet: null,
+    paid: Component.TRANSFERS.map(() => false)
+  };
+
+  static TRANSFERS = [
+    { from: 'Levani', to: 'Goga', amt: 500 },
+    { from: 'Levani', to: 'Oto', amt: 400 },
+    { from: 'Levani', to: 'Piggy bank', amt: 100, piggy: true }
+  ];
+
+  worstDelta(step) {
+    return Component.STACKS.reduce((m, v) => Math.max(m, Math.abs(Math.round(v / step) * step - v)), 0);
+  }
+
+  stepLabel(step) { return step ? 'Nearest \u20be' + step : 'Off'; }
+
+  money(n) { return '\u20be' + Math.abs(n).toLocaleString('en-US'); }
+  signed(n) { return (n > 0 ? '+' : n < 0 ? '\u2212' : '') + this.money(n); }
+  color(n) { return n > 0 ? '#6FCF97' : n < 0 ? '#F0705C' : '#8B8D93'; }
+
+  n(v) { return v.toLocaleString('en-US'); }
+
+  rows(mode) {
+    const final = mode === 'final';
+    return Component.PLAYERS.map(p => {
+      const table = p.out - p.in;
+      const v = final ? table - p.bill - p.piggy + p.paid : table;
+      return {
+        name: p.name, net: this.signed(v), color: this.color(v), sort: v,
+        inAmt: this.n(p.in), outAmt: this.n(p.out),
+        showBill: final && !!p.bill, billAmt: this.n(p.bill),
+        showBack: final && !!p.paid, backAmt: this.n(p.paid),
+        showPiggy: final && !!p.piggy, piggyAmt: this.n(p.piggy)
+      };
+    }).sort((a, b) => b.sort - a.sort);
+  }
+
+  tabs(key) {
+    const cur = this.state[key];
+    return ['table', 'final'].map(m => ({
+      label: m === 'table' ? 'At the table' : 'Final',
+      on: cur === m, off: cur !== m,
+      pick: () => this.setState({ [key]: m })
+    }));
+  }
+
+  renderVals() {
+    const finalA = this.state.modeA === 'final';
+    return {
+      tabsA: this.tabs('modeA'),
+      rowsA: this.rows(this.state.modeA),
+      isFinalA: finalA,
+      listTitleA: finalA ? 'Final' : 'At the table',
+      listNoteA: finalA ? 'after deductions and compensations' : 'before deductions',
+      transfers: Component.TRANSFERS.map((t, i) => {
+        const done = this.state.paid[i];
+        return {
+          from: t.from, to: t.to, amt: this.money(t.amt), done, open: !done,
+          ink: done ? '#6B6D73' : t.piggy ? '#D9D3C4' : '#FFFFFF',
+          arrow: done ? '#4E5055' : t.piggy ? '#D9D3C4' : '#7F8187',
+          opacity: done ? 0.62 : 1,
+          toggle: () => this.setState(s => ({ paid: s.paid.map((v, j) => j === i ? !v : v) }))
+        };
+      }),
+      leftToMove: this.money(Component.TRANSFERS.reduce((sum, t, i) => sum + (this.state.paid[i] ? 0 : t.amt), 0)),
+      paidCaption: this.money(Component.TRANSFERS.reduce((sum, t, i) => sum + (this.state.paid[i] ? 0 : t.amt), 0)) + ' left',
+      paidCount: this.state.paid.filter(Boolean).length + ' of ' + Component.TRANSFERS.length + ' paid',
+      allPaid: this.state.paid.every(Boolean),
+      someLeft: !this.state.paid.every(Boolean),
+      primaryLabel: this.state.paid.every(Boolean) ? 'Close the night' : 'Mark all as paid',
+      primaryAction: () => this.setState(s => ({ paid: s.paid.map(() => !s.paid.every(Boolean)) })),
+      sheetC: this.state.sheet === 'c',
+      openSheetC: () => this.setState(s => ({ sheet: 'c', pick: s.step })),
+      roundLabel: 'Rounding · ' + (this.state.step ? 'nearest \u20be' + this.state.step : 'off'),
+      roundValue: this.state.step ? 'on the nets' : 'stacks as counted',
+      sheetA: this.state.sheet === 'a',
+      openSheetA: () => this.setState(s => ({ sheet: 'a', pick: s.step })),
+      closeSheet: () => this.setState({ sheet: null }),
+      applyRounding: () => this.setState(s => ({ step: s.pick, sheet: null })),
+      steps: Component.STEPS.map(st => ({
+        label: this.stepLabel(st),
+        sub: st
+          ? 'No stack moves by more than \u20be' + this.worstDelta(st)
+          : 'Stacks as counted · \u20be6,000 counted',
+        on: this.state.pick === st,
+        pick: () => this.setState({ pick: st })
+      }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>
