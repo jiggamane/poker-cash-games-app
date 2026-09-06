@@ -92,6 +92,11 @@ A count for every seated player, drawn mid-count so both list states are visible
   `Accounted for · {n} counted` in the state colour, where the count sums counted stacks **and**
   players who cashed out earlier. No eyebrow, no caption sentence, no verdict strip, and no buy-in or
   rebuy counts. Three states: over and short `#F0705C`, balanced `#6FCF97`.
+  ⚠ **As built, none of those colours appears until every seated player is
+  counted** — the gap, the percentage and the accounted-for sum are plain text
+  while the count runs, which is this paragraph's own superseded sentence
+  ("the card stays neutral — no green, no red") kept over the new block.
+  6 September, on the owner's instruction; `docs/screens.md`.
   The old two-column `COUNTED` card and its `2 TO GO` label are **retired** — they truncated any
   five-figure sum, and so did the `BOUGHT IN` / `ACCOUNTED FOR` pair that replaced them on 30 August.
 - **Counted is ranked by net, descending** — the results-screen order (that cut's S113). Committing a

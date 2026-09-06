@@ -17,26 +17,38 @@
 import type { BalanceCheck } from '@poker-club/core';
 
 /**
- * THREE STATES, AND THE THIRD ONE IS OURS.
+ * NOTHING IS COLOURED UNTIL EVERY STACK IS IN — 6 September, on the owner's
+ * instruction, and it is this app's one departure from the cut's colour rule.
  *
  * The cut drives colour off a single subtraction: coral when the table is over
- * or short, green when the gap is nought. That is right for every night it
- * describes, and it has one hole this app already had a name for — a host
- * halfway through the count whose two figures happen to meet. `balanceCheck`
- * holds the state at *counting* until every seated player is in, including the
- * busted one whose $0 is a count, because a card that went green on a
- * coincidence would be congratulating somebody on a sum they have not
- * finished.
+ * or short, green when the gap is nought. That reads right at the END of a
+ * count and it is wrong for the whole of the middle of one. A host who has
+ * counted two of six stacks is short by four stacks — of course they are — and
+ * the block spent that entire stretch in the colour this app reserves for money
+ * that has gone missing, at its largest type, over a night where nothing at all
+ * has gone wrong yet. `−$2,880 · 42%` in coral is an alarm about arithmetic
+ * that has not finished happening.
  *
- * So: coral whenever the gap is not nought, green when it is nought AND the
- * count is done, and amber — this app's "in progress", and the colour the
- * superseded block wore for the whole count — for the accident in between. One
- * state, on one arithmetic coincidence, recorded in `docs/screens.md`.
+ * So the gap is plain text while any seated player is still to count, and the
+ * block takes a verdict's colour only once there is a verdict to take: green
+ * when the night comes out level, coral when it does not.
+ *
+ * IT IS THE SAME RULE B22 IS ABOUT, read the other way. That entry is a block
+ * that said DONE while a cash-out was missing; the gate `balanceCheck` grew for
+ * it — *counting* holds until every seated player is in, including the busted
+ * one whose $0 is a count — is exactly the gate this reads. A card may not
+ * congratulate a host on a sum they have not finished, and it may not accuse
+ * them over one either.
+ *
+ * AND IT IS WHAT REV 18 SAID BEFORE THE CUT: "the card stays neutral — no
+ * green, no red — until counted equals what is on the table"
+ * (`13-after-the-night.md`). The instruction restores that sentence over a
+ * newer block.
  */
 export type Tone = 'off' | 'balanced' | 'counting';
 
 export const toneOf = (b: BalanceCheck): Tone =>
-  b.left !== 0 ? 'off' : b.state === 'balanced' ? 'balanced' : 'counting';
+  b.state === 'counting' ? 'counting' : b.left === 0 ? 'balanced' : 'off';
 
 /**
  * HOW MUCH OF WHAT WENT IN HAS BEEN ACCOUNTED FOR, as a whole number.

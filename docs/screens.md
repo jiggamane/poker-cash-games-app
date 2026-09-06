@@ -241,8 +241,10 @@ The extractor still points at the old board directory and reads frames at
 ## E2's block, and the two places it does not do as it is told
 
 Both are deviations from `design/handoff-count-up-header/`, the newest cut on
-this screen, and both are older decisions winning rather than the cut being
-argued with.
+this screen. The first is an older decision winning; the second is a NEWER
+instruction, given against the built screen the day the cut landed. Neither is
+the cut being argued with on its own ground — the block's layout, sizes,
+structure and every other string are its.
 
 **`In play · 8 players`, where the cut writes `Bought in · 8 players`.** The
 word for that figure was settled on 5 September, a day before the cut, and it
@@ -253,15 +255,34 @@ app's word. `ui-audit.mjs` asks for `In play` and says as much beside it: do not
 put `Bought in` back by reading the cut. Everything else in the block is the
 cut's copy verbatim.
 
-**A fourth state, amber.** The cut has three, driven by one subtraction: coral
-over and short, green level. That leaves a hole this app has already fallen
-into once — B22 — because two sums can meet by coincidence halfway through a
-count, when what is still to come happens to cancel out. Green there is the card
-calling a night level over a stack nobody has counted. `balanceCheck` already
-holds the state at *counting* until every seated player is in, so the block
-paints amber on that one arithmetic accident: gap of nought, count unfinished.
-Coral and green are the cut's, unchanged, and amber was this block's own colour
-for the whole count until 6 September. `countUpBlock.test.ts` holds all three.
+**Nothing in the block is coloured until every stack is in** — 6 September, on
+the owner's instruction, against a screenshot of the block at 42% counted
+reading `−$2,880 · 42%` in coral. The cut has three states driven by one
+subtraction: coral over and short, green level. That reads right at the end of a
+count and it is wrong for the whole middle of one — a host two stacks into six
+is short by the four nobody has counted yet, and the block spent that entire
+stretch in the colour this app reserves for money that has gone missing, at its
+largest type, over a night where nothing had gone wrong. So the gap, the
+percentage and the accounted-for sum are plain text while any seated player is
+still to count, the border is a hairline, and the bar is grey filling a track.
+The verdict colours arrive when there is a verdict: green level, coral not.
+
+*It is the same rule B22 is about, read the other way.* That entry is a block
+that said DONE while a cash-out was missing, and the gate `balanceCheck` grew
+for it — *counting* holds until every seated player is in, including the busted
+one whose $0 is a count — is exactly the gate this reads. A card may not
+congratulate a host on a sum they have not finished, and it may not accuse them
+over one either. **It also restores rev 18's own sentence** over a newer block:
+"the card stays neutral — no green, no red — until counted equals what is on the
+table" (`13-after-the-night.md`, before the cut rewrote that paragraph).
+
+*What it costs.* The mid-count screen is now one colour, so a host who has typed
+a stack ten times too large sees `+$4,100` in white rather than in red, and
+finds out at the end rather than at the moment. That is the trade the
+instruction makes deliberately: the end of the count is where this block's
+verdict has always lived, and E5 is the screen that names a difference and
+offers to go and fix it. `countUpBlock.test.ts` holds all three states,
+including that one.
 
 **And one string in it is not signed off.** The still-to-count clause —
 `Accounted for · 8 counted, 1 still to count` — is PROPOSED in the cut's own

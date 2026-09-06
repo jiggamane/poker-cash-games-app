@@ -171,14 +171,17 @@ export interface Theme {
    */
   arrival: string;
   /**
-   * Its footer strip while the count is still running, where the two end
-   * states use a wash of their own colour.
+   * RETIRED WITH THE STRIP IT PAINTED, 6 September. It was the fill of E2's
+   * footer strip while the count was still running, and the strip came off
+   * with the two-column block — `design/handoff-count-up-header/`.
    *
-   * ONE STEP OFF THE CARD, AWAY FROM THE SURFACE IN EACH THEME — lighter on
-   * ink, white on paper. The board draws white at 5% over the dark card and
-   * leaves the light twin to us, and the obvious twin (ink at 5%, so a darker
-   * band) puts `muted` on #E8E8ED at 4.13:1 — under the floor, and it is the
-   * tally of counted stacks that sits there.
+   * Kept because it is the one surface in the app that sits ONE STEP OFF THE
+   * CARD, AWAY FROM THE SURFACE IN EACH THEME — lighter on ink, white on
+   * paper — and that was measured rather than picked: the obvious light twin
+   * (ink at 5%, so a darker band) puts `muted` on #E8E8ED at 4.13:1, under the
+   * floor, on a band that carried a tally. The next thing that needs a band
+   * inside a card should use this rather than re-derive it. Nothing draws it
+   * today.
    */
   strip: string;
   /** A row inside the table-admin drawer. */
