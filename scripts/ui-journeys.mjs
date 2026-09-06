@@ -1225,11 +1225,19 @@ async function playANight(name, rebuys) {
    */
   await holds(
     'and every bill says who fronted it',
-    /* `[^ ]+` AND NOT `\S+`: the selector's own parser eats the backslash
-       before Playwright ever sees a regex, so `\S` arrives as a literal `S`
-       and the whole thing matches nothing. Same shape as the `total` matcher
-       above, which is why that one worked and this one did not. */
-    (await page.locator(':text-matches("^[^ ]+ paid$"):visible').count()) > 0 &&
+    /*
+     * `[^ ]+` AND NOT `\S+`: the selector's own parser eats the backslash
+     * before Playwright ever sees a regex, so `\S` arrives as a literal `S`
+     * and the whole thing matches nothing. Same shape as the `total` matcher
+     * above, which is why that one worked and this one did not.
+     *
+     * AND NOT ANCHORED AT THE FRONT ANY MORE. The 6 September cut draws one row
+     * per DEDUCTION rather than one per fronter, so a bill two people covered
+     * reads `Marek and Lena paid` — which is the honest row and does not start
+     * with a single token. What is being held is that the bill says who paid
+     * it, not how many words that takes.
+     */
+    (await page.locator(':text-matches(" paid$"):visible').count()) > 0 &&
       (await onScreen('Whoever paid a bill gets it back in full below.')) === 1,
     'the deduction slabs do not name who fronted a bill',
   );

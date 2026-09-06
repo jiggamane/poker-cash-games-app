@@ -212,12 +212,21 @@ function Deductions({ result }: { result: ReturnType<typeof settle> }) {
 }
 
 /**
- * "Goga paid", or "held by the group".
+ * "Goga paid", "Goga and Lena paid", or "held by the group".
  *
- * A BILL NAMES A PERSON because somebody is owed for it and the row is the only
- * place that is said before the spend line repeats it. Every other kind names
- * nobody: the take goes to a collector who is holding it on the room's behalf,
- * and naming them here would read as though they had taken it.
+ * A BILL NAMES THE PEOPLE, because somebody is owed for it and this row is
+ * where that is said. Every other kind names nobody: the take goes to a
+ * collector who is holding it on the room's behalf, and naming them here would
+ * read as though they had taken it.
+ *
+ * ⚠ TWO PEOPLE FRONT ONE BILL MORE OFTEN THAN THE CUT ALLOWS FOR. Its worked
+ * night has Goga paying the kitchen and that is the whole of it, so the row is
+ * drawn as one name. The seeded night has two — the pizza and the drinks are
+ * one bill rule and two fronters — and this app has always let several people
+ * cover one thing, which is what `spendGroup` is for. Naming the first of them
+ * would be naming the wrong person to whoever paid the other half, so both are
+ * named, and past two the row counts rather than growing: the amounts are on
+ * everybody's own spend line below either way.
  */
 function payerNote(
   result: ReturnType<typeof settle>,
@@ -225,12 +234,15 @@ function payerNote(
 ): string {
   if (deduction.destination !== 'bill') return 'held by the group';
 
-  const fronted = deduction.credits.filter((c) => c.amount !== 0);
-  if (fronted.length === 0) return 'nobody fronted it';
-  if (fronted.length > 1) return `${fronted.length} people paid`;
+  const names = deduction.credits
+    .filter((c) => c.amount !== 0)
+    .map((c) => result.players.find((p) => p.playerId === c.playerId)?.name)
+    .filter((n): n is string => n !== undefined);
 
-  const who = result.players.find((p) => p.playerId === fronted[0]?.playerId);
-  return who === undefined ? 'paid at the counter' : `${who.name} paid`;
+  if (names.length === 0) return 'nobody fronted it';
+  if (names.length === 1) return `${names[0]} paid`;
+  if (names.length === 2) return `${names[0]} and ${names[1]} paid`;
+  return `${names[0]} and ${names.length - 1} others paid`;
 }
 
 /**
