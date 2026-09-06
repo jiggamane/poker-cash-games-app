@@ -86,6 +86,45 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B45 — the rounding sheet described the rule this app removed
+
+```
+Screen      /rounding, both paragraphs — the count-up form and the settle-up one
+Seen        "stacks snap to the step as they are entered", and
+            "the difference goes to the piggy bank"
+Expected    what the step actually does: it lands the final positions,
+            apportioned so they still sum to zero, and rewrites no count
+Found        6 Sept, holding the sheet against design/handoff-game-end/
+Locked by   npm run check — settled.test.ts asserts the identity the copy was
+            contradicting; the strings themselves are held by the audit's
+            /rounding route pass
+Status      fixed in this commit
+```
+
+**Two sentences, both stating a rule that was removed on 2 September**, in the
+one place a host goes to decide whether to turn it on.
+
+The first told them their count was about to be rounded. It is not: `finalCounts`
+is never rewritten, the balance check compares real money to real money, and
+that is the whole argument in `stacks.ts`. The second promised the piggy bank the
+remainder — the money the old stack rounding invented and the tin absorbed. There
+is no remainder any more, so the sheet was offering the tin money the settlement
+was never going to hand it, which is B36 the other way round: B36 took the false
+figure off the row and left the sentence that explains it.
+
+**Nothing could see it, and nothing here ever will.** Copy is not arithmetic; no
+test asserts a paragraph and none should. What makes this one catchable is that
+it is a claim about the engine, so the check that holds it is the engine's — a
+suite that asserts `Σ final + piggy === 0` with no remainder term in it is a
+suite that says out loud which of the two rules is running. The next session to
+read the paragraph and the test together will see the disagreement in one file.
+
+**Both survived a redesign that repeated them.** The 6 September cut writes the
+same stacks sentence into its own README, and its two boards then print
+`on the nets`, which is the other rule. That is recorded in
+`design/handoff-game-end/START-HERE.md` rather than resolved by taking the prose:
+the screens ship, the prose does not.
+
 ### B44 — a rebuy typed on the amount sheet landed without a word
 
 ```

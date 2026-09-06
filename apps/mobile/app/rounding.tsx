@@ -275,7 +275,7 @@ export default function Rounding() {
  * POSITIONS, apportioned so they still sum to zero, and `finalCounts` is never
  * rewritten. A sheet that told a host their count was about to be rounded would
  * be describing the rule this repo removed, in the one place a host goes to
- * decide whether to use it. B36 and B44.
+ * decide whether to use it. B36 and B45.
  *
  * The rest is the doc's, including the sentence about what is kept underneath,
  * which is the one that answers the question the old sheet spent three blocks
