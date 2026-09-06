@@ -115,7 +115,7 @@ describe("the cut's worked night", () => {
   });
 
   it('ranks At the table by what the table did, and prints in and out only', () => {
-    const rows = settledRows(result, 'table').filter((r) => r.player.playerId !== PIGGY);
+    const rows = settledRows(result, 'table');
 
     expect(rows.map((r) => [r.player.name, r.net])).toEqual([
       ['Goga', 500],
@@ -134,7 +134,7 @@ describe("the cut's worked night", () => {
   });
 
   it("prints the cut's Final table, row for row", () => {
-    const rows = settledRows(result, 'final').filter((r) => r.player.playerId !== PIGGY);
+    const rows = settledRows(result, 'final');
 
     expect(
       rows.map((r) => [r.player.name, ...r.terms.map((t) => `${t.kind} ${t.amount}`), r.net]),
@@ -153,6 +153,19 @@ describe("the cut's worked night", () => {
     /* `food +50` would be the same net and a different statement. */
     expect(bill?.amount).toBe(50);
     expect(back?.amount).toBe(100);
+  });
+
+  it('leaves the piggy bank out of the list, because it never sat down', () => {
+    /*
+     * B27. The envelope is a party to the settlement — the positions only sum
+     * to zero with it counted — and it is not a person who had a night. A list
+     * built off `result.players` draws it as a row reading ₾0, and the night
+     * gains a fifth player who was never at the table.
+     */
+    for (const mode of ['table', 'final'] as const) {
+      expect(settledRows(result, mode).map((r) => r.player.playerId)).not.toContain(PIGGY);
+      expect(settledRows(result, mode)).toHaveLength(4);
+    }
   });
 
   it('sums the finals to minus the piggy bank', () => {

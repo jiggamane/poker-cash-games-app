@@ -34,7 +34,7 @@
 import type { Money } from './money';
 import type { PlayerId, PlayerSettlement } from './types';
 import type { SettlementResult } from './settlement';
-import { nightScore, playerDeductions } from './working';
+import { nightScore, playerDeductions, resultRows } from './working';
 
 /** Which figure the list is ranked by, and how many terms a row prints. */
 export type SettledMode = 'table' | 'final';
@@ -100,8 +100,16 @@ const at = (
  * ranks one way.
  */
 export function settledRows(result: SettlementResult, mode: SettledMode): SettledRow[] {
-  const rows = result.players.map((player): SettledRow => {
-    const { score, held } = nightScore(result, player.playerId);
+  /*
+   * THE SAME MEMBERSHIP AS EVERY OTHER RESULTS LIST, and it is `resultRows`'s
+   * rather than a second copy of it — B27. The piggy bank's own envelope is a
+   * party to the settlement and is not a person who had a night: it bought in
+   * for nothing, ended with nothing, and is charged nothing, so a list built
+   * off `result.players` draws it as a row reading ₾0 and the night gains a
+   * player who was never there. `resultRows` also carries the score/float
+   * split and the total order the flow doc asks for.
+   */
+  const rows = resultRows(result).map(({ player, score, held }): SettledRow => {
     const bill = at(result, player.playerId, 'bill');
     const piggy = at(result, player.playerId, 'kitty');
 
@@ -134,7 +142,15 @@ export function settledRows(result: SettlementResult, mode: SettledMode): Settle
     };
   });
 
-  return rows.sort((a, b) => b.net - a.net);
+  /*
+   * AND THE SAME TOTAL ORDER, on whichever figure the mode prints — biggest
+   * first, ties broken on name A→Z (`01-the-flow.md` § Sorting). A total order
+   * is what makes "the order does not change while the screen is open" true
+   * rather than incidental: two people who both ended ₾23 down came back in
+   * entry order otherwise, so the same settled night drew differently on two
+   * phones.
+   */
+  return rows.sort((a, b) => b.net - a.net || (a.player.name < b.player.name ? -1 : 1));
 }
 
 /**

@@ -159,14 +159,17 @@ await tap('Close the session', { wait: 2000 });
 await shot('10-settled');
 await shotTail('10-settled');
 
-/* Format `7e` — the four columns, which E6 stopped listing on 1 September and
-   which `Full ledger` is now the way to. See `02-E6-results-row.md`. */
-await tap('Full ledger', { wait: 1400 });
-await shot('11-ledger');
+/* THE SAME NIGHT IN THE OTHER MODE. `design/handoff-game-end/`, cut
+   6 September: the settled night is one ranked list behind a toggle, so a shot
+   of it is only half the screen unless the other half is taken too. This is
+   what replaced `11-ledger` — format `7e` was a screen and is a line now. */
+await tap('At the table', { wait: 900 });
+await shot('11-settled-at-the-table');
+await tap('Final', { wait: 900 });
 
-await tap('Back to the night', { wait: 1400 });
-/* `Who has paid` until 5 September; R2 titles the same route `Who pays whom`,
-   and the door off R1 is its footer button of the same name. */
+/* `Who has paid` until 5 September; the game-end cut titles the same route
+   `Who pays whom`, and the door to it is the settled night's footer button of
+   the same name. */
 await tap('Who pays whom', { wait: 1400 });
 await shot('12-payments');
 
