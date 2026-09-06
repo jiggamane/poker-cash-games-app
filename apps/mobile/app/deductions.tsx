@@ -16,6 +16,7 @@ import {
 import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
+import { RoundingBar } from '../src/components/RoundingBar';
 import { Screen } from '../src/components/Screen';
 import { SpendList } from '../src/components/SpendList';
 import { Step } from '../src/components/Step';
@@ -38,6 +39,19 @@ import { useIsAdmin } from '../src/lib/whoIsReading';
  * look again. The screen does no arithmetic of its own — not even the totals,
  * which come off the deduction rather than from adding up the rows above them.
  * If a share looks wrong the rule is wrong, and the fix is the rule.
+ *
+ * THE ORDER IS PEOPLE, STEP, RULES — 6 September, and it is a departure from
+ * rev 18, which heads the screen with a card totalling what leaves the table.
+ * Where a room ends up is what the room is on this screen to find out, so that
+ * is the first thing on it; the rules that got them there are under it, each
+ * one a door to the rule itself; and the aggregate is gone, because it is a
+ * figure nobody is owed, which appears in no transfer and on no later screen.
+ *
+ * AND EVERY WAY OF CHANGING WHAT IT SAYS IS ON IT. A row opens that person's
+ * share of that rule (`/share`); a block's head opens the rule (`/rule`); the
+ * step under the people opens rounding (`/rounding`); the bill takes a spend;
+ * and the chip at the foot still opens the whole list. Before this, two of
+ * those five were reachable only by leaving the ending flow.
  *
  * The bill block NEVER disappears. A bar tab usually arrives after the count,
  * so the common case is a bill of em dashes with its rows already in place; a
@@ -148,7 +162,7 @@ export default function Deductions() {
     );
   }
 
-  const { deductions, totalOffTable, players } = result.value;
+  const { deductions, players } = result.value;
   const active = deductions.filter((d) => d.total > 0 || d.destination === 'bill');
   const billIn = deductions.some((d) => d.destination === 'bill' && d.total > 0);
 
@@ -215,46 +229,29 @@ export default function Deductions() {
         />
       }
     >
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <Text style={[styles.cardLabel, { color: t.muted }]}>Leaves the table</Text>
-        <Text style={[styles.cardFigure, { color: t.text }]}>{formatMoney(totalOffTable)}</Text>
-        <Text style={[styles.cardNote, { color: t.muted }]}>
-          {billIn
-            ? destinations
-            : destinations === ''
-              ? 'Nothing comes off tonight'
-              : `${destinations} · the bill is not in yet`}
-        </Text>
-      </View>
-
-      <View style={styles.blocks}>
-        {active.map((d, i) => (
-          <Block
-            key={d.ruleId}
-            deduction={d}
-            rule={night.rules.find((r) => r.id === d.ruleId)}
-            night={night}
-            admin={admin}
-            basisFor={(playerId) => {
-              const p = players.find((x) => x.playerId === playerId);
-              if (p === undefined) return 0 as Money;
-              const rule = night.rules.find((r) => r.id === d.ruleId);
-              if (rule?.basis !== 'net_after_others') return p.grossResult;
-              // Everything the rules above this one already took off them.
-              const taken = deductions
-                .slice(0, i)
-                .flatMap((earlier) => earlier.charges)
-                .filter((c) => c.playerId === playerId)
-                .reduce((sum, c) => sum + c.amount, 0);
-              return (p.grossResult - taken) as Money;
-            }}
-          />
-        ))}
-      </View>
-
-      {/* Nobody's net is settled until the transfers are, so this is a preview
-          and is drawn as one — dashed, tagged, and recomputed from the engine
-          every time a figure above it changes. */}
+      {/*
+       * WHO ENDS UP WITH WHAT, AT THE TOP OF THE SCREEN — 6 September.
+       *
+       * It was the last block on this screen, under every rule and under the
+       * bill, and above it sat a card whose only job was to add the rules up:
+       * `$296`, under `LEAVES THE TABLE`. Two things were wrong with that
+       * order and they are the same thing twice. The figure a room asks this
+       * screen for is its own — "so what am I on?" — and it was three rule
+       * blocks and a bill away; the figure at the top was the one nobody is
+       * owed, an aggregate that appears on no row, in no transfer and on no
+       * later screen. So the people come first and the total is gone.
+       *
+       * NOTHING WENT WITH IT. This screen never added anything up and still
+       * does not: what each rule takes is printed in full, to the dollar, per
+       * person, in the block it came from, and where the money actually goes
+       * is the line under the step below. What the total said that no other
+       * figure says is how much of the table is leaving it — and a room that
+       * wants that reads it off the rule blocks it is already arguing about.
+       *
+       * Nobody's net is settled until the transfers are, so this is a preview
+       * and is drawn as one — dashed, tagged, and recomputed from the engine
+       * every time a figure below it changes.
+       */}
       <View style={[styles.preview, { borderColor: t.dashed }]}>
         <View style={styles.previewHead}>
           <Text style={[styles.previewTitle, { color: t.text }]}>Everyone after deductions</Text>
@@ -320,14 +317,86 @@ export default function Deductions() {
           </View>
         ))}
 
+        {/*
+         * ⚠ ONE WORD OF DRAWN COPY CHANGED, and only because the screen it
+         * describes turned over: rev 18's line is "Tap any figure ABOVE to
+         * change it", written when this block sat at the foot with every rule
+         * above it. The rules are below it now. A promise that points at the
+         * wrong half of the screen is worse than a rewritten one, and the word
+         * is the whole of the change — `docs/screens.md` records it.
+         */}
         <Text style={[styles.previewNote, { color: t.muted }]}>
           {admin
-            ? 'Provisional until you settle. Tap any figure above to change it.'
+            ? 'Provisional until you settle. Tap any figure below to change it.'
             : /* ⚠ COPY NOT DRAWN. E3 is the host's screen and its line promises
                  a tap only the host has. Saying the first half without the
                  second is the honest half of a drawn string, not a new one. */
               'Provisional until the host settles.'}
         </Text>
+      </View>
+
+      {/*
+       * THE STEP, UNDER THE PEOPLE IT MOVES — the same row E2 and E4 draw, the
+       * same sheet behind it, and it is on E3 because `rounded −$4` is a term
+       * on the lines above and was the one term on them with no way back to
+       * the thing that set it. `from: 'settle'` is what makes the sheet state
+       * what each step costs the piggy bank and how many payments it leaves:
+       * every stack is counted by the time anybody is on this screen, so the
+       * question is no longer what a step does to a stack.
+       *
+       * NOT OWNED HERE. E2 owns the setting — rounding changes what a stack is
+       * worth, so it is decided where stacks are entered — and this screen,
+       * like E4 and E6, draws the row and opens the one sheet. The sheet is
+       * also what removes the power from a reader who is not the host, which
+       * is why the row is not gated here: a member gets the same row, opens
+       * the same sheet, and reads what the night is set to without an Apply.
+       */}
+      <RoundingBar
+        mode={night.roundingMode}
+        onPress={() =>
+          router.push({ pathname: '/rounding', params: { scope: 'night', from: 'settle' } })
+        }
+        style={styles.rounding}
+      />
+
+      {/*
+       * WHERE THE MONEY ACTUALLY GOES — the header card's own line, without the
+       * header card's figure. "$120 back to Andro, $50 to Lena · $126 to the
+       * piggy bank": "leaves the table" is not the same as "is gone" and the
+       * room will ask. The total that used to head this sentence is what has
+       * been dropped; the sentence is what the total was hanging off.
+       */}
+      <Text style={[styles.destinations, { color: t.muted }]}>
+        {billIn
+          ? destinations
+          : destinations === ''
+            ? 'Nothing comes off tonight'
+            : `${destinations} · the bill is not in yet`}
+      </Text>
+
+      <View style={styles.blocks}>
+        {active.map((d, i) => (
+          <Block
+            key={d.ruleId}
+            deduction={d}
+            rule={night.rules.find((r) => r.id === d.ruleId)}
+            night={night}
+            admin={admin}
+            basisFor={(playerId) => {
+              const p = players.find((x) => x.playerId === playerId);
+              if (p === undefined) return 0 as Money;
+              const rule = night.rules.find((r) => r.id === d.ruleId);
+              if (rule?.basis !== 'net_after_others') return p.grossResult;
+              // Everything the rules above this one already took off them.
+              const taken = deductions
+                .slice(0, i)
+                .flatMap((earlier) => earlier.charges)
+                .filter((c) => c.playerId === playerId)
+                .reduce((sum, c) => sum + c.amount, 0);
+              return (p.grossResult - taken) as Money;
+            }}
+          />
+        ))}
       </View>
 
       {/*
@@ -341,7 +410,7 @@ export default function Deductions() {
        * from here, so the host left the flow, went back to the table, opened
        * the drawer and the bill, added it, and walked forward through the count
        * again. Everything above this recomputes off the engine, so a spend
-       * added here redraws the shares, the preview and the total in one go.
+       * added here redraws the shares and the preview in one go.
        */}
       <SpendList
         total={bill.total}
@@ -402,16 +471,58 @@ function Block({
   const empty = deduction.total === 0;
   const byHand = (rule?.manualCharges ?? []).length;
 
+  /*
+   * THE RULE ITSELF, FROM ITS OWN BLOCK — 6 September.
+   *
+   * A ROW in this block opens `/share`, which answers "Petr's share of this is
+   * wrong". Nothing here answered "the RULE is wrong" — five per cent should be
+   * ten, the bill should be split equally rather than by the size of each win,
+   * the piggy bank should charge everyone at the table. The only way to that
+   * question was the chip at the foot of the screen, which lands on the LIST of
+   * tonight's rules and leaves the reader to find again the one they were
+   * already looking at and arguing about.
+   *
+   * The head of a block IS a rule — its name, its percentage, what it takes —
+   * so it opens that rule, in the same editor `/money-rules` opens, writing
+   * tonight's snapshot and never the club's default.
+   *
+   * `ruleId` rather than `rule`, because a narrowing on a parameter does not
+   * survive into the callback and the sheet takes the id anyway.
+   */
+  const ruleId = rule?.id;
+  const editable = admin && ruleId !== undefined;
+
+  const head = (
+    <>
+      <Text style={[styles.blockName, { color: t.text }]}>
+        {percent && rule !== undefined ? `${deduction.name} · ${rule.amount}%` : deduction.name}
+      </Text>
+      <Text style={[styles.blockTotal, { color: empty ? t.muted : t.text }]}>
+        {empty ? '—' : formatMoney(deduction.total)}
+      </Text>
+      {/* A power the reader does not have is removed, not disabled: a member
+          gets the same head, with no chevron on it and nothing to tap. */}
+      {editable && <Icon name="chevron" color={t.muted} size={14} />}
+    </>
+  );
+
   return (
     <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-      <View style={styles.blockTop}>
-        <Text style={[styles.blockName, { color: t.text }]}>
-          {percent && rule !== undefined ? `${deduction.name} · ${rule.amount}%` : deduction.name}
-        </Text>
-        <Text style={[styles.blockTotal, { color: empty ? t.muted : t.text }]}>
-          {empty ? '—' : formatMoney(deduction.total)}
-        </Text>
-      </View>
+      {editable ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${deduction.name} · change the rule`}
+          onPress={() =>
+            ruleId !== undefined &&
+            router.push({ pathname: '/rule', params: { id: ruleId } })
+          }
+          style={({ pressed }) => [styles.blockTop, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          {head}
+        </Pressable>
+      ) : (
+        <View style={styles.blockTop}>{head}</View>
+      )}
 
       {!percent && (
         <Text style={[styles.blockNote, { color: t.muted }]}>
@@ -534,18 +645,22 @@ const placeholders = (
 
 const styles = StyleSheet.create({
   failure: { fontSize: 13.5, fontWeight: '400', lineHeight: 20, marginHorizontal: 20 },
-  card: {
-    marginHorizontal: 20,
-    marginBottom: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    gap: 5,
+  /*
+   * THE STEP AND THE SENTENCE UNDER IT, between the people and the rules.
+   *
+   * `RoundingBar` carries its own 22 — doc 15 § 3.5, a plain row rather than a
+   * card — and the sentence takes the same, so the two line up with each other
+   * and sit two points proud of the blocks below, which are cards at 20.
+   */
+  rounding: { marginTop: 10 },
+  destinations: {
+    marginTop: 10,
+    marginBottom: 10,
+    marginHorizontal: 22,
+    fontSize: 13.5,
+    fontWeight: '400',
+    lineHeight: 19,
   },
-  cardLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
-  cardFigure: { fontSize: 28, fontWeight: '800', letterSpacing: -1.12, lineHeight: 28, fontVariant: ['tabular-nums'] },
-  cardNote: { fontSize: 13.5, fontWeight: '400' },
 
   blocks: { marginHorizontal: 20, gap: 8 },
   block: { borderRadius: radius.card, borderWidth: 1, paddingVertical: 11, paddingHorizontal: 12, gap: 6 },
@@ -565,7 +680,9 @@ const styles = StyleSheet.create({
   workingAmount: { fontSize: 14, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
   preview: {
-    marginTop: 6,
+    /* It heads the body now, and the head above it carries its own padding —
+       the 6 was the gap to the rule blocks it used to sit under. */
+    marginTop: 0,
     marginHorizontal: 20,
     paddingTop: 10,
     paddingHorizontal: 12,
