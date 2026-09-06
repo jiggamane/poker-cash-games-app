@@ -1,0 +1,50 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "The flow", "x": 0, "y": 0, "w": 1890, "h": 760 },
+
+    { "file": "Tonight.dc.html", "x": 0, "y": 900, "w": 1250, "h": 970 },
+    { "file": "CountUp.dc.html", "x": 1350, "y": 900, "w": 1665, "h": 970 },
+    { "file": "OutOfBalance.dc.html", "x": 3115, "y": 900, "w": 835, "h": 970 },
+
+    { "file": "Deductions.dc.html", "x": 0, "y": 1990, "w": 1250, "h": 970 },
+    { "file": "SettleUp.dc.html", "x": 1350, "y": 1990, "w": 835, "h": 970 },
+    { "file": "Settled.dc.html", "x": 2285, "y": 1990, "w": 1250, "h": 970 },
+
+    { "file": "FullLedger.dc.html", "x": 0, "y": 3080, "w": 835, "h": 970 },
+    { "file": "Payments.dc.html", "x": 935, "y": 3080, "w": 835, "h": 970 },
+    { "file": "BrightTheme.dc.html", "x": 1870, "y": 3080, "w": 1440, "h": 1050 },
+
+    { "file": "Findings.dc.html", "x": 0, "y": 4210, "w": 1000, "h": 800 }
+  ],
+  "annotations": [
+    {
+      "id": "lane-into",
+      "x": -320,
+      "y": 1150,
+      "w": 250,
+      "text": "GETTING OUT OF THE NIGHT\n\nThe only door is a one-second hold inside the admin drawer, and it says what it costs: counting starts, no rebuys.\n\nCount up is where the money stops being live. Everything after it reads figures it did not set."
+    },
+    {
+      "id": "lane-closing",
+      "x": -320,
+      "y": 2240,
+      "w": 250,
+      "text": "CLOSING IT\n\nThree steps by the app's own counter, and the middle one is skipped entirely when the night does not balance.\n\nClose the session is the point of no return: after it the rounding step is locked and the night is a record."
+    },
+    {
+      "id": "lane-after",
+      "x": -320,
+      "y": 3330,
+      "w": 250,
+      "text": "AFTERWARDS\n\nRead back weeks later by somebody who cannot ask the host — which is why the settled row carries its own arithmetic under the name."
+    },
+    {
+      "id": "photographed",
+      "x": 1990,
+      "y": 60,
+      "w": 250,
+      "text": "Every phone here is a photograph, not a redrawing: scripts/ui-shots.mjs plays the canonical night through the built app and writes the PNGs beside this board.\n\nSo a figure that looks wrong on this board is wrong in the app."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

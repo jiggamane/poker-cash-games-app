@@ -1394,3 +1394,28 @@ the same answer as `Full ledger` above: build the destination, then the button.
 `Edit`; `09-navigation.md` wins. The step count `3 of 3` is text at the right of
 the TITLE row, which is where the frame draws it and what `Screen`'s `trailing`
 is for — text or a tag, never a control.
+
+## The flow, photographed
+
+`design/board-game-end-flow/` is the end-of-night flow as the app draws it
+today: eleven artboards carrying `scripts/ui-shots.mjs`'s own PNGs — Tonight,
+Count up in three states, the off-balance branch, Deductions, Settle up, the
+settled night, the full ledger, Who pays whom, three of them in the bright
+theme, and what the pictures turned up. Cut 6 September.
+
+It is a record, not a cut, and it is the one board here that cannot drift into
+being wrong on its own: every figure on it came off the engine through the built
+app, so a figure that looks wrong there is wrong in the app. It goes **stale**
+instead, the moment a screen changes — re-run `npm run ui` and `ui-shots.mjs`,
+copy the PNGs over the `shot-*.png` beside it, and it is current again.
+
+Its findings 1 and 3 are open questions rather than settled ones:
+
+- **R1's meta line renders in a 12px box against a 17px line**, `overflow:
+  hidden`, so `players · settled` loses every descender — in both themes.
+  `/payments` draws the identical component at its full 17, so this is R1's
+  head being squeezed by a long body rather than the component. Not written up
+  in `docs/bugs.md` yet because the fix is in `Screen.tsx`, which is app-wide.
+- **The wizard's `1 of 3 · 2 of 3 · 3 of 3`** (Count up, Deductions, Settle up)
+  and the 1 September cut's three screens (Count up, Settle up, the settled
+  night) are two different threes. Nothing reconciles them.
