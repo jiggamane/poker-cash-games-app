@@ -1420,23 +1420,31 @@ async function playANight(name, rebuys) {
    * this asserts the figure appears twice on the screen and reads the same
    * both times.
    */
+  const agree = await page.evaluate(() => {
+    /* `innerText` is the RENDERED text, so the eyebrow arrives uppercased by
+       the stylesheet — matched case-insensitively rather than by guessing
+       which. */
+    const text = document.body.innerText;
+    const card = /left to move\s*\n\s*([^\n]+)/i.exec(text);
+    const pill = /(\S+) left(?:\n|$)/.exec(text);
+    return {
+      card: card === null ? null : card[1].trim(),
+      pill: pill === null ? null : pill[1].trim(),
+      settled: /\bSettled\b/.test(text),
+    };
+  });
+
   await holds(
     'and the pill states the same figure the card does',
-    await page.evaluate(() => {
-      /* `innerText` is the RENDERED text, so the eyebrow arrives uppercased by
-         the stylesheet — matched case-insensitively rather than by guessing
-         which. */
-      const text = document.body.innerText;
-      const card = /left to move\s*\n\s*([^\n]+)/i.exec(text);
-      if (card === null) return false;
-
-      const pill = /([^\s]+) left(?:\n|$)/.exec(text);
-      /* A night with nothing left to move wears `Settled` instead of a figure,
-         and then the two agreeing means the card reads zero. */
-      if (pill === null) return /\bSettled\b/.test(text) && /0(?:\D|$)/.test(card[1]);
-      return card[1].trim() === pill[1].trim();
-    }),
-    'the status pill and Left to move do not state the same amount',
+    /* A night with nothing left to move wears `Settled` instead of a figure,
+       and then the two agreeing means the card reads zero. */
+    agree.card !== null &&
+      (agree.pill === null
+        ? agree.settled && /^\D*0$/.test(agree.card)
+        : agree.card === agree.pill),
+    `the card says ${agree.card ?? 'nothing'} and the pill says ${
+      agree.pill ?? (agree.settled ? 'Settled' : 'nothing')
+    }`,
   );
 
   await tap('Nudge the table');
