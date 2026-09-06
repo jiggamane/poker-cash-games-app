@@ -1331,67 +1331,105 @@ async function playANight(name, rebuys) {
   await stop('who pays whom');
 
   /*
-   * THE WHOLE ROW IS STILL THE TICK. R2 draws a 22px empty circle on the right
-   * of a waiting row as the affordance; the tap lands anywhere on the row,
-   * which is what a host clearing four transfers in a doorway actually needs.
-   * Tapped by the payer's name, which is the leftmost word on it.
+   * THE WHOLE ROW IS THE TICK, AND IT GOES BOTH WAYS —
+   * `design/handoff-game-end/`, cut 6 September, which supersedes R2 here.
+   *
+   * The affordance is a 22px marker on the right of the row; the tap lands
+   * anywhere on it, which is what a host clearing four transfers in a doorway
+   * actually needs.
    */
   /* VISIBLE ONLY, and by attribute rather than by role, for the reason every
      other leg on this screen gives: the pushed stack stays mounted underneath.
-     A waiting row IS the checkbox — the whole row is the tick — and `Undo` is
-     the one live target inside a settled slab. */
-  const waitingRows = () => page.locator('[role="checkbox"]:visible').count();
-  const settledSlabs = () => page.locator('[aria-label^="Undo "]:visible').count();
+     Every transfer row is a checkbox now, paid or not, so the two states are
+     told apart by `aria-checked` rather than by being two different objects. */
+  const rows = () => page.locator('[role="checkbox"]:visible').count();
+  const ticked = () => page.locator('[role="checkbox"][aria-checked="true"]:visible').count();
 
-  const before = await waitingRows();
-  await holds('the transfers are drawn', before > 0, 'R2 drew no rows to pay');
+  const before = await rows();
+  await holds('the transfers are drawn', before > 0, 'the transfer list drew no rows');
+  await holds(
+    'and none of them starts out paid',
+    (await ticked()) === 0,
+    'a transfer was already ticked before anything was tapped',
+  );
 
   await page.locator('[role="checkbox"]:visible').first().click({ timeout: 15_000 });
   await page.waitForTimeout(900);
-  await stop('who pays whom · one settled');
+  await stop('who pays whom · one paid');
 
   /*
    * ONE TOUCH ON, ONE TOUCH OFF — and the second half is the one that rots.
    *
    * Ticking a payment used to be a one-way door: a mis-tap left the host
-   * looking at a night that said Petr had paid when Petr had not (B21). The way
-   * back is `Undo` on the settled slab now, and it is the ONE live target in a
-   * slab that is otherwise inert and deliberately shorter than a tap target.
-   * That is a behaviour, not a measurement, and no URL reaches this screen — so
-   * it is asserted here, on the row the tap above just settled.
+   * looking at a night that said Petr had paid when Petr had not (B21). R2's
+   * answer was an `Undo` word inside a settled slab; **this cut's answer is
+   * that the row never stops being a row.** A payment marked off is a claim
+   * about the world rather than a finished thing, so it dims in place and the
+   * same tap takes it back.
+   *
+   * THE ROW COUNT MUST NOT MOVE, which is the half that catches a regression to
+   * the slab treatment: if a tick ever takes a row out of the list again, this
+   * goes red on the count rather than on the tick.
    */
   await holds(
-    'a tick moves the row into SETTLED',
-    (await settledSlabs()) === 1 && (await waitingRows()) === before - 1,
-    `${await settledSlabs()} slabs read as settled, not 1`,
+    'a tick marks the row paid and leaves it in the list',
+    (await ticked()) === 1 && (await rows()) === before,
+    `${await ticked()} rows read as paid out of ${await rows()}, not 1 of ${before}`,
   );
-  await page.locator('[aria-label^="Undo "]:visible').first().click({ timeout: 15_000 });
+
+  await page.locator('[role="checkbox"][aria-checked="true"]:visible').first().click({ timeout: 15_000 });
   await page.waitForTimeout(900);
   await holds(
-    'and Undo puts it back',
-    (await settledSlabs()) === 0 && (await waitingRows()) === before,
-    'the row stayed settled — a mis-tap is one-way again',
+    'and tapping it again puts it back',
+    (await ticked()) === 0 && (await rows()) === before,
+    'the row stayed paid — a mis-tap is one-way again',
   );
   await stop('who pays whom · undone');
 
   // And on again, so the screens after this one see the night mid-payment.
-  await page.locator('[role="checkbox"]:visible').first().click({ timeout: 15_000 });
+  await page.locator('[role="checkbox"][aria-checked="false"]:visible').first().click({ timeout: 15_000 });
   await page.waitForTimeout(900);
 
   /*
-   * AND THE HEADER COUNTS WHAT IS LEFT.
+   * AND THE LIST HEADER COUNTS WHAT HAS MOVED.
    *
-   * `3 of 8 settled · $946 still to move`, off `paymentProgress` in core. It is
-   * the one line on the screen that has to move when a row does, and it is the
-   * sum this screen used to do inline — three reductions over the transfer list,
-   * which is the second implementation `CLAUDE.md` is about.
+   * `1 of 3 paid`, off `paymentProgress` in core — the same call that drives
+   * the totals card's figure and the status pill on both game-end screens. It
+   * is the one line here that has to move when a row does, and it is the sum
+   * this screen used to do inline, which is the second implementation
+   * `CLAUDE.md` is about.
    */
   await holds(
-    'and the header states how far through the week the room is',
-    (await page
-      .locator(':text-matches("^1 of [0-9]+ settled . .* still to move$"):visible')
-      .count()) === 1,
-    'the R2 header does not count the settled payments',
+    'and the list header counts what has been handed over',
+    (await page.locator(':text-matches("^1 of [0-9]+ paid$"):visible').count()) === 1,
+    'the transfers header does not count the payments made',
+  );
+
+  /*
+   * AND THE PILL AGREES WITH THE CARD, WHICH IS THE CUT'S ONE HARD RULE:
+   * *"the amount is the sum of unpaid transfers, so the pill and 2a's Left to
+   * move figure are the same number by construction. Never let them be computed
+   * in two places."* Two places is exactly what it was before core owned it, so
+   * this asserts the figure appears twice on the screen and reads the same
+   * both times.
+   */
+  await holds(
+    'and the pill states the same figure the card does',
+    await page.evaluate(() => {
+      /* `innerText` is the RENDERED text, so the eyebrow arrives uppercased by
+         the stylesheet — matched case-insensitively rather than by guessing
+         which. */
+      const text = document.body.innerText;
+      const card = /left to move\s*\n\s*([^\n]+)/i.exec(text);
+      if (card === null) return false;
+
+      const pill = /([^\s]+) left(?:\n|$)/.exec(text);
+      /* A night with nothing left to move wears `Settled` instead of a figure,
+         and then the two agreeing means the card reads zero. */
+      if (pill === null) return /\bSettled\b/.test(text) && /0(?:\D|$)/.test(card[1]);
+      return card[1].trim() === pill[1].trim();
+    }),
+    'the status pill and Left to move do not state the same amount',
   );
 
   await tap('Nudge the table');
