@@ -1273,7 +1273,11 @@ async function playANight(name, rebuys) {
   );
   await holds(
     'and the bill a player fronted is its own term, never netted',
-    (await page.locator(':text-matches("\\+[0-9,]+ back"):visible').count()) > 0,
+    /* `[+]` AND NOT `\+`, for the reason the deduction matcher above gives: the
+       selector's parser eats the backslash, Playwright is handed `/+[0-9,]+/`,
+       and a regex that starts with a bare quantifier throws rather than
+       failing quietly. A character class needs no escape at all. */
+    (await page.locator(':text-matches("[+][0-9,]+ back"):visible').count()) > 0,
     'nobody on this night is shown the bill they paid coming back',
   );
   await stop('night settled · the spend line');
