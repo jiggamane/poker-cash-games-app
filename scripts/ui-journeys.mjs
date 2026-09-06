@@ -893,6 +893,71 @@ async function playANight(name, rebuys) {
   );
 
   /*
+   * THE PEOPLE HEAD THE SCREEN, THE RULES ARE UNDER THEM — 6 September, and
+   * the arrangement is the whole of the change: the preview was the last block
+   * on E3 and above every rule sat a card totalling what leaves the table.
+   *
+   * MEASURED, NOT MATCHED. Order is the thing being asserted, so a text check
+   * cannot see it — a screen that drew the same strings in the old order would
+   * pass every other line in this file. The three fixed points are the first
+   * preview row, the rounding step under it, and the bill at the foot; the
+   * rule blocks sit between the last two, so pinning these three pins the lot.
+   */
+  /* VISIBLE ONLY, and here it is load-bearing rather than tidy: expo-router
+     keeps the whole stack mounted, and Count up underneath draws a rounding row
+     of its own with the same `#rounding-label` on it. An unscoped read would
+     measure that one — a screen away, above everything — and report an order
+     nobody is looking at. */
+  const topOf = async (selector) => {
+    const loc = page.locator(selector).first();
+    if ((await loc.count()) === 0) return null;
+    const box = await loc.boundingBox();
+    return box === null ? null : Math.round(box.y);
+  };
+  const order = {
+    person: await topOf('[data-testid="e3-preview-row"]:visible'),
+    step: await topOf('#rounding-label:visible'),
+    bill: await topOf(':text-is("The bill"):visible'),
+  };
+  await holds(
+    'the people head the screen',
+    order.person !== null &&
+      order.step !== null &&
+      order.bill !== null &&
+      order.person < order.step &&
+      order.step < order.bill,
+    `E3 is in the wrong order — preview ${order.person}, step ${order.step}, bill ${order.bill}`,
+  );
+
+  /*
+   * AND NO TOTAL HEADS IT. `LEAVES THE TABLE` over `$296` was the first thing
+   * on this screen and is the one figure on it that nobody is owed: it is in no
+   * transfer, on no receipt and on no later screen. The handoff bans the phrase
+   * from the rest of the flow and E3's header card was the last place saying
+   * it, which is why the settled-night leg above could not assert the copy rule
+   * — it can now, from here, where the screen is actually on top.
+   */
+  await holds(
+    'and no total heads it',
+    (await page.locator(':text-matches("leaves the table", "i"):visible').count()) === 0,
+    'E3 totals the rules again — the header card is back',
+  );
+
+  /*
+   * AND EVERY RULE ON IT IS A DOOR TO THE RULE ITSELF. A charge row opens one
+   * person's share; the head of a block opens the rule — the percentage, the
+   * split, who it charges — which before this was reachable only by way of the
+   * whole list at the foot of the screen. The step under the people is the same
+   * row E2 and E4 draw, opening the same sheet.
+   */
+  await holds(
+    'and the rules can be changed from here',
+    (await page.locator('[aria-label$="change the rule"]:visible').count()) > 0 &&
+      (await page.locator('[aria-label^="Rounding · "]:visible').count()) === 1,
+    'E3 draws a rule with no way into it, or no rounding row',
+  );
+
+  /*
    * A SPEND ADDED AFTER THE COUNT, from the screen the room is standing on.
    *
    * `11-bill-and-piggy-bank.md`, "After the count": *"A spend added during

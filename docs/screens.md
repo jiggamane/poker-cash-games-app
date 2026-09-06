@@ -866,6 +866,49 @@ still draws the grid. **Open, and the one to put in front of the owner.**
 and a formula line under a name — because `/deductions` opened bare is E3's *Not
 yet* state, which has no preview on it at all, so the route pass can see neither.
 
+**`/deductions` is the people first and the rules under them — 6 September.**
+Asked for by the owner, and it turns E3 over. It was: a header card totalling
+what leaves the table, then a block per rule, then *Everyone after deductions*
+at the foot, then the bill. It is now the preview at the top, the rounding step
+under it, the line saying where the money goes, then the rule blocks, then the
+bill and the way back to the rules.
+
+**The total is gone and nothing replaced it.** `LEAVES THE TABLE · $296` was the
+first thing on the screen and is the one figure on it nobody is owed: it appears
+on no row, in no transfer, on no receipt and on no later screen. What each rule
+takes is still printed in full, to the dollar, per person, in the block it came
+from — this screen has never added anything up and still does not. The card's
+second line survives it, without the figure: `$120 back to Andro, $50 to Lena ·
+$126 to the piggy bank`, under the step, because "leaves the table" is not the
+same as "is gone" and the room asks.
+
+**And the two rules a room argues about are reachable from it.** A charge row
+opened `/share` — one person's share of one rule — and that was the only door on
+the screen; the rule ITSELF (five per cent should be ten, split equally rather
+than by the size of each win) meant the chip at the foot, which lands on the
+LIST and leaves the reader to find again the rule they were looking at. The head
+of a block opens that rule now, in the editor `/money-rules` opens. The rounding
+step is the same `RoundingBar` E2 and E4 draw, with `from: 'settle'`, and it is
+on E3 because `rounded −$4` is a term on the preview lines above it and was the
+one term with no way back to the thing that set it.
+
+**⚠ One word of drawn copy changed.** Rev 18's line under the preview is
+*"Provisional until you settle. Tap any figure ABOVE to change it."* The figures
+are below it now, so the word is `below`. A promise pointing at the wrong half
+of the screen is worse than a rewritten one; the word is the whole of the
+change, and the sentence is otherwise verbatim.
+
+**⚠ It is a second departure from rev 18 on this screen**, on top of the table
+becoming rows on 4 September — rev 18 § E3 draws the header card and draws it
+first. No later cut speaks on E3. **Open, and the one to put in front of the
+owner** — though this one was asked for by the owner, which the columns were
+not. `ui-journeys.mjs` holds it at its `deductions` stop: the order is
+MEASURED — the first preview row above the rounding row above the bill — because
+a screen drawing the same strings in the old order passes every text check in
+the file; and the phrase *leaves the table*, which the handoff bans from the
+rest of the flow and E3's card was the last place saying, is now asserted absent
+from that stop.
+
 **`/money-rules` and `/deductions`** — both carry the bill and the person who
 paid it, as of **30 August**. `11-bill-and-piggy-bank.md` has always allowed a
 spend added during settle-up — "recalculates every winner's share and every
