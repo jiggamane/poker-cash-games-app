@@ -230,7 +230,19 @@ const DRAWN = {
      */
     'STILL TO COUNT',
     'COUNTED',
-    'CASHED OUT EARLIER',
+    /*
+     * TWO GROUPS, NOT THREE, SINCE 6 SEPTEMBER. `CASHED OUT EARLIER` was here
+     * and is gone: on the owner's instruction every cash-out counts equally on
+     * this screen whenever it happened, so the finished half is one ranked
+     * group holding both kinds. The heading it lost is carried by the row —
+     * `cashed out 10:45` against `counted $960` — which is the string below.
+     *
+     * This is deliberately NOT a `DRAWN` finding. The board draws three and the
+     * screen shows two, which is the shape B4 exists to catch; `docs/screens.md`
+     * carries the decision, and a session that re-splits them by reading a board
+     * should take this comment as the answer.
+     */
+    'cashed out',
     /* `not counted yet` went with the same decision that took the qualifier off
        the labels — `design/handoff-player-list/`, 3 September. An active row's
        fact is what they have IN, and what says they are not counted is the

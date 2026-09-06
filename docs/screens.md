@@ -393,18 +393,38 @@ The figures it moves are checked; the movement is not.
 
 *E2b is gone.* **Where everyone stands** drew Count up's finished players again
 — same two calls, same two groups, one tap away — and added a sort and a rank
-number. E2's `Counted` and `Cashed out earlier` groups now rank biggest winner
-first in its place, and the screen, its route, its link, and its legs in
-`ui-audit`, `ui-currency`, `ui-frames`, `ui-journeys` and `ui-shots` are
-deleted. The ranking is **within each group, not across the two**: a counted
-slab reopens the keypad and a cashed-out-earlier slab does not, so one heading
-over two affordances would undo what three groups are for. `Still to count`
-keeps seat order — it has no result to rank on.
+number. E2's finished players rank biggest winner first in its place, and the
+screen, its route, its link, and its legs in `ui-audit`, `ui-currency`,
+`ui-frames`, `ui-journeys` and `ui-shots` are deleted.
 
-What that costs, and it is the honest half: E2b ranked *across* the two, so a
-room could read one leaderboard mid-count. Nobody can now. The judgement is that
-the leaderboard was never worth a screen, and that two ranked groups on the
-screen where the counting happens answer the question the room was asking.
+*The ranking was within each group; on 6 September it became one group.* Until
+then a counted slab and a cashed-out-earlier slab ranked separately, because
+only one of them reopens the keypad and one heading over two affordances is the
+thing three groups existed to prevent. **The owner's instruction is that every
+cash-out counts equally on this screen, whenever it happened** — a player who
+left at 10:45 with $2,120 and a player counted out at the close with $960 are
+the same kind of fact by the time anybody reads this list, and the room asking
+who is up wants one order, not two.
+
+So the finished half is one group, `COUNTED`, ranked by net across both kinds.
+Which also settles what E2b was deleted for: the leaderboard is now one list
+rather than two, and E2b's own ordering — across the two — is what the screen
+draws.
+
+*What the split was carrying, and where it went.* A counted row reopens the
+keypad and a cashed-out row does not (see *Two finished slabs keep a chevron*
+below), and under one heading the ROW has to say which. It does, three ways: the
+fact reads `cashed out 10:45` rather than the bare `10:45` a heading used to
+excuse, the chevron is on one and not the other, and the player-list rule
+already gives a slab that is a target 44 points against 39 for one that is not.
+The heights now do useful work in a mixed list instead of only marking a group.
+
+*And the group's name is the block's own word.* `COUNTED · 6` sits under
+`Accounted for · 6 counted`, which is the 6 September cut's S111 — counted
+stacks and cash-outs summed, cash-outs not called out separately. The two agree
+to the person now; before, the block said six and the list answered with a five
+and a one. `DONE`, which rev 18 used for the middle group, is the alternative if
+`COUNTED` ever reads wrong over a row that was never counted.
 
 ⚠ *And it leaves one question with nowhere to go.* `session.tsx` sent Tonight's
 `Cashed out` group to E2b in as many words — *"Ranking them by RESULT is the
@@ -633,9 +653,11 @@ to the screen that does that:
   a settled player on Tonight can be un-cashed-out* — and the same answer: the
   row is a door either way.
 
-`CASHED OUT EARLIER` on Count up does **not** open, by the same rule read the
-other way: that figure was typed on Tonight, so Tonight's slab is where it is
-retyped. Everywhere else — E2b, the picker, E1 — a finished slab cannot take a
+A cashed-out row on Count up does **not** open, by the same rule read the other
+way: that figure was typed on Tonight, so Tonight's slab is where it is retyped.
+Since 6 September it sits in the same ranked group as the counted rows, so that
+difference is stated by the row rather than by a heading — the chevron, and the
+44 against 39. Everywhere else — E2b, the picker, E1 — a finished slab cannot take a
 press at all, because `FinishedSlab` calls the prop `opens` and only those two
 rows pass it.
 
@@ -731,8 +753,10 @@ prints `food $0 · piggy $0` on every row, which no board draws either.
 - **Whether a settled player on Tonight can be un-cashed-out**, and what the row
   does meanwhile. The doc lists it as open; the row is a door either way — the
   chevron stays, dimmed.
-- **Whether `CASHED OUT EARLIER` on E2 should collapse**, given it can never
-  change from that screen. Drawn open, built open.
+- ~~**Whether `CASHED OUT EARLIER` on E2 should collapse**, given it can never
+  change from that screen.~~ **Closed 6 September, the other way:** the group
+  does not collapse, it is gone — its rows rank in with the counted ones. A
+  question about whether to hide a heading was answered by not having one.
 - **No transition** is specified for a row moving between groups when somebody
   cashes out, and none is built. The row moves and nothing is left behind.
 

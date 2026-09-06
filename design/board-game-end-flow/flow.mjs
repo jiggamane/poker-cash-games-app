@@ -103,14 +103,14 @@ stop('CountUp.dc.html', {
   owns: 'Every counted stack, and the rounding step for the whole night. The header block compares two sums: what went in, and what has been accounted for.',
   exit: '<b>Next</b>, dead until every stack is counted. Being off balance does <b>not</b> block the night — the gate is the count, not the agreement.',
   shots: [
-    { src: 'shot-03-count-up-empty.png', state: 'Nothing counted. Only Dana\'s cash-out is accounted for: <b>−$2,880 · 42%</b>.' },
-    { src: 'shot-04-count-up.png', state: 'Two stacks in. <b>−$490 · 90%</b>, and all three groups on screen at once.' },
+    { src: 'shot-03-count-up-empty.png', state: 'Nothing counted. Only Dana\'s cash-out is accounted for: <b>−$2,880 · 42%</b> — in plain text, because the count has not finished.' },
+    { src: 'shot-04-count-up.png', state: 'Two stacks in — three, counting Dana\'s cash-out, which now ranks in with them at the top. <b>−$490 · 90%</b>, still uncoloured.' },
     { src: 'shot-07-count-up-balanced.png', state: 'Balanced: <b>$0 · 100%</b>, one green segment. <b>Next</b> went live with the last stack counted, not with the balancing.' },
   ],
   notes: [
     { kind: 'cut', title: 'The header block · 6 September cut, option 1b', body: 'The <b>signed gap is the headline</b> — fluid from 38pt to a 24pt floor — with the percentage beside it and both sums in full underneath at 700 18. Nothing in the block can truncate at any digit count. The two-column card it replaced set both sums at display size in half a card each, and truncated any five-figure amount — which is the screen\'s one job (B43).' },
-    { kind: 'cut', title: 'Three groups, and only one of them ranks', body: '<b>Still to count</b> holds seat order; <b>Counted</b> ranks by net, descending, exactly like the results screens; <b>Cashed out earlier</b> is never re-counted. Counting a stack animates the row into its rank slot, with the rows below FLIPping down.' },
-    { kind: 'deviates', title: 'Two deliberate deviations · docs/screens.md', body: '<b>In play · 6 players</b>, not the cut\'s <i>Bought in</i> — one word for that figure app-wide was the owner\'s instruction of 5 September. And a fourth, amber state for a count that is not finished but whose figures happen to meet; the cut\'s three states are driven by the subtraction alone, and green there would call a night level with a stack still uncounted.' },
+    { kind: 'cut', title: 'Two groups, and the finished one ranks', body: '<b>Still to count</b> holds seat order — an em dash is not a position. <b>Counted</b> holds everybody whose money is in, ranked by net descending exactly like the results screens: a player counted out at the close and one who cashed out at 10:45 rank together, on the owner\'s instruction of 6 September. The row says which kind it is — <b>counted $960</b> against <b>cashed out 13:24</b> — and only a counted row reopens the keypad. Counting a stack animates the row into its rank slot, with the rows below FLIPping down.' },
+    { kind: 'deviates', title: 'Two deliberate deviations · docs/screens.md', body: '<b>In play · 6 players</b>, not the cut\'s <i>Bought in</i> — one word for that figure app-wide was the owner\'s instruction of 5 September. And <b>no colour at all until every stack is in</b> — the two frames above are plain text, not coral. The cut\'s three states are driven by the subtraction alone, so a count two stacks into six wears the colour for missing money over a night where nothing has gone wrong; the verdict colours arrive when there is a verdict. 6 September, on the owner\'s instruction, and it restores what rev 18 said of the block this one replaced.' },
     { kind: 'carries', title: 'Carries to E3 and E4', body: '<code>countedRaw</code> and <code>countedRounded</code> for every player — the raw figure is never overwritten — plus the rounding step, which E4 and R1 display and neither owns.' },
   ],
 });
@@ -280,7 +280,7 @@ ${[
   {
     n: 4,
     title: 'Three things on this board have no drawn frame at all',
-    body: 'E2\'s amber fourth state — a count that is not finished but whose figures happen to meet — is built and decided and drawn nowhere. Neither is the counted-row animation, which is specified to the millisecond in the 6 September README and cannot be photographed at all. And the block has no <b>light twin</b>: the cut draws its four frames in the dark theme only, which this board\'s bright-theme artboard is standing in for.',
+    body: 'E2\'s neutral count — no colour on any figure in the block until every stack is in, which replaced the amber fourth state on 6 September — is built and decided and drawn nowhere. Neither is the counted-row animation, which is specified to the millisecond in the 6 September README and cannot be photographed at all. And the block has no <b>light twin</b>: the cut draws its four frames in the dark theme only, which this board\'s bright-theme artboard is standing in for.',
     where: 'Count up · design/handoff-count-up-header/README.md, docs/screens.md — “what is still to ask for is the light twin of the new block”',
   },
 ].map(finding).join('')}

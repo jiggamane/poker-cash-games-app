@@ -1009,7 +1009,7 @@ screen's.
 ### B41 — the cashed-out slab on Count up said the cash-out twice and clipped it
 
 ```
-Screen      E2 /count-up, the CASHED OUT EARLIER slabs
+Screen      E2 /count-up, the cashed-out slabs (their own group at the time)
 Seen        "13:03 · out CHF2,120" beside the name, with the figure's tail cut
             off: 150 points of text in a 122-point box at 360 and 120% text,
             with the group's book kept in CHF. It clips at 393 too. The line is
@@ -1033,6 +1033,14 @@ Status      fixed in this commit
 `FinishedSlab` takes the fact as a string precisely so the screen decides it:
 the rule fixes the treatment, not the sentence. Copying Tonight's fact onto
 Count up looked like consistency and was the fault.
+
+⚠ **The fact grew two words on 6 September and the fix still holds.** With E2's
+two finished groups merged into one ranked list there is no `CASHED OUT EARLIER`
+heading left to carry the meaning, so the row reads `cashed out 10:45` rather
+than `10:45` alone. What it still does not carry is the AMOUNT, which is the
+whole of this entry: two words and a clock are about 100 points where
+`13:03 · out CHF2,120` was 150, and `ui-currency.mjs` measures it on every run.
+Putting `· out …` back takes it red exactly as before.
 
 ### B40 — Out of balance stated a gap its own two figures do not produce
 
