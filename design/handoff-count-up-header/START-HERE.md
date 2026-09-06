@@ -49,10 +49,13 @@ Both are recorded in `docs/screens.md` with the argument in full.
 - **`In play · 8 players`, not `Bought in · 8 players`.** One word for that
   figure app-wide was the owner's instruction of 5 September, a day before this
   cut, and it is about Tonight, E2 and E6 together rather than about this block.
-- **A fourth state, amber**, for a count that is not finished but whose figures
-  happen to meet. The cut's three states are driven by the subtraction alone,
-  and green there would be calling a night level while a stack is still
-  uncounted — which is B22, from the other side.
+- **No colour at all until every stack is in.** The cut's three states are
+  driven by the subtraction alone, so a count two stacks into six wears the
+  colour for missing money over a night where nothing has gone wrong. The gap,
+  the percentage and the accounted-for sum are plain text while any seated
+  player is still to count; the verdict colours arrive when there is a verdict.
+  6 September, on the owner's instruction, and it restores what rev 18 said of
+  the block it replaced.
 
 ## Numbering
 

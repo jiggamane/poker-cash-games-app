@@ -39,24 +39,30 @@ const level = (over: Partial<BalanceCheck> = {}): BalanceCheck =>
   });
 
 describe('which colour the block is painted in', () => {
-  it('is off — coral — whenever the two sums do not meet', () => {
-    expect(toneOf(check())).toBe('off');
+  /*
+   * NOTHING IS COLOURED WHILE A STACK IS STILL OUT — 6 September, on the
+   * owner's instruction. Being short by the stacks nobody has counted yet is
+   * not a fault, and the block spent the whole middle of every count saying it
+   * was one, in this app's colour for money that has gone missing.
+   */
+  it('is plain while any seated player is still to count', () => {
+    expect(toneOf(check())).toBe('counting');
+    expect(toneOf(check({ accountedFor: money(500), left: money(4_500) }))).toBe('counting');
+    /* Including the coincidence: the figures meeting mid-count is not a
+       verdict either, and green there would be B22 from the other side. */
+    expect(toneOf(check({ left: money(0), accountedFor: money(5_000) }))).toBe('counting');
+    /* And a count that is over mid-way — a stack typed at ten times its
+       value — is still an unfinished count, not a night that is over. */
+    expect(toneOf(check({ left: money(-900), accountedFor: money(5_900) }))).toBe('counting');
+  });
+
+  it('is coral once the count is done and the two sums do not meet', () => {
     expect(toneOf(check({ left: money(-1_000), state: 'over', uncounted: [] }))).toBe('off');
     expect(toneOf(check({ left: money(20), state: 'short', uncounted: [] }))).toBe('off');
   });
 
   it('is green only when the night is level AND the count is finished', () => {
     expect(toneOf(level())).toBe('balanced');
-  });
-
-  /*
-   * THE ONE STATE THIS APP ADDS, and B22 is why. A host halfway through can
-   * have the two sums meet by coincidence — the stacks still to come cancel
-   * out — and green there is the card calling a night level over a stack
-   * nobody has counted.
-   */
-  it('is amber when the figures meet by coincidence and stacks are still out', () => {
-    expect(toneOf(check({ left: money(0), accountedFor: money(5_000) }))).toBe('counting');
   });
 });
 

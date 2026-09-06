@@ -68,8 +68,12 @@ import { cashedOutAt, standingsOf, useNight } from '../src/lib/nightStore';
  * NO EYEBROW AND NO VERDICT STRIP. `$1,000 OVER · 102% accounted for` said in
  * words what the sign, the colour and the percentage beside it already say.
  *
- * GREEN IS STILL ONLY EVER THE VERDICT, which is this app's one departure from
- * the cut's three states — see `toneOf`.
+ * AND NO FIGURE IN IT IS COLOURED UNTIL EVERY STACK IS IN — 6 September, on
+ * the owner's instruction, and this app's one departure from the cut's colour
+ * rule. A host two stacks into a count of six is short by four stacks, and a
+ * block that spends that whole stretch in the colour reserved for missing money
+ * is raising an alarm about arithmetic that has not finished happening. See
+ * `toneOf`.
  *
  * OFF BALANCE DOES NOT BLOCK THE NIGHT. The gate is the COUNT: Next is dead
  * only while a stack is missing. A night that does not add up goes on to E5,
@@ -370,7 +374,11 @@ const paint = (t: Theme, tone: Tone): { edge: string; ink: string } => {
     case 'balanced':
       return { edge: t.winStrong, ink: t.win };
     case 'counting':
-      return { edge: t.hairline, ink: t.amber };
+      /* PLAIN TEXT AND A HAIRLINE — see `toneOf`. The block is not making a
+         claim about the night yet, so it is not wearing a colour that does.
+         Every figure in it is white; only the captions beside them are
+         muted, exactly as they are in the other two states. */
+      return { edge: t.hairline, ink: t.text };
     default:
       /* The cut measures this edge at 50% and the token is 55%. One alpha of
          one hue, shared with the end-the-night row rather than forked for a
@@ -398,15 +406,26 @@ const segments = (
   b: BalanceCheck,
 ): ReadonlyArray<{ flex: number; color: string }> => {
   if (b.boughtIn === 0 && b.accountedFor === 0) return [{ flex: 1, color: t.track }];
-  if (tone !== 'off') return [{ flex: 1, color: paint(t, tone).ink }];
+  if (tone === 'balanced') return [{ flex: 1, color: t.win }];
+
+  /*
+   * MID-COUNT THE BAR IS A PROGRESS BAR AND NOTHING MORE — grey against the
+   * track, in the same two segments and to the same scale. It fills as the
+   * stacks go in; it does not say the night is short while it is filling. Only
+   * once the count is done does the run become the loss colour and the
+   * remainder its wash, which is the cut's own pair.
+   */
+  const run = tone === 'off' ? t.loss : t.muted;
+  const rest = tone === 'off' ? t.dangerTrack : t.track;
+
   return b.left < 0
     ? [
         { flex: b.boughtIn, color: t.barIn },
-        { flex: -b.left, color: t.loss },
+        { flex: -b.left, color: run },
       ]
     : [
-        { flex: b.accountedFor, color: t.loss },
-        { flex: b.left, color: t.dangerTrack },
+        { flex: b.accountedFor, color: run },
+        { flex: b.left, color: rest },
       ];
 };
 
