@@ -65,9 +65,18 @@ The board says this per screen in its notes column; the short version:
 | E2's header block | `handoff-count-up-header/`, option `1b`, 6 September |
 | E2's list, groups and type scale | `handoff-count-up-to-settled/docs/05`, frame `1a` |
 | The rounding step | `handoff-E2/docs/E2-rounding.md` |
-| R1's results row | `handoff-count-up-to-settled/docs/02`, format `7a` |
-| `/ledger` | the same doc, format `7e` |
+| E3's *Everyone after deductions* row | `handoff-count-up-to-settled/docs/02`, format `7a` |
+| R1's results row | `design_handoff_rebuy_and_results/Game Results Breakdown.dc.html`, cut 5 September |
+| `/ledger` | `handoff-count-up-to-settled/docs/02`, format `7e` |
 | Everything else on every screen | rev 18 |
+
+**Format `7a` is E3's row, not R1's** — the one thing on this board most easily
+got backwards, and the two artboards say so. `/deductions` draws
+`resultFormula().terms` — `game +$460 · food +$89 · piggy −$23`. R1 draws the
+engine's `caption` — `460 − 31 − 23 + 120 paid` — which keeps the bill's two
+halves apart where `7a` nets them. The 5 September cut that decided R1's row is
+cited in `apps/mobile/app/settled.tsx` and is **not in this repo**; `docs/screens.md`
+carries what it changed.
 
 `docs/screens.md` records what each cut left open and what was decided against a
 doc rather than by one. Read it before reopening any of these screens.
@@ -89,5 +98,8 @@ figure on this board is one engine call and every one is right:
 3. **Two step counters, counting different things.** The wizard says `1 of 3 ·
    2 of 3 · 3 of 3` over Count up, Deductions and Settle up; the 1 September
    cut's flow is Count up → Settle up → the settled night.
-4. **Three states here have no drawn frame anywhere** — E2's amber fourth state,
-   the counted-row animation, and the block's short and over states.
+4. **Three things here have no drawn frame at all** — E2's amber fourth state,
+   the counted-row animation (specified to the millisecond and unphotographable),
+   and the **light twin** of the header block: the 6 September cut draws its four
+   frames in the dark theme only, and `docs/screens.md` says asking for the light
+   one is still outstanding. `BrightTheme.dc.html` stands in for it meanwhile.

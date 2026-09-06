@@ -63,7 +63,7 @@ write(
 
       <div style="display: flex; flex-direction: column; gap: 8px; padding: 15px 17px; border-radius: 11px; background: ${C.card}; border: 1px solid ${C.edge}; width: 400px; flex-shrink: 0">
         <div style="font: 700 9.5px ${F}; letter-spacing: .13em; text-transform: uppercase; color: ${C.faint}">What carries down the flow</div>
-        <div style="font: 400 12.5px/1.6 ${F}; color: ${C.body}; text-wrap: pretty">Counted stacks and the rounding step are set on <b>E2</b> and inherited by everything after it. Nets are computed from rounded stacks, never by rounding a net; <b>E4</b>'s transfers derive from those nets. The remainder goes to the piggy bank and nowhere else. The bill's shares and its payments stay separate in storage and are netted only for display on <b>R1</b>.</div>
+        <div style="font: 400 12.5px/1.6 ${F}; color: ${C.body}; text-wrap: pretty">Counted stacks and the rounding step are set on <b>E2</b> and inherited by everything after it. Nets are computed from rounded stacks, never by rounding a net; <b>E4</b>'s transfers derive from those nets. The remainder goes to the piggy bank and nowhere else. The bill's shares and its payments stay separate in storage — <b>E3</b> and <b>E4</b> net them for display as one <code>food</code> term, <b>R1</b> puts both halves back on the row.</div>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px; padding: 15px 17px; border-radius: 11px; background: ${C.card}; border: 1px solid ${C.edge}; width: 400px; flex-shrink: 0">
@@ -105,7 +105,7 @@ stop('CountUp.dc.html', {
   shots: [
     { src: 'shot-03-count-up-empty.png', state: 'Nothing counted. Only Dana\'s cash-out is accounted for: <b>−$2,880 · 42%</b>.' },
     { src: 'shot-04-count-up.png', state: 'Two stacks in. <b>−$490 · 90%</b>, and all three groups on screen at once.' },
-    { src: 'shot-07-count-up-balanced.png', state: 'Balanced: <b>$0 · 100%</b>, one green segment, and <b>Next</b> goes live.' },
+    { src: 'shot-07-count-up-balanced.png', state: 'Balanced: <b>$0 · 100%</b>, one green segment. <b>Next</b> went live with the last stack counted, not with the balancing.' },
   ],
   notes: [
     { kind: 'cut', title: 'The header block · 6 September cut, option 1b', body: 'The <b>signed gap is the headline</b> — fluid from 38pt to a 24pt floor — with the percentage beside it and both sums in full underneath at 700 18. Nothing in the block can truncate at any digit count. The two-column card it replaced set both sums at display size in half a card each, and truncated any five-figure amount — which is the screen\'s one job (B43).' },
@@ -125,7 +125,7 @@ stop('OutOfBalance.dc.html', {
     { src: 'shot-06-out-of-balance.png', state: 'Petr counted $20 light. Every player is listed with in and out, so the wrong figure can be found from here.' },
   ],
   notes: [
-    { kind: 'cut', title: 'A night that does not balance skips Deductions', body: 'E2\'s <b>Next</b> goes to <code>/deductions</code> when the sums meet and straight to <code>/settle-up</code> when they do not — where this is what <code>/settle-up</code> draws. So the wizard\'s step 2 is not on this path at all, and <b>back</b> goes to Count up rather than to the step before.' },
+    { kind: 'cut', title: 'A night that does not balance skips Deductions', body: 'E2\'s <b>Next</b> goes to <code>/deductions</code> when the night is settled — the sums meet, <i>or</i> the difference has been written off — and straight to <code>/settle-up</code> when it is neither, where this is what <code>/settle-up</code> draws. So a night reaches this screen having skipped step 2, and reaches step 2 the moment the difference is accounted for. <b>Back</b> goes to Count up rather than to the step before.' },
     { kind: 'cut', title: 'Off balance does not block the count; it blocks the settle', body: '<b>Next</b> on E2 is dead only while a stack is missing — the gate there is the count. The gate here is the money: the difference is either found or written off and logged, and the write-off travels with the night into the book.' },
     { kind: 'open', title: 'The same fact, twice, in two shapes', body: 'E2\'s block already stated the same $20 in colour, at the top of the previous screen, seconds earlier. Here it is prose in a card. Recorded as finding 1 of <code>docs/game-outcomes-cjm.md</code> and unchanged since.' },
   ],
@@ -142,8 +142,8 @@ stop('Deductions.dc.html', {
     { src: 'shot-08-deductions-tail.png', state: 'The foot: the preview block, the bill it was built from, and the way back to the rules.' },
   ],
   notes: [
-    { kind: 'cut', title: 'The preview is R1\'s row, early', body: '<b>Everyone after deductions</b> draws format <code>7a</code> — name, then <code>game · food · piggy</code> on a grey sub-line, net hard right — a screen before the settled night draws the same row for real. It is marked <b>PREVIEW</b> and says it is provisional until you settle.' },
-    { kind: 'cut', title: 'A payer shows a credit', body: '<code>food</code> is a person\'s share of the bill netted with what they paid at the counter, so Andro — $31 of the split, $120 fronted — carries <b>food +$89</b>. Shares and payments stay separate in storage; they are netted for display only.' },
+    { kind: 'cut', title: 'This is the screen that draws format 7a', body: '<b>Everyone after deductions</b> is <code>7a</code> — name, then <code>game · food · piggy</code> on a grey sub-line, net hard right, off <code>resultFormula().terms</code>. R1 does <b>not</b> draw this row: it prints the engine\'s <code>caption</code> instead, which keeps the bill\'s two halves apart. So the settled night is not this screen with the PREVIEW tag removed, and the two rows are worth reading side by side.' },
+    { kind: 'cut', title: 'A payer shows a credit', body: '<code>food</code> is a person\'s share of the bill netted with what they paid at the counter, so Andro — $31 of the split, $120 fronted — carries <b>food +$89</b>. Shares and payments stay separate in storage, and R1 puts them back on the row as <code>− 31 … + 120 paid</code>: this screen nets them, that one does not.' },
     { kind: 'deviates', title: 'The step nobody\'s flow doc names', body: 'The wizard counts this screen <b>2 of 3</b>. The 1 September cut\'s flow is E2 → E4 → E6, and Deductions is not one of its three. Neither counter is wrong; they are counting different things.' },
   ],
 });
@@ -192,7 +192,7 @@ stop('FullLedger.dc.html', {
   ],
   notes: [
     { kind: 'cut', title: 'Kept, but not as the default', body: '<code>7e</code> stopped being the settled screen\'s list on 1 September and became what the <b>Full ledger</b> chip opens. Where that button lands, and whether 7e is scrollable or paged, was left open by the cut — it is a chip below the blocks and the table fits without scrolling at six players.' },
-    { kind: 'open', title: 'A term of $0, and two cuts that disagree', body: 'The 30 August E6 cut and the 1 September one differ over whether a person with no bill share and no piggy prints <code>$0</code> or nothing at all. <code>docs/screens.md</code> records the disagreement as unanswered; the app prints <code>$0</code>.' },
+    { kind: 'open', title: 'A term of $0, and nobody has decided', body: 'Two different things are drawn here and it is worth keeping them apart. <b>This table</b> prints <code>$0</code> in a cell and drops a column no one has a figure in. <b>The row</b> — R1\'s and E3\'s — is where the open question is: <code>02-E6-results-row.md</code> says a term of exactly zero still prints, the shipped <code>resultFormula</code> drops it, and <code>docs/screens.md</code> records that as unanswered rather than settled either way.' },
   ],
 });
 
@@ -201,12 +201,12 @@ stop('FullLedger.dc.html', {
 stop('Payments.dc.html', {
   n: 8, name: 'Who pays whom', route: '/payments', chrome: 'PUSH · Chrome A', step: 'R2',
   owns: 'The same six transfers, now as a checklist: who still owes what, and how much of the night is still in the air.',
-  exit: '<b>Mark all settled</b> closes it out. <b>Nudge the table</b> sits above the footer rather than in it — the same treatment <b>Full ledger</b> gets on R1, because a footer holding two buttons cannot hold the one the board draws full width.',
+  exit: '<b>Mark all settled</b> closes it out, and changes its own word to <b>Mark the rest settled</b> once something has moved. <b>Nudge the table</b> is a chip in the footer above it: R2\'s footer is one button and this is not it, but <code>/payments</code> is the app\'s only door into <code>/nudge</code>. R1 answers the same problem the other way — <b>Full ledger</b> is a chip in the body.',
   shots: [
     { src: 'shot-12-payments.png', state: '<b>0 of 6 settled · $2,510 still to move</b>, and a progress rail under the list.' },
   ],
   notes: [
-    { kind: 'cut', title: 'The route was renamed, the door was not', body: 'Titled <b>Who has paid</b> until 5 September. R2 titles it <b>Who pays whom</b>, and the door off R1 is a footer button of the same name — the words on the button and the words on the screen match, which is the point.' },
+    { kind: 'cut', title: 'The title changed; the route did not', body: 'Always <code>/payments</code>, titled <b>Who has paid</b> until 5 September. R2 titles it <b>Who pays whom</b>, and the door off R1 is a footer button of the same name — the words on the button and the words on the screen match, which is the point.' },
     { kind: 'carries', title: 'Nothing carries on', body: 'This is where the flow ends. The night now reads back through <code>/games</code> and <code>/stats</code>, and through the player card, none of which can change a figure.' },
   ],
 });
@@ -279,9 +279,9 @@ ${[
   },
   {
     n: 4,
-    title: 'Three states on this board have no drawn frame anywhere',
-    body: 'E2\'s amber fourth state — a count that is not finished but whose figures happen to meet — is built and decided and drawn nowhere. Neither is the counted-row animation, which is specified to the millisecond in the 6 September README and cannot be photographed. The block\'s own short and over states are specified in that cut and marked <i>still to draw</i>.',
-    where: 'Count up · design/handoff-count-up-header/README.md, docs/screens.md',
+    title: 'Three things on this board have no drawn frame at all',
+    body: 'E2\'s amber fourth state — a count that is not finished but whose figures happen to meet — is built and decided and drawn nowhere. Neither is the counted-row animation, which is specified to the millisecond in the 6 September README and cannot be photographed at all. And the block has no <b>light twin</b>: the cut draws its four frames in the dark theme only, which this board\'s bright-theme artboard is standing in for.',
+    where: 'Count up · design/handoff-count-up-header/README.md, docs/screens.md — “what is still to ask for is the light twin of the new block”',
   },
 ].map(finding).join('')}
   </div>`,
