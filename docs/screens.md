@@ -99,12 +99,19 @@ is settled when it is not.
 | `/share` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/sign-in` | sheet | ✓ | ✓ | — | ☐ |
 | `/spend` | sheet | ✓ | ✓ | — | ☐ |
-| `/stands` | push | ✓ | — | ✓ | ☐ |
 | `/stats` | push | ✓ | — | ✓ | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**37 screens · 37 under the rule pass · 21 under the sheet pass · 12 under a big
+**36 screens · 36 under the rule pass · 21 under the sheet pass · 12 under a big
 night · 0 conformed.**
+
+**`/stands` came out of this table on 6 September, having been deleted on the
+5th** — the row outlived the screen, so every count above it had been one high
+for a day and the tally said 38 where `ui-audit.mjs` was walking 36. That is the
+exact fault the "A coverage hole this file found" section below is about, in the
+other direction: a ledger claiming a screen it does not have is as wrong as one
+missing a screen it does. **The counts and the audit's `ROUTES` are now derivable
+from each other — if they disagree, one of them is lying.**
 
 `/ledger` was the thirty-eighth, added 1 September and **deleted 6 September**:
 `design/handoff-game-end/` drops *Full ledger* by name — *"do not build it, do
