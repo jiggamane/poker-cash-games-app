@@ -216,11 +216,20 @@ and it is the honest record of what the 12 August boards drew. The current
 measurements for this screen are on **two** boards now, and they cover different
 halves of it:
 
-- the block, the bar and the strip — `design/handoff-E2/boards/Settled Status.dc.html`,
-  layout **2a**, colour option **2f**;
+- the header block — `design/handoff-count-up-header/`, option **1b**, cut
+  6 September. It retires layout **2a** below, and with it the whole of what
+  `design/handoff-E2/boards/Settled Status.dc.html` said about this block: the
+  two columns, the divider, the bar's alphas, the footer strip and colour
+  option **2f**. Nothing else in that handoff moves — the rounding step is
+  still its `docs/E2-rounding.md`;
 - the player list, its three groups and its type scale —
   `design/handoff-count-up-to-settled/boards/Cashed Out States.dc.html`, frame
-  **1a**, with the scale written out in that cut's `docs/05`.
+  **1a**, with the scale written out in that cut's `docs/05`. The 6 September
+  cut draws its own counted row (`padding 11 14`, radius 10, the net at 800/19)
+  and **that is not what was built**: the README's own instruction is to
+  recreate the block "using its established components", and the established
+  component is `FinishedSlab` under `design/handoff-player-list/`'s rule, which
+  is app-wide and a day older. The block is the only thing that changed.
 
 ⚠ The E2 frames on the second board sit on the OLD E2 chrome — an `Apply the
 money rules` button and a `78% accounted for` strip, both superseded by layout
@@ -229,9 +238,42 @@ own warning says of its frames.
 The extractor still points at the old board directory and reads frames at
 402 × 874; pointing it at the newer cuts is a job of its own.
 
-## Copy the handoff does not have
+## E2's block, and the two places it does not do as it is told
 
-`design/handoff-E2/` draws the ACCOUNTED FOR sub-line as its composition —
+Both are deviations from `design/handoff-count-up-header/`, the newest cut on
+this screen, and both are older decisions winning rather than the cut being
+argued with.
+
+**`In play · 8 players`, where the cut writes `Bought in · 8 players`.** The
+word for that figure was settled on 5 September, a day before the cut, and it
+was settled across three screens at once — see *One word for money in* below.
+The cut speaks about one block; the instruction was about a host seeing the same
+$5,000 under three different nouns inside ten minutes. So the caption keeps the
+app's word. `ui-audit.mjs` asks for `In play` and says as much beside it: do not
+put `Bought in` back by reading the cut. Everything else in the block is the
+cut's copy verbatim.
+
+**A fourth state, amber.** The cut has three, driven by one subtraction: coral
+over and short, green level. That leaves a hole this app has already fallen
+into once — B22 — because two sums can meet by coincidence halfway through a
+count, when what is still to come happens to cancel out. Green there is the card
+calling a night level over a stack nobody has counted. `balanceCheck` already
+holds the state at *counting* until every seated player is in, so the block
+paints amber on that one arithmetic accident: gap of nought, count unfinished.
+Coral and green are the cut's, unchanged, and amber was this block's own colour
+for the whole count until 6 September. `countUpBlock.test.ts` holds all three.
+
+**And one string in it is not signed off.** The still-to-count clause —
+`Accounted for · 8 counted, 1 still to count` — is PROPOSED in the cut's own
+changelog, not decided. It is built because the block is unreadable without
+something in that clause while stacks are out, and because the cut's reference
+file draws it. Replacing it moves no layout.
+
+## What the block no longer needs copy for
+
+*Superseded on 6 September, and kept because it is the argument for two of the
+strings that went.* `design/handoff-E2/` drew the ACCOUNTED FOR sub-line as its
+composition —
 "$2,120 cashed out · $1,450 counted" — and states the rule for one term being
 zero: show the other alone, never a $0 term. It says nothing about the state
 where **both** are zero, which is every night between the host opening E2 and
@@ -250,9 +292,12 @@ sentence anybody wrote. Nothing else can be shown without inventing one, and
 the OVER verdict is not available: no verdict is drawn while a stack is
 uncounted, deliberately.
 
-**Both are lines to ask for**, along with the three things the cut itself names
-as still to draw: the light twin of the block, the OVER state, and where
-"recount, or log it" goes.
+**Both were lines to ask for, and neither is needed any more.** The composition
+sub-line is gone — the second caption states a count of people, not a pair of
+amounts — and so is the verdict string, with the strip that carried it. The gap
+is a signed figure now, and a signed figure has no sentence to invent for the
+state where it is negative. What is still to ask for is the light twin of the
+new block, which this cut leaves to us exactly as the last one did.
 
 ## A coverage hole this file found
 
@@ -291,6 +336,39 @@ owner's instruction, off the game-outcomes journey map
 (`design/cjm-game-outcomes/`, and `docs/game-outcomes-cjm.md` for the argument).
 Two decisions, and both are deviations from a drawn board, so they are here
 rather than only in a commit.
+
+*A stack lands, and the list settles.* **`design/handoff-count-up-header/`'s
+S114** is the only animation on E2 and the first FLIP in this app: the counted
+row travels from its uncounted slot into its rank slot over 620ms and fades
+.55 → 1, every row below it translates from its old position to its new one over
+560ms staggered 26ms down the list, the arrived row holds a green wash and
+releases it over 1300ms, and the header's bar re-scales on the same curve.
+Colour never tweens. Under Reduce Motion only the wash survives.
+
+*How it knows where anything was*, because this is the part a next session will
+have to reason about. Three groups, three coordinate spaces: a counted row
+arrives from a group it is no longer in, so each GROUP reports its own offset
+and each ROW reports its offset inside that group, and the sum of the two is one
+ruler every row on the screen is measured against. Positions are re-derived for
+every row on every sweep rather than only for rows whose own layout changed —
+most of what step 2 animates is rows that moved because the group ABOVE them
+lost one, and their own layout never moved at all. `count-up.tsx`'s `makeRuler`
+is the whole of it.
+
+*Three things that are deliberately not animated.* The wash is drawn **over** the
+slab rather than as its fill, so nothing in `PlayerList` — a component six
+screens share — had to learn about this screen; at 28% the difference is a
+faint tint on the glyphs. The bar is the one thing here that cannot ride the
+native driver, because `flexGrow` is a layout property, so a change of SEGMENT
+COUNT is set rather than animated — a bar growing into a colour it is about to
+be is the same fault as tweening the colour. And nothing at all moves on first
+paint, on a correction that does not change a rank, or on a row whose position
+did not change.
+
+*What no check can see.* All of it. `ui-audit` and `ui-journeys` measure a
+screen at rest, and a browser has no Reduce Motion setting to turn on, so the
+sequence above is held by nothing but this note and the comments in the file.
+The figures it moves are checked; the movement is not.
 
 *E2b is gone.* **Where everyone stands** drew Count up's finished players again
 — same two calls, same two groups, one tap away — and added a sort and a rank
@@ -510,8 +588,11 @@ result can be ranked and a stack that left at eleven is as final as one counted
 at one.
 
 *What was NOT taken, and confirmed by the owner on 3 September.* The primary on
-E2 stays `Next`, and the balance card keeps its verdict strip and its three
+E2 stays `Next`, and the balance card kept its verdict strip and its three
 states — the board carries an older frame on both, and later cuts decided them.
+⚠ **The strip has since gone**, on 6 September and by a cut that speaks on the
+block: sign, colour and the percentage beside the figure carry the state, and
+the words underneath were saying it twice. `Next` stands.
 
 *The one place the rule is bent, which is this app's business rather than the
 board's.* **Two finished slabs keep a chevron**, and the rule they share is *a
@@ -905,10 +986,18 @@ is the same story for R2's header, which did three reductions inline.
   above the rows is the four-screens layout and R1 draws no such card. The money
   it stated is on the table block's closing row in the board's own words
   (`$5,000 in, $5,000 out`) and the deductions total is on its section label;
-  what is genuinely lost is the entry count, which lives on Count up. ⚠ This
+  what is genuinely lost is the entry count, which lived on Count up. ⚠ This
   takes `In play` off one of the three screens the 5 September wording decision
   put it on — Tonight, Count up and `/watch` still say it — because the newer
   board draws no figure for it to label.
+  ⚠⚠ **And on 6 September the entry count went from Count up too**, so it is
+  now on no screen at all. `design/handoff-count-up-header/`'s S111 is explicit
+  — "buy-in and rebuy counts are not shown anywhere in the block", player count
+  only — and its argument is that the number of times money crossed the table
+  is not what the block compares. It is the last figure standing where it fell:
+  `balanceCheck` still returns `entries`, `/ledger` still lists every one of
+  them, and nothing tallies them for a reader. **A line to ask for**, not a
+  regression to fix by putting it back.
 
 *What the single footer button did to two routes, since neither may be silently
 orphaned.* `/payments` **is** the footer: `Who pays whom →` is the one control

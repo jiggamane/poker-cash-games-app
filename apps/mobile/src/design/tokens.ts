@@ -143,8 +143,33 @@ export interface Theme {
   winEdge: string;
   /** The unrun part of a progress bar: the opposite colour at 16%. */
   track: string;
-  /** The share of that bar a discrepancy takes: the loss colour at 28%. */
+  /**
+   * The share of E2's bar the money nobody can account for takes: the loss
+   * colour at 22%.
+   *
+   * 28% until rev 18. `design/handoff-count-up-header/` measures it at 22 off
+   * its own frames, and it is the only screen that draws this token.
+   */
   dangerTrack: string;
+  /**
+   * The share of that bar the money that WENT IN takes, when the table has
+   * come up holding more than it: the opposite colour at 34%, with the overage
+   * beyond it in the loss colour.
+   *
+   * Stronger than `track` at 16% on purpose — this segment is a real quantity
+   * being compared against the one beside it, not the unrun end of a bar.
+   */
+  barIn: string;
+  /**
+   * What a counted stack flashes as it lands in the ranking: the win colour at
+   * 28%, held and then released over 1.3s. `design/handoff-count-up-header/`,
+   * the animation table.
+   *
+   * NOT `winWash` at 13%, which is a state a row STAYS in. This is a
+   * three-frame answer to "where did that player land?" and it has to carry
+   * across a list at arm's length.
+   */
+  arrival: string;
   /**
    * Its footer strip while the count is still running, where the two end
    * states use a wash of their own colour.
@@ -209,7 +234,9 @@ export const darkTheme: Theme = {
   winStrong: 'rgba(111,207,151,0.45)',
   winEdge: 'rgba(111,207,151,0.35)',
   track: 'rgba(255,255,255,0.16)',
-  dangerTrack: 'rgba(240,112,92,0.28)',
+  dangerTrack: 'rgba(240,112,92,0.22)',
+  barIn: 'rgba(255,255,255,0.34)',
+  arrival: 'rgba(111,207,151,0.28)',
   strip: '#1E1E22',
   drawerFill: 'rgba(255,255,255,0.07)',
   drawerEdge: 'rgba(255,255,255,0.16)',
@@ -264,7 +291,9 @@ export const lightTheme: Theme = {
   winStrong: 'rgba(10,122,61,0.45)',
   winEdge: 'rgba(10,122,61,0.35)',
   track: 'rgba(12,13,15,0.16)',
-  dangerTrack: 'rgba(176,58,40,0.28)',
+  dangerTrack: 'rgba(176,58,40,0.22)',
+  barIn: 'rgba(12,13,15,0.34)',
+  arrival: 'rgba(10,122,61,0.28)',
   strip: '#FFFFFF',
   drawerFill: 'rgba(12,13,15,0.05)',
   drawerEdge: 'rgba(12,13,15,0.15)',

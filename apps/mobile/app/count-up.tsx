@@ -1,6 +1,14 @@
-import { useMemo, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  StyleSheet,
+  Text,
+  View,
+  type LayoutChangeEvent,
+} from 'react-native';
 import {
   balanceCheck,
   resolveLedger,
@@ -10,44 +18,58 @@ import {
   type PlayerId,
 } from '@poker-club/core';
 import { formatSignedToFit, formatToFit } from '../src/lib/money';
+import { BLOCK_FITS, headlineSize, percent, toneOf, type Tone } from '../src/lib/countUpBlock';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
 import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
-import { moneyColor, useTheme } from '../src/design/useTheme';
+import { useTheme } from '../src/design/useTheme';
 import type { Theme } from '../src/design/tokens';
-import { cappedFigure, radius, type } from '../src/design/tokens';
+import { cappedFigure, radius, tabular, type } from '../src/design/tokens';
 import { clockLabel } from '../src/lib/elapsed';
 import { cashedOutAt, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
- * Count up — E2, step 1 of 3. `design/handoff-E2/`, cut 30 August, which
- * supersedes the status block as rev 18 drew it.
+ * Count up — E2, step 1 of 3.
  *
- * WHY THE BLOCK WAS REBUILT. It used to read `COUNTED $2,880 of $2,880`: the
- * count against the chips still on the table. That is half a sum. It hides
- * everything that has already left — a night where a cash-out was never
- * entered reads DONE, in a card whose two figures agree with each other,
- * because the missing money was subtracted out of both sides before they were
- * compared. So the block now states the whole equation and nothing is off
- * screen in any state:
+ * TWO CUTS DRAW THIS SCREEN AND THEY DIVIDE AT THE ROUNDING BAR. The block at
+ * the top is `design/handoff-count-up-header/`, 6 September, which retires the
+ * two-column status card `design/handoff-E2/` drew on 30 August. Everything
+ * under the bar — three groups, ranked, on its own type scale — is
+ * `design/handoff-count-up-to-settled/` and `design/handoff-player-list/`,
+ * neither of which that cut touches.
  *
- *     BOUGHT IN  $5,000        │   ACCOUNTED FOR  $3,570
- *     11 entries · 6 players   │   $2,120 cashed out · $1,450 counted
- *     ─────────────────────────────────────────────────────────
- *     $1,430 LEFT TO ACCOUNT FOR                      4 of 6 in
+ * WHAT THE COLUMNS WERE FOR, and it is still true. The card before them read
+ * `COUNTED $2,880 of $2,880`: the count against the chips still on the table,
+ * which is half a sum. A night where a cash-out was never entered reads DONE
+ * there, in a card whose two figures agree with each other, because the missing
+ * money was subtracted out of both sides before they were compared. B22. So
+ * the block states the whole equation and it still does.
  *
- * THREE STATES, ONE HEIGHT. Counting, balanced, off balance — the strip and
- * the bar change colour in place and the block neither moves nor resizes, so
- * entering a stack never reflows the list underneath the host's thumb.
+ * WHAT THEY COST. Two sums at 30/800 in half a card each is about 123 points a
+ * figure, and a five-figure lari sum does not go in 123 points — `₾47,0…`, the
+ * screen's one job, truncated at exactly the moment the numbers get big. B43.
  *
- * GREEN IS ONLY EVER THE VERDICT. While one stack is uncounted the figures can
- * meet by coincidence, and a card that went green on that would be
- * congratulating somebody on a sum they have not finished. `balanceCheck()`
- * holds the state at *counting* until every seated player is in — including
- * the busted one, whose $0 is a count.
+ * SO THE GAP IS THE HEADLINE AND THE SUMS GO UNDERNEATH AT TEXT SIZE:
+ *
+ *     +₾1,000                                          102%
+ *     ████████████████████████████████████████████▓▓▓▓▓▓▓▓
+ *     In play · 8 players                            ₾47,000
+ *     Accounted for · 8 counted                      ₾48,000
+ *
+ * Nothing in it can truncate in any state. The headline is the one display
+ * figure left and it is FLUID — 38 points down to a 24 floor as the digits
+ * arrive, rather than ellipsising or wrapping — and the sums are 18-point text
+ * on rows of their own, where the caption is what compresses and the amount
+ * never does.
+ *
+ * NO EYEBROW AND NO VERDICT STRIP. `$1,000 OVER · 102% accounted for` said in
+ * words what the sign, the colour and the percentage beside it already say.
+ *
+ * GREEN IS STILL ONLY EVER THE VERDICT, which is this app's one departure from
+ * the cut's three states — see `toneOf`.
  *
  * OFF BALANCE DOES NOT BLOCK THE NIGHT. The gate is the COUNT: Next is dead
  * only while a stack is missing. A night that does not add up goes on to E5,
@@ -57,6 +79,9 @@ import { cashedOutAt, standingsOf, useNight } from '../src/lib/nightStore';
 export default function CountUp() {
   const t = useTheme();
   const night = useNight();
+  /* Before the early return: the ruler is a hook and the screen has one
+     whether or not there is a night in it yet. */
+  const ruler = useRuler();
 
   const ledger = useMemo(() => (night === null ? null : resolveLedger(night.entries)), [night]);
 
@@ -209,26 +234,32 @@ export default function CountUp() {
        * from a group that is no longer on screen.
        */}
       <View style={styles.groups}>
-        <PlayerGroup label="Still to count" count={toCount.length} first>
-          {toCount.map((p, i) => (
-            <ActiveRow
-              key={p.id}
-              name={p.name}
-              fact={`in ${formatToFit(p.boughtIn, ROW_FITS)}`}
-              last={i === toCount.length - 1}
-              accessibilityLabel={`Count ${p.name}`}
-              onPress={() =>
-                router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } })
-              }
-              right={
-                <>
-                  <Text style={[styles.waiting, { color: t.dim }]}>—</Text>
-                  <Icon name="pencil" color={t.amber} size={17} />
-                </>
-              }
-            />
-          ))}
-        </PlayerGroup>
+        {/* MEASURED BUT NEVER ANIMATED. A counted row travels from where its
+            uncounted row was, and a position nobody took is a position nobody
+            can travel from — see `Travelling`. */}
+        <Ranked name="toCount" ruler={ruler}>
+          <PlayerGroup label="Still to count" count={toCount.length} first>
+            {toCount.map((p, i) => (
+              <Travelling key={p.id} id={p.id} group="toCount" ruler={ruler}>
+                <ActiveRow
+                  name={p.name}
+                  fact={`in ${formatToFit(p.boughtIn, ROW_FITS)}`}
+                  last={i === toCount.length - 1}
+                  accessibilityLabel={`Count ${p.name}`}
+                  onPress={() =>
+                    router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } })
+                  }
+                  right={
+                    <>
+                      <Text style={[styles.waiting, { color: t.dim }]}>—</Text>
+                      <Icon name="pencil" color={t.amber} size={17} />
+                    </>
+                  }
+                />
+              </Travelling>
+            ))}
+          </PlayerGroup>
+        </Ranked>
 
         {/*
           * COUNTED AND CASHED OUT ARE THE SAME TREATMENT, and that is the rule:
@@ -254,33 +285,42 @@ export default function CountUp() {
           * it is retyped. Both deviations and the question are in
           * `docs/screens.md`.
           */}
-        <PlayerGroup label="Counted" count={counted.length}>
-          {counted.map((p) => (
-            <FinishedSlab
-              key={p.id}
-              name={p.name}
-              fact={`counted ${formatToFit(night.finalCounts.get(p.id)!, ROW_FITS)}`}
-              result={resultBeforeDeductions(p.boughtIn, night.finalCounts.get(p.id)!)}
-              fits={ROW_FITS}
-              accessibilityLabel={`Count ${p.name} again`}
-              opens={() =>
-                router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } })
-              }
-            />
-          ))}
-        </PlayerGroup>
+        <Ranked name="counted" ruler={ruler}>
+          <PlayerGroup label="Counted" count={counted.length}>
+            {counted.map((p) => (
+              <Travelling key={p.id} id={p.id} group="counted" rank ruler={ruler}>
+                <FinishedSlab
+                  name={p.name}
+                  fact={`counted ${formatToFit(night.finalCounts.get(p.id)!, ROW_FITS)}`}
+                  result={resultBeforeDeductions(p.boughtIn, night.finalCounts.get(p.id)!)}
+                  fits={ROW_FITS}
+                  accessibilityLabel={`Count ${p.name} again`}
+                  opens={() =>
+                    router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } })
+                  }
+                />
+              </Travelling>
+            ))}
+          </PlayerGroup>
+        </Ranked>
 
-        <PlayerGroup label="Cashed out earlier" count={confirmed.length}>
-          {confirmed.map((p) => (
-            <FinishedSlab
-              key={p.id}
-              name={p.name}
-              fact={cashedOutFact(night, p.id, p.cashedOut)}
-              result={resultBeforeDeductions(p.boughtIn, p.cashedOut)}
-              fits={ROW_FITS}
-            />
-          ))}
-        </PlayerGroup>
+        {/* EVERYTHING BELOW THE INSERTION POINT TRAVELS, and this group is
+            below all of it: when a stack lands two groups up, these rows slide
+            with the rest rather than jumping while the rest glide. */}
+        <Ranked name="confirmed" ruler={ruler}>
+          <PlayerGroup label="Cashed out earlier" count={confirmed.length}>
+            {confirmed.map((p) => (
+              <Travelling key={p.id} id={p.id} group="confirmed" ruler={ruler}>
+                <FinishedSlab
+                  name={p.name}
+                  fact={cashedOutFact(night, p.id, p.cashedOut)}
+                  result={resultBeforeDeductions(p.boughtIn, p.cashedOut)}
+                  fits={ROW_FITS}
+                />
+              </Travelling>
+            ))}
+          </PlayerGroup>
+        </Ranked>
       </View>
     </Screen>
   );
@@ -318,258 +358,484 @@ const cashedOutFact = (
 // ---------------------------------------------------------------------------
 
 /**
- * How each state is painted. One table rather than three branches, so a state
- * cannot pick up a colour from another one by accident, and so the light twin
- * — which the handoff leaves to us — is derived once for all four.
+ * How each state is painted: an edge and one ink, and the ink is on the
+ * headline, the percentage and the accounted-for amount alike.
  *
- * The mid-count colour is option **2f** off the board, the one the handoff
- * recommends: amber on the ACCOUNTED FOR label and on the filled bar, both
- * figures white. Amber means "in progress" here and on the settlement status
- * line, and putting it on the label rather than the money leaves green and red
- * to mean what they mean everywhere else in this app. NO NEW HUE.
+ * One table rather than three branches, so a state cannot pick up a colour
+ * from another one by accident, and so the light twin — which the cut leaves
+ * to us — is derived once for all three.
  */
-const paint = (t: Theme, state: BalanceCheck['state']) => {
-  switch (state) {
-    case 'counting':
-      return {
-        edge: t.hairline,
-        label: t.amber,
-        figure: t.text,
-        fill: t.amber,
-        rest: t.track,
-        stripFill: t.strip,
-        stripRule: t.hairline,
-        stripText: t.text,
-      };
+const paint = (t: Theme, tone: Tone): { edge: string; ink: string } => {
+  switch (tone) {
     case 'balanced':
-      return {
-        edge: t.winStrong,
-        label: t.win,
-        figure: t.win,
-        fill: t.win,
-        rest: t.win,
-        stripFill: t.winWash,
-        stripRule: t.winEdge,
-        stripText: t.win,
-      };
+      return { edge: t.winStrong, ink: t.win };
+    case 'counting':
+      return { edge: t.hairline, ink: t.amber };
     default:
-      return {
-        edge: t.dangerStrong,
-        label: t.loss,
-        figure: t.loss,
-        fill: t.loss,
-        rest: t.dangerTrack,
-        stripFill: t.dangerWash,
-        stripRule: t.dangerEdge,
-        stripText: t.loss,
-      };
+      /* The cut measures this edge at 50% and the token is 55%. One alpha of
+         one hue, shared with the end-the-night row rather than forked for a
+         difference nobody can see. */
+      return { edge: t.dangerStrong, ink: t.loss };
   }
+};
+
+/**
+ * THE BAR IS DRAWN TO THE REAL SCALE — each segment flexed by its own raw
+ * amount, not by a percentage worked out first.
+ *
+ * Over: what went in, then the overage beyond it. Short: what is accounted
+ * for, then the hole. Level: one segment, the whole width. A table holding
+ * more than went into it therefore grows a segment PAST the money rather than
+ * topping out at it, and an over reads as an over rather than as a balance in
+ * the wrong colour.
+ *
+ * The empty night is the one case with no scale at all — nothing in and
+ * nothing counted is 0 against 0 — so it draws the track and nothing else.
+ */
+const segments = (
+  t: Theme,
+  tone: Tone,
+  b: BalanceCheck,
+): ReadonlyArray<{ flex: number; color: string }> => {
+  if (b.boughtIn === 0 && b.accountedFor === 0) return [{ flex: 1, color: t.track }];
+  if (tone !== 'off') return [{ flex: 1, color: paint(t, tone).ink }];
+  return b.left < 0
+    ? [
+        { flex: b.boughtIn, color: t.barIn },
+        { flex: -b.left, color: t.loss },
+      ]
+    : [
+        { flex: b.accountedFor, color: t.loss },
+        { flex: b.left, color: t.dangerTrack },
+      ];
 };
 
 function BalanceBlock({ balance }: { balance: BalanceCheck }) {
   const t = useTheme();
-  const c = paint(t, balance.state);
+  const tone = toneOf(balance);
+  const c = paint(t, tone);
+
+  /* The cut's `accounted_for − bought_in`, which is the engine's `left` the
+     other way up: a positive gap is money on the table that nobody bought. */
+  const gap = -balance.left as Money;
+  const headline = formatSignedToFit(gap, BLOCK_FITS);
+  const size = headlineSize(headline.length);
 
   /*
-   * The bar is drawn on the BOUGHT IN scale, so a table holding more than went
-   * into it grows a segment past the full width rather than silently topping
-   * out at it — an over reads as an over, not as a balance in the wrong
-   * colour. Under it, the two segments are what is in and what is left.
-   */
-  const run = Math.min(balance.accountedFor, balance.boughtIn);
-  const rest = Math.abs(balance.left);
-  const empty = run === 0 && rest === 0;
-
-  /*
-   * WHO THE MONEY CAME FROM, NOT HOW MUCH OF IT — `3 counted · 3 cashed out`,
-   * screen 2 of `design/handoff-four-screens/`.
+   * COUNTED AND CASHED OUT ARE ONE FIGURE, per the cut: `8 counted`, never
+   * `6 counted, 2 out`. Both are stacks the host has seen, and the split
+   * between them is what the two groups in the list below are for.
    *
-   * It used to name the two amounts: `$2,120 cashed out · $2,390 counted`. Two
-   * figures and their words do not fit the 139 points this half of the block
-   * has, and B38 is the entry for what that cost — the counted half was
-   * ellipsised away on the reference phone, in ordinary dollars. Counts of
-   * people fit, they are the half the figure above does not already state, and
-   * they take over the job the strip's tally used to do.
+   * BUY-IN AND REBUY COUNTS ARE NOT SHOWN AT ALL — player count only, which is
+   * the cut reversing the old sub-line's `11 entries · 6 players`. The number
+   * of times money went across the table is not what this block compares.
    */
-  const sub = `${balance.countedPlayers} counted · ${balance.cashedOutPlayers} cashed out`;
+  const done = balance.countedPlayers + balance.cashedOutPlayers;
+  const waiting = balance.uncounted.length;
+
+  /* PROPOSED COPY, and the cut says so — the still-to-count clause is the one
+     string in the block that is not signed off. `docs/screens.md`. */
+  const accounted = waiting === 0 ? `${done} counted` : `${done} counted, ${waiting} still to count`;
 
   return (
     <View style={[styles.block, { backgroundColor: t.surface, borderColor: c.edge }]}>
+      <View style={styles.headline}>
+        <Text
+          style={[styles.gap, { color: c.ink, fontSize: size, lineHeight: size * 1.05, letterSpacing: -0.03 * size }]}
+          numberOfLines={1}
+          {...cappedFigure}
+        >
+          {headline}
+        </Text>
+        <Text style={[styles.share, { color: c.ink }]} numberOfLines={1} {...cappedFigure}>
+          {`${percent(balance)}%`}
+        </Text>
+      </View>
+
+      <Bar segments={segments(t, tone, balance)} />
+
       <View style={styles.sums}>
-        <Sum
-          /*
-           * ONE WORD FOR THIS FIGURE, APP-WIDE — 5 September, on the owner's
-           * instruction. It read `BOUGHT IN` here, `total in` on Tonight and
-           * `PRIZEPOOL` on the settled night: one number, $5,000, under three
-           * nouns on three screens a host sees inside ten minutes, with
-           * nothing saying they are the same number. `IN PLAY` is the word,
-           * and it is the one `/watch` already used.
-           */
-          label="IN PLAY"
-          labelColor={t.muted}
-          /* Never coloured: it is the fixed side of the comparison. */
-          figureColor={t.text}
-          amount={balance.boughtIn}
-          /* PEOPLE FIRST, THEN BUY-INS — `design/handoff-four-screens/`,
-             screen 2. It reads as the shape of the night rather than as a
-             count of database rows, and it is the same two numbers. */
-          sub={`${balance.playersTotal} ${balance.playersTotal === 1 ? 'player' : 'players'} · ${balance.entries} ${balance.entries === 1 ? 'buy-in' : 'buy-ins'}`}
-        />
-        <View style={[styles.divider, { backgroundColor: t.hairline }]} />
-        <Sum
-          label="ACCOUNTED FOR"
-          labelColor={c.label}
-          figureColor={c.figure}
-          amount={balance.accountedFor}
-          /* A space, not nothing: before a single stack is in there is no term
-             to state that is not "$0 cashed out", and the block may not change
-             height to say so. The handoff has no copy for this state — see
-             docs/screens.md. */
-          sub={sub === '' ? ' ' : sub}
-        />
-      </View>
-
-      <View style={styles.barRow}>
-        <View style={[styles.bar, balance.state !== 'balanced' && styles.barSplit]}>
-          {empty ? (
-            <View style={{ flex: 1, backgroundColor: c.rest }} />
-          ) : (
-            <>
-              {run > 0 && <View style={{ flex: run, backgroundColor: c.fill }} />}
-              {rest > 0 && <View style={{ flex: rest, backgroundColor: c.rest }} />}
-            </>
-          )}
-        </View>
-      </View>
-
-      <View style={[styles.strip, { backgroundColor: c.stripFill, borderTopColor: c.stripRule }]}>
-        {balance.state === 'balanced' && <Icon name="check" color={t.win} size={15} />}
-        <Text style={[styles.verdict, { color: c.stripText }]} numberOfLines={1} {...cappedFigure}>
-          {verdict(balance)}
-        </Text>
         {/*
-          * HOW FAR ALONG, AS A PERCENTAGE — screen 2 of
-          * `design/handoff-four-screens/`, which draws `78% accounted for`
-          * beside what is still on the table.
-          *
-          * IT TOOK THE TALLY'S PLACE, it did not squeeze in beside it. The
-          * strip used to read `3 of 6 in` here, and that count is now the
-          * sub-line under ACCOUNTED FOR — `3 counted · 3 cashed out`, which
-          * says the same thing and says which half is which. Two statements of
-          * one fact in one card is what this whole pass has been removing.
-          *
-          * The verdict never shrinks and never ellipsises; this does. At 360
-          * the two run within a couple of points of the strip's width, and if
-          * one of them has to give it is the progress and not the money.
+          * ONE WORD FOR THIS FIGURE, APP-WIDE — 5 September, on the owner's
+          * instruction, and it is why this row does not read `Bought in` as
+          * the cut's caption does. The same $5,000 was `total in` on Tonight,
+          * `BOUGHT IN` here and `PRIZEPOOL` on the settled night: one number
+          * under three nouns on three screens a host sees inside ten minutes,
+          * with nothing saying they are the same number. `In play` is the
+          * word. `ui-audit.mjs` holds it and says so in as many words: do not
+          * put `Bought in` back by reading a board. `docs/screens.md` carries
+          * the decision and what deviating costs.
           */}
-        <Text style={[styles.tally, { color: t.muted }]} numberOfLines={1}>
-          {balance.state === 'balanced' ? '' : `${percent(balance)}% accounted for`}
-        </Text>
+        <Sum
+          caption={`In play · ${balance.playersTotal} ${balance.playersTotal === 1 ? 'player' : 'players'}`}
+          /* Never coloured: it is the fixed side of the comparison. */
+          colour={t.text}
+          amount={balance.boughtIn}
+        />
+        <Sum caption={`Accounted for · ${accounted}`} colour={c.ink} amount={balance.accountedFor} />
       </View>
     </View>
   );
 }
 
 /**
- * How much of what went in has been accounted for, as a whole number.
+ * The bar, re-scaling as the money lands — step 4 of the sequence below.
  *
- * FLOORED, NEVER ROUNDED UP, and it is the same reason a progress bar never
- * shows 100% until it is done: `99.6%` reading as `100% accounted for` beside a
- * verdict saying $20 is missing is the card disagreeing with itself. A night
- * with nothing bought in is 0 rather than a division by zero.
+ * `flexGrow` IS THE THING BEING ANIMATED and it is the one part of this screen
+ * that cannot ride the native driver: it is a layout property, so every frame
+ * of it goes through JavaScript. It is two views, once, at the top of a screen
+ * that is otherwise still, which is what makes that affordable here and
+ * nowhere else — the rows moving underneath it are transforms.
  *
- * IT IS NOT SHOWN WHEN THE NIGHT BALANCES. The strip then reads
- * `BALANCED — NOTHING MISSING`, which is what 100% would be saying in figures,
- * and the check mark beside it says it a third time.
+ * A CHANGE OF SHAPE IS NOT A RE-SCALE. Going from two segments to one is the
+ * night's state changing — short to level — and the cut is explicit that
+ * colour never tweens; a bar growing INTO a colour it is about to be is the
+ * same fault in a different property. So a segment count that changes is set,
+ * not animated, and only a bar that keeps its shape moves.
  */
-const percent = (b: BalanceCheck): number =>
-  b.boughtIn === 0 ? 0 : Math.floor((b.accountedFor / b.boughtIn) * 100);
+function Bar({ segments }: { segments: ReadonlyArray<{ flex: number; color: string }> }) {
+  const shown = segments.filter((s) => s.flex > 0);
+  const first = useRef(new Animated.Value(0)).current;
+  const second = useRef(new Animated.Value(0)).current;
+  const shape = useRef(-1);
 
-/** The strings, verbatim from the logic doc. */
-const verdict = (b: BalanceCheck): string => {
-  switch (b.state) {
-    case 'counting':
-      return `${formatToFit(b.left, BLOCK_FITS)} LEFT TO ACCOUNT FOR`;
-    case 'balanced':
-      return 'BALANCED — NOTHING MISSING';
-    case 'short':
-      return `${formatToFit(b.left, BLOCK_FITS)} SHORT`;
-    case 'over':
-      return `${formatToFit(Math.abs(b.left) as Money, BLOCK_FITS)} OVER`;
-  }
-};
+  /* The shape and the amounts as one string, so the effect below runs when
+     either changes and not on every render of the block. */
+  const scale = shown.map((s) => s.flex).join('/');
 
-function Sum({
-  label,
-  labelColor,
-  figureColor,
-  amount,
-  sub,
-}: {
-  label: string;
-  labelColor: string;
-  figureColor: string;
-  amount: Money;
-  sub: string;
-}) {
+  useEffect(() => {
+    const grow = [first, second];
+    const flexes = scale === '' ? [] : scale.split('/').map(Number);
+    const same = shape.current === flexes.length;
+    shape.current = flexes.length;
+    flexes.forEach((flex, i) => {
+      if (!same) {
+        grow[i].setValue(flex);
+        return;
+      }
+      Animated.timing(grow[i], {
+        toValue: flex,
+        duration: SHIFT_MS,
+        easing: GLIDE,
+        useNativeDriver: false,
+      }).start();
+    });
+  }, [first, second, scale]);
+
+  return (
+    <View style={styles.bar}>
+      {shown.map((seg, i) => (
+        <Animated.View
+          key={i}
+          style={{
+            flexGrow: i === 0 ? first : second,
+            flexShrink: 1,
+            flexBasis: 0,
+            backgroundColor: seg.color,
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
+/**
+ * One sum: the caption gives, the amount does not.
+ *
+ * That is the whole reason this row exists in place of the column it replaced.
+ * `flex: 1` with `minWidth: 0` on the caption and nothing shrinkable on the
+ * figure means a long clause loses its last words — which are `still to count`,
+ * a fact the list below states in a header — before a digit of money is at
+ * risk. B43 is what the other order cost.
+ */
+function Sum({ caption, colour, amount }: { caption: string; colour: string; amount: Money }) {
   const t = useTheme();
   return (
     <View style={styles.sum}>
-      <Text style={[styles.sumLabel, { color: labelColor }]} numberOfLines={1}>
-        {label}
+      <Text style={[styles.caption, { color: t.muted }]} numberOfLines={1}>
+        {caption}
       </Text>
-      <Text
-        style={[styles.sumFigure, { color: figureColor }]}
-        numberOfLines={1}
-        {...cappedFigure}
-      >
+      <Text style={[styles.amount, { color: colour }]} numberOfLines={1} {...cappedFigure}>
         {formatToFit(amount, BLOCK_FITS)}
-      </Text>
-      {/*
-        * TWO LINES, AT A FIXED HEIGHT — B38.
-        *
-        * One line held `$2,120 cashed out` and nothing more. The half-block
-        * gives this about 123 points and the line has carried two figures and
-        * their words since the block was rebuilt to state the whole equation:
-        * `$2,120 cashed out · $2,390 counted` is 199 of them, so the counted
-        * half — the half that says WHAT has been accounted for — was ellipsised
-        * away on the reference phone, in ordinary dollars.
-        *
-        * The height is pinned rather than left to the content, because the rule
-        * this block lives by is that it is ONE HEIGHT in every state: counting,
-        * balanced and off balance. A box that grew when the second figure
-        * arrived would reflow the list under the host's thumb at the exact
-        * moment they are entering a stack.
-        */}
-      <Text style={[styles.sumSub, { color: t.muted }]} numberOfLines={2}>
-        {sub}
       </Text>
     </View>
   );
+}
+
+// ---------------------------------------------------------------------------
+// A stack lands in the ranking
+// ---------------------------------------------------------------------------
+
+/**
+ * WHAT MOVES WHEN A COUNT IS COMMITTED — `design/handoff-count-up-header/`,
+ * the animation table, which is the cut's S114 and the only animation on this
+ * screen.
+ *
+ * It exists to answer one question without the host re-reading the list: WHERE
+ * DID THAT PLAYER LAND? A count is typed into a sheet over this screen; when
+ * the sheet goes, the row has left `Still to count` and reappeared somewhere in
+ * a ranking of six other people, and until now it simply was somewhere else.
+ *
+ *   1. the counted row travels from its uncounted slot into its rank slot, and
+ *      fades .55 → 1, over 620ms;
+ *   2. every row below the insertion point FLIPs from its old position to its
+ *      new one over 560ms, staggered 26ms down the list, so the whole list
+ *      reads as one settling motion rather than six independent rows;
+ *   3. the arrived row holds a green wash and releases it over 1300ms;
+ *   4. the header's bar re-scales on the same curve as 2.
+ *
+ * COLOUR NEVER TWEENS. The block's state can flip from coral to green on the
+ * stack that lands, and a colour crossfading through the middle of that is a
+ * card that says "nearly" for a third of a second.
+ *
+ * TRANSFORMS ONLY, so none of this re-lays out a list mid-flight: every step
+ * above is a `translateY` or an `opacity` on the native driver, off positions
+ * measured before and after. The one exception is the bar, whose segments are
+ * flexed by raw amounts — see `Bar`.
+ *
+ * NOTHING ANIMATES ON FIRST PAINT, on a correction that does not change a
+ * rank, or on a row whose position did not move. Under Reduce Motion only the
+ * green fade survives: the row is simply in its rank slot.
+ */
+const GLIDE = Easing.bezier(0.32, 0.72, 0, 1);
+const ARRIVE_MS = 620;
+const SHIFT_MS = 560;
+const STAGGER_MS = 26;
+/** The wash is held for 45% of its 1300, then released over the rest. */
+const HOLD_MS = 1300;
+const HELD = 0.45;
+
+/** What the sweep tells one row to do. */
+interface Landing {
+  /** How far it has to come back, in points: its old position less its new. */
+  travel: number;
+  /** It was not in the ranking last time. It has just been counted. */
+  arriving: boolean;
+  /** Its place down the list among the rows that moved, for the stagger. */
+  order: number;
+  /** Reduce Motion is on: keep the wash, drop the travel. */
+  calm: boolean;
+}
+
+/**
+ * ONE RULER FOR THREE GROUPS, which is the whole difficulty.
+ *
+ * A row reports its position relative to the group it is in, and the group a
+ * counted row arrives from is not the group it arrives into. So each group
+ * reports its own offset as well, and a row's real position is the sum of the
+ * two — one coordinate space, shared by every row on the screen, in which the
+ * arriving row's before and after can be subtracted from each other.
+ *
+ * IT RE-DERIVES EVERY ROW ON EVERY SWEEP rather than only the ones that moved
+ * within their group. A row whose group has slid up because the group ABOVE it
+ * lost a row has moved on the screen without its own layout changing at all,
+ * and it is most of what step 2 animates.
+ *
+ * The sweep is deferred by a tick because layout arrives a callback at a time
+ * and the first of them has nothing to compare against yet.
+ */
+interface Ruler {
+  top(group: string, y: number): void;
+  measure(id: string, group: string, rank: boolean, y: number): void;
+  arm(id: string, run: (l: Landing) => void): () => void;
+  calm: { on: boolean };
+}
+
+const makeRuler = (): Ruler => {
+  const tops = new Map<string, number>();
+  const rows = new Map<string, { group: string; rank: boolean; y: number }>();
+  const runs = new Map<string, (l: Landing) => void>();
+  /** Where each row was last seen. An id it does not hold has never been drawn,
+   *  and a row that has never been drawn does not travel. */
+  const at = new Map<string, number>();
+  /** Who was in the ranking last sweep. An id that was not is an arrival. */
+  const ranked = new Set<string>();
+  const calm = { on: false };
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const sweep = () => {
+    timer = null;
+    const now = [...rows.entries()]
+      .map(([id, r]) => ({ id, rank: r.rank, y: (tops.get(r.group) ?? 0) + r.y }))
+      .sort((a, b) => a.y - b.y);
+
+    let order = 0;
+    for (const row of now) {
+      const was = at.get(row.id);
+      at.set(row.id, row.y);
+      const arriving = row.rank && !ranked.has(row.id);
+      if (row.rank) ranked.add(row.id);
+
+      const run = runs.get(row.id);
+      if (run === undefined || was === undefined) continue;
+      if (was === row.y && !arriving) continue;
+      run({ travel: was - row.y, arriving, order: order++, calm: calm.on });
+    }
+  };
+
+  const soon = () => {
+    if (timer !== null) clearTimeout(timer);
+    timer = setTimeout(sweep, 0);
+  };
+
+  return {
+    calm,
+    top(group, y) {
+      if (tops.get(group) === y) return;
+      tops.set(group, y);
+      soon();
+    },
+    measure(id, group, rank, y) {
+      const was = rows.get(id);
+      if (was !== undefined && was.y === y && was.group === group) return;
+      rows.set(id, { group, rank, y });
+      soon();
+    },
+    arm(id, run) {
+      runs.set(id, run);
+      return () => {
+        runs.delete(id);
+        rows.delete(id);
+      };
+    },
+  };
+};
+
+/**
+ * The ruler, and the reader's Reduce Motion setting read once and watched.
+ *
+ * `RebuyConfirmation` does the same thing for the same reason and this is the
+ * same shape as its `calm`: an announcement that moves is the one kind of
+ * motion a person who has turned motion off is most likely to have meant.
+ */
+function useRuler(): Ruler {
+  const held = useRef<Ruler | null>(null);
+  if (held.current === null) held.current = makeRuler();
+  const ruler = held.current;
+
+  useEffect(() => {
+    let live = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((on) => {
+      if (live) ruler.calm.on = on;
+    });
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', (on) => {
+      ruler.calm.on = on;
+    });
+    return () => {
+      live = false;
+      sub.remove();
+    };
+  }, [ruler]);
+
+  return ruler;
+}
+
+/**
+ * One row, in the ruler's hands.
+ *
+ * Every row on the screen is wrapped in one of these — including the ones in
+ * `Still to count`, which never animate. They are here because a counted row
+ * travels FROM one of them, and a position nobody measured is a position
+ * nobody can travel from.
+ */
+function Travelling({
+  id,
+  group,
+  rank = false,
+  ruler,
+  children,
+}: {
+  id: string;
+  group: string;
+  /** It is in the ranking, so it can arrive and it can be re-ranked. */
+  rank?: boolean;
+  ruler: Ruler;
+  children: ReactNode;
+}) {
+  const t = useTheme();
+  const shift = useRef(new Animated.Value(0)).current;
+  const fade = useRef(new Animated.Value(1)).current;
+  const wash = useRef(new Animated.Value(0)).current;
+
+  const run = useCallback(
+    (l: Landing) => {
+      if (l.arriving) {
+        wash.setValue(1);
+        Animated.sequence([
+          Animated.delay(HOLD_MS * HELD),
+          Animated.timing(wash, {
+            toValue: 0,
+            duration: HOLD_MS * (1 - HELD),
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+
+      if (l.calm || l.travel === 0) return;
+
+      shift.setValue(l.travel);
+      Animated.timing(shift, {
+        toValue: 0,
+        duration: l.arriving ? ARRIVE_MS : SHIFT_MS,
+        delay: l.arriving ? 0 : l.order * STAGGER_MS,
+        easing: GLIDE,
+        useNativeDriver: true,
+      }).start();
+
+      if (!l.arriving) return;
+      fade.setValue(0.55);
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: ARRIVE_MS,
+        easing: GLIDE,
+        useNativeDriver: true,
+      }).start();
+    },
+    [fade, shift, wash],
+  );
+
+  useEffect(() => ruler.arm(id, run), [id, ruler, run]);
+
+  const measure = useCallback(
+    (e: LayoutChangeEvent) => ruler.measure(id, group, rank, e.nativeEvent.layout.y),
+    [group, id, rank, ruler],
+  );
+
+  return (
+    <Animated.View onLayout={measure} style={{ opacity: fade, transform: [{ translateY: shift }] }}>
+      {children}
+      {rank && (
+        <Animated.View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, styles.flash, { backgroundColor: t.arrival, opacity: wash }]}
+        />
+      )}
+    </Animated.View>
+  );
+}
+
+/** A group, reporting where it starts so the rows inside it can be placed. */
+function Ranked({
+  name,
+  ruler,
+  children,
+}: {
+  name: string;
+  ruler: Ruler;
+  children: ReactNode;
+}) {
+  const measure = useCallback(
+    (e: LayoutChangeEvent) => ruler.top(name, e.nativeEvent.layout.y),
+    [name, ruler],
+  );
+  return <View onLayout={measure}>{children}</View>;
 }
 
 // ---------------------------------------------------------------------------
 // The list
 // ---------------------------------------------------------------------------
 
-
-
-
-/**
- * WHERE THE TWO SUMS RUN OUT OF ROOM.
- *
- * They share the block half and half, so each figure gets (320 − 1) / 2 less
- * 36 of padding — about 123 points at 360, the narrowest phone in the matrix.
- * At 800/30 that holds "$99,999" (about 104) and "$999.9k" (about 109), with
- * the 1.1 text-size cap on top of both. Six figures does not fit, so from
- * $100,000 the pair goes compact TOGETHER: abbreviating one and not the other
- * would put "$2.4M" beside "$2,352,880" in one card and read as two scales
- * rather than two sums. B15 is the bug that argument comes from.
- *
- * No precision is lost by it. The exact difference is what the night turns on
- * and it is stated to the unit one screen along, on E5.
- */
-const BLOCK_FITS = 100_000;
 
 /*
  * WHERE THE ROW'S SECOND LINE RUNS OUT.
@@ -603,51 +869,55 @@ const styles = StyleSheet.create({
   waiting: { fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
   // ---- the block --------------------------------------------------------
+  /*
+   * ONE CARD, ONE PADDING BOX, THREE THINGS IN IT — 16/18/14 inside, and a
+   * 12-point gap between the headline, the bar and the sums. The block it
+   * replaced was three boxes with their own paddings and a rule between two of
+   * them, because it had a footer strip; nothing is pinned to the bottom of
+   * this one, so nothing needs the seam.
+   */
   block: {
     marginTop: 8,
     marginHorizontal: 20,
-    marginBottom: 18,
+    marginBottom: 16,
     borderRadius: radius.card,
     borderWidth: 1,
-    overflow: 'hidden',
+    paddingTop: 16,
+    paddingHorizontal: 18,
+    paddingBottom: 14,
+    gap: 12,
   },
-  sums: { flexDirection: 'row' },
-  sum: { flex: 1, gap: 5, paddingTop: 16, paddingHorizontal: 18, paddingBottom: 14 },
-  divider: { width: 1, marginVertical: 14 },
-  sumLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1 },
-  sumFigure: { fontSize: 30, fontWeight: '800', letterSpacing: -0.6, fontVariant: ['tabular-nums'] },
-  /* 32 is two lines of 16, and it does not move between states. */
-  sumSub: { fontSize: 12, fontWeight: '400', lineHeight: 16, height: 32 },
+  /* Bottom-aligned, so the percentage sits on the foot of the figure whatever
+     size the figure has come out at. */
+  headline: { flexDirection: 'row', alignItems: 'flex-end', gap: 9 },
+  /*
+   * Size, line height and tracking are all set at the call site because all
+   * three are functions of the glyph count — see `headlineSize`. The 1.05 on
+   * the line height is the same departure `type.title` makes and for the same
+   * reason: at a flat 1 a descender lands on whatever is under the text box.
+   */
+  gap: { fontWeight: '800', flexShrink: 1, ...tabular },
+  share: { fontSize: 15, fontWeight: '700', marginLeft: 'auto', flexShrink: 0, ...tabular },
 
-  barRow: { paddingHorizontal: 18, paddingBottom: 14 },
-  bar: { flexDirection: 'row', height: 8, borderRadius: 3, overflow: 'hidden' },
-  /** Two segments are held apart by 2; one full-width segment is not split. */
-  barSplit: { gap: 2 },
+  /* Two segments held apart by 2, in a box that clips them to the radius. A
+     single-segment state has nothing to be held apart from. */
+  bar: { flexDirection: 'row', height: 8, borderRadius: 3, overflow: 'hidden', gap: 2 },
+
+  sums: { gap: 7 },
+  sum: { flexDirection: 'row', alignItems: 'baseline', gap: 12 },
+  /* THE HALF THAT GIVES. `flex: 1` with `minWidth: 0` is what lets a long
+     clause ellipsise rather than push the money off the card. */
+  caption: { fontSize: 13.5, fontWeight: '500', flex: 1, minWidth: 0 },
+  /* THE HALF THAT DOES NOT. */
+  amount: { fontSize: 18, fontWeight: '700', flexShrink: 0, ...tabular },
 
   /*
-   * ONE HEIGHT IN EVERY STATE, which is the whole point of the strip: 11 above
-   * and below a 17-point line, whether that line is carrying a check mark, a
-   * countdown or a verdict. A strip that grew by two points when the night
-   * balanced would shunt the list under the host's thumb at the exact moment
-   * they are reading it.
+   * A STACK LANDS — `design/handoff-count-up-header/`, the animation table.
+   * The wash is drawn over the slab rather than as its fill, so nothing in
+   * `PlayerList` has to learn about this screen; `bottom: 5` is the slab's own
+   * margin, kept out of the flash.
    */
-  strip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 11,
-    paddingHorizontal: 18,
-    borderTopWidth: 1,
-  },
-  verdict: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.78,
-    lineHeight: 17,
-    flexShrink: 0,
-    fontVariant: ['tabular-nums'],
-  },
-  tally: { fontSize: 12.5, fontWeight: '400', lineHeight: 17, marginLeft: 'auto', flexShrink: 1 },
+  flash: { bottom: 5, borderRadius: radius.pressable },
 
   // ---- the list ---------------------------------------------------------
   /*

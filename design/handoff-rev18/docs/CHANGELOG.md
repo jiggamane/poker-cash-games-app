@@ -1,3 +1,37 @@
+# The changelog, and one collision in it
+
+⚠ **Two revisions call themselves rev 18.** The 19 August cut below is the
+repository's rev 18 and numbers its changes S108–S113. The 6 September cut
+immediately after this note was drawn from rev 17, does not know about it, and
+numbers *its* changes S108–S114. Same numbers, different changes. Cite either by
+its date — "the 6 September cut, S110" — never by number alone.
+
+The 6 September cut speaks on **E2's header block only**. Everything the
+19 August cut says stands, including everything it says about E2's list.
+
+---
+
+# Rev 18 — 6 September 2026 · E2's header block rebuilt so both sums stay readable
+
+Cumulative on rev 17. Doc touched: `13-after-the-night.md`. New bundle: `design/handoff-count-up-header/` (README + reference HTML + screenshot). Nothing else in the settle flow moves.
+
+| # | Change | Status |
+|---|---|---|
+| S108 | **E2's two-column header card is retired.** Bought-in and accounted-for at display size in half-width columns truncate a five-figure lari sum to `₾47,0…`. Replaced by one block: the signed gap as the headline with the percentage accounted for right-aligned beside it, a two-segment progress line drawn to the real scale, then the two sums in full at `700 18px` on their own rows. | FINAL |
+| S109 | **The headline figure is fluid, not fixed.** `clamp(24px, 9.5cqi, 38px)` against the card's inner width — 38px normally, scaling to a 24px floor rather than truncating or wrapping. Verified to nine digits (`+₾123,456,789`) at 393 × 852. | FINAL |
+| S110 | **The verdict strip and the state eyebrow are both removed.** `₾1,000 OVER · 102% accounted for` no longer sits at the foot of the card, and there is no `OVER` / `BALANCED` label above the figure — sign, colour and percentage carry the state. Three states only: over and short in `#F0705C`, balanced in `#6FCF97`. | FINAL |
+| S111 | **Counted and cashed-out players are summed into one figure.** The second row reads `Accounted for · 8 counted`, not `6 counted, 2 out`. **Buy-in and rebuy counts are not shown anywhere in the block** — player count only. | FINAL |
+| S113 | **The Counted group is ranked by net, descending — the same order as the results screens**, not seating order. Uncounted players stay above in Still to count and join the ranking only when counted. | FINAL |
+| S114 | **Counting a stack animates.** The row travels from its uncounted slot into its rank position (620ms), the rows below FLIP into place (560ms, 26ms stagger), the arrived row holds a green fill and releases over 1300ms, and the header bar re-scales on the same curve. Colour never tweens. Reduce Motion keeps the green fade only. Timing table in `design/handoff-count-up-header/README.md`. | FINAL |
+| S112 | `1a` (stacked rows) and `1c` (two bars on one scale) are recorded exploration in the reference file and are **not to be built**. Build `1b`, the middle column. | EXCLUDED |
+
+## What is not settled
+
+- The **short** state's copy for the still-to-count clause (`8 counted, 1 still to count`) is proposed, not decided.
+- Animation on value change is specified as 150–200ms ease-out on the figure and the bar; state colour flips instantly. Not drawn.
+
+---
+
 # Rev 18 — 19 August 2026 · flow logic board, the test-round cut, one variant to test
 
 Cumulative on rev 17. **Boards are now five**, plus the test-round board. Every frame is still 393 × 852.

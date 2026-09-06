@@ -81,8 +81,23 @@ It is not shown when the count is already complete.
 
 A count for every seated player, drawn mid-count so both list states are visible.
 
-- Header card: `COUNTED` eyebrow, `$2,610` at 800/30 with *of $2,880* inline, `2 TO GO` right. The card
-  stays **neutral** — no green, no red — until counted equals what is on the table.
+- **Header block — rebuilt by the 6 September cut (its S108–S111). Full spec:
+  `design/handoff-count-up-header/README.md`.**
+  Card inset 20, `radius 14`, `#16161A`, 1px border in the state colour, inner padding `16 18 14`,
+  stack `gap 12`. Top row, bottom-aligned: the **signed gap** at `800 clamp(24px, 9.5cqi, 38px)`,
+  tabular, and the **percentage accounted for** at `700 15px` pushed right — both in the state colour.
+  Then an `8px` two-segment bar drawn to the real scale. Then the two sums, `gap 7`: caption
+  `500 13.5px` `#8B8D93` left, amount `700 18px` right — `Bought in · {n} players` in white
+  (**`In play · {n} players` as built** — the 5 September instruction, `docs/screens.md`),
+  `Accounted for · {n} counted` in the state colour, where the count sums counted stacks **and**
+  players who cashed out earlier. No eyebrow, no caption sentence, no verdict strip, and no buy-in or
+  rebuy counts. Three states: over and short `#F0705C`, balanced `#6FCF97`.
+  The old two-column `COUNTED` card and its `2 TO GO` label are **retired** — they truncated any
+  five-figure sum, and so did the `BOUGHT IN` / `ACCOUNTED FOR` pair that replaced them on 30 August.
+- **Counted is ranked by net, descending** — the results-screen order (that cut's S113). Committing a
+  count animates the row from its uncounted slot into its rank position with the rows below FLIPping
+  down and the header bar re-scaling (S114; timings in
+  `design/handoff-count-up-header/README.md`).
 - Three groups: **Still to count** (em dash, pencil), **Done** (value, green check), **Already gone**
   (whole row muted, `cashed out 23:15 · in $500`, no glyph, not tappable). Players who cashed out
   during play keep what they left with and are never re-counted.
