@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { type Money } from '@poker-club/core';
-import { formatMoney } from '../lib/money';
+import { formatToFit } from '../lib/money';
 import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';
 import { radius, tabular } from '../design/tokens';
@@ -46,10 +46,31 @@ export function SettleStatus({ owed, anyPaid }: { owed: Money; anyPaid: boolean 
 
   return (
     <View style={[styles.pill, { backgroundColor: fill, borderColor: edge }]}>
-      <Text style={[styles.label, tabular, { color: ink }]}>{`${formatMoney(owed)} left`}</Text>
+      <Text style={[styles.label, tabular, { color: ink }]} numberOfLines={1}>
+        {`${formatToFit(owed, SETTLE_FITS)} left`}
+      </Text>
     </View>
   );
 }
+
+/**
+ * WHERE BOTH THIS AND THE CARD BESIDE IT STOP PRINTING A FIGURE IN FULL, and it
+ * has to be one number for both.
+ *
+ * The cut's rule is that the pill and `Left to move` are *"the same number by
+ * construction"*. Core makes them the same VALUE — one `paymentProgress` call —
+ * and that is only half of it: a card abbreviating at one threshold beside a
+ * pill that never abbreviates states `$1.2M` next to `$1,152,150`, which is one
+ * value and two numbers as far as anybody reading the screen is concerned. A
+ * big night found exactly that.
+ *
+ * So the threshold lives here, with the tighter of the two figures, and the
+ * card imports it. 1,000,000 is where the card's 34/800 stops fitting its half;
+ * `$999,999` at the pill's 14/700 is about 70 points and fits with room to
+ * spare, so the pill can afford the card's limit and the card cannot afford a
+ * looser one.
+ */
+export const SETTLE_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
   pill: {

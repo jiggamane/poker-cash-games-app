@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { type Money } from '@poker-club/core';
 import { formatToFit } from '../lib/money';
-import { SettleStatus } from './SettleStatus';
+import { SETTLE_FITS, SettleStatus } from './SettleStatus';
 import { useTheme } from '../design/useTheme';
 import { cappedFigure, radius, space, tabular, unscaledLabel } from '../design/tokens';
 
@@ -51,7 +51,7 @@ export function TotalsCard({
          * threshold the rest of the app uses.
          */}
         <Text style={[styles.figure, tabular, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
-          {formatToFit(amount, CARD_FITS)}
+          {formatToFit(amount, SETTLE_FITS)}
         </Text>
       </View>
 
@@ -64,15 +64,6 @@ export function TotalsCard({
     </View>
   );
 }
-
-/*
- * The figure has the card's width less the pill — about 184 points at 360 —
- * and it is drawn at 34/800. `₾470,000` is 175 of those and `₾4,700,000` is
- * 213, so a seven-figure night is where the exact form stops fitting and the
- * compact one takes over. B43 is what happens when a figure this size is left
- * to truncate instead.
- */
-const CARD_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
   card: {
