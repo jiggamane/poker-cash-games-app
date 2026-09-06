@@ -98,7 +98,10 @@ figure on this board is one engine call and every one is right:
 3. **Two step counters, counting different things.** The wizard says `1 of 3 ·
    2 of 3 · 3 of 3` over Count up, Deductions and Settle up; the 1 September
    cut's flow is Count up → Settle up → the settled night.
-4. **Three things here have no drawn frame at all** — E2's amber fourth state,
+4. **Three things here have no drawn frame at all** — E2's neutral count (no
+   colour on any figure in the block until every stack is in, which replaced
+   the amber fourth state on 6 September and is what `shot-03` and `shot-04`
+   above now show),
    the counted-row animation (specified to the millisecond and unphotographable),
    and the **light twin** of the header block: the 6 September cut draws its four
    frames in the dark theme only, and `docs/screens.md` says asking for the light
