@@ -985,8 +985,18 @@ async function playANight(name, rebuys) {
   );
   await page.getByPlaceholder('What it was').fill('Late pizza');
   await punch('60');
-  /* The person who paid it, which is half of what a spend is. */
+  /*
+   * The person who paid it, which is half of what a spend is — and since
+   * 6 September it is a step of its own rather than a row of chips under the
+   * figure. B44: the chips were what pushed the pad 343 points below the
+   * amount it types. The row states who before it is opened, so this walks it
+   * the way a host does — open, name them, come back — and measures the step
+   * on the way through.
+   */
+  await tap('Nobody yet', { last: true });
+  await stop('a spend · covered by');
   await tap(players[0].name, { last: true });
+  await tap('Done', { last: true });
   await tap(/^Add .* to the bill$/, { last: true, wait: 1400 });
   await stop('deductions · a spend added after the count');
   await holds(

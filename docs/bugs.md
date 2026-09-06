@@ -86,6 +86,55 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B44 — the pad that types a spend was three hundred points below the figure it types
+
+```
+Screen      L2 /spend, add a spend — and L3, the same sheet on a logged one
+Seen        The order was figure, note field, eight chips naming everybody at
+            the table, keypad. That put the pad 343 points under the figure:
+            on the 393 × 852 reference phone the body is 569 and the content
+            685, so seeing the whole pad meant scrolling 116 and the running
+            figure went off the top; on a 360 × 640 Android the pad's first
+            key sat 21 points BELOW the fold, so the sheet opened with no
+            keypad on it at all
+Expected    the amount and the keys that type it on screen together, unscrolled,
+            on every phone in doc 15 § 4's matrix. It is the one thing
+            `Keypad.tsx` says the app's own pad exists for — "a keyboard
+            sliding up would cover the running figure and the button that
+            commits it" — and the spend sheet was doing it to itself
+Found       6 Sept, on the owner's report: "the keyboard is away from the value
+            display". Measured with `scripts/ui-audit.mjs` after
+Locked by   npm run check:ui — `pad-below-the-fold` in ui-audit.mjs's sheet
+            pass, which asks of /log, /spend and /share, on all six devices,
+            that the pad START on screen. A sheet opens unscrolled, so anything
+            above the pad is visible whenever the pad's own top is: one
+            measurement holds both halves. It goes red on the old screen —
+            two devices, SE and the small Android — and clean on the new one
+Status      fixed in this commit
+```
+
+**The fix is the order every other amount sheet was already in.** /log, /entry
+and /share are figure, one short row, pad; only /spend put a form between them,
+and it did so because L2 draws the note and the chips there and the pad was
+added underneath. So the pad moved up under the figure, and *Covered by* — the
+eight chips, the per-person shares, the sentence explaining the case — became a
+step of the same sheet, reached from a row that states who is covering it:
+`Nobody yet`, `The piggy bank`, a name, or names joined with ` · `. One sheet,
+one close, content replaced rather than pushed — `09-navigation.md`, and the
+shape `new-night.tsx` already uses.
+
+Content went 685 → 543. The reference phone now draws the whole sheet without
+scrolling at all; the smallest Android still scrolls to reach the two rows, but
+the figure and every key are together above the fold on all six devices.
+
+**What this check does NOT hold, said plainly.** It asks that the pad starts on
+screen, not that all four rows of it are. On the small Android /log clears the
+threshold by about 100 points and still leaves its bottom key row 95 below the
+fold — the same fault as this one, a quarter of the size, on a screen nobody has
+reported. It is not fixed here and it is not gated; a check tightened to catch
+it would go red on a screen this change did not touch, which is how a gate stops
+being trusted.
+
 ### B43 — Count up cut short the one figure it exists to state
 
 ```
