@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#F6F6F8;font-family:-apple-system,'SF Pro Text','Figtree',sans-serif}a{color:#0C0D0F}a:hover{color:#4A4D55}</style>
+</helmet>
+
+<div style="width:393px;height:852px;box-sizing:border-box;background:#0A0A0B;border-radius:26px;overflow:hidden;box-shadow:0 0 0 11px #07080A;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 30px 0;font:600 15px -apple-system,'Figtree',sans-serif;color:#FFFFFF"><span>04:44</span><span style="font:500 13px -apple-system,'Figtree',sans-serif;color:#8B8D93">97%</span></div>
+  <div style="padding:14px 22px 14px;display:flex;align-items:center;gap:12px"><span style="width:38px;height:38px;border-radius:19px;background:#1C1C20;display:flex;align-items:center;justify-content:center"><svg width="10" height="16" viewBox="0 0 12 20" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"><path d="M9 2L2 10l7 8"></path></svg></span><h2 style="margin:0;font:800 30px/1.05 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#FFFFFF;letter-spacing:-.03em">Count up</h2><span style="margin-left:auto;font:500 13px -apple-system,'Figtree',sans-serif;color:#8B8D93">1 of 3</span></div>
+
+  <div style="display:grid;grid-template-rows:{{ chipRows }};transition:grid-template-rows 480ms cubic-bezier(.32,.72,0,1);overflow:hidden">
+    <div style="min-height:0;overflow:hidden"><div onClick="{{ onToggle }}" style="margin:0 22px 16px;display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:11px;background:rgba(111,207,151,.13);border:1px solid rgba(111,207,151,.3);cursor:pointer;opacity:{{ chipOpacity }};transition:opacity 300ms ease 120ms">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="2.8" stroke-linecap="round" style="flex:none"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+      <span style="font:700 13px -apple-system,'Figtree',sans-serif;letter-spacing:.06em;color:#6FCF97;white-space:nowrap">BALANCED</span>
+      <span style="margin-left:auto;font:600 13.5px -apple-system,'Figtree',sans-serif;color:#FFFFFF;font-variant-numeric:tabular-nums;white-space:nowrap">{{ inPlay }} in play</span>
+    </div></div>
+  </div>
+
+  <div style="display:grid;grid-template-rows:{{ cardRows }};transition:grid-template-rows 520ms cubic-bezier(.32,.72,0,1);overflow:hidden">
+    <div style="min-height:0;overflow:hidden"><div style="margin:0 20px 16px;border-radius:14px;background:#16161A;border:1px solid {{ hdrBorder }};overflow:hidden;transition:border-color 420ms ease">
+      <div onClick="{{ onToggle }}" style="padding:16px 18px;display:flex;flex-direction:column;gap:{{ stackGap }};container-type:inline-size;cursor:pointer;transition:gap 520ms cubic-bezier(.32,.72,0,1)">
+
+        <sc-if value="{{ isOpen }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:flex-end;gap:9px"><span style="font:800 clamp(24px,9.5cqi,38px)/1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:{{ hdrColor }};letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap">{{ hdrGap }}</span><span style="margin-left:auto;font:700 15px -apple-system,'Figtree',sans-serif;color:{{ hdrColor }};font-variant-numeric:tabular-nums;white-space:nowrap">{{ hdrPct }}</span></div>
+        </sc-if>
+        <sc-if value="{{ isShut }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:9px">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6FCF97" stroke-width="2.8" stroke-linecap="round" style="flex:none"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+            <span style="font:800 20px/1 -apple-system,'SF Pro Display','Figtree',sans-serif;color:#6FCF97;letter-spacing:-.02em;white-space:nowrap">Balanced</span>
+            <span style="margin-left:auto;font:700 17px -apple-system,'Figtree',sans-serif;color:#FFFFFF;font-variant-numeric:tabular-nums;white-space:nowrap">{{ inPlay }}</span>
+            <span style="font:500 12px -apple-system,'Figtree',sans-serif;color:#8B8D93;white-space:nowrap">in play</span>
+          </div>
+        </sc-if>
+
+        <div style="display:grid;grid-template-rows:{{ detailRows }};transition:grid-template-rows 520ms cubic-bezier(.32,.72,0,1),opacity 300ms ease;opacity:{{ detailOpacity }};overflow:hidden">
+          <div style="min-height:0;overflow:hidden;display:flex;flex-direction:column"><div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;height:8px;border-radius:3px;overflow:hidden;gap:2px"><span style="flex:{{ barA }};background:{{ barAColor }};transition:flex-grow 560ms cubic-bezier(.32,.72,0,1),background-color 420ms ease"></span><span style="flex:{{ barB }};background:{{ barBColor }};transition:flex-grow 560ms cubic-bezier(.32,.72,0,1),background-color 420ms ease"></span></div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;align-items:baseline;gap:12px"><span style="font:500 13.5px -apple-system,'Figtree',sans-serif;color:#8B8D93;flex:1;min-width:0">Bought in · 8 players</span><span style="font:700 18px -apple-system,'Figtree',sans-serif;color:#FFFFFF;font-variant-numeric:tabular-nums;white-space:nowrap">{{ inPlay }}</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px"><span style="font:500 13.5px -apple-system,'Figtree',sans-serif;color:#8B8D93;flex:1;min-width:0">{{ accountedCaption }}</span><span style="font:700 18px -apple-system,'Figtree',sans-serif;color:{{ hdrColor }};font-variant-numeric:tabular-nums;white-space:nowrap">{{ accountedAmount }}</span></div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div style="margin:0 20px;padding:12px 2px 12px;border-top:1px solid rgba(255,255,255,.11);display:flex;align-items:center;gap:10px"><span style="font:600 16px -apple-system,'Figtree',sans-serif;color:#FFFFFF">Rounding · nearest ₾10</span><span style="margin-left:auto;font:400 13.5px -apple-system,'Figtree',sans-serif;color:#8B8D93">on the nets</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8D93" stroke-width="2.2" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+
+  <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
+    <div style="margin:0 20px;padding:4px 2px 2px;display:flex;align-items:center;gap:8px"><span style="font:700 11.5px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93">Still to count · 1</span></div>
+    <div style="margin:8px 20px 4px"><div data-pending="1" onClick="{{ onCountPending }}" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;background:#121216;border:1px dashed rgba(255,255,255,.24);cursor:pointer"><span style="font:700 17px -apple-system,'Figtree',sans-serif;color:#FFFFFF">{{ pendingName }}</span><span style="font:400 13px -apple-system,'Figtree',sans-serif;color:#8B8D93;white-space:nowrap">{{ pendingIn }}</span><span style="margin-left:auto;font:700 13px -apple-system,'Figtree',sans-serif;color:#FFFFFF;padding:6px 12px;border-radius:7px;background:rgba(255,255,255,.14);white-space:nowrap">Count {{ pendingStack }}</span></div></div>
+  </sc-if>
+
+  <div style="margin:0 20px;padding:8px 2px 6px;display:flex;align-items:center;gap:8px"><span style="font:700 11.5px -apple-system,'Figtree',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8B8D93">{{ countedLabel }}</span><span onClick="{{ onReplay }}" style="margin-left:auto;font:600 11.5px -apple-system,'Figtree',sans-serif;color:#8B8D93;text-decoration:underline;cursor:pointer">Replay</span></div>
+
+  <div ref="{{ listRef }}" style="flex:1;min-height:0;margin:0 20px;display:flex;flex-direction:column;gap:7px;overflow:hidden">
+    <sc-for list="{{ rows }}" as="p" hint-placeholder-count="5">
+      <div data-row="{{ p.name }}" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;background:#16161A;flex:none"><span style="font:700 17px -apple-system,'Figtree',sans-serif;color:#FFFFFF">{{ p.name }}</span><span style="font:400 13px -apple-system,'Figtree',sans-serif;color:#8B8D93;white-space:nowrap">{{ p.stack }}</span><span style="margin-left:auto;font:800 19px -apple-system,'SF Pro Display','Figtree',sans-serif;color:{{ p.color }};letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap">{{ p.net }}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B6D73" stroke-width="2.4" stroke-linecap="round"><path d="M9 5l7 7-7 7"></path></svg></div>
+    </sc-for>
+  </div>
+
+  <div style="padding:12px 20px 0;display:flex"><span style="flex:1;text-align:center;padding:17px 0;border-radius:8px;background:#FFFFFF;color:#0C0D0F;font:700 17px -apple-system,'Figtree',sans-serif">Next</span></div>
+  <div style="display:flex;justify-content:center;padding:9px 0 9px"><span style="width:140px;height:5px;border-radius:3px;background:rgba(255,255,255,.9);display:block"></span></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:415,&quot;height&quot;:880},&quot;treatment&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;line&quot;,&quot;chip&quot;],&quot;default&quot;:&quot;line&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+class Component extends DCLogic {
+  // ₾47,000 in, ₾6,400 already cashed out. Counting Shono's ₾2,900 closes the night exactly.
+  static BOUGHT_IN = 47000;
+  static CASHED_OUT = 6400;
+  static SEED = [
+    { name: 'Goga', stack: 4000, inFor: 10000 },
+    { name: 'Rati', stack: 10900, inFor: 500 },
+    { name: 'Vahicka', stack: 6200, inFor: 3000 },
+    { name: 'Levani', stack: 11300, inFor: 4000 },
+    { name: 'Burdzgla', stack: 5300, inFor: 14000 }
+  ];
+  static PENDING = { name: 'Shono', stack: 2900, inFor: 5000 };
+
+  state = { counted: Component.SEED, pending: Component.PENDING, collapsed: false };
+  listRef = React.createRef();
+
+  money(n) { return '₾' + Math.abs(n).toLocaleString('en-US'); }
+  signed(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + this.money(n); }
+
+  captureRects() {
+    const map = {};
+    const el = this.listRef.current;
+    if (el) el.querySelectorAll('[data-row]').forEach(r => { map[r.getAttribute('data-row')] = r.getBoundingClientRect().top; });
+    this.prevRects = map;
+    const p = document.querySelector('[data-pending]');
+    this.pendingTop = p ? p.getBoundingClientRect().top : null;
+  }
+
+  componentWillUnmount() { clearTimeout(this.timer); }
+
+  countPending = () => {
+    if (!this.state.pending) return;
+    this.captureRects();
+    this.setState(s => ({ counted: s.counted.concat(s.pending), pending: null }));
+    // the sums settle first, then the comparison folds itself away
+    this.timer = setTimeout(() => this.setState({ collapsed: true }), 1100);
+  };
+
+  toggle = () => {
+    if (this.state.pending) return;
+    clearTimeout(this.timer);
+    this.setState(s => ({ collapsed: !s.collapsed }));
+  };
+
+  replay = () => {
+    clearTimeout(this.timer);
+    this.captureRects();
+    this.setState({ counted: Component.SEED, pending: Component.PENDING, collapsed: false });
+  };
+
+  componentDidUpdate() {
+    const prev = this.prevRects;
+    if (!prev || !this.listRef.current) return;
+    this.prevRects = null;
+    const glide = 'cubic-bezier(.32,.72,0,1)';
+    const pendingTop = this.pendingTop;
+    this.pendingTop = null;
+    this.listRef.current.querySelectorAll('[data-row]').forEach((row, i) => {
+      const key = row.getAttribute('data-row');
+      const top = row.getBoundingClientRect().top;
+      if (prev[key] === undefined) {
+        const from = pendingTop === null ? top - 14 : pendingTop;
+        row.animate([
+          { opacity: .55, transform: 'translateY(' + (from - top) + 'px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ], { duration: 620, easing: glide, fill: 'backwards' });
+        row.animate([
+          { background: 'rgba(111,207,151,.28)' },
+          { background: 'rgba(111,207,151,.28)', offset: .45 },
+          { background: '#16161A' }
+        ], { duration: 1300, easing: 'ease-out' });
+        return;
+      }
+      const shift = prev[key] - top;
+      if (!shift) return;
+      row.animate([
+        { transform: 'translateY(' + shift + 'px)' },
+        { transform: 'translateY(0)' }
+      ], { duration: 560, delay: i * 26, easing: glide, fill: 'backwards' });
+    });
+  }
+
+  renderVals() {
+    const { counted, pending, collapsed } = this.state;
+    const accounted = Component.CASHED_OUT + counted.reduce((t, p) => t + p.stack, 0);
+    const gap = accounted - Component.BOUGHT_IN;
+    const balanced = gap === 0;
+    const shut = balanced && collapsed;
+    const chip = this.props.treatment === 'chip';
+    const color = balanced ? '#6FCF97' : '#F0705C';
+    const rows = counted
+      .map(p => ({ name: p.name, stack: 'counted ' + this.money(p.stack), netRaw: p.stack - p.inFor }))
+      .sort((a, b) => b.netRaw - a.netRaw)
+      .map(p => ({ name: p.name, stack: p.stack, net: this.signed(p.netRaw), color: p.netRaw >= 0 ? '#6FCF97' : '#F0705C' }));
+
+    return {
+      rows,
+      listRef: this.listRef,
+      isOpen: !shut,
+      isShut: shut,
+      // the card itself only disappears in the chip treatment; the line treatment keeps its status row
+      cardRows: shut && chip ? '0fr' : '1fr',
+      chipRows: shut && chip ? '1fr' : '0fr',
+      chipOpacity: shut && chip ? 1 : 0,
+      detailRows: shut ? '0fr' : '1fr',
+      detailOpacity: shut ? 0 : 1,
+      stackGap: shut ? '0px' : '12px',
+      hdrGap: this.signed(gap),
+      hdrPct: Math.round(accounted / Component.BOUGHT_IN * 100) + '%',
+      hdrColor: color,
+      hdrBorder: balanced ? 'rgba(111,207,151,.45)' : 'rgba(240,112,92,.5)',
+      barA: gap >= 0 ? Component.BOUGHT_IN : accounted,
+      barB: gap >= 0 ? Math.max(gap, 1) : -gap,
+      barAColor: gap >= 0 ? (balanced ? '#6FCF97' : 'rgba(255,255,255,.34)') : '#F0705C',
+      barBColor: balanced ? '#6FCF97' : gap > 0 ? '#F0705C' : 'rgba(240,112,92,.22)',
+      accountedCaption: 'Accounted for · ' + (counted.length + 2) + ' counted',
+      accountedAmount: this.money(accounted),
+      inPlay: this.money(Component.BOUGHT_IN),
+      countedLabel: 'Counted · ' + (counted.length + 2),
+      hasPending: !!pending,
+      pendingName: pending ? pending.name : '',
+      pendingIn: pending ? 'in ' + this.money(pending.inFor) : '',
+      pendingStack: pending ? this.money(pending.stack) : '',
+      onCountPending: this.countPending,
+      onToggle: this.toggle,
+      onReplay: this.replay
+    };
+  }
+}
+</script>
+</body>
+</html>

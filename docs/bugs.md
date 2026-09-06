@@ -24,6 +24,14 @@ entry, `git fetch` and read the highest number on `main`** — and if another
 session might be writing at the same time, say so in the commit rather than
 hoping.
 
+**It happened again on 6 September, and the advice above is what did not
+prevent it.** Two sessions ran the same evening on disjoint screens — the Add
+spend sheet and the game-end flow — and both read B44 as the highest on `main`,
+because at the time both were right. B45 went to whichever merged first; the
+other became B46 in the merge, by the same rule as above. The lesson is not to
+read harder: **the number is only safe once your entry is on `main`**, so where
+two sessions are in flight, merge the entry early or expect to renumber it.
+
 It happened again on 6 September: two sessions each wrote a B44, one for the
 rebuy that landed without a confirmation and one for the spend keypad. The
 fetch was done at the start of the session and `main` moved while the work was
@@ -93,6 +101,45 @@ conversation and have not been written down. Say what they were and they go in.*
 ---
 
 ## Fixed
+
+### B46 — the rounding sheet described the rule this app removed
+
+```
+Screen      /rounding, both paragraphs — the count-up form and the settle-up one
+Seen        "stacks snap to the step as they are entered", and
+            "the difference goes to the piggy bank"
+Expected    what the step actually does: it lands the final positions,
+            apportioned so they still sum to zero, and rewrites no count
+Found        6 Sept, holding the sheet against design/handoff-game-end/
+Locked by   npm run check — settled.test.ts asserts the identity the copy was
+            contradicting; the strings themselves are held by the audit's
+            /rounding route pass
+Status      fixed in this commit
+```
+
+**Two sentences, both stating a rule that was removed on 2 September**, in the
+one place a host goes to decide whether to turn it on.
+
+The first told them their count was about to be rounded. It is not: `finalCounts`
+is never rewritten, the balance check compares real money to real money, and
+that is the whole argument in `stacks.ts`. The second promised the piggy bank the
+remainder — the money the old stack rounding invented and the tin absorbed. There
+is no remainder any more, so the sheet was offering the tin money the settlement
+was never going to hand it, which is B36 the other way round: B36 took the false
+figure off the row and left the sentence that explains it.
+
+**Nothing could see it, and nothing here ever will.** Copy is not arithmetic; no
+test asserts a paragraph and none should. What makes this one catchable is that
+it is a claim about the engine, so the check that holds it is the engine's — a
+suite that asserts `Σ final + piggy === 0` with no remainder term in it is a
+suite that says out loud which of the two rules is running. The next session to
+read the paragraph and the test together will see the disagreement in one file.
+
+**Both survived a redesign that repeated them.** The 6 September cut writes the
+same stacks sentence into its own README, and its two boards then print
+`on the nets`, which is the other rule. That is recorded in
+`design/handoff-game-end/START-HERE.md` rather than resolved by taking the prose:
+the screens ship, the prose does not.
 
 ### B45 — the pad that types a spend was three hundred points below the figure it types
 

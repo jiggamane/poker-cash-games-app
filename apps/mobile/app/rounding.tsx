@@ -155,8 +155,11 @@ export default function Rounding() {
      * worst case is a fact about the step: at the nearest $10 nobody's net moves
      * by more than $9, ever, and the sheet can say so before a stack is in.
      *
-     * ⚠ COPY NOT DRAWN. The addendum's four sub-lines describe stacks moving.
-     * Flagged for the designer rather than passed off as decided.
+     * ⚠ THE DRAWN COPY SAYS STACKS, AND IS NOT TAKEN. Both the addendum and
+     * the 6 September cut write these as `No stack moves by more than ₾3`.
+     * Under the positions rule no stack moves at all, so the sheet would be
+     * quoting a distortion it does not apply while hiding the one it does.
+     * Recorded in `docs/screens.md`; it is a deviation, not an oversight.
      */
     if (step === 1) {
       /* Short enough to survive the reader's text cap with a nine-digit night
@@ -262,28 +265,42 @@ export default function Rounding() {
 }
 
 /**
- * Body copy, verbatim (`E2-rounding.md`, "The sheet").
+ * Body copy — the 31 August paragraph with the half that is no longer true
+ * replaced, and `design/handoff-game-end/`'s own second paragraph for the
+ * settle-up form of the sheet.
  *
- * Copy is final. The one word that is not the doc's is none: this is the
- * paragraph as written, and the sentence about what is kept underneath is the
- * one that answers the question the old sheet spent three blocks on.
+ * ⚠ THE HALF THAT WAS REPLACED IS THE ONLY ONE. Both the addendum and the
+ * 6 September cut open with *"stacks snap to the step as they are entered"*,
+ * and this app has not snapped a stack since 2 September: the step lands the
+ * POSITIONS, apportioned so they still sum to zero, and `finalCounts` is never
+ * rewritten. A sheet that told a host their count was about to be rounded would
+ * be describing the rule this repo removed, in the one place a host goes to
+ * decide whether to use it. B36 and B46.
+ *
+ * The rest is the doc's, including the sentence about what is kept underneath,
+ * which is the one that answers the question the old sheet spent three blocks
+ * on — and which is MORE true now, not less.
  */
 const BODY =
-  'Set it here and it governs the whole night: stacks snap to the step as they are entered, ' +
-  'and the nets and transfers follow. What was counted is kept underneath. Changeable until ' +
-  'the night is closed.';
+  'Set it here and it governs the whole night: every position lands on the step, and the ' +
+  'transfers follow. Nothing rewrites a count — what was counted is kept underneath. ' +
+  'Changeable until the night is closed.';
 
 /**
- * The same paragraph as E4 asks for it — frame `4b`, verbatim.
+ * The same paragraph as the settle-up screens ask for it — `2a`'s, cut
+ * 6 September, and it replaces frame `4b`'s.
  *
- * E2's version above is about the stacks, because that is what E2 is entering.
- * By E4 the stacks are counted and what a reader is looking at is a list of
- * payments, so the paragraph is about the nets and the transfers instead. Two
- * strings for one sheet, and both are the board's.
+ * `4b`'s ended *"the difference goes to the piggy bank"*, which was the
+ * remainder rule: the old stack rounding left one, and the tin absorbed it.
+ * There has been no remainder since 2 September — the apportionment leaves
+ * nothing over — so that sentence had the sheet promising the piggy bank money
+ * the settlement was never going to hand it. The new cut's paragraph says what
+ * this sheet actually does from here, and carries the same clause about the
+ * count being kept.
  */
 const AT_SETTLE =
-  'Nets round to the nearest step, both ways. The difference goes to the piggy bank, and the ' +
-  'transfers below follow the rounded nets.';
+  'Changing the step here recomputes the transfers on screen. Nothing rewrites a count — ' +
+  'what was counted is kept underneath. Changeable until the night is closed.';
 
 /** "Rounding · nearest $10", for the sub-line of a sheet that cannot change it. */
 const rowLabel = (mode: RoundingMode | null): string =>

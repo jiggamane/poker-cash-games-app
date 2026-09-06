@@ -78,7 +78,6 @@ is settled when it is not.
 | `/hand-over` | sheet | ✓ | ✓ | — | ☐ |
 | `/house-rules` | sheet | ✓ | ✓ | — | ☐ |
 | `/invite` | sheet | ✓ | ✓ | — | ☐ |
-| `/ledger` | push | ✓ | — | ✓ | ☐ |
 | `/log` | sheet | ✓ | ✓ | — | ☐ |
 | `/member` | sheet | ✓ | ✓ | — | ☐ |
 | `/money-rules` | sheet | ✓ | ✓ | — | ☐ |
@@ -100,18 +99,27 @@ is settled when it is not.
 | `/share` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/sign-in` | sheet | ✓ | ✓ | — | ☐ |
 | `/spend` | sheet | ✓ | ✓ | ✓ | ☐ |
-| `/stands` | push | ✓ | — | ✓ | ☐ |
 | `/stats` | push | ✓ | — | ✓ | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**38 screens · 38 under the rule pass · 21 under the sheet pass · 13 under a big
+**36 screens · 36 under the rule pass · 21 under the sheet pass · 13 under a big
 night · 0 conformed.**
 
-`/ledger` is the thirty-eighth, added 1 September: format `7e`, the four-column
-table, which stopped being E6's default in the same cut and became what *Full
-ledger* opens. The route pass reaches it cold and gets its "these rules cannot
-be drawn in columns" state, because the seeded night is not settled; the night
-pass opens it for real by tapping the button on a settled night.
+**`/stands` came out of this table on 6 September, having been deleted on the
+5th** — the row outlived the screen, so every count above it had been one high
+for a day and the tally said 38 where `ui-audit.mjs` was walking 36. That is the
+exact fault the "A coverage hole this file found" section below is about, in the
+other direction: a ledger claiming a screen it does not have is as wrong as one
+missing a screen it does. **The counts and the audit's `ROUTES` are now derivable
+from each other — if they disagree, one of them is lying.**
+
+`/ledger` was the thirty-eighth, added 1 September and **deleted 6 September**:
+`design/handoff-game-end/` drops *Full ledger* by name — *"do not build it, do
+not link to it"* — because everything it carried now reads on one line under
+each player's name on Final. It came off the route pass with the screen; the
+night pass, which used to open it by tapping the button, counts the terms on the
+row instead. See the note on the two game-end screens below for what the line
+does that the columns could not.
 
 `/games` and `/stats` joined the last of those on 30 August. They are where a
 night's figures live once the evening is over, and the run had never reached
@@ -351,6 +359,79 @@ night's own figures on the card it is testing.
 
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
+
+**`/settled`, `/payments`, `/rounding` and `/count-up` — 6 September, the
+game-end cut** (`design/handoff-game-end/`). It supersedes the 5 September `R1`
+/ `R2` cut on the two game-end screens and nothing else; every other screen in
+the app is untouched by it.
+
+*What was decided, and built.* `/settled` is ONE ranked list behind an `At the
+table` / `Final` toggle rather than three stacked blocks, re-sorted on every mode
+change — the cut's own rule, and `settledRows` does the sort so the two orders
+cannot come from two implementations. Under each name is the spend line: `in`
+`out` `bill` `piggy bank`, and on the one row that matters a fifth term, `+100
+back`, for a player who owes a share of the bill and paid for it at the counter.
+`/payments` gets the identical totals card, and its `Left to move` figure and
+both screens' status pills are one `paymentProgress` call — the cut is explicit
+that they must never be computed twice.
+
+*And `/ledger` is deleted*, which is the same decision from the other end: the
+four columns were `resultColumns`, which nets what somebody fronted against what
+they owe into one signed `food` figure because a four-column table has one column
+for the bill. The line has room for both, so it is a better statement of the same
+night and there is no second place to go for it.
+
+⚠ **THE STEP IS THE FIFTH TERM ON THE LINE, AND THE CUT DOES NOT DRAW IT.**
+`final` is the engine's figure and the step is inside it; `/ledger` had a fifth
+column for exactly this. Without it a rounded night draws four terms beside a net
+they do not come to. It is drawn only where `roundedBy` is non-zero, which is the
+only night it is not silent on.
+
+⚠ **ROUNDING LANDS THE POSITIONS, AND THIS CUT ARGUES WITH ITSELF ABOUT IT.**
+README rule 4 says stacks are rounded as they are entered and `Σ rounded − Σ raw`
+goes to the piggy bank. That is the 31 August rule, replaced on 2 September
+because it made two screens disagree about the tin by the size of the remainder
+(`stacks.ts`; B36). **Both boards in the bundle print `on the nets`**, which is
+the positions rule, and so does the README's own copy list. The screens win, the
+engine is unchanged, and the sub-lines in the rounding sheet say what actually
+moves — a position — rather than the cut's `No stack moves by more than ₾3`,
+which under this rule would quote a distortion the app does not apply while
+hiding the one it does. The two paragraphs in the sheet that still described the
+removed rule are B46.
+
+⚠ **`+₾100 → piggy` ON 2a IS CALLED A REMAINDER AND IS NOT ONE.** The cut's own
+worked night counts `1963 · 2047 · 1512 · 478`, which is ₾6,000 exactly and
+rounds at ₾10 to ₾6,000 exactly. The ₾100 is the piggy bank's deduction. The row
+draws the step's real effect, which on that night is nothing.
+
+⚠ **`Close the night` IS NOT DRAWN ON `/payments`.** The cut's 2a closes the
+night from that screen; this app closes it at settle-up, before `/payments` can
+be reached at all, so the button would either do nothing or claim to do something
+that already happened. Once every row is ticked the footer goes and the pill
+reads `Settled`, which is the state the button existed to reach. Chrome A forbids
+a pushed screen a second way out, so there is nothing to put in its place.
+
+⚠ **AND THE MIXED-LIST RULE GOES THE OTHER WAY ON `/payments`, DELIBERATELY.**
+The app's rule — 3 September, below — draws a finished item as a shorter tinted
+slab and takes its tap away. The cut draws transfers as one list where a ticked
+row dims in place and stays tappable, and it is right here: a player who has
+cashed out is done for the night, but a payment marked off is a claim about the
+world, wrong often enough that the app already had to build a way back (B21). A
+row that stays a row IS that way back. **Do not generalise this to the player
+lists**, where the rule stands.
+
+⚠ **THE PILL ON A SETTLED NIGHT REVERSES WHAT THAT SCREEN USED TO ARGUE**, and
+both halves survive. `/settled` said a confirmed result carries no status pill of
+its own, and it was right: nothing about a closed night's arithmetic is
+provisional. The pill is not about the arithmetic — it counts unpaid transfers,
+which is the one fact about a settled night that keeps changing over the week
+after it. So the meta line still ends with the night's state and the pill states
+what is left to move.
+
+*Open.* `Bought in · 8 players` is still drawn as `In play · 8 players` on
+`/count-up` — the 5 September instruction is a day older than this cut and about
+every screen rather than that one. See the `/stands` note below; the audit holds
+the word and says so.
 
 **`/stands` is deleted, and `IN PLAY` is the word** — 5 September, on the
 owner's instruction, off the game-outcomes journey map
