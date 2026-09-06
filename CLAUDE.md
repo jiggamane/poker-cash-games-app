@@ -112,11 +112,20 @@ wins over anything older, `design/handoff-2026-08-13/` (rev 14) included. Start
 at its `START-HERE.md`, then `docs/CHANGELOG.md`, which is cumulative and names
 what each revision supersedes.
 
-**Three partial cuts sit on top of it**, each superseding rev 18 only where it
+**Four partial cuts sit on top of it**, each superseding rev 18 only where it
 speaks and nowhere else. Everything rev 18 says about every other screen still
 stands. Read them newest first:
 
-- **`design/handoff-count-up-to-settled/`, cut 1 September — start here.** The
+- **`design/handoff-count-up-header/`, cut 6 September — start here.** The block
+  at the top of E2 Count up, and nothing else on that screen or any other. The
+  two-column card is retired: **the signed gap is the headline**, fluid from 38
+  points to a 24 floor, with the percentage beside it and the two sums in full
+  underneath at text size, so nothing in it can truncate at any digit count. No
+  eyebrow and no verdict strip. Counting a stack animates it into its rank slot.
+  ⚠ **It calls itself rev 18 and numbers its changes S108–S114, which collide
+  with the repository's rev 18** — cite either by date. Its `START-HERE.md` has
+  the collision and the two places the app deviates from it on purpose.
+- **`design/handoff-count-up-to-settled/`, cut 1 September.** The
   ending flow as one thing: E2 counts, E4 agrees the transfers, E6 reads the
   night back. It decides two things and carries the other two docs forward
   unchanged. **E6's row states the night's terms under the name** — `game

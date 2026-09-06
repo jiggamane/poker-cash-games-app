@@ -86,6 +86,56 @@ conversation and have not been written down. Say what they were and they go in.*
 
 ## Fixed
 
+### B43 — Count up cut short the one figure it exists to state
+
+```
+Screen      E2 /count-up, the balance block
+Seen        "₾47,0…" where the sum is ₾47,000. Two figures at 30/800 in half a
+            card each is about 123 points a figure, and a five-figure lari
+            amount does not go in 123 points — so the screen whose whole job is
+            comparing two sums stopped being able to print them at exactly the
+            point the numbers get big
+Expected    both sums readable in full at any digit count the block promises.
+            The cut that found it verifies nine, "+₾123,456,789", at 393 × 852
+Found       6 Sept, by the design rather than by a phone —
+            `design/handoff-count-up-header/`, which replaces the block rather
+            than widening it: the signed gap becomes the headline and the two
+            sums go underneath at text size, where nothing has to be a display
+            figure in half a card
+Locked by   npm run check — countUpBlock.test.ts holds the two rules the fix
+            rests on: the headline STEPS DOWN in size rather than shortening
+            (38 points to a 24 floor, and the nine-digit case lands on the
+            floor rather than under it), and a sum in the block abbreviates
+            from a billion rather than from a hundred thousand. And npm run
+            check:ui — ui-journeys.mjs's clipped pass over /count-up at three
+            text scales, plus npm run currency, which walks the same screen
+            with three glyphs of symbol in front of every figure
+Status      fixed in this commit
+```
+
+**It is the same fault as B15 and B38 and it kept coming back for one reason:
+the block was two display figures in half a card each.** B15 wrapped the total,
+B38 ellipsised the sub-line under it, and each was fixed by finding room inside
+that shape — a compact form here, a two-line box there. The shape is what was
+wrong. A 30-point figure needs about 104 points for six glyphs before the text
+setting touches it, the card has 317 inside it on the reference phone, and two
+of them side by side with a divider between will not hold a currency whose
+amounts run five figures. Lari does; so does koruna; so does any night at a
+table where the chips are worth ten of something.
+
+So the fix is not more room. It is that **only one figure in the block is a
+display figure now** — the gap, which is the thing the host acts on — and it is
+fluid rather than fixed, stepping from 38 points down to 24 as the digits
+arrive. The two sums are 18-point text on rows of their own, where the caption
+beside them is what compresses. The old sub-lines went with the columns, which
+retires B38's two-line boxes along with the line that needed them.
+
+**And it moves on its own for a wider symbol.** `fitFor` drops the abbreviation
+threshold a decade per glyph of currency, so the block gives up at ten million
+in CHF and at a hundred million in koruna without anything here knowing. Three
+glyphs in front of nine digits is a different measurement, and B33 is what
+forgetting that costs.
+
 ### B41 — nothing could say which migrations the live project actually has
 
 ```

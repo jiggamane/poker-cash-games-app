@@ -169,24 +169,33 @@ const DRAWN = {
   '/new-night': ['Stakes', 'Default buy-in', 'Money rules', 'Find a player'],
 
   /*
-   * `design/handoff-E2/boards/Settled Status.dc.html`, layout 2a — the balance
-   * block, which is the whole of that handoff.
+   * `design/handoff-count-up-header/`, option `1b` — the header block, which is
+   * the whole of that cut. It retires layout 2a from `design/handoff-E2/`.
    *
-   * BOTH SUMS ARE HERE ON PURPOSE. The block it replaced showed one figure
-   * against the chips still on the table, which is the same arithmetic with
-   * half of it off screen: a night missing a cash-out reads DONE, because the
-   * money nobody entered was subtracted out of both sides before they were
-   * compared. "A screen that only says BALANCED is not checkable" is the
-   * handoff's own sentence, and this is what holds it — a later pass that
-   * drops a column to buy width takes this red rather than shipping.
+   * BOTH SUMS ARE HERE ON PURPOSE, and that has not changed with the block
+   * they are drawn in. The card before them showed one figure against the
+   * chips still on the table, which is the same arithmetic with half of it off
+   * screen: a night missing a cash-out reads DONE, because the money nobody
+   * entered was subtracted out of both sides before they were compared. "A
+   * screen that only says BALANCED is not checkable" is the E2 handoff's own
+   * sentence, and these two lines are what hold it — a later pass that drops a
+   * sum to buy width takes this red rather than shipping.
    *
-   * The seeded night is mid-count, so the strip reads the countdown and the
-   * two groups below are both drawn. Its verdict states are covered by
-   * `balance.test.ts` and played through in `ui-journeys.mjs`.
+   * WHAT WENT WITH THE COLUMNS. `LEFT TO ACCOUNT FOR` is gone and is not to be
+   * put back: the verdict strip and the state eyebrow both came off in rev 18,
+   * because the signed gap, its colour and the percentage beside it say what
+   * the strip said in words. The gap itself is a signed figure rather than a
+   * fixed string, so what stands for it here is the pair of captions — the
+   * only two strings the block has left.
+   *
+   * The seeded night is mid-count, so the second caption carries its
+   * still-to-count clause and the two groups below are both drawn. The block's
+   * states are covered by `balance.test.ts` and played through in
+   * `ui-journeys.mjs`.
    */
   '/count-up': [
     /*
-     * `IN PLAY` WHERE THE BOARD DRAWS `BOUGHT IN` — 5 September, on the owner's
+     * `In play` WHERE THE CUT WRITES `Bought in` — 5 September, on the owner's
      * instruction, and this line is the one that went red for it, which is the
      * pass working rather than the pass being wrong.
      *
@@ -196,12 +205,14 @@ const DRAWN = {
      * word everywhere. The half of the equation this row is here to hold is
      * unchanged — it is still both sides, and still named.
      *
-     * `docs/screens.md` carries the decision and what it costs. Do not put
-     * `BOUGHT IN` back by reading the board.
+     * IT SURVIVED THE REBUILD DELIBERATELY. The 6 September cut draws the
+     * caption as `Bought in · 8 players`, which is the board's word again in
+     * sentence case; the decision above is a day older than that cut and about
+     * every screen rather than this one. `docs/screens.md` carries it and what
+     * it costs. Do not put `Bought in` back by reading the cut.
      */
-    'IN PLAY',
-    'ACCOUNTED FOR',
-    'LEFT TO ACCOUNT FOR',
+    'In play',
+    'Accounted for',
     /*
      * THE THREE GROUPS — `design/handoff-count-up-to-settled/boards/Cashed Out
      * States.dc.html`, frame `1a`, and `docs/05-active-vs-settled.md`.
