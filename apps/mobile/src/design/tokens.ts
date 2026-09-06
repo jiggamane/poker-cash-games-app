@@ -55,6 +55,15 @@ export interface Theme {
    * money rather than a de-emphasised one.
    */
   offTableWash: string;
+  /**
+   * The off-the-table hue as a status pill — 13% behind it, 32% around it.
+   *
+   * `offTableWash` is a ROW's wash and is deliberately faint; a pill is a small
+   * object on a card and disappears at 9%. Two values rather than one reused
+   * because they are answering different questions about the same colour.
+   */
+  offTableTint: string;
+  offTableEdge: string;
 
   /**
    * The inverted card on the home screen — ink on white, white on ink. Its
@@ -217,6 +226,8 @@ export const darkTheme: Theme = {
   winTint: 'rgba(111,207,151,0.14)',
   offTable: '#D9D3C4',
   offTableWash: 'rgba(217,211,196,0.09)',
+  offTableTint: 'rgba(217,211,196,0.13)',
+  offTableEdge: 'rgba(217,211,196,0.32)',
   onFillWin: '#0E8A4F',
   dangerWash: 'rgba(240,112,92,0.12)',
   dangerEdge: 'rgba(240,112,92,0.35)',
@@ -270,6 +281,8 @@ export const lightTheme: Theme = {
   // the wash is the same 9% as the dark theme, only the hue changes.
   offTable: '#786644',
   offTableWash: 'rgba(120,102,68,0.09)',
+  offTableTint: 'rgba(120,102,68,0.13)',
+  offTableEdge: 'rgba(120,102,68,0.32)',
   // DELIBERATE DEVIATION. Both boards draw this dot #0A7A3D, but here the card
   // is filled with ink, so the board's value is a dark green on near-black —
   // about 2.5:1. Read as the intent ("green that reads on the fill") rather

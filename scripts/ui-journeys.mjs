@@ -1211,29 +1211,33 @@ async function playANight(name, rebuys) {
   await stop('night settled · game results');
 
   /*
-   * AND `7e` IS BEHIND *FULL LEDGER* — `02-E6-results-row.md`, cut 1 September:
-   * the four-column table "stays as the full-screen variant behind the *Full
-   * ledger* button, where columns are worth the width".
+   * AND THE FOUR TERMS ARE ON THE ROW — `design/handoff-game-end/`, cut
+   * 6 September, which drops `Full ledger` in as many words: *"do not build it,
+   * do not link to it... everything it carried now reads on one line under each
+   * player's name on Final, so there is no second place to go for the same four
+   * terms."*
    *
-   * IT CARRIES MORE WEIGHT SINCE 2 SEPTEMBER, not less. The record above now
-   * states the game results and keeps the deductions out of them, so this is
-   * the one screen in the app where somebody who wants to see how a deduction
-   * reached them can watch it happen. The route pass reaches `/ledger` on the
-   * seeded mid-count night, where there is no table to draw, so this is the
-   * only check that opens the door with a night behind it.
+   * THIS IS THE CHECK THAT GOES RED IF THE LINE EVER GOES QUIET. `7e` was a
+   * whole screen and its absence was obvious; a line of terms under a name can
+   * lose its last term to a wrap, a filter or a zero test and look completely
+   * normal. So the terms are counted here, on a night that charged all of them,
+   * with the bill's two halves asserted separately — the repayment is the one
+   * the old columns could not draw at all.
    */
-  await tap('Full ledger');
   await holds(
-    'the full ledger draws the four columns',
-    (await page.locator(':text-is("game"):visible').count()) === 1 &&
-      (await page.locator(':text-is("food"):visible').count()) === 1 &&
-      (await page.locator(':text-is("piggy"):visible').count()) === 1 &&
-      (await page.locator(':text-is("net"):visible').count()) === 1,
-    'Full ledger does not draw the four columns',
+    'the Final row carries the four terms it replaced the ledger with',
+    (await page.locator(':text-matches("^in [0-9,]+$"):visible').count()) > 0 &&
+      (await page.locator(':text-matches("^out [0-9,]+$"):visible').count()) > 0 &&
+      (await page.locator(':text-matches("^bill [0-9,]+"):visible').count()) > 0 &&
+      (await page.locator(':text-matches("^piggy bank [0-9,]+$"):visible').count()) > 0,
+    'the Final spend line is missing one of in / out / bill / piggy bank',
   );
-  await stop('full ledger · the columns');
-
-  await tap('Back to the night');
+  await holds(
+    'and the bill a player fronted is its own term, never netted',
+    (await page.locator(':text-matches("\\+[0-9,]+ back"):visible').count()) > 0,
+    'nobody on this night is shown the bill they paid coming back',
+  );
+  await stop('night settled · the spend line');
 
   /*
    * B27 — THE FLOAT IS NAMED, NOT BANKED.

@@ -89,7 +89,7 @@ const SHEET_FULL_HEIGHT_BELOW = 700;
 /** Every route in the app. The layout is not one. */
 const ROUTES = [
   '/', '/session', '/pick', '/seat', '/entry', '/log', '/player', '/bill', '/spend',
-  '/count-up', '/deductions', '/settle-up', '/settled', '/ledger', '/payments', '/nudge',
+  '/count-up', '/deductions', '/settle-up', '/settled', '/payments', '/nudge',
   '/games', '/stats', '/players', '/member', '/groups', '/new-group', '/new-night',
   '/settings', '/club-rules', '/money-rules', '/rule', '/bill-rules', '/piggy-bank-rules',
   '/house-rules', '/sign-in', '/claim', '/invite', '/watch', '/hand-over',
