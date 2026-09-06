@@ -201,7 +201,7 @@ function TransferRow({ line }: { line: TransferLine }) {
         {line.to}
       </Text>
       <Text style={[styles.amount, { color: ink }]} numberOfLines={1} {...cappedFigure}>
-        {formatToFit(line.amount, 100000)}
+        {formatToFit(line.amount, ROW_FITS)}
       </Text>
 
       {/*
@@ -224,6 +224,9 @@ function TransferRow({ line }: { line: TransferLine }) {
 
 const nightDate = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+/* The transfer amount at 18/700, with two names giving beside it. */
+const ROW_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },

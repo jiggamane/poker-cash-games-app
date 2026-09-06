@@ -318,7 +318,7 @@ function List({ rows, final }: { rows: SettledRow[]; final: boolean }) {
             numberOfLines={1}
             {...cappedFigure}
           >
-            {row.net === 0 ? formatMoney(row.net) : formatSignedToFit(row.net, 100000)}
+            {row.net === 0 ? formatMoney(row.net) : formatSignedToFit(row.net, ROW_FITS)}
           </Text>
         </View>
       ))}
@@ -447,6 +447,14 @@ function elapsed(startedAt: string, endedAt: string | null): string {
 /* "Sat 29 Aug". SHORT, so the title holds one line at full width. */
 const nightDate = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+/*
+ * The net at 19/700, with the name and the spend line taking the rest of the
+ * row. The same threshold `NightResult`'s rows use, and for the same reason:
+ * everything under seven figures is drawn in full, and a night past that gets
+ * a compact figure rather than a clipped one.
+ */
+const ROW_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
