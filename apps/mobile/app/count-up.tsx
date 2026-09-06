@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { router } from 'expo-router';
 import {
   AccessibilityInfo,
   Animated,
   Easing,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -447,6 +448,8 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
   const t = useTheme();
   const tone = toneOf(balance);
   const c = paint(t, tone);
+  const balanced = tone === 'balanced';
+  const shut = useCollapse(balanced);
 
   /* The cut's `accounted_for − bought_in`, which is the engine's `left` the
      other way up: a positive gap is money on the table that nobody bought. */
@@ -471,7 +474,40 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
   const accounted = waiting === 0 ? `${done} counted` : `${done} counted, ${waiting} still to count`;
 
   return (
-    <View style={[styles.block, { backgroundColor: t.surface, borderColor: c.edge }]}>
+    <Pressable
+      /*
+       * ONLY ONCE IT BALANCES. A card that could be folded away mid-count would
+       * be offering to hide the one figure the screen exists to drive to zero.
+       */
+      accessibilityRole={balanced ? 'button' : undefined}
+      accessibilityLabel={balanced && shut.collapsed ? `Balanced, ${formatToFit(balance.boughtIn, BLOCK_FITS)} in play` : undefined}
+      accessibilityHint={balanced ? 'Double tap to show the comparison.' : undefined}
+      onPress={balanced ? shut.toggle : undefined}
+      style={[styles.block, { backgroundColor: t.surface, borderColor: c.edge }]}
+    >
+      {shut.collapsed ? (
+        /*
+         * THE ONE LINE THE CARD KEEPS — `✓ Balanced ₾47,000 in play`.
+         *
+         * The comparison has done its job the moment the two sums agree, and
+         * from there it is 90 points of arithmetic held over the list a host is
+         * actually working through. What survives is the verdict and the figure,
+         * which is what a person glances back up at.
+         */
+        <View style={styles.shutLine}>
+          <Icon name="check" color={t.win} size={17} />
+          <Text style={[styles.shutVerdict, { color: t.win }]} numberOfLines={1}>
+            Balanced
+          </Text>
+          <Text style={[styles.shutFigure, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
+            {formatToFit(balance.boughtIn, BLOCK_FITS)}
+          </Text>
+          <Text style={[styles.shutCaption, { color: t.muted }]} numberOfLines={1}>
+            in play
+          </Text>
+        </View>
+      ) : (
+      <>
       <View style={styles.headline}>
         <Text
           style={[styles.gap, { color: c.ink, fontSize: size, lineHeight: size * 1.05, letterSpacing: -0.03 * size }]}
@@ -507,8 +543,53 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
         />
         <Sum caption={`Accounted for · ${accounted}`} colour={c.ink} amount={balance.accountedFor} />
       </View>
-    </View>
+      </>
+      )}
+    </Pressable>
   );
+}
+
+/**
+ * The comparison folds itself away once it has been read — `CountUpEnd.dc.html`,
+ * cut 6 September.
+ *
+ * IT WAITS 1,100ms, and the wait is the point: *"long enough to read the balance
+ * moment"*. The last stack going in is the moment the night adds up, the card
+ * turns green and both sums agree, and collapsing on the same frame would take
+ * that away to save a person a scroll they had not asked to make yet.
+ *
+ * A HAND ON IT WINS. Once somebody has tapped the line the timer is done with —
+ * re-arming it would fold the card back up under a reader who had just opened
+ * it, which is the one thing worse than folding it too early.
+ *
+ * AND IT UNFOLDS THE MOMENT THE NIGHT STOPS BALANCING. A correction that puts
+ * the count out again is exactly when the comparison is wanted, and nobody
+ * should have to remember that the card is a card.
+ */
+function useCollapse(balanced: boolean): { collapsed: boolean; toggle: () => void } {
+  const [collapsed, setCollapsed] = useState(false);
+  /* Set by a tap, cleared when the night stops balancing. */
+  const handled = useRef(false);
+
+  useEffect(() => {
+    if (!balanced) {
+      handled.current = false;
+      setCollapsed(false);
+      return;
+    }
+    if (handled.current) return;
+
+    const timer = setTimeout(() => setCollapsed(true), SETTLE_MS);
+    return () => clearTimeout(timer);
+  }, [balanced]);
+
+  return {
+    collapsed,
+    toggle: () => {
+      handled.current = true;
+      setCollapsed((was) => !was);
+    },
+  };
 }
 
 /**
@@ -636,6 +717,8 @@ const SHIFT_MS = 560;
 const STAGGER_MS = 26;
 /** The wash is held for 45% of its 1300, then released over the rest. */
 const HOLD_MS = 1300;
+/* How long the balance moment is held before the comparison folds away. */
+const SETTLE_MS = 1100;
 const HELD = 0.45;
 
 /** What the sweep tells one row to do. */
@@ -920,6 +1003,18 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     gap: 12,
   },
+  /* `✓ Balanced  ₾47,000 in play` — one row, and the card's own padding round
+     it, so folding does not change the block's gutters. */
+  shutLine: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  shutVerdict: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
+  shutFigure: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontSize: 17,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  shutCaption: { fontSize: 12, fontWeight: '500', flexShrink: 0 },
   /* Bottom-aligned, so the percentage sits on the foot of the figure whatever
      size the figure has come out at. */
   headline: { flexDirection: 'row', alignItems: 'flex-end', gap: 9 },

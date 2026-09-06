@@ -825,6 +825,32 @@ async function playANight(name, rebuys) {
   await stop('count up · balanced');
 
   /*
+   * AND THE COMPARISON FOLDS ITSELF AWAY — `CountUpEnd.dc.html`, cut
+   * 6 September: 1,100ms after the sums agree, the card keeps one line.
+   *
+   * WORTH A CHECK BECAUSE BOTH FAILURES ARE SILENT. A collapse that never fires
+   * leaves 90 points of arithmetic over the list for the rest of the night and
+   * looks exactly like the screen always did; one that cannot be reopened takes
+   * the balance check away for good and looks like a tidy screen. So: wait past
+   * the timer, assert the sums have gone, tap the line, assert they are back.
+   */
+  await page.waitForTimeout(1500);
+  await holds(
+    'the balance comparison folds away once the night adds up',
+    (await page.locator(':text-is("Balanced"):visible').count()) === 1 &&
+      (await page.locator(':text-matches("^Accounted for"):visible').count()) === 0,
+    'the balance card did not fold after the last stack went in',
+  );
+  await tap('Balanced');
+  await holds(
+    'and tapping the line brings it back',
+    (await page.locator(':text-matches("^Accounted for"):visible').count()) === 1,
+    'the folded balance card does not reopen',
+  );
+  await stop('count up · folded');
+  await tap('Balanced');
+
+  /*
    * THE ROUNDING STEP, SET WHERE THE STACKS ARE ENTERED —
    * `design/handoff-E2/docs/E2-rounding.md`, cut 31 August.
    *
