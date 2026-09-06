@@ -99,7 +99,7 @@ is settled when it is not.
 | `/settled` | push | ✓ | — | ✓ | ☐ |
 | `/share` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/sign-in` | sheet | ✓ | ✓ | — | ☐ |
-| `/spend` | sheet | ✓ | ✓ | — | ☐ |
+| `/spend` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/stands` | push | ✓ | — | ✓ | ☐ |
 | `/stats` | push | ✓ | — | ✓ | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
@@ -939,7 +939,31 @@ behaving perfectly. `ui-journeys.mjs` owns it instead: with the count in, it tap
 *Add a spend* on that screen, types a figure on the pad, names who paid, and
 asserts the spend lands on the bill. Same shape as `/share`, for the same reason.
 
-**`/spend`** — the keypad is on BOTH states now. It used to be drawn only when
+**`/spend` is two steps as of 6 September, and the pad sits under the figure.**
+It was one screen — figure, note, eight chips naming everybody at the table,
+keypad — which put the pad 343 points below the amount it types. On the
+reference phone you could see the figure or the whole pad and never both; on a
+360 × 640 Android the pad was off the bottom of the sheet when it opened, so the
+host typed the amount blind. B45 has the measurements. The pad moved up under
+the figure, where /log, /entry and /share all keep theirs, and *Covered by*
+became a step of the same sheet behind a row that states who is covering it —
+`Nobody yet`, `The piggy bank`, a name, or names joined with ` · `. One sheet,
+one close, content replaced rather than pushed: `09-navigation.md`, and the
+shape `new-night.tsx` already had. Content went 685 → 543 and the reference
+phone now draws the whole sheet without scrolling.
+
+**This deviates from L2's board, which draws the chips on the one screen**, and
+the deviation is deliberate: the board draws a screen, not a phone, and the
+chips are what pushed the pad off it. `pad-below-the-fold` in `ui-audit.mjs`
+holds the rule the deviation exists for, on all six devices. `ui-journeys.mjs`
+walks the step — open the row, name them, Done — and measures the second step as
+a stop of its own, which is why the Night column above is ticked for this route.
+
+Deselecting the last fronter now leaves the spend on `Nobody yet` rather than on
+an empty list of players: with the chips a step away, an empty list is a Save
+that will not go and a screen that no longer says why.
+
+**The keypad is on BOTH states.** It used to be drawn only when
 adding, so L3 — whose first row the spec calls *Amount* — showed a figure with
 no way to change it, and a spend logged at $1,200 instead of $120 could only be
 voided. That is B24, and it was hiding a second fault: the sheet can mount before

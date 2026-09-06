@@ -895,11 +895,16 @@ const SHEET_ROUTES = [
  * body scrolls inside it. Below 700 points of usable height there is no peek
  * at all and every sheet is full-height.
  *
+ * The last check is not about height at all but can only be asked here, on
+ * the device matrix: on a sheet where an amount is typed on the app's own pad,
+ * the pad has to START on screen, so the running figure above it is still
+ * there while it is being typed. See B45.
+ *
  * `gap` and `floor` are passed in rather than imported: this file is plain
  * node and the tokens are TypeScript. They are asserted against the tokens by
  * `Sheet.geometry.test.ts`, so the two cannot drift apart in silence.
  */
-const SHEET = `({ insetTop, insetBottom, gap, floor }) => {
+const SHEET = `({ insetTop, insetBottom, gap, floor, keypad }) => {
   const px = (v) => Math.round(v * 10) / 10;
   const panel = document.querySelector('#sheet-root');
   if (panel === null) return { none: true };
@@ -974,6 +979,46 @@ const SHEET = `({ insetTop, insetBottom, gap, floor }) => {
       check: 'sheet-content-unreachable',
       detail: 'something is drawn outside the panel and nothing inside it scrolls',
     });
+  }
+
+  // ---- the figure and the pad it types into are on screen together -------
+  //
+  // B45. /spend drew the figure, then the note, then eight chips naming
+  // everybody at the table, and only then the pad — 343 points below the
+  // figure. On the reference phone you could see the figure or the whole pad
+  // and never both; on a 360 × 640 Android the pad was not on screen at all
+  // when the sheet opened, and the host typed the amount blind. That is the
+  // one thing Keypad.tsx says the app's own pad exists to prevent, and
+  // nothing in this file could see it: the panel was the right height, the
+  // footer was inside it, the body scrolled, every check passed.
+  //
+  // ONE MEASUREMENT COVERS BOTH HALVES. A sheet opens unscrolled, so anything
+  // above the pad is on screen whenever the pad's own top is — which makes
+  // "the figure is still visible" and "the pad has started" the same question,
+  // asked of the pad.
+  //
+  // 40 points, against a key row of 57: the rule is that a usable row of keys
+  // is showing, not that a hairline of one is. /log clears it by about 100
+  // on every phone in the matrix and /share by 59 on the tightest — which is
+  // close, and is the real state of that screen rather than a slack threshold.
+  if (keypad) {
+    const del = panel.querySelector('[aria-label="Delete"]');
+    const pad = del === null ? null : del.parentElement;
+    const scroller = bodies[0] ?? null;
+    if (pad !== null && scroller !== null) {
+      const p = pad.getBoundingClientRect();
+      const s = scroller.getBoundingClientRect();
+      const room = px(s.bottom - p.top);
+      if (room < 40) {
+        findings.push({
+          check: 'pad-below-the-fold',
+          detail:
+            'the pad starts at ' + px(p.top) + ' and the body ends at ' + px(s.bottom) +
+            ' — ' + (room <= 0 ? 'none of it' : room + ' points of it') +
+            ' is on screen without scrolling the figure away',
+        });
+      }
+    }
   }
 
   return { none: false, at, cap, usable, top: px(b.top), height: px(b.height), findings };
@@ -1195,6 +1240,9 @@ if (sheetRoutes.length > 0) {
           insetBottom: bottom,
           gap: SHEET_GAP,
           floor: SHEET_FULL_HEIGHT_BELOW,
+          // The pad check below only asks its question of a screen that types
+          // an amount on one — the same three the route pass holds to A8.
+          keypad: KEYPAD.includes(route),
         });
       } catch (e) {
         m = { error: String(e).split('\n')[0] };

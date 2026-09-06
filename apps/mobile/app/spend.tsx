@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { money, resolveLedger, type Money, type PlayerId } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
 import { Button } from '../src/components/Button';
+import { Icon } from '../src/components/Icon';
 import { Keypad } from '../src/components/Keypad';
 import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { Sheet } from '../src/components/Sheet';
@@ -21,9 +22,21 @@ import {
 /**
  * Add a spend — L2 — and edit one — L3. 11-bill-and-piggy-bank.md.
  *
- * One screen, no steps: an amount, an optional note, and who covered it. The
- * time is stamped on save and there is no time field, because a round of
- * drinks is bought now and back-dating it changes nothing about the money.
+ * TWO STEPS, AND THE SECOND ONE IS *COVERED BY*. It was one screen until 6
+ * September, in this order: the figure, the note, eight chips naming everybody
+ * at the table, and the keypad under all of it. That put the pad 343 points
+ * below the figure it types into — on the reference phone you could see the
+ * figure or the whole pad and never both, and on a 360 × 640 Android the pad
+ * was not on screen at all when the sheet opened. A host typing $1,200 typed it
+ * blind, which is the exact fault `Keypad.tsx` exists to prevent: "a keyboard
+ * sliding up would cover the running figure". See B45.
+ *
+ * So the pad sits directly under the figure, the way it does on every other
+ * amount sheet in this app — /log, /entry and /share are all figure, one short
+ * row, pad — and the chips move behind a row that states who is covering it.
+ * `09-navigation.md`: a multi-step flow REPLACES ONE SHEET'S CONTENT and keeps
+ * one close, so the close returns to the spend rather than dismissing, and the
+ * sheet never pushes. `new-night.tsx` is the same shape.
  *
  * THERE IS NO TYPE ON A SPEND, and there are no prefills above the note either.
  * L2 drew a chip row writing `Food`, `Drinks` or `Venue` into the field, and on
@@ -33,15 +46,16 @@ import {
  * Nothing but the amount affects the arithmetic, an empty note is valid, and
  * the bill row shows the amount alone when there is no note.
  *
- * THE KEYPAD IS ON BOTH STATES. It used to be drawn only when adding, so L3's
- * Amount row — "Rows: Amount, Note, then Covered by" — had a figure on it and
- * no way to change it: a spend logged at $1,200 instead of $120 could only be
- * voided and typed again. See B24 in `docs/bugs.md`.
+ * THE KEYPAD IS ON THE SPEND STEP WHETHER ADDING OR EDITING. It used to be
+ * drawn only when adding, so L3's Amount row — "Rows: Amount, Note, then
+ * Covered by" — had a figure on it and no way to change it: a spend logged at
+ * $1,200 instead of $120 could only be voided and typed again. See B24.
  *
  * Covered by has four cases and they are not decoration: one player is repaid
  * exactly what they fronted, several players must sum to the spend before Save
  * will go, the piggy bank is repaid nothing because the money left it, and
  * nobody yet leaves the spend on the bill and unpaid until someone is named.
+ * All four are stated on the row before it is opened.
  */
 export default function SpendScreen() {
   const t = useTheme();
@@ -110,6 +124,12 @@ export default function SpendScreen() {
   }, [existing]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /*
+   * WHICH STEP THE ONE SHEET IS SHOWING. `new-night.tsx` holds its flow the
+   * same way, and 09-navigation is why both do: the content is replaced, the
+   * close comes back a step, and there is never a second panel.
+   */
+  const [step, setStep] = useState<Step>('spend');
 
   if (night === null || ledger === null) return <Sheet title="A spend">{null}</Sheet>;
 
@@ -126,6 +146,31 @@ export default function SpendScreen() {
   const sharesAddUp = picked.length <= 1 || fronted === amount;
   const valid =
     Number.isInteger(amount) && amount > 0 && (cover.kind !== 'players' || picked.length > 0) && sharesAddUp;
+
+  /*
+   * WHAT THE ROW SAYS BEFORE THE LIST IS OPENED, and it says all four cases.
+   *
+   * The chips are a step away now, so this line is the only thing on the spend
+   * step that names who is covering it — a row that read "1 person" would be
+   * asking the host to open it to find out which. Several fronters are joined
+   * the way tonight's rules are joined on New session: names, ` · `, no count.
+   */
+  const nameOf = (pid: PlayerId): string => seated.find((s) => s.id === pid)?.name ?? 'Someone';
+  const coveredBy =
+    cover.kind === 'kitty'
+      ? 'The piggy bank'
+      : cover.kind === 'unpaid' || picked.length === 0
+        ? 'Nobody yet'
+        : picked.map(nameOf).join(' · ');
+
+  /*
+   * The blocking shortfall, on both footers: the spend step's primary will not
+   * save while the shares disagree with the figure, and the covered-by step's
+   * Done will not leave while they do — the same sentence rather than two.
+   */
+  const shortfall = sharesAddUp
+    ? null
+    : `${formatMoney(Math.abs(amount - fronted) as Money)} ${fronted < amount ? 'still to cover' : 'too much covered'}`;
 
   async function save() {
     if (!valid || busy) return;
@@ -161,168 +206,239 @@ export default function SpendScreen() {
 
   return (
     <Sheet
-      title={existing === undefined ? 'Add a spend' : 'The spend'}
-      sub={
-        existing === undefined
-          ? `stamped ${now()}`
-          : `logged ${existing.at}${existing.entryIds.length > 1 ? ' · fronted by several' : ''}`
+      title={
+        step === 'covered'
+          ? 'Covered by'
+          : existing === undefined
+            ? 'Add a spend'
+            : 'The spend'
       }
+      {...(step === 'spend'
+        ? {
+            sub:
+              existing === undefined
+                ? `stamped ${now()}`
+                : `logged ${existing.at}${existing.entryIds.length > 1 ? ' · fronted by several' : ''}`,
+          }
+        : {})}
+      /* One sheet, one close: on the second step it comes back a step rather
+         than throwing away a half-typed spend. 09-navigation. */
+      {...(step === 'covered' ? { onClose: () => setStep('spend') } : {})}
       footer={
-        <>
+        step === 'covered' ? (
+          /* Nothing is held back to be saved here — a chip writes the state as
+             it is tapped — so this is the way back for somebody who opened the
+             list, and the block for shares that do not add up. */
           <Button
-            label={
-              !sharesAddUp
-                ? `${formatMoney(Math.abs(amount - fronted) as Money)} ${fronted < amount ? 'still to cover' : 'too much covered'}`
-                : amount === 0
+            label={shortfall ?? 'Done'}
+            variant="primary"
+            disabled={shortfall !== null}
+            onPress={() => setStep('spend')}
+          />
+        ) : (
+          <>
+            <Button
+              label={
+                shortfall ??
+                (amount === 0
                   ? 'Type an amount'
                   : existing === undefined
                     ? `Add ${formatMoney(money(amount))} to the bill`
-                    : 'Save changes'
-            }
-            variant="primary"
-            disabled={!valid || busy}
-            onPress={() => void save()}
-          />
-          {existing !== undefined && (
-            <Button
-              label="Void this spend"
-              variant="destructive"
-              disabled={busy}
-              onPress={() => void discard()}
+                    : 'Save changes')
+              }
+              variant="primary"
+              disabled={!valid || busy}
+              onPress={() => void save()}
             />
-          )}
-        </>
+            {existing !== undefined && (
+              <Button
+                label="Void this spend"
+                variant="destructive"
+                disabled={busy}
+                onPress={() => void discard()}
+              />
+            )}
+          </>
+        )
       }
     >
-      <Text
-        {...cappedFigure}
-        style={[
-          styles.amount,
-          typedFigureSize(formatMoney(money(amount)), 68),
-          { color: amount > 0 ? t.text : t.muted },
-        ]}
-      >
-        {formatMoney(money(amount))}
-      </Text>
+      {step === 'spend' ? (
+        <>
+          <Text
+            {...cappedFigure}
+            style={[
+              styles.amount,
+              typedFigureSize(formatMoney(money(amount)), 68),
+              { color: amount > 0 ? t.text : t.muted },
+            ]}
+          >
+            {formatMoney(money(amount))}
+          </Text>
 
-      <View style={styles.block}>
-        <View style={styles.labelRow}>
-          <Text style={[styles.label, { color: t.muted }]}>NOTE</Text>
-          <Text style={[styles.optional, { color: t.dim }]}>optional</Text>
-        </View>
-        <TextInput
-          value={note}
-          onChangeText={setNote}
-          placeholder="What it was"
-          placeholderTextColor={t.muted}
-          autoCapitalize="sentences"
-          style={[
-            styles.input,
-            {
-              color: t.text,
-              backgroundColor: t.surface,
-              borderColor: note.trim() === '' ? t.dashed : t.hairline,
-              borderStyle: note.trim() === '' ? 'dashed' : 'solid',
-            },
-          ]}
-        />
-      </View>
-
-      <View style={styles.block}>
-        <Text style={[styles.label, { color: t.muted }]}>COVERED BY</Text>
-        <View style={styles.chips}>
-          {seated.map((p) => {
-            const on = cover.kind === 'players' && cover.ids.includes(p.id);
-            return (
-              <Pressable
-                key={p.id}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}
-                onPress={() =>
-                  setCover((c) => ({
-                    kind: 'players',
-                    ids:
-                      c.kind === 'players' && c.ids.includes(p.id)
-                        ? c.ids.filter((x) => x !== p.id)
-                        : [...(c.kind === 'players' ? c.ids : []), p.id],
-                  }))
-                }
-                style={({ pressed }) => [
-                  styles.chip,
-                  on
-                    ? { backgroundColor: t.text, borderColor: t.text }
-                    : { borderColor: t.quietOutline },
-                  { opacity: pressed ? 0.7 : 1 },
-                ]}
-              >
-                <Text style={[styles.chipLabel, { color: on ? t.onFill : t.text }]}>{p.name}</Text>
-              </Pressable>
-            );
-          })}
-
-          <CoverChip
-            label="The piggy bank"
-            on={cover.kind === 'kitty'}
-            onPress={() => setCover({ kind: 'kitty' })}
-          />
-          <CoverChip
-            label="Nobody yet"
-            dashed
-            on={cover.kind === 'unpaid'}
-            onPress={() => setCover({ kind: 'unpaid' })}
-          />
-        </View>
-
-        {picked.length > 1 && (
-          <View style={styles.shares}>
-            {picked.map((pid) => (
-              <View key={pid} style={styles.shareRow}>
-                <Text style={[styles.shareName, { color: t.text }]}>
-                  {seated.find((s) => s.id === pid)?.name ?? 'Someone'}
-                </Text>
-                <TextInput
-                  value={shares[pid] ?? ''}
-                  onChangeText={(v) =>
-                    setShares((s) => ({ ...s, [pid]: v.replace(/[^0-9]/g, '') }))
-                  }
-                  // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
-                  // to a digits-only keyboard.
-                  testID="amount"
-                  keyboardType="number-pad"
-                  placeholder="0"
-                  placeholderTextColor={t.muted}
-                  style={[
-                    styles.shareInput,
-                    {
-                      color: t.text,
-                      backgroundColor: t.surface,
-                      borderColor: sharesAddUp ? t.hairline : t.danger,
-                    },
-                  ]}
-                />
-              </View>
-            ))}
-            <Text style={[styles.shareNote, { color: sharesAddUp ? t.muted : t.danger }]}>
-              {formatMoney(fronted as Money)} of {formatMoney(money(amount))} covered.
-            </Text>
+          {/* THE PAD, DIRECTLY UNDER THE FIGURE IT TYPES INTO — B45, and the
+              order every other amount sheet is already in. Nothing goes
+              between these two. */}
+          <View style={styles.pad}>
+            <Keypad {...field.keys} />
           </View>
-        )}
 
-        <Text style={[styles.explain, { color: t.muted }]}>
-          {cover.kind === 'kitty'
-            ? 'The piggy bank paid it directly. Nobody is reimbursed — the money has already left it.'
-            : cover.kind === 'unpaid'
-              ? 'It counts towards the bill and stays tagged unpaid until somebody is named.'
-              : 'Fronting is not exemption: whoever put money in gets exactly that back, and still pays their own share.'}
-        </Text>
-      </View>
+          <View style={styles.block}>
+            <View style={styles.labelRow}>
+              <Text style={[styles.label, { color: t.muted }]}>NOTE</Text>
+              <Text style={[styles.optional, { color: t.dim }]}>optional</Text>
+            </View>
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="What it was"
+              placeholderTextColor={t.muted}
+              autoCapitalize="sentences"
+              style={[
+                styles.input,
+                {
+                  color: t.text,
+                  backgroundColor: t.surface,
+                  borderColor: note.trim() === '' ? t.dashed : t.hairline,
+                  borderStyle: note.trim() === '' ? 'dashed' : 'solid',
+                },
+              ]}
+            />
+          </View>
 
-      {error !== null && <Text style={[styles.error, { color: t.danger }]}>{error}</Text>}
+          {/* The same box as the note above it: one you type into, one you
+              tap. The chevron is the whole of what tells them apart, which is
+              the promise 09-navigation makes about a row that opens. */}
+          <View style={styles.block}>
+            <Text style={[styles.label, { color: t.muted }]}>COVERED BY</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Covered by ${coveredBy}`}
+              onPress={() => setStep('covered')}
+              style={({ pressed }) => [
+                styles.input,
+                styles.picker,
+                {
+                  backgroundColor: t.surface,
+                  borderColor: cover.kind === 'unpaid' ? t.dashed : t.hairline,
+                  borderStyle: cover.kind === 'unpaid' ? 'dashed' : 'solid',
+                  opacity: pressed ? 0.6 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.pickerValue,
+                  { color: cover.kind === 'unpaid' ? t.muted : t.text },
+                ]}
+                numberOfLines={1}
+              >
+                {coveredBy}
+              </Text>
+              <Icon name="chevron" color={t.muted} size={13} />
+            </Pressable>
+          </View>
 
-      <Keypad {...field.keys} />
+          {error !== null && <Text style={[styles.error, { color: t.danger }]}>{error}</Text>}
+        </>
+      ) : (
+        <View style={styles.block}>
+          <View style={styles.chips}>
+            {seated.map((p) => {
+              const on = cover.kind === 'players' && cover.ids.includes(p.id);
+              return (
+                <Pressable
+                  key={p.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  onPress={() =>
+                    setCover((c) => {
+                      const ids =
+                        c.kind === 'players' && c.ids.includes(p.id)
+                          ? c.ids.filter((x) => x !== p.id)
+                          : [...(c.kind === 'players' ? c.ids : []), p.id];
+                      /* Nobody left on it IS "Nobody yet" — the spend is on
+                         the bill and unpaid. Leaving it an empty list of
+                         fronters would block Save from a screen that no
+                         longer says why. */
+                      return ids.length === 0 ? { kind: 'unpaid' } : { kind: 'players', ids };
+                    })
+                  }
+                  style={({ pressed }) => [
+                    styles.chip,
+                    on
+                      ? { backgroundColor: t.text, borderColor: t.text }
+                      : { borderColor: t.quietOutline },
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Text style={[styles.chipLabel, { color: on ? t.onFill : t.text }]}>
+                    {p.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
+
+            <CoverChip
+              label="The piggy bank"
+              on={cover.kind === 'kitty'}
+              onPress={() => setCover({ kind: 'kitty' })}
+            />
+            <CoverChip
+              label="Nobody yet"
+              dashed
+              on={cover.kind === 'unpaid'}
+              onPress={() => setCover({ kind: 'unpaid' })}
+            />
+          </View>
+
+          {picked.length > 1 && (
+            <View style={styles.shares}>
+              {picked.map((pid) => (
+                <View key={pid} style={styles.shareRow}>
+                  <Text style={[styles.shareName, { color: t.text }]}>{nameOf(pid)}</Text>
+                  <TextInput
+                    value={shares[pid] ?? ''}
+                    onChangeText={(v) =>
+                      setShares((s) => ({ ...s, [pid]: v.replace(/[^0-9]/g, '') }))
+                    }
+                    // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
+                    // to a digits-only keyboard.
+                    testID="amount"
+                    keyboardType="number-pad"
+                    placeholder="0"
+                    placeholderTextColor={t.muted}
+                    style={[
+                      styles.shareInput,
+                      {
+                        color: t.text,
+                        backgroundColor: t.surface,
+                        borderColor: sharesAddUp ? t.hairline : t.danger,
+                      },
+                    ]}
+                  />
+                </View>
+              ))}
+              <Text style={[styles.shareNote, { color: sharesAddUp ? t.muted : t.danger }]}>
+                {formatMoney(fronted as Money)} of {formatMoney(money(amount))} covered.
+              </Text>
+            </View>
+          )}
+
+          <Text style={[styles.explain, { color: t.muted }]}>
+            {cover.kind === 'kitty'
+              ? 'The piggy bank paid it directly. Nobody is reimbursed — the money has already left it.'
+              : cover.kind === 'unpaid'
+                ? 'It counts towards the bill and stays tagged unpaid until somebody is named.'
+                : 'Fronting is not exemption: whoever put money in gets exactly that back, and still pays their own share.'}
+          </Text>
+        </View>
+      )}
     </Sheet>
   );
 }
+
+/** The two steps of the one sheet. The flow is one level deep. */
+type Step = 'spend' | 'covered';
 
 type CoverPick = { kind: 'players'; ids: PlayerId[] } | { kind: 'kitty' } | { kind: 'unpaid' };
 
@@ -390,10 +506,14 @@ const styles = StyleSheet.create({
     lineHeight: 70,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
-    marginBottom: 18,
+    // 12 rather than the 18 it was: this is the gap between the figure and the
+    // keys that type it, and it is the whole of what is now between them.
+    marginBottom: 12,
   },
+  /** Under the pad, before the two rows that say what the spend was. */
+  pad: { marginBottom: 18 },
 
-  block: { marginHorizontal: space.card, marginBottom: 20 },
+  block: { marginHorizontal: space.card, marginBottom: 14 },
   labelRow: { flexDirection: 'row', alignItems: 'center' },
   label: { ...type.label, marginBottom: 10 },
   optional: { ...type.meta, marginLeft: 'auto', marginBottom: 10 },
@@ -407,14 +527,21 @@ const styles = StyleSheet.create({
   },
   chipLabel: { fontSize: 14.5, fontWeight: '600' },
 
+  // The label above already carries 10 below itself; this used to carry another
+  // 10 on top of it, and a 20-point gap on a sheet that is fighting for height
+  // is one of them too many.
   input: {
     ...type.body,
-    marginTop: 10,
     borderWidth: 1,
     borderRadius: radius.pressable,
     paddingHorizontal: 16,
     paddingVertical: 13,
   },
+
+  // The same box as the note field, laid out as a row: the value, then the
+  // chevron that says it opens.
+  picker: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  pickerValue: { ...type.body, flex: 1 },
 
   shares: { marginTop: 14, gap: 8 },
   shareRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
