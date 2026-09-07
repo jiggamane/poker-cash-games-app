@@ -386,3 +386,173 @@ it is the active-row / finished-slab rule for Count up, Cash out and End the
 night. `START-HERE.md` says both supporting boards "hold the roster model and
 the group-isolation rules the invite flow has to obey". One does; the other is a
 different subject entirely.
+
+---
+
+# Second cut — `handoff-invites-2`, 7 September
+
+Reviewed the same day. Turn 1 is left on the board as the record of what was
+rejected; turn 2 is nineteen frames answering the seventeen states. Checked
+mechanically against the tokens, and by hand against what the server does.
+
+## What landed, verified
+
+- **Every pill in turn 2 is a tint.** No outlined status remains anywhere in it.
+  The one outlined pill left on the board is `1a Sent`, which is turn-1 record —
+  **that one is correct as it stands and should not be "fixed".**
+- **Every control in turn 2 is 56 tall at radius 8.** The 50pt geometry is gone.
+- **No countdown arithmetic anywhere** — `until 6 Oct`, and
+  `This code expired on 6 August`.
+- **No new colours inside any phone.** The two unfamiliar values in the file
+  (`#3E3B36`, `#E5E2DA`) are the board's own annotation chrome, outside the
+  frames. One exception, below.
+- Group code marked rejected on both turn-1 frames; contacts redrawn in ordinary
+  weight; `Groups Section` marked superseded on invites in place, with its four
+  open questions preserved; `Player List Rule` dropped.
+
+The three UI corrections and the three factual corrections all landed. Gap 1 was
+correctly withdrawn.
+
+## Six things to fix
+
+### 1. State 12 is a screen for a flow this app does not have — cut it
+
+`2c Signed out` / *Set up this phone first* assumes a claimant with no identity.
+There is no such person: `redeemInvite` signs them in **anonymously and
+automatically** before it redeems, which is the same mechanism watchers use, and
+`connection.ts` names it out loud — `anonymousSignIns`, *"which watchers and
+claims need"*.
+
+So the server's `Sign in first` can only fire when **anonymous sign-in is
+disabled on the project**. That is a build fault, not a user state, and it wants
+the connection report's voice — *this build cannot make an identity* — not a
+screen on the claim flow asking a guest to set up an account. It also runs
+against `docs/pricing-model.md`'s zero-account principle: a person holding an
+invite has not yet seen the thing they would be signing up for.
+
+**Cut the frame.** It also removes one of the two copy sets the cut was least
+sure of.
+
+### 2. State 11's trigger is the wrong one, and the copy is wrong with it
+
+`2c Already a member` is captioned *"Somebody re-tapping an old link"*. A
+re-tapped link lands on the **dead** screen, not here: `redeem_player_invite`
+tests liveness first, and a spent code fails there before the seat check is
+reached.
+
+What actually reaches state 11 is a **live** code for a **different** row, in a
+book where the reader already holds a seat — the host sent the wrong person a
+code. So *"This link was for a place you have already claimed. Nothing to do."*
+is inaccurate, and it hides a real mistake by telling both people there is
+nothing to do.
+
+The title is right. The sub-line should say what happened, something like:
+*This link is for a different place at that table, and you already have one.*
+Then the primary. (`0009_invite_privacy.sql`'s own comment describes the same
+wrong trigger — the board inherited it, and the migration comment should be
+corrected too.)
+
+### 3. Five chips do not fit at 360
+
+The chip row's gap was dropped from the shipped 8 to 7 to make room for the
+fifth, which is the tell. At the board's 402 each chip is 66pt and *Contacts*
+sets at about 51 — comfortable. At **360**, the narrowest device in the check
+matrix, it is 57.6 per chip; and at **120% text**, which `ui-journeys.mjs` runs
+every stop at, *Contacts* is about 61pt inside a 57.6pt box. Chip labels are not
+capped figures, so they scale all the way.
+
+The house rule is explicit: *letter-spacing and size are never used to make text
+fit a box — fit is a layout problem, and the layout has to give.* So this is not
+a type adjustment.
+
+**Recommended: Contacts becomes a full-width row under the four chips.** That is
+1b's insight paying off exactly where the brief said it would — a row can carry
+its own state — and the permission line then belongs to the row rather than
+floating under the group. Two rows of chips is the alternative and is worse: it
+makes five equal things look like two ranks.
+
+### 4. The amber wash is a new colour role
+
+`rgba(232,180,85,.11)` sits behind *Made 23:12 · waiting for Levani* and behind
+the reset-failed block. There is no amber tint in the token set: the pill uses
+the neutral `roundFill` for every tone, and the three comparable roles —
+`winTint` at 14%, `offTableTint` at 13%, `dangerWash` at 12% — are all named
+tokens precisely so they are not re-derived per screen.
+
+Either add it deliberately as a token beside those three, or use `roundFill`.
+`tokens.ts` says it plainly: *don't invent new colours — if a screen seems to
+need one, it probably needs a different weight or fill instead.*
+
+### 5. State 14 needs two more frames, and must not use the app's sign-in
+
+`sendSignInLink` is `signInWithOtp({ shouldCreateUser: false })`. Calling it from
+the attach-an-email sheet would sign the player into a **different** user and
+orphan the claimed seat on the abandoned anonymous one. The seat is bound to a
+user id; changing which user is holding the phone loses it.
+
+The correct path attaches an address to the anonymous user in place. That sends a
+confirmation, so it needs:
+
+- **Verification pending.** *Check your email* — the seat is not portable until
+  the address is confirmed, and the sheet currently implies it is portable on
+  tap.
+- **That address already belongs to an account.** A real and common case, and
+  the recovery from it is not obvious.
+
+Neither is drawn. The sheet itself is good and the *Used for one thing* block is
+the right instinct.
+
+### 6. State 13 is several causes wearing one name
+
+*Your seat in The poker club was reset* is what the phone shows when its reads
+come back empty. Reads also come back empty when the host **removed** the player
+from the group, and when the book was **deleted**. Same shape as the dead-code
+problem, opposite answer: there is no security argument for one string here — the
+reader is a member being told what happened to their own place — and telling
+somebody they were reset when they were removed is simply wrong.
+
+Either widen the copy to what is actually known, or have the server say which.
+
+## Smaller, and build dependencies the docs do not name
+
+- **State 6 needs a stored last-pull timestamp.** *Standings last checked at
+  23:34 last night* has nothing behind it: nothing in `pull.ts` or anywhere else
+  persists when the last successful pull happened.
+- **`2e Add several names` and `2e One contact back` do not draw the name
+  clash.** The roster already refuses a duplicate — *"X is already here"* — and
+  four names pasted at once will hit it. Which line failed, and whether the
+  others still land, is undrawn.
+- **The interrupted reset has two variants, like its confirm does.** Only the
+  unclaimed one is drawn. On a claimed seat the first write has already taken the
+  person's access away, so *"their place on the roster and their nights are
+  untouched"* is true but incomplete — the sentence that is missing is the one
+  the claimed confirm already knows how to say.
+
+## The four open questions, answered
+
+1. **The share timestamp.** Take `Made` now — it is honest and it ships. The
+   share stamp is worth doing and it is genuinely small: one nullable column on
+   `player_invite` and one write on the share action. It does not have to block
+   this cut; `Made` is not wrong, only weaker.
+2. **Membership and invites — closed, no state needed.** `docs/pricing-model.md`
+   lists *claim your name, personal standing* as free on every tier, and the tier
+   table gates history, rollups, group count and closing a book — **not**
+   invites. A Host Free host holds live codes like anyone else, and a lapse from
+   Pro collapses history to the current month and caps groups at one without
+   touching an outstanding code. Nothing to draw on the invite sheet.
+3. **A live session and a lapsed host.** Out of this flow's scope, and given (2)
+   it does not block this sheet. It is a lifecycle question for whoever owns
+   billing.
+4. **What *Invites out* filters to — do not filter.** This app has no filter
+   chrome anywhere, and a filtered push needs a way to clear the filter, which
+   means inventing that vocabulary for one row. With the amber tints in place an
+   invited row is findable in a roster of six at a glance. Let the row carry the
+   number and land on the plain roster. Revisit if a roster ever runs past
+   thirty, which no group in this product has.
+
+## Copy
+
+Sign-off is the owner's. Two notes: cutting state 12 removes one of the two sets
+the cut was least sure of, and the reset-interrupted title — *Half of that
+worked* — reads well and is the honest shape, given the screen's whole job is to
+say which half.
