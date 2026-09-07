@@ -98,6 +98,150 @@ not which pixel.
 *The faults found testing on 21 August belong here — they were reported in
 conversation and have not been written down. Say what they were and they go in.*
 
+*B47–B51 were found on 7 September reading the invite flow against the
+`handoff-invites` cut, not on a phone. They are written down before any fix, per
+the rule at the top of this file. `docs/invite-flow-review.md` is the working.*
+
+### B47 — the "invited" badge cannot appear, and a claimed seat never stops saying "no app"
+
+```
+Screen      GR4 /players, and GR5 /member
+Seen        the roster never shows "· 2 invited", never draws the amber pill,
+            and a player who has claimed their seat still reads
+            "Name only · no app · invite" on the host's phone for ever
+Expected    a live code puts `invited` on the row; a claim takes it off and
+            moves standing to `member`, so the App row reads "has the app"
+Found        7 Sept, reading the roster against the invite board
+Locked by   nothing yet — see B51 first: no check can currently reach either
+            screen in a state where the badge could be drawn
+Status      open
+```
+
+Two holes, one cause: **nothing reconciles the roster's local flags with the
+server's invite state.** `inviteMember` and `resetInvite` (`clubStore.ts:633`,
+`:643`) are the only writers of `club_member.invited`, and **neither is called
+from anywhere in the app**. `players.tsx:133` and `member.tsx:58` both read it.
+`standing` has the same shape of fault: only `makeAdmin` writes it, so it never
+becomes `member` on a claim.
+
+`seatStatuses` (`invites.ts:135`) already returns exactly the two facts needed —
+`claimed` and `liveCode` — for a list of ids. It is called from one place, for
+one player, inside the invite sheet. The roster needs it for its whole list.
+
+This is the state the invite flow is *about*, and the entry-point screen of the
+handoff draws it. Until it is fixed, a host has no way to see who has been
+invited without opening every row.
+
+### B48 — X2b never says who invited you, because nothing binds the host to their own seat
+
+```
+Screen      X2b /claim, and the night header on every settled night
+Seen        "{host} added you as {name}" and "Not {name}? Ask {host}…" are both
+            absent from every real claim, leaving a card with no attribution
+Expected    the host's display name, which the preview is specified to return
+Found        7 Sept, tracing preview_player_invite against the app's writes
+Locked by   nothing yet — a db:verify case asserting host_name is non-null for
+            a book whose host has a player row is the shape of it
+Status      open
+```
+
+`preview_player_invite` finds the host's name with
+`where h.claimed_by_user_id = b.host_user_id` (`0011_preview_host.sql:44`).
+**Nothing in the app ever sets `claimed_by_user_id` on the host's own row.** It
+is written in exactly two places — `redeem_player_invite`, which sets it for a
+claimant, and `revoke_player_invite`, which clears it — and `syncRows.ts:133`
+goes out of its way to leave the column alone on a roster upsert. So the
+subquery returns null for every book, and `invites.ts` faithfully passes the
+null through to a screen that hides both lines when it sees one.
+
+**It is not only the claim screen.** `0010_night_header.sql:49` and
+`0013_night_rounding.sql:72` resolve the host the same way, for "kept by
+{host}". Their comment says a host who never plays has no player row and the
+screens fall back rather than inventing a name — which is right, and is not what
+is happening: the host does play, and the fallback fires anyway.
+
+The fix belongs where the book is created (`sync.ts:310`) or in a server-side
+helper beside it: bind the admin's player row to `book.host_user_id`.
+
+### B49 — an expired code is offered as live, with its share chips enabled
+
+```
+Screen      C3a /invite
+Seen        a code a month old is drawn as the hero with Copy, Message, Share
+            and QR code all live; sharing it sends ten characters that cannot
+            be redeemed
+Expected    the expired state — what the countdown said, replaced by the date
+            it died and a primary that makes a new one
+Found        7 Sept, comparing seatStatuses' predicate to the server's
+Locked by   nothing yet
+Status      open
+```
+
+`seatStatuses` (`invites.ts:145–149`) selects live invites as
+`claimed_at is null and revoked_at is null` — and omits `expires_at > now()`,
+which every server-side path includes. So the client's idea of "live" is a
+superset of the server's by exactly the codes that have timed out, and the sheet
+shows the newest of them as current.
+
+`invite.tsx:65` then does not mint a replacement, because it only mints when
+`liveCode === null`. The host sees a code, sends it, and the person on the other
+end lands on X2c.
+
+Two lines: add the expiry filter to the select, and return `expiresAt` and
+`createdAt` with it — the Sent state on the invite board cannot be built without
+them either.
+
+### B50 — a train tunnel tells the reader their invite is dead
+
+```
+Screen      X2 /claim
+Seen        any network failure, "You already have a place in this book", and
+            "Sign in first" all render as "This invite can't be used ·
+            Ask whoever invited you for a new link"
+Expected    a network failure stays on X2a and offers a retry; the two messages
+            the server deliberately keeps distinct are shown as themselves
+Found        7 Sept, reading claim.tsx against 0009_invite_privacy.sql
+Locked by   nothing yet
+Status      open
+```
+
+`claim.tsx:63` catches the preview's error and sets `dead` — three lines under
+its own comment saying a network failure "is NOT a dead code" and that the
+screen stays on X2a. `claim.tsx:90` does the same for everything `redeemInvite`
+throws.
+
+The one-string rule is right and should not be touched: `0009` pads all four
+dead causes to a common floor so timing cannot answer the question either. But
+that migration argues at length that **two** conditions stay distinguishable on
+purpose — not signed in, and already holding a seat in this book — because
+neither tells a guesser anything. The client throws both away, plus a third the
+server never sent. Six outcomes, one string, where the design says four.
+
+### B51 — the two invite screens are audited in their not-connected fallback
+
+```
+Screen      /invite and /claim, in npm run check:ui
+Seen        every run measures C3e Blocked and "Not connected"; screens.md
+            ticks Rules and Sheet for /invite and Rules for /claim on that basis
+Expected    the audit reaches C3a, C3c, C3d, X2b, X2c and X2d
+Found        7 Sept, tracing the web export's env
+Locked by   this is the lock — ui-audit.mjs's PARAMS map
+Status      open
+```
+
+`apps/mobile/.env` does not exist, so the web export the audit drives has
+`isSupabaseConfigured === false` (`supabase.ts:17`). Both screens test it first
+and return their offline frame. `/invite` opened bare has no `player` param
+either, so it would render its fallback regardless.
+
+This is B14 again, and the file says so: *"a route may name a query string, and
+it is opened with it"* — the `PARAMS` map at `ui-audit.mjs:121` exists for
+exactly this case. Six drawn states across two screens have never been measured
+at any width, in either theme, on any run, and the ledger's ticks say otherwise.
+
+Fix this before drawing anything new for the invite flow, or every state the
+`handoff-invites` cut adds arrives unwatched.
+
 ---
 
 ## Fixed

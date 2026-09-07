@@ -355,6 +355,16 @@ played, because the rebuys never touch her — so the state was measured and the
 amounts were not. The journey cashes a player out mid-night now, which puts the
 night's own figures on the card it is testing.
 
+And a fourth, found 7 September and **still open**: a route can be in every list,
+carry its params, and still be measured in the frame it draws when the server is
+absent. `apps/mobile/.env` does not exist, so the web export this table is built
+from has `isSupabaseConfigured === false` — and `/invite` and `/claim` both test
+that first and return their offline frame. So the ticks above for `/invite`
+(Rules, Sheet) and `/claim` (Rules) are ticks on **C3e Blocked** and on **"Not
+connected"**. C3a, C3c, C3d, X2b, X2c and X2d have never been measured at any
+width, in either theme, on any run. B51, and `docs/invite-flow-review.md` §
+Pass 3 is the working. Fix it before drawing anything new for the invite flow.
+
 ## Notes per screen
 
 *Add a line here when a screen is conformed, or when something about it is worth
