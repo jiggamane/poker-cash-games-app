@@ -105,6 +105,15 @@ is settled when it is not.
 **36 screens · 36 under the rule pass · 21 under the sheet pass · 13 under a big
 night · 0 conformed.**
 
+**`/settled` gained one block on 7 September that no screen check can see, and
+it is flagged here rather than left to be found.** The *Did not check out* alert
+draws only when `night.verification.ok` is false — a night whose arithmetic
+failed its own re-derivation at close (B54). The copy and the behaviour are
+`docs/verification.md`'s, not invented. `ui-audit` and `ui-journeys` both walk a
+night that passes, so neither has ever drawn the block; what is locked is the
+arithmetic behind it, in `closing.test.ts`. Seeing it needs a night corrupted on
+purpose, which nothing seeds.
+
 **`/stands` came out of this table on 6 September, having been deleted on the
 5th** — the row outlived the screen, so every count above it had been one high
 for a day and the tally said 38 where `ui-audit.mjs` was walking 36. That is the

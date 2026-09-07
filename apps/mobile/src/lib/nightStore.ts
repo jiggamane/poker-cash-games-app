@@ -3,10 +3,12 @@ import type * as SQLite from 'expo-sqlite';
 import { randomUUID } from 'expo-crypto';
 import { database } from './db';
 import {
+  freeze,
   money,
   nightScore,
   resolveLedger,
   settle,
+  thaw,
   type LedgerEntry,
   type Money,
   type MoneyRule,
@@ -16,11 +18,14 @@ import {
   type ResolvedLedger,
   type RoundingMode,
   type SettlementInput,
+  type SettlementResult,
+  type StoredVerification,
 } from '@poker-club/core';
 import { formatMoney } from './money';
 import { CLAIM_LIVE_NIGHTS } from './hostSeat';
 import { outbox, recordEntry } from './ledgerRepo';
-import { queuePlayer, queueSessionOpen } from './sync';
+import { queueClose, queueCount, queuePlayer, queueSessionOpen } from './sync';
+import { closeOf } from './closing';
 import {
   CURRENT_NIGHT,
   FIRST_TABLE,
@@ -120,11 +125,18 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
 
       -- What a settled night settled at, frozen at the moment it closed.
       --
-      -- Only ever written for nights that arrive from the server: a night
-      -- this phone recorded is recomputed from its own rows on demand, and
-      -- there is nothing to preserve. A pulled night, though, may one day
-      -- meet a newer settlement engine, and the figures the room actually
-      -- paid each other are not a thing a later version gets to revise.
+      -- WRITTEN FOR EVERY SETTLED NIGHT, this phone's own included. It used to
+      -- be filled in only for nights arriving from the server, on the reasoning
+      -- that a night this phone recorded can be recomputed from its own rows —
+      -- true, and true only while settle() never changes. It changed on
+      -- 3 September (commit 9321fbd, the fix for B36): the rounding step went
+      -- from snapping stacks to landing positions. Any night settled at tens
+      -- before that date and reopened after it would have drawn figures nobody
+      -- at the table ever agreed to.
+      --
+      -- It is the same rule the group already has for its settings — they are
+      -- the defaults a NEW game opens with, never a revision of a game already
+      -- played — extended to cover the engine as well as the rules. See B53.
       CREATE TABLE IF NOT EXISTS night_settlement (
         session_id  TEXT PRIMARY KEY NOT NULL,
         computed_at TEXT NOT NULL,
@@ -144,6 +156,21 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
       } catch {
         // Already there.
       }
+    }
+
+    /*
+     * What the night made of its own arithmetic — `verifyNight()`, run on this
+     * device at the moment of close, and stored whether it passed or failed.
+     *
+     * A FAILURE IS THE WHOLE REASON IT IS WRITTEN DOWN. A check that runs,
+     * fails on somebody's phone at 1am and is forgotten is a bug report nobody
+     * can ever file. Null on every night closed before the check was wired up,
+     * which is every night before this commit.
+     */
+    try {
+      await db.execAsync(`ALTER TABLE night_settlement ADD COLUMN verification TEXT;`);
+    } catch {
+      // Already there.
     }
     for (const column of [
       'me_id TEXT',
@@ -227,6 +254,22 @@ export interface Night {
    * gate, and it lives in the engine so no screen can route around it.
    */
   acknowledgement?: DiscrepancyAcknowledgement;
+  /**
+   * What this night settled at, frozen when it closed.
+   *
+   * Present on a settled night and absent on a live one, which is the whole of
+   * the rule: while a night is being played its figures follow its rows, and
+   * the moment it is closed they stop moving for ever. Read it through
+   * `settlementOf()` rather than here — that is the one place that decides
+   * between the frozen answer and a live one.
+   *
+   * Absent on a settled night too, if it was closed before this was written
+   * down or the payload will not read back. Those re-derive, exactly as the
+   * whole app did until now.
+   */
+  settlement?: SettlementResult;
+  /** What `verifyNight()` made of it at close. Absent on an older night. */
+  verification?: StoredVerification;
 }
 
 // ---------------------------------------------------------------------------
@@ -285,6 +328,36 @@ export function settlementInput(n: Night): SettlementInput {
     ...(n.roundingMode === null ? {} : { roundingMode: n.roundingMode }),
     ...(n.acknowledgement ? { acknowledgedDiscrepancy: n.acknowledgement } : {}),
   };
+}
+
+/**
+ * The night's figures — the ones it was closed with, if it has been closed.
+ *
+ * THE ONE PLACE THAT DECIDES, and every screen that draws a settlement goes
+ * through it. Ten of them used to call `settle(settlementInput(night))`
+ * directly, which is a live re-derivation: correct for a night in progress and
+ * wrong for one that is over, because it hands a past game to whatever version
+ * of the engine happens to be installed today.
+ *
+ * **A GROUP'S SETTINGS ARE THE DEFAULTS ITS NEXT GAME OPENS WITH.** They are
+ * not a revision of a game already played. The night already carries the rules
+ * and the step it opened with, so changing the club's percentage in November
+ * has never moved September's night; this closes the other half of the same
+ * rule, so a change to `settle()` itself cannot move it either. What the room
+ * agreed and paid is what the app says for ever.
+ *
+ * A settled night with no frozen record — closed before this existed, or a
+ * payload that will not read back — falls through to the live computation.
+ * That is the behaviour the whole app had until now, so it is a floor rather
+ * than a risk, and it is exactly why `Night.roundingMode` and `Night.rules`
+ * were snapshotted first: those nights still re-derive to their own terms.
+ *
+ * THROWS WHAT `settle()` THROWS on a live night whose count does not balance,
+ * which is the close gate and must keep reaching the screen. A frozen night
+ * never throws — it was settled once, and that stands.
+ */
+export function settlementOf(n: Night): SettlementResult {
+  return n.settlement ?? settle(settlementInput(n));
 }
 
 export { isTonight, FIRST_TABLE, MAIN_TABLE, tableNameProblem } from './whichNight';
@@ -493,6 +566,22 @@ async function readNight(row: NightRow): Promise<Night> {
     sessionId,
   );
 
+  /*
+   * The frozen result, if this night has one.
+   *
+   * `thaw` returns null for anything it cannot read — an older payload, a row
+   * that was written before the Map inside a settlement was handled properly
+   * (B52) — and null falls through to a live re-derivation, which is what the
+   * whole app did until now. A night is never left drawing half a settlement.
+   */
+  const frozen = await db.getFirstAsync<{ payload: string; verification: string | null }>(
+    `SELECT payload, verification FROM night_settlement WHERE session_id = ?`,
+    sessionId,
+  );
+  const settlement = frozen === null ? null : safeParse(frozen.payload);
+  const verification =
+    frozen?.verification == null ? null : (safeJson(frozen.verification) as StoredVerification | null);
+
   return {
     sessionId,
     groupName: row.group_name,
@@ -521,8 +610,22 @@ async function readNight(row: NightRow): Promise<Night> {
     noteOf: Object.fromEntries(entries.filter((e) => e.note).map((e) => [e.id, e.note!])),
     seeded: row.seed_version !== null,
     ...(row.ack_json ? { acknowledgement: JSON.parse(row.ack_json) } : {}),
+    ...(settlement === null ? {} : { settlement }),
+    ...(verification === null ? {} : { verification }),
   };
 }
+
+/** JSON that came off a disk, so it may be anything at all. */
+function safeJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+/** A stored settlement, or null if it will not read back. See `thaw`. */
+const safeParse = (text: string): SettlementResult | null => thaw(safeJson(text));
 
 interface Seed {
   groupName: string;
@@ -996,7 +1099,11 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
 
   if (night.meId !== undefined) {
     try {
-      const settled = settle(settlementInput(night));
+      /* THE FROZEN ONE, through `settlementOf`. A lifetime total that
+         re-derives every past night is a lifetime total that can change when
+         the engine does — the one figure in the app somebody would notice
+         moving and have no way to explain. */
+      const settled = settlementOf(night);
       const me = settled.players.find((p) => p.playerId === night.meId);
       if (me !== undefined) {
         /*
@@ -1182,9 +1289,32 @@ export async function setPaid(from: PlayerId, to: PlayerId, paid: boolean): Prom
   emit();
 }
 
-/** The host's end-of-night count for one player. Overwrites: counting again is normal. */
+/**
+ * The host's end-of-night count for one player. Overwrites: counting again is
+ * normal.
+ *
+ * QUEUED AS WELL AS STORED, since this commit. `queueCount` was written when
+ * the server half landed and called from nowhere, so a stack the host counted
+ * lived on that one phone and reached no other device and no backup — and the
+ * count is the single most consequential figure of the night, the one thing a
+ * host cannot reconstruct from anything else if the phone is lost. Every other
+ * kind of row was already going up; this was the hole in the middle of them.
+ */
 export async function setFinalCount(playerId: PlayerId, amount: Money): Promise<void> {
   if (night === null) throw new Error('No night is open.');
+  /*
+   * A SETTLED NIGHT IS NOT COUNTED AGAIN. Counting is a step of the close, and
+   * the close is over: the result has been frozen and the room has been told
+   * who owes whom. Recounting a stack now would leave the ledger saying one
+   * thing and the frozen record another, with no screen able to say which is
+   * the night. Home does not offer the route — settled nights are not in the
+   * open-games list — and this is the same rule in the store, so a future
+   * screen cannot reach around it. A figure that was genuinely wrong is a
+   * correcting ENTRY, which is what the append-only ledger is for.
+   */
+  if (night.status === 'settled') {
+    throw new Error('This night is settled. Correct it with a ledger entry rather than a recount.');
+  }
   const db = await getDb();
 
   await db.runAsync(
@@ -1194,6 +1324,7 @@ export async function setFinalCount(playerId: PlayerId, amount: Money): Promise<
     playerId,
     amount,
   );
+  await queueCount(night.sessionId, playerId, amount);
 
   const finalCounts = new Map(night.finalCounts);
   finalCounts.set(playerId, amount);
@@ -1724,6 +1855,13 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
      * A night that will not recompute is left without a frozen record instead
      * of blocking the import — the ledger is still there and still readable,
      * which is more than the alternative leaves.
+     *
+     * THROUGH `freeze`, NOT `JSON.stringify` — B52. `rounding.positions` is a
+     * Map, a Map stringifies to `{}` with no error anywhere, and this row was
+     * written that way from the day it existed. Nothing read it back, so the
+     * loss was invisible; the moment `readNight` started reading it, every
+     * imported night at a step of tens or coarser would have come back with no
+     * step terms at all.
      */
     if (n.status === 'settled') {
       try {
@@ -1740,7 +1878,7 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
              ON CONFLICT (session_id) DO NOTHING`,
           n.sessionId,
           n.endedAt ?? n.startedAt,
-          JSON.stringify(result),
+          JSON.stringify(freeze(result)),
         );
       } catch {
         // Left unfrozen on purpose. See above.
@@ -1773,6 +1911,90 @@ export async function setStatus(status: Night['status']): Promise<void> {
   );
   night = { ...night, status, ...(endedAt === undefined ? {} : { endedAt }) };
   emit();
+}
+
+/**
+ * Close the night: settle it, check it, freeze it, and send it.
+ *
+ * THE ONE MOMENT THE RECORD IS FIXED, and until this commit it was a status
+ * flag and nothing else — `setStatus('settled')`, one column, no result stored,
+ * no check run, nothing sent. Three things that had been built and were
+ * unreachable now happen here, and `closing.ts` decides all of them so they can
+ * be tested without a database:
+ *
+ *   1. `verifyNight()` re-derives every identity from the raw ledger. Its
+ *      verdict is stored whether it passes or fails — a failure that is not
+ *      written down is a bug report nobody can file.
+ *   2. The result is FROZEN. A settled night is never re-derived again, by a
+ *      newer engine or by anything else. The group's settings are the defaults
+ *      its next game opens with; they do not revise a game already played.
+ *   3. The whole record goes to the outbox — the settlement, its snapshot and
+ *      the verdict — so `npm run audit` has something to audit and the night
+ *      survives the phone.
+ *
+ * ORDER MATTERS AND IT IS DELIBERATE. Settling comes first and may throw: an
+ * unbalanced count with no acknowledgement is refused by the engine, and that
+ * refusal is the close gate. Nothing is written and the night stays open. Then
+ * the frozen record, then the queue, and the status LAST — a night marked
+ * settled with no result behind it is a lie, and this is the order that cannot
+ * produce one.
+ *
+ * Returns the verdict so the caller can say something if it failed. Throws what
+ * `settle()` throws; the screen already draws *Out of balance* off the back of
+ * the same refusal.
+ */
+export async function closeNight(): Promise<StoredVerification> {
+  if (night === null) throw new Error('No night is open.');
+
+  /*
+   * CLOSING TWICE IS NOT CLOSING AGAIN. A night that already has a frozen
+   * record keeps it: re-running the engine over the same rows would overwrite
+   * what the room was actually given with whatever this build computes, which
+   * is the exact thing freezing exists to prevent. The server refuses it too —
+   * `settlement_frozen_guard`, migration 0002 — so this is the phone agreeing
+   * with the database rather than a second opinion about it.
+   */
+  if (night.status === 'settled' && night.verification !== undefined) {
+    return night.verification;
+  }
+
+  const at = new Date().toISOString();
+  const closed = closeOf(night, settlementInput(night), at);
+
+  const db = await getDb();
+  const endedAt = night.endedAt ?? at;
+
+  await db.runAsync(
+    `INSERT INTO night_settlement (session_id, computed_at, payload, verification)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT (session_id) DO UPDATE SET
+       computed_at  = excluded.computed_at,
+       payload      = excluded.payload,
+       verification = excluded.verification`,
+    night.sessionId,
+    at,
+    JSON.stringify(closed.frozen),
+    JSON.stringify(closed.verification),
+  );
+
+  await queueClose(closed.payload);
+
+  await db.runAsync(
+    `UPDATE night SET status = 'settled', ended_at = ? WHERE session_id = ?`,
+    endedAt,
+    night.sessionId,
+  );
+
+  night = {
+    ...night,
+    status: 'settled',
+    endedAt,
+    settlement: closed.result,
+    verification: closed.verification,
+  };
+  emit();
+
+  return closed.verification;
 }
 
 /**

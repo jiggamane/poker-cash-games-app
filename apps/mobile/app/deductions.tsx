@@ -25,7 +25,7 @@ import { cappedFigure, radius } from '../src/design/tokens';
 import {
   clearManualCharges,
   nameOf,
-  settlementInput,
+  settlementOf,
   spendsOf,
   useNight,
 } from '../src/lib/nightStore';
@@ -85,7 +85,7 @@ export default function Deductions() {
     try {
       return {
         ok: true as const,
-        value: settle(settlementInput(night)),
+        value: settlementOf(night),
       };
     } catch (e) {
       /*

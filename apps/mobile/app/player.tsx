@@ -27,7 +27,7 @@ import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/
 import {
   lastRebuyAmount,
   rebuy as writeRebuy,
-  settlementInput,
+  settlementOf,
   standingOf,
   useNight,
 } from '../src/lib/nightStore';
@@ -83,7 +83,7 @@ export default function PlayerCard() {
   const nightSettlement = useMemo(() => {
     if (night === null || night.status !== 'settled') return null;
     try {
-      return settle(settlementInput(night));
+      return settlementOf(night);
     } catch {
       return null;
     }

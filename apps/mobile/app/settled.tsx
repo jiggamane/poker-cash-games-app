@@ -10,6 +10,7 @@ import {
   type SettledMode,
   type SettledRow,
   type SettledTerm,
+  type StoredVerification,
 } from '@poker-club/core';
 import {
   formatMoney,
@@ -23,8 +24,8 @@ import { RoundingBar } from '../src/components/RoundingBar';
 import { Screen } from '../src/components/Screen';
 import { TotalsCard } from '../src/components/TotalsCard';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, space, tabular, unscaledLabel } from '../src/design/tokens';
-import { settlementInput, transferKey, useNight } from '../src/lib/nightStore';
+import { cappedFigure, radius, space, tabular, unscaledLabel } from '../src/design/tokens';
+import { settlementOf, transferKey, useNight } from '../src/lib/nightStore';
 
 /**
  * The night, settled — `1a · Settled night`, from `design/handoff-game-end/`,
@@ -80,7 +81,7 @@ export default function NightResults() {
   const result = useMemo(() => {
     if (night === null) return null;
     try {
-      return settle(settlementInput(night));
+      return settlementOf(night);
     } catch {
       return null;
     }
@@ -141,6 +142,8 @@ export default function NightResults() {
         <Button label="Who pays whom" variant="primary" onPress={() => router.push('/payments')} />
       }
     >
+      <DidNotCheckOut verdict={night.verification} />
+
       <TotalsCard
         eyebrow="Money in play"
         amount={totals.boughtIn}
@@ -166,6 +169,48 @@ export default function NightResults() {
 
       <Note />
     </Screen>
+  );
+}
+
+/**
+ * The night failed its own arithmetic check.
+ *
+ * ABOVE EVERYTHING, IN RED, AND IT DOES NOT BLOCK ANYTHING —
+ * `docs/verification.md`, *What happens when a night fails*, which is where
+ * both the behaviour and this exact sentence come from. The room is standing up
+ * to leave; refusing to draw the night would leave the host with no result at
+ * all and nowhere to put the evening. So the figures are shown, and they are
+ * shown with the thing that says not to act on them.
+ *
+ * A wrong number that announces itself is recoverable. A wrong number that
+ * looks right is not, and that is the whole of the reasoning.
+ *
+ * `verifyNight()` re-derives every identity from the raw ledger rather than
+ * asking the engine whether the engine was right, so a verdict here is not "the
+ * figures look odd" — it is an identity that cannot be false about a correct
+ * night. Absent on a night closed before the check was wired up (B54), which is
+ * why this draws nothing rather than reassuring anybody about a night it knows
+ * nothing about.
+ */
+function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
+  const t = useTheme();
+  if (verdict === undefined || verdict.ok) return null;
+
+  return (
+    <View style={[styles.alert, { backgroundColor: t.dangerWash, borderColor: t.dangerEdge }]}>
+      <Text style={[styles.alertLabel, { color: t.danger }]} {...unscaledLabel}>
+        Did not check out
+      </Text>
+      <Text style={[styles.alertBody, { color: t.text }]}>
+        These figures did not check out — do not settle up from this screen.
+      </Text>
+      {/* The codes, not the prose: they are what a bug report is filed on, and
+          `Finding.code` is stable and greppable for exactly that. The full
+          detail is stored with the night and read by `npm run audit`. */}
+      <Text style={[styles.alertCodes, { color: t.muted }]} numberOfLines={2}>
+        {verdict.codes.join(' · ')}
+      </Text>
+    </View>
   );
 }
 
@@ -464,6 +509,25 @@ const nightDate = (iso: string): string =>
 const ROW_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
+  /*
+   * THE FAILED-CHECK BLOCK, measured off E5's *Out of balance* alert rather
+   * than drawn again: the two say the same kind of thing — this night does not
+   * add up, here is what is wrong — and two shapes for one meaning is how a
+   * reader stops recognising either.
+   */
+  alert: {
+    marginHorizontal: space.card,
+    marginBottom: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderRadius: radius.pressable,
+    borderWidth: 1,
+    gap: 6,
+  },
+  alertLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
+  alertBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
+  alertCodes: { fontSize: 11.5, fontWeight: '400', lineHeight: 16 },
+
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
 
   block: { marginHorizontal: space.page, marginTop: 14 },

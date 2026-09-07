@@ -10,7 +10,7 @@ import { Screen } from '../src/components/Screen';
 import { TotalsCard } from '../src/components/TotalsCard';
 import { useTheme } from '../src/design/useTheme';
 import { cappedFigure, space, unscaledLabel } from '../src/design/tokens';
-import { setPaid, settlementInput, transferKey, useNight } from '../src/lib/nightStore';
+import { setPaid, settlementOf, transferKey, useNight } from '../src/lib/nightStore';
 
 /**
  * Who pays whom — `2a`, from `design/handoff-game-end/`, cut 6 September, which
@@ -47,7 +47,7 @@ export default function Payments() {
   const result = useMemo(() => {
     if (night === null) return null;
     try {
-      return settle(settlementInput(night));
+      return settlementOf(night);
     } catch {
       return null;
     }

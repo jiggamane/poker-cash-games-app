@@ -23,7 +23,15 @@ import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
-import { nameOf, setAcknowledgement, setStatus, settlementInput, standingsOf, useNight } from '../src/lib/nightStore';
+import {
+  closeNight,
+  nameOf,
+  setAcknowledgement,
+  settlementInput,
+  settlementOf,
+  standingsOf,
+  useNight,
+} from '../src/lib/nightStore';
 
 /**
  * Settle up — E4, step 3 of 3 — and E5 when the night does not add up.
@@ -63,7 +71,7 @@ export default function SettleUp() {
     try {
       return {
         ok: true as const,
-        value: settle(settlementInput(night)),
+        value: settlementOf(night),
       };
     } catch {
       return { ok: false as const };
@@ -166,9 +174,32 @@ export default function SettleUp() {
             label="Close the session"
             variant="primary"
             onPress={() => {
-              void setStatus('settled');
-              router.dismissTo('/');
-              router.push('/settled');
+              /*
+               * `closeNight` and not `setStatus('settled')` — the close is not
+               * a status flag. It settles, hands the night to `verifyNight()`,
+               * freezes the result so no later engine can restate it, and
+               * queues the whole record for the server. See `closing.ts`.
+               *
+               * NAVIGATION WAITS FOR THE WRITE. It used to fire and forget,
+               * which was harmless while closing was one column and is not now:
+               * `/settled` reads the frozen result, and pushing before it
+               * exists would draw the night live for a frame and then swap the
+               * figures under the reader. The write is local SQLite — the queue
+               * drains separately and may fail all evening — so this is a few
+               * milliseconds, not a network round trip.
+               *
+               * A close that throws leaves the night open and the host on this
+               * screen, which is right: the only way `settle()` refuses here is
+               * an unbalanced count with no acknowledgement, and this screen
+               * already draws *Out of balance* for exactly that.
+               */
+              void closeNight().then(
+                () => {
+                  router.dismissTo('/');
+                  router.push('/settled');
+                },
+                () => {},
+              );
             }}
           />
           {/*
