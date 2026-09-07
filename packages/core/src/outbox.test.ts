@@ -263,3 +263,49 @@ describe('the queue carries the whole night, not just its money', () => {
     ).rejects.toThrow(OutboxError);
   });
 });
+
+/*
+ * B56. The queue halts at its first refusal, on purpose — so one operation the
+ * server will never accept blocks every real night behind it, permanently. A
+ * night deleted from the phone with its operations still queued is exactly that
+ * shape, and the sample night is the one every phone has.
+ */
+describe('forgetting a session', () => {
+  const OTHER = 'other-session';
+
+  const loaded = async (): Promise<MemoryOutboxStore> => {
+    const store = new MemoryOutboxStore();
+    await enqueueOp(store, { id: 'a', sessionId: SESSION, kind: 'session.open', payload: {} });
+    await enqueueEntry(store, SESSION, 'b', draft(500));
+    await enqueueOp(store, { id: 'c', sessionId: OTHER, kind: 'session.open', payload: {} });
+    await enqueueEntry(store, OTHER, 'd', draft(200));
+    return store;
+  };
+
+  it('drops everything queued about it', async () => {
+    const store = await loaded();
+    await store.forgetSession(SESSION);
+
+    expect((await store.pending(10)).map((i) => i.id)).toEqual(['c', 'd']);
+    expect(await store.count()).toBe(2);
+  });
+
+  it('leaves every other night exactly where it was in the line', async () => {
+    const store = await loaded();
+    await store.forgetSession(SESSION);
+    expect(await store.highestSeq(OTHER)).toBe(1);
+  });
+
+  it('forgets the seq high-water too, so a reused id cannot start mid-log', async () => {
+    const store = await loaded();
+    expect(await store.highestSeq(SESSION)).toBe(1);
+    await store.forgetSession(SESSION);
+    expect(await store.highestSeq(SESSION)).toBe(0);
+  });
+
+  it('is a no-op for a session that was never queued', async () => {
+    const store = await loaded();
+    await store.forgetSession('never-heard-of-it');
+    expect(await store.count()).toBe(4);
+  });
+});

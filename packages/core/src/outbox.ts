@@ -82,6 +82,17 @@ export interface OutboxStore {
   /** Highest seq known for a session, queued or already sent. 0 if none. */
   highestSeq(sessionId: string): Promise<number>;
   count(): Promise<number>;
+  /**
+   * Drop everything queued about one session, because the session itself is
+   * being dropped.
+   *
+   * A night deleted from the phone with its operations still in the queue is a
+   * queue describing rows that no longer exist — and if the server will not
+   * take them, it is a queue that has stopped, in front of every real night
+   * behind it. Forgetting a night has to forget what was going to be said
+   * about it. See B56.
+   */
+  forgetSession(sessionId: string): Promise<void>;
 }
 
 /** Sends a batch to the server. Must be all-or-nothing. */
@@ -238,6 +249,19 @@ export class MemoryOutboxStore implements OutboxStore {
 
   async count(): Promise<number> {
     return this.items.size;
+  }
+
+  async forgetSession(sessionId: string): Promise<void> {
+    for (const [id, held] of this.items) {
+      if (held.item.sessionId === sessionId) this.items.delete(id);
+    }
+    /*
+     * THE HIGH-WATER MARK GOES TOO. It is the seq the next entry for this
+     * session would take, and the session is being dropped — leaving it would
+     * make a later night that somehow reused the id start numbering in the
+     * middle of a log that no longer exists.
+     */
+    this.seqHighWater.delete(sessionId);
   }
 
   /** Test helper: the high-water mark survives entries leaving the queue. */

@@ -133,7 +133,7 @@ const rules: MoneyRule[] = [
  * is replaced on launch. A night the host STARTED carries no version at all and
  * is never touched by any of this — see `openNight`.
  */
-export const SEED_VERSION = 4;
+export const SEED_VERSION = 5;
 
 export const SEED = {
   groupName: 'The Thursday game',

@@ -198,6 +198,14 @@ export class SqliteOutboxStore implements OutboxStore {
     await db.runAsync(`DELETE FROM outbox_op WHERE id IN (${placeholders})`, ...ids);
   }
 
+  async forgetSession(sessionId: string): Promise<void> {
+    const db = await getDb();
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(`DELETE FROM outbox_op WHERE session_id = ?`, sessionId);
+      await db.runAsync(`DELETE FROM seq_high_water WHERE session_id = ?`, sessionId);
+    });
+  }
+
   async markAttempt(id: EntryId, error: string): Promise<void> {
     const db = await getDb();
     await db.runAsync(
