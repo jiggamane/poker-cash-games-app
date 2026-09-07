@@ -102,6 +102,145 @@ conversation and have not been written down. Say what they were and they go in.*
 `handoff-invites` cut, not on a phone. They are written down before any fix, per
 the rule at the top of this file. `docs/invite-flow-review.md` is the working.*
 
+*B52–B55 were found on 7 September auditing the app against `docs/verification.md`,
+after the owner asked how far the calculations can be trusted if the pen and paper
+beside them goes away. They are one finding in four parts: the arithmetic is the
+most defended code in the repository and nothing that was built to CHECK it, KEEP
+it or BACK IT UP was ever connected to a screen.*
+
+### B52 — a frozen settlement lost the figure the step had moved
+
+```
+Screen      not a screen — `night_settlement`, and every screen that would
+            read it back
+Seen        a settled night arriving from the server was frozen with
+            `JSON.stringify(result)`. `rounding.positions` is a Map, a Map
+            stringifies to `{}`, and nothing anywhere raised a word. Every
+            position's `by` term — what the step moved somebody by, which E4's
+            rounding row and E6's receipt are both drawn from — was silently
+            gone from the stored payload
+Expected    a settlement written down and read back is the settlement,
+            to the dollar, at every step the interface offers
+Found       7 Sept, wiring the frozen record into `readNight` — the row had
+            been written since the import path existed and never once read,
+            so the loss was invisible
+Locked by   npm run check — `packages/core/src/frozen.test.ts`, "keeps the term
+            the step moved, which a bare stringify loses", which asserts the
+            naive stringify has an empty `positions` and the round trip does
+            not. Every mode is round-tripped; tens and coarser are the cases
+            that can fail, because at whole dollars the Map is all zeroes and
+            a broken freeze looks perfect
+Status      fixed in this commit — `freeze` / `thaw` in `packages/core`, a
+            named pair with a round-trip test, exactly as `snapshotOf` and
+            `inputFromSnapshot` already are
+```
+
+**It is the reason a settlement gets a serialiser rather than two calls to the
+JSON built-ins at a call site.** The failure is total and silent: no exception,
+no type error, no missing field — an object where a Map used to be, with every
+key gone. `thaw` therefore refuses a payload it cannot fully read and returns
+null, and null falls through to a live re-derivation, which is what the whole
+app did before. A night is never left drawing half a settlement.
+
+### B53 — a settled night was re-derived by whatever engine happened to be installed
+
+```
+Screen      E6 /settled, E7 /payments, /nudge, /player, /stats — every screen
+            that draws a night that is over
+Seen        ten screens called `settle(settlementInput(night))` directly, so a
+            settled night was recomputed from its rows every time it was drawn.
+            That is correct exactly as long as `settle()` never changes, and it
+            changed on 3 September: commit `9321fbd`, the fix for B36, moved
+            the rounding step from snapping stacks to landing positions. A
+            night settled at tens before that date and reopened after it would
+            draw figures nobody at the table had ever agreed to — and
+            `ALGORITHM_VERSION` is still `settlement-v1`, so nothing would have
+            said so
+Expected    the group's settings and rules are the DEFAULTS a new game opens
+            with. They are not a revision of a game already played, and neither
+            is a new version of the engine. What the room agreed and paid is
+            what the app says for ever
+Found       7 Sept, auditing the three layers in `docs/verification.md`
+Locked by   npm run check — `apps/mobile/src/lib/closing.test.ts`, "re-derives
+            to the same figures from its own snapshot, not from today's
+            settings", and "carries the night's own rules, so a rule changed
+            later cannot restate it". `frozen.test.ts` locks the round trip
+            underneath them
+Status      fixed in this commit — the result is frozen at close and read back
+            through `settlementOf()`, the one accessor every screen now goes
+            through
+```
+
+**Half of this rule was already kept, which is why it took so long to see.**
+`Night.rules` and `Night.roundingMode` have been snapshotted onto the night
+since it opens — B5 was the second half of that — so changing the club's
+percentage in November has never moved September's night. What was missing was
+the other axis: the night was still handed to today's ENGINE. Freezing closes
+it, and the fallback for a night with no frozen record is the old live
+re-derivation, so nothing gets worse for a night closed before this commit.
+
+### B54 — the check that was built to catch the unimagined bug ran on no night, ever
+
+```
+Screen      not a screen — the close, and `docs/verification.md`
+Seen        the document describes three layers and calls the middle one "the
+            only layer that can catch a case we never conceived of":
+            `verifyNight()`, on the phone, at close. It is 42 identities
+            re-derived from the raw ledger, with 34 mutation tests proving each
+            is caught, and `apps/mobile` called it from nowhere. `ClosePayload`
+            had a `verification` field, `0008_verification.sql` had the column
+            and its index, and the value was never once computed
+Expected    every real night checks its own arithmetic as it closes, and the
+            verdict is stored whether it passes or fails
+Found       7 Sept, grepping for `verifyNight` outside its own tests
+Locked by   npm run check — `closing.test.ts`, "runs verifyNight and keeps the
+            verdict", which also asserts the verdict is not a token pass
+            (`checked` over 20), and "puts the verdict inside the payload, not
+            beside it"
+Status      fixed in this commit — `closeOf()` in `apps/mobile/src/lib/closing.ts`
+```
+
+**A failing verdict does not stop the close, and that is the harder call.** A
+night whose arithmetic does not hold is precisely the night that must be written
+down and sent, or the failure exists only as something odd somebody saw at 1am.
+The verdict travels inside the settlement payload rather than beside it, so a
+night that failed its own check cannot reach the server looking clean.
+
+**The host IS told, and the sentence was already written.**
+`docs/verification.md` — *What happens when a night fails* — specifies both the
+behaviour and the copy: the close is not blocked, and the settled screen says so
+in red above everything else. `/settled` now draws that block off
+`night.verification`, with the finding codes under it because a code is what a
+bug report is filed on. Nothing was invented; the string is the one the document
+already held.
+
+### B55 — the count and the settlement lived on one phone and nowhere else
+
+```
+Screen      not a screen — `sync.ts`, and `npm run audit`
+Seen        `queueCount` and `queueClose` were written when the server half
+            landed and called from nowhere. Ledger entries synced; the final
+            counts were written to local SQLite only, and the settlement was
+            never sent at all. So the two things a host cannot reconstruct from
+            anything else — what each stack was counted at, and what the room
+            was told to pay — existed on exactly one device. `npm run audit`
+            re-derives every stored night on a machine that was nowhere near
+            the table; with nothing stored it audited nothing and reported no
+            failures over no nights, which reads like a clean bill of health
+Expected    a count is queued the moment it is typed, and the whole record —
+            snapshot, rules, transfers, verdict — goes up at close
+Found       7 Sept, tracing every caller of `sync.ts`
+Locked by   npm run check — `closing.test.ts`, "fills every column
+            settlementRow writes", which is held against the real Postgres by
+            `supabase/test/03_sync_contract.sql` under npm run db:verify
+Status      fixed in this commit
+```
+
+**This is the one the paper was actually insuring against.** The arithmetic was
+never the exposure — it is 1,500 generated nights a run, with two hard refusals
+that would rather crash than hand out a wrong transfer list. Losing the phone
+was, and the count is the figure nothing else can rebuild.
+
 ### B47 — the "invited" badge cannot appear, and a claimed seat never stops saying "no app"
 
 ```

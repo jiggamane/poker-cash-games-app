@@ -38,3 +38,6 @@ export * from './overrides';
  */
 export * from './snapshot';
 export * from './verify';
+/* A settled night's figures, written down and read back — a past game is never
+   re-derived by a newer engine. */
+export * from './frozen';

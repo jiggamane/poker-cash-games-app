@@ -9,7 +9,7 @@ import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { StyleSheet, Text } from 'react-native';
 import { space, type } from '../src/design/tokens';
-import { nameOf, settlementInput, spendsOf, toggleRule, useNight } from '../src/lib/nightStore';
+import { nameOf, settlementOf, spendsOf, toggleRule, useNight } from '../src/lib/nightStore';
 
 /**
  * Money rules — O4, tonight's level. Everything that takes money off the table
@@ -31,7 +31,7 @@ export default function MoneyRules() {
   const preview = useMemo(() => {
     if (night === null) return null;
     try {
-      return settle(settlementInput(night));
+      return settlementOf(night);
     } catch {
       return null;
     }

@@ -11,8 +11,40 @@ thought to write a test for. This is how that is measured.
 | | What it checks | When | Where |
 | --- | --- | --- | --- |
 | **Unit tests** | The engine does what we designed | Every commit | `npm run test` |
-| **The night's own check** | This particular night's figures hold | At close, on the phone | `verifyNight()` in `packages/core/src/verify.ts` |
+| **The night's own check** | This particular night's figures hold | At close, on the phone | `verifyNight()`, called by `closeOf()` in `apps/mobile/src/lib/closing.ts` |
 | **The audit** | Every stored night still re-derives | On demand, on your machine | `npm run audit` |
+
+**All three run, as of 7 September, and until then only the first one did.**
+The middle layer was written, tested against 34 deliberate corruptions, given a
+column and an index in `0008_verification.sql` — and called from nowhere in the
+app. The third had nothing to read, because `queueClose` and `queueCount` were
+written when the server half landed and were also called from nowhere: the final
+counts never left the phone and the settlement was never sent, so the audit
+would have reported no failures over no nights. B54 and B55 in `docs/bugs.md`
+are the entries; this table described the design and not the software for the
+three weeks in between.
+
+## A settled night is never re-derived
+
+There is a fourth thing, and it is not a check — it is what makes the checks
+mean anything a month later.
+
+**A group's settings are the defaults its next game opens with. They are not a
+revision of a game already played.** A night has always carried its own rules
+and its own rounding step (`Night.rules`, `Night.roundingMode`), so moving the
+piggy bank to 10% in November cannot restate September. Since 7 September it
+carries its own RESULT as well: `closeNight()` freezes what `settle()` computed,
+and every screen reads that through `settlementOf()` rather than settling again.
+
+That closes the other half of the same rule. The engine changes too — it changed
+on 3 September, when the rounding step moved from snapping stacks to landing
+positions — and a night that re-derives is a night that a later version of this
+software gets to revise. What the room agreed and paid is what the app says for
+ever. See B53, and `freeze` / `thaw` in `packages/core/src/frozen.ts`.
+
+A night settled before the freeze existed has no stored result and still
+re-derives, which is exactly what the whole app did until now. Its own rules and
+step are on the night, so it re-derives to its own terms.
 
 They answer three different questions, and the middle one is the reason this
 document exists.
