@@ -394,6 +394,17 @@ back`, for a player who owes a share of the bill and paid for it at the counter.
 both screens' status pills are one `paymentProgress` call — the cut is explicit
 that they must never be computed twice.
 
+⚠ **THAT SHARED CARD TOOK ITS HORIZONTAL MARGIN FROM THE BOARD AND NOT ITS TOP
+ONE**, so on both screens it sat flush against the meta line — B47, found on
+7 September by photographing the flow rather than by any check. It is the same
+class as the fault `Screen.tsx` describes at `titlePadBottom`: that floor is
+under the TITLE, the meta line lays none of its own, and every other block on
+`/settled` spaces itself with a `marginTop` the card was missing. The night pass
+now carries `touches-the-head`, which fires under 6 points between the pinned
+head and the first thing in the body — and it had to go there rather than in the
+rule pass for exactly the reason recorded above about E6: opened cold, these two
+routes render their empty states and the card is not on the screen to measure.
+
 *And `/ledger` is deleted*, which is the same decision from the other end: the
 four columns were `resultColumns`, which nets what somebody fronted against what
 they owe into one signed `food` figure because a four-column table has one column

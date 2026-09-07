@@ -68,6 +68,20 @@ export function TotalsCard({
 const styles = StyleSheet.create({
   card: {
     marginHorizontal: space.card,
+    /*
+     * THE FLOOR UNDER THE META LINE, and the card is the only thing that can
+     * lay it. `Screen` puts 6 under the title row and the meta line adds 2 on
+     * top of itself; neither of them leaves anything underneath, so the first
+     * element of the body decides its own gap — and this one was not asking
+     * for it. The card came out flush against `05:45 → 08:55 · 6 players ·
+     * settled` on both screens that draw it: meta bottom 83.7, card top 83.7.
+     *
+     * 16 is the board's own — `design/handoff-game-end/README.md` § 1a item 4,
+     * "margin `16px 20px 0`", where the 20 is the `space.card` above. Item 3 of
+     * § 2a says the transfers card is "identical construction to 1a's", so the
+     * one value is right for both. See B47.
+     */
+    marginTop: 16,
     borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
     paddingVertical: 14,

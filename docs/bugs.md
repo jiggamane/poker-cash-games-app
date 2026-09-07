@@ -481,6 +481,53 @@ Fix this before drawing anything new for the invite flow, or every state the
 
 ## Fixed
 
+### B47 — the totals card sat flush against the meta line on both game-end screens
+
+```
+Screen      /settled and /payments — the card under the title
+Seen        meta bottom 83.7, card top 83.7. No gap at all: "05:45 → 08:55 ·
+            3h 10m · 6 players · settled" and the MONEY IN PLAY card share an
+            edge, and the same on "Mon, 7 Sept · 6 transfers" over LEFT TO MOVE
+Expected    16, which is design/handoff-game-end/README.md § 1a item 4 —
+            the totals card is "margin `16px 20px 0`"
+Found        7 Sept, photographing the ending flow with scripts/ui-shots.mjs
+Locked by   npm run check:ui — ui-journeys.mjs, the `touches-the-head` check,
+            which fires under 6 at every stop of a played night
+Status      fixed in this commit
+```
+
+**The card owned the 20 and not the 16.** `TotalsCard` set `marginHorizontal:
+space.card` and no `marginTop`, so it took the board's horizontal margin and
+left the vertical one on the floor. Every other block on `/settled` — the
+deductions, the toggle, the list — carries its own `marginTop: 14`, which is why
+the fault stops at the one element: the card is the only thing in the body that
+never asked.
+
+**`Screen` cannot lay this floor, and the comment in it says why it thought it
+had.** `titlePadBottom` is 6 under the title row and it is described there as
+"the floor under a title … none of them can land on the title by omitting one,
+which is exactly what had happened". That was true and it is still true — but
+the meta line sits *below* that floor and lays none of its own (`metaPadTop: 2`,
+no bottom), so a first element with no margin lands on the meta line instead of
+the title. **The same fault, one element lower, on the screens that were added
+after the floor was poured.** Raising `metaPadTop` would have fixed it
+everywhere and been wrong everywhere: it is a token on all 37 pushed screens,
+and the other 35 have first elements that already space themselves.
+
+**One value fixed two screens, and that is the component earning its keep.**
+`TotalsCard` exists because "two screens drawing their own version of one card
+is how they end up stating different amounts on the same night" — its own
+header comment. The same argument covers the geometry: the cut says 2a's card is
+"identical construction to 1a's", so a margin on the component is a margin both
+screens cannot disagree about.
+
+**Why the route audit could never have caught it.** `/settled` and `/payments`
+opened cold render "Not settled" and an empty transfers list — no card on
+either. `ui-audit.mjs` walks routes, so it measured a screen the fault is not on.
+This is the first blind spot `ui-journeys.mjs` was written for, stated in
+`docs/ui-guide.md` as "a screen no URL reaches", and it is why the new check
+lives there rather than beside the other geometry rules.
+
 ### B46 — the rounding sheet described the rule this app removed
 
 ```
