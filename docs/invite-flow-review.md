@@ -556,3 +556,113 @@ Sign-off is the owner's. Two notes: cutting state 12 removes one of the two sets
 the cut was least sure of, and the reset-interrupted title — *Half of that
 worked* — reads well and is the honest shape, given the screen's whole job is to
 say which half.
+
+---
+
+# Third cut — `handoff-invites-3`, 7 September
+
+Twenty-two frames in turn 2: one deleted, three revised, four added, the three
+smaller notes carried onto the frames they belong to. Checked the same way.
+
+## What landed, verified
+
+- **`2c Signed out` is gone.** Twenty-two turn-2 frames, and the deleted one is
+  not among them.
+- **No outlined pill anywhere in turn 2.** All 32 controls are 56 tall at
+  radius 8.
+- **The chip row is back to gap 8, four chips, and a full-width *Invite from
+  contacts* row underneath — on both `2b` frames.** The row label reads better
+  than the chip label did, and the permission line now belongs to it.
+- **The expired frame fades its disabled chips to .4**, which is the outlined
+  disabled value; the `.32` on `2b Made, waiting` is the sheet scrim, correct.
+- **No new colours inside any phone.** The amber tint was escalated to a token
+  request rather than quietly changed — the right call, and see below.
+- All three smaller items landed as their own frames, including the claimed
+  variant of the interrupted reset, which is the one that was hardest to argue
+  for and is now the better of the two.
+- Turn 1 untouched, `1a Sent`'s outlined pill left alone as asked.
+
+The corrections are getting smaller each round, which is the point. Two real
+findings this time, and one of them is not a design problem at all.
+
+## A. Answering open question 2 — and it is bigger than the copy
+
+**Removal does not revoke anything.** `removeMember` sets `removed = 1` in the
+phone's own SQLite; nothing syncs that column, the server's `player` table does
+not have one, and no path anywhere deletes a player row. `claimed_by_user_id`
+survives untouched, so `is_book_member` keeps returning true.
+
+So a person the host removed from the group **goes on reading the book** — the
+live table while it is running, every night, every settlement — indefinitely, on
+a phone the host believes they cut off. `member.tsx`'s own note under the button
+says *"Removing somebody keeps every night they played"*, which is true, and is
+exactly the sentence that conceals it. **B57.**
+
+**What that means for `2d Your seat was reset`:** of the three causes the widened
+copy now survives, only **reset** can happen. **Removed** cannot produce that
+screen because removal revokes nothing. **Book deleted** has no path in the app
+at all — there is no delete-club and no leave-club anywhere in `apps/mobile`.
+
+**And the answer to the question as asked:** yes, the server can distinguish
+them, cheaply and safely. One `security definer` function keyed on the player id
+the handset already remembers returns *reset* (row present, claim null),
+*removed* (once removal is real), or *gone* (row absent). It leaks nothing — the
+reader already knew they were a member of that book, which is why they are
+looking at this screen.
+
+**But the ordering is: make removal revoke first.** Until it does, the
+three-cause sub-line is drawn for two states that cannot occur, and the copy is
+being more careful than the system is. Keep the frame — it becomes right the day
+removal is fixed — and put on the note which of the three is live today.
+
+## B. `2d Address already used` asserts a fact the client cannot have
+
+> It belongs to another set of clubs.
+
+The server will not say what that account holds. It may hold nothing at all — a
+half-finished sign-in — or one host's books, or somebody else's clubs entirely.
+This is the same shape as the sub-line that was just corrected on
+`2c Already a member`: a screen stating a cause it has no way of knowing.
+
+Say what is known: **that address already belongs to an account.** The rest of
+the block — one address holds one person, signing in would hand this phone to
+that person — is right and is the part that does the work.
+
+**And one thing to decide out loud while this screen exists.** It is an
+email-enumeration oracle: whoever holds the handset learns whether a given
+address has an account here. That is a much weaker threat than the invite-code
+one — it needs the phone in hand, and *attach an address to my own account* is
+the standard place this leaks in every product that has it. **Recommend
+accepting it and noting the decision on the frame.** This repo argues the
+enumeration case unusually hard in `0009_invite_privacy.sql`; a screen that goes
+the other way should do so on purpose, not by not noticing.
+
+## C. Three small ones
+
+- **No confirmed state for the email.** Attach → verify pending → already used.
+  What the sheet or the roster row says once the note is opened is not drawn.
+  It is probably just the amber leaving — but that is precisely the assumption
+  that produced the gap the last round found, where attaching implied
+  portability. One frame, or one sentence on `2d Verify pending`.
+- **Rename the frame `2d Your seat was reset`.** Its whole point is that it no
+  longer claims a reset. Frame labels are what the docs cite and what the route
+  map will use.
+- **`2e A name already here` covers a clash with the roster, not with the
+  paste.** Two identical lines in the same block are checked one at a time, so
+  the second clashes with the first once it has landed. Same line, one more case.
+
+## The three asks
+
+1. **Name the amber pending tint — yes.** It is a real fourth role beside win at
+   14%, off-table at 13% and danger at 12%. One thing to get right when it
+   lands: **derive the light twin from the light amber (`#7A5410`), not from the
+   dark one.** Every other tint pair in `tokens.ts` is derived per theme, and
+   `#E8B455` at 11% on a white ground is very nearly invisible — which is the
+   failure `offTableWash` already has a comment about.
+2. **Does the server distinguish the three?** Answered above: it can, it should,
+   and removal has to become real first.
+3. **Merging two accounts — recommend no.** It is a large piece of identity work
+   for a case whose honest workaround costs the player nothing, and every merge
+   has to decide what happens when both accounts hold a seat in the same book —
+   the one thing this model forbids outright. The screen as drawn, with no *sign
+   in instead*, is the right answer to it.
