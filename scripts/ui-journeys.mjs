@@ -1286,6 +1286,62 @@ async function playANight(name, rebuys) {
     `the At the table column sums to ${results.reduce((a, b) => a + (b ?? 0), 0)}, not zero`,
   );
 
+  /*
+   * AND `in` AND `out` STAY ON ONE LINE WHILE THE ROW HAS ROOM FOR THEM — B59.
+   *
+   * Two terms fit any phone in the matrix: `in 1,500 out 2,000` is about 133
+   * points and the narrowest row here is 316 with the net beside it. They were
+   * on two lines anyway, on a real phone, with a third of the row empty to the
+   * right of them, because the box the line wraps inside was sized to the line
+   * rather than to the row — an exact fit that the pixel grid then rounded a
+   * fraction under, on some rows and not others.
+   *
+   * SO IT IS THE BOX THAT IS ASSERTED AND NOT ONLY THE WRAP. The wrap itself
+   * cannot be caught here: react-native-web sizes that box off CSS max-content
+   * and never rounds it down, so the browser draws one line either way and a
+   * check that watched the line would have passed the phone's fault every time.
+   * What is checkable, and what the fix actually is, is that the text block
+   * reaches the net — the line wraps against the room the ROW has left, which
+   * is a question with the same answer on every renderer.
+   */
+  const spendBoxes = await page.evaluate(() => {
+    const GAP = 12; // `styles.row`, and the only thing between the two halves
+    return [...document.querySelectorAll('[data-testid="settled-row"]')].map((row) => {
+      const net = row.querySelector('[data-testid="settled-net"]');
+      const text = [...row.children].find((c) => c !== net) ?? null;
+      if (net === null || text === null) return null;
+      const t = text.getBoundingClientRect();
+      const n = net.getBoundingClientRect();
+      /* The spend line is the second half of the text block — the name is the
+         first. A row whose player has no terms at all draws only the name. */
+      const spend = text.children.length > 1 ? text.children[text.children.length - 1] : null;
+      const terms = spend === null ? [] : [...spend.children].map((el) => el.getBoundingClientRect());
+      /* `columnGap` on `styles.spend`. What the terms need on one line, against
+         what the line has — a night in the millions can genuinely run out of
+         room, and a check that called that a bug would be crying wolf. */
+      const need = terms.reduce((sum, r) => sum + r.width, 0) + 9 * Math.max(0, terms.length - 1);
+      return {
+        name: (text.textContent || '').slice(0, 24),
+        short: Math.round((n.left - GAP - t.right) * 100) / 100,
+        lines: new Set(terms.map((r) => Math.round(r.top))).size,
+        terms: terms.length,
+        fits: spend !== null && need <= spend.getBoundingClientRect().width + 0.5,
+      };
+    });
+  });
+
+  await holds(
+    'and the spend line wraps against the row rather than against itself',
+    spendBoxes.length > 0 &&
+      spendBoxes.every((r) => r !== null && r.short <= 1 && r.short >= -1),
+    `a settled row's text block stops short of the net: ${JSON.stringify(spendBoxes)}`,
+  );
+  await holds(
+    'so in and out share a line on a row that has the room',
+    spendBoxes.every((r) => r !== null && (r.terms === 0 || !r.fits || r.lines === 1)),
+    `in and out are on separate lines at ${WIDTH}: ${JSON.stringify(spendBoxes)}`,
+  );
+
   await stop('night settled · at the table');
 
   /* Back to Final, which is where the screen opens and what the legs below

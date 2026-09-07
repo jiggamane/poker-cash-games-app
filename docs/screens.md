@@ -405,6 +405,19 @@ head and the first thing in the body — and it had to go there rather than in t
 rule pass for exactly the reason recorded above about E6: opened cold, these two
 routes render their empty states and the card is not on the screen to measure.
 
+⚠ **AND THE SPEND LINE WRAPPED AGAINST ITSELF RATHER THAN AGAINST THE ROW** —
+B59, 7 September, found on a phone and invisible to every check in the repo. The
+block holding the name and the terms was sized to its own content, so the line
+wrapped inside a box exactly as wide as the line, and the pixel grid decided the
+rest: `in 1,500 out 2,000` stacked on two lines with 130 points of empty row
+beside it, on some rows and not others. **react-native-web cannot reproduce it**
+— it sizes that box off CSS `max-content` and never rounds it down — so the night
+pass now asserts the fix rather than the symptom: the text block must reach the
+net, which is the same question on both renderers. The two terms are also a step
+quieter than the net now (`quieted()`, blended toward `muted` rather than faded
+with opacity, which the bright theme's contrast floor does not allow), because
+`out` and the net were the same green and the row read as two answers.
+
 *And `/ledger` is deleted*, which is the same decision from the other end: the
 four columns were `resultColumns`, which nets what somebody fronted against what
 they owe into one signed `food` figure because a four-column table has one column

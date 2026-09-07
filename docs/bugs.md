@@ -556,6 +556,54 @@ The third message this entry originally listed, `Sign in first`, is not a user
 state — see the correction above it.
 
 
+### B59 — `out` dropped to a line of its own with a third of the row empty beside it
+
+```
+Screen      /settled — the spend line under a name, both modes
+Seen        on the phone, At the table: "in 1,500" and "out 2,000" stacked on
+            two lines under Goga, Oto and Andro, with about 130 points of empty
+            row to the right of them. Levani, whose terms are NARROWER, kept
+            his on one line — same screen, same width, same night
+Expected    one line while the row has room for one, which at these figures is
+            every phone in the matrix
+Found       7 Sept, on the phone
+Locked by   npm run check:ui — ui-journeys.mjs, "the spend line wraps against
+            the row rather than against itself"
+Status      fixed in this commit
+```
+
+**The box the line wraps inside was measured off the line, not off the row.**
+`styles.rowText` held the name and the spend line with `flexShrink: 1` and no
+`flexGrow`, so it was sized to its own widest content — which for these rows is
+the spend line itself. That makes the wrap container EXACTLY as wide as the terms
+on it, and an exact fit is not a fit: the width is measured with no constraint,
+rounded to the device's pixel grid, and the line is then laid out again inside
+the rounded figure. A third of a point either way decides it, which is why three
+rows wrapped and the fourth did not, and why the wider row was the one that
+survived. `flexGrow: 1` makes the question a real one — the line now wraps
+against the room the row has left beside the net, and not against itself.
+
+**Nothing on the web build could ever have seen this.** react-native-web sizes
+the same box off CSS `max-content` and never rounds it down, so the browser drew
+one line either way: `ui-journeys` had been walking this screen since 6 September
+and reporting it clean while the phone stacked it. So the check is not written on
+the wrap. It is written on the box — the text block has to reach the net, which
+is the fix itself and has the same answer on every renderer. Against the old
+build it reports all six rows short, by 118 to 163 points; against the new one,
+zero. The wrap is asserted too, but only where the terms actually fit the line,
+so a night in the millions that genuinely runs out of room does not cry wolf.
+
+**And the two greens on the row are no longer the same green.** `out 12,880`
+under a name and `+$12,380` beside it were `win` at full strength in both places,
+so the caption read as a second result rather than as the working behind the
+first. The terms are now blended 65% toward `muted` — `quieted()` in
+`settled.tsx` — which takes the saturation out and leaves the luminance alone.
+Opacity is the obvious way to fade something and it is the wrong one here: `win`
+on white is 5.43:1 to start with, so the bright theme drops under the 4.5 floor
+at any fade at all, and `ui-audit.mjs` rule 9 mixes opacity into a colour before
+reading it for exactly that reason. Blended, nothing on the line reads below 6:1
+in either theme.
+
 ### B58 — the totals card sat flush against the meta line on both game-end screens
 
 ```
