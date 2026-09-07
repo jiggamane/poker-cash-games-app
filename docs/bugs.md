@@ -102,11 +102,55 @@ conversation and have not been written down. Say what they were and they go in.*
 `handoff-invites` cut, not on a phone. They are written down before any fix, per
 the rule at the top of this file. `docs/invite-flow-review.md` is the working.*
 
-*B52–B55 were found on 7 September auditing the app against `docs/verification.md`,
+*B52–B56 were found on 7 September auditing the app against `docs/verification.md`,
 after the owner asked how far the calculations can be trusted if the pen and paper
 beside them goes away. They are one finding in four parts: the arithmetic is the
 most defended code in the repository and nothing that was built to CHECK it, KEEP
 it or BACK IT UP was ever connected to a screen.*
+
+### B56 — the demo night would have halted the queue in front of every real one
+
+```
+Screen      not a screen — `seedNight`, `forgetNight`, and the outbox
+Seen        the app seeds itself with a sample night, and on a fresh install
+            that night is the ACTIVE one: `openNight()` loads it and every
+            screen is pointed at it. It is also the one night that never
+            queued a `session.open` — `seedNight` writes local rows and calls
+            nothing. So buying in on the demo night queued an entry, and after
+            B55 counting a demo stack queued a count, for a session the server
+            has never heard of. That is a foreign-key refusal, and the queue
+            halts at its first refusal by design, so it would have stopped
+            there — in front of every real night behind it, for ever, on a
+            queue whose whole contract is that retrying is safe.
+            `forgetNight` made it worse rather than better: replacing a stale
+            seed deletes the night's rows and left its operations queued
+Expected    a night the server cannot accept is never queued at all. It works
+            completely on the phone; it simply never leaves
+Found       7 Sept, asked whether every game's scores now go to the server —
+            tracing what the answer actually is
+Locked by   npm run check — `apps/mobile/src/lib/queueable.test.ts`, "is minted
+            with an id that can never be queued", and `outbox.test.ts`,
+            "forgetting a session" (four cases, including that it leaves every
+            other night where it was in the line)
+Status      fixed in this commit
+```
+
+**The fix is an id, not a new mechanism.** `sync.ts` already refused to queue
+anything for a session whose id is not a uuid, and its comment describes exactly
+the night we needed to keep out — *"a sample night from an old build, which
+would sit at the head of the line failing forever and block every real night
+behind it"*. The sample night simply was not one of them, because `seedNight`
+minted it with `randomUUID()` like everything else. It now gets
+`sample:<uuid>`, which the anchored gate refuses, so the existing guard does the
+work at all seven queue points and at the drain.
+
+`SEED_VERSION` goes to 5 so phones holding the old uuid-id sample night replace
+it on the next launch, and `forgetNight` now purges the outbox for the night it
+is dropping — which is right for any night, not just this one.
+
+**It is the counterpart to B55 and it arrived with it.** Sending the count and
+the settlement is what makes the record survive the phone; making sure the demo
+night is not in the queue ahead of them is what makes the sending work at all.
 
 ### B52 — a frozen settlement lost the figure the step had moved
 

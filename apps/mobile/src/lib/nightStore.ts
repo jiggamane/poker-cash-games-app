@@ -26,6 +26,7 @@ import { CLAIM_LIVE_NIGHTS } from './hostSeat';
 import { outbox, recordEntry } from './ledgerRepo';
 import { queueClose, queueCount, queuePlayer, queueSessionOpen } from './sync';
 import { closeOf } from './closing';
+import { sampleSessionId } from './queueable';
 import {
   CURRENT_NIGHT,
   FIRST_TABLE,
@@ -639,6 +640,15 @@ interface Seed {
 /** Drop a night and everything hanging off it. Only ever a stale seed. */
 async function forgetNight(sessionId: string): Promise<void> {
   const db = await getDb();
+  /*
+   * THE QUEUE FIRST — B56. Deleting a night's rows while its operations sat in
+   * the outbox left the queue describing a night that no longer existed, and
+   * for the sample night the server would never have accepted them anyway: one
+   * refusal at the head of the line halts the drain in front of every real
+   * night behind it. Forgetting a night forgets what was going to be said about
+   * it. Outside this transaction because it is a different database.
+   */
+  await outbox.forgetSession(sessionId);
   await db.withTransactionAsync(async () => {
     for (const table of [
       'night_count',
@@ -655,7 +665,19 @@ async function forgetNight(sessionId: string): Promise<void> {
 
 async function seedNight(seed: Seed, seedVersion: number): Promise<void> {
   const db = await getDb();
-  const sessionId = randomUUID();
+  /*
+   * NOT A UUID, AND THAT IS THE MECHANISM — B56. The sample night is the
+   * ACTIVE night on a fresh install, so every screen points at it, and it is
+   * the one night that never queued a `session.open`: this function writes
+   * local rows and calls nothing. Counting a demo stack therefore queued a
+   * count for a session the server had never heard of, which is a foreign-key
+   * refusal, which halts the queue in front of every real night.
+   *
+   * `sampleSessionId()` gives it an id the uuid gate in `sync.ts` refuses, so
+   * nothing about this night is ever queued at all. It works completely on the
+   * phone; it simply never leaves.
+   */
+  const sessionId = sampleSessionId();
 
   let seq = 0;
 

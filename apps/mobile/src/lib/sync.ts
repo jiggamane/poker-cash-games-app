@@ -11,6 +11,7 @@ import {
 } from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { SqliteOutboxStore } from './outboxStore';
+import { leavesThePhone } from './queueable';
 import {
   countRow,
   entryRow,
@@ -51,16 +52,20 @@ export const outbox = new SqliteOutboxStore();
 /**
  * The shape every id in this app has, because every server column is uuid.
  *
- * Nights from before that was true are kept OUT of the queue entirely rather
- * than allowed to fail in it. The queue halts at its first failure — which is
- * exactly right for an entry that arrived before its session, and exactly wrong
- * for a sample night from an old build, which would sit at the head of the line
- * failing forever and block every real night behind it.
+ * Nights from before that was true, and the sample night the app seeds itself
+ * with, are kept OUT of the queue entirely rather than allowed to fail in it.
+ * The queue halts at its first failure — which is exactly right for an entry
+ * that arrived before its session, and exactly wrong for a night the server
+ * will never accept, which would sit at the head of the line failing forever
+ * and block every real night behind it.
  *
  * Such a night stays on the phone and works completely. It simply never leaves.
+ *
+ * The predicate is `leavesThePhone` in `queueable.ts` — one pure function with
+ * a test, rather than this regex written out at each of the seven gates below.
+ * See B56 for what it costs when a night slips past it.
  */
-const isUuid = (id: string): boolean =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+const isUuid = leavesThePhone;
 
 // ---------------------------------------------------------------------------
 // Queueing
