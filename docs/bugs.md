@@ -349,6 +349,15 @@ its own comment saying a network failure "is NOT a dead code" and that the
 screen stays on X2a. `claim.tsx:90` does the same for everything `redeemInvite`
 throws.
 
+**Corrected 7 Sept, reviewing the second cut:** of the three, only two are user
+states. `Sign in first` cannot reach a person on the claim path at all —
+`redeemInvite` signs them in anonymously first, which is what `connection.ts`'s
+`anonymousSignIns` exists to check ("watchers and claims need" it). It fires only
+when anonymous sign-in is disabled on the project, which is a build fault and
+belongs in the connection report's voice, not on a screen asking a guest to make
+an account. So: the network failure and `You already have a place in this book.`
+are the two to draw.
+
 The one-string rule is right and should not be touched: `0009` pads all four
 dead causes to a common floor so timing cannot answer the question either. But
 that migration argues at length that **two** conditions stay distinguishable on
