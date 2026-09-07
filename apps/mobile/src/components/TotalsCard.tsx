@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
      * 16 is the board's own — `design/handoff-game-end/README.md` § 1a item 4,
      * "margin `16px 20px 0`", where the 20 is the `space.card` above. Item 3 of
      * § 2a says the transfers card is "identical construction to 1a's", so the
-     * one value is right for both. See B47.
+     * one value is right for both. See B58.
      */
     marginTop: 16,
     borderRadius: radius.card,

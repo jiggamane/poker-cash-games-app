@@ -32,6 +32,19 @@ other became B46 in the merge, by the same rule as above. The lesson is not to
 read harder: **the number is only safe once your entry is on `main`**, so where
 two sessions are in flight, merge the entry early or expect to renumber it.
 
+**And again on 7 September, with the merge check doing its job for once.** A
+session reading the invite flow wrote up B47–B51 and a sixth screen pass added
+B52–B57, while this one was photographing the game-end flow and wrote a B47 of
+its own for the totals card. `main` had all eleven by the time that branch came
+to merge, so the collision surfaced in `git merge` rather than on a phone: the
+entries already on `main` kept their numbers and the card moved up to **B58**,
+with its four references — the component, the night check, this file and
+`docs/screens.md` — moving with it. Worth noting what caught it, since the two
+paragraphs above are about what did not: the merge auto-merged both docs
+cleanly, because the two sessions were writing to different regions of the same
+file. A clean auto-merge is not evidence the numbers are free, so the grep for
+the number belongs after the merge and not only before it.
+
 It happened again on 6 September: two sessions each wrote a B44, one for the
 rebuy that landed without a confirmation and one for the spend keypad. The
 fetch was done at the start of the session and `main` moved while the work was
@@ -481,7 +494,7 @@ Fix this before drawing anything new for the invite flow, or every state the
 
 ## Fixed
 
-### B47 — the totals card sat flush against the meta line on both game-end screens
+### B58 — the totals card sat flush against the meta line on both game-end screens
 
 ```
 Screen      /settled and /payments — the card under the title

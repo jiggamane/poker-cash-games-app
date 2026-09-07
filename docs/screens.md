@@ -395,7 +395,7 @@ both screens' status pills are one `paymentProgress` call — the cut is explici
 that they must never be computed twice.
 
 ⚠ **THAT SHARED CARD TOOK ITS HORIZONTAL MARGIN FROM THE BOARD AND NOT ITS TOP
-ONE**, so on both screens it sat flush against the meta line — B47, found on
+ONE**, so on both screens it sat flush against the meta line — B58, found on
 7 September by photographing the flow rather than by any check. It is the same
 class as the fault `Screen.tsx` describes at `titlePadBottom`: that floor is
 under the TITLE, the meta line lays none of its own, and every other block on

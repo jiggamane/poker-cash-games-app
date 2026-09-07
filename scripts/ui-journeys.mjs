@@ -468,7 +468,7 @@ const CHECK = `
    * meta line. Screen.tsx already carries a comment about this happening once
    * to the TITLE, which is what titlePadBottom was added to stop; the floor it
    * lays does not reach the line under it, so the same fault came back one
-   * element lower. B47 is that, on the two game-end screens.
+   * element lower. B58 is that, on the two game-end screens.
    *
    * WHY IT IS HERE AND NOT IN THE AUDIT. /settled and /payments render their
    * empty states cold — no card, no head worth measuring — so the pass that
