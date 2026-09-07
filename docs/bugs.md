@@ -102,6 +102,49 @@ conversation and have not been written down. Say what they were and they go in.*
 `handoff-invites` cut, not on a phone. They are written down before any fix, per
 the rule at the top of this file. `docs/invite-flow-review.md` is the working.*
 
+### B57 — "Remove from the group" does not remove anybody's access
+
+```
+Screen      GR5 /member — the destructive action, and the note under it
+Seen        a player the host removed goes on reading the book from their own
+            phone: the live table while a night runs, every night, every
+            settlement, indefinitely
+Expected    removing somebody ends their read access, and the sheet says so
+Found        7 Sept, answering the third invite cut's question about what a
+            claimed player's app can be told
+Locked by   nothing yet — a db:verify case asserting is_book_member is false
+            for a removed player is the shape of it
+Status      open
+```
+
+`removeMember` (`clubStore.ts:751`) sets `removed = 1` in this phone's SQLite.
+**Nothing syncs that column**: it is absent from `syncRows.ts`, absent from
+`sync.ts`, and absent from the server — `player` in `0001_init.sql` has
+`id, book_id, display_name, claimed_by_user_id, created_at` and nothing else. No
+path anywhere deletes a player row.
+
+So `claimed_by_user_id` survives a removal untouched, `is_book_member` goes on
+returning true, and every member-read policy `0007` installed goes on passing.
+The host has hidden a name from their own roster and revoked nothing.
+
+The note under the button reads *"Removing somebody keeps every night they
+played"*, which is true, and is the sentence that conceals it — it answers the
+question a host is asking (does the ledger survive?) so completely that the
+other one never gets asked.
+
+**Reset already does the right thing** and is the model to copy:
+`revoke_player_invite` clears `claimed_by_user_id` and leaves the ledger alone.
+Removal wants the same write plus whatever marks the row hidden, and the sheet
+wants a second sentence saying access ends.
+
+Two things follow, both on the invite flow. `handoff-invites-3` draws a screen
+for the claimed player whose book will not open, widened to survive three
+causes — reset, removed, book deleted. **Only reset can happen today**: removal
+revokes nothing, and there is no delete-club or leave-club path in the app at
+all. And the three-way answer that screen wants — one `security definer`
+function keyed on the remembered player id, returning reset / removed / gone —
+cannot tell the truth about the middle one until this is fixed.
+
 *B52–B56 were found on 7 September auditing the app against `docs/verification.md`,
 after the owner asked how far the calculations can be trusted if the pen and paper
 beside them goes away. They are one finding in four parts: the arithmetic is the
