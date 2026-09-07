@@ -11,8 +11,12 @@ import {
   type Stakes,
 } from '@poker-club/core';
 import { HOST_ID, NAME_THE_HOST, RETIRED_HOST_NAMES } from './hostSeat';
+import { seatStatuses, type SeatStatus } from './invites';
 import { dropPlayerFromPlay, renamePlayerInPlay, setMeSeat } from './nightStore';
+import { leavesThePhone } from './queueable';
 import { clubForBook, rosterAdditions, sameName, type RosterPerson } from './rosterMerge';
+import { PROMOTE_CLAIMED, SET_INVITED } from './seatReconcile';
+import { isSupabaseConfigured } from './supabase';
 import { drain, queueRosterPlayer } from './sync';
 
 /**
@@ -626,23 +630,52 @@ export async function setPaysKitty(clubId: string, id: PlayerId, pays: boolean):
 }
 
 /**
- * Send this player their link. It is theirs: single-use, tied to this row, and
- * opening it hands them the name they already have — every night of theirs
- * already in the book becomes theirs.
+ * Bring the roster's badges up to date with the server — B47.
+ *
+ * `inviteMember` and `resetInvite` lived here and were never called by
+ * anything, which is why the amber pill and the `· 2 invited` count could not
+ * appear on any phone. They are gone; this replaces both, and it asks the
+ * server rather than being told, because who has a live code and who has
+ * claimed their seat are facts the server owns and the phone can only ever be
+ * a stale copy of.
+ *
+ * IT NEVER CLEARS A BADGE IT DID NOT HEAR ABOUT. Every write is driven by a row
+ * the server actually returned, so a host on a train, a signed-out build and a
+ * project that refuses the key all leave the roster exactly as it was — an old
+ * badge is worth more than no badge, and `2a Offline` is the screen that says
+ * which it is. That is why this returns quietly rather than throwing: nothing
+ * on the roster is waiting for it, and a failure here is not a failure of the
+ * screen.
+ *
+ * IDS THAT CANNOT LEAVE THE PHONE ARE NOT ASKED ABOUT. The sample club's seats
+ * are not uuids (`queueable.ts`), and sending one to a uuid column is an error
+ * that would take the whole call down with it — including the real names beside
+ * it.
  */
-export async function inviteMember(clubId: string, id: PlayerId): Promise<void> {
-  const db = await getDb();
-  await db.runAsync(
-    `UPDATE club_member SET invited = 1 WHERE club_id = ? AND id = ?`,
-    clubId,
-    id,
-  );
-  await loadClubs();
-}
+export async function reconcileSeats(clubId: string): Promise<void> {
+  if (!isSupabaseConfigured) return;
 
-export async function resetInvite(clubId: string, id: PlayerId): Promise<void> {
+  const club = state.clubs.find((c) => c.id === clubId);
+  if (club === undefined) return;
+
+  const askable = club.members.map((m) => m.id).filter(leavesThePhone);
+  if (askable.length === 0) return;
+
+  let statuses: SeatStatus[];
+  try {
+    statuses = await seatStatuses(askable);
+  } catch {
+    return;
+  }
+  if (statuses.length === 0) return;
+
   const db = await getDb();
-  await db.runAsync(`UPDATE club_member SET invited = 0 WHERE club_id = ? AND id = ?`, clubId, id);
+  await db.withTransactionAsync(async () => {
+    for (const s of statuses) {
+      await db.runAsync(SET_INVITED, s.liveCode === null ? 0 : 1, s.playerId);
+      if (s.claimed) await db.runAsync(PROMOTE_CLAIMED, s.playerId);
+    }
+  });
   await loadClubs();
 }
 

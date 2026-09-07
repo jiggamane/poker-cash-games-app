@@ -74,7 +74,7 @@ export function explainServerError(e: unknown): string {
     return 'This sign-in has expired. Settings → Connection will clear it, then sign in again.';
   }
 
-  if (/network request failed|failed to fetch|fetch failed/i.test(raw)) {
+  if (isNoAnswer(raw)) {
     return 'No answer from the server. The night keeps recording on this phone and sends when there is signal.';
   }
 
@@ -116,6 +116,22 @@ export async function sendSignInLink(email: string, redirectTo: string): Promise
     options: { shouldCreateUser: false, emailRedirectTo: redirectTo },
   });
   if (error) throw error;
+}
+
+/**
+ * True when nothing came back at all — no signal, or a network that blocks it.
+ *
+ * A sibling of `isNotInvited`, and here for the same reason: the regex is
+ * already the third clause of `explainServerError` above, and a screen that
+ * needs to tell "the server said no" from "the server said nothing" should ask
+ * this rather than carry its own copy of it. `claim.tsx` is the caller — the
+ * sentence that fits a failed sync ("the night keeps recording on this phone")
+ * is nonsense on a screen with no night behind it, so it says its own thing and
+ * asks here whether that is the case it is in.
+ */
+export function isNoAnswer(e: unknown): boolean {
+  const raw = e instanceof Error ? e.message : String(e);
+  return /network request failed|failed to fetch|fetch failed/i.test(raw);
 }
 
 /**

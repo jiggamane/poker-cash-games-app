@@ -112,8 +112,10 @@ not which pixel.
 conversation and have not been written down. Say what they were and they go in.*
 
 *B47–B51 were found on 7 September reading the invite flow against the
-`handoff-invites` cut, not on a phone. They are written down before any fix, per
-the rule at the top of this file. `docs/invite-flow-review.md` is the working.*
+`handoff-invites` cut, not on a phone — written down before any fix, per the
+rule at the top of this file. `docs/invite-flow-review.md` is the working.
+**B47, B49 and B50 were fixed the same day and have moved to Fixed below;
+B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
 ### B57 — "Remove from the group" does not remove anybody's access
 
@@ -341,36 +343,6 @@ never the exposure — it is 1,500 generated nights a run, with two hard refusal
 that would rather crash than hand out a wrong transfer list. Losing the phone
 was, and the count is the figure nothing else can rebuild.
 
-### B47 — the "invited" badge cannot appear, and a claimed seat never stops saying "no app"
-
-```
-Screen      GR4 /players, and GR5 /member
-Seen        the roster never shows "· 2 invited", never draws the amber pill,
-            and a player who has claimed their seat still reads
-            "Name only · no app · invite" on the host's phone for ever
-Expected    a live code puts `invited` on the row; a claim takes it off and
-            moves standing to `member`, so the App row reads "has the app"
-Found        7 Sept, reading the roster against the invite board
-Locked by   nothing yet — see B51 first: no check can currently reach either
-            screen in a state where the badge could be drawn
-Status      open
-```
-
-Two holes, one cause: **nothing reconciles the roster's local flags with the
-server's invite state.** `inviteMember` and `resetInvite` (`clubStore.ts:633`,
-`:643`) are the only writers of `club_member.invited`, and **neither is called
-from anywhere in the app**. `players.tsx:133` and `member.tsx:58` both read it.
-`standing` has the same shape of fault: only `makeAdmin` writes it, so it never
-becomes `member` on a claim.
-
-`seatStatuses` (`invites.ts:135`) already returns exactly the two facts needed —
-`claimed` and `liveCode` — for a list of ids. It is called from one place, for
-one player, inside the invite sheet. The roster needs it for its whole list.
-
-This is the state the invite flow is *about*, and the entry-point screen of the
-handoff draws it. Until it is fixed, a host has no way to see who has been
-invited without opening every row.
-
 ### B48 — X2b never says who invited you, because nothing binds the host to their own seat
 
 ```
@@ -402,69 +374,6 @@ is happening: the host does play, and the fallback fires anyway.
 The fix belongs where the book is created (`sync.ts:310`) or in a server-side
 helper beside it: bind the admin's player row to `book.host_user_id`.
 
-### B49 — an expired code is offered as live, with its share chips enabled
-
-```
-Screen      C3a /invite
-Seen        a code a month old is drawn as the hero with Copy, Message, Share
-            and QR code all live; sharing it sends ten characters that cannot
-            be redeemed
-Expected    the expired state — what the countdown said, replaced by the date
-            it died and a primary that makes a new one
-Found        7 Sept, comparing seatStatuses' predicate to the server's
-Locked by   nothing yet
-Status      open
-```
-
-`seatStatuses` (`invites.ts:145–149`) selects live invites as
-`claimed_at is null and revoked_at is null` — and omits `expires_at > now()`,
-which every server-side path includes. So the client's idea of "live" is a
-superset of the server's by exactly the codes that have timed out, and the sheet
-shows the newest of them as current.
-
-`invite.tsx:65` then does not mint a replacement, because it only mints when
-`liveCode === null`. The host sees a code, sends it, and the person on the other
-end lands on X2c.
-
-Two lines: add the expiry filter to the select, and return `expiresAt` and
-`createdAt` with it — the Sent state on the invite board cannot be built without
-them either.
-
-### B50 — a train tunnel tells the reader their invite is dead
-
-```
-Screen      X2 /claim
-Seen        any network failure, "You already have a place in this book", and
-            "Sign in first" all render as "This invite can't be used ·
-            Ask whoever invited you for a new link"
-Expected    a network failure stays on X2a and offers a retry; the two messages
-            the server deliberately keeps distinct are shown as themselves
-Found        7 Sept, reading claim.tsx against 0009_invite_privacy.sql
-Locked by   nothing yet
-Status      open
-```
-
-`claim.tsx:63` catches the preview's error and sets `dead` — three lines under
-its own comment saying a network failure "is NOT a dead code" and that the
-screen stays on X2a. `claim.tsx:90` does the same for everything `redeemInvite`
-throws.
-
-**Corrected 7 Sept, reviewing the second cut:** of the three, only two are user
-states. `Sign in first` cannot reach a person on the claim path at all —
-`redeemInvite` signs them in anonymously first, which is what `connection.ts`'s
-`anonymousSignIns` exists to check ("watchers and claims need" it). It fires only
-when anonymous sign-in is disabled on the project, which is a build fault and
-belongs in the connection report's voice, not on a screen asking a guest to make
-an account. So: the network failure and `You already have a place in this book.`
-are the two to draw.
-
-The one-string rule is right and should not be touched: `0009` pads all four
-dead causes to a common floor so timing cannot answer the question either. But
-that migration argues at length that **two** conditions stay distinguishable on
-purpose — not signed in, and already holding a seat in this book — because
-neither tells a guesser anything. The client throws both away, plus a third the
-server never sent. Six outcomes, one string, where the design says four.
-
 ### B51 — the two invite screens are audited in their not-connected fallback
 
 ```
@@ -493,6 +402,159 @@ Fix this before drawing anything new for the invite flow, or every state the
 ---
 
 ## Fixed
+### B47 — the "invited" badge cannot appear, and a claimed seat never stops saying "no app"
+
+```
+Screen      GR4 /players, and GR5 /member
+Seen        the roster never shows "· 2 invited", never draws the amber pill,
+            and a player who has claimed their seat still reads
+            "Name only · no app · invite" on the host's phone for ever
+Expected    a live code puts `invited` on the row; a claim takes it off and
+            moves standing to `member`, so the App row reads "has the app"
+Found        7 Sept, reading the roster against the invite board
+Locked by   npm run check — seatReconcile.test.ts runs both statements against a
+            real SQLite: the badge goes on and comes off again, the promotion
+            reaches name_only and never an admin
+Status      fixed in this commit
+```
+
+Two holes, one cause: **nothing reconciles the roster's local flags with the
+server's invite state.** `inviteMember` and `resetInvite` (`clubStore.ts:633`,
+`:643`) are the only writers of `club_member.invited`, and **neither is called
+from anywhere in the app**. `players.tsx:133` and `member.tsx:58` both read it.
+`standing` has the same shape of fault: only `makeAdmin` writes it, so it never
+becomes `member` on a claim.
+
+`seatStatuses` (`invites.ts:135`) already returns exactly the two facts needed —
+`claimed` and `liveCode` — for a list of ids. It is called from one place, for
+one player, inside the invite sheet. The roster needs it for its whole list.
+
+This is the state the invite flow is *about*, and the entry-point screen of the
+handoff draws it. Until it is fixed, a host has no way to see who has been
+invited without opening every row.
+
+**Fixed 7 September.** `inviteMember` and `resetInvite` are gone — dead code
+that read as if the feature worked is what let this live — and `reconcileSeats`
+in `clubStore.ts` replaces both. `players.tsx` calls it on FOCUS rather than on
+mount, because the invite sheet opens over the roster and closes back onto it
+without unmounting: a host who had just issued a code would otherwise watch the
+row they came from go on saying nothing.
+
+It asks rather than being told, and it never clears a badge it did not hear
+about — every write is driven by a row the server actually returned, so a train,
+a signed-out build and a refused key all leave the roster exactly as it was. Ids
+that cannot leave the phone are not asked about, or the sample club's seats
+would take the whole call down with the real names beside them.
+
+**Half of the second hole is deliberately still open.** A claim promotes
+`name_only` to `member`; nothing demotes `member` back. A reset really does end
+an account behind a seat, and that row will go on reading "has the app" — but
+telling a reset apart from a host who has never bound their own seat (B48), and
+from a removal that revokes nothing (B57), is those two bugs' work. A demotion
+written before them would flip the row of every host in the product. The badge
+lands right in the meantime: a reset issues a new code, so the row reads
+`invited`, which is true and is the thing to act on.
+
+### B49 — an expired code is offered as live, with its share chips enabled
+
+```
+Screen      C3a /invite
+Seen        a code a month old is drawn as the hero with Copy, Message, Share
+            and QR code all live; sharing it sends ten characters that cannot
+            be redeemed
+Expected    the expired state — what the countdown said, replaced by the date
+            it died and a primary that makes a new one
+Found        7 Sept, comparing seatStatuses' predicate to the server's
+Locked by   npm run check — inviteState.test.ts, "B49 · what counts as a code the
+            host may still send"
+Status      fixed in this commit
+```
+
+`seatStatuses` (`invites.ts:145–149`) selects live invites as
+`claimed_at is null and revoked_at is null` — and omits `expires_at > now()`,
+which every server-side path includes. So the client's idea of "live" is a
+superset of the server's by exactly the codes that have timed out, and the sheet
+shows the newest of them as current.
+
+`invite.tsx:65` then does not mint a replacement, because it only mints when
+`liveCode === null`. The host sees a code, sends it, and the person on the other
+end lands on X2c.
+
+Two lines: add the expiry filter to the select, and return `expiresAt` and
+`createdAt` with it — the Sent state on the invite board cannot be built without
+them either.
+
+**Fixed 7 September.** `seatStatuses` now selects `expires_at` and drops
+anything `isLive` refuses. The expiry is tested on the row rather than added to
+the query as a fourth `.is()`, so the rule this app depends on is a pure
+function with a test in front of it instead of a clause nothing can see; there
+are a handful of invites per roster and fetching an expired one to drop it costs
+nothing worth measuring.
+
+An unreadable or absent timestamp counts as NOT live. The cost of that is one
+fresh code, which is what the sheet mints anyway for a seat with none; the cost
+of the other answer is handing a host ten characters the app cannot vouch for.
+
+The invite sheet needed no change: with the expired code gone from the answer it
+sees a seat with no live code and mints one, which is what it has always done.
+
+### B50 — a train tunnel tells the reader their invite is dead
+
+```
+Screen      X2 /claim
+Seen        any network failure, "You already have a place in this book", and
+            "Sign in first" all render as "This invite can't be used ·
+            Ask whoever invited you for a new link"
+Expected    a network failure stays on X2a and offers a retry; the two messages
+            the server deliberately keeps distinct are shown as themselves
+Found        7 Sept, reading claim.tsx against 0009_invite_privacy.sql
+Locked by   npm run check — inviteState.test.ts, "B50 · why a claim did not land",
+            including the default: anything unrecognised is unreachable and
+            never dead
+Status      fixed in this commit
+```
+
+`claim.tsx:63` catches the preview's error and sets `dead` — three lines under
+its own comment saying a network failure "is NOT a dead code" and that the
+screen stays on X2a. `claim.tsx:90` does the same for everything `redeemInvite`
+throws.
+
+**Corrected 7 Sept, reviewing the second cut:** of the three, only two are user
+states. `Sign in first` cannot reach a person on the claim path at all —
+`redeemInvite` signs them in anonymously first, which is what `connection.ts`'s
+`anonymousSignIns` exists to check ("watchers and claims need" it). It fires only
+when anonymous sign-in is disabled on the project, which is a build fault and
+belongs in the connection report's voice, not on a screen asking a guest to make
+an account. So: the network failure and `You already have a place in this book.`
+are the two to draw.
+
+The one-string rule is right and should not be touched: `0009` pads all four
+dead causes to a common floor so timing cannot answer the question either. But
+that migration argues at length that **two** conditions stay distinguishable on
+purpose — not signed in, and already holding a seat in this book — because
+neither tells a guesser anything. The client throws both away, plus a third the
+server never sent. Six outcomes, one string, where the design says four.
+
+**Fixed 7 September.** `readClaimFailure` in `inviteState.ts` is where the
+reasoning lives, and the one-string rule is untouched: the four dead causes are
+recognised by the single sentence they share, and nothing takes them apart.
+
+Two states the server could always describe now have screens —
+`2c Still checking`, which keeps the reader on the checking frame with a line
+and a retry, and `2c Already a member`, which names the group because it only
+fires for a book the caller can already read. Both strings are
+`handoff-invites-3`'s, verbatim, flagged in `claim.tsx` as drawn and not yet
+signed off.
+
+**The default is the part worth keeping.** Anything unrecognised is
+`unreachable`, never `dead`: a thrown error is not evidence about a code — only
+the preview answering with nothing is that. Being wrong this way costs a retry
+nobody needed; being wrong the other way sends somebody to ask for a
+replacement for a link that works.
+
+The third message this entry originally listed, `Sign in first`, is not a user
+state — see the correction above it.
+
 
 ### B58 — the totals card sat flush against the meta line on both game-end screens
 

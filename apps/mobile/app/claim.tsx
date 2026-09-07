@@ -5,9 +5,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
-import { previewInvite, redeemInvite, type InvitePreview } from '../src/lib/invites';
+import {
+  previewInvite,
+  readClaimFailure,
+  redeemInvite,
+  type InvitePreview,
+} from '../src/lib/invites';
 import { pullBooks } from '../src/lib/pull';
-import { isSupabaseConfigured } from '../src/lib/supabase';
+import { explainServerError, isNoAnswer, isSupabaseConfigured } from '../src/lib/supabase';
 
 /**
  * X2 — claiming your place. Rev 15, `14-invite-and-watcher.md`.
@@ -24,6 +29,12 @@ import { isSupabaseConfigured } from '../src/lib/supabase';
  *   X2c  dead          one string for four causes — see below
  *   X2d  typing        ten characters, because a link cannot always arrive
  *
+ * And two more, B47's siblings and B50's fix — states the server had always
+ * been able to describe and this screen answered for with the dead string:
+ *
+ *   2c Still checking      the server did not answer; the code is fine
+ *   2c Already a member    a live code for a seat in a book you already sit in
+ *
  * THE PLAN BLOCK IS NOT BUILT. S85 draws Free / Regular / Full on X2b and marks
  * it "drawn, not scheduled": `01-product-logic.md` § 4 says build none of the
  * tier system, the § 4 seam holds, and X2b ships without it. Removing it leaves
@@ -36,6 +47,8 @@ export default function Claim() {
   const [stage, setStage] = useState<Stage>(c === undefined ? 'typing' : 'checking');
   const [preview, setPreview] = useState<InvitePreview | null>(null);
   const [claiming, setClaiming] = useState(false);
+  /** What went wrong, for the one screen that is allowed to say. */
+  const [trouble, setTrouble] = useState<string>(NO_ANSWER);
 
   const check = useCallback(async (raw: string) => {
     setStage('checking');
@@ -53,14 +66,21 @@ export default function Claim() {
       }
       setPreview(found);
       setStage('ready');
-    } catch {
+    } catch (e) {
       /*
-       * A network failure is NOT a dead code, and X2a says so by staying: § 4
-       * is explicit that this screen "only becomes X2c when the server has
-       * actually spoken". Retried behind the same frame.
+       * A network failure is NOT a dead code — B50. § 4 is explicit that this
+       * screen "only becomes X2c when the server has actually spoken", and the
+       * comment that used to sit here said exactly that three lines above the
+       * line that set `dead` anyway. A person in a tunnel was told to go and
+       * ask for a replacement for a code that works.
+       *
+       * ZERO ROWS IS THE ONLY THING THAT MEANS DEAD. `previewInvite` answers
+       * null for all four dead causes and throws for everything else, so a
+       * throw is never evidence about the code.
        */
       await floor;
-      setStage('dead');
+      setTrouble(isNoAnswer(e) ? NO_ANSWER : explainServerError(e));
+      setStage('unreachable');
     }
   }, []);
 
@@ -84,10 +104,20 @@ export default function Claim() {
       // interstitial and no confirmation screen — the roster with their name in
       // it IS the confirmation.
       router.replace('/');
-    } catch {
-      // Spent between the preview and the tap, or taken by somebody else. Same
-      // screen as every other way a code can be dead.
-      setStage('dead');
+    } catch (e) {
+      /*
+       * Three outcomes, not one — B50. Spent between the preview and the tap,
+       * or taken by somebody else, is dead and says so with the one string the
+       * four causes share. The other two are not refusals of a code at all, and
+       * `readClaimFailure` is where the reasoning lives.
+       */
+      const why = readClaimFailure(e);
+      if (why === 'unreachable') {
+        setTrouble(isNoAnswer(e) ? NO_ANSWER : explainServerError(e));
+        setStage('unreachable');
+      } else {
+        setStage(why === 'already-a-member' ? 'member' : 'dead');
+      }
     } finally {
       setClaiming(false);
     }
@@ -104,6 +134,10 @@ export default function Claim() {
   }
 
   if (stage === 'checking') return <Checking />;
+  if (stage === 'unreachable') {
+    return <Unreachable trouble={trouble} onRetry={() => void check(code)} />;
+  }
+  if (stage === 'member') return <AlreadyAMember group={preview?.groupName ?? null} />;
   if (stage === 'dead') return <Dead onType={() => setStage('typing')} />;
   if (stage === 'typing') {
     return <Typing code={code} setCode={setCode} onCheck={() => void check(code)} />;
@@ -111,7 +145,17 @@ export default function Claim() {
   return <Ready preview={preview!} busy={claiming} onClaim={() => void claim()} />;
 }
 
-type Stage = 'checking' | 'ready' | 'dead' | 'typing';
+type Stage = 'checking' | 'ready' | 'dead' | 'typing' | 'unreachable' | 'member';
+
+/**
+ * ⚠ COPY DRAWN, NOT SIGNED OFF. Both strings below are `handoff-invites-3`'s,
+ * taken verbatim off `2c Still checking` and `2c Already a member` rather than
+ * written here — the handoff lists them as wanting sign-off, and the rule is to
+ * flag a string rather than invent one. They are the drawn answer to states the
+ * screen previously had no words for at all.
+ */
+const NO_ANSWER =
+  'This is taking longer than it should. The code is fine — the phone cannot reach the club.';
 
 /** X2a. A 2px hairline with a 38% segment — no spinner glyph, no logo. */
 function Checking() {
@@ -121,6 +165,57 @@ function Checking() {
       <Body>This takes a second.</Body>
       <View style={[styles.track, { backgroundColor: t.hairline }]}>
         <View style={[styles.fill, { backgroundColor: t.text }]} />
+      </View>
+    </Standalone>
+  );
+}
+
+/**
+ * `2c Still checking` · the server did not answer.
+ *
+ * THE SAME FRAME AS X2a, deliberately: the reader is still where they were,
+ * and nothing has been decided about their code. It gains one line saying so
+ * and a retry, and it names NEITHER THE GROUP NOR THE HOST — an unspent code
+ * has not bought the right to read either, and this screen is reachable by
+ * anybody who types ten characters.
+ *
+ * The action is secondary. There is nothing to complete here, and a filled
+ * button would say there was.
+ */
+function Unreachable({ trouble, onRetry }: { trouble: string; onRetry: () => void }) {
+  const t = useTheme();
+  return (
+    <Standalone title="Checking your invite">
+      <Body>{trouble}</Body>
+      <View style={[styles.track, { backgroundColor: t.hairline }]}>
+        <View style={[styles.fill, { backgroundColor: t.text }]} />
+      </View>
+      <View style={styles.deadAction}>
+        <Button label="Try again" variant="secondary" onPress={onRetry} />
+      </View>
+    </Standalone>
+  );
+}
+
+/**
+ * `2c Already a member` · a seat in this book is already theirs.
+ *
+ * NOT A RE-TAPPED LINK, whatever it looks like. A spent code fails the liveness
+ * test in `redeem_player_invite` before seats are looked at, so it lands on the
+ * dead screen. What reaches here is a LIVE code for a different row in a group
+ * the reader already sits in — the host sent it to the wrong person.
+ *
+ * THE ONE REFUSAL ALLOWED TO NAME THE GROUP. `0009_invite_privacy.sql` argues
+ * it: this fires only for a book the caller can already read, so the name is
+ * not a fact they were missing. That is also why it gets a primary and a way
+ * in, where the dead screen gets neither.
+ */
+function AlreadyAMember({ group }: { group: string | null }) {
+  return (
+    <Standalone title={group === null ? 'You already have a place here' : `You are already in ${group}`}>
+      <Body>This link is for a different place at that table, and you already have one.</Body>
+      <View style={styles.readyAction}>
+        <Button label="Open the club" variant="primary" onPress={() => router.replace('/')} />
       </View>
     </Standalone>
   );

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { router } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
@@ -7,7 +7,7 @@ import { Pill } from '../src/components/Pill';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { addMember, useClub, type Member } from '../src/lib/clubStore';
+import { addMember, reconcileSeats, useClub, type Member } from '../src/lib/clubStore';
 
 /**
  * Players · the roster — GR4. 12-the-group.md.
@@ -27,6 +27,26 @@ export default function Roster() {
   const club = useClub();
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+
+  /*
+   * WHO HAS A CODE OUT, AND WHO HAS ARRIVED — B47.
+   *
+   * Both are the server's answers and the roster is a local table, so the
+   * badges below are a copy that has to be refreshed. ON FOCUS rather than on
+   * mount: the invite sheet opens over this screen and closes back onto it
+   * without unmounting it, so a host who has just issued a code would otherwise
+   * watch the row they came from go on saying nothing at all.
+   *
+   * Nothing waits for it and nothing is shown if it fails — see
+   * `reconcileSeats`. The list is drawn from what the phone already holds,
+   * exactly as it was before, and the badges appear when the answer lands.
+   */
+  const clubId = club?.id ?? null;
+  useFocusEffect(
+    useCallback(() => {
+      if (clubId !== null) void reconcileSeats(clubId);
+    }, [clubId]),
+  );
 
   const trimmed = name.trim();
   const clash = club?.members.some((m) => m.name.toLowerCase() === trimmed.toLowerCase()) ?? false;

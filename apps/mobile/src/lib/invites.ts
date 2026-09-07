@@ -1,6 +1,14 @@
 import * as Linking from 'expo-linking';
+import { isLive } from './inviteState';
 import { rememberClaimedSeat } from './identity';
 import { supabase } from './supabase';
+
+/*
+ * What a code and a refusal MEAN lives in `inviteState.ts` — two pure
+ * functions with tests in front of them, out of reach of react-native. They are
+ * re-exported here so a screen imports the invite flow from one place.
+ */
+export { isLive, readClaimFailure, type ClaimFailure } from './inviteState';
 
 /**
  * Invites — the host's side and the player's side of claiming a seat.
@@ -143,14 +151,16 @@ export async function seatStatuses(playerIds: readonly string[]): Promise<SeatSt
 
   const { data: invites, error: inviteError } = await supabase
     .from('player_invite')
-    .select('player_id, code')
+    .select('player_id, code, expires_at')
     .in('player_id', [...playerIds])
     .is('claimed_at', null)
     .is('revoked_at', null);
   if (inviteError) throw new Error(inviteError.message);
 
   const live = new Map(
-    (invites ?? []).map((i) => [i.player_id as string, i.code as string]),
+    (invites ?? [])
+      .filter((i) => isLive(i.expires_at as string | null))
+      .map((i) => [i.player_id as string, i.code as string]),
   );
 
   return (players ?? []).map((p) => ({
