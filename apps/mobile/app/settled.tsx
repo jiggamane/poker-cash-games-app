@@ -388,6 +388,12 @@ function List({ rows, final }: { rows: SettledRow[]; final: boolean }) {
  * shape. Each term is `nowrap` so a break never lands between a word and its
  * figure.
  *
+ * IT WRAPS WHEN IT MUST, AND NOT BEFORE. Two terms fit any row, and At the table
+ * has only two — `in 1,500 out 2,000` is 133 points inside a row that has 270
+ * left beside the net. What put them on two lines anyway was the box they wrap
+ * in being measured off them rather than off the row; see `rowText` in the
+ * stylesheet, which is where B59 was fixed and where it would come back.
+ *
  * THE BILL'S TWO TERMS ARE ONE SPAN. `+100 back` is appended inside the bill
  * term, because it is a fact about the bill and a line break between them would
  * read as a fifth deduction.
@@ -399,6 +405,9 @@ function List({ rows, final }: { rows: SettledRow[]; final: boolean }) {
  */
 function Spend({ terms }: { terms: readonly SettledTerm[] }) {
   const t = useTheme();
+  /* The line's own green and red, one step back from the net's — see `quieted`. */
+  const win = quieted(t.win, t.muted);
+  const loss = quieted(t.loss, t.muted);
 
   const bill = terms.find((x) => x.kind === 'bill');
   const back = terms.find((x) => x.kind === 'back');
@@ -410,12 +419,12 @@ function Spend({ terms }: { terms: readonly SettledTerm[] }) {
   return (
     <View style={styles.spend}>
       {inFor !== undefined && (
-        <Text style={[styles.term, tabular, { color: t.loss }]} numberOfLines={1}>
+        <Text style={[styles.term, tabular, { color: loss }]} numberOfLines={1}>
           {`in ${formatUnmarked(inFor.amount)}`}
         </Text>
       )}
       {out !== undefined && (
-        <Text style={[styles.term, tabular, { color: t.win }]} numberOfLines={1}>
+        <Text style={[styles.term, tabular, { color: win }]} numberOfLines={1}>
           {`out ${formatUnmarked(out.amount)}`}
         </Text>
       )}
@@ -423,7 +432,7 @@ function Spend({ terms }: { terms: readonly SettledTerm[] }) {
         <Text style={[styles.term, tabular, { color: t.dim }]} numberOfLines={1}>
           {`bill ${formatUnmarked(bill.amount)}`}
           {back !== undefined && (
-            <Text style={{ color: t.win }}>{` +${formatUnmarked(back.amount)} back`}</Text>
+            <Text style={{ color: win }}>{` +${formatUnmarked(back.amount)} back`}</Text>
           )}
         </Text>
       )}
@@ -446,6 +455,50 @@ function Spend({ terms }: { terms: readonly SettledTerm[] }) {
     </View>
   );
 }
+
+/**
+ * A signed colour, taken one step back from the figure it sits under.
+ *
+ * THE ROW HAS TWO GREENS AND TWO REDS ON IT and only one of them is the answer.
+ * `out 2,000` under a name and `+₾500` beside it were the same green at the same
+ * saturation, so the caption read as a second result rather than as the working
+ * behind the first — the same argument the screen already makes for the net
+ * being 19/700 while a term is 13/500, made in colour as well as in weight.
+ *
+ * FADED TOWARDS `muted`, NOT TOWARDS THE GROUND, and that is the whole of the
+ * mechanism. Opacity is the obvious way to say "a bit fainter" and it fails the
+ * contrast floor immediately: `win` on white is 5.43:1 to begin with, so the
+ * bright theme drops under 4.5 at any fade at all, and `ui-audit.mjs`'s rule 9
+ * mixes an element's opacity into its colour before reading it for exactly that
+ * reason. Blending toward the text tone the rest of the caption is already drawn
+ * in takes the SATURATION out and leaves the luminance alone: nothing here reads
+ * below 6:1 in either theme, and the colour still says which way the money went.
+ *
+ * Derived from the two tokens rather than written down as a third: `tokens.ts`
+ * is app-wide and belongs to a session running alone (`CLAUDE.md`), and a hex
+ * pair copied out of it is the copy that goes stale the day the palette moves.
+ */
+const QUIET = 0.65;
+
+function quieted(colour: string, towards: string): string {
+  const ink = channels(colour);
+  const back = channels(towards);
+  if (ink === null || back === null) return colour;
+  return (
+    '#' +
+    ink
+      .map((v, i) => Math.round(v * QUIET + back[i]! * (1 - QUIET)))
+      .map((v) => v.toString(16).padStart(2, '0'))
+      .join('')
+  );
+}
+
+/** `#6FCF97` → `[111, 207, 151]`, and null for anything else — a token carrying
+    an `rgba()` is not a colour this can take a step out of. */
+const channels = (hex: string): number[] | null =>
+  /^#[0-9a-f]{6}$/i.test(hex)
+    ? [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+    : null;
 
 /** The one thing about the list that the list cannot say about itself. */
 function Note() {
@@ -566,7 +619,27 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  rowText: { flexShrink: 1, minWidth: 0, gap: 2 },
+  /*
+   * IT TAKES THE ROW, IT IS NOT MEASURED BY ITS OWN CONTENT — and that one word
+   * is what stopped `out 2,000` dropping to a line of its own with 130 points of
+   * empty row beside it (B59).
+   *
+   * Without `flexGrow` this block is sized to its widest line, so the wrapping
+   * spend line ends up in a box that is EXACTLY as wide as the terms on it. An
+   * exact fit is not a fit: the width is measured unconstrained, rounded to the
+   * device's pixel grid, and then the line is laid out again inside the rounded
+   * figure — and a third of a point of rounding is all it takes for the last
+   * term to no longer fit the box its own measurement produced. That is why it
+   * wrapped on some rows and not others at the same width, and why nothing on
+   * the web build could see it: react-native-web sizes the same box off CSS
+   * max-content and never rounds it down.
+   *
+   * Growing it makes the question a real one — the line wraps when it needs more
+   * room than the row has left beside the net, and not otherwise. Nothing moves:
+   * the net is `marginLeft: 'auto'` against a row with no free space left in it,
+   * which is the right-hand edge it already sat on.
+   */
+  rowText: { flexGrow: 1, flexShrink: 1, minWidth: 0, gap: 2 },
   name: { fontSize: 17, fontWeight: '700', letterSpacing: -0.17 },
   spend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 9, rowGap: 2 },
   term: { fontSize: 13, fontWeight: '500' },
