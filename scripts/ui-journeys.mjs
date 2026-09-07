@@ -458,6 +458,91 @@ const CHECK = `
       });
     }
   }
+  /*
+   * THE HEAD AND THE BODY MUST NOT TOUCH.
+   *
+   * Screen lays 6 under the title row and the meta line adds 2 above itself,
+   * and neither of them leaves anything underneath. So the gap between the
+   * pinned head and the first thing in the body is whatever that first element
+   * asks for — and an element that asks for nothing lands flush against the
+   * meta line. Screen.tsx already carries a comment about this happening once
+   * to the TITLE, which is what titlePadBottom was added to stop; the floor it
+   * lays does not reach the line under it, so the same fault came back one
+   * element lower. B47 is that, on the two game-end screens.
+   *
+   * WHY IT IS HERE AND NOT IN THE AUDIT. /settled and /payments render their
+   * empty states cold — no card, no head worth measuring — so the pass that
+   * walks routes cannot see the screens this fires on. Only a night played
+   * through reaches them, which is this file's whole reason for existing.
+   *
+   * Only when the head is PINNED and the body is at rest: a screen on
+   * headScroll puts its head inside the scroller, where the two are siblings
+   * that scroll together and the distance means nothing, and a scrolled body
+   * runs under the head by design.
+   *
+   * (No backticks anywhere in here. This block lives inside a template literal
+   * and one of them ends it — which is how it was written the first time.)
+   */
+  (() => {
+    /*
+     * THE VISIBLE HEAD, NOT THE FIRST ONE IN THE DOM. A push keeps the screen
+     * underneath mounted, so /payments has two elements carrying the meta id —
+     * its own and the settled night's behind it — and getElementById answers
+     * with whichever is first in the document. That one measures 0 × 0, which
+     * put the head's bottom at 0, the gap at 85, and reported the screen clean
+     * while the card sat flush against its meta line. The check was written
+     * that way and passed /payments for exactly one run.
+     */
+    const onScreen = (el) => {
+      if (el === null) return false;
+      const s = getComputedStyle(el);
+      if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return false;
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    };
+    const pick = (id) =>
+      [...document.querySelectorAll('[id="' + id + '"]')].filter(onScreen).pop() ?? null;
+
+    const head = pick('screen-meta') ?? pick('screen-title');
+    if (head === null) return;
+
+    /* The scroller on the SAME screen as that head — walking out from the head
+       rather than scanning the document, for the same reason. */
+    let scroller = null;
+    for (let root = head.parentElement; root !== null && scroller === null; root = root.parentElement) {
+      scroller =
+        [...root.querySelectorAll('div')].find(
+          (n) =>
+            /(auto|scroll)/.test(getComputedStyle(n).overflowY) &&
+            n.clientHeight > 200 &&
+            !n.contains(head),
+        ) ?? null;
+    }
+    if (scroller === null || scroller.scrollTop > 1) return;
+
+    const content = scroller.firstElementChild ?? scroller;
+    const first = [...content.children].find((el) => {
+      const s = getComputedStyle(el);
+      if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return false;
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    });
+    if (first === undefined) return;
+
+    /* 6 is a floor, not a measurement: it is below every gap any board draws —
+       the smallest is the totals card's 16 — and above the 0 a missing margin
+       produces. A screen that wants to sit closer than this to its own meta
+       line is stating something, and it can state it here. */
+    const gap = first.getBoundingClientRect().top - head.getBoundingClientRect().bottom;
+    if (gap < 6) {
+      out.push({
+        check: 'touches-the-head',
+        what: (first.textContent || '').trim().slice(0, 40) || first.tagName.toLowerCase(),
+        detail: px(gap) + ' under the meta line',
+      });
+    }
+  })();
+
   return out;
 })()
 `;
