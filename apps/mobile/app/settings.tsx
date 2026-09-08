@@ -318,7 +318,65 @@ export default function Settings() {
           other people played in.
         </Text>
       </View>
+
+      <Build />
     </Screen>
+  );
+}
+
+/**
+ * WHICH BUILD THIS IS — the last line on the last screen, and the quietest
+ * thing in the app.
+ *
+ * It answers one question, and it is a question that had no answer from either
+ * end: an update is published, the workflow is green, and the phone goes on
+ * drawing the previous screen. Expo Go fetches an update on a cold start and
+ * applies it on the NEXT one, so a phone one launch behind is behaving exactly
+ * as designed and looks exactly like a phone that got a broken publish. Reading
+ * the commit here and comparing it to the one the workflow published separates
+ * the two in two seconds.
+ *
+ * THE STAMP IS INLINED BY THE BUNDLER — `scripts/build-stamp.mjs`, which is
+ * where the two reasons it is neither `app.config.js`'s `extra` nor
+ * `Updates.updateId` are written down. `unknown` where the build was made
+ * somewhere with no git and no CI, which is honest and is not a bug.
+ *
+ * ⚠ NO BOARD DRAWS THIS. It is written to the grammar of the footnotes around
+ * it — 12/400 in `muted`, at the page's own inset — and flagged rather than
+ * passed off as decided copy. It is deliberately not a `Fact` row: those are
+ * things about the GROUP, and this is a thing about the phone.
+ */
+function Build() {
+  const t = useTheme();
+  /*
+   * WRITTEN OUT IN FULL, not `process.env[name]`. Metro substitutes the literal
+   * member expression at bundle time and does nothing at all for a computed
+   * one, so a tidier lookup here is a line that reads `undefined` on every
+   * phone.
+   */
+  const commit = process.env.EXPO_PUBLIC_BUILD_COMMIT;
+  const at = process.env.EXPO_PUBLIC_BUILD_AT;
+  if (commit === undefined || commit === '') return null;
+
+  /* The moment the bundle was made, in the reader's own locale. The time is on
+     it because two publishes in one afternoon is the ordinary case on a day
+     anybody is reading this line at all. */
+  const made = at === undefined ? null : new Date(at);
+  const when =
+    made === null || Number.isNaN(made.getTime())
+      ? null
+      : made.toLocaleString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
+
+  return (
+    <Text testID="build-stamp" style={[styles.build, { color: t.muted }]} numberOfLines={1}>
+      {[`build ${commit}`, when].filter((x) => x !== null).join(' · ')}
+    </Text>
   );
 }
 
@@ -429,4 +487,13 @@ const styles = StyleSheet.create({
   value: { ...type.meta, marginLeft: 'auto', flexShrink: 1 },
   chevron: { marginLeft: 'auto' },
   note: { ...type.footnote, paddingHorizontal: 4, paddingBottom: 14 },
+  /* The last line on the screen, at the page's own inset, tabular so the
+     commit reads as an identifier rather than as a word. */
+  build: {
+    ...type.footnote,
+    marginHorizontal: space.page,
+    paddingTop: 18,
+    paddingBottom: 4,
+    fontVariant: ['tabular-nums'],
+  },
 });

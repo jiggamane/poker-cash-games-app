@@ -117,6 +117,51 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
+### B63 — the phone could not say which build it was running
+
+```
+Screen      GR7 /settings, at the foot — and every screen, in effect
+Seen        an update published, the workflow green, the commit right, and the
+            phone still drawing the previous screen. No way to tell from the
+            phone whether it had a stale bundle or a bad publish, and no way to
+            tell from the repository either
+Expected    one line naming the commit the bundle was made from, so the two
+            ends can be compared in two seconds
+Found       8 Sept, an afternoon spent on it
+Locked by   ui-audit.mjs — `build-stamp-missing` and `build-stamp-unknown` on
+            /settings, in both themes, on both widths
+Status      fixed in this branch
+```
+
+**This is not a bug about a pixel, it is a bug about not being able to ask.**
+Expo Go fetches an update on a cold start and applies it on the NEXT one, so a
+phone one launch behind is behaving exactly as designed — and looks exactly like
+a phone that got a broken publish. Both ends of that conversation were blind:
+the phone said nothing about itself, and the repository could only say what it
+had sent.
+
+`scripts/build-stamp.mjs` is the fix, and the two things it is NOT are the point
+of the file:
+
+* **Not `app.config.js`'s `extra`.** That is the obvious place and it was the
+  first attempt. `expo export --platform web` embeds **app.json** — the static
+  config — not the result of the dynamic one, so the value reached a phone and
+  was `null` in the browser preview and in every UI check. The half nobody can
+  look at is exactly the half a person is looking at while they wonder which
+  build they are looking at.
+* **Not `Updates.updateId`.** In Expo Go the native side belongs to Expo Go, the
+  updates package is inert, and the field would answer `null` precisely when a
+  host needs it.
+
+`EXPO_PUBLIC_` is what is left, and it is the mechanism the Supabase keys have
+ridden since the workflow was written: Metro substitutes it into the bundle at
+build time, on every platform, so the line cannot be stale — if it is old, so is
+everything around it.
+
+**The check exists because the first attempt failed silently.** A row that
+renders nothing and a row that says `unknown` are both worse than no row: they
+answer the question wrongly rather than not answering it. Both are findings.
+
 ### B62 — a host's fee came off everybody and appeared on nobody's row
 
 ```
