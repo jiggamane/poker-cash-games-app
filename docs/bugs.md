@@ -117,6 +117,48 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
+### B62 — a host's fee came off everybody and appeared on nobody's row
+
+```
+Screen      /settled, and every screen drawing a settled row
+Seen        a night whose group charges a host's fee printed `in 1,500 out
+            2,000 piggy 50` under a net that had the fee taken out of it, so
+            the line did not come to the figure beside it
+Expected    a term per rule that took something, whatever the destination —
+            the row's whole claim is that it sums to the score
+Found       8 Sept, reading `settled.ts` against the score-breakdown handoff.
+            Not on a phone: the seeded club runs a bill and a piggy bank, and
+            those are exactly the two destinations the row knew about
+Locked by   packages/core/src/settled.test.ts — the Final table is asserted
+            term by term with each term's destination named, so a destination
+            the row cannot draw is a failing assertion rather than a silent
+            omission; and ui-journeys.mjs, "the Final row carries every term
+            it replaced the ledger with"
+Status      fixed in this branch
+```
+
+**The mechanism is a list of two written down as if it were a rule.**
+`settledRows` read a player's deductions by name — `at(result, id, 'bill')` and
+`at(result, id, 'kitty')` — and `RuleDestination` has four members. `host_fee`
+is offered in the app: `/club-rules` draws it as one of three choices and
+`/new-night` seeds it as *Host fee · a flat amount for the house*. So a group
+that used it got a row that was quietly short by the fee, on the one screen
+whose entire argument is that its arithmetic is checkable without a tap.
+
+**What made it invisible is what makes this kind of bug worth a number.**
+Nothing was wrong with the net — that comes off `nightScore`, which reads every
+deduction — and nothing was wrong with the deductions block, which lists every
+rule that took something. Only the line joining them was short, and it was short
+in a way that looks like the night simply had no such charge. The test suite
+settles a night with a bill and a piggy bank, because that is the canonical
+night; `ui-journeys` plays the same one. Neither could see it and neither was
+wrong to miss it.
+
+The fix is not "add `host_fee` to the list". It is that there is no list any
+more: a term carries its destination, `playerDeductions` decides which rules
+touched a person, and a fifth destination is a glyph to choose rather than a
+line of code to remember.
+
 ### B57 — "Remove from the group" does not remove anybody's access
 
 ```

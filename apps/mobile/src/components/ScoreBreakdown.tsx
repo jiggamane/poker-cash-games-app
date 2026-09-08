@@ -189,6 +189,7 @@ export function ScoreLine({
 
   const frame = [
     styles.row,
+    spends.length === 0 && !rolled && styles.tight,
     { borderTopColor: t.hairline },
     /* THE EXPANDED ROW IS A SLAB — `6c`, background `#131317` at radius 12,
        bleeding 12 past the list on both sides so it reaches the edges. `raised`
@@ -287,8 +288,13 @@ function Pairs({
            * the table in, and it carries no verdict.
            */}
           <Tray onPress={onSpends}>
-            {spends.map((term) => (
-              <Pair key={pairKey(term)} term={term} theme={t} />
+            {trayPairs(spends).map((pair) => (
+              <Pair
+                key={pairKey(pair.spend)}
+                term={pair.spend}
+                {...(pair.back === undefined ? {} : { back: pair.back })}
+                theme={t}
+              />
             ))}
           </Tray>
         </>
@@ -347,8 +353,16 @@ function Tray({ onPress, children }: { onPress?: () => void; children: ReactNode
   );
 }
 
-/** A glyph and its figure, 4 points apart — the atom the whole row is made of. */
-function Pair({ term, theme: t }: { term: SettledTerm; theme: Theme }) {
+/**
+ * A GLYPH AND ITS FIGURE, 4 points apart — the atom the whole row is made of.
+ *
+ * A bill that was fronted carries TWO figures behind one glyph — `−$31 +$120`.
+ * That is the app's own decision, kept: `bill 50 +100 back` was one span for
+ * the reason a line break between them would read as a fifth deduction, and a
+ * second fork beside the first reads as a second bill. The repayment is in the
+ * win colour, because it is the one figure in the tray that is money arriving.
+ */
+function Pair({ term, back, theme: t }: { term: SettledTerm; back?: SettledTerm; theme: Theme }) {
   const bone = term.kind === 'spend' || term.kind === 'back';
   const name = glyph(term);
 
@@ -379,8 +393,44 @@ function Pair({ term, theme: t }: { term: SettledTerm; theme: Theme }) {
       >
         {signed(term)}
       </Text>
+      {back !== undefined && (
+        <Text
+          style={[styles.figure, tabular, { color: t.win }]}
+          numberOfLines={1}
+          {...cappedFigure}
+        >
+          {signed(back)}
+        </Text>
+      )}
     </View>
   );
+}
+
+/**
+ * THE TRAY'S PAIRS, with each repayment folded into the charge it belongs to.
+ *
+ * `settledRows` returns the two apart — that is the whole point of them, and
+ * `docs/screens.md` records why the engine refuses to net them — so folding
+ * them is the SCREEN's business: what a bill charged and what it paid back are
+ * two facts and one glyph.
+ *
+ * A `back` with no charge in front of it stands on its own, which is somebody
+ * who fronted the food and was charged nothing for it.
+ */
+function trayPairs(spends: readonly SettledTerm[]): Array<{
+  spend: SettledTerm;
+  back?: SettledTerm;
+}> {
+  const pairs: Array<{ spend: SettledTerm; back?: SettledTerm }> = [];
+  for (const term of spends) {
+    const charge =
+      term.kind === 'back'
+        ? pairs.find((p) => p.spend.kind === 'spend' && p.spend.destination === term.destination)
+        : undefined;
+    if (charge !== undefined) charge.back = term;
+    else pairs.push({ spend: term });
+  }
+  return pairs;
 }
 
 /**
@@ -560,14 +610,34 @@ function ease() {
 }
 
 const styles = StyleSheet.create({
-  /* 8px 0 over a hairline — a 58-point row at the handoff's type sizes.
-     `minHeight` and not `height`: the row grows with the reader's text setting
-     rather than clipping a name at 120%. */
+  /*
+   * `8px 0` over a hairline — a 58-point row at the handoff's type sizes, and
+   * the arithmetic that makes it 58 is written down below rather than left to
+   * the platform: 16 of padding, a 20-point head, 6 of gap and a 16-point line
+   * of pairs.
+   *
+   * EVERY LINE HEIGHT ON THIS ROW IS STATED, and that is what keeps the number
+   * true. A `Text` with no `lineHeight` gets the platform's own leading — about
+   * 1.36 of the size on Android and more on some faces — so a 17-point score
+   * silently cost 24 points and nothing in the file said so. At eight players
+   * that is 56 points, which is a whole row, and the ranked list is only
+   * legible when the whole ranking is on the phone at once. `ui-journeys.mjs`
+   * holds this screen to eight rows above the footer, and it is the check that
+   * goes red if any of these four numbers grows.
+   */
   row: {
     flexDirection: 'row',
     paddingVertical: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
+  /*
+   * AT TABLE IS 7 AND FINAL IS 8 — the handoff's own difference, and it says
+   * why: At table has a reconciliation line under the list that Final does not,
+   * and the point of the tab is that a room reads the check without scrolling.
+   * A row with no spends on it IS the At-table row, which is why this is
+   * derived from the terms rather than passed down as a mode.
+   */
+  tight: { paddingVertical: 7 },
   /* The expanded slab: 9px 12px at radius 12, and 12 of negative side margin so
      it bleeds to the list's own edges. */
   opened: {
@@ -580,14 +650,14 @@ const styles = StyleSheet.create({
   text: { flex: 1, gap: 6, minWidth: 0 },
 
   head: { flexDirection: 'row', alignItems: 'baseline', gap: 12 },
-  name: { fontSize: 16, fontWeight: '600', flexShrink: 1 },
+  name: { fontSize: 16, fontWeight: '600', lineHeight: 20, flexShrink: 1 },
   /*
    * NEVER SHRINKS. The name may give — it is a word — and a figure may not:
    * left to shrink, "−$12,000" came apart into a dash on one line and an amount
    * on the next, which reads as two things. See B18.
    */
-  score: { marginLeft: 'auto', flexShrink: 0, fontSize: 17, fontWeight: '700' },
-  meta: { fontSize: 12.5, fontWeight: '400', marginTop: -2 },
+  score: { marginLeft: 'auto', flexShrink: 0, fontSize: 17, fontWeight: '700', lineHeight: 20 },
+  meta: { fontSize: 12.5, fontWeight: '400', lineHeight: 16, marginTop: -2 },
 
   /*
    * `align-items: stretch` on the itemised line, which is what gives the
@@ -603,8 +673,8 @@ const styles = StyleSheet.create({
   pairsRolled: { alignItems: 'center', flexWrap: 'nowrap' },
   group: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 11 },
   pair: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  figure: { fontSize: 12.5, fontWeight: '600' },
-  word: { fontSize: 12.5, fontWeight: '400' },
+  figure: { fontSize: 12.5, fontWeight: '600', lineHeight: 16 },
+  word: { fontSize: 12.5, fontWeight: '400', lineHeight: 16 },
 
   rule: { width: 1, alignSelf: 'stretch' },
   /* 3px 8px at radius 8, and −3 vertically so the tray does not grow the row. */

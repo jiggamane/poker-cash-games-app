@@ -163,7 +163,9 @@ await shotTail('10-settled');
    6 September: the settled night is one ranked list behind a toggle, so a shot
    of it is only half the screen unless the other half is taken too. This is
    what replaced `11-ledger` — format `7e` was a screen and is a line now. */
-await tap('At the table', { wait: 900 });
+/* `At table` is the segment's label since the 8 September score-breakdown cut;
+   `At the table` is still the heading the list under it carries. */
+await tap('At table', { wait: 900 });
 await shot('11-settled-at-the-table');
 await tap('Final', { wait: 900 });
 

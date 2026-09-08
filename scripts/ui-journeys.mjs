@@ -1230,9 +1230,15 @@ async function playANight(name, rebuys) {
      E3's own title is the word `Deductions`, one push down. */
   const onScreen = (text) => page.locator(`:text-is("${text}"):visible`).count();
 
+  /* `At table` IS THE TOGGLE'S LABEL AND `At the table` IS THE LIST'S. The
+     score-breakdown handoff of 8 September names the segments `Final` and
+     `At table` — two words that have to fit a 34-point segment beside `Final`
+     at every text size — while the list's own section label still reads the
+     phrase in full. So this leg reads the segment and the leg below it reads
+     the heading, which is what makes them two different assertions. */
   await holds(
     'the settled night opens on Final, with the deductions above the list',
-    (await onScreen('At the table')) >= 1 &&
+    (await onScreen('At table')) >= 1 &&
       (await onScreen('Final')) >= 1 &&
       (await onScreen('Deductions')) === 1 &&
       (await onScreen('after deductions and compensations')) === 1 &&
@@ -1248,13 +1254,13 @@ async function playANight(name, rebuys) {
    * they are simply the wrong mode's. So the qualifier is read on both sides of
    * the tap, and the nets are summed on the side where the answer is known.
    */
-  await tap('At the table');
+  await tap('At table');
   await page.waitForTimeout(600);
   await holds(
     'and the toggle actually swaps the list under it',
     (await onScreen('before deductions')) === 1 &&
       (await onScreen('after deductions and compensations')) === 0,
-    'tapping At the table left the Final list on screen',
+    'tapping At table left the Final list on screen',
   );
 
   /*
@@ -1274,7 +1280,10 @@ async function playANight(name, rebuys) {
       const n = Number(t.replace(/^[+]/, '').replace(/^[^0-9+-]+/, ''));
       return Number.isFinite(n) ? n : null;
     };
-    return [...document.querySelectorAll('[data-testid="settled-net"]')].map((el) =>
+    /* `settled-row-net` — the figure is inside the row's text block now rather
+       than a sibling of it, and `ScoreBreakdown` names it after the row it is
+       on so one component can serve every list that draws a finished night. */
+    return [...document.querySelectorAll('[data-testid="settled-row-net"]')].map((el) =>
       money(el.textContent),
     );
   });
@@ -1287,59 +1296,58 @@ async function playANight(name, rebuys) {
   );
 
   /*
-   * AND `in` AND `out` STAY ON ONE LINE WHILE THE ROW HAS ROOM FOR THEM — B59.
+   * AND THE CHIPS STAY ON ONE LINE WHILE THE ROW HAS ROOM FOR THEM — B59.
    *
-   * Two terms fit any phone in the matrix: `in 1,500 out 2,000` is about 133
-   * points and the narrowest row here is 316 with the net beside it. They were
-   * on two lines anyway, on a real phone, with a third of the row empty to the
-   * right of them, because the box the line wraps inside was sized to the line
-   * rather than to the row — an exact fit that the pixel grid then rounded a
-   * fraction under, on some rows and not others.
+   * Two pairs fit any phone in the matrix: a glyph and `−$1,500` is about 62
+   * points and the narrowest row here is 316. They were on two lines anyway, on
+   * a real phone, with a third of the row empty to the right of them, because
+   * the box the line wraps inside was sized to the LINE rather than to the ROW
+   * — an exact fit that the pixel grid then rounded a fraction under, on some
+   * rows and not others.
    *
    * SO IT IS THE BOX THAT IS ASSERTED AND NOT ONLY THE WRAP. The wrap itself
    * cannot be caught here: react-native-web sizes that box off CSS max-content
    * and never rounds it down, so the browser draws one line either way and a
    * check that watched the line would have passed the phone's fault every time.
-   * What is checkable, and what the fix actually is, is that the text block
-   * reaches the net — the line wraps against the room the ROW has left, which
-   * is a question with the same answer on every renderer.
+   * What is checkable, and what the fix actually is, is that the line of pairs
+   * spans the row's own text block — it wraps against the room the ROW has,
+   * which is a question with the same answer on every renderer.
+   *
+   * ⚠ REWRITTEN FOR THE GLYPH ROW, 8 September. The terms used to be words in a
+   * block beside a separate net; `ScoreBreakdown` puts the name and the figure
+   * on the row's first line and the pairs on its second, both inside one text
+   * block, so what used to be "the text block reaches the net" is now "the
+   * pairs reach the edge of the block". Same fault, same arithmetic.
    */
-  const spendBoxes = await page.evaluate(() => {
-    const GAP = 12; // `styles.row`, and the only thing between the two halves
+  const pairBoxes = await page.evaluate(() => {
     return [...document.querySelectorAll('[data-testid="settled-row"]')].map((row) => {
-      const net = row.querySelector('[data-testid="settled-net"]');
-      const text = [...row.children].find((c) => c !== net) ?? null;
-      if (net === null || text === null) return null;
+      const text = row.firstElementChild;
+      if (text === null) return null;
+      const pairs = text.lastElementChild;
+      /* A row drawing only a name has one child and no line of pairs at all. */
+      if (pairs === null || pairs === text.firstElementChild) return null;
+      const group = pairs.firstElementChild;
+      const chips = group === null ? [] : [...group.children].map((el) => el.getBoundingClientRect());
       const t = text.getBoundingClientRect();
-      const n = net.getBoundingClientRect();
-      /* The spend line is the second half of the text block — the name is the
-         first. A row whose player has no terms at all draws only the name. */
-      const spend = text.children.length > 1 ? text.children[text.children.length - 1] : null;
-      const terms = spend === null ? [] : [...spend.children].map((el) => el.getBoundingClientRect());
-      /* `columnGap` on `styles.spend`. What the terms need on one line, against
-         what the line has — a night in the millions can genuinely run out of
-         room, and a check that called that a bug would be crying wolf. */
-      const need = terms.reduce((sum, r) => sum + r.width, 0) + 9 * Math.max(0, terms.length - 1);
+      const p = pairs.getBoundingClientRect();
       return {
         name: (text.textContent || '').slice(0, 24),
-        short: Math.round((n.left - GAP - t.right) * 100) / 100,
-        lines: new Set(terms.map((r) => Math.round(r.top))).size,
-        terms: terms.length,
-        fits: spend !== null && need <= spend.getBoundingClientRect().width + 0.5,
+        short: Math.round((t.right - p.right) * 100) / 100,
+        lines: new Set(chips.map((r) => Math.round(r.top))).size,
+        chips: chips.length,
       };
     });
   });
 
   await holds(
-    'and the spend line wraps against the row rather than against itself',
-    spendBoxes.length > 0 &&
-      spendBoxes.every((r) => r !== null && r.short <= 1 && r.short >= -1),
-    `a settled row's text block stops short of the net: ${JSON.stringify(spendBoxes)}`,
+    'and the line of pairs wraps against the row rather than against itself',
+    pairBoxes.length > 0 && pairBoxes.every((r) => r !== null && r.short <= 1 && r.short >= -1),
+    `a settled row's line of pairs stops short of the row: ${JSON.stringify(pairBoxes)}`,
   );
   await holds(
-    'so in and out share a line on a row that has the room',
-    spendBoxes.every((r) => r !== null && (r.terms === 0 || !r.fits || r.lines === 1)),
-    `in and out are on separate lines at ${WIDTH}: ${JSON.stringify(spendBoxes)}`,
+    'so the two chip pairs share a line on a row that has the room',
+    pairBoxes.every((r) => r !== null && (r.chips === 0 || r.lines === 1)),
+    `chips in and chips out are on separate lines at ${WIDTH}: ${JSON.stringify(pairBoxes)}`,
   );
 
   await stop('night settled · at the table');
@@ -1405,37 +1413,68 @@ async function playANight(name, rebuys) {
   await stop('night settled · game results');
 
   /*
-   * AND THE FOUR TERMS ARE ON THE ROW — `design/handoff-game-end/`, cut
-   * 6 September, which drops `Full ledger` in as many words: *"do not build it,
-   * do not link to it... everything it carried now reads on one line under each
-   * player's name on Final, so there is no second place to go for the same four
-   * terms."*
+   * AND EVERY TERM IS ON THE ROW — `design/handoff-game-end/`, cut 6 September,
+   * which drops `Full ledger` in as many words: *"do not build it, do not link
+   * to it... everything it carried now reads on one line under each player's
+   * name on Final, so there is no second place to go for the same four terms."*
+   * The 8 September score-breakdown cut kept that and changed the alphabet: a
+   * term is a 15-point glyph and a signed figure, not a word and a bare number.
    *
    * THIS IS THE CHECK THAT GOES RED IF THE LINE EVER GOES QUIET. `7e` was a
-   * whole screen and its absence was obvious; a line of terms under a name can
-   * lose its last term to a wrap, a filter or a zero test and look completely
-   * normal. So the terms are counted here, on a night that charged all of them,
-   * with the bill's two halves asserted separately — the repayment is the one
-   * the old columns could not draw at all.
+   * whole screen and its absence was obvious; a line of pairs under a name can
+   * lose its last pair to a wrap, a filter or a zero test and look completely
+   * normal. So the pairs are counted here, on a night that charged all of them.
+   *
+   * IT READS THE FIGURES AND NOT THE GLYPHS. An SVG has no text to assert on,
+   * and the figure is the half a person actually argues about; a pair that lost
+   * its glyph would be caught by the tray it is or is not inside, which is the
+   * next leg down.
    */
+  const rowTerms = await page.evaluate(() => {
+    const SIGNED = /^[+\u2212][^0-9]*[0-9]/;
+    const figures = (el) =>
+      el === null
+        ? []
+        : [...el.querySelectorAll('*')]
+            .filter((n) => n.children.length === 0)
+            .map((n) => (n.textContent || '').trim())
+            .filter((s) => SIGNED.test(s));
+
+    return [...document.querySelectorAll('[data-testid="settled-row"]')].map((row) => {
+      const text = row.firstElementChild;
+      const pairs = text === null ? null : text.lastElementChild;
+      const tray = row.querySelector('[data-testid="spend-tray"]');
+      const group = pairs === null ? null : pairs.firstElementChild;
+      return { chips: figures(group), spends: figures(tray) };
+    });
+  });
+
   await holds(
-    'the Final row carries the four terms it replaced the ledger with',
-    (await page.locator(':text-matches("^in [0-9,]+$"):visible').count()) > 0 &&
-      (await page.locator(':text-matches("^out [0-9,]+$"):visible').count()) > 0 &&
-      (await page.locator(':text-matches("^bill [0-9,]+"):visible').count()) > 0 &&
-      /* `piggy`, not `piggy bank` — the term was shortened on 8 September so the
-         line stops wrapping at eight players. The block above still names the
-         rule in full, which is what the assertion two screens back reads. */
-      (await page.locator(':text-matches("^piggy [0-9,]+$"):visible').count()) > 0,
-    'the Final spend line is missing one of in / out / bill / piggy',
+    'the Final row carries every term it replaced the ledger with',
+    rowTerms.length > 0 &&
+      /* Chips in and chips out, on every row, always — a player who bought in
+         and cashed out for nothing still did both. A night that settled to a
+         step carries a third figure beside them, which is the step itself: it
+         has no glyph in any drawn set and needs none, because its sign is the
+         only thing about it that is not fixed by its name. */
+      rowTerms.every((r) => r.chips.length >= 2) &&
+      /* And the evening, on the rows the night charged. The seeded club runs a
+         bill and a piggy bank, so at least one row carries two. */
+      rowTerms.some((r) => r.spends.length >= 2),
+    `the Final row is missing a term: ${JSON.stringify(rowTerms)}`,
   );
   await holds(
-    'and the bill a player fronted is its own term, never netted',
-    /* `[+]` AND NOT `\+`, for the reason the deduction matcher above gives: the
-       selector's parser eats the backslash, Playwright is handed `/+[0-9,]+/`,
-       and a regex that starts with a bare quantifier throws rather than
-       failing quietly. A character class needs no escape at all. */
-    (await page.locator(':text-matches("[+][0-9,]+ back"):visible').count()) > 0,
+    'and the bill a player fronted is its own pair, never netted',
+    /*
+     * `bill 50 +100 back` was two terms in one span; the glyph row is two
+     * signed figures in the same bone tray — `−$54` beside `+$242`. What is
+     * held is unchanged and it is the thing the four-column ledger could not
+     * draw at all: a person who owes a share of the food AND paid for it sees
+     * both facts, not the one figure they come to.
+     */
+    rowTerms.some(
+      (r) => r.spends.some((f) => f.startsWith('+')) && r.spends.some((f) => f.startsWith('\u2212')),
+    ),
     'nobody on this night is shown the bill they paid coming back',
   );
 
@@ -1454,31 +1493,33 @@ async function playANight(name, rebuys) {
    * that is deliberate: this pass plays the seeded night, which is six, and a
    * second roster built only to make a list longer would go stale beside the
    * first one. What actually decides the answer is arithmetic — where the first
-   * row starts, how tall a row is with its terms on one line, and where the
+   * row starts, how tall a row is with its pairs on one line, and where the
    * footer begins — so that is what is measured. Anything that puts the rows
-   * back up (a padding, a line height, a term long enough to wrap the line at
-   * ordinary figures) shows up here as a budget of seven.
+   * back up (a padding, a line height, a figure long enough to wrap the line at
+   * ordinary amounts) shows up here as a budget of seven.
    */
   const budget = await page.evaluate(() => {
-    const ROW_GAP = 1; // `styles.rowText`, between the name and the terms
+    const GAP = 10; // `styles.pairs`, between one wrapped line of pairs and the next
     const rows = [...document.querySelectorAll('[data-testid="settled-row"]')].map((row) => {
       const box = row.getBoundingClientRect();
-      const net = row.querySelector('[data-testid="settled-net"]');
-      const text = [...row.children].find((c) => c !== net) ?? null;
-      const spend =
-        text !== null && text.children.length > 1 ? text.children[text.children.length - 1] : null;
-      const terms = spend === null ? [] : [...spend.children].map((el) => el.getBoundingClientRect());
-      const lines = new Set(terms.map((r) => Math.round(r.top))).size;
-      const lineHeight = terms.length === 0 ? 0 : terms[0].height;
+      const text = row.firstElementChild;
+      const pairs = text === null ? null : text.lastElementChild;
+      /* Every pair on the line, whichever side of the vertical rule it is on.
+         The rule itself has no children and drops out. */
+      const leaves =
+        pairs === null || pairs === text.firstElementChild
+          ? []
+          : [...pairs.children].flatMap((c) => [...c.children]).map((el) => el.getBoundingClientRect());
+      const lines = new Set(leaves.map((r) => Math.round(r.top))).size;
+      const lineHeight = leaves.length === 0 ? 0 : leaves[0].height;
       /*
-       * WHAT THE ROW IS WHEN ITS TERMS ARE ON ONE LINE, which is the number the
+       * WHAT THE ROW IS WHEN ITS PAIRS ARE ON ONE LINE, which is the number the
        * stylesheet decides and the only one worth holding. A night in the
-       * hundreds of millions wraps `in 239,002,780 out 227,051,850 …` over three
-       * lines however tight the paddings are — that is the figures, not the
-       * screen, and the spend-line check above already refuses to cry wolf about
-       * it for the same reason.
+       * hundreds of millions wraps five pairs over three lines however tight the
+       * paddings are — that is the figures, not the screen, and the wrap check
+       * above already refuses to cry wolf about it for the same reason.
        */
-      return box.height - Math.max(0, lines - 1) * (lineHeight + ROW_GAP);
+      return box.height - Math.max(0, lines - 1) * (lineHeight + GAP);
     });
     if (rows.length === 0) return null;
     /* The footer's own top is the fold for the list: the button is pinned over
