@@ -149,9 +149,25 @@ export function ScoreLine({
   const [open, setOpen] = useState(false);
   const rolled = layout === 'rolled';
   const spends = terms.filter((x) => x.kind === 'spend' || x.kind === 'back');
-  /* A rolled-up row with nothing taken off it has nothing to itemise, so it
-     does not offer to: no chevron, no tap, no bone total. */
-  const expandable = rolled && spends.length > 0;
+  /*
+   * A ROW THAT LEADS SOMEWHERE DOES NOT ALSO OPEN INTO ITSELF, and the caller
+   * decides which it is by whether it hands over an `onPress`.
+   *
+   * ⚠ THIS WAS THE OTHER WAY ROUND FOR HALF A DAY AND IT BROKE THE APP — B65.
+   * The handoff's rolled-up row itemises in place, so this file made expansion
+   * the only thing a rolled-up row could do; `/stats` and `/games` are lists of
+   * NIGHTS whose whole job is to open one, and they stopped opening anything.
+   * The mistake underneath was reading frame `6c` as a list of nights when it
+   * is a list of PLAYERS on one night — its meta line says `8 players` and its
+   * back button says `Sessions`, so it is the screen you reach FROM the list,
+   * not the list.
+   *
+   * A rolled-up row with nothing taken off it has nothing to itemise, so it
+   * does not offer to: no chevron, no tap, no bone total — unless it navigates,
+   * in which case the chevron is the app's ordinary "go here".
+   */
+  const goes = onPress !== undefined;
+  const expandable = rolled && !goes && spends.length > 0;
   const itemised = !rolled || open;
 
   const body = (
@@ -181,6 +197,7 @@ export function ScoreLine({
         itemised={itemised}
         rolled={rolled}
         expandable={expandable}
+        goes={goes && rolled}
         open={open}
         {...(onSpends === undefined ? {} : { onSpends })}
       />
@@ -199,7 +216,7 @@ export function ScoreLine({
     open && { backgroundColor: t.raised, ...styles.opened },
   ];
 
-  if (!expandable && onPress === undefined) {
+  if (!expandable && !goes) {
     return (
       <View testID={testID} style={frame}>
         {body}
@@ -220,6 +237,10 @@ export function ScoreLine({
         ease();
         setOpen((was) => !was);
       }}
+      /* The row dims under the finger where it leads somewhere, which is what
+         every other navigating row in the app does. An expanding row does not:
+         it answers by growing. */
+      android_ripple={goes ? { borderless: false } : undefined}
       style={frame}
     >
       {body}
@@ -245,6 +266,7 @@ function Pairs({
   itemised,
   rolled,
   expandable,
+  goes,
   open,
   onSpends,
 }: {
@@ -252,6 +274,8 @@ function Pairs({
   itemised: boolean;
   rolled: boolean;
   expandable: boolean;
+  /** The row leads somewhere, so it ends in the app's ordinary row chevron. */
+  goes: boolean;
   open: boolean;
   onSpends?: () => void;
 }) {
@@ -320,9 +344,9 @@ function Pairs({
         </View>
       )}
 
-      {expandable && (
-        <View style={[styles.chevron, open && styles.chevronOpen]}>
-          <Icon name={open ? 'chevronDown' : 'chevron'} color={t.dim} size={13} />
+      {(expandable || goes) && (
+        <View style={[styles.chevron, open && styles.chevronOpen, goes && styles.chevronGo]}>
+          <Icon name={expandable && open ? 'chevronDown' : 'chevron'} color={t.dim} size={13} />
         </View>
       )}
     </View>
@@ -706,6 +730,9 @@ const styles = StyleSheet.create({
   rollup: { flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 'auto' },
   chevron: { justifyContent: 'center', marginLeft: 6 },
   chevronOpen: { marginLeft: 'auto' },
+  /* A navigating row has no bone rollup to sit after, so the chevron takes the
+     right-hand edge itself. */
+  chevronGo: { marginLeft: 'auto' },
 
   /* The well: 3 of padding at radius 11, two equal halves 3 apart. */
   track: { flexDirection: 'row', gap: 3, padding: 3, borderRadius: 11 },

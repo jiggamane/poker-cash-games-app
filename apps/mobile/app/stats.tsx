@@ -207,12 +207,21 @@ export default function MyStats() {
  * two drift, and they had: this screen said only what a night came to, and
  * `/settled` was the only place in the app that said what it cost.
  *
- * ⚠ THE ROW NO LONGER NAVIGATES, and that is a departure worth stating. It
- * went to `/settled`, which on this phone is always the ONE night the phone is
- * holding rather than the night in the row — so seven of the eight rows opened
- * somebody else's evening. Opening in place is the handoff's own interaction
- * and it is also the honest one until there is a sessions table to route to.
- * Recorded in `docs/screens.md`.
+ * ⚠ AND IT OPENS THE NIGHT, which is the thing this row is FOR and which this
+ * screen lost for half a day — B65. The rolled-up row itemises in place on the
+ * board, so the first cut of this made expansion the only thing the row did and
+ * took the navigation off it. That reading was wrong twice over: frame `6c` is
+ * a list of PLAYERS on one night (its meta says `8 players`, its back button
+ * says `Sessions`), so it is the screen you reach FROM this list rather than
+ * this list; and a list of nights whose rows open nothing is a list with no
+ * purpose. The glyphs stay — that is what was asked for — and the row leads
+ * where it always led.
+ *
+ * ⚠ WHERE IT LEADS IS STILL `/settled` FOR EVERY ROW, and that is a known
+ * limitation rather than a new one: this phone holds ONE night and there is no
+ * sessions table to route to, which `sampleHistory.ts` says of itself in its
+ * first paragraph. It is what the row did before this batch and it is what it
+ * does now. **Open**, and it is the same open question as the seeded history.
  */
 function NightRow({ night }: { night: PlayedNight }) {
   return (
@@ -227,6 +236,7 @@ function NightRow({ night }: { night: PlayedNight }) {
       terms={night.terms}
       layout="rolled"
       testID="stats-night"
+      onPress={() => router.push('/settled')}
     />
   );
 }

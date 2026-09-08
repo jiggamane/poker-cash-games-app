@@ -117,6 +117,46 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
+### B65 — Sessions and My stats stopped opening a night
+
+```
+Screen      G4 /stats and 1A /games — every row of the past-games list
+Seen        tapping a past game does nothing. The row grows a breakdown and
+            there is no way through to the night from either screen
+Expected    the row opens that night, which is the whole reason Sessions
+            exists
+Found       8 Sept, reported off the phone the day it shipped
+Locked by   ui-journeys.mjs — the `my stats` and `sessions` stops now tap the
+            first row of each list and assert the settled night comes up.
+            Verified against the fault: with the row's onPress removed again
+            the leg reports "tapping a past game left the list on screen —
+            the row navigates nowhere"
+Status      fixed in this branch
+```
+
+**A layout was applied to the wrong screen, and it took a working affordance
+with it.** The score-breakdown handoff's rolled-up row *"itemises in place —
+tapping expands, one row open at a time"*, so the first cut made expansion the
+only thing a rolled-up row could do and dropped the `onPress` that had been
+there since the screen was built.
+
+**The reading underneath was wrong twice over.** Frame `6c` is captioned *"past
+session / my stats"*, which reads like a list of nights and is not one: its meta
+line says `8 players`, its rows carry a `name` and a score, and its back button
+says **Sessions**. It is one night's PLAYERS — the screen you reach *from* the
+Sessions list. The app's `/stats` and `/games` are the list itself, and a list
+whose rows open nothing has no purpose.
+
+**What it cost is worth naming, because the layout was not the damage.** The
+glyphs on those rows are what was asked for and they stay. What went was the
+tap, on the one screen in the app whose entire job is to get you to a night —
+and nothing could see it, because no check had ever needed to assert that a list
+row goes somewhere.
+
+⚠ **Every row still opens the same night**, because this phone holds one and
+there is no sessions table to route to. That is unchanged from before this batch
+and is the same open question as the seeded history — see `docs/screens.md`.
+
 ### B64 — the link the workflow printed pinned the phone to one update forever
 
 ```

@@ -1645,12 +1645,19 @@ same component now, in one of its two layouts:
   short form is the handoff's and has to fit a 34-point segment beside `Final`
   at every text size; the heading has a whole line. `ui-journeys.mjs` reads them
   as two separate assertions for exactly that reason.
-* **The rows on `/stats` and `/games` stopped navigating.** They went to
-  `/settled`, which on this phone is always the ONE night the phone is holding
-  rather than the night in the row — so seven of eight rows opened somebody
-  else's evening. They itemise in place instead, which is the handoff's own
-  interaction and the honest one until there is a sessions table to route to.
-  **Open:** route them the day there is one.
+* **The rows on `/stats` and `/games` navigate, and the rolled-up row only
+  itemises in place where nothing else is asking for the tap.** They stopped
+  navigating for half a day and that was B65 — the mistake was reading frame
+  `6c` as a list of NIGHTS when it is a list of PLAYERS on one night. Its meta
+  line says `8 players` and its back button says `Sessions`: it is the screen
+  you reach FROM the list, not the list. A Sessions list whose rows open nothing
+  is a dead end, which is exactly how it was reported.
+* **Every row on those two lists still opens `/settled`, whichever night it
+  is.** This phone holds ONE night and there is no sessions table to route to —
+  `sampleHistory.ts` says so of itself. It is what the rows did before this
+  batch and what they do now, and it is the same open question as the seeded
+  history rather than a new one. **Open:** route them the day there is a
+  sessions table.
 
 ### What was measured against the handoff, and what came back
 
