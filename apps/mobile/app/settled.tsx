@@ -107,7 +107,7 @@ export default function NightResults() {
 
   if (night === null) {
     return (
-      <Screen title="The night" backTo="the club">
+      <Screen title="The night" backTo="the club" headScroll="all">
         {null}
       </Screen>
     );
@@ -118,6 +118,7 @@ export default function NightResults() {
       <Screen
         title="Not settled"
         backTo="the club"
+        headScroll="all"
         lede="This night was never closed. Count everyone up and settle it to see the record."
         footer={
           <Button label="Open the night" variant="primary" onPress={() => router.replace('/session')} />
@@ -136,6 +137,36 @@ export default function NightResults() {
       title={nightDate(night.startedAt)}
       meta={metaLine(night, rows.length)}
       backTo="the club"
+      /*
+       * THE HEAD GOES DOWN WITH THE BODY — `headScroll="all"`, the same one
+       * `/players` is on, and for the same reason it was built.
+       *
+       * This screen is a ranked list and the ranking is the content. The head
+       * is 97 points of it — a 32-point date, the meta line under it, and the
+       * back button — pinned over a list that at eight players wants every
+       * point there is. Nothing in those 97 changes while you read: the date is
+       * the one thing you already knew when you opened the night, and back is
+       * one flick away rather than gone.
+       *
+       * IT DOES NOT MAKE MORE FIT AT REST, and that is worth being straight
+       * about: at the top of the screen the layout is exactly what it was. What
+       * it buys is that ONE FLICK now clears the chrome instead of scrolling
+       * the list under it, so the standings, the rounding row and the note can
+       * all be on the phone at once — which is what a person reading their own
+       * night is trying to do. The 8 September pass got eight players onto the
+       * screen with the head still on it; this is the room for a ninth, a tenth,
+       * and for a phone whose owner has turned the type up.
+       *
+       * The footer stays pinned. `Who pays whom` is the one thing on here you
+       * act on, and a primary action that scrolls away is a primary action you
+       * have to go looking for.
+       *
+       * Registered in `ui-audit.mjs`'s `HEAD_SCROLLS`, which is a two-way
+       * check: a route on that map has to actually scroll its head, and a route
+       * off it may not. Doc 15 § 5 check 1 is the rule this is the documented
+       * exception to.
+       */
+      headScroll="all"
       /* R1's footer, and the cut keeps it: one button, full width, and the one
          place this screen leads to. */
       footer={

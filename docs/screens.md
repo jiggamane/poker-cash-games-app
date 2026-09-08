@@ -405,6 +405,28 @@ head and the first thing in the body — and it had to go there rather than in t
 rule pass for exactly the reason recorded above about E6: opened cold, these two
 routes render their empty states and the card is not on the screen to measure.
 
+⚠ **AND THE HEAD GOES DOWN WITH THE BODY NOW** — `headScroll="all"`, asked for
+by the owner on 8 September after the vertical pass above, because eight players
+plus the rounding row and the note still did not all reach the phone at once.
+The head is 97 points — a 32-point date, the meta line, the back button — pinned
+over a list that is the whole content of the screen, and none of it changes while
+you read: the date is the one thing you already knew when you opened the night.
+
+It does not make more fit AT REST and was not expected to; the layout above the
+fold is unchanged. What it buys is that one flick clears the chrome instead of
+scrolling the list under it, so the standings, the rounding row and the note can
+be on the screen together — and it leaves room for a ninth player, a tenth, and
+for a phone whose owner has turned the type up. The FOOTER is still pinned:
+`Who pays whom` is the one thing on this screen you act on.
+
+`/settled` joins `/players` in `ui-audit.mjs`'s `HEAD_SCROLLS`, which is a
+two-way check rather than a mute — a route on that map has to actually scroll
+its head, and a route off it may not, so doc 15 § 5 check 1 still catches a
+screen that picks the behaviour up by accident. All three `Screen`s in
+`settled.tsx` carry it, the two empty states included: cold, this route draws
+*Not settled*, so that is the head the audit's probe reads, and one entry must
+not be satisfiable by one branch and broken on another.
+
 ⚠ **AND ALL OF IT WAS DRAWN AGAINST A SIX-PLAYER NIGHT** — B60, 8 September,
 found by the owner on the club's own table of eight. Every padding on `/settled`
 is the cut's, the cut's worked night has six players, and at six the screen fits
