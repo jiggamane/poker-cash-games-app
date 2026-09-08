@@ -1735,8 +1735,10 @@ async function playANight(name, rebuys) {
   if (new URL(page.url()).pathname === '/') {
     await tap('My stats');
     await stop('my stats');
+    await opensANight('my stats', 'stats-night');
     await tap('See all');
     await stop('sessions');
+    await opensANight('sessions', 'games-night');
   } else {
     console.log(`  ${'the club'.padEnd(26)} not reached — history ended at ${page.url()}`);
   }
@@ -1749,6 +1751,51 @@ async function playANight(name, rebuys) {
       `biggest figure drawn $${largest.toLocaleString('en-US')}`,
   );
   return { target, largest };
+}
+
+/**
+ * AND THE ROW OPENS THE NIGHT — B65.
+ *
+ * The one thing a list of past games is for, and the one thing no check in this
+ * repo had ever asserted. On 8 September the score-breakdown row was applied to
+ * both of these lists and took their `onPress` with it: the rows grew a
+ * breakdown, nothing navigated, and Sessions became a screen you could not get
+ * out of. Every other check passed — the figures were right, nothing was cut
+ * off, every route rendered — because "this row goes somewhere" was nobody's
+ * business.
+ *
+ * It taps the first row and asks whether a settled night came up. `Who pays
+ * whom` is the footer button of that screen and of no other, so it is what
+ * proves the tap arrived rather than merely changing something.
+ *
+ * ⚠ IT DOES NOT ASSERT WHICH NIGHT. Every row opens the same one, because this
+ * phone holds one and there is no sessions table to route to — see
+ * `docs/screens.md`. A check that pinned the night would go red the day that is
+ * fixed, which is the wrong way round.
+ */
+async function opensANight(where, testId) {
+  const row = page.locator(`[data-testid="${testId}"]`).first();
+  if ((await row.count()) === 0) {
+    await holds(`${where} has a night to open`, false, 'the list drew no rows at all');
+    return;
+  }
+
+  await row.click();
+  await page.waitForTimeout(1200);
+
+  const arrived = await page
+    .locator(':text-is("Who pays whom"):visible')
+    .count()
+    .catch(() => 0);
+  await holds(
+    `and a row on ${where} opens the night`,
+    arrived > 0,
+    'tapping a past game left the list on screen — the row navigates nowhere',
+  );
+
+  /* Back to the list, so the leg after this one starts where it expects to. */
+  await page.goBack();
+  await page.waitForTimeout(900);
 }
 
 console.log(`a big night, screen by screen · ${light ? 'light' : 'dark'} · ${WIDTH} × ${HEIGHT}`);

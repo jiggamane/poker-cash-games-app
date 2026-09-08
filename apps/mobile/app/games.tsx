@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { type Money } from '@poker-club/core';
 import { formatSigned, formatSignedToFit } from '../src/lib/money';
+import { Icon } from '../src/components/Icon';
 import { ScoreLine } from '../src/components/ScoreBreakdown';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
@@ -77,14 +78,18 @@ export default function MyGames() {
        * EVERY NIGHT AS THE RESULTS ROW — `design_handoff_score_breakdown/`,
        * frame `6c`, cut 8 September, and the same `ScoreBreakdown` that draws a
        * player on `/settled` and a night on `/stats`. The date is the name and
-       * your own net is the score; tapping itemises the evening in place rather
-       * than opening a screen. See `NightRow` on `/stats` for why the row stopped
-       * navigating — on this phone `/settled` is the one night it is holding
-       * rather than the night in the row.
+       * your own net is the score.
        *
-       * A NIGHT YOU SAT OUT KEEPS ITS OLD ROW. There is no result and nothing
-       * to itemise, so it says so where the figure would be — a `$0` would be a
-       * claim about an evening that never happened to you.
+       * AND THE ROW OPENS THE NIGHT. It stopped for half a day — B65 — because
+       * the board's rolled-up row itemises in place, and this screen is the one
+       * place in the app where that reading does real damage: Sessions is how a
+       * person reaches a night, and a Sessions list that opens nothing is a
+       * dead end. `NightRow` on `/stats` has the whole of it.
+       *
+       * A NIGHT YOU SAT OUT KEEPS ITS OLD ROW, and it opens the night too.
+       * There is no result and nothing to itemise, so it says so where the
+       * figure would be — a `$0` would be a claim about an evening that never
+       * happened to you — but the night itself is still worth reading.
        */}
       <View style={styles.list}>
         {[...nights].reverse().map((n) =>
@@ -97,16 +102,26 @@ export default function MyGames() {
               terms={n.terms}
               layout="rolled"
               testID="games-night"
+              onPress={() => router.push('/settled')}
             />
           ) : (
-            <View key={n.sessionId} style={[styles.sat, { borderTopColor: t.hairline }]}>
+            <Pressable
+              key={n.sessionId}
+              accessibilityRole="button"
+              onPress={() => router.push('/settled')}
+              style={({ pressed }) => [
+                styles.sat,
+                { borderTopColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+              ]}
+            >
               <View style={styles.rowText}>
                 <Text style={[styles.rowDate, { color: t.text }]}>{n.date}</Text>
                 <Text style={[styles.rowMeta, { color: t.muted }]}>
                   {`${n.groupName} · did not play`}
                 </Text>
               </View>
-            </View>
+              <Icon name="chevron" color={t.dim} size={13} />
+            </Pressable>
           ),
         )}
 
@@ -148,7 +163,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  rowText: { gap: 3, flexShrink: 1 },
+  /* Grows, so the chevron takes the right-hand edge rather than sitting
+     against the text. */
+  rowText: { gap: 3, flexShrink: 1, flexGrow: 1, minWidth: 0 },
   rowDate: type.rowName,
   rowMeta: type.rowDetail,
   empty: { ...type.footnote, paddingHorizontal: 4, paddingTop: 8 },
