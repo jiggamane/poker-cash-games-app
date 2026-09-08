@@ -117,6 +117,44 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
+### B64 — the link the workflow printed pinned the phone to one update forever
+
+```
+Screen      none — the publish path, and every screen on the phone at once
+Seen        three publishes on 8 September, each one green, each one carrying a
+            different screen, and the phone drawing the same old layout after
+            every one of them. Relaunching, force-quitting and reinstalling all
+            did nothing
+Expected    a phone that opens the app gets the newest publish on `expo-go`
+Found       8 Sept, after the third round of "it still looks old"
+Locked by   nothing yet — see below
+Status      fixed in this branch
+```
+
+**`eas update` prints a link that addresses ONE update group**, and the workflow
+handed it over as the thing to open — `docs/live-test.md` said so too: *"the
+run's summary is the link to the published update — open that on the iPhone"*.
+A phone that opens that address reloads that same group on every launch. It is
+not a cache and there is nothing to clear: nothing was ever going to fetch
+anything.
+
+**What makes it expensive is that it is indistinguishable from a stale cache,**
+and the remedy for a stale cache — relaunch, force-quit, relaunch again — is
+exactly the thing that cannot work here. Two sessions were spent on that
+remedy. The branch page and Expo Go's own project list both follow the branch
+and were never mentioned.
+
+The workflow summary now leads with the branch and labels the update link for
+what it is; `live-test.md` says the same in the place it said the opposite.
+
+**`Locked by: nothing yet`**, and it is worth being straight about why. Nothing
+in this repository can see what a phone opened — the checks drive a browser
+against a local build, and the publish path ends at Expo. What replaces a check
+here is B63's build stamp: the phone names the commit it is running, so the next
+time an update appears not to arrive, the question is answered in two seconds
+instead of two sessions. A real lock would be an end-to-end check that opens the
+branch as a device would and asserts the commit it gets back. **Open.**
+
 ### B63 — the phone could not say which build it was running
 
 ```

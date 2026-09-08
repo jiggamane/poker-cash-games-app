@@ -158,15 +158,30 @@ jobs:
           npm run publish:go --workspace @poker-club/mobile -- --non-interactive \
             2>&1 | tee "$RUNNER_TEMP/update.log"
 
-      # `eas update` prints the link to the published update, and that link is
-      # the whole deliverable — it is what the phone opens. The Actions log is
-      # awkward to read on a phone and the summary is not, so it goes here.
+      # `eas update` prints the link to the published update, and the Actions log
+      # is awkward to read on a phone where the summary is not, so it goes here.
       #
-      # With it, the one property of the update that no link and no publish
+      # ⚠ THAT LINK POINTS AT ONE UPDATE AND PINS THE PHONE TO IT, which is the
+      # thing this step used to get wrong and cost an evening on 8 September.
+      # Its address ends in an update GROUP id: a phone that opened it reloads
+      # that same group every launch, so three publishes went out, each one
+      # green, and the phone went on drawing the screen from before them. It
+      # looks exactly like a stale cache and it is not one — nothing was going
+      # to fetch anything, ever.
+      #
+      # So the BRANCH comes first now and the update link second, labelled for
+      # what each one is. Opening the project from Expo Go's own Home tab is the
+      # same thing and needs no link at all: Expo Go asks the branch what is
+      # newest for `exposdk:57.0.0` and gets it.
+      #
+      # With them, the one property of the update that no link and no publish
       # table shows: which of the two apps this is. A host reads that here or
       # discovers it at a table.
       - name: Say where it is
         if: always()
+        env:
+          EXPO_ACCOUNT: decusgames
+          EXPO_SLUG: poker-cash-games-manager
         run: |
           log="$RUNNER_TEMP/update.log"
           [ -f "$log" ] || exit 0
@@ -186,9 +201,27 @@ jobs:
               echo 'closing a night and reading its settlement.'
             fi
             echo
-            echo 'Open this on the iPhone. It hands off to Expo Go, which has to be'
-            echo 'signed in to the account that owns the project — otherwise it will'
-            echo 'refuse the update without saying so.'
+            echo '### To get it onto the phone'
+            echo
+            echo 'Easiest, and it needs no link: **open Expo Go → Home → the project**'
+            echo 'under your account. Expo Go asks the `expo-go` branch what is newest'
+            echo 'and gets this update.'
+            echo
+            echo 'Or open the BRANCH, which always points at the newest publish:'
+            echo
+            echo "<https://expo.dev/accounts/$EXPO_ACCOUNT/projects/$EXPO_SLUG/branches/expo-go>"
+            echo
+            echo '⚠ **Do not open the update link below to get the app.** It addresses'
+            echo 'THIS ONE update by its group id, and a phone that opens it reloads that'
+            echo 'same group every launch — it will never see a later publish, however'
+            echo 'many go out. It is here to identify what was published, not to install'
+            echo 'it. (8 September: three green publishes in a row that a phone never'
+            echo 'loaded, for exactly this reason.)'
+            echo
+            echo 'Either way Expo Go has to be signed in to the account that owns the'
+            echo 'project, or it refuses the update without saying so. Settings, at the'
+            echo 'foot, names the commit the phone is actually running — that is how you'
+            echo 'tell an update that did not arrive from one that did.'
             echo
             echo '```'
             cat "$log"
