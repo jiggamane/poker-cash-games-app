@@ -1,4 +1,4 @@
-import type { Money } from '@poker-club/core';
+import type { Money, SettledTerm } from '@poker-club/core';
 
 /**
  * My results, across every group I play in.
@@ -22,6 +22,17 @@ export interface PlayedNight {
   net: Money;
   /** How long I was at the table. */
   minutes: number;
+  /**
+   * WHAT THE NIGHT WAS MADE OF — chips in, chips out, and what each rule took,
+   * as the same `SettledTerm[]` a results row is drawn from.
+   *
+   * The list draws them with `ScoreBreakdown`, which is the app's one drawing
+   * of a finished night, so a night on My stats reads exactly the way the same
+   * night reads on `/settled`. Empty where a night has no breakdown to show —
+   * an older record, or one that will not settle — and the row is then just the
+   * date and the figure, which is what this screen has always been.
+   */
+  terms: SettledTerm[];
 }
 
 /** How far back the screen is looking. */

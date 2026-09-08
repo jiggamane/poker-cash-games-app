@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Circle, Path, Rect, Svg } from 'react-native-svg';
 
 /**
@@ -56,6 +57,38 @@ export type IconName =
   | 'message'
   | 'share'
   | 'qr'
+  /*
+   * THE SCORE BREAKDOWN SET — `design_handoff_score_breakdown/Score Breakdown
+   * Icons.dc.html`, turn 6, cut 8 September. Five glyphs on one 20 x 20 box, a
+   * 1.7 stroke, round caps and joins, no fill, drawn at 15 in a results row and
+   * 17 in a labelled pill. They are what a settled row prints instead of the
+   * words `in`, `out`, `bill` and `piggy`.
+   *
+   * TWO COLOURS ONLY, AND THE ROW DECIDES THEM, not this file: the chips are
+   * ink and the three spends are bone, because bone already means money leaving
+   * the table everywhere else in the app. No colour was introduced for the set.
+   *
+   * ⚠ `drinks` IS DRAWN AND NOT USED. The handoff's night spends on food and on
+   * drinks separately; this app has one `bill` destination and the seeded rule
+   * that fills it is called "Kitchen & drinks", so there is nothing for a
+   * second glyph to key off. It is here because the approved set is the design
+   * record and because a night that grows a rule the app can tell apart has its
+   * glyph waiting. Recorded in `docs/screens.md`.
+   *
+   * The seven superseded candidates — the pig, the jar, the tumbler, the
+   * two-tine fork, the vault, the locked box, the coin slot — stay in the
+   * design file as the decision record and are deliberately NOT here.
+   */
+  /** What they put on the table. Always a negative figure beside it. */
+  | 'chipsIn'
+  /** What they took off it. Always positive. */
+  | 'chipsOut'
+  /** A bill — the food. */
+  | 'food'
+  /** The other half of a bill, where a night ever names one. */
+  | 'drinks'
+  /** The piggy bank. */
+  | 'piggy'
   /*
    * The theme button's two faces. It shows the theme you will GET, so the sun
    * paints while the app is dark and the moon while it is light.
@@ -331,6 +364,63 @@ export function Icon({
       );
     }
 
+    /*
+     * The five below are one box, one stroke and one pair of caps — see the
+     * note on the names above. `SCORE` is that shared shape, so a glyph is its
+     * path data and nothing else, which is how the set stays matched.
+     */
+    case 'chipsIn': {
+      return (
+        <ScoreGlyph size={size}>
+          <Path {...SCORE(color)} d="M10 3.2v9.4" />
+          <Path {...SCORE(color)} d="M6.6 9.2 10 12.6l3.4-3.4" />
+          <Path {...SCORE(color)} d="M4 16.2h12" />
+        </ScoreGlyph>
+      );
+    }
+
+    case 'chipsOut': {
+      return (
+        <ScoreGlyph size={size}>
+          <Path {...SCORE(color)} d="M10 12.6V3.2" />
+          <Path {...SCORE(color)} d="M6.6 6.6 10 3.2l3.4 3.4" />
+          <Path {...SCORE(color)} d="M4 16.2h12" />
+        </ScoreGlyph>
+      );
+    }
+
+    case 'food': {
+      return (
+        <ScoreGlyph size={size}>
+          <Path {...SCORE(color)} d="M4.5 2.8v3.9M6.7 2.8v3.9M8.9 2.8v3.9" />
+          <Path {...SCORE(color)} d="M4.5 6.7a2.2 2.2 0 0 0 4.4 0" />
+          <Path {...SCORE(color)} d="M6.7 8.9V17.2" />
+          <Path {...SCORE(color)} d="M13.5 17.2V10.6c-1.3-.4-2-1.6-2-3.4 0-2.3 1-4 2.6-4.4v14.4" />
+        </ScoreGlyph>
+      );
+    }
+
+    case 'drinks': {
+      return (
+        <ScoreGlyph size={size}>
+          <Path {...SCORE(color)} d="M3.8 4.6h12.4L10 11z" />
+          <Path {...SCORE(color)} d="M10 11v4.4" />
+          <Path {...SCORE(color)} d="M6.8 16.6h6.4" />
+        </ScoreGlyph>
+      );
+    }
+
+    case 'piggy': {
+      return (
+        <ScoreGlyph size={size}>
+          <Circle cx={10} cy={10} r={7.1} {...SCORE(color)} />
+          <Circle cx={7.9} cy={7.9} r={1.35} {...SCORE(color)} />
+          <Circle cx={12.1} cy={12.1} r={1.35} {...SCORE(color)} />
+          <Path {...SCORE(color)} d="M13 7 7 13" />
+        </ScoreGlyph>
+      );
+    }
+
     case 'check': {
       const s = size ?? 15;
       return (
@@ -469,3 +559,25 @@ export function Icon({
     }
   }
 }
+
+/**
+ * The score-breakdown box: 20 x 20, and 15 across unless a caller says
+ * otherwise — the size a results row draws them at. A pill draws them at 17 and
+ * passes it.
+ */
+function ScoreGlyph({ size, children }: { size?: number; children: ReactNode }) {
+  const s = size ?? 15;
+  return (
+    <Svg width={s} height={s} viewBox="0 0 20 20" fill="none">
+      {children}
+    </Svg>
+  );
+}
+
+/** One stroke for the whole set — 1.7, round, unfilled. */
+const SCORE = (color: string) => ({
+  stroke: color,
+  strokeWidth: 1.7,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+});

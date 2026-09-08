@@ -32,7 +32,7 @@
  */
 
 import type { Money } from './money';
-import type { PlayerId, PlayerSettlement } from './types';
+import type { PlayerSettlement, RuleDestination } from './types';
 import type { SettlementResult } from './settlement';
 import { nightScore, playerDeductions, resultRows } from './working';
 
@@ -40,15 +40,31 @@ import { nightScore, playerDeductions, resultRows } from './working';
 export type SettledMode = 'table' | 'final';
 
 /**
- * `bill` and `back` are two terms and not one — see the note above. `back` is
+ * `spend` and `back` are two terms and not one — see the note above. `back` is
  * only ever a bill's, because a bill is the one deduction that pays an outlay
  * back to the person who made it; every other kind hands a float to a collector,
  * which is the room's money and not theirs.
+ *
+ * ⚠ `spend` REPLACED `bill` AND `piggy`, AND THAT FIXED A HOLE (B62). Those two
+ * kinds were two of the four destinations a rule can have, read by name; a
+ * night with a host's fee on it charged everybody and printed no term for it,
+ * so the line under the name did not come to the figure beside it — on the one
+ * screen whose whole claim is that it does. One kind carrying the destination
+ * is the same information without the list of which two are drawn, and a fifth
+ * destination is a glyph to choose rather than a term to remember to add.
  */
-export type SettledTermKind = 'in' | 'out' | 'bill' | 'back' | 'piggy' | 'rounded';
+export type SettledTermKind = 'in' | 'out' | 'spend' | 'back' | 'rounded';
 
 export interface SettledTerm {
   kind: SettledTermKind;
+  /**
+   * Which rule kind took it — on `spend` and `back`, and null on the three
+   * terms that are not a rule's. It is the destination and not the rule's name
+   * because a night can run two bill rules and the row has one glyph for a
+   * bill: `playerDeductions` groups them the same way, and the rules' own names
+   * are stated in full in the deductions block on the same screen.
+   */
+  destination: RuleDestination | null;
   /**
    * The magnitude, always positive except `rounded`, which is signed because it
    * is the only term whose direction is not fixed by its name.
@@ -78,15 +94,6 @@ export interface SettledRow {
   held: Money;
 }
 
-const at = (
-  result: SettlementResult,
-  playerId: PlayerId,
-  destination: 'bill' | 'kitty',
-): { charged: Money; credited: Money } => {
-  const d = playerDeductions(result, playerId).find((x) => x.destination === destination);
-  return { charged: (d?.charged ?? 0) as Money, credited: (d?.credited ?? 0) as Money };
-};
-
 /**
  * Every player of a settled night, ranked by the mode's own figure, descending.
  *
@@ -110,26 +117,38 @@ export function settledRows(result: SettlementResult, mode: SettledMode): Settle
    * split and the total order the flow doc asks for.
    */
   const rows = resultRows(result).map(({ player, score, held }): SettledRow => {
-    const bill = at(result, player.playerId, 'bill');
-    const piggy = at(result, player.playerId, 'kitty');
-
     const terms: SettledTerm[] = [
-      { kind: 'in', amount: player.boughtIn },
-      { kind: 'out', amount: player.endedWith },
+      { kind: 'in', destination: null, amount: player.boughtIn },
+      { kind: 'out', destination: null, amount: player.endedWith },
     ];
 
     /*
-     * BILL AND PIGGY ON FINAL ONLY. At the table is `out − in` and nothing else
-     * has happened yet; printing what a rule will later take under a figure
-     * that does not have it taken out is the row disagreeing with itself.
+     * THE SPENDS ON FINAL ONLY. At the table is `out − in` and nothing else has
+     * happened yet; printing what a rule will later take under a figure that
+     * does not have it taken out is the row disagreeing with itself.
+     *
+     * EVERY RULE THAT TOUCHED THEM, IN THE NIGHT'S OWN ORDER — that is
+     * `playerDeductions`'s order, which is `sortOrder`, so the bill precedes
+     * the piggy bank on the row if it preceded it in the settlement. A rule
+     * that took nothing off them is not a term (the handoff's rule: absent
+     * pairs are dropped, never zeroed), which is what makes the row variable
+     * width by design.
      */
     if (mode === 'final') {
-      if (bill.charged !== 0 || bill.credited !== 0) {
-        terms.push({ kind: 'bill', amount: bill.charged });
-        if (bill.credited !== 0) terms.push({ kind: 'back', amount: bill.credited });
+      for (const d of playerDeductions(result, player.playerId)) {
+        if (d.charged !== 0) {
+          terms.push({ kind: 'spend', destination: d.destination, amount: d.charged });
+        }
+        /* Only ever a bill's — `playerDeductions` credits nothing else to the
+           person themselves, because every other kind hands the collector a
+           float that is the room's and not theirs. */
+        if (d.credited !== 0) {
+          terms.push({ kind: 'back', destination: d.destination, amount: d.credited });
+        }
       }
-      if (piggy.charged !== 0) terms.push({ kind: 'piggy', amount: piggy.charged });
-      if (player.roundedBy !== 0) terms.push({ kind: 'rounded', amount: player.roundedBy });
+      if (player.roundedBy !== 0) {
+        terms.push({ kind: 'rounded', destination: null, amount: player.roundedBy });
+      }
     }
 
     return {

@@ -1552,7 +1552,123 @@ a settled night has no destination either — `/share` is one person's share of 
 rule, and the watcher link lives in Settings — so this is not a control being
 withheld, it is a control with nowhere to point.
 
+## The row is glyphs now, and it is one row drawn in one file
+
+`design_handoff_score_breakdown/Score Breakdown Icons.dc.html`, turn 6, cut
+8 September. It speaks about the results ROW and the Final / At table toggle
+over it, and about nothing else on any screen — everything else the 6 September
+game-end cut and rev 18 say still stands.
+
+    Dana                                                        +$1,519
+    ↓ −$500   ↑ +$2,120  │  🍴 −$54   🍸 −$24   🐷 −$23
+
+**What it replaced was words.** `in 1,500 out 2,000 bill 50 +100 back piggy 50`
+said everything and took the whole row to say it, which is why `piggy bank` had
+already been shortened to `piggy` on 8 September to stop the line wrapping at
+eight players. A 15-point glyph and a signed figure is a quarter of the width of
+a word and a bare number, so five pairs now fit one line at 360 where two words
+and two figures did not.
+
+**Every figure is signed, and that is the point rather than a detail.** The row
+reads as arithmetic — `−$500 + $2,120 − $54 − $24 − $23 = +$1,519` — so a person
+can check the figure beside their name without opening anything. The minus is
+U+2212, everything is tabular, and absent pairs are dropped rather than zeroed:
+somebody who was charged nothing shows no glyph, not a `$0`.
+
+**`ScoreBreakdown.tsx` is the only drawing of a finished night in the app**, and
+that is the change that matters more than the glyphs. Four screens drew one fact
+in three shapes: `/settled` had the line of words, `/watch` had R1's three
+stacked blocks, `/stats` and `/games` had a bare figure per night. They drift,
+and they had — only `/settled` said what a night COST anybody. All four draw the
+same component now, in one of its two layouts:
+
+| Where | Layout | Why |
+|---|---|---|
+| `/settled`, `/watch` | `grouped` (`6a`/`6b`) | the room reads it together, so every deduction is on the face of the row |
+| `/stats`, `/games` | `rolled` (`6c`) | months later, quiet by default — the spend glyphs and one bone total, tapped to itemise in place |
+
+### What was decided against the handoff rather than by it
+
+* **`bill → food` and `kitty → piggy`.** Not a new decision: `formulaWord` in
+  `ruleText.ts` has spelled a bill "food" and the piggy bank "piggy" since the
+  columns board, so the glyphs are those two words drawn.
+* **The drinks glyph is implemented and unused.** The handoff's night spends on
+  food and on drinks separately; this app has one `bill` destination and the
+  seeded rule filling it is called *Kitchen & drinks*, so there is nothing for a
+  second glyph to key off. It is in `Icon.tsx` because the approved set is the
+  design record and because a night that grows a rule the app can tell apart has
+  its glyph waiting. **Open:** if a group ever wants food and drinks as two
+  rules, this is what draws them.
+* **A host's fee and a next-pot rule print the word, not a glyph.** The handoff
+  drew five glyphs and this app's rules reach two destinations it never drew.
+  Dropping their figure is the one thing the row may not do — see B62, which is
+  the bug that was — so they print `formulaWord`'s own `host` and `next pot`
+  beside the figure. Flagged rather than passed off as decided design.
+* **The step has no glyph and needs none.** It is drawn with the chips as a bare
+  signed figure. No set draws it, and its sign is the only thing about it that
+  is not fixed by its name.
+* **`+$242` in the bone tray is the win colour**, where every other figure in
+  the tray is bone. It is the one figure in there that is money arriving, and a
+  bone `+$242` beside a bone `−$54` reads as a second charge. It replaces
+  `bill 50 +100 back`, which said the same thing in a span.
+* **The expanded row uses `raised`, not `#131317`.** The handoff's hex is not a
+  token and `tokens.ts` is app-wide, which `CLAUDE.md` says belongs to a session
+  running alone. `raised` is that colour's neighbour in both themes.
+* **The active segment uses `raised` for the same reason** — the handoff draws
+  `#2A2A31` and the token is `#26262B`.
+* **The vertical rule uses `previewRule`** (.13) where the handoff draws .14.
+  It is already the app's "one step stronger than a hairline".
+* **One row open at a time is not enforced.** The handoff makes it the list's
+  rule; the app has no list object here, so a row owns its own open state. Two
+  open rows on a history list cost a reader nothing, where lifting the state
+  would put an `expandedId` on five screens for it. **Open**, and cheap to fix
+  the day a list wants it.
+* **`At table` on the segment, `At the table` on the list's own heading.** The
+  short form is the handoff's and has to fit a 34-point segment beside `Final`
+  at every text size; the heading has a whole line. `ui-journeys.mjs` reads them
+  as two separate assertions for exactly that reason.
+* **The rows on `/stats` and `/games` stopped navigating.** They went to
+  `/settled`, which on this phone is always the ONE night the phone is holding
+  rather than the night in the row — so seven of eight rows opened somebody
+  else's evening. They itemise in place instead, which is the handoff's own
+  interaction and the honest one until there is a sessions table to route to.
+  **Open:** route them the day there is one.
+
+### And the row still has to fit eight players
+
+The 8 September vertical pass got an eight-handed night onto the phone with the
+head still on it, and the glyph row is taller than the line of words it
+replaced — a glyph is 15 points where a term was a 12.5-point word. So every
+line height on the row is written down rather than left to the platform's own
+leading: 16 of padding, a 20-point head, 6 of gap and a 16-point line of pairs,
+which is the handoff's 58. `ui-journeys.mjs` holds the list to eight rows above
+the footer and reports the arithmetic when it fails, so any of those four
+numbers growing is a red check rather than a phone.
+
+At table is 7 rather than 8, which is the handoff's own difference and its own
+reason: that tab closes on a reconciliation line — `$5,500 in, $5,500 out` /
+`$0` — and the point of it is that the room reads the check without scrolling.
+It is derived from the row having no spends on it rather than passed down as a
+mode, because a row with no spends IS the At-table row.
+
+### The bone tray, and the second exception to B23
+
+The three spends sit in a tray washed `offTableWash`, which is a tint behind
+signed figures — exactly what `ui-audit.mjs`'s `tinted-result-row` refuses. It
+is an exception now, by name (`spend-tray`), in both themes, and the reasoning
+is that B23 is about a whole player row banded green or red: seven rows in two
+colours are a ranking the column of signed figures had already given. This is a
+small object inside one row, in the colour money leaving the table has been
+drawn in since long before the handoff, and it carries no verdict about how
+anybody's night went. A wash anywhere else on a row is still a finding.
+
 ## The row: the whole night as a sentence
+
+⚠ **This is `/deductions`'s row now, not `/settled`'s.** The settled night draws
+the glyph row above; what follows describes the formula line, which is still
+what the closing flow's preview prints and is still the same decomposition off
+the same engine. Everything it says about which terms exist and what they sum to
+holds for both.
 
     Dana                                                        +$1,543
     game +$1,620 · food −$54 · piggy −$23

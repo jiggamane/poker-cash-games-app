@@ -17,7 +17,7 @@
 import { describe, expect, it } from 'vitest';
 import { money, type Money } from './money';
 import { settle } from './settlement';
-import { offTheTable, settledRows } from './settled';
+import { offTheTable, settledRows, type SettledTerm } from './settled';
 import type { LedgerEntry, MoneyRule, Player, PlayerId } from './types';
 
 const GOGA = 'goga';
@@ -136,11 +136,12 @@ describe("the cut's worked night", () => {
   it("prints the cut's Final table, row for row", () => {
     const rows = settledRows(result, 'final');
 
-    expect(
-      rows.map((r) => [r.player.name, ...r.terms.map((t) => `${t.kind} ${t.amount}`), r.net]),
-    ).toEqual([
-      ['Goga', 'in 1500', 'out 2000', 'bill 50', 'back 100', 'piggy 50', 500],
-      ['Oto', 'in 1500', 'out 2000', 'bill 50', 'piggy 50', 400],
+    const term = (t: SettledTerm): string =>
+      `${t.destination === null ? t.kind : `${t.kind}:${t.destination}`} ${t.amount}`;
+
+    expect(rows.map((r) => [r.player.name, ...r.terms.map(term), r.net])).toEqual([
+      ['Goga', 'in 1500', 'out 2000', 'spend:bill 50', 'back:bill 100', 'spend:kitty 50', 500],
+      ['Oto', 'in 1500', 'out 2000', 'spend:bill 50', 'spend:kitty 50', 400],
       ['Andro', 'in 1500', 'out 1500', 0],
       ['Levani', 'in 1500', 'out 500', -1000],
     ]);
@@ -148,7 +149,7 @@ describe("the cut's worked night", () => {
 
   it('never nets the bill Goga fronted into the share he owes', () => {
     const goga = settledRows(result, 'final').find((r) => r.player.playerId === GOGA);
-    const bill = goga?.terms.find((t) => t.kind === 'bill');
+    const bill = goga?.terms.find((t) => t.kind === 'spend' && t.destination === 'bill');
     const back = goga?.terms.find((t) => t.kind === 'back');
     /* `food +50` would be the same net and a different statement. */
     expect(bill?.amount).toBe(50);

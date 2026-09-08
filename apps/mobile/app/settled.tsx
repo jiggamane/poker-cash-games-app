@@ -7,24 +7,20 @@ import {
   resultTotals,
   settle,
   settledRows,
+  type Money,
   type SettledMode,
   type SettledRow,
-  type SettledTerm,
   type StoredVerification,
 } from '@poker-club/core';
-import {
-  formatMoney,
-  formatSignedToFit,
-  formatSignedUnmarked,
-  formatUnmarked,
-} from '../src/lib/money';
+import { formatMoney } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
+import { ReconciliationRow, ScoreRow, ScoreTabs } from '../src/components/ScoreBreakdown';
 import { Screen } from '../src/components/Screen';
 import { TotalsCard } from '../src/components/TotalsCard';
-import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, radius, space, tabular, unscaledLabel } from '../src/design/tokens';
+import { useTheme } from '../src/design/useTheme';
+import { radius, space, tabular, unscaledLabel } from '../src/design/tokens';
 import { settlementOf, transferKey, useNight } from '../src/lib/nightStore';
 
 /**
@@ -184,9 +180,11 @@ export default function NightResults() {
 
       <Deductions result={result} />
 
-      <Toggle mode={mode} onPick={setMode} />
+      <View style={styles.tabs}>
+        <ScoreTabs mode={mode} onPick={setMode} />
+      </View>
 
-      <List rows={rows} final={final} />
+      <List rows={rows} final={final} totals={totals} />
 
       {/*
        * THE STEP IS SHOWN AND NOT SETTABLE. It is locked once the night is
@@ -198,7 +196,7 @@ export default function NightResults() {
        */}
       {final && <RoundingBar mode={night.roundingMode} style={styles.rounding} />}
 
-      <Note />
+      <Note final={final} offTable={result.totalOffTable} />
     </Screen>
   );
 }
@@ -322,43 +320,36 @@ function payerNote(
 }
 
 /**
- * At the table / Final.
+ * THE RANKED LIST, IN WHICHEVER MODE THE TABS ARE ON.
  *
- * A SEGMENTED CONTROL AND NOT TWO TABS: the two are the same rows twice, not
- * two places you can be, so nothing about this navigates. The selected half is
- * a filled thumb inside a well, which is the app's existing switch and the
- * cut's own construction at the same time.
+ * EVERY ROW IS `ScoreRow`, which is the app's ONE drawing of a finished night —
+ * `design_handoff_score_breakdown/`, turn 6, cut 8 September. This screen used
+ * to draw its own: a line of words under the name, `in 1,500 out 2,000 bill 50
+ * +100 back piggy 50`, which said everything and took the whole row to say it.
+ * The glyph row says the same five terms in a quarter of the width and signs
+ * every one of them, so the line reads as the arithmetic behind the figure
+ * beside it rather than as a column of magnitudes.
+ *
+ * `grouped` IS THE LAYOUT HERE AND NOT `rolled`. This screen is one screen for
+ * two situations — the night you just closed and a night you open three weeks
+ * later — and the handoff draws the dense row for the first of them because the
+ * room reads it together. A rolled-up row would put every deduction behind a
+ * tap on the one screen where nobody taps, and the whole reason `/ledger` was
+ * dropped is that a figure behind a button is a figure nobody checks.
+ *
+ * THE TRAY GOES TO `/deductions` — the handoff's own interaction, and what
+ * gives the row somewhere to send a person who wants to know WHO fronted the
+ * bill, which is the one thing a figure on the row cannot say.
  */
-function Toggle({ mode, onPick }: { mode: SettledMode; onPick: (m: SettledMode) => void }) {
-  const t = useTheme();
-  const options: Array<{ value: SettledMode; label: string }> = [
-    { value: 'table', label: 'At the table' },
-    { value: 'final', label: 'Final' },
-  ];
-
-  return (
-    <View style={[styles.track, { backgroundColor: t.drawerFill }]}>
-      {options.map((o) => {
-        const on = o.value === mode;
-        return (
-          <Pressable
-            key={o.value}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: on }}
-            onPress={() => onPick(o.value)}
-            style={[styles.segment, on && { backgroundColor: t.text }]}
-          >
-            <Text style={[styles.segmentLabel, { color: on ? t.onFill : t.muted }]}>
-              {o.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-function List({ rows, final }: { rows: SettledRow[]; final: boolean }) {
+function List({
+  rows,
+  final,
+  totals,
+}: {
+  rows: SettledRow[];
+  final: boolean;
+  totals: ReturnType<typeof resultTotals>;
+}) {
   const t = useTheme();
 
   return (
@@ -373,182 +364,60 @@ function List({ rows, final }: { rows: SettledRow[]; final: boolean }) {
       </View>
 
       {rows.map((row) => (
-        <View
+        <ScoreRow
           key={row.player.playerId}
+          row={row}
+          layout="grouped"
           /* The night pass sums these and holds them to zero at the table —
-             `Σ atTheTable = 0` is the cut's own first check, and a row dropped,
-             drawn in the wrong sign or ranked off a figure it is not showing is
-             exactly what that catches. Nothing else in the repo can see it: no
-             URL reaches a settled night with money on it. */
+             `Σ atTheTable = 0` is the game-end cut's first check, and a row
+             dropped, drawn in the wrong sign or ranked off a figure it is not
+             showing is exactly what that catches. Nothing else in the repo can
+             see it: no URL reaches a settled night with money on it. */
           testID="settled-row"
-          style={[styles.row, { borderTopColor: t.hairline }]}
-        >
-          <View style={styles.rowText}>
-            <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
-              {row.player.name}
-            </Text>
-            <Spend terms={row.terms} />
-          </View>
-
-          {/*
-           * `+` and `−`, never a hyphen, and an unsigned zero. `formatSignedToFit`
-           * is the app's own — it is where the minus sign is U+2212 — and it
-           * drops to the compact form rather than truncating.
-           */}
-          <Text
-            testID="settled-net"
-            style={[styles.net, tabular, { color: moneyColor(t, row.net) }]}
-            numberOfLines={1}
-            {...cappedFigure}
-          >
-            {row.net === 0 ? formatMoney(row.net) : formatSignedToFit(row.net, ROW_FITS)}
-          </Text>
-        </View>
+          onSpends={() => router.push('/deductions')}
+        />
       ))}
-    </View>
-  );
-}
 
-/**
- * The line of terms under a name — `in 1,500 out 2,000 bill 50 +100 back piggy
- * 50`.
- *
- * `piggy`, NOT `piggy bank`, AND THAT IS A DELIBERATE DEPARTURE from the cut,
- * which writes the term out in full. Six characters of the longest term, on
- * every row that was charged the tin, is what decides whether the line wraps —
- * and a wrapped line is 17 points of row height on a screen whose whole problem
- * is that an eight-handed night runs off the bottom of the phone. The word is
- * not carrying anything either: `bill` and `piggy` are the only two terms of
- * their kind, the block above states `Group piggy bank` in full, and nothing
- * else on the row could be mistaken for it. Asked for by the owner on
- * 8 September; recorded in `docs/screens.md`.
- *
- * IT WRAPS RATHER THAN TRUNCATING. Five terms do not fit one line at 360 points
- * and the whole point of the line is that every term is on it; a row that
- * dropped the last one would be the four-column table's failure in a different
- * shape. Each term is `nowrap` so a break never lands between a word and its
- * figure.
- *
- * IT WRAPS WHEN IT MUST, AND NOT BEFORE. Two terms fit any row, and At the table
- * has only two — `in 1,500 out 2,000` is 133 points inside a row that has 270
- * left beside the net. What put them on two lines anyway was the box they wrap
- * in being measured off them rather than off the row; see `rowText` in the
- * stylesheet, which is where B59 was fixed and where it would come back.
- *
- * THE BILL'S TWO TERMS ARE ONE SPAN. `+100 back` is appended inside the bill
- * term, because it is a fact about the bill and a line break between them would
- * read as a fifth deduction.
- *
- * SHARES ARE BARE NUMBERS. The cut is explicit — `bill 50`, `piggy 50` —
- * and the currency mark appears on the net, the totals and the transfers. Five
- * lari signs on one line under a sixth is noise, and the line is not a column
- * anybody adds up by eye.
- */
-function Spend({ terms }: { terms: readonly SettledTerm[] }) {
-  const t = useTheme();
-  /* The line's own green and red, one step back from the net's — see `quieted`. */
-  const win = quieted(t.win, t.muted);
-  const loss = quieted(t.loss, t.muted);
-
-  const bill = terms.find((x) => x.kind === 'bill');
-  const back = terms.find((x) => x.kind === 'back');
-  const piggy = terms.find((x) => x.kind === 'piggy');
-  const rounded = terms.find((x) => x.kind === 'rounded');
-  const inFor = terms.find((x) => x.kind === 'in');
-  const out = terms.find((x) => x.kind === 'out');
-
-  return (
-    <View style={styles.spend}>
-      {inFor !== undefined && (
-        <Text style={[styles.term, tabular, { color: loss }]} numberOfLines={1}>
-          {`in ${formatUnmarked(inFor.amount)}`}
-        </Text>
-      )}
-      {out !== undefined && (
-        <Text style={[styles.term, tabular, { color: win }]} numberOfLines={1}>
-          {`out ${formatUnmarked(out.amount)}`}
-        </Text>
-      )}
-      {bill !== undefined && (
-        <Text style={[styles.term, tabular, { color: t.dim }]} numberOfLines={1}>
-          {`bill ${formatUnmarked(bill.amount)}`}
-          {back !== undefined && (
-            <Text style={{ color: win }}>{` +${formatUnmarked(back.amount)} back`}</Text>
-          )}
-        </Text>
-      )}
-      {piggy !== undefined && (
-        <Text style={[styles.term, tabular, { color: t.dim }]} numberOfLines={1}>
-          {`piggy ${formatUnmarked(piggy.amount)}`}
-        </Text>
-      )}
       {/*
-       * THE STEP, WHERE THERE IS ONE. `/ledger` had a fifth column for it and
-       * `/ledger` is gone; without it the four terms sit beside a net they do
-       * not come to. Drawn only on a night that rounded, which is the only
-       * night it is not zero on.
+       * AND THE CHECK PLAYERS RUN BEFORE THEY ACCEPT THE FINAL — `6b`, and it
+       * belongs to At table alone. Money is neither made nor destroyed at a
+       * poker table, so that column comes to nothing; Final's does not, and a
+       * `$0` under it would be a claim about a column that is short by whatever
+       * left the players for good. The Final block states that instead, on the
+       * row `/payments` heads itself with.
        */}
-      {rounded !== undefined && (
-        <Text style={[styles.term, tabular, { color: t.dim }]} numberOfLines={1}>
-          {`rounded ${formatSignedUnmarked(rounded.amount)}`}
-        </Text>
+      {!final && (
+        <ReconciliationRow
+          boughtIn={totals.boughtIn}
+          cashedOut={totals.cashedOut}
+          game={totals.game}
+        />
       )}
     </View>
   );
 }
 
 /**
- * A signed colour, taken one step back from the figure it sits under.
+ * The one thing about the list that the list cannot say about itself, and it is
+ * a different thing in each tab.
  *
- * THE ROW HAS TWO GREENS AND TWO REDS ON IT and only one of them is the answer.
- * `out 2,000` under a name and `+₾500` beside it were the same green at the same
- * saturation, so the caption read as a second result rather than as the working
- * behind the first — the same argument the screen already makes for the net
- * being 19/700 while a term is 13/500, made in colour as well as in weight.
+ * ON FINAL it is the promise the bone tray rests on: a person who sees `−$54`
+ * against their name and `−$54` against the name of whoever bought the pizza
+ * needs to know the second one is coming back.
  *
- * FADED TOWARDS `muted`, NOT TOWARDS THE GROUND, and that is the whole of the
- * mechanism. Opacity is the obvious way to say "a bit fainter" and it fails the
- * contrast floor immediately: `win` on white is 5.43:1 to begin with, so the
- * bright theme drops under 4.5 at any fade at all, and `ui-audit.mjs`'s rule 9
- * mixes an element's opacity into its colour before reading it for exactly that
- * reason. Blending toward the text tone the rest of the caption is already drawn
- * in takes the SATURATION out and leaves the luminance alone: nothing here reads
- * below 6:1 in either theme, and the colour still says which way the money went.
- *
- * Derived from the two tokens rather than written down as a third: `tokens.ts`
- * is app-wide and belongs to a session running alone (`CLAUDE.md`), and a hex
- * pair copied out of it is the copy that goes stale the day the palette moves.
+ * ON AT TABLE it is the handoff's own sentence — *"the poker result only"* —
+ * with what the evening took stated rather than merely absent, because a reader
+ * comparing the two tabs is looking for exactly that difference.
  */
-const QUIET = 0.65;
-
-function quieted(colour: string, towards: string): string {
-  const ink = channels(colour);
-  const back = channels(towards);
-  if (ink === null || back === null) return colour;
-  return (
-    '#' +
-    ink
-      .map((v, i) => Math.round(v * QUIET + back[i]! * (1 - QUIET)))
-      .map((v) => v.toString(16).padStart(2, '0'))
-      .join('')
-  );
-}
-
-/** `#6FCF97` → `[111, 207, 151]`, and null for anything else — a token carrying
-    an `rgba()` is not a colour this can take a step out of. */
-const channels = (hex: string): number[] | null =>
-  /^#[0-9a-f]{6}$/i.test(hex)
-    ? [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
-    : null;
-
-/** The one thing about the list that the list cannot say about itself. */
-function Note() {
+function Note({ final, offTable }: { final: boolean; offTable: Money }) {
   const t = useTheme();
   return (
     <View style={styles.note}>
       <Icon name="info" color={t.muted} size={14} />
       <Text style={[styles.noteText, { color: t.muted }]}>
-        Whoever paid a bill gets it back in full below.
+        {final
+          ? 'Whoever paid a bill gets it back in full below.'
+          : `The poker result only. Deductions total ${formatMoney(offTable)} and are applied in the Final tab.`}
       </Text>
     </View>
   );
@@ -653,60 +522,17 @@ const styles = StyleSheet.create({
   deductionNote: { fontSize: 13, fontWeight: '500', flexShrink: 1 },
   deductionAmount: { marginLeft: 'auto', fontSize: 15, fontWeight: '700' },
 
-  /* 3 of padding inside the well, 4 between the halves — the cut's own. */
-  track: {
-    marginHorizontal: space.page,
-    marginTop: 8,
-    flexDirection: 'row',
-    gap: 4,
-    padding: 3,
-    borderRadius: 12,
-  },
-  segment: { flex: 1, alignItems: 'center', paddingVertical: 6, borderRadius: 9 },
-  segmentLabel: { fontSize: 13.5, fontWeight: '700' },
-
+  tabs: { marginHorizontal: space.page, marginTop: 8 },
   list: { marginHorizontal: space.page, marginTop: 8 },
   listHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 3 },
   listNote: { marginLeft: 'auto', fontSize: 12.5, fontWeight: '500', flexShrink: 1 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 7,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
   /*
-   * IT TAKES THE ROW, IT IS NOT MEASURED BY ITS OWN CONTENT — and that one word
-   * is what stopped `out 2,000` dropping to a line of its own with 130 points of
-   * empty row beside it (B59).
-   *
-   * Without `flexGrow` this block is sized to its widest line, so the wrapping
-   * spend line ends up in a box that is EXACTLY as wide as the terms on it. An
-   * exact fit is not a fit: the width is measured unconstrained, rounded to the
-   * device's pixel grid, and then the line is laid out again inside the rounded
-   * figure — and a third of a point of rounding is all it takes for the last
-   * term to no longer fit the box its own measurement produced. That is why it
-   * wrapped on some rows and not others at the same width, and why nothing on
-   * the web build could see it: react-native-web sizes the same box off CSS
-   * max-content and never rounds it down.
-   *
-   * Growing it makes the question a real one — the line wraps when it needs more
-   * room than the row has left beside the net, and not otherwise. Nothing moves:
-   * the net is `marginLeft: 'auto'` against a row with no free space left in it,
-   * which is the right-hand edge it already sat on.
+   * THE ROW IS `ScoreBreakdown`'S NOW, and so is everything that used to be
+   * measured here — the name, the wrapping spend line, the net and the fix for
+   * B59 that made the line wrap only when it had to. One row drawn in one file
+   * is the point of the 8 September cut; a copy of its geometry left behind
+   * here is the copy that goes stale.
    */
-  rowText: { flexGrow: 1, flexShrink: 1, minWidth: 0, gap: 1 },
-  /*
-   * LINE HEIGHTS WRITTEN DOWN, and that is half of what the row gave back. A
-   * `Text` with no `lineHeight` gets the platform's default leading — about
-   * 1.36 of the size on Android, more on some faces — so a 17-point name was
-   * costing 23 points and nothing in the file said so. Stated here, the row's
-   * height is arithmetic anybody can check against the screenshot.
-   */
-  name: { fontSize: 16, fontWeight: '700', letterSpacing: -0.17, lineHeight: 19 },
-  spend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 9, rowGap: 1 },
-  term: { fontSize: 12.5, fontWeight: '500', lineHeight: 15 },
-  net: { marginLeft: 'auto', fontSize: 18.5, fontWeight: '700', flexShrink: 0 },
 
   rounding: { marginTop: 4 },
 

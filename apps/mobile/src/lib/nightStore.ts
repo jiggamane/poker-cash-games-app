@@ -8,6 +8,7 @@ import {
   nightScore,
   resolveLedger,
   settle,
+  settledRows,
   thaw,
   type LedgerEntry,
   type Money,
@@ -17,6 +18,7 @@ import {
   type PlayerId,
   type ResolvedLedger,
   type RoundingMode,
+  type SettledTerm,
   type SettlementInput,
   type SettlementResult,
   type StoredVerification,
@@ -1094,6 +1096,19 @@ export interface MyNight {
   startedAt: string;
   /** How long the table ran, in minutes. Zero while it is still running. */
   minutes: number;
+  /**
+   * WHERE THAT RESULT CAME FROM — what you put on the table, what you took off
+   * it, and what the evening's rules took, as the same `SettledTerm[]` the
+   * results row is drawn from.
+   *
+   * It is here rather than worked out on the list because it IS the results
+   * row: `/stats` and `/games` draw a night with `ScoreBreakdown`, the same
+   * component `/settled` draws a player with, and a list that assembled its own
+   * terms would be the second implementation the results screen was just
+   * consolidated out of. Empty on a night you sat out — there is nothing to
+   * itemise, and the row draws no chevron.
+   */
+  terms: SettledTerm[];
 }
 
 /**
@@ -1118,6 +1133,9 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
 
   let result = 0 as Money;
   let played = false;
+  /* The row's own terms, off the same settlement the result comes off. A night
+     that will not settle has neither. */
+  let terms: SettledTerm[] = [];
 
   if (night.meId !== undefined) {
     try {
@@ -1136,6 +1154,10 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
          * banked as winnings every night they held it.
          */
         result = nightScore(settled, night.meId).score;
+        /* `final` and not `table` — the figure beside it is the one after the
+           evening, so the terms under it have to be the evening's too. */
+        terms =
+          settledRows(settled, 'final').find((r) => r.player.playerId === night.meId)?.terms ?? [];
         played = true;
       }
     } catch {
@@ -1165,6 +1187,7 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
         ended === undefined
           ? 0
           : Math.max(0, Math.round((Date.parse(ended) - started.getTime()) / 60_000)),
+      terms,
     },
   ];
 }

@@ -17,6 +17,7 @@ const night = (startedAt: string, net: number, group = 'The Poker Club'): Played
   group,
   net: money(net),
   minutes: 240,
+  terms: [],
 });
 
 const NIGHTS: PlayedNight[] = [
