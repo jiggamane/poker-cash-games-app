@@ -189,6 +189,22 @@ Amounts are integers in minor units. `Money` refuses anything fractional.
 
 ## The app
 
-Expo SDK 54, pinned to what Expo Go supports — see `apps/mobile/AGENTS.md`
+Expo SDK 57, pinned to what Expo Go supports — see `apps/mobile/AGENTS.md`
 before touching a dependency. The ledger is append-only: corrections and voids
 are new rows, never edits.
+
+**This line said 54 until 8 September, three SDKs after the app moved.** It is
+the exact fault `AGENTS.md` was rewritten to name — a pin that has fallen behind
+Expo Go reads like a pin that is protecting something, and the cost of being
+behind is silent, because an `exposdk:` mismatch is refused with nothing on the
+screen. The version lives in `AGENTS.md` and in the `exposdk:` literal in
+`apps/mobile/app.config.js`; both move in the same commit, and this sentence
+moves with them.
+
+⚠ `app.json` HAS NO `sdkVersion` FIELD, so the runtime version a publish stamps
+comes from the fallback in that literal — `out.sdkVersion ?? '57.0.0'` — and not
+from the config. It is correct today (the 8 September publish stamped
+`exposdk:57.0.0`, which is what Expo Go 57.0.9 asks for) and it is held up by
+one hard-coded string rather than by the field it appears to read. **Open:** put
+`sdkVersion` in `app.json` so the two cannot disagree, or say in the config why
+it is deliberately absent.
