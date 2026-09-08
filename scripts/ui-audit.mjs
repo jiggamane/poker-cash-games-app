@@ -399,6 +399,19 @@ const HEAD_SCROLLS = {
   // the screen; 90 points of pinned chrome cost a row and a half on every
   // phone and say nothing the list does not.
   '/players': 'all',
+  // 8 Sept. The settled night is a ranked list and the ranking IS the content:
+  // at eight players it wants every point on the phone, and the head is 97 of
+  // them saying the date you already knew. Same argument as the roster, one
+  // screen further on. The FOOTER still does not move — `Who pays whom` is the
+  // one thing here you act on.
+  //
+  // ⚠ Cold, this route draws its *Not settled* fallback rather than a night, so
+  // what the probe below reads is that screen's head. It carries `headScroll`
+  // too, deliberately: all three `Screen`s in `settled.tsx` are on the same
+  // behaviour, so this entry cannot be satisfied by one of them and broken on
+  // another. See the note further down about /settled and /payments rendering
+  // empty cold.
+  '/settled': 'all',
 };
 
 /** Which side of the scroller each half of the head ended up on. */
