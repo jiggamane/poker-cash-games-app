@@ -86,8 +86,7 @@ owns that.
 **Without a Mac, this is a page on a phone.** `.github/workflows/expo-go.yml`
 runs exactly the command below on a GitHub runner: **Actions → Put the app in
 Expo Go → Run workflow**, on `main`. It gates on `npm run check` first, and the
-run's summary is the link to the published update — open that on the iPhone and
-it hands off to Expo Go. It needs one secret, `EXPO_TOKEN`, made at
+run's summary says where the update is. It needs one secret, `EXPO_TOKEN`, made at
 <https://expo.dev/settings/access-tokens> as the account that owns the project,
 and the workflow says so and stops if it is missing rather than failing halfway.
 The rest of this section is the same thing at a keyboard, and everything it
@@ -102,7 +101,37 @@ npm run publish:go
 It prints a link and a QR code. Point the iPhone's camera at the QR and it opens
 in Expo Go, over cellular, with nothing running on the laptop.
 
-Two things can go wrong here, and both are worth knowing before you are tired:
+### ⚠ Open the BRANCH, not the update — this is the one that cost an evening
+
+**The link a publish prints addresses that ONE update, by its group id, and a
+phone that opens it is pinned to it forever.** It reloads the same group every
+launch: later publishes go out, each one green, and the phone goes on drawing
+the screen from before them. There is no error and nothing to force-quit,
+because nothing was ever going to fetch anything. On 8 September three publishes
+in a row were read as a caching problem for exactly this reason.
+
+So to put the newest build on a phone, use one of these instead:
+
+1. **Expo Go → Home → the project**, under your account. No link at all. Expo Go
+   asks the `expo-go` branch what is newest for `exposdk:57.0.0` and gets it.
+   This is the one to use.
+2. **The branch page**, which always points at the newest publish:
+   <https://expo.dev/accounts/decusgames/projects/poker-cash-games-manager/branches/expo-go>
+
+The per-update link still has a job — it identifies what was published, and the
+publish table under it names the commit — but it is not how the app is
+installed.
+
+**And the phone can now say which build it is running:** Settings, at the foot,
+prints the commit the bundle was made from (`build 7de54b5 · 8 Sept, 19:54`).
+Compare it with the `Commit` line in the run's publish table. If they differ, the
+phone did not get the update; if the line is absent altogether, the phone is on a
+build from before 8 September. That is the difference between an update that did
+not arrive and one that did, and without it the two are indistinguishable — see
+B63 in `docs/bugs.md`.
+
+Two more things can go wrong here, and both are worth knowing before you are
+tired:
 
 - **It says it has configured a `runtimeVersion` for you.** Stop and read which
   one. This is settled now — `app.config.js` stamps `exposdk:57.0.0` under
