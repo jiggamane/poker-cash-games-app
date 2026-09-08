@@ -779,6 +779,21 @@ const ROOM = `
       // Past the width of the list this is no longer the row, it is the screen.
       if (r.width >= window.innerWidth - 8) break;
       if (darkRowAllowed && n.getAttribute('data-testid') === 'e6-row') break;
+      // A SECOND EXCEPTION, AND IT IS AN OBJECT RATHER THAN A ROW. The score
+      // breakdown handoff of 8 September puts the three spends of a settled row
+      // inside a bone tray -- rgba(217,211,196,.09), the offTableWash token,
+      // which has meant money leaving the table in this app since long before
+      // it. The rule above is about a whole player row banded green or red,
+      // which is a ranking the column of signed figures had already given; this
+      // is a small tinted group INSIDE one row, in a colour that carries no
+      // verdict about whether the night went well, and its whole job is to say
+      // which of the five figures on the line are the evening rather than the
+      // poker. It is allowed in BOTH themes for that reason -- the fill is not
+      // emphasis and there is no bright-theme version of it to leak into.
+      //
+      // Anchored on the tray's own testID, so a wash anywhere else on a row is
+      // still a finding.
+      if (n.getAttribute('data-testid') === 'spend-tray') break;
       const paint = getComputedStyle(n).backgroundColor;
       const c = rgb(paint);
       if (c === null || c.a <= 0 || c.a > 0.99) continue;

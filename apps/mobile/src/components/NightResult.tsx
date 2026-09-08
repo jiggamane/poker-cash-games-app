@@ -1,85 +1,66 @@
-import { Fragment } from 'react';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   destinationWord,
-  gameResults,
-  resultFormula,
   resultTotals,
   ruleOutcomes,
-  type CaptionTerm,
+  settledRows,
   type Money,
   type ResolvedLedger,
   type RoundingMode,
   type RuleOutcome,
+  type SettledMode,
   type SettlementResult,
 } from '@poker-club/core';
-import { formatSignedToFit, formatToFit, formatUnmarked } from '../lib/money';
+import { formatSignedToFit, formatToFit } from '../lib/money';
 import { Icon } from './Icon';
+import { ReconciliationRow, ScoreRow, ScoreTabs } from './ScoreBreakdown';
 import { RoundingBar } from './RoundingBar';
-import { moneyColor, useTheme } from '../design/useTheme';
+import { useTheme } from '../design/useTheme';
 import { cappedFigure, radius, space, type, unscaledLabel } from '../design/tokens';
 
 /**
- * A night that has ended — `R1 · Results`, from
- * `design_handoff_rebuy_and_results/Game Results Breakdown.dc.html`, cut
- * 5 September. It supersedes `design/handoff-four-screens/` on this screen.
+ * A NIGHT THAT HAS ENDED, READ BY SOMEBODY WHO IS NOT THE HOST —
+ * `design_handoff_score_breakdown/Score Breakdown Icons.dc.html`, turn 6, cut
+ * 8 September, which supersedes the 5 September `R1 · Results` cut here.
  *
- * **THE DEDUCTIONS ARE FOLDED BACK INTO THE ROW, AND THE WORKING IS PRINTED
- * UNDER IT.** That is the reversal, and it is deliberate. The screen this file
- * drew until today was built on the four-screens cut's central rule —
- * *deductions are not folded into any player's balance* — with the game results
- * in one list, the deductions in a block of their own, and the arithmetic that
- * joins them behind a button called *Full ledger*. The owner's reason for that
- * rule was good and is unchanged: a bill split flat across eight people takes
- * $54 off six losers for something that has nothing to do with poker, and a row
- * that folds it in silently has stopped being a poker result.
+ * IT IS THE SAME SCREEN THE HOST READS, and after this cut it is the same in
+ * every particular that matters: one ranked list with a Final / At table toggle
+ * over it, and every row drawn by `ScoreBreakdown` — the app's ONE drawing of a
+ * finished night. That is the whole point of the change. R1 stacked three
+ * blocks here — the table's result, the deductions, then the finals — while
+ * `/settled` had already moved to one list and a toggle, so the host and the
+ * watcher were reading two different shapes of the same night and a fix to
+ * either was a fix to one of them.
  *
- * R1's answer is that the objection was never to the arithmetic, it was to the
- * arithmetic being done on somebody's behalf without showing it. So the night
- * is drawn in three blocks and the reader watches the subtraction happen:
- *
- *   AT THE TABLE   what everybody did, before deductions, in neutral ink
- *   DEDUCTIONS     every bill open on the face of its own slab, with who
- *                  fronted it and for how much
- *   FINAL          one signed figure per person, and `1,620 − 54 − 23` under
- *                  the name — with `+ 242 paid` in tan for whoever covered a
- *                  bill and is getting it back
- *
- * WHAT IT CLOSES is finding 7 of `docs/game-outcomes-cjm.md`: *"a settled night
- * no longer shows anybody their net"*. Taking the deductions out of the row on
- * 3 September moved the figure a player argues about a week later — $1,429 for
- * Dana, not $1,620 — behind a button, and no row on this screen was tappable.
- * The net is back on the row, with its terms beside it.
- *
- * COLOUR IS RESERVED FOR THE FINAL BLOCK, which is the rule that makes three
- * lists of money on one screen readable: the table figures are neutral so
- * nobody reads them as the answer, and the one place green and red appear is
- * the block that IS the answer. It is also what keeps B23 true — the colour is
- * on the figure and never on a fill behind it, and `ui-audit.mjs`'s
- * `tinted-result-row` holds every signed figure in the app to that.
+ * WHAT THE THREE BLOCKS WERE FOR IS STILL HERE. The reader still watches the
+ * subtraction happen; the toggle is what does it now. `At table` is what
+ * everybody did before any rule, and it closes on the check the room actually
+ * runs — `$5,500 in, $5,500 out`, `$0`. `Final` is the same list after the
+ * evening, with what each rule took printed on the row as a glyph and a signed
+ * figure. Between them, the deduction slabs say who fronted which bill, which
+ * is the one thing a figure on a row cannot say.
  *
  * -- what this screen keeps from every earlier cut --
  *
  *   · HAIRLINE ROWS, NO FILL, in both themes. The only tinted things on the
- *     screen are the deduction slabs, which carry an unsigned total.
+ *     screen are the deduction slabs and the row's own bone tray, and neither
+ *     carries a verdict — `ui-audit.mjs`'s `tinted-result-row` knows both by
+ *     name and holds every other signed figure in the app to B23.
  *   · THE FLOAT IS NOT A WIN (B27). Whoever holds the piggy bank ends the night
- *     with the room's money in their pocket; it is out of their FINAL row and
- *     named on the slab it came off.
+ *     with the room's money in their pocket; it is out of their row and named
+ *     on the slab it came off. `settledRows` reads `nightScore`, so that split
+ *     is made once, in core.
  *   · `Piggy bank`, never `Kitty`. The stored value is `kitty` and no reader
  *     ever sees that word — `destinationWord` in core owns the spelling.
  *   · NO STATUS PILL. A night that balanced says `settled` in the meta line and
  *     nowhere else; a night that did not still has to explain itself, which is
  *     the one block below that is conditional.
  *
- * NOTHING HERE ADDS ANYTHING UP. The table rows come off `gameResults()`, the
- * slabs off `ruleOutcomes()`, the final rows and their captions off
- * `resultFormula()`, and both closing rows off `resultTotals()`. See
- * `CLAUDE.md`, and `packages/core/src/results-r1.test.ts` for the handoff's own
- * worked example asserted to the dollar.
- *
- * SHARED BY `settled.tsx` AND `watch.tsx` — the host's own record and a
- * watcher's read-only view of it are the same facts. What differs is only what
- * the caller puts after it.
+ * NOTHING HERE ADDS ANYTHING UP. The rows and their terms come off
+ * `settledRows()`, the slabs off `ruleOutcomes()`, and the closing row off
+ * `resultTotals()`. See `CLAUDE.md`, and `packages/core/src/settled.test.ts`
+ * for the list's own worked night asserted to the dollar.
  */
 export function NightResult({
   result,
@@ -117,25 +98,27 @@ export function NightResult({
 }) {
   const t = useTheme();
 
-  /* What everybody did at the table and nothing else — `gameResults`, which is
-     also the engine's answer to who was there and in what order. Two names it
-     does not return are the point of it: the hole is not dropped (B28) and the
-     collector's float is not a night (B27). */
-  const table = gameResults(result);
+  /*
+   * FINAL BY DEFAULT, and this component only ever draws a settled night.
+   * Where a person lands is where the money actually left them.
+   */
+  const [mode, setMode] = useState<SettledMode>('final');
+
+  /* The ranked list, in the mode's own order. `settledRows` does the sort, so
+     the two orders cannot come from two implementations. */
+  const rows = settledRows(result, mode);
   /* One slab per rule that took something. A rule with a total of $0 is not a
      slab; with no deductions at all the block is absent. */
   const outcomes = ruleOutcomes(result);
-  /* One row per person, the net and the terms behind it. Same membership and
-     the same order as the table block, sorted on the figure IT prints. */
-  const finals = resultFormula(result);
-  /* Both closing rows. The only sums across a column on this screen, and they
-     are made in core. */
+  /* The closing row. The only sum across a column on this screen, and it is
+     made in core. */
   const totals = resultTotals(result);
+  const final = mode === 'final';
 
   return (
     <>
       {/*
-       * THE ONE THING THE BLOCKS CANNOT SAY.
+       * THE ONE THING THE LIST CANNOT SAY.
        *
        * A night that balanced states its status in the meta line under the
        * title — `20:05 → 23:45 · 3h 40m · 8 players · settled` — and nowhere
@@ -149,71 +132,60 @@ export function NightResult({
       )}
 
       {/*
-       * BLOCK 1 · AT THE TABLE, `before deductions` right-aligned beside it.
-       *
-       * NEUTRAL INK ON EVERY FIGURE, which is the screen's whole layout rule.
-       * These are signed results and they are not coloured, because the block
-       * that is coloured is the one three sections down that a person is
-       * actually paid on. A green +$1,620 here and a green +$1,543 there are
-       * two answers to one question.
-       *
-       * ⚠ `#E8E9EC` IS NOT A TOKEN. The board's neutral money sits between
-       * `text` and `muted`, and `tokens.ts` is app-wide — it must be changed by
-       * a session running alone (`CLAUDE.md`), and this one is not. Drawn in
-       * `text` meanwhile, which keeps the rule that matters (nothing here is
-       * green or red) and loses a half-step of de-emphasis. Recorded in
-       * `docs/screens.md`.
+       * THE TOGGLE, AND THEN THE LIST — the same two objects `/settled` draws,
+       * from the same file. Switching changes the figures and what is on the
+       * row; nothing above the list moves.
        */}
-      <View style={styles.block}>
-        <SectionLabel label="At the table" qualifier="before deductions" />
+      <View style={styles.tabs}>
+        <ScoreTabs mode={mode} onPick={setMode} />
+      </View>
 
-        {table.map(({ player: p, game }) => (
-          <View
-            key={p.playerId}
+      <View style={styles.block}>
+        <SectionLabel
+          label={final ? 'Final' : 'At the table'}
+          qualifier={final ? 'after deductions and compensations' : 'before deductions'}
+        />
+
+        {rows.map((row) => (
+          <ScoreRow
+            key={row.player.playerId}
+            row={row}
+            layout="grouped"
+            /* The dark-theme exception in `ui-audit.mjs` is anchored on this
+               name, and the UI journeys find a watcher's rows by it. */
             testID="e6-row"
-            style={[styles.tableRow, { borderTopColor: t.hairline }]}
-          >
-            <Text style={[styles.rowName, { color: t.text }]} numberOfLines={1}>
-              {p.name}
-            </Text>
-            <Text style={[styles.tableFigure, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
-              {formatSignedToFit(game, ROW_FITS)}
-            </Text>
-          </View>
+          />
         ))}
 
         {/*
-         * AND THE ROW THAT SAYS THE TABLE IS SOUND. Money is neither made nor
-         * destroyed at a poker table, so these add to nothing — and the row
-         * states the two sides that produced the zero rather than only the
-         * zero, because a bare `$0` is not checkable.
-         *
-         * IT IS ALSO WHERE THE PRIZE-POOL CARD WENT. This screen used to open
-         * with `In play · Entries · Deductions` in a card; R1 draws no such
-         * card, and the money it stated is here, in the board's own words, with
-         * the deductions total on its own section label below.
+         * THE CHECK PLAYERS RUN BEFORE THEY ACCEPT THE FINAL, and it belongs to
+         * At table alone. Money is neither made nor destroyed at a poker table,
+         * so that column comes to nothing — and the row states the two sides
+         * that produced the zero rather than only the zero, because a bare `$0`
+         * is not checkable. Final's column does NOT come to nothing: it is
+         * short by exactly what left the players for good, which the row below
+         * the slabs names.
          */}
-        <ClosingRow
-          label={`${formatToFit(totals.boughtIn, ROW_FITS)} in, ${formatToFit(
-            totals.cashedOut,
-            ROW_FITS,
-          )} out`}
-          value={formatSignedToFit(totals.game, ROW_FITS)}
-        />
+        {!final && (
+          <ReconciliationRow
+            boughtIn={totals.boughtIn}
+            cashedOut={totals.cashedOut}
+            game={totals.game}
+          />
+        )}
       </View>
 
       {/*
-       * BLOCK 2 · DEDUCTIONS, with its total on the section label.
+       * THE DEDUCTIONS, with their total on the section label.
        *
        * EVERY DEDUCTION IS OPEN — who paid which bill and for how much is on
        * the face of the slab, not behind a tap. That is what earns the fold in
-       * the final block: the reader can see the $54 arriving before they see it
-       * subtracted.
+       * the rows above: the reader can see the $54 arriving before they see it
+       * subtracted, and the row's bone tray is the same $54 against a name.
        *
-       * THE SLAB IS THE ONE TINTED THING ON THIS SCREEN and it is allowed to
-       * be: it carries an unsigned total, so `tinted-result-row` — which is
-       * anchored on the signed figure and not on a colour name — never looks at
-       * it. Bone on bone-wash, in both themes.
+       * THE SLAB IS TINTED AND IS ALLOWED TO BE: it carries an unsigned total,
+       * so `tinted-result-row` — anchored on the signed figure and not on a
+       * colour name — never looks at it. Bone on bone-wash, in both themes.
        */}
       {outcomes.length > 0 && (
         <View style={styles.deductions}>
@@ -257,6 +229,29 @@ export function NightResult({
           ))}
 
           {/*
+           * `Players net` / `−$184 → piggy bank`.
+           *
+           * THE ONE FIGURE ON THIS SCREEN THAT LOOKS LIKE AN ERROR AND IS NOT.
+           * Eight finals summing to −$184 is money leaving the table, and the
+           * row names where it went — without which a reader who adds the
+           * column up finds a hole and stops trusting the screen. It sits with
+           * the deductions rather than under the list because it is the same
+           * fact the slabs above it state, totalled.
+           */}
+          {final && (
+            <ClosingRow
+              label="Players net"
+              value={
+                totals.destinations.length === 0
+                  ? formatSignedToFit(totals.players, ROW_FITS)
+                  : `${formatSignedToFit(totals.players, ROW_FITS)} → ${totals.destinations
+                      .map(destinationWord)
+                      .join(', ')}`
+              }
+            />
+          )}
+
+          {/*
            * The note under the slabs — decided copy, and the sentence the whole
            * fold rests on. It is drawn only where it is TRUE: a night with no
            * bill to pay anybody back for would be promising something that
@@ -274,95 +269,16 @@ export function NightResult({
       )}
 
       {/*
-       * BLOCK 3 · FINAL — the figure a person is actually paid on, and the
-       * arithmetic that reached it under their name.
-       *
-       * THE CAPTION MAKES EVERY FIGURE CHECKABLE WITHOUT A TAP, which is the
-       * sentence the handoff uses and the reason no row here opens anything.
-       * `1,620 − 54 − 23`: the game first, then every charge in the order the
-       * night applied its rules, then the compensation — `+ 242 paid`, in tan,
-       * because it is off-table money coming back rather than a poker result.
-       *
-       * The terms are the ENGINE'S — `resultFormula().caption` — including
-       * which of them is a compensation. A screen deciding that for itself
-       * would be a fourth copy of "which credits are a float", and the fourth
-       * copy is the one that goes stale.
-       */}
-      {finals.length > 0 && (
-        <View style={styles.block}>
-          <SectionLabel label="Final" qualifier="after deductions and compensations" />
-
-          {finals.map((f) => (
-            <View
-              key={f.player.playerId}
-              testID="r1-final-row"
-              style={[styles.finalRow, { borderTopColor: t.hairline }]}
-            >
-              <View style={styles.finalText}>
-                <Text style={[styles.rowName, { color: t.text }]} numberOfLines={1}>
-                  {f.player.name}
-                </Text>
-                {/* A lone `game` term is the net said twice, so a row with
-                    nothing taken off it draws no caption at all. */}
-                {f.caption.length > 1 && (
-                  <Text style={[styles.caption, { color: t.muted }]} numberOfLines={1}>
-                    {f.caption.map((term, i) => (
-                      <Fragment key={term.key}>
-                        {i > 0 && ' '}
-                        <Text
-                          style={term.kind === 'compensation' ? { color: t.offTable } : null}
-                        >
-                          {captionTerm(term, i)}
-                        </Text>
-                      </Fragment>
-                    ))}
-                  </Text>
-                )}
-              </View>
-
-              {/* Muted at exactly zero, which `moneyColor` is not: it falls back
-                  to the text colour, and in a column of green and red a white
-                  figure reads as a third state rather than as no state. */}
-              <Text
-                style={[styles.finalFigure, { color: f.net === 0 ? t.muted : moneyColor(t, f.net) }]}
-                numberOfLines={1}
-                {...cappedFigure}
-              >
-                {formatSignedToFit(f.net, ROW_FITS)}
-              </Text>
-            </View>
-          ))}
-
-          {/*
-           * `Players net` / `−$184 → piggy bank`.
-           *
-           * THE ONE FIGURE ON THIS SCREEN THAT LOOKS LIKE AN ERROR AND IS NOT.
-           * Eight finals summing to −$184 is money leaving the table, and the
-           * row names where it went — without which a reader who adds the
-           * column up finds a hole and stops trusting the screen.
-           */}
-          <ClosingRow
-            label="Players net"
-            value={
-              totals.destinations.length === 0
-                ? formatSignedToFit(totals.players, ROW_FITS)
-                : `${formatSignedToFit(totals.players, ROW_FITS)} → ${totals.destinations
-                    .map(destinationWord)
-                    .join(', ')}`
-            }
-          />
-        </View>
-      )}
-
-      {/*
        * THE STEP, LAST — `design/handoff-E2/docs/E2-rounding.md`, frames
        * `3a`–`3d`. E2 owns it; this screen shows it and says what it cost.
        *
        * A CLOSED NIGHT DOES NOT OPEN IT (rule 8). Every figure above was derived
        * at the step it closed with; a row that still looked like a door would be
        * offering to re-round a record of what people have already been paid.
+       *
+       * FINAL ONLY. At the table is `out − in`, which the step does not reach.
        */}
-      {result.rounding.on && (
+      {final && result.rounding.on && (
         <RoundingBar
           mode={roundingMode}
           {...(onChangeRounding === undefined ? {} : { onPress: onChangeRounding })}
@@ -371,29 +287,6 @@ export function NightResult({
       )}
     </>
   );
-}
-
-/**
- * ONE CAPTION TERM AS THE BOARD WRITES IT.
- *
- * The first is the game and carries only a minus when it has one — `1,620`,
- * `−210`. Every term after it is an operator with a space after it — `− 54`,
- * `+ 242 paid` — because the line is being read as arithmetic rather than as a
- * column of signed amounts.
- *
- * NO CURRENCY SYMBOL ON ANY OF THEM. That is the board's, and it is what keeps
- * a four-term line on one row at 360: the figure beside the name carries the
- * symbol, and the line under it is the working, not six more amounts.
- *
- * The minus is U+2212 and not a hyphen — the width of a digit, so a column of
- * captions stays square. `formatSignedUnmarked` in `lib/money` would give the
- * sign glued to the figure; the board sets the operator apart from it.
- */
-function captionTerm(term: CaptionTerm, index: number): string {
-  const figure = formatUnmarked(Math.abs(term.amount) as Money);
-  const word = term.word === null ? '' : ` ${term.word}`;
-  if (index === 0) return `${term.amount < 0 ? '−' : ''}${figure}${word}`;
-  return `${term.amount < 0 ? '−' : '+'} ${figure}${word}`;
 }
 
 /**
@@ -527,7 +420,10 @@ function Difference({ difference, loggedBy }: { difference: Money; loggedBy: str
 const styles = StyleSheet.create({
   /* `0 22px` on the board, and 26 above every block but the first. `Screen`
      owns the space above the first one. */
-  block: { marginHorizontal: space.page, marginTop: 26 },
+  /* The toggle sits directly over the list — the handoff puts it under the
+     meta line, and on this screen the band above it is the caller's. */
+  tabs: { marginHorizontal: space.page, marginTop: 8 },
+  block: { marginHorizontal: space.page, marginTop: 14 },
   deductions: { marginHorizontal: space.page, marginTop: 26, gap: 10 },
 
   /* The section label's own row: `padding 0 0 8`, gap 10, baselines aligned. */
@@ -542,30 +438,13 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
 
-  /* AT THE TABLE — 40 tall, a hairline above each row, gap 12. `minHeight`
-     rather than `height`: the row grows with the reader's text setting rather
-     than clipping a name at 120%. */
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    minHeight: 40,
-    paddingVertical: 6,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  rowName: { fontSize: 16, fontWeight: '600', flexShrink: 1 },
   /*
-   * NEVER SHRINKS. The name may give — it is a word — and a figure may not:
-   * left to shrink, "−$12,000" came apart into a dash on one line and an amount
-   * on the next, which reads as two things. See B18.
+   * THE PLAYER ROW IS `ScoreBreakdown`'S NOW, and so is every dimension that
+   * used to be measured here — the name, the figure, the caption under it and
+   * the note about which of the two may shrink. One row drawn in one file is
+   * the point of the 8 September cut; a copy of its geometry left behind here
+   * is the copy that goes stale.
    */
-  tableFigure: {
-    marginLeft: 'auto',
-    flexShrink: 0,
-    fontSize: 16,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-  },
 
   /* The closing row of a block: 38, a hairline above, both halves quiet. */
   closing: {
@@ -611,25 +490,6 @@ const styles = StyleSheet.create({
   /* The note under the slabs: a 14px glyph, 9 across, `2px 2px 0`. */
   note: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, paddingTop: 2, paddingHorizontal: 2 },
   noteText: { fontSize: 12.5, fontWeight: '400', lineHeight: 18.1, flexShrink: 1 },
-
-  /* FINAL — `9px 0`, a hairline above each row, and the caption under the name
-     rather than beside it. */
-  finalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 9,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  finalText: { gap: 3, flexShrink: 1, minWidth: 0 },
-  caption: { fontSize: 12.5, fontWeight: '400', fontVariant: ['tabular-nums'] },
-  finalFigure: {
-    marginLeft: 'auto',
-    flexShrink: 0,
-    fontSize: 18,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
 
   /* `16px 22px 12px` · `13px 15px` · radius 8 — the alarm shape E5 uses, one
      step quieter, because here it is a fact about a closed night rather than a

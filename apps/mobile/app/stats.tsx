@@ -3,8 +3,8 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { type Money } from '@poker-club/core';
 import { formatSigned, formatSignedToFit } from '../src/lib/money';
-import { Icon } from '../src/components/Icon';
 import { NightsChart } from '../src/components/NightsChart';
+import { ScoreLine } from '../src/components/ScoreBreakdown';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
@@ -61,6 +61,7 @@ export default function MyStats() {
         group: n.groupName,
         net: n.result,
         minutes: n.minutes,
+        terms: n.terms,
       }));
     // This phone's own settled night first, then the seeded ones behind it.
     // Both are the same shape by the time anything adds them up.
@@ -188,35 +189,45 @@ export default function MyStats() {
   );
 }
 
-/** A game in the list: club and how long you sat, the result on the right. */
+/**
+ * A GAME IN THE LIST, AND IT IS THE RESULTS ROW —
+ * `design_handoff_score_breakdown/`, frame `6c`, cut 8 September.
+ *
+ * It used to be a date, a club, a signed figure and a chevron that went to the
+ * night. The chevron is still a chevron and it still opens something, but what
+ * it opens is the row itself: the night's own breakdown, itemised in place —
+ * what you bought in for, what you cashed out, and what the evening's rules
+ * took off you. Quiet by default, detail on demand, which is the whole of what
+ * the rolled-up layout is for.
+ *
+ * WHY THE SAME COMPONENT AS `/settled`. This is the same fact as a player row
+ * on the settled night — one person's finished evening — read months later
+ * instead of at the table, and the handoff draws it with the same glyphs and
+ * the same signed figures for exactly that reason. A lookalike here is how the
+ * two drift, and they had: this screen said only what a night came to, and
+ * `/settled` was the only place in the app that said what it cost.
+ *
+ * ⚠ THE ROW NO LONGER NAVIGATES, and that is a departure worth stating. It
+ * went to `/settled`, which on this phone is always the ONE night the phone is
+ * holding rather than the night in the row — so seven of the eight rows opened
+ * somebody else's evening. Opening in place is the handoff's own interaction
+ * and it is also the honest one until there is a sessions table to route to.
+ * Recorded in `docs/screens.md`.
+ */
 function NightRow({ night }: { night: PlayedNight }) {
-  const t = useTheme();
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => router.push('/settled')}
-      style={({ pressed }) => [
-        styles.row,
-        { borderBottomColor: t.hairline, opacity: pressed ? 0.6 : 1 },
-      ]}
-    >
-      <View style={styles.rowText}>
-        <Text style={[styles.rowDate, { color: t.text }]}>
-          {formatNightDate(night.startedAt, true)}
-        </Text>
-        {/* Club · how long the sitting ran. Buy-in lives on the night, not in
-            the list. */}
-        <Text style={[styles.rowMeta, { color: t.muted }]}>
-          {night.minutes === 0
-            ? night.group
-            : `${night.group} · ${formatSitting(night.minutes)}`}
-        </Text>
-      </View>
-      <Text style={[styles.rowResult, { color: moneyColor(t, night.net) }]}>
-        {formatSigned(night.net)}
-      </Text>
-      <Icon name="chevron" color={t.muted} />
-    </Pressable>
+    <ScoreLine
+      name={formatNightDate(night.startedAt, true)}
+      /* Club · how long the sitting ran. Buy-in lives on the night, not in
+         the list. */
+      meta={
+        night.minutes === 0 ? night.group : `${night.group} · ${formatSitting(night.minutes)}`
+      }
+      net={night.net}
+      terms={night.terms}
+      layout="rolled"
+      testID="stats-night"
+    />
   );
 }
 
@@ -251,18 +262,8 @@ const styles = StyleSheet.create({
   // Text only pushes it within a box that is already hard against the label.
   seeAllHit: { marginLeft: 'auto', paddingLeft: 12 },
   seeAll: { ...type.chip, fontWeight: '700' },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 15,
-    paddingHorizontal: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowText: { gap: 3, flexShrink: 1 },
-  rowDate: type.rowName,
-  rowMeta: type.rowDetail,
-  rowResult: { ...type.figure, marginLeft: 'auto' },
+  /* The night row is `ScoreBreakdown`'s now — one drawing of a finished night,
+     drawn in one file. */
   empty: { ...type.footnote, paddingHorizontal: 4, paddingTop: 8 },
 });
 

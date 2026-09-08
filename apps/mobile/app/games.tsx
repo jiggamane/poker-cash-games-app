@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { type Money } from '@poker-club/core';
 import { formatSigned, formatSignedToFit } from '../src/lib/money';
-import { Icon } from '../src/components/Icon';
+import { ScoreLine } from '../src/components/ScoreBreakdown';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
@@ -73,31 +73,42 @@ export default function MyGames() {
         </Text>
       </View>
 
+      {/*
+       * EVERY NIGHT AS THE RESULTS ROW — `design_handoff_score_breakdown/`,
+       * frame `6c`, cut 8 September, and the same `ScoreBreakdown` that draws a
+       * player on `/settled` and a night on `/stats`. The date is the name and
+       * your own net is the score; tapping itemises the evening in place rather
+       * than opening a screen. See `NightRow` on `/stats` for why the row stopped
+       * navigating — on this phone `/settled` is the one night it is holding
+       * rather than the night in the row.
+       *
+       * A NIGHT YOU SAT OUT KEEPS ITS OLD ROW. There is no result and nothing
+       * to itemise, so it says so where the figure would be — a `$0` would be a
+       * claim about an evening that never happened to you.
+       */}
       <View style={styles.list}>
-        {[...nights].reverse().map((n) => (
-          <Pressable
-            key={n.sessionId}
-            accessibilityRole="button"
-            onPress={() => router.push('/settled')}
-            style={({ pressed }) => [
-              styles.row,
-              { borderBottomColor: t.hairline, opacity: pressed ? 0.6 : 1 },
-            ]}
-          >
-            <View style={styles.rowText}>
-              <Text style={[styles.rowDate, { color: t.text }]}>{n.date}</Text>
-              <Text style={[styles.rowMeta, { color: t.muted }]}>
-                {n.played ? `${n.groupName} · ${n.times}` : `${n.groupName} · did not play`}
-              </Text>
+        {[...nights].reverse().map((n) =>
+          n.played ? (
+            <ScoreLine
+              key={n.sessionId}
+              name={n.date}
+              meta={`${n.groupName} · ${n.times}`}
+              net={n.result}
+              terms={n.terms}
+              layout="rolled"
+              testID="games-night"
+            />
+          ) : (
+            <View key={n.sessionId} style={[styles.sat, { borderTopColor: t.hairline }]}>
+              <View style={styles.rowText}>
+                <Text style={[styles.rowDate, { color: t.text }]}>{n.date}</Text>
+                <Text style={[styles.rowMeta, { color: t.muted }]}>
+                  {`${n.groupName} · did not play`}
+                </Text>
+              </View>
             </View>
-            {n.played && (
-              <Text style={[styles.rowResult, { color: moneyColor(t, n.result) }]}>
-                {formatSigned(n.result)}
-              </Text>
-            )}
-            <Icon name="chevron" color={t.muted} />
-          </Pressable>
-        ))}
+          ),
+        )}
 
         {nights.length === 0 && (
           <Text style={[styles.empty, { color: t.muted }]}>
@@ -129,18 +140,17 @@ const styles = StyleSheet.create({
   meta: { fontSize: 13, fontWeight: '400' },
 
   list: { marginHorizontal: space.page },
-  row: {
+  /* A night you sat out: the results row's frame with nothing in it to draw. */
+  sat: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 15,
-    paddingHorizontal: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   rowText: { gap: 3, flexShrink: 1 },
   rowDate: type.rowName,
   rowMeta: type.rowDetail,
-  rowResult: { ...type.figure, marginLeft: 'auto' },
   empty: { ...type.footnote, paddingHorizontal: 4, paddingTop: 8 },
 });
 
