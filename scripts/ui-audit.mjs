@@ -1153,6 +1153,42 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
           }
         }
 
+        /*
+         * WHICH BUILD THE PHONE IS RUNNING, at the foot of Settings — B63.
+         *
+         * Not a `DECIDED` string, because there is no string: the stamp is a
+         * commit and a time, and what has to hold is that the BUNDLER put them
+         * there. It is checked rather than trusted because the first attempt at
+         * this line failed in exactly the way nothing could see — the value
+         * went in `app.config.js`'s `extra`, `expo export --platform web`
+         * embeds app.json and not the evaluated config, and the row rendered
+         * nothing at all on the one build a person can actually look at.
+         *
+         * `unknown` is the other half of the same fault: the row is there, the
+         * mechanism ran, and it had no commit to put in it. Both are findings,
+         * because a build stamp that cannot name a build is worse than none —
+         * it answers the question wrongly instead of not answering it.
+         */
+        if (route === '/settings') {
+          const stamp = await page.evaluate(() => {
+            const el = document.querySelector('[data-testid="build-stamp"]');
+            return el === null ? null : (el.textContent || '').trim();
+          });
+          if (stamp === null || stamp === '') {
+            findings.push({
+              check: 'build-stamp-missing',
+              detail: 'Settings does not say which build this is — see scripts/build-stamp.mjs',
+              where: route,
+            });
+          } else if (/unknown/i.test(stamp)) {
+            findings.push({
+              check: 'build-stamp-unknown',
+              detail: `Settings says “${stamp}” — the bundler had no commit to inline`,
+              where: route,
+            });
+          }
+        }
+
         /* Words a decision has removed — see GONE. Every route, every time. */
         for (const word of GONE) {
           const seen = await page.evaluate(
