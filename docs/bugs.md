@@ -556,6 +556,86 @@ The third message this entry originally listed, `Sign in first`, is not a user
 state — see the correction above it.
 
 
+### B61 — the settled night's status pill read as a count that had not finished
+
+```
+Screen      /settled (and /payments, which draws the same pill)
+Seen        `₾4,550 left`, in coral, in the same card as `MONEY IN PLAY
+            ₾39,000`, on a night whose count had balanced to the lari
+Expected    a status that cannot be read as "₾4,550 of the money on the table
+            is still unaccounted for"
+Found       8 Sept, by the owner, on an eight-handed night — reported as
+            "why does it say 4,550 left when the game has been counted to zero"
+Locked by   npm run check:ui — ui-journeys.mjs, "the pill states the same
+            figure the card does", which now reads the new wording
+Status      fixed in this commit
+```
+
+**The arithmetic was right and the sentence was wrong, which is the harder half.**
+The pill is the sum of the night's UNPAID TRANSFERS — cash that has yet to change
+hands over the following week — and `design/handoff-game-end/` is explicit that
+it is that figure and 2a's `Left to move` by construction. On the reported night
+it was exactly right: three winners collecting ₾3,980 and ₾570 going to the tin.
+
+What made it unreadable is where it sits. `MONEY IN PLAY ₾39,000` is on the left
+of the same card, and every night ends with nothing yet handed over, so every
+night ends with a coral pill stating a large figure beside the money that was on
+the table. `left` is then the natural word for *left over*, and the host read it
+as the count having failed — and went back to re-count a night that was right.
+That is the worst thing a status can do.
+
+`to move` is 2a's own word for the same number, so the fix stays inside the cut's
+vocabulary rather than inventing a third phrase: the card over there is headed
+`Left to move`, and both screens now say the same thing about the same figure.
+Nothing about the amount, the colour or the three states changed.
+
+**⚠ It is a deliberate departure from the cut's copy table**, which prints
+`₾400 left` for the part-settled state and `₾1,000 left` for the unsettled one,
+and `CLAUDE.md` says copy is final. This one was changed on the owner's own
+report of misreading it; it is recorded here, in `docs/screens.md` and in
+`SettleStatus.tsx`, so the next session sees a decision rather than drift.
+
+### B60 — the ranked list ran off the bottom of the phone at eight players
+
+```
+Screen      /settled, both modes — and every past night, which is the same route
+Seen        three of eight names below the fold, and the rounding row and the
+            note below those; the spend line wrapping to two lines on every
+            player who was charged the tin
+Expected    the whole ranking on one screen — the order IS the content
+Found       8 Sept, by the owner, on the club's own eight-handed night
+Locked by   npm run check:ui — ui-journeys.mjs, "the ranked list has room for
+            an eight-handed night without scrolling", which measures the row
+            budget rather than playing a second roster
+Status      fixed in this commit
+```
+
+**Nothing was broken; the screen was drawn against a six-player night.** Every
+padding, size and margin on it comes from `design/handoff-game-end/`, whose
+worked night has six players — and at six it fits, which is why every check and
+every photograph of this screen has been clean since 6 September. The club it is
+actually used by plays eight.
+
+The row was 80 points at eight players and is 54 now, and two thirds of that came
+from the spend line rather than from the paddings: `piggy bank 330` was the
+longest term on the line and the reason it wrapped, so the term is `piggy 330`
+now (the owner's call — the block above still names the rule in full). The rest
+is the line heights, which were nobody's decision at all: a `Text` with no
+`lineHeight` takes the platform's default leading, so a 17-point name was costing
+23 points and nothing in the file said so. They are written down now, and the
+row's height is arithmetic anybody can check against a screenshot.
+
+The blocks above the list each gave back a few points — the card 4 and 4, the
+deductions 6, the toggle 6, the list 2 — which is what pays for the eighth row.
+`docs/screens.md` carries the board value each of them departs from.
+
+**The check is a budget, not a longer roster.** `ui-journeys` plays the seeded
+night and the seeded night is six; a second roster built only to make a list
+longer is a second thing to keep current. What decides the answer is arithmetic —
+where the first row starts, how tall the tallest row is, where the footer begins
+— so the pass measures those three and asserts room for eight. Anything that puts
+the rows back up reports a budget of seven.
+
 ### B59 — `out` dropped to a line of its own with a third of the row empty beside it
 
 ```

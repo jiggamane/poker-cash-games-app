@@ -380,7 +380,17 @@ function List({ rows, final }: { rows: SettledRow[]; final: boolean }) {
 
 /**
  * The line of terms under a name — `in 1,500 out 2,000 bill 50 +100 back piggy
- * bank 50`.
+ * 50`.
+ *
+ * `piggy`, NOT `piggy bank`, AND THAT IS A DELIBERATE DEPARTURE from the cut,
+ * which writes the term out in full. Six characters of the longest term, on
+ * every row that was charged the tin, is what decides whether the line wraps —
+ * and a wrapped line is 17 points of row height on a screen whose whole problem
+ * is that an eight-handed night runs off the bottom of the phone. The word is
+ * not carrying anything either: `bill` and `piggy` are the only two terms of
+ * their kind, the block above states `Group piggy bank` in full, and nothing
+ * else on the row could be mistaken for it. Asked for by the owner on
+ * 8 September; recorded in `docs/screens.md`.
  *
  * IT WRAPS RATHER THAN TRUNCATING. Five terms do not fit one line at 360 points
  * and the whole point of the line is that every term is on it; a row that
@@ -398,7 +408,7 @@ function List({ rows, final }: { rows: SettledRow[]; final: boolean }) {
  * term, because it is a fact about the bill and a line break between them would
  * read as a fifth deduction.
  *
- * SHARES ARE BARE NUMBERS. The cut is explicit — `bill 50`, `piggy bank 50` —
+ * SHARES ARE BARE NUMBERS. The cut is explicit — `bill 50`, `piggy 50` —
  * and the currency mark appears on the net, the totals and the transfers. Five
  * lari signs on one line under a sixth is noise, and the line is not a column
  * anybody adds up by eye.
@@ -438,7 +448,7 @@ function Spend({ terms }: { terms: readonly SettledTerm[] }) {
       )}
       {piggy !== undefined && (
         <Text style={[styles.term, tabular, { color: t.dim }]} numberOfLines={1}>
-          {`piggy bank ${formatUnmarked(piggy.amount)}`}
+          {`piggy ${formatUnmarked(piggy.amount)}`}
         </Text>
       )}
       {/*
@@ -583,14 +593,29 @@ const styles = StyleSheet.create({
 
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
 
-  block: { marginHorizontal: space.page, marginTop: 14 },
-  blockHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 4 },
+  /*
+   * THE VERTICAL PASS OF 8 SEPTEMBER, and every reduced number below belongs to
+   * it. The cut's own paddings are drawn against its worked night, which is six
+   * players; the club this app is actually used by plays eight, and at eight the
+   * list ran off the bottom of the phone with three names below the fold and the
+   * rounding row and the note under those. A ranked list you have to scroll to
+   * finish reading is not a scoreboard — the ranking is the content, and it is
+   * only legible all at once.
+   *
+   * So the blocks above the list each give back a few points and the row gives
+   * back the most: `docs/screens.md` carries the arithmetic and the board values
+   * each of these came from. Nothing here changes what is on the screen, only
+   * how much air is around it — no term, row, rule or figure was dropped to make
+   * the room.
+   */
+  block: { marginHorizontal: space.page, marginTop: 8 },
+  blockHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 3 },
   blockTotal: { marginLeft: 'auto', fontSize: 12.5, fontWeight: '500' },
   deduction: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 9,
-    paddingVertical: 7,
+    paddingVertical: 4,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   deductionName: { fontSize: 14, fontWeight: '600', flexShrink: 1 },
@@ -600,23 +625,23 @@ const styles = StyleSheet.create({
   /* 3 of padding inside the well, 4 between the halves — the cut's own. */
   track: {
     marginHorizontal: space.page,
-    marginTop: 14,
+    marginTop: 8,
     flexDirection: 'row',
     gap: 4,
     padding: 3,
     borderRadius: 12,
   },
-  segment: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 9 },
+  segment: { flex: 1, alignItems: 'center', paddingVertical: 6, borderRadius: 9 },
   segmentLabel: { fontSize: 13.5, fontWeight: '700' },
 
-  list: { marginHorizontal: space.page, marginTop: 14 },
-  listHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 4 },
+  list: { marginHorizontal: space.page, marginTop: 8 },
+  listHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 3 },
   listNote: { marginLeft: 'auto', fontSize: 12.5, fontWeight: '500', flexShrink: 1 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 11,
+    paddingVertical: 7,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   /*
@@ -639,11 +664,18 @@ const styles = StyleSheet.create({
    * the net is `marginLeft: 'auto'` against a row with no free space left in it,
    * which is the right-hand edge it already sat on.
    */
-  rowText: { flexGrow: 1, flexShrink: 1, minWidth: 0, gap: 2 },
-  name: { fontSize: 17, fontWeight: '700', letterSpacing: -0.17 },
-  spend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 9, rowGap: 2 },
-  term: { fontSize: 13, fontWeight: '500' },
-  net: { marginLeft: 'auto', fontSize: 19, fontWeight: '700', flexShrink: 0 },
+  rowText: { flexGrow: 1, flexShrink: 1, minWidth: 0, gap: 1 },
+  /*
+   * LINE HEIGHTS WRITTEN DOWN, and that is half of what the row gave back. A
+   * `Text` with no `lineHeight` gets the platform's default leading — about
+   * 1.36 of the size on Android, more on some faces — so a 17-point name was
+   * costing 23 points and nothing in the file said so. Stated here, the row's
+   * height is arithmetic anybody can check against the screenshot.
+   */
+  name: { fontSize: 16, fontWeight: '700', letterSpacing: -0.17, lineHeight: 19 },
+  spend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 9, rowGap: 1 },
+  term: { fontSize: 12.5, fontWeight: '500', lineHeight: 15 },
+  net: { marginLeft: 'auto', fontSize: 18.5, fontWeight: '700', flexShrink: 0 },
 
   rounding: { marginTop: 4 },
 
@@ -652,7 +684,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 9,
     marginHorizontal: space.page,
-    paddingTop: 11,
+    paddingTop: 8,
   },
-  noteText: { flex: 1, fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
+  noteText: { flex: 1, fontSize: 13, fontWeight: '400', lineHeight: 18 },
 });

@@ -405,6 +405,58 @@ head and the first thing in the body — and it had to go there rather than in t
 rule pass for exactly the reason recorded above about E6: opened cold, these two
 routes render their empty states and the card is not on the screen to measure.
 
+⚠ **AND ALL OF IT WAS DRAWN AGAINST A SIX-PLAYER NIGHT** — B60, 8 September,
+found by the owner on the club's own table of eight. Every padding on `/settled`
+is the cut's, the cut's worked night has six players, and at six the screen fits
+exactly: six rows, the rounding row and the note, with about seventy points of
+slack. At eight it lost three names below the fold. A ranked list you have to
+scroll to finish reading has stopped being a ranking, so the screen took a
+vertical pass and these are the departures it made, each from the board value in
+brackets:
+
+| | board | now | why |
+|---|---|---|---|
+| `TotalsCard` top margin | 16 | 10 | shared with `/payments`; still well clear of the 6-point floor B58 put under it |
+| `TotalsCard` padding | 14 | 10 | |
+| `TotalsCard` figure | 34/34 | 30/31 | five figures of lari still fit the half-card |
+| deduction row padding | 7 | 4 | the block is a ledger, not a list of cards |
+| toggle segment padding | 9 | 6 | |
+| block top margins | 14 | 8 | deductions, toggle and list alike |
+| row padding | 11 | 7 | |
+| name | 17 | 16/19 | the line height is stated now — see below |
+| term | 13 | 12.5/15 | |
+| net | 19 | 18.5 | |
+
+**The line heights are the half of it that was nobody's decision.** A `Text`
+with no `lineHeight` takes the renderer's default leading, so a 17-point name
+cost 23 points on the phone and nothing in the file said so. Stated, the row is
+54 points and is arithmetic anybody can check against a screenshot.
+
+**And the spend line's last term is `piggy 330`, not `piggy bank 330`** — the
+owner's call on the same day, and a departure from the cut's copy table, which
+prints the term in full. It is what decided whether the line wrapped: six
+characters on the longest term, on every row that was charged the tin, and a
+wrapped line is 17 more points of row on the screen that had none to give. The
+word carries nothing that the row needs — `bill` and `piggy` are the only two
+terms of their kind and the block above still reads `Group piggy bank` in full.
+`ui-journeys` matches `^piggy [0-9,]+$` now.
+
+**The pill says `to move` where the cut said `left`** — B61, the same day and the
+same report. `₾4,550 left` in coral, in the same card as `MONEY IN PLAY ₾39,000`,
+was read by the owner as ₾4,550 of the table still unaccounted for, on a night
+that had counted to zero. The figure is the sum of unpaid transfers and was
+correct; `to move` is 2a's own word for it — its card is headed `Left to move` —
+so both screens now say the same thing about the same number without a third
+phrase being invented.
+
+**What holds all of it is a row budget, not a longer roster.** `ui-journeys`
+plays the seeded six-player night, and a second roster built only to make a list
+longer is a second thing to keep current. The pass measures where the first row
+starts, how tall the tallest row is and where the footer begins, and asserts room
+for eight — so any padding, size or wrap that puts the rows back up reports a
+budget of seven. Nothing in this pass changed what is on the screen: no term, row,
+rule or figure was dropped to make the room.
+
 ⚠ **AND THE SPEND LINE WRAPPED AGAINST ITSELF RATHER THAN AGAINST THE ROW** —
 B59, 7 September, found on a phone and invisible to every check in the repo. The
 block holding the name and the terms was sized to its own content, so the line

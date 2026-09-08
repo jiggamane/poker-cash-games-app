@@ -21,6 +21,21 @@ import { radius, tabular } from '../design/tokens';
  * the following week, and it is why `/settled` can carry both this and a meta
  * line ending `settled` without the two disagreeing.
  *
+ * ⚠ `to move`, WHERE THE CUT WROTE `left`, AND THE WORD IS THE WHOLE POINT OF
+ * THE CHANGE. On `/settled` this pill sits in the same card as `MONEY IN PLAY`,
+ * a foot under a screen the host has just spent ten minutes counting stacks on
+ * — and `₾4,550 left`, in coral, beside the money that was on the table, reads
+ * as *₾4,550 of it is still unaccounted for*. It is not: the count balanced, and
+ * this is the cash that has yet to change hands over the following week. The
+ * host who reported it had counted the night to zero and read the pill as the
+ * count having failed, which is the worst thing a status can do — send somebody
+ * back to re-count a night that was right.
+ *
+ * `to move` is 2a's own word for the same figure — the card it sits in over
+ * there is headed `Left to move` — so this is the cut's vocabulary rather than
+ * a new one, and the two screens now say the same thing about the same number.
+ * Owner's call, 8 September; recorded in `docs/screens.md`.
+ *
  * THREE STATES, AND THE MIDDLE ONE IS NOT A HALFWAY COLOUR. Bone is the app's
  * off-the-table hue — money in motion, neither won nor lost — and it is the
  * right one here because a night part way through settling is not a night
@@ -47,7 +62,7 @@ export function SettleStatus({ owed, anyPaid }: { owed: Money; anyPaid: boolean 
   return (
     <View style={[styles.pill, { backgroundColor: fill, borderColor: edge }]}>
       <Text style={[styles.label, tabular, { color: ink }]} numberOfLines={1}>
-        {`${formatToFit(owed, SETTLE_FITS)} left`}
+        {`${formatToFit(owed, SETTLE_FITS)} to move`}
       </Text>
     </View>
   );
