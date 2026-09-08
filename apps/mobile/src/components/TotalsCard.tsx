@@ -81,10 +81,22 @@ const styles = StyleSheet.create({
      * § 2a says the transfers card is "identical construction to 1a's", so the
      * one value is right for both. See B58.
      */
-    marginTop: 16,
+    /*
+     * 10 AND NOT THE BOARD'S 16, AND 10 AND NOT ITS 14 — the 8 September
+     * vertical pass, which both screens that draw this card are part of. The
+     * card is the tallest thing above either list and the two lists are what
+     * the screens exist for; see the note in `settled.tsx`'s stylesheet and the
+     * arithmetic in `docs/screens.md`.
+     *
+     * IT STAYS WELL CLEAR OF THE HEAD. B58 was this card having no top margin
+     * at all and sitting flush against the meta line, and the night pass now
+     * fires under 6 points between the two. 10 is still well clear of that, and
+     * the check that caught B58 still holds it.
+     */
+    marginTop: 10,
     borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 14,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -93,5 +105,5 @@ const styles = StyleSheet.create({
   left: { flexDirection: 'column', gap: 4, flexShrink: 1, minWidth: 0 },
   right: { marginLeft: 'auto', alignItems: 'flex-end', gap: 6, flexShrink: 0 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
-  figure: { fontSize: 34, fontWeight: '800', letterSpacing: -1.4, lineHeight: 34 },
+  figure: { fontSize: 30, fontWeight: '800', letterSpacing: -1.4, lineHeight: 31 },
 });

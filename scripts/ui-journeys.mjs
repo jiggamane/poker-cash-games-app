@@ -1423,8 +1423,11 @@ async function playANight(name, rebuys) {
     (await page.locator(':text-matches("^in [0-9,]+$"):visible').count()) > 0 &&
       (await page.locator(':text-matches("^out [0-9,]+$"):visible').count()) > 0 &&
       (await page.locator(':text-matches("^bill [0-9,]+"):visible').count()) > 0 &&
-      (await page.locator(':text-matches("^piggy bank [0-9,]+$"):visible').count()) > 0,
-    'the Final spend line is missing one of in / out / bill / piggy bank',
+      /* `piggy`, not `piggy bank` — the term was shortened on 8 September so the
+         line stops wrapping at eight players. The block above still names the
+         rule in full, which is what the assertion two screens back reads. */
+      (await page.locator(':text-matches("^piggy [0-9,]+$"):visible').count()) > 0,
+    'the Final spend line is missing one of in / out / bill / piggy',
   );
   await holds(
     'and the bill a player fronted is its own term, never netted',
@@ -1435,6 +1438,71 @@ async function playANight(name, rebuys) {
     (await page.locator(':text-matches("[+][0-9,]+ back"):visible').count()) > 0,
     'nobody on this night is shown the bill they paid coming back',
   );
+
+  /*
+   * AND EIGHT NAMES STILL FIT THE PHONE — 8 September, and it is the check the
+   * vertical pass was written to leave behind.
+   *
+   * The cut's worked night is six players and every padding on this screen was
+   * drawn against it. The club this app is used by plays eight, and at eight
+   * the ranked list ran off the bottom: three names below the fold, on a screen
+   * whose whole content IS the ranking. A scoreboard you have to scroll to
+   * finish reading has stopped being one — the order is the point, and the
+   * order is only legible all at once.
+   *
+   * IT IS ASSERTED AS A ROW BUDGET RATHER THAN BY PLAYING EIGHT HANDED, and
+   * that is deliberate: this pass plays the seeded night, which is six, and a
+   * second roster built only to make a list longer would go stale beside the
+   * first one. What actually decides the answer is arithmetic — where the first
+   * row starts, how tall a row is with its terms on one line, and where the
+   * footer begins — so that is what is measured. Anything that puts the rows
+   * back up (a padding, a line height, a term long enough to wrap the line at
+   * ordinary figures) shows up here as a budget of seven.
+   */
+  const budget = await page.evaluate(() => {
+    const ROW_GAP = 1; // `styles.rowText`, between the name and the terms
+    const rows = [...document.querySelectorAll('[data-testid="settled-row"]')].map((row) => {
+      const box = row.getBoundingClientRect();
+      const net = row.querySelector('[data-testid="settled-net"]');
+      const text = [...row.children].find((c) => c !== net) ?? null;
+      const spend =
+        text !== null && text.children.length > 1 ? text.children[text.children.length - 1] : null;
+      const terms = spend === null ? [] : [...spend.children].map((el) => el.getBoundingClientRect());
+      const lines = new Set(terms.map((r) => Math.round(r.top))).size;
+      const lineHeight = terms.length === 0 ? 0 : terms[0].height;
+      /*
+       * WHAT THE ROW IS WHEN ITS TERMS ARE ON ONE LINE, which is the number the
+       * stylesheet decides and the only one worth holding. A night in the
+       * hundreds of millions wraps `in 239,002,780 out 227,051,850 …` over three
+       * lines however tight the paddings are — that is the figures, not the
+       * screen, and the spend-line check above already refuses to cry wolf about
+       * it for the same reason.
+       */
+      return box.height - Math.max(0, lines - 1) * (lineHeight + ROW_GAP);
+    });
+    if (rows.length === 0) return null;
+    /* The footer's own top is the fold for the list: the button is pinned over
+       the body, so a row drawn under it is a row nobody can read. */
+    const button = [...document.querySelectorAll('div, span')].find(
+      (el) => el.children.length === 0 && el.textContent.trim() === 'Who pays whom',
+    );
+    const fold = button === undefined ? window.innerHeight : button.getBoundingClientRect().top;
+    const first = document.querySelector('[data-testid="settled-row"]').getBoundingClientRect().top;
+    const tallest = Math.max(...rows);
+    return {
+      first: Math.round(first),
+      tallest: Math.round(tallest * 10) / 10,
+      fold: Math.round(fold),
+      fits: Math.floor((fold - first) / tallest),
+    };
+  });
+
+  await holds(
+    'and the ranked list has room for an eight-handed night without scrolling',
+    budget !== null && budget.fits >= 8,
+    `only ${budget?.fits} rows fit above the footer: ${JSON.stringify(budget)}`,
+  );
+
   await stop('night settled · the spend line');
 
   /*
@@ -1577,7 +1645,12 @@ async function playANight(name, rebuys) {
        which. */
     const text = document.body.innerText;
     const card = /left to move\s*\n\s*([^\n]+)/i.exec(text);
-    const pill = /(\S+) left(?:\n|$)/.exec(text);
+    /* `to move` since 8 September — the pill used to read `₾4,550 left`, which
+       beside `MONEY IN PLAY` read as money unaccounted for rather than money
+       yet to change hands. `Left to move` above it is the card's eyebrow, which
+       the stylesheet uppercases, so this stays case-sensitive and matches only
+       the pill. */
+    const pill = /(\S+) to move(?:\n|$)/.exec(text);
     return {
       card: card === null ? null : card[1].trim(),
       pill: pill === null ? null : pill[1].trim(),
