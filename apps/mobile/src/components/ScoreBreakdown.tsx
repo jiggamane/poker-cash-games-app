@@ -359,8 +359,8 @@ function Tray({ onPress, children }: { onPress?: () => void; children: ReactNode
  * A bill that was fronted carries TWO figures behind one glyph — `−$31 +$120`.
  * That is the app's own decision, kept: `bill 50 +100 back` was one span for
  * the reason a line break between them would read as a fifth deduction, and a
- * second fork beside the first reads as a second bill. The repayment is in the
- * win colour, because it is the one figure in the tray that is money arriving.
+ * second fork beside the first reads as a second bill. Both figures are bone
+ * and the SIGN is what tells them apart — see `figureColour`.
  */
 function Pair({ term, back, theme: t }: { term: SettledTerm; back?: SettledTerm; theme: Theme }) {
   const bone = term.kind === 'spend' || term.kind === 'back';
@@ -395,7 +395,7 @@ function Pair({ term, back, theme: t }: { term: SettledTerm; back?: SettledTerm;
       </Text>
       {back !== undefined && (
         <Text
-          style={[styles.figure, tabular, { color: t.win }]}
+          style={[styles.figure, tabular, { color: t.offTable }]}
           numberOfLines={1}
           {...cappedFigure}
         >
@@ -477,14 +477,29 @@ function signed(term: SettledTerm): string {
 }
 
 /**
- * Bone for what the evening took, ink for the chips — and the win colour for a
- * bill coming back, because it is the one figure in the tray that is money
- * arriving and a bone `+$242` beside a bone `−$54` reads as a second charge.
+ * BONE FOR THE EVENING, INK FOR THE CHIPS, AND NOTHING ELSE ON THE ROW.
+ *
+ * ⚠ THE REPAYMENT WAS GREEN AND IS NOT ANY MORE, which was this file getting
+ * it wrong and the owner catching it on a screenshot. The reasoning for the
+ * green was that `+$242` is the one figure in the tray that is money arriving,
+ * so a bone `+$242` beside a bone `−$54` might read as a second charge. The
+ * handoff has already answered that, twice over, and the answer is better than
+ * the green:
+ *
+ *   · **Two colours only.** Ink for the chips, bone for the three spends. The
+ *     handoff says so in as many words and adds that no new colour was
+ *     introduced for the feature.
+ *   · **THE SIGN IS WHAT SAYS WHICH WAY THE MONEY WENT.** Every figure on the
+ *     row is signed precisely so the line reads as arithmetic — `−$500 + $2,120
+ *     − $54 − $24 − $23` — and a `+` that needs a colour to be believed is a
+ *     `+` that is not doing its job. Colour on a term also competes with the
+ *     one figure on the row that IS green or red, which is the score.
+ *
+ * So the tray is one colour, and `figureColour` has three cases where it had
+ * four.
  */
 function figureColour(term: SettledTerm, t: Theme): string {
-  if (term.kind === 'back') return t.win;
-  if (term.kind === 'spend') return t.offTable;
-  return t.text;
+  return term.kind === 'spend' || term.kind === 'back' ? t.offTable : t.text;
 }
 
 /** Stable across renders. A destination appears at most once per kind. */

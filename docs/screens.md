@@ -1607,10 +1607,19 @@ same component now, in one of its two layouts:
 * **The step has no glyph and needs none.** It is drawn with the chips as a bare
   signed figure. No set draws it, and its sign is the only thing about it that
   is not fixed by its name.
-* **`+$242` in the bone tray is the win colour**, where every other figure in
-  the tray is bone. It is the one figure in there that is money arriving, and a
-  bone `+$242` beside a bone `−$54` reads as a second charge. It replaces
-  `bill 50 +100 back`, which said the same thing in a span.
+* **`+$242` in the bone tray is BONE, like everything else in it** — and it was
+  green for half a day, which was this file getting it wrong. The argument for
+  the green was that it is the one figure in the tray that is money arriving, so
+  a bone `+$242` beside a bone `−$54` might read as a second charge. The handoff
+  answers that twice and both answers are better: **two colours only**, ink for
+  the chips and bone for the spends, with no colour introduced for the feature;
+  and **the sign is what says which way the money went**, which is the whole
+  reason every figure on the row is signed. A `+` that needs a colour to be
+  believed is a `+` that is not doing its job, and a coloured term competes with
+  the one figure on the row that IS green or red. Caught by the owner on a
+  screenshot, which is the second time this batch that a screenshot found what
+  three passes of checks could not — none of them has an opinion about which
+  figures may be coloured, only about what may sit behind them (B23).
 * **The expanded row uses `raised`, not `#131317`.** The handoff's hex is not a
   token and `tokens.ts` is app-wide, which `CLAUDE.md` says belongs to a session
   running alone. `raised` is that colour's neighbour in both themes.
@@ -1623,6 +1632,15 @@ same component now, in one of its two layouts:
   open rows on a history list cost a reader nothing, where lifting the state
   would put an `expandedId` on five screens for it. **Open**, and cheap to fix
   the day a list wants it.
+* **The chevron on a rolled-up row is the app's, not the handoff's.** The
+  handoff draws it 13 x 13 on a 20 box with a 1.9 stroke in `#6C6E74`; the app
+  has drawn every tappable row's chevron on an 8 x 13 box with a 2 stroke since
+  Chrome A, and a row that ends in a different chevron from every other row in
+  the app reads as a different kind of control. The COLOUR is a firmer no: the
+  app's `dim` was raised off `#6C6E74`'s neighbourhood precisely to clear the
+  contrast floor (it measured 3.54:1 on a card in the dark theme against a floor
+  of 4.5), so drawing the handoff's hex would walk back an accessibility fix to
+  match a board.
 * **`At table` on the segment, `At the table` on the list's own heading.** The
   short form is the handoff's and has to fit a 34-point segment beside `Final`
   at every text size; the heading has a whole line. `ui-journeys.mjs` reads them
@@ -1633,6 +1651,40 @@ same component now, in one of its two layouts:
   else's evening. They itemise in place instead, which is the handoff's own
   interaction and the honest one until there is a sessions table to route to.
   **Open:** route them the day there is one.
+
+### What was measured against the handoff, and what came back
+
+Every type value on the row was read off the built screen rather than eyeballed
+— `getComputedStyle` on `/settled` and `/stats`, at 393 — and the handoff's type
+scale holds to the half-point:
+
+| | handoff | measured |
+|---|---|---|
+| Name | 16/600 `#FFFFFF` | 16/600 `#FFFFFF` |
+| Score | 17/700 `#6FCF97` / `#F0705C` | 17/700 `#6FCF97`, tabular |
+| Figure | 12.5/600, tabular | 12.5/600, tabular |
+| Segment, active / inactive | 13.5/700 / 13.5/600 | 13.5/700 / 13.5/600 |
+| Reconciliation | 13/400 · 13/600 `#8B8D93` | 13/400 · 13/600 `#8B8D93` |
+| Glyph, row / rolled-up spend | 15 / 14, stroke 1.7 | 15 / 14, stroke 1.7 |
+| Tray | 3px 8px, radius 8, `rgba(217,211,196,.09)` | 3/8, 8, `rgba(217,211,196,.09)` |
+| Gaps: inner / pair / glyph-to-figure | 6 / 11 / 4 | 6 / 11 / 4 |
+| Track | padding 3, radius 11, `#16161A`, gap 3 | 3, 11, `#16161A`, 3 |
+
+Three things did not, and all three are known:
+
+* **The row is 59 points where the handoff says 58.** The head aligns the name
+  and the score on their BASELINES at two different sizes, so the box is a point
+  taller than either line. Fixing it means a fixed height on the head, which
+  clips a name at 120% text — the point is not worth that.
+* **The eyebrow is 11/700 and the note is 13/400**, where turn 5 draws 12/700
+  and 12/400. Both are `/settled`'s own furniture from an earlier cut and are
+  the app's section-label and footnote sizes everywhere; turn 6, which is the
+  specification, draws no eyebrow at all. Changing them would make this one
+  screen disagree with every other.
+* **The screenshots are in Figtree and the phone is in SF Pro.** That is the
+  handoff's own arrangement — `-apple-system` resolves to SF Pro on the device
+  and to the web fallback in the preview — so a shot taken from the browser and
+  the same screen on a phone are meant to differ slightly in letterform.
 
 ### And the row still has to fit eight players
 
