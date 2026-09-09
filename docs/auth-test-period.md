@@ -155,10 +155,24 @@ address contains the dev machine's IP and port, so it changes when either does.
 A link that redirects somewhere not on this list falls back to the project's
 Site URL and dead-ends on a page the phone cannot reach.
 
+⚠ **THIS IS THE STEP B66 WAS, and it fails in the one way that leaves no trace.**
+An address that is not on this list is not rejected — the call returns 200, the
+mail is sent, and `redirect_to` is silently replaced by the Site URL, which on a
+new project is `http://localhost:3000`. The host gets a perfectly well-formed
+link that hands the phone a port on itself. Nothing in the app, the response or
+any log says a substitution happened; the only place it is visible is the
+`redirect_to=` in the delivered mail's own href.
+
+**And the `exp://` address expires by itself.** A different wifi, or a packager
+that took 8082 because 8081 was busy, and this list is quietly wrong again. It
+is not set up once. That is why the sign-in sheet also takes a six-digit code:
+the code does not travel through `redirect_to`, so it is the one way in this
+list cannot silently break.
+
 **Site URL, in the same box, must be `http(s)` — not `pokerclub://`.** It is
 what an unlisted redirect falls back to, so a custom scheme there walks straight
-back into the sanitiser in step 5 by the side door. It is fine that it points
-nowhere useful; this app has no website.
+into the sanitiser in step 5 by the side door. It is fine that it points nowhere
+useful; this app has no website.
 
 ### 7. Invite the testers
 
