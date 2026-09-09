@@ -191,7 +191,7 @@ export default function MyStats() {
 
 /**
  * A GAME IN THE LIST, AND IT IS THE RESULTS ROW —
- * `design_handoff_score_breakdown/`, frame `6c`, cut 8 September.
+ * `design/handoff-score-breakdown/`, frame `6c`, cut 8 September.
  *
  * It used to be a date, a club, a signed figure and a chevron that went to the
  * night. The chevron is still a chevron and it still opens something, but what

@@ -794,6 +794,11 @@ const ROOM = `
       // Anchored on the tray's own testID, so a wash anywhere else on a row is
       // still a finding.
       if (n.getAttribute('data-testid') === 'spend-tray') break;
+      // AND THE SAME OBJECT ON THE PAST SESSION, which the 9 September cut
+      // renamed and re-tinted: the itemised spends sit in #15151A rather than a
+      // bone wash, which is a neutral fill and even further from the banded
+      // result row B23 is about. Same reasoning, same exception, both themes.
+      if (n.getAttribute('data-testid') === 'session-spend-group') break;
       const paint = getComputedStyle(n).backgroundColor;
       const c = rgb(paint);
       if (c === null || c.a <= 0 || c.a > 0.99) continue;

@@ -112,9 +112,20 @@ wins over anything older, `design/handoff-2026-08-13/` (rev 14) included. Start
 at its `START-HERE.md`, then `docs/CHANGELOG.md`, which is cumulative and names
 what each revision supersedes.
 
-**Four partial cuts sit on top of it**, each superseding rev 18 only where it
+**Five partial cuts sit on top of it**, each superseding rev 18 only where it
 speaks and nowhere else. Everything rev 18 says about every other screen still
 stands. Read them newest first:
+
+- **`design/handoff-session-views/`, cut 9 September — start here.** The past
+  session (`/settled`, and `/watch` reading the same night), and nothing else on
+  any screen. **One player list read three ways** — Final detailed, Final
+  grouped, On table — behind a dropdown control in the meta line, with the block
+  under the table changing with it (`DEDUCTIONS` or `CHIPS`) and the footer
+  button with that. **No rules between rows and no chevrons:** separation is the
+  60-point row alone, which is the cut's central point about the version it
+  replaces. It supersedes the score-breakdown cut below on those two screens and
+  leaves it standing on `/stats` and `/games`. `docs/screens.md` has the five
+  places the app departs from it and why.
 
 - **`design/handoff-count-up-header/`, cut 6 September — start here.** The block
   at the top of E2 Count up, and nothing else on that screen or any other. The

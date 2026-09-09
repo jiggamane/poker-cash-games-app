@@ -15,7 +15,7 @@ import { cappedFigure, tabular, type Theme } from '../design/tokens';
 
 /**
  * THE END RESULT OF A NIGHT, AND THE ONLY DRAWING OF IT IN THE APP —
- * `design_handoff_score_breakdown/Score Breakdown Icons.dc.html`, turn 6, cut
+ * `design/handoff-score-breakdown/Score Breakdown Icons.dc.html`, turn 6, cut
  * 8 September. `6a` is the game end on Final, `6b` the same screen on At table,
  * `6c` the same night read months later.
  *

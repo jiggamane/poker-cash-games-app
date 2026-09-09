@@ -75,7 +75,7 @@ export default function MyGames() {
       </View>
 
       {/*
-       * EVERY NIGHT AS THE RESULTS ROW — `design_handoff_score_breakdown/`,
+       * EVERY NIGHT AS THE RESULTS ROW — `design/handoff-score-breakdown/`,
        * frame `6c`, cut 8 September, and the same `ScoreBreakdown` that draws a
        * player on `/settled` and a night on `/stats`. The date is the name and
        * your own net is the score.
