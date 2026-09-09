@@ -779,6 +779,18 @@ export const chrome = {
   /** 8 / 20 / 0 / 68 — the 68 puts it under the title, not under the button. */
   metaPadTop: 2,
   metaIndent: 68,
+  /*
+   * THE FLOOR UNDER A META LINE THAT CARRIES A CONTROL, and only under that
+   * one — see B68.
+   *
+   * A line of 13-point text needs none: the first element of the body brings
+   * its own margin and the two together are the gap the boards draw. A line
+   * with a dropdown on it is 34 points tall and ends at the control's edge, so
+   * the row below lands on the button. 14 is `design/handoff-session-views/`'s
+   * own `8 22 14`, taken over the sessions-stats cut's 12 because the taller
+   * row is the one being spaced.
+   */
+  metaPadBottom: 14,
 
   /** The sheet panel. */
   /*

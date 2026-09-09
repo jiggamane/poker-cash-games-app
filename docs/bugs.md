@@ -117,6 +117,45 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
+### B68 — the first row of a list sat on the filter above it
+
+```
+Screen      /games (Sessions) and /settled — every screen whose filter shares
+            the meta line
+Seen        the dropdown's 34-point button and the first row of the list
+            underneath it with nothing between them: on Sessions "All groups"
+            touching `Tue 4 August`, on the past session "Final, detailed"
+            touching the first player
+Expected    a gap under the meta line, which both cuts draw — `8 22 14` in
+            `design/handoff-session-views/`, `8 22 12` in
+            `design/handoff-sessions-stats/`
+Found       9 Sept, on a phone, reported by the owner
+Locked by   npm run check:ui — ui-audit.mjs, "meta-row-floor"
+Status      fixed in this branch
+```
+
+**A text meta line does not need a floor and a control does.** `Screen` has
+drawn `meta` with `paddingTop` and no bottom since Chrome A was built, and that
+is right for a line of 13-point text: the body element under it brings its own
+margin and the two add up to the gap the boards draw. The row that carries a
+control is a different object — 34 points tall against the text's 16 — and it is
+the control's own edge, not the text's baseline, that ends up against the row
+below. The screens under it were unchanged; what changed on 9 September is that
+something with a height moved onto that line.
+
+So the floor goes on `metaRow` and not on `meta`: no screen without a
+`metaTrailing` control moves by a point, and the three that have one — Sessions,
+the past session, and `/watch` reading the same night — get the 14 the
+session-views cut draws. Fourteen rather than the sessions-stats cut's 12
+because the taller row is the one being spaced.
+
+**Nothing could see it**, which is the part worth naming. `ui-audit.mjs` reads
+overlaps and truncation, and a gap of zero is neither: the elements were laid
+out exactly as written, nothing was covered, and every check passed. The new
+`meta-row-floor` pass measures the distance from the bottom of the meta row to
+the top of what follows it and fails under 10, which is the first assertion in
+the audit about a gap rather than a collision.
+
 ### B67 — a tester who was never invited read a Supabase error
 
 ```
