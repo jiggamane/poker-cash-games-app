@@ -1096,6 +1096,8 @@ export interface MyNight {
   startedAt: string;
   /** How long the table ran, in minutes. Zero while it is still running. */
   minutes: number;
+  /** How many people the settlement drew a row for — the list's annotation. */
+  players: number;
   /**
    * WHERE THAT RESULT CAME FROM — what you put on the table, what you took off
    * it, and what the evening's rules took, as the same `SettledTerm[]` the
@@ -1136,6 +1138,9 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
   /* The row's own terms, off the same settlement the result comes off. A night
      that will not settle has neither. */
   let terms: SettledTerm[] = [];
+  /* How many the night had, off the same list the results screen draws: a
+     count of `result.players` would include the piggy bank's own envelope. */
+  let players = 0;
 
   if (night.meId !== undefined) {
     try {
@@ -1156,8 +1161,9 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
         result = nightScore(settled, night.meId).score;
         /* `final` and not `table` — the figure beside it is the one after the
            evening, so the terms under it have to be the evening's too. */
-        terms =
-          settledRows(settled, 'final').find((r) => r.player.playerId === night.meId)?.terms ?? [];
+        const rows = settledRows(settled, 'final');
+        terms = rows.find((r) => r.player.playerId === night.meId)?.terms ?? [];
+        players = rows.length;
         played = true;
       }
     } catch {
@@ -1188,6 +1194,7 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
           ? 0
           : Math.max(0, Math.round((Date.parse(ended) - started.getTime()) / 60_000)),
       terms,
+      players,
     },
   ];
 }

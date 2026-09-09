@@ -19,32 +19,32 @@
  */
 
 /**
- * The round numbers a scale is allowed to land on, per power of ten.
+ * THE BAR RULE — `design/handoff-sessions-stats/`, *"Bar height — the rule"*,
+ * cut 9 September, which replaces the round-number ladder this file used to
+ * carry.
  *
- * The top of the chart is LABELLED with this number, so it has to be one a
- * person can hold in their head — $600, not $541. Anything finer buys accuracy
- * nobody reads and costs the label its legibility.
- */
-const LADDER = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10] as const;
-
-/**
- * The smallest round number that still contains the biggest night.
+ *     peak   = max(|result|) among the nights on screen
+ *     k      = 38px ÷ peak
+ *     height = clamp(round(|result| × k), 3, 38)
  *
- * Returns 0 when there is nothing to plot — every night was square, or there
- * are no nights — which the caller draws as a bare line rather than inventing
- * an axis for money that does not exist.
+ * WHAT CHANGED AND WHY. The old scale rounded UP to a number a person could
+ * read off an axis — $600 for a $541 night — because the chart was labelled
+ * with it. This one is not labelled: the figure a reader wants is the one for
+ * the night they tapped, and it appears beside the caption instead. With no
+ * axis to print, rounding the scale only ever shortens every bar, so the peak
+ * itself is the scale and the tallest night fills the band exactly.
+ *
+ * THE FLOOR IS 3 AND NOT 2. A $6 night is 0.4px unclamped, and a bar of
+ * nothing reads as "did not play" rather than "barely lost". Three points is
+ * what survives a phone's own rounding onto its pixel grid.
+ *
+ * ONE SCALE, BOTH WAYS, which is the rule that outlived the ladder: wins and
+ * losses share `k`, so a −$300 night is drawn exactly as far from the line as
+ * a +$300 one and two bars can be compared across the line as well as along it.
+ *
+ * ONE HUGE NIGHT FLATTENS THE REST, by design. The handoff says so and says
+ * what covers it: the tapped-night figure is the detail the flattening hides.
  */
-export function niceScale(largest: number): number {
-  const max = Math.abs(largest);
-  if (!Number.isFinite(max) || max <= 0) return 0;
-
-  const power = 10 ** Math.floor(Math.log10(max));
-  for (const step of LADDER) {
-    const candidate = Math.round(step * power);
-    if (candidate >= max) return candidate;
-  }
-  return Math.round(10 * power);
-}
 
 /** The biggest single result in a set of nights, in either direction. */
 export function largestResult(nets: readonly number[]): number {
@@ -52,31 +52,40 @@ export function largestResult(nets: readonly number[]): number {
 }
 
 export interface Bar {
-  /** Distance from the zero line, in pixels. Never negative. */
+  /** Distance from the zero line, in points. Never negative. */
   height: number;
-  /** Which way it goes. `none` is a night that came out exactly square. */
-  side: 'above' | 'below' | 'none';
+  /**
+   * Which way it goes.
+   *
+   * `even` is a night that came out EXACTLY square, and it is not "no bar": it
+   * has no height to derive, so it is drawn as a mark of `height` on both sides
+   * of the line in its own colour. See the note in `tokens.ts` on `breakEven`.
+   */
+  side: 'above' | 'below' | 'even';
 }
 
 /**
  * One night, as a rectangle.
  *
- * `half` is the drawable height on ONE side of the line, so a night equal to
- * the scale exactly fills it. The clamp is belt and braces: `scale` always
- * comes from `niceScale`, which cannot be smaller than the largest night.
+ * `band` is the drawable height on ONE side of the line, so the peak night
+ * exactly fills it. `floor` is what a night too small to see is raised to, and
+ * `evenMark` is what a night of exactly nothing gets on each side.
  *
- * `minimum` keeps a small night visible. A $10 loss on a $600 scale rounds to
- * nothing, and a bar of nothing reads as "did not play" rather than "barely
- * lost" — so it is floored at something you can see. It is deliberately 2px and
- * not more: the exaggeration has to be smaller than the smallest difference
- * anybody would try to read off the chart.
+ * A window with no money in it at all — every night square, or no nights —
+ * gives every bar the even mark, which is true: nothing went either way.
  */
-export function plotBar(net: number, scale: number, half: number, minimum = 2): Bar {
-  if (net === 0 || scale <= 0 || half <= 0) return { height: 0, side: 'none' };
+export function plotBar(
+  net: number,
+  peak: number,
+  band: number,
+  floor = 3,
+  evenMark = 2,
+): Bar {
+  if (net === 0 || peak <= 0 || band <= 0) return { height: evenMark, side: 'even' };
 
-  const exact = (Math.abs(net) / scale) * half;
+  const exact = (Math.abs(net) / peak) * band;
   return {
-    height: Math.min(half, Math.max(minimum, Math.round(exact))),
+    height: Math.min(band, Math.max(floor, Math.round(exact))),
     side: net > 0 ? 'above' : 'below',
   };
 }

@@ -23,6 +23,11 @@ export interface PlayedNight {
   /** How long I was at the table. */
   minutes: number;
   /**
+   * How many sat down that night — the row's own annotation, beside the
+   * duration. Absent on a night whose record does not say.
+   */
+  players?: number;
+  /**
    * WHAT THE NIGHT WAS MADE OF — chips in, chips out, and what each rule took,
    * as the same `SettledTerm[]` a results row is drawn from.
    *
@@ -49,6 +54,22 @@ export interface Summary {
    * not money anybody was ever handed, so it is deliberately not `Money`.
    */
   average: number;
+}
+
+/**
+ * THE BOOK — every night this reader has played, in one list.
+ *
+ * ⚠ IT EXISTS BECAUSE SESSIONS AND MY STATS DISAGREED. My stats read the
+ * phone's own night AND the seeded history; Sessions read only the phone's, so
+ * `See all` led from a list of eight nights to a list of none. Two screens
+ * assembling the same book two ways is the drift, and one function is the fix:
+ * the destination cannot hold less than the sample that links to it.
+ *
+ * The caller passes what `myNights` returned, so this file stays pure and takes
+ * no store — `inGroup` and `inPeriod` below narrow it from here.
+ */
+export function readBook(mine: readonly PlayedNight[], seeded: readonly PlayedNight[]): PlayedNight[] {
+  return [...mine, ...seeded];
 }
 
 /** Most recent first, which is the order every list on the screen wants. */

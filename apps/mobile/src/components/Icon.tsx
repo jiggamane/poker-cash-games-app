@@ -40,6 +40,13 @@ export type IconName =
   | 'chevronDown'
   /** Seat a player. */
   | 'person'
+  /**
+   * TWO of them, for a COUNT rather than an action — `8 players` on a row of
+   * the book. `person` is the control that seats somebody and is drawn as one
+   * figure; this is the annotation that says how many were there.
+   * `design/handoff-sessions-stats/`.
+   */
+  | 'people'
   /** Cash a player out — a seat emptying, not a warning. */
   | 'cashOut'
   /** The bill. */
@@ -325,6 +332,18 @@ export function Icon({
       );
     }
 
+    case 'people': {
+      const s = size ?? 13;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 20 20" fill="none">
+          <Circle cx={7.6} cy={7.4} r={2.6} {...PEOPLE(color)} />
+          <Path d="M2.9 16.4c0-2.6 2.1-4.2 4.7-4.2s4.7 1.6 4.7 4.2" {...PEOPLE(color)} />
+          <Path d="M13.4 5.2a2.6 2.6 0 0 1 0 4.5" {...PEOPLE(color)} />
+          <Path d="M14.6 12.5c1.7.4 2.9 1.7 2.9 3.9" {...PEOPLE(color)} />
+        </Svg>
+      );
+    }
+
     case 'cashOut': {
       // A seat with an arrow leaving it. Never red: cashing out is expected,
       // and only ending the night is destructive.
@@ -576,6 +595,14 @@ function ScoreGlyph({ size, children }: { size?: number; children: ReactNode }) 
 
 /** One stroke for the whole set — 1.7, round, unfilled. */
 const SCORE = (color: string) => ({
+  stroke: color,
+  strokeWidth: 1.7,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+});
+
+/** The annotation stroke the book's rows share — 1.7, round, unfilled. */
+const PEOPLE = (color: string) => ({
   stroke: color,
   strokeWidth: 1.7,
   strokeLinecap: 'round' as const,

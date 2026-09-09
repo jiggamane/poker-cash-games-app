@@ -45,6 +45,8 @@ interface Seed {
   back?: number;
   /** What the piggy bank took off me. */
   piggy?: number;
+  /** How many sat down. The row prints it beside the duration. */
+  players: number;
 }
 
 /**
@@ -61,15 +63,15 @@ interface Seed {
  * where every row has all five glyphs never shows that.
  */
 const SEEDS: Seed[] = [
-  { days: 1, group: CLUB, net: 540, minutes: 260, in: 500, bill: 42, piggy: 20 },
-  { days: 4, group: OFFICE, net: 180, minutes: 180, in: 300 },
-  { days: 8, group: CLUB, net: -60, minutes: 310, in: 700, bill: 36, piggy: 20 },
-  { days: 11, group: OFFICE, net: 40, minutes: 165, in: 300, bill: 24 },
+  { days: 1, group: CLUB, net: 540, minutes: 260, in: 500, bill: 42, piggy: 20, players: 6 },
+  { days: 4, group: OFFICE, net: 180, minutes: 180, in: 300, players: 8 },
+  { days: 8, group: CLUB, net: -60, minutes: 310, in: 700, bill: 36, piggy: 20, players: 8 },
+  { days: 11, group: OFFICE, net: 40, minutes: 165, in: 300, bill: 24, players: 5 },
   /* The night I bought the food: charged my share and paid back in full. */
-  { days: 15, group: CLUB, net: 315, minutes: 245, in: 500, bill: 48, back: 190, piggy: 20 },
-  { days: 22, group: CLUB, net: -90, minutes: 200, in: 500, bill: 30, piggy: 20 },
-  { days: 29, group: OFFICE, net: 120, minutes: 190, in: 300 },
-  { days: 36, group: CLUB, net: -210, minutes: 285, in: 800, bill: 54, piggy: 20 },
+  { days: 15, group: CLUB, net: 315, minutes: 245, in: 500, bill: 48, back: 190, piggy: 20, players: 7 },
+  { days: 22, group: CLUB, net: -90, minutes: 200, in: 500, bill: 30, piggy: 20, players: 9 },
+  { days: 29, group: OFFICE, net: 120, minutes: 190, in: 300, players: 6 },
+  { days: 36, group: CLUB, net: -210, minutes: 285, in: 800, bill: 54, piggy: 20, players: 8 },
 ];
 
 /**
@@ -104,6 +106,7 @@ export const SAMPLE_HISTORY: PlayedNight[] = SEEDS.map((s) => ({
   group: s.group,
   net: money(s.net) as Money,
   minutes: s.minutes,
+  players: s.players,
   terms: terms(s),
 }));
 

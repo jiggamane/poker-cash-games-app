@@ -1564,6 +1564,99 @@ a settled night has no destination either — `/share` is one person's share of 
 rule, and the watcher link lives in Settings — so this is not a control being
 withheld, it is a control with nowhere to point.
 
+## Sessions and My stats — the book
+
+`design/handoff-sessions-stats/Artboards - Sessions and Stats.dc.html`, frames
+`1a`, `2a`, `3a`, cut 9 September. The two screens a player reads between
+nights, and the row every list of games in the app now draws.
+
+    Tue 4 August                                          −$493  ›
+    👥 8 players   🕐 3h 40m
+
+**One row, three lists.** `GameRow` is Sessions, `Last games` on My stats, and
+anywhere else a night appears as a line. The only differences are a size — 56
+rather than 60 on `Last games`, *"because this list is a sample, not the
+destination"* — and the group name, which `Last games` prints first because it
+spans clubs and Sessions does not.
+
+**No rules between rows.** Separation is the row height alone, the same
+decision the session-views cut made one screen further on, and for the same
+stated reason. Only two things per row are at full brightness: the date and the
+figure.
+
+### Sessions
+
+Was `My games`. The 40-point period total at the top of it and its three period
+tabs are **gone** — both were a second copy of what My stats already draws, and
+two screens each carrying their own total is exactly the drift this batch keeps
+finding. The screen is the list, top to bottom, with the group dropdown on the
+meta line and the count stated as `8 nights · newest first`.
+
+### My stats
+
+Three blocks: the figure card, the graph, `Last games`.
+
+* **The figure card** carries the period's net over `6 games · 25 h`, the
+  period tabs inside it, and two stat pairs under a divider. The tabs live in
+  the card because the figure is what they change.
+* **The group is a dropdown and the period is tabs**, which is the cut's own
+  split: a three-way with short labels a reader flips between is tabs, and a
+  list that grows with every club joined is a dropdown. A chip row for the group
+  costs a 54-point band.
+* **Both are persisted and shared with Sessions** — `bookStore`. Scoping the
+  book to one club scopes the book, not the screen.
+
+### The graph, and the rule behind it
+
+`nightsChart.ts` was a round-number ladder — the scale rounded UP to a figure a
+person could read off an axis. There is no axis now, so rounding only ever
+shortened every bar. The rule is the handoff's:
+
+    peak = max(|result|)      k = 38px ÷ peak
+    height = clamp(round(|result| × k), 3, 38)
+
+The floor went 2 → 3, because 3 is what survives a phone's own rounding onto
+its pixel grid. **The handoff's worked window is asserted row by row** in
+`nightsChart.test.ts`: it is the one place the rule is written as numbers
+rather than as a formula, so a change to the band, the floor or the rounding
+shows up as a row that no longer matches the document.
+
+**The break-even night** is the one new hue in this app, and it earns the
+exception the top of `tokens.ts` refuses everybody else. A night at exactly zero
+has no height to derive: green would call it a win, red a loss, and nothing
+would lose it from a graph of eight. It gets 2px of `#E8B84B` above the baseline
+and 2px below, it keeps full colour while another night is tapped — 4px of mark
+cannot survive being dimmed to 34% — and it is the only column that labels
+itself, because it is the only one whose height says nothing.
+
+**The readout** is one state with one timer counting from the last tap: figure,
+bar, white date label and brightened baseline slice arrive together over 120ms,
+hold 2750ms, and leave together over 400ms. A change of group or period clears
+it at once — the chart takes a `cleared` prop for exactly that, because those
+two things happen on the screen and not in the card.
+
+### Decided against the handoff rather than by it
+
+* **The group control is in `trailing` on My stats**, which `docs/09-navigation.md`
+  leaves empty on a pushed screen. This is the one screen that fills it: the
+  handoff draws it on the title row, this screen has no meta line, and a band of
+  its own costs 54 points at the top of a screen three cards deep. **Open** — it
+  is the second thing this batch has put in a corner doc 9 reserves, and the
+  first (`Share` on the past session) was refused. The difference is that this
+  one is a control with somewhere to point.
+* **The period card's tint is a third exception to `tinted-result-row`** (B23).
+  The rule is about a LIST of rows banded green and red, where the band
+  re-states a ranking the figures already give. This is one card, one figure,
+  and the win colour at 13% whether the month made money or lost it. A losing
+  month on a green wash is the thing to look at if it is ever reopened.
+* **`hoursPlayed` is the elapsed table time**, not a cards-down figure. The
+  handoff flags that it wants the latter and that the app does not record it.
+  **Open**, and it is the handoff's own open question rather than a departure.
+* **The counts on the seeded history are invented.** `sampleHistory.ts` says of
+  itself that it is temporary and goes when there is a sessions table; the
+  player counts added to it are plausible rather than recorded, like every other
+  figure in that file.
+
 ## The past session, read three ways
 
 `design/handoff-session-views/Artboards - Session Views.dc.html`, frames

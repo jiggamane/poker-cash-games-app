@@ -7,6 +7,7 @@ import { useTheme } from '../src/design/useTheme';
 import { completeSignInFromUrl } from '../src/lib/authLink';
 import { loadClubs } from '../src/lib/clubStore';
 import { openNight } from '../src/lib/nightStore';
+import { loadBook } from '../src/lib/bookStore';
 import { loadSessionView } from '../src/lib/sessionViewStore';
 import { loadThemeChoice } from '../src/lib/themeStore';
 
@@ -81,6 +82,9 @@ export default function RootLayout() {
        `design/handoff-session-views/`. Same shape as the theme above: read once,
        nothing waits for it. */
     void loadSessionView();
+    /* Which group and which stretch the book is read at — shared by Sessions
+       and My stats, and persisted per user. */
+    void loadBook();
   }, []);
 
   // The sign-in link comes back into the app here. It has to be handled at the
