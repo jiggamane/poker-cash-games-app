@@ -438,6 +438,11 @@ const ROOM = `
 (() => {
   const px = (v) => Math.round(v * 100) / 100;
 
+  /* The least air allowed under a meta line carrying a control — B68. The two
+     cuts draw 12 and 14; the floor is 10 so that a screen taking the smaller
+     of the two still passes and only an absent gap fails. */
+  const META_FLOOR = 10;
+
   const rgb = (s) => {
     const m = /rgba?\\(([^)]+)\\)/.exec(s || '');
     if (!m) return null;
@@ -707,6 +712,56 @@ const ROOM = `
             ' in a padding box of ' + px(padLeft) + '…' + px(padRight),
           where: label(control),
           box: { w: px(r.width), control: px(padRight - padLeft) },
+        });
+      }
+    }
+  }
+
+  // ---- a filter on the meta line keeps a floor under it -------------------
+  //
+  // B68. Screen draws its meta line with padding above and none below, which
+  // is right for a line of text: the first element of the body brings its own
+  // margin and the two together are the gap the boards draw. Put a dropdown on
+  // that line and the row is 34 points tall instead of 16, and what the list
+  // meets is the button edge rather than a baseline with air under it — on
+  // Sessions "All groups" sat on Tue 4 August, on the past session
+  // "Final, detailed" sat on the first player.
+  //
+  // NOTHING HERE COULD SEE IT. Every check above is about a collision — a
+  // figure clipped, a label through its own edge, a surface on itself — and a
+  // gap of zero is not a collision: everything was laid out exactly as
+  // written. This is the audit's first assertion about SPACE, and it is
+  // measured off the row's CONTENT rather than its box, because the fix is
+  // padding and padding is inside the box: bottom of the tallest child to top
+  // of whatever follows.
+  const metaText = document.getElementById('screen-meta');
+  const metaRow = metaText === null ? null : metaText.parentElement;
+  // A meta line with nothing on the end of it IS the text, and its parent is
+  // the head — a column with the title and the whole body in it. The row is
+  // the one Screen builds for a control: a flex ROW holding the text and the
+  // control, and both halves of that are asserted rather than either alone,
+  // because the head would otherwise pass the child count on every screen.
+  const isRow =
+    metaRow !== null &&
+    metaRow.children.length > 1 &&
+    getComputedStyle(metaRow).flexDirection === 'row';
+  if (isRow) {
+    let content = -Infinity;
+    for (const kid of metaRow.children) {
+      const k = kid.getBoundingClientRect();
+      if (k.height > 0) content = Math.max(content, k.bottom);
+    }
+    let after = metaRow.nextElementSibling;
+    while (after !== null && after.getBoundingClientRect().height === 0) {
+      after = after.nextElementSibling;
+    }
+    if (after !== null && content > -Infinity) {
+      const gap = after.getBoundingClientRect().top - content;
+      if (gap < META_FLOOR) {
+        findings.push({
+          check: 'meta-row-floor',
+          detail: px(gap) + ' under the control, want ' + META_FLOOR,
+          where: metaText.textContent.trim(),
         });
       }
     }

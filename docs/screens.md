@@ -1592,6 +1592,19 @@ two screens each carrying their own total is exactly the drift this batch keeps
 finding. The screen is the list, top to bottom, with the group dropdown on the
 meta line and the count stated as `8 nights · newest first`.
 
+**The meta line has a floor under it and the text-only one does not** — 14
+points, `chrome.metaPadBottom`, on `Screen`'s `metaRow` alone. A line of
+13-point text needs none: the first element of the body brings its own margin
+and the two together are the gap the boards draw. A line with a 34-point
+dropdown on it ends at the button's edge, so the first row of the list landed
+on `All groups` here and on `Final, detailed` on the past session — B68,
+reported off a phone on 9 September. Fourteen is
+`design/handoff-session-views/`'s own `8 22 14`, taken over the sessions-stats
+cut's 12 because the taller row is the one being spaced. `meta-row-floor` in
+`ui-audit.mjs` is the audit's first assertion about a GAP rather than a
+collision, and it measures the row's content rather than its box, because
+padding lives inside the box.
+
 ### My stats
 
 Three blocks: the figure card, the graph, `Last games`.

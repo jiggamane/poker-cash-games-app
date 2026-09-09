@@ -66,15 +66,19 @@ export function Screen({
   /**
    * A control sharing the meta line, pushed to its right-hand end.
    *
-   * ONE SCREEN USES IT — the past session's view control
-   * (`design/handoff-session-views/`, cut 9 September), which the handoff puts
-   * on the meta line rather than under it. It is a prop rather than a second
-   * meta row because the line has to stay one line: the control is the state
-   * of the list below, and a state that wraps onto its own row reads as a
-   * heading for the list instead.
+   * THREE SCREENS USE IT — the past session's view control and `/watch`
+   * reading the same night (`design/handoff-session-views/`), and Sessions'
+   * group scope (`design/handoff-sessions-stats/`), both cut 9 September. Both
+   * cuts put the control ON the meta line rather than under it. It is a prop
+   * rather than a second meta row because the line has to stay one line: the
+   * control is the state of the list below, and a state that wraps onto its
+   * own row reads as a heading for the list instead.
    *
    * `meta` still truncates to one line and this does not shrink, which is the
    * same bargain every figure in this app makes against every name.
+   *
+   * ⚠ THE ROW CARRIES ITS OWN FLOOR and the text-only line does not — see
+   * `styles.metaRow`, and B68.
    */
   metaTrailing?: ReactNode;
   /**
@@ -304,6 +308,11 @@ const styles = StyleSheet.create({
     paddingTop: chrome.metaPadTop,
     paddingRight: chrome.titlePadH,
     paddingLeft: chrome.metaIndent,
+    /* AND A FLOOR, which `styles.meta` above deliberately has not got. The
+       control is 34 points tall where the text is 16, so what the first row of
+       the body meets is the button's edge rather than a baseline with air
+       under it. B68. */
+    paddingBottom: chrome.metaPadBottom,
   },
   metaShared: { ...type.pushMeta, flexShrink: 1 },
   lede: { ...type.lede, marginTop: 8, marginHorizontal: space.page },
