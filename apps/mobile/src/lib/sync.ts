@@ -13,22 +13,35 @@ import { isSupabaseConfigured, supabase } from './supabase';
 import { SqliteOutboxStore } from './outboxStore';
 import { leavesThePhone } from './queueable';
 import {
+  bookPatch,
   countRow,
   entryRow,
+  paymentDelete,
+  paymentRow,
   playerRow,
+  playerTermsPatch,
+  ruleDelete,
   ruleRow,
   seatRow,
   sessionClosedPatch,
+  sessionPatch,
   sessionRow,
   settlementRow,
+  type BookPayload,
   type ClosePayload,
   type CountPayload,
   type EntryPayload,
+  type PaymentPayload,
   type PlayerPayload,
+  type PlayerTermsPayload,
+  type RowDelete,
+  type RowPatch,
   type RowWrite,
+  type RuleDeletePayload,
   type RulePayload,
   type SeatPayload,
   type SessionOpenPayload,
+  type SessionPatchPayload,
 } from './syncRows';
 
 /**
@@ -88,6 +101,8 @@ export async function queueSessionOpen(args: {
   rules: readonly MoneyRule[];
   /** How coarsely the night settles. Null, or absent, is whole dollars. */
   roundingMode?: RoundingMode | null;
+  /** What this table is called, where a group is running two. */
+  tableName?: string | null;
 }): Promise<void> {
   const { sessionId, groupName } = args;
   if (!isUuid(sessionId)) return;
@@ -105,6 +120,7 @@ export async function queueSessionOpen(args: {
         ...(args.stakes === undefined ? {} : { stakes: args.stakes }),
         seatCount: Math.min(Math.max(args.players.length, 1), 30),
         roundingMode: args.roundingMode ?? null,
+        tableName: args.tableName ?? null,
       },
     },
   });
@@ -200,6 +216,136 @@ export async function queueCount(
   });
 }
 
+/**
+ * What the group is set up as: its name, its money, its blinds, its rounding.
+ *
+ * THE RENAME IS WHY THIS CARRIES TWO NAMES. A payload names its book by the
+ * group's name, because the phone never learns the book's id — so renaming a
+ * club would look to `ensureBook` like a group it has never heard of, and it
+ * would mint a SECOND book and split the group across the two. `previousName`
+ * is what the club was called when the queue last spoke, and the drain asks for
+ * either. The patch then writes the new name, so the next operation resolves on
+ * it and the old name is never needed again.
+ *
+ * The club's id is the scope, exactly as it is for a roster row: nothing in the
+ * drain reads it for this kind, and the queue wants the scope the operation
+ * actually has.
+ */
+export async function queueBook(args: {
+  clubId: string;
+  groupName: string;
+  previousName?: string;
+  book: BookPayload['book'];
+}): Promise<void> {
+  if (!isUuid(args.clubId)) return;
+
+  const id = `book:${args.clubId}`;
+
+  /*
+   * THE ONE FIELD HERE THAT IS A MEMORY RATHER THAN A STATE. Every other value
+   * is replaced by the latest answer, which is what makes one operation per
+   * club correct. The previous name is not: a club renamed twice before the
+   * queue drains must still be looked up under the name the SERVER has, not
+   * under the one it had in between — which never reached it either.
+   */
+  const queued = (await outbox.peek(id))?.payload as BookPayload | undefined;
+  const previous = queued?.previousName ?? args.previousName;
+
+  await enqueueOp<BookPayload>(outbox, {
+    id,
+    sessionId: args.clubId,
+    kind: 'book.upsert',
+    payload: {
+      groupName: args.groupName,
+      ...(previous === undefined || previous === args.groupName
+        ? {}
+        : { previousName: previous }),
+      book: args.book,
+    },
+  });
+}
+
+/**
+ * A night changed after it opened — how far through it is, what the table is
+ * called, how coarsely it settles.
+ *
+ * ONE OP PER NIGHT, REPLACED IN PLACE, because these are three columns of one
+ * row and the last answer for each is the only one worth sending. Which is why
+ * a caller passes the night's WHOLE current state rather than the field it just
+ * changed: the second op takes the first one's place in the line, so a partial
+ * payload would drop the rename that the status change replaced.
+ *
+ * `settled` is not one of the statuses here — closing writes the settlement
+ * first and moves the status after it, in one operation, so that a night can
+ * never be marked finished with no result behind it.
+ */
+export async function queueSessionPatch(patch: SessionPatchPayload): Promise<void> {
+  if (!isUuid(patch.sessionId)) return;
+
+  await enqueueOp<SessionPatchPayload>(outbox, {
+    id: `session-patch:${patch.sessionId}`,
+    sessionId: patch.sessionId,
+    kind: 'session.patch',
+    payload: patch,
+  });
+}
+
+/** Whether somebody pays the kitty, and whether they are still offered a seat. */
+export async function queuePlayerTerms(
+  clubId: string,
+  terms: PlayerTermsPayload,
+): Promise<void> {
+  if (!isUuid(clubId) || !isUuid(terms.playerId)) return;
+
+  await enqueueOp<PlayerTermsPayload>(outbox, {
+    id: `player-terms:${terms.playerId}`,
+    sessionId: clubId,
+    kind: 'player.terms',
+    payload: terms,
+  });
+}
+
+/**
+ * A rule the group no longer has.
+ *
+ * The SAME id as the upsert it replaces, which is what makes a rule added and
+ * deleted before the next drain leave nothing behind: the delete takes the
+ * upsert's place in the line rather than following it, and the server is never
+ * told about a rule that did not outlive one evening.
+ */
+export async function queueRuleDelete(
+  scopeId: string,
+  groupName: string,
+  ruleId: string,
+): Promise<void> {
+  if (!isUuid(scopeId) || !isUuid(ruleId)) return;
+
+  await enqueueOp<RuleDeletePayload & { groupName: string }>(outbox, {
+    id: `rule:${ruleId}`,
+    sessionId: scopeId,
+    kind: 'rule.delete',
+    payload: { groupName, ruleId },
+  });
+}
+
+/** A transfer paid, or a tick taken back. See `paymentRow` for why one kind. */
+export async function queuePayment(payload: PaymentPayload): Promise<void> {
+  if (
+    !isUuid(payload.sessionId) ||
+    !isUuid(payload.fromPlayerId) ||
+    !isUuid(payload.toPlayerId)
+  ) {
+    return;
+  }
+
+  await enqueueOp<PaymentPayload>(outbox, {
+    id: `payment:${payload.sessionId}:${payload.fromPlayerId}:${payload.toPlayerId}`,
+    sessionId: payload.sessionId,
+    kind: 'payment.set',
+    payload,
+  });
+}
+
 export async function queueClose(payload: ClosePayload): Promise<void> {
   if (!isUuid(payload.sessionId)) return;
 
@@ -216,13 +362,21 @@ export async function queueClose(payload: ClosePayload): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
- * The host's book id, resolved once per drain.
+ * The host's book ids, resolved once per drain, KEYED BY THE GROUP'S NAME.
  *
- * The phone never learns it — a book is the server's own row — so every payload
- * carries the group's name instead and the first operation that needs an id
- * looks it up or creates it.
+ * The phone never learns a book's id — a book is the server's own row — so every
+ * payload carries the group's name instead and the first operation that needs an
+ * id looks it up or creates it.
+ *
+ * IT USED TO BE ONE ID FOR THE WHOLE ACCOUNT: `select id from book limit 1`,
+ * whatever group the payload named. A host with two groups therefore wrote both
+ * of them into whichever book came back first — and `player` is unique on
+ * (book_id, lower(display_name)), so the second group's Petr was refused by the
+ * database. The queue halts at its first failure, on purpose, so that refusal
+ * stopped every night behind it from ever leaving the phone, permanently, with
+ * nothing on any screen but a rising number of things waiting.
  */
-let bookId: string | null = null;
+const books = new Map<string, string>();
 
 /**
  * Send what is queued, oldest first.
@@ -242,7 +396,7 @@ export async function drain(): Promise<FlushResult> {
   const { data } = await supabase.auth.getSession();
   if (data.session === null) return { pushed: 0, remaining: await outbox.count() };
 
-  bookId = null; // re-resolved per drain, in case the account changed
+  books.clear(); // re-resolved per drain, in case the account changed
 
   return flushOutbox(outbox, async (items) => {
     // Sequentially, in order, inside the batch. A batch may hold a session and
@@ -282,6 +436,22 @@ async function send(item: OutboxItem): Promise<void> {
       return write(countRow(item.payload as CountPayload));
     case 'session.close':
       return sendClose(item.payload as ClosePayload);
+    case 'book.upsert': {
+      const p = item.payload as BookPayload;
+      return patch(bookPatch(p, await ensureBook(p.groupName, p.previousName)));
+    }
+    case 'session.patch':
+      return patch(sessionPatch(item.payload as SessionPatchPayload));
+    case 'player.terms':
+      return patch(playerTermsPatch(item.payload as PlayerTermsPayload));
+    case 'rule.delete': {
+      const p = item.payload as RuleDeletePayload & { groupName: string };
+      return remove(ruleDelete(p, await ensureBook(p.groupName)));
+    }
+    case 'payment.set': {
+      const p = item.payload as PaymentPayload;
+      return p.paidAt === null ? remove(paymentDelete(p)) : write(paymentRow(p));
+    }
   }
 }
 
@@ -296,19 +466,70 @@ async function write(w: RowWrite): Promise<void> {
   if (error) throw new Error(`${w.table}: ${error.message}`);
 }
 
-async function ensureBook(groupName: string): Promise<string> {
-  if (bookId !== null) return bookId;
+/**
+ * The book this group's rows belong in — found by name, and made if there is
+ * none.
+ *
+ * TWO THINGS HERE ARE LOAD-BEARING.
+ *
+ * It asks for books this account HOSTS. Since `0007_player_identity.sql` an
+ * account can also read the books it is merely a member of, so an unfiltered
+ * select can return somebody else's book — and every write that followed would
+ * be refused by the host policy, for ever, at the head of the queue.
+ *
+ * It matches on the group's NAME, so two groups are two books. `previousName`
+ * is how a rename survives that: the club is looked up under what it used to be
+ * called, and the patch riding on the same operation writes the new name, after
+ * which the old one is never asked for again.
+ */
+/**
+ * Some columns of a row that already exists.
+ *
+ * NOT AN UPSERT, and the difference matters: an update against a row that is
+ * not there is a no-op, where an upsert would be an insert missing every NOT
+ * NULL column the patch does not carry. The server refuses that, and the queue
+ * halts at its first failure — so the cost of a setting arriving before the row
+ * it describes is one lost setting rather than a night that never leaves.
+ */
+async function patch(p: RowPatch): Promise<void> {
+  // A patch naming no column is not an empty update, it is a malformed request.
+  // `sessionPatch` builds itself from optional fields, so this is reachable.
+  if (Object.keys(p.patch).length === 0) return;
 
-  const { data: existing, error } = await supabase.from('book').select('id').limit(1);
-  if (error) throw new Error(error.message);
-  if (existing !== null && existing.length > 0) {
-    bookId = existing[0].id as string;
-    return bookId;
-  }
+  const { error } = await supabase.from(p.table).update(p.patch).eq('id', p.matchId);
+  if (error) throw new Error(`${p.table}: ${error.message}`);
+}
+
+/** A row taken back out. Only ever a rule the group deleted or a tick untapped. */
+async function remove(d: RowDelete): Promise<void> {
+  const { error } = await supabase.from(d.table).delete().match(d.match);
+  if (error) throw new Error(`${d.table}: ${error.message}`);
+}
+
+async function ensureBook(groupName: string, previousName?: string): Promise<string> {
+  const known = books.get(groupName);
+  if (known !== undefined) return known;
 
   const { data: auth } = await supabase.auth.getSession();
   const hostId = auth.session?.user.id;
   if (hostId === undefined) throw new Error('Not signed in');
+
+  const names = previousName === undefined ? [groupName] : [groupName, previousName];
+  const { data: existing, error } = await supabase
+    .from('book')
+    .select('id, group_name')
+    .eq('host_user_id', hostId)
+    .in('group_name', names);
+  if (error) throw new Error(error.message);
+
+  const found =
+    existing?.find((b) => b.group_name === groupName) ??
+    existing?.find((b) => b.group_name === previousName);
+  if (found !== undefined) {
+    const id = found.id as string;
+    books.set(groupName, id);
+    return id;
+  }
 
   const { data: created, error: createError } = await supabase
     .from('book')
@@ -317,8 +538,9 @@ async function ensureBook(groupName: string): Promise<string> {
     .single();
   if (createError) throw new Error(createError.message);
 
-  bookId = created.id as string;
-  return bookId;
+  const id = created.id as string;
+  books.set(groupName, id);
+  return id;
 }
 
 /**
@@ -335,10 +557,7 @@ async function sendClose(p: ClosePayload): Promise<void> {
   if (hostId === undefined) throw new Error('Not signed in');
 
   await write(settlementRow(p, hostId));
-
-  const patch = sessionClosedPatch(p);
-  const { error } = await supabase.from(patch.table).update(patch.patch).eq('id', patch.matchId);
-  if (error) throw new Error(`${patch.table}: ${error.message}`);
+  await patch(sessionClosedPatch(p));
 }
 
 // ---------------------------------------------------------------------------

@@ -163,6 +163,27 @@ export class SqliteOutboxStore implements OutboxStore {
   }
 
   /**
+   * One queued operation, by id, or null.
+   *
+   * Beyond the `OutboxStore` interface on purpose: nothing in `packages/core`
+   * needs it, and only one caller does. Queueing under an id that is already
+   * there REPLACES the payload, which is right for a state — the last answer is
+   * the only one worth sending — and wrong for the one field in the queue that
+   * is a memory rather than a state.
+   *
+   * That field is the group's previous name. A club renamed twice before the
+   * queue drains would otherwise carry the name it had in between, and the
+   * drain, looking for a book under a name that never reached the server, would
+   * make a second one and split the group across the two. So the rename reads
+   * what is already queued and keeps the ORIGINAL.
+   */
+  async peek(id: EntryId): Promise<OutboxItem | null> {
+    const db = await getDb();
+    const row = await db.getFirstAsync<Row>(`SELECT * FROM outbox_op WHERE id = ?`, id);
+    return row === null ? null : toItem(row);
+  }
+
+  /**
    * Record that a session already has entries up to `seq`, without queuing one.
    *
    * The high-water mark is normally raised by `add`, because normally every

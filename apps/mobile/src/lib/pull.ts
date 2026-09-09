@@ -45,36 +45,48 @@ export async function pullBooks(): Promise<PullResult> {
   const { data: auth } = await supabase.auth.getSession();
   if (auth.session === null) return nothing;
 
-  const books = await rows<{ id: string; group_name: string }>('book', (q) =>
-    q.select(READS.book),
-  );
+  const books = await rows<BookRow>('book', (q) => q.select(READS.book));
   if (books.length === 0) return nothing;
 
   let added = 0;
   let players = 0;
   for (const book of books) {
-    const result = await pullBook(book.id, book.group_name);
+    const result = await pullBook(book);
     added += result.nights;
     players += result.players;
   }
   return { added, books: books.length, players };
 }
 
-async function pullBook(
-  bookId: string,
-  groupName: string,
-): Promise<{ nights: number; players: number }> {
+async function pullBook(book: BookRow): Promise<{ nights: number; players: number }> {
+  const bookId = book.id;
+  const groupName = book.group_name;
   // THE ROSTER FIRST, and before the check for nights below. A book with people
   // in it and no night yet is an ordinary thing — a host who set the group up
   // on Tuesday for a game on Friday — and returning early on the night count
   // sent that phone away with the roster it came for still on the server.
-  const people = await rows<{ id: string; display_name: string }>('player', (q) =>
+  const people = await rows<PlayerRow>('player', (q) =>
     q.select(READS.player).eq('book_id', bookId),
   );
   const roster = await importRoster({
     id: bookId,
     groupName,
-    players: people.map((p) => ({ id: p.id, name: p.display_name })),
+    // What the group is set up as, for a club this pull has to MAKE. A club
+    // this phone already has keeps its own answers: settings travel up, exactly
+    // as names do, and a pull that wrote them back would make the two ends
+    // argue with the winner decided by whichever ran last.
+    settings: {
+      currency: book.currency_code,
+      defaultBuyIn: book.default_buyin,
+      stakesJson: book.stakes,
+      roundingMode: book.rounding_mode,
+    },
+    players: people.map((p) => ({
+      id: p.id,
+      name: p.display_name,
+      paysKitty: p.pays_kitty,
+      removedAt: p.removed_at,
+    })),
   });
 
   const sessions = await rows<SessionRow>('session', (q) =>
@@ -105,6 +117,13 @@ async function pullBook(
   );
   const settlements = await rows<SettlementRow>('settlement', (q) =>
     q.select(READS.settlement).in('session_id', ids),
+  );
+  // Who has handed over the money. It changes no figure — nothing in
+  // `packages/core` reads it — and it is the whole content of E7, which until
+  // `transfer_payment` existed was the one screen a claimed member could never
+  // be shown anything on.
+  const payments = await rows<PaymentRow>('transfer_payment', (q) =>
+    q.select(READS.transfer_payment).in('session_id', ids),
   );
 
   const settlementOf = new Map(settlements.map((s) => [s.session_id, s]));
@@ -149,6 +168,10 @@ async function pullBook(
       counts: counts
         .filter((c) => c.session_id === s.id)
         .map((c) => ({ playerId: c.player_id, amount: c.counted_chips })),
+      payments: payments
+        .filter((x) => x.session_id === s.id)
+        .map((x) => ({ from: x.from_player_id, to: x.to_player_id, paidAt: x.paid_at })),
+      tableName: s.table_name,
       ...(acknowledgement === undefined ? {} : { acknowledgement }),
     };
   });
@@ -230,6 +253,29 @@ async function rows<T>(
   return (data ?? []) as T[];
 }
 
+interface BookRow {
+  id: string;
+  group_name: string;
+  currency_code: string | null;
+  default_buyin: number | null;
+  stakes: string | null;
+  rounding_mode: RoundingMode | null;
+}
+
+interface PlayerRow {
+  id: string;
+  display_name: string;
+  pays_kitty: boolean;
+  removed_at: string | null;
+}
+
+interface PaymentRow {
+  session_id: string;
+  from_player_id: string;
+  to_player_id: string;
+  paid_at: string;
+}
+
 interface SessionRow {
   id: string;
   started_at: string;
@@ -238,6 +284,7 @@ interface SessionRow {
   stakes: string | null;
   default_buyin: number;
   rounding_mode: RoundingMode | null;
+  table_name: string | null;
 }
 
 interface EntryRow {

@@ -128,6 +128,11 @@ values
    '[{"id":"e6000000-0000-0000-0000-000000000001","name":"Group kitty"}]'::jsonb,
    '{}'::jsonb, '[]'::jsonb, 0);
 
+-- One transfer already paid, over the week after the night.
+insert into transfer_payment (session_id, from_player_id, to_player_id, paid_at) values
+  ('e4000000-0000-0000-0000-000000000001', 'e3000000-0000-0000-0000-000000000002',
+   'e3000000-0000-0000-0000-000000000001', now());
+
 -- Petr claims his seat, exactly as the app does it.
 set role authenticated;
 set request.jwt.claims = '{"sub":"e1000000-0000-0000-0000-000000000001"}';
@@ -153,7 +158,9 @@ select expect_text(
 -- point of writing them out rather than counting rows.
 
 select expect_eq(
-  (select count(*) from (select id, group_name from book) x),
+  (select count(*) from (
+     select id, group_name, currency_code, default_buyin, stakes, rounding_mode from book
+   ) x),
   1, 'a claimed player sees exactly one book — their own');
 
 select expect_text(
@@ -163,13 +170,15 @@ select expect_text(
 
 select expect_eq(
   (select count(*) from (
-     select id, started_at, ended_at, status, stakes, default_buyin, rounding_mode from session
+     select id, started_at, ended_at, status, stakes, default_buyin, rounding_mode,
+            table_name
+       from session
    ) x),
   1, 'every night of that book, and no night of any other');
 
 select expect_eq(
-  (select count(*) from (select id, display_name from player) x),
-  2, 'the roster of their book');
+  (select count(*) from (select id, display_name, pays_kitty, removed_at from player) x),
+  2, 'the roster of their book, on the terms the book states them');
 
 select expect_eq(
   (select count(*) from (select * from money_rule) x),
@@ -192,6 +201,15 @@ select expect_eq(
 select expect_eq(
   (select count(*) from (select * from settlement) x),
   1, 'the frozen settlement, which is what the night actually paid');
+
+-- Who has handed over the money. A member who cannot read this lands on E7
+-- with a row of empty ticks for cash that changed hands last week — the same
+-- silent kind of wrong as an empty My stats.
+select expect_eq(
+  (select count(*) from (
+     select session_id, from_player_id, to_player_id, paid_at from transfer_payment
+   ) x),
+  1, 'who has already paid');
 
 -- The shortfall columns the acknowledgement is rebuilt from must all exist:
 -- without them a night closed over missing money cannot be imported at all,

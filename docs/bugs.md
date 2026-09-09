@@ -749,6 +749,175 @@ Fix this before drawing anything new for the invite flow, or every state the
 ---
 
 ## Fixed
+
+### B68 — a host with two groups jammed their own queue, for ever
+
+```
+Screen      none — the queue, which has no screen
+Seen        Settings says "Saved on this phone · 41 waiting" and the number
+            only ever goes up. Every night after the second group was made is
+            on one phone and nowhere else.
+Expected    each group is its own book, and one group's rows never reach
+            another's
+Found       9 Sep, reading sync.ts against docs/storage-and-sync.md
+Locked by   npm run check — syncRows.test.ts and storageCoverage.test.ts;
+            npm run db:verify — 03_sync_contract.sql
+Status      fixed in 58d81af
+```
+
+**Seen**, precisely. `ensureBook()` asked for `select id from book limit 1` —
+the FIRST book on the account, whatever group the payload named. So a host with
+two groups wrote both into one book. `player` is unique on
+`(book_id, lower(display_name))`, so the second group's Petr was refused by the
+database; the queue halts at its first failure, on purpose, because the log has
+to arrive in order; and that refusal then sat at the head of the line for ever
+with every real night behind it.
+
+Two things were wrong and both are fixed. The book is now resolved BY THE
+GROUP'S NAME, so two groups are two books. And the lookup is scoped to books
+this account HOSTS — since `0007_player_identity.sql` an account can also read
+books it is only a member of, so the unfiltered select could return somebody
+else's book, after which every write would be refused by the host policy at the
+head of the queue, permanently, for the same reason.
+
+A rename would have re-created that fault a third way — a club renamed is a
+group the drain has never heard of — so `book.upsert` carries the previous name
+and the drain asks for either.
+
+### B69 — every money rule a host edited stopped at the phone
+
+```
+Screen      E3 deductions, GR6 money rules, and the three rule sheets
+Seen        the bill changed from $170 to $200 on the phone; the server, and
+            therefore every other phone and the audit, still said $170
+Expected    an edited rule reaches the book
+Found       9 Sep, auditing the write points against docs/storage-and-sync.md
+Locked by   npm run check — storageCoverage.test.ts names the op each mutation
+            queues; npm run db:verify — 03_sync_contract.sql
+Status      fixed in 58d81af
+```
+
+`writeRules()` is where every rule edit ends — a rule saved, deleted, switched
+off, a share typed by hand — and it wrote `night.rules_json` and queued nothing.
+`queueRule` had existed since the server half landed and exactly one thing ever
+called it: a night OPENING. So the rules on the server were whatever the night
+was born with, for ever.
+
+The comment on `ruleRow` in `syncRows.ts` had said why that is wrong the whole
+time — *"a rule is the one thing here a host edits, and an edit that never
+reached the server would leave the group's rules describing last month"* —
+sitting above a builder that nothing reached with an edit.
+
+`writeRules` now sends the DIFFERENCE: a rule that did not change queues
+nothing, and a rule that is gone queues a delete under the id its own upsert was
+using, so a rule added and dropped in one evening never reaches the server at
+all. `setClubRules` does the same for the group's standing copy, which had never
+sent anything either.
+
+### B70 — the server thought every night was still live
+
+```
+Screen      X1 watch, and any second device
+Seen        a night counted, settled at the table and paid, reading `live` on
+            the server until the close op drained — and reading `live` for ever
+            if it never did
+Expected    the status the phone is showing
+Found       9 Sep, auditing the write points
+Locked by   npm run check — storageCoverage.test.ts; npm run db:verify —
+            03_sync_contract.sql, which also asserts the constraint below
+Status      fixed in 58d81af
+```
+
+`setStatus()` wrote one local column and queued nothing, so `counting` — the
+moment the cards stop — never left the phone.
+
+**The reason this is not simply "send the row" is a constraint.** The server
+checks `(status = 'settled') = (ended_at is not null)`, so a patch carrying the
+moment the cards stopped onto a night that is still counting is a refused row,
+and a refused row at the head of the queue is B68 again. `sessionPatch`
+therefore has no `ended_at` at all: the ending goes up with the close, where the
+status moves with it, and `03_sync_contract.sql` asserts that the other order is
+rejected.
+
+### B71 — a group's own settings existed on one phone only
+
+```
+Screen      GR7 settings, and every screen that draws a figure
+Seen        reinstall, sign in, fetch your nights: every night comes back, and
+            the group's currency, buy-in, blinds and rounding come back at the
+            app's defaults
+Expected    the group as it was set up
+Found       9 Sep, auditing the write points
+Locked by   npm run check — storageCoverage.test.ts, pull.test.ts;
+            npm run db:verify — 03_sync_contract.sql, 05_member_read.sql
+Status      fixed in 58d81af
+```
+
+`renameClub`, `setClubCurrency`, `setClubBuyIn`, `setClubRounding` and
+`setClubStakes` all wrote SQLite and queued nothing. `book` had a name, a
+currency GLYPH and a rounding mode; the phone stores an ISO code, a buy-in and
+the blinds, and two of those three had no column anywhere to land in.
+
+This is the worst kind of missing data, because it comes back looking right: a
+book restored at `USD 500` reads as a group that plays for dollars rather than
+as a group whose settings were lost.
+
+`0014` adds `currency_code`, `default_buyin` and `stakes` to `book`;
+`book.upsert` sends them, and the pull reads them back — but only into a club it
+has to MAKE. A club this phone already has keeps its own answers, because
+settings travel up exactly as names do, and a pull that wrote them back would
+make the two ends argue with the winner decided by whichever ran last.
+
+### B72 — a night pulled back was always called "Tonight"
+
+```
+Screen      Home, with two tables running
+Seen        two cards, both saying Tonight, on any phone that read the book
+            rather than recorded it
+Expected    the names the host gave the tables
+Found       9 Sep, auditing the write points
+Locked by   npm run check — syncRows.test.ts (the session row's columns),
+            pull.test.ts; npm run db:verify — 03_sync_contract.sql
+Status      fixed in 58d81af
+```
+
+`night.table_name` exists precisely because a club can run two at once and the
+group's name cannot tell them apart. `session` had no such column, so it was
+lost on the way up, and every pulled night came back at the default — including
+the one the host had renamed to stop exactly this confusion.
+
+`0014` adds `session.table_name`. It goes up with the night when it opens, and
+as a `session.patch` when a second table opening renames the first — that rename
+is a write to a night the server already has.
+
+### B73 — the roster's removals and the who-has-paid ticks were lost with the phone
+
+```
+Screen      GR4 players, O2 member, E7 who has paid
+Seen        a second phone offers a seat to somebody removed from the roster a
+            month ago; a reinstalled phone shows a settled night with every
+            payment tick empty
+Expected    both, as the host left them
+Found       9 Sep, auditing the write points
+Locked by   npm run check — storageCoverage.test.ts, syncRows.test.ts;
+            npm run db:verify — 03_sync_contract.sql, 05_member_read.sql
+Status      fixed in 58d81af
+```
+
+Three flags with no home on the server: `pays_kitty`, `removed`, and the row of
+E7 ticks in `night_payment`.
+
+`0014` gives the first two columns on `player` — `removed_at` rather than a
+delete, because every night that names somebody still points at their row — and
+the third a table of its own, `transfer_payment`.
+
+**Storing who has paid is not the workflow principle 4 rules out.** That
+principle is about the FIGURES: a night is final the moment it is counted,
+deducted and settled, and nothing about payment moves a number afterwards. It
+still does not — nothing in `packages/core` reads this table and a night settles
+identically with every row and with none. But the host taps those ticks on E7
+today, and they were being kept where a reinstall took them.
+
 ### B47 — the "invited" badge cannot appear, and a claimed seat never stops saying "no app"
 
 ```

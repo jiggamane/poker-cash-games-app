@@ -23,7 +23,7 @@ container's network policy denies it — so these two steps have to happen here.
 ## Step 1 — apply the database schema
 
 **Before anything else, find out what is already there.** This project has been
-set up more than once and the schema has grown to thirteen migrations, so the
+set up more than once and the schema has grown to fourteen migrations, so the
 question is never "has it been applied" but "how far".
 
 Paste the whole of `supabase/state-check.sql` into the SQL Editor and run it. It
@@ -35,7 +35,7 @@ migration saying `ok` or `MISSING`, with the file to run in the last column.
 ----+-------------------------------------------+---------+-----------------------------------
   1 | 0001 schema, append-only ledger, policies | ok      | run supabase/migrations/0001_init.sql
  ...
- 13 | 0013 the night carries its rounding       | MISSING | run supabase/migrations/0013_night_rounding.sql
+ 14 | 0014 group settings, table name, roster, who has paid | MISSING | run supabase/migrations/0014_the_whole_book.sql
 ```
 
 Then:

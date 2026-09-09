@@ -12,7 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0013.
+-- Last checked against migrations 0001–0014.
 -- =============================================================================
 
 with c as (
@@ -91,12 +91,20 @@ probe as (
      and exists (select 1 from p where proname = 'night_header'
                                    and pg_get_function_result(oid) like '%rounding_mode%')) as m13,
 
+    -- 0014 the rest of what the phone knows: the group's own settings, which
+    -- table is which, the roster's standing answers, and who has paid
+    (exists (select 1 from c where table_name = 'book'
+                               and column_name = 'currency_code')
+     and exists (select 1 from c where table_name = 'player'
+                                   and column_name = 'pays_kitty')
+     and to_regclass('public.transfer_payment') is not null) as m14,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
         and table_name in ('book','player','session','session_seat','ledger_entry',
                            'money_rule','final_count','settlement','share_grant',
-                           'player_invite')) = 10 as tables_ok,
+                           'player_invite','transfer_payment')) = 11 as tables_ok,
 
     not exists (select 1 from pg_tables
                  where schemaname = 'public' and not rowsecurity) as rls_ok,
@@ -125,7 +133,9 @@ select v.n,
     (11, '0011 preview shows the host',               x.m11, 'run supabase/migrations/0011_preview_host.sql'),
     (12, '0012 invite lifetime + seat reset',         x.m12, 'run supabase/migrations/0012_invite_lifetime_and_reset.sql'),
     (13, '0013 the night carries its rounding',       x.m13, 'run supabase/migrations/0013_night_rounding.sql'),
-    (90, 'all ten tables present',                    x.tables_ok,     'a migration above is missing — fix those first'),
+    (14, '0014 group settings, table name, roster, who has paid',
+                                                      x.m14, 'run supabase/migrations/0014_the_whole_book.sql'),
+    (90, 'all eleven tables present',                    x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),
     (93, 'CHECK BY HAND — Auth > Hooks > Customize Access Token > public.custom_access_token_hook, and Auth > Sign In/Providers > Anonymous sign-ins', false, 'neither toggle is visible from SQL. See docs/auth-test-period.md steps 2 and 3.')
