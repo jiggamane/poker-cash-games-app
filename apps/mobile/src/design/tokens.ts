@@ -231,6 +231,22 @@ export interface Theme {
   menu: string;
   /** The checked row inside it. */
   menuActive: string;
+
+  /*
+   * MY STATS' GRAPH — `design/handoff-sessions-stats/`, cut 9 September.
+   *
+   * `breakEven` is the ONE new hue in this app, and it earns the exception the
+   * top of this file refuses everyone else. A night that finished at exactly
+   * zero has no height to draw: the rule is `height = |result| × k`, and at
+   * zero that is nothing at all. Drawing it green would call a level night a
+   * win and red a loss, and drawing nothing would lose the night from a graph
+   * of eight. So it gets 2px above the baseline and 2px below, in a colour
+   * that is neither — and it is the only column that labels itself, because it
+   * is the only one whose height says nothing.
+   */
+  breakEven: string;
+  /** The tapped column's slice of the chart baseline, and only that slice. */
+  baselineTapped: string;
 }
 
 export const darkTheme: Theme = {
@@ -286,6 +302,8 @@ export const darkTheme: Theme = {
   annotationTint: '#15151A',
   menu: '#191920',
   menuActive: '#22222A',
+  breakEven: '#E8B84B',
+  baselineTapped: 'rgba(255,255,255,0.28)',
   previewRule: 'rgba(255,255,255,0.13)',
 };
 
@@ -359,6 +377,10 @@ export const lightTheme: Theme = {
   annotationTint: '#EFEFF2',
   menu: '#FFFFFF',
   menuActive: '#E8E8ED',
+  /* ⚠ DERIVED, like the four above it: the amber darkened until it clears the
+     contrast floor on paper, and the baseline slice inverted. */
+  breakEven: '#9A7714',
+  baselineTapped: 'rgba(12,13,15,0.28)',
   previewRule: 'rgba(12,13,15,0.13)',
 };
 

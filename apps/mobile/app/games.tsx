@@ -1,133 +1,126 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { type Money } from '@poker-club/core';
-import { formatSigned, formatSignedToFit } from '../src/lib/money';
-import { Icon } from '../src/components/Icon';
-import { ScoreLine } from '../src/components/ScoreBreakdown';
+import { StyleSheet, Text, View } from 'react-native';
+import { Dropdown, MENU_DIM, type DropdownItem } from '../src/components/Dropdown';
+import { GameRow } from '../src/components/GameRow';
 import { Screen } from '../src/components/Screen';
-import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
+import { useTheme } from '../src/design/useTheme';
+import { space, type } from '../src/design/tokens';
+import { ALL_GROUPS, scopeLabel, setScope, useScope } from '../src/lib/bookStore';
+import { SAMPLE_HISTORY } from '../src/data/sampleHistory';
+import { formatNightDate, mostRecentFirst, readBook } from '../src/lib/myStats';
 import { myNights, useNight } from '../src/lib/nightStore';
 
-const PERIODS = ['Month', 'Year', 'All time'] as const;
-type Period = (typeof PERIODS)[number];
-
 /**
- * My games — 1A and 1B. Rev 10.
+ * SESSIONS — `design/handoff-sessions-stats/`, frame `1a`, cut 9 September.
  *
- * The list behind My stats: every night of yours, most recent first, each one
- * opening the night's results as a sheet over this. A row reads club and
- * session times and nothing else — the buy-in and the duration belong to the
- * night, not to a list of them — and a night of this club you sat out reads
- * "did not play" in the same place.
+ * Every night they have played, newest first, one row each, and tapping a row
+ * opens that night's result. It is the destination My stats' `See all` leads
+ * to, and it is a PUSH from the club root with **nothing in the top-right**.
+ *
+ * THE WHOLE SCREEN IS THE LIST. A back row, a title, a meta line with the group
+ * dropdown pushed right, and then rows — no card, no summary, no chart. My
+ * stats is where the figures are; this is where the nights are, and the two
+ * exist separately so that neither has to be a worse version of the other.
+ *
+ * ⚠ IT WAS `My games` UNTIL TODAY, with a 40-point period total at the top of
+ * it and three period tabs of its own. Both moved to My stats, which is where
+ * the handoff puts every figure and where the app already drew the same three
+ * tabs — two screens each carrying their own copy of one total is the drift
+ * this cut ends. The screen is `Sessions` now, top to bottom, and the club
+ * root's row has said `Sessions` since rev 10.
+ *
+ * NOTHING HERE ADDS ANYTHING UP. Every net is `myNights`', off the engine.
  */
-export default function MyGames() {
+export default function Sessions() {
   const t = useTheme();
   const night = useNight();
-  const [period, setPeriod] = useState<Period>('Month');
+  const scope = useScope();
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const nights = myNights(night, period === 'Month' ? 31 : period === 'Year' ? 365 : null);
-  const played = nights.filter((n) => n.played);
-  const total = played.reduce((sum, n) => sum + n.result, 0) as Money;
-  const average = played.length === 0 ? 0 : Math.round(total / played.length);
+  /*
+   * EVERY NIGHT THIS READER HAS PLAYED, newest first — the phone's own settled
+   * night and the seeded history behind it, assembled by `readBook` so that
+   * this screen and My stats cannot hold different books. `See all` leading
+   * from a list of eight to a list of none is what that function is for.
+   */
+  const all = useMemo(() => {
+    const mine = myNights(night, null)
+      .filter((n) => n.played)
+      .map((n) => ({
+        id: n.sessionId,
+        startedAt: n.startedAt,
+        group: n.groupName,
+        net: n.result,
+        minutes: n.minutes,
+        players: n.players,
+        terms: n.terms,
+      }));
+    return mostRecentFirst(readBook(mine, SAMPLE_HISTORY));
+  }, [night]);
+
+  /* Every club the reader has a night in, in the order they last played one.
+     A reader with one club sees the control as a label — see `Dropdown`. */
+  const groups = useMemo(() => {
+    const seen: string[] = [];
+    for (const n of all) if (!seen.includes(n.group)) seen.push(n.group);
+    return seen;
+  }, [all]);
+
+  const nights = scope === ALL_GROUPS ? all : all.filter((n) => n.group === scope);
+
+  const options: Array<DropdownItem<string>> = [
+    { value: ALL_GROUPS, label: scopeLabel(ALL_GROUPS) },
+    ...groups.map((g) => ({ value: g, label: g })),
+  ];
 
   return (
-    <Screen title="My games" backTo="the club">
-      <View style={[styles.card, { backgroundColor: t.surface }]}>
-        <View style={styles.cardTop}>
-          <Text style={[styles.cardLabel, { color: t.muted }]}>
-            {period === 'All time' ? 'All time' : `This ${period.toLowerCase()}`}
-          </Text>
-          <View style={styles.tabs}>
-            {PERIODS.map((p) => (
-              <Pressable
-                key={p}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: p === period }}
-                onPress={() => setPeriod(p)}
-                style={[styles.tab, p === period && { borderBottomWidth: 1.5, borderBottomColor: t.text }]}
-              >
-                <Text
-                  style={[
-                    p === period ? styles.tabOn : styles.tabOff,
-                    { color: p === period ? t.text : t.muted },
-                  ]}
-                >
-                  {p}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        <Text
-          style={[styles.figure, { color: moneyColor(t, total) }]}
-          numberOfLines={1}
-          {...cappedFigure}
-        >
-          {formatSignedToFit(total, HEAD_FITS)}
-        </Text>
-        <Text style={[styles.meta, { color: t.muted }]}>
-          played {played.length} {played.length === 1 ? 'game' : 'games'} / av.{' '}
-          {formatSigned(average as Money)} per game
-        </Text>
-      </View>
-
-      {/*
-       * EVERY NIGHT AS THE RESULTS ROW — `design/handoff-score-breakdown/`,
-       * frame `6c`, cut 8 September, and the same `ScoreBreakdown` that draws a
-       * player on `/settled` and a night on `/stats`. The date is the name and
-       * your own net is the score.
-       *
-       * AND THE ROW OPENS THE NIGHT. It stopped for half a day — B65 — because
-       * the board's rolled-up row itemises in place, and this screen is the one
-       * place in the app where that reading does real damage: Sessions is how a
-       * person reaches a night, and a Sessions list that opens nothing is a
-       * dead end. `NightRow` on `/stats` has the whole of it.
-       *
-       * A NIGHT YOU SAT OUT KEEPS ITS OLD ROW, and it opens the night too.
-       * There is no result and nothing to itemise, so it says so where the
-       * figure would be — a `$0` would be a claim about an evening that never
-       * happened to you — but the night itself is still worth reading.
-       */}
-      <View style={styles.list}>
-        {[...nights].reverse().map((n) =>
-          n.played ? (
-            <ScoreLine
-              key={n.sessionId}
-              name={n.date}
-              meta={`${n.groupName} · ${n.times}`}
-              net={n.result}
-              terms={n.terms}
-              layout="rolled"
+    <Screen
+      title="Sessions"
+      meta={metaLine(nights.length)}
+      metaTrailing={
+        <Dropdown
+          testID="sessions-scope"
+          items={options}
+          value={scope}
+          open={menuOpen}
+          onOpenChange={setMenuOpen}
+          onPick={setScope}
+          accessibilityLabel={`Showing ${scopeLabel(scope)}. Change the group.`}
+        />
+      }
+      backTo="the club"
+      /* The list IS the screen, so the head goes down with it: one flick clears
+         the chrome instead of scrolling rows under a pinned title. */
+      headScroll="all"
+    >
+      {/* Everything behind an open menu drops to 32%, and tapping it closes the
+          menu rather than opening a night. */}
+      <View style={menuOpen && { opacity: MENU_DIM }} pointerEvents={menuOpen ? 'none' : 'auto'}>
+        <View style={styles.list}>
+          {nights.map((n) => (
+            <GameRow
+              key={n.id}
+              date={formatNightDate(n.startedAt, true)}
+              net={n.net}
+              /* NO GROUP NAME HERE. Under `All groups` the list mixes clubs and
+                 the row could say which — but Sessions is where a reader goes
+                 to find one night among many, and eight repetitions of the same
+                 club name is the noise the cut took the rules out for. `Last
+                 games` on My stats is the sample that names them. */
+              {...(n.players === undefined ? {} : { players: n.players })}
+              minutes={n.minutes}
               testID="games-night"
               onPress={() => router.push('/settled')}
             />
-          ) : (
-            <Pressable
-              key={n.sessionId}
-              accessibilityRole="button"
-              onPress={() => router.push('/settled')}
-              style={({ pressed }) => [
-                styles.sat,
-                { borderTopColor: t.hairline, opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <View style={styles.rowText}>
-                <Text style={[styles.rowDate, { color: t.text }]}>{n.date}</Text>
-                <Text style={[styles.rowMeta, { color: t.muted }]}>
-                  {`${n.groupName} · did not play`}
-                </Text>
-              </View>
-              <Icon name="chevron" color={t.dim} size={13} />
-            </Pressable>
-          ),
-        )}
+          ))}
+        </View>
 
         {nights.length === 0 && (
           <Text style={[styles.empty, { color: t.muted }]}>
-            Nothing in this period. A night appears here once it has been settled.
+            {scope === ALL_GROUPS
+              ? 'No nights yet. One appears here the moment it is settled.'
+              : `No nights with ${scope} yet.`}
           </Text>
         )}
       </View>
@@ -135,51 +128,22 @@ export default function MyGames() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    marginTop: 20,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: radius.card,
-    gap: 6,
-  },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  cardLabel: { fontSize: 12.5, fontWeight: '600' },
-  tabs: { flexDirection: 'row', gap: 12, marginLeft: 'auto' },
-  tab: { paddingBottom: 3 },
-  tabOff: { fontSize: 11.5, fontWeight: '500' },
-  tabOn: { fontSize: 11.5, fontWeight: '700' },
-  figure: { fontSize: 40, fontWeight: '800', letterSpacing: -1.6, fontVariant: ['tabular-nums'] },
-  meta: { fontSize: 13, fontWeight: '400' },
-
-  list: { marginHorizontal: space.page },
-  /* A night you sat out: the results row's frame with nothing in it to draw. */
-  sat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  /* Grows, so the chevron takes the right-hand edge rather than sitting
-     against the text. */
-  rowText: { gap: 3, flexShrink: 1, flexGrow: 1, minWidth: 0 },
-  rowDate: type.rowName,
-  rowMeta: type.rowDetail,
-  empty: { ...type.footnote, paddingHorizontal: 4, paddingTop: 8 },
-});
-
-/*
- * WHERE THE HEADLINE RUNS OUT OF ROOM.
+/**
+ * `28 nights · newest first`.
  *
- * 40/800 is the widest type in the app, inside a card 20 in from each edge with
- * 18 of padding — about 264 points on a 360 phone. That holds seven glyphs and
- * not the eight a table in the millions produces, and this total only ever goes
- * up: it is every night the reader has played, added together.
- *
- * The exact figure is never lost. Every night that makes it up is a row in the
- * list below with its own result printed in full.
+ * THE COUNT IS THE COUNT OF ROWS DRAWN, not of nights that exist: it is under
+ * a group filter, and a line saying 28 over a list of 6 would be the header
+ * disagreeing with the screen. `newest first` is the order stated rather than
+ * implied, because the alternative is a reader checking the first two dates.
  */
-const HEAD_FITS = 100_000;
+function metaLine(nights: number): string {
+  if (nights === 0) return 'no nights yet';
+  return `${nights} ${nights === 1 ? 'night' : 'nights'} · newest first`;
+}
+
+const styles = StyleSheet.create({
+  /* Side margin 22, and no gap: the rows are 60 tall and their own height is
+     the separation. Anything added here is the fencing the cut removed. */
+  list: { marginHorizontal: space.page },
+  empty: { ...type.footnote, marginHorizontal: space.page, paddingTop: 8 },
+});

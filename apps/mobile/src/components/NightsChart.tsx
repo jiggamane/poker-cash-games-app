@@ -1,185 +1,278 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { type Money } from '@poker-club/core';
 import { formatSigned } from '../lib/money';
+import { largestResult, plotBar } from '../lib/nightsChart';
 import { useTheme } from '../design/useTheme';
-import { cappedFigure, unscaledLabel, radius, space, type } from '../design/tokens';
-import { largestResult, niceScale, plotBar } from '../lib/nightsChart';
+import { cappedFigure, tabular, unscaledLabel } from '../design/tokens';
 
 /**
- * Result per night — a column for each night, above or below a zero line.
+ * RESULT PER NIGHT — `design/handoff-sessions-stats/`, frames `2a` and `3a`,
+ * cut 9 September. The one chart in the app.
  *
- * The one chart in the app, and the only place a figure is drawn as a size
- * rather than written down. Two things make the size mean something:
+ * Eight columns over a 1px baseline: a 38-point band above it, a 38-point band
+ * below, and the date under that. `nightsChart.ts` owns every height — a bar
+ * computed inline is a bar nobody can test, and this is the only place in the
+ * app where money is drawn as a SIZE rather than written down. If the size and
+ * the money stop agreeing the chart lies quietly, which is worse than a wrong
+ * number on screen because nobody proof-reads a rectangle.
  *
- *   THE LINE IS ZERO, drawn all the way across. A night you won stands on it, a
- *   night you lost hangs from it. You can find the losing nights without
- *   reading a single figure, and without relying on the colour.
+ * TAPPING A COLUMN READS IT OUT. The figure appears where the caption is, the
+ * bar goes to full colour, its date label goes white and its slice of the
+ * baseline brightens — all four together, and they leave together, so the graph
+ * is never left holding a highlight with no number beside it.
  *
- *   ONE SCALE, BOTH WAYS. Every bar is drawn against the same pixels-per-dollar,
- *   taken from the biggest night in the set, and it is the same above and below.
- *   So bars can be compared with each other in both directions, and the plot
- *   keeps its bottom half even in a month with no losing night — squashing it
- *   would silently double the scale of the wins, and a month of losses drawn
- *   identically to a month of wins is exactly the lie this chart prevents.
+ * ONE STATE, ONE TIMER, counting from the LAST tap:
  *
- * NO FIGURES ON THE CHART. It answers "how have the last few nights gone",
- * which is a shape, and every actual amount is written down in the list
- * underneath. Money on the axis as well only crowds the shape it is describing.
+ *     0ms          everything arrives; the caption cross-fades to the figure
+ *                  over 120ms. No movement, no scale, no bounce.
+ *     0 → 2750ms   the hold. Every new tap resets it; tapping a different bar
+ *                  swaps the figure in place and moves the highlight, with
+ *                  nothing fading out in between.
+ *     → 3150ms     everything leaves together over 400ms.
  *
- * The geometry is in lib/nightsChart.ts and is tested; nothing here does
- * arithmetic beyond laying the results out.
+ * ⚠ THE INTERRUPTS ARE THE CALLER'S. A scroll of more than 8 points, a change
+ * of group or period, or navigating away clears the readout immediately —
+ * `selected` is a prop for exactly that reason, and `/stats` is where those
+ * three things happen. A tap outside the plot is this component's, and it is
+ * the one it can see.
+ *
+ * NOTHING ELSE REACTS. The period figure, Last games and the stat pairs are
+ * unaffected: the tap is a read, not a filter.
  */
 
-/** Drawable height on ONE side of the line. Both halves are always this tall. */
-const HALF = 44;
-/** The zero line itself, which is a real line and not a hairline. */
-const LINE = 1;
-const PLOT = HALF * 2 + LINE;
-/** Wide enough to be a bar, narrow enough that eight fit across a phone. */
-const BAR = 15;
-const GAP = 4;
-
 export interface ChartNight {
-  /** Stable across renders — the night's own id, not its position. */
   id: string;
-  /** Under the column: "12 Jul". */
+  /** `15 Aug` — the label under the column. The caller formats it. */
   label: string;
-  /** The result, after the bill and the piggy bank. Negative is a losing night. */
   net: Money;
 }
 
+/** The drawable band on ONE side of the baseline. */
+const BAND = 38;
+/** How long the readout holds after the last tap, and how long it takes to go. */
+const HOLD = 2750;
+const FADE_IN = 120;
+const FADE_OUT = 400;
+
 export function NightsChart({
-  nights,
   caption,
+  nights,
+  cleared,
 }: {
-  /** Oldest first, so the chart reads left to right like a calendar. */
+  /** `LAST 8 NIGHTS`. Replaced by the figure while a night is being read. */
+  caption: string;
+  /** Oldest first — the order the columns are drawn in. */
   nights: readonly ChartNight[];
-  /** Above the plot, right-aligned — "result per night". */
-  caption?: string;
+  /**
+   * Bumped by the caller to clear the readout at once: a scroll, a change of
+   * group or period. Any new value drops the selection with the same 400ms
+   * fade and no hold.
+   */
+  cleared?: unknown;
 }) {
   const t = useTheme();
+  const [selected, setSelected] = useState<string | null>(null);
+  const fade = useRef(new Animated.Value(0)).current;
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const scale = niceScale(largestResult(nights.map((n) => n.net)));
+  /* One place the timer is cancelled, so no path can leave one running. */
+  const stopTimer = (): void => {
+    if (timer.current !== null) clearTimeout(timer.current);
+    timer.current = null;
+  };
+
+  useEffect(() => stopTimer, []);
+
+  /* THE INTERRUPT. `cleared` changing means the reader did something that makes
+     the readout stale — it goes with the same fade and no hold. */
+  useEffect(() => {
+    if (selected === null) return;
+    stopTimer();
+    setSelected(null);
+    Animated.timing(fade, {
+      toValue: 0,
+      duration: FADE_OUT,
+      easing: Easing.in(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+    // `selected` is deliberately not a dependency: this fires on the interrupt,
+    // not on every selection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cleared]);
+
+  const read = (id: string): void => {
+    stopTimer();
+    /* A REPEAT TAP RESETS THE TIMER AND DOES NOT RE-ANIMATE. The figure is
+       already fully opaque, so `fade` is left where it is and only the clock
+       starts again. */
+    if (id !== selected) {
+      setSelected(id);
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: FADE_IN,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    }
+    timer.current = setTimeout(() => {
+      Animated.timing(fade, {
+        toValue: 0,
+        duration: FADE_OUT,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) setSelected(null);
+      });
+    }, HOLD);
+  };
+
+  const peak = largestResult(nights.map((n) => n.net));
+  const shown = nights.find((n) => n.id === selected) ?? null;
 
   return (
     <View style={[styles.card, { borderColor: t.hairline }]}>
       <View style={styles.head}>
-        <Text style={[styles.headLabel, { color: t.muted }]}>
-          {nights.length === 1 ? 'Last night' : `Last ${nights.length} nights`}
-        </Text>
-        {caption !== undefined && (
-          <Text style={[styles.headCaption, { color: t.muted }]}>{caption}</Text>
+        {/* THE TWO CROSS-FADE IN PLACE. Both are always laid out — the caption
+            holds the row's height and the figure is absolute over its right
+            end — so nothing moves when they swap. */}
+        <Animated.Text
+          style={[styles.caption, { color: t.muted, opacity: fade.interpolate(FLIP) }]}
+          {...unscaledLabel}
+        >
+          {caption}
+        </Animated.Text>
+        {shown !== null && (
+          <Animated.Text
+            testID="chart-readout"
+            style={[
+              styles.readout,
+              tabular,
+              { color: figureColour(shown.net, t), opacity: fade },
+            ]}
+            {...cappedFigure}
+          >
+            {formatSigned(shown.net)}
+          </Animated.Text>
         )}
       </View>
 
       <View style={styles.plot}>
-        {/* Drawn first, so the bars sit on top of the line rather than under
-            it — a bar that stops one pixel short reads as floating. */}
-        <View style={[styles.zeroLine, { backgroundColor: t.hairline }]} />
+        {nights.map((night) => {
+          const bar = plotBar(night.net, peak, BAND);
+          const on = night.id === selected;
+          /* EVERY BAR BUT THE TAPPED ONE DROPS TO 34% WHILE A TAP IS LIVE —
+             and the break-even mark never does: four points of mark cannot
+             survive being dimmed. */
+          const dimmed = selected !== null && !on && bar.side !== 'even';
+          const paint =
+            bar.side === 'even' ? t.breakEven : night.net > 0 ? t.win : t.loss;
 
-        <View style={styles.columns}>
-          {nights.map((night) => {
-            const bar = plotBar(night.net, scale, HALF);
-            // A full 3px radius on a 3px bar is a lozenge, and a lozenge reads
-            // as a dot rather than as a short bar. Small nights keep their
-            // corners so they still read as a measured height.
-            const corner = Math.min(3, Math.floor(bar.height / 3));
-            return (
-              <View
-                key={night.id}
-                accessible
-                accessibilityLabel={`${night.label}, ${formatSigned(night.net)}`}
-                style={styles.column}
-              >
-                <View style={styles.above}>
-                  {bar.side === 'above' && (
-                    <View
-                      style={[
-                        styles.bar,
-                        {
-                          height: bar.height,
-                          backgroundColor: t.win,
-                          borderTopLeftRadius: corner,
-                          borderTopRightRadius: corner,
-                        },
-                      ]}
-                    />
-                  )}
-                </View>
-                <View style={styles.gap} />
-                <View style={styles.below}>
-                  {bar.side === 'below' && (
-                    <View
-                      style={[
-                        styles.bar,
-                        {
-                          height: bar.height,
-                          backgroundColor: t.loss,
-                          borderBottomLeftRadius: corner,
-                          borderBottomRightRadius: corner,
-                        },
-                      ]}
-                    />
-                  )}
-                </View>
+          return (
+            <Pressable
+              key={night.id}
+              testID="chart-column"
+              accessibilityRole="button"
+              accessibilityLabel={`${night.label}, ${formatSigned(night.net)}`}
+              onPress={() => read(night.id)}
+              style={styles.column}
+            >
+              <View style={styles.above}>
+                {(bar.side === 'above' || bar.side === 'even') && (
+                  <View
+                    style={[
+                      styles.bar,
+                      styles.barAbove,
+                      { height: bar.height, backgroundColor: paint, opacity: dimmed ? 0.34 : 1 },
+                    ]}
+                  />
+                )}
               </View>
-            );
-          })}
-        </View>
-      </View>
 
-      <View style={styles.dates}>
-        {nights.map((night) => (
-          /*
-           * THE AXIS DOES NOT SCALE. Eight dates share the plot's width, so each
-           * has about 32 points at 360 and "15 Aug" needs 30 of them. A tenth
-           * more text and the date reads "15 …", which is worse than a small
-           * date: the chart is furniture, and every figure it stands for is
-           * spelled out in full in the list underneath it. See B18.
-           */
-          <Text
-            key={night.id}
-            numberOfLines={1}
-            {...unscaledLabel}
-            style={[styles.date, { color: t.muted }]}
-          >
-            {night.label}
-          </Text>
-        ))}
+              {/* THE BASELINE IS PER COLUMN, so a tap can brighten its own
+                  slice and nothing else — the handoff's *"the tapped column's
+                  slice only"*. */}
+              <View
+                style={[styles.baseline, { backgroundColor: on ? t.baselineTapped : t.hairline }]}
+              />
+
+              <View style={styles.below}>
+                {(bar.side === 'below' || bar.side === 'even') && (
+                  <View
+                    style={[
+                      styles.bar,
+                      styles.barBelow,
+                      { height: bar.height, backgroundColor: paint, opacity: dimmed ? 0.34 : 1 },
+                    ]}
+                  />
+                )}
+              </View>
+
+              <Text
+                style={[on ? styles.labelOn : styles.label, { color: on ? t.text : t.muted }]}
+                numberOfLines={1}
+                {...unscaledLabel}
+              >
+                {night.label}
+              </Text>
+
+              {/* THE ONLY COLUMN THAT LABELS ITSELF, because it is the only one
+                  whose height says nothing. 2 points above its upper mark. */}
+              {bar.side === 'even' && (
+                <Text style={[styles.zero, tabular, { color: t.breakEven }]} {...cappedFigure}>
+                  {formatSigned(0 as Money)}
+                </Text>
+              )}
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
 }
 
+/** The readout takes the night's own colour, and yellow at exactly nothing. */
+function figureColour(net: Money, t: ReturnType<typeof useTheme>): string {
+  if (net === 0) return t.breakEven;
+  return net > 0 ? t.win : t.loss;
+}
+
+/** The caption is opaque when the figure is not, and the other way round. */
+const FLIP = { inputRange: [0, 1], outputRange: [1, 0] };
+
 const styles = StyleSheet.create({
+  /* `0 20px 12px` · `14px 14px 10px` · radius 12, 1px hairline. */
   card: {
-    marginHorizontal: space.card,
+    marginHorizontal: 20,
     marginBottom: 12,
     paddingTop: 14,
-    paddingBottom: 10,
     paddingHorizontal: 14,
-    borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
+    paddingBottom: 10,
+    borderRadius: 12,
+    borderWidth: 1,
   },
+  head: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    paddingHorizontal: 4,
+    paddingBottom: 8,
+    minHeight: 22,
+  },
+  caption: { fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
+  readout: { marginLeft: 'auto', fontSize: 14, fontWeight: '700' },
 
-  head: { flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingHorizontal: 4, paddingBottom: 10 },
-  headLabel: type.sectionLabel,
-  headCaption: { ...type.footnote, marginLeft: 'auto' },
+  plot: { flexDirection: 'row', alignItems: 'stretch', gap: 4, paddingHorizontal: 2 },
+  column: { flex: 1, alignItems: 'center' },
+  above: { height: BAND, width: '100%', alignItems: 'center', justifyContent: 'flex-end' },
+  below: { height: BAND, width: '100%', alignItems: 'center', justifyContent: 'flex-start' },
+  baseline: { height: 1, width: '100%' },
+  bar: { width: 15 },
+  barAbove: { borderTopLeftRadius: 3, borderTopRightRadius: 3 },
+  barBelow: { borderBottomLeftRadius: 3, borderBottomRightRadius: 3 },
 
-  plot: { height: PLOT, paddingHorizontal: 2 },
-  zeroLine: { position: 'absolute', left: 0, right: 0, top: HALF, height: LINE },
-
-  columns: { flexDirection: 'row', alignItems: 'stretch', gap: GAP, height: PLOT },
-  column: { flex: 1 },
-  above: { height: HALF, justifyContent: 'flex-end', alignItems: 'center' },
-  gap: { height: LINE },
-  below: { height: HALF, justifyContent: 'flex-start', alignItems: 'center' },
-
-  // Rounded at the end away from the line only — the corner radius is set on
-  // the bar itself. The line is where the money is measured from, and a rounded
-  // foot would lift the bar off it.
-  bar: { width: BAR },
-
-  dates: { flexDirection: 'row', gap: GAP, paddingTop: 5, paddingHorizontal: 2 },
-  date: { flex: 1, textAlign: 'center', fontSize: 9.5, fontWeight: '500' },
+  label: { fontSize: 9.5, fontWeight: '500', paddingTop: 4 },
+  labelOn: { fontSize: 9.5, fontWeight: '600', paddingTop: 4 },
+  /* Above its own upper mark, which is `BAND` from the top of the column. */
+  zero: { position: 'absolute', top: BAND - 20, fontSize: 14, fontWeight: '700' },
 });

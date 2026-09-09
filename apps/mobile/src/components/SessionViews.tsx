@@ -14,6 +14,7 @@ import {
   sessionViewLabel,
   type SessionView,
 } from '../lib/sessionViewStore';
+import { Dropdown } from './Dropdown';
 import { Icon, type IconName } from './Icon';
 import { moneyColor, useTheme } from '../design/useTheme';
 import { cappedFigure, radius, space, tabular, unscaledLabel, type Theme } from '../design/tokens';
@@ -365,65 +366,27 @@ export function ViewControl({
   onOpenChange: (open: boolean) => void;
   onPick: (v: SessionView) => void;
 }) {
-  const t = useTheme();
-  const setOpen = (next: boolean): void => onOpenChange(next);
-
   return (
-    <View style={styles.control}>
-      <Pressable
-        testID="session-view-control"
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
-        accessibilityLabel={`Reading ${sessionViewLabel(view)}. Change the view.`}
-        onPress={() => setOpen(!open)}
-        style={[styles.controlButton, { backgroundColor: open ? t.raised : t.surface }]}
-      >
-        <Text style={[styles.controlLabel, { color: open ? t.text : t.offTable }]}>
-          {sessionViewLabel(view)}
-        </Text>
-        <Icon name={open ? 'chevronUp' : 'chevronDown'} color={t.muted} size={11} />
-      </Pressable>
-
-      {open && (
-        <View
-          testID="session-view-menu"
-          style={[styles.menu, { backgroundColor: t.menu, borderColor: t.sheetEdge }]}
-        >
-          {SESSION_VIEWS.map((v) => {
-            const on = v === view;
-            return (
-              <Pressable
-                key={v}
-                accessibilityRole="menuitem"
-                accessibilityState={{ selected: on }}
-                onPress={() => {
-                  onPick(v);
-                  setOpen(false);
-                }}
-                style={[styles.menuRow, on && { backgroundColor: t.menuActive }]}
-              >
-                <View style={styles.check}>
-                  {on && <Icon name="check" color={t.offTable} size={13} />}
-                </View>
-                <View style={styles.menuText}>
-                  <Text style={[on ? styles.menuLabelOn : styles.menuLabel, { color: t.offTable }]}>
-                    {sessionViewLabel(v)}
-                  </Text>
-                  <Text style={[styles.menuHint, { color: t.annotation }]}>
-                    {sessionViewHint(v)}
-                  </Text>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
-      )}
-    </View>
+    <Dropdown
+      testID="session-view-control"
+      items={SESSION_VIEWS.map((v) => ({
+        value: v,
+        label: sessionViewLabel(v),
+        hint: sessionViewHint(v),
+      }))}
+      value={view}
+      open={open}
+      onOpenChange={onOpenChange}
+      onPick={onPick}
+      accessibilityLabel={`Reading ${sessionViewLabel(view)}. Change the view.`}
+    />
   );
 }
 
-/** The 32% the list and the block drop to while the menu is open. */
-export const MENU_DIM = 0.32;
+/* The 32% the list and the block drop to is `Dropdown`'s, and re-exported here
+   so a screen drawing this control does not have to know which file owns the
+   number. One value, one place. */
+export { MENU_DIM } from './Dropdown';
 
 /**
  * THE BLOCK UNDER THE TABLE — `DEDUCTIONS` on both Final views.
@@ -681,43 +644,10 @@ const styles = StyleSheet.create({
 
   /* The control lives in the meta line and the menu hangs off it, so this is
      the positioned parent and nothing above it needs to know. */
-  control: { marginLeft: 'auto', position: 'relative', alignItems: 'flex-end' },
-  controlButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingLeft: 11,
-    paddingRight: 10,
-    borderRadius: radius.pressable,
-  },
-  controlLabel: { fontSize: 13, fontWeight: '600' },
+  /* The control and its menu are `Dropdown`'s — see `ViewControl` above. Their
+     geometry lived here until 9 September, when a second screen wanted the same
+     object and a third one wanted it twice. */
 
-  /* 226 wide, 34 below the control, right-aligned to it. */
-  menu: {
-    position: 'absolute',
-    top: 34,
-    right: 0,
-    width: 226,
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: 'hidden',
-    zIndex: 5,
-    /* `0 18px 40px rgba(0,0,0,.55)` — a menu is the one thing in this app that
-       floats over the screen rather than replacing part of it, so it is the one
-       thing that casts a shadow. */
-    elevation: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.55,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 18 },
-  },
-  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, paddingHorizontal: 13 },
-  check: { width: 13, alignItems: 'center' },
-  menuText: { gap: 1, flexShrink: 1 },
-  menuLabel: { fontSize: 14, fontWeight: '400' },
-  menuLabelOn: { fontSize: 14, fontWeight: '600' },
-  menuHint: { fontSize: 11.5, fontWeight: '400' },
 
   /* `10px 22px 0`, a hairline above, 12 of padding under it, 8 between rows. */
   block: {

@@ -399,6 +399,11 @@ const HEAD_SCROLLS = {
   // the screen; 90 points of pinned chrome cost a row and a half on every
   // phone and say nothing the list does not.
   '/players': 'all',
+  // 9 Sept. Sessions is the list and nothing else — no card, no summary, no
+  // chart — and it runs to every night the reader has played. The same argument
+  // as the roster: pinned chrome over a screen that IS a list costs a row and a
+  // half and says nothing the list does not.
+  '/games': 'all',
   // 8 Sept. The settled night is a ranked list and the ranking IS the content:
   // at eight players it wants every point on the phone, and the head is 97 of
   // them saying the date you already knew. Same argument as the roster, one
@@ -799,6 +804,19 @@ const ROOM = `
       // bone wash, which is a neutral fill and even further from the banded
       // result row B23 is about. Same reasoning, same exception, both themes.
       if (n.getAttribute('data-testid') === 'session-spend-group') break;
+      // AND MY STATS' PERIOD CARD — the third and, by the same reasoning, the
+      // narrowest. B23 is about a LIST of rows banded green and red, where the
+      // band re-states a ranking the figures have already given. This is ONE
+      // card carrying ONE figure, and it is the win colour at 13% whether the
+      // month made money or lost it: it says "here is the answer", not "the
+      // answer is good". The sessions-stats handoff draws it that way and says
+      // why. A losing month on a green wash is the thing to look at if this is
+      // ever reopened.
+      //
+      // NO BACKTICKS IN THIS BLOCK — see the note above check 9. One in a
+      // comment ended the template literal several hundred lines early, which
+      // is a syntax error in the file the gate runs first.
+      if (n.getAttribute('data-testid') === 'period-card') break;
       const paint = getComputedStyle(n).backgroundColor;
       const c = rgb(paint);
       if (c === null || c.a <= 0 || c.a > 0.99) continue;

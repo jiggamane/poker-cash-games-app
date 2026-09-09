@@ -112,7 +112,7 @@ wins over anything older, `design/handoff-2026-08-13/` (rev 14) included. Start
 at its `START-HERE.md`, then `docs/CHANGELOG.md`, which is cumulative and names
 what each revision supersedes.
 
-**Five partial cuts sit on top of it**, each superseding rev 18 only where it
+**Six partial cuts sit on top of it**, each superseding rev 18 only where it
 speaks and nowhere else. Everything rev 18 says about every other screen still
 stands. Read them newest first:
 

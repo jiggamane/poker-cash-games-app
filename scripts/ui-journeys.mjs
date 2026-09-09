@@ -1256,7 +1256,9 @@ async function playANight(name, rebuys) {
   await page.waitForTimeout(500);
   await holds(
     'and the control opens a menu with all three views on it',
-    (await page.locator('[data-testid="session-view-menu"]:visible').count()) === 1 &&
+    /* `Dropdown` names a menu after the control it hangs off, so the two
+       cannot drift apart when a screen renames its control. */
+    (await page.locator('[data-testid="session-view-control-menu"]:visible').count()) === 1 &&
       (await onScreen('every spend itemised')) === 1 &&
       (await onScreen('spends as one figure')) === 1 &&
       (await onScreen('chips in, chips out')) === 1,
