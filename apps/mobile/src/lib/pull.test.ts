@@ -16,21 +16,25 @@ import { READS } from './pullReads';
  * failure.
  */
 describe('what the pull reads', () => {
-  it('names the book by id and group name', () => {
-    expect(READS.book).toBe('id, group_name');
+  it('takes the group as it is SET UP, not only what it is called', () => {
+    expect(READS.book).toBe('id, group_name, currency_code, default_buyin, stakes, rounding_mode');
   });
 
-  it('takes everything a night is opened with, and how it ended', () => {
+  it('takes everything a night is opened with, how it ended, and which table it was', () => {
     expect(READS.session).toBe(
-      'id, started_at, ended_at, status, stakes, default_buyin, rounding_mode',
+      'id, started_at, ended_at, status, stakes, default_buyin, rounding_mode, table_name',
     );
   });
 
-  it('takes only a player’s id and name — never who claimed them', () => {
+  it('takes a player’s name and terms — never who claimed them', () => {
     // `claimed_by_user_id` is deliberately absent. A member reading the roster
     // has no business knowing which of the others have accounts.
-    expect(READS.player).toBe('id, display_name');
+    expect(READS.player).toBe('id, display_name, pays_kitty, removed_at');
     expect(READS.player).not.toContain('claimed_by');
+  });
+
+  it('takes who has paid, which changes no figure and answers E7', () => {
+    expect(READS.transfer_payment).toBe('session_id, from_player_id, to_player_id, paid_at');
   });
 
   it('takes the seat, the count and the whole ledger', () => {
@@ -54,6 +58,7 @@ describe('what the pull reads', () => {
       'session',
       'session_seat',
       'settlement',
+      'transfer_payment',
     ]);
   });
 });

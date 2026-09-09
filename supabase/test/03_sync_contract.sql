@@ -70,9 +70,10 @@ insert into player (id, book_id, display_name) values
   ('c3000000-0000-0000-0000-000000000002', 'c2000000-0000-0000-0000-000000000001', 'Dana'),
   ('c3000000-0000-0000-0000-000000000003', 'c2000000-0000-0000-0000-000000000001', 'Ivo');
 
-insert into session (id, book_id, default_buyin, seat_count, started_at, stakes, status)
+insert into session (id, book_id, default_buyin, seat_count, started_at, stakes, status,
+                    rounding_mode, table_name)
 values ('c4000000-0000-0000-0000-000000000001', 'c2000000-0000-0000-0000-000000000001',
-        500, 6, '2026-08-13T20:05:00Z', '$5 / $5', 'live');
+        500, 6, '2026-08-13T20:05:00Z', '$5 / $5', 'live', null, 'Tonight');
 
 insert into session_seat (session_id, player_id) values
   ('c4000000-0000-0000-0000-000000000001', 'c3000000-0000-0000-0000-000000000001'),
@@ -341,6 +342,146 @@ values
 on conflict (session_id) do nothing;
 
 select expect_eq((select total_off_table from settlement), 212, 'a replayed close changes nothing');
+
+-- =============================================================================
+-- 6. WHAT THE GROUP AND THE NIGHT ARE SET UP AS
+-- =============================================================================
+-- Everything above this line is what HAPPENED. This is what it happened under,
+-- and none of it left the phone until 0014 gave it somewhere to land: a group's
+-- own settings, which table is which, who is still on the roster, and who has
+-- since handed over the money.
+--
+-- Every one of these is a PATCH, replayed here exactly as `sync.ts` sends it —
+-- an update against a row, never an upsert — so that a setting arriving before
+-- the row it describes is a no-op rather than a refused insert at the head of
+-- a queue that halts.
+
+-- --- the group's own settings, from GR7 -------------------------------------
+update book
+   set group_name    = 'The poker club',
+       currency_code = 'CHF',
+       default_buyin = 500,
+       stakes        = '{"small":5,"big":5}',
+       rounding_mode = 'hundreds'
+ where id = 'c2000000-0000-0000-0000-000000000001';
+
+select expect_eq(
+  (select count(*) from book
+    where id = 'c2000000-0000-0000-0000-000000000001'
+      and currency_code = 'CHF' and default_buyin = 500 and rounding_mode = 'hundreds'),
+  1, 'the group''s settings reach the book');
+
+-- The ISO code is checked, so a glyph in the wrong column is refused here
+-- rather than read back as a currency nobody has.
+select expect_rejected(
+  $$update book set currency_code = 'CHF '
+     where id = 'c2000000-0000-0000-0000-000000000001'$$,
+  'a currency code that is not three upper-case letters');
+
+-- --- a group renamed --------------------------------------------------------
+-- The phone never learns a book's id, so `ensureBook` finds it by name and the
+-- rename carries the old one with it. What matters here is only that the name
+-- moves; `sync.ts` holds the lookup.
+update book set group_name = 'Friday' where id = 'c2000000-0000-0000-0000-000000000001';
+select expect_eq(
+  (select count(*) from book where group_name = 'Friday'), 1, 'a group can be renamed');
+update book set group_name = 'The poker club' where id = 'c2000000-0000-0000-0000-000000000001';
+
+-- --- which table this is, and how far through it is --------------------------
+-- A SECOND NIGHT, because the first is settled by now and a settled night is
+-- exactly what these patches must never be sent for: its status, its ending and
+-- its result are one operation, written at the close.
+insert into session (id, book_id, default_buyin, seat_count, started_at, stakes, status,
+                     rounding_mode, table_name)
+values ('c4000000-0000-0000-0000-000000000002', 'c2000000-0000-0000-0000-000000000001',
+        500, 4, '2026-08-20T20:00:00Z', '$5 / $5', 'live', null, 'Tonight');
+
+update session set table_name = 'Main table'
+ where id = 'c4000000-0000-0000-0000-000000000002';
+
+select expect_eq(
+  (select count(*) from session
+    where id = 'c4000000-0000-0000-0000-000000000002' and table_name = 'Main table'),
+  1, 'a table can be renamed when a second one opens');
+
+update session set rounding_mode = 'tens'
+ where id = 'c4000000-0000-0000-0000-000000000002';
+select expect_eq(
+  (select count(*) from session
+    where id = 'c4000000-0000-0000-0000-000000000002' and rounding_mode = 'tens'),
+  1, 'rounding changed mid-night reaches the server');
+
+-- WITHOUT AN ended_at, which is the whole point of `sessionPatch` leaving that
+-- column out: the server checks that a night has one exactly when it is
+-- settled, so stamping it here would be a refused row at the head of the queue.
+update session set status = 'counting' where id = 'c4000000-0000-0000-0000-000000000002';
+select expect_eq(
+  (select count(*) from session
+    where id = 'c4000000-0000-0000-0000-000000000002' and status = 'counting'),
+  1, 'a night can reach counting before it settles');
+
+select expect_rejected(
+  $$update session set ended_at = '2026-08-20T23:52:00Z'
+     where id = 'c4000000-0000-0000-0000-000000000002'$$,
+  'stamping the end on a night that is still counting');
+
+-- --- the roster's standing answers ------------------------------------------
+update player set pays_kitty = false, removed_at = null
+ where id = 'c3000000-0000-0000-0000-000000000004';
+select expect_eq(
+  (select count(*) from player where pays_kitty = false), 1,
+  'somebody who does not pay the kitty is recorded as such');
+
+update player set pays_kitty = true, removed_at = '2026-09-09T18:00:00Z'
+ where id = 'c3000000-0000-0000-0000-000000000004';
+select expect_eq(
+  (select count(*) from player where removed_at is not null), 1,
+  'removing somebody keeps the row every night points at');
+
+-- A patch against a player who is not there yet is a no-op, not an error. That
+-- is why the terms are an update: the alternative halts the queue.
+update player set pays_kitty = false
+ where id = 'c3000000-0000-0000-0000-00000000ffff';
+
+-- --- a rule the group deleted -----------------------------------------------
+delete from money_rule where id = 'c5000000-0000-0000-0000-000000000003'
+   and book_id = 'c2000000-0000-0000-0000-000000000001';
+select expect_eq((select count(*) from money_rule), 2, 'a deleted rule leaves the book');
+
+-- --- who has actually paid --------------------------------------------------
+insert into transfer_payment (session_id, from_player_id, to_player_id, paid_at)
+values ('c4000000-0000-0000-0000-000000000001',
+        'c3000000-0000-0000-0000-000000000003',
+        'c3000000-0000-0000-0000-000000000002', '2026-08-15T09:00:00Z')
+on conflict (session_id, from_player_id, to_player_id) do update
+  set paid_at = excluded.paid_at;
+
+select expect_eq((select count(*) from transfer_payment), 1, 'a tick reaches the server');
+
+-- Ticking again is the same tick, not a second one.
+insert into transfer_payment (session_id, from_player_id, to_player_id, paid_at)
+values ('c4000000-0000-0000-0000-000000000001',
+        'c3000000-0000-0000-0000-000000000003',
+        'c3000000-0000-0000-0000-000000000002', '2026-08-15T10:00:00Z')
+on conflict (session_id, from_player_id, to_player_id) do update
+  set paid_at = excluded.paid_at;
+select expect_eq((select count(*) from transfer_payment), 1, 'ticking twice is one row');
+
+-- Nobody pays themselves.
+select expect_rejected(
+  $$insert into transfer_payment (session_id, from_player_id, to_player_id, paid_at)
+    values ('c4000000-0000-0000-0000-000000000001',
+            'c3000000-0000-0000-0000-000000000002',
+            'c3000000-0000-0000-0000-000000000002', '2026-08-15T09:00:00Z')$$,
+  'a transfer from somebody to themselves');
+
+-- THE DOOR GOES BOTH WAYS — B21. Un-ticking deletes the row, which is why this
+-- is the one table besides the invites that takes a DELETE policy at all.
+delete from transfer_payment
+ where session_id = 'c4000000-0000-0000-0000-000000000001'
+   and from_player_id = 'c3000000-0000-0000-0000-000000000003'
+   and to_player_id = 'c3000000-0000-0000-0000-000000000002';
+select expect_eq((select count(*) from transfer_payment), 0, 'a tick can be taken back');
 
 reset role;
 reset request.jwt.claims;

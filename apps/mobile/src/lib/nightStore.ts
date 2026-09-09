@@ -26,7 +26,16 @@ import {
 import { formatMoney } from './money';
 import { CLAIM_LIVE_NIGHTS } from './hostSeat';
 import { outbox, recordEntry } from './ledgerRepo';
-import { queueClose, queueCount, queuePlayer, queueSessionOpen } from './sync';
+import {
+  queueClose,
+  queueCount,
+  queuePayment,
+  queuePlayer,
+  queueRule,
+  queueRuleDelete,
+  queueSessionOpen,
+  queueSessionPatch,
+} from './sync';
 import { closeOf } from './closing';
 import { sampleSessionId } from './queueable';
 import {
@@ -1339,6 +1348,23 @@ export async function setPaid(from: PlayerId, to: PlayerId, paid: boolean): Prom
   if (row === null) return;
   night = await readNight(row);
   emit();
+
+  /*
+   * AND IT LEAVES THE PHONE, since `transfer_payment` exists to receive it.
+   * These ticks were the last thing the app collected and never sent: a host
+   * who reinstalls after a night has been settled but not yet paid for gets
+   * every figure back and no memory of who has handed over the money, which is
+   * the one question that row of ticks exists to answer.
+   *
+   * It changes no figure — nothing in `packages/core` reads it — so this is
+   * still the same night whether it arrives or not.
+   */
+  await queuePayment({
+    sessionId: night.sessionId,
+    fromPlayerId: from,
+    toPlayerId: to,
+    paidAt: night.paidAt.get(transferKey(from, to)) ?? null,
+  });
 }
 
 /**
@@ -1506,19 +1532,83 @@ export async function setNightRounding(mode: RoundingMode | null): Promise<void>
   );
   night = { ...night, roundingMode: mode };
   emit();
+  await queueTonight();
 }
 
+/**
+ * The night's rules, written down and SENT.
+ *
+ * Every edit on the money-rules screens ends here — a rule saved, deleted,
+ * switched off, a share typed by hand — and until this queued anything, all of
+ * them stopped at the phone. `queueRule` had existed since the server half
+ * landed and only one thing ever called it: a night OPENING. So the rules the
+ * server held were whatever the night was born with, for ever, and
+ * `syncRows.ts` said in as many words why that is wrong — *"a rule is the one
+ * thing here a host edits, and an edit that never reached the server would
+ * leave the group's rules describing last month"* — beside a builder nothing
+ * reached with an edit.
+ *
+ * IT SENDS THE DIFFERENCE, not the list. A rule that did not change queues
+ * nothing, so opening the deductions screen and closing it again costs no
+ * operations at all; a rule that is gone queues a delete under the id its own
+ * upsert was using, which is what stops a rule added and dropped in one evening
+ * from ever reaching the server.
+ *
+ * WHAT DOES NOT GO IS A HAND-TYPED SHARE. `manualCharges` is an answer about
+ * ONE night and `money_rule` belongs to the BOOK, so it has no column and must
+ * not have one — it reaches the server inside `settlement.rules_snapshot` at
+ * close, the same route an exemption takes. See `0013_night_rounding.sql`.
+ */
 async function writeRules(rules: MoneyRule[]): Promise<void> {
   if (night === null) return;
   const ordered = [...rules].sort((a, b) => a.sortOrder - b.sortOrder);
+  const { sessionId, groupName, rules: before } = night;
+
   const db = await getDb();
   await db.runAsync(
     `UPDATE night SET rules_json = ? WHERE session_id = ?`,
     JSON.stringify(ordered),
-    night.sessionId,
+    sessionId,
   );
   night = { ...night, rules: ordered };
   emit();
+
+  await queueRuleChanges(sessionId, groupName, before, ordered);
+}
+
+/** What changed between two lists of rules, as operations. */
+async function queueRuleChanges(
+  scopeId: string,
+  groupName: string,
+  before: readonly MoneyRule[],
+  after: readonly MoneyRule[],
+): Promise<void> {
+  const was = new Map(before.map((r) => [r.id, r]));
+
+  for (const rule of after) {
+    const previous = was.get(rule.id);
+    // Compared as values, so the screens may write the list back as often as
+    // they like: only a rule that actually moved costs an operation.
+    if (previous !== undefined && sameRule(previous, rule)) continue;
+    await queueRule(scopeId, groupName, rule);
+  }
+
+  const kept = new Set(after.map((r) => r.id));
+  for (const rule of before) {
+    if (!kept.has(rule.id)) await queueRuleDelete(scopeId, groupName, rule.id);
+  }
+}
+
+/**
+ * Two rules the server would store identically.
+ *
+ * `manualCharges` is deliberately not compared: it has no column, so a night
+ * where somebody's share was typed by hand must not queue a rule edit that
+ * would say nothing.
+ */
+function sameRule(a: MoneyRule, b: MoneyRule): boolean {
+  const bare = ({ manualCharges: _dropped, ...rest }: MoneyRule): unknown => rest;
+  return JSON.stringify(bare(a)) === JSON.stringify(bare(b));
 }
 
 /** A blank rule, ready to be filled in. */
@@ -1645,6 +1735,10 @@ export async function startNight(input: {
       other.session_id,
     );
     if (night?.sessionId === other.session_id) night = { ...night, tableName: renamed };
+    // The night being renamed is already on the server, under a name that is
+    // about to stop being true. Two nights called "Tonight" in one book is the
+    // same confusion on a second phone as on this one.
+    await queueSessionPatch({ sessionId: other.session_id, tableName: renamed });
   }
 
   const tableName =
@@ -1755,6 +1849,10 @@ export async function startNight(input: {
     // signed-in host opened reached the server saying it settled in whole
     // dollars whatever the group had actually set.
     roundingMode: input.roundingMode ?? null,
+    // Which table this is. The group's name cannot tell two of them apart, and
+    // a pulled night with no name of its own comes back called "Tonight" —
+    // including the one that is not.
+    tableName,
   });
 
   // Everything after this point is the ledger's own business, so the night is
@@ -1819,6 +1917,10 @@ export interface ImportedNight {
   acknowledgement?: DiscrepancyAcknowledgement;
   /** How coarsely it was settled. Absent is whole dollars. */
   roundingMode?: RoundingMode | null;
+  /** What the table was called. Absent, and null, read as "Tonight". */
+  tableName?: string | null;
+  /** Who had handed over the money by the time this was read. */
+  payments?: ReadonlyArray<{ from: string; to: string; paidAt: string }>;
 }
 
 /** How many nights this phone did not already have. */
@@ -1837,8 +1939,8 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
       await db.runAsync(
         `INSERT INTO night
            (session_id, group_name, started_at, status, rules_json, ack_json, stakes, default_buyin, ended_at,
-            rounding_mode)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            rounding_mode, table_name)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         n.sessionId,
         n.groupName,
         n.startedAt,
@@ -1849,6 +1951,7 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
         n.defaultBuyIn,
         n.endedAt,
         n.roundingMode ?? null,
+        n.tableName ?? null,
       );
 
       // The people, too. A roster is what a group IS, and somebody reading
@@ -1890,6 +1993,20 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
           n.sessionId,
           c.playerId,
           c.amount,
+        );
+      }
+
+      // Who has already paid, so a member reading a night back is not shown a
+      // row of empty ticks for money that changed hands last week.
+      for (const p of n.payments ?? []) {
+        await db.runAsync(
+          `INSERT OR IGNORE INTO night_payment
+             (session_id, from_player_id, to_player_id, paid_at)
+           VALUES (?, ?, ?, ?)`,
+          n.sessionId,
+          p.from,
+          p.to,
+          p.paidAt,
         );
       }
     });
@@ -1963,6 +2080,35 @@ export async function setStatus(status: Night['status']): Promise<void> {
   );
   night = { ...night, status, ...(endedAt === undefined ? {} : { endedAt }) };
   emit();
+  await queueTonight();
+}
+
+/**
+ * The three columns a night can change after it opened, as they now stand.
+ *
+ * SENT WHOLE RATHER THAN ONE FIELD AT A TIME, because the queue holds one
+ * operation per night and each one takes the last one's place in the line: a
+ * payload carrying only what just changed would drop whatever the previous
+ * payload was carrying.
+ *
+ * `ended_at` is not among them and cannot be. The server checks that a night
+ * has one exactly when it is settled, so stamping the moment the cards stopped
+ * onto a night that is still counting is a refused row — and a refused row at
+ * the head of the queue is every night behind it going nowhere. The time a
+ * night ended goes up with the close, where the status moves with it.
+ *
+ * A SETTLED NIGHT SENDS NOTHING FROM HERE. Its status, its ending and its
+ * result are one operation written by `closeNight`, in an order that cannot
+ * produce a night marked finished with nothing behind it.
+ */
+async function queueTonight(): Promise<void> {
+  if (night === null || night.status === 'settled') return;
+  await queueSessionPatch({
+    sessionId: night.sessionId,
+    status: night.status,
+    tableName: night.tableName,
+    roundingMode: night.roundingMode ?? null,
+  });
 }
 
 /**

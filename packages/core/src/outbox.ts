@@ -42,7 +42,24 @@ export type OpKind =
   | 'rule.upsert'
   | 'count.upsert'
   /** The frozen settlement, and the session going to settled. */
-  | 'session.close';
+  | 'session.close'
+  /**
+   * What the group and the night are SET UP as, as opposed to what happened in
+   * them. Added when the queue stopped carrying only the money: a group's name,
+   * currency, buy-in, blinds and rounding, the name of one table, the status a
+   * night has reached, and a rule the host has since deleted were all written to
+   * one phone and nowhere else.
+   */
+  | 'book.upsert'
+  | 'session.patch'
+  | 'player.terms'
+  | 'rule.delete'
+  /**
+   * Who has handed over the money. It changes no figure — nothing in this
+   * package reads it — and it goes both ways, so one kind carries both the tick
+   * and the un-tick and the payload says which.
+   */
+  | 'payment.set';
 
 export class OutboxError extends Error {
   constructor(message: string) {

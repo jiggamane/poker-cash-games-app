@@ -47,6 +47,11 @@ export interface SessionOpenPayload {
      * `inputs_snapshot`, which is written at close.
      */
     roundingMode?: RoundingMode | null;
+    /**
+     * What this table is called, where the group is running two. Null reads as
+     * "Tonight", which is what one table on its own is called.
+     */
+    tableName?: string | null;
   };
 }
 
@@ -117,6 +122,7 @@ export const sessionRow = (p: SessionOpenPayload, bookId: string): RowWrite => (
     started_at: p.session.startedAt,
     stakes: p.session.stakes ?? null,
     rounding_mode: p.session.roundingMode ?? null,
+    table_name: p.session.tableName ?? null,
     status: 'live',
   },
 });
@@ -248,4 +254,176 @@ export const sessionClosedPatch = (p: ClosePayload): RowPatch => ({
   table: 'session',
   matchId: p.sessionId,
   patch: { status: 'settled', ended_at: p.endedAt },
+});
+
+// ---------------------------------------------------------------------------
+// What the group and the night are SET UP as
+// ---------------------------------------------------------------------------
+// Everything above this line is what HAPPENED — money, seats, counts, the
+// frozen result. Everything below is what it happened UNDER, and until it was
+// written it was the half of the app that never left the phone: the group's
+// name, its currency, its buy-in, its blinds, its rounding, the name of one
+// table among two, how far through the evening a night is, a rule the host
+// deleted, and who has since paid.
+//
+// THEY ARE PATCHES, NOT UPSERTS, AND THAT IS THE POINT. A patch against a row
+// that is not there yet is a no-op; an upsert against it is an insert missing
+// every NOT NULL column the payload does not carry, which the server refuses —
+// and the queue halts at its first failure, in front of every real night behind
+// it. A setting that quietly does not land is a bad day. A jammed queue is the
+// week `queueable.ts` was written about.
+
+/** A row to remove. `match` is the whole key, because not every table has an id. */
+export interface RowDelete {
+  table: string;
+  match: Record<string, unknown>;
+}
+
+export interface BookPayload {
+  groupName: string;
+  /**
+   * What the group was called when the queue last spoke, on a rename. The drain
+   * looks the book up under either name; the patch then writes the new one.
+   */
+  previousName?: string;
+  book: {
+    /** ISO 4217, three letters. The club's own column. */
+    currencyCode?: string;
+    defaultBuyIn?: number | null;
+    /** The blinds, serialised as the phone stores them. */
+    stakes?: string | null;
+    roundingMode?: RoundingMode | null;
+  };
+}
+
+/**
+ * The group's settings.
+ *
+ * `group_name` comes off the payload's own `groupName`, which is how a rename
+ * reaches the server at all: `ensureBook` resolves the book by that name, so a
+ * renamed club would otherwise mint a SECOND book and split the group in two.
+ * See `sync.ts` for the other half of that — a rename queues under the old name
+ * and the drain is told about both.
+ */
+export const bookPatch = (p: BookPayload, bookId: string): RowPatch => {
+  const b = p.book;
+  return {
+    table: 'book',
+    matchId: bookId,
+    patch: {
+      group_name: p.groupName,
+      ...(b.currencyCode === undefined ? {} : { currency_code: b.currencyCode }),
+      ...(b.defaultBuyIn === undefined ? {} : { default_buyin: b.defaultBuyIn }),
+      ...(b.stakes === undefined ? {} : { stakes: b.stakes }),
+      ...(b.roundingMode === undefined ? {} : { rounding_mode: b.roundingMode }),
+    },
+  };
+};
+
+export interface SessionPatchPayload {
+  sessionId: string;
+  /** The app's own vocabulary. `open` is the server's `live`. */
+  status?: 'open' | 'counting';
+  tableName?: string | null;
+  roundingMode?: RoundingMode | null;
+}
+
+/**
+ * A night, changed after it opened.
+ *
+ * `ended_at` IS DELIBERATELY NOT HERE, and it is the one column somebody will
+ * try to add. The server checks `(status = 'settled') = (ended_at is not null)`,
+ * so stamping the moment the cards stopped onto a night that is still counting
+ * is a constraint violation — which halts the queue. The time a night ended
+ * reaches the server with the close, in `sessionClosedPatch`, where the status
+ * moves with it and the check holds.
+ *
+ * `settled` is not a status this can send for the same reason: closing is one
+ * operation that writes the settlement first and the status after it, because a
+ * night marked finished with no result behind it is a lie.
+ */
+export const sessionPatch = (p: SessionPatchPayload): RowPatch => ({
+  table: 'session',
+  matchId: p.sessionId,
+  patch: {
+    ...(p.status === undefined ? {} : { status: p.status === 'open' ? 'live' : 'counting' }),
+    ...(p.tableName === undefined ? {} : { table_name: p.tableName }),
+    ...(p.roundingMode === undefined ? {} : { rounding_mode: p.roundingMode }),
+  },
+});
+
+/**
+ * The standing answers about one person: whether they pay the kitty, and
+ * whether they are still offered a seat.
+ *
+ * REMOVING IS NOT DELETING. The row stays, with every night that points at it,
+ * and `removed_at` is what stops them being seated again — which is why this is
+ * a patch and there is no `player.delete` anywhere in this file.
+ */
+export interface PlayerTermsPayload {
+  playerId: string;
+  paysKitty: boolean;
+  /** When they came off the roster, or null while they are on it. */
+  removedAt: string | null;
+}
+
+export const playerTermsPatch = (p: PlayerTermsPayload): RowPatch => ({
+  table: 'player',
+  matchId: p.playerId,
+  patch: { pays_kitty: p.paysKitty, removed_at: p.removedAt },
+});
+
+/**
+ * A money rule the group no longer has.
+ *
+ * A DELETE rather than `active = false`, because those are different facts and
+ * the app has both: a rule switched off is still the group's rule and comes
+ * back next week, and a rule deleted is gone. Nothing points at the row — a
+ * settled night carries its own copy of every rule in `rules_snapshot`, which
+ * is exactly why deleting one cannot restate a night already paid out on.
+ */
+export interface RuleDeletePayload {
+  ruleId: string;
+}
+
+export const ruleDelete = (p: RuleDeletePayload, bookId: string): RowDelete => ({
+  table: 'money_rule',
+  match: { id: p.ruleId, book_id: bookId },
+});
+
+/**
+ * A transfer somebody has actually paid, or has stopped having paid.
+ *
+ * ONE KIND FOR BOTH DIRECTIONS. The tick goes both ways — B21 — and a queued
+ * tick that is untapped before the next drain must not reach the server as a
+ * payment; queueing under the same id replaces it in place, which is only
+ * correct while one id means one transfer's current state rather than one
+ * event.
+ */
+export interface PaymentPayload {
+  sessionId: string;
+  fromPlayerId: PlayerId;
+  toPlayerId: PlayerId;
+  /** When the cash arrived, or null to say it has not. */
+  paidAt: string | null;
+}
+
+export const paymentRow = (p: PaymentPayload): RowWrite => ({
+  table: 'transfer_payment',
+  onConflict: 'session_id,from_player_id,to_player_id',
+  row: {
+    session_id: p.sessionId,
+    from_player_id: p.fromPlayerId,
+    to_player_id: p.toPlayerId,
+    paid_at: p.paidAt,
+  },
+});
+
+export const paymentDelete = (p: PaymentPayload): RowDelete => ({
+  table: 'transfer_payment',
+  match: {
+    session_id: p.sessionId,
+    from_player_id: p.fromPlayerId,
+    to_player_id: p.toPlayerId,
+  },
 });

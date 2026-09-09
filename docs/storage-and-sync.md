@@ -48,10 +48,18 @@ function over the identical inputs later and assert it agrees — that is the
 audit story, and it is why the calculation being on the client costs nothing.
 
 **4. The settlement is guidance, not a workflow.**
-"Ivo → Dana $320" is an instruction to the room. Whether Ivo actually hands
-Dana the money is **not the app's business** and is never recorded. A night is
-FINAL the moment it is counted, deducted and settled. Nothing about payment can
-change a single figure afterwards.
+"Ivo → Dana $320" is an instruction to the room. A night is FINAL the moment it
+is counted, deducted and settled, and **nothing about payment can change a
+single figure afterwards.**
+
+This paragraph used to end "and is never recorded", which had stopped being true
+some time before it was noticed: E7 is a screen in this app, the host taps a
+name when the cash arrives, and it was stored in `night_payment` on one device.
+So the principle now says what it was actually protecting — the FIGURES — and
+the ticks go to `transfer_payment` like everything else. Nothing in
+`packages/core` reads that table and a night settles identically with every row
+in it and with none, which is the property that matters and the one a test can
+hold. What the app still does not do is chase anybody.
 
 **The roster travels UP, never down.** A person is added, renamed and removed on
 the phone that keeps the book, and the queue carries that to the server. A pull
@@ -81,12 +89,19 @@ why none of what follows needs conflict resolution.
 | The money | `night_entry` | `ledger_entry` |
 | The rules it was opened with | `night.rules_json` | `money_rule` |
 | The chip count | `night_count` | `final_count` |
-| The frozen result | `night_settlement` *(new)* | `settlement` |
-| Waiting to be sent | `outbox_op` *(new)* | — |
-| Which name is me | `setting` | — (local by design) |
+| The frozen result | `night_settlement` | `settlement` |
+| What the group is set up as | `club` | `book` (name, `currency_code`, `default_buyin`, `stakes`, `rounding_mode`) |
+| Which table this is | `night.table_name` | `session.table_name` |
+| Who is still on the roster | `club_member.removed`, `.pays_kitty` | `player.removed_at`, `.pays_kitty` |
+| Who has actually paid | `night_payment` | `transfer_payment` |
+| Waiting to be sent | `outbox_op` | — |
+| Which name is me | `night.me_id` | `player.claimed_by_user_id` |
 
-The server schema needs **no migration**: `money_rule`, `final_count` and
-`settlement` were built in `0001` and have simply never been written to.
+The bottom half of that table is `0014`. Everything above it needed **no
+migration** — `money_rule`, `final_count` and `settlement` were built in `0001`
+and had simply never been written to — and everything below it had nowhere on
+the server to land at all: a group's own settings, which table is which, the two
+standing answers about a person, and the row of ticks on E7. See B68–B73.
 
 ---
 
@@ -97,23 +112,38 @@ column is what goes to the server, in order, whenever there is a connection.
 
 | Moment | Written locally | Queued for the server |
 | --- | --- | --- |
+| **Make or rename a group** | `club` | `book` — the name, and the group's settings with it |
+| **Change the group's currency, buy-in, blinds or rounding** | `club` | `book` |
 | **Add a player to the group** | `club_member` | `book` (first time only), `player` |
 | **Rename a player** | `club_member`, `night_player` for every night still in play | `player` |
-| **Remove a player** | `club_member.removed`, and `night_player` where they hold nothing | — the book keeps the row every night still points at |
-| **Open a night** | `night`, `night_player`, rules | `book` (first time only), `player`, `session`, `session_seat`, `money_rule` |
+| **Exempt somebody from the kitty** | `club_member.pays_kitty` | `player.pays_kitty` |
+| **Remove a player** | `club_member.removed`, and `night_player` where they hold nothing | `player.removed_at` — never a delete: the book keeps the row every night still points at |
+| **Open a night** | `night`, `night_player`, rules | `book` (first time only), `player`, `session` (with its table name), `session_seat`, `money_rule` |
+| **Rename a table** | `night.table_name` | `session.table_name` |
 | **Seat someone** | `night_player` | `player`, `session_seat` |
 | **Buy-in / rebuy / cash-out / expense** | `night_entry` | `ledger_entry` |
 | **Correct or void an entry** | `night_entry` (a new row) | `ledger_entry` (a new row) |
-| **Edit a money rule** | `night.rules_json` | `money_rule` |
+| **Edit or delete a money rule** | `night.rules_json`, or `club.rules_json` between games | `money_rule` — an upsert, or a delete |
+| **Change tonight's rounding** | `night.rounding_mode` | `session.rounding_mode` |
+| **Move a night to counting** | `night.status`, `night.ended_at` | `session.status` — and *not* `ended_at`, see below |
 | **Count a player's chips** | `night_count` | `final_count` |
 | **Confirm a shortfall** | `night.ack_json` | — carried in the settlement at close |
 | **Close the night** | `night_settlement`, `night.status`, `night.ended_at` | `settlement`, `session` (status + `ended_at`) |
+| **Tick who has paid** | `night_payment` | `transfer_payment` — and un-ticking deletes the row |
 
-Two things worth noticing.
+Three things worth noticing.
 
 **A night publishes the moment it opens**, not when it is shared. By the first
 buy-in the server already has the book, the session, the players and the rules,
 so every entry after that has somewhere to land.
+
+**A night moving to counting sends its status and NOT its ending.** The server
+checks `(status = 'settled') = (ended_at is not null)`, so stamping the moment
+the cards stopped onto a night that is still counting is a row the database
+refuses — and a refused row at the head of the queue stops every night behind it.
+The ending goes up with the close, where the status moves with it and the check
+holds. `sessionPatch` has no `ended_at` at all, and `03_sync_contract.sql`
+asserts that the other order is rejected.
 
 **Closing writes the whole result in one go.** The settlement row carries its own
 `rules_snapshot` and `inputs_snapshot` alongside the computed transfers and the
@@ -132,9 +162,13 @@ Today's outbox holds ledger entries only. It becomes an ordered log of
 outbox_op
   id          uuid   -- client-generated; the server's idempotency key
   seq         int    -- monotonic per device, the order things happened
-  kind        text   -- 'session.open' | 'player.upsert' | 'seat.upsert'
-                     -- 'entry.append' | 'rule.upsert'   | 'count.upsert'
-                     -- 'session.close'
+  kind        text   -- what happened at the table:
+                     --   'session.open' | 'player.upsert' | 'seat.upsert'
+                     --   'entry.append' | 'rule.upsert'   | 'count.upsert'
+                     --   'session.close'
+                     -- what it happened under:
+                     --   'book.upsert'  | 'session.patch' | 'player.terms'
+                     --   'rule.delete'  | 'payment.set'
   payload     json
   attempts    int
   last_error  text
@@ -268,6 +302,17 @@ Two harnesses, because the failure modes are different.
 buried inside a Supabase request that no test can reach.
 `apps/mobile/src/lib/syncRows.test.ts` asserts each one's exact column set.
 
+**`storageCoverage.test.ts` is the third one, and it is a different shape,
+because the failure it exists for is a different shape.** B69 to B73 were not
+wrong figures: `writeRules` wrote the night's rules to SQLite and queued
+nothing, `setStatus` moved a night to counting on the phone alone, and the app
+worked perfectly in every case. Nothing that looks at behaviour can see that. So
+this reads the source of both stores, lists every exported operation, and holds
+the list against a table in which each one names either the queue operation that
+carries it or WHY it stays on the phone. Add an export to either store and it
+fails, naming the function and asking the question nobody remembered to ask.
+"Reads only" and "local by design" are answers; silence is not.
+
 **`supabase/test/03_sync_contract.sql` replays them** — the same rows, in the
 order the queue drains, as the host, through row-level security, against a real
 Postgres with the real migrations (`npm run db:verify`). It cannot check auth or
@@ -307,9 +352,16 @@ see nothing else, and that reading is all claiming ever grants.
    on claiming a place, and on demand from Settings. My stats then works from
    whichever copy exists. What is left is running it automatically after a
    reinstall, which needs a way to tell a fresh install from an empty one.
-4. **Verification.** An edge function that re-settles from the snapshots and
+4. ~~**The rest of the book.**~~ **Built** (`0014`). The queue carried the
+   money and nothing around it: a group's own settings, which table is which,
+   who is still on the roster and who has paid were written to one phone and had
+   nowhere on the server to land. They do now, they go up, and the pull reads
+   them back. `storageCoverage.test.ts` is what stops the list growing again
+   without anybody noticing. B68–B73.
+5. **Verification.** An edge function that re-settles from the snapshots and
    flags any disagreement. Cheap once the snapshots are there, and it is what
    makes "the client calculated it" a non-issue.
 
 Phases 1 and 2 are what "the results are stored" means. Phase 3 is what "and
-retrievable" means. Phase 4 is what makes it auditable.
+retrievable" means. Phase 4 is what makes "stored" mean the whole book rather
+than the money in it. Phase 5 is what makes it auditable.

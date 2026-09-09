@@ -16,13 +16,19 @@ import { describe, expect, it } from 'vitest';
 import { money } from '@poker-club/core';
 import type { LedgerEntry, MoneyRule } from '@poker-club/core';
 import {
+  bookPatch,
   countRow,
   entryRow,
   type EntryPayload,
+  paymentDelete,
+  paymentRow,
   playerRow,
+  playerTermsPatch,
+  ruleDelete,
   ruleRow,
   seatRow,
   sessionClosedPatch,
+  sessionPatch,
   sessionRow,
   settlementRow,
   type ClosePayload,
@@ -60,6 +66,7 @@ describe('the session row', () => {
       'stakes',
       'started_at',
       'status',
+      'table_name',
     ]);
   });
 
@@ -301,6 +308,139 @@ describe('the settlement row', () => {
       table: 'session',
       matchId: SESSION,
       patch: { status: 'settled', ended_at: '2026-08-14T00:15:00.000Z' },
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// What the group and the night are SET UP as
+// ---------------------------------------------------------------------------
+// The other half of the queue, and the half that did not exist: everything
+// above this line is what happened at a table, everything below is what it
+// happened under. Each of these was collected by the app and stored on one
+// phone, so `03_sync_contract.sql` replays them for the same reason it replays
+// the rest — a wrong column name here is a setting that silently never leaves.
+
+describe('the book patch', () => {
+  const p = bookPatch(
+    {
+      groupName: 'The poker club',
+      book: {
+        currencyCode: 'CHF',
+        defaultBuyIn: 500,
+        stakes: '{"small":5,"big":5}',
+        roundingMode: 'hundreds',
+      },
+    },
+    BOOK,
+  );
+
+  it('writes exactly the columns 03_sync_contract.sql updates', () => {
+    expect(keys(p.patch)).toEqual([
+      'currency_code',
+      'default_buyin',
+      'group_name',
+      'rounding_mode',
+      'stakes',
+    ]);
+  });
+
+  it('keeps the ISO code out of currency_symbol, which is a glyph', () => {
+    expect(p.patch.currency_code).toBe('CHF');
+    expect(p.patch).not.toHaveProperty('currency_symbol');
+  });
+
+  it('always writes the name, which is how a rename lands at all', () => {
+    const renamed = bookPatch({ groupName: 'Friday', previousName: 'The poker club', book: {} }, BOOK);
+    expect(renamed.patch).toEqual({ group_name: 'Friday' });
+    expect(renamed.matchId).toBe(BOOK);
+  });
+
+  it('names no column the caller did not speak about', () => {
+    expect(keys(bookPatch({ groupName: 'g', book: { roundingMode: null } }, BOOK).patch)).toEqual([
+      'group_name',
+      'rounding_mode',
+    ]);
+  });
+});
+
+describe('the session patch', () => {
+  it('says live where the app says open, because that is the enum', () => {
+    expect(sessionPatch({ sessionId: SESSION, status: 'open' }).patch).toEqual({ status: 'live' });
+    expect(sessionPatch({ sessionId: SESSION, status: 'counting' }).patch).toEqual({
+      status: 'counting',
+    });
+  });
+
+  it('NEVER carries ended_at, which the server checks against the status', () => {
+    const p = sessionPatch({
+      sessionId: SESSION,
+      status: 'counting',
+      tableName: 'Kitchen table',
+      roundingMode: 'tens',
+    });
+    expect(keys(p.patch)).toEqual(['rounding_mode', 'status', 'table_name']);
+    expect(p.patch).not.toHaveProperty('ended_at');
+  });
+
+  it('carries a table name on its own, for the night renamed by a second table', () => {
+    expect(sessionPatch({ sessionId: SESSION, tableName: 'Main table' }).patch).toEqual({
+      table_name: 'Main table',
+    });
+  });
+});
+
+describe("the roster's standing answers", () => {
+  const p = playerTermsPatch({ playerId: PETR, paysKitty: false, removedAt: null });
+
+  it('writes exactly the columns 03_sync_contract.sql updates', () => {
+    expect(keys(p.patch)).toEqual(['pays_kitty', 'removed_at']);
+    expect(p.matchId).toBe(PETR);
+  });
+
+  it('removes by stamping a time, never by deleting a row the ledger points at', () => {
+    const gone = playerTermsPatch({
+      playerId: PETR,
+      paysKitty: true,
+      removedAt: '2026-09-09T18:00:00.000Z',
+    });
+    expect(gone.table).toBe('player');
+    expect(gone.patch.removed_at).toBe('2026-09-09T18:00:00.000Z');
+  });
+});
+
+describe('a rule the group no longer has', () => {
+  it('deletes the row, scoped to the book, so no other group can be reached', () => {
+    const RULE = '55555555-5555-5555-5555-555555555555';
+    expect(ruleDelete({ ruleId: RULE }, BOOK)).toEqual({
+      table: 'money_rule',
+      match: { id: RULE, book_id: BOOK },
+    });
+  });
+});
+
+describe('who has paid', () => {
+  const paid = {
+    sessionId: SESSION,
+    fromPlayerId: PETR,
+    toPlayerId: HOST,
+    paidAt: '2026-09-09T18:00:00.000Z',
+  };
+
+  it('writes exactly the columns 03_sync_contract.sql inserts', () => {
+    const w = paymentRow(paid);
+    expect(keys(w.row)).toEqual(['from_player_id', 'paid_at', 'session_id', 'to_player_id']);
+    expect(w.onConflict).toBe('session_id,from_player_id,to_player_id');
+  });
+
+  it('OVERWRITES, because a tick is a state and not an event', () => {
+    expect(paymentRow(paid).ignoreDuplicates).toBeUndefined();
+  });
+
+  it('un-ticking removes the row on the pair — B21, the door goes both ways', () => {
+    expect(paymentDelete({ ...paid, paidAt: null })).toEqual({
+      table: 'transfer_payment',
+      match: { session_id: SESSION, from_player_id: PETR, to_player_id: HOST },
     });
   });
 });

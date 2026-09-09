@@ -17,7 +17,7 @@ import { leavesThePhone } from './queueable';
 import { clubForBook, rosterAdditions, sameName, type RosterPerson } from './rosterMerge';
 import { PROMOTE_CLAIMED, SET_INVITED } from './seatReconcile';
 import { isSupabaseConfigured } from './supabase';
-import { drain, queueRosterPlayer } from './sync';
+import { drain, queueBook, queuePlayerTerms, queueRosterPlayer, queueRule, queueRuleDelete } from './sync';
 
 /**
  * The club, on this phone. 12-the-group.md.
@@ -398,6 +398,38 @@ async function queueUp(clubId: string, person: RosterPerson): Promise<void> {
   push();
 }
 
+/**
+ * What the group is SET UP as, on its way to the book.
+ *
+ * Called after `loadClubs`, so it reads the state the screen is now showing
+ * rather than being handed the one field that changed. That is deliberate: the
+ * queue holds one settings operation per club and each replaces the last, so a
+ * payload naming only the currency would drop the buy-in somebody set a second
+ * earlier.
+ *
+ * `previousName` is passed by the rename and by nothing else. The book is
+ * resolved by the group's name — the phone never learns its id — so without it
+ * a renamed club looks like a group the server has never heard of, and the
+ * drain would make a second book and split the group across the two.
+ */
+async function queueSettings(clubId: string, previousName?: string): Promise<void> {
+  const club = state.clubs.find((c) => c.id === clubId);
+  if (club === undefined) return;
+
+  await queueBook({
+    clubId,
+    groupName: club.name,
+    ...(previousName === undefined ? {} : { previousName }),
+    book: {
+      currencyCode: club.currency,
+      defaultBuyIn: club.defaultBuyIn,
+      stakes: club.stakes === null ? null : JSON.stringify(club.stakes),
+      roundingMode: club.roundingMode,
+    },
+  });
+  push();
+}
+
 /** The roster row carrying this name, removed or not. The roster's own identity test. */
 async function memberNamed(
   clubId: string,
@@ -453,13 +485,27 @@ export async function createClub(input: {
 
   await loadClubs();
   await switchClub(id);
+  // The group's own settings, not only its people. A book minted by the queue
+  // otherwise carries a name and the server's defaults for everything else.
+  await queueSettings(id);
   return id;
 }
 
+/**
+ * The group's name.
+ *
+ * IT CARRIES THE OLD NAME WITH IT. Every payload in the queue names its book by
+ * the group's name, because the phone never learns the book's own id, so a
+ * rename that simply announced the new one would look to the drain like a group
+ * it had never met: it would mint a second book, and the group would be split
+ * across two of them with the roster in one and the next night in the other.
+ */
 export async function renameClub(clubId: string, name: string): Promise<void> {
+  const was = state.clubs.find((c) => c.id === clubId)?.name;
   const db = await getDb();
   await db.runAsync(`UPDATE club SET name = ? WHERE id = ?`, name.trim(), clubId);
   await loadClubs();
+  await queueSettings(clubId, was);
 }
 
 /**
@@ -479,18 +525,48 @@ export async function setClubCurrency(clubId: string, code: string): Promise<voi
   const db = await getDb();
   await db.runAsync(`UPDATE club SET currency = ? WHERE id = ?`, code.toUpperCase(), clubId);
   await loadClubs();
+  await queueSettings(clubId);
 }
 
 export async function setClubBuyIn(clubId: string, amount: Money): Promise<void> {
   const db = await getDb();
   await db.runAsync(`UPDATE club SET default_buy_in = ? WHERE id = ?`, amount, clubId);
   await loadClubs();
+  await queueSettings(clubId);
 }
 
+/**
+ * The group's standing money rules — what the NEXT night opens with.
+ *
+ * `money_rule` belongs to the book, so this is the layer that actually
+ * corresponds to it, and until now nothing here sent anything: the server's copy
+ * of a group's rules was whatever some night happened to be born with, and a
+ * rule written on GR6 between games existed on one phone only.
+ *
+ * Every rule is upserted and every rule that has GONE is deleted. Upserting one
+ * that did not change costs nothing — an operation queued under an id it already
+ * holds takes that one's place rather than following it, so the list is at most
+ * one operation per rule however often this is called. Tonight's copy is sent
+ * the same way, by `queueRuleChanges` in `nightStore.ts`, which additionally
+ * skips a rule it can see is unchanged because it is called on every keystroke's
+ * worth of edit rather than on a Save.
+ */
 export async function setClubRules(clubId: string, rules: readonly MoneyRule[]): Promise<void> {
+  const club = state.clubs.find((c) => c.id === clubId);
+  const before = club?.rules ?? [];
+  const groupName = club?.name ?? null;
+
   const db = await getDb();
   await db.runAsync(`UPDATE club SET rules_json = ? WHERE id = ?`, JSON.stringify(rules), clubId);
   await loadClubs();
+
+  if (groupName === null) return;
+  const kept = new Set(rules.map((r) => r.id));
+  for (const rule of rules) await queueRule(clubId, groupName, rule);
+  for (const rule of before) {
+    if (!kept.has(rule.id)) await queueRuleDelete(clubId, groupName, rule.id);
+  }
+  push();
 }
 
 /**
@@ -507,6 +583,7 @@ export async function setClubRounding(
   const db = await getDb();
   await db.runAsync(`UPDATE club SET rounding_mode = ? WHERE id = ?`, mode, clubId);
   await loadClubs();
+  await queueSettings(clubId);
 }
 
 /**
@@ -524,6 +601,7 @@ export async function setClubStakes(clubId: string, stakes: Stakes): Promise<voi
     clubs: state.clubs.map((c) => (c.id === clubId ? { ...c, stakes } : c)),
   };
   emit();
+  await queueSettings(clubId);
 }
 
 /**
@@ -627,6 +705,8 @@ export async function setPaysKitty(clubId: string, id: PlayerId, pays: boolean):
     id,
   );
   await loadClubs();
+  await queuePlayerTerms(clubId, { playerId: id, paysKitty: pays, removedAt: null });
+  push();
 }
 
 /**
@@ -778,14 +858,26 @@ export async function playHistory(): Promise<Map<PlayerId, PlayHistory>> {
  * "stops them appearing when players are seated", which is what the roster row
  * on the seat sheet now IS. A night where they hold money keeps them.
  *
- * Nothing is queued: the book has no notion of a removed player, and a row on
- * the server is what every night that names them still points at.
+ * THE ROW ON THE SERVER STAYS, and `removed_at` is stamped on it. Nothing else
+ * would do: every night that names this person still points at that row, so a
+ * delete is not available and never was — which is why the book had no notion
+ * of removal at all until `0014` gave it one. Without it the second phone to
+ * read the book keeps offering a seat to somebody the admin took off the roster
+ * a month ago, and there is nothing on either screen to say why they disagree.
  */
 export async function removeMember(clubId: string, id: PlayerId): Promise<void> {
   const db = await getDb();
   await db.runAsync(`UPDATE club_member SET removed = 1 WHERE club_id = ? AND id = ?`, clubId, id);
+  const paysKitty = state.clubs.find((c) => c.id === clubId)
+    ?.members.find((m) => m.id === id)?.paysKitty ?? true;
   await loadClubs();
   await dropPlayerFromPlay(id);
+  await queuePlayerTerms(clubId, {
+    playerId: id,
+    paysKitty,
+    removedAt: new Date().toISOString(),
+  });
+  push();
 }
 
 // ---------------------------------------------------------------------------
@@ -820,7 +912,19 @@ export interface RosterImport {
 export async function importRoster(book: {
   id: string;
   groupName: string;
-  players: readonly RosterPerson[];
+  /**
+   * What the group is set up as, for a club that has to be MADE here. A club
+   * this phone already has keeps its own answers untouched — settings travel
+   * up through the queue exactly as names do, and writing them back would make
+   * the two ends argue.
+   */
+  settings?: {
+    currency: string | null;
+    defaultBuyIn: number | null;
+    stakesJson: string | null;
+    roundingMode: RoundingMode | null;
+  };
+  players: ReadonlyArray<RosterPerson & { paysKitty?: boolean; removedAt?: string | null }>;
 }): Promise<RosterImport> {
   const db = await getDb();
   const clubs = await db.getAllAsync<{ id: string; name: string; book_id: string | null }>(
@@ -835,13 +939,18 @@ export async function importRoster(book: {
   if (clubId === null) {
     clubId = randomUUID();
     await db.runAsync(
-      `INSERT INTO club (id, name, currency, default_buy_in, rules_json, created_at, book_id)
-       VALUES (?, ?, 'USD', ?, '[]', ?, ?)`,
+      `INSERT INTO club
+         (id, name, currency, default_buy_in, rules_json, created_at, book_id,
+          rounding_mode, stakes_json)
+       VALUES (?, ?, ?, ?, '[]', ?, ?, ?, ?)`,
       clubId,
       book.groupName,
-      APP_DEFAULT_BUY_IN,
+      book.settings?.currency ?? 'USD',
+      book.settings?.defaultBuyIn ?? APP_DEFAULT_BUY_IN,
       new Date().toISOString(),
       book.id,
+      book.settings?.roundingMode ?? null,
+      book.settings?.stakesJson ?? null,
     );
   } else {
     await db.runAsync(`UPDATE club SET book_id = ? WHERE id = ? AND book_id IS NULL`, book.id, clubId);
@@ -855,13 +964,21 @@ export async function importRoster(book: {
   // Removed people are in `known` on purpose: somebody the admin took off the
   // roster must not come back every time the book is read.
   const added = rosterAdditions(known, book.players);
+  const terms = new Map(book.players.map((p) => [p.id, p]));
   for (const p of added) {
+    // On the terms the book states them, which is the point of reading them
+    // back: somebody the admin removed must not be offered a seat by the next
+    // phone to open the group, and somebody exempt from the kitty must not
+    // quietly start paying it.
+    const t = terms.get(p.id);
     await db.runAsync(
       `INSERT INTO club_member (club_id, id, name, standing, invited, pays_kitty, removed)
-       VALUES (?, ?, ?, 'name_only', 0, 1, 0)`,
+       VALUES (?, ?, ?, 'name_only', 0, ?, ?)`,
       clubId,
       p.id,
       p.name,
+      t?.paysKitty === false ? 0 : 1,
+      t?.removedAt === undefined || t.removedAt === null ? 0 : 1,
     );
   }
 
