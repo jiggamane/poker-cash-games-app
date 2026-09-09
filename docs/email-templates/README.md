@@ -61,26 +61,37 @@ allow-list, and a custom scheme there puts one back into the mail by the side
 door. It is fine that it points nowhere useful — this app has no website — as
 long as it is https.
 
-**On a project that has never edited its template, Site URL is the whole
-suspect list.** The stock magic-link mail is Supabase's own and its `href` is
-`{{ .ConfirmationURL }}`, so there is no hand-written deep link for the
-sanitiser to eat — which leaves the settings that feed that URL. Supabase's own
-troubleshooting note for `#ZgotmplZ` says the fix in those words: *configure a
-standard web domain as the SITE_URL*. Check it before doing anything that takes
-twenty minutes.
+**But it was not what happened in B66, and the way that was established is the
+part worth copying.** The sanitiser explains the reported symptom perfectly, it
+is documented, and it was wrong: the project had never edited its template, so
+its `href` was Supabase's own and https throughout. A mechanism that fits a
+symptom is not evidence that it occurred. Read the actual mail first — the table
+below is thirty seconds and it beats any amount of reasoning about what *could*
+blank a link.
 
 ## Reading the fault out of an email you already have
 
-Thirty seconds, no dashboard, and it settles whether this folder is even the
-right place to be looking. In the sign-in email: Gmail → ⋮ → **Show original**,
-Apple Mail → **View → Message → Raw Source**. Find the sign-in link's `href`.
+**Do this before anything else, including anything in this folder.** In the
+sign-in email: Gmail → ⋮ → **Show original**, Apple Mail → **View → Message →
+Raw Source**. Find the sign-in link's `href` and read it whole — the query
+string is where the answer is, not the scheme.
 
 | What the `href` says | What it means |
 |---|---|
-| `#ZgotmplZ` | The sanitiser ate it. Site URL first, then this folder. |
-| `https://<ref>.supabase.co/auth/v1/verify?…` | The mail is **fine** — the fault is further down the chain: the redirect allow-list, the scheme's owner on the phone, or the missing callback route (fixed in B66). |
-| `pokerclub://…` or `exp://…` | A deep link reached the `href`. That is the rule above, broken. |
+| `…/auth/v1/verify?…&redirect_to=http://localhost:3000` | **B66.** The app's `emailRedirectTo` was not on the allow-list, so the auth server swapped in the Site URL — no error, 200, nothing logged. Fix: Authentication → URL Configuration → **Redirect URLs**. |
+| `…/auth/v1/verify?…&redirect_to=exp://…` or `pokerclub://…` | The mail is **right**. The fault is past it: whether the phone has an app for that scheme, or the callback route (missing until B66). |
+| `#ZgotmplZ` | The sanitiser ate it — the rule above, broken, in the template or in a setting feeding it. |
 | no `href` at all | The mail client stripped the anchor. The code is the answer, not the link. |
+
+**`redirect_to` is the field to read, and it lies by omission.** An address the
+project does not allow is not refused — it is silently replaced, and the mail
+that results is well formed, correctly signed, and points at the wrong place.
+The `exp://` address it should hold contains the dev machine's IP and the
+packager's port, so it stops being true on its own: a different wifi, or 8081
+already taken, and the link quietly reverts to sending the phone to a port on
+itself. `/sign-in` prints the current one on itself in development so it can be
+copied into that box each time — and the six-digit code exists because that is
+not a thing anybody will remember to do every time.
 
 ## Why every one of them also carries a code
 
