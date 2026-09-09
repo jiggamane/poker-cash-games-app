@@ -11,9 +11,20 @@ the whole of what this folder is for.
 |---|---|
 | `magic-link.html` | Authentication → Emails → **Magic Link** |
 
-Paste the file, whole, into the box. Save. Send yourself one and read it on a
-phone rather than in the dashboard's preview — the preview renders markup that
-several mail clients do not.
+⚠ **THE BOX IS READ-ONLY UNTIL CUSTOM SMTP IS ON.** Supabase gates template
+editing behind it: without SMTP the page shows *"Set up custom SMTP to edit
+templates — emails will be sent using the default templates"*, the Subject and
+Body are greyed out, and **Save changes** does nothing. So step 4 of
+`docs/auth-test-period.md` is not optional and is not merely about rate limits —
+it is what makes this folder applyable at all. Until it is done the project
+sends Supabase's stock magic-link mail, which carries a link and **no
+`{{ .Token }}`**, so the code field on the sign-in sheet has no code to be
+given.
+
+Then paste the file, whole, into the box — the **Source** tab, not **Preview**.
+Save. Send yourself one and read it on a phone rather than in the dashboard's
+preview; the preview renders markup that several mail clients do not, and says
+so itself.
 
 **Whole includes the comment at the top.** It is an HTML comment, so it does not
 render and costs a reader nothing, and it is the only way the rule below reaches
@@ -49,6 +60,27 @@ box along: Authentication → URL Configuration → **Site URL** must be an
 allow-list, and a custom scheme there puts one back into the mail by the side
 door. It is fine that it points nowhere useful — this app has no website — as
 long as it is https.
+
+**On a project that has never edited its template, Site URL is the whole
+suspect list.** The stock magic-link mail is Supabase's own and its `href` is
+`{{ .ConfirmationURL }}`, so there is no hand-written deep link for the
+sanitiser to eat — which leaves the settings that feed that URL. Supabase's own
+troubleshooting note for `#ZgotmplZ` says the fix in those words: *configure a
+standard web domain as the SITE_URL*. Check it before doing anything that takes
+twenty minutes.
+
+## Reading the fault out of an email you already have
+
+Thirty seconds, no dashboard, and it settles whether this folder is even the
+right place to be looking. In the sign-in email: Gmail → ⋮ → **Show original**,
+Apple Mail → **View → Message → Raw Source**. Find the sign-in link's `href`.
+
+| What the `href` says | What it means |
+|---|---|
+| `#ZgotmplZ` | The sanitiser ate it. Site URL first, then this folder. |
+| `https://<ref>.supabase.co/auth/v1/verify?…` | The mail is **fine** — the fault is further down the chain: the redirect allow-list, the scheme's owner on the phone, or the missing callback route (fixed in B66). |
+| `pokerclub://…` or `exp://…` | A deep link reached the `href`. That is the rule above, broken. |
+| no `href` at all | The mail client stripped the anchor. The code is the answer, not the link. |
 
 ## Why every one of them also carries a code
 
