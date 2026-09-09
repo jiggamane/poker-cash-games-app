@@ -198,6 +198,25 @@ installed correctly underneath it, because `_layout.tsx` reads the tokens off
 any URL the app is opened with, so the host was signed in and reading a page
 that said otherwise. Two independent faults, one report.
 
+⚠ **THE CODE FIELD IS DARK UNTIL THE PROJECT HAS CUSTOM SMTP**, and that is a
+dependency worth stating rather than discovering. Supabase will not let a
+template be edited without it — the Body is read-only and Save is greyed out —
+so a project on the built-in mailer sends the stock magic-link email, which
+carries a link and no `{{ .Token }}`. The field is then on screen with no code
+in existence to type into it. That is step 4 then step 5 of
+`docs/auth-test-period.md`, in that order, and the app cannot detect the
+difference: nothing in a client can ask which template a project has.
+
+⚠ **And on a project that never edited its template, the blanked `href` is not
+this file's fault.** The stock mail's `href` is `{{ .ConfirmationURL }}`, which
+is https, so there is no hand-written deep link for the sanitiser to eat —
+leaving the settings that feed that URL, and Site URL first among them.
+`docs/email-templates/README.md` has the table for reading which case it is
+straight out of a received email's source, which is thirty seconds and settles
+it. This entry named the template as the cause before that distinction was
+drawn; the mechanism is right and which box is holding the custom scheme is the
+part that has to be checked rather than assumed.
+
 ⚠ **The blank `href` cannot be locked by anything in this repo, and this is the
 entry that says so rather than leaving the field looking answered.** The mail is
 rendered on Supabase's servers from a string in their dashboard;

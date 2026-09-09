@@ -126,8 +126,13 @@ policies are correctly refusing them. If watching is empty, check this first.
 
 ### 5. Paste the email template
 
-**Authentication → Emails → Magic Link.** Paste the whole of
-`docs/email-templates/magic-link.html`.
+**Authentication → Emails → Magic link or OTP.** Paste the whole of
+`docs/email-templates/magic-link.html` into **Body**, on the **Source** tab.
+
+⚠ **Step 4 gates this one.** Without custom SMTP the page reads *"Set up custom
+SMTP to edit templates"*, Subject and Body are read-only, and **Save changes**
+is greyed out. That is the second reason step 4 is not optional — the first
+being the 2-an-hour limit — and it is why these two steps are in this order.
 
 This is not decoration, and skipping it is B66. Supabase's stock template sends
 the link and nothing else, so a link that arrives broken — and there are four
