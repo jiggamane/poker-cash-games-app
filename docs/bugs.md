@@ -723,7 +723,7 @@ Expected    each group is its own book, and one group's rows never reach
 Found       9 Sep, reading sync.ts against docs/storage-and-sync.md
 Locked by   npm run check — syncRows.test.ts and storageCoverage.test.ts;
             npm run db:verify — 03_sync_contract.sql
-Status      fixed in <commit>
+Status      fixed in 58d81af
 ```
 
 **Seen**, precisely. `ensureBook()` asked for `select id from book limit 1` —
@@ -755,7 +755,7 @@ Expected    an edited rule reaches the book
 Found       9 Sep, auditing the write points against docs/storage-and-sync.md
 Locked by   npm run check — storageCoverage.test.ts names the op each mutation
             queues; npm run db:verify — 03_sync_contract.sql
-Status      fixed in <commit>
+Status      fixed in 58d81af
 ```
 
 `writeRules()` is where every rule edit ends — a rule saved, deleted, switched
@@ -786,7 +786,7 @@ Expected    the status the phone is showing
 Found       9 Sep, auditing the write points
 Locked by   npm run check — storageCoverage.test.ts; npm run db:verify —
             03_sync_contract.sql, which also asserts the constraint below
-Status      fixed in <commit>
+Status      fixed in 58d81af
 ```
 
 `setStatus()` wrote one local column and queued nothing, so `counting` — the
@@ -811,7 +811,7 @@ Expected    the group as it was set up
 Found       9 Sep, auditing the write points
 Locked by   npm run check — storageCoverage.test.ts, pull.test.ts;
             npm run db:verify — 03_sync_contract.sql, 05_member_read.sql
-Status      fixed in <commit>
+Status      fixed in 58d81af
 ```
 
 `renameClub`, `setClubCurrency`, `setClubBuyIn`, `setClubRounding` and
@@ -839,7 +839,7 @@ Expected    the names the host gave the tables
 Found       9 Sep, auditing the write points
 Locked by   npm run check — syncRows.test.ts (the session row's columns),
             pull.test.ts; npm run db:verify — 03_sync_contract.sql
-Status      fixed in <commit>
+Status      fixed in 58d81af
 ```
 
 `night.table_name` exists precisely because a club can run two at once and the
@@ -862,7 +862,7 @@ Expected    both, as the host left them
 Found       9 Sep, auditing the write points
 Locked by   npm run check — storageCoverage.test.ts, syncRows.test.ts;
             npm run db:verify — 03_sync_contract.sql, 05_member_read.sql
-Status      fixed in <commit>
+Status      fixed in 58d81af
 ```
 
 Three flags with no home on the server: `pays_kitty`, `removed`, and the row of
