@@ -1552,9 +1552,113 @@ a settled night has no destination either — `/share` is one person's share of 
 rule, and the watcher link lives in Settings — so this is not a control being
 withheld, it is a control with nowhere to point.
 
+## The past session, read three ways
+
+`design/handoff-session-views/Artboards - Session Views.dc.html`, frames
+`10a`–`10d`, cut 9 September. It supersedes the 8 September score-breakdown cut
+**on `/settled` and `/watch`, and nowhere else** — `/stats` and `/games` keep
+the rolled-up night row below, which this cut does not speak about.
+
+    1  Dana                                              +$1,519
+       ↓ −$500  ↑ +$2,120            [ 🍴 −$54  🍸 −$24  ⊗ −$23 ]
+
+**One list, three views, and a control in the meta line.** The rank line never
+moves between them; only the annotation under each name, the block under the
+table and the footer button. That is the layout's whole claim and it is why the
+view is a property of the row rather than three components.
+
+| View | Right-hand figure | Annotation, right | Block | Button |
+|---|---|---|---|---|
+| Final, detailed | settled net | every spend, itemised, in a tinted group | `DEDUCTIONS` | `Who pays whom` |
+| Final, grouped | settled net | the marks, then one bone figure | `DEDUCTIONS` | `Who pays whom` |
+| On table | cash-out less buy-in | the words `before spends` | `CHIPS` | `See the final result` |
+
+**The view is persisted per user, not per session** — the handoff's own rule, in
+`sessionViewStore.ts` beside the theme, read once at startup.
+
+### What changed on the screen, and why each one is a decision
+
+* **No rules between rows and no chevrons.** Separation is the 60-point row
+  alone. The handoff is blunt about it — *"an earlier version fenced every row
+  and read as noise"* — and that earlier version was ours, from 8 September.
+* **A rank number** opens every row, 15 wide and dim, so the list reads as a
+  ranking without the figures carrying that job as well. The order differs
+  between Final and On table by design; the number follows the list.
+* **The name is 17/400, not 16/600.** Only two things on a row are at full
+  brightness — the name and the right-hand figure — and everything else is
+  annotation. Weight separates the two lines, not colour.
+* **A warmer bone.** `annotation` (`#8C8578`) and `annotationStroke`
+  (`#6E6A62`), NOT `offTable` (`#D9D3C4`). Both mean money that left the table;
+  on this screen the annotation line has to sit clearly under the name, and at
+  `#D9D3C4` it competed with it. `offTable` keeps every other screen.
+* **The row opens the player**, and the tinted group opens the deductions
+  instead — the one thing on a row with more to say than a figure.
+* **The menu is a menu.** It is anchored to the control, 226 wide, and
+  everything behind it drops to 32% — the list and the block, not the chrome,
+  because a dimmed control reads as disabled at the moment it is being used.
+  Tapping the dimmed half closes it rather than acting.
+
+### What came off the screen to make room
+
+Eight players have to fit without scrolling — the handoff's own budget is *"with
+8 players the list is exactly 480 and the screen has no slack"*.
+
+* **The totals card** (`Money in play $5,000` with the amount left to move).
+  Both figures survive: the money in is the `CHIPS` block's `In` row, and what
+  is left to move is the whole subject of `/payments`, which the button opens.
+* **The deductions ledger** became the block under the table — the same rows,
+  one line each instead of three, under the list instead of over it.
+* **The segmented control**, which held two of the three views and could not
+  hold the third.
+* **The two wall-clock times** came off the meta line, which now reads
+  `Settled · 3h 17m · 6 players`. The control shares that line and leaves about
+  200 points for the text; the old line truncated at the player count on a 393
+  phone. The times are on `/log`, entry by entry; the status, the elapsed and
+  the count are on no other screen.
+
+### Decided against the handoff rather than by it
+
+* **`Share` is not drawn**, though `10a` puts it top-right and argues the slot
+  is allowed because the screen is a destination rather than a wizard step.
+  `docs/09-navigation.md` is FINAL on chrome — a pushed screen has nothing at
+  all in that corner — and `CLAUDE.md` gives it the last word over anything
+  drawn. It is also a control with nowhere to point: `/share` is one person's
+  share of one rule, and the watcher link lives in Settings. **Open**, and it is
+  the same open question it was under the rev-18 frame.
+* **`held by the group`, not `jar collects`.** The handoff writes the second in
+  the block's holder column. `Piggy bank, never Kitty` has been the rule since
+  the money rules were written, `destinationWord` owns the spelling, and `jar`
+  would be a fourth word for the same envelope on one screen.
+* **The block's first column is the rule's own name**, not a category. This
+  app's rules are named by the group — `Kitchen & drinks`, `Group piggy bank` —
+  where the handoff's night has generic Food / Drinks / Piggy. The name is
+  read off the night's own snapshot, so a night settled under an older rule
+  still names the rule it was settled with.
+* **The annotation line wraps.** The handoff draws it on one line and at its
+  own figures it is; a night in the hundreds of thousands puts `−$117,600` in
+  the tinted group, and pushed right by `margin-left: auto` that ran past the
+  page margin. `ui-journeys.mjs` plays the night at three scales and found it.
+* **The rank uses `dim` (`#7F8187`), not the handoff's `#5E6067`.** `dim` was
+  raised off that neighbourhood on purpose to clear the contrast floor.
+* **⚠ The light theme's five new tokens are derived, not drawn.** The handoff
+  draws dark only. See the note in `tokens.ts`. **Open** until a board draws
+  this screen in light.
+
+### What holds it
+
+`ui-journeys.mjs` plays the night through and asserts, at three currency
+scales: that the screen opens on Final detailed with a list under it, that the
+control opens a menu carrying all three views, that picking one swaps the list,
+that the On table column sums to zero, that the chips block states both sides
+and what it leaves out, that the deductions block totals itself and names who
+fronted each bill, that every row carries its chips and at least one row its
+spends, that a fronted bill shows both figures behind one mark, and that eight
+rows fit above the block. `ui-audit.mjs` gains the tinted group as a second
+named exception to `tinted-result-row`, for the same reason the bone tray was.
+
 ## The row is glyphs now, and it is one row drawn in one file
 
-`design_handoff_score_breakdown/Score Breakdown Icons.dc.html`, turn 6, cut
+`design/handoff-score-breakdown/Score Breakdown Icons.dc.html`, turn 6, cut
 8 September. It speaks about the results ROW and the Final / At table toggle
 over it, and about nothing else on any screen — everything else the 6 September
 game-end cut and rev 18 say still stands.
@@ -1575,8 +1679,13 @@ can check the figure beside their name without opening anything. The minus is
 U+2212, everything is tabular, and absent pairs are dropped rather than zeroed:
 somebody who was charged nothing shows no glyph, not a `$0`.
 
-**`ScoreBreakdown.tsx` is the only drawing of a finished night in the app**, and
-that is the change that matters more than the glyphs. Four screens drew one fact
+⚠ **`/settled` and `/watch` moved off this row on 9 September** — see the
+section above. What follows describes the row `/stats` and `/games` still draw,
+which the session-views cut does not speak about, and the history of how one
+drawing replaced four.
+
+**`ScoreBreakdown.tsx` was the only drawing of a finished night in the app**, and
+that is the change that mattered more than the glyphs. Four screens drew one fact
 in three shapes: `/settled` had the line of words, `/watch` had R1's three
 stacked blocks, `/stats` and `/games` had a bare figure per night. They drift,
 and they had — only `/settled` said what a night COST anybody. All four draw the

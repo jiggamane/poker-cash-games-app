@@ -4,7 +4,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { resolveLedger, settle, type Money, type PlayerId } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
 import { NightResult } from '../src/components/NightResult';
+import { ViewControl } from '../src/components/SessionViews';
 import { Screen } from '../src/components/Screen';
+import { setSessionView, useSessionView } from '../src/lib/sessionViewStore';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
 import { claimedSeat } from '../src/lib/identity';
@@ -166,6 +168,12 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
 
   const mine = me === null ? null : night.players.find((p) => p.id === me) ?? null;
 
+  /* THE SAME PREFERENCE THE HOST READS BY. It is per user and not per session
+     (`design/handoff-session-views/`), so a watcher who reads their nights on
+     `On table` gets `On table` here too. */
+  const view = useSessionView();
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <Screen
       title={ended ? nightDate(night.startedAt) : 'Tonight'}
@@ -177,6 +185,21 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
        */
       badge={ended ? undefined : <Status label="WATCHING" />}
       meta={metaLine(night, ended)}
+      /* The control shares the meta line here exactly as it does on
+         `/settled` — and only once the night has ended, because there is
+         nothing to read three ways while it is still running. */
+      {...(result === null
+        ? {}
+        : {
+            metaTrailing: (
+              <ViewControl
+                view={view}
+                open={menuOpen}
+                onOpenChange={setMenuOpen}
+                onPick={setSessionView}
+              />
+            ),
+          })}
       backTo="the club"
       scroll={false}
     >
@@ -200,7 +223,14 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
            * ask the host what happened at 00:52, so the block that states the
            * gap says who logged it.
            */
-          <NightResult result={result} ledger={ledger} loggedBy={night.hostName} />
+          <NightResult
+            result={result}
+            ledger={ledger}
+            loggedBy={night.hostName}
+            view={view}
+            menuOpen={menuOpen}
+            roundingMode={night.roundingMode}
+          />
         )}
 
         {/*

@@ -159,15 +159,31 @@ await tap('Close the session', { wait: 2000 });
 await shot('10-settled');
 await shotTail('10-settled');
 
-/* THE SAME NIGHT IN THE OTHER MODE. `design/handoff-game-end/`, cut
-   6 September: the settled night is one ranked list behind a toggle, so a shot
-   of it is only half the screen unless the other half is taken too. This is
-   what replaced `11-ledger` — format `7e` was a screen and is a line now. */
-/* `At table` is the segment's label since the 8 September score-breakdown cut;
-   `At the table` is still the heading the list under it carries. */
-await tap('At table', { wait: 900 });
-await shot('11-settled-at-the-table');
-await tap('Final', { wait: 900 });
+/* THE SAME NIGHT IN ITS OTHER VIEWS — `design/handoff-session-views/`, cut
+   9 September: one list read three ways behind a control in the meta line, so
+   a single shot of it is a third of the screen. Each is taken and the screen is
+   left on the default, which is what the leg after this one expects.
+
+   The control is a MENU now and not a segment, so picking a view is two taps:
+   open it, then the row. */
+const pickView = async (label) => {
+  await page.locator('[data-testid="session-view-control"]').first().click();
+  await page.waitForTimeout(400);
+  await page.getByText(label, { exact: true }).first().click();
+  await page.waitForTimeout(900);
+};
+
+await page.locator('[data-testid="session-view-control"]').first().click();
+await page.waitForTimeout(500);
+await shot('10b-settled-view-menu');
+await page.getByText('Final, grouped', { exact: true }).first().click();
+await page.waitForTimeout(900);
+await shot('11-settled-final-grouped');
+
+await pickView('On table');
+await shot('11c-settled-on-table');
+
+await pickView('Final, detailed');
 
 /* `Who has paid` until 5 September; the game-end cut titles the same route
    `Who pays whom`, and the door to it is the settled night's footer button of

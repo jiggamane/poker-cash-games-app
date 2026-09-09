@@ -2,77 +2,82 @@ import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
-  money,
-  paymentProgress,
-  resultTotals,
-  settle,
+  balanceCheck,
+  resolveLedger,
+  ruleOutcomes,
   settledRows,
-  type Money,
   type SettledMode,
-  type SettledRow,
   type StoredVerification,
 } from '@poker-club/core';
-import { formatMoney } from '../src/lib/money';
 import { Button } from '../src/components/Button';
-import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
-import { ReconciliationRow, ScoreRow, ScoreTabs } from '../src/components/ScoreBreakdown';
 import { Screen } from '../src/components/Screen';
-import { TotalsCard } from '../src/components/TotalsCard';
+import {
+  ChipsBlock,
+  DeductionsBlock,
+  MENU_DIM,
+  SessionRow,
+  ViewControl,
+} from '../src/components/SessionViews';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, tabular, unscaledLabel } from '../src/design/tokens';
-import { settlementOf, transferKey, useNight } from '../src/lib/nightStore';
+import { radius, space, unscaledLabel } from '../src/design/tokens';
+import { setSessionView, useSessionView } from '../src/lib/sessionViewStore';
+import { settlementOf, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
- * The night, settled — `1a · Settled night`, from `design/handoff-game-end/`,
- * cut 6 September, which supersedes the 5 September `R1 · Results` cut on this
- * screen.
+ * THE PAST SESSION — `design/handoff-session-views/`, frames `10a`–`10d`, cut
+ * 9 September. It supersedes the 8 September score-breakdown cut and the
+ * 6 September game-end cut on this screen, and nothing else on any other.
  *
  * ONE screen for two situations, and that has not changed: the night you have
- * just closed, and a night you open from a list three weeks later. They are the
- * same facts, so they are the same screen. It is a PUSH and stays one.
+ * just closed, and a night you open from Sessions three weeks later. They are
+ * the same facts, so they are the same screen. It is a PUSH and stays one.
  *
- * WHAT THE NEW CUT CHANGES is the shape of the body. R1 stacked three blocks —
- * the table's result, the deductions, then the finals — and a person reading
- * their own night had to hold a figure from the first block against a figure in
- * the third. This draws ONE ranked list with a toggle over it, so the two
- * figures are the same list twice and the ranking itself says what the
- * deductions did: whoever paid for the food moves up, whoever won and paid
- * their share moves down.
+ * ONE LIST READ THREE WAYS, and the control that switches them sits on the meta
+ * line. The rank line never moves between views — only the annotation under
+ * each name, the block under the table and the footer button. That is the
+ * cut's central claim and `SessionViews.tsx` is where it is kept.
  *
- * THE LIST RE-SORTS ON EVERY MODE CHANGE, and that is the cut's rule rather
- * than a convenience. A list that kept one order would be printing one mode's
- * ranking under the other mode's numbers. `settledRows` does the sort, so the
- * two orders cannot come from two implementations.
+ *   FINAL, DETAILED  the settled net with every spend itemised. Default.
+ *   FINAL, GROUPED   the same nets, spends collapsed to one figure.
+ *   ON TABLE         cash-out less buy-in, before any spend. Sums to zero.
  *
- * THE SPEND LINE IS WHAT REPLACED `/ledger`. Format `7e` — the four-column
- * table `name game food piggy net` — is dropped by this cut in as many words:
- * *"do not build it, do not link to it"*. The same terms read under the name
- * here, and they read BETTER than the columns did on the one row that mattered:
- * a person who owes a share of the bill and paid for it at the counter gets
- * both terms — `bill 50 +100 back` — where the column had to net them into one
- * signed figure and lose the fact that any money changed hands at all.
+ * WHAT CAME OFF THE SCREEN TO MAKE ROOM, because eight players have to fit
+ * without scrolling and the cut says so:
  *
- * ⚠ THE PILL IS NOT A VERDICT ON THE RESULT. This screen used to argue, at
- * length, that a confirmed result carries no status pill of its own, and it was
- * right about that: nothing about a closed night's arithmetic is provisional.
- * What the pill states is how much cash is still to hand over, which is the one
- * fact about a settled night that keeps changing over the week after it — and
- * it is the same figure `/payments` heads itself with, by construction. So both
- * survive: the meta line still ends with the night's state, and the pill says
- * what is left to move.
+ *   · THE TOTALS CARD. `Money in play $5,000` with the amount still to move
+ *     beside it. Its two figures are both on the screen still — the money in is
+ *     the `CHIPS` block's own `In` row, and what is left to move is the whole
+ *     subject of `/payments`, which the footer button opens. A card at the top
+ *     of a ranked list is 96 points spent on a heading.
+ *   · THE DEDUCTIONS LEDGER, which became the block under the table: the same
+ *     rows, one line each instead of three, under the list instead of over it.
+ *   · THE SEGMENTED CONTROL, which held two of the three views and could not
+ *     hold the third.
  *
- * THE CORNER STAYS EMPTY. `09-navigation.md` is unchanged and the cut draws no
- * control there either.
+ * WHAT IS NOT DRAWN THAT THE HANDOFF DRAWS: `Share`, in the top-right. The cut
+ * argues the slot is allowed here because the screen is a destination rather
+ * than a wizard step. `docs/09-navigation.md` is FINAL on chrome and says a
+ * pushed screen has nothing at all in that corner — and `CLAUDE.md` gives it
+ * the last word over anything drawn. It is also a control with nowhere to
+ * point: `/share` is one person's share of one rule, and the watcher link
+ * lives in Settings. Recorded in `docs/screens.md`.
  */
 export default function NightResults() {
   const night = useNight();
   /*
-   * FINAL BY DEFAULT — the cut's own state note, *"default `final` when the
-   * night is settled"*, and this screen only ever draws a settled one. Where a
-   * person lands is where the money actually left them.
+   * THE VIEW IS THE READER'S, NOT THE NIGHT'S — the handoff's own rule:
+   * *"the chosen view persists per user, not per session"*. Somebody who reads
+   * their nights one way reads all of them that way, so it comes off a store
+   * rather than a `useState` that forgets between sessions.
    */
-  const [mode, setMode] = useState<SettledMode>('final');
+  const view = useSessionView();
+  /* The menu's own state, held here rather than in the control: while it is up
+     the list and the block drop to 32%, and neither is the control's to dim. */
+  const [menuOpen, setMenuOpen] = useState(false);
+  /* Both Final views print the same nets off the same rows; only the
+     annotation differs, so the engine is asked for two modes and not three. */
+  const mode: SettledMode = view === 'onTable' ? 'table' : 'final';
 
   const result = useMemo(() => {
     if (night === null) return null;
@@ -89,17 +94,21 @@ export default function NightResults() {
   );
 
   /*
-   * THE PILL'S FIGURE, AND `/payments`'s, ARE ONE CALL. `paymentProgress` splits
-   * the engine's transfers by the app's own record of what has been handed over;
-   * `owed` is the sum of the unpaid ones. Working it out here as well as there
-   * is exactly the second implementation the cut forbids.
+   * THE CHIPS BLOCK'S FIGURES AND COUNTS, and every one of them is
+   * `balanceCheck`'s — the same call E2 draws its own block from, so the two
+   * screens cannot disagree about what went in and what came back. `seated` is
+   * who still had chips in front of them, which the ledger alone cannot say.
    */
-  const progress = useMemo(() => {
-    if (result === null || night === null) return null;
-    return paymentProgress(result, (from, to) =>
-      night.paidAt.get(transferKey(from, to)) !== undefined,
+  const balance = useMemo(() => {
+    if (night === null) return null;
+    const ledger = resolveLedger(night.entries);
+    const seated = standingsOf(night, ledger).filter((s) => s.played && s.atTable);
+    return balanceCheck(
+      ledger,
+      night.finalCounts,
+      seated.map((s) => s.id),
     );
-  }, [result, night]);
+  }, [night]);
 
   if (night === null) {
     return (
@@ -109,7 +118,7 @@ export default function NightResults() {
     );
   }
 
-  if (result === null || progress === null) {
+  if (result === null || balance === null) {
     return (
       <Screen
         title="Not settled"
@@ -125,13 +134,24 @@ export default function NightResults() {
     );
   }
 
-  const totals = resultTotals(result);
-  const final = mode === 'final';
+  const onTable = view === 'onTable';
+  const outcomes = ruleOutcomes(result);
 
   return (
     <Screen
       title={nightDate(night.startedAt)}
       meta={metaLine(night, rows.length)}
+      /* THE CONTROL SHARES THE META LINE — the handoff puts it there rather
+         than under it, because it is the state of the list rather than a
+         heading for it. */
+      metaTrailing={
+        <ViewControl
+          view={view}
+          open={menuOpen}
+          onOpenChange={setMenuOpen}
+          onPick={setSessionView}
+        />
+      }
       backTo="the club"
       /*
        * THE HEAD GOES DOWN WITH THE BODY — `headScroll="all"`, the same one
@@ -144,47 +164,91 @@ export default function NightResults() {
        * the one thing you already knew when you opened the night, and back is
        * one flick away rather than gone.
        *
-       * IT DOES NOT MAKE MORE FIT AT REST, and that is worth being straight
-       * about: at the top of the screen the layout is exactly what it was. What
-       * it buys is that ONE FLICK now clears the chrome instead of scrolling
-       * the list under it, so the standings, the rounding row and the note can
-       * all be on the phone at once — which is what a person reading their own
-       * night is trying to do. The 8 September pass got eight players onto the
-       * screen with the head still on it; this is the room for a ninth, a tenth,
-       * and for a phone whose owner has turned the type up.
-       *
-       * The footer stays pinned. `Who pays whom` is the one thing on here you
-       * act on, and a primary action that scrolls away is a primary action you
-       * have to go looking for.
-       *
        * Registered in `ui-audit.mjs`'s `HEAD_SCROLLS`, which is a two-way
        * check: a route on that map has to actually scroll its head, and a route
        * off it may not. Doc 15 § 5 check 1 is the rule this is the documented
        * exception to.
        */
       headScroll="all"
-      /* R1's footer, and the cut keeps it: one button, full width, and the one
-         place this screen leads to. */
+      /*
+       * THE FOOTER BUTTON IS THE VIEW'S. On Final it is the one thing this
+       * screen leads to; on At table it leads back to the answer, because a
+       * column that sums to zero is a check rather than a result and the cut
+       * gives the reader the way out of it.
+       *
+       * OUTLINED, NOT FILLED — `10a`'s own 1px at 16% white. This screen is a
+       * record being read rather than a step being completed, and a filled
+       * button on it reads as the next thing to do.
+       */
       footer={
-        <Button label="Who pays whom" variant="primary" onPress={() => router.push('/payments')} />
+        onTable ? (
+          <Button
+            label="See the final result"
+            variant="secondary"
+            onPress={() => setSessionView('finalDetailed')}
+          />
+        ) : (
+          <Button
+            label="Who pays whom"
+            variant="secondary"
+            onPress={() => router.push('/payments')}
+          />
+        )
       }
     >
       <DidNotCheckOut verdict={night.verification} />
 
-      <TotalsCard
-        eyebrow="Money in play"
-        amount={totals.boughtIn}
-        owed={progress.value.owed}
-        anyPaid={progress.count.settled > 0}
-      />
+      {/*
+       * THE LIST, AND NOTHING BETWEEN ITS ROWS. No hairline, no chevron, no
+       * fill — separation is the 60-point row alone, which is the cut's own
+       * central point about the version this replaces.
+       *
+       * THE RANK IS THE LIST'S POSITION and not a figure anybody computed:
+       * `settledRows` sorts on the figure the row prints, so the order differs
+       * between Final and At table by design and the number simply follows it.
+       */}
+      {/*
+       * EVERYTHING BEHIND THE MENU DROPS TO 32% — the handoff's own figure, and
+       * it stops at the chrome: the title, the meta line and the control keep
+       * full brightness, because the control is what the menu belongs to and a
+       * dimmed control would read as disabled at the moment it is being used.
+       *
+       * AND THE DIMMED HALF STOPS ANSWERING TAPS. A row under an open menu is
+       * still a row, and tapping one would open a player from behind a control
+       * the reader was in the middle of using. `Pressable` over it closes the
+       * menu instead, which is the handoff's *"tapping outside closes it"*.
+       */}
+      <View style={menuOpen && { opacity: MENU_DIM }} pointerEvents={menuOpen ? 'box-only' : 'auto'}>
+        <View style={styles.list}>
+          {rows.map((row, i) => (
+            <SessionRow
+              key={row.player.playerId}
+              rank={i + 1}
+              row={row}
+              view={view}
+              onPress={() =>
+                router.push({ pathname: '/player', params: { id: row.player.playerId } })
+              }
+              onSpends={() => router.push('/deductions')}
+            />
+          ))}
+        </View>
 
-      <Deductions result={result} />
+        {onTable ? (
+          <ChipsBlock balance={balance} offTable={result.totalOffTable} />
+        ) : (
+          <DeductionsBlock outcomes={outcomes} total={result.totalOffTable} />
+        )}
 
-      <View style={styles.tabs}>
-        <ScoreTabs mode={mode} onPick={setMode} />
+        {menuOpen && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close the view menu"
+            onPress={() => setMenuOpen(false)}
+            style={StyleSheet.absoluteFill}
+          />
+        )}
       </View>
-
-      <List rows={rows} final={final} totals={totals} />
 
       {/*
        * THE STEP IS SHOWN AND NOT SETTABLE. It is locked once the night is
@@ -192,11 +256,11 @@ export default function NightResults() {
        * be re-rounded afterwards is a record that does not say what anybody
        * paid. No `onPress`, so `RoundingBar` draws no chevron.
        *
-       * FINAL ONLY. At the table is `out − in`, which the step does not reach.
+       * FINAL ONLY. At table is `out − in`, which the step does not reach.
        */}
-      {final && <RoundingBar mode={night.roundingMode} style={styles.rounding} />}
-
-      <Note final={final} offTable={result.totalOffTable} />
+      {!onTable && night.roundingMode !== null && night.roundingMode !== undefined && (
+        <RoundingBar mode={night.roundingMode} style={styles.rounding} />
+      )}
     </Screen>
   );
 }
@@ -243,196 +307,38 @@ function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
   );
 }
 
-/**
- * The deductions, as a plain ledger.
+/*
+ * WHAT WAS HERE, AND WHERE IT WENT — three helpers, all replaced by the
+ * 9 September cut rather than deleted for tidiness.
  *
- * DELIBERATELY NOT CARDS — the cut says so and says why: the ranked list has to
- * stay the heaviest thing on the screen. A row is a name, who is holding it,
- * and the amount, over a hairline.
+ *   `Deductions`  the ledger of rules above the list. It is the block UNDER
+ *                 the table now, one line per rule instead of three, drawn by
+ *                 `SessionViews.tsx`. `payerNote` went with it: the same
+ *                 sentence is `holder()` there, in the handoff's own grammar
+ *                 (`Dana fronted`).
+ *   `List`        the ranked list with a hairline over every row. The rows are
+ *                 `SessionRow` and the hairlines are gone on purpose — the
+ *                 cut's own point about the version this replaces.
+ *   `Note`        the sentence under the list. On Final the block says who
+ *                 fronted each bill on its own rows, which is what the note
+ *                 was promising; on At table it is the block's footnote.
  */
-function Deductions({ result }: { result: ReturnType<typeof settle> }) {
-  const t = useTheme();
-  const taken = result.deductions.filter((d) => d.total !== 0);
-  if (taken.length === 0) return null;
-
-  const total = money(taken.reduce((running, d) => running + d.total, 0));
-
-  return (
-    <View style={styles.block}>
-      <View style={styles.blockHead}>
-        <Text style={[styles.eyebrow, { color: t.muted }]} {...unscaledLabel}>
-          Deductions
-        </Text>
-        <Text style={[styles.blockTotal, tabular, { color: t.muted }]}>
-          {`${formatMoney(total)} total`}
-        </Text>
-      </View>
-
-      {taken.map((d) => (
-        <View key={d.ruleId} style={[styles.deduction, { borderTopColor: t.hairline }]}>
-          <Text style={[styles.deductionName, { color: t.offTable }]} numberOfLines={1}>
-            {d.name}
-          </Text>
-          <Text style={[styles.deductionNote, { color: t.muted }]} numberOfLines={1}>
-            {payerNote(result, d)}
-          </Text>
-          <Text style={[styles.deductionAmount, tabular, { color: t.text }]}>
-            {formatMoney(d.total)}
-          </Text>
-        </View>
-      ))}
-    </View>
-  );
-}
 
 /**
- * "Goga paid", "Goga and Lena paid", or "held by the group".
+ * "Settled · 3h 40m · 8 players".
  *
- * A BILL NAMES THE PEOPLE, because somebody is owed for it and this row is
- * where that is said. Every other kind names nobody: the take goes to a
- * collector who is holding it on the room's behalf, and naming them here would
- * read as though they had taken it.
+ * ⚠ SHORTER THAN IT WAS, AND THE TWO WALL-CLOCK TIMES ARE WHAT WENT. It read
+ * `20:05 → 06:38 · 10h 46m · 7 players · settled` until 9 September, and the
+ * session-views cut draws this line with the view control sharing it — which
+ * leaves about 200 points for the text. The old line truncated at the player
+ * count on a 393 phone, so the screen lost the one fact on the line a reader
+ * actually needs to see beside the ranking.
  *
- * ⚠ TWO PEOPLE FRONT ONE BILL MORE OFTEN THAN THE CUT ALLOWS FOR. Its worked
- * night has Goga paying the kitchen and that is the whole of it, so the row is
- * drawn as one name. The seeded night has two — the pizza and the drinks are
- * one bill rule and two fronters — and this app has always let several people
- * cover one thing, which is what `spendGroup` is for. Naming the first of them
- * would be naming the wrong person to whoever paid the other half, so both are
- * named, and past two the row counts rather than growing: the amounts are on
- * everybody's own spend line below either way.
- */
-function payerNote(
-  result: ReturnType<typeof settle>,
-  deduction: ReturnType<typeof settle>['deductions'][number],
-): string {
-  if (deduction.destination !== 'bill') return 'held by the group';
-
-  const names = deduction.credits
-    .filter((c) => c.amount !== 0)
-    .map((c) => result.players.find((p) => p.playerId === c.playerId)?.name)
-    .filter((n): n is string => n !== undefined);
-
-  if (names.length === 0) return 'nobody fronted it';
-  if (names.length === 1) return `${names[0]} paid`;
-  if (names.length === 2) return `${names[0]} and ${names[1]} paid`;
-  return `${names[0]} and ${names.length - 1} others paid`;
-}
-
-/**
- * THE RANKED LIST, IN WHICHEVER MODE THE TABS ARE ON.
- *
- * EVERY ROW IS `ScoreRow`, which is the app's ONE drawing of a finished night —
- * `design_handoff_score_breakdown/`, turn 6, cut 8 September. This screen used
- * to draw its own: a line of words under the name, `in 1,500 out 2,000 bill 50
- * +100 back piggy 50`, which said everything and took the whole row to say it.
- * The glyph row says the same five terms in a quarter of the width and signs
- * every one of them, so the line reads as the arithmetic behind the figure
- * beside it rather than as a column of magnitudes.
- *
- * `grouped` IS THE LAYOUT HERE AND NOT `rolled`. This screen is one screen for
- * two situations — the night you just closed and a night you open three weeks
- * later — and the handoff draws the dense row for the first of them because the
- * room reads it together. A rolled-up row would put every deduction behind a
- * tap on the one screen where nobody taps, and the whole reason `/ledger` was
- * dropped is that a figure behind a button is a figure nobody checks.
- *
- * THE TRAY GOES TO `/deductions` — the handoff's own interaction, and what
- * gives the row somewhere to send a person who wants to know WHO fronted the
- * bill, which is the one thing a figure on the row cannot say.
- */
-function List({
-  rows,
-  final,
-  totals,
-}: {
-  rows: SettledRow[];
-  final: boolean;
-  totals: ReturnType<typeof resultTotals>;
-}) {
-  const t = useTheme();
-
-  return (
-    <View style={styles.list}>
-      <View style={styles.listHead}>
-        <Text style={[styles.eyebrow, { color: t.muted }]} {...unscaledLabel}>
-          {final ? 'Final' : 'At the table'}
-        </Text>
-        <Text style={[styles.listNote, { color: t.muted }]} numberOfLines={1}>
-          {final ? 'after deductions and compensations' : 'before deductions'}
-        </Text>
-      </View>
-
-      {rows.map((row) => (
-        <ScoreRow
-          key={row.player.playerId}
-          row={row}
-          layout="grouped"
-          /* The night pass sums these and holds them to zero at the table —
-             `Σ atTheTable = 0` is the game-end cut's first check, and a row
-             dropped, drawn in the wrong sign or ranked off a figure it is not
-             showing is exactly what that catches. Nothing else in the repo can
-             see it: no URL reaches a settled night with money on it. */
-          testID="settled-row"
-          onSpends={() => router.push('/deductions')}
-        />
-      ))}
-
-      {/*
-       * AND THE CHECK PLAYERS RUN BEFORE THEY ACCEPT THE FINAL — `6b`, and it
-       * belongs to At table alone. Money is neither made nor destroyed at a
-       * poker table, so that column comes to nothing; Final's does not, and a
-       * `$0` under it would be a claim about a column that is short by whatever
-       * left the players for good. The Final block states that instead, on the
-       * row `/payments` heads itself with.
-       */}
-      {!final && (
-        <ReconciliationRow
-          boughtIn={totals.boughtIn}
-          cashedOut={totals.cashedOut}
-          game={totals.game}
-        />
-      )}
-    </View>
-  );
-}
-
-/**
- * The one thing about the list that the list cannot say about itself, and it is
- * a different thing in each tab.
- *
- * ON FINAL it is the promise the bone tray rests on: a person who sees `−$54`
- * against their name and `−$54` against the name of whoever bought the pizza
- * needs to know the second one is coming back.
- *
- * ON AT TABLE it is the handoff's own sentence — *"the poker result only"* —
- * with what the evening took stated rather than merely absent, because a reader
- * comparing the two tabs is looking for exactly that difference.
- */
-function Note({ final, offTable }: { final: boolean; offTable: Money }) {
-  const t = useTheme();
-  return (
-    <View style={styles.note}>
-      <Icon name="info" color={t.muted} size={14} />
-      <Text style={[styles.noteText, { color: t.muted }]}>
-        {final
-          ? 'Whoever paid a bill gets it back in full below.'
-          : `The poker result only. Deductions total ${formatMoney(offTable)} and are applied in the Final tab.`}
-      </Text>
-    </View>
-  );
-}
-
-/**
- * "20:05 → 06:38 · 10h 46m · 7 players · settled".
- *
- * BOTH WALL-CLOCK TIMES, 24-hour, and then the duration. A night that crosses
- * midnight ends at a smaller number than it started at, which reads as wrong
- * until the duration resolves it.
- *
- * The local night's `endedAt` is set the moment counting starts. Where it is
- * missing — a night imported, or one closed before the field existed — the last
- * entry's own timestamp IS the moment the last chip moved.
+ * WHAT WAS DROPPED IS RECOVERABLE AND WHAT IS LEFT IS NOT. The times are on
+ * `/log`, entry by entry, with the duration between them; the status, the
+ * elapsed and the count are on no other screen at all. The handoff's own line
+ * makes the same call, in the same order, and this is it with the app's status
+ * word where the handoff hard-codes `Settled`.
  *
  * THE PLAYER COUNT IS THE COUNT OF ROWS THE LIST DRAWS, passed in rather than
  * recomputed: a header saying eight players over a list of seven would be the
@@ -444,14 +350,13 @@ function metaLine(night: NonNullable<ReturnType<typeof useNight>>, players: numb
   const ended = night.endedAt ?? last;
 
   return (
-    `${clock(night.startedAt)} → ${ended === null ? '—' : clock(ended)} · ` +
-    `${elapsed(night.startedAt, ended)} · ${players} ${players === 1 ? 'player' : 'players'}` +
-    ` · ${night.status === 'settled' ? 'settled' : 'not closed yet'}`
+    `${night.status === 'settled' ? 'Settled' : 'Not closed yet'} · ` +
+    `${elapsed(night.startedAt, ended)} · ${players} ${players === 1 ? 'player' : 'players'}`
   );
 }
 
-const clock = (iso: string): string =>
-  new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+/* The two wall-clock times came off this line on 9 September — `metaLine`
+   above says why, and `/log` is where they still are. */
 
 function elapsed(startedAt: string, endedAt: string | null): string {
   const end = endedAt === null ? Date.now() : new Date(endedAt).getTime();
@@ -491,57 +396,17 @@ const styles = StyleSheet.create({
   alertBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
   alertCodes: { fontSize: 11.5, fontWeight: '400', lineHeight: 16 },
 
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
-
   /*
-   * THE VERTICAL PASS OF 8 SEPTEMBER, and every reduced number below belongs to
-   * it. The cut's own paddings are drawn against its worked night, which is six
-   * players; the club this app is actually used by plays eight, and at eight the
-   * list ran off the bottom of the phone with three names below the fold and the
-   * rounding row and the note under those. A ranked list you have to scroll to
-   * finish reading is not a scoreboard — the ranking is the content, and it is
-   * only legible all at once.
+   * THE LIST, AND EVERYTHING ELSE ON THE SCREEN, IS `SessionViews.tsx`'S — the
+   * row, the view control, both blocks and the geometry of all three. What is
+   * left here is the two things that belong to this route rather than to the
+   * cut: the alarm above the list, and the step below it.
    *
-   * So the blocks above the list each give back a few points and the row gives
-   * back the most: `docs/screens.md` carries the arithmetic and the board values
-   * each of these came from. Nothing here changes what is on the screen, only
-   * how much air is around it — no term, row, rule or figure was dropped to make
-   * the room.
+   * The list itself needs one number. Side margin 22, and no gap: the rows are
+   * 60 tall and their own height is the separation, so anything added here
+   * would be the fencing the cut removed, in another form.
    */
-  block: { marginHorizontal: space.page, marginTop: 8 },
-  blockHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 3 },
-  blockTotal: { marginLeft: 'auto', fontSize: 12.5, fontWeight: '500' },
-  deduction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-    paddingVertical: 4,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  deductionName: { fontSize: 14, fontWeight: '600', flexShrink: 1 },
-  deductionNote: { fontSize: 13, fontWeight: '500', flexShrink: 1 },
-  deductionAmount: { marginLeft: 'auto', fontSize: 15, fontWeight: '700' },
+  list: { marginHorizontal: space.page },
 
-  tabs: { marginHorizontal: space.page, marginTop: 8 },
-  list: { marginHorizontal: space.page, marginTop: 8 },
-  listHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 3 },
-  listNote: { marginLeft: 'auto', fontSize: 12.5, fontWeight: '500', flexShrink: 1 },
-  /*
-   * THE ROW IS `ScoreBreakdown`'S NOW, and so is everything that used to be
-   * measured here — the name, the wrapping spend line, the net and the fix for
-   * B59 that made the line wrap only when it had to. One row drawn in one file
-   * is the point of the 8 September cut; a copy of its geometry left behind
-   * here is the copy that goes stale.
-   */
-
-  rounding: { marginTop: 4 },
-
-  note: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 9,
-    marginHorizontal: space.page,
-    paddingTop: 8,
-  },
-  noteText: { flex: 1, fontSize: 13, fontWeight: '400', lineHeight: 18 },
+  rounding: { marginTop: 10 },
 });

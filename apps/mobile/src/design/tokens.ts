@@ -206,6 +206,31 @@ export interface Theme {
   offTableFaint: string;
   /** The rule between rows inside that table: stronger than a hairline. */
   previewRule: string;
+
+  /*
+   * THE PAST-SESSION SCREEN — `design/handoff-session-views/`, cut 9 September.
+   * Five values, and the first two are the reason the set exists.
+   *
+   * `annotation` is a WARM GREY-BROWN and is deliberately NOT `offTable`. Both
+   * mean money that left the table, and on this screen that is the wrong
+   * distinction to draw with brightness: every figure under a name is
+   * annotation — what was bought in, what was cashed out, what the evening took
+   * — and all of it has to sit clearly BELOW the name in the reading order. At
+   * `#D9D3C4` the line competes with the name above it. The handoff says so in
+   * as many words, which is why this is a token rather than an opacity.
+   *
+   * `offTable` keeps every other screen. Nothing here replaces it.
+   */
+  /** Every figure on a row's annotation line, and holder names in the block. */
+  annotation: string;
+  /** The stroke of every glyph on that line — a step darker than the figure. */
+  annotationStroke: string;
+  /** The tinted group the itemised spends sit in. Neutral, not a bone wash. */
+  annotationTint: string;
+  /** The dropdown panel the view control opens. */
+  menu: string;
+  /** The checked row inside it. */
+  menuActive: string;
 }
 
 export const darkTheme: Theme = {
@@ -255,6 +280,12 @@ export const darkTheme: Theme = {
   drawerFill: 'rgba(255,255,255,0.07)',
   drawerEdge: 'rgba(255,255,255,0.16)',
   offTableFaint: 'rgba(217,211,196,0.055)',
+  /* The handoff's own hexes, to the digit. */
+  annotation: '#8C8578',
+  annotationStroke: '#6E6A62',
+  annotationTint: '#15151A',
+  menu: '#191920',
+  menuActive: '#22222A',
   previewRule: 'rgba(255,255,255,0.13)',
 };
 
@@ -314,6 +345,20 @@ export const lightTheme: Theme = {
   drawerFill: 'rgba(12,13,15,0.05)',
   drawerEdge: 'rgba(12,13,15,0.15)',
   offTableFaint: 'rgba(120,102,68,0.05)',
+  /*
+   * ⚠ THE LIGHT SET IS DERIVED, NOT DRAWN. The handoff draws the dark theme
+   * only and this app has two, so these are the same relationships read off the
+   * light palette: an annotation one step quieter than `offTable` (`#786644`)
+   * and warmer than `muted`, a stroke a step lighter again so it reads as the
+   * figure's own weight rather than as ink, a neutral tint at the surface's
+   * weight, and a menu that is a raised card with a checked row above it.
+   * Flagged rather than passed off as decided colour — `docs/screens.md`.
+   */
+  annotation: '#6E6455',
+  annotationStroke: '#8A8172',
+  annotationTint: '#EFEFF2',
+  menu: '#FFFFFF',
+  menuActive: '#E8E8ED',
   previewRule: 'rgba(12,13,15,0.13)',
 };
 

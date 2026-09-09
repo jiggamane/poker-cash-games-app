@@ -29,6 +29,7 @@ export function Screen({
   badge,
   trailing,
   meta,
+  metaTrailing,
   backTo,
   lede,
   children,
@@ -62,6 +63,20 @@ export function Screen({
   trailing?: ReactNode;
   /** Club · elapsed · since. One line, and it may be a fragment. */
   meta?: string;
+  /**
+   * A control sharing the meta line, pushed to its right-hand end.
+   *
+   * ONE SCREEN USES IT — the past session's view control
+   * (`design/handoff-session-views/`, cut 9 September), which the handoff puts
+   * on the meta line rather than under it. It is a prop rather than a second
+   * meta row because the line has to stay one line: the control is the state
+   * of the list below, and a state that wraps onto its own row reads as a
+   * heading for the list instead.
+   *
+   * `meta` still truncates to one line and this does not shrink, which is the
+   * same bargain every figure in this app makes against every name.
+   */
+  metaTrailing?: ReactNode;
   /**
    * Where back goes, for the screen reader. The button itself is a bare
    * chevron now — the label that used to sit beside it is gone.
@@ -150,7 +165,7 @@ export function Screen({
      so `ui-audit.mjs` can say which side of the scroller it ended up on. */
   const sub = (
     <>
-      {meta !== undefined && (
+      {meta !== undefined && metaTrailing === undefined && (
         <Text
           nativeID="screen-meta"
           style={[styles.meta, { color: t.muted }]}
@@ -158,6 +173,19 @@ export function Screen({
         >
           {meta}
         </Text>
+      )}
+
+      {meta !== undefined && metaTrailing !== undefined && (
+        <View style={styles.metaRow}>
+          <Text
+            nativeID="screen-meta"
+            style={[styles.metaShared, { color: t.muted }]}
+            numberOfLines={1}
+          >
+            {meta}
+          </Text>
+          {metaTrailing}
+        </View>
       )}
 
       {lede !== undefined && <Text style={[styles.lede, { color: t.muted }]}>{lede}</Text>}
@@ -259,6 +287,25 @@ const styles = StyleSheet.create({
     paddingRight: chrome.titlePadH,
     paddingLeft: chrome.metaIndent,
   },
+  /* The same line with something on the end of it. The padding moves to the
+     row so the control sits at the page's edge and the text keeps its indent. */
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    /*
+     * ABOVE THE BODY, because the one control that uses this line opens a menu
+     * that hangs below it and the list is a LATER SIBLING. Later siblings paint
+     * on top, so without this the menu is drawn and then covered by the first
+     * two rows of the list — visible in a screenshot, unclickable on a phone,
+     * which is the worst of both.
+     */
+    zIndex: 20,
+    paddingTop: chrome.metaPadTop,
+    paddingRight: chrome.titlePadH,
+    paddingLeft: chrome.metaIndent,
+  },
+  metaShared: { ...type.pushMeta, flexShrink: 1 },
   lede: { ...type.lede, marginTop: 8, marginHorizontal: space.page },
 
   // Every board draws the footer `14px 20px 0` with `gap: 10` — E2b, E4, E5,

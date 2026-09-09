@@ -58,7 +58,7 @@ export type IconName =
   | 'share'
   | 'qr'
   /*
-   * THE SCORE BREAKDOWN SET — `design_handoff_score_breakdown/Score Breakdown
+   * THE SCORE BREAKDOWN SET — `design/handoff-score-breakdown/Score Breakdown
    * Icons.dc.html`, turn 6, cut 8 September. Five glyphs on one 20 x 20 box, a
    * 1.7 stroke, round caps and joins, no fill, drawn at 15 in a results row and
    * 17 in a labelled pill. They are what a settled row prints instead of the

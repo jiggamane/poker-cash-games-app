@@ -7,6 +7,7 @@ import { useTheme } from '../src/design/useTheme';
 import { completeSignInFromUrl } from '../src/lib/authLink';
 import { loadClubs } from '../src/lib/clubStore';
 import { openNight } from '../src/lib/nightStore';
+import { loadSessionView } from '../src/lib/sessionViewStore';
 import { loadThemeChoice } from '../src/lib/themeStore';
 
 /**
@@ -76,6 +77,10 @@ export default function RootLayout() {
   // the same reason: every screen asks for it and none of them should wait.
   useEffect(() => {
     void loadThemeChoice();
+    /* How a past session is read, remembered per user rather than per night —
+       `design/handoff-session-views/`. Same shape as the theme above: read once,
+       nothing waits for it. */
+    void loadSessionView();
   }, []);
 
   // The sign-in link comes back into the app here. It has to be handled at the
