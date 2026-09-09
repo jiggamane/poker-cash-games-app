@@ -7,7 +7,14 @@ import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { authRedirectUrl } from '../src/lib/authLink';
-import { isSupabaseConfigured, sendSignInLink } from '../src/lib/supabase';
+import { codeIsComplete, explainCodeFailure, normaliseCode } from '../src/lib/signInCode';
+import {
+  explainServerError,
+  isNotInvited,
+  isSupabaseConfigured,
+  sendSignInLink,
+  verifySignInCode,
+} from '../src/lib/supabase';
 
 /**
  * The host signs in.
@@ -16,11 +23,20 @@ import { isSupabaseConfigured, sendSignInLink } from '../src/lib/supabase';
  * one-handed, and a password is one more thing to have forgotten since last
  * month. This is the only sign-in in the product — players are names the host
  * types, and watchers hold a link of their own.
+ *
+ * TWO WAYS IN, AND THE SECOND ONE IS NOT A NICETY — B66. The same email carries
+ * a link and a six-digit code, and the link is the half that can arrive broken:
+ * a mail client that will not render a custom scheme, a redirect that is not on
+ * the project's allow-list, or Go's html/template blanking the href because
+ * `exp://` is not a scheme it trusts. Every one of those failures looks the same
+ * on the phone — a button that does nothing — and a screen whose only exit is
+ * that button has no way out of any of them. The code has none of those parts.
  */
 export default function SignIn() {
   const t = useTheme();
   const [email, setEmail] = useState('');
   const [stage, setStage] = useState<'email' | 'sent'>('email');
+  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +50,42 @@ export default function SignIn() {
       await sendSignInLink(email.trim(), redirect);
       setStage('sent');
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      /*
+       * `isNotInvited` has existed since the closed test was set up, saying in
+       * its own comment that "the sign-in screen says it in its own words" —
+       * and this screen had never called it, so what a tester actually read was
+       * Supabase's own "Signups not allowed for otp". That reads like a broken
+       * build rather than a door that is shut, and it is the first thing
+       * anybody hits who was never added in the dashboard. Found beside B66.
+       */
+      if (isNotInvited(e)) {
+        setError(
+          'That address has not been invited yet. The app is in a closed test, so the host has to add you before a link can be sent.',
+        );
+      } else {
+        setError(explainServerError(e));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /*
+   * Dismissed only after the await returns. `verifyOtp` resolves once the
+   * session is installed, so by the time this closes, `useSession` has already
+   * seen it and every screen subscribed to it is drawing the signed-in state.
+   * Closing first — optimistically, on the tap — would put the host back on a
+   * club that still believes nobody is signed in, for as long as the round
+   * trip takes.
+   */
+  async function signInWithCode() {
+    setError(null);
+    setBusy(true);
+    try {
+      await verifySignInCode(email.trim(), normaliseCode(code));
+      router.dismissTo('/');
+    } catch (e) {
+      setError(explainCodeFailure(e));
     } finally {
       setBusy(false);
     }
@@ -52,19 +103,31 @@ export default function SignIn() {
     );
   }
 
+  /*
+   * "Done" was the primary on this stage and has gone, rather than becoming a
+   * third button in the footer. It only ever dismissed the sheet, which is what
+   * the close in the corner already does — Chrome B is a grabber, a close and a
+   * swipe, and doc 09 is explicit that those are the way out of a sheet. The
+   * primary slot now holds the thing there is actually to do.
+   */
   if (stage === 'sent') {
     return (
       <Sheet
         title="Check your email"
-       
         footer={
           <>
-            <Button label="Done" variant="primary" onPress={() => router.dismissTo('/')} />
+            <Button
+              label={busy ? 'Signing in…' : 'Sign in'}
+              variant={codeIsComplete(code) && !busy ? 'primary' : 'blocked'}
+              disabled={!codeIsComplete(code) || busy}
+              onPress={signInWithCode}
+            />
             <Button
               label="Use a different email"
               variant="secondary"
               onPress={() => {
                 setStage('email');
+                setCode('');
                 setError(null);
               }}
             />
@@ -73,12 +136,27 @@ export default function SignIn() {
       >
         <View style={styles.page}>
           <Text style={[styles.body, { color: t.text }]}>
-            A link is on its way to {email.trim()}.
+            A link and a six-digit code are on their way to {email.trim()}.
           </Text>
           <Text style={[styles.body, styles.spaced, { color: t.muted }]}>
-            Open it on this phone and you will come back here signed in. It works once and expires
-            shortly, so ask for another if it goes stale.
+            Either one signs you in. Open the link on this phone, or type the code below without
+            leaving the app. Both work once and expire shortly, so ask for another if it goes stale.
           </Text>
+
+          <View style={styles.form}>
+            <Field
+              label="Code from the email"
+              value={code}
+              onChangeText={(v) => setCode(normaliseCode(v))}
+              placeholder="123456"
+              keyboardType="number-pad"
+              autoFocus
+              hint="Six digits. Use this one if the link in the email does not open."
+            />
+          </View>
+
+          {error !== null && <Text style={[styles.body, { color: t.loss }]}>{error}</Text>}
+
           <RedirectNote url={redirect} />
         </View>
       </Sheet>
