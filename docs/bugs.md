@@ -117,6 +117,97 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
+### B67 — a tester who was never invited read a Supabase error
+
+```
+Screen      /sign-in, the email stage
+Seen        "Signups not allowed for otp" under the field, verbatim from the
+            auth server
+Expected    that the app is in a closed test and the host has to add you —
+            which is what actually happened and is nobody's mistake
+Found       9 Sept, reading the sign-in screen while fixing B66
+Locked by   nothing yet. The screen's error states cannot be reached by either
+            screen pass: the web export the checks are built from has no
+            Supabase project in it, so /sign-in renders "Not connected" and
+            every state behind it is invisible. `isNotInvited` is pure and
+            would be trivial to test, but it lives in `supabase.ts`, which
+            pulls AsyncStorage and cannot be imported into a node test. Moving
+            it beside `signInCode.ts` would fix both and is not this branch
+Status      fixed in this branch
+```
+
+**The sentence was written and never called.** `isNotInvited` has been in
+`supabase.ts` since the closed test was set up, and its own comment says the
+message "reads like a broken build rather than a door that is simply shut, so
+the sign-in screen says it in its own words". The sign-in screen did not import
+it. So the one string in the app written for the most likely thing to go wrong
+during a closed test has never been on a screen, and what a tester read instead
+was the raw protocol error. `explainServerError` had gone the same way on this
+screen — every other caller in the app uses it, and this one showed `e.message`.
+
+Adjacent to B66 and worth naming separately: they are the two halves of the same
+morning. One is a link that could not be tapped, the other is the sentence
+explaining why no link was ever sent.
+
+### B66 — the sign-in email's button had no link in it
+
+```
+Screen      /sign-in, and the email Supabase sends from it
+Seen        the sign-in email arrives, and its button is not a link. Tapping it
+            does nothing. There is no other way through the sheet, so the only
+            account in the product cannot be got into at all
+Expected    the button opens the app signed in — and failing that, ANY second
+            way in, because a link in an email has four separate systems that
+            can refuse it and three of them refuse silently
+Found       9 Sept, reported off the phone by the owner
+Locked by   npm run check — authLink.test.ts holds the redirect's path against
+            a screen file and a Stack.Screen registration, and refuses a custom
+            scheme written into authLink.ts; signInCode.test.ts holds the code
+            path, which exists only to serve the field. Verified against the
+            fault: with app/auth-callback.tsx removed again the leg reports
+            "auth-callback.tsx is missing — the link lands on Unmatched Route".
+            The blank href itself is locked by NOTHING AUTOMATED and cannot be
+            — see below
+Status      fixed in this branch
+```
+
+**Go's `html/template` deletes an `href` it does not trust, and says nothing.**
+Supabase renders its email templates through it, and it emits only schemes it
+recognises as safe — `http` and `https`. `exp://` and `pokerclub://` are not on
+that list, and when it meets one it writes the literal string `#ZgotmplZ` where
+the URL should be. The mail goes out, the send succeeds, the dashboard's own
+preview looks correct, and what lands on the phone is a button with nothing
+behind it. That is the reported symptom, exactly and completely.
+
+**What the repository actually did wrong is the second half, and it is the half
+worth keeping.** The template is a string in a dashboard — no check in this repo
+can see it, and no session in the cloud can even reach `supabase.co` to look.
+But the sheet that sent the mail had **one** way through it, and it was that
+link. `verifySignInCode` had been sitting in `supabase.ts` since sign-in was
+built, complete, tested by nothing, and **called from nowhere** — the six-digit
+code was written and never wired to a field. So a silent refusal anywhere in a
+four-system chain locked the host out with no fallback, and the fallback was
+already in the building.
+
+**And the link had nowhere to land even when it worked.** `authRedirectUrl()`
+has been asking Supabase to send the host to `/auth-callback` for as long as
+sign-in has existed, and `app/` had no such file. A link that survived the
+sanitiser opened the app onto expo-router's *Unmatched Route* page — a
+developer's error screen with none of the app's navigation on it. The session
+installed correctly underneath it, because `_layout.tsx` reads the tokens off
+any URL the app is opened with, so the host was signed in and reading a page
+that said otherwise. Two independent faults, one report.
+
+⚠ **The blank `href` cannot be locked by anything in this repo, and this is the
+entry that says so rather than leaving the field looking answered.** The mail is
+rendered on Supabase's servers from a string in their dashboard;
+`docs/email-templates/magic-link.html` is that string kept where somebody reads
+it, and `docs/email-templates/README.md` carries the one rule that matters —
+the `href` is `{{ .ConfirmationURL }}`, which is https, and the deep link rides
+inside it as a parameter where the sanitiser cannot reach it. Pasting it is
+step 5 of `docs/auth-test-period.md`. What the checks now guarantee is the part
+that is ours: that there is a second way in when the first one fails.
+
 ### B65 — Sessions and My stats stopped opening a night
 
 ```

@@ -93,7 +93,7 @@ const ROUTES = [
   '/games', '/stats', '/players', '/member', '/groups', '/new-group', '/new-night',
   '/settings', '/club-rules', '/money-rules', '/rule', '/bill-rules', '/piggy-bank-rules',
   '/house-rules', '/sign-in', '/claim', '/invite', '/watch', '/hand-over',
-  '/rounding', '/share',
+  '/rounding', '/share', '/auth-callback',
 ];
 
 /*

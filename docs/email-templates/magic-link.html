@@ -1,0 +1,129 @@
+<!--
+  THE SIGN-IN EMAIL — Supabase → Authentication → Emails → Magic Link.
+
+  Paste the whole of this file into that box. It is not built from the repo and
+  nothing in the repo can reach it: the mail is rendered by Supabase's own Go
+  templating, on their servers, from a string stored in the dashboard. This file
+  is the version of that string we keep under review, and B66 is what happens
+  when nobody does.
+
+  ── WHAT WENT WRONG, so it is not reintroduced ────────────────────────────────
+
+  A sign-in email arrived with a button that had no link in it. Go's
+  `html/template` — which is what renders this — will not emit an `href` whose
+  scheme it does not recognise as safe. `http` and `https` are safe; `exp://`
+  and `pokerclub://` are not. When it meets one it writes the literal string
+  `#ZgotmplZ` in place of the URL, silently, and what ships is a button that
+  does nothing at all.
+
+  So THE RULE, and it is the only one in this file that matters:
+
+      The href is `{{ .ConfirmationURL }}` and nothing else, ever.
+
+  `{{ .ConfirmationURL }}` is `https://<project-ref>.supabase.co/auth/v1/verify?
+  token=…&type=magiclink&redirect_to=…`. It is https, so it survives the
+  sanitiser; the app's deep link rides inside it as the `redirect_to` PARAMETER,
+  where it is just text. Supabase verifies the token and then issues the
+  redirect to `pokerclub://auth-callback` itself, from a real HTTP response,
+  which is a hop no mail client is involved in.
+
+  Never put `{{ .RedirectTo }}`, `{{ .SiteURL }}` or a hand-built deep link in
+  an href here. That is the fault, exactly.
+
+  ── AND THE CODE ──────────────────────────────────────────────────────────────
+
+  `{{ .Token }}` is the six digits. Supabase's stock template does not include
+  it, which is why the app's `verifySignInCode` sat unreachable for months while
+  the link was the only way in.
+
+  It is here because the link has four things to agree with — the sanitiser
+  above, the mail client's willingness to render a link, the project's redirect
+  allow-list, and the phone's idea of who owns the scheme — and three of them
+  fail silently. The code has none of them. A host who can read six digits can
+  sign in, whatever the mail client has done to the button.
+
+  ── HOUSE RULES FOR EDITING THIS ──────────────────────────────────────────────
+
+  Tables and inline styles, because Outlook. No <style> block, no external
+  stylesheet, no web font, no image — each one is a thing that renders in the
+  preview and not on somebody's phone. The palette is the app's light theme
+  (`apps/mobile/src/design/tokens.ts`): ground #FFFFFF, surface #F4F4F6, text
+  #0C0D0F. Mail clients invert dark-mode at will and cannot be relied on, so
+  this is drawn light and legible either way.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;margin:0;padding:0;">
+  <tr>
+    <td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:440px;">
+
+        <tr>
+          <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:30px;font-weight:800;letter-spacing:-0.9px;line-height:1.06;color:#0C0D0F;padding-bottom:14px;">
+            Sign in to The Poker Club
+          </td>
+        </tr>
+
+        <tr>
+          <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:400;line-height:1.5;color:#0C0D0F;padding-bottom:24px;">
+            Two ways in, and either one works. Tap the button, or type the code into the app.
+          </td>
+        </tr>
+
+        <!--
+          THE BUTTON. The href is {{ .ConfirmationURL }} — read the note at the
+          top of this file before changing it to anything else.
+        -->
+        <tr>
+          <td style="padding-bottom:14px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#0C0D0F" style="border-radius:14px;">
+                  <a href="{{ .ConfirmationURL }}"
+                     style="display:inline-block;padding:17px 30px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:14px;">
+                    Open the app signed in
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!--
+          The same URL as text. A button is markup and can be stripped — by a
+          plain-text view, by a corporate mail gateway, by a client that refuses
+          styled anchors. The address written out survives all three, and a host
+          can always copy it. This is the belt to the button's braces and it
+          costs one row.
+        -->
+        <tr>
+          <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;font-weight:400;line-height:1.5;color:#6B6B72;padding-bottom:28px;word-break:break-all;">
+            If the button does nothing, paste this into a browser on the same phone:<br>
+            <a href="{{ .ConfirmationURL }}" style="color:#6B6B72;">{{ .ConfirmationURL }}</a>
+          </td>
+        </tr>
+
+        <!-- The code. Nothing here can be sanitised, stripped or misrouted. -->
+        <tr>
+          <td style="background-color:#F4F4F6;border-radius:16px;padding:20px 22px;">
+            <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:#6B6B72;padding-bottom:8px;">
+              Or type this code
+            </div>
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:32px;font-weight:700;letter-spacing:6px;color:#0C0D0F;">
+              {{ .Token }}
+            </div>
+            <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;font-weight:400;line-height:1.5;color:#6B6B72;padding-top:10px;">
+              On the sign-in screen, under &ldquo;Check your email&rdquo;. Use this if the button above does not open the app.
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;font-weight:400;line-height:1.5;color:#6B6B72;padding-top:24px;">
+            Both the link and the code work once and expire shortly. Asking for another email retires this one, so always use the newest.
+            If you did not ask to sign in, nothing has happened and you can ignore this.
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>

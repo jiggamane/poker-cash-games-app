@@ -66,6 +66,7 @@ is settled when it is not.
 | Screen | Chrome | Rules | Sheet | Night | Conformed |
 |---|---|:--:|:--:|:--:|:--:|
 | `/` | push | ✓ | — | — | ☐ |
+| `/auth-callback` | push | ✓ | — | — | ☐ |
 | `/bill` | sheet | ✓ | ✓ | — | ☐ |
 | `/bill-rules` | sheet | ✓ | ✓ | — | ☐ |
 | `/claim` | push | ✓ | — | — | ☐ |
@@ -102,8 +103,19 @@ is settled when it is not.
 | `/stats` | push | ✓ | — | ✓ | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**36 screens · 36 under the rule pass · 21 under the sheet pass · 13 under a big
+**37 screens · 37 under the rule pass · 21 under the sheet pass · 13 under a big
 night · 0 conformed.**
+
+**`/auth-callback` is new on 9 September and is drawn by no board** — B66. It is
+where the sign-in link lands, and it had no screen at all until then: the
+redirect had been pointing at a route `app/` did not answer to, so a working
+link opened the app onto expo-router's *Unmatched Route* page. It takes
+`/claim`'s classification and `/claim`'s measurements — the two screens a link
+lands on cold, with no chrome of either kind — because there is no board for
+either of them and inventing a second look for the same object is how two
+screens that should be identical stop being identical. Its copy is invented, and
+that is flagged here rather than passed off: nothing in any handoff draws a
+sign-in, and there was no string to reach for.
 
 **`/settled` gained one block on 7 September that no screen check can see, and
 it is flagged here rather than left to be found.** The *Did not check out* alert

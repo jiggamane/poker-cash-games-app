@@ -166,8 +166,15 @@ export default function RootLayout() {
          * is nothing behind it — no chevron, no grabber, and deliberately no
          * close. Presenting it as a card would give it a dismiss gesture that
          * leads nowhere.
+         *
+         * `auth-callback` is the second of them, and for the same reason — the
+         * host has just come back from their mail app. It was missing until
+         * B66: `authRedirectUrl()` had been sending the sign-in link to a route
+         * with no screen behind it, so a link that worked opened the app onto
+         * expo-router's *Unmatched Route* page.
          */}
         <Stack.Screen name="claim" options={{ animation: 'fade', gestureEnabled: false }} />
+        <Stack.Screen name="auth-callback" options={{ animation: 'fade', gestureEnabled: false }} />
       </Stack>
     </SafeAreaProvider>
   );
