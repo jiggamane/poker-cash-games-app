@@ -101,7 +101,7 @@ The bottom half of that table is `0014`. Everything above it needed **no
 migration** — `money_rule`, `final_count` and `settlement` were built in `0001`
 and had simply never been written to — and everything below it had nowhere on
 the server to land at all: a group's own settings, which table is which, the two
-standing answers about a person, and the row of ticks on E7. See B68–B73.
+standing answers about a person, and the row of ticks on E7. See B69–B74.
 
 ---
 
@@ -357,7 +357,7 @@ see nothing else, and that reading is all claiming ever grants.
    who is still on the roster and who has paid were written to one phone and had
    nowhere on the server to land. They do now, they go up, and the pull reads
    them back. `storageCoverage.test.ts` is what stops the list growing again
-   without anybody noticing. B68–B73.
+   without anybody noticing. B69–B74.
 5. **Verification.** An edge function that re-settles from the snapshots and
    flags any disagreement. Cheap once the snapshots are there, and it is what
    makes "the client calculated it" a non-issue.

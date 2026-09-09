@@ -32,6 +32,19 @@ other became B46 in the merge, by the same rule as above. The lesson is not to
 read harder: **the number is only safe once your entry is on `main`**, so where
 two sessions are in flight, merge the entry early or expect to renumber it.
 
+**And again on 9 September, which is the case this file has now described four
+times and the first one where nothing had to be untangled.** A session rebuilding
+the storage layer wrote B68–B73 and merged; a session working on the meta line
+had already merged a B68 of its own an hour earlier. The collision surfaced in
+`git merge` — cleanly, because the two entries are in different regions of the
+file, which is exactly the false comfort the paragraph below warns about — and
+was found by the grep that belongs AFTER the merge. Same resolution as every
+time: the entry already on `main`, with five code references naming it, kept the
+number, and the storage one moved to **B74** with its four references. Its commit
+messages still say B68, because they were written before `main` moved and a
+pushed message is not worth rewriting; the file is the record, and the file says
+B74.
+
 **And again on 7 September, with the merge check doing its job for once.** A
 session reading the invite flow wrote up B47–B51 and a sixth screen pass added
 B52–B57, while this one was photographing the game-end flow and wrote a B47 of
@@ -750,7 +763,7 @@ Fix this before drawing anything new for the invite flow, or every state the
 
 ## Fixed
 
-### B68 — a host with two groups jammed their own queue, for ever
+### B74 — a host with two groups jammed their own queue, for ever
 
 ```
 Screen      none — the queue, which has no screen
@@ -834,7 +847,7 @@ moment the cards stop — never left the phone.
 **The reason this is not simply "send the row" is a constraint.** The server
 checks `(status = 'settled') = (ended_at is not null)`, so a patch carrying the
 moment the cards stopped onto a night that is still counting is a refused row,
-and a refused row at the head of the queue is B68 again. `sessionPatch`
+and a refused row at the head of the queue is B74 again. `sessionPatch`
 therefore has no `ended_at` at all: the ending goes up with the close, where the
 status moves with it, and `03_sync_contract.sql` asserts that the other order is
 rejected.
