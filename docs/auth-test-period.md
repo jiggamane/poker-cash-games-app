@@ -67,7 +67,7 @@ arrived", which reads exactly like a bug in the app. Resend's free tier is
 
 ## Setting it up
 
-Six steps, all in the Supabase dashboard except the DNS one. A remote Claude
+Seven steps, all in the Supabase dashboard except the DNS one. A remote Claude
 session cannot reach `supabase.co`, so these are for a person or a session
 running on your own machine.
 
@@ -124,7 +124,29 @@ policies are correctly refusing them. If watching is empty, check this first.
    after you attach SMTP, which is the second reason people think the mail is
    broken when it is not.
 
-### 5. Allow the redirect URLs
+### 5. Paste the email template
+
+**Authentication → Emails → Magic link or OTP.** Paste the whole of
+`docs/email-templates/magic-link.html` into **Body**, on the **Source** tab.
+
+⚠ **Step 4 gates this one.** Without custom SMTP the page reads *"Set up custom
+SMTP to edit templates"*, Subject and Body are read-only, and **Save changes**
+is greyed out. That is the second reason step 4 is not optional — the first
+being the 2-an-hour limit — and it is why these two steps are in this order.
+
+This is not decoration, and skipping it is B66. Supabase's stock template sends
+the link and nothing else, so a link that arrives broken — and there are four
+separate ways it can — leaves a host with no way into the only account in the
+product. The file adds the six-digit code beside the button, which the sign-in
+screen can now take.
+
+It also carries the rule that made the button blank in the first place: the
+`href` of a link in one of these is `{{ .ConfirmationURL }}` and never a deep
+link, because Go's templating replaces an `href` whose scheme it does not trust
+with `#ZgotmplZ` and says nothing. `docs/email-templates/README.md` is the whole
+of it. Read that before editing anything in that box.
+
+### 6. Allow the redirect URLs
 
 **Authentication → URL Configuration → Redirect URLs.** Add
 `pokerclub://auth-callback` for real builds, and — while testing in Expo Go —
@@ -133,7 +155,26 @@ address contains the dev machine's IP and port, so it changes when either does.
 A link that redirects somewhere not on this list falls back to the project's
 Site URL and dead-ends on a page the phone cannot reach.
 
-### 6. Invite the testers
+⚠ **THIS IS THE STEP B66 WAS, and it fails in the one way that leaves no trace.**
+An address that is not on this list is not rejected — the call returns 200, the
+mail is sent, and `redirect_to` is silently replaced by the Site URL, which on a
+new project is `http://localhost:3000`. The host gets a perfectly well-formed
+link that hands the phone a port on itself. Nothing in the app, the response or
+any log says a substitution happened; the only place it is visible is the
+`redirect_to=` in the delivered mail's own href.
+
+**And the `exp://` address expires by itself.** A different wifi, or a packager
+that took 8082 because 8081 was busy, and this list is quietly wrong again. It
+is not set up once. That is why the sign-in sheet also takes a six-digit code:
+the code does not travel through `redirect_to`, so it is the one way in this
+list cannot silently break.
+
+**Site URL, in the same box, must be `http(s)` — not `pokerclub://`.** It is
+what an unlisted redirect falls back to, so a custom scheme there walks straight
+into the sanitiser in step 5 by the side door. It is fine that it points nowhere
+useful; this app has no website.
+
+### 7. Invite the testers
 
 **Authentication → Users → Invite user**, one address each. The invite goes out
 over the SMTP configured in step 4. After that they use the ordinary sign-in
@@ -201,8 +242,11 @@ before the first night rather than after the first outage.
 
 On two phones, or one phone and one simulator:
 
-1. **Host:** sign in with an invited address. The link arrives by email and
-   opens the app signed in.
+1. **Host:** sign in with an invited address. The email carries a link and a
+   six-digit code, and **both are worth trying** — they fail independently and
+   the link is the fragile one. The link should open the app on *Signed in* and
+   land you back at the club; the code, typed on the *Check your email* stage,
+   should sign you in without leaving the app at all.
 2. **Host:** record a night — seat two players, buy in, a rebuy.
 3. **Host:** Settings → Watchers → **Share this night**. This publishes the
    book, the players, the session and the ledger, then hands you a link.

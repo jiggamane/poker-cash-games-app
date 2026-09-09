@@ -117,6 +117,149 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
+### B67 — a tester who was never invited read a Supabase error
+
+```
+Screen      /sign-in, the email stage
+Seen        "Signups not allowed for otp" under the field, verbatim from the
+            auth server
+Expected    that the app is in a closed test and the host has to add you —
+            which is what actually happened and is nobody's mistake
+Found       9 Sept, reading the sign-in screen while fixing B66
+Locked by   nothing yet. The screen's error states cannot be reached by either
+            screen pass: the web export the checks are built from has no
+            Supabase project in it, so /sign-in renders "Not connected" and
+            every state behind it is invisible. `isNotInvited` is pure and
+            would be trivial to test, but it lives in `supabase.ts`, which
+            pulls AsyncStorage and cannot be imported into a node test. Moving
+            it beside `signInCode.ts` would fix both and is not this branch
+Status      fixed in this branch
+```
+
+**The sentence was written and never called.** `isNotInvited` has been in
+`supabase.ts` since the closed test was set up, and its own comment says the
+message "reads like a broken build rather than a door that is simply shut, so
+the sign-in screen says it in its own words". The sign-in screen did not import
+it. So the one string in the app written for the most likely thing to go wrong
+during a closed test has never been on a screen, and what a tester read instead
+was the raw protocol error. `explainServerError` had gone the same way on this
+screen — every other caller in the app uses it, and this one showed `e.message`.
+
+Adjacent to B66 and worth naming separately: they are the two halves of the same
+morning. One is a link that could not be tapped, the other is the sentence
+explaining why no link was ever sent.
+
+### B66 — the sign-in link sent the phone to localhost:3000
+
+```
+Screen      /sign-in, and the email Supabase sends from it
+Seen        the sign-in email arrives and its link does nothing — reported as
+            "the button didn't have a link in it". There is no other way
+            through the sheet, so the only account in the product cannot be
+            got into at all
+Expected    the link opens the app signed in — and failing that, ANY second
+            way in, because a link in an email has four separate systems that
+            can refuse it and three of them refuse silently
+Cause       the href, read out of the delivered mail:
+            …/auth/v1/verify?token=…&type=magiclink&redirect_to=http://localhost:3000
+            The app asked to come back to exp://…/--/auth-callback. That
+            address was not on Authentication → URL Configuration → Redirect
+            URLs, so the auth server substituted the project's Site URL —
+            silently, 200, no error anywhere — and the link verifies the token
+            and then sends the phone to a port on itself
+Found       9 Sept, reported off the phone by the owner
+Locked by   npm run check — authLink.test.ts holds the redirect's path against
+            a screen file and a Stack.Screen registration, and refuses a custom
+            scheme written into authLink.ts; signInCode.test.ts holds the code
+            path, which exists only to serve the field. Verified against the
+            fault: with app/auth-callback.tsx removed again the leg reports
+            "auth-callback.tsx is missing — the link lands on Unmatched Route".
+            The blank href itself is locked by NOTHING AUTOMATED and cannot be
+            — see below
+Status      fixed in this branch
+```
+
+**An unlisted redirect is not refused, it is REPLACED.** `sendSignInLink` passes
+`emailRedirectTo`, and the auth server checks it against the project's Redirect
+URLs. If it is not there, nothing fails: the call returns 200, the mail is sent,
+and the address is quietly swapped for the project's **Site URL** — which on a
+new project is `http://localhost:3000`. The link is perfectly well formed and
+perfectly useless, because it hands the phone a port on itself. Nothing in the
+response, the mail, or any log says a substitution happened. `redirect_to=` in
+the delivered href is the only place the truth appears, and reading it is the
+whole diagnosis.
+
+The address that was missing is `exp://<the dev machine's IP>:8081/--/auth-callback`,
+which **changes whenever the laptop's IP or the packager's port changes** — so
+this is not a thing that is set up once. `/sign-in` prints the current one on
+itself in development for exactly this reason, and step 6 of
+`docs/auth-test-period.md` says to paste it into that box. It had not been.
+
+⚠ **THIS ENTRY FIRST BLAMED THE WRONG THING, and the wrong thing was
+plausible.** It said Go's `html/template` had blanked the href — it replaces an
+`href` whose scheme it does not trust with the literal `#ZgotmplZ`, which
+produces a link that does nothing and matches the report word for word. That
+hazard is real, it is documented by Supabase, and `docs/email-templates/README.md`
+still holds the rule that avoids it. It was simply not what happened here: the
+project had never edited its template, so the href was Supabase's own
+`{{ .ConfirmationURL }}` and was https throughout. **A mechanism that explains
+the symptom is not evidence that it occurred.** Thirty seconds reading the
+actual href would have settled it before any of the guessing, which is why that
+is now the first instruction in the README rather than a footnote.
+
+**What the repository did wrong is the second half, and none of it is undone by
+the correction above — the cause moved and the faults did not.** The setting is
+in a dashboard no check here can see. But the sheet that sent the mail had
+**one** way through it, and it was that link. `verifySignInCode` had been
+sitting in `supabase.ts` since sign-in was built, complete, tested by nothing,
+and **called from nowhere** — the six-digit code was written and never wired to
+a field. So a silent substitution three systems away locked the host out with no
+fallback, and the fallback was already in the building.
+
+**And the link had nowhere to land even when it arrived.** `authRedirectUrl()`
+has been asking Supabase to send the host to `/auth-callback` for as long as
+sign-in has existed, and `app/` had no such file. This is the wall immediately
+behind the one that was hit: fix the allow-list and the link now reaches the
+app, which would have opened onto expo-router's *Unmatched Route* page — a
+developer's error screen with none of the app's navigation on it. The session
+installs correctly underneath it, because `_layout.tsx` reads the tokens off any
+URL the app is opened with, so the host is signed in and reading a page that
+says otherwise. Two independent faults, one report, and the second one was never
+reached because the first stopped the link before it got there.
+
+⚠ **THE CODE FIELD IS DARK UNTIL THE PROJECT HAS CUSTOM SMTP**, and that is a
+dependency worth stating rather than discovering. Supabase will not let a
+template be edited without it — the Body is read-only and Save is greyed out —
+so a project on the built-in mailer sends the stock magic-link email, which
+carries a link and no `{{ .Token }}`. The field is then on screen with no code
+in existence to type into it. That is step 4 then step 5 of
+`docs/auth-test-period.md`, in that order, and the app cannot detect the
+difference: nothing in a client can ask which template a project has.
+
+⚠ **Nothing in this repo can go red for the actual cause, and that is worse than
+it sounds.** The allow-list is a dashboard setting; the app cannot read it, and
+the auth server reports a substitution as success. Worse, the dev address it has
+to hold *expires by itself* — a new IP on the café's wifi, a packager on 8082
+because 8081 was busy, and the link silently goes back to pointing at
+`localhost:3000` with nothing anywhere saying so. That is not a bug that gets
+fixed once; it is a bug that comes back on its own schedule.
+
+So the code is what has to carry it, and does: the six-digit code does not
+travel through `redirect_to` at all, so it is the one way in that an allow-list
+cannot silently break. `/sign-in` also prints the current `exp://` address on
+itself in development — put it in the box whenever it changes, or accept that
+the link half stops working and use the code.
+
+⚠ **The blank `href` cannot be locked by anything in this repo, and this is the
+entry that says so rather than leaving the field looking answered.** The mail is
+rendered on Supabase's servers from a string in their dashboard;
+`docs/email-templates/magic-link.html` is that string kept where somebody reads
+it, and `docs/email-templates/README.md` carries the one rule that matters —
+the `href` is `{{ .ConfirmationURL }}`, which is https, and the deep link rides
+inside it as a parameter where the sanitiser cannot reach it. Pasting it is
+step 5 of `docs/auth-test-period.md`. What the checks now guarantee is the part
+that is ours: that there is a second way in when the first one fails.
+
 ### B65 — Sessions and My stats stopped opening a night
 
 ```
