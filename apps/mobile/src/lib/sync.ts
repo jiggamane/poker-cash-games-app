@@ -239,17 +239,27 @@ export async function queueBook(args: {
 }): Promise<void> {
   if (!isUuid(args.clubId)) return;
 
+  const id = `book:${args.clubId}`;
+
+  /*
+   * THE ONE FIELD HERE THAT IS A MEMORY RATHER THAN A STATE. Every other value
+   * is replaced by the latest answer, which is what makes one operation per
+   * club correct. The previous name is not: a club renamed twice before the
+   * queue drains must still be looked up under the name the SERVER has, not
+   * under the one it had in between — which never reached it either.
+   */
+  const queued = (await outbox.peek(id))?.payload as BookPayload | undefined;
+  const previous = queued?.previousName ?? args.previousName;
+
   await enqueueOp<BookPayload>(outbox, {
-    // One per club: settings are a state, not a series of events, and the last
-    // answer is the only one worth sending.
-    id: `book:${args.clubId}`,
+    id,
     sessionId: args.clubId,
     kind: 'book.upsert',
     payload: {
       groupName: args.groupName,
-      ...(args.previousName === undefined || args.previousName === args.groupName
+      ...(previous === undefined || previous === args.groupName
         ? {}
-        : { previousName: args.previousName }),
+        : { previousName: previous }),
       book: args.book,
     },
   });
@@ -482,6 +492,10 @@ async function write(w: RowWrite): Promise<void> {
  * it describes is one lost setting rather than a night that never leaves.
  */
 async function patch(p: RowPatch): Promise<void> {
+  // A patch naming no column is not an empty update, it is a malformed request.
+  // `sessionPatch` builds itself from optional fields, so this is reachable.
+  if (Object.keys(p.patch).length === 0) return;
+
   const { error } = await supabase.from(p.table).update(p.patch).eq('id', p.matchId);
   if (error) throw new Error(`${p.table}: ${error.message}`);
 }

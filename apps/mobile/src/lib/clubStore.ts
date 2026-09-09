@@ -416,13 +416,23 @@ async function queueSettings(clubId: string, previousName?: string): Promise<voi
   const club = state.clubs.find((c) => c.id === clubId);
   if (club === undefined) return;
 
+  /*
+   * TWO VALUES ARE CHECKED BY THE DATABASE, so they are checked here first.
+   * `book.currency_code` must be three upper-case letters and `default_buyin`
+   * must be above zero; a row that fails either is refused, and a refused row
+   * at the head of the queue stops every night behind it — which is B68, the
+   * fault this whole change exists to end. Dropping the offending field sends
+   * everything else and loses one setting instead.
+   */
+  const iso = /^[A-Z]{3}$/.test(club.currency.toUpperCase());
+
   await queueBook({
     clubId,
     groupName: club.name,
     ...(previousName === undefined ? {} : { previousName }),
     book: {
-      currencyCode: club.currency,
-      defaultBuyIn: club.defaultBuyIn,
+      ...(iso ? { currencyCode: club.currency.toUpperCase() } : {}),
+      ...(club.defaultBuyIn > 0 ? { defaultBuyIn: club.defaultBuyIn } : {}),
       stakes: club.stakes === null ? null : JSON.stringify(club.stakes),
       roundingMode: club.roundingMode,
     },

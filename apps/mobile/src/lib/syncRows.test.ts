@@ -444,3 +444,21 @@ describe('who has paid', () => {
     });
   });
 });
+
+/**
+ * The two ways a patch can be malformed rather than merely empty-handed.
+ *
+ * `sessionPatch` builds itself from optional fields, so a caller naming none of
+ * them produces an update with no columns — which is not an empty update, it is
+ * a malformed request. `sync.ts` drops that one before it is sent; this states
+ * the shape it has to recognise.
+ */
+describe('a patch that says nothing', () => {
+  it('is empty, and is what sync.ts checks for', () => {
+    expect(sessionPatch({ sessionId: SESSION }).patch).toEqual({});
+  });
+
+  it('is never what a book patch is, because the name always goes', () => {
+    expect(bookPatch({ groupName: 'g', book: {} }, BOOK).patch).toEqual({ group_name: 'g' });
+  });
+});
