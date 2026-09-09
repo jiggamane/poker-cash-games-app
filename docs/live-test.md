@@ -110,17 +110,35 @@ the screen from before them. There is no error and nothing to force-quit,
 because nothing was ever going to fetch anything. On 8 September three publishes
 in a row were read as a caching problem for exactly this reason.
 
-So to put the newest build on a phone, use one of these instead:
+So to put the newest build on a phone, **open the branch page and take the
+update at the top of it** — it lists the publishes newest first:
 
-1. **Expo Go → Home → the project**, under your account. No link at all. Expo Go
-   asks the `expo-go` branch what is newest for `exposdk:57.0.0` and gets it.
-   This is the one to use.
-2. **The branch page**, which always points at the newest publish:
-   <https://expo.dev/accounts/decusgames/projects/poker-cash-games-manager/branches/expo-go>
+<https://expo.dev/accounts/decusgames/projects/poker-cash-games-manager/branches/expo-go>
 
-The per-update link still has a job — it identifies what was published, and the
-publish table under it names the commit — but it is not how the app is
-installed.
+The account is `decusgames`. The dashboard may show it under a display name —
+**A-team is that same account**, and the `/accounts/decusgames/` in the URL is
+what settles it, not the label in the switcher.
+
+⚠ **Expo Go's Home does NOT list this project, and that is not a sign-in
+problem — B75.** Until 9 September this section said to open the project from
+Home under your account, no link at all, and called it the one to use. On the
+current App Store Expo Go, signed in as the account that owns the project, the
+PROJECTS section on Home stays empty and offers a playground example instead.
+Signing out and back in changes nothing. Do not spend an evening on it.
+
+**Which leaves the per-update pin as a standing cost.** A link addresses one
+update group for ever, so the loop after every publish is: open the NEW update
+(from the branch page, or from the run's summary), and never re-tap a row under
+*Recently opened* — every one of those is a pin to an older publish and nothing
+on the row says which, which is why there were eight identical ones by
+9 September. **CLEAR** that list when it holds anything but the current build.
+
+The per-update link still has its other job — it identifies what was published,
+and the publish table under it names the commit.
+
+**And open it twice.** Expo Go fetches an update on a cold start and applies it
+on the next one, so a first launch still drawing the old screen is the app
+behaving as designed rather than a failed publish.
 
 **And the phone can now say which build it is running:** Settings, at the foot,
 prints the commit the bundle was made from (`build 7de54b5 · 8 Sept, 19:54`).

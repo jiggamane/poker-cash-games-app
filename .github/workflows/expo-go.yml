@@ -203,20 +203,24 @@ jobs:
             echo
             echo '### To get it onto the phone'
             echo
-            echo 'Easiest, and it needs no link: **open Expo Go → Home → the project**'
-            echo 'under your account. Expo Go asks the `expo-go` branch what is newest'
-            echo 'and gets this update.'
-            echo
-            echo 'Or open the BRANCH, which always points at the newest publish:'
+            echo 'Open the BRANCH and take the update at the top of it — it lists the'
+            echo 'publishes newest first, so the top row is this one:'
             echo
             echo "<https://expo.dev/accounts/$EXPO_ACCOUNT/projects/$EXPO_SLUG/branches/expo-go>"
             echo
-            echo '⚠ **Do not open the update link below to get the app.** It addresses'
-            echo 'THIS ONE update by its group id, and a phone that opens it reloads that'
+            echo 'The Home tab in Expo Go does NOT list this project, whatever account it'
+            echo 'is signed into — PROJECTS there stays empty and offers a playground'
+            echo 'instead (B75). This summary said to use it until 9 September; the branch'
+            echo 'page is the route that works.'
+            echo
+            echo '⚠ **The update link below pins the phone to THIS update, for ever.** It'
+            echo 'addresses one group by its id, and a phone that opens it reloads that'
             echo 'same group every launch — it will never see a later publish, however'
-            echo 'many go out. It is here to identify what was published, not to install'
-            echo 'it. (8 September: three green publishes in a row that a phone never'
-            echo 'loaded, for exactly this reason.)'
+            echo 'many go out. Right after this run it IS the newest, so opening it now is'
+            echo 'fine; opening it again next week is how you end up reading an old screen.'
+            echo '(8 September: three green publishes in a row that a phone never loaded,'
+            echo 'for exactly this reason.) Clear **Recently opened** in Expo Go afterwards'
+            echo 'so an old pin cannot be tapped by accident.'
             echo
             echo 'Either way Expo Go has to be signed in to the account that owns the'
             echo 'project, or it refuses the update without saying so. Settings, at the'
