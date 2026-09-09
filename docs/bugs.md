@@ -130,6 +130,54 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
+### B75 — the way out of B64 was a screen that does not exist
+
+```
+Screen      none — Expo Go's own Home tab, and every screen on the phone at once
+Seen        Expo Go signed in as `decusgames`, the account that owns the
+            project, and Home listing the project nowhere: DEVELOPMENT SERVERS
+            empty, RECENTLY OPENED holding eight identical "The Poker Club"
+            rows, and PROJECTS reading "No projects yet · Try out the
+            playground example"
+Expected    the project under PROJECTS — which B64's fix, `docs/live-test.md`
+            and the workflow summary all name as the route to use, the one
+            that needs no link
+Found       9 Sept, on a phone, reported by the owner
+Locked by   nothing yet — see below
+Status      fixed in this branch (the docs; the Home tab belongs to Expo)
+```
+
+**B64 took away an instruction that pinned the phone and replaced it with one
+that cannot be followed.** Both faults have the same shape from the owner's
+side: a green publish, a phone that will not show it, and nothing on screen
+saying why.
+
+**The account was the first thing ruled out, and it was never the problem.**
+The publish log names the owner — `decusgames`, project
+`938b4629-9a41-4ddf-bcd8-86bb4e4696b3`, branch `expo-go`, runtime
+`exposdk:57.0.0` — and the dashboard URL agrees; the switcher showing **A-team**
+is that same account under a display name. Signing out, switching accounts and
+signing back in emptied *Recently opened* and changed nothing else.
+
+**What that section of Home is instead was not established, and this entry does
+not claim it.** Its empty state offers a playground, which suggests it is no
+longer the account's list of published projects, but nothing in this repository
+can see Expo Go's own UI: what is recorded here is what a phone showed on
+9 September, signed in as the owning account.
+
+**So the branch page is the route**, newest publish at the top, and B64's pin is
+now a standing cost rather than a thing to avoid: every publish has to be opened
+as a new link, and every row left in *Recently opened* is a pin to an older one
+with nothing on it saying so.
+
+**`Locked by: nothing yet`, for B64's reason exactly** — the checks drive a
+browser against a local build and the publish path ends at Expo, so nothing here
+can see what a phone opened. The lock that would cover both is one check that
+asks the branch what a device would get and asserts the commit. What stood in
+for it worked: B63's stamp read `build f57e494` at the foot of Settings, against
+`f57e494` in the run's publish table, and the question was closed in seconds
+instead of an evening. **Open.**
+
 ### B68 — the first row of a list sat on the filter above it
 
 ```
@@ -377,7 +425,8 @@ anything.
 and the remedy for a stale cache — relaunch, force-quit, relaunch again — is
 exactly the thing that cannot work here. Two sessions were spent on that
 remedy. The branch page and Expo Go's own project list both follow the branch
-and were never mentioned.
+and were never mentioned. (The project list turned out not to exist on the
+current Expo Go, which is B75 — the branch page is the whole of the answer.)
 
 The workflow summary now leads with the branch and labels the update link for
 what it is; `live-test.md` says the same in the place it said the opposite.
