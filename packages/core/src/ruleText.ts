@@ -159,6 +159,42 @@ export function roundingChoices(
   });
 }
 
+/**
+ * The same four, written as the STEP alone — `1 · 10 · 50 · 100`.
+ *
+ * `design/handoff-game-settings/`, frame O1d: the rounding control on Game
+ * details is a row of flexed chips under a label reading "Round to the
+ * nearest", and the label is what makes a bare number a sentence. Writing
+ * `Nearest $10` inside it would say "nearest" twice and put a currency symbol
+ * in a slot 55 points wide.
+ *
+ * It reads the same `ROUNDING_MODES` as `roundingChoices` rather than a list of
+ * its own, so the two controls can never come to offer different settings.
+ *
+ * ⚠ THE BOARD DRAWS SIX AND THE ENGINE SETTLES AT FOUR. O1d's row is
+ * `1 5 10 50 100 1000`; `RoundingMode` has no 5, and `thousands` and `cents`
+ * are carried for stored nights but deliberately not offered — the note above
+ * `ROUNDING_MODES` says why. Four chips is what the app can honour, and a chip
+ * that sets nothing is worse than a shorter row.
+ */
+export function roundingSteps(): ReadonlyArray<{ mode: RoundingMode; step: string }> {
+  return ROUNDING_MODES.map((mode) => ({ mode, step: String(granularityOf(mode)) }));
+}
+
+/**
+ * The rounding clause of the game summary line — `rounded to 10`, or null.
+ *
+ * O1c-2 collapses every money setting into two lines, and the second of them
+ * ends `…, piggy bank 5%, rounded to 10`. Null at whole units rather than
+ * `rounded to 1`: no rounding is what every night has always done, and naming
+ * the absence of a setting on the one line that has to fit four of them is the
+ * first thing that pushes a rule's name off the end of it.
+ */
+export function roundingClause(mode: RoundingMode | null | undefined): string | null {
+  const step = granularityOf(mode);
+  return step === 1 ? null : `rounded to ${step}`;
+}
+
 /** "$10", "€50" — a step written as money, which is what it is. */
 function stepAmount(step: number, currencySymbol: string): string {
   return `${currencySymbol}${step.toLocaleString('en-US')}`;

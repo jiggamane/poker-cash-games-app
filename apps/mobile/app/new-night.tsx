@@ -11,7 +11,9 @@ import {
 } from 'react-native';
 import {
   money,
-  roundingLabel,
+  roundingClause,
+  roundingSteps,
+  sum,
   withStraddle,
   type Money,
   type MoneyRule,
@@ -22,12 +24,11 @@ import {
 } from '@poker-club/core';
 import {
   formatMoney,
-  roundingChoices,
-  roundingSentence,
   ruleDetail,
   stakesLabel,
   stakesSummary,
   straddleLabel,
+  useMoneySymbol,
 } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Field } from '../src/components/Field';
@@ -44,7 +45,6 @@ import {
   searchCurrencies,
   type Currency,
 } from '../src/data/currencies';
-import { clockLabel, useNow } from '../src/lib/elapsed';
 import {
   addMember,
   inheritedFor,
@@ -64,42 +64,37 @@ import { draftRule, startNight, tableNameProblem, useOpenGames } from '../src/li
  * and one button confirms them; seating and the money rules are edited on
  * their own screens and return." So this is one route whose CONTENT IS
  * REPLACED per step, which is what `09-navigation.md` prescribes for a
- * multi-step flow — O2 replaces O1's content, O5 replaces the rules step's —
- * and it is also the only thing that can work: a sheet may not push, so the
- * old "Change the house rules" row had to dismiss this sheet and push the
- * CLUB's rules instead, which threw away every player already ticked and
- * edited the wrong layer of the chain into the bargain.
+ * multi-step flow — O1d replaces O1's content, O5 replaces O1d's — and it is
+ * also the only thing that can work: a sheet may not push, so the old "Change
+ * the house rules" row had to dismiss this sheet and push the CLUB's rules
+ * instead, which threw away every player already ticked and edited the wrong
+ * layer of the chain into the bargain.
  *
- * WHICH LAYER THE RULES ON THIS SCREEN BELONG TO is the point of the fix. Rev
- * 18: "the group carries defaults; the game carries its own, seeded from the
- * group's, overriding it for that game only and never writing back." Editing
- * here therefore changes tonight and only tonight — nothing is written until
- * the table opens, and the club's own setting is untouched by all of it.
+ * THE SETTINGS COLLAPSE AND THE SEATING LEADS — `design/handoff-game-settings/`,
+ * cut 10 September, frames O1c-2 and O1d, and it is the shape of this screen
+ * now. Everything the sheet used to spend five list rows on is one reviewable
+ * line with a *Change* pill beside it, because the settings are inherited from
+ * last time and rarely move; the space that buys goes on the job the sheet is
+ * actually for, which is getting the regulars seated at the amounts they are
+ * putting in. `Change` opens **Game details** (O1d), where stakes, buy-in,
+ * currency, rounding and the money rules are all edited in one place.
  *
- * The rules row must not be the thing your thumb lands on. Every rule arrives
- * pre-filled from last night, so opening a night stays what it is: adding
- * players and confirming their first buy-ins.
+ * WHICH LAYER THE RULES ON THIS SCREEN BELONG TO has not changed with the
+ * layout. Rev 18: "the group carries defaults; the game carries its own,
+ * seeded from the group's, overriding it for that game only and never writing
+ * back." Editing here therefore changes tonight and only tonight — nothing is
+ * written until the table opens, and the club's own setting is untouched by
+ * all of it.
  */
-type Step =
-  | 'game'
-  | 'players'
-  | 'rules'
-  | 'rule'
-  | 'stakes'
-  | 'buy-in'
-  | 'rounding'
-  | 'currency';
+type Step = 'game' | 'details' | 'players' | 'rule' | 'currency';
 
 /** Where the close and a completed step return to. The flow is one level deep. */
 const PARENT: Record<Step, Step | null> = {
   game: null,
+  details: 'game',
   players: 'game',
-  rules: 'game',
-  rule: 'rules',
-  stakes: 'game',
-  'buy-in': 'game',
-  rounding: 'game',
-  currency: 'game',
+  rule: 'details',
+  currency: 'details',
 };
 
 export default function NewNight() {
@@ -127,10 +122,16 @@ export default function NewNight() {
    * and how `RoundingMode` has always said "the default every night has had".
    */
   const [rounding, setRounding] = useState<RoundingMode | undefined>(undefined);
-  /** What the primary says the table will be stamped at, kept on the minute. */
-  const now = useNow();
 
   const [picked, setPicked] = useState<Record<PlayerId, string>>({});
+  /*
+   * WHOSE BUY-IN IS OPEN FOR TYPING — O1c-3, and the state that gives the sheet
+   * its second face. A seat carries the standard buy-in the moment it is
+   * filled; tapping the figure opens that one row, replaces the primary with
+   * *Done* and puts the digits under the reader's thumb. `null` is every other
+   * moment, which is nearly all of them.
+   */
+  const [editing, setEditing] = useState<PlayerId | null>(null);
   const [busy, setBusy] = useState(false);
   /** O2: a name typed into the field creates a player and seats them. */
   const [newName, setNewName] = useState('');
@@ -155,6 +156,8 @@ export default function NewNight() {
 
   const go = (next: Step, dir: 1 | -1 = 1) => {
     direction.current = dir;
+    /* A step change closes any open amount: the row it belonged to is gone. */
+    setEditing(null);
     setStep(next);
   };
   const back = () => {
@@ -174,16 +177,37 @@ export default function NewNight() {
      server column has always spelled it. */
   const liveRounding: RoundingMode = rounding ?? inherited.roundingMode ?? 'dollars';
   const storedRounding: RoundingMode | null = liveRounding === 'dollars' ? null : liveRounding;
-  /** The straddle in words, or null when there is none — O1 draws no line. */
+  /** The straddle in words, or null when there is none — O1d draws no line. */
   const straddle = straddleLabel(liveStakes);
 
-  const seats = Object.entries(picked)
-    .map(([playerId, amount]) => ({
-      playerId,
-      name: club.members.find((m) => m.id === playerId)?.name ?? 'Someone',
-      buyIn: money(Number(amount) || 0),
-    }))
-    .filter((s) => s.buyIn > 0);
+  /*
+   * TWO LISTS, AND THE DIFFERENCE IS A ROW MID-EDIT.
+   *
+   * `seated` is what the screen draws — every name with a seat, whatever is
+   * currently typed into it. `seats` is what the table opens with, which is the
+   * same list less anybody sitting at nothing.
+   *
+   * They were one list filtered on `buyIn > 0`, and that was fine while an
+   * amount was typed on a sheet of its own. It is not fine now that the figure
+   * is edited in the row: the first backspace that empties the field takes the
+   * amount to zero, the row out of the list, and the keyboard down with it.
+   */
+  const seated = club.members
+    .filter((m) => picked[m.id] !== undefined)
+    .map((m) => ({
+      playerId: m.id,
+      name: m.name,
+      buyIn: money(Number(picked[m.id]) || 0),
+    }));
+  const seats = seated.filter((s) => s.buyIn > 0);
+
+  /*
+   * WHAT IS ON THE TABLE, off the engine and not off this screen. `CLAUDE.md`:
+   * a screen that adds up its own column is a second, untested implementation
+   * of the same sum. `sum` is `add`, which is where `Money`'s refusal of a
+   * fractional amount lives.
+   */
+  const onTable = sum(seated.map((s) => s.buyIn));
 
   /*
    * A SECOND TABLE IS A NORMAL THING TO OPEN.
@@ -216,13 +240,22 @@ export default function NewNight() {
    */
   const me = club.members.find((m) => m.standing === 'admin');
 
-  /** The one primary, on the two steps that carry it. */
+  /*
+   * THE PRIMARY SAYS HOW MANY ARE SEATED — O1c-2, cut 10 September, and it
+   * replaces the clock this button carried since 29 August.
+   *
+   * The clock was there because *Start time* had come off the sheet and the
+   * stamp was worth stating; the seat count is what the new frame draws, and
+   * on a screen whose whole body is now the seating it is the figure the
+   * button is confirming. Nothing about the stamp changed — `startNight` still
+   * stamps the night with the clock at the moment the table opens.
+   */
   const openLabel =
     seats.length === 0
       ? 'Pick who is playing'
       : nameProblem !== null
         ? 'Name this table'
-        : `Open the table · ${clockLabel(now)}`;
+        : `Open the table · ${seats.length} seated`;
 
   async function openTable() {
     if (seats.length === 0 || busy || club === null || inherited === null) return;
@@ -299,6 +332,16 @@ export default function NewNight() {
       return next;
     });
 
+  /** Empty the seat this row is drawing, and close the amount if it was open. */
+  const unseat = (id: PlayerId) => {
+    if (editing === id) setEditing(null);
+    setPicked((p) => {
+      const next = { ...p };
+      delete next[id];
+      return next;
+    });
+  };
+
   const editRule = (rule: MoneyRule, isNew: boolean) => {
     setDraft({ rule, isNew });
     go('rule');
@@ -313,20 +356,38 @@ export default function NewNight() {
         : liveRules.map((r) => (r.id === saved.id ? saved : r)),
     );
     setDraft(null);
-    go('rules', -1);
+    go('details', -1);
   }
 
   function removeDraft() {
     if (draft === null) return;
     setRules(liveRules.filter((r) => r.id !== draft.rule.id));
     setDraft(null);
-    go('rules', -1);
+    go('details', -1);
   }
 
   const sorted = [...liveRules].sort((a, b) => a.sortOrder - b.sortOrder);
   const active = sorted.filter((r) => r.active);
   const nextOrder = sorted.reduce((max, r) => Math.max(max, r.sortOrder), 0) + 1;
-  const seatedCount = Object.keys(picked).length;
+  /* What the button and the header count is what the table will open with —
+     a seat sitting at nothing is drawn, and is not somebody who is playing. */
+  const seatedCount = seats.length;
+  const rest = club.members.filter((m) => picked[m.id] === undefined);
+
+  /*
+   * THE TWO LINES THE FIVE ROWS COLLAPSE TO — O1c-2.
+   *
+   * The first is the game: what it is played at, what a seat costs, and the
+   * money the book is kept in. The second is what comes off the table, which
+   * is the rules that are ON tonight — a rule switched off takes nothing and
+   * naming it here would say it does — with the rounding as the last clause,
+   * off `roundingClause` in core so the step is written once.
+   */
+  const terms = `${stakesLabel(liveStakes)} · ${formatMoney(liveBuyIn)} in · ${currency.code}`;
+  const deductions = [
+    ...active.map((r) => r.name),
+    roundingClause(liveRounding),
+  ].filter((part): part is string => part !== null);
 
   // -------------------------------------------------------------------------
   // The header, the footer and the body, chosen by step. One sheet, one close.
@@ -335,32 +396,60 @@ export default function NewNight() {
   const title =
     step === 'game'
       ? 'New session'
-      : step === 'players'
-        ? 'Add players'
-        : step === 'rules'
-          ? 'Money rules'
+      : step === 'details'
+        ? 'Game details'
+        : step === 'players'
+          ? 'Add players'
           : step === 'rule'
             ? draft === null || draft.rule.name.trim() === ''
               ? 'New rule'
               : draft.rule.name
-            : step === 'stakes'
-              ? 'Stakes'
-              : step === 'buy-in'
-                ? 'Default buy-in'
-                : step === 'rounding'
-                  ? 'Rounding'
-                  : 'Currency';
+            : 'Currency';
 
   const problem = draft === null ? null : ruleProblem(draft.rule, money(0));
 
   const footer =
-    step === 'game' || step === 'rules' ? (
-      <Button
-        label={openLabel}
-        variant="primary"
-        disabled={seats.length === 0 || nameProblem !== null || busy}
-        onPress={() => void openTable()}
-      />
+    step === 'game' ? (
+      /*
+       * O1c-3 · WITH AN AMOUNT OPEN THE PRIMARY IS REPLACED BY *Done*, on a bar
+       * that keeps the running total in view. Opening the table is not the
+       * action in front of a person mid-figure, and a primary that stayed put
+       * would be the thing their thumb reaches for on the way back from the
+       * keypad.
+       */
+      editing !== null ? (
+        <View style={[styles.accessory, { borderTopColor: t.hairline }]}>
+          <Text style={[styles.onTable, { color: t.muted }]} numberOfLines={1}>
+            {`${formatMoney(onTable)} on the table`}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setEditing(null)}
+            style={({ pressed }) => [
+              styles.done,
+              { backgroundColor: t.text, opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Text style={[styles.doneLabel, { color: t.onFill }]}>Done</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <>
+          {seatedCount > 0 && (
+            <Text style={[styles.onTable, styles.onTableCentred, { color: t.muted }]}>
+              {`${formatMoney(onTable)} on the table`}
+            </Text>
+          )}
+          <Button
+            label={openLabel}
+            variant="primary"
+            disabled={seats.length === 0 || nameProblem !== null || busy}
+            onPress={() => void openTable()}
+          />
+        </>
+      )
+    ) : step === 'details' ? (
+      <Button label="Save details" variant="primary" onPress={() => go('game', -1)} />
     ) : step === 'players' ? (
       <Button
         label={`Done · ${seatedCount} seated`}
@@ -379,20 +468,20 @@ export default function NewNight() {
           <Button label="Remove this rule" variant="destructive" onPress={removeDraft} />
         )}
       </>
-    ) : step === 'currency' ? (
+    ) : (
       // Nothing is held back to be saved here: picking a row writes the group
       // and returns, so this button is the way out for somebody who opened the
       // list and did not want anything from it.
-      <Button label="Done" variant="primary" onPress={() => go('game', -1)} />
-    ) : (
-      <Button label="Save" variant="primary" onPress={() => go('game', -1)} />
+      <Button label="Done" variant="primary" onPress={() => go('details', -1)} />
     );
 
   return (
     <Sheet
       title={title}
-      {...(step === 'game' ? { sub: club.name } : {})}
-      {...(step === 'players' ? { meta: `${seatedCount} seated` } : {})}
+      {...(step === 'game' || step === 'details' ? { sub: club.name } : {})}
+      /* O1c-3 · with the keypad up the count moves off the button and into the
+         header, which is the only place left for it. */
+      {...(step === 'players' || editing !== null ? { meta: `${seatedCount} seated` } : {})}
       onClose={back}
       footer={footer}
     >
@@ -423,97 +512,16 @@ export default function NewNight() {
               </View>
             )}
 
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: t.muted }]}>The game</Text>
-
-              {/*
-               * THE FIRST ROW THE BOARD DRAWS, and for a long time the one row
-               * that was not here. `03-data-model.md` carries `{ small, big }`
-               * on the Group and on the Session, rev 18 § 5.2 adds the straddle
-               * beside them, and none of it existed — so the row was flagged
-               * out rather than drawn against nothing, which was right at the
-               * time and stopped being right once home started promising
-               * "you'll set the buy-in and blinds once, here".
-               *
-               * It reads the same three layers as the buy-in and the rules —
-               * this game → last game → club default → app default — and, like
-               * them, editing it here changes tonight and only tonight.
-               */}
-              <SettingRow
-                label="Stakes"
-                // ⚠ COPY NOT DRAWN. O1 draws no line under this row, because it
-                // draws a game with no straddle. A straddle that is being
-                // played is not a thing to leave a host to find out at the
-                // table, so it is said here in the row's own sub-line.
-                {...(straddle === null ? {} : { sub: straddle })}
-                value={stakesLabel(liveStakes)}
-                onPress={() => go('stakes')}
-              />
-              <SettingRow
-                label="Default buy-in"
-                value={formatMoney(liveBuyIn)}
-                onPress={() => go('buy-in')}
-              />
-              {/*
-               * A NIGHT DOES NOT PICK A CURRENCY — the money a book is written
-               * in belongs to the GROUP (`12-the-group.md` § 2, the top row of
-               * its settings table), and a book whose column changed money
-               * halfway through would be unreadable.
-               *
-               * What used to follow from that was a row with no chevron: the
-               * currency stated here and changed only in the group. It was the
-               * wrong half of the rule to enforce. Setting the game up is the
-               * one moment a host is thinking about what the table plays for,
-               * and the club was created in dollars by a default nobody chose
-               * — so this row opens the picker, and the sub-line says which
-               * layer it writes, because that part is still true.
-               */}
-              <SettingRow
-                label="Currency"
-                sub="the group's book"
-                value={`${currency.code} · ${currency.name}`}
-                onPress={() => go('currency')}
-              />
-              <SettingRow
-                label="Money rules"
-                // What will actually come off, which is not the same as what
-                // was inherited: a rule switched off for tonight takes nothing,
-                // and naming it here would say it does.
-                sub={
-                  active.length === 0
-                    ? 'nothing comes off the table'
-                    : active.map((r) => r.name).join(' · ')
-                }
-                value={rules === null ? sameAs(inherited) : 'set for tonight'}
-                quiet
-                onPress={() => go('rules')}
-              />
-              {/*
-               * HOW COARSELY THE TABLE SETTLES, on the screen that opens it.
-               *
-               * A money rule, not a display setting — it changes what people
-               * actually pay — and it governs every rule above it at once,
-               * which is why it is its own row rather than a field inside one.
-               * It was reachable only from tonight's money rules or from the
-               * club's, both of which are places you go AFTER the table is
-               * open; a group playing for thousands therefore played the first
-               * hand on whole dollars and found out at settle-up. The same four
-               * choices as `/rounding`, off `roundingChoices()` in core, so the
-               * list is written once.
-               */}
-              <SettingRow
-                label="Rounding"
-                sub="what a rule takes is worked out to this"
-                value={roundingLabel(liveRounding)}
-                onPress={() => go('rounding')}
-                last
-              />
-            </View>
+            <Summary
+              terms={terms}
+              deductions={
+                deductions.length === 0 ? 'Nothing comes off the table' : deductions.join(', ')
+              }
+              onChange={() => go('details')}
+            />
 
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: t.muted }]}>
-                {`Seated · ${seatedCount} of ${club.members.length}`}
-              </Text>
+              <Text style={[styles.sectionLabel, { color: t.muted }]}>Who is playing</Text>
 
               {/*
                 ⚠ COPY NOT DRAWN. The design has no state for a club with no
@@ -523,38 +531,81 @@ export default function NewNight() {
               */}
               {me === undefined && club.members.length > 0 && <NoHost />}
 
-              <View style={styles.chips}>
-                {club.members
-                  .filter((m) => picked[m.id] !== undefined)
-                  .map((m) => (
-                    <SeatChip
-                      key={m.id}
-                      name={m.name}
-                      host={m.id === me?.id}
-                      amount={formatMoney(money(Number(picked[m.id]) || 0))}
-                      onPress={() => go('players')}
-                    />
-                  ))}
-
-                <FindChip onPress={() => go('players')} />
+              <View style={styles.seats}>
+                {seated.map((s) => (
+                  <Seat
+                    key={s.playerId}
+                    name={s.name}
+                    host={s.playerId === me?.id}
+                    amount={picked[s.playerId] ?? ''}
+                    standard={liveBuyIn}
+                    editing={editing === s.playerId}
+                    onEdit={() => setEditing(s.playerId)}
+                    onAmount={(v) =>
+                      setPicked((p) => ({ ...p, [s.playerId]: v.replace(/[^0-9]/g, '') }))
+                    }
+                    onUnseat={() => unseat(s.playerId)}
+                  />
+                ))}
               </View>
 
               {/*
-                ⚠ COPY NOT DRAWN. O1 is drawn with four people already seated,
-                so it has no empty state and no words for one. Flagged rather
-                than left blank: an empty chip row with nothing but a dashed
-                "Find a player" beside a button reading "Pick who is playing"
-                is a screen that says the same thing twice and explains neither.
+                ⚠ COPY NOT DRAWN. O1c-2 is drawn with three people already
+                seated, so it has no empty state and no words for one. Flagged
+                rather than left blank: a bare heading over a grid of names
+                explains neither what the grid is nor why the button is off.
               */}
               {seatedCount === 0 && (
                 <Text style={[styles.empty, { color: t.muted }]}>
                   {club.members.length === 0
                     ? 'Nobody on the roster yet. Add the first name and they can play tonight.'
-                    : 'Nobody is seated yet. Find a player to start the table.'}
+                    : 'Tap a name to seat them at the standard buy-in.'}
                 </Text>
               )}
             </View>
+
+            <View style={styles.section}>
+              {/* The heading is only true once somebody is seated: with an
+                  empty table "the rest" is the whole group, and the grid is
+                  already under the heading that asks who is playing. */}
+              {seatedCount > 0 && rest.length > 0 && (
+                <Text style={[styles.sectionLabel, { color: t.muted }]}>Rest of the group</Text>
+              )}
+
+              <View style={styles.grid}>
+                {rest.map((m) => (
+                  <FreeChip key={m.id} name={m.name} onPress={() => toggleSeat(m.id)} />
+                ))}
+                <NewChip onPress={() => go('players')} />
+              </View>
+            </View>
           </>
+        )}
+
+        {step === 'details' && (
+          <Details
+            stakes={liveStakes}
+            onStakes={setStakes}
+            buyIn={liveBuyIn}
+            onBuyIn={setBuyIn}
+            currencyCode={currency.code}
+            onCurrency={() => go('currency')}
+            rounding={liveRounding}
+            onRounding={setRounding}
+            straddle={straddle}
+            rules={sorted}
+            describeRule={(rule) =>
+              ruleDetail(rule, {
+                collectorName: club.members.find((m) => m.id === rule.collectorPlayerId)?.name,
+              })
+            }
+            onOpenRule={(rule) => editRule(rule, false)}
+            onToggleRule={(rule, on) =>
+              setRules(liveRules.map((r) => (r.id === rule.id ? { ...r, active: on } : r)))
+            }
+            onAddRule={(destination) => editRule(draftRule(destination, nextOrder), true)}
+            from={inherited.from}
+          />
         )}
 
         {step === 'players' && (
@@ -577,35 +628,6 @@ export default function NewNight() {
           />
         )}
 
-        {step === 'rules' &&
-          (sorted.length === 0 ? (
-            <NoRules
-              onStart={(destination) => editRule(draftRule(destination, nextOrder), true)}
-              onSkip={() => go('game', -1)}
-            />
-          ) : (
-            <>
-              <RuleList
-                caption="Tonight’s rules"
-                rules={sorted}
-                describe={(rule) =>
-                  ruleDetail(rule, {
-                    collectorName: club.members.find((m) => m.id === rule.collectorPlayerId)?.name,
-                  })
-                }
-                onOpen={(rule) => editRule(rule, false)}
-                onToggle={(rule, active) =>
-                  setRules(liveRules.map((r) => (r.id === rule.id ? { ...r, active } : r)))
-                }
-                onAdd={() => editRule(draftRule('kitty', nextOrder), true)}
-              />
-              <Text style={[styles.footnote, { color: t.muted }]}>
-                These belong to tonight. They are copied from the {inherited.from} and changing one
-                here changes this game only — the group keeps its own.
-              </Text>
-            </>
-          ))}
-
         {step === 'rule' && draft !== null && (
           <RuleFields
             rule={draft.rule}
@@ -622,22 +644,6 @@ export default function NewNight() {
           />
         )}
 
-        {step === 'stakes' && (
-          <Blinds stakes={liveStakes} symbol={currency.symbol} onChange={setStakes} />
-        )}
-
-        {step === 'buy-in' && (
-          <Amount
-            value={liveBuyIn}
-            symbol={currency.symbol}
-            presets={[200, 500, 1000]}
-            onChange={setBuyIn}
-            note="What a seat costs tonight. Everyone is seated at this figure and any of them can be typed over before the table opens."
-          />
-        )}
-
-        {step === 'rounding' && <Rounding picked={liveRounding} onPick={setRounding} />}
-
         {step === 'currency' && (
           <Currencies
             picked={currency.code}
@@ -646,7 +652,7 @@ export default function NewNight() {
             onPick={(code) => {
               void setClubCurrency(club.id, code);
               setCurrencyQuery('');
-              go('game', -1);
+              go('details', -1);
             }}
           />
         )}
@@ -655,122 +661,273 @@ export default function NewNight() {
   );
 }
 
-/** "same as last time" — the board's string, and only for the layer it is true of. */
-const sameAs = (inherited: Inherited): string =>
-  inherited.from === 'last game'
-    ? 'same as last time'
-    : // ⚠ COPY NOT DRAWN. O1 draws the last-game case only; a club that has
-      // never played reads its own layer rather than a promise that is false.
-      `the ${inherited.from}`;
-
 /**
- * A row in *The game* — label, an optional line under it, the value at the
- * right, and a chevron when there is somewhere to go.
+ * The five settings rows, collapsed to two lines and a pill — O1c-2.
  *
- * A row without a chevron does not move: the currency is stated here and
- * changed in the group, and a chevron on it would be a promise this sheet
- * cannot keep.
+ * THE POINT OF THE CUT IS WHAT THIS BUYS. Stakes, buy-in, currency, money
+ * rules and rounding were five tall list rows at the top of the sheet, above
+ * the seating, and all five are inherited from last time: a host reads them,
+ * agrees with them and scrolls past them, every night. Two lines say the same
+ * thing in a fifth of the height, and the second of them is the line the old
+ * *Money rules* row truncated — it wraps here rather than ending in an ellipsis
+ * halfway through the second rule's name.
  */
-function SettingRow({
-  label,
-  sub,
-  value,
-  quiet = false,
-  last = false,
-  onPress,
+function Summary({
+  terms,
+  deductions,
+  onChange,
 }: {
-  label: string;
-  sub?: string;
-  value: string;
-  /** A value that is a state rather than a figure sets lighter — "same as last time". */
-  quiet?: boolean;
-  last?: boolean;
-  onPress?: () => void;
+  terms: string;
+  deductions: string;
+  onChange: () => void;
 }) {
   const t = useTheme();
-  const body = (
-    <>
-      <View style={styles.rowText}>
-        <Text style={[styles.rowLabel, { color: t.text }]}>{label}</Text>
-        {sub !== undefined && (
-          <Text style={[styles.rowSub, { color: t.muted }]} numberOfLines={1}>
-            {sub}
-          </Text>
-        )}
-      </View>
-      <Text
-        style={[quiet ? styles.rowQuiet : styles.rowValue, { color: quiet ? t.muted : t.text }]}
-        numberOfLines={1}
-      >
-        {value}
-      </Text>
-      {onPress !== undefined && <Icon name="chevron" color={t.muted} size={13} />}
-    </>
-  );
-
-  const style = [
-    styles.row,
-    { borderBottomColor: t.hairline, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth },
-  ];
-
-  if (onPress === undefined) return <View style={style}>{body}</View>;
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [...style, { opacity: pressed ? 0.6 : 1 }]}
-    >
-      {body}
-    </Pressable>
+    <View style={[styles.summary, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={styles.summaryText}>
+        <Text style={[styles.summaryTerms, { color: t.text }]}>{terms}</Text>
+        <Text style={[styles.summaryDeductions, { color: t.muted }]}>{deductions}</Text>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Change the game details"
+        onPress={onChange}
+        style={({ pressed }) => [
+          styles.change,
+          { backgroundColor: t.raised, opacity: pressed ? 0.7 : 1 },
+        ]}
+      >
+        <Text style={[styles.changeLabel, { color: t.text }]}>Change</Text>
+      </Pressable>
+    </View>
   );
 }
 
-/** A seated player. The buy-in rides on the chip, because that is what was agreed. */
-function SeatChip({
+/**
+ * A seat, at the amount that seat is being filled with — O1c-2 and O1c-3.
+ *
+ * THREE STATES AND THE BORDER IS WHAT SAYS WHICH: filled at the standard
+ * buy-in, filled at an amount somebody changed, and open for typing. The
+ * figure carries a dashed underline in the first two, because it is the one
+ * thing on the row that can be tapped into rather than tapped through, and a
+ * row where everything looks equally live is a row where nobody finds the
+ * amount.
+ *
+ * The line under the name is the difference from the standard, not the amount
+ * again: `₾300 above the standard` is the sentence a table actually says out
+ * loud, and it is why a row that agrees with the buy-in says nothing at all.
+ */
+function Seat({
   name,
   host,
   amount,
-  onPress,
+  standard,
+  editing,
+  onEdit,
+  onAmount,
+  onUnseat,
 }: {
   name: string;
   host: boolean;
+  /** The digits as typed — this is a field, not a figure. */
   amount: string;
-  onPress: () => void;
+  standard: Money;
+  editing: boolean;
+  onEdit: () => void;
+  onAmount: (v: string) => void;
+  onUnseat: () => void;
 }) {
+  const t = useTheme();
+  const symbol = useMoneySymbol();
+  const value = money(Number(amount) || 0);
+  const gap = value - standard;
+  const sub = editing
+    ? // ⚠ COPY NOT DRAWN AS WRITTEN. O1c-2 reads "Type the amount she is
+      // putting in" of the one player it draws. Nothing in this app knows a
+      // player's pronoun, so the line is the same sentence in the one form
+      // that is right for everybody.
+      'buying in for'
+    : [
+        host ? 'host' : null,
+        gap === 0
+          ? null
+          : `${formatMoney(money(Math.abs(gap)))} ${gap > 0 ? 'above' : 'below'} the standard`,
+      ]
+        .filter((part): part is string => part !== null)
+        .join(' · ');
+
+  return (
+    <View
+      style={[
+        styles.seat,
+        { backgroundColor: t.surface },
+        editing
+          ? { borderColor: t.text, borderWidth: 1.5 }
+          : { borderColor: t.quietOutline, borderWidth: 1 },
+      ]}
+    >
+      <View style={styles.seatRow}>
+        <View style={[styles.monogram, { backgroundColor: t.text }]}>
+          <Text style={[styles.monogramText, { color: t.onFill }]}>{monogram(name)}</Text>
+        </View>
+
+        <View style={styles.seatText}>
+          <Text style={[styles.seatName, { color: t.text }]} numberOfLines={1}>
+            {name}
+          </Text>
+          {sub !== '' && (
+            <Text style={[styles.seatSub, { color: t.muted }]} numberOfLines={1}>
+              {sub}
+            </Text>
+          )}
+        </View>
+
+        {editing ? (
+          <View style={[styles.typing, { backgroundColor: t.ground }]}>
+            <Text style={[styles.typingSymbol, { color: t.text }]}>{symbol}</Text>
+            <TextInput
+              value={amount}
+              onChangeText={onAmount}
+              autoFocus
+              selectTextOnFocus
+              // A8: this is money. `scripts/ui-audit.mjs` holds every one of
+              // these to a digits-only keyboard.
+              testID="amount"
+              keyboardType="number-pad"
+              returnKeyType="done"
+              accessibilityLabel={`${name} is buying in for`}
+              style={[styles.typingValue, { color: t.text, width: fieldWidth(amount, 10.4, 2) }]}
+            />
+          </View>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Change what ${name} is putting in`}
+            onPress={onEdit}
+            hitSlop={8}
+            style={({ pressed }) => [styles.figureTap, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Text
+              style={[styles.seatFigure, { color: t.text, borderBottomColor: t.quietOutline }]}
+              numberOfLines={1}
+            >
+              {formatMoney(value)}
+            </Text>
+          </Pressable>
+        )}
+
+        {!editing && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Take ${name} off the table`}
+            onPress={onUnseat}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.seated,
+              { backgroundColor: t.text, opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Icon name="check" color={t.onFill} size={12} />
+          </Pressable>
+        )}
+      </View>
+
+      {editing && (
+        <Text style={[styles.seatHint, { color: t.muted }]}>
+          {`Type the amount ${name.split(/\s+/)[0]} is putting in`}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+/** Somebody in the group who is not at the table yet. One tap seats them. */
+function FreeChip({ name, onPress }: { name: string; onPress: () => void }) {
   const t = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={`Seat ${name}`}
       onPress={onPress}
       style={({ pressed }) => [
-        styles.chip,
+        styles.free,
         { backgroundColor: t.surface, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
       ]}
     >
-      <Text style={[styles.chipName, { color: t.text }]}>{name}</Text>
-      {host && <Text style={[styles.chipHost, { color: t.muted }]}>HOST</Text>}
-      <Text style={[styles.chipAmount, { color: t.muted }]}>{amount}</Text>
+      <View style={[styles.freeMonogram, { backgroundColor: t.raised }]}>
+        <Text style={[styles.freeMonogramText, { color: t.text }]}>{monogram(name)}</Text>
+      </View>
+      <Text style={[styles.freeName, { color: t.text }]} numberOfLines={1}>
+        {name}
+      </Text>
+      <Icon name="plus" color={t.muted} size={13} />
     </Pressable>
   );
 }
 
 /** Dashed, because dashed always means "creates something". */
-function FindChip({ onPress }: { onPress: () => void }) {
+function NewChip({ onPress }: { onPress: () => void }) {
   const t = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
-        styles.chip,
-        styles.findChip,
+        styles.free,
+        styles.newChip,
         { borderColor: t.dashed, opacity: pressed ? 0.6 : 1 },
       ]}
     >
-      <Icon name="plus" color={t.text} size={15} />
-      <Text style={[styles.chipName, { color: t.text }]}>Find a player</Text>
+      <Icon name="plus" color={t.text} size={13} />
+      <Text style={[styles.freeName, { color: t.text }]}>Someone new</Text>
     </Pressable>
   );
+}
+
+/**
+ * The two letters in a seat's circle — `MK`, `LN`, `PT`.
+ *
+ * O1c-2 draws a monogram rather than the single initial the shared `Avatar`
+ * carries, and it draws two of them side by side at 34 and 26 points, which is
+ * why this is here and not in that component: `Avatar` is on eleven other
+ * screens and none of them is asking for a second letter.
+ *
+ * Two words give their two initials. A single name gives its first letter and
+ * its last consonant, which is what the board's own eight are — Marek MK, Ivo
+ * IV, Lena LN, Petr PT, Nino NN, Giorgi GG, Dato DT — and it reads as a
+ * monogram rather than as the first two letters of a name, which is the thing
+ * that makes two people called Sandro and Sandra tell apart at a glance.
+ */
+function monogram(name: string): string {
+  const words = name.trim().split(/\s+/).filter((w) => w !== '');
+  if (words.length >= 2) {
+    return `${[...words[0]][0] ?? ''}${[...words[1]][0] ?? ''}`.toUpperCase();
+  }
+  const letters = [...(words[0] ?? '')];
+  if (letters.length === 0) return '?';
+  if (letters.length === 1) return letters[0].toUpperCase();
+  const tail = letters.slice(1);
+  const consonant = [...tail].reverse().find((c) => /[bcdfghjklmnpqrstvwxz]/i.test(c));
+  return `${letters[0]}${consonant ?? tail[tail.length - 1]}`.toUpperCase();
+}
+
+/**
+ * How wide a typed figure needs to be — digits are tabular, so this is exact.
+ *
+ * A `TextInput` has no intrinsic width: left to itself it takes the whole row
+ * on the phone and collapses to nothing on the web. A fixed width instead
+ * clips the moment a group plays for six digits, which is the one thing every
+ * check in this repo exists to catch. The advance of a tabular digit is what
+ * both of those get wrong, so it is measured here and the field is sized to
+ * the digits actually in it.
+ *
+ * `floor` is one digit for a field holding a `Money`, which is never empty —
+ * the smallest thing it can say is `0` — and two for the one that is being
+ * typed into, where a backspace can empty it and a field with no width is a
+ * cursor with nowhere to sit.
+ */
+function fieldWidth(text: string, advance: number, floor = 1): number {
+  return Math.max(floor, [...text].length) * advance;
 }
 
 function NoHost() {
@@ -784,7 +941,313 @@ function NoHost() {
 }
 
 /**
+ * O1d · Game details — everything the summary line collapses, edited in place.
+ *
+ * `design/handoff-game-settings/`, frame O1d: one card for the money, one for
+ * the rules, and a Save that returns to the seating. The four settings were
+ * four sheets of their own — a 56-point figure and a preset row each — reached
+ * by four taps and four returns, and none of the four was a decision worth a
+ * screen: the blinds are two numbers a group settled on once, the buy-in is
+ * one, the rounding is a pick from four, and the currency is the only one of
+ * them with a hundred and fifty-six answers, so it is the only one that still
+ * opens a list.
+ */
+function Details({
+  stakes,
+  onStakes,
+  buyIn,
+  onBuyIn,
+  currencyCode,
+  onCurrency,
+  rounding,
+  onRounding,
+  straddle,
+  rules,
+  describeRule,
+  onOpenRule,
+  onToggleRule,
+  onAddRule,
+  from,
+}: {
+  stakes: Stakes;
+  onStakes: (s: Stakes) => void;
+  buyIn: Money;
+  onBuyIn: (v: Money) => void;
+  currencyCode: string;
+  onCurrency: () => void;
+  rounding: RoundingMode;
+  onRounding: (mode: RoundingMode) => void;
+  /** The straddle in words, or null when there is none. */
+  straddle: string | null;
+  rules: readonly MoneyRule[];
+  describeRule: (rule: MoneyRule) => string;
+  onOpenRule: (rule: MoneyRule) => void;
+  onToggleRule: (rule: MoneyRule, on: boolean) => void;
+  onAddRule: (destination: MoneyRule['destination']) => void;
+  /** Which layer these settings arrived from — "last game", "group". */
+  from: string;
+}) {
+  const t = useTheme();
+  const symbol = useMoneySymbol();
+  const modes: ReadonlyArray<{ mode: StraddleMode; label: string }> = [
+    { mode: 'none', label: 'No' },
+    { mode: 'optional', label: 'Optional' },
+    { mode: 'mandatory', label: 'Mandatory' },
+  ];
+
+  return (
+    <>
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: t.muted }]}>The money</Text>
+
+        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+          <View style={styles.cardRow}>
+            <View style={styles.cardText}>
+              <Text style={[styles.cardLabel, { color: t.text }]}>Stakes</Text>
+              {/* ⚠ COPY NOT DRAWN. O1d draws a game with no straddle, so it
+                  draws no line here. A straddle that is being played is not a
+                  thing to leave a host to find out at the table. */}
+              {straddle !== null && (
+                <Text style={[styles.cardSub, { color: t.muted }]} numberOfLines={1}>
+                  {straddle}
+                </Text>
+              )}
+            </View>
+            <View style={styles.pair}>
+              <MoneyField
+                value={stakes.small}
+                symbol={symbol}
+                label="Small blind"
+                onChange={(small) => onStakes({ ...stakes, small })}
+              />
+              <Text style={[styles.slash, { color: t.muted }]}>/</Text>
+              <MoneyField
+                value={stakes.big}
+                symbol={symbol}
+                label="Big blind"
+                onChange={(big) => onStakes({ ...stakes, big })}
+              />
+            </View>
+          </View>
+
+          <View style={[styles.cardRow, styles.divided, { borderTopColor: t.hairline }]}>
+            <View style={styles.cardText}>
+              <Text style={[styles.cardLabel, { color: t.text }]}>Standard buy-in</Text>
+              <Text style={[styles.cardSub, { color: t.muted }]}>
+                what each seat is filled with
+              </Text>
+            </View>
+            <MoneyField
+              value={buyIn}
+              symbol={symbol}
+              label="Standard buy-in"
+              onChange={onBuyIn}
+            />
+          </View>
+
+          {/*
+           * A NIGHT DOES NOT PICK A CURRENCY — the money a book is written in
+           * belongs to the GROUP (`12-the-group.md` § 2, the top row of its
+           * settings table), and a book whose column changed money halfway
+           * through would be unreadable. The sub-line says which layer this
+           * writes; the chevron is here because setting the game up is the one
+           * moment a host is thinking about what the table plays for, and a
+           * club created in dollars by a default nobody chose had no obvious
+           * way out.
+           */}
+          <Pressable
+            accessibilityRole="button"
+            onPress={onCurrency}
+            style={({ pressed }) => [
+              styles.cardRow,
+              styles.divided,
+              { borderTopColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+            ]}
+          >
+            <View style={styles.cardText}>
+              <Text style={[styles.cardLabel, { color: t.text }]}>Currency</Text>
+              <Text style={[styles.cardSub, { color: t.muted }]}>the group’s book</Text>
+            </View>
+            <Text style={[styles.cardValue, { color: t.text }]}>{currencyCode}</Text>
+            <Icon name="chevron" color={t.muted} size={13} />
+          </Pressable>
+
+          {/*
+           * HOW COARSELY THE TABLE SETTLES, on the screen that opens the game.
+           *
+           * A money rule, not a display setting — it changes what people
+           * actually pay — and it governs every rule above it at once. The
+           * steps come off `roundingSteps()` in core so this row and the one on
+           * `/rounding` can never come to offer different settings.
+           */}
+          <View style={[styles.cardBlock, styles.divided, { borderTopColor: t.hairline }]}>
+            <View style={styles.cardText}>
+              <Text style={[styles.cardLabel, { color: t.text }]}>Round to the nearest</Text>
+              <Text style={[styles.cardSub, { color: t.muted }]}>
+                applied to what a rule takes
+              </Text>
+            </View>
+            <View style={styles.steps}>
+              {roundingSteps().map((c) => {
+                const on = c.mode === rounding;
+                return (
+                  <Pressable
+                    key={c.mode}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: on }}
+                    accessibilityLabel={`Round to the nearest ${c.step}`}
+                    onPress={() => onRounding(c.mode)}
+                    hitSlop={7}
+                    style={({ pressed }) => [
+                      styles.step,
+                      { backgroundColor: on ? t.text : t.raised, opacity: pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    <Text style={[styles.stepLabel, { color: on ? t.onFill : t.text }]}>
+                      {c.step}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          {/*
+           * ⚠ NOT DRAWN ON THIS CARD, and here rather than nowhere.
+           *
+           * O1d draws the stakes as two figures and stops. `03-data-model.md`
+           * carries the straddle beside them and rev 18 § 5.2 fixes its
+           * control — "pill segmented pick (straddle)", No / Optional /
+           * Mandatory — so the setting exists, is stamped onto the night, and
+           * had a screen until this cut folded that screen into this card.
+           * Dropping it with the screen would have been the cut deciding
+           * something it does not speak about. It takes the shape of the
+           * rounding row above it, which IS drawn, so the layout is copied
+           * rather than invented.
+           */}
+          <View style={[styles.cardBlock, styles.divided, { borderTopColor: t.hairline }]}>
+            <Text style={[styles.cardLabel, { color: t.text }]}>Straddle</Text>
+            {/* The row of steps above, exactly: three of the sheet's width
+                rather than three pills pushed right, because "Mandatory" beside
+                a label is 287 points of a 290-point card at the reader's larger
+                text setting. */}
+            <View style={styles.steps}>
+              {modes.map(({ mode, label }) => {
+                const on = stakes.straddle === mode;
+                return (
+                  <Pressable
+                    key={mode}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: on }}
+                    onPress={() => onStakes(withStraddle(stakes, mode))}
+                    hitSlop={7}
+                    style={({ pressed }) => [
+                      styles.step,
+                      { backgroundColor: on ? t.text : t.raised, opacity: pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    <Text style={[styles.pillLabel, { color: on ? t.onFill : t.text }]}>
+                      {label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* The figure only exists while there is a straddle to have one —
+                see `withStraddle`, which keeps the two in step. */}
+            {stakes.straddle !== 'none' && (
+              <View style={styles.straddleRow}>
+                {/* "Amount", not "Straddle" — it sits under the row whose own
+                    label already says it, and the word twice in twelve points
+                    reads as two settings rather than one. */}
+                <Text style={[styles.cardSub, { color: t.muted }]}>Amount</Text>
+                <View style={styles.amountAtEnd}>
+                  <MoneyField
+                    value={stakes.straddleAmount ?? money(0)}
+                    symbol={symbol}
+                    label="Straddle amount"
+                    onChange={(straddleAmount) => onStakes({ ...stakes, straddleAmount })}
+                  />
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+
+      {rules.length === 0 ? (
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: t.muted }]}>Money rules</Text>
+          <NoRules onStart={onAddRule} />
+        </View>
+      ) : (
+        <>
+          <RuleList
+            caption="Money rules"
+            boxed
+            rules={rules}
+            describe={describeRule}
+            onOpen={onOpenRule}
+            onToggle={(rule, on) => onToggleRule(rule, on)}
+            onAdd={() => onAddRule('kitty')}
+          />
+          <Text style={[styles.footnote, { color: t.muted }]}>
+            These belong to tonight. They are copied from the {from} and changing one here changes
+            this game only — the group keeps its own.
+          </Text>
+        </>
+      )}
+    </>
+  );
+}
+
+/**
+ * A figure typed straight into the row it belongs to — O1d's black field.
+ *
+ * The symbol is drawn beside the digits rather than inside them, because the
+ * digits are what is being edited: a field pre-filled with "₾500" is a field
+ * whose first backspace takes a zero and whose second takes the currency.
+ */
+function MoneyField({
+  value,
+  symbol,
+  label,
+  onChange,
+}: {
+  value: Money;
+  symbol: string;
+  /** What a screen reader calls it — the row's label does not reach the field. */
+  label: string;
+  onChange: (v: Money) => void;
+}) {
+  const t = useTheme();
+  const text = String(value);
+  return (
+    <View style={[styles.moneyField, { backgroundColor: t.ground, borderColor: t.hairline }]}>
+      <Text style={[styles.moneySymbol, { color: t.text }]}>{symbol}</Text>
+      <TextInput
+        value={text}
+        onChangeText={(v) => onChange(money(Math.max(0, Number(v.replace(/\D/g, '')) || 0)))}
+        // A8: this is money. `scripts/ui-audit.mjs` holds every one of these to
+        // a digits-only keyboard.
+        testID="amount"
+        keyboardType="number-pad"
+        accessibilityLabel={label}
+        style={[styles.moneyValue, { color: t.text, width: fieldWidth(text, 9.8) }]}
+      />
+    </View>
+  );
+}
+
+/**
  * O2 · Add players.
+ *
+ * SINCE THE GAME-SETTINGS CUT THIS IS THE SECOND DOOR, not the only one. The
+ * group is on O1 itself now — every unseated name as a one-tap chip — so what
+ * is left for this screen is the two things a grid of chips cannot do: find a
+ * name in a roster of thirty, and create somebody who is not on it at all,
+ * which is what O1c-2's dashed *Someone new* opens.
  *
  * Search, then the roster most-recent-first, each row saying when they last
  * played and how many nights they have — the six people who played last week
@@ -978,16 +1441,16 @@ function played(h: PlayHistory | undefined, host: boolean): string {
  *
  * Three starting points, each of which creates a pre-filled rule rather than an
  * empty form — nobody knows what a "destination" is until they have seen one —
- * and the skip stated out loud, because a group that deducts nothing is a
- * normal group and not an unfinished setup.
+ * and it is stated out loud that a group can have none, because a group that
+ * deducts nothing is a normal group and not an unfinished setup.
+ *
+ * THE SKIP IS GONE, and the sentence it carried is not. It was a button
+ * reading "Skip — no deductions" and it existed because this was a step of its
+ * own with a way out to find; the rules are a section of Game details now, the
+ * footer says Save details, and a second way off the screen beside it would be
+ * two buttons doing one thing.
  */
-function NoRules({
-  onStart,
-  onSkip,
-}: {
-  onStart: (destination: MoneyRule['destination']) => void;
-  onSkip: () => void;
-}) {
+function NoRules({ onStart }: { onStart: (destination: MoneyRule['destination']) => void }) {
   const t = useTheme();
   const starters = [
     { destination: 'bill' as const, name: 'Food & drinks', detail: 'a bill, split between the winners' },
@@ -1006,307 +1469,38 @@ function NoRules({
         <Button label="Add the first rule" variant="secondary" onPress={() => onStart('kitty')} />
       </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Start from a common one</Text>
-        {starters.map((s) => (
-          <Pressable
-            key={s.destination}
-            accessibilityRole="button"
-            onPress={() => onStart(s.destination)}
-            style={({ pressed }) => [
-              styles.row,
-              {
-                borderBottomColor: t.hairline,
-                borderBottomWidth: StyleSheet.hairlineWidth,
-                opacity: pressed ? 0.6 : 1,
-              },
-            ]}
-          >
-            <View style={styles.rowText}>
-              <Text style={[styles.rowName, { color: t.text }]}>{s.name}</Text>
-              <Text style={[styles.rowSub, { color: t.muted }]}>{s.detail}</Text>
-            </View>
-            <Text style={[styles.use, { color: t.muted }]}>USE</Text>
-          </Pressable>
-        ))}
-      </View>
-
-      <Button label="Skip — no deductions" variant="text" onPress={onSkip} style={styles.skip} />
+      {starters.map((s) => (
+        <Pressable
+          key={s.destination}
+          accessibilityRole="button"
+          onPress={() => onStart(s.destination)}
+          style={({ pressed }) => [
+            styles.row,
+            {
+              borderBottomColor: t.hairline,
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              opacity: pressed ? 0.6 : 1,
+            },
+          ]}
+        >
+          <View style={styles.rowText}>
+            <Text style={[styles.rowName, { color: t.text }]}>{s.name}</Text>
+            <Text style={[styles.rowSub, { color: t.muted }]}>{s.detail}</Text>
+          </View>
+          <Text style={[styles.use, { color: t.muted }]}>USE</Text>
+        </Pressable>
+      ))}
     </>
-  );
-}
-
-/**
- * The stakes — the blinds, and whether a straddle is played.
- *
- * ⚠ THE EDITOR ITSELF IS NOT DRAWN. O1 draws the ROW and its chevron; no board
- * anywhere draws what opens. What rev 18 § 6 does specify is the two controls
- * this is made of, by name and to the point, because they were drawn for
- * exactly this setting on group creation:
- *
- *   · "Numeric cell (blinds)" — flex 1, 11 × 12, radius 8, hairline border,
- *     caption 700 10 letterspaced and uppercase over a 600 18 tabular value.
- *   · "Pill segmented pick (straddle)" — 6 × 10, radius 6, 600 12, inactive
- *     transparent with a hairline border, active filled with the foreground
- *     and its label inverted; sitting in a 9 × 12 hairline field under a
- *     700 10 uppercase label.
- *
- * So this is assembled from drawn parts rather than invented, which is the
- * most the handoff allows without a board. Flagged here rather than left
- * unbuilt: the row is the first thing on the screen and a chevron that opens
- * nothing is worse than either.
- *
- * NO PRESETS, unlike the buy-in beside it. A buy-in has three figures a room
- * argues between; blinds are two numbers a group settled on once and will type
- * once, and a preset row of guesses would be four controls pretending to be a
- * decision.
- */
-function Blinds({
-  stakes,
-  symbol,
-  onChange,
-}: {
-  stakes: Stakes;
-  symbol: string;
-  onChange: (s: Stakes) => void;
-}) {
-  const t = useTheme();
-  const modes: ReadonlyArray<{ mode: StraddleMode; label: string }> = [
-    { mode: 'none', label: 'No' },
-    { mode: 'optional', label: 'Optional' },
-    { mode: 'mandatory', label: 'Mandatory' },
-  ];
-
-  return (
-    <View style={styles.section}>
-      <View style={styles.figureRow}>
-        <Text style={[styles.figure, { color: t.text }]}>{stakesLabel(stakes)}</Text>
-      </View>
-
-      <View style={styles.cells}>
-        <Cell
-          caption="Small blind"
-          value={stakes.small}
-          symbol={symbol}
-          onChange={(small) => onChange({ ...stakes, small })}
-        />
-        <Cell
-          caption="Big blind"
-          value={stakes.big}
-          symbol={symbol}
-          onChange={(big) => onChange({ ...stakes, big })}
-        />
-      </View>
-
-      <View style={[styles.straddle, { borderColor: t.hairline }]}>
-        <Text style={[styles.straddleLabel, { color: t.muted }]}>Straddle</Text>
-        <View style={styles.pills}>
-          {modes.map(({ mode, label }) => {
-            const on = stakes.straddle === mode;
-            return (
-              <Pressable
-                key={mode}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: on }}
-                onPress={() => onChange(withStraddle(stakes, mode))}
-                style={({ pressed }) => [
-                  styles.pill,
-                  {
-                    backgroundColor: on ? t.text : 'transparent',
-                    borderColor: on ? t.text : t.hairline,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Text style={[styles.pillLabel, { color: on ? t.onFill : t.muted }]}>{label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* The figure only exists while there is a straddle to have one — see
-          `withStraddle`, which is where the two are kept in step. */}
-      {stakes.straddle !== 'none' && (
-        <View style={styles.cells}>
-          <Cell
-            // "Amount", not "Straddle" — it sits directly under the field
-            // whose own label already says STRADDLE, and the word twice in
-            // twelve points reads as two settings rather than one.
-            caption="Amount"
-            value={stakes.straddleAmount ?? money(0)}
-            symbol={symbol}
-            onChange={(straddleAmount) => onChange({ ...stakes, straddleAmount })}
-          />
-        </View>
-      )}
-
-      <Text style={[styles.explain, { color: t.muted }]}>
-        What tonight is played at. Nothing in the ledger is worked out from the blinds — they are
-        recorded so the night says what it was, and so the next one opens at the same game.
-      </Text>
-    </View>
-  );
-}
-
-/** Rev 18 § 6's "numeric cell": a caption over a figure you can type into. */
-function Cell({
-  caption,
-  value,
-  symbol,
-  onChange,
-}: {
-  caption: string;
-  value: Money;
-  symbol: string;
-  onChange: (v: Money) => void;
-}) {
-  const t = useTheme();
-  return (
-    <View style={[styles.cell, { borderColor: t.hairline }]}>
-      <Text style={[styles.cellCaption, { color: t.muted }]}>{caption}</Text>
-      <View style={styles.cellFigure}>
-        <Text style={[styles.cellSymbol, { color: t.muted }]}>{symbol}</Text>
-        <TextInput
-          value={String(value)}
-          onChangeText={(v) => onChange(money(Math.max(0, Number(v.replace(/\D/g, '')) || 0)))}
-          // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
-          // to a digits-only keyboard.
-          testID="amount"
-          keyboardType="number-pad"
-          style={[styles.cellValue, { color: t.text }]}
-        />
-      </View>
-    </View>
-  );
-}
-
-/**
- * A figure being set — the buy-in, in the O5 idiom: the number large, then the
- * presets, then a box to type one that is not on the list.
- */
-function Amount({
-  value,
-  symbol,
-  presets,
-  onChange,
-  note,
-}: {
-  value: Money;
-  symbol: string;
-  presets: readonly number[];
-  onChange: (v: Money) => void;
-  note: string;
-}) {
-  const t = useTheme();
-  return (
-    <View style={styles.section}>
-      <View style={styles.figureRow}>
-        <Text style={[styles.figure, { color: t.text }]}>{formatMoney(value)}</Text>
-        <Text style={[styles.figureUnit, { color: t.muted }]}>a seat</Text>
-      </View>
-
-      <View style={styles.presets}>
-        {presets.map((v) => (
-          <Button
-            key={v}
-            label={formatMoney(money(v))}
-            variant="preset"
-            selected={value === v}
-            onPress={() => onChange(money(v))}
-            style={styles.preset}
-          />
-        ))}
-        <View style={[styles.setBox, { borderColor: t.quietOutline }]}>
-          <TextInput
-            value={String(value)}
-            onChangeText={(v) => onChange(money(Math.max(0, Number(v.replace(/\D/g, '')) || 0)))}
-            // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
-            // to a digits-only keyboard.
-            testID="amount"
-            keyboardType="number-pad"
-            style={[styles.setText, { color: t.text }]}
-          />
-        </View>
-      </View>
-
-      <Text style={[styles.explain, { color: t.muted }]}>{note}</Text>
-    </View>
-  );
-}
-
-/**
- * HOW COARSELY THE TABLE SETTLES — the four chips, before the night exists.
- *
- * S14 draws this control as an open chip row and `roundingChoices()` in core is
- * the list — Dollar · 10s · 100s · 1k — so it is written once and both screens
- * that offer it read the same four.
- *
- * The chips are this sheet's own preset row at `flex: 1`, the same object the
- * buy-in uses. B2 is why that is worth saying: the row on `/rounding` is drawn
- * for the board's six, and at 24 points of padding a side a 52-point slot left
- * four for a word that needed thirty-eight, so "100s" came out through the side
- * of its own box. Four across this sheet at 393 is about 85 a slot with no
- * horizontal padding at all, which "Dollar" clears twice over.
- *
- * IT SAYS WHAT IT DOES NOT TOUCH, because that is the first thing a host asks
- * and the answer is not obvious. Nothing anybody counted moves: buy-ins,
- * cash-outs and every result are exactly what they were. What is rounded is a
- * DIVISION — what a rule takes off the winners — and the parts still add back
- * up to the whole, so the bar is owed what the bar is owed. Said in the same
- * words as `/rounding`, off `roundingSentence` in core rather than written
- * twice.
- *
- * ⚠ LAYOUT NOT DRAWN on this sheet. No board puts rounding on O1 — it was a row
- * on tonight's money rules and nowhere else. Assembled from the two things here
- * that are drawn: the preset row, and the sentence under it.
- */
-function Rounding({
-  picked,
-  onPick,
-}: {
-  picked: RoundingMode;
-  onPick: (mode: RoundingMode) => void;
-}) {
-  const t = useTheme();
-  return (
-    <View style={styles.section}>
-      <View style={styles.presets}>
-        {roundingChoices().map((c) => (
-          <Button
-            key={c.mode}
-            label={c.chip}
-            variant="preset"
-            selected={c.mode === picked}
-            onPress={() => onPick(c.mode)}
-            style={styles.preset}
-          />
-        ))}
-      </View>
-
-      <Text style={[styles.roundValue, { color: t.text }]}>{roundingLabel(picked)}</Text>
-      <Text style={[styles.explain, { color: t.muted }]}>{roundingSentence(picked)}.</Text>
-
-      <Text style={[styles.explain, { color: t.muted }]}>
-        It touches nothing anybody counts. Buy-ins, cash-outs and everyone’s result are exactly
-        what they were — what is rounded is what a rule takes off the winners, and the shares
-        still add up to the whole.
-      </Text>
-
-      <Text style={[styles.explain, { color: t.muted }]}>
-        Tonight’s, like the rules and the buy-in. The group keeps its own default, and this game
-        is settled with what it opened with.
-      </Text>
-    </View>
   );
 }
 
 /**
  * Picking the money this group keeps its book in.
  *
- * ⚠ LAYOUT NOT DRAWN. No board opens this — O1 states the currency and never
- * offered to change it — so it is assembled from the two things on this sheet
- * that are drawn: O2's search box, and the sheet row underneath it.
+ * ⚠ LAYOUT NOT DRAWN. No board opens this — O1d states the currency and draws
+ * a chevron, and nothing draws what is behind it — so it is assembled from the
+ * two things on this sheet that are drawn: O2's search box, and the sheet row
+ * underneath it.
  *
  * SEARCH IS THE LIST'S FRONT DOOR, not a filter bolted onto it. There are a
  * hundred and fifty-six of these and nobody scrolls to Zambia: a code, a
@@ -1480,29 +1674,143 @@ const styles = StyleSheet.create({
   // doc 15 § 3: a sheet's rows are 15 / 4 with a hairline between them.
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
   rowText: { flex: 1, minWidth: 0, gap: 3 },
-  rowLabel: { fontSize: 17, fontWeight: '500' },
   rowName: { fontSize: 17, fontWeight: '600' },
   rowSub: { fontSize: 13, fontWeight: '400' },
-  rowValue: { fontSize: 17, fontWeight: '600', fontVariant: ['tabular-nums'], flexShrink: 1, textAlign: 'right' },
   // What a figure in this money is written with — "Kč", or the code again
   // where CLDR has no glyph. Quiet: the code above it is what identifies it.
   symbol: { fontSize: 15, fontWeight: '500', flexShrink: 0, textAlign: 'right' },
-  rowQuiet: { fontSize: 15, fontWeight: '400', flexShrink: 1, textAlign: 'right' },
 
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 4, paddingTop: 2 },
-  chip: {
+  /* -----------------------------------------------------------------------
+   * O1c-2 · the summary, the seats and the group. Every figure below is the
+   * board's own, at `design/handoff-game-settings/boards/Game Settings.dc.html`.
+   * ------------------------------------------------------------------- */
+  summary: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 11,
-    paddingHorizontal: 14,
+    gap: 12,
+    marginHorizontal: space.card,
+    marginBottom: 16,
+    paddingVertical: 13,
+    paddingHorizontal: 15,
+    borderRadius: 13,
+    borderWidth: 1,
+  },
+  summaryText: { flex: 1, minWidth: 0, gap: 5 },
+  summaryTerms: { fontSize: 16, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  summaryDeductions: { fontSize: 13, fontWeight: '400', lineHeight: 18.85 },
+  change: { flexShrink: 0, paddingVertical: 9, paddingHorizontal: 13, borderRadius: 8 },
+  changeLabel: { fontSize: 13, fontWeight: '700' },
+
+  seats: { gap: 8, paddingTop: 2 },
+  seat: { borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14, gap: 11 },
+  seatRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  seatText: { flexShrink: 1, minWidth: 0, gap: 2 },
+  seatName: { fontSize: 16, fontWeight: '600' },
+  seatSub: { fontSize: 12.5, fontWeight: '400' },
+  seatHint: { fontSize: 12.5, fontWeight: '400' },
+  figureTap: { marginLeft: 'auto', flexShrink: 0 },
+  seatFigure: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
+    paddingBottom: 1,
+  },
+  seated: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  monogram: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  monogramText: { fontSize: 13, fontWeight: '700' },
+
+  typing: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingVertical: 7,
+    paddingHorizontal: 11,
+    borderRadius: 8,
+  },
+  typingSymbol: { fontSize: 17, fontWeight: '700' },
+  typingValue: {
+    fontSize: 17,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    padding: 0,
+  },
+
+  // Two to a row, and a lone last one stays half-width rather than stretching
+  // across the sheet — the board's grid is 1fr 1fr and does the same.
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, paddingTop: 2 },
+  free: {
+    flexGrow: 1,
+    flexBasis: '46%',
+    maxWidth: '48.5%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingVertical: 8,
+    paddingHorizontal: 11,
+    borderRadius: 11,
+    borderWidth: 1,
+  },
+  newChip: { justifyContent: 'center', borderWidth: 1.5, borderStyle: 'dashed' },
+  freeMonogram: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  freeMonogramText: { fontSize: 11, fontWeight: '700' },
+  freeName: { fontSize: 14.5, fontWeight: '600', flexShrink: 1 },
+
+  /* The footer, in both its faces — the total over the primary, and the
+     accessory bar that replaces them while an amount is open. */
+  onTable: { fontSize: 13, fontWeight: '400', fontVariant: ['tabular-nums'] },
+  onTableCentred: { textAlign: 'center' },
+  accessory: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingTop: 9,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  done: { marginLeft: 'auto', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8 },
+  doneLabel: { fontSize: 14, fontWeight: '700' },
+
+  /* -----------------------------------------------------------------------
+   * O1d · Game details. One card, hairlines inside it, no box in a box.
+   * ------------------------------------------------------------------- */
+  card: { borderRadius: 13, borderWidth: 1, overflow: 'hidden' },
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 15 },
+  cardBlock: { gap: 9, paddingTop: 11, paddingBottom: 13, paddingHorizontal: 15 },
+  divided: { borderTopWidth: StyleSheet.hairlineWidth },
+  cardText: { flexShrink: 1, minWidth: 0, gap: 2 },
+  cardLabel: { fontSize: 16, fontWeight: '500' },
+  cardSub: { fontSize: 12.5, fontWeight: '400' },
+  cardValue: { marginLeft: 'auto', fontSize: 16, fontWeight: '600' },
+
+  pair: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 7 },
+  slash: { fontSize: 14, fontWeight: '400' },
+  moneyField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
   },
-  findChip: { borderWidth: 1.5, borderStyle: 'dashed' },
-  chipName: { fontSize: 15, fontWeight: '600' },
-  chipHost: { fontSize: 11, fontWeight: '600', letterSpacing: 0.66 },
-  chipAmount: { fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  moneySymbol: { fontSize: 16, fontWeight: '600' },
+  moneyValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+    textAlign: 'right',
+    padding: 0,
+  },
+  amountAtEnd: { marginLeft: 'auto' },
+
+  steps: { flexDirection: 'row', gap: 5 },
+  step: { flex: 1, alignItems: 'center', paddingVertical: 7, borderRadius: 7 },
+  stepLabel: { fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'] },
+
+  straddleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  pillLabel: { fontSize: 13, fontWeight: '600' },
 
   empty: { ...type.footnote, paddingHorizontal: 4, paddingTop: 8 },
   warn: { ...type.footnote, paddingHorizontal: 4, paddingBottom: 10, lineHeight: 18 },
@@ -1566,7 +1874,7 @@ const styles = StyleSheet.create({
   addLabel: { fontSize: 15, fontWeight: '700' },
 
   blank: {
-    marginHorizontal: space.card,
+    marginHorizontal: 0,
     marginBottom: 22,
     paddingVertical: 22,
     paddingHorizontal: 18,
@@ -1578,73 +1886,4 @@ const styles = StyleSheet.create({
   blankTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
   blankBody: { ...type.footnote, paddingBottom: 4 },
   use: { fontSize: 12, fontWeight: '700', letterSpacing: 1.1 },
-  skip: { marginHorizontal: space.card },
-
-  figureRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 10,
-    paddingHorizontal: 4,
-    paddingBottom: 12,
-  },
-  figure: {
-    fontSize: 56,
-    fontWeight: '800',
-    letterSpacing: -2.24,
-    lineHeight: 54,
-    fontVariant: ['tabular-nums'],
-  },
-  figureUnit: { fontSize: 22, fontWeight: '700', paddingBottom: 5 },
-  // Rev 18 § 6 · "numeric cell (blinds)" and "pill segmented pick (straddle)",
-  // to the point. Both were drawn for this setting on group creation, so the
-  // figures here are copied rather than chosen.
-  cells: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-  cell: {
-    flex: 1,
-    paddingVertical: 11,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  cellCaption: { fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
-  cellFigure: { flexDirection: 'row', alignItems: 'center', gap: 1, paddingTop: 3 },
-  cellSymbol: { fontSize: 18, fontWeight: '600' },
-  cellValue: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
-    padding: 0,
-  },
-  straddle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 9,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  straddleLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
-  pills: { flexDirection: 'row', gap: 6, marginLeft: 'auto' },
-  pill: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1 },
-  pillLabel: { fontSize: 12, fontWeight: '600' },
-
-  presets: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-  preset: { flex: 1, height: 44, paddingHorizontal: 0 },
-  setBox: {
-    flex: 1,
-    height: 44,
-    borderRadius: radius.pressable,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  setText: { fontSize: 16, fontWeight: '700', textAlign: 'center', width: '100%', padding: 0 },
-  explain: { ...type.footnote, paddingHorizontal: 4, paddingTop: 12 },
-  /* The rounding rule in words, over its own explanation. Not the 56pt figure
-     the buy-in and the blinds use: "Whole dollars" is thirteen glyphs and would
-     be off the side of the sheet before the reader's text setting touched it. */
-  roundValue: { fontSize: 20, fontWeight: '700', paddingHorizontal: 4, paddingTop: 4 },
 });

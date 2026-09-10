@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { money, type Money, type MoneyRule } from './index';
-import { ruleDetail, ruleLabel, ruleTerms, splitSentence } from './ruleText';
+import {
+  roundingChoices,
+  roundingClause,
+  roundingSteps,
+  ruleDetail,
+  ruleLabel,
+  ruleTerms,
+  splitSentence,
+} from './ruleText';
 
 const rule = (over: Partial<MoneyRule> = {}): MoneyRule => ({
   id: 'r1',
@@ -93,5 +101,31 @@ describe('the terms a settled night carries on its face', () => {
 
   it('puts the name in front of the terms', () => {
     expect(ruleLabel(rule({ name: 'Piggy bank' }))).toBe('Piggy bank · 5%');
+  });
+});
+
+/**
+ * The two strings the game-settings cut added — `design/handoff-game-settings/`.
+ *
+ * Both are written off `ROUNDING_MODES` rather than off a list of their own,
+ * and that is the thing worth holding: a chip row and a summary line that come
+ * to offer different settings is how a host sets one thing and settles at
+ * another.
+ */
+describe('rounding, as the new-session sheet writes it', () => {
+  it('offers the same modes as the chip row, written as bare steps', () => {
+    expect(roundingSteps().map((c) => c.step)).toEqual(['1', '10', '50', '100']);
+    expect(roundingSteps().map((c) => c.mode)).toEqual(roundingChoices().map((c) => c.mode));
+  });
+
+  it('says nothing at all when nothing is rounded', () => {
+    expect(roundingClause('dollars')).toBeNull();
+    expect(roundingClause(null)).toBeNull();
+    expect(roundingClause(undefined)).toBeNull();
+  });
+
+  it('names the step, and only the step', () => {
+    expect(roundingClause('tens')).toBe('rounded to 10');
+    expect(roundingClause('hundreds')).toBe('rounded to 100');
   });
 });

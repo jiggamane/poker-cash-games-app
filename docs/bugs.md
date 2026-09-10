@@ -812,6 +812,42 @@ Fix this before drawing anything new for the invite flow, or every state the
 
 ## Fixed
 
+### B76 — O1's two longest rows both ended in an ellipsis
+
+```
+Screen      O1 New session — the rows Money rules and Rounding
+Seen        "Kitchen & drinks · Group piggy b…" under Money rules, and
+            "what a rule takes is worked out t…" under Rounding
+Expected    the rules that are on tonight, and what the rounding does, in full
+Found       10 Sept, in the game-settings design cut, which names both as
+            faults the redraw fixes
+Locked by   npm run check:ui — ui-audit.mjs, "behind-row-missing" holds the
+            rows themselves; ui-check.mjs measures the two lines that carry
+            them
+Status      fixed in this commit
+```
+
+Both rows were a label, a sub-line and a value on one row: `numberOfLines={1}`
+on the sub-line and a value hard right that took whatever it needed first. On a
+393-wide sheet the sub-line got about 170 points, which is one rule's name and
+half of the next. Nothing was wrong with either string — the row simply had
+three things in it and room for two.
+
+**The redraw is the fix, not a width change.** `design/handoff-game-settings/`
+collapses all five settings rows into a two-line summary, and the second of
+those lines is the deductions sentence with the whole sheet's width and no
+value beside it: it wraps rather than truncating. The rounding explanation went
+with it — the row on Game details states the step as a chip and puts *applied to
+what a rule takes* under the label, where there is nothing to the right of it.
+
+Worth saying which check would have caught this and did not: none of them. The
+audit asks whether a row is THERE, `ui-check` measures type and colour against
+the board, and `ui-journeys` looks for figures that are cut off. A truncated
+line of prose is none of those, and it sat on the first screen of the app for
+three weeks. `BEHIND` in `ui-audit.mjs` is the part of this commit that goes red
+if the rows themselves ever go missing; the truncation itself is still only
+visible to a person, and that is worth knowing rather than papering over.
+
 ### B74 — a host with two groups jammed their own queue, for ever
 
 ```

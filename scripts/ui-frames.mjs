@@ -112,7 +112,42 @@ const PAIRS = [
           'that ends with a Save is a sheet, and the two vocabularies must not mix',
       },
     }],
-  ['/new-night', 'Journey Map 1 - Club and people', 'O1 New session'],
+  /*
+   * `design/handoff-game-settings/`, cut 10 September, and it supersedes
+   * "O1 New session" on Journey Map 1 entirely — the settings collapse to two
+   * lines and a pill, and the seating is the body of the sheet. Holding the
+   * built screen against the frame it replaced would report the new screen as
+   * drift from a drawing that has been superseded.
+   */
+  [
+    '/new-night',
+    'Game Settings',
+    'O1c-2 New session · seated',
+    {
+      boards: 'design/handoff-game-settings/boards',
+      known: {
+        /*
+         * THIS CUT DRAWS THE SHEET CHROME ITSELF DIFFERENTLY, and the chrome is
+         * not what it is about. Its frames put the group's name above the
+         * screen name as an uppercase eyebrow at 800 27, on a panel of #0F0F12
+         * with a 22 radius; Chrome B is 800 32 with the sub-line under it, on
+         * `sheet` #101013 with a 26 radius, and that is what all twenty-one
+         * sheets in the app draw and what doc 15 § 3 states. Following one
+         * board here would either fork the header for one screen or change
+         * `Sheet.tsx` — an app-wide sweep, which `CLAUDE.md` says runs alone
+         * and with nothing else in flight.
+         */
+        title: 'this cut draws an eyebrow over a 27px title; Chrome B is 32 with the sub under it — doc 15 § 3, and Sheet.tsx is shared by 21 screens',
+        panel: 'the cut draws #0F0F12 at radius 22; the app draws the `sheet` token at radius 26, which is every sheet in the app',
+        /*
+         * And the drawn foot carries a figure the bare route has not got: the
+         * total sits above the primary only once somebody is seated, and a
+         * route opened cold has nobody.
+         */
+        footer: 'the drawn foot carries “on the table”, which a cold route has no seats to state',
+      },
+    },
+  ],
   ['/money-rules', 'Journey Map 1 - Club and people', 'O4 Money rules'],
   ['/rule', 'Journey Map 1 - Club and people', 'O5 Rule editor'],
 
