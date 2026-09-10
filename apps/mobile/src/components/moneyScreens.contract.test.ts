@@ -178,10 +178,22 @@ describe('the game settings set how coarsely the table settles', () => {
     expect(roundingRowValue('tens')).toBe('on the nets');
   });
 
-  it('has a rounding step of its own, reached from the game', () => {
-    expect(setup).toContain("| 'rounding'");
-    expect(setup).toContain("rounding: 'game',");
-    expect(setup).toContain("go('rounding')");
+  /*
+   * IT IS A ROW OF GAME DETAILS SINCE 10 SEPTEMBER, not a step of its own.
+   * `design/handoff-game-settings/` folds the four settings sheets into one
+   * card behind O1c-2's *Change*, so what has to hold is no longer "there is a
+   * rounding step" but "the details face exists, this screen reaches it, and
+   * the control on it is written off core's own list of modes".
+   */
+  it('sets the rounding on Game details, reached from the seating', () => {
+    expect(setup).toContain("| 'details'");
+    expect(setup).toContain("details: 'game',");
+    expect(setup).toContain("go('details')");
+    expect(setup).toContain('Round to the nearest');
+    /* The steps come off core, so this row and `/rounding` cannot come to
+       offer different settings — the whole reason `roundingSteps` is there. */
+    expect(setup).toContain('roundingSteps()');
+    expect(drawn(setup)).not.toContain('roundingChoices(');
   });
 
   /*
@@ -233,7 +245,19 @@ describe('the deductions settings reach the bill and the person who paid', () =>
     const block = /const DECIDED = \{([\s\S]*?)\n\};/.exec(audit);
     expect(block).not.toBeNull();
     expect(block![1]).toContain("'/money-rules': ['The bill', 'Add a spend']");
-    expect(block![1]).toContain("'/new-night': ['Rounding']");
+
+    /*
+     * /new-night IS NO LONGER IN `DECIDED`, and that is not the row going
+     * unchecked. Rounding is on Game details now — behind *Change*, which no
+     * URL opens — so it moved to `BEHIND`, the map that taps a control and
+     * asks for what it opened. Read back here for the same reason the others
+     * are: a row that quietly leaves both maps is a row nothing holds.
+     */
+    const behind = /const BEHIND = \{([\s\S]*?)\n\};/.exec(audit);
+    expect(behind).not.toBeNull();
+    expect(behind![1]).toContain("tap: 'Change'");
+    expect(behind![1]).toContain("'Round to the nearest'");
+    expect(behind![1]).toContain("'Money rules'");
 
     const journeys = read('scripts/ui-journeys.mjs');
     expect(journeys).toContain("await tap('Add a spend'");

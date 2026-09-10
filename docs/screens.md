@@ -181,6 +181,23 @@ it. One has: O1's *Start time*, on 29 August. When that happens the comment
 beside the entry says which decision, and there is a note further down this file
 saying it too.
 
+**A row moved behind a control is a third case, and `BEHIND` is what it is
+for — 10 September.** `design/handoff-game-settings/` collapses O1's five
+settings rows into two lines and a *Change* pill, with the rows themselves on
+**Game details**. To a map that only reads a route opened cold, that is
+indistinguishable from deleting them: the strings are gone from the bare screen
+and the reason is a redraw rather than a decision to remove anything. So the
+audit grew a second map — route → `{ tap, rows }` — which taps the named control
+and asks for those rows on whatever it opened. It runs after `DRAWN` and
+`DECIDED`, because the tap is what everything after it then measures, and the
+rule for what may go in it is one line: **a control that opens something**. A tap
+that saves, dismisses or writes a row is not a thing a check may do to a screen.
+
+`/new-night` is the only entry today and it carries all six of O1d's rows. It is
+also what makes the `DRAWN` entry above it honest: that route now lists three
+strings where it listed four, and without `BEHIND` the four that left would read
+as a screen that had quietly lost half of itself.
+
 **T1 went in on 1 September**, with the two group headers and the qualifier that
 makes the right-hand column readable — `STILL PLAYING`, `CASHED OUT`, `RESULT
 BEFORE DEDUCTIONS`. E2's three replaced *Still seated* and *Already confirmed*
@@ -1000,47 +1017,94 @@ all. Both are deliberate, both are held by `HEAD_SCROLLS` in `ui-audit.mjs`,
 and the section **The head, and what scrolls with it** above says why. Every
 other screen still pins its head, and the check still goes red if one stops.
 
-**`/new-night`** — O1's *The game* is the board's rows in the board's order:
-Stakes, Default buy-in, Money rules. Currency sits among them and is drawn
-nowhere. The Stakes row's editor is not drawn either — no board opens it — and
-is assembled from the two controls rev 18 § 6 names for exactly this setting,
-the numeric cell and the pill segmented pick. B4 in `docs/bugs.md` is the
-history, and `DRAWN` is what holds those rows in place.
+**`/new-night` was redrawn on 10 September** — `design/handoff-game-settings/`,
+frames O1c-2, O1c-3 and O1d, which supersede "O1 New session" on Journey Map 1
+and move nothing else in the app. `ui-frames.mjs` names that board for this
+route now; holding the built screen against the frame it replaced would report
+the new one as drift from a drawing that has been superseded.
 
-Two of those rows changed on **29 August**, and both are departures from the
-board that the next session should not "fix" back:
+*The game* — five list rows carrying Stakes, Default buy-in, Currency, Money
+rules and Rounding — is gone, and this is what replaced it:
 
-- **Start time is gone.** The board draws the row and rev 18 says the figure is
-  editable; a night is now stamped with the clock at the moment its table is
-  opened, and there is nothing left to set. This is the only route where the
-  screen deliberately holds **less** than its board, so *Start time* came out
-  of `DRAWN` — with a comment there saying why, because a missing drawn row is
-  otherwise exactly the fault that check exists to catch. The primary still
-  reads "Open the table · 20:05"; that figure is the phone's clock now, kept on
-  the minute by `useNow`, so a sheet left open while people are seated does not
-  go on promising the minute it was opened in.
-- **Currency opens a picker.** It used to be the one row with no chevron —
-  stated here, changed in the group — which was the wrong half of a true rule.
-  The currency is still the GROUP's (`03-data-model.md` carries it there and
-  nowhere else) and the row's sub-line says so; what changed is that setting the
-  game up is where a host is thinking about it, and a club created in dollars by
-  a default nobody chose had no obvious way out. The picker is O2's search box
-  over the ISO 4217 list: a code, a symbol or the name of the money all match,
-  and the whole list is underneath for somebody who does not know the code.
+- **Two lines and a *Change* pill.** `₾5 / ₾5 · ₾500 in · GEL` over the
+  deductions sentence, which is the rules that are ON tonight plus the rounding
+  clause. The five settings are inherited from last time and rarely move; the
+  space that buys goes on the seating, which is what the sheet is for.
+- **Game details (O1d) is what *Change* opens**, and it is one card: the stakes
+  and the buy-in as fields typed in place, the currency as a row that still
+  opens the picker, and the rounding as a row of steps. The money rules are the
+  second card, each with its switch. Four sheets became one card, and only the
+  currency still opens a list of its own — it is the only one of the four with a
+  hundred and fifty-six answers.
+- **The seating is rows, not chips.** A seated player carries the difference
+  from the standard under their name and the figure with a dashed underline;
+  tapping the figure opens it in place, and while it is open the primary is
+  replaced by a bar with the running total and *Done*, and the seat count moves
+  into the header. Everyone unseated is a two-column grid of one-tap adds.
 
-A third changed on **30 August**, and it is an addition rather than a departure:
+Both of the settings rows that truncated are fixed by that, which is **B76** in
+`docs/bugs.md`: the deductions sentence has the sheet's whole width and wraps,
+and the rounding explanation sits under a label with nothing to its right.
 
-- **Rounding is a row of *The game*.** How coarsely the table settles is a money
-  rule — it changes what people actually pay — and it was reachable only from
-  tonight's money rules or from the club's, both of which are places you go
-  once the table is already open. A group playing for thousands played the
-  first hand on whole dollars and found out at settle-up. The step behind the
-  row is the same four chips as `/rounding`, off `ROUNDING_CHOICES` in core so
-  the list is written once, and picking one writes tonight's night only — the
-  club keeps its own default, exactly as it does for the rules and the buy-in.
-  No board draws it, so it is held by the audit's `DECIDED` map rather than by
-  `DRAWN`, and the two are deliberately separate: `DRAWN` is worth something
-  only while every string in it is on an artboard.
+Four departures from the new boards, all deliberate, none to be "fixed" back:
+
+- **Four rounding steps, not six.** O1d draws `1 5 10 50 100 1000`.
+  `RoundingMode` has no 5 at all, and `thousands` and `cents` are carried so an
+  old night settles as it did but are deliberately not offered — the note above
+  `ROUNDING_MODES` in core says why. The row is written off `roundingSteps()`,
+  which reads the same list `/rounding` does, so the two controls cannot come to
+  offer different settings. A chip that sets nothing is worse than a short row.
+- **A straddle row on the money card.** O1d draws the stakes as two figures and
+  stops. `03-data-model.md` carries the straddle beside them, rev 18 § 5.2 fixes
+  its control by name, it is stamped onto the night, and it had a screen until
+  this cut folded that screen into the card — so dropping it would have been the
+  cut deciding something it does not speak about. It takes the shape of the
+  rounding row above it, which is drawn.
+- **"Type the amount they are putting in."** O1c-2 writes *she*, of the one
+  player it draws. Nothing in this app knows a player's pronoun, so the line is
+  the same sentence in the one form that is right for everybody.
+- **An empty table has words for itself.** O1c-2 is drawn with three people
+  seated. With nobody seated, *Who is playing* would head an empty list and
+  *Rest of the group* would call the whole group the rest — so the second
+  heading only appears once somebody is seated, and a line under the first says
+  what to do.
+
+**The primary says the seat count now** — `Open the table · 3 seated`, which is
+what O1c-2 draws — and that replaces a decision of 29 August rather than an
+oversight, so it is worth stating both halves. *Start time* came off this sheet
+that day because a night is stamped with the clock at the moment its table is
+opened, and the clock went into the button to say so. Nothing about the stamp
+has changed; what changed is that the button now sits under a line reading
+`₾1,800 on the table`, on a screen whose entire body is the seating, and the
+figure it confirms is how many people are in it. `useNow` is gone from this
+route with the clock.
+
+**Two of the older notes still stand.** *Currency* opens a picker rather than
+stating a figure nobody can change — the currency is still the GROUP's
+(`03-data-model.md` carries it there and nowhere else) and the row's sub-line
+says so, but setting the game up is where a host is thinking about it, and a
+club created in dollars by a default nobody chose had no obvious way out. And
+*Rounding* is set before the table opens rather than only after it: it changes
+what people actually pay, and a group playing for thousands used to play the
+first hand on whole dollars and find out at settle-up.
+
+**The sheet chrome is the app's, not the cut's.** O1c-2 and O1d put the group's
+name above the screen name as an uppercase eyebrow, at `800 27`, on a panel of
+`#0F0F12` with a 22 radius. Chrome B is `800 32` with the sub-line under it, on
+the `sheet` token at radius 26 — which is doc 15 § 3, and what all twenty-one
+sheets in this app draw. Following the cut here would either fork the header for
+one screen or change `Sheet.tsx`, which is a sweep over every sheet in the app
+and the thing `CLAUDE.md` says runs alone with nothing else in flight. The three
+differences are `known` on the `ui-frames.mjs` pair, with the reason printed
+instead of the delta, so the pair reads as settled rather than as drift.
+
+**What holds the rows now.** `DRAWN` for this route is O1c-2's three strings —
+*Who is playing*, *Change*, *Someone new* — and the six rows behind the pill are
+in `BEHIND`, the map added with this cut, which taps *Change* and asks for them
+on the screen it opened. `DECIDED` has no `/new-night` entry any more for that
+reason and not because the rounding row stopped being checked; the section
+**Drawn rows** above has the argument. `ui-currency.mjs` walks one tap further
+in for the same reason.
 
 **`/deductions` has no table on it any more — 4 September.** *Everyone after
 deductions*, the block at the foot of E3, was five columns under heads reading

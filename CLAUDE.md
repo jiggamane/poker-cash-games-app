@@ -112,11 +112,22 @@ wins over anything older, `design/handoff-2026-08-13/` (rev 14) included. Start
 at its `START-HERE.md`, then `docs/CHANGELOG.md`, which is cumulative and names
 what each revision supersedes.
 
-**Six partial cuts sit on top of it**, each superseding rev 18 only where it
+**Seven partial cuts sit on top of it**, each superseding rev 18 only where it
 speaks and nowhere else. Everything rev 18 says about every other screen still
 stands. Read them newest first:
 
-- **`design/handoff-session-views/`, cut 9 September — start here.** The past
+- **`design/handoff-game-settings/`, cut 10 September — start here.** O1 New
+  session, and the sheet behind it. **The settings collapse and the seating
+  leads:** the five rows of *The game* are one reviewable line with a *Change*
+  pill, and everything they held is edited in one card on **O1d Game details** —
+  which retires the four settings sheets that used to be a step each. The
+  seating is the body of the sheet: a row per seated player with the buy-in
+  typed in place, the rest of the group as a two-column grid of one-tap adds.
+  It speaks about that one screen and no other. `docs/screens.md` has the four
+  places the app departs from it and why, and the argument for `BEHIND` in
+  `ui-audit.mjs`, the map that holds a row moved behind a control.
+
+- **`design/handoff-session-views/`, cut 9 September.** The past
   session (`/settled`, and `/watch` reading the same night), and nothing else on
   any screen. **One player list read three ways** — Final detailed, Final
   grouped, On table — behind a dropdown control in the meta line, with the block

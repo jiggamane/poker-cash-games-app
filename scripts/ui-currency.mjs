@@ -115,6 +115,11 @@ for (const width of WIDTHS) {
     window.dispatchEvent(new PopStateEvent('popstate'));
   });
   await page.waitForTimeout(1300);
+  /* One tap further in since `design/handoff-game-settings/`: the settings are
+     a summary line on O1 now and *Change* is what opens the card the Currency
+     row lives on. */
+  await page.getByText('Change', { exact: true }).first().click({ timeout: 15_000 });
+  await page.waitForTimeout(900);
   await page.getByText('Currency', { exact: false }).last().click({ timeout: 15_000 });
   await page.waitForTimeout(900);
   await page.getByPlaceholder(/currenc|search|code/i).first().fill(CODE);

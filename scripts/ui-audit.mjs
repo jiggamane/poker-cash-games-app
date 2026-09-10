@@ -156,17 +156,28 @@ const urlOf = (route) => BASE + route + (PARAMS[route] ?? '');
  */
 const DRAWN = {
   /*
-   * Journey Map 1 · "O1 New session" — the rows of *The game*, and the dashed
-   * chip that seats somebody.
+   * `design/handoff-game-settings/`, frame O1c-2 — the sheet that opens a
+   * night, redrawn on 10 September. It supersedes "O1 New session" on Journey
+   * Map 1 and moves nothing else.
    *
-   * *Start time* is drawn there and is deliberately NOT here. The row was
-   * removed on 29 August: a night is stamped with the clock at the moment its
-   * table is opened, so there is nothing left to set. This is the one place in
-   * this map where the screen holds less than its board, and it is a decision
-   * rather than the fault B4 exists to catch — `docs/screens.md` says so
-   * beside the note that lists the board's rows.
+   * THE FIVE SETTINGS ROWS ARE NOT HERE ANY MORE, and their absence is that
+   * cut rather than the fault B4 exists to catch. *Stakes*, *Default buy-in*,
+   * *Currency*, *Money rules* and *Rounding* were the top half of this screen;
+   * they are two lines and a *Change* pill now, and the rows themselves are on
+   * **Game details**, one tap in. They are still held to — `BEHIND` below
+   * opens that face and asks for every one of them — and that is the whole
+   * reason `BEHIND` exists: a row moved behind a control is not a row removed,
+   * and a map that cannot tell those apart stops being worth reading.
+   *
+   * *Find a player* went with them. The group is on this screen now, every
+   * unseated name a chip of its own, and the dashed cell at the end of the
+   * grid reads *Someone new*.
+   *
+   * *Start time* is drawn on the older board and is deliberately in neither
+   * place. The row was removed on 29 August: a night is stamped with the clock
+   * at the moment its table is opened, so there is nothing left to set.
    */
-  '/new-night': ['Stakes', 'Default buy-in', 'Money rules', 'Find a player'],
+  '/new-night': ['Who is playing', 'Change', 'Someone new'],
 
   /*
    * `design/handoff-count-up-header/`, option `1b` — the header block, which is
@@ -294,16 +305,6 @@ const DRAWN = {
  */
 const DECIDED = {
   /*
-   * 30 Aug · rounding is set when the game is opened, not only after it.
-   *
-   * How coarsely the table settles is a money rule — it changes what people
-   * pay — and it was reachable only from tonight's money rules or the club's,
-   * both of which are places you go once the table is already open. A group
-   * playing for thousands played the first hand on whole dollars.
-   */
-  '/new-night': ['Rounding'],
-
-  /*
    * 30 Aug · the bill, and who paid it, on the two screens where the deductions
    * are actually argued about.
    *
@@ -326,6 +327,49 @@ const DECIDED = {
    * spend* on that screen, types a figure on the pad, names who paid it, and
    * asserts the spend lands on the bill it was added to.
    */
+};
+
+/*
+ * A SCREEN'S SECOND FACE, one tap in — the rows it keeps behind a control.
+ *
+ * Both maps above ask their question of a route opened cold, which is the only
+ * state a URL can put this app in. That was enough while every drawn row was on
+ * the first screenful. `design/handoff-game-settings/` ended that: five
+ * settings that used to be five list rows on O1 are two lines and a *Change*
+ * pill, and the rows themselves are on **Game details**. Nothing was removed —
+ * and to a check that only reads the bare route, nothing removed and everything
+ * removed look exactly alike.
+ *
+ * So this taps the named control and asks for the rows behind it. `tap` is the
+ * control's own words, matched exactly; `rows` is the same case-insensitive
+ * substring check the two maps above run, on whatever the tap opened.
+ *
+ * IT RUNS LAST OF THE COPY CHECKS, because it changes what is on the screen.
+ * Everything after it — `GONE`, the keypad, A8's footer — then runs against the
+ * second face, which is not a compromise: those three are asked of every screen
+ * in the app and the face behind a pill is a screen in the app.
+ *
+ * Keep it to a control that OPENS something. A tap that saves, dismisses or
+ * writes a row is not a thing a check may do to a screen.
+ */
+const BEHIND = {
+  /*
+   * O1d Game details, behind O1c-2's *Change*. Five of these six were rows of
+   * *The game* on the board this cut supersedes; *The money* is the card they
+   * now sit in, and it is asked for so that a build which loses the card but
+   * keeps the rows reads as the change it is.
+   */
+  '/new-night': {
+    tap: 'Change',
+    rows: [
+      'The money',
+      'Stakes',
+      'Standard buy-in',
+      'Currency',
+      'Round to the nearest',
+      'Money rules',
+    ],
+  },
 };
 
 /*
@@ -1228,6 +1272,38 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
               detail: `a decision put “${word}” on this screen and it is not there`,
               where: route,
             });
+          }
+        }
+
+        /*
+         * The rows behind a control — see BEHIND. Last of the copy checks,
+         * because the tap is what everything after it then measures.
+         */
+        const behind = BEHIND[route];
+        if (behind !== undefined) {
+          const opener = page.getByText(behind.tap, { exact: true }).first();
+          if ((await opener.count()) === 0) {
+            findings.push({
+              check: 'second-face-unreachable',
+              detail: `nothing here says “${behind.tap}”, so the rows behind it cannot be reached`,
+              where: route,
+            });
+          } else {
+            await opener.click();
+            await page.waitForTimeout(350);
+            for (const word of behind.rows) {
+              const seen = await page.evaluate(
+                (w) => (document.body.innerText || '').toLowerCase().includes(w.toLowerCase()),
+                word,
+              );
+              if (!seen) {
+                findings.push({
+                  check: 'behind-row-missing',
+                  detail: `“${behind.tap}” opens a screen the board draws “${word}” on, and it is not there`,
+                  where: route,
+                });
+              }
+            }
           }
         }
 
