@@ -13,6 +13,7 @@ import { claimedSeat } from '../src/lib/identity';
 import { openShareLink } from '../src/lib/shareLink';
 import { watchedSessionId } from '../src/lib/supabase';
 import { hasEnded, useWatchedNight, type WatchedNight } from '../src/lib/watchNight';
+import { timingOf } from '../src/lib/seatClock';
 
 /**
  * X1 — watching somebody else's night. Rev 15, `14-invite-and-watcher.md`.
@@ -160,6 +161,10 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
         // would put a different set of figures on this screen from the ones the
         // room is looking at.
         ...(night.roundingMode === null ? {} : { roundingMode: night.roundingMode }),
+        /* The clock, for the same reason as the rounding rule beside it: a
+           watcher who could not time the night would settle a rake by the hour
+           as though it charged nothing, and the engine refuses it outright. */
+        timing: timingOf(night),
       });
     } catch {
       return null;

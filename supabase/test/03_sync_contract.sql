@@ -82,17 +82,23 @@ insert into session_seat (session_id, player_id) values
 
 insert into money_rule
   (id, book_id, name, active, amount_kind, amount, basis, charge, destination, split,
-   custom_shares, collector_player_id, sort_order)
+   custom_shares, period_minutes, period_rounding, max_per_player,
+   collector_player_id, sort_order)
 values
   ('c5000000-0000-0000-0000-000000000001', 'c2000000-0000-0000-0000-000000000001',
    'Kitchen & drinks', true, 'fixed', 170, 'gross', 'winners_only', 'bill', 'by_percent',
-   null, 'c3000000-0000-0000-0000-000000000001', 1),
+   null, null, null, null, 'c3000000-0000-0000-0000-000000000001', 1),
   ('c5000000-0000-0000-0000-000000000002', 'c2000000-0000-0000-0000-000000000001',
    'Group kitty', true, 'percent', 5, 'gross', 'winners_only', 'kitty', 'evenly',
-   null, 'c3000000-0000-0000-0000-000000000002', 2);
+   null, null, null, 50, 'c3000000-0000-0000-0000-000000000002', 2),
+  -- Charged by the hour: the shape 0015 added. Five an hour each, every hour
+  -- begun, and forty a night at most.
+  ('c5000000-0000-0000-0000-000000000004', 'c2000000-0000-0000-0000-000000000001',
+   'Time', true, 'per_player_time', 5, 'gross', 'everyone_flat', 'host_fee', 'evenly',
+   null, 60, 'up', 40, 'c3000000-0000-0000-0000-000000000002', 3);
 
 select expect_eq((select count(*) from session_seat), 3, 'three seats accepted');
-select expect_eq((select count(*) from money_rule), 2, 'both rules accepted');
+select expect_eq((select count(*) from money_rule), 3, 'all three rules accepted');
 
 -- Every night mints its own link, as the host, without seeing the extensions
 -- schema. This is what 0005 made SECURITY DEFINER — before it, opening a night
@@ -108,11 +114,12 @@ select expect_eq(
 -- still holds. Before 0005 this collided, failed, and halted the whole queue.
 insert into money_rule
   (id, book_id, name, active, amount_kind, amount, basis, charge, destination, split,
-   custom_shares, collector_player_id, sort_order)
+   custom_shares, period_minutes, period_rounding, max_per_player,
+   collector_player_id, sort_order)
 values
   ('c5000000-0000-0000-0000-000000000003', 'c2000000-0000-0000-0000-000000000001',
    'Kitchen & drinks', true, 'fixed', 200, 'gross', 'winners_only', 'bill', 'by_percent',
-   null, 'c3000000-0000-0000-0000-000000000001', 1);
+   null, null, null, null, 'c3000000-0000-0000-0000-000000000001', 1);
 
 select expect_eq((select count(*) from money_rule where sort_order = 1), 2,
   'a rule can take a position an older night still holds');
@@ -120,16 +127,19 @@ select expect_eq((select count(*) from money_rule where sort_order = 1), 2,
 -- An edit to a rule REPLACES it, unlike everything else the queue sends.
 insert into money_rule
   (id, book_id, name, active, amount_kind, amount, basis, charge, destination, split,
-   custom_shares, collector_player_id, sort_order)
+   custom_shares, period_minutes, period_rounding, max_per_player,
+   collector_player_id, sort_order)
 values
   ('c5000000-0000-0000-0000-000000000002', 'c2000000-0000-0000-0000-000000000001',
    'Group kitty', true, 'percent', 10, 'gross', 'winners_only', 'kitty', 'evenly',
-   null, 'c3000000-0000-0000-0000-000000000002', 2)
+   null, null, null, 50, 'c3000000-0000-0000-0000-000000000002', 2)
 on conflict (id) do update set
   name = excluded.name, active = excluded.active, amount_kind = excluded.amount_kind,
   amount = excluded.amount, basis = excluded.basis, charge = excluded.charge,
   destination = excluded.destination, split = excluded.split,
-  custom_shares = excluded.custom_shares, collector_player_id = excluded.collector_player_id,
+  custom_shares = excluded.custom_shares, period_minutes = excluded.period_minutes,
+  period_rounding = excluded.period_rounding, max_per_player = excluded.max_per_player,
+  collector_player_id = excluded.collector_player_id,
   sort_order = excluded.sort_order;
 
 select expect_eq(
@@ -446,7 +456,7 @@ update player set pays_kitty = false
 -- --- a rule the group deleted -----------------------------------------------
 delete from money_rule where id = 'c5000000-0000-0000-0000-000000000003'
    and book_id = 'c2000000-0000-0000-0000-000000000001';
-select expect_eq((select count(*) from money_rule), 2, 'a deleted rule leaves the book');
+select expect_eq((select count(*) from money_rule), 3, 'a deleted rule leaves the book');
 
 -- --- who has actually paid --------------------------------------------------
 insert into transfer_payment (session_id, from_player_id, to_player_id, paid_at)

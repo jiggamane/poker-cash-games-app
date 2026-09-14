@@ -15,6 +15,8 @@ export * from './types';
 export * from './stakes';
 export * from './ledger';
 export * from './settlement';
+/* Fees that are not a share of a win: per head, per buy-in, and by the hour. */
+export * from './fees';
 /* The whole equation behind E2's balance check — in, out, counted, left. */
 export * from './balance';
 /* Rounding as it applies to where everyone ends up — the step E2 owns. */

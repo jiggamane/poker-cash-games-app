@@ -1,6 +1,14 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { money, type Money, type MoneyRule } from '@poker-club/core';
-import { formatMoney } from '../lib/money';
+import {
+  isPerPersonKind,
+  isTimeKind,
+  money,
+  periodNoun,
+  type Money,
+  type MoneyRule,
+  type RulePeriod,
+} from '@poker-club/core';
+import { formatMoney, rateLabel } from '../lib/money';
 import { Button } from './Button';
 import { useTheme } from '../design/useTheme';
 import { radius, space, type } from '../design/tokens';
@@ -31,12 +39,105 @@ export const shortfallOf = (rule: MoneyRule, spent: Money): Money => {
 export function ruleProblem(rule: MoneyRule, spent: Money): string | null {
   if (rule.name.trim().length === 0) return 'Give it a name';
   if (rule.destination !== 'bill' && rule.amount <= 0) return 'Set an amount';
+  // The engine and the database both refuse a time rule with no period, and a
+  // queue that halts on a rule is a queue that stops sending the night.
+  if (isTimeKind(rule.amountKind) && rule.period === undefined) return 'Say how often';
+  // A ceiling of nothing is a rule that takes nothing, which is never what
+  // somebody typing in this field meant. The database refuses it too.
+  if (rule.maxPerPlayer !== undefined && rule.maxPerPlayer <= 0) return 'Set a ceiling';
+  if (isPerPersonKind(rule.amountKind) && rule.amountKind !== 'percent') return null;
   if (rule.split !== 'custom') return null;
   const short = shortfallOf(rule, spent);
   if (short === 0) return null;
   return short > 0
     ? `${formatMoney(short)} still to allocate`
     : `${formatMoney(Math.abs(short) as Money)} too much allocated`;
+}
+
+/**
+ * The six things a rule's amount can mean, in the order a host reads them.
+ *
+ * The two that existed first come first, because they are what nearly every
+ * group sets. The four after them are the charges a private game makes that a
+ * share of a win cannot say — see `fees.ts` in core.
+ */
+const KINDS: ReadonlyArray<{ key: MoneyRule['amountKind']; label: string }> = [
+  { key: 'percent', label: 'A share of the win' },
+  { key: 'fixed', label: 'A sum for the table' },
+  { key: 'per_player', label: 'So much each' },
+  { key: 'per_player_time', label: 'Each, by the hour' },
+  { key: 'per_buyin', label: 'Out of each buy-in' },
+  { key: 'per_time', label: 'The table, by the hour' },
+];
+
+/** An hour, every hour begun — what "time" means wherever it is charged. */
+const HOUR: RulePeriod = { minutes: 60, rounding: 'up' };
+
+/**
+ * Switching kind rewrites every setting that no longer applies.
+ *
+ * A LEFT-OVER SETTING IS A RULE THAT MEANS TWO THINGS. A period left on a rule
+ * that is no longer charged by time, or a ceiling left on a total for the
+ * table, is refused by the engine and by the database — so the host would find
+ * out at settle-up, or by the queue silently halting, rather than here. The
+ * amount is reset with it, because "10" means ten percent, ten dollars a head
+ * and ten dollars an hour, and carrying it across is how a group ends up
+ * charging one while believing it agreed the other.
+ */
+export function kindPatch(kind: MoneyRule['amountKind']): Partial<MoneyRule> {
+  const clear = { period: undefined, customShares: undefined } as const;
+  switch (kind) {
+    case 'percent':
+      // A percentage of a loss is not a thing, so this one names its payers.
+      return { ...clear, amountKind: kind, amount: money(10), charge: 'winners_only' };
+    case 'fixed':
+      return { ...clear, amountKind: kind, amount: money(100), maxPerPlayer: undefined };
+    case 'per_player':
+      return { ...clear, amountKind: kind, amount: money(10), split: 'evenly' };
+    case 'per_buyin':
+      return { ...clear, amountKind: kind, amount: money(5), split: 'evenly' };
+    case 'per_player_time':
+      return { ...clear, amountKind: kind, amount: money(5), period: HOUR, split: 'evenly' };
+    case 'per_time':
+      return { ...clear, amountKind: kind, amount: money(20), period: HOUR, maxPerPlayer: undefined };
+  }
+}
+
+/**
+ * What follows the big figure — the whole rate, never just the unit.
+ *
+ * "$5" with "in total" under it and "$5" with "an hour each" under it are a
+ * night apart, and the figure itself cannot tell them apart.
+ */
+function unitOf(rule: MoneyRule): string {
+  switch (rule.amountKind) {
+    case 'percent':
+      return '% of the win';
+    case 'fixed':
+      return 'in total';
+    default:
+      // rateLabel states the amount as well, which the figure beside it has
+      // already said. What is wanted here is the tail of that sentence.
+      return rateLabel(rule).replace(/^\S+\s*/, '');
+  }
+}
+
+/** Amounts worth one tap. A rate by the hour is a much smaller number. */
+function presetsFor(kind: MoneyRule['amountKind']): readonly number[] {
+  switch (kind) {
+    case 'percent':
+      return [5, 10, 15];
+    case 'fixed':
+      return [100, 200, 500];
+    case 'per_player':
+      return [10, 20, 50];
+    case 'per_buyin':
+      return [5, 10, 20];
+    case 'per_player_time':
+      return [5, 10, 20];
+    case 'per_time':
+      return [20, 50, 100];
+  }
 }
 
 /**
@@ -100,6 +201,13 @@ export function RuleFields({
   const t = useTheme();
   const isBill = rule.destination === 'bill';
   const percent = rule.amountKind === 'percent';
+  /**
+   * The rule states what ONE person pays, so there is no total to divide: the
+   * Split section below is about a sum being shared out and has nothing to say
+   * about "ten a head". The engine refuses the pair rather than ignoring it.
+   */
+  const perPerson = isPerPersonKind(rule.amountKind);
+  const byTime = isTimeKind(rule.amountKind);
   const shares = rule.customShares ?? [];
   const typed = shares.reduce((a, c) => a + c.amount, 0);
   const target = isBill ? spent : rule.amount;
@@ -131,28 +239,40 @@ export function RuleFields({
               <Text style={[styles.figure, { color: t.text }]}>
                 {percent ? rule.amount : formatMoney(rule.amount)}
               </Text>
-              <Text style={[styles.figureUnit, { color: t.muted }]}>
-                {percent ? '% of the win' : 'in total'}
-              </Text>
+              {/* The unit says the WHOLE rate — "an hour each", "a buy-in" —
+                  because a figure with the wrong unit under it is the way a
+                  host agrees to five an hour and charges five a night. */}
+              <Text style={[styles.figureUnit, { color: t.muted }]}>{unitOf(rule)}</Text>
             </View>
 
-            <Segment
-              options={[
-                { key: 'percent', label: 'A share of the win' },
-                { key: 'fixed', label: 'A fixed sum' },
-              ]}
-              value={rule.amountKind}
-              onChange={(k) =>
-                onChange(
-                  k === 'percent'
-                    ? { amountKind: 'percent', amount: money(10), charge: 'winners_only' }
-                    : { amountKind: 'fixed', amount: money(100) },
-                )
-              }
-            />
+            {/* Six kinds do not fit a segmented control at phone width, and
+                they are not two choices any more: they are a list. */}
+            <View style={styles.chips}>
+              {KINDS.map((k) => {
+                const on = rule.amountKind === k.key;
+                return (
+                  <Pressable
+                    key={k.key}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: on }}
+                    onPress={() => onChange(kindPatch(k.key))}
+                    style={[
+                      styles.chip,
+                      on
+                        ? { backgroundColor: t.text, borderColor: t.text }
+                        : { backgroundColor: t.surface, borderColor: t.hairline },
+                    ]}
+                  >
+                    <Text style={[styles.chipLabel, { color: on ? t.onFill : t.text }]}>
+                      {k.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
             <View style={styles.presets}>
-              {(percent ? [5, 10, 15] : [100, 200, 500]).map((v) => (
+              {presetsFor(rule.amountKind).map((v) => (
                 <Button
                   key={v}
                   label={percent ? `${v}%` : formatMoney(money(v))}
@@ -180,6 +300,91 @@ export function RuleFields({
         )}
       </Section>
 
+      {byTime && rule.period !== undefined && (
+        <Section label="Charged by">
+          <Segment
+            options={[
+              { key: '30', label: 'The half hour' },
+              { key: '60', label: 'The hour' },
+            ]}
+            value={String(rule.period.minutes)}
+            onChange={(k) =>
+              onChange({ period: { ...rule.period!, minutes: Number(k) } })
+            }
+          />
+
+          {/* THREE OF THE FOUR. `RulePeriod` also has `down` — whole periods
+              only, nothing for the part one — and the engine honours it on a
+              rule stored that way. It is not offered because it is the one a
+              host would pick by accident: it charges an hour and fifty minutes
+              as one hour, which nobody means and everybody would notice at
+              settle-up rather than here. Same reason `ROUNDING_MODES` offers
+              four of the six steps core can store. */}
+          <Segment
+            options={[
+              { key: 'up', label: `Every ${periodNoun(rule.period)} begun` },
+              { key: 'nearest', label: 'To the nearest' },
+              { key: 'prorate', label: 'To the minute' },
+            ]}
+            value={rule.period.rounding}
+            onChange={(k) =>
+              onChange({ period: { ...rule.period!, rounding: k as RulePeriod['rounding'] } })
+            }
+          />
+
+          <Text style={[styles.explain, { color: t.muted }]}>
+            Nobody is asked to clock in: somebody who arrives buys in, and somebody going home
+            cashes out, so the app already knows how long each person sat.
+          </Text>
+        </Section>
+      )}
+
+      {perPerson && !isBill && (
+        <Section label="Never more than">
+          <View style={styles.presets}>
+            <Button
+              label="No ceiling"
+              variant="preset"
+              selected={rule.maxPerPlayer === undefined}
+              onPress={() => onChange({ maxPerPlayer: undefined })}
+              style={styles.preset}
+            />
+            {[50, 100].map((v) => (
+              <Button
+                key={v}
+                label={formatMoney(money(v))}
+                variant="preset"
+                selected={rule.maxPerPlayer === v}
+                onPress={() => onChange({ maxPerPlayer: money(v) })}
+                style={styles.preset}
+              />
+            ))}
+            <View style={[styles.setBox, { borderColor: t.quietOutline }]}>
+              <TextInput
+                value={rule.maxPerPlayer === undefined ? '' : String(rule.maxPerPlayer)}
+                placeholder="—"
+                placeholderTextColor={t.muted}
+                onChangeText={(v) => {
+                  const digits = v.replace(/\D/g, '');
+                  onChange({
+                    maxPerPlayer: digits === '' ? undefined : money(Math.max(0, Number(digits))),
+                  });
+                }}
+                // A8: this is money, so it takes the digits-only keyboard too.
+                testID="amount"
+                keyboardType="number-pad"
+                style={[styles.setText, { color: t.text }]}
+              />
+            </View>
+          </View>
+          <Text style={[styles.explain, { color: t.muted }]}>
+            The half of a charge nobody states on its own — "five percent" is agreed as "five
+            percent, fifty at most". A figure you type against one name at settle-up still stands
+            whatever this says.
+          </Text>
+        </Section>
+      )}
+
       <Section label="Charged to">
         <Radio
           on={rule.charge === 'winners_only'}
@@ -195,7 +400,7 @@ export function RuleFields({
         />
       </Section>
 
-      {!percent && (
+      {!perPerson && (
         <Section label="Split">
           <Segment
             options={[

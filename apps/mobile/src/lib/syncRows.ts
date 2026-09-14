@@ -205,6 +205,11 @@ export const ruleRow = (p: RulePayload, bookId: string): RowWrite => ({
     destination: p.rule.destination,
     split: p.rule.split,
     custom_shares: p.rule.customShares ?? null,
+    // Null on every rule that is not charged by time, which the database's
+    // `money_rule_period_matches_kind` holds them to.
+    period_minutes: p.rule.period?.minutes ?? null,
+    period_rounding: p.rule.period?.rounding ?? null,
+    max_per_player: p.rule.maxPerPlayer ?? null,
     collector_player_id: p.rule.collectorPlayerId,
     sort_order: p.rule.sortOrder,
   },

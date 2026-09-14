@@ -20,6 +20,7 @@
  */
 
 import { formatMoney, granularityOf, type Money, type RoundingMode } from './money';
+import { isPerPersonKind, periodName } from './fees';
 import type { MoneyRule, RuleCharge, RuleDestination, RuleSplit } from './types';
 
 /**
@@ -42,22 +43,80 @@ export function splitSentence(split: RuleSplit, charge: RuleCharge = 'winners_on
 }
 
 /**
+ * What a rule charges, as a rate, before anybody is named.
+ *
+ * "5%", "$10 each", "$5 an hour each", "$20 an hour", "$5 a buy-in", "$120".
+ * Every screen that showed a rule's amount wrote `percent ? n% : $n` inline,
+ * and every one of them would have said "$20" about a room charged by the
+ * hour. One sentence, here, next to the type it reads — the same reason
+ * `splitSentence` is here.
+ *
+ * `currencySymbol` is the group's own money: a book kept in koruna says so on
+ * its rules too.
+ */
+export function rateLabel(
+  rule: Pick<MoneyRule, 'amountKind' | 'amount' | 'period'>,
+  currencySymbol = '$',
+): string {
+  const amount = formatMoney(rule.amount, currencySymbol);
+  const per = rule.period === undefined ? '' : ` ${periodName(rule.period)}`;
+  switch (rule.amountKind) {
+    case 'percent':
+      return `${rule.amount}%`;
+    case 'per_player':
+      return `${amount} each`;
+    case 'per_player_time':
+      return `${amount}${per} each`;
+    case 'per_time':
+      return `${amount}${per}`;
+    case 'per_buyin':
+      return `${amount} a buy-in`;
+    case 'fixed':
+      return amount;
+  }
+}
+
+/** "$50 at most" — the ceiling, where a rule has one. Empty where it has none. */
+export function capLabel(rule: Pick<MoneyRule, 'maxPerPlayer'>, currencySymbol = '$'): string {
+  return rule.maxPerPlayer === undefined
+    ? ''
+    : `${formatMoney(rule.maxPerPlayer, currencySymbol)} at most`;
+}
+
+/**
  * The half of a row that follows the rule's name.
  *
- * A percentage rule states its percentage — that IS its terms, and how the
- * remainder is shared is an implementation detail nobody at a table argues
- * about. A fixed sum states how it was split, which is exactly what gets
- * argued about.
+ * A RULE THAT STATES WHAT ONE PERSON PAYS STATES ITS RATE — that IS its terms,
+ * and how the remainder is shared is an implementation detail nobody at a table
+ * argues about. A total for the table states how it was split, which is exactly
+ * what gets argued about; a total that is itself a rate — the room, by the hour
+ * — has to say both, because either half alone is a different evening.
+ *
+ * A CEILING IS ALWAYS PART OF THE TERMS. "Five percent" and "five percent,
+ * fifty at most" are different rules, and the second one is what was agreed.
  */
-export function ruleTerms(rule: Pick<MoneyRule, 'amountKind' | 'amount' | 'split' | 'charge'>): string {
-  return rule.amountKind === 'percent'
-    ? `${rule.amount}%`
-    : splitSentence(rule.split, rule.charge);
+export function ruleTerms(
+  rule: Pick<MoneyRule, 'amountKind' | 'amount' | 'split' | 'charge' | 'period' | 'maxPerPlayer'>,
+  currencySymbol = '$',
+): string {
+  const terms = isPerPersonKind(rule.amountKind)
+    ? rateLabel(rule, currencySymbol)
+    : rule.amountKind === 'fixed'
+      ? splitSentence(rule.split, rule.charge)
+      : `${rateLabel(rule, currencySymbol)} · ${splitSentence(rule.split, rule.charge)}`;
+  const cap = capLabel(rule, currencySymbol);
+  return cap === '' ? terms : `${terms}, ${cap}`;
 }
 
 /** "Bill · by size of win". The whole row label, name included. */
-export function ruleLabel(rule: Pick<MoneyRule, 'name' | 'amountKind' | 'amount' | 'split' | 'charge'>): string {
-  return `${rule.name} · ${ruleTerms(rule)}`;
+export function ruleLabel(
+  rule: Pick<
+    MoneyRule,
+    'name' | 'amountKind' | 'amount' | 'split' | 'charge' | 'period' | 'maxPerPlayer'
+  >,
+  currencySymbol = '$',
+): string {
+  return `${rule.name} · ${ruleTerms(rule, currencySymbol)}`;
 }
 
 /**
@@ -78,7 +137,14 @@ export function ruleLabel(rule: Pick<MoneyRule, 'name' | 'amountKind' | 'amount'
 export function ruleDetail(
   rule: Pick<
     MoneyRule,
-    'amountKind' | 'amount' | 'split' | 'charge' | 'destination' | 'collectorPlayerId'
+    | 'amountKind'
+    | 'amount'
+    | 'split'
+    | 'charge'
+    | 'destination'
+    | 'collectorPlayerId'
+    | 'period'
+    | 'maxPerPlayer'
   >,
   context: {
     /** What the bill has cost so far. Only read for a bill-destination rule. */
@@ -93,21 +159,32 @@ export function ruleDetail(
 ): string {
   const money = (amount: Money): string => formatMoney(amount, context.currencySymbol ?? '$');
 
+  const symbol = context.currencySymbol ?? '$';
+  const cap = capLabel(rule, symbol);
+  const ceiling = cap === '' ? '' : `, ${cap}`;
+
   const how =
     rule.destination === 'bill'
       ? `${money(context.spent ?? (0 as Money))} spent so far`
       : rule.amountKind === 'percent'
-        ? `${rule.amount}% of win`
-        : `${money(rule.amount)} fixed`;
+        ? `${rule.amount}% of win${ceiling}`
+        : rule.amountKind === 'fixed'
+          ? `${money(rule.amount)} fixed`
+          : `${rateLabel(rule, symbol)}${ceiling}`;
 
+  // A per-person fee is not split, so the middle of the line says who is
+  // charged and stops there — "evenly between the winners" about a fee that
+  // charges each of them the same stated amount is a sentence about nothing.
   const who =
     rule.split === 'custom'
       ? 'split by hand'
       : rule.charge === 'everyone_flat'
         ? 'everyone at the table'
-        : rule.split === 'by_percent'
-          ? 'winners, by size of win'
-          : 'split by winners';
+        : isPerPersonKind(rule.amountKind) && rule.amountKind !== 'percent'
+          ? 'the winners'
+          : rule.split === 'by_percent'
+            ? 'winners, by size of win'
+            : 'split by winners';
 
   const holder =
     rule.destination === 'bill'

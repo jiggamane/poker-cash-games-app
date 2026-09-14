@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { resolveLedger, type MoneyRule, type PlayerId } from '@poker-club/core';
+import { rateLabel } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
@@ -183,8 +184,7 @@ export default function PiggyBankRules() {
   );
 }
 
-const rate = (rule: MoneyRule): string =>
-  rule.amountKind === 'percent' ? `${rule.amount}%` : `$${rule.amount.toLocaleString('en-US')}`;
+const rate = (rule: MoneyRule): string => rateLabel(rule);
 
 /*
  * "5% of each win". It used to end "of each win after the bill" when the rule's
@@ -194,9 +194,7 @@ const rate = (rule: MoneyRule): string =>
  * money is unchanged; this sentence just stops naming a switch that is gone.
  */
 const charge = (rule: MoneyRule): string =>
-  rule.amountKind === 'percent'
-    ? `${rule.amount}% of each win`
-    : `$${rule.amount.toLocaleString('en-US')} each`;
+  rule.amountKind === 'percent' ? `${rule.amount}% of each win` : rateLabel(rule);
 
 const styles = StyleSheet.create({
   card: {

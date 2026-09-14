@@ -59,7 +59,58 @@ export interface Player {
   atTable: boolean;
 }
 
-export type RuleAmountKind = 'percent' | 'fixed';
+/**
+ * What a rule's `amount` means.
+ *
+ * TWO FAMILIES, and which one a kind belongs to decides everything else about
+ * it — see `fees.ts`, which is where the new four are worked out.
+ *
+ *   PER PERSON — the amount is what ONE person pays, or the rate they pay at.
+ *                The rule's total is whatever the table adds up to. `split`
+ *                is not read: there is no total to divide.
+ *   ROOM TOTAL — the amount is what the TABLE pays. `split` decides who
+ *                carries how much of it.
+ *
+ *   percent          per person · that whole percent of their own win
+ *   per_player       per person · this amount, once, whoever they are
+ *   per_player_time  per person · this amount for every `period` they sat
+ *   per_buyin        per person · this amount for every buy-in they made
+ *   fixed            room total · this amount
+ *   per_time         room total · this amount for every `period` the table ran
+ *
+ * `percent` and `fixed` are the two that existed first and neither has moved.
+ * A group that has never set anything else reads back byte for byte.
+ */
+export type RuleAmountKind =
+  | 'percent'
+  | 'fixed'
+  | 'per_player'
+  | 'per_player_time'
+  | 'per_buyin'
+  | 'per_time';
+
+/**
+ * The stretch of time a time fee is charged by, and what a part of one costs.
+ *
+ * A card room charges every half hour begun; a host who is only covering the
+ * rent usually means the hour, near enough. Both are one argument at one table
+ * and neither is a default the app may pick silently, so a time rule states
+ * it.
+ */
+export interface RulePeriod {
+  /** Minutes in one chargeable period. 60 is an hour, 30 a half hour. */
+  minutes: number;
+  /**
+   * How a part period is charged.
+   *
+   *   up       every period begun is paid for — what "time" means in a card room
+   *   nearest  the friendlier reading of the same thing
+   *   down     only whole periods are charged
+   *   prorate  the exact fraction, landed on the group's step
+   */
+  rounding: 'up' | 'nearest' | 'down' | 'prorate';
+}
+
 export type RuleBasis = 'gross' | 'net_after_others';
 export type RuleCharge = 'winners_only' | 'everyone_flat';
 /**
@@ -101,6 +152,28 @@ export interface MoneyRule {
   amountKind: RuleAmountKind;
   /** Whole percent (10 = 10%) when amountKind is 'percent', else whole units. */
   amount: Money;
+  /**
+   * The stretch `amount` is charged by. Required by the two time kinds and
+   * meaningless to the other four.
+   */
+  period?: RulePeriod;
+  /**
+   * Never take more than this off one person.
+   *
+   * THE HALF OF A RAKE THAT IS ALWAYS STATED SECOND. "Five percent" is never
+   * said on its own at a table — it is "five percent, capped at fifty", and a
+   * time charge is "five an hour, forty a night at most", because a fee with
+   * no ceiling is a fee nobody can agree to before they know how the night
+   * goes. Without this the only way to express one was to watch the figure at
+   * settle-up and type over it by hand.
+   *
+   * It clamps what a PER-PERSON kind charges each person, after the rate and
+   * before anything the host types by hand — a hand-typed share is the host
+   * answering the question themselves, and the cap has nothing to add to it. A
+   * room-total kind has no per-person figure to clamp and the engine refuses
+   * the pair rather than guessing which half the ceiling is about.
+   */
+  maxPerPlayer?: Money;
   basis: RuleBasis;
   charge: RuleCharge;
   destination: RuleDestination;

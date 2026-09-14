@@ -150,7 +150,7 @@ Six tiers, by how close the job is to ours.
 
 | App | Buy-ins, rebuys, cash-outs | Final count | Who pays whom | Min-transfer optimiser | Deduction rules (food, rake, host, tips) | Balance check (chips vs cash) | Corrections and voids with a log | Payment state (paid / owed) |
 |---|---|---|---|---|---|---|---|---|
-| **The Poker Club (ours)** | ● | ● typed amount | ● | ◐ deterministic greedy, not minimal | ● bill · piggy bank · host fee · next pot; % or fixed; winners or everyone; three splits; exemptions; hand-typed shares | ● close gate; acknowledged difference; *Unaccounted* party | ● append-only, corrections chain, verify on close | ● tick paid, mark all, nudge |
+| **The Poker Club (ours)** | ● | ● typed amount | ● | ◐ deterministic greedy, not minimal | ● bill · piggy bank · host fee · next pot; a share of a win, a sum for the table, per head, per buy-in, or by the hour (per player or for the room), each with a ceiling; winners or everyone; three splits; exemptions; hand-typed shares | ● close gate; acknowledged difference; *Unaccounted* party | ● append-only, corrections chain, verify on close | ● tick paid, mark all, nudge |
 | Poker Night Ledger | ● | ● | ● | ○ | ● tips, rake, dealer downs, food/drinks, expenses | ● AI finds where the cash gap came from | ○ | ○ |
 | Poker Ledger Tracker | ● | ● | ● | ○ | ● staff/dealer pay, per-session expenses | ● automatic balance verification | ○ | ◐ balances |
 | PokerSquad | ● | ● | ● | ○ | ○ | ○ | ○ | ○ |
@@ -226,8 +226,8 @@ else in tier A treats the night as buy-ins against chips and nothing more.
 
 | Dimension | The Poker Club | PokerPot | Poker Night Ledger | Poker Ledger Tracker | Poker Tally (Android) | PokerPall | ivey Home | Splitwise |
 |---|---|---|---|---|---|---|---|---|
-| What can be taken | bill (its expenses), piggy bank, host fee, next pot | room fee, food/drinks | tips, rake, dealer downs, food/drinks, other | staff/dealer pay, expenses | rake | payout split | tips | any expense |
-| Percent or fixed | both; whole percent, half-up; % of a loss refused | not stated | line items | line items | not stated | preset or custom % | fixed | fixed |
+| What can be taken | bill (its expenses), piggy bank, host fee, next pot — as a share of a win, a sum for the table, so much a head, so much a buy-in, or by the hour either way | room fee, food/drinks | tips, rake, dealer downs, food/drinks, other | staff/dealer pay, expenses | rake | payout split | tips | any expense |
+| Percent or fixed | both, plus four rates: per head, per buy-in, per player per hour, per hour for the table. Whole percent, half-up; % of a loss refused; a ceiling per person on any of them | not stated | line items | line items | not stated | preset or custom % | fixed | fixed |
 | Who is charged | winners off their net win, or everyone flat | "split evenly or by ratio" | not stated | not stated | not stated | not stated | per player | chosen per expense |
 | How it is split | by size of win · evenly · by hand (with a ceiling) | evenly or by ratio | not stated | not stated | not stated | percentages | not stated | even, shares, exact |
 | Where it goes | back to whoever fronted the spend · piggy bank · host · next pot | not stated | not stated | staff | house | not stated | not stated | the payer |

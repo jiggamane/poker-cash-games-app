@@ -120,7 +120,7 @@ export function workingRows(
         key: `${d.ruleId}:charge`,
         // The terms come off the snapshot: "Bill · by size of win". Without the
         // rule we can still name the money, which is better than a bare figure.
-        label: rule === undefined ? d.name : ruleLabel(rule),
+        label: rule === undefined ? d.name : ruleLabel(rule, currencySymbol),
         amount: (0 - charged) as Money,
         kind: 'charge',
         signed: true,

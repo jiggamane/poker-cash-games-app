@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
+  isPerPersonKind,
   manualChargeOf,
   money,
   reconcile,
@@ -13,7 +14,7 @@ import {
   type MoneyRule,
   type PlayerId,
 } from '@poker-club/core';
-import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
+import { formatMoney, formatSignedToFit, formatToFit, rateLabel } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
@@ -467,6 +468,15 @@ function Block({
   basisFor: (playerId: PlayerId) => Money;
 }) {
   const t = useTheme();
+  /* A rule that states what ONE person pays has no split to describe, and its
+     rate belongs on the head — which a percentage has always done, and which
+     "$5 an hour each" needs far more.
+
+     THE ROWS STILL TURN ON `percent` and not on this. A percentage row shows
+     its own working — "5% of $1,620" — and that working is a percentage's;
+     a fee by the hour has a working of its own ("four hours at $5") which no
+     frame draws yet, so its rows read as charges, which is what they are. */
+  const perPerson = rule !== undefined && isPerPersonKind(rule.amountKind);
   const percent = rule?.amountKind === 'percent';
   const empty = deduction.total === 0;
   const byHand = (rule?.manualCharges ?? []).length;
@@ -495,7 +505,7 @@ function Block({
   const head = (
     <>
       <Text style={[styles.blockName, { color: t.text }]}>
-        {percent && rule !== undefined ? `${deduction.name} · ${rule.amount}%` : deduction.name}
+        {perPerson && rule !== undefined ? `${deduction.name} · ${rateLabel(rule)}` : deduction.name}
       </Text>
       <Text style={[styles.blockTotal, { color: empty ? t.muted : t.text }]}>
         {empty ? '—' : formatMoney(deduction.total)}
@@ -524,7 +534,7 @@ function Block({
         <View style={styles.blockTop}>{head}</View>
       )}
 
-      {!percent && (
+      {!perPerson && (
         <Text style={[styles.blockNote, { color: t.muted }]}>
           {empty
             ? 'Nothing on the bill yet. Add it and the split appears here.'

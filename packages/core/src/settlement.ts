@@ -30,6 +30,14 @@ import {
   ZERO,
 } from './money';
 import { endedWith, reconcile, resolveLedger, type ResolvedLedger } from './ledger';
+import {
+  capped,
+  feeFor,
+  isPerPersonKind,
+  isTimeKind,
+  minutesFor,
+  roomTotal,
+} from './fees';
 import { roundPositions, type PositionRounding } from './stacks';
 import {
   UNACCOUNTED_ID,
@@ -97,10 +105,37 @@ export interface SettlementInput {
    */
   roundingMode?: RoundingMode | null;
   /**
+   * How long the table ran, and how long each person sat at it.
+   *
+   * THE ENGINE HAS NO CLOCK and must not grow one: a settlement is a pure
+   * function of what it is handed, which is what lets a night frozen in
+   * September re-derive to the same figures next March. So the minutes are
+   * counted by whoever holds the clock — the app, from the night's start and
+   * from when each person first bought in — passed in here, and snapshotted
+   * with the night like every other input.
+   *
+   * Only the two time fee kinds read it. A night with none of them settles
+   * identically whether it is set or not, which is every night recorded before
+   * this existed.
+   */
+  timing?: SessionTiming;
+  /**
    * Set only when the count does not balance and the host has confirmed the
    * missing amount. Without it, a night that does not add up cannot be closed.
    */
   acknowledgedDiscrepancy?: DiscrepancyAcknowledgement;
+}
+
+/** What a time fee is charged against. Whole minutes, counted by the caller. */
+export interface SessionTiming {
+  /** How long the table ran. What a room charge is measured by. */
+  tableMinutes: number;
+  /**
+   * How long each person sat. Anyone missing is charged for the whole night —
+   * see `minutesFor` in `fees.ts` for why that is the safe answer rather than
+   * the kind one.
+   */
+  minutesByPlayer?: ReadonlyMap<PlayerId, number>;
 }
 
 export interface SettlementResult {
@@ -188,6 +223,38 @@ export function settle(input: SettlementInput): SettlementResult {
       throw new SettlementError(
         `Rule "${rule.name}" is a percentage charged to everyone. A percentage can only be charged to winners.`,
       );
+    }
+    // A PER-PERSON FEE HAS NO TOTAL TO DIVIDE, so the settings that divide one
+    // are refused rather than quietly ignored. A split by hand and a charge per
+    // head are two answers to the same question, and a ceiling on a room total
+    // could mean either half of it. `manualCharges` is still the escape hatch,
+    // for these kinds exactly as for a percentage.
+    if (isPerPersonKind(rule.amountKind) && rule.amountKind !== 'percent') {
+      if (rule.split === 'custom') {
+        throw new SettlementError(
+          `Rule "${rule.name}" charges each person a stated amount, so it cannot also be split by hand.`,
+        );
+      }
+    }
+    if (rule.maxPerPlayer !== undefined && !isPerPersonKind(rule.amountKind)) {
+      throw new SettlementError(
+        `Rule "${rule.name}" is a total for the table, so a per-player ceiling does not apply to it.`,
+      );
+    }
+    if (isTimeKind(rule.amountKind)) {
+      const period = rule.period;
+      if (period === undefined || !Number.isInteger(period.minutes) || period.minutes < 1) {
+        throw new SettlementError(
+          `Rule "${rule.name}" is charged by time but names no period to charge by.`,
+        );
+      }
+      // A time fee against no clock would take nothing and say nothing, which
+      // is the one way money goes missing without anybody seeing it happen.
+      if (input.timing === undefined) {
+        throw new SettlementError(
+          `Rule "${rule.name}" is charged by time, but the night was settled without a running time.`,
+        );
+      }
     }
     if (rule.split === 'custom' && !rule.customShares) {
       throw new SettlementError(`Rule "${rule.name}" is a custom split but names no amounts.`);
@@ -293,8 +360,27 @@ export function settle(input: SettlementInput): SettlementResult {
   const credited = new Map<PlayerId, Money>(participants.map((p) => [p.id, ZERO]));
   const deductions: Deduction[] = [];
 
+  // How many times each person put money on the table. A voided buy-in is not
+  // one: `resolveLedger` has already zeroed it, and charging a drop on a row
+  // that was taken back would charge for money that never arrived.
+  const buyIns = new Map<PlayerId, number>();
+  for (const e of ledger.entries) {
+    if ((e.type === 'buyin' || e.type === 'rebuy') && e.amount > 0 && e.playerId) {
+      buyIns.set(e.playerId, (buyIns.get(e.playerId) ?? 0) + 1);
+    }
+  }
+
   for (const spec of deductionOrder(input.rules, ledger)) {
-    const deduction = applyDeduction(spec, { ledger, atTable, byId, gross, charged, granularity });
+    const deduction = applyDeduction(spec, {
+      ledger,
+      atTable,
+      byId,
+      gross,
+      charged,
+      granularity,
+      buyIns,
+      ...(input.timing === undefined ? {} : { timing: input.timing }),
+    });
     if (deduction.total === 0 && deduction.charges.length === 0) continue;
 
     for (const c of deduction.charges) {
@@ -492,11 +578,15 @@ interface DeductionContext {
   charged: ReadonlyMap<PlayerId, Money>;
   /** The group's rounding rule, in whole units. 1 is whole dollars. */
   granularity: number;
+  /** Buy-ins and rebuys each person made, for a fee charged on the drop. */
+  buyIns: ReadonlyMap<PlayerId, number>;
+  /** The night's clock, when it has one. Only the time kinds read it. */
+  timing?: SessionTiming;
 }
 
 function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   const { rule, reimbursesExpenses } = spec;
-  const { ledger, atTable, byId, gross, charged, granularity } = ctx;
+  const { ledger, atTable, byId, gross, charged, granularity, buyIns, timing } = ctx;
 
   const { name, destination, id: ruleId } = rule;
 
@@ -571,12 +661,25 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
   // "Kitchen & drinks" carries 170, and a night with no food and no drinks
   // still took $170 off the winners and handed it to a collector who had not
   // spent a penny. A tab of nothing is nothing.
+  //
+  // A BILL OVERRULES THE KIND, whatever the kind is. The tab is the amount, so
+  // a bill is a total to divide even when it was set up as a rate — which is
+  // the one place a per-person kind can find itself being split.
   const isBill = destination === 'bill';
-  const usePercent = rule.amountKind === 'percent' && !reimbursesExpenses && !isBill;
-  const fixedTotal = isBill || reimbursesExpenses ? ledger.billableExpenses : rule.amount;
+  const overridden = isBill || reimbursesExpenses;
+  /**
+   * The rule states what ONE person pays, so there is no total to divide and
+   * `split` is not read. `percent` has always worked this way; `per_player`,
+   * `per_player_time` and `per_buyin` are the same shape with a different
+   * multiplier, which is `fees.ts`.
+   */
+  const perPerson = !overridden && isPerPersonKind(rule.amountKind);
+  const fixedTotal = overridden
+    ? ledger.billableExpenses
+    : roomTotal(rule, timing?.tableMinutes ?? 0, granularity);
 
   const nothingToDo =
-    payers.length === 0 || (!usePercent && fixedTotal === 0 && manual.size === 0);
+    payers.length === 0 || (!perPerson && fixedTotal === 0 && manual.size === 0);
   if (nothingToDo) {
     return { ruleId, name, destination, total: ZERO, charges: [], credits: [] };
   }
@@ -593,21 +696,40 @@ function applyDeduction(spec: DeductionSpec, ctx: DeductionContext): Deduction {
       );
     }
     charges = custom.filter((c) => c.amount > 0).map((c) => ({ playerId: c.playerId, amount: c.amount }));
-  } else if (usePercent) {
-    // Each payer is charged a percentage of their own share, rounded to the
-    // group's granularity. Losers have nothing to take a percentage of, so
-    // they pay nothing — unless the host has typed a figure against their name,
-    // which is the one thing that puts a loser on a percentage rule at all.
+  } else if (perPerson) {
+    // Each payer is charged their own figure, and the rule's total is whatever
+    // those add up to. A percentage takes that figure off their win, rounded to
+    // the group's granularity; the other three multiply the stated amount by
+    // something about the person — how long they sat, how many times they
+    // bought in, or nothing at all.
     //
-    // A percentage has no total to preserve: what it charges is what the
-    // collector receives, so one changed figure changes the rule's total and
-    // nobody else's share moves.
+    // Losers have nothing to take a percentage of, so on a percentage rule they
+    // pay nothing — unless the host has typed a figure against their name,
+    // which is the one thing that puts a loser on one at all. A PER-HEAD FEE IS
+    // NOT LIKE THAT: the room costs what the room costs whether you won or not,
+    // so a loser charged by one really is charged, and their position simply
+    // goes further down.
+    //
+    // There is no total to preserve: what it charges is what the collector
+    // receives, so one changed figure changes the rule's total and nobody
+    // else's share moves.
+    const own = (id: PlayerId): Money =>
+      rule.amountKind === 'percent'
+        ? percentOf(money(Math.max(basisFor(id), 0)), rule.amount, granularity)
+        : feeFor(rule, {
+            minutes: minutesFor(id, timing),
+            buyIns: buyIns.get(id) ?? 0,
+            granularity,
+          });
+
     charges = payers
       .map((p) => ({
         playerId: p.id,
-        amount:
-          manual.get(p.id) ??
-          percentOf(money(Math.max(basisFor(p.id), 0)), rule.amount, granularity),
+        // The ceiling is on what the RULE works out, never on what the host
+        // typed. A figure typed against a name is the host answering the
+        // question themselves, and clamping their answer would be the app
+        // overruling the person it asked.
+        amount: manual.get(p.id) ?? capped(own(p.id), rule),
       }))
       .filter((c) => c.amount > 0);
   } else {
