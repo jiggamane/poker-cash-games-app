@@ -54,6 +54,8 @@ it.
   cost/operations. Start here if you want to know why.
 - **[`docs/settlement-rules.md`](docs/settlement-rules.md)** — exactly how the money rules
   are interpreted, and **six decisions that need a designer's confirmation**.
+- **[`docs/fees.md`](docs/fees.md)** — every charge a private game takes off the table,
+  which of them a rule can say, and the three this stops short of.
 - **[`design/handoff-2026-08-13/`](design/handoff-2026-08-13/)** — **the current handoff.**
   Read its `CHANGELOG.md` first: it is cumulative to rev 13, and it names what each rev
   supersedes. `09-navigation.md` (push + sheet, no tab bar) and `08-tonight-home.md` (the

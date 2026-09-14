@@ -293,6 +293,9 @@ describe('every figure in the app is written in the group’s own currency', () 
     'roundingRowValue',
     'roundingSentence',
     'ruleDetail',
+    'rateLabel',
+    'ruleTerms',
+    'ruleLabel',
   ];
 
   /** Every screen and component, which is where a figure is drawn. */

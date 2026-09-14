@@ -40,7 +40,10 @@ import {
   roundingRowLabel as coreRoundingRowLabel,
   roundingRowValue as coreRoundingRowValue,
   roundingSentence as coreRoundingSentence,
+  rateLabel as coreRateLabel,
   ruleDetail as coreRuleDetail,
+  ruleLabel as coreRuleLabel,
+  ruleTerms as coreRuleTerms,
   stakesLabel as coreStakesLabel,
   stakesSummary as coreStakesSummary,
   straddleLabel as coreStraddleLabel,
@@ -162,6 +165,25 @@ export const ruleDetail = (
   rule: Parameters<typeof coreRuleDetail>[0],
   context: Omit<NonNullable<Parameters<typeof coreRuleDetail>[1]>, 'currencySymbol'> = {},
 ): string => coreRuleDetail(rule, { ...context, currencySymbol: moneySymbol() });
+
+/**
+ * What a rule charges, as a rate: "5%", "$10 each", "$5 an hour each".
+ *
+ * Here rather than straight from core for the reason the whole file exists — a
+ * club keeping its book in koruna must not read "$5 an hour each" on its own
+ * rules. `moneyScreens.contract.test.ts` holds every screen to importing it
+ * from here.
+ */
+export const rateLabel = (rule: Parameters<typeof coreRateLabel>[0]): string =>
+  coreRateLabel(rule, moneySymbol());
+
+/** The rule's whole terms — the rate, the split where there is one, the cap. */
+export const ruleTerms = (rule: Parameters<typeof coreRuleTerms>[0]): string =>
+  coreRuleTerms(rule, moneySymbol());
+
+/** "Bill · by size of win" — the terms with the rule's name in front. */
+export const ruleLabel = (rule: Parameters<typeof coreRuleLabel>[0]): string =>
+  coreRuleLabel(rule, moneySymbol());
 
 export const roundingChoices = () => coreRoundingChoices(moneySymbol());
 export const roundingRowLabel = (mode: RoundingMode | null | undefined): string =>

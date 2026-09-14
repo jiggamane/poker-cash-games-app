@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { type MoneyRule } from '@poker-club/core';
-import { formatMoney } from '../src/lib/money';
+import { isPerPersonKind, type MoneyRule } from '@poker-club/core';
+import { formatMoney, rateLabel } from '../src/lib/money';
 import { Icon } from '../src/components/Icon';
 import { RoundingRow } from '../src/components/RoundingRow';
 import { Screen } from '../src/components/Screen';
@@ -174,13 +174,27 @@ const asClubDefault = (rule: MoneyRule): MoneyRule => {
 
 /** "10% off each win · winners · held by Radka". */
 function describe(r: MoneyRule): string {
-  const amount = r.amountKind === 'percent' ? `${r.amount}% off each win` : formatMoney(r.amount);
+  /* A rate that is not a percentage of a win says what it is — "$5 an hour
+     each" — because "$5" on its own is the same three characters whether it is
+     a night, an hour or a buy-in. */
+  const amount =
+    r.amountKind === 'percent'
+      ? `${r.amount}% off each win`
+      : r.amountKind === 'fixed'
+        ? formatMoney(r.amount)
+        : rateLabel(r);
   const who =
     r.charge === 'everyone_flat'
       ? 'everyone at the table'
-      : r.split === 'by_percent'
-        ? 'winners, by size of win'
-        : 'winners, evenly';
+      : /* A stated amount per head is not split, so the line says who pays and
+           stops. A PERCENTAGE KEEPS ITS OLD SENTENCE: it is per-person too, but
+           "winners, by size of win" is what this row has said about one since
+           it was written, and nothing about it has changed. */
+        isPerPersonKind(r.amountKind) && r.amountKind !== 'percent'
+        ? 'the winners'
+        : r.split === 'by_percent'
+          ? 'winners, by size of win'
+          : 'winners, evenly';
   const where =
     r.destination === 'bill'
       ? 'the bill'

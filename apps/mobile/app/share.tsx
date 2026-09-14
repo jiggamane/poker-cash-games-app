@@ -22,6 +22,7 @@ import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typ
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { block, cappedFigure, space, type } from '../src/design/tokens';
 import { nameOf, setManualCharge, settlementInput, useNight } from '../src/lib/nightStore';
+import { timingOf } from '../src/lib/seatClock';
 import { useIsAdmin } from '../src/lib/whoIsReading';
 
 /**
@@ -103,8 +104,11 @@ export default function Share() {
   /* What is in the field: what the host has typed, else what they are on. */
   const amount = amountOf(field.typed, set ?? onTheSplit);
 
-  const total = ruleTotal(rule, ledger);
-  const ceiling = chargeCeiling(rule, ledger, player);
+  /* A room charged by the hour has a total, and the total is the hours: asking
+     for it without them would offer no ceiling on a rule that has one. */
+  const tableMinutes = timingOf(night).tableMinutes;
+  const total = ruleTotal(rule, ledger, tableMinutes);
+  const ceiling = chargeCeiling(rule, ledger, player, tableMinutes);
   const over = ceiling !== null && amount > ceiling;
   const valid = Number.isInteger(amount) && amount >= 0 && !over;
 

@@ -408,6 +408,34 @@ Pass 3 is the working. Fix it before drawing anything new for the invite flow.
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
 
+⚠ **`/rule`, `/money-rules`, `/house-rules`, `/club-rules`, `/piggy-bank-rules`
+and `/deductions` — 14 September, fees that are not a share of a win.** COPY NOT
+DRAWN: no handoff cut covers a rule charged by the hour or per head, so every
+string named below was written against the app's voice rather than taken from a
+board. `docs/fees.md` is the survey behind it and the list of what was left out.
+
+*What is on the screens.* The rule editor's **How much** is a wrapping chip row
+of six rather than a segmented control of two — `A share of the win · A sum for
+the table · So much each · Each, by the hour · Out of each buy-in · The table,
+by the hour` — because six will not fit a segment at 375pt and they stopped
+being two choices. Two sections appear with the kind that needs them: **Charged
+by** (the half hour or the hour; every hour begun, to the nearest, or to the
+minute) on a rule charged by time, and **Never more than** on any rule that
+states what one person pays. **Split** is hidden for those, because a stated
+amount per head has no total to divide — the engine refuses the pair.
+
+*What the reading screens now say.* Every one of them wrote `percent ? n% : $n`
+inline, and each would have said "$20" about a room charged by the hour. They go
+through `rateLabel` in `src/lib/money.ts` — "$5 an hour each", "$5 a buy-in",
+"5%, $50 at most" — which returns exactly what they said before for a percentage
+and for a fixed sum, so nothing already on a screen moved.
+
+*The one thing left as it was.* A deduction block's ROWS still turn on
+`amountKind === 'percent'`, not on the family: a percentage row shows its own
+working ("5% of $1,620"), and a fee by the hour has a working of its own —
+"four hours at $5" — that no frame draws. Its rows read as charges, which is
+what they are.
+
 **`/settled`, `/payments`, `/rounding` and `/count-up` — 6 September, the
 game-end cut** (`design/handoff-game-end/`). It supersedes the 5 September `R1`
 / `R2` cut on the two game-end screens and nothing else; every other screen in

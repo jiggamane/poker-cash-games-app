@@ -71,6 +71,11 @@ export function periodName(period: RulePeriod): string {
   return `${period.minutes} min`;
 }
 
+/** The same stretch as a thing rather than a rate: "hour", "half hour". */
+export function periodNoun(period: RulePeriod): string {
+  return periodName(period).replace(/^an? /, '');
+}
+
 /**
  * How many periods a stretch of minutes is charged as.
  *
@@ -196,9 +201,12 @@ export class FeeError extends Error {
  *
  * Somebody the caller could not time is charged for the whole night. That is
  * the safe answer rather than the kind one: a fee that quietly charged nothing
- * for a person the app failed to time would take money off the other players
- * (a room total is divided between whoever is left) or hand the collector less
- * than the rule says, and neither is visible on any screen.
+ * for a person the app failed to time would hand the collector less than the
+ * rule says, with nothing on any screen to say why.
+ *
+ * A night with no clock at all reports nothing, and that case never reaches a
+ * charge: `settle()` refuses a rule charged by time on a night that was not
+ * timed, rather than settling it as zero.
  */
 export function minutesFor(
   playerId: PlayerId,

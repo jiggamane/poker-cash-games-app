@@ -38,13 +38,54 @@ A collector who is not at the table is never charged; they can only be paid.
 
 ## How much
 
-- **`percent`** — each payer is charged that whole percentage of their own
-  basis, **rounded down**. Someone with nothing to take a percentage of pays
-  nothing. The rule's total is the sum of those charges.
-- **`fixed`** — the rule's `amount` is the **total** to collect, divided between
-  the payers by weight: `by_win_size` weights by each payer's positive basis,
-  `equal` and `across_everyone` weight everyone the same. The division goes
-  through `allocate()`, so the parts always add back to the total exactly.
+A rule's kind belongs to one of two families, and which one decides whether
+`split` is read at all. `docs/fees.md` is the survey of what private games
+charge and which kind says each of them; this is what the engine does.
+
+**Per person** — the amount is what ONE person pays, or the rate they pay at.
+The rule's total is whatever the payers add up to; there is nothing to divide,
+so `split` is not read and a split by hand is refused.
+
+- **`percent`** — that whole percentage of their own basis, half up to the
+  group's step. Someone with nothing to take a percentage of pays nothing.
+- **`per_player`** — the amount, once, whoever they are.
+- **`per_buyin`** — the amount for every buy-in and rebuy they made. A voided
+  buy-in is not one: the money never arrived.
+- **`per_player_time`** — the amount for every `period` they sat.
+
+**Room total** — the amount is what the table pays, divided between the payers
+by weight: `by_percent` weights by each payer's positive basis, `evenly` weights
+everyone the same. The division goes through `allocate()`, so the parts always
+add back to the total exactly.
+
+- **`fixed`** — the rule's `amount`.
+- **`per_time`** — the amount for every `period` the table ran.
+
+**`maxPerPlayer`** clamps what a per-person rule charges each person, after the
+rate and before anything the host typed by hand — a hand-typed share is the host
+answering the question themselves. A room total has no per-person figure to
+clamp, and the engine refuses the pair rather than guessing which half the
+ceiling is about.
+
+### Time, and where the minutes come from
+
+The engine has no clock and must not grow one — that is what lets a night frozen
+in September re-derive to the same figures next March. `SettlementInput.timing`
+carries whole minutes counted by the caller: how long the table ran, and how
+long each person sat. Anybody missing from `minutesByPlayer` is charged for the
+whole night, which is the safe answer rather than the kind one — charging them
+for nothing would move money onto the rest of the table with nothing on any
+screen to say why.
+
+A rule charged by time on a night with no `timing` is **refused**, not silently
+charged nothing. `RulePeriod.rounding` says what a part period costs: `up`
+(every period begun — what "time" means in a card room), `nearest`, `down`
+(whole periods only), `prorate` (the exact fraction, landed on the group's
+step).
+
+A TIME FEE IS THE FIRST RULE WHOSE ANSWER IS NOT IN THE LEDGER — nothing in the
+rows records when anybody went home — so the minutes are stored in
+`NightSnapshot.timing` and read back by the audit.
 
 **Basis** is either the player's `gross` result, or `net_after_others` — their
 gross less whatever earlier rules already took off them.
@@ -57,6 +98,10 @@ gross less whatever earlier rules already took off them.
 - Dividing a total between people uses **largest remainder**: everyone gets their
   floor, then the leftover units go to whoever was cut by the most, ties broken
   by position. No unit is ever invented or lost.
+- A **stated amount is charged as stated**: "ten a head" charges ten, and a
+  group settling in fifties is not asking for it to become fifty. Only a
+  `prorate`d time fee produces a figure nobody stated, and that one is landed
+  on the group's step.
 - Both take the group's **granularity** — `SettlementInput.roundingMode`,
   whole dollars unless the group says otherwise. It reaches the deductions and
   nothing else: a gross result is chips counted off a table, and rounding one

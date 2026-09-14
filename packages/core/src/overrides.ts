@@ -17,6 +17,7 @@
  */
 
 import { money, type Money } from './money';
+import { isPerPersonKind, roomTotal } from './fees';
 import type { ResolvedLedger } from './ledger';
 import type { MoneyRule, PlayerId } from './types';
 
@@ -33,21 +34,34 @@ export const hasManualCharges = (rule: MoneyRule): boolean =>
  * The total this rule has to cover tonight, or null if it has none.
  *
  * A BILL IS ITS EXPENSES — the amount stored on the rule is a placeholder the
- * tab overwrites — and a fixed sum is the sum it states. A PERCENTAGE has no
- * total at all: what it charges is what the collector receives, so there is
- * nothing for one person's share to be taken out of.
+ * tab overwrites — and a fixed sum is the sum it states. A RULE THAT STATES
+ * WHAT ONE PERSON PAYS has no total at all: what it charges is what the
+ * collector receives, so there is nothing for one person's share to be taken
+ * out of. That was always true of a percentage and it is equally true of "ten
+ * a head" — which is why this asks the family rather than the kind.
+ *
+ * `tableMinutes` is only read by a room charged by the hour, whose total is
+ * its rate times the periods the table ran. Left out, such a rule reports no
+ * total: no ceiling is offered rather than a wrong one.
  */
-export function ruleTotal(rule: MoneyRule, ledger: ResolvedLedger): Money | null {
+export function ruleTotal(
+  rule: MoneyRule,
+  ledger: ResolvedLedger,
+  tableMinutes?: number,
+): Money | null {
   if (rule.destination === 'bill') return ledger.billableExpenses;
-  if (rule.amountKind === 'percent') return null;
+  if (isPerPersonKind(rule.amountKind)) return null;
+  if (rule.amountKind === 'per_time') {
+    return tableMinutes === undefined ? null : roomTotal(rule, tableMinutes, 1);
+  }
   return rule.amount;
 }
 
 /**
  * The most this one person may be set to, given what everybody else was set to.
  *
- * Null means no ceiling: on a percentage rule the collector simply receives
- * whatever is charged, so any figure settles.
+ * Null means no ceiling: on a rule that states what one person pays, the
+ * collector simply receives whatever is charged, so any figure settles.
  *
  * On a rule with a total to cover, a share is taken out of that total and the
  * REST is re-divided between the people who have not been named. Type more
@@ -58,8 +72,9 @@ export function chargeCeiling(
   rule: MoneyRule,
   ledger: ResolvedLedger,
   playerId: PlayerId,
+  tableMinutes?: number,
 ): Money | null {
-  const total = ruleTotal(rule, ledger);
+  const total = ruleTotal(rule, ledger, tableMinutes);
   if (total === null) return null;
 
   const others = (rule.manualCharges ?? [])

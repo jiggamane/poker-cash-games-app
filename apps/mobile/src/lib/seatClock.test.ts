@@ -120,3 +120,34 @@ describe('how long each person sat', () => {
     expect(t.minutesByPlayer?.has('host')).toBe(false);
   });
 });
+
+describe('the shape a watcher holds', () => {
+  /**
+   * X1 IS THE SAME NIGHT. A watcher settles it on their own device from
+   * `WatchedNight`, which carries each row's time ON the row rather than in a
+   * map beside it. Reading only the map would time every night at zero for
+   * them, and a rake by the hour would come out as nothing — two people
+   * looking at one night and seeing two sets of figures.
+   */
+  it('times a night whose rows carry their own occurredAt', () => {
+    const t = timingOf(
+      {
+        startedAt: T('19:00'),
+        endedAt: T('23:00'),
+        players: [
+          { id: 'a', name: 'Ada', atTable: true },
+          { id: 'b', name: 'Ben', atTable: true },
+        ],
+        entries: [
+          { id: 'e1', seq: 1, type: 'buyin', playerId: 'a', amount: money(1000) as Money, occurredAt: T('19:00') },
+          { id: 'e2', seq: 2, type: 'buyin', playerId: 'b', amount: money(1000) as Money, occurredAt: T('21:00') },
+        ],
+      },
+      MS('23:30'),
+    );
+
+    expect(t.tableMinutes).toBe(240);
+    expect(t.minutesByPlayer?.get('a')).toBe(240);
+    expect(t.minutesByPlayer?.get('b')).toBe(120);
+  });
+});

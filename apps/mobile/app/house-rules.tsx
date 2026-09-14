@@ -1,8 +1,15 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { resolveLedger, settle, type Money, type MoneyRule } from '@poker-club/core';
-import { formatMoney } from '../src/lib/money';
+import {
+  isPerPersonKind,
+  isTimeKind,
+  resolveLedger,
+  settle,
+  type Money,
+  type MoneyRule,
+} from '@poker-club/core';
+import { formatMoney, rateLabel } from '../src/lib/money';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
@@ -74,9 +81,12 @@ export default function HouseRules() {
               <View style={styles.cardTop}>
                 <Text style={[styles.cardName, { color: t.text }]}>{title(rule)}</Text>
                 <Text style={[styles.cardFigure, { color: t.text }]}>
+                  {/* The ≈ marks a figure that is still moving. A percentage
+                      moves with every hand; a charge by the hour moves with
+                      the clock, which is more so rather than less. */}
                   {taken === undefined
                     ? '—'
-                    : rule.amountKind === 'percent'
+                    : rule.amountKind === 'percent' || isTimeKind(rule.amountKind)
                       ? `≈ ${formatMoney(taken)}`
                       : formatMoney(taken)}
                 </Text>
@@ -126,7 +136,12 @@ export default function HouseRules() {
 
 /** "Group piggy bank · 10%" — the rate belongs in the name, where it is read. */
 const title = (r: MoneyRule): string =>
-  r.amountKind === 'percent' ? `${r.name} · ${r.amount}%` : r.name;
+  /* Every rate that charges a person rather than the table belongs beside the
+     name, not only a percentage: a room at "$20" and a room at "$20 an hour"
+     are the same row until this says which. */
+  isPerPersonKind(r.amountKind) || r.amountKind === 'per_time'
+    ? `${r.name} · ${rateLabel(r)}`
+    : r.name;
 
 /**
  * One line saying who pays, out of what, and who ends up holding it.
@@ -143,11 +158,16 @@ function explain(
   const who =
     rule.split === 'custom'
       ? 'split by hand'
-      : rule.charge === 'winners_only'
-        ? rule.split === 'by_percent'
-          ? 'split between the winners, by the size of the win'
-          : 'splits between the winners'
-        : 'split between everyone at the table';
+      : /* A stated amount per person is not split at all — see `fees.ts`. */
+        isPerPersonKind(rule.amountKind) && rule.amountKind !== 'percent'
+        ? rule.charge === 'winners_only'
+          ? 'charged to the winners'
+          : 'charged to everyone at the table'
+        : rule.charge === 'winners_only'
+          ? rule.split === 'by_percent'
+            ? 'split between the winners, by the size of the win'
+            : 'splits between the winners'
+          : 'split between everyone at the table';
 
   /* Always the gross win: "Taken from" is gone from the rule editor, so there
      is no longer an "after the other rules" case for this line to describe. */

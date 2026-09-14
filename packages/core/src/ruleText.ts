@@ -97,13 +97,14 @@ export function capLabel(rule: Pick<MoneyRule, 'maxPerPlayer'>, currencySymbol =
  */
 export function ruleTerms(
   rule: Pick<MoneyRule, 'amountKind' | 'amount' | 'split' | 'charge' | 'period' | 'maxPerPlayer'>,
+  currencySymbol = '$',
 ): string {
   const terms = isPerPersonKind(rule.amountKind)
-    ? rateLabel(rule)
+    ? rateLabel(rule, currencySymbol)
     : rule.amountKind === 'fixed'
       ? splitSentence(rule.split, rule.charge)
-      : `${rateLabel(rule)} · ${splitSentence(rule.split, rule.charge)}`;
-  const cap = capLabel(rule);
+      : `${rateLabel(rule, currencySymbol)} · ${splitSentence(rule.split, rule.charge)}`;
+  const cap = capLabel(rule, currencySymbol);
   return cap === '' ? terms : `${terms}, ${cap}`;
 }
 
@@ -113,8 +114,9 @@ export function ruleLabel(
     MoneyRule,
     'name' | 'amountKind' | 'amount' | 'split' | 'charge' | 'period' | 'maxPerPlayer'
   >,
+  currencySymbol = '$',
 ): string {
-  return `${rule.name} · ${ruleTerms(rule)}`;
+  return `${rule.name} · ${ruleTerms(rule, currencySymbol)}`;
 }
 
 /**

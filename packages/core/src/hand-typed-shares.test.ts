@@ -346,6 +346,32 @@ describe('what a screen is allowed to ask before the host types anything', () =>
     expect(chargeCeiling(kittyRule, resolveLedger(entries), LENA)).toBeNull();
   });
 
+  it('says the same of every fee that states what ONE person pays', () => {
+    // "Ten a head" is not a pot of thirty with shares taken out of it: what it
+    // charges is what the collector receives, exactly like a percentage. A
+    // ceiling of the rate would have stopped the host typing anything above it.
+    const ledger = resolveLedger(entries);
+    for (const amountKind of ['per_player', 'per_buyin', 'per_player_time'] as const) {
+      const rule = { ...kittyRule, amountKind, amount: money(10) };
+      expect(ruleTotal(rule, ledger)).toBeNull();
+      expect(chargeCeiling(rule, ledger, LENA)).toBeNull();
+    }
+  });
+
+  it('names a room by the hour its rate times the hours, and nothing without them', () => {
+    const ledger = resolveLedger(entries);
+    const room = {
+      ...kittyRule,
+      amountKind: 'per_time' as const,
+      amount: money(20),
+      period: { minutes: 60, rounding: 'up' as const },
+    };
+
+    expect(ruleTotal(room, ledger, 300)).toBe(100);
+    // Asked without the hours it offers no ceiling rather than a wrong one.
+    expect(ruleTotal(room, ledger)).toBeNull();
+  });
+
   it('takes what other people were already set to off the ceiling', () => {
     const ledger = resolveLedger(entries);
     const rule = { ...billRule, manualCharges: share([[DANA, 100]]) };

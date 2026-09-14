@@ -1,5 +1,25 @@
-import type { PlayerId, SessionTiming } from '@poker-club/core';
-import type { Night } from './nightStore';
+import type { LedgerEntry, Player, PlayerId, SessionTiming } from '@poker-club/core';
+
+/**
+ * The little of a night this needs: when it started, when it stopped, who was
+ * in it, and when each row happened.
+ *
+ * DELIBERATELY NOT `Night`. A watcher settles the same night on their own
+ * device from a different shape — `WatchedNight`, which carries `occurredAt`
+ * on each entry rather than in a map beside them — and a watcher who could not
+ * time the night would settle an hourly rake as though it charged nothing.
+ * Two people looking at one night and seeing two sets of figures is the exact
+ * failure this app exists to prevent, so both shapes go through this.
+ */
+export interface TimedNight {
+  startedAt: string;
+  /** When the game stopped being played. Absent while it is still going. */
+  endedAt?: string | null;
+  players: readonly Player[];
+  entries: ReadonlyArray<LedgerEntry & { occurredAt?: string }>;
+  /** When each entry happened, keyed by id — the host's shape. */
+  occurredAt?: Record<string, string>;
+}
 
 /**
  * How long the table ran, and how long each person sat at it.
@@ -29,11 +49,11 @@ import type { Night } from './nightStore';
  * share, and on a rake per head the collector would simply get less than the
  * rule says, with nothing on any screen to say why.
  */
-export function timingOf(night: Night, now: number = Date.now()): SessionTiming {
+export function timingOf(night: TimedNight, now: number = Date.now()): SessionTiming {
   const started = Date.parse(night.startedAt);
   // A night that is still being played is timed to this moment; one that has
   // stopped is timed to when it stopped, so its figures hold still.
-  const stopped = night.endedAt === undefined ? now : Date.parse(night.endedAt);
+  const stopped = night.endedAt == null ? now : Date.parse(night.endedAt);
 
   const minutesBetween = (from: number, to: number): number =>
     Number.isFinite(from) && Number.isFinite(to) ? Math.max(0, Math.round((to - from) / 60_000)) : 0;
@@ -48,7 +68,8 @@ export function timingOf(night: Night, now: number = Date.now()): SessionTiming 
 
   const whenOf = (seq: number): number | undefined => {
     const entry = night.entries.find((e) => e.seq === seq);
-    const at = entry === undefined ? undefined : night.occurredAt[entry.id];
+    if (entry === undefined) return undefined;
+    const at = entry.occurredAt ?? night.occurredAt?.[entry.id];
     return at === undefined ? undefined : Date.parse(at);
   };
 
