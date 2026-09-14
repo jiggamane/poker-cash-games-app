@@ -119,6 +119,14 @@ const ROUTES = [
  * real state needs an argument.
  */
 const PARAMS = {
+  /*
+   * 14 Sep · the editor in its TALLEST state, which is a fee charged by the
+   * hour: it is the only kind carrying both *Charged by* and *Never more than*
+   * on top of the six How much chips. Bare, the route opens on a percentage
+   * and this pass would measure the short sheet for ever, which is B14's
+   * mechanism exactly — a route in the list, a state never on screen.
+   */
+  '/rule': '?kind=per_player_time',
   '/share': '?rule=kitchen&player=seed-lena',
   // Dana is the one the seeded night has already cashed out, so this is the
   // summary card with all THREE figures on it. Bare, the route renders one
@@ -314,6 +322,20 @@ const DECIDED = {
    * opened the drawer and the bill, and walked forward through the count again.
    */
   '/money-rules': ['The bill', 'Add a spend'],
+
+  /*
+   * 14 Sep · fees that are not a share of a win — `docs/fees.md`.
+   *
+   * No handoff cut draws a rule charged by the hour, so neither section below
+   * is in `DRAWN` and neither can ever be: there is no board to be pure
+   * against. They are here instead. *Charged by* is what makes a time rule
+   * settle at all — the engine and the database both refuse one with no period
+   * — and *Never more than* is the ceiling, which is the half of a rake
+   * nobody states on its own.
+   *
+   * Opened with `?kind=per_player_time`; see PARAMS.
+   */
+  '/rule': ['Charged by', 'Never more than', 'Each, by the hour'],
 
   /*
    * /deductions is NOT here, and the reason is the one PARAMS is about.

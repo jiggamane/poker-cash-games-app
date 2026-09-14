@@ -84,7 +84,7 @@ const HOUR: RulePeriod = { minutes: 60, rounding: 'up' };
  * and ten dollars an hour, and carrying it across is how a group ends up
  * charging one while believing it agreed the other.
  */
-function kindPatch(kind: MoneyRule['amountKind']): Partial<MoneyRule> {
+export function kindPatch(kind: MoneyRule['amountKind']): Partial<MoneyRule> {
   const clear = { period: undefined, customShares: undefined } as const;
   switch (kind) {
     case 'percent':

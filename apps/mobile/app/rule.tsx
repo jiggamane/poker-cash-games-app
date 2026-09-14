@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { resolveLedger, type MoneyRule } from '@poker-club/core';
 import { Button } from '../src/components/Button';
-import { RuleFields, ruleProblem } from '../src/components/RuleFields';
+import { kindPatch, RuleFields, ruleProblem } from '../src/components/RuleFields';
 import { Sheet } from '../src/components/Sheet';
 import { setClubRules, useClub } from '../src/lib/clubStore';
 import { deleteRule, draftRule, saveRule, standingsOf, useNight } from '../src/lib/nightStore';
@@ -22,6 +22,16 @@ export default function RuleEditor() {
     destination?: MoneyRule['destination'];
     order?: string;
     draft?: string;
+    /**
+     * Which kind a NEW rule opens on. Nothing in the app passes it: it exists
+     * so `ui-audit.mjs` can open the editor in its tallest state — a fee
+     * charged by the hour, which is the only one carrying both *Charged by*
+     * and *Never more than* — and measure the sheet that holds it. Without it
+     * the pass measures the two-section version for ever and the sections
+     * added on 14 September are invisible to every check in the repository.
+     * Ignored when editing a rule that exists.
+     */
+    kind?: MoneyRule['amountKind'];
     /**
      * Which layer of the chain is being edited. 'club' writes the group's
      * default, which only reaches nights opened afterwards; anything else
@@ -43,7 +53,10 @@ export default function RuleEditor() {
    * memoised so its id does not change under it on every keystroke.
    */
   const blank = useMemo(
-    () => draftRule(params.destination ?? 'kitty', Number(params.order ?? '1')),
+    () => {
+      const fresh = draftRule(params.destination ?? 'kitty', Number(params.order ?? '1'));
+      return params.kind === undefined ? fresh : { ...fresh, ...kindPatch(params.kind) };
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
