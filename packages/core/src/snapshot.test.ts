@@ -130,6 +130,48 @@ describe('a night stored and rebuilt', () => {
   });
 });
 
+describe('a night with an hourly fee', () => {
+  /**
+   * THE ONE ANSWER THAT IS NOT IN THE LEDGER. Nothing in the rows records when
+   * anybody went home, so a night raked by the hour cannot be re-derived from
+   * them at all — the minutes have to come back out of the snapshot, or the
+   * audit re-settles the night as though nobody had sat down.
+   */
+  const hourly: SettlementInput = {
+    ...input,
+    rules: [
+      {
+        id: 'r2',
+        name: 'Time',
+        active: true,
+        amountKind: 'per_player_time',
+        amount: money(5),
+        period: { minutes: 60, rounding: 'up' },
+        basis: 'gross',
+        charge: 'everyone_flat',
+        destination: 'host_fee',
+        split: 'evenly',
+        collectorPlayerId: KITTY,
+        sortOrder: 1,
+      },
+    ],
+    timing: { tableMinutes: 240, minutesByPlayer: new Map([[A, 240], [B, 130]]) },
+  };
+
+  it('re-derives to the hours it was closed with, not to a fresh clock', () => {
+    const rebuilt = inputFromSnapshot(throughJson(snapshotOf(hourly)), throughJson(hourly.rules))!;
+
+    expect(rebuilt.timing?.tableMinutes).toBe(240);
+    expect(rebuilt.timing?.minutesByPlayer?.get(B)).toBe(130);
+    expect(settle(rebuilt)).toEqual(settle(hourly));
+    expect(verifyNight(rebuilt, settle(rebuilt)).ok).toBe(true);
+  });
+
+  it('is absent from the snapshot of a night that never needed a clock', () => {
+    expect(snapshotOf(input).timing).toBeUndefined();
+  });
+});
+
 describe('a snapshot that cannot be used', () => {
   it('refuses rather than inventing an empty night', () => {
     // Each of these would otherwise "audit" as a perfectly balanced night in

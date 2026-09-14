@@ -6,6 +6,7 @@ import type {
   Player,
   PlayerId,
   RoundingMode,
+  RulePeriod,
 } from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { READS } from './pullReads';
@@ -255,6 +256,11 @@ interface RuleRow {
   destination: MoneyRule['destination'];
   split: MoneyRule['split'];
   custom_shares: MoneyRule['customShares'] | null;
+  /** Both null unless the rule is charged by time — migration 0015. */
+  period_minutes: number | null;
+  period_rounding: RulePeriod['rounding'] | null;
+  /** The ceiling on what one person pays, where the rule has one. */
+  max_per_player: number | null;
   collector_player_id: string;
   sort_order: number;
 }
@@ -270,6 +276,10 @@ const toRule = (r: RuleRow): MoneyRule => ({
   destination: r.destination,
   split: r.split,
   ...(r.custom_shares === null ? {} : { customShares: r.custom_shares }),
+  ...(r.period_minutes === null || r.period_rounding === null
+    ? {}
+    : { period: { minutes: r.period_minutes, rounding: r.period_rounding } }),
+  ...(r.max_per_player == null ? {} : { maxPerPlayer: r.max_per_player as Money }),
   collectorPlayerId: r.collector_player_id,
   sortOrder: r.sort_order,
 });

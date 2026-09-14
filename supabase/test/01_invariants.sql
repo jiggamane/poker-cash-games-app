@@ -376,6 +376,75 @@ values ('b0000000-0000-0000-0000-000000000001', 'Dana covers it', 'fixed', 170,
         'c0000000-0000-0000-0000-000000000003',
         '[{"playerId":"c0000000-0000-0000-0000-000000000001","amount":170}]'::jsonb, 5);
 
+-- =============================================================================
+-- 9b. FEES THAT ARE NOT A SHARE OF A WIN (0015)
+-- =============================================================================
+-- A time rule with no period would charge nothing and say nothing, which is the
+-- one way money goes missing without anybody seeing it happen.
+select expect_rejected(
+  $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                            destination, split, collector_player_id)
+    values ('b0000000-0000-0000-0000-000000000001', 'Timeless time', 'per_player_time', 5,
+            'gross', 'everyone_flat', 'host_fee', 'evenly',
+            'c0000000-0000-0000-0000-000000000003')$$,
+  'a fee charged by time with no period');
+
+-- ...and a period on a rule that is not charged by time is a setting that does
+-- not apply to it, which is how a rule comes to mean two things at once.
+select expect_rejected(
+  $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                            destination, split, collector_player_id, period_minutes,
+                            period_rounding)
+    values ('b0000000-0000-0000-0000-000000000001', 'Hourly flat', 'fixed', 100,
+            'gross', 'everyone_flat', 'host_fee', 'evenly',
+            'c0000000-0000-0000-0000-000000000003', 60, 'up')$$,
+  'a period on a rule not charged by time');
+
+-- A ceiling on a total for the table could mean either half of it.
+select expect_rejected(
+  $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                            destination, split, collector_player_id, max_per_player)
+    values ('b0000000-0000-0000-0000-000000000001', 'Capped total', 'fixed', 100,
+            'gross', 'everyone_flat', 'host_fee', 'evenly',
+            'c0000000-0000-0000-0000-000000000003', 20)$$,
+  'a per-player ceiling on a total for the table');
+
+-- A stated amount per head and an amount typed against a name are two answers
+-- to one question.
+select expect_rejected(
+  $$insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                            destination, split, collector_player_id, custom_shares)
+    values ('b0000000-0000-0000-0000-000000000001', 'Per head, by hand', 'per_player', 10,
+            'gross', 'everyone_flat', 'host_fee', 'custom',
+            'c0000000-0000-0000-0000-000000000003', '[]'::jsonb)$$,
+  'a per-head fee also split by hand');
+
+-- The shape a host actually sets: five an hour each, every hour begun, forty a
+-- night at most.
+insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                        destination, split, collector_player_id, period_minutes,
+                        period_rounding, max_per_player, sort_order)
+values ('b0000000-0000-0000-0000-000000000001', 'Time', 'per_player_time', 5,
+        'gross', 'everyone_flat', 'host_fee', 'evenly',
+        'c0000000-0000-0000-0000-000000000003', 60, 'up', 40, 8);
+
+select expect_eq(
+  (select count(*) from money_rule where amount_kind = 'per_player_time'),
+  1, 'a rake by the hour, capped, is accepted');
+
+-- The room, by the hour, split across the table: a total rather than a rate
+-- per head, and it takes no ceiling.
+insert into money_rule (book_id, name, amount_kind, amount, basis, charge,
+                        destination, split, collector_player_id, period_minutes,
+                        period_rounding, sort_order)
+values ('b0000000-0000-0000-0000-000000000001', 'The room', 'per_time', 20,
+        'gross', 'everyone_flat', 'host_fee', 'evenly',
+        'c0000000-0000-0000-0000-000000000003', 60, 'prorate', 9);
+
+select expect_eq(
+  (select count(*) from money_rule where amount_kind = 'per_time'),
+  1, 'a room charged by the hour is accepted');
+
 -- Two rules MAY share a position, and 0006 is where that changed.
 --
 -- The old rule was that they may not, so a host reordering rules could never

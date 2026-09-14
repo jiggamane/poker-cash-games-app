@@ -205,10 +205,43 @@ describe('the money rule row', () => {
       'custom_shares',
       'destination',
       'id',
+      'max_per_player',
       'name',
+      'period_minutes',
+      'period_rounding',
       'sort_order',
       'split',
     ]);
+  });
+
+  it('sends a fee charged by the hour with the period the server requires', () => {
+    // `money_rule_period_matches_kind` (0015) refuses a time rule with no
+    // period, so a rule that reached the server without one would halt the
+    // queue rather than settle wrongly.
+    const hourly = ruleRow(
+      {
+        groupName: 'g',
+        rule: {
+          ...rule,
+          amountKind: 'per_player_time',
+          amount: money(5),
+          period: { minutes: 60, rounding: 'up' },
+          maxPerPlayer: money(40),
+        },
+      },
+      BOOK,
+    );
+
+    expect(hourly.row.period_minutes).toBe(60);
+    expect(hourly.row.period_rounding).toBe('up');
+    expect(hourly.row.max_per_player).toBe(40);
+  });
+
+  it('sends nulls for a rule that is not charged by time, which the same check requires', () => {
+    const w = ruleRow({ groupName: 'g', rule }, BOOK);
+    expect(w.row.period_minutes).toBeNull();
+    expect(w.row.period_rounding).toBeNull();
+    expect(w.row.max_per_player).toBeNull();
   });
 
   it('OVERWRITES, unlike everything else — a rule is the one thing hosts edit', () => {

@@ -39,6 +39,20 @@ export interface NightSnapshot {
    * which is exactly what those nights ran at.
    */
   roundingMode?: RoundingMode | null;
+  /**
+   * How long the table ran and how long each person sat, in whole minutes.
+   *
+   * A TIME FEE IS THE FIRST RULE WHOSE ANSWER IS NOT IN THE LEDGER. Every other
+   * figure a settlement produces can be re-derived from the rows — the minutes
+   * cannot, because nothing in the ledger records when anybody went home. So
+   * they are stored with the night, and a night that carried an hourly rake
+   * re-derives to the hours it was actually closed with rather than to whatever
+   * the clock says at audit time.
+   *
+   * Absent on every night without a time fee, which is every night recorded
+   * before this existed. The Map travels as pairs, exactly like `finalCounts`.
+   */
+  timing?: { tableMinutes: number; minutesByPlayer?: Array<[PlayerId, number]> };
   /** When each entry happened. Not used by the engine; kept for reading back. */
   occurredAt?: Record<string, string>;
 }
@@ -53,6 +67,16 @@ export function snapshotOf(
     entries: [...input.entries],
     finalCounts: [...input.finalCounts.entries()],
     ...(input.roundingMode == null ? {} : { roundingMode: input.roundingMode }),
+    ...(input.timing === undefined
+      ? {}
+      : {
+          timing: {
+            tableMinutes: input.timing.tableMinutes,
+            ...(input.timing.minutesByPlayer === undefined
+              ? {}
+              : { minutesByPlayer: [...input.timing.minutesByPlayer.entries()] }),
+          },
+        }),
     ...(occurredAt === undefined ? {} : { occurredAt }),
   };
 }
@@ -84,6 +108,16 @@ export function inputFromSnapshot(
     ),
     rules: Array.isArray(rules) ? (rules as MoneyRule[]) : [],
     ...(s.roundingMode == null ? {} : { roundingMode: s.roundingMode }),
+    ...(s.timing == null || typeof s.timing.tableMinutes !== 'number'
+      ? {}
+      : {
+          timing: {
+            tableMinutes: s.timing.tableMinutes,
+            ...(Array.isArray(s.timing.minutesByPlayer)
+              ? { minutesByPlayer: new Map(s.timing.minutesByPlayer) }
+              : {}),
+          },
+        }),
     ...(acknowledgedDiscrepancy === undefined ? {} : { acknowledgedDiscrepancy }),
   };
 }

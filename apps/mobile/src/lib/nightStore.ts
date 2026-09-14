@@ -37,6 +37,7 @@ import {
   queueSessionPatch,
 } from './sync';
 import { closeOf } from './closing';
+import { timingOf } from './seatClock';
 import { sampleSessionId } from './queueable';
 import {
   CURRENT_NIGHT,
@@ -338,6 +339,15 @@ export function settlementInput(n: Night): SettlementInput {
     finalCounts: n.finalCounts,
     rules: n.rules,
     ...(n.roundingMode === null ? {} : { roundingMode: n.roundingMode }),
+    /*
+     * THE CLOCK, COUNTED HERE BECAUSE THE ENGINE HAS NONE. Only a fee charged
+     * by the hour reads it, and a night without one settles to the same
+     * figures whether it is set or not — which is every night recorded before
+     * fees by the hour existed. It is passed on every night all the same, so
+     * that a group which turns an hourly rule on mid-season does not discover
+     * that the screens were assembling a different input from the close.
+     */
+    timing: timingOf(n),
     ...(n.acknowledgement ? { acknowledgedDiscrepancy: n.acknowledgement } : {}),
   };
 }
