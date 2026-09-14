@@ -156,8 +156,9 @@ to keep:
 
 ## The plan
 
-Five changes. **1–3 are the feature and ship together; 4 and 5 are separate and
-can follow.**
+Six changes, and the owner has decided the three questions that shaped them —
+see **Decided** at the foot. **1–4 are the feature and ship together; 5 and 6
+are separate and can follow.**
 
 ### 1 · One sit-out control, in the one editor every stage can reach
 
@@ -187,10 +188,19 @@ on.
 this change **runs alone** — nothing else in flight, no parallel session open on
 `new-night.tsx`, `deductions.tsx` or `money-rules.tsx`.
 
-### 2 · Close the counting-stage hole
+### 2 · The two missing ways in
 
-Add E3/E5's *"Change a rule and look again"* chip to `/count-up`, same copy, same
-`variant="chip"`, same position at the foot. One button, no new strings.
+**`/count-up` gains E3/E5's *"Change a rule and look again"* chip** — same copy,
+same `variant="chip"`, same position at the foot. One button, no new strings.
+That closes F2 and makes the rules reachable from every stage of the night.
+
+**`/house-rules` gets a way in** — *decided: wire it up, do not retire it.* It is
+drawn (B1), it is read-only, and what it offers is worth having mid-game: one
+list of what is coming off the table tonight and why. It goes in the table
+drawer beside *Money rules*, which is where a host is already looking.
+
+`/piggy-bank-rules` stays reachable through it, rendering the same `SitOut`
+component as `/rule` — one implementation, two doors, which is the B14 rule.
 
 ### 3 · The close is the boundary, stated in the store and on the screen
 
@@ -204,7 +214,21 @@ Add E3/E5's *"Change a rule and look again"* chip to `/count-up`, same copy, sam
 - Because the settled route in is `/settled` → `/deductions`, `/deductions`'
   *"Change a rule"* chip and block chevrons drop on a settled night too.
 
-### 4 · The club switch reaches the night it was set for
+### 4 · Host-only, as every other money screen already is
+
+*Decided: yes.* `/money-rules`, `/rule` and `/piggy-bank-rules` take
+`useIsAdmin()` — the same check `/deductions`, `/share` and `/rounding` already
+make (`whoIsReading.ts:23`). A member gets the same list, the same figures and
+the same sentences, **with the switches, the Save and the sit-out chips removed
+rather than greyed** — `12-the-group.md` § 4.1.
+
+This also makes an existing lie true: `piggy-bank-rules.tsx:101` draws an
+`admin only` badge today with no gate behind it.
+
+The same reader test decides both this and change 3, so they are one pass over
+three screens: *may this phone restate money, and is this night still open.*
+
+### 5 · The club switch reaches the night it was set for
 
 At `startNight`, seed each rule's `exemptPlayerIds` from the club members whose
 `paysKitty` is false — for `destination: 'kitty'` rules only, since that is what
@@ -212,7 +236,7 @@ the switch's label promises. From then on it is tonight's list and tonight's to
 change; the club's switch is a default, like the buy-in and the rounding step
 beside it.
 
-### 5 · Stop tonight's edits writing the club's rules (F5)
+### 6 · Stop tonight's edits writing the club's rules (F5)
 
 Out of scope for the feature and written down so it is not lost. The fix is
 either a night-scoped rule table on the server, or a rule upsert that only fires
@@ -223,7 +247,7 @@ and it should not ride on a UI change.
 
 ## What goes red if this comes back
 
-A screen bug neither check can see is not finished being fixed. Three locks:
+A screen bug neither check can see is not finished being fixed. Four locks:
 
 1. **A reachability test**, in `apps/mobile/src/components/moneyScreens.contract.test.ts`
    — every route registered in `app/_layout.tsx` is pushed from at least one
@@ -242,6 +266,13 @@ A screen bug neither check can see is not finished being fixed. Three locks:
    the field was written and a test should say so, because the whole plan rests
    on it.
 
+4. **A store test**, beside the guard from change 3 — `writeRules` on a settled
+   night throws and writes nothing, and on an open one writes. Two assertions,
+   and they are what stops a future screen re-opening the door `/settled` →
+   `/deductions` → `/rule` opened. The same file asserts the reader gate from
+   change 4: the three rule screens name `useIsAdmin`, read the way
+   `moneyScreens.contract.test.ts` already reads a route for `<SpendList`.
+
 Plus `BEHIND` in `scripts/ui-audit.mjs` gains the sit-out section, since it sits
 inside `/rule` and no URL opens it directly.
 
@@ -257,20 +288,29 @@ so:
 - **B78** — "Pays into the piggy bank" on a member changed no figure on any
   night (F4). Locked by a `startNight` test.
 
-F2 is a gap rather than a regression and rides with B76. F5 is an open
-question about sync scope and belongs in this file until it has an answer.
+F2 is a gap rather than a regression and rides with B76, as does the missing
+reader gate — nothing was ever promised there, so it is a hole rather than a
+fault. F5 is a decided non-goal rather than an open question now (see
+**Decided** 1), and stays in this file until somebody wants it.
 
-## Open questions for the owner
+## Decided
 
-1. **Should a mid-game exemption be visible to a watcher before the night
-   closes?** Today it cannot be (F5) — `exemptPlayerIds` has no server column by
-   design. First cut: no, and say so. If the answer is yes, F5 grows a schema
-   change.
-2. **Should `/rule` be admin-gated?** `/deductions`, `/share` and `/rounding`
-   check `useIsAdmin`; `/money-rules`, `/rule` and `/piggy-bank-rules` do not —
-   the last one draws an `admin only` badge (`piggy-bank-rules.tsx:101`) with no
-   gate behind it. Widening rule editing makes that asymmetry worse.
-3. **Does `/house-rules` survive?** It is drawn (B1), it is orphaned, and the
-   thing it led to will be reachable from `/rule` after change 1. Either link it
-   from the drawer or retire it and its ledger row — leaving it unreachable and
-   ticked is the state that produced this review.
+Answered by the owner on 14 September, and the plan above is written to them.
+
+1. **A mid-game change does not have to reach a watcher before the close.**
+   Your phone is always right; a watcher keeps seeing the old figure until the
+   night closes, when `settlement.rules_snapshot` carries the exemption up with
+   everything else. This is already how a hand-typed share behaves
+   (`nightStore.ts:1556–1560`), so it is one rule rather than two. It is the
+   reason F5 stays out of the feature — nothing in changes 1–5 needs a schema
+   move.
+
+   ⚠ **It has to be said on the screen, not just here.** A watcher reading a
+   figure that is no longer true, with nothing saying so, is the next bug. The
+   sit-out section states it in a line, in L6's own voice: *switching someone
+   off applies to this night only* gains *and reaches the others when you close
+   the night.* Flagged as invented copy — no handoff draws it.
+
+2. **Only the host may change the money rules.** Change 4.
+
+3. **`/house-rules` is wired up, not retired.** Change 2.
