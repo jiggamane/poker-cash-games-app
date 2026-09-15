@@ -37,10 +37,26 @@ export interface Stakes {
   straddleAmount: Money | null;
 }
 
-/** The board's string, and the only form the stakes are ever shown in: `$5 / $5`. */
+/**
+ * The board's string, and the only form the stakes are ever shown in: `$5 / $5`.
+ *
+ * A MANDATORY STRADDLE IS A THIRD FORCED BET, so it is a third figure in this
+ * line — `$5 / $5 / $10` — and not a clause after it. That is how a table says
+ * what it is playing, and it is what was asked for: a game everyone has to
+ * straddle is a 5/5/10 game, not a 5/5 game with a note.
+ *
+ * AN OPTIONAL STRADDLE IS NOT IN IT, and the distinction is the whole point of
+ * the three-state pick. A figure in this slot says "you are posting this
+ * whether you like it or not". A straddle somebody MAY post is not that, and
+ * putting it here would tell every reader the stakes are higher than they are.
+ * It stays where it was, in `straddleLabel`.
+ */
 export function stakesLabel(stakes: Stakes, currencySymbol = '$'): string {
   const small = formatMoney(stakes.small, currencySymbol);
-  return `${small} / ${formatMoney(stakes.big, currencySymbol)}`;
+  const blinds = `${small} / ${formatMoney(stakes.big, currencySymbol)}`;
+  return stakes.straddle === 'mandatory' && stakes.straddleAmount !== null
+    ? `${blinds} / ${formatMoney(stakes.straddleAmount, currencySymbol)}`
+    : blinds;
 }
 
 /**
@@ -64,8 +80,23 @@ export function straddleLabel(stakes: Stakes, currencySymbol = '$'): string | nu
  * night's own `stakes`, which is text on the phone and text on the server.
  */
 export function stakesSummary(stakes: Stakes, currencySymbol = '$'): string {
-  const straddle = straddleLabel(stakes, currencySymbol);
   const blinds = stakesLabel(stakes, currencySymbol);
+
+  /*
+   * THE FIGURE IS SAID ONCE. `stakesLabel` carries a mandatory straddle as the
+   * third blind now, so the clause after it would read `$5 / $5 / $10 · $10
+   * straddle · mandatory` — the same ten dollars twice, which reads as two
+   * straddles to anybody who is not already holding the data model. What is
+   * left to say in that case is which of the three figures the straddle is.
+   *
+   * ⚠ COPY NOT DRAWN, like `straddleLabel` above it and for the same reason:
+   * no board draws a game with a straddle. Flagged in `docs/screens.md`.
+   */
+  if (stakes.straddle === 'mandatory' && stakes.straddleAmount !== null) {
+    return `${blinds} · mandatory straddle`;
+  }
+
+  const straddle = straddleLabel(stakes, currencySymbol);
   return straddle === null ? blinds : `${blinds} · ${straddle}`;
 }
 

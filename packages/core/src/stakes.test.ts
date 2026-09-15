@@ -29,6 +29,30 @@ describe('stakesLabel', () => {
   it('groups a big blind that has grown past a thousand', () => {
     expect(stakesLabel({ ...drawn, small: money(1000), big: money(2500) })).toBe('$1,000 / $2,500');
   });
+
+  /*
+   * A MANDATORY STRADDLE IS THE THIRD FIGURE — the 15 September change. A table
+   * where everyone has to straddle is playing 5/5/10, and every screen that
+   * states the stakes reads this one function, so saying it here says it
+   * everywhere.
+   */
+  it('writes a mandatory straddle as the third blind', () => {
+    expect(stakesLabel(withStraddle(drawn, 'mandatory'))).toBe('$5 / $5 / $10');
+  });
+
+  it('takes the club’s symbol on all three of them', () => {
+    expect(stakesLabel(withStraddle(drawn, 'mandatory'), '€')).toBe('€5 / €5 / €10');
+  });
+
+  /*
+   * AND AN OPTIONAL ONE IS NOT IN IT. This is the assertion that keeps the
+   * three-state pick meaning something: a straddle somebody MAY post is not a
+   * forced bet, and a line reading `$5 / $5 / $10` tells the table the stakes
+   * are higher than they are.
+   */
+  it('leaves an optional straddle out of the blinds', () => {
+    expect(stakesLabel(withStraddle(drawn, 'optional'))).toBe('$5 / $5');
+  });
 });
 
 describe('straddleLabel', () => {
@@ -48,9 +72,20 @@ describe('stakesSummary', () => {
     expect(stakesSummary(drawn)).toBe('$5 / $5');
   });
 
-  it('carries the straddle after them', () => {
+  it('carries an optional straddle after them', () => {
+    expect(stakesSummary(withStraddle(drawn, 'optional'))).toBe(
+      '$5 / $5 · $10 straddle · optional',
+    );
+  });
+
+  /*
+   * THE FIGURE IS SAID ONCE. The blinds carry a mandatory straddle now, so what
+   * follows them names which figure it is rather than repeating it — the old
+   * string said ten dollars twice.
+   */
+  it('names a mandatory straddle without saying its figure twice', () => {
     expect(stakesSummary(withStraddle(drawn, 'mandatory'))).toBe(
-      '$5 / $5 · $10 straddle · mandatory',
+      '$5 / $5 / $10 · mandatory straddle',
     );
   });
 });

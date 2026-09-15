@@ -135,25 +135,32 @@ describe('the game settings set how coarsely the table settles', () => {
   const setup = read('apps/mobile/app/new-night.tsx');
 
   /*
-   * THE FOUR `E2-rounding.md` NAMES, cut 31 August: Off, $10, $50, $100. They
-   * were Dollar · 10s · 100s · 1k while the setting only reached what a rule
-   * divides at; now it snaps the stacks themselves, and the steps are the ones
-   * a room actually counts in. `thousands` still resolves for an old night —
-   * it is simply no longer offered.
+   * THE `E2-rounding.md` NAMES, cut 31 August: Off, $10, $50, $100 — and, since
+   * 15 September, $1,000. They were Dollar · 10s · 100s · 1k while the setting
+   * only reached what a rule divides at; now it snaps the stacks themselves,
+   * and the steps are the ones a room actually counts in.
+   *
+   * THE THOUSAND IS BACK because a group playing for thousands settles at one,
+   * and holding it back was never a limit of the engine — `granularityOf` has
+   * always returned 1000 for it and `book.rounding_mode` has always stored it.
+   * `cents` is the one still held back, and that one IS a limit: it needs
+   * amounts in minor units, which is a migration rather than a setting.
    */
-  it('offers off, ten, fifty and a hundred', () => {
+  it('offers off, ten, fifty, a hundred and a thousand', () => {
     expect(roundingChoices().map((c) => c.mode)).toEqual([
       'dollars',
       'tens',
       'fifties',
       'hundreds',
+      'thousands',
     ]);
-    expect(roundingChoices().map((c) => granularityOf(c.mode))).toEqual([1, 10, 50, 100]);
+    expect(roundingChoices().map((c) => granularityOf(c.mode))).toEqual([1, 10, 50, 100, 1000]);
     expect(roundingChoices().map((c) => c.chip)).toEqual([
       'Off',
       'Nearest $10',
       'Nearest $50',
       'Nearest $100',
+      'Nearest $1,000',
     ]);
   });
 
@@ -163,6 +170,7 @@ describe('the game settings set how coarsely the table settles', () => {
       'Nearest 10',
       'Nearest 50',
       'Nearest 100',
+      'Nearest 1,000',
     ]);
   });
 
@@ -385,6 +393,7 @@ describe('every figure in the app is written in the group’s own currency', () 
       'Nearest €10',
       'Nearest €50',
       'Nearest €100',
+      'Nearest €1,000',
     ]);
   });
 });

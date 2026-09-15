@@ -27,7 +27,6 @@ import {
   ruleDetail,
   stakesLabel,
   stakesSummary,
-  straddleLabel,
   useMoneySymbol,
 } from '../src/lib/money';
 import { Button } from '../src/components/Button';
@@ -37,7 +36,7 @@ import { RuleFields, ruleProblem } from '../src/components/RuleFields';
 import { RuleList } from '../src/components/RuleList';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, moneyMaxFontScale, radius, space, type } from '../src/design/tokens';
 import {
   COMMON_CURRENCIES,
   CURRENCIES,
@@ -177,8 +176,6 @@ export default function NewNight() {
      server column has always spelled it. */
   const liveRounding: RoundingMode = rounding ?? inherited.roundingMode ?? 'dollars';
   const storedRounding: RoundingMode | null = liveRounding === 'dollars' ? null : liveRounding;
-  /** The straddle in words, or null when there is none — O1d draws no line. */
-  const straddle = straddleLabel(liveStakes);
 
   /*
    * TWO LISTS, AND THE DIFFERENCE IS A ROW MID-EDIT.
@@ -592,7 +589,6 @@ export default function NewNight() {
             onCurrency={() => go('currency')}
             rounding={liveRounding}
             onRounding={setRounding}
-            straddle={straddle}
             rules={sorted}
             describeRule={(rule) =>
               ruleDetail(rule, {
@@ -796,7 +792,11 @@ function Seat({
               keyboardType="number-pad"
               returnKeyType="done"
               accessibilityLabel={`${name} is buying in for`}
-              style={[styles.typingValue, { color: t.text, width: fieldWidth(amount, 10.4, 2) }]}
+              // As the card's fields — `fieldWidth` says why both halves are
+              // needed. The floor was two here, which is a box for `50` that a
+              // four-digit buy-in was typed straight out of.
+              {...cappedFigure}
+              style={[styles.typingValue, { color: t.text, width: fieldWidth(amount, 10.4, 4) }]}
             />
           </View>
         ) : (
@@ -921,13 +921,30 @@ function monogram(name: string): string {
  * both of those get wrong, so it is measured here and the field is sized to
  * the digits actually in it.
  *
- * `floor` is one digit for a field holding a `Money`, which is never empty —
- * the smallest thing it can say is `0` — and two for the one that is being
- * typed into, where a backspace can empty it and a field with no width is a
- * cursor with nowhere to sit.
+ * AND FOR AS LONG AS THAT WAS ALL IT DID IT WAS WRONG IN TWO WAYS AT ONCE —
+ * B77, 15 September.
+ *
+ * THE DIGITS SCALE AND THIS NUMBER DOES NOT. Every `Text` and `TextInput` in
+ * react-native grows with the reader's system text setting; `advance` is points
+ * off a board drawn at 100%. So the figure outgrew its box on any of the larger
+ * settings and the last digit was simply cut off — "1000" read as "100", which
+ * on a screen that sets what the table plays for is not a nuisance, it is a
+ * different game. The answer is both halves together: the field carries
+ * `cappedFigure`, so there IS a largest size it can be drawn at, and the width
+ * is computed at that size. Without the cap no width is enough; without the
+ * width the cap only postpones it.
+ *
+ * `floor` IS FOUR ON A MONEY FIELD, where it used to be one (and two on the
+ * field being typed into, so a backspace left a cursor somewhere to sit).
+ * Sizing to the digits already in the box means a box three characters wide
+ * when it holds `500`, and the fourth digit of a buy-in typed into it has
+ * nowhere to go until the re-render catches up — on a field that is
+ * `textAlign: 'right'` what it does in the meantime is push the leading digit
+ * out of view. Four is what a group playing for thousands needs, and it is a
+ * floor, not a cap: a five-digit figure still widens the box.
  */
 function fieldWidth(text: string, advance: number, floor = 1): number {
-  return Math.max(floor, [...text].length) * advance;
+  return Math.max(floor, [...text].length) * advance * moneyMaxFontScale;
 }
 
 function NoHost() {
@@ -961,7 +978,6 @@ function Details({
   onCurrency,
   rounding,
   onRounding,
-  straddle,
   rules,
   describeRule,
   onOpenRule,
@@ -977,8 +993,6 @@ function Details({
   onCurrency: () => void;
   rounding: RoundingMode;
   onRounding: (mode: RoundingMode) => void;
-  /** The straddle in words, or null when there is none. */
-  straddle: string | null;
   rules: readonly MoneyRule[];
   describeRule: (rule: MoneyRule) => string;
   onOpenRule: (rule: MoneyRule) => void;
@@ -1004,14 +1018,13 @@ function Details({
           <View style={styles.cardRow}>
             <View style={styles.cardText}>
               <Text style={[styles.cardLabel, { color: t.text }]}>Stakes</Text>
-              {/* ⚠ COPY NOT DRAWN. O1d draws a game with no straddle, so it
-                  draws no line here. A straddle that is being played is not a
-                  thing to leave a host to find out at the table. */}
-              {straddle !== null && (
-                <Text style={[styles.cardSub, { color: t.muted }]} numberOfLines={1}>
-                  {straddle}
-                </Text>
-              )}
+              {/* AND NO SUB-LINE. There was one — `$10 straddle · mandatory`,
+                  invented copy whose stated reason was that "a straddle that is
+                  being played is not a thing to leave a host to find out at the
+                  table". The straddle's own control is the next row down now,
+                  which answers that better than a sentence about it did: the
+                  line was saying, in an ellipsised twelve points, what the
+                  block underneath it says in full and lets you change. */}
             </View>
             <View style={styles.pair}>
               <MoneyField
@@ -1028,6 +1041,77 @@ function Details({
                 onChange={(big) => onStakes({ ...stakes, big })}
               />
             </View>
+          </View>
+
+          {/*
+           * ⚠ NOT DRAWN ON THIS CARD, and here rather than nowhere.
+           *
+           * O1d draws the stakes as two figures and stops. `03-data-model.md`
+           * carries the straddle beside them and rev 18 § 5.2 fixes its
+           * control — "pill segmented pick (straddle)", No / Optional /
+           * Mandatory — so the setting exists, is stamped onto the night, and
+           * had a screen until this cut folded that screen into this card.
+           * Dropping it with the screen would have been the cut deciding
+           * something it does not speak about. It takes the shape of the
+           * rounding row, which IS drawn, so the layout is copied rather than
+           * invented.
+           *
+           * AND IT SITS UNDER THE BLINDS, since 15 September, rather than at
+           * the foot of the card behind the buy-in, the currency and the
+           * rounding. A straddle is a forced bet: it belongs to the same
+           * decision as the two figures above it, and `stakesLabel` now writes
+           * a mandatory one as the third of them — `$5 / $5 / $10`. A host
+           * reading that line back off the summary and then scrolling past
+           * three unrelated settings to find the control for it was the card
+           * disagreeing with its own sentence.
+           */}
+          <View style={[styles.cardBlock, styles.divided, { borderTopColor: t.hairline }]}>
+            <Text style={[styles.cardLabel, { color: t.text }]}>Straddle</Text>
+            {/* The rounding row's steps, exactly: three of the sheet's width
+                rather than three pills pushed right, because "Mandatory" beside
+                a label is 287 points of a 290-point card at the reader's larger
+                text setting. */}
+            <View style={styles.steps}>
+              {modes.map(({ mode, label }) => {
+                const on = stakes.straddle === mode;
+                return (
+                  <Pressable
+                    key={mode}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: on }}
+                    onPress={() => onStakes(withStraddle(stakes, mode))}
+                    hitSlop={7}
+                    style={({ pressed }) => [
+                      styles.step,
+                      { backgroundColor: on ? t.text : t.raised, opacity: pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    <Text style={[styles.pillLabel, { color: on ? t.onFill : t.text }]}>
+                      {label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* The figure only exists while there is a straddle to have one —
+                see `withStraddle`, which keeps the two in step. */}
+            {stakes.straddle !== 'none' && (
+              <View style={styles.straddleRow}>
+                {/* "Amount", not "Straddle" — it sits under the row whose own
+                    label already says it, and the word twice in twelve points
+                    reads as two settings rather than one. */}
+                <Text style={[styles.cardSub, { color: t.muted }]}>Amount</Text>
+                <View style={styles.amountAtEnd}>
+                  <MoneyField
+                    value={stakes.straddleAmount ?? money(0)}
+                    symbol={symbol}
+                    label="Straddle amount"
+                    onChange={(straddleAmount) => onStakes({ ...stakes, straddleAmount })}
+                  />
+                </View>
+              </View>
+            )}
           </View>
 
           <View style={[styles.cardRow, styles.divided, { borderTopColor: t.hairline }]}>
@@ -1111,68 +1195,6 @@ function Details({
               })}
             </View>
           </View>
-
-          {/*
-           * ⚠ NOT DRAWN ON THIS CARD, and here rather than nowhere.
-           *
-           * O1d draws the stakes as two figures and stops. `03-data-model.md`
-           * carries the straddle beside them and rev 18 § 5.2 fixes its
-           * control — "pill segmented pick (straddle)", No / Optional /
-           * Mandatory — so the setting exists, is stamped onto the night, and
-           * had a screen until this cut folded that screen into this card.
-           * Dropping it with the screen would have been the cut deciding
-           * something it does not speak about. It takes the shape of the
-           * rounding row above it, which IS drawn, so the layout is copied
-           * rather than invented.
-           */}
-          <View style={[styles.cardBlock, styles.divided, { borderTopColor: t.hairline }]}>
-            <Text style={[styles.cardLabel, { color: t.text }]}>Straddle</Text>
-            {/* The row of steps above, exactly: three of the sheet's width
-                rather than three pills pushed right, because "Mandatory" beside
-                a label is 287 points of a 290-point card at the reader's larger
-                text setting. */}
-            <View style={styles.steps}>
-              {modes.map(({ mode, label }) => {
-                const on = stakes.straddle === mode;
-                return (
-                  <Pressable
-                    key={mode}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: on }}
-                    onPress={() => onStakes(withStraddle(stakes, mode))}
-                    hitSlop={7}
-                    style={({ pressed }) => [
-                      styles.step,
-                      { backgroundColor: on ? t.text : t.raised, opacity: pressed ? 0.7 : 1 },
-                    ]}
-                  >
-                    <Text style={[styles.pillLabel, { color: on ? t.onFill : t.text }]}>
-                      {label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* The figure only exists while there is a straddle to have one —
-                see `withStraddle`, which keeps the two in step. */}
-            {stakes.straddle !== 'none' && (
-              <View style={styles.straddleRow}>
-                {/* "Amount", not "Straddle" — it sits under the row whose own
-                    label already says it, and the word twice in twelve points
-                    reads as two settings rather than one. */}
-                <Text style={[styles.cardSub, { color: t.muted }]}>Amount</Text>
-                <View style={styles.amountAtEnd}>
-                  <MoneyField
-                    value={stakes.straddleAmount ?? money(0)}
-                    symbol={symbol}
-                    label="Straddle amount"
-                    onChange={(straddleAmount) => onStakes({ ...stakes, straddleAmount })}
-                  />
-                </View>
-              </View>
-            )}
-          </View>
         </View>
       </View>
 
@@ -1234,7 +1256,11 @@ function MoneyField({
         testID="amount"
         keyboardType="number-pad"
         accessibilityLabel={label}
-        style={[styles.moneyValue, { color: t.text, width: fieldWidth(text, 9.8) }]}
+        // The cap and the width are one decision — see `fieldWidth`. Four
+        // characters of floor: the blinds, the buy-in and the straddle are all
+        // three- and four-digit figures in this card.
+        {...cappedFigure}
+        style={[styles.moneyValue, { color: t.text, width: fieldWidth(text, 9.8, 4) }]}
       />
     </View>
   );

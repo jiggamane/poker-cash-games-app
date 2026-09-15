@@ -6,7 +6,7 @@ import { formatToFit, moneySymbol } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { cappedFigure, radius, space, type } from '../src/design/tokens';
 import { addPlayer, defaultBuyIn, seatAndBuyIn, useNight } from '../src/lib/nightStore';
 import { rosterIdFor, useClub } from '../src/lib/clubStore';
 import { benchFor, sameName } from '../src/lib/rosterMerge';
@@ -246,6 +246,11 @@ export default function Seat() {
             // Nine digits is a hundred million, which is past any table and
             // short of the point where the figure stops fitting its own box.
             maxLength={9}
+            // AND THE BOX IS 72 POINTS WHATEVER THE READER'S TEXT SETTING IS,
+            // which is what made that sentence true only at 100% — B77. Capped,
+            // so there is a largest size the digits can be drawn at and the
+            // fixed box can be reasoned about at all. `ui-audit.mjs` holds it.
+            {...cappedFigure}
             style={[styles.stakeValue, { color: stakeOk ? t.text : t.muted }]}
           />
         </View>

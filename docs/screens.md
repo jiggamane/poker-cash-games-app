@@ -198,6 +198,13 @@ also what makes the `DRAWN` entry above it honest: that route now lists three
 strings where it listed four, and without `BEHIND` the four that left would read
 as a screen that had quietly lost half of itself.
 
+**And the tap is no longer only for copy — 15 September.** `AMOUNTS`, the pass
+that measures the boxes people type money into, runs again on whatever `BEHIND`
+opened. Every money field on O1d is behind that pill, so a pass that measured
+only the face a URL lands on measured a card with none of them on it and called
+it clean — which is exactly what happened for as long as B77 was live. Anything
+else added here that measures rather than reads should go the same way.
+
 **T1 went in on 1 September**, with the two group headers and the qualifier that
 makes the right-hand column readable — `STILL PLAYING`, `CASHED OUT`, `RESULT
 BEFORE DEDUCTIONS`. E2's three replaced *Still seated* and *Already confirmed*
@@ -1074,20 +1081,55 @@ Both of the settings rows that truncated are fixed by that, which is **B76** in
 `docs/bugs.md`: the deductions sentence has the sheet's whole width and wraps,
 and the rounding explanation sits under a label with nothing to its right.
 
-Four departures from the new boards, all deliberate, none to be "fixed" back:
+Five departures from the new boards, all deliberate, none to be "fixed" back:
 
-- **Four rounding steps, not six.** O1d draws `1 5 10 50 100 1000`.
-  `RoundingMode` has no 5 at all, and `thousands` and `cents` are carried so an
-  old night settles as it did but are deliberately not offered — the note above
-  `ROUNDING_MODES` in core says why. The row is written off `roundingSteps()`,
-  which reads the same list `/rounding` does, so the two controls cannot come to
-  offer different settings. A chip that sets nothing is worse than a short row.
-- **A straddle row on the money card.** O1d draws the stakes as two figures and
-  stops. `03-data-model.md` carries the straddle beside them, rev 18 § 5.2 fixes
-  its control by name, it is stamped onto the night, and it had a screen until
-  this cut folded that screen into the card — so dropping it would have been the
-  cut deciding something it does not speak about. It takes the shape of the
-  rounding row above it, which is drawn.
+- **Five rounding steps, not six** — `1 10 50 100 1000`, since 15 September.
+  O1d draws `1 5 10 50 100 1000`. `RoundingMode` has no 5 at all, so that one
+  cannot be offered; `cents` is carried so an old night settles as it did but is
+  deliberately not offered, because honouring it needs amounts stored in minor
+  units and `granularityOf` throws on it rather than quietly taking the wrong
+  money. **`thousands` used to be held back with it and is not any more.** It
+  was left off on the weaker of the two grounds — not asked for — and it has now
+  been asked for; nothing in the engine ever stood in its way. The row is
+  written off `roundingSteps()`, which reads the same list `/rounding` does, so
+  the two controls cannot come to offer different settings. A chip that sets
+  nothing is worse than a short row.
+- **A straddle row on the money card, under the blinds.** O1d draws the stakes
+  as two figures and stops. `03-data-model.md` carries the straddle beside them,
+  rev 18 § 5.2 fixes its control by name, it is stamped onto the night, and it
+  had a screen until this cut folded that screen into the card — so dropping it
+  would have been the cut deciding something it does not speak about. It takes
+  the shape of the rounding row, which is drawn.
+
+  **It sat at the foot of the card until 15 September and sits under Stakes
+  now**, asked for directly. A straddle is a forced bet and belongs to the same
+  decision as the two figures above it; three unrelated settings between the
+  line that states it and the control that sets it was the card disagreeing with
+  its own sentence.
+
+  Two things went with the move. `stakesLabel` writes a MANDATORY straddle as
+  the third blind — `$5 / $5 / $10`, which is how a table says what it is
+  playing — and an optional one stays out of it, because a figure in that slot
+  says "you are posting this whether you like it or not" and an optional
+  straddle is not that. `stakesSummary` therefore names a mandatory straddle
+  rather than repeating its figure: `$5 / $5 / $10 · mandatory straddle`, where
+  it used to say the same ten dollars twice. ⚠ Both are COPY NOT DRAWN, like
+  `straddleLabel` before them and for the same reason — no board draws a game
+  with a straddle.
+
+  And the Stakes sub-line went. It carried `straddleLabel` — `$10 straddle ·
+  mandatory` — on the stated ground that "a straddle that is being played is not
+  a thing to leave a host to find out at the table". The control is the next row
+  down now, which answers that better than a sentence did, and on a four-digit
+  straddle the sub-line was ellipsising anyway.
+- **Four digits fit in every money field on the card** — B77, 15 September. Not
+  a departure from the board so much as a thing no board states: `fieldWidth()`
+  computes a box for a `TextInput`, which does not grow to its content, and it
+  computed it in points off a board while the digits inside it scaled with the
+  reader's text setting. The fields carry `cappedFigure` now and the box is
+  sized at that cap, with a floor of four characters. `AMOUNTS` in
+  `ui-audit.mjs` is what holds it, and it runs twice per route — the second time
+  after the `BEHIND` tap, because this whole card is behind O1's *Change*.
 - **"Type the amount they are putting in."** O1c-2 writes *she*, of the one
   player it draws. Nothing in this app knows a player's pronoun, so the line is
   the same sentence in the one form that is right for everybody.

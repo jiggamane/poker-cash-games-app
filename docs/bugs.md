@@ -812,6 +812,67 @@ Fix this before drawing anything new for the invite flow, or every state the
 
 ## Fixed
 
+### B77 — the money fields on Game details cut off a four-digit figure
+
+```
+Screen      O1d Game details — Stakes, Straddle amount and Standard buy-in.
+            Then, once there was a check, /seat and /rule as well
+Seen        a box 29 points wide holding "500", and a group playing for
+            thousands typing 1000 into it; at the reader's larger text
+            settings the last digit of a figure already in the box goes
+Expected    four digits in every one of them, at any text size the phone
+            will draw them at
+Found       15 Sept, asked for directly — "make sure the value fields can fit
+            in and be visible the 3-4 digit figures"
+Locked by   npm run check:ui — ui-audit.mjs, "amount-field-too-narrow" and
+            "amount-field-uncapped", a pass written with this bug because
+            nothing that existed could see it
+Status      fixed in this commit
+```
+
+A `TextInput` does not grow to its content, so `fieldWidth()` computed one:
+characters × a per-character advance in points. Both halves of that were wrong
+at once, and either one alone would have been enough.
+
+**The advance is points off a board and the digits are not.** Every `Text` and
+`TextInput` in react-native scales with the reader's system text setting, which
+is the fault `tokens.ts` names as B18 and answers with `cappedFigure` — and no
+field in this card carried it. So the box stayed at 39 points while the figure
+in it grew, and `1000` read as `100`. On a screen whose only job is to say what
+the table is playing for, that is not a truncation, it is a different game.
+
+**And the box was sized to the digits already in it**, which is a box three
+characters wide when it holds `500`. The fourth digit of a buy-in typed into it
+has nowhere to go until the re-render catches up, and on a field that is
+`textAlign: 'right'` what it does in the meantime is push the leading digit out
+of view. The floor is four characters now — a floor, not a cap, so five digits
+still widen it.
+
+**What could see it: nothing, and that is the part worth keeping.** B12 is this
+same fault on Settle up, found on a phone on 21 August, and `ui-journeys.mjs`
+was pointed at figures being cut off because of it. That pass — and the audit's
+`figure-clipped`, which is the same idea — walks elements and reads their own
+TEXT NODES. An `<input>` has none; its figure is a `value`. So every box in this
+app that a person types money into fell out of both loops at the first line, and
+thirty-seven screens were reported clean over three weeks by two checks that had
+never measured one of them.
+
+`AMOUNTS` in `ui-audit.mjs` is the pass that now does, and it is run twice per
+route — once on the face the URL opens at, and again after the `BEHIND` tap,
+because O1d is behind O1's *Change* pill and a pass that only measures what a
+URL lands on measures a card with no money fields on it at all. It asks for four
+digits at the field's own declared cap, so it fails on a field that is too
+narrow AND on one that never declared a cap, which is the state this bug was.
+
+**It found two more screens on its first full run, which is the point.** The
+report was about Game details. `/seat`'s buy-in field is a fixed 72-point box
+with `maxLength={9}` and a comment reasoning that nine digits fit — true at
+100% and at no setting above it. The three figures on `/rule` sit in boxes that
+are a share of a row the board fixed, so they do not grow with the text either.
+None of it was reported by anybody and none of it could have been: they are all
+`<input>`s, and until this pass existed no check in the repo had ever measured
+one. All four screens carry `cappedFigure` now.
+
 ### B76 — O1's two longest rows both ended in an ellipsis
 
 ```
