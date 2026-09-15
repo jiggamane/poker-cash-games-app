@@ -1646,10 +1646,10 @@ async function playANight(name, rebuys) {
   if (new URL(page.url()).pathname === '/') {
     await tap('My stats');
     await stop('my stats');
-    await opensANight('my stats', 'stats-night');
+    await holdsTheDemoOut('my stats', 'stats-night');
     await tap('See all');
     await stop('sessions');
-    await opensANight('sessions', 'games-night');
+    await holdsTheDemoOut('sessions', 'games-night');
   } else {
     console.log(`  ${'the club'.padEnd(26)} not reached — history ended at ${page.url()}`);
   }
@@ -1665,48 +1665,53 @@ async function playANight(name, rebuys) {
 }
 
 /**
- * AND THE ROW OPENS THE NIGHT — B65.
+ * AND A DEMO NIGHT IS NOT IN ANYBODY'S HISTORY — B77.
  *
- * The one thing a list of past games is for, and the one thing no check in this
- * repo had ever asserted. On 8 September the score-breakdown row was applied to
- * both of these lists and took their `onPress` with it: the rows grew a
- * breakdown, nothing navigated, and Sessions became a screen you could not get
- * out of. Every other check passed — the figures were right, nothing was cut
- * off, every route rendered — because "this row goes somewhere" was nobody's
- * business.
+ * ⚠ THIS LEG USED TO BE `opensANight`, AND IT ASSERTED THE OPPOSITE. It tapped
+ * the first row of each list and required a settled night to come up, which was
+ * the live half of B65's protection: on 8 September the score-breakdown row took
+ * both lists' `onPress` with it, the rows grew a breakdown, nothing navigated,
+ * and Sessions became a screen you could not get out of, with every other check
+ * passing.
  *
- * It taps the first row and asks whether a settled night came up. `Who pays
- * whom` is the footer button of that screen and of no other, so it is what
- * proves the tap arrived rather than merely changing something.
+ * The night this run plays is the SEEDED one — the whole script depends on it,
+ * for the six players and the $5,000 that make the figures big enough to be
+ * worth measuring — and until B77 a settled seeded night went into the reader's
+ * book like any other. It is demo data: six names out of the handoff, a table
+ * this person never sat at, and on a real phone it put money nobody won into a
+ * lifetime total. It is out of the book now, so there is nothing here to tap,
+ * and the honest check is the one this makes: after settling a demo night, both
+ * lists are empty AND SAY SO.
  *
- * ⚠ IT DOES NOT ASSERT WHICH NIGHT. Every row opens the same one, because this
- * phone holds one and there is no sessions table to route to — see
- * `docs/screens.md`. A check that pinned the night would go red the day that is
- * fixed, which is the wrong way round.
+ * The empty state is asserted as well as the absence of rows, because "no rows"
+ * alone also passes on a screen that failed to render at all — which is the
+ * green run that proves nothing.
+ *
+ * WHAT IS NOT COVERED HERE ANY MORE, and where it went: B65's live tap needs a
+ * real settled night, and this build cannot have one — the browser keeps its
+ * database in memory and the only night it is ever given is the seed. So the
+ * wiring is held in `npm run check` instead, by `book.test.ts` § "where a row
+ * goes", which reads both screens' source and fails if a row stops opening the
+ * night it names. That is weaker than a tap, and it is what can see it. The day
+ * this script plays a night of its own, the tap belongs back here.
  */
-async function opensANight(where, testId) {
-  const row = page.locator(`[data-testid="${testId}"]`).first();
-  if ((await row.count()) === 0) {
-    await holds(`${where} has a night to open`, false, 'the list drew no rows at all');
-    return;
-  }
+async function holdsTheDemoOut(where, testId) {
+  const rows = await page.locator(`[data-testid="${testId}"]`).count();
+  await holds(
+    `${where} keeps the demo night out of the book`,
+    rows === 0,
+    `the list drew ${rows} row${rows === 1 ? '' : 's'} for a night nobody played`,
+  );
 
-  await row.click();
-  await page.waitForTimeout(1200);
-
-  const arrived = await page
-    .locator(':text-is("Who pays whom"):visible')
+  const said = await page
+    .locator(':text-matches("No nights yet", "i"):visible')
     .count()
     .catch(() => 0);
   await holds(
-    `and a row on ${where} opens the night`,
-    arrived > 0,
-    'tapping a past game left the list on screen — the row navigates nowhere',
+    `and ${where} says so rather than drawing nothing`,
+    said > 0,
+    'an empty list with no empty state is a screen that failed to render',
   );
-
-  /* Back to the list, so the leg after this one starts where it expects to. */
-  await page.goBack();
-  await page.waitForTimeout(900);
 }
 
 console.log(`a big night, screen by screen · ${light ? 'light' : 'dark'} · ${WIDTH} × ${HEIGHT}`);

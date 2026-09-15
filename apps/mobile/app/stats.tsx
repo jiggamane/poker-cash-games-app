@@ -9,7 +9,6 @@ import { NightsChart } from '../src/components/NightsChart';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, space, tabular, type, unscaledLabel } from '../src/design/tokens';
-import { SAMPLE_HISTORY } from '../src/data/sampleHistory';
 import { ALL_GROUPS, scopeLabel, setPeriod, setScope, usePeriod, useScope } from '../src/lib/bookStore';
 import {
   formatNightDate,
@@ -22,7 +21,7 @@ import {
   type Period,
   type PlayedNight,
 } from '../src/lib/myStats';
-import { myNights, useNight } from '../src/lib/nightStore';
+import { openNightById, useMyNights } from '../src/lib/nightStore';
 
 /** Month first, everywhere. Rev 10, S48 — and the handoff repeats it. */
 const PERIODS: ReadonlyArray<{ label: string; value: Period }> = [
@@ -65,7 +64,7 @@ const PERIODS: ReadonlyArray<{ label: string; value: Period }> = [
  */
 export default function MyStats() {
   const t = useTheme();
-  const night = useNight();
+  const mine = useMyNights();
   const scope = useScope();
   const period = usePeriod();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -80,22 +79,11 @@ export default function MyStats() {
   // side of midnight and put a night in the chart that is not in the total.
   const now = useMemo(() => new Date(), []);
 
-  const history = useMemo<PlayedNight[]>(() => {
-    const mine = myNights(night, null)
-      .filter((n) => n.played)
-      .map((n) => ({
-        id: n.sessionId,
-        startedAt: n.startedAt,
-        group: n.groupName,
-        net: n.result,
-        minutes: n.minutes,
-        players: n.players,
-        terms: n.terms,
-      }));
-    /* One book, and Sessions assembles it the same way — `readBook` is what
-       stops the destination holding less than the sample that links to it. */
-    return readBook(mine, SAMPLE_HISTORY);
-  }, [night]);
+  /* One book, and Sessions assembles it the same way — `useMyNights` and
+     `readBook` are what stop the destination holding less than the sample that
+     links to it. Every settled night on this phone: the ones the host recorded
+     and the ones the pull brought back off the server. */
+  const history = useMemo<PlayedNight[]>(() => readBook(mine), [mine]);
 
   const groups = useMemo(() => {
     const seen: string[] = [];
@@ -205,7 +193,7 @@ export default function MyStats() {
                 {...(n.players === undefined ? {} : { players: n.players })}
                 minutes={n.minutes}
                 testID="stats-night"
-                onPress={() => router.push('/settled')}
+                onPress={() => void openNight(n.id)}
               />
             ))}
 
@@ -385,3 +373,21 @@ const styles = StyleSheet.create({
  * Sessions with its own result printed in full.
  */
 const HEAD_FITS = 100_000;
+
+/**
+ * Open one night of the reader's own.
+ *
+ * ⚠ EVERY ROW USED TO OPEN WHICHEVER NIGHT THE STORE HAPPENED TO HOLD, which
+ * `docs/screens.md` recorded as open and which cost nothing while eight of the
+ * nine rows were invented anyway. Now that the list is the reader's real
+ * history it is the whole screen: nine nights that all open the same one is a
+ * list of nine nights you cannot read.
+ *
+ * The swap comes first and the push second — the same order, and for the same
+ * reason, as `goTo` on home: every screen below reads the night the store
+ * holds, so pushing first paints the night you were looking at a moment ago.
+ */
+async function openNight(sessionId: string): Promise<void> {
+  await openNightById(sessionId);
+  router.push('/settled');
+}

@@ -9,6 +9,7 @@ import type {
 import { isSupabaseConfigured, supabase } from './supabase';
 import { importNights, type ImportedNight } from './nightStore';
 import { importRoster } from './clubStore';
+import { claimedSeat } from './identity';
 import { READS } from './pullReads';
 
 /**
@@ -49,17 +50,32 @@ export async function pullBooks(): Promise<PullResult> {
   const books = await rows<BookRow>('book', (q) => q.select(READS.book));
   if (books.length === 0) return nothing;
 
+  /*
+   * WHICH OF THE NAMES COMING BACK IS THE READER'S OWN.
+   *
+   * Read from the phone, not asked of the server: a member's view of `player`
+   * is `id, display_name` and deliberately not `claimed_by_user_id`, so there
+   * is nothing here to ask. `identity.ts` wrote it down at the one moment it
+   * was known for certain — the claim itself — and this is the other place that
+   * answer is worth something. Null for a host who never claimed an invite;
+   * their own nights already carry the id they were recorded with.
+   */
+  const meId = await claimedSeat().catch(() => null);
+
   let added = 0;
   let players = 0;
   for (const book of books) {
-    const result = await pullBook(book);
+    const result = await pullBook(book, meId);
     added += result.nights;
     players += result.players;
   }
   return { added, books: books.length, players };
 }
 
-async function pullBook(book: BookRow): Promise<{ nights: number; players: number }> {
+async function pullBook(
+  book: BookRow,
+  meId: string | null,
+): Promise<{ nights: number; players: number }> {
   const bookId = book.id;
   const groupName = book.group_name;
   // THE ROSTER FIRST, and before the check for nights below. A book with people
@@ -173,6 +189,9 @@ async function pullBook(book: BookRow): Promise<{ nights: number; players: numbe
         .filter((x) => x.session_id === s.id)
         .map((x) => ({ from: x.from_player_id, to: x.to_player_id, paidAt: x.paid_at })),
       tableName: s.table_name,
+      /* Stamped onto the night so the reader can be found in their own history
+         — `importNights` drops it for any night they were not at. */
+      meId,
       ...(acknowledgement === undefined ? {} : { acknowledgement }),
     };
   });

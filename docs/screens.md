@@ -1757,10 +1757,20 @@ two things happen on the screen and not in the card.
 * **`hoursPlayed` is the elapsed table time**, not a cards-down figure. The
   handoff flags that it wants the latter and that the app does not record it.
   **Open**, and it is the handoff's own open question rather than a departure.
-* **The counts on the seeded history are invented.** `sampleHistory.ts` says of
-  itself that it is temporary and goes when there is a sessions table; the
-  player counts added to it are plausible rather than recorded, like every other
-  figure in that file.
+* **~~The counts on the seeded history are invented.~~ The seeded history is
+  gone — B77, 15 September.** `sampleHistory.ts` was eight nights in two clubs
+  that nobody had played, and every figure on this screen was computed over them
+  and the reader's own together. It was honest when written: the phone held one
+  night, and a screen with one row on it is not a screen. It stopped being
+  honest when `importNights` made the phone able to hold every night the server
+  has, and nothing marked the moment. Both screens now read `useMyNights()` —
+  every settled night on the device, resolved through the engine — and a phone
+  that has played nothing draws the empty state it already had.
+* **A row under `Last games` opens the night it names.** Recorded here as open
+  until 15 September, on the grounds that the phone held one night and there was
+  nowhere to route to. That was true when it was written and had stopped being
+  true: a row now swaps the store's night by id and then pushes, which is `goTo`
+  on home, in that order and for the same reason.
 
 ## The past session, read three ways
 
@@ -1971,12 +1981,13 @@ same component now, in one of its two layouts:
   line says `8 players` and its back button says `Sessions`: it is the screen
   you reach FROM the list, not the list. A Sessions list whose rows open nothing
   is a dead end, which is exactly how it was reported.
-* **Every row on those two lists still opens `/settled`, whichever night it
-  is.** This phone holds ONE night and there is no sessions table to route to —
-  `sampleHistory.ts` says so of itself. It is what the rows did before this
-  batch and what they do now, and it is the same open question as the seeded
-  history rather than a new one. **Open:** route them the day there is a
-  sessions table.
+* **~~Every row on those two lists still opens `/settled`, whichever night it
+  is.~~ Closed 15 September, with B77.** The reasoning was that the phone holds
+  ONE night and there is nowhere to route to; the phone has held many since
+  `importNights`, and both screens were reading one of them. Each row now calls
+  `openNightById` and then pushes — the swap first, the push second, exactly as
+  `goTo` does it on home, or `/settled` paints the night you were looking at a
+  moment ago.
 
 ### What was measured against the handoff, and what came back
 

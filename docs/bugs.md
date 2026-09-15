@@ -130,6 +130,81 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
+### B77 — My stats and Sessions were eight nights nobody had played
+
+```
+Screen      G4 My stats, and Sessions behind its `See all`
+Seen        a book of nine rows: eight from `sampleHistory.ts` — two clubs,
+            "The Poker Club" and "Office game", with plausible durations and
+            player counts — plus at most one of the reader's own. The headline
+            figure, the win/loss counts, the hours and the graph were all
+            computed off that mixture, so every number on the screen was
+            partly about games that were never played
+Expected    the reader's own nights and nothing else; on a phone that has
+            played none, the empty state both screens already draw
+Found       15 Sept, reading the two screens against what the phone holds
+Locked by   npm run check — book.test.ts, "opens with an empty book, not with
+            somebody else's", which lays the seed down the way a first launch
+            does and asserts the book is empty; and the three cases under
+            "what the book refuses"
+Status      fixed in this commit
+```
+
+**The fabricated half was honest when it was written and stopped being honest
+without anybody touching it.** `myNights()` took the ONE `Night` the store was
+holding and returned a list of at most one, which was the whole truth while the
+phone could hold one night — the file says so of itself, twice, and
+`docs/screens.md` recorded it as open. Then `importNights` landed and the phone
+could hold every night the server had. Nothing was rewired, because nothing had
+to be: the screens went on asking for the single open night, the eight invented
+ones went on filling the space, and the answer went on looking like an answer.
+
+That is the shape worth naming. **It was not a regression and no check could
+have caught it**, because both halves were correct in isolation: the seed was
+declared temporary and the reader was declared to be one night. The bug was the
+sentence that stopped being true in between, and the only thing that finds it is
+someone asking what the screen is actually reading.
+
+`readMyNights()` reads the `night` table — every settled night, the host's own
+and the pull's alike — and resolves each one through the engine, the way
+`refreshOpenGames` already did it. `readBook` takes one list now. `SAMPLE_HISTORY`
+is deleted. **And every row opens its own night**, which `docs/screens.md` had
+recorded as open too and which cost nothing while eight of the nine rows were
+fiction: a list of nine nights that all open the tenth is a list you cannot read.
+
+### B78 — a night pulled off the server had nobody's name on it
+
+```
+Screen      G4 My stats, Sessions, and every results screen reached from them
+Seen        a member who claims a seat, lands on X2b's promise that their
+            nights are already there, and finds rows with no figure beside
+            them — `played: false`, result $0, no breakdown — for nights they
+            sat at and won money in
+Expected    their own result on their own nights, off the frozen settlement
+Found       15 Sept, reading `importNights` against `CLAIM_LIVE_NIGHTS`
+Locked by   npm run check — book.test.ts, "are in the book, with this reader's
+            own figure on them", and its pair, "carry no figure for somebody
+            who was not at them"
+Status      fixed in this commit
+```
+
+Two correct rules, and the gap between them. `me_id` is what makes a night
+yours, and `setMeSeat` stamps it through `CLAIM_LIVE_NIGHTS`, which reaches
+`status != 'settled'` and deliberately no further: reattributing a night that
+has already been paid out on would rewrite who "you" were on an evening that is
+finished. **Every night arriving from the server is settled before it lands.**
+So the one write that could have stamped an imported night was the one write
+that, correctly, would not.
+
+`importNights` never wrote the column at all — there was nothing to write it
+from — and the pull never passed one. It had the answer the whole time:
+`identity.ts` writes down which player id this phone claimed, at the one moment
+it is known for certain, and `pull.ts` now reads it and stamps each night the
+reader was actually at. **Actually at**, not merely in the group: the pull hands
+the book's whole roster down on every night, so a game played before somebody
+joined would otherwise land in their lifetime total at zero — which reads as an
+evening they broke even on rather than one they were not invited to.
+
 ### B75 — the way out of B64 was a screen that does not exist
 
 ```
@@ -374,6 +449,16 @@ Locked by   ui-journeys.mjs — the `my stats` and `sessions` stops now tap the
             Verified against the fault: with the row's onPress removed again
             the leg reports "tapping a past game left the list on screen —
             the row navigates nowhere"
+            ⚠ MOVED 15 Sept, with B77. The tap needs a real settled night on
+            screen and the browser build has only the seeded one, which B77
+            correctly keeps out of the book — so the journey now asserts the
+            lists are empty after a demo night, and book.test.ts § "where a
+            row goes" reads both screens' source and fails if a row stops
+            opening the night it names. Weaker than a tap; it is what can see
+            it. The day the journey plays a night of its own, the tap comes
+            back. It catches the new fault too: a row that opens whichever
+            night the store happens to hold, which is what every row did until
+            B77 and which was harmless only while the rows were fiction
 Status      fixed in this branch
 ```
 

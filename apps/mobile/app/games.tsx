@@ -7,9 +7,8 @@ import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { ALL_GROUPS, scopeLabel, setScope, useScope } from '../src/lib/bookStore';
-import { SAMPLE_HISTORY } from '../src/data/sampleHistory';
 import { formatNightDate, mostRecentFirst, readBook } from '../src/lib/myStats';
-import { myNights, useNight } from '../src/lib/nightStore';
+import { openNightById, useMyNights } from '../src/lib/nightStore';
 
 /**
  * SESSIONS — `design/handoff-sessions-stats/`, frame `1a`, cut 9 September.
@@ -30,34 +29,22 @@ import { myNights, useNight } from '../src/lib/nightStore';
  * this cut ends. The screen is `Sessions` now, top to bottom, and the club
  * root's row has said `Sessions` since rev 10.
  *
- * NOTHING HERE ADDS ANYTHING UP. Every net is `myNights`', off the engine.
+ * NOTHING HERE ADDS ANYTHING UP. Every net is `useMyNights`', off the engine.
  */
 export default function Sessions() {
   const t = useTheme();
-  const night = useNight();
+  const mine = useMyNights();
   const scope = useScope();
   const [menuOpen, setMenuOpen] = useState(false);
 
   /*
-   * EVERY NIGHT THIS READER HAS PLAYED, newest first — the phone's own settled
-   * night and the seeded history behind it, assembled by `readBook` so that
-   * this screen and My stats cannot hold different books. `See all` leading
-   * from a list of eight to a list of none is what that function is for.
+   * EVERY NIGHT THIS READER HAS PLAYED, newest first — every settled night on
+   * this phone, which is every one the host recorded and every one the pull
+   * brought back off the server. `useMyNights` and `readBook` are what stop
+   * this screen and My stats holding different books; `See all` leading from a
+   * list of eight to a list of none is what they are both for.
    */
-  const all = useMemo(() => {
-    const mine = myNights(night, null)
-      .filter((n) => n.played)
-      .map((n) => ({
-        id: n.sessionId,
-        startedAt: n.startedAt,
-        group: n.groupName,
-        net: n.result,
-        minutes: n.minutes,
-        players: n.players,
-        terms: n.terms,
-      }));
-    return mostRecentFirst(readBook(mine, SAMPLE_HISTORY));
-  }, [night]);
+  const all = useMemo(() => mostRecentFirst(readBook(mine)), [mine]);
 
   /* Every club the reader has a night in, in the order they last played one.
      A reader with one club sees the control as a label — see `Dropdown`. */
@@ -111,7 +98,7 @@ export default function Sessions() {
               {...(n.players === undefined ? {} : { players: n.players })}
               minutes={n.minutes}
               testID="games-night"
-              onPress={() => router.push('/settled')}
+              onPress={() => void openNight(n.id)}
             />
           ))}
         </View>
@@ -147,3 +134,21 @@ const styles = StyleSheet.create({
   list: { marginHorizontal: space.page },
   empty: { ...type.footnote, marginHorizontal: space.page, paddingTop: 8 },
 });
+
+/**
+ * Open one night of the reader's own.
+ *
+ * ⚠ EVERY ROW USED TO OPEN WHICHEVER NIGHT THE STORE HAPPENED TO HOLD, which
+ * `docs/screens.md` recorded as open and which cost nothing while eight of the
+ * nine rows were invented anyway. Now that the list is the reader's real
+ * history it is the whole screen: nine nights that all open the same one is a
+ * list of nine nights you cannot read.
+ *
+ * The swap comes first and the push second — the same order, and for the same
+ * reason, as `goTo` on home: every screen below reads the night the store
+ * holds, so pushing first paints the night you were looking at a moment ago.
+ */
+async function openNight(sessionId: string): Promise<void> {
+  await openNightById(sessionId);
+  router.push('/settled');
+}
