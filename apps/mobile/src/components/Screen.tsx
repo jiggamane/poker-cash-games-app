@@ -269,6 +269,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: chrome.titleGap,
+    /*
+     * ABOVE THE BODY, for the same reason `metaRow` below is and it took
+     * longer to find here. The one screen that fills `trailing` puts a
+     * dropdown in it, and a dropdown hangs a menu — and a backdrop — down over
+     * the body. The body is a LATER SIBLING of this row and later siblings
+     * paint on top, so without this the menu is drawn under the first card on
+     * the screen and the backdrop under the whole scroller: the menu looks
+     * right in a screenshot and a tap meant for it lands on whatever is
+     * behind. B77.
+     *
+     * It changes nothing else. This row and the body do not overlap — they are
+     * two boxes in a column — so the order only ever decides what happens to
+     * the things this row hangs OUTSIDE itself.
+     */
+    zIndex: 20,
     paddingTop: chrome.titlePadTop,
     paddingHorizontal: chrome.titlePadH,
     // The floor under a title. Every screen's first element adds its own

@@ -812,6 +812,56 @@ Fix this before drawing anything new for the invite flow, or every state the
 
 ## Fixed
 
+### B77 — an open group menu could only be closed by the control that opened it
+
+```
+Screen      My stats, and Sessions and the past session with it — every screen
+            that draws `Dropdown`
+Seen        `All groups` tapped open, then a tap anywhere else on the screen:
+            nothing happens. The menu stays up, the screen behind it stays at
+            32%, and the only way out is to find the control again. And on My
+            stats the menu was UNDER the card it hangs over: at 360 points
+            wide not one of its three rows answered a tap in its own middle —
+            the scroller behind it did
+Expected    a tap outside the menu closes it, which is what a menu does on
+            every phone anybody owns — and the menu itself takes the taps that
+            land on it
+Found       15 Sept, reported by the owner using My stats
+Locked by   npm run check:ui — ui-journeys.mjs, "and a tap outside closes it",
+            which opens the group menu on My stats and taps the foot of the
+            screen
+Status      fixed in this commit
+```
+
+The dimming was right and the deafness was the bug. While the menu is up, the
+body of the screen drops to 32% and stops answering taps — a row under an open
+menu must not open a player — and on My stats and Sessions "stops answering" was
+`pointerEvents="none"` and nothing else. So the tap landed on a surface with no
+handler behind it and the gesture did nothing at all.
+
+**Fixed in `Dropdown` rather than in the screens**, because it had three answers
+to one question: `/settled` laid a `Pressable` over its own list, which covers
+the list and not the title row above it, and the other two had none. A backdrop
+the control draws itself is one answer, and it reaches the whole screen — it
+hangs off the anchor and is stretched a phone's width and height past every edge
+of it, so it covers the screen without the component having to know where on the
+screen it was put.
+
+It sits under the menu and over everything else, the control included: a tap on
+the button while it is open lands on the backdrop and closes the menu, which is
+what the button would have done anyway.
+
+**And the second fault is why the first one took a while.** A backdrop that
+covers the screen is no use if the screen is painted on top of it, and on My
+stats it was: the scroller is a LATER SIBLING of the title row the control sits
+in, so it took every tap meant for anything the title row hangs below itself —
+the backdrop, and the menu. `elementFromPoint` in the middle of each of the
+three menu rows returns the scroller, every time. The meta line on Sessions has
+carried `zIndex: 20` for exactly this since the day it was drawn, with a comment
+saying why; the title row never had it, because until My stats nothing in it
+hung anything downwards. It has it now, in `Screen.tsx`, and the comment there says
+what it does and does not change.
+
 ### B76 — O1's two longest rows both ended in an ellipsis
 
 ```

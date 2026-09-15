@@ -1646,6 +1646,7 @@ async function playANight(name, rebuys) {
   if (new URL(page.url()).pathname === '/') {
     await tap('My stats');
     await stop('my stats');
+    await dismissesItsMenu('my stats', 'stats-scope', '/stats');
     await opensANight('my stats', 'stats-night');
     await tap('See all');
     await stop('sessions');
@@ -1662,6 +1663,54 @@ async function playANight(name, rebuys) {
       `biggest figure drawn $${largest.toLocaleString('en-US')}`,
   );
   return { target, largest };
+}
+
+/**
+ * AND TAPPING PAST AN OPEN MENU CLOSES IT — B77.
+ *
+ * The group control on My stats and on Sessions opened a menu that nothing but
+ * the control itself would shut. The screens behind it drop to 32% and stop
+ * answering taps, which is right — a row under an open menu must not open a
+ * player — but "does not answer" was implemented as "does nothing at all", so
+ * the one gesture every phone has taught people for a menu landed on a dead
+ * surface. `Dropdown` draws its own backdrop now.
+ *
+ * The tap is at the foot of the screen, as far from a 226-wide menu hanging off
+ * the top-right corner as this phone goes. It is deliberately a place with a
+ * row under it: if the backdrop is ever removed the tap falls through to the
+ * list, and the assertion below catches the menu staying up either way.
+ */
+async function dismissesItsMenu(where, testId, path) {
+  const control = page.locator(`[data-testid="${testId}"]`).first();
+  if ((await control.count()) === 0) {
+    await holds(`${where} has a group control`, false, 'the control is not on the screen');
+    return;
+  }
+
+  await control.click();
+  await page.waitForTimeout(600);
+  const menu = page.locator(`[data-testid="${testId}-menu"]`);
+  if ((await menu.count()) === 0) {
+    await holds(`the menu on ${where} opens`, false, 'tapping the control drew no menu');
+    return;
+  }
+
+  await page.mouse.click(Math.round(WIDTH / 2), HEIGHT - 80);
+  await page.waitForTimeout(700);
+
+  await holds(
+    'and a tap outside closes it',
+    (await page.locator(`[data-testid="${testId}-menu"]`).count()) === 0,
+    'the menu stayed up — the only way out is the control itself',
+  );
+
+  /* AND IT CLOSED RATHER THAN NAVIGATED. The tap landed over a row, and a
+     backdrop that is not there leaves that row live. */
+  await holds(
+    'and the tap did not open a night',
+    new URL(page.url()).pathname === path,
+    `the tap under the menu navigated to ${new URL(page.url()).pathname}`,
+  );
 }
 
 /**
