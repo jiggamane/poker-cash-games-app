@@ -1742,6 +1742,21 @@ two things happen on the screen and not in the card.
 
 ### Decided against the handoff rather than by it
 
+* **The eyebrow is the stretch and nothing else** — `August`, `2026`,
+  `Since Aug 2026`. The handoff draws `This month · August`, and the owner took
+  `This month` off on 15 September: the tabs say it already, `Month` is lit
+  directly above the words, and a card whose every figure belongs to the period
+  does not need to be told twice which period it is. **`All time` gained what
+  the other two always had** — the stretch it covers. For a book that is the
+  month it opens in, so the card reads `Since Aug 2026` over the total, from the
+  earliest night in the SCOPED history: a reader narrowed to one club is
+  told when that club's first night was, because the figure beside it is scoped
+  the same way. `myStats.sinceTitle` computes it and `myStats.test.ts` pins all
+  three strings; on an empty book it falls back to `All time`, there being no
+  first night to name. **The month is short there and long on the `Month` tab**,
+  which is not an inconsistency but a measurement: the eyebrow shares its line
+  with the three tabs and has 143 points on a 360 phone, where `Since September
+  2026` needs more and wrapped the line on eight months of the twelve.
 * **The group control is in `trailing` on My stats**, which `docs/09-navigation.md`
   leaves empty on a pushed screen. This is the one screen that fills it: the
   handoff draws it on the title row, this screen has no meta line, and a band of
@@ -1761,6 +1776,11 @@ two things happen on the screen and not in the card.
   itself that it is temporary and goes when there is a sessions table; the
   player counts added to it are plausible rather than recorded, like every other
   figure in that file.
+* **The group menu closes on a tap anywhere outside it** — 15 September, B77.
+  Not a departure so much as a behaviour no cut states: the handoff draws the
+  menu open and closed and says nothing about what dismisses it. `Dropdown`
+  owns the backdrop, so the answer is the same on My stats, on Sessions and on
+  the past session, where it used to be three different answers.
 
 ## The past session, read three ways
 

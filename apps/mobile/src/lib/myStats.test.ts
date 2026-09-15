@@ -7,6 +7,7 @@ import {
   inPeriod,
   mostRecentFirst,
   periodTitle,
+  sinceTitle,
   summarise,
   type PlayedNight,
 } from './myStats';
@@ -88,5 +89,21 @@ describe('time', () => {
     expect(formatHours(1_500)).toBe('25 h');
     expect(formatSitting(260)).toBe('4 h 20');
     expect(formatSitting(180)).toBe('3 h 00');
+  });
+});
+
+describe('sinceTitle', () => {
+  /* SHORT, because the eyebrow shares its line with the period tabs and a long
+     month wraps it at 360 — see the note on `sinceTitle`. */
+  it('names the month and year the book opens in', () => {
+    expect(sinceTitle(NIGHTS)).toBe('Since Dec 2025');
+  });
+
+  it('follows the scope, because the figure beside it does', () => {
+    expect(sinceTitle(inGroup(NIGHTS, 'Office game'))).toBe('Since Jul 2026');
+  });
+
+  it('says All time when there is no first night to name', () => {
+    expect(sinceTitle([])).toBe('All time');
   });
 });
