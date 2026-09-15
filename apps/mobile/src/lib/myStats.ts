@@ -57,19 +57,53 @@ export interface Summary {
 }
 
 /**
+ * A night as the night store hands one over.
+ *
+ * Declared structurally rather than imported, so this file goes on importing no
+ * store and staying pure — `MyNight` satisfies it, and the compiler checks that
+ * at the call site.
+ */
+export interface RecordedNight {
+  sessionId: string;
+  groupName: string;
+  startedAt: string;
+  result: Money;
+  minutes: number;
+  players: number;
+  terms: SettledTerm[];
+  /** False for a night of this club you sat out. */
+  played: boolean;
+}
+
+/**
  * THE BOOK — every night this reader has played, in one list.
  *
  * ⚠ IT EXISTS BECAUSE SESSIONS AND MY STATS DISAGREED. My stats read the
- * phone's own night AND the seeded history; Sessions read only the phone's, so
+ * phone's own night AND a seeded history; Sessions read only the phone's, so
  * `See all` led from a list of eight nights to a list of none. Two screens
  * assembling the same book two ways is the drift, and one function is the fix:
  * the destination cannot hold less than the sample that links to it.
  *
- * The caller passes what `myNights` returned, so this file stays pure and takes
- * no store — `inGroup` and `inPeriod` below narrow it from here.
+ * ⚠ AND THE SEEDED HALF IS GONE — B79. It took a second list and concatenated
+ * it, and what both screens passed was `SAMPLE_HISTORY`: eight invented nights
+ * in two invented groups, drawn from board G4 so that My stats had something to
+ * open with while the phone could only hold one real night. The phone can hold
+ * every night this reader has played and has been able to since the pull was
+ * built, so the sample is deleted and this takes one argument. A figure on My
+ * stats is now a figure about games that were actually played.
  */
-export function readBook(mine: readonly PlayedNight[], seeded: readonly PlayedNight[]): PlayedNight[] {
-  return [...mine, ...seeded];
+export function readBook(nights: readonly RecordedNight[]): PlayedNight[] {
+  return nights
+    .filter((n) => n.played)
+    .map((n) => ({
+      id: n.sessionId,
+      startedAt: n.startedAt,
+      group: n.groupName,
+      net: n.result,
+      minutes: n.minutes,
+      players: n.players,
+      terms: n.terms,
+    }));
 }
 
 /** Most recent first, which is the order every list on the screen wants. */

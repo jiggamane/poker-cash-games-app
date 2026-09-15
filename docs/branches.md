@@ -46,7 +46,7 @@ exception: work you would not defend does not get merged, and you say so.
 | --- | --- | --- |
 | `auth-not-working` | `packages/core/snapshot.ts`, `verify.ts` and their tests — a night's rules snapshot, and the re-derivation that proves a settled night still computes to what it was closed with | **In main**, 38 tests |
 | `my-stats-graph-layout` | `src/lib/myStats.ts`, `nightsChart.ts` and their tests | **In main**, 22 tests, and `stats.tsx` now reads its figures off them instead of adding up its own |
-| `my-stats-graph-layout` | `NightsChart.tsx`, `sampleHistory.ts` | **In main.** The chart has one scale both sides of zero; the history is a seed and goes when sessions are real |
+| `my-stats-graph-layout` | `NightsChart.tsx`, `sampleHistory.ts` | **In main.** The chart has one scale both sides of zero. The history was a seed and was to go when sessions are real; it went on 15 September — B77 — because the phone had been able to hold every night on the server since `importNights` and nothing had marked the moment |
 | `auth-not-working` | the whole server half — migrations, SQL suites, `src/lib` sync and identity, `scripts/audit.ts`, four docs | **In main.** See below |
 | `iap-pricing-model` | `docs/pricing-model.md` | **In main** |
 | `public-boards-github` | `docs/*.html`, `PUBLISHING.md`, `.nojekyll` — the boards as a static site | **In main.** A rev-13 snapshot; regenerate before calling it current |

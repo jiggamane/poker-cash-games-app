@@ -1133,24 +1133,17 @@ export interface MyNight {
 }
 
 /**
- * Your nights, most recent last.
+ * ONE NIGHT OF YOURS, as a list of your own reads it.
  *
- * ONE NIGHT, FOR NOW. This phone holds the session it is recording and nothing
- * else — history arrives with the server — so this is honest rather than
- * complete: it reads what is here, works out your result the same way the
- * results screen does, and returns a list of one. The screens above it are
- * built for many and will not change when many arrive.
- *
- * `withinDays` bounds the period; null is all time.
+ * Pure, and takes a `Night` rather than reaching for the store, because it is
+ * called once per night by the book reader below and once is not the interesting
+ * number. Returns null for a night that is not yours to have a result on: one
+ * still being played, and the sample night, which is a demo and never anybody's.
  */
-export function myNights(night: Night | null, withinDays: number | null): MyNight[] {
-  if (night === null || night.status !== 'settled') return [];
+function nightAsMine(night: Night): MyNight | null {
+  if (night.seeded || night.status !== 'settled') return null;
 
   const started = new Date(night.startedAt);
-  if (withinDays !== null) {
-    const age = (Date.now() - started.getTime()) / 86_400_000;
-    if (age > withinDays) return [];
-  }
 
   let result = 0 as Money;
   let played = false;
@@ -1195,27 +1188,114 @@ export function myNights(night: Night | null, withinDays: number | null): MyNigh
   const last = [...night.entries].sort((a, b) => b.seq - a.seq)[0];
   const ended = last === undefined ? undefined : night.occurredAt[last.id];
 
-  return [
-    {
-      sessionId: night.sessionId,
-      groupName: night.groupName,
-      date: started.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' }),
-      short: `${started.getDate()}/${started.getMonth() + 1}`,
-      times:
-        ended === undefined
-          ? hhmm(night.startedAt)
-          : `${hhmm(night.startedAt)} – ${hhmm(ended)}`,
-      played,
-      result,
-      startedAt: night.startedAt,
-      minutes:
-        ended === undefined
-          ? 0
-          : Math.max(0, Math.round((Date.parse(ended) - started.getTime()) / 60_000)),
-      terms,
-      players,
-    },
-  ];
+  return {
+    sessionId: night.sessionId,
+    groupName: night.groupName,
+    date: started.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' }),
+    short: `${started.getDate()}/${started.getMonth() + 1}`,
+    times:
+      ended === undefined
+        ? hhmm(night.startedAt)
+        : `${hhmm(night.startedAt)} – ${hhmm(ended)}`,
+    played,
+    result,
+    startedAt: night.startedAt,
+    minutes:
+      ended === undefined
+        ? 0
+        : Math.max(0, Math.round((Date.parse(ended) - started.getTime()) / 60_000)),
+    terms,
+    players,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// The book: every night this phone holds, for Sessions and My stats.
+// ---------------------------------------------------------------------------
+
+/**
+ * EVERY NIGHT OF YOURS, newest first.
+ *
+ * ⚠ IT USED TO BE THE ONE NIGHT THE STORE WAS HOLDING, and that is B79. The
+ * phone has held many for as long as `importNights` has existed — a pull writes
+ * every night on the server into the same `night` table a host's own games are
+ * recorded in — and the two screens that read them both went through
+ * `myNights(night)`, which took the single night the store had open and
+ * returned a list of at most one. So a host who had played nine games saw the
+ * ninth, a member who claimed a seat and pulled their whole book saw none of it
+ * (B80, for a second reason), and the eight rows either of them was actually
+ * looking at were `SAMPLE_HISTORY`: invented nights, in two invented groups,
+ * that nobody had ever played.
+ *
+ * Nothing was lost and nothing broke. The nights were on the phone, in the
+ * right table, with the right rows, and the app was not asking for them.
+ *
+ * READ AND RESOLVED THROUGH THE ENGINE, one at a time, exactly as
+ * `refreshOpenGames` does it and for the same reason: a result worked out by
+ * this function would be a second implementation of the settlement, and the one
+ * on the history screen would be the untested one.
+ *
+ * There are never many. A home game is a night a week, and a club with five
+ * years behind it is a few hundred rows.
+ */
+export async function readMyNights(): Promise<MyNight[]> {
+  const db = await getDb();
+  /*
+   * `seed_version IS NULL` IS THE WHOLE OF "ENTERED BY ME" — the same clause
+   * `refreshOpenGames` filters on. The sample night is demo data, it is the one
+   * night that never leaves the phone (see `seedNight`), and it must never be
+   * counted into somebody's lifetime figures. `nightAsMine` checks it again off
+   * the row it read, so a caller that finds another way in still cannot.
+   */
+  const rows = await db.getAllAsync<NightRow>(
+    `SELECT * FROM night
+      WHERE seed_version IS NULL AND status = 'settled'
+      ORDER BY started_at DESC`,
+  );
+
+  const mine: MyNight[] = [];
+  for (const row of rows) {
+    const one = nightAsMine(await readNight(row));
+    if (one !== null) mine.push(one);
+  }
+  return mine;
+}
+
+let book: MyNight[] = [];
+const bookListeners = new Set<() => void>();
+const bookSnapshot = (): MyNight[] => book;
+const subscribeBook = (l: () => void): (() => void) => {
+  bookListeners.add(l);
+  return () => {
+    bookListeners.delete(l);
+  };
+};
+
+/** Re-read the book. Called whenever the night store changes underneath it. */
+export async function refreshMyNights(): Promise<MyNight[]> {
+  book = await readMyNights();
+  for (const l of bookListeners) l();
+  return book;
+}
+
+/**
+ * The book, kept current — what Sessions and My stats both read.
+ *
+ * ONE HOOK FOR BOTH SCREENS, which is the point `readBook` in `myStats.ts` was
+ * making and could not keep: two screens assembling the same history two ways
+ * is how `See all` came to lead from a list of eight nights to a list of none.
+ * They now cannot hold different books, because there is one.
+ *
+ * Re-read whenever the night store emits, for the reason `useOpenGames` gives:
+ * closing a night adds a row to this list, and no screen should have to
+ * remember to ask again.
+ */
+export function useMyNights(): MyNight[] {
+  const current = useNight();
+  useEffect(() => {
+    void refreshMyNights().catch(() => {});
+  }, [current]);
+  return useSyncExternalStore(subscribeBook, bookSnapshot, bookSnapshot);
 }
 
 const hhmm = (iso: string): string =>
@@ -1931,7 +2011,32 @@ export interface ImportedNight {
   tableName?: string | null;
   /** Who had handed over the money by the time this was read. */
   payments?: ReadonlyArray<{ from: string; to: string; paidAt: string }>;
+  /**
+   * WHICH OF THESE NAMES IS THE PERSON HOLDING THE PHONE, where it is known.
+   *
+   * ⚠ IT WAS NEVER WRITTEN, and that is B80. `me_id` is what makes a night
+   * yours — it is the id every result screen looks up to say "You" and the one
+   * `nightAsMine` reads to work out your figure — and it is stamped by
+   * `CLAIM_LIVE_NIGHTS`, which by design touches nothing that is already
+   * settled. A night arriving from the server is settled before it lands, so
+   * every one of them landed with `me_id` NULL: the pull wrote the ledger, the
+   * seats, the counts and the frozen settlement, and the reader whose history
+   * it was could not be found in any of it.
+   *
+   * X2b promises somebody claiming a seat that their nights are already there.
+   * They were; they had nobody's name on them.
+   *
+   * Absent where the phone does not know — a host pulling their own book, who
+   * never claimed an invite. Those nights already carry the id they were
+   * recorded with and are not touched.
+   */
+  meId?: PlayerId | null;
 }
+
+/** Whether somebody was at a night: a seat of their own, or money of their own. */
+const playedIn = (n: ImportedNight, playerId: PlayerId): boolean =>
+  n.players.some((p) => p.id === playerId && p.atTable) ||
+  n.entries.some((e) => e.playerId === playerId || e.payerId === playerId);
 
 /** How many nights this phone did not already have. */
 export async function importNights(nights: readonly ImportedNight[]): Promise<number> {
@@ -1949,8 +2054,8 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
       await db.runAsync(
         `INSERT INTO night
            (session_id, group_name, started_at, status, rules_json, ack_json, stakes, default_buyin, ended_at,
-            rounding_mode, table_name)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            rounding_mode, table_name, me_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         n.sessionId,
         n.groupName,
         n.startedAt,
@@ -1962,6 +2067,15 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
         n.endedAt,
         n.roundingMode ?? null,
         n.tableName ?? null,
+        /*
+         * ONLY WHERE THIS READER WAS ACTUALLY AT THE NIGHT. `players` on an
+         * imported night is the book's whole roster, seated according to this
+         * session — so the test has to be the seat or an entry of their own,
+         * not merely being in the group. A book holds games played before
+         * somebody joined it, and stamping their id onto one of those would put
+         * a night they were never at into their lifetime figures.
+         */
+        n.meId != null && playedIn(n, n.meId) ? n.meId : null,
       );
 
       // The people, too. A roster is what a group IS, and somebody reading
