@@ -11,7 +11,7 @@ import {
 import { formatMoney, rateLabel } from '../lib/money';
 import { Button } from './Button';
 import { useTheme } from '../design/useTheme';
-import { radius, space, type } from '../design/tokens';
+import { cappedFigure, radius, space, type } from '../design/tokens';
 
 /** Who a rule can charge or be collected by, at whatever moment it is edited. */
 export interface RulePerson {
@@ -292,6 +292,10 @@ export function RuleFields({
                   // to a digits-only keyboard.
                   testID="amount"
                   keyboardType="number-pad"
+                  // B78: the box is a share of a row the board fixed, so it
+                  // does not grow with the reader's text setting and the digits
+                  // in it did. Capped, and `ui-audit.mjs` holds every one.
+                  {...cappedFigure}
                   style={[styles.setText, { color: t.text }]}
                 />
               </View>
@@ -373,6 +377,8 @@ export function RuleFields({
                 // A8: this is money, so it takes the digits-only keyboard too.
                 testID="amount"
                 keyboardType="number-pad"
+                // B78, as the figure above it.
+                {...cappedFigure}
                 style={[styles.setText, { color: t.text }]}
               />
             </View>
@@ -454,6 +460,8 @@ export function RuleFields({
                           ),
                         })
                       }
+                      // B78, as the two figures above it.
+                      {...cappedFigure}
                       style={[styles.shareInput, { color: t.text }]}
                     />
                   </View>

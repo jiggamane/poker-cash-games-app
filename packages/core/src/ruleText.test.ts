@@ -114,8 +114,20 @@ describe('the terms a settled night carries on its face', () => {
  */
 describe('rounding, as the new-session sheet writes it', () => {
   it('offers the same modes as the chip row, written as bare steps', () => {
-    expect(roundingSteps().map((c) => c.step)).toEqual(['1', '10', '50', '100']);
+    expect(roundingSteps().map((c) => c.step)).toEqual(['1', '10', '50', '100', '1000']);
     expect(roundingSteps().map((c) => c.mode)).toEqual(roundingChoices().map((c) => c.mode));
+  });
+
+  /*
+   * THE THOUSAND IS OFFERED, and this is the assertion that says so rather than
+   * the list above, which would go on passing if the step were dropped and the
+   * expectation edited to match. A group playing for thousands settles at a
+   * thousand; the engine has always been able to and the list was what withheld
+   * it. See `ROUNDING_MODES`.
+   */
+  it('offers the thousand, named in the money the group keeps', () => {
+    expect(roundingChoices('$').at(-1)).toEqual({ mode: 'thousands', chip: 'Nearest $1,000' });
+    expect(roundingClause('thousands')).toBe('rounded to 1000');
   });
 
   it('says nothing at all when nothing is rounded', () => {

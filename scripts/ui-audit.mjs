@@ -956,6 +956,79 @@ const ROOM = `
 `;
 
 /**
+ * AN AMOUNT FIELD HOLDS THE DIGITS THAT GO IN IT — its own pass, and it has to
+ * be its own pass for two reasons.
+ *
+ * ROOM's figure check cannot see these and never could: it walks elements and
+ * reads their own TEXT NODES, and an input has none — its figure is a value
+ * attribute — so every amount field in the app fell out of that loop at the
+ * first line of it. Thirty-seven screens were checked for a cut-off number and
+ * the boxes people actually TYPE numbers into were not among them. B78.
+ *
+ * And ROOM runs once, on the face a route opens at. The fields this was written
+ * for are on the SECOND face: O1d Game details is behind O1's *Change* pill, so
+ * a pass that only measures what a URL lands on measures a screen with no money
+ * fields on it at all and reports it clean. This one is run twice — before the
+ * BEHIND tap and again after it — which is what makes the result mean anything.
+ */
+const AMOUNTS = `
+(() => {
+  const px = (v) => Math.round(v * 100) / 100;
+  const findings = [];
+
+  // A field's width is COMPUTED rather than grown, because a TextInput does not
+  // size to its content, so this is the check that the sum was right. It is
+  // asked at the LARGEST the field can be drawn: data-fontcap is the cap the
+  // app spreads with cappedFigure, and a field without one has no largest size
+  // at all, which is itself the finding — an uncapped figure in a computed box
+  // is only a question of how far the reader turns their text up.
+  //
+  // And it is asked of FOUR DIGITS, not of whatever value is sitting there. The
+  // box is for what will be typed into it: a group playing for thousands types
+  // 1000 into a field showing 50, and a box measured against the 50 cuts it.
+  // Four is what fieldWidth's floor promises; this is what holds the promise.
+  for (const el of document.querySelectorAll('[data-testid="amount"]')) {
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+    const box = el.clientWidth;
+    if (box === 0) continue;
+    const name = el.getAttribute('aria-label') || el.value || 'an amount field';
+
+    const cap = el.closest('[data-fontcap]');
+    if (cap === null) {
+      findings.push({
+        check: 'amount-field-uncapped',
+        detail: 'no data-fontcap — the digits grow with the reader and the box does not',
+        where: name,
+      });
+      continue;
+    }
+
+    const size = (parseFloat(cs.fontSize) || 0) * Number(cap.dataset.fontcap);
+    const pen = document.createElement('canvas').getContext('2d');
+    pen.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + size + 'px ' + cs.fontFamily;
+    /* The widest digit, because tabular figures are all one width but the
+       fallback stack a browser lands on is not always tabular. */
+    const digit = Math.max(...'0123456789'.split('').map((d) => pen.measureText(d).width));
+    const digits = Math.max(4, [...el.value].length);
+    const needs = digits * digit;
+
+    if (needs > box + 1) {
+      findings.push({
+        check: 'amount-field-too-narrow',
+        detail:
+          digits + ' digits need ' + px(needs) + ' in ' + px(box) +
+          ' at \u00d7' + cap.dataset.fontcap,
+        where: name,
+      });
+    }
+  }
+
+  return findings;
+})()
+`;
+
+/**
  * A keyboard, stood in for.
  *
  * The browser raises none, so the one thing that goes wrong when it does —
@@ -1216,6 +1289,8 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
         await page.goto(urlOf(route), { waitUntil: 'networkidle' });
         await page.waitForTimeout(450);
         findings = await page.evaluate(ROOM);
+        /* The money fields on the face this route opens at — see AMOUNTS. */
+        findings.push(...(await page.evaluate(AMOUNTS)));
 
         /*
          * The head, for the screens that have asked for a moving one — see
@@ -1313,6 +1388,18 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
           } else {
             await opener.click();
             await page.waitForTimeout(350);
+            /*
+             * AND THE MONEY FIELDS BEHIND IT. O1d's card is the reason AMOUNTS
+             * exists: three of the four fields in this app that a host types a
+             * buy-in or a blind into are on this second face, and nothing
+             * measured them until the tap above was followed by a measurement.
+             */
+            findings.push(
+              ...(await page.evaluate(AMOUNTS)).map((f) => ({
+                ...f,
+                where: f.where + ' \u00b7 behind ' + behind.tap,
+              })),
+            );
             for (const word of behind.rows) {
               const seen = await page.evaluate(
                 (w) => (document.body.innerText || '').toLowerCase().includes(w.toLowerCase()),

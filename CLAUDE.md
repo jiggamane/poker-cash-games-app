@@ -123,9 +123,10 @@ stands. Read them newest first:
   which retires the four settings sheets that used to be a step each. The
   seating is the body of the sheet: a row per seated player with the buy-in
   typed in place, the rest of the group as a two-column grid of one-tap adds.
-  It speaks about that one screen and no other. `docs/screens.md` has the four
+  It speaks about that one screen and no other. `docs/screens.md` has the five
   places the app departs from it and why, and the argument for `BEHIND` in
-  `ui-audit.mjs`, the map that holds a row moved behind a control.
+  `ui-audit.mjs`, the map that holds a row moved behind a control — which since
+  15 September also re-runs the money-field pass on what it opened.
 
 - **`design/handoff-session-views/`, cut 9 September.** The past
   session (`/settled`, and `/watch` reading the same night), and nothing else on
