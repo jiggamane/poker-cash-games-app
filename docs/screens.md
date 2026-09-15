@@ -202,7 +202,7 @@ as a screen that had quietly lost half of itself.
 that measures the boxes people type money into, runs again on whatever `BEHIND`
 opened. Every money field on O1d is behind that pill, so a pass that measured
 only the face a URL lands on measured a card with none of them on it and called
-it clean — which is exactly what happened for as long as B77 was live. Anything
+it clean — which is exactly what happened for as long as B78 was live. Anything
 else added here that measures rather than reads should go the same way.
 
 **T1 went in on 1 September**, with the two group headers and the qualifier that
@@ -1122,7 +1122,7 @@ Five departures from the new boards, all deliberate, none to be "fixed" back:
   a thing to leave a host to find out at the table". The control is the next row
   down now, which answers that better than a sentence did, and on a four-digit
   straddle the sub-line was ellipsising anyway.
-- **Four digits fit in every money field on the card** — B77, 15 September. Not
+- **Four digits fit in every money field on the card** — B78, 15 September. Not
   a departure from the board so much as a thing no board states: `fieldWidth()`
   computes a box for a `TextInput`, which does not grow to its content, and it
   computed it in points off a board while the digits inside it scaled with the

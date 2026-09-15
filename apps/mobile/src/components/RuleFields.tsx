@@ -292,7 +292,7 @@ export function RuleFields({
                   // to a digits-only keyboard.
                   testID="amount"
                   keyboardType="number-pad"
-                  // B77: the box is a share of a row the board fixed, so it
+                  // B78: the box is a share of a row the board fixed, so it
                   // does not grow with the reader's text setting and the digits
                   // in it did. Capped, and `ui-audit.mjs` holds every one.
                   {...cappedFigure}
@@ -377,7 +377,7 @@ export function RuleFields({
                 // A8: this is money, so it takes the digits-only keyboard too.
                 testID="amount"
                 keyboardType="number-pad"
-                // B77, as the figure above it.
+                // B78, as the figure above it.
                 {...cappedFigure}
                 style={[styles.setText, { color: t.text }]}
               />
@@ -460,7 +460,7 @@ export function RuleFields({
                           ),
                         })
                       }
-                      // B77, as the two figures above it.
+                      // B78, as the two figures above it.
                       {...cappedFigure}
                       style={[styles.shareInput, { color: t.text }]}
                     />

@@ -922,7 +922,7 @@ function monogram(name: string): string {
  * the digits actually in it.
  *
  * AND FOR AS LONG AS THAT WAS ALL IT DID IT WAS WRONG IN TWO WAYS AT ONCE —
- * B77, 15 September.
+ * B78, 15 September.
  *
  * THE DIGITS SCALE AND THIS NUMBER DOES NOT. Every `Text` and `TextInput` in
  * react-native grows with the reader's system text setting; `advance` is points

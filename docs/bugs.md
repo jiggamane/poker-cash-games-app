@@ -812,7 +812,16 @@ Fix this before drawing anything new for the invite flow, or every state the
 
 ## Fixed
 
-### B77 — the money fields on Game details cut off a four-digit figure
+### B78 — the money fields on Game details cut off a four-digit figure
+
+*Written as B77 and renumbered in the merge, which is the fifth time this file
+has recorded that. B76 was the highest on `main` when this branch started; a
+session working on My stats merged its own B77 first, so that one keeps the
+number and this moved up — the rule at the top of this file, applied. Worth
+noting a second claim that is NOT resolved: `docs/money-rules-mid-game-review.md`
+proposes B76, B77 and B78 for work it has not built, and all three are taken
+now. That doc needs renumbering when somebody builds it; nothing there is on
+`main`, so nothing there holds a number.*
 
 ```
 Screen      O1d Game details — Stakes, Straddle amount and Standard buy-in.

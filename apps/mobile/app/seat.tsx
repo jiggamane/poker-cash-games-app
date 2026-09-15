@@ -247,7 +247,7 @@ export default function Seat() {
             // short of the point where the figure stops fitting its own box.
             maxLength={9}
             // AND THE BOX IS 72 POINTS WHATEVER THE READER'S TEXT SETTING IS,
-            // which is what made that sentence true only at 100% — B77. Capped,
+            // which is what made that sentence true only at 100% — B78. Capped,
             // so there is a largest size the digits can be drawn at and the
             // fixed box can be reasoned about at all. `ui-audit.mjs` holds it.
             {...cappedFigure}

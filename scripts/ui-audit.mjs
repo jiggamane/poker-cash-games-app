@@ -963,7 +963,7 @@ const ROOM = `
  * reads their own TEXT NODES, and an input has none — its figure is a value
  * attribute — so every amount field in the app fell out of that loop at the
  * first line of it. Thirty-seven screens were checked for a cut-off number and
- * the boxes people actually TYPE numbers into were not among them. B77.
+ * the boxes people actually TYPE numbers into were not among them. B78.
  *
  * And ROOM runs once, on the face a route opens at. The fields this was written
  * for are on the SECOND face: O1d Game details is behind O1's *Change* pill, so
