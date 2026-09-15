@@ -1061,7 +1061,7 @@ the new one as drift from a drawing that has been superseded.
 *The game* — five list rows carrying Stakes, Default buy-in, Currency, Money
 rules and Rounding — is gone, and this is what replaced it:
 
-- **Two lines and a *Change* pill.** `₾5 / ₾5 · ₾500 in · GEL` over the
+- **Two lines and a *Change* pill.** `₾5 / ₾5 · ₾500 buy-in` over the
   deductions sentence, which is the rules that are ON tonight plus the rounding
   clause. The five settings are inherited from last time and rarely move; the
   space that buys goes on the seating, which is what the sheet is for.
@@ -1081,7 +1081,7 @@ Both of the settings rows that truncated are fixed by that, which is **B76** in
 `docs/bugs.md`: the deductions sentence has the sheet's whole width and wraps,
 and the rounding explanation sits under a label with nothing to its right.
 
-Five departures from the new boards, all deliberate, none to be "fixed" back:
+Six departures from the new boards, all deliberate, none to be "fixed" back:
 
 - **Five rounding steps, not six** — `1 10 50 100 1000`, since 15 September.
   O1d draws `1 5 10 50 100 1000`. `RoundingMode` has no 5 at all, so that one
@@ -1130,6 +1130,26 @@ Five departures from the new boards, all deliberate, none to be "fixed" back:
   sized at that cap, with a floor of four characters. `AMOUNTS` in
   `ui-audit.mjs` is what holds it, and it runs twice per route — the second time
   after the `BEHIND` tap, because this whole card is behind O1's *Change*.
+- **No currency code on the summary line, and the buy-in says `buy-in`** — 15
+  September, asked for directly. O1c-2 draws `₾5 / ₾5 · ₾500 in · GEL`; the line
+  reads `₾5 / ₾5 · ₾500 buy-in` now. Two changes, one of them cosmetic and one
+  not.
+
+  The code went because every figure on the line already carries the symbol —
+  `stakesLabel` and `formatMoney` both write it — so `GEL` was the one clause
+  that told a reader nothing the line had not already said, and it was spending
+  room the blinds had just started needing: a mandatory straddle is a third
+  figure in `stakesLabel` since this same day, so the worst case grew from two
+  figures to three while the line stayed one row. The currency is **still set**
+  on Game details, one tap behind *Change*, and the row there is untouched —
+  hiding a restatement is not the same as removing the control, and a club that
+  keeps its book in another money still says so in exactly one place.
+
+  `in` became `buy-in` because `₾500 in` leans on the sentence that is no longer
+  beside it once the settings collapse to this line — it reads as a preposition
+  before it reads as a noun. `index.tsx` already wrote `$500 buy-in` on the
+  club card, so this is the two screens agreeing rather than a new string.
+
 - **"Type the amount they are putting in."** O1c-2 writes *she*, of the one
   player it draws. Nothing in this app knows a player's pronoun, so the line is
   the same sentence in the one form that is right for everybody.

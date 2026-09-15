@@ -374,13 +374,22 @@ export default function NewNight() {
   /*
    * THE TWO LINES THE FIVE ROWS COLLAPSE TO — O1c-2.
    *
-   * The first is the game: what it is played at, what a seat costs, and the
-   * money the book is kept in. The second is what comes off the table, which
-   * is the rules that are ON tonight — a rule switched off takes nothing and
-   * naming it here would say it does — with the rounding as the last clause,
-   * off `roundingClause` in core so the step is written once.
+   * The first is the game: what it is played at and what a seat costs. The
+   * second is what comes off the table, which is the rules that are ON tonight
+   * — a rule switched off takes nothing and naming it here would say it does —
+   * with the rounding as the last clause, off `roundingClause` in core so the
+   * step is written once.
+   *
+   * THE CURRENCY CODE IS NOT ON THIS LINE, though O1c-2 draws it there. Every
+   * figure on this sheet already carries the symbol — the blinds and the buy-in
+   * both — so the code was the one part of the line that said nothing a reader
+   * could not already see, and it cost the room the blinds now need: a
+   * mandatory straddle is a third figure in `stakesLabel`. It is still SET on
+   * Game details, one tap behind *Change*, which is where a club that keeps its
+   * book in another money goes to say so. Owner's call, 15 September; recorded
+   * in `docs/screens.md`.
    */
-  const terms = `${stakesLabel(liveStakes)} · ${formatMoney(liveBuyIn)} in · ${currency.code}`;
+  const terms = `${stakesLabel(liveStakes)} · ${formatMoney(liveBuyIn)} buy-in`;
   const deductions = [
     ...active.map((r) => r.name),
     roundingClause(liveRounding),
