@@ -200,28 +200,38 @@ export function ruleDetail(
 /**
  * How coarsely the group settles, offered as a row of chips.
  *
- * The four the interface offers, and the labels are the decided copy: rev 18's
+ * The five the interface offers, and the labels are the decided copy: rev 18's
  * S14 draws the rounding control as an open chip row reading
  * "Cent · Dollar · 10s · 50s · 100s · 1k". `RoundingMode` still carries all
  * six values because they are written into `book.rounding_mode` on the server
- * — a stored night set to fifties keeps settling in fifties and reads back
- * correctly below. What is OFFERED is these four: cents needs amounts held in
- * minor units, which is not built, and fifties has never been asked for.
+ * — a stored night set to cents reads back correctly below. What is OFFERED is
+ * these five: cents is the one held back, because honouring it needs amounts
+ * stored in minor units, which is a data migration rather than a setting, and
+ * `granularityOf` throws on it rather than quietly taking the wrong money.
+ *
+ * `thousands` WAS HELD BACK TOO, AND IS NOT ANY MORE. It was left off on the
+ * same ground as cents — not asked for — but unlike cents it costs nothing to
+ * offer: `granularityOf` has always returned 1000 for it, `book.rounding_mode`
+ * has always stored it, and it is the step a group playing for thousands
+ * actually settles at. O1d's own row draws it (`1 5 10 50 100 1000`), so
+ * offering it closes one of the two gaps between that board and this list.
+ * The other is the 5, which `RoundingMode` has no value for.
  */
 export const ROUNDING_MODES: readonly RoundingMode[] = [
   'dollars',
   'tens',
   'fifties',
   'hundreds',
+  'thousands',
 ];
 
 /**
- * The four rows, named in the group's own money.
+ * The five rows, named in the group's own money.
  *
- * A FUNCTION RATHER THAN A CONSTANT, since 31 August, because three of the four
+ * A FUNCTION RATHER THAN A CONSTANT, since 31 August, because four of the five
  * names carry an amount — and an amount in this app is written in whatever
  * currency the group keeps its book in. A frozen array reading `Nearest $10` is
- * a list of four strings that are wrong for every group that does not play in
+ * a list of strings that are wrong for every group that does not play in
  * dollars.
  */
 export function roundingChoices(
@@ -237,7 +247,7 @@ export function roundingChoices(
 }
 
 /**
- * The same four, written as the STEP alone — `1 · 10 · 50 · 100`.
+ * The same five, written as the STEP alone — `1 · 10 · 50 · 100 · 1000`.
  *
  * `design/handoff-game-settings/`, frame O1d: the rounding control on Game
  * details is a row of flexed chips under a label reading "Round to the
@@ -248,11 +258,20 @@ export function roundingChoices(
  * It reads the same `ROUNDING_MODES` as `roundingChoices` rather than a list of
  * its own, so the two controls can never come to offer different settings.
  *
- * ⚠ THE BOARD DRAWS SIX AND THE ENGINE SETTLES AT FOUR. O1d's row is
- * `1 5 10 50 100 1000`; `RoundingMode` has no 5, and `thousands` and `cents`
- * are carried for stored nights but deliberately not offered — the note above
- * `ROUNDING_MODES` says why. Four chips is what the app can honour, and a chip
- * that sets nothing is worse than a shorter row.
+ * ⚠ THE BOARD DRAWS SIX AND THE ENGINE SETTLES AT FIVE. O1d's row is
+ * `1 5 10 50 100 1000`; `RoundingMode` has no 5, and `cents` is carried for
+ * stored nights but deliberately not offered — the note above `ROUNDING_MODES`
+ * says why. Five chips is what the app can honour, and a chip that sets nothing
+ * is worse than a shorter row.
+ *
+ * `1000` IS FOUR CHARACTERS IN A CHIP SIZED FOR THREE, and that is why the step
+ * row on O1d is `flex: 1` per chip rather than a fixed width: five chips share
+ * the card and each takes a fifth of it, whatever is written in them. The
+ * audit's `figure-clipped` pass is what holds it — a step is a bare number, so
+ * it is a figure to that check, which is the one place a numeric label gets
+ * measured against the box drawn round it. (Its `label-through-its-control`
+ * pass does not reach these: that one walks `[role="button"]`, and a step chip
+ * is a `radio`.)
  */
 export function roundingSteps(): ReadonlyArray<{ mode: RoundingMode; step: string }> {
   return ROUNDING_MODES.map((mode) => ({ mode, step: String(granularityOf(mode)) }));

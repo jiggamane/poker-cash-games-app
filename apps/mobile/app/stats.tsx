@@ -17,6 +17,7 @@ import {
   mostRecentFirst,
   periodTitle,
   readBook,
+  sinceTitle,
   summarise,
   type Period,
   type PlayedNight,
@@ -103,6 +104,12 @@ export default function MyStats() {
   );
   const stats = useMemo(() => summarise(nights), [nights]);
 
+  /* WHAT `All time` IS NAMED AFTER — the month of the earliest night in the
+     SCOPED book, which is the one the figure beside it is added up from. Read
+     off `scoped` rather than `nights` so the label is the same fact whichever
+     tab is showing, and computed in `myStats` rather than here. */
+  const since = useMemo(() => sinceTitle(scoped), [scoped]);
+
   /*
    * THE GRAPH IS THE LAST EIGHT, OLDEST FIRST — and it reads the SCOPED
    * history rather than the period's, deliberately. `LAST 8 NIGHTS` is a count
@@ -146,7 +153,7 @@ export default function MyStats() {
       headScroll="meta"
     >
       <View style={menuOpen && { opacity: MENU_DIM }} pointerEvents={menuOpen ? 'none' : 'auto'}>
-        <FigureCard period={period} stats={stats} now={now} />
+        <FigureCard period={period} stats={stats} now={now} since={since} />
 
         {plotted.length > 0 && (
           <NightsChart
@@ -211,10 +218,20 @@ export default function MyStats() {
 /**
  * THE FIGURE CARD — the answer, and the only tinted thing on the screen.
  *
- * `This month · August` over `+$610`, with `6 games · 25 h` flush right on the
- * same baseline, then a hairline and two stat pairs. The period tabs live
- * inside it because the figure is what they change: tabs anywhere else would be
- * a control with no visible subject.
+ * `August` over `+$610`, with `6 games · 25 h` flush right on the same
+ * baseline, then a hairline and two stat pairs. The period tabs live inside it
+ * because the figure is what they change: tabs anywhere else would be a control
+ * with no visible subject.
+ *
+ * THE EYEBROW IS THE STRETCH AND NOTHING ELSE — `August`, `2026`,
+ * `Since Aug 2026`. The handoff draws `This month · August`, and `This month`
+ * is the half of that line the tabs already say: `Month` is lit directly above
+ * it, and a card whose every figure is the period's does not need to be told
+ * twice which period it is. `All time` gained what the other two always had —
+ * the stretch it covers, which for a book is the month it opens in. The month
+ * is short there because the line is shared with the tabs; `sinceTitle` has
+ * the measurement. Owner's call, 15 September; recorded in
+ * `docs/screens.md`.
  *
  * ⚠ THE TINT IS THE WIN COLOUR AT 13% WHATEVER THE FIGURE IS, and that is the
  * handoff's own card. It is a departure from B23's rule about washes behind
@@ -228,10 +245,13 @@ function FigureCard({
   period,
   stats,
   now,
+  since,
 }: {
   period: Period;
   stats: ReturnType<typeof summarise>;
   now: Date;
+  /** What `All time` is named: `Since Aug 2026`. `myStats.sinceTitle`. */
+  since: string;
 }) {
   const t = useTheme();
   const net = stats.net as Money;
@@ -240,7 +260,7 @@ function FigureCard({
     <View testID="period-card" style={[styles.card, { backgroundColor: t.winWash }]}>
       <View style={styles.cardTop}>
         <Text style={[styles.eyebrow, { color: t.muted }]} {...unscaledLabel}>
-          {period === 'all' ? 'All time' : `This ${period} · ${periodTitle(period, now)}`}
+          {period === 'all' ? since : periodTitle(period, now)}
         </Text>
         <View style={styles.tabs}>
           {PERIODS.map((p) => {

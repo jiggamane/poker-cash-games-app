@@ -130,7 +130,16 @@ rule at the top of this file. `docs/invite-flow-review.md` is the working.
 **B47, B49 and B50 were fixed the same day and have moved to Fixed below;
 B48 and B51 are still here**, and B57 came out of the third cut's own question.*
 
-### B77 — My stats and Sessions were eight nights nobody had played
+*Numbered B79 and B80 on merge, not when written. They were B77 and B78 on the
+branch: two other sessions merged a B77 and a B78 to `main` the same evening —
+one of which had itself already renumbered from B77 to B78 for the same reason,
+which is now four collisions in ten days and the fifth entry in the section
+above. Nothing had to be untangled, because both of those were merged and this
+one was not: the rule at the top of this file is the one that worked. See the
+`B77` note under **where the check went** below for the one thing the merge did
+have to adjudicate.*
+
+### B79 — My stats and Sessions were eight nights nobody had played
 
 ```
 Screen      G4 My stats, and Sessions behind its `See all`
@@ -172,7 +181,7 @@ is deleted. **And every row opens its own night**, which `docs/screens.md` had
 recorded as open too and which cost nothing while eight of the nine rows were
 fiction: a list of nine nights that all open the tenth is a list you cannot read.
 
-### B78 — a night pulled off the server had nobody's name on it
+### B80 — a night pulled off the server had nobody's name on it
 
 ```
 Screen      G4 My stats, Sessions, and every results screen reached from them
@@ -449,8 +458,8 @@ Locked by   ui-journeys.mjs — the `my stats` and `sessions` stops now tap the
             Verified against the fault: with the row's onPress removed again
             the leg reports "tapping a past game left the list on screen —
             the row navigates nowhere"
-            ⚠ MOVED 15 Sept, with B77. The tap needs a real settled night on
-            screen and the browser build has only the seeded one, which B77
+            ⚠ MOVED 15 Sept, with B79. The tap needs a real settled night on
+            screen and the browser build has only the seeded one, which B79
             correctly keeps out of the book — so the journey now asserts the
             lists are empty after a demo night, and book.test.ts § "where a
             row goes" reads both screens' source and fails if a row stops
@@ -458,7 +467,7 @@ Locked by   ui-journeys.mjs — the `my stats` and `sessions` stops now tap the
             it. The day the journey plays a night of its own, the tap comes
             back. It catches the new fault too: a row that opens whichever
             night the store happens to hold, which is what every row did until
-            B77 and which was harmless only while the rows were fiction
+            B79 and which was harmless only while the rows were fiction
 Status      fixed in this branch
 ```
 
@@ -896,6 +905,150 @@ Fix this before drawing anything new for the invite flow, or every state the
 ---
 
 ## Fixed
+
+### B78 — the money fields on Game details cut off a four-digit figure
+
+*Written as B77 and renumbered in the merge, which is the fifth time this file
+has recorded that. B76 was the highest on `main` when this branch started; a
+session working on My stats merged its own B77 first, so that one keeps the
+number and this moved up — the rule at the top of this file, applied. Worth
+noting a second claim that is NOT resolved: `docs/money-rules-mid-game-review.md`
+proposes B76, B77 and B78 for work it has not built, and all three are taken
+now. That doc needs renumbering when somebody builds it; nothing there is on
+`main`, so nothing there holds a number.*
+
+```
+Screen      O1d Game details — Stakes, Straddle amount and Standard buy-in.
+            Then, once there was a check, /seat and /rule as well
+Seen        a box 29 points wide holding "500", and a group playing for
+            thousands typing 1000 into it; at the reader's larger text
+            settings the last digit of a figure already in the box goes
+Expected    four digits in every one of them, at any text size the phone
+            will draw them at
+Found       15 Sept, asked for directly — "make sure the value fields can fit
+            in and be visible the 3-4 digit figures"
+Locked by   npm run check:ui — ui-audit.mjs, "amount-field-too-narrow" and
+            "amount-field-uncapped", a pass written with this bug because
+            nothing that existed could see it
+Status      fixed in this commit
+```
+
+A `TextInput` does not grow to its content, so `fieldWidth()` computed one:
+characters × a per-character advance in points. Both halves of that were wrong
+at once, and either one alone would have been enough.
+
+**The advance is points off a board and the digits are not.** Every `Text` and
+`TextInput` in react-native scales with the reader's system text setting, which
+is the fault `tokens.ts` names as B18 and answers with `cappedFigure` — and no
+field in this card carried it. So the box stayed at 39 points while the figure
+in it grew, and `1000` read as `100`. On a screen whose only job is to say what
+the table is playing for, that is not a truncation, it is a different game.
+
+**And the box was sized to the digits already in it**, which is a box three
+characters wide when it holds `500`. The fourth digit of a buy-in typed into it
+has nowhere to go until the re-render catches up, and on a field that is
+`textAlign: 'right'` what it does in the meantime is push the leading digit out
+of view. The floor is four characters now — a floor, not a cap, so five digits
+still widen it.
+
+**What could see it: nothing, and that is the part worth keeping.** B12 is this
+same fault on Settle up, found on a phone on 21 August, and `ui-journeys.mjs`
+was pointed at figures being cut off because of it. That pass — and the audit's
+`figure-clipped`, which is the same idea — walks elements and reads their own
+TEXT NODES. An `<input>` has none; its figure is a `value`. So every box in this
+app that a person types money into fell out of both loops at the first line, and
+thirty-seven screens were reported clean over three weeks by two checks that had
+never measured one of them.
+
+`AMOUNTS` in `ui-audit.mjs` is the pass that now does, and it is run twice per
+route — once on the face the URL opens at, and again after the `BEHIND` tap,
+because O1d is behind O1's *Change* pill and a pass that only measures what a
+URL lands on measures a card with no money fields on it at all. It asks for four
+digits at the field's own declared cap, so it fails on a field that is too
+narrow AND on one that never declared a cap, which is the state this bug was.
+
+**It found two more screens on its first full run, which is the point.** The
+report was about Game details. `/seat`'s buy-in field is a fixed 72-point box
+with `maxLength={9}` and a comment reasoning that nine digits fit — true at
+100% and at no setting above it. The three figures on `/rule` sit in boxes that
+are a share of a row the board fixed, so they do not grow with the text either.
+None of it was reported by anybody and none of it could have been: they are all
+`<input>`s, and until this pass existed no check in the repo had ever measured
+one. All four screens carry `cappedFigure` now.
+
+### B77 — an open group menu could only be closed by the control that opened it
+
+```
+Screen      My stats, and Sessions and the past session with it — every screen
+            that draws `Dropdown`
+Seen        `All groups` tapped open, then a tap anywhere else on the screen:
+            nothing happens. The menu stays up, the screen behind it stays at
+            32%, and the only way out is to find the control again. And on My
+            stats the menu was UNDER the card it hangs over: at 360 points
+            wide not one of its three rows answered a tap in its own middle —
+            the scroller behind it did
+Expected    a tap outside the menu closes it, which is what a menu does on
+            every phone anybody owns — and the menu itself takes the taps that
+            land on it
+Found       15 Sept, reported by the owner using My stats
+Locked by   npm run check:ui — ui-journeys.mjs, "and a tap outside closes it",
+            which opens the group menu on My stats and taps the foot of the
+            screen
+            ⚠ MOVED TO THE SETTLED NIGHT in the B79 merge, hours later. It
+            opened `stats-scope`, which was a menu only because the invented
+            history put two clubs in the book; B79 deletes that, so a phone
+            that has played nothing has one option and `Dropdown` draws the
+            control as a label by design — the check would have reported
+            "tapping the control drew no menu" for a screen with nothing
+            wrong with it. It runs against `session-view-control` now: three
+            options that are always there, a ranked list under the menu for
+            the navigation half of the assertion, and the same backdrop,
+            because the fix is `Dropdown`'s and every caller shares it.
+            Nothing was given up — see below
+Status      fixed in this commit
+```
+
+**Where the check went, and why that is not a fix being discarded.** This and
+B79 were written the same evening by two sessions that never opened the same
+file — and the two checks still collided, in behaviour rather than in text,
+which is the case `CLAUDE.md` describes and the reason it says a shared
+component is a shared file. B77's check depended on `SAMPLE_HISTORY` without
+naming it: two invented clubs in the book are what made a one-option control
+into a two-option menu. B79 deletes the invented clubs. Neither side is wrong
+and a conflict resolution would have been a coin toss, so the check moved to a
+control that has three options on any phone. What B77 protects is `Dropdown`'s
+own backdrop, which is one answer for every caller — so the protection is
+unchanged and it is now asserted somewhere it cannot be taken away by what is
+or is not in somebody's history.
+
+The dimming was right and the deafness was the bug. While the menu is up, the
+body of the screen drops to 32% and stops answering taps — a row under an open
+menu must not open a player — and on My stats and Sessions "stops answering" was
+`pointerEvents="none"` and nothing else. So the tap landed on a surface with no
+handler behind it and the gesture did nothing at all.
+
+**Fixed in `Dropdown` rather than in the screens**, because it had three answers
+to one question: `/settled` laid a `Pressable` over its own list, which covers
+the list and not the title row above it, and the other two had none. A backdrop
+the control draws itself is one answer, and it reaches the whole screen — it
+hangs off the anchor and is stretched a phone's width and height past every edge
+of it, so it covers the screen without the component having to know where on the
+screen it was put.
+
+It sits under the menu and over everything else, the control included: a tap on
+the button while it is open lands on the backdrop and closes the menu, which is
+what the button would have done anyway.
+
+**And the second fault is why the first one took a while.** A backdrop that
+covers the screen is no use if the screen is painted on top of it, and on My
+stats it was: the scroller is a LATER SIBLING of the title row the control sits
+in, so it took every tap meant for anything the title row hangs below itself —
+the backdrop, and the menu. `elementFromPoint` in the middle of each of the
+three menu rows returns the scroller, every time. The meta line on Sessions has
+carried `zIndex: 20` for exactly this since the day it was drawn, with a comment
+saying why; the title row never had it, because until My stats nothing in it
+hung anything downwards. It has it now, in `Screen.tsx`, and the comment there says
+what it does and does not change.
 
 ### B76 — O1's two longest rows both ended in an ellipsis
 

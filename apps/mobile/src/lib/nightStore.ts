@@ -1216,14 +1216,14 @@ function nightAsMine(night: Night): MyNight | null {
 /**
  * EVERY NIGHT OF YOURS, newest first.
  *
- * ⚠ IT USED TO BE THE ONE NIGHT THE STORE WAS HOLDING, and that is B77. The
+ * ⚠ IT USED TO BE THE ONE NIGHT THE STORE WAS HOLDING, and that is B79. The
  * phone has held many for as long as `importNights` has existed — a pull writes
  * every night on the server into the same `night` table a host's own games are
  * recorded in — and the two screens that read them both went through
  * `myNights(night)`, which took the single night the store had open and
  * returned a list of at most one. So a host who had played nine games saw the
  * ninth, a member who claimed a seat and pulled their whole book saw none of it
- * (B78, for a second reason), and the eight rows either of them was actually
+ * (B80, for a second reason), and the eight rows either of them was actually
  * looking at were `SAMPLE_HISTORY`: invented nights, in two invented groups,
  * that nobody had ever played.
  *
@@ -2014,7 +2014,7 @@ export interface ImportedNight {
   /**
    * WHICH OF THESE NAMES IS THE PERSON HOLDING THE PHONE, where it is known.
    *
-   * ⚠ IT WAS NEVER WRITTEN, and that is B78. `me_id` is what makes a night
+   * ⚠ IT WAS NEVER WRITTEN, and that is B80. `me_id` is what makes a night
    * yours — it is the id every result screen looks up to say "You" and the one
    * `nightAsMine` reads to work out your figure — and it is stamped by
    * `CLAIM_LIVE_NIGHTS`, which by design touches nothing that is already

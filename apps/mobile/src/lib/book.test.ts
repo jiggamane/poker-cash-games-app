@@ -11,7 +11,7 @@ import { expoSqlite, reset } from './testSqlite';
  * it do to me. Two faults made that answer a fiction, and neither of them broke
  * anything a check could see.
  *
- * **B77 — the book was eight invented nights and at most one real one.**
+ * **B79 — the book was eight invented nights and at most one real one.**
  * `myNights()` took the single `Night` the store was holding and returned a
  * list of at most one, and both screens concatenated `SAMPLE_HISTORY` behind
  * it: eight nights, in two groups, with plausible durations and player counts,
@@ -22,7 +22,7 @@ import { expoSqlite, reset } from './testSqlite';
  * pulled their whole book saw none of it, and the figures at the top of My
  * stats were about a fictional person.
  *
- * **B78 — a night pulled off the server had nobody's name on it.** `me_id` is
+ * **B80 — a night pulled off the server had nobody's name on it.** `me_id` is
  * what makes a night yours, and it is stamped by `CLAIM_LIVE_NIGHTS`, which by
  * design never touches a night that is already settled. Every night arriving
  * from the server is settled before it lands. So the pull wrote the ledger, the
@@ -125,7 +125,7 @@ describe('a phone that has never played a night', () => {
     expect(seeded.seeded).toBe(true);
 
     /*
-     * AND THE BOOK IS EMPTY. This is B77's tripwire. Before, the same call
+     * AND THE BOOK IS EMPTY. This is B79's tripwire. Before, the same call
      * stood behind eight rows of `SAMPLE_HISTORY` — two groups this person has
      * never heard of, and a headline figure adding them up. The honest answer
      * to "what have I played" on a phone that has played nothing is nothing,
@@ -168,7 +168,7 @@ describe('the nights the server sends back', () => {
     await night.openNight();
 
     /*
-     * B78's other half. A book holds games played before the reader joined the
+     * B80's other half. A book holds games played before the reader joined the
      * group, and the pull hands the whole roster down on every night — so
      * "is in this group" is not the test. A night stamped with somebody who was
      * not there would sit in their lifetime total at zero, which reads as an
@@ -243,13 +243,13 @@ describe('what the book refuses', () => {
  * list and require a settled night — the live half of B65's protection, when
  * the score-breakdown row was applied to both lists and silently took their
  * `onPress` with it. That tap needs a real settled night on screen, and the
- * browser build has only the seeded one, which B77 correctly keeps out of the
+ * browser build has only the seeded one, which B79 correctly keeps out of the
  * book. So the journey now asserts the lists are empty and this asserts the
  * wiring.
  *
  * TWO FAULTS, AND THE SECOND IS THE NEW ONE. A row that navigates nowhere is
  * B65. A row that navigates to whichever night the store happens to hold is
- * what every row on both lists did until B77 — harmless while eight of the nine
+ * what every row on both lists did until B79 — harmless while eight of the nine
  * rows were invented, and the whole screen the moment they are somebody's real
  * games. Opening a night is `openNightById` first and `router.push` second, the
  * order `goTo` on home uses, because every screen below reads the store's night.
@@ -283,7 +283,7 @@ describe('where a row goes', () => {
   it('neither screen draws a night nobody played', () => {
     for (const file of ['stats.tsx', 'games.tsx']) {
       const source = screen(file);
-      // B77. The book is read from the store, never concatenated with a fixture.
+      // B79. The book is read from the store, never concatenated with a fixture.
       expect(source, `${file} imports a fabricated history`).not.toMatch(/sampleHistory|SAMPLE_HISTORY/);
       expect(source, `${file} does not read the book`).toContain('useMyNights');
     }

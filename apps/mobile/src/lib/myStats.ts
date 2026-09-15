@@ -84,7 +84,7 @@ export interface RecordedNight {
  * assembling the same book two ways is the drift, and one function is the fix:
  * the destination cannot hold less than the sample that links to it.
  *
- * ⚠ AND THE SEEDED HALF IS GONE — B77. It took a second list and concatenated
+ * ⚠ AND THE SEEDED HALF IS GONE — B79. It took a second list and concatenated
  * it, and what both screens passed was `SAMPLE_HISTORY`: eight invented nights
  * in two invented groups, drawn from board G4 so that My stats had something to
  * open with while the phone could only hold one real night. The phone can hold
@@ -179,4 +179,43 @@ export function formatNightDate(startedAt: string, withWeekday = false): string 
     day: 'numeric',
     month: 'short',
   });
+}
+
+/**
+ * `Since Aug 2026` — where the book itself starts.
+ *
+ * WHAT `All time` SAYS NOW. The other two tabs name the stretch they cover —
+ * `August`, `2026` — and `All time` named nothing: the same two words over a
+ * figure that is six nights on a new phone and four years of poker on an old
+ * one, with no way to tell which from the screen. The month the first night was
+ * played is the one fact that separates them.
+ *
+ * IT READS THE SCOPED BOOK, so a reader who has narrowed to one club is told
+ * when THAT club's first night was rather than when they started playing. The
+ * figure beside it is scoped the same way.
+ *
+ * Falls back to `All time` on an empty book, which is the only honest thing it
+ * can say: there is no first night to name, and `Since` with nothing after it
+ * is worse than the words it replaced.
+ *
+ * ⚠ THE MONTH IS SHORT — `Since Sept 2026`, and not `Since September 2026`.
+ * The eyebrow shares its line with the three period tabs, which leaves it 143
+ * points on a 360 phone. `Since August 2026` takes 133 and fits;
+ * `Since September 2026` does not, and on the long months the line wrapped and
+ * the card grew eight points. Measured in the built app at 360 and 393, not
+ * guessed at. A short month clears it by a wide margin and the card is one
+ * height all year — and it is the spelling `formatNightDate` already puts on
+ * the rows four lines below, so the same option object writes both.
+ */
+export function sinceTitle(nights: readonly PlayedNight[]): string {
+  let earliest = Number.POSITIVE_INFINITY;
+  for (const n of nights) {
+    const at = Date.parse(n.startedAt);
+    if (Number.isFinite(at) && at < earliest) earliest = at;
+  }
+  if (!Number.isFinite(earliest)) return 'All time';
+  return `Since ${new Date(earliest).toLocaleDateString('en-GB', {
+    month: 'short',
+    year: 'numeric',
+  })}`;
 }
