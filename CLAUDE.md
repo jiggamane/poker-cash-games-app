@@ -148,23 +148,37 @@ stands. Read them newest first:
   ⚠ **It calls itself rev 18 and numbers its changes S108–S114, which collide
   with the repository's rev 18** — cite either by date. Its `START-HERE.md` has
   the collision and the two places the app deviates from it on purpose.
+- **`design/handoff-game-end/`, cut 6 September.** The end of the night as three
+  surfaces and one sheet — 1a Settled night, 2a Who pays whom, the Rounding
+  sheet. **It drops `Full ledger` and `/ledger` with it**, by name: *"Do not
+  build it, do not link to it."* The four columns that screen drew are the terms
+  line under each name on `/settled`, which can say what the table never could —
+  a player who owes a share of the bill and paid it at the counter reads `bill 50
+  +100 back`, two terms, never netted. `Left to move` and the status pill are one
+  `paymentProgress` call across both screens, which is the cut's own rule.
+  ⚠ **This bullet was missing until 16 September, and the list said seven while
+  listing six.** That is why the two lines below went on describing `/ledger` as
+  a screen for ten days after `0e6667f` deleted it — a cut nobody cited cannot
+  correct anything, and the file said out loud that one was missing.
 - **`design/handoff-count-up-to-settled/`, cut 1 September.** The
   ending flow as one thing: E2 counts, E4 agrees the transfers, E6 reads the
   night back. It decides two things and carries the other two docs forward
   unchanged. **E6's row states the night's terms under the name** — `game
   +$1,620 · food −$54 · piggy −$23` — with `7e`, the four-column table, kept
-  behind *Full ledger*, which is `/ledger`. **Settled players are grouped, muted
-  and signed** on Tonight and on E2 alike, because the right-hand column changes
-  meaning between an active row and a settled one and nothing else on the row
-  said so. Its `docs/03` and `docs/04` are byte-identical to the E2 cut's two
-  docs; where it and an older cut disagree about a screen it speaks on, this one
-  wins.
+  behind *Full ledger*. ⚠ **That half is superseded: the 6 September game-end
+  cut above drops `Full ledger` and `/ledger`**, and the terms line is the whole
+  of it now. **Settled players are grouped, muted and signed** on Tonight and on
+  E2 alike, because the right-hand column changes meaning between an active row
+  and a settled one and nothing else on the row said so. Its `docs/03` and
+  `docs/04` are byte-identical to the E2 cut's two docs; where it and an older
+  cut disagree about a screen it speaks on, this one wins.
 - **`design/handoff-E6/`, cut 30–31 August, and the rev-18 E6 frame on top of
   it.** The settled night, rebuilt from the frame the owner pointed at: the
   three-figure summary, the formula line, the rule outcomes at the foot. Its
-  columns layout is `/ledger` now; its receipt rows are still what the player
-  card draws. `docs/screens.md` records where this and the 1 September cut
-  disagree — one place, about a term of `$0` — and that it is unanswered.
+  columns layout was `/ledger`, and `/ledger` is dropped — those four columns are
+  the terms line under each name on `/settled`. Its receipt rows are still what
+  the player card draws. `docs/screens.md` records where this and the 1 September
+  cut disagree — one place, about a term of `$0` — and that it is unanswered.
 - **`design/handoff-E2/`, cut 30–31 August.** The status block on E2 Count up,
   which it replaces with the whole equation — bought in against cashed out plus
   counted — and the rounding step, which E2 owns. Its logic doc is the
