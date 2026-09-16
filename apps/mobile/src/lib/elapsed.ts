@@ -109,6 +109,30 @@ export const clockLabel = (at: string | Date): string =>
   });
 
 /**
+ * "20:05 → 06:38" — when the night started and when it ended.
+ *
+ * THE WHOLE OF THE PAST SESSION'S META LINE, and it is the two times because
+ * they are the only terms on it that cannot grow. A wall clock is four digits
+ * at every night this app can record; an elapsed figure gains a digit at a
+ * hundred hours, a player count at ten seats, and a line that shares its row
+ * with the 34-point view control has about 200 points to spend. B81 is the
+ * second time that line was cut to fit and the first time it was cut to
+ * something with a fixed width.
+ *
+ * ⚠ NO END, NO ARROW. A night with nothing in it has no last stamp to fall
+ * back on, and "20:05 →" pointing at a blank is a line that looks broken
+ * rather than one that is waiting. The start alone is the honest reading, and
+ * it is the same clock either way. On `/settled` it cannot happen — a night
+ * with no result never reaches this line, it gets the *Not settled* screen —
+ * so nothing drawn anywhere depends on it; it is here so the function has an
+ * answer rather than a crash.
+ */
+export function nightSpan(startedAt: string, endedAt: string | null): string {
+  const started = clockLabel(startedAt);
+  return endedAt === null ? started : `${started} → ${clockLabel(endedAt)}`;
+}
+
+/**
  * How long until the wall clock reads a different minute.
  *
  * The same shape as `msUntilNextLabelChange` and for the same reason: a

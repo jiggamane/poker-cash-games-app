@@ -833,6 +833,28 @@ const ROOM = `
     }
   }
 
+  // ---- and the meta line itself is never cut off --------------------------
+  //
+  // B81. The figure pass above is deliberately about NUMBERS - a truncated
+  // name is a nuisance and a truncated amount is a lie - so it lets any run of
+  // words ellipsise, and the line under a screen's title went on doing exactly
+  // that, twice. It read "Settled - 9h 57m - 8..." on a 393 phone, which is not
+  // a name giving way: it is a header sentence losing a whole term, and every
+  // term on it was there because nothing else on the screen says that fact.
+  //
+  // So this one check carves the meta line out of the names rule. It is one
+  // element, it is the app's own, and its job is to state facts in full - if
+  // it cannot, the line is too long for the row rather than too unimportant to
+  // read. numberOfLines={1} means a clipped line reports a scrollWidth past
+  // its box, which is the same signal figure-clipped reads.
+  if (metaText !== null && metaText.scrollWidth > metaText.clientWidth + 1) {
+    findings.push({
+      check: 'meta-line-truncated',
+      detail: 'needs ' + px(metaText.scrollWidth) + ' in ' + px(metaText.clientWidth),
+      where: metaText.textContent.trim(),
+    });
+  }
+
   // ---- 1 · only lists scroll ----------------------------------------------
   const doc = document.scrollingElement;
   if (doc && doc.scrollHeight > doc.clientHeight + 1) {

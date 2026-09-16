@@ -1759,6 +1759,14 @@ cut's 12 because the taller row is the one being spaced. `meta-row-floor` in
 collision, and it measures the row's content rather than its box, because
 padding lives inside the box.
 
+**And a gap of 8 between the line and the control, not the title row's 12** —
+B82. This row is the only place in the app where text and a control compete
+for one width, and at 120% text `9 nights · newest first` was two points over.
+No board draws anything between the two, so the gap is the one dimension there
+that can be spent. `meta-line-truncated` watches the result, in both screen
+passes: `ui-audit.mjs` for the routes it can open cold, and `ui-journeys.mjs`
+for the settled night, which only exists once a night has been played.
+
 ### My stats
 
 Three blocks: the figure card, the graph, `Last games`.
@@ -1917,11 +1925,20 @@ Eight players have to fit without scrolling — the handoff's own budget is *"wi
   one line each instead of three, under the list instead of over it.
 * **The segmented control**, which held two of the three views and could not
   hold the third.
-* **The two wall-clock times** came off the meta line, which now reads
-  `Settled · 3h 17m · 6 players`. The control shares that line and leaves about
-  200 points for the text; the old line truncated at the player count on a 393
-  phone. The times are on `/log`, entry by entry; the status, the elapsed and
-  the count are on no other screen.
+* **The meta line is the two wall-clock times and nothing else** —
+  `20:05 → 06:38`. It has been cut twice. The control shares that line and
+  leaves about 200 points for the text, so on 9 September the two times came
+  off and it read `Settled · 3h 17m · 6 players`; at a ten-hour night with
+  eight players that still ran past the control and lost the count mid-word
+  (B81, off a phone on 15 September). **The second cut is the one that holds
+  because it is about width rather than count**: every other term grows with
+  the night's own figures — the elapsed at a hundred hours, the count at ten
+  seats, a longer currency taking the rest — and two clocks are thirteen
+  characters at every night the app can record. The span between the times is
+  the elapsed, the list is the players, `/log` has every stamp; the status word
+  was unreachable, since a night with no result gets the *Not settled* screen
+  instead. `nightSpan` in `elapsed.ts` draws it, so this clock is the clock
+  every other screen prints.
 
 ### Decided against the handoff rather than by it
 

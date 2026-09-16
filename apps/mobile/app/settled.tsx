@@ -21,6 +21,7 @@ import {
 } from '../src/components/SessionViews';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, unscaledLabel } from '../src/design/tokens';
+import { nightSpan } from '../src/lib/elapsed';
 import { setSessionView, useSessionView } from '../src/lib/sessionViewStore';
 import { settlementOf, standingsOf, useNight } from '../src/lib/nightStore';
 
@@ -140,7 +141,7 @@ export default function NightResults() {
   return (
     <Screen
       title={nightDate(night.startedAt)}
-      meta={metaLine(night, rows.length)}
+      meta={metaLine(night)}
       /* THE CONTROL SHARES THE META LINE — the handoff puts it there rather
          than under it, because it is the state of the list rather than a
          heading for it. */
@@ -325,43 +326,37 @@ function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
  */
 
 /**
- * "Settled · 3h 40m · 8 players".
+ * "20:05 → 06:38" — when the table opened and when it closed.
  *
- * ⚠ SHORTER THAN IT WAS, AND THE TWO WALL-CLOCK TIMES ARE WHAT WENT. It read
- * `20:05 → 06:38 · 10h 46m · 7 players · settled` until 9 September, and the
- * session-views cut draws this line with the view control sharing it — which
- * leaves about 200 points for the text. The old line truncated at the player
- * count on a 393 phone, so the screen lost the one fact on the line a reader
- * actually needs to see beside the ranking.
+ * ⚠ THIS LINE HAS BEEN CUT TWICE AND THIS IS THE CUT THAT HOLDS. It read
+ * `20:05 → 06:38 · 10h 46m · 7 players · settled` until 9 September, when the
+ * session-views cut put the view control on this row and left the text about
+ * 200 points; the two times came off and it became `Settled · 3h 40m · 8
+ * players`. At a ten-hour night with eight players THAT still ran past the
+ * control and lost the count mid-word — B81, photographed on a phone.
  *
- * WHAT WAS DROPPED IS RECOVERABLE AND WHAT IS LEFT IS NOT. The times are on
- * `/log`, entry by entry, with the duration between them; the status, the
- * elapsed and the count are on no other screen at all. The handoff's own line
- * makes the same call, in the same order, and this is it with the app's status
- * word where the handoff hard-codes `Settled`.
+ * So the fix is not a fourth arrangement of terms. Every term but a wall clock
+ * grows with the night's own figures — the elapsed gains a digit at a hundred
+ * hours, the count at ten seats, and a longer currency takes the rest — while
+ * two clocks are thirteen characters at every night this app can record. The
+ * line is the times and nothing else, and it cannot come back.
  *
- * THE PLAYER COUNT IS THE COUNT OF ROWS THE LIST DRAWS, passed in rather than
- * recomputed: a header saying eight players over a list of seven would be the
- * header disagreeing with the block under it.
+ * WHAT WENT IS STILL ON THE SCREEN. The span between the two times is the
+ * elapsed figure; the list underneath is the players, one row each. The status
+ * word was unreachable from here — a night with no result gets the *Not
+ * settled* screen above, with its own lede — so `Not closed yet` was a string
+ * this line could not draw. `/log` has every stamp, entry by entry.
+ *
+ * `nightSpan` is the whole of it, and it is `elapsed.ts`'s so that the clock
+ * here is the clock every other screen prints. This screen's own `elapsed`
+ * helper went with the figure it formatted.
  */
-function metaLine(night: NonNullable<ReturnType<typeof useNight>>, players: number): string {
+function metaLine(night: NonNullable<ReturnType<typeof useNight>>): string {
   const stamps = Object.values(night.occurredAt);
   const last = stamps.length === 0 ? null : stamps.reduce((a, b) => (a > b ? a : b));
-  const ended = night.endedAt ?? last;
-
-  return (
-    `${night.status === 'settled' ? 'Settled' : 'Not closed yet'} · ` +
-    `${elapsed(night.startedAt, ended)} · ${players} ${players === 1 ? 'player' : 'players'}`
-  );
-}
-
-/* The two wall-clock times came off this line on 9 September — `metaLine`
-   above says why, and `/log` is where they still are. */
-
-function elapsed(startedAt: string, endedAt: string | null): string {
-  const end = endedAt === null ? Date.now() : new Date(endedAt).getTime();
-  const mins = Math.max(0, Math.round((end - new Date(startedAt).getTime()) / 60000));
-  return `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`;
+  /* The close is the night's own stamp, and the last thing that happened at
+     the table when it has none. */
+  return nightSpan(night.startedAt, night.endedAt ?? last);
 }
 
 /* "Sat 29 Aug". SHORT, so the title holds one line at full width. */
