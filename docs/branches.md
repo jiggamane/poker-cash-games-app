@@ -85,26 +85,79 @@ replaced them rather than lost them. Do not merge them back.
 
 | On the old branches | In main |
 | --- | --- |
-| `add-expense.tsx`, `expenses.tsx` | `bill.tsx`, `spend.tsx`, `bill-rules.tsx`, `kitty-rules.tsx` (rev 12, L1–L6) |
+| `add-expense.tsx`, `expenses.tsx` | `bill.tsx`, `spend.tsx`, `bill-rules.tsx`, `piggy-bank-rules.tsx` (rev 12, L1–L6) |
 | `my-stats.tsx` | `stats.tsx` (rev 10, G4) |
 | `new-session.tsx` | `new-night.tsx` (rev 13 — inherited rules, not a form) |
-| `kitty.tsx` | `kitty-rules.tsx` |
+| `kitty.tsx`, `kitty-rules.tsx` | `piggy-bank-rules.tsx` — the copy says *piggy bank* throughout, and the file moved with it |
 | `PushHeader.tsx` | `Screen.tsx`, which is Chrome A itself |
 
-## What is still stranded
+## 16 September: the last two pre-`main` branches, checked and deleted
 
-Three screens, all on `claude/auth-not-working-cz298o`: **`claim.tsx`** (X2,
-claiming your place from an invite), **`invite.tsx`** (C3) and **`watch.tsx`**
-(X1, the watcher's read-only view).
+Two branches were still on the remote with no common ancestor with `main` at
+all — `git merge-base` returns nothing for either. They are from the generation
+this file opens with: both rooted at `9c11d2d`, 10 August, which is the root
+`main` does not share. **They held nothing `main` lacks, and they are deleted.**
 
-They were left behind on purpose. All three were drawn against the chrome rev 9
-replaced — a labelled back row and a home glyph — so they cannot be copied
-across; they have to be rebuilt in `Screen`/`Sheet`, which is a design job and
-not a transplant. Everything they need is already in `main`: `invites.ts`,
-`shareLink.ts`, `pull.ts` and the four migrations behind them.
+| Branch | Tip | | Ahead | Behind | A merge would conflict in |
+| --- | --- | --- | --- | --- | --- |
+| `claude/ui-test-sizing-fixes-3j83pu` | `2e687a9` | 16 Aug | 71 | 159 | **107 files** |
+| `claude/updates-x4rrol` | `aa564cd` | 30 Aug | 168 | 159 | **115 files** |
 
-Nothing else is outstanding. The other nine branches hold only files `main` has
-deliberately replaced.
+Full SHAs, so this is reversible for as long as GitHub keeps the objects —
+`git push origin <sha>:refs/heads/<name>` puts either back:
+
+```
+2e687a9bb0035603255d7d07062cefd863dee88b  claude/ui-test-sizing-fixes-3j83pu
+aa564cdc508cc194a5e5e51140a43056b40e86e6  claude/updates-x4rrol
+```
+
+**What was checked before deleting**, because "probably superseded" is not a
+reason to throw work away:
+
+- **The trial merges were actually run**, in a throwaway worktree, with
+  `--allow-unrelated-histories`. 107 and 115 conflicted files, among them
+  `CLAUDE.md`, `AGENTS.md`, `_layout.tsx`, `app.config.js` and most of the
+  screens. That is the coin toss the 22 August section below is about, at a
+  hundred times the scale: every wrong pick between an August snapshot and a
+  month of design review silently reverts a fix, and nothing goes red.
+- **Five files exist on them and not on `main`**, and all five are replaced
+  rather than lost: `kitty-rules.tsx` (now `piggy-bank-rules.tsx`), `stands.tsx`
+  — E2b, *where everyone stands*, folded into the count-up and session-views
+  cuts — and `sampleHistory.ts`, which is the invented history B79 deleted the
+  day before. A merge would have put that one back.
+- **Every bug entry on `updates-x4rrol` is already in `main`**: B1–B22, sixteen
+  entries, all present in a log that is now at B80 with 76.
+  `ui-test-sizing-fixes` predates `docs/bugs.md` entirely.
+- **Three of their fixes were read rather than taken on trust**, since a bug log
+  says what somebody wrote down, not what shipped: `HOLD_MS = 1000` in
+  `HoldButton.tsx` is byte-identical on both sides, `setPaid(from, to, paid:
+  boolean)` takes the tick both ways, and the Count-up equation work is in
+  `design/handoff-E2/` with `countUpBlock.ts` behind it.
+
+The rule this confirms is the one at the top of this file, and it is worth
+stating as a rule rather than as an incident: **a branch that predates `main`'s
+root is not storage and cannot be merged.** Anything wanted off one is
+transplanted file by file, the way the server half was on 14 August. Check the
+merge base before planning a merge — no merge base means no merge.
+
+## ~~What is still stranded~~ Nothing is stranded
+
+**Empty as of 16 September, and left here as the record rather than deleted.**
+
+It read: three screens, all on `claude/auth-not-working-cz298o` —
+**`claim.tsx`** (X2, claiming your place from an invite), **`invite.tsx`** (C3)
+and **`watch.tsx`** (X1, the watcher's read-only view). They were left behind on
+purpose, because all three were drawn against the chrome rev 9 replaced — a
+labelled back row and a home glyph — so they could not be copied across and had
+to be rebuilt in `Screen`/`Sheet`, which is a design job and not a transplant.
+
+**All three were rebuilt on 3 September, in `54e4dba`**, and are 475, 538 and
+498 lines of `Screen` and `Sheet` in `main` today. The entry went on saying they
+were stranded for a fortnight after they were not, which is its own small
+version of the fault this file is about: a record that is wrong in the
+reassuring direction sends the next session hunting on a dead branch for work
+that is already under their cursor. If you empty this section again, say so in
+it on the same day.
 
 ---
 
