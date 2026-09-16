@@ -1759,6 +1759,14 @@ cut's 12 because the taller row is the one being spaced. `meta-row-floor` in
 collision, and it measures the row's content rather than its box, because
 padding lives inside the box.
 
+**Tapping anywhere outside the group menu closes it**, and that is the
+control's own doing rather than this screen's — `Dropdown` hangs a backdrop off
+its anchor, so the same gesture works on Sessions, on My stats, on the past
+session and on `/watch`. The screen's only part in it is the `zIndex` on the
+chrome slot the control sits in, without which the body paints over the
+backdrop and over the menu's own rows. B77, and
+`Dropdown.dismiss.test.ts` holds both halves in `npm run check`.
+
 **And a gap of 8 between the line and the control, not the title row's 12** —
 B82. This row is the only place in the app where text and a control compete
 for one width, and at 120% text `9 nights · newest first` was two points over.
@@ -1977,8 +1985,19 @@ that the On table column sums to zero, that the chips block states both sides
 and what it leaves out, that the deductions block totals itself and names who
 fronted each bill, that every row carries its chips and at least one row its
 spends, that a fronted bill shows both figures behind one mark, and that eight
-rows fit above the block. `ui-audit.mjs` gains the tinted group as a second
-named exception to `tinted-result-row`, for the same reason the bone tray was.
+rows fit above the block, and that a tap outside the open menu closes it
+without opening whatever was under the finger. `ui-audit.mjs` gains the tinted
+group as a second named exception to `tinted-result-row`, for the same reason
+the bone tray was.
+
+**That last one is the app's only live check on the dismissal**, and it is on
+this screen for a reason worth writing down: the view control carries three
+items whatever is in the book, where the group control on Sessions and on My
+stats draws as plain text until the reader has a night in it — and the journey's
+night is the seeded demo one, which the book leaves out. So the group menus were
+driven by hand in the built app on 16 September, on a real night played and
+settled through the UI, and what is pinned in `npm run check` is the property
+that made them work rather than the gesture itself.
 
 ## The row is glyphs now, and it is one row drawn in one file
 

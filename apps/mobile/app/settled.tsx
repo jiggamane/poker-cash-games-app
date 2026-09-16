@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import {
   balanceCheck,
   resolveLedger,
@@ -216,8 +216,16 @@ export default function NightResults() {
        *
        * AND THE DIMMED HALF STOPS ANSWERING TAPS. A row under an open menu is
        * still a row, and tapping one would open a player from behind a control
-       * the reader was in the middle of using. `Pressable` over it closes the
-       * menu instead, which is the handoff's *"tapping outside closes it"*.
+       * the reader was in the middle of using.
+       *
+       * WHAT CLOSES IT IS THE CONTROL'S OWN BACKDROP — `Dropdown`, B77 — and
+       * not anything on this screen. This block used to lay a `Pressable` over
+       * its own list for that, which covered the list and nothing else: not the
+       * meta line, not the title row, not the band under the table. It could
+       * not have worked where it was either, because `box-only` above is what
+       * makes the dimmed half deaf and a child of a deaf box is deaf too — the
+       * computed `pointer-events` on it was `none`. It is gone; the 32% and the
+       * deafness are this screen's, and dismissal is the control's.
        */}
       <View style={menuOpen && { opacity: MENU_DIM }} pointerEvents={menuOpen ? 'box-only' : 'auto'}>
         <View style={styles.list}>
@@ -239,15 +247,6 @@ export default function NightResults() {
           <ChipsBlock balance={balance} offTable={result.totalOffTable} />
         ) : (
           <DeductionsBlock outcomes={outcomes} total={result.totalOffTable} />
-        )}
-
-        {menuOpen && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Close the view menu"
-            onPress={() => setMenuOpen(false)}
-            style={StyleSheet.absoluteFill}
-          />
         )}
       </View>
 

@@ -1155,6 +1155,42 @@ saying why; the title row never had it, because until My stats nothing in it
 hung anything downwards. It has it now, in `Screen.tsx`, and the comment there says
 what it does and does not change.
 
+**The sweep, 16 September — every control that draws this menu, checked on a
+phone-sized screen rather than argued from the component.** The fix is
+`Dropdown`'s and every caller shares it, but the half that decides whether the
+backdrop is reachable belongs to the SCREEN, so "it is the same component" is
+not an answer about a screen nobody drove. Four callers, and a real night
+played and settled through the UI first, because the group control draws as
+plain text until the book has something in it:
+
+| Where | Slot | Menu rows reachable | Tap at the foot landed on | Closed |
+|---|---|---|---|---|
+| Sessions, group | `metaTrailing` | 2 of 2 | the backdrop | yes, and did not open a night |
+| My stats, group | `trailing` | 2 of 2 | the backdrop | yes, and did not open a night |
+| The past session, view | `metaTrailing` | 3 of 3 | the backdrop | yes, and did not open a player |
+| `/watch`, view | `metaTrailing` | — | — | **not driven** |
+
+`/watch` is the one that could not be exercised: its control exists only once a
+watched night has ended, the night comes off the server, and the browser build
+has no server — the route draws *"This link isn't live"* and nothing else. It
+is the same component in the same slot as the past session, and that is an
+argument rather than a measurement. Said here rather than left to be assumed.
+
+**And the past session's own closer is gone with this.** It laid a `Pressable`
+over its own list, which covered the list and not the chrome above it; it also
+could not have fired where it was, because the wrapper around it is
+`pointerEvents="box-only"` and a child of a deaf box is deaf too — the computed
+`pointer-events` on it read `none` in the built app. Dead code with a comment
+claiming it was what closed the menu, which is worse than no comment.
+
+**What holds it now.** `ui-journeys.mjs` drives the gesture on the past session,
+which is the one menu it can reach. `Dropdown.dismiss.test.ts` holds the two
+properties that make it work everywhere else, in `npm run check`: that the
+control draws a backdrop tied to `open` which closes it and reaches past every
+edge of its anchor, that both chrome slots are painted above the body, and that
+no screen puts one of these menus anywhere else. Each of the four assertions was
+checked by removing the property it names and watching it go red.
+
 ### B76 — O1's two longest rows both ended in an ellipsis
 
 ```
