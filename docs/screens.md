@@ -1061,7 +1061,7 @@ the new one as drift from a drawing that has been superseded.
 *The game* — five list rows carrying Stakes, Default buy-in, Currency, Money
 rules and Rounding — is gone, and this is what replaced it:
 
-- **Two lines and a *Change* pill.** `₾5 / ₾5 · ₾500 in · GEL` over the
+- **Two lines and a *Change* pill.** `₾5 / ₾5 · ₾500 buy-in` over the
   deductions sentence, which is the rules that are ON tonight plus the rounding
   clause. The five settings are inherited from last time and rarely move; the
   space that buys goes on the seating, which is what the sheet is for.
@@ -1081,7 +1081,7 @@ Both of the settings rows that truncated are fixed by that, which is **B76** in
 `docs/bugs.md`: the deductions sentence has the sheet's whole width and wraps,
 and the rounding explanation sits under a label with nothing to its right.
 
-Five departures from the new boards, all deliberate, none to be "fixed" back:
+Six departures from the new boards, all deliberate, none to be "fixed" back:
 
 - **Five rounding steps, not six** — `1 10 50 100 1000`, since 15 September.
   O1d draws `1 5 10 50 100 1000`. `RoundingMode` has no 5 at all, so that one
@@ -1130,6 +1130,26 @@ Five departures from the new boards, all deliberate, none to be "fixed" back:
   sized at that cap, with a floor of four characters. `AMOUNTS` in
   `ui-audit.mjs` is what holds it, and it runs twice per route — the second time
   after the `BEHIND` tap, because this whole card is behind O1's *Change*.
+- **No currency code on the summary line, and the buy-in says `buy-in`** — 15
+  September, asked for directly. O1c-2 draws `₾5 / ₾5 · ₾500 in · GEL`; the line
+  reads `₾5 / ₾5 · ₾500 buy-in` now. Two changes, one of them cosmetic and one
+  not.
+
+  The code went because every figure on the line already carries the symbol —
+  `stakesLabel` and `formatMoney` both write it — so `GEL` was the one clause
+  that told a reader nothing the line had not already said, and it was spending
+  room the blinds had just started needing: a mandatory straddle is a third
+  figure in `stakesLabel` since this same day, so the worst case grew from two
+  figures to three while the line stayed one row. The currency is **still set**
+  on Game details, one tap behind *Change*, and the row there is untouched —
+  hiding a restatement is not the same as removing the control, and a club that
+  keeps its book in another money still says so in exactly one place.
+
+  `in` became `buy-in` because `₾500 in` leans on the sentence that is no longer
+  beside it once the settings collapse to this line — it reads as a preposition
+  before it reads as a noun. `index.tsx` already wrote `$500 buy-in` on the
+  club card, so this is the two screens agreeing rather than a new string.
+
 - **"Type the amount they are putting in."** O1c-2 writes *she*, of the one
   player it draws. Nothing in this app knows a player's pronoun, so the line is
   the same sentence in the one form that is right for everybody.
@@ -1740,7 +1760,7 @@ collision, and it measures the row's content rather than its box, because
 padding lives inside the box.
 
 **And a gap of 8 between the line and the control, not the title row's 12** —
-B80. This row is the only place in the app where text and a control compete
+B82. This row is the only place in the app where text and a control compete
 for one width, and at 120% text `9 nights · newest first` was two points over.
 No board draws anything between the two, so the gap is the one dimension there
 that can be spent. `meta-line-truncated` watches the result, in both screen
@@ -1822,15 +1842,30 @@ two things happen on the screen and not in the card.
 * **`hoursPlayed` is the elapsed table time**, not a cards-down figure. The
   handoff flags that it wants the latter and that the app does not record it.
   **Open**, and it is the handoff's own open question rather than a departure.
-* **The counts on the seeded history are invented.** `sampleHistory.ts` says of
-  itself that it is temporary and goes when there is a sessions table; the
-  player counts added to it are plausible rather than recorded, like every other
-  figure in that file.
+* **~~The counts on the seeded history are invented.~~ The seeded history is
+  gone — B79, 15 September.** `sampleHistory.ts` was eight nights in two clubs
+  that nobody had played, and every figure on this screen was computed over them
+  and the reader's own together. It was honest when written: the phone held one
+  night, and a screen with one row on it is not a screen. It stopped being
+  honest when `importNights` made the phone able to hold every night the server
+  has, and nothing marked the moment. Both screens now read `useMyNights()` —
+  every settled night on the device, resolved through the engine — and a phone
+  that has played nothing draws the empty state it already had.
+* **A row under `Last games` opens the night it names.** Recorded here as open
+  until 15 September, on the grounds that the phone held one night and there was
+  nowhere to route to. That was true when it was written and had stopped being
+  true: a row now swaps the store's night by id and then pushes, which is `goTo`
+  on home, in that order and for the same reason.
 * **The group menu closes on a tap anywhere outside it** — 15 September, B77.
   Not a departure so much as a behaviour no cut states: the handoff draws the
   menu open and closed and says nothing about what dismisses it. `Dropdown`
   owns the backdrop, so the answer is the same on My stats, on Sessions and on
   the past session, where it used to be three different answers.
+  ⚠ **Its journey check moved to the settled night** in the B79 merge: it was
+  written against `stats-scope`, which only had a menu because the invented
+  history put two clubs in the book. The rule it protects is `Dropdown`'s and
+  every caller shares it; `session-view-control` is three options that are
+  always there. See B77 and B79 in `docs/bugs.md`.
 
 ## The past session, read three ways
 
@@ -1895,7 +1930,7 @@ Eight players have to fit without scrolling — the handoff's own budget is *"wi
   leaves about 200 points for the text, so on 9 September the two times came
   off and it read `Settled · 3h 17m · 6 players`; at a ten-hour night with
   eight players that still ran past the control and lost the count mid-word
-  (B79, off a phone on 15 September). **The second cut is the one that holds
+  (B81, off a phone on 15 September). **The second cut is the one that holds
   because it is about width rather than count**: every other term grows with
   the night's own figures — the elapsed at a hundred hours, the count at ten
   seats, a longer currency taking the rest — and two clocks are thirteen
@@ -2050,12 +2085,13 @@ same component now, in one of its two layouts:
   line says `8 players` and its back button says `Sessions`: it is the screen
   you reach FROM the list, not the list. A Sessions list whose rows open nothing
   is a dead end, which is exactly how it was reported.
-* **Every row on those two lists still opens `/settled`, whichever night it
-  is.** This phone holds ONE night and there is no sessions table to route to —
-  `sampleHistory.ts` says so of itself. It is what the rows did before this
-  batch and what they do now, and it is the same open question as the seeded
-  history rather than a new one. **Open:** route them the day there is a
-  sessions table.
+* **~~Every row on those two lists still opens `/settled`, whichever night it
+  is.~~ Closed 15 September, with B77.** The reasoning was that the phone holds
+  ONE night and there is nowhere to route to; the phone has held many since
+  `importNights`, and both screens were reading one of them. Each row now calls
+  `openNightById` and then pushes — the swap first, the push second, exactly as
+  `goTo` does it on home, or `/settled` paints the night you were looking at a
+  moment ago.
 
 ### What was measured against the handoff, and what came back
 

@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     /*
      * 8 RATHER THAN THE TITLE ROW'S 12, and the four points are not cosmetic —
-     * B80. This row is the only place in the app where a line of text and a
+     * B82. This row is the only place in the app where a line of text and a
      * control compete for one width: the indent takes 68 from the left so the
      * text sits under the title, the control takes what its longest item needs
      * from the right, and what is left is about 145 points at the reader's

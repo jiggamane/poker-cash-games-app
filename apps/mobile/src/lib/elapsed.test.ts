@@ -132,7 +132,7 @@ describe('the wall clock', () => {
 });
 
 /**
- * THE PAST SESSION'S META LINE, which has now been cut twice — B79. The first
+ * THE PAST SESSION'S META LINE, which has now been cut twice — B81. The first
  * cut took the two times off so the line would fit beside the view control and
  * it still truncated; this one keeps the times and drops everything else,
  * because a wall clock is the only term on that line whose width does not

@@ -835,7 +835,7 @@ const ROOM = `
 
   // ---- and the meta line itself is never cut off --------------------------
   //
-  // B79. The figure pass above is deliberately about NUMBERS - a truncated
+  // B81. The figure pass above is deliberately about NUMBERS - a truncated
   // name is a nuisance and a truncated amount is a lie - so it lets any run of
   // words ellipsise, and the line under a screen's title went on doing exactly
   // that, twice. It read "Settled - 9h 57m - 8..." on a 393 phone, which is not

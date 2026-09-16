@@ -115,7 +115,7 @@ export const clockLabel = (at: string | Date): string =>
  * they are the only terms on it that cannot grow. A wall clock is four digits
  * at every night this app can record; an elapsed figure gains a digit at a
  * hundred hours, a player count at ten seats, and a line that shares its row
- * with the 34-point view control has about 200 points to spend. B79 is the
+ * with the 34-point view control has about 200 points to spend. B81 is the
  * second time that line was cut to fit and the first time it was cut to
  * something with a fixed width.
  *

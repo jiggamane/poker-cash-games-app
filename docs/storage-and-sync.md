@@ -327,6 +327,21 @@ Writing them found two schema faults that would each have stopped a night
 reaching the server, silently. Both are fixed in `0006_sync_contract_fixes.sql`
 and described there.
 
+**`durability.test.ts` is the fourth, and it is the only one that runs the
+queue.** Everything above checks a *shape* — the right columns, an operation
+that names where it goes. None of them ever drains anything, so the promise the
+queue actually makes was held up by nothing: that what is written down arrives,
+in an order the server will accept, however badly the evening goes. It runs the
+real `SqliteOutboxStore` on a real SQLite (through `testSqlite.ts`), the real
+dispatch in `sync.ts` and the real rows out of `syncRows.ts`, against a fake
+Postgres that can be taken offline, made to refuse one table, and asked
+afterwards what it saw and in what order. The five things it holds are the five
+ways a night has been lost: a queue that discards its batch on failure, a queue
+that does not survive a force-quit, a drain that skips past a refusal, an entry
+sent twice as two buy-ins, and numbering that restarts at 1 after a clean sync
+and collides with what the server already holds. Each is a mutation that turns
+it red.
+
 **The same pair exists for reading back**, and it matters more, not less. A
 wrong column in a write fails loudly — the night never leaves and the host sees
 "waiting". A wrong column in a read fails silently: a player claims their place,
@@ -352,6 +367,16 @@ see nothing else, and that reading is all claiming ever grants.
    on claiming a place, and on demand from Settings. My stats then works from
    whichever copy exists. What is left is running it automatically after a
    reinstall, which needs a way to tell a fresh install from an empty one.
+
+   **And for eleven days nothing read what it wrote.** The nights landed in the
+   `night` table, correctly, with their ledgers, their seats, their counts and
+   their frozen settlements — and the two screens that show a person their own
+   history went on reading the single night the store was holding, with eight
+   invented ones behind it. They also landed with `me_id` NULL, because the one
+   write that stamps it refuses to touch a settled night and every night off the
+   server is settled before it lands. Neither was a regression and neither broke
+   anything: the pull worked, the screens rendered, the tests passed. B77 and
+   B78, and `book.test.ts` is what now goes red.
 4. ~~**The rest of the book.**~~ **Built** (`0014`). The queue carried the
    money and nothing around it: a group's own settings, which table is which,
    who is still on the roster and who has paid were written to one phone and had

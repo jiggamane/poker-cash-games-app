@@ -96,6 +96,8 @@ const NIGHT: Record<string, string> = {
   openNight: 'reads only',
   openNightById: 'reads only',
   refreshOpenGames: 'reads only',
+  readMyNights: 'reads only — every settled night on the phone, for Sessions and My stats',
+  refreshMyNights: 'reads only — the same read, into the store the two screens subscribe to',
 };
 
 const CLUB: Record<string, string> = {

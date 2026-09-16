@@ -333,7 +333,7 @@ function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
  * session-views cut put the view control on this row and left the text about
  * 200 points; the two times came off and it became `Settled · 3h 40m · 8
  * players`. At a ten-hour night with eight players THAT still ran past the
- * control and lost the count mid-word — B79, photographed on a phone.
+ * control and lost the count mid-word — B81, photographed on a phone.
  *
  * So the fix is not a fourth arrangement of terms. Every term but a wall clock
  * grows with the night's own figures — the elapsed gains a digit at a hundred
