@@ -503,7 +503,30 @@ const CHECK = `
     const pick = (id) =>
       [...document.querySelectorAll('[id="' + id + '"]')].filter(onScreen).pop() ?? null;
 
-    const head = pick('screen-meta') ?? pick('screen-title');
+    /*
+     * AND THE META LINE ITSELF IS NEVER CUT OFF - B79.
+     *
+     * Here rather than in the audit for this file's own reason, stated above:
+     * /settled renders its empty state cold, so the pass that walks routes
+     * never draws this line at all. The audit carries the same assertion for
+     * the screens it CAN reach; this is the one that sees the settled night,
+     * and the settled night is where the line was wrong twice.
+     *
+     * numberOfLines={1} clips and ellipsises, so a line too long for its row
+     * reports a scrollWidth past its own box. Measured before the head/scroller
+     * work below, which bails early on several screens - a truncated line is
+     * worth reporting whether or not the gap under it can be measured.
+     */
+    const metaLine = pick('screen-meta');
+    if (metaLine !== null && metaLine.scrollWidth > metaLine.clientWidth + 1) {
+      out.push({
+        check: 'meta-line-truncated',
+        what: (metaLine.textContent || '').trim().slice(0, 40),
+        detail: 'needs ' + px(metaLine.scrollWidth) + ' in ' + px(metaLine.clientWidth),
+      });
+    }
+
+    const head = metaLine ?? pick('screen-title');
     if (head === null) return;
 
     /* The scroller on the SAME screen as that head — walking out from the head

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { clockLabel, elapsedLabel, msUntilNextLabelChange, msUntilNextMinute } from './elapsed';
+import {
+  clockLabel,
+  elapsedLabel,
+  msUntilNextLabelChange,
+  msUntilNextMinute,
+  nightSpan,
+} from './elapsed';
 
 /**
  * The running time is the live tag (S51), so this figure is the whole of the
@@ -121,6 +127,42 @@ describe('the wall clock', () => {
       expect(clockLabel(new Date(now + msUntilNextMinute(now)))).not.toBe(
         clockLabel(new Date(now)),
       );
+    }
+  });
+});
+
+/**
+ * THE PAST SESSION'S META LINE, which has now been cut twice — B79. The first
+ * cut took the two times off so the line would fit beside the view control and
+ * it still truncated; this one keeps the times and drops everything else,
+ * because a wall clock is the only term on that line whose width does not
+ * follow the night's own figures.
+ *
+ * The clock itself is `clockLabel`'s and is tested above, so these compose
+ * against it rather than against a literal: a machine on a different timezone
+ * should not fail a test about a separator.
+ */
+describe("the night's span", () => {
+  const ENDED = '2026-08-17T06:38:00.000Z';
+
+  it('reads as the two times with an arrow between them', () => {
+    expect(nightSpan(START, ENDED)).toBe(`${clockLabel(START)} → ${clockLabel(ENDED)}`);
+  });
+
+  it('is the start alone when the night has no end stamp', () => {
+    // An arrow pointing at a blank reads as a broken line rather than an open
+    // one. Unreachable on /settled — a night with no result never gets here —
+    // but the function answers rather than printing "Invalid Date".
+    expect(nightSpan(START, null)).toBe(clockLabel(START));
+  });
+
+  it('does not get wider at a longer night, which is the whole point', () => {
+    // The line it replaced grew a character at 100 hours and another at a
+    // ten-seat table, and that is what pushed the player count off the phone.
+    const width = nightSpan(START, ENDED).length;
+    for (const days of [0, 1, 4, 30, 400]) {
+      const end = new Date(new Date(START).getTime() + days * 24 * 60 * MINUTE).toISOString();
+      expect(nightSpan(START, end)).toHaveLength(width);
     }
   });
 });

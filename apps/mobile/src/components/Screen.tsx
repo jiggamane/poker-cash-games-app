@@ -311,7 +311,20 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    /*
+     * 8 RATHER THAN THE TITLE ROW'S 12, and the four points are not cosmetic —
+     * B80. This row is the only place in the app where a line of text and a
+     * control compete for one width: the indent takes 68 from the left so the
+     * text sits under the title, the control takes what its longest item needs
+     * from the right, and what is left is about 145 points at the reader's
+     * larger text settings. `9 nights · newest first` wants 147 of them.
+     *
+     * Nothing between the two is drawn by a board — the boards place the text
+     * at the left and the control at the right — so the gap is the one
+     * dimension here that can be spent, and it buys the line back. Do not
+     * raise it to match the title row: nothing competes for width up there.
+     */
+    gap: 8,
     /*
      * ABOVE THE BODY, because the one control that uses this line opens a menu
      * that hangs below it and the list is a LATER SIBLING. Later siblings paint

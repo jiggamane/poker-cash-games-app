@@ -812,6 +812,103 @@ Fix this before drawing anything new for the invite flow, or every state the
 
 ## Fixed
 
+### B80 — Sessions lost the end of its meta line at the reader's larger text
+
+```
+Screen      /games (Sessions), the line under the title
+Seen        "9 nights · newest first" cut short at 120% text — 147 points of
+            line in 145 points of room, beside the "All groups" control
+Expected    the line stated in full at every text size the phone draws
+Found       15 Sept, by the meta-line-truncated pass written for B79, on its
+            first run. Not reported by anyone: it needs a nine-night book AND
+            the larger text setting, which is the journeys pass and nothing
+            else
+Locked by   npm run check:ui — ui-journeys.mjs, "meta-line-truncated"
+Status      fixed in this branch
+```
+
+**Found by the check rather than on a phone, which is the whole point of
+writing one.** B79 was photographed; this was two points over on a screen
+nobody had looked at at 120%, and it would have gone on being two points over
+until a tenth night made it four.
+
+The meta row is the only place in the app where a line of text and a control
+compete for one width. The indent takes 68 from the left so the line sits under
+the title rather than under the back button; the control takes what its longest
+item needs from the right; the text gets the remainder and shrinks into it. At
+120% the remainder is 145 and the line wants 147.
+
+**The gap between them is the one dimension there that no board draws** — the
+boards put the text at the left and the control at the right and say nothing
+about the middle — so that is what was spent: 12 to 8, four points, invisible
+at 100% and the two points back at 120% with two to spare. The title row keeps
+its 12, where nothing competes for width.
+
+Worth being plain about what this does not fix: the count grows with the book,
+so this is room bought rather than a width made fixed. That is the difference
+between this line and B79's, which was rebuilt out of terms that cannot grow —
+and it is the reason this one is watched by a check now.
+
+### B79 — the past session's meta line still truncated, one term later
+
+```
+Screen      /settled, the line under the date
+Seen        "Settled · 9h 57m · 8..." on a 393 phone — the player count cut
+            mid-word by the "Final, detailed" control sharing the line
+Expected    a line that fits beside the control at any night's figures
+Found       15 Sept, on a phone, reported by the owner
+Locked by   npm run check — elapsed.test.ts, "the night's span"; and
+            npm run check:ui — ui-audit.mjs, "meta-line-truncated", a pass
+            written with this bug
+Status      fixed in this branch
+```
+
+**This is the second cut of the same line, and the first one did not go far
+enough.** On 9 September the two wall-clock times came off it precisely so it
+would fit next to the view control: `20:05 → 06:38 · 10h 46m · 7 players ·
+settled` became `Settled · 3h 40m · 8 players`. Three terms instead of five —
+and at a ten-hour night with eight players it still runs past the control and
+loses the last one. Shortening a line that shares a row with a 34-point control
+is not a matter of taking a term off; the line has about 200 points, and any
+count of terms that grows with the night's own figures will eventually spend
+them.
+
+So the owner's call is the one that ends it rather than postpones it: **the
+line is the two times and nothing else** — `20:05 → 06:38`. It is thirteen
+characters at every night this app can record, because a wall clock has a
+fixed width; there is no figure in it that gets longer at a longer night, a
+bigger table or a larger currency. That is the property the previous two
+versions did not have.
+
+**What went, and where it is.** The elapsed figure and the player count are
+both derivable from what is already on the screen: the times give the span,
+and the list under them is the players, row by row. The status word was
+unreachable — a night with no result never gets this far, it gets the *Not
+settled* screen with its own lede, so `Not closed yet` could not be drawn on
+this line. `/log` still has every stamp entry by entry.
+
+**The times come off `clockLabel` now**, the app's one wall-clock formatter,
+rather than the local `elapsed` helper this screen carried — which is deleted
+with them. `nightSpan` in `elapsed.ts` is the whole of the new line and is a
+pure function of two timestamps, so its shape is pinned in `npm run check`,
+which runs constantly.
+
+**AND THE AUDIT HAD TO BE TAUGHT TO SEE IT, which is the part worth keeping.**
+The obvious assumption was that `figure-clipped` already covered this — the
+line was visibly cut off in the photograph, and that pass is the one about
+things being cut off. It does not: its own comment says *"a truncated word is
+a nuisance; a truncated NUMBER is a lie... names may ellipsise"*, and it
+anchors on a regex that matches an amount and nothing else. `Settled · 9h 57m
+· 8 players` is a sentence, so every route passed while the line was wrong on
+the phone, exactly as it had after the first cut in September.
+
+`meta-line-truncated` carves the meta line out of that rule. A name giving way
+is a name; this element is the app's own header line, and every term on it is
+there because nothing else on the screen says that fact — so if it cannot be
+stated in full, the line is too long for the row rather than too unimportant
+to read. It is one element and one assertion, and it would have gone red on
+9 September.
+
 ### B78 — the money fields on Game details cut off a four-digit figure
 
 *Written as B77 and renumbered in the merge, which is the fifth time this file
