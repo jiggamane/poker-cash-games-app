@@ -33,7 +33,14 @@ vi.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 vi.mock('expo-sqlite', () => expoSqlite);
 // Native modules, and neither of them is what is under test: `queueable.ts`
 // only ever asks `expo-crypto` for the SHAPE of an id.
-vi.mock('expo-crypto', () => ({ randomUUID: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee' }));
+let nextId = 0;
+vi.mock('expo-crypto', () => ({
+  // A REAL NIGHT NEEDS REAL IDS. A constant would make every ledger entry
+  // collide on its primary key, and the id is the queue's idempotency key.
+  randomUUID: () => `bbbbbbbb-cccc-4ddd-8eee-${String(nextId++).padStart(12, '0')}`,
+}));
+// Reached through `nightStore` → `money` → `clubStore` → `invites`.
+vi.mock('expo-linking', () => ({ createURL: (u: string) => `pokerclub://${u}`, parse: () => ({}) }));
 
 // ---------------------------------------------------------------------------
 // The server at the other end
@@ -545,5 +552,109 @@ describe('the whole night, end to end', () => {
     const session = [...server.table('session').values()][0]!;
     expect(session.status).toBe('settled');
     expect(session.ended_at).toBe('2026-09-12T23:40:00.000Z');
+  });
+});
+
+// ---------------------------------------------------------------------------
+
+/**
+ * THE END OF THE NIGHT PUSHES WITHOUT BEING ASKED — B83.
+ *
+ * Every test above drives the queue directly and calls `drain()` itself, which
+ * is what made B83 invisible for eleven days: they proved the queue carries a
+ * night correctly and never asked whether anything runs it. This one drives the
+ * REAL STORE — `startNight`, `setFinalCount`, `setStatus`, `closeNight` — and
+ * calls `drain()` nowhere at all. If the pushes are removed it goes red, which
+ * is the whole point of it.
+ *
+ * `push()` is deliberately fire-and-forget: awaiting the network inside
+ * `closeNight` would put it on the screen's critical path, which this app does
+ * not do anywhere. So the assertion polls rather than awaiting — that is the
+ * behaviour under test, not a workaround for it.
+ */
+describe('the end of the night, with nobody calling drain', () => {
+  /** Wait for the fire-and-forget push to land, or give up and let the assert fail. */
+  const settles = async (want: () => boolean): Promise<void> => {
+    for (let i = 0; i < 50 && !want(); i++) await new Promise((r) => setTimeout(r, 10));
+  };
+
+  it('sends the counts, the status and the frozen settlement on its own', async () => {
+    vi.resetModules();
+    const night = await import('./nightStore');
+
+    await night.startNight({
+      clubId: uuid(50),
+      groupName: GROUP,
+      rules: [],
+      seats: [
+        { playerId: DANA, name: 'Dana', buyIn: 10_000 as never },
+        { playerId: IVO, name: 'Ivo', buyIn: 10_000 as never },
+      ],
+      meId: DANA,
+    });
+    await settles(() => server.table('session').size > 0);
+    expect(server.table('session').size, 'the night never reached the server at all').toBe(1);
+
+    // ---- counting up. No ledger entry is written here, so nothing but the
+    // counts themselves can push them.
+    //
+    // THE NIGHT GOES TO COUNTING FIRST, AND THAT PUSH IS LET FINISH before a
+    // stack is counted. Without the wait the counts ride the drain `setStatus`
+    // already started — which is true of the real app too, and would leave this
+    // passing with `setFinalCount`'s own push removed.
+    await night.setStatus('counting');
+    await settles(() => [...server.table('session').values()][0]?.status === 'counting');
+    expect([...server.table('session').values()][0]?.status).toBe('counting');
+
+    await night.setFinalCount(DANA, 13_000 as never);
+    await night.setFinalCount(IVO, 7_000 as never);
+    await settles(() => server.table('final_count').size === 2);
+    expect(server.table('final_count').size, 'the counts stayed on the phone').toBe(2);
+
+    // ---- and the close, which is the artefact that cannot be rebuilt.
+    await night.closeNight();
+    await settles(() => server.table('settlement').size > 0);
+
+    expect(
+      server.table('settlement').size,
+      'the frozen settlement never left the phone — B83',
+    ).toBe(1);
+
+    const session = [...server.table('session').values()][0]!;
+    expect(session.status).toBe('settled');
+    expect(session.ended_at).toBeTruthy();
+
+    // Nothing was left behind: the whole night is up.
+    expect(await night.readMyNights()).toHaveLength(1);
+  });
+
+  it('sends a tick on who has paid, days after the last entry', async () => {
+    vi.resetModules();
+    const night = await import('./nightStore');
+
+    await night.startNight({
+      clubId: uuid(51),
+      groupName: GROUP,
+      rules: [],
+      seats: [
+        { playerId: DANA, name: 'Dana', buyIn: 10_000 as never },
+        { playerId: IVO, name: 'Ivo', buyIn: 10_000 as never },
+      ],
+      meId: DANA,
+    });
+    await night.setStatus('counting');
+    await night.setFinalCount(DANA, 13_000 as never);
+    await night.setFinalCount(IVO, 7_000 as never);
+    await night.closeNight();
+    await settles(() => server.table('settlement').size > 0);
+
+    // E7, the week afterwards. The last write a night ever gets, and there is
+    // no entry behind it to carry it up.
+    await night.setPaid(IVO, DANA, true);
+    await settles(() => server.table('transfer_payment').size > 0);
+    expect(
+      server.table('transfer_payment').size,
+      'the tick stayed on the phone',
+    ).toBe(1);
   });
 });

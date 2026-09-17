@@ -139,6 +139,104 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B83 — the end of the night never tried to reach the server
+
+```
+Screen      none — the queue, at the moment it matters most
+Seen        a night counted, settled and closed with no signal sits on one
+            phone indefinitely. `closeNight()` writes the frozen settlement,
+            queues `session.close` and returns; nothing calls `drain()`. Nor
+            does `setFinalCount`, `setStatus` or `setPaid`. The only writes
+            that push are ledger entries (`recordEntry`) and roster changes
+            (`clubStore.push`) — and counting up, closing and ticking who has
+            paid involve neither
+Expected    the end of the night pushes like every other write
+Found       17 Sept, reading the storage layer against the question "what
+            happens if something goes wrong"
+Locked by   npm run check — durability.test.ts, "the end of the night, with
+            nobody calling drain", which drives the real store through a whole
+            night and calls `drain()` nowhere at all. Verified against the
+            fault: removing any one of the four pushes turns it red, naming
+            which artefact stayed on the phone
+Status      fixed in this commit
+```
+
+**Nothing was lost and nothing was queued wrong**, which is why this survived a
+durability suite written specifically about this queue. Every operation was
+recorded, in order, idempotently, exactly as `storageCoverage.test.ts` demands —
+the queue simply was never asked to run. B69–B74 asked *does this write reach
+the queue*; every test since asked the same thing and then called `drain()`
+itself. Nobody asked *and does anything send it*.
+
+The window is the whole of the ending flow. During play every buy-in drains
+behind itself, so a night with signal is up to date to its last entry. Counting
+records no entries — `night_count` is its own table — so from the first stack
+counted, through the close, and on to E7's ticks, nothing pushed. A host on bad
+wifi who closed the night and put the phone down had the one artefact of the
+evening that cannot be rebuilt, the frozen settlement, on exactly one device.
+
+`push()` is `clubStore`'s, written again where the night store can use it:
+fire-and-forget, because awaiting the network inside `closeNight` would put it
+on the screen's critical path, which nothing in this app does. It is called from
+the four writes that have nothing behind them — `setFinalCount`, `setStatus`,
+`closeNight`, `setPaid`.
+
+⚠ **`docs/storage-and-sync.md` claimed three retries that do not exist** — "when
+the app comes to the foreground, on a timer while a queue is non-empty, and once
+on sign-in". There is no `AppState` listener, no timer and no drain on sign-in
+anywhere in the app, and there never was; the same paragraph's promise that
+signing in on Tuesday backs up Saturday's night was false for the same reason.
+The doc now says what the code does. Those three are worth building and are
+**open**; this is the one-line half that closes the worst of it.
+
+### B84 — Settings said "On this phone" whether or not it was anywhere else
+
+```
+Screen      Settings · This night
+Seen        `Where it lives: On this phone` — a hard-coded string, drawn
+            identically on a phone whose every night is on the server and on
+            one that has never reached it. Beside it `Waiting to sync` counts
+            the queue, which is honest as far as it goes, but it is the whole
+            app's queue under a heading that says This night. And when a send
+            fails the reason is never shown at all: the count simply stops
+            going down
+Expected    whether this phone's book is backed up, and when it is not, what
+            is waiting and why
+Found       17 Sept, with B83 — they are the same fault from two sides
+Locked by   npm run check — backupLine.test.ts, which holds the three states
+            against `syncStatus()`'s output, including the one nothing drew
+            before: a failure with its reason. And npm run check:ui, where
+            /settings is in ROUTES
+Status      fixed in this commit
+```
+
+**The error was the missing half, and it is the half that matters.**
+`syncStatus()` has been exported from `sync.ts` since the operation log landed,
+returning `{ waiting, lastError }` — the queue depth AND the first error
+recorded against the head of it by `markAttempt`. Settings called
+`outbox.count()`, which is the first of those and not the second. So a queue
+halted behind a row the server refuses looked exactly like a queue that was
+merely busy, and the one thing that would explain it was read by nothing but a
+test.
+
+`docs/storage-and-sync.md` specified all three states and was never built
+against: **"Backed up"** when the queue is empty, **"Saved on this phone · 12
+waiting"** when it is not, and the actual error after a failure, "because a host
+who is about to wipe their phone deserves to know". That is the wording used —
+no copy was invented, per CLAUDE.md.
+
+The fourth state is the one the test exists for: **"not asked yet" must never
+read as "Backed up"**. The line it replaces was reassuring without having
+checked anything, and a null status that fell through to the empty-queue branch
+would be the same bug with a new spelling.
+
+**Open:** the figure is the whole app's queue and the section heading says *This
+night*. A per-night count is not something `outbox_op` exposes, and moving the
+row is a copy decision — Settings is drawn by no handoff cut, which is why
+`docs/screens.md` has no section for it. Also open: a stale `last_error` is
+hidden rather than cleared, because `remove()` drops the operation and nothing
+clears the column. Both recorded in `docs/storage-and-sync.md`.
+
 ### B79 — My stats and Sessions were eight nights nobody had played
 
 ```

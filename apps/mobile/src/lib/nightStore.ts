@@ -27,6 +27,7 @@ import { formatMoney } from './money';
 import { CLAIM_LIVE_NIGHTS } from './hostSeat';
 import { outbox, recordEntry } from './ledgerRepo';
 import {
+  drain,
   queueClose,
   queueCount,
   queuePayment,
@@ -305,6 +306,31 @@ const subscribe = (l: () => void) => {
   return () => {
     listeners.delete(l);
   };
+};
+
+/**
+ * SEND WHAT IS QUEUED. Fire and forget — B83.
+ *
+ * `clubStore` has had this since the queue carried the roster, and the night
+ * store had nothing: `closeNight` wrote the frozen settlement, queued
+ * `session.close` and returned, and no line anywhere asked the queue to run.
+ * Nothing was lost — the queue is durable and idempotent and every operation was
+ * in it, in order — but a night closed with no signal sat on one phone until the
+ * host's NEXT game, or until they found `Sync now` in Settings, and nothing on
+ * any screen said so.
+ *
+ * WHY THESE FOUR CALLERS AND NOT EVERY WRITE. Everything up to the last hand is
+ * followed by a buy-in, a rebuy or a cash-out, and `recordEntry` has always
+ * pushed behind itself — so a night being played is up to date to its last
+ * entry. The ending flow is the part with nothing behind it: counting writes
+ * `night_count` and not the ledger, and the close and E7's ticks come after the
+ * last entry there will ever be. Those are the writes that need to ask.
+ *
+ * A failure here is the ordinary case, not an error: no signal at the table is
+ * normal, the queue keeps everything, and the next push sends it all in order.
+ */
+const push = (): void => {
+  void drain().catch(() => {});
 };
 
 const snapshot = () => night;
@@ -1455,6 +1481,8 @@ export async function setPaid(from: PlayerId, to: PlayerId, paid: boolean): Prom
     toPlayerId: to,
     paidAt: night.paidAt.get(transferKey(from, to)) ?? null,
   });
+  // The last write a night ever gets, days after the last entry. B83.
+  push();
 }
 
 /**
@@ -1503,6 +1531,10 @@ export async function setFinalCount(playerId: PlayerId, amount: Money): Promise<
   // exists. The engine would reject it as stale; withdrawing it here means the
   // host is asked again about the number they are actually looking at.
   if (night.acknowledgement !== undefined) await setAcknowledgement(null);
+
+  // Counting records no ledger entry, so this is the first write of the evening
+  // with nothing behind it to send it. B83.
+  push();
 }
 
 /**
@@ -2205,6 +2237,7 @@ export async function setStatus(status: Night['status']): Promise<void> {
   night = { ...night, status, ...(endedAt === undefined ? {} : { endedAt }) };
   emit();
   await queueTonight();
+  push();
 }
 
 /**
@@ -2315,6 +2348,15 @@ export async function closeNight(): Promise<StoredVerification> {
     verification: closed.verification,
   };
   emit();
+
+  /*
+   * AND SEND IT — B83. The frozen settlement is the one artefact of the evening
+   * that cannot be reconstructed from anywhere else, and until this line it was
+   * queued at the exact moment nothing in the app would push. It is after
+   * `emit()` on purpose: the screen has the closed night before the network is
+   * touched, which is the rule for every write in this file.
+   */
+  push();
 
   return closed.verification;
 }

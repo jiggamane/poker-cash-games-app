@@ -13,7 +13,9 @@ import { shareTokenFor, stopSharing } from '../src/lib/publish';
 import { pullBooks } from '../src/lib/pull';
 import { shareLinkFor } from '../src/lib/shareLink';
 import { explainServerError, supabase } from '../src/lib/supabase';
-import { outbox, sync } from '../src/lib/ledgerRepo';
+import { sync } from '../src/lib/ledgerRepo';
+import { syncStatus } from '../src/lib/sync';
+import { backupLine, backupTrouble, type BackupState } from '../src/lib/backupLine';
 import { useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
 
@@ -42,7 +44,9 @@ export default function Settings() {
   const meId = night?.meId;
   const admin = adminRow === undefined || meId === undefined || adminRow.id === meId;
 
-  const [queued, setQueued] = useState<number | null>(null);
+  const [backup, setBackup] = useState<BackupState | null>(null);
+  /* Only while something is actually waiting — see `backupTrouble`. */
+  const trouble = backupTrouble(backup);
   const [syncing, setSyncing] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [report, setReport] = useState<ConnectionReport | null>(null);
@@ -50,7 +54,7 @@ export default function Settings() {
   const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
-    void outbox.count().then(setQueued).catch(() => setQueued(null));
+    void syncStatus().then(setBackup).catch(() => setBackup(null));
   });
 
   const signedIn = session !== null;
@@ -128,7 +132,7 @@ export default function Settings() {
     } catch {
       // Offline, or not signed in. The queue keeps everything; nothing is lost.
     } finally {
-      setQueued(await outbox.count().catch(() => 0));
+      setBackup(await syncStatus().catch(() => null));
       setSyncing(false);
     }
   }
@@ -219,12 +223,23 @@ export default function Settings() {
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>This night</Text>
 
-        <Fact label="Where it lives" value="On this phone" />
-        <Fact
-          label="Waiting to sync"
-          value={queued === null ? '—' : queued === 0 ? 'Nothing' : `${queued} entries`}
-          last
-        />
+        {/*
+         * B84. This row said `On this phone` and nothing else, on every phone,
+         * whether or not a single night had ever reached the server — and the
+         * count beside it could not tell a queue that is busy from one that is
+         * stuck, because the reason was never read. `syncStatus()` carries both
+         * and had no caller but a test.
+         *
+         * ⚠ THE FIGURE IS THE WHOLE APP'S QUEUE, under a heading that says
+         * `This night`. Making it per-night needs a count `outbox_op` does not
+         * expose, and moving the row is a copy decision — Settings is drawn by
+         * no handoff cut, which is why `docs/screens.md` has no section for it.
+         * Open, and recorded in `docs/storage-and-sync.md`.
+         */}
+        <Fact label="Where it lives" value={backupLine(backup)} last={trouble === null} />
+        {trouble !== null && (
+          <Text style={[styles.note, { color: t.muted }]}>{trouble}</Text>
+        )}
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Account</Text>
 

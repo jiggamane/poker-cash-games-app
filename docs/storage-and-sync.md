@@ -185,16 +185,36 @@ replaying one the server already has is a no-op. Re-sending is always safe,
 which is what makes "retry forever" a correct strategy rather than a dangerous
 one.
 
-**It drains** when the app comes to the foreground, shortly after each write,
-on a timer while a queue is non-empty, and once on sign-in. There is no
+**It drains after each write**, and that is the whole of it. There is no
 connectivity library involved: the attempt *is* the connectivity check, and a
 failure just leaves the queue where it was.
+
+⚠ **This paragraph used to promise three more, and none of them exists.** It
+said the queue also drains "when the app comes to the foreground, on a timer
+while a queue is non-empty, and once on sign-in" — there is no `AppState`
+listener, no timer and no drain on sign-in anywhere in the app, and there never
+was. Which made the sentence below about signing in on Tuesday false as well:
+the queue does still hold everything, but signing in does not by itself send it.
+
+What "after each write" covers changed on 17 September, and it is worth knowing
+which writes. Recording money has always pushed behind itself — `recordEntry` —
+so a night being played is up to date to its last entry. **The ending flow had
+nothing**: counting writes `night_count` and not the ledger, and the close and
+E7's ticks come after the last entry there will ever be, so a night settled with
+no signal sat on one phone until the host's next game. `setFinalCount`,
+`setStatus`, `closeNight` and `setPaid` now push like everything else. B83.
+
+**Still open, and worth building:** the foreground drain, the retry timer and the
+drain on sign-in. Until they exist, a push that fails is retried by the next
+write or by **Sync now** in Settings, and by nothing else.
 
 ### Signed out
 
 The queue still fills. Nothing is dropped and nothing is gated: play the whole
-night with no account, sign in on Tuesday, and the night is backed up as the
-queue drains. That is strictly better than refusing to record what cannot yet
+night with no account, sign in on Tuesday, and the night goes up **as soon as
+anything drains** — which today means the next write or **Sync now**, not the
+sign-in itself. See the ⚠ above: the drain on sign-in was described here for
+weeks and never existed. That is strictly better than refusing to record what cannot yet
 be sent.
 
 ---
@@ -220,6 +240,26 @@ table, not memory.
 *"Backed up"* when the queue is empty, *"Saved on this phone · 12 waiting"* when
 it is not, and after a long failure the actual error, on the Settings screen,
 because a host who is about to wipe their phone deserves to know.
+
+**Built 17 September — B84, and until then this paragraph described nothing.**
+Settings drew `Where it lives: On this phone`, a constant, identical on a phone
+whose every night was on the server and on one that had never reached it. A
+queue depth sat beside it, which was honest as far as it went, and the ERROR was
+nowhere: `syncStatus()` had returned `{ waiting, lastError }` since the
+operation log landed and its only caller in the repository was a test, so a
+queue stuck behind a refused row looked exactly like one that was merely busy.
+The three states are `backupLine()` and `backupTrouble()` in
+`apps/mobile/src/lib/backupLine.ts`, pure and held by `backupLine.test.ts` —
+including the one that matters most, that **"not asked yet" must never read as
+"Backed up"**.
+
+⚠ **Two things about that line are open.** The figure is the whole app's queue
+drawn under a heading that says *This night* — a per-night count is not
+something `outbox_op` exposes, and moving the row is a copy decision, which
+Settings has never had a cut to make it. And a stale `last_error` is hidden
+rather than cleared: `remove()` deletes the operation the error belonged to and
+nothing clears the column, so `backupTrouble()` returns null whenever the queue
+is empty. Clearing it properly belongs in the store.
 
 ### The one real limit
 
