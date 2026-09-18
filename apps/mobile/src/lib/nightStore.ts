@@ -38,6 +38,7 @@ import {
   queueSessionPatch,
 } from './sync';
 import { closeOf } from './closing';
+import { backupOf, nightsFrom, type BookBackup, type HeldNight } from './bookBackup';
 import { timingOf } from './seatClock';
 import { sampleSessionId } from './queueable';
 import {
@@ -428,6 +429,12 @@ interface NightRow {
   ended_at: string | null;
   /** What a seat cost. Carried by pulled nights; null on locally started ones. */
   default_buyin: number | null;
+  /**
+   * The blinds, in words. The column has existed since nights carried them —
+   * see the ALTER above — and this interface simply never listed it, because
+   * nothing read it back until the backup did.
+   */
+  stakes: string | null;
   /** How coarsely to settle. Null is whole dollars. */
   rounding_mode: RoundingMode | null;
 }
@@ -1285,6 +1292,63 @@ export async function readMyNights(): Promise<MyNight[]> {
     if (one !== null) mine.push(one);
   }
   return mine;
+}
+
+/**
+ * EVERY NIGHT THIS PHONE HOLDS, as a file somebody can keep.
+ *
+ * The third copy. The phone has the book and the server has it again, and until
+ * this existed that was all: nothing left the app in a form anybody could keep,
+ * so a phone lost before its queue drained took the night with it.
+ *
+ * SEEDED NIGHTS ARE NOT IN IT, the same clause every other reader here filters
+ * on. A backup is of what was played.
+ *
+ * Whole nights, not settled ones — a game still running is exactly what you
+ * would want back after dropping the phone mid-evening, and `importNights`
+ * takes it.
+ */
+export async function readBackup(exportedAt: Date = new Date()): Promise<BookBackup> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<NightRow>(
+    `SELECT * FROM night WHERE seed_version IS NULL ORDER BY started_at ASC`,
+  );
+
+  const held: HeldNight[] = [];
+  for (const row of rows) {
+    const n = await readNight(row);
+    held.push({
+      ...n,
+      tableName: row.table_name,
+      stakes: row.stakes ?? null,
+      defaultBuyIn: row.default_buyin,
+    });
+  }
+  return backupOf(held, exportedAt.toISOString());
+}
+
+/**
+ * Put a backup back.
+ *
+ * `importNights` is the pull's own path and it SKIPS a night this phone already
+ * has, so restoring is additive and safe to run twice — which matters, because
+ * the moment somebody reaches for this they are already having a bad day and
+ * will not be sure whether the first attempt worked.
+ *
+ * Returns how many nights were new, or null if the text was not a backup at
+ * all. Refusing is the common case, not the exceptional one: the wrong
+ * clipboard is one tap away.
+ */
+export async function restoreBackup(text: string): Promise<number | null> {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  const nights = nightsFrom(payload);
+  if (nights === null) return null;
+  return importNights(nights);
 }
 
 let book: MyNight[] = [];

@@ -15,7 +15,10 @@ not a formatting one, and it is answered at the bottom.
 
 ## What already leaves the app
 
-Three things, and all three are proof the plumbing works:
+Three things, and all three are proof the plumbing works — **and since
+18 September a fourth that is a record rather than a message**: the backup in
+§7, which is the only one of the seven formats below that needed no copy nobody
+had written. Read that section before adding to this table.
 
 | What | Where | How |
 | --- | --- | --- |
@@ -186,12 +189,37 @@ board draws and which `/ledger` is explicitly not. An append-only ledger dumped
 row-per-entry is genuinely additive, is the natural shape of a CSV, and needs no
 layout decision from anybody.
 
-### 7 · JSON, for machines
+### 7 · JSON, for machines — **BUILT, 18 September**
 
 `freeze()` already produces the settled figures in a written-down shape with a
 round-trip test, specifically because `rounding.positions` is a `Map` and a
 `Map` stringifies to `{}` silently. If a backup or a host handover ever wants a
 file, that function is the format and it exists. Not a sharing format for people.
+
+That paragraph is now the thing that was built, and it is the only one of the
+seven that could be: **every other format on this page needs copy no cut has
+written**, and the door on `/settled` is closed by a rule `09-navigation.md`
+calls FINAL. A backup needs neither. It is in Settings, where the rest of this
+app's plumbing lives and where the copy has always been written by sessions
+rather than drawn.
+
+- `apps/mobile/src/lib/bookBackup.ts` — the envelope, versioned from the first
+  one, with `freeze()` carrying each settlement.
+- **It is shaped to go back in.** Every night in it is exactly what
+  `importNights()` consumes, so restoring is the pull's own code path with a
+  paste instead of a server, and additive: a night the phone already has is
+  skipped, so running it twice is safe.
+- `bookBackup.test.ts` plays a real night, throws the database away — which is
+  what losing the phone is — and restores into a fresh one, asserting the result
+  comes back to the dollar. Removing `freeze()`, dropping `occurredAt` or
+  accepting any version each turns it red.
+
+**Clipboard, not a file.** `expo-clipboard` is already a dependency;
+`expo-file-system` and `expo-sharing` are not, and the ⚠ below is explicit that
+a module with a native half must be confirmed in Expo Go before it is designed
+around. A file is the better shape and is **open** — it is also what makes a
+year of nights practical, since a clipboard is fine for a season and awkward for
+a shoebox.
 
 ---
 
