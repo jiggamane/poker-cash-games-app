@@ -261,6 +261,29 @@ rather than cleared: `remove()` deletes the operation the error belonged to and
 nothing clears the column, so `backupTrouble()` returns null whenever the queue
 is empty. Clearing it properly belongs in the store.
 
+### The third copy
+
+**Built 18 September.** The phone holds the book and the server holds it again,
+and that was the whole of it: nothing ever left this app in a form anybody could
+keep, so a phone lost before its queue drained took the night with it — and
+after B83 that window is small, but it is not zero, and a Supabase project can
+be deleted by its owner in one click.
+
+`Settings → Copy a backup` writes every night on the phone to the clipboard as
+versioned JSON, with each settlement through `freeze()`. `Restore from a
+backup` reads it back through `importNights` — the pull's own path, with a paste
+instead of a server — so it is additive and safe to run twice.
+
+It needs no account and no server, which is the point of it: the phone with
+nothing else holding its book is exactly the one that never signed in. See
+`docs/sharing-formats.md` §7, and `bookBackup.test.ts`, which restores into a
+thrown-away database rather than asserting the shape looks right.
+
+**Open:** a real file, which needs `expo-file-system` and `expo-sharing` — both
+in SDK 57's manifest, neither yet confirmed in Expo Go, which
+`apps/mobile/AGENTS.md` requires before either is designed around. A clipboard
+is fine for a season and awkward for years of nights.
+
 ### The one real limit
 
 **One device writes a night.** `ledger_entry` is unique on `(session_id, seq)`,

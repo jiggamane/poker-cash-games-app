@@ -97,6 +97,10 @@ const NIGHT: Record<string, string> = {
   openNightById: 'reads only',
   refreshOpenGames: 'reads only',
   readMyNights: 'reads only — every settled night on the phone, for Sessions and My stats',
+  readBackup: 'reads only — the third copy, for a person to keep. See bookBackup.ts',
+  restoreBackup:
+    'nothing, deliberately: it is importNights reading a pasted file instead of ' +
+    'the server, and what it writes the phone already had once',
   refreshMyNights: 'reads only — the same read, into the store the two screens subscribe to',
 };
 

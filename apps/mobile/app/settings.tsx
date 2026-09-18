@@ -16,7 +16,8 @@ import { explainServerError, supabase } from '../src/lib/supabase';
 import { sync } from '../src/lib/ledgerRepo';
 import { syncStatus } from '../src/lib/sync';
 import { backupLine, backupTrouble, type BackupState } from '../src/lib/backupLine';
-import { useNight } from '../src/lib/nightStore';
+import * as Clipboard from 'expo-clipboard';
+import { readBackup, restoreBackup, useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
 
 /**
@@ -51,6 +52,8 @@ export default function Settings() {
   const [fetching, setFetching] = useState(false);
   const [report, setReport] = useState<ConnectionReport | null>(null);
   const [fetched, setFetched] = useState<string | null>(null);
+  /* Kept apart from `fetched`: one is about the server, this is about a file. */
+  const [kept, setKept] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
@@ -122,6 +125,54 @@ export default function Settings() {
       setFetched('The link is rotated and every watcher is cut off. Anyone still holding a valid token keeps reading until it expires, within the hour.');
     } catch (e) {
       setFetched(explainServerError(e));
+    }
+  }
+
+  /**
+   * THE THIRD COPY, onto the clipboard.
+   *
+   * Clipboard rather than a file because `expo-clipboard` is already a
+   * dependency and `expo-file-system` is not — `apps/mobile/AGENTS.md` pins
+   * every version to SDK 57's manifest and `docs/sharing-formats.md` is
+   * explicit that a module with a native half has to be confirmed in Expo Go
+   * before it is designed around. A file is the better shape and is open.
+   *
+   * It works signed out and with no server configured, which is the whole point
+   * of it: the phone that most needs a backup is the one nothing else is
+   * holding.
+   */
+  async function copyBackup() {
+    try {
+      const backup = await readBackup();
+      await Clipboard.setStringAsync(JSON.stringify(backup));
+      const n = backup.nights.length;
+      setKept(
+        n === 0
+          ? 'Nothing to copy yet — no night has been played on this phone.'
+          : `${n} ${n === 1 ? 'night' : 'nights'} copied. Paste it somewhere you keep things.`,
+      );
+    } catch {
+      setKept('Could not read the book on this phone.');
+    }
+  }
+
+  /**
+   * And back in. Additive by construction — `importNights` skips a night this
+   * phone already has — so running it twice is safe, which matters because
+   * anybody reaching for this is already having a bad day.
+   */
+  async function restore() {
+    try {
+      const added = await restoreBackup(await Clipboard.getStringAsync());
+      setKept(
+        added === null
+          ? 'That is not a backup from this app.'
+          : added === 0
+            ? 'Nothing new. Every night in it is already on this phone.'
+            : `${added} ${added === 1 ? 'night' : 'nights'} restored.`,
+      );
+    } catch {
+      setKept('Could not read the clipboard.');
     }
   }
 
@@ -236,10 +287,20 @@ export default function Settings() {
          * no handoff cut, which is why `docs/screens.md` has no section for it.
          * Open, and recorded in `docs/storage-and-sync.md`.
          */}
-        <Fact label="Where it lives" value={backupLine(backup)} last={trouble === null} />
+        <Fact label="Where it lives" value={backupLine(backup)} />
         {trouble !== null && (
           <Text style={[styles.note, { color: t.muted }]}>{trouble}</Text>
         )}
+
+        {/*
+         * THE THIRD COPY, and deliberately above the Account section rather
+         * than inside it. Everything below needs a server and a sign-in; this
+         * needs neither, and a phone with no account is exactly the phone with
+         * nothing else holding its book.
+         */}
+        <Action label="Copy a backup" onPress={() => void copyBackup()} />
+        <Action label="Restore from a backup" onPress={() => void restore()} last />
+        {kept !== null && <Text style={[styles.note, { color: t.muted }]}>{kept}</Text>}
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Account</Text>
 
