@@ -186,10 +186,10 @@ the app comes to the foreground, on a timer while a queue is non-empty, and once
 on sign-in". There is no `AppState` listener, no timer and no drain on sign-in
 anywhere in the app, and there never was; the same paragraph's promise that
 signing in on Tuesday backs up Saturday's night was false for the same reason.
-The doc now says what the code does. **Two of the three were built the next
-day** — `backupPump.ts` drains when the app comes to the foreground and on a
-backoff timer while anything is waiting, with the policy in `retrySchedule.ts`.
-The drain on sign-in is still open.
+The doc now says what the code does. **All three were built the next day** —
+`backupPump.ts` drains when the app comes to the foreground, when somebody signs
+in, and on a backoff timer while anything is waiting, with the policy in
+`retrySchedule.ts`.
 
 ### B84 — Settings said "On this phone" whether or not it was anywhere else
 
