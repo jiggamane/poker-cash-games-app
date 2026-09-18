@@ -185,16 +185,35 @@ replaying one the server already has is a no-op. Re-sending is always safe,
 which is what makes "retry forever" a correct strategy rather than a dangerous
 one.
 
-**It drains after each write**, and that is the whole of it. There is no
-connectivity library involved: the attempt *is* the connectivity check, and a
-failure just leaves the queue where it was.
+**It drains after each write, when the app comes to the foreground, and on a
+timer while anything is waiting.** There is no connectivity library involved:
+the attempt *is* the connectivity check, and a failure just leaves the queue
+where it was.
 
-⚠ **This paragraph used to promise three more, and none of them exists.** It
-said the queue also drains "when the app comes to the foreground, on a timer
-while a queue is non-empty, and once on sign-in" — there is no `AppState`
-listener, no timer and no drain on sign-in anywhere in the app, and there never
-was. Which made the sentence below about signing in on Tuesday false as well:
-the queue does still hold everything, but signing in does not by itself send it.
+⚠ **This paragraph promised all of that for weeks before any of it existed**,
+and two of the three were built on 18 September. There was no `AppState`
+listener, no timer and no drain on sign-in, and the sentence below about signing
+in on Tuesday was false for the same reason.
+
+The foreground drain and the timer are `backupPump.ts`, mounted once at the
+root beside `openNight`. The policy is `retrySchedule.ts` and is pure: 15
+seconds after a failure, doubling, capped at five minutes — and **null when the
+queue is empty, which cancels the timer rather than slowing it**. There is
+nothing to send, the next write will push by itself, and a timer over an empty
+queue is battery with no upside. Opening the app resets the backoff, because a
+person opening it is information about the network that no backoff has.
+
+**Drain on sign-in is still open**, and it is the one that would make the
+signed-out paragraph below true without a tap.
+
+⚠ **`drain()` coalesces now, and had to.** `flushOutbox` reads a batch, sends
+it, and only then removes it, so two runs read the same batch and send it twice
+— harmless to the server, since every operation is an idempotent upsert on a
+client id, but the same night over somebody's mobile data twice, and
+`books.clear()` emptying the id cache underneath a run already using it. That
+was a near-impossibility with one drain after each write and one button; with a
+timer it is the ordinary case. A caller arriving mid-drain gets the run already
+in flight.
 
 What "after each write" covers changed on 17 September, and it is worth knowing
 which writes. Recording money has always pushed behind itself — `recordEntry` —
@@ -204,17 +223,18 @@ E7's ticks come after the last entry there will ever be, so a night settled with
 no signal sat on one phone until the host's next game. `setFinalCount`,
 `setStatus`, `closeNight` and `setPaid` now push like everything else. B83.
 
-**Still open, and worth building:** the foreground drain, the retry timer and the
-drain on sign-in. Until they exist, a push that fails is retried by the next
-write or by **Sync now** in Settings, and by nothing else.
+**Still open:** the drain on sign-in. Everything else retries by itself now — a
+push that fails is tried again on a backoff, and again when the app is next
+opened.
 
 ### Signed out
 
 The queue still fills. Nothing is dropped and nothing is gated: play the whole
 night with no account, sign in on Tuesday, and the night goes up **as soon as
-anything drains** — which today means the next write or **Sync now**, not the
-sign-in itself. See the ⚠ above: the drain on sign-in was described here for
-weeks and never existed. That is strictly better than refusing to record what cannot yet
+anything drains** — which since 18 September means the next write, the next time
+the app is opened, or the retry timer, whichever comes first. Not the sign-in
+itself: that one is still open, so a host who signs in and stays on the screen
+waits for the timer rather than going up on the spot. That is strictly better than refusing to record what cannot yet
 be sent.
 
 ---

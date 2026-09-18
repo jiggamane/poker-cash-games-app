@@ -8,6 +8,7 @@ import { completeSignInFromUrl } from '../src/lib/authLink';
 import { loadClubs } from '../src/lib/clubStore';
 import { openNight } from '../src/lib/nightStore';
 import { loadBook } from '../src/lib/bookStore';
+import { useBackupPump } from '../src/lib/backupPump';
 import { loadSessionView } from '../src/lib/sessionViewStore';
 import { loadThemeChoice } from '../src/lib/themeStore';
 
@@ -35,6 +36,13 @@ const SHEET = {
 } as const;
 export default function RootLayout() {
   const t = useTheme();
+
+  /*
+   * The queue, kept moving — see `backupPump.ts`. At the root for the reason
+   * `openNight` is: a deep link or a restored route can make any screen first,
+   * and whether a night reaches the server must not depend on which.
+   */
+  useBackupPump();
 
   // Read the night off the device once, at the root, so every screen finds it
   // already there. It comes from SQLite, not the network — the app is fully
