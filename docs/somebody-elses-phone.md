@@ -33,9 +33,16 @@ Three things, and all three fail quietly rather than loudly:
    watcher's screen stays empty.
 2. **You are signed in on the host phone, and the book has synced.** A code is
    made on the server against a player row that has to already be there.
-   Settings shows *Signed in as*, and *Waiting to sync* — get it to **Backed
-   up** before you hand anybody anything. Otherwise the invite sheet says *"This
-   player has not reached the server yet."*
+   Settings shows *Signed in as*, and — under *This night* — **Where it lives**:
+   get it to **Backed up** before you hand anybody anything. Anything else reads
+   *Saved on this phone · N waiting*, with the reason underneath if a send has
+   been failing. Otherwise the invite sheet says *"This player has not reached
+   the server yet."*
+
+   ⚠ That row said *Waiting to sync* until 17 September and this line said so
+   with it — see B84. The queue also drains itself now, on a backoff, when the
+   app is opened and when you sign in, so *Backed up* usually arrives without
+   **Sync now** being tapped.
 3. **If anyone will use the web copy** (below), the repository needs
    `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` as Actions
    secrets — Settings → Secrets and variables → Actions — and one merge to
@@ -134,6 +141,21 @@ buttons the app draws.
 
 **Stop sharing** rotates the token and cuts every watcher off; anyone still
 holding a valid one keeps reading for up to an hour.
+
+---
+
+## Before you hand the group to anybody else
+
+**Take a backup first.** *Settings → Copy a backup* puts every night on the
+phone onto the clipboard; paste it somewhere you keep things. Handing over
+admin, claiming seats and removing people all change who can read what, and this
+is the copy that does not depend on any of it. *Restore from a backup* reads it
+back, and skips any night the phone already has.
+
+⚠ **Removing somebody does not cut off their access** — B57, open. The roster
+row goes, the app stops offering them a seat, and their account goes on reading
+the book. Until that is closed, treat removal as "they stop playing", not as
+"they stop seeing".
 
 ---
 

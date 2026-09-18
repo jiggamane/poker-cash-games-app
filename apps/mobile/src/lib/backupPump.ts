@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { drain, syncStatus } from './sync';
 import { nextWake } from './retrySchedule';
+import { isSupabaseConfigured, supabase } from './supabase';
 
 /**
  * THE QUEUE, KEPT MOVING.
@@ -19,13 +20,20 @@ import { nextWake } from './retrySchedule';
  * phone off aeroplane mode, or simply come back on Tuesday. It resets the
  * backoff for exactly that reason.
  *
+ * **Signing in.** The queue fills whether or not there is an account — playing
+ * the whole night signed out is supported on purpose — so signing in is the
+ * moment a phone full of nights becomes able to send them. Without this the
+ * host signs in, stays on the screen, and waits for the timer.
+ *
  * **A timer, while anything is waiting** — 15 seconds, doubling, capped at five
  * minutes. `retrySchedule.ts` holds that policy and its test.
  *
- * **And an empty queue stops it dead.** Not a slower poll: cancelled. There is
- * nothing to send and the next write will push by itself, so a timer here would
- * be battery with no upside. It starts again the moment a write leaves something
- * queued, because that write's own push ends in the same check.
+ * **And nothing-to-do stops it dead.** Not a slower poll: cancelled. Two ways to
+ * have nothing to do — an empty queue, and a queue nobody can send, which is
+ * every phone that is signed out or has no project configured. Both would
+ * otherwise wake every five minutes for ever to call a function that returns
+ * immediately. It starts again when a write leaves something queued, or when
+ * somebody signs in.
  *
  * MOUNTED ONCE, AT THE ROOT. It is in `_layout.tsx` beside `openNight` and for
  * the same reason given there: a deep link, a restored route or a notification
@@ -41,6 +49,8 @@ export function useBackupPump(): void {
     let attempt = 0;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let alive = true;
+    /** Null until the first answer from auth — which is not the same as false. */
+    let signedIn: boolean | null = null;
 
     const cancel = (): void => {
       if (timer !== null) {
@@ -68,7 +78,7 @@ export function useBackupPump(): void {
       if (!alive) return;
 
       const { waiting } = await syncStatus().catch(() => ({ waiting: 0, lastError: null }));
-      const wait = nextWake(waiting, attempt);
+      const wait = nextWake({ waiting, canSend: isSupabaseConfigured && signedIn === true }, attempt);
       if (wait === null) {
         attempt = 0;
         return;
@@ -85,10 +95,31 @@ export function useBackupPump(): void {
       if (state === 'active') void pump(true);
     });
 
+    /**
+     * SIGNING IN IS THE THIRD WAKE, and the transition is what is watched
+     * rather than the event name.
+     *
+     * The first answer is the starting state, not a change — except when it
+     * says signed in, because the mount pump above ran before auth had
+     * answered and will have decided it could not send. Pumping again there is
+     * how the timer gets started at all on a phone that opens already signed
+     * in; `drain()` coalesces, so the two attempts are one request.
+     *
+     * A sign-OUT deliberately does nothing. Any timer already scheduled fires
+     * once, finds it cannot send, and stops itself.
+     */
+    const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!alive) return;
+      const was = signedIn;
+      signedIn = session !== null;
+      if (signedIn && was !== true) void pump(true);
+    });
+
     return () => {
       alive = false;
       cancel();
       sub.remove();
+      auth.subscription.unsubscribe();
     };
   }, []);
 }

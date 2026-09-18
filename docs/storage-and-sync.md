@@ -203,8 +203,17 @@ nothing to send, the next write will push by itself, and a timer over an empty
 queue is battery with no upside. Opening the app resets the backoff, because a
 person opening it is information about the network that no backoff has.
 
-**Drain on sign-in is still open**, and it is the one that would make the
-signed-out paragraph below true without a tap.
+**And signing in wakes it too**, which is the one that makes the signed-out
+paragraph below true without a tap: the queue fills whether or not there is an
+account, so signing in is the moment a phone full of nights becomes able to send
+them.
+
+⚠ **The timer must know whether anybody could send**, or it never stops. `drain()`
+returns early with no session, so a host playing signed out — supported on
+purpose — keeps `waiting` above zero all evening, and a timer that looked only at
+the queue depth would wake every five minutes until morning to call a function
+that returns immediately. `nextWake` takes `canSend` for that reason. It was
+found writing the sign-in drain, not by anything going red.
 
 ⚠ **`drain()` coalesces now, and had to.** `flushOutbox` reads a batch, sends
 it, and only then removes it, so two runs read the same batch and send it twice
@@ -223,18 +232,15 @@ E7's ticks come after the last entry there will ever be, so a night settled with
 no signal sat on one phone until the host's next game. `setFinalCount`,
 `setStatus`, `closeNight` and `setPaid` now push like everything else. B83.
 
-**Still open:** the drain on sign-in. Everything else retries by itself now — a
-push that fails is tried again on a backoff, and again when the app is next
-opened.
+Nothing here is open any more: a push that fails is tried again on a backoff,
+when the app is next opened, and when somebody signs in.
 
 ### Signed out
 
 The queue still fills. Nothing is dropped and nothing is gated: play the whole
-night with no account, sign in on Tuesday, and the night goes up **as soon as
-anything drains** — which since 18 September means the next write, the next time
-the app is opened, or the retry timer, whichever comes first. Not the sign-in
-itself: that one is still open, so a host who signs in and stays on the screen
-waits for the timer rather than going up on the spot. That is strictly better than refusing to record what cannot yet
+night with no account, sign in on Tuesday, and the night goes up. Since
+18 September that is true of the sign-in itself and not only of the next write:
+the pump watches auth and drains on the transition into signed-in. That is strictly better than refusing to record what cannot yet
 be sent.
 
 ---
