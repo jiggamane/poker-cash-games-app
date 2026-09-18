@@ -390,7 +390,40 @@ const books = new Map<string, string>();
  * Signed out, the queue simply keeps filling. Sign in on Tuesday and the whole
  * of Saturday's night goes up.
  */
+/**
+ * ONE DRAIN AT A TIME.
+ *
+ * Until the retry timer existed, two drains overlapping was a near-impossibility
+ * — they ran after a write and from one button. Now every write pushes, the app
+ * pushes when it comes to the foreground, and a timer pushes while anything is
+ * waiting, so overlapping is the ordinary case.
+ *
+ * What overlapping costs: `flushOutbox` reads a batch, sends it, and only then
+ * removes it, so two runs read the SAME batch and send it twice. The server is
+ * unharmed — every operation is an idempotent upsert on an id the phone
+ * generated, which is the property the whole queue is built on — but it is the
+ * same night sent twice over somebody's mobile data, and `books.clear()` below
+ * would empty the id cache underneath a run already using it.
+ *
+ * A caller that arrives mid-drain gets the drain already running. That is not
+ * quite "your operations have been sent" — anything queued after the in-flight
+ * run read its batch waits for the next one — and it is the right trade for the
+ * one caller that cares: `Sync now` returning promptly with the queue still
+ * emptying beats it blocking, and the timer is right behind it.
+ */
+let inFlight: Promise<FlushResult> | null = null;
+
 export async function drain(): Promise<FlushResult> {
+  if (inFlight !== null) return inFlight;
+  inFlight = run();
+  try {
+    return await inFlight;
+  } finally {
+    inFlight = null;
+  }
+}
+
+async function run(): Promise<FlushResult> {
   if (!isSupabaseConfigured) return { pushed: 0, remaining: await outbox.count() };
 
   const { data } = await supabase.auth.getSession();

@@ -658,3 +658,44 @@ describe('the end of the night, with nobody calling drain', () => {
     ).toBe(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+
+/**
+ * TWO DRAINS AT ONCE SEND EACH THING ONCE.
+ *
+ * Overlapping drains used to be a near-impossibility — one after a write, one
+ * from a button. With every write pushing, the app pushing on foreground, and a
+ * timer pushing while anything waits, overlapping is the ordinary case.
+ *
+ * `flushOutbox` reads a batch, sends it, and only then removes it, so two runs
+ * read the SAME batch. Nothing breaks — every operation is an idempotent upsert
+ * on a client id, which is what the whole queue rests on — but it is the same
+ * night sent twice over somebody's mobile data, and `books.clear()` would empty
+ * the id cache underneath a run already using it.
+ */
+describe('two drains at once', () => {
+  it('sends each operation once, not twice', async () => {
+    const { sync, core } = await relaunch();
+    await openTheNight(sync);
+    await buyIn(sync, core, uuid(10), DANA, 10_000);
+    await buyIn(sync, core, uuid(11), IVO, 10_000);
+
+    // Fired together, neither awaited before the other starts.
+    const [a, b] = await Promise.all([sync.drain(), sync.drain()]);
+
+    // Every write the server saw, counted by what it was.
+    const seen = new Map<string, number>();
+    for (const w of server.accepted) {
+      const key = `${w.table}:${w.key}`;
+      seen.set(key, (seen.get(key) ?? 0) + 1);
+    }
+    const twice = [...seen.entries()].filter(([, n]) => n > 1);
+    expect(twice, `sent twice: ${twice.map(([k]) => k).join(', ')}`).toEqual([]);
+
+    // And between them the queue still emptied.
+    expect(Math.max(a.remaining, b.remaining)).toBe(0);
+    expect(await sync.outbox.count()).toBe(0);
+    expect(server.table('ledger_entry').size).toBe(2);
+  });
+});
