@@ -16,12 +16,7 @@ import {
   type EffectiveEntry,
   type Money,
 } from '@poker-club/core';
-import {
-  formatMoney,
-  formatSignedToFit,
-  formatSignedToFitUnmarked,
-  formatToFitUnmarked,
-} from '../src/lib/money';
+import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { announceRebuy } from '../src/components/rebuyAnnouncement';
@@ -392,19 +387,21 @@ export default function PlayerCard() {
     >
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
         {/*
-         * IN FOR AND COUNTED ARE UNMARKED, `Night` IS NOT — the rule of
-         * 19 September, in `money.ts`. The third figure on this card is the
-         * first two subtracted, so the card is a working with its answer in it,
-         * and the answer is where the night's currency is stated.
+         * EVERY FIGURE ON THIS CARD IS MARKED — the owner's call of
+         * 20 September, and the exception to the working rule in `money.ts`.
+         *
+         * The card IS a working — `In for` less `Counted` is `Night` — and it
+         * was drawn as one for a day. What that missed is the size: these are
+         * 28-point figures in the first thing the sheet shows, not a line of
+         * terms at 12.5 under a name, and `8.5k` at that size reads as a count
+         * of something. The rule earns its keep on a crowded annotation line
+         * and costs more than it saves here. `docs/screens.md` has the
+         * exemption and the reasoning.
          */}
-        <StatPair
-          label="In for"
-          value={formatToFitUnmarked(inFor, FITS)}
-          tight={result !== undefined}
-        />
+        <StatPair label="In for" value={formatToFit(inFor, FITS)} tight={result !== undefined} />
         <StatPair
           label="Counted"
-          value={counted === undefined ? '—' : formatToFitUnmarked(counted, FITS)}
+          value={counted === undefined ? '—' : formatToFit(counted, FITS)}
           muted={counted === undefined}
           tight={result !== undefined}
           align="middle"
@@ -531,14 +528,16 @@ export default function PlayerCard() {
               <Text style={[styles.afterLabel, { color: t.text }]} numberOfLines={2}>
                 {r.label}
               </Text>
-              {/* A term of the block, so no mark: `Their night` below carries
-                  it, which is the figure these come to. */}
+              {/* MARKED, with the rest of this sheet — see the note on the
+                  card above. The block is a working and `Their night` is what
+                  it comes to, but a sheet that marks its headline figures and
+                  not its receipt rows is a sheet drawn two ways. */}
               <Text
                 style={[styles.afterValue, { color: r.offTable ? t.offTable : t.text }]}
                 numberOfLines={1}
                 {...cappedFigure}
               >
-                {formatSignedToFitUnmarked(r.amount, AFTER_FITS)}
+                {formatSignedToFit(r.amount, AFTER_FITS)}
               </Text>
             </View>
           ))}
@@ -570,15 +569,14 @@ export default function PlayerCard() {
               <Text style={[styles.afterLabel, { color: t.muted }]} numberOfLines={2}>
                 {r.label}
               </Text>
-              {/* Unmarked with the rows above it. It is outside the total
-                  rather than outside the block, and one mark on the answer is
-                  what this column says. */}
+              {/* Marked with the rows above it — it is outside the total
+                  rather than outside the block. */}
               <Text
                 style={[styles.afterValue, { color: t.muted }]}
                 numberOfLines={1}
                 {...cappedFigure}
               >
-                {formatSignedToFitUnmarked(r.amount, AFTER_FITS)}
+                {formatSignedToFit(r.amount, AFTER_FITS)}
               </Text>
             </View>
           ))}

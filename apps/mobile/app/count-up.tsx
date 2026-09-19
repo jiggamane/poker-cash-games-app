@@ -18,7 +18,7 @@ import {
   type Money,
   type PlayerId,
 } from '@poker-club/core';
-import { formatSignedToFit, formatToFit, formatToFitUnmarked } from '../src/lib/money';
+import { formatSignedToFit, formatToFit } from '../src/lib/money';
 import { BLOCK_FITS, headlineSize, percent, toneOf, type Tone } from '../src/lib/countUpBlock';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
@@ -264,7 +264,7 @@ export default function CountUp() {
               <Travelling key={p.id} id={p.id} group="toCount" ruler={ruler}>
                 <ActiveRow
                   name={p.name}
-                  fact={`in ${formatToFitUnmarked(p.boughtIn, ROW_FITS)}`}
+                  fact={`in ${formatToFit(p.boughtIn, ROW_FITS)}`}
                   last={i === toCount.length - 1}
                   accessibilityLabel={`Count ${p.name}`}
                   onPress={() =>
@@ -319,7 +319,7 @@ export default function CountUp() {
                   name={p.name}
                   fact={
                     p.atTable
-                      ? `counted ${formatToFitUnmarked(endedWith(p), ROW_FITS)}`
+                      ? `counted ${formatToFit(endedWith(p), ROW_FITS)}`
                       : cashedOutFact(night, p.id, p.cashedOut)
                   }
                   result={resultBeforeDeductions(p.boughtIn, endedWith(p))}
@@ -369,7 +369,7 @@ const cashedOutFact = (
   cashedOut: Money,
 ): string => {
   const at = cashedOutAt(night, playerId);
-  return `cashed out ${at === undefined ? formatToFitUnmarked(cashedOut, ROW_FITS) : clockLabel(at)}`;
+  return `cashed out ${at === undefined ? formatToFit(cashedOut, ROW_FITS) : clockLabel(at)}`;
 };
 
 // ---------------------------------------------------------------------------
@@ -670,17 +670,19 @@ function Sum({ caption, colour, amount }: { caption: string; colour: string; amo
         {caption}
       </Text>
       {/*
-       * UNMARKED — the rule of 19 September, in `money.ts`. These two are the
-       * sides of a COMPARISON and the headline above them is their difference,
-       * which carries the mark: the block's subject is the gap, not the sums.
+       * MARKED, LIKE EVERY FIGURE ON THIS SCREEN — the owner's call of
+       * 20 September, and the exception to the working rule in `money.ts`.
        *
-       * ⚠ THE SETTLED NIGHT'S `CHIPS` BLOCK DRAWS THE SAME TWO FIGURES MARKED,
-       * and that is deliberate rather than drift. Nothing on that block is
-       * their difference — its head is a word, `balanced` — so there the two
-       * sums ARE the answer a reader came for. Recorded in `docs/screens.md`.
+       * It was unmarked for a day, as the two sides of a comparison whose
+       * answer is the headline above them. On a phone that read wrong, and the
+       * reason is what this block is made of: these are not small terms under a
+       * name, they are 22-point figures in the card the screen opens with, and
+       * a bare `15,400` at that size reads as a quantity of something rather
+       * than as money. The settled night's `CHIPS` block draws the same two
+       * marked, and now they agree. `docs/screens.md` has the exemption.
        */}
       <Text style={[styles.amount, { color: colour }]} numberOfLines={1} {...cappedFigure}>
-        {formatToFitUnmarked(amount, BLOCK_FITS)}
+        {formatToFit(amount, BLOCK_FITS)}
       </Text>
     </View>
   );

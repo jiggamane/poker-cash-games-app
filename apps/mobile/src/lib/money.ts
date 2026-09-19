@@ -163,6 +163,13 @@ export const stakesSummary = (stakes: Stakes): string => coreStakesSummary(stake
  * `docs/screens.md`, *A working is unmarked and its answer is not*, has the
  * ledger of which figure on which screen is which.
  *
+ * ⚠ AND TWO SCREENS ARE OFF THE RULE ENTIRELY — E2 Count up and the player
+ * card, by the owner's call of 20 September: both state their figures at 22 and
+ * 28 points at the top of the screen, where a bare `15,400` reads as a quantity
+ * of something rather than as money and there is no crowded line for the rule
+ * to relieve. Per screen, not per figure, so their receipt rows are marked too.
+ * `moneyScreens.contract.test.ts` holds it as an absence.
+ *
  * It is a name of its own rather than an optional argument on the formatters
  * above. An override would put the default back — the thing this whole module
  * exists to take away — and "unmarked" is a decision somebody has to write
