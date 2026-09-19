@@ -430,7 +430,7 @@ describe('a working is unmarked and the figure it comes to is not', () => {
       answer: 'formatSignedToFit(row.net, ROW_FITS)',
     },
     {
-      where: 'the night row on My stats and Sessions',
+      where: 'the rolled-up night row — drawn by no screen today, see docs/screens.md',
       file: 'apps/mobile/src/components/ScoreBreakdown.tsx',
       terms: [
         'formatSignedToFitUnmarked(term.amount, ROW_FITS)',
@@ -448,7 +448,7 @@ describe('a working is unmarked and the figure it comes to is not', () => {
       answer: 'formatSignedToFit(net, ROW_FITS)',
     },
     {
-      where: 'E4’s `in · out` sub-line',
+      where: 'E5’s `in · out` sub-line, under the result it is made of',
       file: 'apps/mobile/app/settle-up.tsx',
       terms: ['formatToFitUnmarked(s.boughtIn, ROW_FITS)', 'formatToFitUnmarked(s.out, ROW_FITS)'],
       answer: 'formatSignedToFit(s.result, ROW_FITS)',

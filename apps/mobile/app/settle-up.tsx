@@ -444,7 +444,10 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
               <Text style={[styles.name, { color: t.text }]}>{s.name}</Text>
               {/* `in 500 · out 2,120`, unmarked — the rule of 19 September, in
                   `money.ts`. The two stacks are what the figure on the right of
-                  this row is made of, and that figure keeps the mark. */}
+                  this row is made of, and that figure keeps the mark.
+
+                  THIS IS E5's LIST, NOT E4's: the balanced screen draws
+                  transfers and net chips and no sub-line at all. */}
               <Text style={[styles.detail, { color: t.muted }]}>
                 in {formatToFitUnmarked(s.boughtIn, ROW_FITS)} · out{' '}
                 {formatToFitUnmarked(s.out, ROW_FITS)}

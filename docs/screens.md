@@ -1596,13 +1596,23 @@ what makes the row read as arithmetic — `−500 + 2,120 − 54 − 24 − 23 =
 | Screen | The working, unmarked | The answer, marked |
 |---|---|---|
 | `/settled`, `/watch` | the whole annotation line: the poker result, both stacks, every spend, a repayment, the step | the net beside the name |
-| `/stats`, `/games` | the night row's pairs, and the rolled-up spend figure | the night's net |
-| `/stats`, `/games` | `5,500 in, 5,500 out` on the At-table list's last row | the `$0` beside it |
+| `ScoreBreakdown.tsx` ⚠ | the night row's pairs, and the rolled-up spend figure | the night's net |
+| `ScoreBreakdown.tsx` ⚠ | `5,500 in, 5,500 out` on its At-table closing row | the `$0` beside it |
 | `/deductions` | the formula line's terms, and `5% of 2,120` on a working row | the net; the charge on the right of the row |
-| `/settle-up` | `in 500 · out 2,120` under each name; the net chips | the row's result; each transfer |
+| `/settle-up`, E5 *It doesn't add up* | `in 500 · out 2,120` under each name | the row's result |
+| `/settle-up`, E4 | the net chips | each transfer |
 | `/count-up` | the comparison's two sums; `in 500`, `counted 2,120`, `cashed out 900` on a row | the signed gap; the collapsed `✓ Balanced $47,000`; the row's result |
 | `/session` | `23:15 · out 2,120` on a settled slab | the row's result; what each player is in for; the cards at the top |
 | `/player` | `In for` and `Counted`; every row of *After deductions*, the float rows included | `Night`; `Their night` |
+
+⚠ **`ScoreBreakdown.tsx` IS DRAWN BY NO SCREEN TODAY**, and it was swept with
+the rest for when it is. Three comments in this repo and one in `myStats.ts`
+say `/stats` and `/games` draw the night row with it; both import `GameRow` and
+`NightsChart` and neither imports this file at all. Found on 19 September by
+going to screenshot the change and finding no screen to photograph. Its figures
+are right by the rule above and the contract test holds them there, but nothing
+renders them — **open**: either a screen picks it up or it goes, and until one
+of those happens every note pointing at it is describing a drawing nobody sees.
 
 **Two blocks draw the same two figures differently, and it is deliberate.** E2's
 comparison is unmarked because the headline above it is their difference — the
