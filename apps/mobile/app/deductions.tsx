@@ -14,7 +14,13 @@ import {
   type MoneyRule,
   type PlayerId,
 } from '@poker-club/core';
-import { formatMoney, formatSignedToFit, formatToFit, rateLabel } from '../src/lib/money';
+import {
+  formatMoney,
+  formatSignedToFit,
+  formatSignedToFitUnmarked,
+  formatToFitUnmarked,
+  rateLabel,
+} from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
@@ -298,8 +304,16 @@ export default function Deductions() {
               </Text>
               {terms.length > 1 && (
                 <Text style={[styles.rowFormula, { color: t.muted }]} numberOfLines={2}>
+                  {/* THE TERMS ARE UNMARKED — the rule of 19 September, in
+                      `money.ts`: this line IS the working, and the figure it
+                      comes to is the net beside it, which keeps the mark. A
+                      sentence of four marked figures under a fifth was the
+                      currency said five times for one night. */}
                   {terms
-                    .map((term) => `${term.label}\u00a0${formatSignedToFit(term.amount, TERM_FITS)}`)
+                    .map(
+                      (term) =>
+                        `${term.label}\u00a0${formatSignedToFitUnmarked(term.amount, TERM_FITS)}`,
+                    )
                     .join(' · ')}
                 </Text>
               )}
@@ -597,7 +611,9 @@ function Block({
 
               {percent && rule !== undefined && !handSet(rule, c.playerId) && (
                 <Text style={[styles.working, { color: t.muted }]}>
-                  {rule.amount}% of {formatToFit(basisFor(c.playerId), WORKING_FITS)}
+                  {/* `5% of 2,120`, unmarked: the working, whose answer is the
+                      charge on the right of the same row and carries the mark. */}
+                  {rule.amount}% of {formatToFitUnmarked(basisFor(c.playerId), WORKING_FITS)}
                 </Text>
               )}
 

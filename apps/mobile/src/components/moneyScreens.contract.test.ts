@@ -397,3 +397,104 @@ describe('every figure in the app is written in the group’s own currency', () 
     ]);
   });
 });
+
+/**
+ * A WORKING IS UNMARKED AND THE FIGURE IT COMES TO IS NOT — the owner's rule of
+ * 19 September, and the reason it is held here as well as in the browser is the
+ * reason this whole file exists: it is a rule about EVERY money screen, and a
+ * rule that only a two-minute pass can defend is one that comes undone a file
+ * at a time.
+ *
+ * WHAT COUNTS AS WHICH is in `money.ts` and the ledger in `docs/screens.md`. In
+ * short: a TERM is one step of a sum whose answer is drawn beside it, and it
+ * carries no currency mark; a TOTAL is read on its own, out of the sum that
+ * produced it, and it does. `ui-journeys.mjs` asserts the same thing of the
+ * rendered settled row, in both directions, which is the half that can see a
+ * screen.
+ *
+ * BOTH COLUMNS OF THE TABLE MATTER. Checking only that the terms are unmarked
+ * would pass on a screen that had lost its currency altogether, which is the
+ * failure this rule could actually cause — so every row names the answer that
+ * must still be marked.
+ */
+describe('a working is unmarked and the figure it comes to is not', () => {
+  const WORKINGS: Array<{ where: string; file: string; terms: string[]; answer: string }> = [
+    {
+      where: 'the past session’s annotation line, under the net',
+      file: 'apps/mobile/src/components/SessionViews.tsx',
+      terms: [
+        'formatSignedToFitUnmarked(amount, ROW_FITS)',
+        'formatSignedToFitUnmarked(term.amount, ROW_FITS)',
+        'formatToFitUnmarked(term.amount, ROW_FITS)',
+      ],
+      answer: 'formatSignedToFit(row.net, ROW_FITS)',
+    },
+    {
+      where: 'the night row on My stats and Sessions',
+      file: 'apps/mobile/src/components/ScoreBreakdown.tsx',
+      terms: [
+        'formatSignedToFitUnmarked(term.amount, ROW_FITS)',
+        'formatToFitUnmarked(term.amount, ROW_FITS)',
+      ],
+      answer: 'formatSignedToFit(net, ROW_FITS)',
+    },
+    {
+      where: 'E3’s formula line and its per-player working',
+      file: 'apps/mobile/app/deductions.tsx',
+      terms: [
+        'formatSignedToFitUnmarked(term.amount, TERM_FITS)',
+        'formatToFitUnmarked(basisFor(c.playerId), WORKING_FITS)',
+      ],
+      answer: 'formatSignedToFit(net, ROW_FITS)',
+    },
+    {
+      where: 'E4’s `in · out` sub-line',
+      file: 'apps/mobile/app/settle-up.tsx',
+      terms: ['formatToFitUnmarked(s.boughtIn, ROW_FITS)', 'formatToFitUnmarked(s.out, ROW_FITS)'],
+      answer: 'formatSignedToFit(s.result, ROW_FITS)',
+    },
+    {
+      where: 'E2’s comparison, under the gap it comes to',
+      file: 'apps/mobile/app/count-up.tsx',
+      terms: ['formatToFitUnmarked(amount, BLOCK_FITS)'],
+      answer: 'formatSignedToFit(gap, BLOCK_FITS)',
+    },
+    {
+      where: 'the player card’s three figures and its after-deductions block',
+      file: 'apps/mobile/app/player.tsx',
+      terms: [
+        'formatToFitUnmarked(inFor, FITS)',
+        'formatToFitUnmarked(counted, FITS)',
+        'formatSignedToFitUnmarked(r.amount, AFTER_FITS)',
+      ],
+      answer: 'formatSignedToFit(theirNight, AFTER_FITS)',
+    },
+  ];
+
+  it.each(WORKINGS)('$where', ({ file, terms, answer }) => {
+    const source = drawn(read(file));
+    for (const term of terms) expect(source).toContain(term);
+    expect(source).toContain(answer);
+  });
+
+  /*
+   * AND THE UNMARKED PAIR KEEPS THE THRESHOLD IT WAS MEASURED AT.
+   *
+   * `fitFor` takes a decade off for every glyph of currency, because a figure
+   * two glyphs wider no longer fits the column it was measured for. An unmarked
+   * figure has no glyphs to make room for, so routing these through it would
+   * abbreviate a Swiss club's working at a hundredth of an American one's — the
+   * same row, two different figures, for a symbol that is not drawn.
+   */
+  it('and an unmarked figure abbreviates at the same size in every currency', () => {
+    const source = read('apps/mobile/src/lib/money.ts');
+    const pair = /export const format(?:Signed)?ToFitUnmarked[\s\S]*?;\n/g;
+    const drawnPair = [...source.matchAll(pair)].map((m) => m[0]);
+    expect(drawnPair).toHaveLength(2);
+    for (const fn of drawnPair) {
+      expect(fn).toContain('Math.abs(amount) < exactBelow');
+      expect(fn).not.toContain('fitFor');
+      expect(fn).not.toContain('tight()');
+    }
+  });
+});

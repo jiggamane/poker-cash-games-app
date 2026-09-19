@@ -8,7 +8,12 @@ import {
   type SettledRow,
   type SettledTerm,
 } from '@poker-club/core';
-import { formatSignedToFit, formatToFit } from '../lib/money';
+import {
+  formatMoney,
+  formatSignedToFit,
+  formatSignedToFitUnmarked,
+  formatToFitUnmarked,
+} from '../lib/money';
 import { Icon, type IconName } from './Icon';
 import { moneyColor, useTheme } from '../design/useTheme';
 import { cappedFigure, tabular, type Theme } from '../design/tokens';
@@ -339,7 +344,9 @@ function Pairs({
               <Icon key={pairKey(g.term)} name={g.name} color={t.offTable} size={14} />
             ))}
           <Text style={[styles.figure, tabular, { color: t.offTable }]} {...cappedFigure}>
-            {formatSignedToFit(rollup(spends), ROW_FITS)}
+            {/* Unmarked with the pairs it stands in for — it is the itemised
+                line's figures rolled into one, on the line they would be on. */}
+            {formatSignedToFitUnmarked(rollup(spends), ROW_FITS)}
           </Text>
         </View>
       )}
@@ -488,16 +495,21 @@ function glyph(term: SettledTerm): IconName | null {
 }
 
 /**
- * THE FIGURE, SIGNED AS THE ROW READS IT.
+ * THE FIGURE, SIGNED AS THE ROW READS IT, AND UNMARKED.
  *
  * `in` and every spend come off them, so both print a minus the engine does not
  * carry — `SettledTerm.amount` is a magnitude, and the sign is the reader's
  * screen's. `out` and `back` are money arriving. `rounded` is already signed.
+ *
+ * NO CURRENCY MARK — the rule of 19 September, in `money.ts`. This row reads as
+ * arithmetic on purpose (`−500 + 2,120 − 54 − 24 − 23 = +$1,519`), and the one
+ * figure in it that is not a step of that sum is the net, which keeps its mark
+ * and is where the night's currency is stated.
  */
 function signed(term: SettledTerm): string {
-  if (term.kind === 'rounded') return formatSignedToFit(term.amount, ROW_FITS);
+  if (term.kind === 'rounded') return formatSignedToFitUnmarked(term.amount, ROW_FITS);
   const arriving = term.kind === 'out' || term.kind === 'back';
-  return `${arriving ? '+' : '\u2212'}${formatToFit(term.amount, ROW_FITS)}`;
+  return `${arriving ? '+' : '\u2212'}${formatToFitUnmarked(term.amount, ROW_FITS)}`;
 }
 
 /**
@@ -598,7 +610,7 @@ export function ScoreTabs({
 }
 
 /**
- * `$5,500 in, $5,500 out` / `$0` — the last row of the At-table list.
+ * `5,500 in, 5,500 out` / `$0` — the last row of the At-table list.
  *
  * THE CHECK PLAYERS RUN BEFORE THEY ACCEPT THE FINAL. Money is neither made nor
  * destroyed at a poker table, so the column comes to nothing — and the row
@@ -606,6 +618,11 @@ export function ScoreTabs({
  * because a bare `$0` is not checkable against anything.
  *
  * Both figures are `resultTotals()`'s. The caller passes them; this draws them.
+ *
+ * THE TWO SIDES ARE UNMARKED AND THE ZERO IS NOT — the rule of 19 September, in
+ * `money.ts`. This row is a comparison and the figure on its right is what the
+ * two sides come to, which is the same way E2's block is drawn. The mark is on
+ * the answer, once.
  */
 export function ReconciliationRow({
   boughtIn,
@@ -620,10 +637,10 @@ export function ReconciliationRow({
   return (
     <View testID="score-reconciliation" style={[styles.closing, { borderTopColor: t.hairline }]}>
       <Text style={[styles.closingLabel, { color: t.muted }]} numberOfLines={1}>
-        {`${formatToFit(boughtIn, ROW_FITS)} in, ${formatToFit(cashedOut, ROW_FITS)} out`}
+        {`${formatToFitUnmarked(boughtIn, ROW_FITS)} in, ${formatToFitUnmarked(cashedOut, ROW_FITS)} out`}
       </Text>
       <Text style={[styles.closingValue, tabular, { color: t.muted }]} numberOfLines={1} {...cappedFigure}>
-        {game === 0 ? formatToFit(game, ROW_FITS) : formatSignedToFit(game, ROW_FITS)}
+        {game === 0 ? formatMoney(game) : formatSignedToFit(game, ROW_FITS)}
       </Text>
     </View>
   );

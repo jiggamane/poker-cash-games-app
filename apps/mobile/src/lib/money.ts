@@ -144,10 +144,24 @@ export const stakesSummary = (stakes: Stakes): string => coreStakesSummary(stake
 /**
  * UNMARKED — a figure with no currency symbol at all.
  *
- * Two places want one and both have the same reason: a narrow column that names
- * its currency once, at the head, rather than six times down a 46-point cell.
- * E3's preview grid is one and E4's net chips are the other, and in both the
- * symbol repeated is what pushed the digits out of the box.
+ * ⚠ THIS IS THE WORKING'S FORMAT NOW, AND NOT A NARROW COLUMN'S TRICK — the
+ * owner's rule of 19 September: **a figure inside a calculation carries no
+ * currency mark, and the figure it comes to carries one.** It started as two
+ * narrow columns that named their currency once at the head — E3's preview grid
+ * and E4's net chips, where the symbol repeated is what pushed the digits out
+ * of the box — and it is the app's general rule for a working now.
+ *
+ * WHICH SIDE A FIGURE IS ON is decided by what it is, not by which screen it is
+ * on. A TERM is unmarked: it is one step of a sum whose answer is beside it, and
+ * the mark on it is six copies of a fact the answer already states. A TOTAL is
+ * marked: the net beside a name, the figure on a block's head, a rule's take, an
+ * amount somebody is to hand over — anything a person reads on its own, out of
+ * the sum that produced it, and anything they would say out loud with the
+ * currency in it. A figure in a SENTENCE keeps its mark too, because prose has
+ * no column to name the currency at the head of.
+ *
+ * `docs/screens.md`, *A working is unmarked and its answer is not*, has the
+ * ledger of which figure on which screen is which.
  *
  * It is a name of its own rather than an optional argument on the formatters
  * above. An override would put the default back — the thing this whole module
@@ -159,6 +173,26 @@ export const formatSignedUnmarked = (amount: Money): string => coreSigned(amount
 export const formatCompactUnmarked = (amount: Money): string => coreCompact(amount, '');
 export const formatSignedCompactUnmarked = (amount: Money): string =>
   coreSignedCompact(amount, '');
+
+/**
+ * THE SAME TWO, FOR A COLUMN THAT HAS A CEILING — every working line in the app
+ * draws its terms through one of these.
+ *
+ * ⚠ AND THE THRESHOLD IS `exactBelow` ITSELF, NOT `fitFor`'s. That is the whole
+ * point of the pair existing rather than a caller passing `''` somewhere: an
+ * unmarked figure is the SAME WIDTH IN EVERY CURRENCY, so the decade `fitFor`
+ * takes off for a `Kč` or a `CHF` would be a figure abbreviated to make room for
+ * a symbol that is not there. `tight()` is out for the same reason — it buys a
+ * glyph back from a three-letter mark, and there is no mark to buy it from.
+ *
+ * A working line is therefore the ONE place in this app where a Swiss club and
+ * an American one read the same digits at the same width, which is also why the
+ * currency pass has nothing to find on these figures.
+ */
+export const formatToFitUnmarked = (amount: Money, exactBelow: number): string =>
+  Math.abs(amount) < exactBelow ? coreMoney(amount, '') : coreCompact(amount, '');
+export const formatSignedToFitUnmarked = (amount: Money, exactBelow: number): string =>
+  Math.abs(amount) < exactBelow ? coreSigned(amount, '') : coreSignedCompact(amount, '');
 
 /** A rule's terms, with the group's money in them. */
 export const ruleDetail = (

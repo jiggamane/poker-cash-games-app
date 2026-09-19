@@ -15,7 +15,13 @@ import {
   type PlayerId,
   type RuleDestination,
 } from '@poker-club/core';
-import { formatMoney, formatSignedToFit, formatSignedUnmarked, formatToFit } from '../src/lib/money';
+import {
+  formatMoney,
+  formatSignedToFit,
+  formatSignedUnmarked,
+  formatToFit,
+  formatToFitUnmarked,
+} from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
@@ -436,8 +442,12 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
             </View>
             <View style={styles.rowText}>
               <Text style={[styles.name, { color: t.text }]}>{s.name}</Text>
+              {/* `in 500 · out 2,120`, unmarked — the rule of 19 September, in
+                  `money.ts`. The two stacks are what the figure on the right of
+                  this row is made of, and that figure keeps the mark. */}
               <Text style={[styles.detail, { color: t.muted }]}>
-                in {formatToFit(s.boughtIn, ROW_FITS)} · out {formatToFit(s.out, ROW_FITS)}
+                in {formatToFitUnmarked(s.boughtIn, ROW_FITS)} · out{' '}
+                {formatToFitUnmarked(s.out, ROW_FITS)}
               </Text>
             </View>
             <Text
@@ -458,8 +468,10 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
 /**
  * A name and a signed figure, outlined rather than filled.
  *
- * No currency symbol: in a row of six the sign is the information, and six
- * dollar signs are six pieces of noise.
+ * No currency symbol, and it was the first thing in the app to go without one:
+ * in a row of six the sign is the information, and six dollar signs are six
+ * pieces of noise. That is the app's general rule for a working now — see
+ * `money.ts`.
  *
  * IT WAS FILLED with the win or the loss wash, and E6's rule applies here for
  * the same reason it applies to the settled screen — the green and the red sit

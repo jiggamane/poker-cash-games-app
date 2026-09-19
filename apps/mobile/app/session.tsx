@@ -2,7 +2,12 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { resolveLedger, resultBeforeDeductions, type Money } from '@poker-club/core';
-import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
+import {
+  formatMoney,
+  formatSignedToFit,
+  formatToFit,
+  formatToFitUnmarked,
+} from '../src/lib/money';
 import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
 import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
@@ -513,14 +518,18 @@ function LiveTag({ startedAt, empty }: { startedAt: string; empty: boolean }) {
 }
 
 /**
- * WHAT FINISHED THEM — `23:15 · out $2,120`.
+ * WHAT FINISHED THEM — `23:15 · out 2,120`.
  *
  * No `in $500`: the buy-in has its own column on the rows above this group, the
  * slab is a single line, and what a reader wants from a settled row is when
  * they left, what they left with, and the result at the right.
+ *
+ * UNMARKED, because of that last one: the stack they left with is what the
+ * result beside it is made of, and the result carries the mark. The rule is in
+ * `money.ts`, and Count up draws the same fact the same way.
  */
 const goneFact = (at: string | undefined, cashedOut: Money): string => {
-  const out = `out ${formatToFit(cashedOut, ROW_FITS)}`;
+  const out = `out ${formatToFitUnmarked(cashedOut, ROW_FITS)}`;
   return at === undefined ? out : `${clockLabel(at)} · ${out}`;
 };
 

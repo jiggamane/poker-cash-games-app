@@ -1317,9 +1317,24 @@ async function playANight(name, rebuys) {
         return (t.startsWith('-') ? -1 : 1) * Number(digits[0]);
       };
 
+      /*
+       * A CURRENCY MARK IS ANY GLYPH THAT IS NOT PART OF THE NUMBER — `$`, `₾`,
+       * `Kč`, `CHF`. Asserted as a shape rather than against the book's own
+       * symbol, so the leg means the same thing on every currency this pass and
+       * the CHF one run in.
+       *
+       * ⚠ THE COMPACT SUFFIX IS PART OF THE NUMBER. `+2.4M` is an unmarked
+       * figure at the scales this pass plays a million-dollar night at, and the
+       * first version of this read its `M` as a currency and failed two legs on
+       * the two big nights while the thousands one passed. `k` and `M` are
+       * `formatCompact`'s own two, and they only ever come last.
+       */
+      const marked = (s) => /[^\s\d.,+\u2212-]/.test((s || '').trim().replace(/[kM]$/, ''));
+
       return [...document.querySelectorAll('[data-testid="session-row"]')].map((row) => {
         const group = row.querySelector('[data-testid="session-spend-group"]');
         const game = row.querySelector('[data-testid="session-game"]');
+        const net = row.querySelector('[data-testid="session-net"]');
         const line = row.lastElementChild;
         const chipPairs =
           line === null
@@ -1327,16 +1342,24 @@ async function playANight(name, rebuys) {
             : [...line.children].filter(
                 (c) => c !== group && c !== game && figures(c).length > 0,
               );
+        /* Every figure on the annotation line, whichever part of it holds it. */
+        const terms = [
+          ...(game === null ? [] : [(game.textContent || '').trim()]),
+          ...chipPairs.flatMap((c) => figures(c)),
+          ...figures(group),
+        ];
         return {
           /* DRAWN AND SUMMABLE ARE TWO QUESTIONS. At the scales this pass plays
              a million-dollar night at, a figure is compact — `+$1.2M` — and
              cannot be added up; that is the layout working, not a term missing.
              So presence is a boolean and the amount is allowed to be null. */
           hasGame: game !== null,
-          /* `game+$4,200` — one element holding the word and the figure. */
-          game: game === null ? null : money((game.textContent || '').replace(/^game/, '')),
+          game: game === null ? null : money(game.textContent),
           chips: chipPairs.length,
           spends: figures(group).length,
+          /* The rule of 19 September: a working is unmarked, its answer is not. */
+          markedTerms: terms.filter(marked),
+          netMarked: net !== null && marked(net.textContent),
         };
       });
     });
@@ -1398,6 +1421,15 @@ async function playANight(name, rebuys) {
     atTable.length > 0 &&
       atTable.every((r) => r.chips === 2 && !r.hasGame && r.spends === 0),
     `the On table rows are not chips in and chips out: ${JSON.stringify(atTable)}`,
+  );
+
+  await holds(
+    'and the two stacks are unmarked under a net that is not',
+    atTable.length > 0 &&
+      atTable.every((r) => r.markedTerms.length === 0 && r.netMarked),
+    `On table marks a term or leaves its net unmarked: ${JSON.stringify(
+      atTable.map((r) => ({ terms: r.markedTerms, net: r.netMarked })),
+    )}`,
   );
 
   /*
@@ -1507,6 +1539,26 @@ async function playANight(name, rebuys) {
    * is something else. A term drawn off the net, off the wrong sign, or off the
    * stack somebody cashed out reads perfectly and does not come to nothing.
    */
+  /*
+   * AND THE WHOLE WORKING IS UNMARKED — the owner's rule of 19 September, in
+   * `money.ts`: a figure inside a calculation carries no currency mark and the
+   * figure it comes to does. This is the row with the most terms on it in the
+   * app — the poker, up to three spends, a repayment, the step — so it is where
+   * a mark creeping back is both likeliest and least readable.
+   *
+   * BOTH HALVES, ON THE SAME ROWS. Asserting only the absence would pass on a
+   * screen that had lost its currency altogether, which is the failure this
+   * rule could actually cause.
+   */
+  await holds(
+    'and the working under each name is unmarked while the net keeps the currency',
+    rowTerms.length > 0 &&
+      rowTerms.every((r) => r.markedTerms.length === 0 && r.netMarked),
+    `a Final row marks a term or leaves its net unmarked: ${JSON.stringify(
+      rowTerms.map((r) => ({ terms: r.markedTerms, net: r.netMarked })),
+    )}`,
+  );
+
   const games = rowTerms.map((r) => r.game);
   await holds(
     'and the game terms add up to nothing, as a balanced night must',
