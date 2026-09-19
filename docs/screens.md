@@ -1601,9 +1601,9 @@ what makes the row read as arithmetic — `−500 + 2,120 − 54 − 24 − 23 =
 | `/deductions` | the formula line's terms, and `5% of 2,120` on a working row | the net; the charge on the right of the row |
 | `/settle-up`, E5 *It doesn't add up* | `in 500 · out 2,120` under each name | the row's result |
 | `/settle-up`, E4 | the net chips | each transfer |
-| `/count-up` | the comparison's two sums; `in 500`, `counted 2,120`, `cashed out 900` on a row | the signed gap; the collapsed `✓ Balanced $47,000`; the row's result |
 | `/session` | `23:15 · out 2,120` on a settled slab | the row's result; what each player is in for; the cards at the top |
-| `/player` | `In for` and `Counted`; every row of *After deductions*, the float rows included | `Night`; `Their night` |
+| `/count-up` | — | every figure: the gap, the two sums, the row facts, the results |
+| `/player` | — | every figure: the card, the receipt, *After deductions* and its total |
 
 ⚠ **`ScoreBreakdown.tsx` IS DRAWN BY NO SCREEN TODAY**, and it was swept with
 the rest for when it is. Three comments in this repo and one in `myStats.ts`
@@ -1614,12 +1614,35 @@ are right by the rule above and the contract test holds them there, but nothing
 renders them — **open**: either a screen picks it up or it goes, and until one
 of those happens every note pointing at it is describing a drawing nobody sees.
 
-**Two blocks draw the same two figures differently, and it is deliberate.** E2's
-comparison is unmarked because the headline above it is their difference — the
-block's subject is the gap. The settled night's `CHIPS` block is marked because
-nothing on it is their difference: its head is the word `balanced`, and there
-the two sums are the answer a reader came for. A block states its currency on
-whatever figure it exists to give.
+### The two screens the rule is off, and why
+
+**E2 Count up and the player card mark every figure** — 20 September, the
+owner's call, photographed on a phone. Both are workings by the definition
+above and both were drawn as such for a day: E2's two sums under the gap that
+is their difference, and `In for` less `Counted` coming to `Night`.
+
+**What that missed is the SIZE.** The rule earns its keep on an annotation
+line — five or six terms at 12.5 points under a name, where the marks are
+repetition and the row beside them states the currency once. These two screens
+state their figures at 22 and 28 points, at the top of the screen, with one or
+two to a block: at that size a bare `15,400` or `8.5k` reads as a quantity of
+something rather than as money, and there is no crowding for the rule to
+relieve. A figure a person reads first is a figure that says what it is.
+
+**It is per screen and not per figure**, which is the other half of the call: a
+sheet that marked its headline three figures and left its receipt rows bare
+would be drawn two ways at once. So the player card's *After deductions* block
+carries the mark on every row as well, though it is a working with its answer
+under it by every other test in this section.
+
+**And it settles a disagreement the rule had made.** E2's block and the settled
+night's `CHIPS` block state the same two figures about the same night, one
+screen apart; for a day one drew them unmarked and the other marked, on an
+argument about which block's subject was the difference. They agree now.
+
+`moneyScreens.contract.test.ts` holds the exemption as an ABSENCE — neither
+file may call an unmarked formatter at all — because the drift to guard against
+is the next sweep pulling them back in on the strength of the rule alone.
 
 **Unmarked figures keep the threshold they were measured at.** `fitFor` takes a
 decade off per glyph of symbol (B33 above); an unmarked figure has no glyph to

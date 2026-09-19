@@ -453,23 +453,29 @@ describe('a working is unmarked and the figure it comes to is not', () => {
       terms: ['formatToFitUnmarked(s.boughtIn, ROW_FITS)', 'formatToFitUnmarked(s.out, ROW_FITS)'],
       answer: 'formatSignedToFit(s.result, ROW_FITS)',
     },
-    {
-      where: 'E2’s comparison, under the gap it comes to',
-      file: 'apps/mobile/app/count-up.tsx',
-      terms: ['formatToFitUnmarked(amount, BLOCK_FITS)'],
-      answer: 'formatSignedToFit(gap, BLOCK_FITS)',
-    },
-    {
-      where: 'the player card’s three figures and its after-deductions block',
-      file: 'apps/mobile/app/player.tsx',
-      terms: [
-        'formatToFitUnmarked(inFor, FITS)',
-        'formatToFitUnmarked(counted, FITS)',
-        'formatSignedToFitUnmarked(r.amount, AFTER_FITS)',
-      ],
-      answer: 'formatSignedToFit(theirNight, AFTER_FITS)',
-    },
   ];
+
+  /*
+   * AND THE TWO SCREENS THE RULE IS OFF — the owner's call of 20 September,
+   * photographed on a phone. E2's block and the player card are workings by the
+   * definition above and were drawn as such for a day; both state their figures
+   * BIG, at the top of the screen, and at 22 and 28 points a bare `15,400` or
+   * `8.5k` reads as a quantity of something rather than as money. The rule pays
+   * for itself on a crowded annotation line and does not here.
+   *
+   * HELD AS AN ABSENCE, because that is the direction this can drift: the next
+   * sweep over `money.ts` would otherwise pull these two back in on the
+   * strength of the rule alone, and nothing would go red. `docs/screens.md`
+   * carries the exemption and the reasoning.
+   */
+  const EXEMPT = [
+    { where: 'E2’s block and its counted list', file: 'apps/mobile/app/count-up.tsx' },
+    { where: 'the player card, card and receipt alike', file: 'apps/mobile/app/player.tsx' },
+  ];
+
+  it.each(EXEMPT)('$where draws every figure with the group’s mark', ({ file }) => {
+    expect(drawn(read(file))).not.toMatch(/format\w*Unmarked/);
+  });
 
   it.each(WORKINGS)('$where', ({ file, terms, answer }) => {
     const source = drawn(read(file));
