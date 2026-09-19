@@ -16,7 +16,12 @@ import {
   type EffectiveEntry,
   type Money,
 } from '@poker-club/core';
-import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
+import {
+  formatMoney,
+  formatSignedToFit,
+  formatSignedToFitUnmarked,
+  formatToFitUnmarked,
+} from '../src/lib/money';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { announceRebuy } from '../src/components/rebuyAnnouncement';
@@ -386,10 +391,20 @@ export default function PlayerCard() {
       }
     >
       <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <StatPair label="In for" value={formatToFit(inFor, FITS)} tight={result !== undefined} />
+        {/*
+         * IN FOR AND COUNTED ARE UNMARKED, `Night` IS NOT — the rule of
+         * 19 September, in `money.ts`. The third figure on this card is the
+         * first two subtracted, so the card is a working with its answer in it,
+         * and the answer is where the night's currency is stated.
+         */}
+        <StatPair
+          label="In for"
+          value={formatToFitUnmarked(inFor, FITS)}
+          tight={result !== undefined}
+        />
         <StatPair
           label="Counted"
-          value={counted === undefined ? '—' : formatToFit(counted, FITS)}
+          value={counted === undefined ? '—' : formatToFitUnmarked(counted, FITS)}
           muted={counted === undefined}
           tight={result !== undefined}
           align="middle"
@@ -516,12 +531,14 @@ export default function PlayerCard() {
               <Text style={[styles.afterLabel, { color: t.text }]} numberOfLines={2}>
                 {r.label}
               </Text>
+              {/* A term of the block, so no mark: `Their night` below carries
+                  it, which is the figure these come to. */}
               <Text
                 style={[styles.afterValue, { color: r.offTable ? t.offTable : t.text }]}
                 numberOfLines={1}
                 {...cappedFigure}
               >
-                {formatSignedToFit(r.amount, AFTER_FITS)}
+                {formatSignedToFitUnmarked(r.amount, AFTER_FITS)}
               </Text>
             </View>
           ))}
@@ -553,12 +570,15 @@ export default function PlayerCard() {
               <Text style={[styles.afterLabel, { color: t.muted }]} numberOfLines={2}>
                 {r.label}
               </Text>
+              {/* Unmarked with the rows above it. It is outside the total
+                  rather than outside the block, and one mark on the answer is
+                  what this column says. */}
               <Text
                 style={[styles.afterValue, { color: t.muted }]}
                 numberOfLines={1}
                 {...cappedFigure}
               >
-                {formatSignedToFit(r.amount, AFTER_FITS)}
+                {formatSignedToFitUnmarked(r.amount, AFTER_FITS)}
               </Text>
             </View>
           ))}

@@ -1553,10 +1553,11 @@ settles other people's books, so a module-level "current currency" would be a
 fact about whichever night was touched last.
 
 **Two escapes, both named rather than optional.** `formatUnmarked` and its
-siblings draw a figure with no symbol at all — E3's preview grid and E4's net
-chips, both narrow columns that name their currency once at the head instead of
-six times down a 46-point cell. They are separate names on purpose: an override
-argument would put the default back.
+siblings draw a figure with no symbol at all. They began as E3's preview grid
+and E4's net chips, both narrow columns that name their currency once at the
+head instead of six times down a 46-point cell, and since 19 September they are
+how every working in the app is drawn — see the section below. They are
+separate names on purpose: an override argument would put the default back.
 
 **A wider symbol abbreviates earlier — B33.** Every width in this app was
 measured against a one-character `$`, and `CHF` is three. Each extra glyph moves
@@ -1567,8 +1568,62 @@ thresholds stay where the boards put them.
 `npm run check:ui` walks the money screens a third time with the book kept in
 CHF (`ui-currency.mjs`). It is looser than the journeys by one rule, with the
 reason at the top of the file: **a clip is a fault and a wrap is not**. At 360
-`in CHF500 · out CHF0` takes two lines, both figures are under a thousand so
-nothing can shorten them, and cutting one would be B12.
+`in CHF500 · out CHF0` took two lines, both figures under a thousand so nothing
+could shorten them, and cutting one would be B12. ⚠ **That particular line no
+longer carries the symbols** — it is E4's sub-line and the rule below took them
+off it, which is six glyphs of the wrap gone. The rule it illustrates stands,
+and the pass is still where a three-letter book gets measured.
+
+## A working is unmarked and its answer is not
+
+The owner's rule of 19 September, and it is app-wide rather than one screen's.
+
+    Dana                                     +$1,519      ← the answer, marked
+    +1,620   [ 🍴 −54  🍸 −24  ⊗ −23 ]                     ← the working, not
+
+**A TERM is one step of a sum whose answer is drawn beside it**, and it carries
+no currency mark. **A TOTAL is read on its own**, out of the sum that produced
+it, and it does: the net beside a name, a block's own head, a rule's take, an
+amount somebody is to hand over. **A figure in a SENTENCE keeps its mark too**,
+because prose has no column to state the currency at the head of.
+
+*Why.* The working is where a currency is repeated most and needed least: six
+marks down one line are six copies of a fact the answer beside them already
+states, in the place on the screen with the least room for them. It is also
+what makes the row read as arithmetic — `−500 + 2,120 − 54 − 24 − 23 = +$1,519`
+— which is the thing a person checks their own figure with.
+
+| Screen | The working, unmarked | The answer, marked |
+|---|---|---|
+| `/settled`, `/watch` | the whole annotation line: the poker result, both stacks, every spend, a repayment, the step | the net beside the name |
+| `/stats`, `/games` | the night row's pairs, and the rolled-up spend figure | the night's net |
+| `/stats`, `/games` | `5,500 in, 5,500 out` on the At-table list's last row | the `$0` beside it |
+| `/deductions` | the formula line's terms, and `5% of 2,120` on a working row | the net; the charge on the right of the row |
+| `/settle-up` | `in 500 · out 2,120` under each name; the net chips | the row's result; each transfer |
+| `/count-up` | the comparison's two sums; `in 500`, `counted 2,120`, `cashed out 900` on a row | the signed gap; the collapsed `✓ Balanced $47,000`; the row's result |
+| `/session` | `23:15 · out 2,120` on a settled slab | the row's result; what each player is in for; the cards at the top |
+| `/player` | `In for` and `Counted`; every row of *After deductions*, the float rows included | `Night`; `Their night` |
+
+**Two blocks draw the same two figures differently, and it is deliberate.** E2's
+comparison is unmarked because the headline above it is their difference — the
+block's subject is the gap. The settled night's `CHIPS` block is marked because
+nothing on it is their difference: its head is the word `balanced`, and there
+the two sums are the answer a reader came for. A block states its currency on
+whatever figure it exists to give.
+
+**Unmarked figures keep the threshold they were measured at.** `fitFor` takes a
+decade off per glyph of symbol (B33 above); an unmarked figure has no glyph to
+make room for, so `formatToFitUnmarked` and its signed twin use `exactBelow`
+itself and skip `tight()`. A working line is therefore the one place in the app
+where a Swiss club and an American one read the same digits at the same width.
+
+*What holds it.* `moneyScreens.contract.test.ts` names every working above and
+the answer it comes to, and goes red if either half changes — it is in the fast
+check because this is a rule about every money screen, and those come undone a
+file at a time. `ui-journeys.mjs` asserts it of the rendered settled row in both
+directions, on both views: no term carries a mark and the net does. Asserting
+only the absence would pass on a screen that had lost its currency altogether,
+which is the failure this rule could actually cause.
 
 ## Rounding, and the one setting that means two things
 
@@ -1883,7 +1938,7 @@ two things happen on the screen and not in the card.
 the rolled-up night row below, which this cut does not speak about.
 
     1  Dana                                              +$1,519
-       game +$1,620                  [ 🍴 −$54  🍸 −$24  ⊗ −$23 ]
+       +1,620                        [ 🍴 −54  🍸 −24  ⊗ −23 ]
 
 **One list, three views, and a control in the meta line.** The rank line never
 moves between them; only the annotation under each name, the block under the
@@ -1892,9 +1947,14 @@ view is a property of the row rather than three components.
 
 | View | Right-hand figure | Annotation, left | Annotation, right | Block | Button |
 |---|---|---|---|---|---|
-| Final, detailed | settled net | `game` and the step | every spend, itemised, in a tinted group | `DEDUCTIONS` | `Who pays whom` |
+| Final, detailed | settled net | the poker result and the step | every spend, itemised, in a tinted group | `DEDUCTIONS` | `Who pays whom` |
 | Final, grouped | settled net | both stacks and the step | the marks, then one bone figure | `DEDUCTIONS` | `Who pays whom` |
 | On table | cash-out less buy-in | both stacks | the words `before spends` | `CHIPS` | `See the final result` |
+
+**Nothing on the annotation line carries a currency mark**, in any of the three
+— the working is unmarked and the net beside the name is not. That is the app's
+rule now rather than this screen's; see *A working is unmarked and its answer is
+not* below.
 
 **The view is persisted per user, not per session** — the handoff's own rule, in
 `sessionViewStore.ts` beside the theme, read once at startup.
@@ -1950,16 +2010,23 @@ Eight players have to fit without scrolling — the handoff's own budget is *"wi
 
 ### Decided against the handoff rather than by it
 
-* **Final, detailed prints `game`, not the two stacks** — 19 September, the
-  owner's decision, and the only one of the three views it touches. The handoff
-  draws `↓ −$500  ↑ +$2,120` under every name in all three; on this view that is
-  the two numbers a reader has to subtract to reach a figure the row already
-  prints, under three more figures that are the deductions coming off it. One
-  term per step of the sum is what the sum reads as, so the line is
-  `game +$1,620` and then what the evening took, and it comes to the net beside
-  the name. The word is the app's own: `resultFormula` has written a settled
-  night as `game +$1,620 · food −$54 · piggy −$23` since 1 September, and
-  `game` is its name for the poker half.
+* **Final, detailed prints the poker result, not the two stacks** —
+  19 September, the owner's decision, and the only one of the three views it
+  touches. The handoff draws `↓ −$500  ↑ +$2,120` under every name in all three;
+  on this view that is the two numbers a reader has to subtract to reach a
+  figure the row already prints, under three more figures that are the
+  deductions coming off it. One term per step of the sum is what the sum reads
+  as, so the line is `+1,620` and then what the evening took, and it comes to
+  the net beside the name.
+
+  **And it is drawn with no word in front of it**, which it carried for half a
+  day: `game +$1,620` was the grammar `resultFormula` writes a night in, and on
+  a formula line — E3's, the player card's — that word earns its place beside
+  `food` and `piggy`. Here the other terms name themselves with a MARK rather
+  than a word, and the poker is the one term that needs no telling apart: it is
+  the first figure on every row, it is the only one there on a night that
+  charged nothing, and the screen it is on is a list of poker results. A word in
+  front of it was labelling the subject of the screen.
 
   **Nothing is lost, and that is the condition.** On table is the view with both
   stacks on it, one row each, and the `CHIPS` block totals them under the list —
@@ -2004,8 +2071,9 @@ control opens a menu carrying all three views, that picking one swaps the list,
 that the On table column sums to zero, that the chips block states both sides
 and what it leaves out, that the deductions block totals itself and names who
 fronted each bill, that On table draws both stacks under every name, that a
-Final row carries its `game` term and no stacks and at least one row its
-spends, that the `game` column sums to zero, that a fronted bill shows both
+Final row carries its poker term and no stacks and at least one row its spends,
+that the poker column sums to zero, that every figure on the annotation line is
+unmarked while the net beside it is not — on both views, that a fronted bill shows both
 figures behind one mark, and that eight rows fit above the block, and that a tap outside the open menu closes it
 without opening whatever was under the finger. `ui-audit.mjs` gains the tinted
 group as a second named exception to `tinted-result-row`, for the same reason
