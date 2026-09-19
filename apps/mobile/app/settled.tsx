@@ -39,7 +39,9 @@ import { settlementOf, standingsOf, useNight } from '../src/lib/nightStore';
  * each name, the block under the table and the footer button. That is the
  * cut's central claim and `SessionViews.tsx` is where it is kept.
  *
- *   FINAL, DETAILED  the settled net with every spend itemised. Default.
+ *   FINAL, DETAILED  the settled net over `game` and every spend itemised.
+ *                    Default, and the one view that does not draw the two
+ *                    stacks — see `GameTerm` in `SessionViews.tsx`.
  *   FINAL, GROUPED   the same nets, spends collapsed to one figure.
  *   ON TABLE         cash-out less buy-in, before any spend. Sums to zero.
  *

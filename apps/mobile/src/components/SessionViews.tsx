@@ -32,11 +32,16 @@ import { cappedFigure, radius, space, tabular, unscaledLabel, type Theme } from 
  * change. That is the layout's whole claim, and it is why the three views are a
  * property of the ROW rather than three components.
  *
- *   FINAL, DETAILED  the settled net, with every spend the player incurred
- *                    itemised in a tinted group. The default.
- *   FINAL, GROUPED   the same nets, the spends collapsed to one figure.
+ *   FINAL, DETAILED  the settled net, over `game` and then every spend the
+ *                    player incurred, itemised in a tinted group. The default.
+ *   FINAL, GROUPED   the same nets, the two stacks, the spends as one figure.
  *   ON TABLE         cash-out less buy-in — the result BEFORE spends, which
  *                    sums to zero and is the check the room runs.
+ *
+ * ⚠ ONE OF THOSE THREE LINES IS NOT THE CUT'S. Final, detailed prints `game`
+ * where the handoff prints the buy-in and the cash-out — the owner's decision
+ * of 19 September. `GameTerm` has the whole of it; the other two views draw
+ * both stacks exactly as drawn.
  *
  * WHAT CHANGED FROM THE SCREEN THIS REPLACES, and each one is a decision rather
  * than a restyle:
@@ -95,7 +100,24 @@ export function SessionRow({
 }) {
   const t = useTheme();
   const spends = row.terms.filter((x) => x.kind === 'spend' || x.kind === 'back');
-  const chips = row.terms.filter((x) => x.kind !== 'spend' && x.kind !== 'back');
+  /*
+   * FINAL, DETAILED DRAWS THE GAME AND NOT THE TWO STACKS — the owner's
+   * decision of 19 September, and the one place this screen departs from the
+   * 9 September cut's annotation line. See the note on `GameTerm`.
+   *
+   * THE STEP STAYS whichever view is on, because it is the one chip term that
+   * is not a stack: a night that settled to a step carries it inside the figure
+   * on the right, and a row printing `game` and its spends beside a rounded net
+   * would be a row that does not add up. `in` and `out` are what come off, and
+   * `game` is what they say.
+   */
+  const asGame = view === 'finalDetailed';
+  const chips = row.terms.filter(
+    (x) =>
+      x.kind !== 'spend' &&
+      x.kind !== 'back' &&
+      !(asGame && (x.kind === 'in' || x.kind === 'out')),
+  );
 
   const body = (
     <>
@@ -125,6 +147,8 @@ export function SessionRow({
       {/* THE ANNOTATION LINE. Indented 29 so it starts under the name rather
           than under the rank, which is what makes the rank read as a column. */}
       <View style={styles.annotation}>
+        {asGame && <GameTerm amount={row.atTheTable} theme={t} />}
+
         {chips.map((term) => (
           <SpendPair key={termKey(term)} term={term} theme={t} size={13} figure={12.5} />
         ))}
@@ -163,6 +187,54 @@ export function SessionRow({
     >
       {body}
     </Pressable>
+  );
+}
+
+/**
+ * WHAT THE POKER DID, IN ONE FIGURE — `game +$4,200`, and it is the whole left
+ * half of a Final, detailed annotation line.
+ *
+ * ⚠ THIS REPLACES THE TWO STACKS ON THAT VIEW, and it is a departure from
+ * `design/handoff-session-views/`, which draws the buy-in and the cash-out
+ * under every name in all three. The owner's decision of 19 September, and the
+ * reasoning is the reading order of the line:
+ *
+ *   · THE FIGURE THIS VIEW RANKS ON IS THE SETTLED NET, which is the poker
+ *     result with the evening taken off it. `↓ −$500 ↑ +$4,700` is not that
+ *     result — it is the two numbers a reader has to subtract to get it, under
+ *     a row whose other three figures are already the deductions being applied
+ *     to it. One term per step of the sum is what the sum reads as.
+ *   · IT IS THE APP'S OWN GRAMMAR FOR THIS LINE. `resultFormula` writes a
+ *     settled night as `game +$1,620 · food −$54 · piggy −$23`, and `game` is
+ *     its word for the poker half — so the row says `game`, then what the
+ *     evening took, and comes to the figure beside the name.
+ *   · NOTHING IS LOST. On table is the view with both stacks on it, one row
+ *     each, and the cut's own `CHIPS` block totals them under the list. A
+ *     person checking what somebody put in has a view that answers it.
+ *
+ * `row.atTheTable` is the engine's `grossResult` — cash-out less buy-in, never
+ * rounded, never deducted from — so this adds nothing up. It is the same figure
+ * On table prints beside the name, which is what makes `Σ game === 0` a check
+ * this line can be held to on either view.
+ *
+ * THE WORD IS AT THE FIGURE'S SIZE and in `annotation`, like every other word
+ * on this line: nothing here is ever green or red, and the sign is what says
+ * which way the night went.
+ */
+function GameTerm({ amount, theme: t }: { amount: Money; theme: Theme }) {
+  return (
+    <View testID="session-game" style={styles.pair}>
+      <Text style={[styles.word, { color: t.annotation, fontSize: 12.5 }]} numberOfLines={1}>
+        game
+      </Text>
+      <Text
+        style={[styles.pairFigure, tabular, { color: t.annotation, fontSize: 12.5 }]}
+        numberOfLines={1}
+        {...cappedFigure}
+      >
+        {formatSignedToFit(amount, ROW_FITS)}
+      </Text>
+    </View>
   );
 }
 

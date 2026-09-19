@@ -1279,6 +1279,68 @@ async function playANight(name, rebuys) {
     await page.waitForTimeout(700);
   };
 
+  /*
+   * THE ANNOTATION LINE UNDER EVERY NAME, READ THE SAME WAY IN EVERY VIEW —
+   * what the line is made of is the thing the three views disagree about, so
+   * the two legs that assert it cannot each read it their own way and still be
+   * comparing the same parts.
+   *
+   * STRUCTURALLY, NOT BY STRING. Counting figures and then subtracting the
+   * group's by value drops a chip that happens to read the same as a spend —
+   * which the seeded night produces — so the parts are read off the parts of
+   * the line they are actually in: the annotation line is the row's second
+   * child, the `game` term and the tinted group name themselves, and the chips
+   * are whatever pairs are left beside them.
+   *
+   * IT READS THE FIGURES AND NOT THE MARKS. An SVG has no text to assert on,
+   * and the figure is the half a person argues about; a pair that lost its mark
+   * is caught by the group it is or is not inside, which is a leg of its own.
+   */
+  const annotations = () =>
+    page.evaluate(() => {
+      const SIGNED = /^[+−][^0-9]*[0-9]/;
+      const figures = (el) =>
+        el === null
+          ? []
+          : [...el.querySelectorAll('*')]
+              .filter((n) => n.children.length === 0)
+              .map((n) => (n.textContent || '').trim())
+              .filter((s) => SIGNED.test(s));
+      /* The symbol is the book's and may be any width — `$`, `₾`, `CHF` — so
+         the sign and the digits are taken and everything between them dropped.
+         An abbreviated figure cannot be summed and says so with a null. */
+      const money = (s) => {
+        const t = (s || '').trim().replace(/[,\s]/g, '').replace(/−/g, '-');
+        if (/[KMB]$/i.test(t)) return null;
+        const digits = t.match(/[0-9]+/);
+        if (digits === null) return null;
+        return (t.startsWith('-') ? -1 : 1) * Number(digits[0]);
+      };
+
+      return [...document.querySelectorAll('[data-testid="session-row"]')].map((row) => {
+        const group = row.querySelector('[data-testid="session-spend-group"]');
+        const game = row.querySelector('[data-testid="session-game"]');
+        const line = row.lastElementChild;
+        const chipPairs =
+          line === null
+            ? []
+            : [...line.children].filter(
+                (c) => c !== group && c !== game && figures(c).length > 0,
+              );
+        return {
+          /* DRAWN AND SUMMABLE ARE TWO QUESTIONS. At the scales this pass plays
+             a million-dollar night at, a figure is compact — `+$1.2M` — and
+             cannot be added up; that is the layout working, not a term missing.
+             So presence is a boolean and the amount is allowed to be null. */
+          hasGame: game !== null,
+          /* `game+$4,200` — one element holding the word and the figure. */
+          game: game === null ? null : money((game.textContent || '').replace(/^game/, '')),
+          chips: chipPairs.length,
+          spends: figures(group).length,
+        };
+      });
+    });
+
   await holds(
     'the settled night opens on Final, detailed, with the deductions under the list',
     (await onScreen('Final, detailed')) >= 1 &&
@@ -1317,6 +1379,25 @@ async function playANight(name, rebuys) {
       (await onScreen('On table')) >= 1 &&
       (await page.locator(':text-is("before spends"):visible').count()) > 0,
     'picking On table left the Final list on screen',
+  );
+
+  /*
+   * AND ON TABLE IS THE VIEW THAT KEEPS BOTH STACKS — 19 September, and it is
+   * half of one decision: Final, detailed prints `game` instead of the buy-in
+   * and the cash-out, so this is the view a person checking what somebody put
+   * in has to be able to reach. The two halves are asserted apart, on the two
+   * views, because either one alone would pass with both stacks nowhere.
+   *
+   * `chips` is every pair on the line outside the tinted group. Here that is
+   * the two stacks and nothing else: no spends exist in this view, and the step
+   * is a Final term.
+   */
+  const atTable = await annotations();
+  await holds(
+    'and On table is the view that still carries both stacks',
+    atTable.length > 0 &&
+      atTable.every((r) => r.chips === 2 && !r.hasGame && r.spends === 0),
+    `the On table rows are not chips in and chips out: ${JSON.stringify(atTable)}`,
   );
 
   /*
@@ -1393,47 +1474,45 @@ async function playANight(name, rebuys) {
    * lose its last pair to a wrap, a filter or a zero test and look completely
    * normal.
    *
-   * IT READS THE FIGURES AND NOT THE MARKS. An SVG has no text to assert on,
-   * and the figure is the half a person argues about; a pair that lost its mark
-   * is caught by the group it is or is not inside, which is the leg below.
+   * WHAT THE LINE IS MADE OF CHANGED ON 19 SEPTEMBER, and this is the leg that
+   * says so: `game` and the spends, where it used to be the two stacks and the
+   * spends. `chips` is what is left beside them — nothing on a night that did
+   * not round, and the step on a night that did — so a buy-in creeping back
+   * onto this view is a third pair and a failure here.
    */
-  const rowTerms = await page.evaluate(() => {
-    const SIGNED = /^[+−][^0-9]*[0-9]/;
-    const figures = (el) =>
-      el === null
-        ? []
-        : [...el.querySelectorAll('*')]
-            .filter((n) => n.children.length === 0)
-            .map((n) => (n.textContent || '').trim())
-            .filter((s) => SIGNED.test(s));
-
-    return [...document.querySelectorAll('[data-testid="session-row"]')].map((row) => {
-      const group = row.querySelector('[data-testid="session-spend-group"]');
-      /*
-       * STRUCTURALLY, NOT BY STRING. Counting figures and then subtracting the
-       * group's by value drops a chip that happens to read the same as a spend
-       * — which the seeded night produces — so the two are read off the parts
-       * of the line they are actually in. The annotation line is the row's
-       * second child; the chips are its pairs outside the tinted group.
-       */
-      const line = row.lastElementChild;
-      const chipPairs =
-        line === null ? [] : [...line.children].filter((c) => c !== group && figures(c).length > 0);
-      return { chips: chipPairs.length, spends: figures(group).length };
-    });
-  });
+  const rowTerms = await annotations();
 
   await holds(
     'the Final row carries every term it replaced the ledger with',
     rowTerms.length > 0 &&
-      /* Chips in and chips out, on every row, always — a player who bought in
-         and cashed out for nothing still did both. A night that settled to a
-         step carries a third figure beside them, which is the step itself. */
-      rowTerms.every((r) => r.chips >= 2) &&
+      /* The poker, on every row, always — a player who bought in and cashed out
+         for nothing still played, and the figure beside their name is that
+         result with the evening taken off it. */
+      rowTerms.every((r) => r.hasGame) &&
+      /* And no stacks beside it. A night that settled to a step carries one
+         more figure, which is the step itself. */
+      rowTerms.every((r) => r.chips <= 1) &&
       /* And the evening, on the rows the night charged. The seeded club runs a
          bill and a piggy bank, so at least one row carries two. */
       rowTerms.some((r) => r.spends >= 2),
     `the Final row is missing a term: ${JSON.stringify(rowTerms)}`,
+  );
+
+  /*
+   * AND THE GAME TERM IS THE POKER AND NOT SOMETHING NEAR IT.
+   *
+   * Money is neither made nor destroyed at a table, so this column sums to zero
+   * exactly as the On table figures it is taken from do — the same check that
+   * view states on its face, made on the view where the figure beside the name
+   * is something else. A term drawn off the net, off the wrong sign, or off the
+   * stack somebody cashed out reads perfectly and does not come to nothing.
+   */
+  const games = rowTerms.map((r) => r.game);
+  await holds(
+    'and the game terms add up to nothing, as a balanced night must',
+    games.length > 0 &&
+      (games.some((g) => g === null) || games.reduce((a, b) => a + b, 0) === 0),
+    `the game terms sum to ${games.reduce((a, b) => a + (b ?? 0), 0)}, not zero`,
   );
   await holds(
     'and the bill a player fronted is its own figure, never netted',

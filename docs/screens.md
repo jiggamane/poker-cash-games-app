@@ -1883,18 +1883,18 @@ two things happen on the screen and not in the card.
 the rolled-up night row below, which this cut does not speak about.
 
     1  Dana                                              +$1,519
-       ↓ −$500  ↑ +$2,120            [ 🍴 −$54  🍸 −$24  ⊗ −$23 ]
+       game +$1,620                  [ 🍴 −$54  🍸 −$24  ⊗ −$23 ]
 
 **One list, three views, and a control in the meta line.** The rank line never
 moves between them; only the annotation under each name, the block under the
 table and the footer button. That is the layout's whole claim and it is why the
 view is a property of the row rather than three components.
 
-| View | Right-hand figure | Annotation, right | Block | Button |
-|---|---|---|---|---|
-| Final, detailed | settled net | every spend, itemised, in a tinted group | `DEDUCTIONS` | `Who pays whom` |
-| Final, grouped | settled net | the marks, then one bone figure | `DEDUCTIONS` | `Who pays whom` |
-| On table | cash-out less buy-in | the words `before spends` | `CHIPS` | `See the final result` |
+| View | Right-hand figure | Annotation, left | Annotation, right | Block | Button |
+|---|---|---|---|---|---|
+| Final, detailed | settled net | `game` and the step | every spend, itemised, in a tinted group | `DEDUCTIONS` | `Who pays whom` |
+| Final, grouped | settled net | both stacks and the step | the marks, then one bone figure | `DEDUCTIONS` | `Who pays whom` |
+| On table | cash-out less buy-in | both stacks | the words `before spends` | `CHIPS` | `See the final result` |
 
 **The view is persisted per user, not per session** — the handoff's own rule, in
 `sessionViewStore.ts` beside the theme, read once at startup.
@@ -1950,6 +1950,26 @@ Eight players have to fit without scrolling — the handoff's own budget is *"wi
 
 ### Decided against the handoff rather than by it
 
+* **Final, detailed prints `game`, not the two stacks** — 19 September, the
+  owner's decision, and the only one of the three views it touches. The handoff
+  draws `↓ −$500  ↑ +$2,120` under every name in all three; on this view that is
+  the two numbers a reader has to subtract to reach a figure the row already
+  prints, under three more figures that are the deductions coming off it. One
+  term per step of the sum is what the sum reads as, so the line is
+  `game +$1,620` and then what the evening took, and it comes to the net beside
+  the name. The word is the app's own: `resultFormula` has written a settled
+  night as `game +$1,620 · food −$54 · piggy −$23` since 1 September, and
+  `game` is its name for the poker half.
+
+  **Nothing is lost, and that is the condition.** On table is the view with both
+  stacks on it, one row each, and the `CHIPS` block totals them under the list —
+  so a person checking what somebody put in has a view that answers it, which
+  Final, grouped also still draws. The figure is `SettledRow.atTheTable`, the
+  engine's `grossResult`, so it is the same figure On table ranks by and the
+  screen adds nothing up. **Held by two legs of `ui-journeys.mjs` rather than
+  one**: On table carries exactly two stacks and no `game` term, Final, detailed
+  carries a `game` term and no stacks, and the `game` column sums to zero the
+  way the On table column does.
 * **`Share` is not drawn**, though `10a` puts it top-right and argues the slot
   is allowed because the screen is a destination rather than a wizard step.
   `docs/09-navigation.md` is FINAL on chrome — a pushed screen has nothing at
@@ -1983,9 +2003,10 @@ scales: that the screen opens on Final detailed with a list under it, that the
 control opens a menu carrying all three views, that picking one swaps the list,
 that the On table column sums to zero, that the chips block states both sides
 and what it leaves out, that the deductions block totals itself and names who
-fronted each bill, that every row carries its chips and at least one row its
-spends, that a fronted bill shows both figures behind one mark, and that eight
-rows fit above the block, and that a tap outside the open menu closes it
+fronted each bill, that On table draws both stacks under every name, that a
+Final row carries its `game` term and no stacks and at least one row its
+spends, that the `game` column sums to zero, that a fronted bill shows both
+figures behind one mark, and that eight rows fit above the block, and that a tap outside the open menu closes it
 without opening whatever was under the finger. `ui-audit.mjs` gains the tinted
 group as a second named exception to `tinted-result-row`, for the same reason
 the bone tray was.
