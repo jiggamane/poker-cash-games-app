@@ -139,6 +139,82 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B88 — the sign-in sheet asked for a code the app has never sent
+
+```
+Screen      /sign-in, the *Check your email* stage
+Seen        "A link and a six-digit code are on their way to you@…", with a
+            field under it and *Sign in* blocked until six digits are in it.
+            The email that arrives carries a link and no digits, because the
+            project sends Supabase's STOCK magic-link template — the box is
+            read-only until custom SMTP is on, and that has not been done
+Expected    the screen to describe the email that is actually sent
+Found       20 Sept, by the owner, reading the sheet against the mail. Named
+            in B86's own closing paragraph fourteen days earlier — "the code
+            field is dark until they are" — and left as a dashboard problem
+            rather than a screen one, which is the part that was wrong
+Locked by   npm run check — authLink.test.ts asserts the sheet verifies no code
+            and draws no numeric field, and that magic-link.html prints the
+            confirmation URL as text and carries no `{{ .Token }}`. Verified
+            against the fault: with a `number-pad` field back on the sheet and
+            a `{{ .Token }}` back in the template, both go red by name
+Status      fixed in this commit
+```
+
+**This is a bug about a dependency, not about a string.** The app was built
+against `docs/email-templates/magic-link.html` — a file in this repository that
+is a *proposal* until somebody pastes it into the Supabase dashboard. Nothing
+here can tell whether that has happened: `npm run check` cannot reach
+`supabase.co` and neither can `check:ui`, and a session running in the cloud
+cannot either. So the code was written in the app (`signInCode.ts`,
+`verifySignInCode`, the field), written in the template (`{{ .Token }}`), and
+never once sent.
+
+**The cost is paid at the worst moment in the product.** Everything else in this
+app is behind the host's sign-in, so this screen is where somebody who cannot
+get in is standing — and what it did was promise them a thing that was not in
+their inbox. A host who reads "a six-digit code is on its way", finds no digits,
+and types the only six-ish thing in the mail is now certain the app is broken,
+before they have seen any of it. **A fallback nobody wired up is worse than no
+fallback**, because it spends the one screen that had to be honest.
+
+**The argument for the code was good, and it is the reason this took three
+weeks to see.** It is B66's, and it still stands as far as it goes: a link is
+four systems agreeing — Go's `html/template` sanitiser, the mail client's
+willingness to render an anchor, the project's redirect allow-list, and the
+phone's idea of which app owns the scheme — and **three of those four refuse
+silently**. A screen whose only exit is that link has no way out of any of them.
+Every sentence of that is true. It just was not about this app, which sends a
+different email than the one the argument was written against.
+
+### What carries the weight now, since the risk did not go away
+
+Three things, and the property that matters is that **none of them needs a
+dashboard step to be true today**:
+
+| | |
+|---|---|
+| **The confirmation URL as text** | The mail prints the same https address under the button, as a plain string rather than markup — so a stripped anchor, a plain-text view and a corporate gateway all leave it intact, and pasted into a browser on the phone it takes the identical hop. **Supabase's stock template has this row too.** That is the whole difference from the code: it is a fallback that works in the mail being sent. It answers three of the four silent refusals, and both `/sign-in` and `/auth-callback` now point at it. |
+| **The redirect, on the sheet** | The fourth refusal — an allow-list miss — reports itself as success and is invisible from the phone. B86 put that address on the screen in every build; with the link as the only way in, that line is now the whole diagnosis rather than a convenience. |
+| **A second email, with the wait shown before it is spent** | *Send another link* is the only button on that stage now, so throttling became likelier the moment the code went. `signInLink.ts` holds Supabase's 60-second floor on this side and counts it down on the button — a host meets the wait as a label, not as a 429 under a button that looked like it would work. |
+
+**If the code is ever wanted, it is three changes in ONE commit**: custom SMTP
+on, `{{ .Token }}` in the template *and the template pasted into the box*, and a
+field in `sign-in.tsx`. Two of the three is this bug. The lock in
+`authLink.test.ts` will go red on the third alone, which is the intended
+direction — it is cheaper to argue with a failing test than to ship a screen
+that lies to somebody who cannot get in.
+*Numbered **B88** on merge, not when written — it was B87 on its branch. The
+fifth collision this file has recorded, and the first one caused by two sessions
+that never opened the same screen: a session stamping the night's end time
+merged its B87 an hour earlier, and this one was still in the UI gate. Same
+resolution as every time — **the entry already on `main` keeps the number**, and
+this one moved up, with its references — the four `B88` messages in
+`authLink.test.ts`, `docs/screens.md`, `docs/auth-test-period.md` and
+`docs/design-request-sign-in.md` — moving with it. The commit message on the branch still says B87, because it was
+written before `main` moved and a pushed message is not worth rewriting; the
+file is the record, and the file says B88.*
+
 ### B87 — every night recorded the time the host tapped Settle, not the time the game ended
 
 ```

@@ -107,6 +107,21 @@ is settled when it is not.
 **37 screens · 37 under the rule pass · 21 under the sheet pass · 13 under a big
 night · 0 conformed.**
 
+**`/sign-in` lost its code field on 20 September — B88, and its copy is
+invented like `/auth-callback`'s.** The *Check your email* stage held a six-digit
+field and said "a link and a six-digit code are on their way"; no code has ever
+been sent, because `{{ .Token }}` only reaches the mail once custom SMTP is on
+and the template in the dashboard has been replaced by hand, and neither has
+happened. The stage is now about the link alone: what to do if the button in
+the mail is dead (paste the address printed under it — the one fallback that is
+in the stock template too), a *Send another link* primary that counts down
+Supabase's 60-second floor rather than letting a host meet a 429, and the
+*Redirects to* note B86 put on every build, which with the link as the only way
+in is the whole diagnosis of an allow-list miss. **No board draws a sign-in**,
+so every string on both stages is invented; that is flagged here rather than
+passed off. `docs/bugs.md` B87 has the argument, and `authLink.test.ts` is what
+goes red if a code field comes back.
+
 **`/auth-callback` is new on 9 September and is drawn by no board** — B66. It is
 where the sign-in link lands, and it had no screen at all until then: the
 redirect had been pointing at a route `app/` did not answer to, so a working

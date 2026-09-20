@@ -30,17 +30,35 @@
   Never put `{{ .RedirectTo }}`, `{{ .SiteURL }}` or a hand-built deep link in
   an href here. That is the fault, exactly.
 
-  ── AND THE CODE ──────────────────────────────────────────────────────────────
+  ── THE LINK IS THE WHOLE MAIL, AND THE ADDRESS AS TEXT IS ITS FALLBACK ───────
 
-  `{{ .Token }}` is the six digits. Supabase's stock template does not include
-  it, which is why the app's `verifySignInCode` sat unreachable for months while
-  the link was the only way in.
+  This template carried `{{ .Token }}` — six digits, in a grey card under the
+  button — until 20 September, and the app had a field for them on its *Check
+  your email* stage. Both have gone, together.
 
-  It is here because the link has four things to agree with — the sanitiser
-  above, the mail client's willingness to render a link, the project's redirect
-  allow-list, and the phone's idea of who owns the scheme — and three of them
-  fail silently. The code has none of them. A host who can read six digits can
-  sign in, whatever the mail client has done to the button.
+  The argument for the code was sound as far as it went: a link has four things
+  to agree with — the sanitiser above, the mail client's willingness to render
+  an anchor, the project's redirect allow-list, and the phone's idea of who owns
+  the scheme — and three of them fail silently. What it missed is that THIS
+  TEMPLATE IS NOT THE ONE BEING SENT. The box is read-only until custom SMTP is
+  on (see README.md), that step has not been done, and Supabase's stock
+  magic-link mail carries a link and no token at all. So the app's field asked a
+  host to type six digits that were not in the email in front of them — which is
+  worse than no fallback, because it spends the one screen a locked-out host is
+  looking at on an instruction that cannot be followed.
+
+  What does the same job, and does it in the mail that is actually sent, is the
+  CONFIRMATION URL WRITTEN OUT AS TEXT — the row below the button. It is the
+  same https address, it is a plain string rather than markup, and pasted into a
+  browser on the phone it takes the identical hop: Supabase verifies the token
+  and redirects to the app itself. A stripped anchor, a plain-text view and a
+  corporate gateway are the three ways the button arrives dead, and that row
+  survives all three. It is not decoration and it is not a courtesy. Do not
+  remove it.
+
+  If the code is ever wanted back, it needs all three in one change: custom SMTP
+  on, `{{ .Token }}` here, and a field in `apps/mobile/app/sign-in.tsx`. Two out
+  of three is the state this paragraph exists to describe.
 
   ── HOUSE RULES FOR EDITING THIS ──────────────────────────────────────────────
 
@@ -64,7 +82,7 @@
 
         <tr>
           <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:400;line-height:1.5;color:#0C0D0F;padding-bottom:24px;">
-            Two ways in, and either one works. Tap the button, or type the code into the app.
+            Tap the button and the app opens signed in. Nothing to remember, nothing to type.
           </td>
         </tr>
 
@@ -88,37 +106,34 @@
         </tr>
 
         <!--
-          The same URL as text. A button is markup and can be stripped — by a
-          plain-text view, by a corporate mail gateway, by a client that refuses
-          styled anchors. The address written out survives all three, and a host
-          can always copy it. This is the belt to the button's braces and it
-          costs one row.
-        -->
-        <tr>
-          <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;font-weight:400;line-height:1.5;color:#6B6B72;padding-bottom:28px;word-break:break-all;">
-            If the button does nothing, paste this into a browser on the same phone:<br>
-            <a href="{{ .ConfirmationURL }}" style="color:#6B6B72;">{{ .ConfirmationURL }}</a>
-          </td>
-        </tr>
+          THE SAME URL AS TEXT, AND IT IS THE ONLY FALLBACK IN THIS MAIL — read
+          the note at the top of this file before touching it.
 
-        <!-- The code. Nothing here can be sanitised, stripped or misrouted. -->
+          A button is markup and can be stripped: by a plain-text view, by a
+          corporate mail gateway, by a client that refuses styled anchors. The
+          address written out survives all three, and it is one paste from the
+          same hop the button takes. It is in its own card now rather than as a
+          grey line under the button, because since the six-digit code was
+          dropped this row is what a host with a dead button has instead of
+          being locked out.
+        -->
         <tr>
           <td style="background-color:#F4F4F6;border-radius:16px;padding:20px 22px;">
             <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:#6B6B72;padding-bottom:8px;">
-              Or type this code
+              If the button does nothing
             </div>
-            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:32px;font-weight:700;letter-spacing:6px;color:#0C0D0F;">
-              {{ .Token }}
+            <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;font-weight:400;line-height:1.5;color:#6B6B72;padding-bottom:10px;">
+              Copy this address and paste it into a browser on the same phone. It signs you in the same way.
             </div>
-            <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;font-weight:400;line-height:1.5;color:#6B6B72;padding-top:10px;">
-              On the sign-in screen, under &ldquo;Check your email&rdquo;. Use this if the button above does not open the app.
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;font-weight:400;line-height:1.6;color:#0C0D0F;word-break:break-all;">
+              <a href="{{ .ConfirmationURL }}" style="color:#0C0D0F;">{{ .ConfirmationURL }}</a>
             </div>
           </td>
         </tr>
 
         <tr>
           <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;font-weight:400;line-height:1.5;color:#6B6B72;padding-top:24px;">
-            Both the link and the code work once and expire shortly. Asking for another email retires this one, so always use the newest.
+            The link works once and expires shortly. Asking for another email retires this one, so always use the newest.
             If you did not ask to sign in, nothing has happened and you can ignore this.
           </td>
         </tr>

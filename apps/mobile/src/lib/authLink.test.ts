@@ -82,6 +82,68 @@ describe('where the sign-in email sends the host', () => {
    * is a condition on a screen with no test of its own, and this is the join
    * between the address and the place a host can read it.
    */
+  /*
+   * B88. The sheet asked for six digits that this project has never sent.
+   *
+   * `{{ .Token }}` reaches the mail only once custom SMTP is on AND the
+   * template in the dashboard has been replaced by hand — step 4 and step 5 of
+   * `docs/auth-test-period.md`, neither done — and until then Supabase's stock
+   * magic-link mail carries a link and nothing else. So the *Check your email*
+   * stage said "a link and a six-digit code are on their way", drew a field for
+   * the code, and a host holding an email with no digits in it read the app as
+   * broken before they had got in.
+   *
+   * Source rather than a render, for this file's reason above: the fault is a
+   * DEPENDENCY between the app and a template nobody applied, and the only
+   * place it can be seen is the join. Both halves are asserted — the field is
+   * gone, and the fallback that replaced it is present in the template — since
+   * either one alone is the state that caused the bug.
+   */
+  it('does not ask for a code, because no code is sent', () => {
+    const src = read('../../app/sign-in.tsx');
+    /* Comments explain WHY it is gone, so they are not the thing being read. */
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+    expect(code, 'the sign-in sheet verifies a code again — B88').not.toMatch(
+      /verifySignInCode|signInCode|normaliseCode|codeIsComplete/,
+    );
+    expect(code, 'a code field is back on the sign-in sheet — B88').not.toMatch(
+      /number-pad|six.digit/i,
+    );
+  });
+
+  /*
+   * The other half of B88, and the reason the fallback is not a courtesy.
+   *
+   * Three of the four systems a link depends on refuse SILENTLY and what
+   * arrives is a button that does nothing. The confirmation URL written out as
+   * text is what a host has instead of being locked out: a plain string rather
+   * than markup, so a stripped anchor, a plain-text view and a corporate
+   * gateway all leave it intact, and pasted into a browser on the phone it
+   * takes the identical hop. Supabase's stock template has this row too, which
+   * is what makes it a fallback that works TODAY rather than one waiting on a
+   * dashboard step — the exact property the six-digit code did not have.
+   *
+   * Both screens tell a host to look for it, so it may not quietly leave the
+   * template while they go on pointing at it.
+   */
+  it('keeps the confirmation URL as text in the mail, which is the only fallback', () => {
+    const mail = read('../../../../docs/email-templates/magic-link.html');
+    const body = mail.slice(mail.indexOf('-->') + 3);
+
+    /* Twice: once as the button's href, once written out to be copied. */
+    const written = body.match(/\{\{ \.ConfirmationURL \}\}/g) ?? [];
+    expect(
+      written.length,
+      'the sign-in email no longer prints its address as text — B88',
+    ).toBeGreaterThanOrEqual(2);
+
+    /* And nothing in the app may depend on a token that is not being sent. */
+    expect(body, 'the template carries a code again; the app has no field for it — B88').not.toMatch(
+      /\{\{ \.Token \}\}/,
+    );
+  });
+
   it('is printed on the sign-in sheet in every build, not only in dev', () => {
     const src = read('../../app/sign-in.tsx');
     const start = src.indexOf('function RedirectNote(');

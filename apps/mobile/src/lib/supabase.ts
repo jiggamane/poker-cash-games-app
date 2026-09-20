@@ -147,17 +147,20 @@ export function isNotInvited(error: unknown): boolean {
   return e.code === 'otp_disabled' || /signups not allowed/i.test(e.message ?? '');
 }
 
-/**
- * Exchange a six-digit code for a session.
+/*
+ * THERE IS NO `verifySignInCode` HERE ANY MORE, and this note is what stops it
+ * coming back by accident.
  *
- * Only reachable once the project has custom SMTP and its email templates carry
- * {{ .Token }} — Supabase's built-in mail sends a link and nothing else. Kept
- * because a code is the better flow when it is available: no leaving the app.
+ * It exchanged six digits for a session, and it was only ever reachable once
+ * the project had custom SMTP and its email template had been replaced by hand
+ * with one carrying `{{ .Token }}`. Neither has been done, so Supabase's stock
+ * magic-link mail — a link and nothing else — is what this project actually
+ * sends, and the field that called this asked a host to type digits that were
+ * not in the email in front of them. `sign-in.tsx` has the whole argument.
+ *
+ * `signInWithOtp` above still has `Otp` in its name; that is Supabase's word
+ * for the whole email sign-in and not a code. What it sends is the link.
  */
-export async function verifySignInCode(email: string, code: string): Promise<void> {
-  const { error } = await supabase.auth.verifyOtp({ email, token: code.trim(), type: 'email' });
-  if (error) throw error;
-}
 
 export async function signOut(): Promise<void> {
   const { error } = await supabase.auth.signOut();

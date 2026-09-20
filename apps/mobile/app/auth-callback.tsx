@@ -84,7 +84,15 @@ export default function AuthCallback() {
             }}
           />
         }
-        note="The same email carries a six-digit code, and the code does not depend on the link opening. Typing it on the sign-in screen works when this does not."
+        /*
+         * This named the six-digit code until 20 September, and the code was
+         * never in the mail — see `sign-in.tsx`. What is in the mail, on every
+         * build and with no dashboard setting behind it, is the same address
+         * written out as text under the button. Pasting it into a browser on
+         * this phone is the identical hop: Supabase verifies the token and
+         * redirects to the app itself.
+         */
+        note="The email prints the same address as text under the button. Pasting that into a browser on this phone signs you in the same way — a fresh email is only needed if the link has expired."
       />
     );
   }
