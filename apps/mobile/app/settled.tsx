@@ -142,6 +142,11 @@ export default function NightResults() {
   const onTable = view === 'onTable';
   const outcomes = ruleOutcomes(result);
 
+  /* Whether the locked step is drawn, which the end-time row under it needs to
+     know: it is the row that closes the screen, and what it draws at its top
+     depends on whether anything is already there. */
+  const showsStep = !onTable && night.roundingMode !== null && night.roundingMode !== undefined;
+
   return (
     <Screen
       title={nightDate(night.startedAt)}
@@ -262,9 +267,7 @@ export default function NightResults() {
        *
        * FINAL ONLY. At table is `out − in`, which the step does not reach.
        */}
-      {!onTable && night.roundingMode !== null && night.roundingMode !== undefined && (
-        <RoundingBar mode={night.roundingMode} style={styles.rounding} />
-      )}
+      {showsStep && <RoundingBar mode={night.roundingMode} style={styles.rounding} />}
 
       {/*
        * AND THE END TIME, WHICH — UNLIKE THE STEP — IS STILL SETTABLE. B87.
@@ -294,7 +297,12 @@ export default function NightResults() {
         label={endedRowLabel(night.endedAt)}
         value={endedRowValue(night.startedAt, night.endedAt)}
         onPress={() => router.push('/end-time')}
-        style={styles.rounding}
+        /* THE STEP IS NOT ALWAYS THERE — it is hidden on At table and on a
+           night with no rounding — so this row is the one that closes the
+           screen either way, and it drops its top rule only when there is
+           already one directly above it. Two stacked bars would otherwise draw
+           a double hairline between them. */
+        style={showsStep ? styles.stackedBar : styles.rounding}
       />
     </Screen>
   );
@@ -438,4 +446,5 @@ const styles = StyleSheet.create({
   list: { marginHorizontal: space.page },
 
   rounding: { marginTop: 10 },
+  stackedBar: { borderTopWidth: 0 },
 });

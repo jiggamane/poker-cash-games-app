@@ -39,22 +39,22 @@ begin
 end;
 $$;
 
--- A statement that MUST be refused. The test fails if it succeeds, and passes
--- only on the refusal — swallowing the error is the whole point, since an
--- unswallowed one would stop the run with ON_ERROR_STOP.
-create or replace function expect_refused(stmt text, label text)
+-- A statement that MUST be rejected — byte for byte the helper the other test
+-- files declare, and under its own name rather than a second one for the same
+-- idea. Each file redeclares the helpers it uses because each has to run on its
+-- own; two NAMES for one assertion is how a reader stops trusting either.
+create or replace function expect_rejected(stmt text, label text)
 returns void
 language plpgsql
 as $$
 begin
-  execute stmt;
-  raise exception 'TEST FAILED: % — the database allowed it', label;
-exception
-  when raise_exception then
-    -- Our own failure above, rethrown: the statement was NOT refused.
-    if sqlerrm like 'TEST FAILED:%' then raise; end if;
-  when others then
-    null;  -- refused, which is what this asserts
+  begin
+    execute stmt;
+  exception
+    when others then
+      return;  -- rejected as intended
+  end;
+  raise exception 'TEST FAILED: % — statement was accepted but should have been rejected', label;
 end;
 $$;
 
@@ -128,7 +128,7 @@ select expect_eq(
     where session_id = '87400000-0000-0000-0000-000000000001'),
   1000, 'the frozen settlement is untouched by a corrected end time');
 
-select expect_refused(
+select expect_rejected(
   $$update settlement
        set total_off_table = 999
      where session_id = '87400000-0000-0000-0000-000000000001'$$,
@@ -142,7 +142,7 @@ select expect_refused(
 -- on a night still being played would be refused — and a refused row at the
 -- head of the outbox is every night behind it going nowhere.
 
-select expect_refused(
+select expect_rejected(
   $$update session
        set ended_at = '2026-09-20T23:00:00Z'
      where id = '87400000-0000-0000-0000-000000000002'$$,
@@ -159,7 +159,7 @@ select expect_eq(
 -- The same constraint read from the other side, and the reason the sheet offers
 -- no way to clear the field: the host may correct an end time, never unset one.
 
-select expect_refused(
+select expect_rejected(
   $$update session
        set ended_at = null
      where id = '87400000-0000-0000-0000-000000000001'$$,

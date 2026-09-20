@@ -248,6 +248,11 @@ export default function CountUp() {
         label={endedRowLabel(night.endedAt)}
         value={endedRowValue(night.startedAt, night.endedAt)}
         onPress={() => router.push('/end-time')}
+        /* STACKED DIRECTLY UNDER THE BAR ABOVE, so it drops its own top rule:
+           two bars that each draw a hairline top and bottom put two of them
+           between these rows, which reads as a heavier divider than the ones
+           closing the pair. One rule between, one above, one below. */
+        style={styles.stackedBar}
       />
 
       {/*
@@ -1027,6 +1032,7 @@ const ROW_FITS = 1_000_000;
 const styles = StyleSheet.create({
   /* Under the block's own bottom margin, above the first group's label. */
   rounding: { marginTop: 4 },
+  stackedBar: { borderTopWidth: 0 },
   /* The rows' own 22, carried once for all three groups. */
   groups: { marginHorizontal: 22 },
   waiting: { fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },

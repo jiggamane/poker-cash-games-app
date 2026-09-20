@@ -72,17 +72,27 @@ export default function EndTime() {
     [night, now],
   );
 
-  /* Prefilled from what the night already holds, which since the End game tap
-     is nearly always something. A night with nothing stamped opens empty and
-     the host types all four: no default is better than a plausible wrong one on
-     the one screen whose job is to correct a plausible wrong one. */
-  const [digits, setDigits] = useState(() =>
-    night?.endedAt == null ? '' : clockDigitsOf(night.endedAt),
-  );
+  /*
+   * WHAT HAS BEEN TYPED, OR NOTHING YET — and the null is load-bearing.
+   *
+   * The prefill is what the night already holds, which since the End game tap
+   * is nearly always something. It is DERIVED at render rather than seeded into
+   * state, because `useNight` answers null until the store has opened the night
+   * and a `useState` initialiser runs once: on a cold start the sheet would
+   * seed itself empty from the null and then never pick the stamp up, so the
+   * screen whose whole job is to correct a time would open having silently
+   * discarded the one it was correcting.
+   *
+   * A night with nothing stamped opens empty and the host types all four. No
+   * default is better than a plausible wrong one here.
+   */
+  const [typed, setTyped] = useState<string | null>(null);
   const [day, setDay] = useState<EndDay | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (night === null) return <Sheet title="End time">{null}</Sheet>;
+
+  const digits = typed ?? (night.endedAt == null ? '' : clockDigitsOf(night.endedAt));
 
   /* The chosen day, or the one the night is already on — resolved here rather
      than seeded into state, because `days` is not built until the night is. */
@@ -184,8 +194,8 @@ export default function EndTime() {
        * does not.
        */}
       <Keypad
-        onDigits={(d) => setDigits((current) => typeClockDigits(current, d))}
-        onBackspace={() => setDigits(backspaceClockDigits)}
+        onDigits={(d) => setTyped(typeClockDigits(digits, d))}
+        onBackspace={() => setTyped(backspaceClockDigits(digits))}
       />
     </Sheet>
   );
