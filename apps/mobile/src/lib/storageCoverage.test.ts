@@ -66,6 +66,9 @@ const NIGHT: Record<string, string> = {
     'a name belongs to the roster and reaches the book from there',
   setFinalCount: 'count.upsert',
   setStatus: 'session.patch — the status, without an ended_at the server would refuse',
+  setEndedAt:
+    'session.ended when the night has already settled, and nothing at all before ' +
+    'that — an open night carries it to the server inside the close. B87',
   setNightRounding: 'session.patch',
   closeNight: 'session.close — the frozen settlement, then the status and the ending',
   setPaid: 'payment.set',
@@ -173,6 +176,7 @@ describe('the queue sends every kind it knows', () => {
     'rule.upsert',
     'seat.upsert',
     'session.close',
+    'session.ended',
     'session.open',
     'session.patch',
   ];
@@ -187,5 +191,45 @@ describe('the queue sends every kind it knows', () => {
   it('and every kind the drain names is one of these', () => {
     const cases = [...source('./sync.ts').matchAll(/case '([\w.]+)':/g)].map((m) => m[1]).sort();
     expect([...new Set(cases)]).toEqual(KINDS);
+  });
+});
+
+/**
+ * AND THE OPERATION THAT EXISTED, WORKED, AND WAS CALLED BY NOBODY — B87.
+ *
+ * The table above asks where a change GOES. This asks the question one step
+ * earlier, and it is the question B87 got wrong: whether anything invokes the
+ * operation at all. `setStatus` was written, tested, listed in the table as
+ * `session.patch`, and documented in `closing.ts` as the thing that records the
+ * honest end of a night — and no screen had ever called it. So the fallback
+ * `night.endedAt ?? at` in `closeOf`, described in its own comment as covering
+ * "a night that somehow reached a close without one", was the only path every
+ * night in the book took, and every night recorded the moment the host tapped
+ * Settle rather than the moment the cards stopped.
+ *
+ * NOTHING ELSE CAN SEE THIS. The store's tests pass — the function is correct.
+ * `closeOf`'s tests pass — it honours an end time when it is given one. The
+ * screens pass — they draw whatever figure they are handed. The fault lived
+ * entirely in a call that was not written, which is the same shape as the
+ * faults at the top of this file and is why it is checked the same way.
+ */
+describe('the end of the night is stamped when the night ends', () => {
+  it('End game moves the night to counting, which is what writes ended_at', () => {
+    const session = source('../../app/session.tsx');
+    const onEnd = session.slice(session.indexOf('onEnd={'), session.indexOf('onEnd={') + 400);
+
+    expect(session, 'session.tsx never calls setStatus').toContain("setStatus('counting')");
+    expect(onEnd, 'End game pushes to the count without stamping the end').toContain(
+      "setStatus('counting')",
+    );
+  });
+
+  it('and the sheet that corrects it is reachable from the two screens that show it', () => {
+    for (const screen of ['count-up', 'settled']) {
+      expect(
+        source(`../../app/${screen}.tsx`),
+        `${screen}.tsx shows an end time nobody can fix`,
+      ).toContain("'/end-time'");
+    }
   });
 });

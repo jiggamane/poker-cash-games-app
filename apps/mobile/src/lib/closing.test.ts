@@ -214,6 +214,35 @@ describe('the record that goes to the server', () => {
     expect(payload.endedAt).toBe(AT);
   });
 
+  /*
+   * B87 — THE NIGHT THAT DID NOT ADD UP AND WAS FINISHED THE NEXT DAY.
+   *
+   * This is the case the fallback above was quietly serving on every night in
+   * the book, because nothing in the app ever stamped an end: `setStatus` was
+   * called by no screen, so `night.endedAt` was always undefined and the close
+   * always answered with its own clock. A game that finished at 03:12 and was
+   * settled at half past two the following afternoon went into the book, onto
+   * the home card and up to the server as a game that ended at 14:30.
+   *
+   * Both halves of the fix land here. End game stamps the honest moment, and
+   * `/end-time` overwrites it when even that was late — and either way the
+   * close has to send what the night holds rather than what the clock says.
+   * The gap between the two is deliberately a day, so a regression cannot pass
+   * by being approximately right.
+   */
+  it('sends the hand-typed end time of a night settled the next day', () => {
+    const typed = { sessionId: SESSION, endedAt: '2026-09-07T03:12:00.000Z', occurredAt };
+    const nextAfternoon = '2026-09-08T14:30:00.000Z';
+
+    const { payload } = closeOf(typed, input(), nextAfternoon);
+
+    expect(payload.endedAt).toBe('2026-09-07T03:12:00.000Z');
+    expect(sessionClosedPatch(payload).patch).toEqual({
+      status: 'settled',
+      ended_at: '2026-09-07T03:12:00.000Z',
+    });
+  });
+
   it('states the transfers the room was actually given', () => {
     const { result, payload } = closeOf(night, input(), AT);
     expect(payload.settlement.computedTransfers).toEqual(result.transfers);

@@ -23,6 +23,7 @@ import { BLOCK_FITS, headlineSize, percent, toneOf, type Tone } from '../src/lib
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
+import { TermBar } from '../src/components/TermBar';
 import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
@@ -30,6 +31,7 @@ import { useTheme } from '../src/design/useTheme';
 import type { Theme } from '../src/design/tokens';
 import { cappedFigure, radius, tabular, type } from '../src/design/tokens';
 import { clockLabel } from '../src/lib/elapsed';
+import { endedRowLabel, endedRowValue } from '../src/lib/endTime';
 import { cashedOutAt, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
@@ -219,6 +221,38 @@ export default function CountUp() {
         mode={night.roundingMode}
         onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
         style={styles.rounding}
+      />
+
+      {/*
+       * AND WHEN THE CARDS STOPPED, on the row under it — B87.
+       *
+       * IT SITS HERE FOR THE REASON THE STEP DOES. This is the screen where the
+       * night is being finished, so it is the screen where the night's terms
+       * are set, and the end time is one of them: `Ended · 03:12` is the same
+       * kind of line as `Rounding · nearest $10` and reads as one because it is
+       * drawn as one.
+       *
+       * IT IS NOT IN THE BLOCK ABOVE, and that is the whole reason it is down
+       * here. `design/handoff-count-up-header/` retired the two-column card for
+       * the signed gap, the percentage and the two sums, with no eyebrow and no
+       * verdict strip — adding a clock to it would be putting back a term the
+       * cut took out, on the one block whose argument is that nothing in it can
+       * truncate.
+       *
+       * THE NIGHT IT EXISTS FOR IS THE ONE BEING READ A DAY LATE. Tapping End
+       * game stamps this honestly, so most nights it is right before anybody
+       * looks; the host who is settling yesterday's game, or who tapped through
+       * an hour after the last hand, taps it and types the real one.
+       */}
+      <TermBar
+        label={endedRowLabel(night.endedAt)}
+        value={endedRowValue(night.startedAt, night.endedAt)}
+        onPress={() => router.push('/end-time')}
+        /* STACKED DIRECTLY UNDER THE BAR ABOVE, so it drops its own top rule:
+           two bars that each draw a hairline top and bottom put two of them
+           between these rows, which reads as a heavier divider than the ones
+           closing the pair. One rule between, one above, one below. */
+        style={styles.stackedBar}
       />
 
       {/*
@@ -998,6 +1032,7 @@ const ROW_FITS = 1_000_000;
 const styles = StyleSheet.create({
   /* Under the block's own bottom margin, above the first group's label. */
   rounding: { marginTop: 4 },
+  stackedBar: { borderTopWidth: 0 },
   /* The rows' own 22, carried once for all three groups. */
   groups: { marginHorizontal: 22 },
   waiting: { fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },

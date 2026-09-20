@@ -25,6 +25,7 @@ import {
   ruleRow,
   seatRow,
   sessionClosedPatch,
+  sessionEndedPatch,
   sessionPatch,
   sessionRow,
   settlementRow,
@@ -41,6 +42,7 @@ import {
   type RuleDeletePayload,
   type RulePayload,
   type SeatPayload,
+  type SessionEndedPayload,
   type SessionOpenPayload,
   type SessionPatchPayload,
 } from './syncRows';
@@ -310,6 +312,34 @@ export async function queueSessionPatch(patch: SessionPatchPayload): Promise<voi
   });
 }
 
+/**
+ * The end time of a night that has already closed — B87.
+ *
+ * ITS OWN OPERATION AND ITS OWN PLACE IN THE LINE, not a field on the patch
+ * above. Two reasons, and the second is the one that would bite:
+ *
+ *   1. The server allows `ended_at` only on a settled session, so the column
+ *      can only be sent by a caller that knows the night has closed. See
+ *      `sessionEndedPatch`.
+ *   2. `queueSessionPatch` returns early for a settled night and its op id is
+ *      one per night, replaced in place. Folding this into it would mean a
+ *      correction either being dropped by that early return or taking the place
+ *      of a pending patch about a different night's settings.
+ *
+ * `closeNight` is where an end time first reaches the server, riding with the
+ * settlement. This is only ever the correction afterwards.
+ */
+export async function queueSessionEnded(payload: SessionEndedPayload): Promise<void> {
+  if (!isUuid(payload.sessionId)) return;
+
+  await enqueueOp<SessionEndedPayload>(outbox, {
+    id: `session-ended:${payload.sessionId}`,
+    sessionId: payload.sessionId,
+    kind: 'session.ended',
+    payload,
+  });
+}
+
 /** Whether somebody pays the kitty, and whether they are still offered a seat. */
 export async function queuePlayerTerms(
   clubId: string,
@@ -497,6 +527,8 @@ async function send(item: OutboxItem): Promise<void> {
     }
     case 'session.patch':
       return patch(sessionPatch(item.payload as SessionPatchPayload));
+    case 'session.ended':
+      return patch(sessionEndedPatch(item.payload as SessionEndedPayload));
     case 'player.terms':
       return patch(playerTermsPatch(item.payload as PlayerTermsPayload));
     case 'rule.delete': {

@@ -100,7 +100,7 @@ constants back out of `scripts/ui-audit.mjs` and asserts they still match the
 tokens, so the tool cannot quietly stop checking what the app does.
 
 **`node scripts/ui-audit.mjs`** measures the built app. Its second pass renders
-all 21 sheet routes on six devices — the four iPhones in doc 15 § 4 plus two
+all 22 sheet routes on six devices — the four iPhones in doc 15 § 4 plus two
 Androids — and checks five things per sheet: that it does not rise above its
 cap, that it is full-height when the phone is short, that it is anchored to the
 bottom, that its footer stays inside the panel, and that nothing is drawn

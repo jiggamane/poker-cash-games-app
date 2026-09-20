@@ -19,6 +19,7 @@ import { clockLabel, useElapsed } from '../src/lib/elapsed';
 import {
   cashedOutAt,
   defaultBuyIn,
+  setStatus,
   standingsOf,
   useNight,
   type Standing,
@@ -256,8 +257,32 @@ export default function Session() {
               setDrawer(false);
               router.push('/money-rules');
             }}
+            /*
+             * THE MOMENT THE CARDS STOPPED IS NOW, AND IT IS WRITTEN DOWN HERE
+             * — B87.
+             *
+             * `setStatus('counting')` has always stamped `ended_at` and has
+             * always said, in `closing.ts`, that this is the honest answer:
+             * *"the night ENDED when counting started, not when the host
+             * finally tapped through the settlement"*. Nothing in the app ever
+             * called it. The only caller was a test, so the fallback in
+             * `closeOf` — `night.endedAt ?? at` — was not a safety net, it was
+             * the only path, and every night in the book recorded the moment
+             * the host tapped Settle instead of the moment the game finished.
+             * On a night whose totals did not add up and which was finished the
+             * next afternoon, that is a figure out by a day.
+             *
+             * It stamps ONCE: a night that comes back to counting keeps the
+             * first answer. `/end-time` is where a host corrects it when even
+             * this tap was late.
+             *
+             * NOT AWAITED, so the drawer closes and the screen moves the
+             * instant the thumb comes off. The write and the queued patch are
+             * the store's business and it emits when they land.
+             */
             onEnd={() => {
               setDrawer(false);
+              void setStatus('counting');
               router.push('/count-up');
             }}
           />

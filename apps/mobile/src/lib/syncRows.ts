@@ -361,6 +361,14 @@ export interface SessionPatchPayload {
  * reaches the server with the close, in `sessionClosedPatch`, where the status
  * moves with it and the check holds.
  *
+ * ⚠ SOMEBODY DID TRY TO ADD IT, AND THE ANSWER WAS A SECOND OPERATION — B87.
+ * A night settled the next day needs its end time corrected after the close,
+ * which the paragraph above does not cover and must not be bent to: the fix is
+ * `sessionEndedPatch`, queued as `session.ended` and only ever for a night that
+ * is already settled, so the condition the constraint checks is one the caller
+ * can actually promise. This one still carries no `ended_at`, for the reason
+ * it never did.
+ *
  * `settled` is not a status this can send for the same reason: closing is one
  * operation that writes the settlement first and the status after it, because a
  * night marked finished with no result behind it is a lie.
@@ -373,6 +381,39 @@ export const sessionPatch = (p: SessionPatchPayload): RowPatch => ({
     ...(p.tableName === undefined ? {} : { table_name: p.tableName }),
     ...(p.roundingMode === undefined ? {} : { rounding_mode: p.roundingMode }),
   },
+});
+
+export interface SessionEndedPayload {
+  sessionId: string;
+  /** When the cards actually stopped. Never null — see below. */
+  endedAt: string;
+}
+
+/**
+ * The end time of a night that has already been settled — B87.
+ *
+ * THE ONE COLUMN `sessionPatch` REFUSES, sent by the one operation that can
+ * promise the condition the server checks. `session_ended_at_matches_status`
+ * requires `ended_at` to be present exactly when the status is `settled`, so
+ * this is queued only for a night that has closed, and it carries a time rather
+ * than a null: clearing the end time of a settled night is the half of this
+ * that the constraint forbids, and the app does not offer it.
+ *
+ * WHY A SETTLED NIGHT MAY CHANGE THIS AT ALL, when every other thing about it
+ * is fixed. The end time is not a figure. It is not in the settlement, nothing
+ * recomputes from it, and `settlement_frozen_guard` — which is on the
+ * `settlement` table and not this one — is untouched by it. What it is, is the
+ * one fact about the night that the app could not know at the time: a night
+ * whose totals did not add up is settled the next day, and until this existed
+ * the record said the game ended whenever the argument finished.
+ *
+ * It is a PATCH, so a correction for a night the server has never heard of is a
+ * no-op rather than a malformed insert that halts the queue behind it.
+ */
+export const sessionEndedPatch = (p: SessionEndedPayload): RowPatch => ({
+  table: 'session',
+  matchId: p.sessionId,
+  patch: { ended_at: p.endedAt },
 });
 
 /**

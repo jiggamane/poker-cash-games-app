@@ -164,6 +164,7 @@ export default function RootLayout() {
             Save and is therefore a sheet. Opened from both layers of the
             chain: tonight's money rules, and the club's. */}
         <Stack.Screen name="rounding" options={SHEET} />
+        <Stack.Screen name="end-time" options={SHEET} />
         {/* One person's share of one rule, set by hand at the end of the
             night. E3 promises the tap; this is what it opens. */}
         <Stack.Screen name="share" options={SHEET} />

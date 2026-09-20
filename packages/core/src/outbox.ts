@@ -59,6 +59,20 @@ export type OpKind =
    */
   | 'book.upsert'
   | 'session.patch'
+  /**
+   * The moment the cards stopped, corrected after the night was settled — B87.
+   *
+   * SEPARATE FROM `session.patch` BECAUSE THE SERVER TREATS IT SEPARATELY.
+   * `session_ended_at_matches_status` allows an `ended_at` exactly when the
+   * status is `settled`, so the column can only be sent under a condition the
+   * general patch cannot promise — and `session.patch` refuses to carry it for
+   * that reason, in a comment older than this kind. This one carries nothing
+   * else and is only ever queued for a night that has already closed.
+   *
+   * It changes no figure. The settlement beside it is frozen and stays frozen:
+   * `settlement_frozen_guard` is on that table and this never touches it.
+   */
+  | 'session.ended'
   | 'player.terms'
   | 'rule.delete'
   /**
