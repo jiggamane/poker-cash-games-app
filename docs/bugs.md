@@ -139,6 +139,60 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B89 — the merge gate could pass on a build that did not contain the change
+
+```
+Screen      none — `npm run check:ui` itself, which is what stands between a
+            screen fault and `main`
+Seen        `scripts/ui-gate.sh` ran `bash scripts/ui-build.sh` and never read
+            its status. `ui-build.sh` is `set -e` and exits non-zero when the
+            export fails; `ui-gate.sh` is deliberately NOT `set -e`, because
+            each of its three passes has to run even when the one before it
+            failed — so a failed export was discarded and the gate carried on
+Expected    a gate that cannot report on a build it did not build
+Found       20 Sept, while fixing B88 — the gate skipped a rebuild and audited
+            a `.web` that predated the change, which is the same hole reached
+            by the staleness heuristic rather than by a failed export
+Locked by   NOTHING AUTOMATED, and that is said plainly rather than left to be
+            assumed: no check in this repository watches the checker. Verified
+            by hand instead, both ways — with `export:web` forced to exit 1 and
+            a stale build in place the gate now stops at "screens: NOT
+            CHECKED", exit 1; with it restored, "screens: clean.", exit 0
+Status      fixed in this commit
+```
+
+**The failure is a green run, which is the only kind nobody re-reads.** A
+bundler error in the code being merged leaves the previous `.web` untouched.
+The gate then served yesterday's build, held every route against the handoff,
+measured all 22 sheets, played a night through, found nothing wrong — because
+nothing *was* wrong with yesterday's build — and printed `screens: clean.` with
+exit 0. The change being merged was never opened in a browser.
+
+This is the fault the port note in that same file is already about, reached by
+another door: *"it QUIETLY AUDITS THE WRONG BUILD, and that is a green run that
+proves nothing."* Same sentence, different cause. The build's status is now
+read, and a failed export stops the gate rather than falling through to the
+previous one.
+
+**And a missing Playwright now says so instead of blaming the screens.** Every
+pass dies on `Cannot find module 'playwright'`, which is a non-zero exit, so the
+gate did refuse the merge — correctly — and then printed *"screens: findings
+above. Nothing merges on this"*, which sends a reader to look for a finding in a
+log that contains three stack traces and no screen. The tool being absent and
+the screens being wrong are different answers. It is checked once, before
+anything is built or served, with the install line the file's own header
+documents.
+
+**Both new exits say NOT CHECKED rather than findings**, and that wording is
+the point of the entry: a gate is allowed to refuse, and it is allowed to pass,
+and the third answer — *I could not look* — has to be distinguishable from the
+first two or it gets read as the second.
+
+⚠ **A checker with no check on it is what this entry is.** The two runs above
+are the whole verification and they were done by hand. If `ui-gate.sh` is
+touched again, do them again: force `export:web` to fail with a `.web` already
+on disk, and confirm the gate stops.
+
 ### B88 — the sign-in sheet asked for a code the app has never sent
 
 ```
