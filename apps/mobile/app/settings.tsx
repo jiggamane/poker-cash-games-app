@@ -15,7 +15,7 @@ import { shareLinkFor } from '../src/lib/shareLink';
 import { explainServerError, supabase } from '../src/lib/supabase';
 import { sync } from '../src/lib/ledgerRepo';
 import { syncStatus } from '../src/lib/sync';
-import { backupLine, backupTrouble, type BackupState } from '../src/lib/backupLine';
+import { accountLine, type BackupState } from '../src/lib/accountLine';
 import * as Clipboard from 'expo-clipboard';
 import { readBackup, restoreBackup, useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
@@ -36,7 +36,7 @@ import { useClub } from '../src/lib/clubStore';
  */
 export default function Settings() {
   const t = useTheme();
-  const { session, loading, configured } = useSession();
+  const { session, loading, configured, who } = useSession();
   const night = useNight();
   const club = useClub();
   /* Whether this phone runs the group, read exactly as home reads it: a reader
@@ -46,8 +46,6 @@ export default function Settings() {
   const admin = adminRow === undefined || meId === undefined || adminRow.id === meId;
 
   const [backup, setBackup] = useState<BackupState | null>(null);
-  /* Only while something is actually waiting — see `backupTrouble`. */
-  const trouble = backupTrouble(backup);
   const [syncing, setSyncing] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [report, setReport] = useState<ConnectionReport | null>(null);
@@ -60,7 +58,29 @@ export default function Settings() {
     void syncStatus().then(setBackup).catch(() => setBackup(null));
   });
 
-  const signedIn = session !== null;
+  /*
+   * WHO IS HOLDING THIS PHONE — B91, and it is not `session !== null`.
+   *
+   * A watcher who opened a share link, and a player who claimed a seat with an
+   * invite code, both have a real Supabase session: `redeemShareToken` and
+   * `redeemInvite` sign in anonymously first because a grant has to be attached
+   * to somebody. This screen read that as an account and drew `Signed in as
+   * unknown` over the host's own controls — Sync now, Fetch my nights, Share
+   * this night — none of which that phone can do.
+   */
+  const signedIn = who.kind === 'person';
+
+  /*
+   * AND THE ONE LINE ABOUT WHERE THE BOOK LIVES — B90.
+   *
+   * Three rows used to answer this and none of them could see the other two:
+   * the queue depth under `This night`, the email under `Account`, and the
+   * connection verdict wherever it happened to land. `accountLine` is the
+   * whole answer, computed from every fact at once, which is what stops
+   * `Backed up` from being drawn over a phone that has never signed in.
+   */
+  const line = accountLine({ configured, loading, who, backup, probe: report });
+
   const currency = club === null ? null : currencyFor(club.currency);
 
   /**
@@ -272,25 +292,18 @@ export default function Settings() {
          */}
         <Action label="I have an invite code" onPress={() => router.push('/claim')} last />
 
-        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>This night</Text>
-
         {/*
-         * B84. This row said `On this phone` and nothing else, on every phone,
-         * whether or not a single night had ever reached the server — and the
-         * count beside it could not tell a queue that is busy from one that is
-         * stuck, because the reason was never read. `syncStatus()` carries both
-         * and had no caller but a test.
+         * `This night` UNTIL B90, and the heading was wrong for everything
+         * under it. The queue figure was the whole app's, which B84 flagged
+         * here and `docs/storage-and-sync.md` recorded as open; the two backup
+         * rows below write every night on the handset. Moving `Where it lives`
+         * into Account — where the sign-in it depends on is — leaves this
+         * section saying what it actually does, and closes that flag.
          *
-         * ⚠ THE FIGURE IS THE WHOLE APP'S QUEUE, under a heading that says
-         * `This night`. Making it per-night needs a count `outbox_op` does not
-         * expose, and moving the row is a copy decision — Settings is drawn by
-         * no handoff cut, which is why `docs/screens.md` has no section for it.
-         * Open, and recorded in `docs/storage-and-sync.md`.
+         * ⚠ NEW COPY, one word, and no board draws this screen to argue with.
+         * Flagged in `docs/screens.md` with the other two.
          */}
-        <Fact label="Where it lives" value={backupLine(backup)} />
-        {trouble !== null && (
-          <Text style={[styles.note, { color: t.muted }]}>{trouble}</Text>
-        )}
+        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>This phone</Text>
 
         {/*
          * THE THIRD COPY, and deliberately above the Account section rather
@@ -304,15 +317,38 @@ export default function Settings() {
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Account</Text>
 
-        {!configured ? (
-          <Text style={[styles.note, { color: t.muted }]}>
-            No server is configured for this build, so nothing leaves the phone.
-          </Text>
-        ) : loading ? (
-          <Text style={[styles.note, { color: t.muted }]}>Checking…</Text>
-        ) : signedIn ? (
+        {/*
+         * THE ONE STATUS LINE — B90, and the reason it is the first row here
+         * rather than three rows in two sections.
+         *
+         * A host had to read `Saved on this phone · 12 waiting` under one
+         * heading and `Sign in to keep a copy on the server` under another and
+         * work out that those are the same sentence — and in the state that
+         * matters most, an empty queue on a phone with no account, the first
+         * one said `Backed up` outright. `accountLine` answers both axes at
+         * once or it answers neither.
+         *
+         * The `testID` is for `scripts/ui-audit.mjs`, which holds the row to
+         * being present and non-empty on every built screen it walks. A status
+         * row that renders nothing is the failure this replaces.
+         */}
+        <Fact label="Where it lives" value={line.where} testID="account-line" />
+        {line.detail !== null && (
+          <Text style={[styles.note, { color: line.wrong ? t.loss : t.muted }]}>{line.detail}</Text>
+        )}
+        {line.trouble !== null && (
+          <Text style={[styles.note, { color: t.muted }]}>{line.trouble}</Text>
+        )}
+
+        {!configured || loading ? null : signedIn ? (
           <>
-            <Fact label="Signed in as" value={session.user.email ?? 'unknown'} />
+            {/* The address, because the line above says where the book is and
+                this says whose it is. `who.email` is null only where a server
+                issued an account without one — `unknown` used to be drawn here
+                for every watcher in the app, which is B91. */}
+            {who.kind === 'person' && who.email !== null && (
+              <Fact label="Signed in as" value={who.email} />
+            )}
             <Action
               label={syncing ? 'Syncing…' : 'Sync now'}
               onPress={() => void drain()}
@@ -349,7 +385,11 @@ export default function Settings() {
               <Action label="Stop sharing" onPress={() => void unshare()} />
             )}
             {fetched !== null && <Text style={[styles.note, { color: t.muted }]}>{fetched}</Text>}
-            {report !== null && (
+            {/* Every verdict EXCEPT the one about this phone's sign-in: that
+                one is the status line at the top of this section now, and
+                drawing it twice puts the same sentence in two places with a
+                list of controls between them. B90. */}
+            {report !== null && !report.staleSignIn && (
               <Text style={[styles.note, { color: report.ok ? t.muted : t.loss }]}>
                 {report.headline}
                 {report.detail === '' ? '' : ` — ${report.detail}`}
@@ -364,14 +404,10 @@ export default function Settings() {
             />
           </>
         ) : (
-          <>
-            <Text style={[styles.note, { color: t.muted }]}>
-              Sign in to keep a copy on the server, so a night survives a lost phone and other
-              people can watch it. Nothing recorded so far is lost either way — it is queued and
-              sent the moment you do.
-            </Text>
-            <Action label="Sign in" onPress={() => router.push('/sign-in')} last />
-          </>
+          /* The invitation itself is `line.detail` above, where it is one
+             sentence about one thing rather than a note under a heading that
+             has already said something else. This is the way out of it. */
+          <Action label="Sign in" onPress={() => router.push('/sign-in')} last />
         )}
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The exits</Text>
@@ -456,7 +492,19 @@ function Build() {
   );
 }
 
-function Fact({ label, value, last = false }: { label: string; value: string; last?: boolean }) {
+function Fact({
+  label,
+  value,
+  last = false,
+  testID,
+}: {
+  label: string;
+  value: string;
+  last?: boolean;
+  /* Only the account line carries one, so the built screen can be asked
+     whether it rendered. See `scripts/ui-audit.mjs`. */
+  testID?: string;
+}) {
   const t = useTheme();
   return (
     <View
@@ -466,7 +514,7 @@ function Fact({ label, value, last = false }: { label: string; value: string; la
       ]}
     >
       <Text style={[styles.label, { color: t.text }]}>{label}</Text>
-      <Text style={[styles.value, { color: t.muted }]} numberOfLines={1}>
+      <Text style={[styles.value, { color: t.muted }]} numberOfLines={1} testID={testID}>
         {value}
       </Text>
     </View>

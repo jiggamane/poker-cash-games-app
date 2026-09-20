@@ -93,6 +93,19 @@ export function readKeyProbe(status: number): Omit<ConnectionReport, 'anonymousS
  * Reached only once the key is known good, so a refusal here can only be about
  * the token — which makes it the one diagnosis in the app that can honestly say
  * "sign in again" rather than "something is wrong".
+ *
+ * THIS ONE IS THE STATUS LINE, not a note — B90. Every other verdict here is
+ * about the build or the network and still renders where it always did; this
+ * one is about the phone's own account, so `accountLine()` takes it over the
+ * queue, which would otherwise go on counting down beside a session that will
+ * never be honoured again.
+ *
+ * ⚠ IT SAID *"Forget the sign-in below"* UNTIL 20 SEPTEMBER, and there has
+ * never been such a control — only `Sign out`, which is what clears it. The
+ * one diagnosis in the app that can say what to do was naming a row that does
+ * not exist. Whether a refused sign-in deserves a control of its own, worded
+ * for a session the server has already thrown away, is open in
+ * `docs/screens.md`.
  */
 export function readSessionProbe(status: number): Omit<ConnectionReport, 'anonymousSignIns'> {
   if (status === 200) {
@@ -103,7 +116,7 @@ export function readSessionProbe(status: number): Omit<ConnectionReport, 'anonym
     ok: false,
     headline: 'This sign-in is no longer accepted',
     detail:
-      'The key is fine, so the server is refusing the sign-in stored on this phone. That happens when the project’s keys were rotated or its database was reset under it. Forget the sign-in below and sign in again — nothing recorded on this phone is affected.',
+      'The key is fine, so the server is refusing the sign-in stored on this phone. That happens when the project’s keys were rotated or its database was reset under it. Sign out below and sign in again — nothing recorded on this phone is affected.',
     staleSignIn: true,
   };
 }

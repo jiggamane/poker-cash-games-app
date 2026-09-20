@@ -12,6 +12,7 @@ import {
 import { isSupabaseConfigured, supabase } from './supabase';
 import { SqliteOutboxStore } from './outboxStore';
 import { leavesThePhone } from './queueable';
+import { canSend } from './who';
 import {
   bookPatch,
   countDelete,
@@ -476,8 +477,16 @@ export async function drain(): Promise<FlushResult> {
 async function run(): Promise<FlushResult> {
   if (!isSupabaseConfigured) return { pushed: 0, remaining: await outbox.count() };
 
+  /*
+   * WHO, not whether — B91. This asked for a session and got one from a phone
+   * that had done nothing but open somebody's share link: `redeemShareToken`
+   * and `redeemInvite` both sign in anonymously first, and an anonymous user
+   * is refused by every row policy that guards a book. The queue halts at its
+   * first failure on purpose, so one push under that session parks the whole
+   * book behind a refusal it can never get past.
+   */
   const { data } = await supabase.auth.getSession();
-  if (data.session === null) return { pushed: 0, remaining: await outbox.count() };
+  if (!canSend(data.session)) return { pushed: 0, remaining: await outbox.count() };
 
   books.clear(); // re-resolved per drain, in case the account changed
 

@@ -30,7 +30,13 @@ import { useSession } from '../src/lib/useSession';
  * the first. This screen only reports what happened.
  */
 export default function AuthCallback() {
-  const { session, loading } = useSession();
+  const { who, loading } = useSession();
+  /*
+   * B91. This screen asked `session !== null` and a watcher always has one:
+   * somebody who had opened a share link and then tapped a dead sign-in link
+   * was told *Signed in* and sent back to the club still signed out.
+   */
+  const signedIn = who.kind === 'person';
   const url = Linking.useURL();
 
   /*
@@ -48,8 +54,8 @@ export default function AuthCallback() {
    * mounts — so this waits for it rather than deciding on the first render.
    */
   useEffect(() => {
-    if (session !== null) router.replace('/');
-  }, [session]);
+    if (signedIn) router.replace('/');
+  }, [signedIn]);
 
   /*
    * Long enough for the exchange, short enough to not be a wait. Below this,
@@ -58,7 +64,7 @@ export default function AuthCallback() {
    */
   const settled = useSettled(loading);
 
-  if (session !== null) return <Landing title="Signed in" line="Taking you back to the club." />;
+  if (signedIn) return <Landing title="Signed in" line="Taking you back to the club." />;
 
   if (refusal !== null || settled) {
     return (

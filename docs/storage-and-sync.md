@@ -237,6 +237,15 @@ when the app is next opened, and when somebody signs in.
 
 ### Signed out
 
+⚠ **And a watch link is signed out** — B91. `redeemShareToken` and
+`redeemInvite` both sign in anonymously first, so a watcher's phone holds a real
+session with no account behind it, and both gates here read `session !== null`
+as permission to send. That phone would have pushed the local book under an
+identity every row policy refuses, and **the queue halts at its first failure**,
+so the first refusal parks the whole book behind something it can never get
+past, with the pump retrying it on a backoff. The predicate is `canSend()` in
+`who.ts` now, and it is the same one the screens ask.
+
 The queue still fills. Nothing is dropped and nothing is gated: play the whole
 night with no account, sign in on Tuesday, and the night goes up. Since
 18 September that is true of the sign-in itself and not only of the next write:
@@ -274,18 +283,32 @@ queue depth sat beside it, which was honest as far as it went, and the ERROR was
 nowhere: `syncStatus()` had returned `{ waiting, lastError }` since the
 operation log landed and its only caller in the repository was a test, so a
 queue stuck behind a refused row looked exactly like one that was merely busy.
-The three states are `backupLine()` and `backupTrouble()` in
-`apps/mobile/src/lib/backupLine.ts`, pure and held by `backupLine.test.ts` —
+The three states were `backupLine()` and `backupTrouble()`, pure and tested —
 including the one that matters most, that **"not asked yet" must never read as
 "Backed up"**.
 
-⚠ **Two things about that line are open.** The figure is the whole app's queue
-drawn under a heading that says *This night* — a per-night count is not
-something `outbox_op` exposes, and moving the row is a copy decision, which
-Settings has never had a cut to make it. And a stale `last_error` is hidden
-rather than cleared: `remove()` deletes the operation the error belonged to and
-nothing clears the column, so `backupTrouble()` returns null whenever the queue
-is empty. Clearing it properly belongs in the store.
+**They are `accountLine()` now — 20 September, B90 — and the rule above is why.**
+Reading the queue alone, `Backed up` fell out of `waiting === 0`, and that is
+the state of a phone with NO ACCOUNT the moment it is installed: the seeded
+night is kept out of the queue by `queueable.ts`, so the count is zero, nothing
+has ever been sent and nothing can be. Same fault as B84, one axis over. The
+queue depth and the sign-in are one question — is there a second copy of this
+book — and `apps/mobile/src/lib/accountLine.ts` answers it once, from every
+fact at once, held by `accountLine.test.ts` which carries B84's six cases over
+unchanged. **`Backed up` is now unreachable without an account.**
+
+**The row moved with it, which closes the first of the two flags that were open
+here.** It sat under a heading that said *This night* while counting the whole
+app's queue; it is the first row of the Account section now, beside the sign-in
+it depends on, and the section it left is headed *This phone* — which is what
+the two backup controls remaining in it actually write.
+
+⚠ **The other flag still stands.** A stale `last_error` is hidden rather than
+cleared: `remove()` deletes the operation the error belonged to and nothing
+clears the column, so the trouble line is suppressed whenever the queue is
+empty — and, since B90, whenever nobody can send, because the last account's
+complaint under a sentence about having no account is a second and wrong answer.
+Clearing it properly belongs in the store.
 
 ### The third copy
 
