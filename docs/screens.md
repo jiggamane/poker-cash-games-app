@@ -291,6 +291,40 @@ own warning says of its frames.
 The extractor still points at the old board directory and reads frames at
 402 × 874; pointing it at the newer cuts is a job of its own.
 
+## Counting a stack, and what a cash-out does to the count of it
+
+B85, 20 September, off five photographs of an evening that could not be closed.
+Count up read `✓ Balanced`, *Next* read **Not yet**, and the two screens went on
+saying that to each other. `docs/bugs.md` has the whole of it; what belongs here
+is what it means for these screens.
+
+**A cash-out closes the seat, and the count of that stack is spent with it.**
+The rule was already answered in `docs/design-handoff-request.md` 3d — somebody
+who cashes out and buys back in ends the night holding the cash-out PLUS
+whatever is in front of them at the end — and it is `seatedIn()` in `ledger.ts`
+now, one implementation that `reconcile`, `endedWith` and `standingsOf` all
+read. `balanceCheck` still takes the answer as an argument on purpose: `/watch`
+has no stacks of its own and passes an empty one.
+
+**The count sheet opens on the count it is replacing.** `count-up.tsx` has
+promised since the counted slab kept its chevron that tapping a row *"reopens
+the same keypad with the same prefill and overwrites it"*. It did not — it
+opened at zero every time, under a headline already quoting the loss that zero
+implied, one *Save* from writing a ₾0 stack over a ₾4,700 one. It is a
+SUGGESTION and not typed text (B20), so the first key still replaces the whole
+figure and a genuine re-count is as fast as it was. A cash-out still opens at
+zero: it is not replacing a figure, and the stack in front of somebody leaving
+is the one number nobody should be nudged towards.
+
+**What holds it:** `counted-then-cashed-out.test.ts` plays that night entry by
+entry, settles it, and holds every player's figure to what the phone drew;
+`seating.test.ts` walks six shapes of night — counted then cashed out, cashed
+out and back in, a busted stack counted at zero, nobody counted at all, a voided
+cash-out, a corrected one — and asserts of each that `balanceCheck().left` is
+exactly `−reconcile().difference`, that the night settles, and that the verifier
+finds nothing. That identity is what `balance.ts` has claimed about itself in
+prose since it was written, and what nothing asked until it was false.
+
 ## E2's block, and the two places it does not do as it is told
 
 Both are deviations from `design/handoff-count-up-header/`, the newest cut on

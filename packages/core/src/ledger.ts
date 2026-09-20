@@ -181,6 +181,70 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
 }
 
 /**
+ * WHO STILL HAS CHIPS IN FRONT OF THEM, off the entries and nothing else.
+ *
+ * Their last buy-in came after their last cash-out, by the ledger's own `seq`
+ * rather than by a clock: somebody who cashed out and bought back in is seated,
+ * and somebody who bought in and then cashed out is not.
+ *
+ * ⚠ THIS IS THE ONE DEFINITION NOW, AND IT USED TO BE THREE. The app's
+ * `standingsOf` had it for the row it draws, `balanceCheck` took the answer as
+ * an argument, and `reconcile` and `endedWith` did not ask at all — which is
+ * how a stack could be counted twice. See the note on `reconcile`.
+ *
+ * ⚠ A VOIDED ENTRY IS STILL IN `ledger.entries` — it is flagged, not dropped,
+ * so that a screen can draw the struck-through row. Skipping it here is what
+ * makes a voided cash-out seat somebody again, which is what voiding one means:
+ * the host said that cash-out never happened, so the player never left and the
+ * stack in front of them is the table's again. The first cut of this function
+ * read past the flag and dropped that player's count instead — found by walking
+ * the flow rather than by any test, which is why the walk is now `seating.test.ts`.
+ */
+export function seatedIn(ledger: ResolvedLedger): Set<PlayerId> {
+  const lastBuy = new Map<PlayerId, number>();
+  const lastOut = new Map<PlayerId, number>();
+
+  for (const e of ledger.entries) {
+    if (e.voided) continue;
+    if (e.playerId === undefined || e.playerId === null) continue;
+    if (e.type === 'buyin' || e.type === 'rebuy') lastBuy.set(e.playerId, e.seq);
+    else if (e.type === 'cashout') lastOut.set(e.playerId, e.seq);
+  }
+
+  const seated = new Set<PlayerId>();
+  for (const [id, buy] of lastBuy) {
+    if (buy > (lastOut.get(id) ?? -1)) seated.add(id);
+  }
+  return seated;
+}
+
+/**
+ * The counts that are money ON THE TABLE — a count for somebody who has since
+ * cashed out is not one, and adding it counts their stack twice.
+ *
+ * ⚠ B85, AND IT ENDED A REAL NIGHT. The host counted Andro's ₾4,100 while he
+ * was still seated, he cashed out for that same ₾4,100 eight minutes later, and
+ * the count stayed behind him in the map. `balanceCheck` knew to drop it — its
+ * own comment says why, word for word — and this did not, so Count up read
+ * `Balanced ₾31,000 in play` while `settle()` refused the night for being
+ * ₾4,100 over. `/deductions` caught the refusal and drew *Not yet*, whose copy
+ * says to go back and count every stack, on a night where every stack was
+ * counted. Back, forward, back: the loop `deductions.tsx` was already written
+ * to avoid, arrived at from the other side.
+ *
+ * The stale count is NEVER rewritten — `finalCounts` is what the host typed and
+ * the ledger is append-only. It is read past, here, by everything that adds
+ * counts up.
+ */
+function chipsCounted(
+  ledger: ResolvedLedger,
+  finalCounts: ReadonlyMap<PlayerId, Money>,
+): Money {
+  const seated = seatedIn(ledger);
+  return sum([...finalCounts].filter(([id]) => seated.has(id)).map(([, amount]) => amount));
+}
+
+/**
  * Does the host's count match the money that should still be on the table?
  *
  * Chips on the table are everything bought in, less everything cashed out.
@@ -188,13 +252,19 @@ export function resolveLedger(entries: readonly LedgerEntry[]): ResolvedLedger {
  *
  * The design blocks the close flow until difference is exactly zero, and it is
  * an exact integer comparison — chip counts have no rounding to argue about.
+ *
+ * ONLY A SEATED PLAYER'S COUNT IS CHIPS ON THE TABLE — see `chipsCounted`. This
+ * is the same rule `balanceCheck` applies to the same map, which is what makes
+ * `balanceCheck().left === −reconcile().difference` true of every night rather
+ * than of most of them. `balance.ts` has claimed that identity in prose since it
+ * was written; until B85 it was not true where it mattered.
  */
 export function reconcile(
   ledger: ResolvedLedger,
   finalCounts: ReadonlyMap<PlayerId, Money>,
 ): Reconciliation {
   const chipsOnTable = subtract(ledger.totalBoughtIn, ledger.totalCashedOut);
-  const counted = totalOf(finalCounts);
+  const counted = chipsCounted(ledger, finalCounts);
   const difference = subtract(counted, chipsOnTable);
   return {
     chipsOnTable,
@@ -207,15 +277,22 @@ export function reconcile(
 /**
  * What each player ended the night holding: chips they cashed out earlier plus
  * whatever is still in front of them.
+ *
+ * THE COUNT ONLY COUNTS IF THEY ARE STILL SEATED — B85, the same rule
+ * `reconcile` applies and for the same reason. A player who was counted and
+ * then cashed out has one stack, not two: the cash-out is where it went, and
+ * the count is a note about the stack it went from. Adding both gave Andro
+ * ₾8,200 off a ₾4,100 stack and the gross results stopped summing to zero.
  */
 export function endedWith(
   ledger: ResolvedLedger,
   playerId: PlayerId,
   finalCounts: ReadonlyMap<PlayerId, Money>,
 ): Money {
+  const stillThere = seatedIn(ledger).has(playerId);
   return sum([
     ledger.cashedOutByPlayer.get(playerId) ?? ZERO,
-    finalCounts.get(playerId) ?? ZERO,
+    stillThere ? (finalCounts.get(playerId) ?? ZERO) : ZERO,
   ]);
 }
 

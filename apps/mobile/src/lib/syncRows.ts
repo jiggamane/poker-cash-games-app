@@ -222,6 +222,24 @@ export const countRow = (p: CountPayload): RowWrite => ({
 });
 
 /**
+ * A count that has been cashed out — B85.
+ *
+ * The stack it was a count OF has left the table, so the row is not a figure
+ * about tonight any more. Deleting it is not editing the record: the ledger's
+ * cash-out is the record of where those chips went, and this row was only ever
+ * the host's note about the stack while it sat there.
+ *
+ * ⚠ IT IS NOT AN UPSERT OF ZERO, and the difference matters at the table: zero
+ * is a REAL count — the busted player whose stack is gone — and writing one
+ * here would tell every other screen that a player who has left was counted
+ * with nothing in front of them.
+ */
+export const countDelete = (p: { sessionId: string; playerId: PlayerId }): RowDelete => ({
+  table: 'final_count',
+  match: { session_id: p.sessionId, player_id: p.playerId },
+});
+
+/**
  * The frozen result.
  *
  * A shortfall must carry somebody's name and the moment they put it there —

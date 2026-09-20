@@ -163,6 +163,7 @@ describe('every operation says where it goes', () => {
 describe('the queue sends every kind it knows', () => {
   const KINDS = [
     'book.upsert',
+    'count.delete',
     'count.upsert',
     'entry.append',
     'payment.set',

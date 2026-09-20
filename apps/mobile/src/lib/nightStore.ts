@@ -7,6 +7,7 @@ import {
   money,
   nightScore,
   resolveLedger,
+  seatedIn,
   settle,
   settledRows,
   thaw,
@@ -30,6 +31,7 @@ import {
   drain,
   queueClose,
   queueCount,
+  queueCountCleared,
   queuePayment,
   queuePlayer,
   queueRule,
@@ -1060,8 +1062,58 @@ export async function rebuy(playerId: PlayerId, amount: Money): Promise<string> 
   return entry.id;
 }
 
+/**
+ * They have taken their chips and the seat is closed.
+ *
+ * AND THE COUNT OF THAT STACK IS SPENT — B85, and this is where the night of
+ * 20 September went wrong. The host counted Andro at ₾4,100 while he sat there,
+ * he cashed out for the same ₾4,100 eight minutes later, and the count stayed
+ * behind him: `reconcile` added it to the chips on the table and the close gate
+ * refused a night that was exactly right. `ledger.ts` now reads past a count
+ * like that wherever it adds counts up, so this is belt as well as braces —
+ * but it is the braces that matter for the case the engine cannot see. A
+ * player who cashes out and BUYS BACK IN is seated again, and a stale count
+ * from the sitting before would be taken for the stack now in front of them,
+ * on a screen that would say every stack was counted.
+ *
+ * THE LEDGER IS UNTOUCHED. The cash-out entry is the record of where those
+ * chips went; the count was the host's note about the stack while it sat on the
+ * table, and that note is now about nothing. Nothing is rewritten and no entry
+ * is removed — the append-only rule is about the LEDGER, and `final_count` is
+ * not in it.
+ */
 export async function cashOut(playerId: PlayerId, amount: Money): Promise<void> {
   await append({ type: 'cashout', playerId, amount });
+  await clearFinalCount(playerId);
+}
+
+/**
+ * Forget the count of a stack that has left the table. B85.
+ *
+ * Silent when there is nothing to forget, because that is the common case: most
+ * players cash out without ever having been counted, and a queue op per
+ * cash-out would be noise on every night the bug cannot happen on.
+ */
+async function clearFinalCount(playerId: PlayerId): Promise<void> {
+  if (night === null || !night.finalCounts.has(playerId)) return;
+
+  const db = await getDb();
+  await db.runAsync(
+    'DELETE FROM night_count WHERE session_id = ? AND player_id = ?',
+    night.sessionId,
+    playerId,
+  );
+  await queueCountCleared(night.sessionId, playerId);
+
+  const finalCounts = new Map(night.finalCounts);
+  finalCounts.delete(playerId);
+  night = { ...night, finalCounts };
+  emit();
+
+  /* The same reason `setFinalCount` does it: an acknowledgement is about a
+     total that no longer exists the moment the counted total moves. */
+  if (night.acknowledgement !== undefined) await setAcknowledgement(null);
+  push();
 }
 
 /**
@@ -2481,24 +2533,31 @@ export function cashedOutAt(night: Night, playerId: PlayerId): string | undefine
 }
 
 export function standingsOf(night: Night, ledger: ResolvedLedger): Standing[] {
+  /*
+   * WHO IS AT THE TABLE IS THE ENGINE'S ANSWER NOW — B85. This function had its
+   * own `lastBuy > lastOut`, `balanceCheck` took the answer as an argument, and
+   * `reconcile` did not ask at all; the three drifted and a counted stack was
+   * added twice. `seatedIn` is the one implementation, and passing its answer
+   * into `balanceCheck` is what keeps the block and the close gate reading the
+   * same night.
+   */
+  const seated = seatedIn(ledger);
+
   return night.players
     .map((p) => {
       const mine = ledger.entries.filter((e) => !e.voided && e.playerId === p.id);
       const buys = mine.filter((e) => e.type === 'buyin' || e.type === 'rebuy');
       const outs = mine.filter((e) => e.type === 'cashout');
 
-      const lastBuy = buys.length === 0 ? -1 : Math.max(...buys.map((e) => e.seq));
-      const lastOut = outs.length === 0 ? -1 : Math.max(...outs.map((e) => e.seq));
-
       return {
         id: p.id,
         name: p.name,
         boughtIn: (ledger.boughtInByPlayer.get(p.id) ?? 0) as Money,
         cashedOut: (ledger.cashedOutByPlayer.get(p.id) ?? 0) as Money,
-        atTable: lastBuy > lastOut,
+        atTable: seated.has(p.id),
         played: buys.length > 0,
         rebuys: Math.max(0, buys.length - 1),
-        returned: outs.length > 0 && lastBuy > lastOut,
+        returned: outs.length > 0 && seated.has(p.id),
       };
     })
     .filter((s) => s.played || night.players.find((p) => p.id === s.id)?.atTable === true);

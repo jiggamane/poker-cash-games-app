@@ -17,6 +17,7 @@ import { money } from '@poker-club/core';
 import type { LedgerEntry, MoneyRule } from '@poker-club/core';
 import {
   bookPatch,
+  countDelete,
   countRow,
   entryRow,
   type EntryPayload,
@@ -263,6 +264,18 @@ describe('the final count row', () => {
     const w = countRow({ sessionId: SESSION, playerId: PETR, amount: 1200 });
     expect(keys(w.row)).toEqual(['counted_chips', 'player_id', 'session_id']);
     expect(w.onConflict).toBe('session_id,player_id');
+  });
+
+  /*
+   * B85. A count whose stack has been cashed out is removed, not zeroed: zero
+   * is the busted player's real count, and writing one would say somebody who
+   * has left the table was counted with nothing in front of them.
+   */
+  it('is deleted on the same pair when the stack has been cashed out', () => {
+    const d = countDelete({ sessionId: SESSION, playerId: PETR });
+    expect(d.table).toBe('final_count');
+    expect(keys(d.match)).toEqual(['player_id', 'session_id']);
+    expect(d.match).not.toHaveProperty('counted_chips');
   });
 });
 

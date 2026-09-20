@@ -169,14 +169,54 @@ describe('resolveLedger()', () => {
 describe('reconcile()', () => {
   it('is happy when the count matches the table', () => {
     reset();
-    // 2000 bought in, 200 cashed out -> 1800 should be in front of people
-    const l = resolveLedger([buyin(PETR, 1000), buyin(DANA, 1000), cashout(DANA, 200)]);
+    // 2000 bought in, 200 cashed out -> 1800 should be in front of people.
+    // Dana took her 200 and sat back down, so her 300 is chips on the table.
+    const l = resolveLedger([
+      buyin(PETR, 1000),
+      buyin(DANA, 1000),
+      cashout(DANA, 200),
+      rebuy(DANA, 0),
+    ]);
     const r = reconcile(l, counts([[PETR, 1500], [DANA, 300]]));
 
     expect(r.chipsOnTable).toBe(1800);
     expect(r.counted).toBe(1800);
     expect(r.difference).toBe(0);
     expect(r.reconciled).toBe(true);
+  });
+
+  /*
+   * B85 — THE NIGHT THAT COULD NOT BE CLOSED, and the reason this describe
+   * block's first case had to grow a rebuy to keep meaning what it meant.
+   *
+   * A cash-out closes the seat: `atTable` is `lastBuy > lastOut` everywhere in
+   * this app, the player card says `stack counted · seat closed`, and the
+   * handoff's own Q&A (3d) answers it — somebody who cashes out and buys back
+   * in ends holding the cash-out PLUS what is in front of them at the end.
+   * So a count sitting on a player who has since cashed out is a note about a
+   * stack that has already left, and adding it counts that stack twice.
+   */
+  it('reads past a count left on somebody who has since cashed out', () => {
+    reset();
+    // The host counts Dana at 300, then Dana cashes out that same 300.
+    const l = resolveLedger([buyin(PETR, 1000), buyin(DANA, 1000), cashout(DANA, 300)]);
+    const stale = counts([[PETR, 1700], [DANA, 300]]);
+
+    expect(reconcile(l, stale).counted).toBe(1700);
+    expect(reconcile(l, stale).chipsOnTable).toBe(1700);
+    expect(reconcile(l, stale).reconciled).toBe(true);
+  });
+
+  it('and takes the count back the moment they sit down again', () => {
+    reset();
+    const l = resolveLedger([
+      buyin(PETR, 1000),
+      buyin(DANA, 1000),
+      cashout(DANA, 300),
+      rebuy(DANA, 500),
+    ]);
+    // 2,500 in, 300 off: 2,200 on the table, and Dana's stack is a stack again.
+    expect(reconcile(l, counts([[PETR, 1700], [DANA, 500]])).reconciled).toBe(true);
   });
 
   it('reports the mismatch until it is zero', () => {
@@ -208,9 +248,12 @@ describe('reconcile()', () => {
 });
 
 describe('endedWith()', () => {
+  /* The handoff's Q&A 3d, word for word: cashed out and later bought back in
+     ends the night holding what they cashed out PLUS what is in front of them
+     at the end. Both halves are here because the second one is conditional. */
   it('adds chips still held to anything already cashed out', () => {
     reset();
-    const l = resolveLedger([buyin(PETR, 500), cashout(PETR, 200)]);
+    const l = resolveLedger([buyin(PETR, 500), cashout(PETR, 200), rebuy(PETR, 300)]);
     expect(endedWith(l, PETR, counts([[PETR, 400]]))).toBe(600);
   });
 
@@ -218,6 +261,13 @@ describe('endedWith()', () => {
     reset();
     const l = resolveLedger([buyin(DANA, 500), cashout(DANA, 800)]);
     expect(endedWith(l, DANA, new Map())).toBe(800);
+  });
+
+  /* B85. The stale count is not rewritten — it is read past. */
+  it('is still just the cash-out when a count was left behind on them', () => {
+    reset();
+    const l = resolveLedger([buyin(DANA, 500), cashout(DANA, 800)]);
+    expect(endedWith(l, DANA, counts([[DANA, 800]]))).toBe(800);
   });
 });
 

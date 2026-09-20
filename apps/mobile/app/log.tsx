@@ -80,13 +80,36 @@ export default function Log() {
       : resolved.amount;
 
   const counting = kind === 'cashout' || kind === 'count';
+
+  /*
+   * A RE-COUNT OPENS ON THE COUNT IT IS REPLACING — B85, photographed at 03:56
+   * on 20 September: Gega's sheet opened at ₾0 over `Gega's night −₾6,000`
+   * while Count up, one screen behind it, had him counted at ₾4,700.
+   *
+   * `docs/screens.md` has said since the slab kept its chevron that tapping a
+   * counted row *"reopens the same keypad with the same prefill and overwrites
+   * it"*. It did not: counting opened at zero however many times the stack had
+   * been counted, so a host checking a figure was one *Save* away from writing
+   * a ₾0 stack over a ₾4,700 one — and on a screen whose headline was already
+   * quoting them the loss that zero implied.
+   *
+   * IT IS A SUGGESTION, NOT TEXT THEY TYPED. `useTypedAmount` keeps that
+   * distinction (B20): the first key replaces the whole figure, so re-counting
+   * from scratch is exactly as fast as it was.
+   *
+   * A CASH-OUT STILL OPENS AT ZERO. It writes a different kind of row, it is
+   * not replacing a figure, and the stack in front of somebody leaving is the
+   * one number nobody should be nudged towards.
+   */
+  const counted = kind === 'count' && player !== undefined ? night?.finalCounts.get(player) : undefined;
+
   /*
    * Whether the figure on screen was TYPED or merely SUGGESTED lives in
    * `src/components/typedAmount.ts` — it is the keypad's own rule and it now
    * reaches every screen that has one. It used to be these two lines and
    * nothing else in the app had them, which is B20.
    */
-  const field = useTypedAmount(counting ? 0 : suggested);
+  const field = useTypedAmount(counting ? (counted ?? 0) : suggested);
   const [busy, setBusy] = useState(false);
 
   if (night === null || ledger === null) return <Sheet title="Tonight">{null}</Sheet>;

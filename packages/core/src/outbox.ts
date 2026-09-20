@@ -41,6 +41,13 @@ export type OpKind =
   | 'entry.append'
   | 'rule.upsert'
   | 'count.upsert'
+  /**
+   * A count whose stack has since been cashed out — B85. It carries no amount:
+   * the row goes, because zero is a real count (the busted player) and writing
+   * one would say a player who has left was counted with nothing in front of
+   * them. Shares the upsert's op id, so a delete supersedes a pending write.
+   */
+  | 'count.delete'
   /** The frozen settlement, and the session going to settled. */
   | 'session.close'
   /**

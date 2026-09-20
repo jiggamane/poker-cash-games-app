@@ -27,6 +27,28 @@ import { UNACCOUNTED_ID, type PlayerId } from './types';
  * the wrong amount.
  */
 
+/**
+ * WHO IS STILL HOLDING CHIPS, read off the entries by this file's own hand.
+ *
+ * Their last buy-in after their last cash-out, by `seq`, skipping anything
+ * voided — a cash-out the host took back never happened, so it never moved
+ * them off the table. It is the same rule `ledger.ts` exports as `seatedIn`
+ * and it is written twice ON PURPOSE: see the note at `recon.counted`.
+ */
+function seatedFrom(ledger: ReturnType<typeof resolveLedger>): Set<PlayerId> {
+  const lastBuy = new Map<PlayerId, number>();
+  const lastOut = new Map<PlayerId, number>();
+  for (const e of ledger.entries) {
+    if (e.voided) continue;
+    if (!e.playerId) continue;
+    if (e.type === 'buyin' || e.type === 'rebuy') lastBuy.set(e.playerId, e.seq);
+    else if (e.type === 'cashout') lastOut.set(e.playerId, e.seq);
+  }
+  const seated = new Set<PlayerId>();
+  for (const [id, buy] of lastBuy) if (buy > (lastOut.get(id) ?? -1)) seated.add(id);
+  return seated;
+}
+
 /** One broken identity, in the language of the thing that broke. */
 export interface Finding {
   /** Stable, greppable, and safe to count by. */
@@ -204,12 +226,26 @@ function checkReconciliation(
     `Chips on the table reads ${r.chipsOnTable}; buy-ins less cash-outs is ${onTable}.`,
   );
 
+  /*
+   * ONLY A SEATED PLAYER'S COUNT IS CHIPS ON THE TABLE — B85, and the identity
+   * this file is here to state independently: a stack that has been cashed out
+   * has left, so a count still sitting on that player is a note about money the
+   * cash-out already accounts for. Adding both counts one stack twice.
+   *
+   * ⚠ SEATED IS RE-DERIVED HERE, and the duplication is the point. `ledger.ts`
+   * exports `seatedIn` and `reconcile` uses it; this file's whole value is that
+   * it does not ask the helper that produced the number whether the number is
+   * right. If the two loops ever disagree, a night goes red — which is the
+   * alarm working, not a bug in the alarm.
+   */
   let counted = 0;
-  for (const amount of input.finalCounts.values()) counted += amount;
+  for (const [playerId, amount] of input.finalCounts) {
+    if (seatedFrom(ledger).has(playerId)) counted += amount;
+  }
   check(
     r.counted === counted,
     'recon.counted',
-    `The count reads ${r.counted}; the counts add up to ${counted}.`,
+    `The count reads ${r.counted}; the counts of seated players add up to ${counted}.`,
   );
 
   check(
@@ -295,8 +331,12 @@ function checkPlayers(
         p.playerId,
       );
 
+      /* Cash-outs always; the count only while they are still holding it. The
+         handoff's Q&A 3d is the sentence — cashed out and bought back in ends
+         the night holding the cash-out PLUS what is in front of them. B85. */
       const endedWith =
-        (ledger.cashedOutByPlayer.get(p.playerId) ?? 0) + (input.finalCounts.get(p.playerId) ?? 0);
+        (ledger.cashedOutByPlayer.get(p.playerId) ?? 0) +
+        (seatedFrom(ledger).has(p.playerId) ? (input.finalCounts.get(p.playerId) ?? 0) : 0);
       check(
         p.endedWith === endedWith,
         'player.endedWith',
