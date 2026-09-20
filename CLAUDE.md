@@ -81,6 +81,17 @@ If you do hit a conflict in a screen, `docs/bugs.md` is the thing to read before
 resolving it: an entry there tells you that the side you are about to discard
 was a deliberate fix for a named fault, which the diff alone will not.
 
+## Keep replies short
+
+Report in a few lines: what changed, what the checks said, what is left open.
+The reasoning belongs in the code comments, the bug log and `docs/screens.md` —
+those are read later, by somebody who needs them. A chat message is read once.
+
+Long is the default and it has to be resisted deliberately: a paragraph per
+command turns a session into something nobody finishes reading, which is how a
+real flag — an invented string, a screen not yet seen on a phone — gets missed
+in the middle of it. Say those plainly and stop.
+
 ## Checks
 
 ```bash
