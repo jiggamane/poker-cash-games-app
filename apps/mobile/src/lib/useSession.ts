@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { isSupabaseConfigured, supabase } from './supabase';
+import { whoIs, type Who } from './who';
 
 export interface AuthState {
   session: Session | null;
   /** True until the stored session has been read back from disk. */
   loading: boolean;
   configured: boolean;
+  /**
+   * WHO, not whether — B89. Read this rather than testing `session` against
+   * null: a watcher's link and a claimed seat both leave a real session behind
+   * with no account in it, and `session !== null` calls that signed in. `who`
+   * is kept here beside the session so the two cannot be read apart.
+   */
+  who: Who;
 }
 
 /**
@@ -44,5 +52,5 @@ export function useSession(): AuthState {
     };
   }, []);
 
-  return { session, loading, configured: isSupabaseConfigured };
+  return { session, loading, configured: isSupabaseConfigured, who: whoIs(session) };
 }

@@ -1455,6 +1455,41 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
          * because a build stamp that cannot name a build is worse than none —
          * it answers the question wrongly instead of not answering it.
          */
+        /*
+         * WHERE THE BOOK LIVES, at the top of Settings' Account section — B90.
+         *
+         * One row answers a question that used to be spread over three, and
+         * the reason it is checked HERE rather than only in
+         * `accountLine.test.ts` is that the unit test proves the string and
+         * says nothing about whether the row reached a phone. The states this
+         * screen can be in on a built, signed-out export are few — this is the
+         * not-configured one — but "the status row rendered something" is the
+         * property that has to survive every edit to the section around it.
+         *
+         * `unknown` is a finding for the same reason it is on the build stamp
+         * below: a status line that cannot name the state is worse than none,
+         * and `Signed in as unknown` is exactly the string B89 was about.
+         */
+        if (route === '/settings') {
+          const account = await page.evaluate(() => {
+            const el = document.querySelector('[data-testid="account-line"]');
+            return el === null ? null : (el.textContent || '').trim();
+          });
+          if (account === null || account === '') {
+            findings.push({
+              check: 'account-line-missing',
+              detail: 'Settings does not say where the book lives — see src/lib/accountLine.ts',
+              where: route,
+            });
+          } else if (/unknown/i.test(account)) {
+            findings.push({
+              check: 'account-line-unknown',
+              detail: `Settings says “${account}” about an account it cannot name — B89`,
+              where: route,
+            });
+          }
+        }
+
         if (route === '/settings') {
           const stamp = await page.evaluate(() => {
             const el = document.querySelector('[data-testid="build-stamp"]');

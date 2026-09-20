@@ -139,6 +139,128 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B90 — Settings said "Backed up" to a phone that had never signed in
+
+```
+Screen      /settings — `Where it lives` under *This night*, `Signed in as`
+            and the signed-out invitation under *Account*, and the
+            `Connection` verdict that landed between them
+Seen        a fresh install, signed out, reads **Backed up**. Nothing has ever
+            left that phone and nothing can: the queue is empty because the
+            seeded night is kept out of it by `queueable.ts`, and there is no
+            account to send it under. The most reassuring string in the app is
+            reachable by having nothing to be reassured about
+Expected    one answer to one question — is there a second copy of this book,
+            and if not, why not — rather than three rows in two sections that
+            cannot see each other
+Found       20 Sept, by the owner, asking what the sign-in statuses on this
+            screen mean. The answer needed four paragraphs, which was the
+            finding
+Locked by   npm run check — accountLine.test.ts carries B84's six cases over
+            intact and adds the axis they could not see: *never says Backed up
+            to a phone that cannot send*, over every queue depth and both
+            kinds of phone that cannot. Verified against the fault: reinstate
+            the old rule (`Backed up` whenever the queue is empty) and it
+            reports the signed-out and watcher cases by name
+            npm run check:ui — ui-audit.mjs holds `/settings` to rendering a
+            non-empty account line that does not say `unknown`, the same shape
+            as the build-stamp check beside it
+Status      fixed in this commit — NOT yet seen on a phone
+```
+
+**Two axes, asked separately, drawn at once.** `backupLine()` read the queue
+and knew nothing about auth. The `Account` section read auth and knew nothing
+about the queue. `checkConnection()` read the server, only when tapped, and its
+answer arrived as a third note below a list of controls. Every one of them was
+correct about its own axis, and a host had to join them up: *Saved on this phone
+· 12 waiting* under one heading and *Sign in to keep a copy on the server* under
+another are the same sentence, and nothing said so.
+
+**Where it went wrong rather than merely unclear is the empty queue.** `waiting
+=== 0` meant `Backed up` for every phone, and it is the state a phone with no
+account is in the moment it is installed — B84's own rule, *"not asked yet must
+never read as Backed up"*, one axis over from where it was written.
+
+`accountLine.ts` is the merge: every fact in, one line out, and the order of the
+questions is the point — a server at all, then who is holding the phone, then
+whether the server still accepts them, then how much is queued. Each one makes
+the ones after it meaningless, and the screen used to ask them in the opposite
+order.
+
+⚠ **THREE STRINGS ARE NEW AND NO BOARD DREW THEM.** Settings is governed by no
+handoff cut, which `docs/screens.md` has always recorded. The watcher sentence
+(B89 had no state for it, so there was no copy either), `Saved on this phone`
+without a count, and the section heading `This phone` — one word, changed
+because moving the status row out left `This night` sitting over two controls
+that write every night on the handset. All three are flagged in
+`docs/screens.md`.
+
+**It closes an open item rather than adding one.** The queue figure was the
+whole app's under a heading that said *This night*: flagged in the screen, in
+B84, and in `docs/storage-and-sync.md` as waiting on a copy decision nobody had
+a cut to make. Moving the row to the section about the account, where the
+sign-in it depends on already lived, is that decision.
+
+⚠ **`last_error` still outlives the account that earned it.** The line now hides
+it when nobody can send, rather than drawing the last account's complaint under
+a sentence explaining that nothing is being sent — but `remove()` still does not
+clear the column, which is the same open item B84 left. Clearing it properly
+belongs in the store.
+
+### B89 — a watch link read as an account, and the queue believed it
+
+```
+Screen      /settings' Account section, /invite, /auth-callback — and, where
+            it costs something rather than merely reading wrong, `drain()` in
+            sync.ts and the retry pump
+Seen        a phone that has opened a share link shows **Signed in as
+            unknown**, with Sync now, Fetch my nights and Share this night
+            under it. None of them belong to that phone: it has no account, it
+            belongs to no book, and the row policies refuse it every write
+Expected    a watcher is not signed in. The app has always said so out loud —
+            /sign-in's own first line is *"Only the host signs in. Players are
+            names you type, and watchers open a link"*
+Found       20 Sept, reading the screen with the owner
+Locked by   npm run check — who.test.ts pins the three answers, and then holds
+            the five callers to not asking the question the wrong way: the
+            comparison is banned from their source, in the manner of
+            storageCoverage.test.ts. Verified against the fault: restoring
+            `session !== null` in settings.tsx reports that file by name
+Status      fixed in this commit — NOT yet seen on a phone
+```
+
+**`session !== null` is not "signed in", and this app makes anonymous sessions
+on two ordinary paths.** `redeemShareToken` and `redeemInvite` both call
+`signInAnonymously` first, deliberately and correctly: a grant has to be
+attached to somebody, and somebody starts as a key on the handset. The result is
+a real Supabase user with a real JWT, no email, and no book.
+
+Six places asked the null question. Three of them only drew the wrong thing —
+Settings offered a watcher the host's controls, `/invite` let them through a
+gate whose copy already said *"you have to be signed in to make one"*, and
+`/auth-callback` told somebody whose sign-in link had just been refused that
+they were **Signed in** and sent them back to the club.
+
+⚠ **The other two are the ones worth the entry.** `drain()` and `useBackupPump`
+both read a session as permission to send, so a watcher's phone would push the
+whole local book under an anonymous identity. **The outbox halts at its first
+failure, on purpose** — see `queueable.ts`, which exists for exactly this shape
+of hazard — so the first refusal parks the queue behind something it can never
+get past, and the pump retries it on a backoff for as long as the app is open.
+Nothing on any screen would have said so.
+
+The question is asked once now, in `who.ts`, and it has three answers:
+`nobody`, `anonymous`, `person`. `is_anonymous` is optional on Supabase's `User`
+and the test is `=== true`, so a server too old to answer reads as a person —
+the safe way round, because the alternative locks a host out of their own
+controls.
+
+⚠ **Still open: an anonymous phone can queue writes it will never send.** The
+gates above stop it sending them, which is the halt-the-queue hazard, but a
+watcher who somehow reaches a writing screen still fills a queue that only an
+account can drain. Nothing in the app routes them to one today; it is a
+containment rather than a proof.
+
 ### B88 — the sign-in sheet asked for a code the app has never sent
 
 ```

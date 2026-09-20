@@ -33,7 +33,12 @@ import { useSession } from '../src/lib/useSession';
 export default function Invite() {
   const { player: playerId } = useLocalSearchParams<{ player?: string }>();
   const night = useNight();
-  const { session } = useSession();
+  const { who } = useSession();
+  /* B89: a session is not an account. A host who has opened somebody's share
+     link has one, and the RPC that mints a code refuses it — so the gate below
+     asks who rather than whether, and the copy it already had is exactly
+     right for both. */
+  const signedIn = who.kind === 'person';
 
   const [stage, setStage] = useState<Stage>('code');
   const [code, setCode] = useState<string | null>(null);
@@ -96,14 +101,14 @@ export default function Invite() {
      dashed placeholder says why there is no code, and the share chips are
      present but disabled — the host sees what WILL be available rather than
      watching controls appear. */
-  if (!isSupabaseConfigured || session === null || blocked !== null) {
+  if (!isSupabaseConfigured || !signedIn || blocked !== null) {
     return (
       <Blocked
         name={name}
         reason={
           !isSupabaseConfigured
             ? 'This build has no server, so there is nothing to make a code on.'
-            : session === null
+            : !signedIn
               ? 'A code is made on the server, so you have to be signed in to make one.'
               : (blocked ?? '')
         }

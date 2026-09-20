@@ -1856,6 +1856,69 @@ a settled night has no destination either — `/share` is one person's share of 
 rule, and the watcher link lives in Settings — so this is not a control being
 withheld, it is a control with nowhere to point.
 
+## Settings, and the four questions it asked as one
+
+**`/settings` — 20 September, B89 and B90, and there is no cut for any of it.**
+Settings is drawn by no handoff, which this file has recorded by having nothing
+to say about it. The owner asked what the sign-in statuses on the screen mean.
+Answering took four paragraphs, and that was the finding.
+
+*What it was asking.* Four independent questions, drawn as though they were one.
+Whether this build has a server at all (`configured`). Whether there is a
+session on this phone (`session !== null`). Whether the server still accepts it
+(`checkConnection`, only when tapped, landing as a note below a list of
+controls). And whether the book has actually reached the server (`backupLine`,
+under a heading that said *This night* while counting the whole app's queue).
+Each was correct about its own axis. A host had to join them up — and in one
+state they contradicted outright, because an empty queue read as **Backed up**
+on a phone that had no account and had never sent a byte.
+
+*What was built.* Two pure functions and no new controls.
+`src/lib/who.ts` replaces `session !== null` everywhere it meant "signed in":
+three answers, `nobody · anonymous · person`, because a watch link and a claimed
+seat both leave a real anonymous session behind. `src/lib/accountLine.ts` is the
+status, computed from every fact at once and rendered as the first row of the
+Account section, with the sentence under it and the queue's error under that.
+
+### Three strings decided here against no doc at all
+
+1. **The watcher sentence.** *"This phone holds a watch link or a claimed seat,
+   not an account — it can read somebody else's night, and it cannot keep your
+   own. Sign in to put your nights on the server."* There was no copy for this
+   state because nothing in the app believed the state existed: a watcher was
+   told **Signed in as unknown** and handed the host's controls. It is the
+   longest of the three and the first thing to look at.
+2. **`Saved on this phone`, without a count.** The counted form is
+   `docs/storage-and-sync.md`'s own. A phone that cannot send does not gain a
+   queue depth by being asked, and `Saved on this phone · 0 waiting` reads as a
+   failure to send nothing.
+3. **The section heading `This phone`, which was `This night`.** One word.
+   Moving the status row into Account left that heading over two controls that
+   copy and restore every night on the handset — it was already wrong for the
+   row it lost, which B84 flagged and `docs/storage-and-sync.md` carried as
+   open. This closes that flag rather than adding one.
+
+### What is deliberately unchanged
+
+*No new control.* `connection.ts`'s verdict on a refused sign-in told the host
+to *"Forget the sign-in below"*, and there has never been such a row — only
+`Sign out`, which is what clears it. The sentence now names that row, and the
+verdict is the status line rather than a note three rows down, so it is read in
+the right place. ⚠ Whether a refused sign-in deserves a control of ITS OWN is
+still open: `Sign out` calls the server with a token the server has already
+rejected, and it is this session's reading of supabase-js — not something
+tested here — that it clears the local session anyway.
+
+*`anonymousSignIns` is still computed and still shown nowhere.*
+`checkConnection` reads whether the project will issue anonymous sessions, and
+with that toggle off **every watch link and every invite code the host hands out
+fails**, for everyone, silently. The app knows and says nothing. Open, and the
+most valuable thing left on this screen.
+
+*The two directions are still two buttons with no direction in their labels.*
+`Sync now` and `Fetch my nights` run opposite ways, which the code argues for
+correctly; neither says which way, and neither reports when it last ran.
+
 ## The end time, and the one edit a settled night allows
 
 **`/end-time`, `/count-up` and `/settled` — 20 September, B87, and there is no

@@ -3,6 +3,7 @@ import { AppState } from 'react-native';
 import { drain, syncStatus } from './sync';
 import { nextWake } from './retrySchedule';
 import { isSupabaseConfigured, supabase } from './supabase';
+import { canSend } from './who';
 
 /**
  * THE QUEUE, KEPT MOVING.
@@ -111,7 +112,14 @@ export function useBackupPump(): void {
     const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!alive) return;
       const was = signedIn;
-      signedIn = session !== null;
+      /*
+       * `canSend` rather than a null test — B89. A watcher's phone and a
+       * claimed seat both arrive here with a real anonymous session, and this
+       * line used to read them as a sign-in: the pump then woke every fifteen
+       * seconds, doubling, to push a book the row policies refuse, and the
+       * outbox halts at its first failure by design.
+       */
+      signedIn = canSend(session);
       if (signedIn && was !== true) void pump(true);
     });
 
