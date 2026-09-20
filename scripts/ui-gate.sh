@@ -49,8 +49,55 @@ BUILD=apps/mobile/.web
 # scripts, and only when it is not already set, so an explicit base still wins.
 export UI_CHECK_BASE="${UI_CHECK_BASE:-http://127.0.0.1:${PORT}}"
 
+# --- playwright, before anything is built or served -------------------------
+# NOT politeness. Without it every pass below dies on `Cannot find module
+# 'playwright'` — which is a non-zero exit, so the gate correctly refuses the
+# merge, and then says "screens: findings above" and sends you to look at
+# screens that were never opened. The tool being absent and the screens being
+# wrong are different answers and the gate has to tell them apart; the one it
+# gave was the wrong one, and it cost a session an hour of reading the log for
+# a finding that was not in it.
+#
+# Checked from node rather than by looking for a directory, because it is
+# node's resolution that matters here: NODE_PATH is how the global install is
+# reached, and `npm root -g` on its own proves nothing about whether this
+# process can see it.
+if ! node -e "require.resolve('playwright')" 2>/dev/null; then
+  echo "playwright is not resolvable from here, so no screen can be opened." >&2
+  echo "It is deliberately not a dependency of this repo — see the note at the" >&2
+  echo "top of ui-check.mjs. Install it once and point node at it:" >&2
+  echo >&2
+  echo "    npm i -g playwright && npx playwright install chromium" >&2
+  echo "    NODE_PATH=\"\$(npm root -g)\" npm run check:ui" >&2
+  echo >&2
+  echo "screens: NOT CHECKED. Nothing merges on this either." >&2
+  exit 1
+fi
+
 # --- the typeface and the build, the same way `npm run ui` gets them ---------
-bash scripts/ui-build.sh
+# AND ITS STATUS IS READ, which it was not.
+#
+# `ui-build.sh` is `set -e` and exits non-zero when the export fails. This
+# script is deliberately NOT `set -e` — the three passes below each have to run
+# even when the one before them failed — so `bash scripts/ui-build.sh` on its
+# own discarded that status and carried on.
+#
+# With no build present that is survivable: the server has nothing to serve and
+# every pass fails. **With a stale build present it is the exact fault the port
+# note above is about, by another door.** A bundler error in the code you just
+# wrote leaves yesterday's `.web` untouched, and the gate then audits yesterday
+# — every route clean, every sheet clean, "screens: clean.", exit 0 — on a
+# build that does not contain the change being merged. A green run that proves
+# nothing is worse than a red one, because nobody re-reads it.
+if ! bash scripts/ui-build.sh; then
+  echo >&2
+  echo "the web export failed, so there is nothing new to check." >&2
+  echo "Any build left in ${BUILD} is the PREVIOUS one and auditing it would" >&2
+  echo "pass without your change in it. Fix the build and run this again." >&2
+  echo >&2
+  echo "screens: NOT CHECKED. Nothing merges on this either." >&2
+  exit 1
+fi
 
 # --- serve, and take the server down however this script ends ----------------
 node scripts/ui-serve.mjs "$BUILD" "$PORT" >/dev/null 2>&1 &
