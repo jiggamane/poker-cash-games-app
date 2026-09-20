@@ -69,4 +69,31 @@ describe('where the sign-in email sends the host', () => {
     const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     expect(code).not.toMatch(/'(?:pokerclub|exp):\/\//);
   });
+
+  /*
+   * B86. The allow-list is a dashboard setting no check in this repository can
+   * read, and the auth server reports an unlisted redirect as success — so the
+   * sheet printing its own address is the whole of the diagnosis when this
+   * fails. It printed it `if (__DEV__)`: on the one build where the address is
+   * already in the terminal behind you, and nowhere on a published Expo Go
+   * update, whose `u.expo.dev` redirect nobody reconstructs from memory.
+   *
+   * Source, not a render, for `authLink.test.ts`'s own reason above: the fault
+   * is a condition on a screen with no test of its own, and this is the join
+   * between the address and the place a host can read it.
+   */
+  it('is printed on the sign-in sheet in every build, not only in dev', () => {
+    const src = read('../../app/sign-in.tsx');
+    const start = src.indexOf('function RedirectNote(');
+    expect(start, 'sign-in.tsx no longer has a RedirectNote to print the address').not.toBe(-1);
+
+    const body = src
+      .slice(start, src.indexOf('\n}', start))
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+
+    expect(body, 'the sign-in sheet hides its redirect outside dev — B86').not.toContain('__DEV__');
+    /* And it still says nothing when there is no server to be allow-listed by. */
+    expect(body).toContain("url === ''");
+  });
 });

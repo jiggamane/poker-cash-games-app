@@ -89,9 +89,9 @@ that results is well formed, correctly signed, and points at the wrong place.
 The `exp://` address it should hold contains the dev machine's IP and the
 packager's port, so it stops being true on its own: a different wifi, or 8081
 already taken, and the link quietly reverts to sending the phone to a port on
-itself. `/sign-in` prints the current one on itself in development so it can be
-copied into that box each time — and the six-digit code exists because that is
-not a thing anybody will remember to do every time.
+itself. `/sign-in` prints the current one on itself — in every build, since
+B86 — so it can be copied into that box each time, and the six-digit code exists
+because that is not a thing anybody will remember to do every time.
 
 ## Why every one of them also carries a code
 
