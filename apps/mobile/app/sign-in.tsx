@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Button } from '../src/components/Button';
 import { Field } from '../src/components/Field';
@@ -7,47 +6,88 @@ import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { authRedirectUrl } from '../src/lib/authLink';
-import { codeIsComplete, explainCodeFailure, normaliseCode } from '../src/lib/signInCode';
+import {
+  RESEND_WAIT_SECONDS,
+  explainLinkFailure,
+  isThrottled,
+  secondsUntilResend,
+  waitSecondsIn,
+} from '../src/lib/signInLink';
 import {
   explainServerError,
   isNotInvited,
   isSupabaseConfigured,
   sendSignInLink,
-  verifySignInCode,
 } from '../src/lib/supabase';
 
 /**
- * The host signs in.
+ * The host signs in, with a link and only a link.
  *
  * A link rather than a password: the app is opened at a kitchen table, often
  * one-handed, and a password is one more thing to have forgotten since last
  * month. This is the only sign-in in the product — players are names the host
  * types, and watchers hold a link of their own.
  *
- * TWO WAYS IN, AND THE SECOND ONE IS NOT A NICETY — B66. The same email carries
- * a link and a six-digit code, and the link is the half that can arrive broken:
- * a mail client that will not render a custom scheme, a redirect that is not on
- * the project's allow-list, or Go's html/template blanking the href because
- * `exp://` is not a scheme it trusts. Every one of those failures looks the same
- * on the phone — a button that does nothing — and a screen whose only exit is
- * that button has no way out of any of them. The code has none of those parts.
+ * THE CODE FIELD HAS GONE, and this is the note that keeps it gone. B66 put a
+ * six-digit field on the second stage and argued for it well: a link has to be
+ * agreed on by four separate systems and three of them refuse silently, so a
+ * screen whose only exit is that link has no way out of any of them. All true.
+ * What the argument missed is that this project has never sent a code.
+ * `{{ .Token }}` reaches the mail only once custom SMTP is on and the template
+ * in the dashboard has been replaced by hand — step 4 of
+ * `docs/auth-test-period.md`, not done — and until then Supabase's stock
+ * magic-link mail carries a link and nothing else. So the sheet said "a link
+ * and a six-digit code are on their way", and a host holding an email with no
+ * digits in it read that as the app being broken before they had got in. A
+ * fallback nobody wired up is worse than no fallback: it spends the one screen
+ * a locked-out host is looking at on an instruction that cannot be followed.
+ *
+ * WHAT CARRIES THE WEIGHT INSTEAD, because the dead-end is a real risk and
+ * removing the code does not make it not one. Three things, and none of them
+ * depends on a dashboard setting nobody has touched:
+ *
+ *   - **The address in the mail, written out as text.** The email prints
+ *     `{{ .ConfirmationURL }}` under the button as well as inside it, and that
+ *     https address pasted into a browser on the same phone is the same hop —
+ *     Supabase verifies the token and redirects to the app itself. It survives
+ *     a stripped anchor, a plain-text view and a corporate gateway, which are
+ *     the three ways a button arrives dead.
+ *   - **The redirect this build asks for**, printed below, which is the only
+ *     diagnosis of the silent failure — an address not on the project's
+ *     allow-list is not refused, it is quietly swapped for the Site URL.
+ *   - **A second email, and a wait that is visible before it is spent.**
+ *     Throttling is the failure that got more likely when the code went, so the
+ *     button counts down rather than letting a locked-out host meet a 429.
  */
 export default function SignIn() {
   const t = useTheme();
   const [email, setEmail] = useState('');
   const [stage, setStage] = useState<'email' | 'sent'>('email');
-  const [code, setCode] = useState('');
+  /*
+   * When another email may be asked for, and how long that wait was.
+   *
+   * TWO NUMBERS RATHER THAN A TIMESTAMP, because the wait has two sources and
+   * they do not agree. An email that went out starts our own 60-second floor;
+   * a 429 starts whatever the server said in the refusal, which can be longer
+   * and is the only figure that is actually true. Keeping the length beside
+   * the start is what lets the second one replace the first without the button
+   * lying about how long is left.
+   */
+  const [cooldown, setCooldown] = useState<{ from: number; seconds: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const emailOk = /\S+@\S+\.\S+/.test(email.trim());
   const redirect = isSupabaseConfigured ? authRedirectUrl() : '';
+  const wait = useCountdown(cooldown);
+  const cooling = wait > 0;
 
   async function send() {
     setError(null);
     setBusy(true);
     try {
       await sendSignInLink(email.trim(), redirect);
+      setCooldown({ from: Date.now(), seconds: RESEND_WAIT_SECONDS });
       setStage('sent');
     } catch (e) {
       /*
@@ -63,29 +103,31 @@ export default function SignIn() {
           'That address has not been invited yet. The app is in a closed test, so the host has to add you before a link can be sent.',
         );
       } else {
-        setError(explainServerError(e));
+        /*
+         * The send failures first — no signal, and the throttle — then
+         * everything else in `explainServerError`'s words. Two files, one
+         * vocabulary; see the null at the end of `explainLinkFailure`.
+         */
+        setError(explainLinkFailure(e) ?? explainServerError(e));
       }
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  /*
-   * Dismissed only after the await returns. `verifyOtp` resolves once the
-   * session is installed, so by the time this closes, `useSession` has already
-   * seen it and every screen subscribed to it is drawing the signed-in state.
-   * Closing first — optimistically, on the tap — would put the host back on a
-   * club that still believes nobody is signed in, for as long as the round
-   * trip takes.
-   */
-  async function signInWithCode() {
-    setError(null);
-    setBusy(true);
-    try {
-      await verifySignInCode(email.trim(), normaliseCode(code));
-      router.dismissTo('/');
-    } catch (e) {
-      setError(explainCodeFailure(e));
+      /*
+       * A REFUSED SEND STARTS THE CLOCK TOO, when the refusal was a throttle.
+       *
+       * Without this the button comes straight back looking available, the
+       * host taps it, and meets the identical 429 — which is the one thing
+       * that makes a rate limit worse, since each attempt can extend it. The
+       * server's own figure wins over our floor when it names one: it knows
+       * what it is counting and we are guessing.
+       *
+       * Every other failure leaves the clock alone. A bad key or an uninvited
+       * address is not a wait, and making somebody sit out a minute before
+       * they can correct a typo would be a punishment for our own error
+       * message.
+       */
+      if (isThrottled(e)) {
+        const said = waitSecondsIn(e instanceof Error ? e.message : String(e));
+        setCooldown({ from: Date.now(), seconds: said ?? RESEND_WAIT_SECONDS });
+      }
     } finally {
       setBusy(false);
     }
@@ -109,6 +151,13 @@ export default function SignIn() {
    * the close in the corner already does — Chrome B is a grabber, a close and a
    * swipe, and doc 09 is explicit that those are the way out of a sheet. The
    * primary slot now holds the thing there is actually to do.
+   *
+   * AND THE THING TO DO IS NOT ON THIS SHEET. That is the shape of a link
+   * flow and it is why this stage reads the way it does: the host leaves for
+   * the mail app, taps, and comes back signed in — `_layout.tsx` installs the
+   * session off the URL wherever the app happens to be, and `/auth-callback`
+   * is where the link lands. So the primary here is the recovery, not the
+   * action: a second email, once the first has had time to arrive.
    */
   if (stage === 'sent') {
     return (
@@ -117,17 +166,25 @@ export default function SignIn() {
         footer={
           <>
             <Button
-              label={busy ? 'Signing in…' : 'Sign in'}
-              variant={codeIsComplete(code) && !busy ? 'primary' : 'blocked'}
-              disabled={!codeIsComplete(code) || busy}
-              onPress={signInWithCode}
+              label={
+                busy ? 'Sending…' : cooling ? `Send another link in ${wait}s` : 'Send another link'
+              }
+              variant={cooling || busy ? 'blocked' : 'primary'}
+              disabled={cooling || busy}
+              onPress={send}
             />
             <Button
               label="Use a different email"
               variant="secondary"
+              /*
+               * The cooldown is NOT cleared here. It belongs to the server's
+               * rate limit, which counts per project and not per address, so
+               * stepping back to change a typo does not buy another email —
+               * and a button that looks available and is not is exactly what
+               * this countdown exists to prevent.
+               */
               onPress={() => {
                 setStage('email');
-                setCode('');
                 setError(null);
               }}
             />
@@ -136,26 +193,27 @@ export default function SignIn() {
       >
         <View style={styles.page}>
           <Text style={[styles.body, { color: t.text }]}>
-            A link and a six-digit code are on their way to {email.trim()}.
+            A sign-in link is on its way to {email.trim()}.
           </Text>
           <Text style={[styles.body, styles.spaced, { color: t.muted }]}>
-            Either one signs you in. Open the link on this phone, or type the code below without
-            leaving the app. Both work once and expire shortly, so ask for another if it goes stale.
+            Open it on this phone and it brings you straight back here, signed in. It works once and
+            expires shortly, so if it goes stale, send another.
           </Text>
 
-          <View style={styles.form}>
-            <Field
-              label="Code from the email"
-              value={code}
-              onChangeText={(v) => setCode(normaliseCode(v))}
-              placeholder="123456"
-              keyboardType="number-pad"
-              autoFocus
-              hint="Six digits. Use this one if the link in the email does not open."
-            />
+          {/*
+            The one instruction that matters when the button in the email is
+            dead, and it has to be on the screen rather than only in the mail:
+            a host reading a stripped anchor has no button to read a hint under.
+          */}
+          <View style={styles.aside}>
+            <Text style={[styles.asideLabel, { color: t.muted }]}>If the button does nothing</Text>
+            <Text style={[styles.body, { color: t.muted }]}>
+              The email prints the same address as text underneath it. Paste that into a browser on
+              this phone — it signs you in the same way.
+            </Text>
           </View>
 
-          {error !== null && <Text style={[styles.body, { color: t.loss }]}>{error}</Text>}
+          {error !== null && <Text style={[styles.body, styles.spaced, { color: t.loss }]}>{error}</Text>}
 
           <RedirectNote url={redirect} />
         </View>
@@ -166,12 +224,17 @@ export default function SignIn() {
   return (
     <Sheet
       title="Sign in"
-     
       footer={
         <Button
-          label={busy ? 'Sending…' : 'Email me a link'}
-          variant="primary"
-          disabled={!emailOk || busy}
+          /*
+           * The wait shows here too. The throttle is the project's, not the
+           * address's, so a host who came back to fix a typo is under it just
+           * the same and should read that on the button rather than in an
+           * error after spending a tap.
+           */
+          label={busy ? 'Sending…' : cooling ? `Email me a link in ${wait}s` : 'Email me a link'}
+          variant={!emailOk || busy || cooling ? 'blocked' : 'primary'}
+          disabled={!emailOk || busy || cooling}
           onPress={send}
         />
       }
@@ -202,6 +265,37 @@ export default function SignIn() {
 }
 
 /**
+ * Seconds left before another email may be asked for, ticking.
+ *
+ * A second a tick and only while there is something to count: the interval is
+ * cleared the moment it reaches zero, so a sheet left open on this stage is not
+ * a timer running behind a night.
+ */
+function useCountdown(cooldown: { from: number; seconds: number } | null): number {
+  const from = cooldown?.from ?? null;
+  const seconds = cooldown?.seconds ?? RESEND_WAIT_SECONDS;
+  const [left, setLeft] = useState(() => secondsUntilResend(from, Date.now(), seconds));
+
+  /*
+   * Depends on the two numbers rather than on the object: a render that builds
+   * an equal `{ from, seconds }` would otherwise restart the interval every
+   * second, which is a timer resetting the timer.
+   */
+  useEffect(() => {
+    setLeft(secondsUntilResend(from, Date.now(), seconds));
+    if (from === null) return;
+    const id = setInterval(() => {
+      const now = secondsUntilResend(from, Date.now(), seconds);
+      setLeft(now);
+      if (now === 0) clearInterval(id);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [from, seconds]);
+
+  return left;
+}
+
+/**
  * The exact address the email will send you back to.
  *
  * Worth printing, because the one way this flow fails silently is a redirect
@@ -219,6 +313,11 @@ export default function SignIn() {
  * neither property: its redirect is a `u.expo.dev` URL nobody reconstructs from
  * memory. So the line was on screen only where the address was already in the
  * terminal behind you, and off everywhere it was the answer.
+ *
+ * IT CARRIES MORE NOW THAT THE CODE HAS GONE. While there was a six-digit
+ * field on the second stage, a redirect missing from the allow-list cost a host
+ * the nicer flow and no more. With the link as the only way in, this line is
+ * the whole diagnosis of the one failure that reports itself as success.
  *
  * It is not a secret. The same string travels to the host by email, as the
  * `redirect_to=` parameter of the link — which is where
@@ -248,6 +347,14 @@ const styles = StyleSheet.create({
   body: { ...type.body, fontWeight: '400', lineHeight: 24 },
   spaced: { marginTop: 12 },
   form: { marginTop: space.section },
+  aside: { marginTop: space.section, gap: 6 },
+  /*
+   * `type.label` — the app's caps section header, 11/700 at +1.1 tracking, the
+   * same object `Field` draws above an input. A bolded footnote would have
+   * been a third weight in a block that already has two, invented for one
+   * screen; the style guide has a header and this is a header.
+   */
+  asideLabel: type.label,
   note: { marginTop: space.section, gap: 6 },
   noteLabel: type.footnote,
   noteUrl: { ...type.footnote, fontWeight: '600' },

@@ -16,10 +16,20 @@ editing behind it: without SMTP the page shows *"Set up custom SMTP to edit
 templates — emails will be sent using the default templates"*, the Subject and
 Body are greyed out, and **Save changes** does nothing. So step 4 of
 `docs/auth-test-period.md` is not optional and is not merely about rate limits —
-it is what makes this folder applyable at all. Until it is done the project
-sends Supabase's stock magic-link mail, which carries a link and **no
-`{{ .Token }}`**, so the code field on the sign-in sheet has no code to be
-given.
+it is what makes this folder applyable at all. **Until it is done, the mail a
+host actually receives is Supabase's stock magic-link template, not this one.**
+
+That gate is why the six-digit code went, on 20 September. It is worth reading
+once, because the same shape can happen again with anything else this folder
+adds: a template in here is a *proposal* until somebody pastes it into the
+dashboard, and for months the app was built as though this file were live. The
+code field on the sign-in sheet asked hosts to type digits that only exist in
+the version of the mail nobody had applied. Nothing in this repository could
+notice — `npm run check` cannot see the dashboard, and neither can `check:ui`.
+
+**So: before the app is made to depend on anything in this folder, the folder
+has to be live.** The link needs no such dependency, which is why it is now the
+whole of the flow.
 
 Then paste the file, whole, into the box — the **Source** tab, not **Preview**.
 Save. Send yourself one and read it on a phone rather than in the dashboard's
@@ -81,7 +91,7 @@ string is where the answer is, not the scheme.
 | `…/auth/v1/verify?…&redirect_to=http://localhost:3000` | **B66.** The app's `emailRedirectTo` was not on the allow-list, so the auth server swapped in the Site URL — no error, 200, nothing logged. Fix: Authentication → URL Configuration → **Redirect URLs**. |
 | `…/auth/v1/verify?…&redirect_to=exp://…` or `pokerclub://…` | The mail is **right**. The fault is past it: whether the phone has an app for that scheme, or the callback route (missing until B66). |
 | `#ZgotmplZ` | The sanitiser ate it — the rule above, broken, in the template or in a setting feeding it. |
-| no `href` at all | The mail client stripped the anchor. The code is the answer, not the link. |
+| no `href` at all | The mail client stripped the anchor. The **address written out as text** under the button is the answer — paste it into a browser on the phone. That row is in `magic-link.html` for exactly this, and the stock template has one too. |
 
 **`redirect_to` is the field to read, and it lies by omission.** An address the
 project does not allow is not refused — it is silently replaced, and the mail
@@ -90,25 +100,42 @@ The `exp://` address it should hold contains the dev machine's IP and the
 packager's port, so it stops being true on its own: a different wifi, or 8081
 already taken, and the link quietly reverts to sending the phone to a port on
 itself. `/sign-in` prints the current one on itself — in every build, since
-B86 — so it can be copied into that box each time, and the six-digit code exists
-because that is not a thing anybody will remember to do every time.
+B86 — so it can be copied into that box each time. **That line is the whole
+diagnosis now.** While there was a code field it cost a host the nicer flow and
+no more; with the link as the only way in, an address missing from the allow-list
+is the one failure in this system that reports itself as success, and the sheet
+printing what it asked for is the only place the truth appears.
 
-## Why every one of them also carries a code
+## The link is the whole of it, and what catches it when it falls
 
-`{{ .Token }}` is the six digits, and it is in `magic-link.html` beside the
-button rather than instead of it.
+**There is no six-digit code, in this folder or in the app.** `{{ .Token }}`
+came out of `magic-link.html` on 20 September, `verifySignInCode` came out of
+`apps/mobile/src/lib/supabase.ts`, `signInCode.ts` was replaced by
+`signInLink.ts`, and the field came off the sign-in sheet's *Check your email*
+stage. The reason is the gate at the top of this file: the code only ever
+existed in a template nobody had applied.
 
-A link has to be agreed on by four separate systems: Go's sanitiser above, the
-mail client's willingness to render an anchor, the project's redirect
-allow-list, and the phone's idea of which app owns the scheme. **Three of those
-four refuse silently.** What reaches the host is a button that does nothing, and
-before B66 the sign-in sheet had no other way through — so a single silent
-refusal anywhere in that chain locked the only account in the product out of it.
+The worry the code was answering is still real, and it is worth restating so
+that whatever replaces it is judged against the right thing. A link has to be
+agreed on by four separate systems: Go's sanitiser above, the mail client's
+willingness to render an anchor, the project's redirect allow-list, and the
+phone's idea of which app owns the scheme. **Three of those four refuse
+silently.** What reaches the host is a button that does nothing, and a sign-in
+screen whose only exit is that button locks the only account in the product out
+of itself.
 
-Six digits of text in the body of the mail agree with nobody. `verifySignInCode`
-in `apps/mobile/src/lib/supabase.ts` spends them, the field is on the sign-in
-sheet's *Check your email* stage, and `signInCode.ts` is the logic with the
-tests on it.
+Three things carry that weight now, and the point of all three is that none of
+them needs a dashboard setting to be true:
+
+| | |
+|---|---|
+| **The address as text** | `{{ .ConfirmationURL }}` written out under the button, in its own card. It is a plain string, not markup, so a stripped anchor, a plain-text view and a corporate gateway all leave it intact — and pasted into a browser on the phone it takes the identical hop. **Supabase's stock template has this row too**, which is what makes it a fallback that works today rather than one waiting on step 4. This is the answer to three of the four refusals. |
+| **The redirect, printed on the sheet** | The fourth refusal — an allow-list miss — is invisible from the phone and reports itself as success. `/sign-in` prints the address this build asked for, on every build since B86, and the table above is how it is read out of a mail. |
+| **A second email, with the wait shown first** | `signInLink.ts` holds Supabase's 60-second floor on this side and counts it down on the button, because *Send another link* is the only button on that stage now and a locked-out host tapping it twice meets a 429. |
+
+**If the code is ever wanted back, it is three changes in one commit** — custom
+SMTP on, `{{ .Token }}` in `magic-link.html`, and a field in `sign-in.tsx`. Two
+of the three is the state that caused this.
 
 ## The invite email is not one of these
 

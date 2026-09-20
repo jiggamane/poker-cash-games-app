@@ -134,11 +134,20 @@ SMTP to edit templates"*, Subject and Body are read-only, and **Save changes**
 is greyed out. That is the second reason step 4 is not optional — the first
 being the 2-an-hour limit — and it is why these two steps are in this order.
 
-This is not decoration, and skipping it is B66. Supabase's stock template sends
-the link and nothing else, so a link that arrives broken — and there are four
-separate ways it can — leaves a host with no way into the only account in the
-product. The file adds the six-digit code beside the button, which the sign-in
-screen can now take.
+This is not decoration, and skipping it is B66. It also has a history worth
+knowing before you paste anything: **until this step is done, the mail a host
+receives is the stock one, not the file in this repository** — and for three
+weeks the app was built as though the file were live. That is B87. The sign-in
+sheet drew a field for a six-digit code that only ever existed in this unapplied
+template, so a host was asked to type digits that were not in their inbox. The
+code has been taken out of both, and the rule that came out of it is **never
+make the app depend on something in `docs/email-templates/` in a change that
+does not also apply it.**
+
+What `magic-link.html` gives you over the stock mail today is a read copy and
+the app's own typography — not a mechanism the app needs. The fallback the app
+does point at, the confirmation URL written out as text under the button, is in
+the stock template as well.
 
 It also carries the rule that made the button blank in the first place: the
 `href` of a link in one of these is `{{ .ConfirmationURL }}` and never a deep
@@ -184,9 +193,11 @@ any log says a substitution happened; the only place it is visible is the
 
 **And the `exp://` address expires by itself.** A different wifi, or a packager
 that took 8082 because 8081 was busy, and this list is quietly wrong again. It
-is not set up once. That is why the sign-in sheet also takes a six-digit code:
-the code does not travel through `redirect_to`, so it is the one way in this
-list cannot silently break.
+is not set up once. Nothing in the app removes that — what it does instead is
+make it **readable**: `/sign-in` prints the redirect this build is asking for, in
+every build (B86), so the address to paste into that box can be read off the
+screen rather than reconstructed. With the link as the only way in, that line is
+the whole diagnosis of this failure.
 
 **Site URL, in the same box, must be `http(s)` — not `pokerclub://`.** It is
 what an unlisted redirect falls back to, so a custom scheme there walks straight
@@ -261,11 +272,13 @@ before the first night rather than after the first outage.
 
 On two phones, or one phone and one simulator:
 
-1. **Host:** sign in with an invited address. The email carries a link and a
-   six-digit code, and **both are worth trying** — they fail independently and
-   the link is the fragile one. The link should open the app on *Signed in* and
-   land you back at the club; the code, typed on the *Check your email* stage,
-   should sign you in without leaving the app at all.
+1. **Host:** sign in with an invited address. The email carries a link and
+   nothing else (B87). It should open the app on *Signed in* and land you back
+   at the club. **Then try the other half, because it gets no use in normal
+   running and is what a locked-out host is left with:** copy the address
+   printed as text under the button, paste it into a browser on the same phone,
+   and check it does the same thing. Third, tap *Send another link* twice — the
+   second tap should be a button counting down, not an error.
 2. **Host:** record a night — seat two players, buy in, a rebuy.
 3. **Host:** Settings → Watchers → **Share this night**. This publishes the
    book, the players, the session and the ledger, then hands you a link.

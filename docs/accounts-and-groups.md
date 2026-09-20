@@ -25,7 +25,7 @@ row-level security decides what each may read, not the buttons the app draws.
 
 | | How they get in | Email? | State |
 |---|---|---|---|
-| **Host** | Magic link **or** six-digit code, `sign-in.tsx` | yes | works, gated |
+| **Host** | Magic link, `sign-in.tsx` | yes | works, gated |
 | **Member** | Ten-character invite code, `invite.tsx` → `claim.tsx` | **no** | works |
 | **Watcher** | Share link for one night | **no** | works |
 
@@ -61,15 +61,19 @@ Do only the first and the wall is still there.
 Two things you get free with custom SMTP, both already written and both
 currently unreachable:
 
-- **The six-digit code.** `verifySignInCode()` exists in `supabase.ts` and the
-  *Check your email* stage already draws the field. Supabase's stock template
-  sends a link and nothing else, and the template box is **read-only until SMTP
-  is attached**. `docs/email-templates/magic-link.html` is the replacement, with
-  `{{ .Token }}` in it.
+- **A mail somebody has read.** `docs/email-templates/magic-link.html` is the
+  replacement for Supabase's stock template, and the box is **read-only until
+  SMTP is attached**, so until then the mail a host receives is the stock one.
+  That gap is what killed the six-digit code: it was built in the app and in the
+  template on the assumption that the template was live, and for months it was
+  not. The code came out on 20 September — `docs/email-templates/README.md` has
+  the whole account. Do not reintroduce anything the app depends on into that
+  file without applying the file in the same change.
 - **A way in that cannot silently break.** The link travels through
   `redirect_to`, which is silently replaced by the Site URL if the address is
-  not on the allow-list — 200, mail sent, dead link, no trace anywhere. The code
-  does not travel through `redirect_to`. While you are out of the store and
+  not on the allow-list — 200, mail sent, dead link, no trace anywhere. Nothing
+  removes that risk; what the app does instead is make it readable, by printing
+  the address it asked for on the sign-in sheet in every build (B86). While you are out of the store and
   people are running this in Expo Go, the code is the reliable half, and it is
   the half you do not have yet.
 
@@ -139,9 +143,10 @@ redirect list.
 
 - **Cost:** about half an hour, one DNS record pair, no code, free tier in the
   low thousands of emails a month.
-- **Unblocks:** the wall, editable templates, and the six-digit code.
+- **Unblocks:** the wall and editable templates.
 - **Against:** email is still in the critical path, and `exp://` redirect
-  addresses still rot. The code is the mitigation.
+  addresses still rot. The mitigations are the address printed on the sheet and
+  the confirmation URL written out as text in the mail — not a code.
 
 ### B — Sign in with Apple and Google
 
@@ -188,9 +193,10 @@ rather than a fix for the first. Not recommended.
 **Phase 0 — remove the wall. No code, today.**
 The seven steps in `docs/auth-test-period.md`, of which 4, 5 and 6 are the ones
 that matter here: custom SMTP, **raise the rate limit separately**, paste
-`docs/email-templates/magic-link.html`, fix the redirect URLs. When it is done
-the six-digit code starts working, and that is the thing to test first, because
-it is the path that does not break quietly.
+`docs/email-templates/magic-link.html`, fix the redirect URLs. Step 6 is the one
+to test first: the redirect list is what decides whether a link that was sent
+successfully lands anywhere, and it is the only failure in this flow that reports
+itself as a success.
 
 Nothing below is worth starting until this is done — every one of them is tested
 by sending an email.
