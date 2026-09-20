@@ -139,6 +139,64 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B86 — the address you have to allow-list was printed only where it is already known
+
+```
+Screen      /sign-in, both stages, and the Supabase dashboard it is about
+Seen        the sign-in email's link opened
+            `http://localhost:3000/#access_token=…` — B66's symptom exactly,
+            fourteen days after B66 was fixed. The sheet's own *Redirects to*
+            line, which names the address that was missing from the allow-list,
+            was not on the screen: it is behind `__DEV__`, and this was a
+            published Expo Go build
+Expected    the one line that turns this silent failure into a copyable
+            address to be on the screen wherever the failure can happen —
+            which is every build, and MOST of all the ones without a packager
+Found       21 Sept, off two photographs, by the owner
+Locked by   npm run check — authLink.test.ts asserts RedirectNote is not gated
+            on `__DEV__`. Verified against the fault: with the guard put back
+            it reports "the sign-in sheet hides its redirect outside dev"
+Status      fixed in this commit
+```
+
+**B66 is a bug that comes back on its own schedule, and this entry is the
+schedule.** That entry says so in its own words — the allow-list is a dashboard
+setting no check here can read, the auth server reports a substitution as
+success, and the `exp://` address expires by itself when an IP or a port moves.
+What it left in place was a screen that tells you the current address, so that
+when the fault does come back it is thirty seconds rather than an afternoon.
+
+That screen printed it `if (__DEV__)`. So it is on the one build where the
+address is already on your own machine, in your own terminal, in the QR code you
+just scanned — and it is off on every build where the address is not guessable:
+a published update in Expo Go, whose redirect is a `u.expo.dev` URL nobody can
+reconstruct from memory, and a standalone build, whose `pokerclub://auth-callback`
+is fixed but is still the thing the dashboard has never been told.
+
+**The comment above it argued for the guard and the argument was backwards:**
+*"Development only. A real build uses pokerclub://auth-callback, which is
+fixed."* Fixed is not the same as known. A value that never changes and has
+never been pasted into the allow-list fails exactly as silently as one that
+changes every morning — and a published Expo Go build, which is how this app
+actually reaches a phone, has neither property.
+
+Nothing here is secret. A redirect URL is published by the mail it rides in,
+as a `redirect_to=` parameter in a link sent over ordinary email, and it is
+read there by anybody diagnosing this — `docs/email-templates/README.md` says
+to read it there first. Printing it on the screen that generates it discloses
+nothing and removes a step.
+
+**The guard is gone; `url === ''` still hides the note**, because that is the
+case where there is no server in the build at all and so nothing to allow-list.
+
+⚠ **This fixes the half that is in this repository, and the other half is still
+a dashboard.** The project's own sign-in mail on 21 Sept carried a link and no
+six-digit code, which is the stock Supabase template — so step 4 (custom SMTP)
+and step 5 (paste `docs/email-templates/magic-link.html`) of
+`docs/auth-test-period.md` had not been done, and the code field is dark until
+they are. The link and the code fail independently and the repo can fix
+neither. What it can do is name the address, which is what this is.
+
 ### B83 — the end of the night never tried to reach the server
 
 ```
@@ -548,8 +606,10 @@ whole diagnosis.
 The address that was missing is `exp://<the dev machine's IP>:8081/--/auth-callback`,
 which **changes whenever the laptop's IP or the packager's port changes** — so
 this is not a thing that is set up once. `/sign-in` prints the current one on
-itself in development for exactly this reason, and step 6 of
-`docs/auth-test-period.md` says to paste it into that box. It had not been.
+itself for exactly this reason, and step 6 of `docs/auth-test-period.md` says to
+paste it into that box. It had not been. *(It printed it only under `__DEV__`
+until B86 — so on a published Expo Go build, which is the one that reaches a
+phone, the line naming the missing address was not on the screen at all.)*
 
 ⚠ **THIS ENTRY FIRST BLAMED THE WRONG THING, and the wrong thing was
 plausible.** It said Go's `html/template` had blanked the href — it replaces an
@@ -603,8 +663,8 @@ fixed once; it is a bug that comes back on its own schedule.
 So the code is what has to carry it, and does: the six-digit code does not
 travel through `redirect_to` at all, so it is the one way in that an allow-list
 cannot silently break. `/sign-in` also prints the current `exp://` address on
-itself in development — put it in the box whenever it changes, or accept that
-the link half stops working and use the code.
+itself — in every build since B86 — so put it in the box whenever it changes, or
+accept that the link half stops working and use the code.
 
 ⚠ **The blank `href` cannot be locked by anything in this repo, and this is the
 entry that says so rather than leaving the field looking answered.** The mail is

@@ -150,8 +150,11 @@ of it. Read that before editing anything in that box.
 
 **Authentication → URL Configuration → Redirect URLs.** Add
 `pokerclub://auth-callback` for real builds, and — while testing in Expo Go —
-the `exp://…` address the sign-in screen prints on itself in development. That
-address contains the dev machine's IP and port, so it changes when either does.
+the `exp://…` address the sign-in sheet prints on itself, which since B86 it
+does in **every** build rather than only in development. Against a dev server
+that address contains the dev machine's IP and port, so it changes when either
+does; on a published update it is a `u.expo.dev` URL, fixed but unguessable.
+Read it off the sheet either way rather than typing one from memory.
 A link that redirects somewhere not on this list falls back to the project's
 Site URL and dead-ends on a page the phone cannot reach.
 

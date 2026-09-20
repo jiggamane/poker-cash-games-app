@@ -211,11 +211,25 @@ export default function SignIn() {
  * PORT, so it changes whenever either does, which is exactly the sort of thing
  * you want to be able to read off the screen rather than guess at.
  *
- * Development only. A real build uses pokerclub://auth-callback, which is fixed.
+ * ON EVERY BUILD — B86. This said `__DEV__` and argued for it: *"A real build
+ * uses pokerclub://auth-callback, which is fixed."* Fixed is not known. An
+ * address that never changes and has never been pasted into the allow-list
+ * fails exactly as silently as one that changes every morning, and the build
+ * this app actually reaches a phone on — a published update in Expo Go — has
+ * neither property: its redirect is a `u.expo.dev` URL nobody reconstructs from
+ * memory. So the line was on screen only where the address was already in the
+ * terminal behind you, and off everywhere it was the answer.
+ *
+ * It is not a secret. The same string travels to the host by email, as the
+ * `redirect_to=` parameter of the link — which is where
+ * `docs/email-templates/README.md` says to read it when this fails.
+ *
+ * `url === ''` is still a reason to say nothing: that is a build with no server
+ * configured at all, where there is no allow-list to be on.
  */
 function RedirectNote({ url }: { url: string }) {
   const t = useTheme();
-  if (!__DEV__ || url === '') return null;
+  if (url === '') return null;
   return (
     <View style={styles.note}>
       <Text style={[styles.noteLabel, { color: t.muted }]}>Redirects to</Text>
