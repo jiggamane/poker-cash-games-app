@@ -139,6 +139,77 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B87 — every night recorded the time the host tapped Settle, not the time the game ended
+
+```
+Screen      /session's End game, E2 Count up, /settled's meta line, the home
+            card's "ended", Sessions, and the `ended_at` column on the server
+Seen        a night played to about 03:00 whose totals did not add up, left
+            open and finished the next afternoon, went into the book as a
+            night that ended that afternoon. Every night in the book has the
+            same fault; it is only visible on the ones settled late
+Expected    the moment the cards stopped. `closing.ts` has said so since it
+            was written: *"the night ENDED when counting started, not when
+            the host finally tapped through the settlement"*
+Found       20 Sept, by the owner, asking to be able to type the end time in
+Locked by   npm run check — storageCoverage.test.ts asserts that End game
+            calls setStatus('counting'), which is the call that stamps it,
+            and that both screens showing an end time can reach /end-time.
+            closing.test.ts asserts a hand-typed end time survives a close
+            that happens a day later. Verified against the fault: with the
+            stamp removed it reports "session.tsx never calls setStatus"
+            npm run db:verify — 08_end_time.sql holds the four server rules
+            the correction rests on, including that a frozen settlement is
+            untouched by it. Verified against the fault: an assertion pointed
+            at a legal update reports "the database allowed it"
+Status      fixed in this commit — NOT yet seen on a phone
+```
+
+**The stamp existed, was tested, was documented, and was called by nobody.**
+`setStatus('counting')` writes `ended_at` and never re-writes it, and the table
+in `storageCoverage.test.ts` has always listed it as reaching the server. Its
+only caller was a test. `session.tsx`'s End game pushed to `/count-up` and
+stamped nothing.
+
+So the fallback in `closeOf` — `night.endedAt ?? at`, described in its own
+comment as covering *"a night that somehow reached a close without one"* — was
+not a safety net. It was the only path, on every night this app has ever
+recorded. The comment above it is a precise description of behaviour that never
+happened once.
+
+**Nothing could see it.** The store's tests pass: the function is correct.
+`closing.test.ts` passed: it honours an end time when it is given one, and it
+was always given one, because the fixture sets `endedAt` by hand. The screens
+pass: they draw the figure they are handed. The fault lived entirely in a call
+that was not written — the same shape as the faults `storageCoverage.test.ts`
+was built for, which is why the check for it went there.
+
+**The fix is two halves and the second one is the owner's actual request.** End
+game stamps the honest moment. `/end-time` is a sheet on E2 and on the settled
+night where the host types the real one, as a day and a four-digit clock —
+because a night that crossed midnight and was settled after a sleep is not
+described by `03:12` alone, and the two readings of it are twenty-four hours
+apart.
+
+⚠ **This is the first thing in the app that changes a night after it has
+closed**, and the argument for allowing it is narrow: an end time is not a
+figure. Nothing recomputes from it, no figure on `/settled` moves with it, and
+the server's guard against editing a settled night is on the `settlement` table
+rather than on this column. `08_end_time.sql` asserts all of that rather than
+assuming it. The step above it on the same screen stays locked, because every
+figure on that screen was derived at it.
+
+⚠ **The correction needed its own queue operation.** `session.patch` refuses to
+carry `ended_at`, in a comment older than this bug, because the server checks
+`(status = 'settled') = (ended_at is not null)` and a refused row halts the
+whole outbox. That reasoning still holds, so it was not bent: `session.ended`
+carries the column alone and is only ever queued for a night that has already
+settled, which is exactly the condition the constraint wants.
+
+⚠ **No board draws the `/end-time` sheet.** Every string in it was written for
+this change and none came from a handoff. `docs/screens.md` carries the flag and
+the copy is the thing to look at first.
+
 ### B86 — the address you have to allow-list was printed only where it is already known
 
 ```

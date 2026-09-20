@@ -11,6 +11,7 @@ import {
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { RoundingBar } from '../src/components/RoundingBar';
+import { TermBar } from '../src/components/TermBar';
 import { Screen } from '../src/components/Screen';
 import {
   ChipsBlock,
@@ -22,6 +23,7 @@ import {
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, unscaledLabel } from '../src/design/tokens';
 import { nightSpan } from '../src/lib/elapsed';
+import { endedRowLabel, endedRowValue } from '../src/lib/endTime';
 import { setSessionView, useSessionView } from '../src/lib/sessionViewStore';
 import { settlementOf, standingsOf, useNight } from '../src/lib/nightStore';
 
@@ -263,6 +265,37 @@ export default function NightResults() {
       {!onTable && night.roundingMode !== null && night.roundingMode !== undefined && (
         <RoundingBar mode={night.roundingMode} style={styles.rounding} />
       )}
+
+      {/*
+       * AND THE END TIME, WHICH — UNLIKE THE STEP — IS STILL SETTABLE. B87.
+       *
+       * THE ONE THING IN THIS APP THAT CHANGES A CLOSED NIGHT, so it is worth
+       * saying exactly why it is allowed when the row above it is locked. The
+       * step is locked because every figure on this screen was derived at it: a
+       * record that could be re-rounded afterwards does not say what anybody
+       * paid. An end time derives nothing. No figure on this screen moves with
+       * it, the frozen settlement is untouched, and the server's guard against
+       * editing a settled night is on the `settlement` table and not on this
+       * column.
+       *
+       * AND IT IS THE CORRECTION THE WHOLE FEATURE IS FOR. A night whose totals
+       * did not add up is settled the next day, which means the moment it was
+       * settled is exactly the figure that is wrong — and until this row there
+       * was nowhere to say so once the night had closed. The meta line above
+       * reads `20:05 → 14:30` on a game that finished at three in the morning.
+       *
+       * NOT ON THE META LINE, THOUGH IT IS THE LINE THAT SHOWS THE FIGURE. That
+       * row is the one place in the app where text and a control compete for a
+       * width, it has been cut for truncation twice — B81 and B82 — and the
+       * chevron that makes this row a door would come out of the same 145
+       * points. A row of its own costs the line nothing.
+       */}
+      <TermBar
+        label={endedRowLabel(night.endedAt)}
+        value={endedRowValue(night.startedAt, night.endedAt)}
+        onPress={() => router.push('/end-time')}
+        style={styles.rounding}
+      />
     </Screen>
   );
 }

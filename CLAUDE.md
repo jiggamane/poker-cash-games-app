@@ -85,7 +85,7 @@ was a deliberate fix for a named fault, which the diff alone will not.
 
 ```bash
 npm run check      # typecheck + the money tests. Both must pass before a merge.
-npm run check:ui   # the screens: every route against the handoff's rules, all 21
+npm run check:ui   # the screens: every route against the handoff's rules, all 22
                    # sheets across six devices, and a big night played through
                    # checking no figure is cut off. Run it before a merge if you
                    # touched apps/mobile. Needs Playwright.

@@ -25,7 +25,7 @@ The three check columns are what runs in `npm run check:ui`:
   narrow width is there because B3 fitted its button at 393 by half a point and
   hung out of both sides of it at 360. It also holds a screen to the rows its
   board draws — see **Drawn rows** below.
-- **Sheet** — `ui-audit.mjs` pass 2. The 21 sheets across six devices — four
+- **Sheet** — `ui-audit.mjs` pass 2. The 22 sheets across six devices — four
   iPhones and two Androids — against the height cap. Only sheets have one.
 - **Night** — `ui-journeys.mjs`. A whole night played through, checking no
   figure is cut off, outside its card, off the phone, or broken across two
@@ -73,6 +73,7 @@ is settled when it is not.
 | `/club-rules` | push | ✓ | — | — | ☐ |
 | `/count-up` | push | ✓ | — | ✓ | ☐ |
 | `/deductions` | push | ✓ | — | ✓ | ☐ |
+| `/end-time` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/entry` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/games` | push | ✓ | — | ✓ | ☐ |
 | `/groups` | push | ✓ | — | — | ☐ |
@@ -1839,6 +1840,77 @@ back button on its title line and *nothing at all* in the top-right. `Share` on
 a settled night has no destination either — `/share` is one person's share of one
 rule, and the watcher link lives in Settings — so this is not a control being
 withheld, it is a control with nowhere to point.
+
+## The end time, and the one edit a settled night allows
+
+**`/end-time`, `/count-up` and `/settled` — 20 September, B87, and there is no
+cut for any of it.** The owner asked to be able to put the game's end time in by
+hand, because a night whose totals do not add up is finished the next day. What
+the reading found was worse than a missing feature: the end time every night
+recorded was the moment the host tapped Settle, because the function that stamps
+the honest one had never been called by anything but a test. The bug entry has
+the mechanism.
+
+*What was built.* End game stamps the end of the night, which is what
+`setStatus('counting')` was always for. A new sheet, `/end-time`, types a
+correction as a day and a four-digit clock. It is opened from a `TermBar` row on
+E2 Count up and from the same row at the foot of `/settled`.
+
+### Five things decided here against no doc at all
+
+1. **The sheet is not drawn by any handoff, and neither is its copy.** Every
+   string in `end-time.tsx` was written for it. `CLAUDE.md` says a missing
+   string is flagged rather than invented, and this is the flag: the sub-line,
+   the two refusals, the chip captions `THE NIGHT` and `LATER`, and the label
+   `Ended · 03:12` are all this session's words and are the first thing to look
+   at. Nothing else in the change depends on them.
+
+2. **It is a day AND a clock, not a clock.** The whole case is a night that
+   crossed midnight and was settled after a sleep, so `03:12` does not say
+   which `03:12`, and the two readings are twenty-four hours apart on the figure
+   that dates the night in Sessions, on the home card and in the book. The day
+   control offers the night's own date, the morning after, and today — plus
+   whatever day the night is already stamped with, so a control can always
+   express the value it is showing.
+
+3. **The row is on E2 under the rounding bar, not in the header block.**
+   `design/handoff-count-up-header/` retired the two-column card for the signed
+   gap, the percentage and the two sums, with no eyebrow and no verdict strip.
+   Putting a clock in it would be putting back a term that cut removed, on the
+   one block whose whole argument is that nothing in it can truncate. Under the
+   bar it reads as what it is: a term of the night, beside the other one.
+
+4. **On `/settled` it is a row of its own and NOT the meta line**, although the
+   meta line is where the figure is shown. That row is the one place in the app
+   where text and a control compete for a width, it has been cut for truncation
+   twice — B81 and B82 — and the chevron that makes a row a door would come out
+   of the same 145 points. A row at the foot, beside the locked rounding bar,
+   costs the line nothing.
+
+5. **`TermBar` is a second component and not a change to `RoundingBar`.** It is
+   the same geometry deliberately — same 45, same hairlines, same 22pt edge — so
+   the two rows stack without a seam. It was not folded into `RoundingBar`
+   because that component is drawn by three screens and this change is about
+   none of them, and B14's lesson cuts both ways: one component makes the next
+   fix reach every caller, and a shared file edited for a reason that is not its
+   own makes it reach callers that never asked.
+   **Open:** fold `RoundingBar` into `TermBar` next time that file is opened for
+   its own reasons, and the two rows stop being able to drift.
+
+### The one thing here that is genuinely new behaviour
+
+**A settled night can be edited.** Nothing else in this app changes a closed
+record, and the argument for it is narrow enough to be worth stating: an end
+time is not a figure. Nothing recomputes from it, no figure on `/settled` moves
+with it, and the server's guard against editing a settled night is on the
+`settlement` table rather than on the `session` column. `08_end_time.sql`
+asserts that rather than assuming it, along with the other three rules the
+correction rests on — that the column may move on a settled night, may not be
+set on a live one, and may not be cleared.
+
+The rounding bar directly above it stays locked, and the contrast is the point:
+every figure on that screen was derived at the step, and none of them was
+derived at the clock.
 
 ## Sessions and My stats — the book
 

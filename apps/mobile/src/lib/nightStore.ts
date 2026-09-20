@@ -36,6 +36,7 @@ import {
   queuePlayer,
   queueRule,
   queueRuleDelete,
+  queueSessionEnded,
   queueSessionOpen,
   queueSessionPatch,
 } from './sync';
@@ -2354,6 +2355,56 @@ export async function setStatus(status: Night['status']): Promise<void> {
   emit();
   await queueTonight();
   push();
+}
+
+/**
+ * When the cards stopped, typed by hand — B87.
+ *
+ * WHY A HOST HAS TO BE ABLE TO TYPE THIS. `setStatus` above stamps the moment
+ * counting begins and calls it the honest answer, which it is for a night that
+ * is counted and closed on the spot. The night this is for is the other one:
+ * the totals do not add up, nobody is going to resolve it at 3am, and it is
+ * finished the next day. The stamp is then whenever the host got round to it,
+ * and that figure is what dates the night on the home card, in Sessions and in
+ * the book.
+ *
+ * TWO NIGHTS REACH THIS AND THEY GO TO THE SERVER DIFFERENTLY.
+ *
+ * A night still open or counting sends NOTHING from here, for the reason
+ * `queueTonight` gives below: the server checks
+ * `(status = 'settled') = (ended_at is not null)` and would refuse the row,
+ * halting the queue in front of every night behind it. It does not need to
+ * send anything — `closeNight` reads `night.endedAt` and carries it up with the
+ * settlement, which is the path an end time has always taken.
+ *
+ * A SETTLED NIGHT IS THE CORRECTION, and it is the only thing in this app that
+ * changes a closed record. It is allowed because it is not a figure: nothing
+ * recomputes from an end time, the frozen settlement beside it is untouched,
+ * and the server's own guard is on the `settlement` table rather than this
+ * column. `session.ended` is the one operation that may carry it, and only
+ * because a settled night is exactly the condition the constraint wants.
+ *
+ * NO NULL. Clearing the end time of a settled night is refused by that same
+ * constraint, so the sheet does not offer it and this does not take it.
+ */
+export async function setEndedAt(endedAt: string): Promise<void> {
+  if (night === null) return;
+  const db = await getDb();
+
+  await db.runAsync(
+    `UPDATE night SET ended_at = ? WHERE session_id = ?`,
+    endedAt,
+    night.sessionId,
+  );
+  night = { ...night, endedAt };
+  emit();
+
+  /* The screen has it before the network is touched, which is the rule for
+     every write in this file. */
+  if (night.status === 'settled') {
+    await queueSessionEnded({ sessionId: night.sessionId, endedAt });
+    push();
+  }
 }
 
 /**
