@@ -158,6 +158,22 @@ Read it off the sheet either way rather than typing one from memory.
 A link that redirects somewhere not on this list falls back to the project's
 Site URL and dead-ends on a page the phone cannot reach.
 
+⚠ **A DEV-SERVER ENTRY DOES NOT COVER A PUBLISHED UPDATE, and on 20 Sept the
+project had three entries and still could not sign in.** They were
+`pokerclub://auth-callback` and two for a packager on `192.168.0.107` — which
+between them cover a standalone build and a laptop, and cover the way this app
+actually reaches a phone not at all. A published update loads from
+`u.expo.dev`, so its redirect is a `u.expo.dev` address and matches no `exp://<IP>`
+pattern however wide the wildcard on it. Add one, scoped to the project rather
+than to the host:
+
+```
+exp://u.expo.dev/938b4629-9a41-4ddf-bcd8-86bb4e4696b3/**
+```
+
+Scoped, because `exp://u.expo.dev/**` would allow a sign-in token to be
+redirected into any Expo project's link, and there is no reason to allow that.
+
 ⚠ **THIS IS THE STEP B66 WAS, and it fails in the one way that leaves no trace.**
 An address that is not on this list is not rejected — the call returns 200, the
 mail is sent, and `redirect_to` is silently replaced by the Site URL, which on a

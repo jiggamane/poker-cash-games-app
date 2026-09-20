@@ -156,7 +156,14 @@ Found       21 Sept, off two photographs, by the owner
 Locked by   npm run check — authLink.test.ts asserts RedirectNote is not gated
             on `__DEV__`. Verified against the fault: with the guard put back
             it reports "the sign-in sheet hides its redirect outside dev"
-Status      fixed in this commit
+Confirmed   20 Sept, on the phone, on build 333cf56. The sheet named its
+            redirect, it went into the allow-list, and the next link signed
+            the owner in. The dashboard had held three Expo Go entries all
+            along — `pokerclub://auth-callback` and two for a packager on
+            `192.168.0.107` — and NONE for a published update, which loads
+            from `u.expo.dev` and not from anybody's laptop. That is the
+            shape of address this bug was hiding
+Status      fixed in this commit, and seen working on the fault it was found on
 ```
 
 **B66 is a bug that comes back on its own schedule, and this entry is the
@@ -267,7 +274,12 @@ Locked by   npm run check — counted-then-cashed-out.test.ts plays that night
             night and asserts, of each, that `balanceCheck().left` is exactly
             `−reconcile().difference`, that the night settles, and that the
             independent verifier finds nothing
-Status      fixed in this commit
+Confirmed   20 Sept, on the phone, on build 333cf56 — the owner closed the
+            same night. *Next* reached the deductions, and it settled to the
+            six figures below to the lari, with no *Did not check out* band.
+            The stale ₾4,100 count row was never touched: the fix is on the
+            read path, so the record stands as it was typed
+Status      fixed in this commit, and seen working on the night it was found on
 ```
 
 **One stack, counted twice.** Andro's stack was counted at ₾4,100 at 03:16 while
