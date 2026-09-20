@@ -14,6 +14,7 @@ import { SqliteOutboxStore } from './outboxStore';
 import { leavesThePhone } from './queueable';
 import {
   bookPatch,
+  countDelete,
   countRow,
   entryRow,
   paymentDelete,
@@ -213,6 +214,25 @@ export async function queueCount(
     sessionId,
     kind: 'count.upsert',
     payload: { sessionId, playerId, amount },
+  });
+}
+
+/**
+ * That player's stack has been cashed out, so the count of it is spent — B85.
+ *
+ * THE SAME OP ID AS THE UPSERT, deliberately: a count queued on a dead signal
+ * and then cashed out before the queue drains must not reach the server as a
+ * stack still on the table. One id per player per night means the delete
+ * REPLACES the pending write rather than racing it.
+ */
+export async function queueCountCleared(sessionId: string, playerId: PlayerId): Promise<void> {
+  if (!isUuid(sessionId) || !isUuid(playerId)) return;
+
+  await enqueueOp<{ sessionId: string; playerId: PlayerId }>(outbox, {
+    id: `count:${sessionId}:${playerId}`,
+    sessionId,
+    kind: 'count.delete',
+    payload: { sessionId, playerId },
   });
 }
 
@@ -467,6 +487,8 @@ async function send(item: OutboxItem): Promise<void> {
     }
     case 'count.upsert':
       return write(countRow(item.payload as CountPayload));
+    case 'count.delete':
+      return remove(countDelete(item.payload as { sessionId: string; playerId: PlayerId }));
     case 'session.close':
       return sendClose(item.payload as ClosePayload);
     case 'book.upsert': {

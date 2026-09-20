@@ -296,6 +296,12 @@ export default function CountUp() {
           * typed wrong is retyped. Tapping the slab reopens the same keypad
           * with the same prefill and overwrites it.
           *
+          * ⚠ THE PREFILL HALF OF THAT SENTENCE WAS NOT TRUE UNTIL B85. The
+          * sheet opened at ₾0 however many times a stack had been counted, so
+          * a host checking a figure was one Save away from writing zero over
+          * it. `log.tsx` reads the stored count now; the first key still
+          * replaces the whole figure, so a real re-count is as fast as it was.
+          *
           * WITHOUT IT, E5's `Fix` LEADS NOWHERE. Out of balance is the screen
           * that names a difference and offers to go and fix it, and the fix is
           * always a count: it hands the host back to this screen with every row

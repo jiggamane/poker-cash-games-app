@@ -191,6 +191,78 @@ The doc now says what the code does. **All three were built the next day** —
 in, and on a backoff timer while anything is waiting, with the policy in
 `retrySchedule.ts`.
 
+### B85 — a stack counted and then cashed out was counted twice, and the night could not be closed
+
+```
+Screen      E2 Count up → E3 Deductions, and the count sheet behind both
+Seen        Count up: `✓ Balanced · ₾31,000 in play`, `STILL TO COUNT · 0`,
+            six rows, every figure right. *Next* → **Not yet**, whose copy is
+            "No rule can take its share until every stack has been counted".
+            Back: balanced. Forward: not yet. The night could not be closed at
+            all. And re-opening a counted player's sheet showed `₾0` over
+            `Gega's night −₾6,000`, one Save away from writing a zero stack
+            over the ₾4,700 the list behind it was showing
+Expected    the two screens to agree, and the night to settle
+Found       20 Sept, off five photographs of a real evening, by the owner
+Locked by   npm run check — counted-then-cashed-out.test.ts plays that night
+            entry by entry and settles it; seating.test.ts walks six shapes of
+            night and asserts, of each, that `balanceCheck().left` is exactly
+            `−reconcile().difference`, that the night settles, and that the
+            independent verifier finds nothing
+Status      fixed in this commit
+```
+
+**One stack, counted twice.** Andro's stack was counted at ₾4,100 at 03:16 while
+he was still in his seat. At 03:24 he cashed out — for that same ₾4,100 — and
+the count stayed behind him in `finalCounts`, which is correct and is the point:
+it is what the host typed, and nothing in this app rewrites it.
+
+From there the app held two opinions about that ₾4,100. `balanceCheck` — the
+block on Count up — dropped it, and its own comment says exactly why: *"A count
+left behind on somebody who has since cashed out would be counted twice — once
+in their cash-out and once here."* `reconcile` — the close gate — added it. So
+the block said balanced and the gate said the night was ₾4,100 over, `settle()`
+threw `ReconciliationError`, and `/deductions` caught the throw and drew the
+one screen it has for a night that is not counted yet.
+
+**The copy on that screen is what made it unescapable.** It is accurate about
+the state the engine reported and wrong about the world: every stack HAD been
+counted, so "go back and count them" sent the host to a screen that said
+Balanced, which sent them forward again. `deductions.tsx` already carried a
+comment about that loop — *"That loop is how this arrived at the end of a real
+evening"* — written for the other way in, a rule the engine refuses. This is the
+same loop reached from the count side.
+
+**`endedWith` had it too, and that one pays people.** Cash-outs plus the count,
+unconditionally: Andro would have ended the night holding ₾8,200 off a ₾4,100
+stack, ₾4,100 up on a night he finished ₾2,100 up. The gate threw first, so
+nobody was paid wrong — the bug that blocked the close is the bug that hid the
+bug that would have mispaid the room.
+
+**The rule, and it was already written down.** `docs/design-handoff-request.md` 3d,
+answered by the owner: *"If a player cashes out and later buys back in, they end
+the night holding what they cashed out plus whatever is in front of them at the
+end."* One stack, counted once, and the count counts only while they are holding
+it. `seatedIn()` in `ledger.ts` is that sentence as code — last buy-in after
+last cash-out, by `seq` — and `reconcile`, `endedWith` and the app's
+`standingsOf` all read it now. It was three implementations and an argument
+before; `balanceCheck` still takes the answer as a parameter, because `/watch`
+passes an empty one on purpose.
+
+**Two more things fell out of the walk.** A voided cash-out never happened, so
+it must not take the player off the table — the first cut of `seatedIn` read
+past the `voided` flag (`resolveLedger` flags those entries rather than dropping
+them, so the struck-through row stays drawable) and dropped a seated player's
+stack instead. And `cashOut` now forgets the count of the stack that has left:
+the engine reads past a stale count, but a player who cashes out and BUYS BACK
+IN is seated again, and the count from the sitting before would be taken for the
+stack now in front of them. It is a delete and not an upsert of zero, because
+zero is a real count — the busted player whose stack is gone.
+
+**The record was not touched.** No entry was rewritten, voided or replaced; the
+ledger of that evening is exactly what it was. What changed is how the count map
+is READ, plus one row that is no longer left behind on the next night.
+
 ### B84 — Settings said "On this phone" whether or not it was anywhere else
 
 ```
