@@ -19,6 +19,7 @@ import { accountLine, type BackupState } from '../src/lib/accountLine';
 import * as Clipboard from 'expo-clipboard';
 import { readBackup, restoreBackup, useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
+import { droppedOn, takeBack } from '../src/lib/handover';
 
 /**
  * Settings — GR7. Four sections: the group, the money, the players, the exits.
@@ -57,6 +58,13 @@ export default function Settings() {
   useEffect(() => {
     void syncStatus().then(setBackup).catch(() => setBackup(null));
   });
+
+  /* Changes made here to a night after it moved, which could never be sent. */
+  const [dropped, setDropped] = useState(0);
+  useEffect(() => {
+    if (night === null) return;
+    void droppedOn(night.sessionId).then(setDropped).catch(() => setDropped(0));
+  }, [night]);
 
   /*
    * WHO IS HOLDING THIS PHONE — B91, and it is not `session !== null`.
@@ -135,6 +143,21 @@ export default function Settings() {
       setFetched(explainServerError(e));
     } finally {
       setSharing(false);
+    }
+  }
+
+  /**
+   * The host's way back for a night passed to another phone — no code, because
+   * the case it is for is the one where that phone cannot give one. The server
+   * refuses anybody but the group's host, and that refusal is shown as it comes.
+   */
+  async function reclaim() {
+    if (night === null) return;
+    try {
+      await takeBack(night.sessionId);
+      setFetched('The night is back on this phone.');
+    } catch (e) {
+      setFetched(explainServerError(e));
     }
   }
 
@@ -384,6 +407,35 @@ export default function Settings() {
             {night !== null && (
               <Action label="Stop sharing" onPress={() => void unshare()} />
             )}
+            {/*
+             * PASSING THE BOOK — `0016_pass_the_book.sql`, `handover.ts`. One
+             * phone records a night; these move which one. NOT DRAWN: the rows
+             * and their copy are mine and flagged in `docs/screens.md`.
+             *
+             * Pass is offered on a night this phone records and that is still
+             * being played. Take back is offered on a night another phone
+             * records, and the server decides whether this account may — only
+             * the group's host. Take over is always here: the code is what
+             * says which night.
+             */}
+            {night !== null && !night.seeded && night.hold !== 'away' && night.status !== 'settled' && (
+              <Action label="Pass the book" onPress={() => router.push('/pass-book')} />
+            )}
+            {night !== null && night.hold === 'away' && (
+              <>
+                {/* ONE TEXT NODE, for the reason `hand-over.tsx` gives: a
+                    fragment either side of an interpolation wraps on its own. */}
+                <Text style={[styles.note, { color: t.muted }]}>
+                  {`${night.tableName} is being recorded on another phone. This one follows along.${
+                    dropped > 0
+                      ? ` ${dropped} ${dropped === 1 ? 'change' : 'changes'} made here after it moved could not be sent.`
+                      : ''
+                  }`}
+                </Text>
+                <Action label="Take the night back" onPress={() => void reclaim()} />
+              </>
+            )}
+            <Action label="Take over a night" onPress={() => router.push('/take-over')} />
             {fetched !== null && <Text style={[styles.note, { color: t.muted }]}>{fetched}</Text>}
             {/* Every verdict EXCEPT the one about this phone's sign-in: that
                 one is the status line at the top of this section now, and

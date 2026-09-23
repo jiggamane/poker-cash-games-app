@@ -5,7 +5,7 @@
 # `npm run check` proves the arithmetic. It cannot see a screen: every test it
 # runs is over `packages/core` or `src/lib`, and none of the 37 screens has one.
 # The tools that CAN see a screen already exist — `ui-audit.mjs` holds every
-# route to the handoff's stated rules and measures all 22 sheets across six
+# route to the handoff's stated rules and measures all 24 sheets across six
 # devices, `ui-journeys.mjs` plays a big night through and checks that no figure
 # is cut off — and both already exit non-zero when they find something.
 #
@@ -126,7 +126,7 @@ fi
 failed=0
 
 echo
-echo "── every route against the handoff's rules, and 22 sheets across 6 devices ──"
+echo "── every route against the handoff's rules, and 24 sheets across 6 devices ──"
 node scripts/ui-audit.mjs || failed=1
 
 echo

@@ -24,6 +24,16 @@ export function useIsAdmin(): boolean {
   const club = useClub();
   const night = useNight();
 
+  /*
+   * A NIGHT PASSED TO ANOTHER PHONE is read here, whoever this phone is. The
+   * store refuses the write anyway (`NightIsAwayError`); this is what removes
+   * the control rather than letting it throw. See `hold.ts`.
+   */
+  if (night?.hold === 'away') return false;
+  /* And the phone it was passed to records it, whatever the club's roster says
+     about who the admin is. */
+  if (night?.hold === 'here') return true;
+
   const admin = club?.members.find((m) => m.standing === 'admin');
   const meId = night?.meId;
   return admin === undefined || meId === undefined || admin.id === meId;

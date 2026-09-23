@@ -219,6 +219,16 @@ export class SqliteOutboxStore implements OutboxStore {
     await db.runAsync(`DELETE FROM outbox_op WHERE id IN (${placeholders})`, ...ids);
   }
 
+  /** How many operations are waiting for one night — the pass sheet's gate. */
+  async countFor(sessionId: string): Promise<number> {
+    const db = await getDb();
+    const row = await db.getFirstAsync<{ n: number }>(
+      `SELECT COUNT(*) AS n FROM outbox_op WHERE session_id = ?`,
+      sessionId,
+    );
+    return row?.n ?? 0;
+  }
+
   async forgetSession(sessionId: string): Promise<void> {
     const db = await getDb();
     await db.withTransactionAsync(async () => {
