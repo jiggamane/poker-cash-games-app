@@ -176,10 +176,6 @@ export default function SettleUp() {
       lede={lede}
       footer={
         <>
-          {/* Closed on the phone recording it — `hold.ts`. The store would
-              refuse the close anyway; the control is taken off rather than
-              left to do nothing. */}
-          {night.hold !== 'away' && (
           <Button
             label="Close the session"
             variant="primary"
@@ -212,7 +208,6 @@ export default function SettleUp() {
               );
             }}
           />
-          )}
           {/*
             Share and Export used to sit here with no onPress at all — two
             controls that did nothing, on the last screen of the night, at the

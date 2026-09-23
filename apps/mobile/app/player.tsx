@@ -326,9 +326,7 @@ export default function PlayerCard() {
          * read, so a correction here would silently move a figure five people
          * agreed on. One way out, and it is the door.
          */
-        /* And a night another phone is recording is read here, never written:
-           the same one way out. See `hold.ts`. */
-        nightSettlement !== null || night.hold === 'away' ? (
+        nightSettlement !== null ? (
           <Button label="Close" variant="secondary" onPress={() => router.back()} />
         ) : seated ? (
           <>
@@ -441,7 +439,7 @@ export default function PlayerCard() {
           <PressableOrPlain
             key={r.key}
             press={
-              nightSettlement === null && night.hold !== 'away' && r.entryId !== undefined
+              nightSettlement === null && r.entryId !== undefined
                 ? () => router.push({ pathname: '/entry', params: { id: r.entryId } })
                 : undefined
             }

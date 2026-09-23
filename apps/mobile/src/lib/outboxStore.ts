@@ -219,55 +219,6 @@ export class SqliteOutboxStore implements OutboxStore {
     await db.runAsync(`DELETE FROM outbox_op WHERE id IN (${placeholders})`, ...ids);
   }
 
-  /** Everything queued for one night, oldest first — what a phone hands in. */
-  async forSession(sessionId: string): Promise<OutboxItem[]> {
-    const db = await getDb();
-    const rows = await db.getAllAsync<Row>(
-      `SELECT * FROM outbox_op WHERE session_id = ? ORDER BY op_order ASC`,
-      sessionId,
-    );
-    return rows.map(toItem);
-  }
-
-  /**
-   * Oldest first, but only for these nights — the queue as a phone with no
-   * account sees it. See `drain` in `sync.ts`: such a phone may send the night
-   * it was handed and nothing else, and everything else waits, in order, for an
-   * account.
-   */
-  async pendingIn(sessionIds: readonly string[], limit: number): Promise<OutboxItem[]> {
-    if (sessionIds.length === 0) return [];
-    const db = await getDb();
-    const marks = sessionIds.map(() => '?').join(',');
-    const rows = await db.getAllAsync<Row>(
-      `SELECT * FROM outbox_op WHERE session_id IN (${marks}) ORDER BY op_order ASC LIMIT ?`,
-      ...sessionIds,
-      limit,
-    );
-    return rows.map(toItem);
-  }
-
-  async countIn(sessionIds: readonly string[]): Promise<number> {
-    if (sessionIds.length === 0) return 0;
-    const db = await getDb();
-    const marks = sessionIds.map(() => '?').join(',');
-    const row = await db.getFirstAsync<{ n: number }>(
-      `SELECT COUNT(*) AS n FROM outbox_op WHERE session_id IN (${marks})`,
-      ...sessionIds,
-    );
-    return row?.n ?? 0;
-  }
-
-  /** How many operations are waiting for one night — the pass sheet's gate. */
-  async countFor(sessionId: string): Promise<number> {
-    const db = await getDb();
-    const row = await db.getFirstAsync<{ n: number }>(
-      `SELECT COUNT(*) AS n FROM outbox_op WHERE session_id = ?`,
-      sessionId,
-    );
-    return row?.n ?? 0;
-  }
-
   async forgetSession(sessionId: string): Promise<void> {
     const db = await getDb();
     await db.withTransactionAsync(async () => {

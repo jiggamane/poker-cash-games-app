@@ -6,15 +6,13 @@ import {
   type MoneyRule,
   type Money,
   type OutboxItem,
-  type OutboxStore,
   type PlayerId,
   type RoundingMode,
 } from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { SqliteOutboxStore } from './outboxStore';
 import { leavesThePhone } from './queueable';
-import { canSend, whoIs } from './who';
-import { heldBookFor, heldHere, holdOf, noteHandedIn, setHold, type HoldRow } from './hold';
+import { canSend } from './who';
 import {
   bookPatch,
   countDelete,
@@ -488,80 +486,17 @@ async function run(): Promise<FlushResult> {
    * book behind a refusal it can never get past.
    */
   const { data } = await supabase.auth.getSession();
-
-  /*
-   * A PHONE WITH NO ACCOUNT SENDS ONE THING: the night it was handed with a
-   * code (`0017_nothing_lost.sql`). The server lets an anonymous caller write
-   * exactly the nights passed to it, and refuses everything else — which is
-   * B91's hazard, a refusal parking the whole queue. So such a phone drains a
-   * view of the queue holding only those nights, in their order, and leaves
-   * everything else waiting for an account.
-   */
-  const store = canSend(data.session)
-    ? outbox
-    : whoIs(data.session).kind === 'anonymous'
-      ? await handedNightsOnly()
-      : null;
-  if (store === null) return { pushed: 0, remaining: await outbox.count() };
+  if (!canSend(data.session)) return { pushed: 0, remaining: await outbox.count() };
 
   books.clear(); // re-resolved per drain, in case the account changed
 
-  return flushOutbox(store, async (items) => {
+  return flushOutbox(outbox, async (items) => {
     // Sequentially, in order, inside the batch. A batch may hold a session and
     // the entries that depend on it, and the server would refuse the second
     // before the first. Anything already sent is an idempotent upsert, so a
     // failure halfway is retried from the top of the batch without harm.
     for (const item of items) await send(item);
   });
-}
-
-/** The queue, narrowed to the nights this phone was handed. See `run`. */
-async function handedNightsOnly(): Promise<OutboxStore> {
-  const ids = await heldHere();
-  const view: OutboxStore = {
-    add: (item) => outbox.add(item),
-    pending: (limit) => outbox.pendingIn(ids, limit),
-    remove: (entryIds) => outbox.remove(entryIds),
-    markAttempt: (id, error) => outbox.markAttempt(id, error),
-    highestSeq: (sessionId) => outbox.highestSeq(sessionId),
-    count: () => outbox.countIn(ids),
-    forgetSession: (sessionId) => outbox.forgetSession(sessionId),
-  };
-  return view;
-}
-
-/**
- * HAND IN what this phone has queued for a night it no longer writes — 0017.
- *
- * The server keeps each operation exactly as it was queued, beside the night,
- * waiting; the phone recording the night adds it or leaves it out, and either
- * way it stays on the server saying which. Only once the server has them are
- * they taken out of this phone's queue. A failure leaves them queued, and the
- * queue halts on them — correctly, because the only thing that fails here is
- * the network, and the next drain hands them in.
- *
- * Returns how many were handed in.
- */
-export async function handIn(sessionId: string): Promise<number> {
-  const items = await outbox.forSession(sessionId);
-  if (items.length === 0) return 0;
-
-  const { error } = await supabase.rpc('hand_in_late_changes', {
-    target_session_id: sessionId,
-    changes: items.map((i) => ({
-      op_id: i.id,
-      kind: i.kind,
-      payload: i.payload,
-      // An entry carries the moment it happened; anything else is placed at
-      // the moment it was handed in.
-      queued_at: (i.payload as { occurredAt?: string } | null)?.occurredAt ?? null,
-    })),
-  });
-  if (error) throw new Error(`hand in: ${error.message}`);
-
-  await outbox.remove(items.map((i) => i.id));
-  await noteHandedIn(sessionId, items.length);
-  return items.length;
 }
 
 async function send(item: OutboxItem): Promise<void> {
@@ -572,72 +507,14 @@ async function send(item: OutboxItem): Promise<void> {
   // it. The night itself is untouched and still works on the phone.
   if (!isUuid(item.sessionId)) return;
 
-  /*
-   * A NIGHT ANOTHER PHONE IS RECORDING. See `hold.ts`. Its ledger refuses this
-   * phone, and a refusal halts the queue in front of every night behind it —
-   * so whatever is queued for it is HANDED IN instead (0017), kept on the
-   * server for the phone recording the night to add. The night store refuses
-   * to make anything new for it; this is for what was already queued when the
-   * night moved.
-   */
-  const held = await holdOf(item.sessionId);
-  if (held?.hold === 'away') {
-    await handIn(item.sessionId);
-    return;
-  }
-
-  try {
-    await deliver(item, held);
-  } catch (e) {
-    if (held !== null && (await movedAway(item.sessionId))) return;
-    throw e;
-  }
-}
-
-/**
- * Was this refusal the night moving — taken back by its host while this phone
- * still had something to send?
- *
- * Asked only of a night that has been part of a handover, and only after a send
- * has failed, so an ordinary night pays nothing for it. If the server says the
- * night is no longer this phone's, the night is marked away and everything
- * queued for it is handed in (`handIn`) rather than left to halt the queue. Any
- * other answer, including no answer at all, leaves the failure to be retried.
- */
-async function movedAway(sessionId: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc('night_hold', { target_session_id: sessionId });
-  if (error !== null || data === null) return false;
-  if ((data as { yours: boolean }).yours) return false;
-
-  await setHold(sessionId, 'away');
-  try {
-    await handIn(sessionId);
-  } catch {
-    // Marked away, so the next drain hands them in; this one reports the
-    // original failure.
-    return false;
-  }
-  return true;
-}
-
-async function deliver(item: OutboxItem, held: HoldRow | null): Promise<void> {
-  /*
-   * The book a row belongs in. For a night this phone was PASSED, it is the one
-   * the server named when the code was redeemed: this account hosts no book of
-   * that name, and `ensureBook` looking it up by name would find nothing and
-   * make a second one. Club-scoped operations have no hold and resolve as ever.
-   */
-  const bookFor = (groupName: string, previousName?: string): Promise<string> =>
-    held?.bookId != null ? Promise.resolve(held.bookId) : ensureBook(groupName, previousName);
-
   switch (item.kind) {
     case 'session.open': {
       const p = item.payload as SessionOpenPayload;
-      return write(sessionRow(p, await bookFor(p.groupName)));
+      return write(sessionRow(p, await ensureBook(p.groupName)));
     }
     case 'player.upsert': {
       const p = item.payload as PlayerPayload;
-      return write(playerRow(p, await bookFor(p.groupName)));
+      return write(playerRow(p, await ensureBook(p.groupName)));
     }
     case 'seat.upsert':
       return write(seatRow(item.payload as SeatPayload));
@@ -645,7 +522,7 @@ async function deliver(item: OutboxItem, held: HoldRow | null): Promise<void> {
       return write(entryRow(item.sessionId, item.payload as EntryPayload));
     case 'rule.upsert': {
       const p = item.payload as RulePayload;
-      return write(ruleRow(p, await bookFor(p.groupName)));
+      return write(ruleRow(p, await ensureBook(p.groupName)));
     }
     case 'count.upsert':
       return write(countRow(item.payload as CountPayload));
@@ -655,7 +532,7 @@ async function deliver(item: OutboxItem, held: HoldRow | null): Promise<void> {
       return sendClose(item.payload as ClosePayload);
     case 'book.upsert': {
       const p = item.payload as BookPayload;
-      return patch(bookPatch(p, await bookFor(p.groupName, p.previousName)));
+      return patch(bookPatch(p, await ensureBook(p.groupName, p.previousName)));
     }
     case 'session.patch':
       return patch(sessionPatch(item.payload as SessionPatchPayload));
@@ -665,7 +542,7 @@ async function deliver(item: OutboxItem, held: HoldRow | null): Promise<void> {
       return patch(playerTermsPatch(item.payload as PlayerTermsPayload));
     case 'rule.delete': {
       const p = item.payload as RuleDeletePayload & { groupName: string };
-      return remove(ruleDelete(p, await bookFor(p.groupName)));
+      return remove(ruleDelete(p, await ensureBook(p.groupName)));
     }
     case 'payment.set': {
       const p = item.payload as PaymentPayload;
@@ -732,14 +609,6 @@ async function ensureBook(groupName: string, previousName?: string): Promise<str
   const { data: auth } = await supabase.auth.getSession();
   const hostId = auth.session?.user.id;
   if (hostId === undefined) throw new Error('Not signed in');
-
-  /* A group whose night this phone was passed: its book is the host's, and
-     this account must not make one of its own. See `heldBookFor`. */
-  const held = await heldBookFor(groupName);
-  if (held !== null) {
-    books.set(groupName, held);
-    return held;
-  }
 
   const names = previousName === undefined ? [groupName] : [groupName, previousName];
   const { data: existing, error } = await supabase

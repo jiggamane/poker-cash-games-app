@@ -101,15 +101,6 @@ export default function CountUp() {
    * out cashed out for nothing and has nothing left to count — waiting for one
    * would block the close forever.
    */
-  /*
-   * A NIGHT ANOTHER PHONE IS RECORDING is counted there, not here — see
-   * `hold.ts`. The screen still reads, because the phone that passed the night
-   * follows it; every control that would write is taken off rather than left to
-   * be refused by the store: no row opens a count, the two bars lose their
-   * chevrons, and the footer says where the night is instead of offering Next.
-   */
-  const away = night.hold === 'away';
-
   const standings = standingsOf(night, ledger).filter((s) => s.played);
   const seated = standings.filter((s) => s.atTable);
 
@@ -203,17 +194,11 @@ export default function CountUp() {
               into "Where everyone stands", which drew these same rows in this
               same order one tap away; the two finished groups rank in place
               now, so there is nothing behind the link to see. */}
-          {away ? (
-            <Text style={[styles.away, { color: t.muted }]}>
-              Being recorded on another phone. Settings → Take the night back.
-            </Text>
-          ) : (
-            <Button
-              label="Next"
-              variant={ready ? 'primary' : 'blocked'}
-              onPress={() => router.push(settled ? '/deductions' : '/settle-up')}
-            />
-          )}
+          <Button
+            label="Next"
+            variant={ready ? 'primary' : 'blocked'}
+            onPress={() => router.push(settled ? '/deductions' : '/settle-up')}
+          />
         </>
       }
     >
@@ -234,9 +219,7 @@ export default function CountUp() {
        */}
       <RoundingBar
         mode={night.roundingMode}
-        {...(away
-          ? {}
-          : { onPress: () => router.push({ pathname: '/rounding', params: { scope: 'night' } }) })}
+        onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
         style={styles.rounding}
       />
 
@@ -264,7 +247,7 @@ export default function CountUp() {
       <TermBar
         label={endedRowLabel(night.endedAt)}
         value={endedRowValue(night.startedAt, night.endedAt)}
-        {...(away ? {} : { onPress: () => router.push('/end-time') })}
+        onPress={() => router.push('/end-time')}
         /* STACKED DIRECTLY UNDER THE BAR ABOVE, so it drops its own top rule:
            two bars that each draw a hairline top and bottom put two of them
            between these rows, which reads as a heavier divider than the ones
@@ -318,12 +301,9 @@ export default function CountUp() {
                   fact={`in ${formatToFit(p.boughtIn, ROW_FITS)}`}
                   last={i === toCount.length - 1}
                   accessibilityLabel={`Count ${p.name}`}
-                  {...(away
-                    ? {}
-                    : {
-                        onPress: () =>
-                          router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } }),
-                      })}
+                  onPress={() =>
+                    router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } })
+                  }
                   right={
                     <>
                       <Text style={[styles.waiting, { color: t.dim }]}>—</Text>
@@ -384,7 +364,7 @@ export default function CountUp() {
                   }
                   result={resultBeforeDeductions(p.boughtIn, endedWith(p))}
                   fits={ROW_FITS}
-                  {...(p.atTable && !away
+                  {...(p.atTable
                     ? {
                         accessibilityLabel: `Count ${p.name} again`,
                         opens: () =>
@@ -1050,7 +1030,6 @@ function Ranked({
 const ROW_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
-  away: { ...type.footnote, textAlign: 'center', paddingVertical: 12 },
   /* Under the block's own bottom margin, above the first group's label. */
   rounding: { marginTop: 4 },
   stackedBar: { borderTopWidth: 0 },

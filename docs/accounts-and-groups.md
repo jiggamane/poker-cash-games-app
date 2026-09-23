@@ -119,12 +119,10 @@ people who know each other. Not fine for strangers.
 
 Beyond the two gates:
 
-- **No second writer for the group — but a night can be passed.** Since
-  `0016_pass_the_book.sql` a night's writer is `session.writer_user_id`, moved by
-  a ten-character code or by the host taking it back, so somebody else can record
-  tonight. The group itself still has one host: a **co-host** who can start
-  nights and edit the roster on their own still needs a `book_host` join table
-  and the book-level host policies re-pointed at it.
+- **No second writer.** `book.host_user_id` is one column. "Sharing access to the
+  group" today means read access — member or watcher. A **co-host** needs a
+  `book_host` join table and the host policies re-pointed at it. This is the
+  largest product gap against what you asked for, and it is not a gate you flip.
 - **No account upgrade.** Anonymous → email, keeping the user id.
 - **No account deletion**, no sign-out-everywhere. Both wanted before a store.
 - **Anonymous users accumulate**, one per device, for ever, with **no captcha**.
