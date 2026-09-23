@@ -139,6 +139,27 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B94 — two faults the first run of the handover in a browser found
+
+```
+Screen      /settings and Tonight on a phone whose night was taken back;
+            /late-changes
+Seen        23 Sept, driving the real web build through a handover against a
+            stubbed server (the screenshots the owner asked for):
+            1. the host took the night back while the dealer's phone had no
+               signal; the queue marked it away in SQLite, but the store the
+               screens read never heard — the phone went on offering Pass the
+               book and would have taken more rebuys (handed in later, so not
+               lost, but the screen said the wrong thing)
+            2. a guest added on the other phone read "Someone bought in" on
+               /late-changes, because the name lived in the row above
+Expected    1. away on the screen within one look (15 s) of the server saying so
+            2. "Mara bought in"
+Locked by   ⚠ neither is in a check yet — both were found and re-verified by
+            the same browser run, which is not in `check:ui`
+Status      fixed in this commit — NOT yet seen on a phone
+```
+
 ### B93 — what a spend was for never reached the server
 
 ```

@@ -56,6 +56,14 @@ export default function LateChanges() {
     void load();
   }, [load]);
 
+  /* Everybody the other phone added, by id, for the rows that name them. */
+  const joined = new Map(
+    (rows ?? [])
+      .filter((r) => r.kind === 'player.upsert')
+      .map((r) => r.payload.player as { id: string; name: string } | undefined)
+      .filter((x): x is { id: string; name: string } => x !== undefined)
+      .map((x) => [x.id, x.name]),
+  );
   const waiting = (rows ?? []).filter((r) => r.status === 'waiting');
   const decided = (rows ?? []).filter((r) => r.status !== 'waiting');
   const settled = night?.status === 'settled';
@@ -130,7 +138,7 @@ export default function LateChanges() {
               style={[styles.row, { borderBottomColor: t.hairline }]}
             >
               <View style={styles.rowText}>
-                <Text style={[styles.what, { color: t.text }]}>{describe(r, night)}</Text>
+                <Text style={[styles.what, { color: t.text }]}>{describe(r, night, joined)}</Text>
                 <Text style={[styles.when, { color: t.muted }]}>
                   {can ? clock(r.queuedAt) : `${clock(r.queuedAt)} · a setting, redo it by hand if it is wanted`}
                 </Text>
@@ -148,7 +156,7 @@ export default function LateChanges() {
         {decided.map((r) => (
           <View key={r.id} style={[styles.row, { borderBottomColor: t.hairline }]}>
             <View style={styles.rowText}>
-              <Text style={[styles.what, { color: t.muted }]}>{describe(r, night)}</Text>
+              <Text style={[styles.what, { color: t.muted }]}>{describe(r, night, joined)}</Text>
               <Text style={[styles.when, { color: t.muted }]}>
                 {`${clock(r.queuedAt)} · ${r.status === 'added' ? 'added' : 'left out'}`}
               </Text>
@@ -180,9 +188,18 @@ const SETTING: Record<string, string> = {
 };
 
 /** One line for one change, in the words Tonight uses for the same thing. */
-function describe(r: LateChange, night: ReturnType<typeof useNight>): string {
+function describe(
+  r: LateChange,
+  night: ReturnType<typeof useNight>,
+  joined: ReadonlyMap<string, string>,
+): string {
   const p = r.payload;
-  const who = (id: unknown) => nameOf(night, typeof id === 'string' ? id : null);
+  /* A guest who joined on the other phone is in the list above their buy-in,
+     not yet at this table — so their name comes from that row. B94. */
+  const who = (id: unknown) =>
+    typeof id === 'string' && joined.has(id) && !night?.players.some((x) => x.id === id)
+      ? joined.get(id)!
+      : nameOf(night, typeof id === 'string' ? id : null);
   switch (r.kind) {
     case 'entry.append': {
       const amount = formatMoney(Number(p.amount ?? 0) as Money);
