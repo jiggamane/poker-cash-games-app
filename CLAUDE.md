@@ -96,7 +96,7 @@ in the middle of it. Say those plainly and stop.
 
 ```bash
 npm run check      # typecheck + the money tests. Both must pass before a merge.
-npm run check:ui   # the screens: every route against the handoff's rules, all 22
+npm run check:ui   # the screens: every route against the handoff's rules, all 24
                    # sheets across six devices, and a big night played through
                    # checking no figure is cut off. Run it before a merge if you
                    # touched apps/mobile. Needs Playwright.

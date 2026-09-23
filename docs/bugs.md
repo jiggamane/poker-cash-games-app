@@ -139,6 +139,34 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B92 — a night pulled off the server forgot who paid for a spend
+
+```
+Screen      none directly — `pull.ts` `toEntry`, and so every night a claimed
+            member reads back, and the night a phone is passed (0016)
+Seen        not seen; found reading the pull while building Pass the book.
+            `ledger_entry` is read with `*` and `toEntry` mapped nine of its
+            columns: `covered_by` and `spend_group` were dropped on the floor
+Expected    a spend the piggy bank paid for arrives as one. The engine reads
+            `coveredBy === 'kitty'` to take it out of the piggy bank
+            (`packages/core/src/ledger.ts`), so without it the figure moves
+Found       23 Sept, while making the pull the thing a phone taking over a
+            night continues its ledger from — where a dropped column is a
+            figure that changes hands at the table
+Locked by   the shared mapping: `pullBook` and `pullNight` now cut a night out
+            of the same rows through one function (`toImported`), so a column
+            carried for one is carried for both. ⚠ No test pins the two columns
+            yet — `pull.test.ts` asserts the READ lists, not what is kept
+Status      fixed in this commit — NOT yet seen on a phone. Nights already
+            pulled keep what they froze with; a reinstall reads them afresh
+```
+
+Since 0004 a spend has four shapes and two of them have no payer: one the piggy
+bank covered and one nobody has been named for. The send side has carried both
+columns since 0004 — `entryRow`'s own comment is about exactly this — and the
+read side never did. A member's frozen copy of a night with a piggy-bank pizza
+was therefore settled at figures the table was not paid on.
+
 ### B91 — a watch link read as an account, and the queue believed it
 
 ```

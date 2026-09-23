@@ -227,6 +227,19 @@ export default function Session() {
          * uncovered on purpose — a second rebuy is one tap away while the bar
          * is up.
          */
+        night.hold === 'away' ? (
+          /*
+           * A NIGHT ANOTHER PHONE IS RECORDING has no dock: every control on it
+           * records money, and this phone does not. The table above stays, and
+           * `useHoldWatch` keeps it current. NOT DRAWN — the line is mine and
+           * flagged in `docs/screens.md`.
+           */
+          <View style={styles.away}>
+            <Text style={[styles.awayLine, { color: t.muted }]}>
+              Being recorded on another phone. Settings → Take the night back.
+            </Text>
+          </View>
+        ) : (
         <>
           <RebuyBar />
           <Dock
@@ -287,6 +300,7 @@ export default function Session() {
             }}
           />
         </>
+        )
       }
     >
       {/*
@@ -560,6 +574,9 @@ const goneFact = (at: string | undefined, cashedOut: Money): string => {
 
 const styles = StyleSheet.create({
   body: { flex: 1 },
+
+  away: { paddingHorizontal: space.page, paddingTop: 12, paddingBottom: 12 },
+  awayLine: { ...type.footnote, textAlign: 'center' },
 
   tag: {
     flexDirection: 'row',

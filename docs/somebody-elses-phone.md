@@ -112,12 +112,33 @@ Two preconditions and one warning:
 - **What moves is the money rules, settle-up, invites and the exits.** Nothing
   already settled changes hands. Every night keeps the host it was recorded by.
 
-**And the one thing handing over admin does not do: it does not move tonight.**
-One device writes a night — `ledger_entry` is unique on `(session_id, seq)`, and
-a second phone opening the same night reads it and does not write
-(`storage-and-sync.md` § The one real limit). So if you want somebody else to
-run the game, **they open the night on their phone at the start of the evening**
-and record it there; you cannot pass the book across the table at midnight.
+**Handing over admin does not move tonight.** That is a separate act, next.
+
+---
+
+## Step 3½ · Let them run tonight
+
+One phone records a night. To have somebody else record the rest of it — you
+are leaving early, or they are dealing and you are playing — **pass the book**:
+
+1. On the phone recording it: **Settings → Pass the book**. It shows ten
+   characters. Anything not yet on the server has to get there first; the sheet
+   says so if it has not.
+2. On theirs, **signed in**: **Settings → Take over a night**, type the ten.
+   They land on Tonight with the whole night on it, and record from there.
+3. Your phone follows along and records nothing on that night until it comes
+   back.
+
+It comes back the same way — they pass it, you type the code — or, if their
+phone is flat or they have gone home, **Settings → Take the night back** on
+yours, no code needed. Only the host of the group can do that. Anything their
+phone had recorded and not yet sent is lost when you do; their phone says how
+many.
+
+The code works while the sheet showing it is open, once, and for ten minutes at
+most. Their phone has to be **signed in with an account**, not just holding a
+claimed seat: recording money is an account's job. `storage-and-sync.md`
+§ Passing the book has the whole of it.
 
 ---
 

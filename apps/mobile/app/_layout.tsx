@@ -9,6 +9,7 @@ import { loadClubs } from '../src/lib/clubStore';
 import { openNight } from '../src/lib/nightStore';
 import { loadBook } from '../src/lib/bookStore';
 import { useBackupPump } from '../src/lib/backupPump';
+import { useHoldWatch } from '../src/lib/handover';
 import { loadSessionView } from '../src/lib/sessionViewStore';
 import { loadThemeChoice } from '../src/lib/themeStore';
 
@@ -43,6 +44,13 @@ export default function RootLayout() {
    * and whether a night reaches the server must not depend on which.
    */
   useBackupPump();
+
+  /*
+   * And where each passed night is. A phone that handed a night on follows it
+   * live; a phone that was handed one learns if its host took it back. Nothing
+   * at all for a phone that has never been part of a handover — see `hold.ts`.
+   */
+  useHoldWatch();
 
   // Read the night off the device once, at the root, so every screen finds it
   // already there. It comes from SQLite, not the network — the app is fully
@@ -177,6 +185,10 @@ export default function RootLayout() {
         {/* C3, over Players. Its reset and its QR replace this sheet's own
             content rather than stacking a second one on top (S79). */}
         <Stack.Screen name="invite" options={SHEET} />
+        {/* Passing the book: another phone records tonight. Both end in a
+            confirm — the code being taken, the code being typed. */}
+        <Stack.Screen name="pass-book" options={SHEET} />
+        <Stack.Screen name="take-over" options={SHEET} />
 
         {/*
          * X2 is NEITHER. It is the one screen in the app with no chrome at all:

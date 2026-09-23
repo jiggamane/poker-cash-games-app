@@ -44,6 +44,7 @@ import { closeOf } from './closing';
 import { backupOf, nightsFrom, type BookBackup, type HeldNight } from './bookBackup';
 import { timingOf } from './seatClock';
 import { sampleSessionId } from './queueable';
+import { holdOf, setHold, type Hold } from './hold';
 import {
   CURRENT_NIGHT,
   FIRST_TABLE,
@@ -288,6 +289,15 @@ export interface Night {
   settlement?: SettlementResult;
   /** What `verifyNight()` made of it at close. Absent on an older night. */
   verification?: StoredVerification;
+  /**
+   * Where this night is being written, when it has been part of a handover —
+   * see `hold.ts`. Absent on every night that never was, which is every night
+   * this phone recorded from start to finish.
+   *
+   * `away` is the one that changes what the screens may do: another phone
+   * records it, and this one reads. Every write in this file refuses it.
+   */
+  hold?: Hold;
 }
 
 // ---------------------------------------------------------------------------
@@ -639,6 +649,7 @@ async function readNight(row: NightRow): Promise<Night> {
   const settlement = frozen === null ? null : safeParse(frozen.payload);
   const verification =
     frozen?.verification == null ? null : (safeJson(frozen.verification) as StoredVerification | null);
+  const held = await holdOf(sessionId);
 
   return {
     sessionId,
@@ -670,6 +681,7 @@ async function readNight(row: NightRow): Promise<Night> {
     ...(row.ack_json ? { acknowledgement: JSON.parse(row.ack_json) } : {}),
     ...(settlement === null ? {} : { settlement }),
     ...(verification === null ? {} : { verification }),
+    ...(held === null ? {} : { hold: held.hold }),
   };
 }
 
@@ -799,6 +811,22 @@ async function seedNight(seed: Seed, seedVersion: number): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
+ * THE ONE REFUSAL. A night another phone is recording is read here, never
+ * written: the server would refuse the row anyway, and a refused row at the
+ * head of the queue is every later night on this phone going nowhere. The
+ * screens remove the controls (`useIsAdmin`); this is the floor under them.
+ */
+export class NightIsAwayError extends Error {
+  constructor() {
+    super('This night is being recorded on another phone.');
+  }
+}
+
+function refuseIfAway(n: Night): void {
+  if (n.hold === 'away') throw new NightIsAwayError();
+}
+
+/**
  * Record one entry: locally first, then queued for the server.
  *
  * The order matters. The local write is what the host sees, and it must not
@@ -811,6 +839,7 @@ async function append(
   note?: string,
 ): Promise<LedgerEntry> {
   if (night === null) throw new Error('No night is open.');
+  refuseIfAway(night);
   const db = await getDb();
 
   const entry = await recordEntry(night.sessionId, draft, occurredAt);
@@ -872,6 +901,7 @@ export async function buyIn(playerId: PlayerId, amount: Money): Promise<void> {
  */
 export async function seat(playerId: PlayerId): Promise<void> {
   if (night === null) return;
+  refuseIfAway(night);
   const player = night.players.find((p) => p.id === playerId);
   if (player === undefined || player.atTable) return;
 
@@ -909,6 +939,7 @@ export async function seat(playerId: PlayerId): Promise<void> {
  */
 export async function addPlayer(name: string, playerId?: PlayerId): Promise<PlayerId> {
   if (night === null) throw new Error('No night is open.');
+  refuseIfAway(night);
   const trimmed = name.trim();
 
   const existing = night.players.find(
@@ -1554,6 +1585,7 @@ export const transferKey = (from: PlayerId, to: PlayerId): string => `${from}>${
  */
 export async function setPaid(from: PlayerId, to: PlayerId, paid: boolean): Promise<void> {
   if (night === null) return;
+  refuseIfAway(night);
   const db = await getDb();
   if (paid) {
     await db.runAsync(
@@ -1615,6 +1647,7 @@ export async function setPaid(from: PlayerId, to: PlayerId, paid: boolean): Prom
  */
 export async function setFinalCount(playerId: PlayerId, amount: Money): Promise<void> {
   if (night === null) throw new Error('No night is open.');
+  refuseIfAway(night);
   /*
    * A SETTLED NIGHT IS NOT COUNTED AGAIN. Counting is a step of the close, and
    * the close is over: the result has been frozen and the room has been told
@@ -1667,6 +1700,7 @@ export async function setAcknowledgement(
   ack: DiscrepancyAcknowledgement | null,
 ): Promise<void> {
   if (night === null) return;
+  refuseIfAway(night);
   const db = await getDb();
   await db.runAsync(
     `UPDATE night SET ack_json = ? WHERE session_id = ?`,
@@ -1689,6 +1723,7 @@ export async function setAcknowledgement(
  */
 export async function saveRule(rule: MoneyRule): Promise<void> {
   if (night === null) throw new Error('No night is open.');
+  refuseIfAway(night);
   const rules = night.rules.some((r) => r.id === rule.id)
     ? night.rules.map((r) => (r.id === rule.id ? rule : r))
     : [...night.rules, rule];
@@ -1763,6 +1798,7 @@ export async function clearManualCharges(ruleId: string): Promise<void> {
  */
 export async function setNightRounding(mode: RoundingMode | null): Promise<void> {
   if (night === null) return;
+  refuseIfAway(night);
   const db = await getDb();
   await db.runAsync(
     `UPDATE night SET rounding_mode = ? WHERE session_id = ?`,
@@ -1800,6 +1836,7 @@ export async function setNightRounding(mode: RoundingMode | null): Promise<void>
  */
 async function writeRules(rules: MoneyRule[]): Promise<void> {
   if (night === null) return;
+  refuseIfAway(night);
   const ordered = [...rules].sort((a, b) => a.sortOrder - b.sortOrder);
   const { sessionId, groupName, rules: before } = night;
 
@@ -2332,8 +2369,86 @@ export async function importNights(nights: readonly ImportedNight[]): Promise<nu
   return added;
 }
 
+/**
+ * REPLACE this phone's copy of a night with the server's — and only for a
+ * handover. See `docs/storage-and-sync.md` § Passing the book.
+ *
+ * Everywhere else a pull never overwrites: the device that recorded a night is
+ * the authority on it (`importNights` above). A handover is the one moment that
+ * stops being true, because the authority has just MOVED — to this phone, when
+ * it redeems a code or its host takes a night back, or away from it, when the
+ * code it issued is taken. In all three the server holds the night as its
+ * writer last left it, and the copy here is out of date by definition.
+ *
+ * WHAT IS THROWN AWAY. The rows, and anything queued for this night: a queue
+ * describing a copy that no longer exists is the B56 fault again, and a phone
+ * only ever gets here when its own queue for the night was empty (the pass
+ * sheet will not issue a code until it is) or when the server has stopped
+ * accepting it (the night was taken back).
+ *
+ * `here` also carries the numbering on: the next entry this phone makes follows
+ * the highest one on the server, whoever wrote it.
+ */
+export async function replaceNight(
+  n: ImportedNight,
+  hold: Hold,
+  bookId: string,
+  options: { show?: boolean } = {},
+): Promise<void> {
+  const db = await getDb();
+  const showing = night?.sessionId ?? null;
+  const before = await db.getFirstAsync<{ me_id: string | null }>(
+    `SELECT me_id FROM night WHERE session_id = ?`,
+    n.sessionId,
+  );
+
+  await outbox.forgetSession(n.sessionId);
+  await db.withTransactionAsync(async () => {
+    for (const table of [
+      'night_count',
+      'night_entry',
+      'night_payment',
+      'night_player',
+      'night_settlement',
+    ]) {
+      await db.runAsync(`DELETE FROM ${table} WHERE session_id = ?`, n.sessionId);
+    }
+    await db.runAsync(`DELETE FROM night WHERE session_id = ?`, n.sessionId);
+  });
+
+  await setHold(n.sessionId, hold, { id: bookId, groupName: n.groupName });
+  /* Whoever this phone said it was at this night, it still is — a host's own
+     seat is known to the phone that recorded it and to nothing on the server. */
+  await importNights([{ ...n, meId: before?.me_id ?? n.meId ?? null }]);
+
+  if (hold === 'here') {
+    const highest = n.entries.reduce((max, e) => Math.max(max, e.seq), 0);
+    await outbox.syncHighWater(n.sessionId, highest);
+  }
+
+  /* `importNights` reopens whichever night the phone opens on. Put back the one
+     the reader was looking at, unless the caller is taking them to this one. */
+  const target = options.show === true ? n.sessionId : showing;
+  if (target !== null) await openNightById(target);
+  await refreshOpenGames();
+}
+
+/**
+ * Mark where a night is without touching its rows — a code going out, or the
+ * pass sheet learning it was taken before the server copy has been read.
+ */
+export async function markHold(sessionId: string, hold: Hold): Promise<void> {
+  await setHold(sessionId, hold);
+  if (night?.sessionId === sessionId) {
+    night = { ...night, hold };
+    emit();
+  }
+  await refreshOpenGames();
+}
+
 export async function setStatus(status: Night['status']): Promise<void> {
   if (night === null) return;
+  refuseIfAway(night);
   const db = await getDb();
 
   /*
@@ -2389,6 +2504,7 @@ export async function setStatus(status: Night['status']): Promise<void> {
  */
 export async function setEndedAt(endedAt: string): Promise<void> {
   if (night === null) return;
+  refuseIfAway(night);
   const db = await getDb();
 
   await db.runAsync(
@@ -2467,6 +2583,7 @@ async function queueTonight(): Promise<void> {
  */
 export async function closeNight(): Promise<StoredVerification> {
   if (night === null) throw new Error('No night is open.');
+  refuseIfAway(night);
 
   /*
    * CLOSING TWICE IS NOT CLOSING AGAIN. A night that already has a frozen
