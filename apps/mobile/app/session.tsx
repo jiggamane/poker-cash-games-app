@@ -25,6 +25,7 @@ import {
   type Standing,
 } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
+import { useLate } from '../src/lib/handover';
 
 /**
  * Tonight — T1, with T3 (the drawer), T3b (the hold) and T5 (nobody in yet).
@@ -91,6 +92,7 @@ export default function Session() {
   /* N11: entries this phone has written and nobody else can see yet. Asked
      for by session so a second table's queue is not counted onto this one. */
   const pending = usePending(night?.sessionId);
+  const late = useLate(night?.sessionId);
   const [drawer, setDrawer] = useState(false);
 
   /*
@@ -241,6 +243,23 @@ export default function Session() {
           </View>
         ) : (
         <>
+          {/*
+           * CHANGES ANOTHER PHONE HANDED IN — 0017. Money somebody recorded on
+           * this night while it was on their phone and could not send before it
+           * came back. It sits above the dock, where the host is looking, until
+           * somebody decides it. NOT DRAWN — flagged in `docs/screens.md`.
+           */}
+          {late.toReview > 0 && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push('/late-changes')}
+              style={styles.late}
+            >
+              <Text style={[styles.lateLine, { color: t.amber }]}>
+                {`${late.toReview} ${late.toReview === 1 ? 'change' : 'changes'} from another phone · Review`}
+              </Text>
+            </Pressable>
+          )}
           <RebuyBar />
           <Dock
             variant={empty ? 'empty-table' : 'resting'}
@@ -577,6 +596,8 @@ const styles = StyleSheet.create({
 
   away: { paddingHorizontal: space.page, paddingTop: 12, paddingBottom: 12 },
   awayLine: { ...type.footnote, textAlign: 'center' },
+  late: { paddingHorizontal: space.page, paddingVertical: 8 },
+  lateLine: { ...type.footnote, textAlign: 'center', fontWeight: '600' },
 
   tag: {
     flexDirection: 'row',

@@ -36,11 +36,12 @@ export interface HoldRow {
   /** The server's book, where this phone has been told it. */
   bookId: string | null;
   /**
-   * Changes made on this phone that the server refused because the night had
-   * moved — the host took it back while they were waiting to send. Counted so
-   * the phone can say so; they are not kept, because nothing can ever send them.
+   * Changes made on this phone that could not join the ledger because the night
+   * had moved — the host took it back while they were waiting to send — and
+   * were HANDED IN to the server instead (`0017_nothing_lost.sql`), where the
+   * phone recording the night adds them. Counted so this phone can say so.
    */
-  dropped: number;
+  handedIn: number;
 }
 
 const getDb = (): Promise<SQLite.SQLiteDatabase> =>
@@ -54,15 +55,26 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
         dropped     INTEGER NOT NULL DEFAULT 0
       );
     `);
+    /*
+     * `dropped` was 0016's count of changes thrown away. Since 0017 nothing is
+     * thrown away, and the column that counts what was handed in instead is its
+     * own — a phone that counted drops under the old build must not have them
+     * read back as handed in.
+     */
+    try {
+      await db.execAsync(`ALTER TABLE night_hold ADD COLUMN handed_in INTEGER NOT NULL DEFAULT 0;`);
+    } catch {
+      // Already there.
+    }
   });
 
 export async function holdOf(sessionId: string): Promise<HoldRow | null> {
   const db = await getDb();
-  const row = await db.getFirstAsync<{ hold: Hold; book_id: string | null; dropped: number }>(
-    `SELECT hold, book_id, dropped FROM night_hold WHERE session_id = ?`,
+  const row = await db.getFirstAsync<{ hold: Hold; book_id: string | null; handed_in: number }>(
+    `SELECT hold, book_id, handed_in FROM night_hold WHERE session_id = ?`,
     sessionId,
   );
-  return row === null ? null : { hold: row.hold, bookId: row.book_id, dropped: row.dropped };
+  return row === null ? null : { hold: row.hold, bookId: row.book_id, handedIn: row.handed_in };
 }
 
 /** Every night that has been part of a handover, for the phone's periodic look. */
@@ -72,13 +84,13 @@ export async function holds(): Promise<Array<HoldRow & { sessionId: string }>> {
     session_id: string;
     hold: Hold;
     book_id: string | null;
-    dropped: number;
-  }>(`SELECT session_id, hold, book_id, dropped FROM night_hold`);
+    handed_in: number;
+  }>(`SELECT session_id, hold, book_id, handed_in FROM night_hold`);
   return rows.map((r) => ({
     sessionId: r.session_id,
     hold: r.hold,
     bookId: r.book_id,
-    dropped: r.dropped,
+    handedIn: r.handed_in,
   }));
 }
 
@@ -131,12 +143,21 @@ export async function heldBookFor(groupName: string): Promise<string | null> {
   return row?.book_id ?? null;
 }
 
-/** Count changes that could never be sent, so the phone can say how many. */
-export async function noteDropped(sessionId: string, n: number): Promise<void> {
+/** Every night this phone writes that it was handed — what a phone with no account may send. */
+export async function heldHere(): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ session_id: string }>(
+    `SELECT session_id FROM night_hold WHERE hold = 'here'`,
+  );
+  return rows.map((r) => r.session_id);
+}
+
+/** Count changes handed in rather than sent, so the phone can say how many. */
+export async function noteHandedIn(sessionId: string, n: number): Promise<void> {
   if (n <= 0) return;
   const db = await getDb();
   await db.runAsync(
-    `UPDATE night_hold SET dropped = dropped + ? WHERE session_id = ?`,
+    `UPDATE night_hold SET handed_in = handed_in + ? WHERE session_id = ?`,
     n,
     sessionId,
   );

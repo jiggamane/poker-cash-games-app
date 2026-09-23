@@ -1,12 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { AppState } from 'react-native';
+import * as Linking from 'expo-linking';
 import { switchClub } from './clubStore';
-import { holds, holdOf, noteDropped } from './hold';
-import { markHold, replaceNight } from './nightStore';
+import { holds, holdOf } from './hold';
+import { applyLateChange, markHold, replaceNight } from './nightStore';
 import { pullNight } from './pull';
 import { isSupabaseConfigured, supabase } from './supabase';
-import { drain, outbox } from './sync';
-import { canSend } from './who';
+import { drain, handIn, outbox } from './sync';
 
 /**
  * Passing the book: another phone records tonight.
@@ -44,10 +44,23 @@ export class PassBlockedError extends Error {
  */
 export const passSheet = { open: false };
 
+/**
+ * Any session at all — since 0017 an anonymous phone can hold a night it was
+ * handed, so "signed in" is not the question here. Nobody at all is.
+ */
 async function signedIn(): Promise<boolean> {
   if (!isSupabaseConfigured) return false;
   const { data } = await supabase.auth.getSession();
-  return canSend(data.session);
+  return data.session !== null;
+}
+
+/** The account on this phone, making an anonymous one if there is none. */
+async function someone(): Promise<string> {
+  const { data } = await supabase.auth.getSession();
+  if (data.session !== null) return data.session.user.id;
+  const { data: made, error } = await supabase.auth.signInAnonymously();
+  if (error || made.user === null) throw new Error(error?.message ?? 'Could not sign in.');
+  return made.user.id;
 }
 
 async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
@@ -81,6 +94,16 @@ export async function issuePass(sessionId: string): Promise<string> {
   return code;
 }
 
+/**
+ * The code, wrapped in a link that opens Take over with it already typed — the
+ * same shape as an invite's (`inviteLinkFor`), and with the same caveat: the
+ * code is the primitive, and the link only works where the two phones run the
+ * app the same way. On the web copy it always does.
+ */
+export function takeOverLinkFor(code: string): string {
+  return Linking.createURL('/take-over', { queryParams: { c: code } });
+}
+
 export const passState = (sessionId: string): Promise<PassState> =>
   rpc<PassState>('night_handover_state', { target_session_id: sessionId });
 
@@ -97,16 +120,18 @@ export async function withdrawPass(sessionId: string): Promise<PassState> {
 }
 
 /**
- * The code was taken: this phone reads the night from now on. The rows are
- * refreshed from the server where it can be reached; where it cannot, the night
- * is marked away first so nothing more can be recorded on it here.
+ * The night is on another phone now: this one reads it from here on.
+ *
+ * ANYTHING STILL QUEUED FOR IT IS HANDED IN FIRST — 0017 — so it is kept on
+ * the server for the phone recording the night to add, not thrown away. Only
+ * once that has worked is the copy here replaced with the server's. If it has
+ * not (no signal), the night is still marked away, so nothing new can be
+ * recorded on it, and the next look hands in and refreshes.
  */
 export async function watchFromHere(sessionId: string): Promise<void> {
-  /* Anything still queued can never be sent now. Counted, so the phone can
-     say so, before the replace below forgets it. */
-  await noteDropped(sessionId, await outbox.countFor(sessionId));
   await markHold(sessionId, 'away');
-  const got = await pullNight(sessionId).catch(() => null);
+  await handIn(sessionId);
+  const got = await pullNight(sessionId);
   if (got !== null) await replaceNight(got.night, 'away', got.bookId);
 }
 
@@ -120,6 +145,9 @@ export async function watchFromHere(sessionId: string): Promise<void> {
  * already holding it when this returns, so the caller can go straight to it.
  */
 export async function takeOver(code: string): Promise<string> {
+  /* No account needed — the code is the grant (0017). A phone with no session
+     gets an anonymous one, exactly as claiming a seat does. */
+  await someone();
   const sessionId = await rpc<string>('redeem_night_handover', { code });
   await adopt(sessionId);
   return sessionId;
@@ -136,6 +164,10 @@ export async function takeBack(sessionId: string): Promise<void> {
 }
 
 async function adopt(sessionId: string): Promise<void> {
+  /* Anything this phone still had queued for the night — the host's own
+     changes from before it went, unsent — joins the others waiting to be
+     added rather than being sent in numbering the night has moved past. */
+  await handIn(sessionId);
   const got = await pullNight(sessionId);
   if (got === null) throw new Error('The night was passed, but it could not be read back yet.');
   await replaceNight(got.night, 'here', got.bookId, { show: true });
@@ -166,6 +198,10 @@ async function adopt(sessionId: string): Promise<void> {
 export async function checkHolds(): Promise<void> {
   if (!(await signedIn())) return;
 
+  /* A phone with no account has no retry pump (`backupPump` waits for one), so
+     this look is what sends the night it was handed when the signal returns. */
+  await drain().catch(() => undefined);
+
   for (const h of await holds()) {
     try {
       if (h.hold === 'passing') {
@@ -181,16 +217,121 @@ export async function checkHolds(): Promise<void> {
       if (where === null) continue;
 
       if (h.hold === 'away') {
+        await handIn(h.sessionId);
         const got = await pullNight(h.sessionId);
-        if (got === null) continue;
-        await replaceNight(got.night, where.yours ? 'here' : 'away', got.bookId);
+        if (got !== null) {
+          await replaceNight(got.night, where.yours ? 'here' : 'away', got.bookId);
+        }
       } else if (!where.yours) {
         await watchFromHere(h.sessionId);
       }
+      await refreshLate(h.sessionId);
     } catch {
       // Next time.
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Late changes — 0017
+// ---------------------------------------------------------------------------
+
+/** One change handed in by a phone that no longer held the night. */
+export interface LateChange {
+  id: string;
+  kind: string;
+  payload: Record<string, unknown>;
+  queuedAt: string;
+  status: 'waiting' | 'added' | 'left_out';
+  /** Handed in by this phone — the other end of the same row. */
+  fromHere: boolean;
+}
+
+/**
+ * What one night's late changes add up to, from where this phone stands.
+ *
+ *   toReview   waiting, and this phone records the night — it is the one to
+ *              add them or leave them out
+ *   fromHere   handed in by this phone, by what became of them
+ */
+export interface LateSummary {
+  toReview: number;
+  fromHere: { waiting: number; added: number; leftOut: number };
+}
+
+const NONE: LateSummary = { toReview: 0, fromHere: { waiting: 0, added: 0, leftOut: 0 } };
+let late = new Map<string, LateSummary>();
+const lateListeners = new Set<() => void>();
+
+function publishLate(sessionId: string, summary: LateSummary): void {
+  late = new Map(late).set(sessionId, summary);
+  for (const l of lateListeners) l();
+}
+
+/** The late changes for one night, as last read. Refreshed every look. */
+export function useLate(sessionId: string | null | undefined): LateSummary {
+  return useSyncExternalStore(
+    (l) => {
+      lateListeners.add(l);
+      return () => lateListeners.delete(l);
+    },
+    () => (sessionId == null ? NONE : (late.get(sessionId) ?? NONE)),
+  );
+}
+
+/** Every late change for a night, oldest first, as the server holds them. */
+export async function readLate(sessionId: string): Promise<LateChange[]> {
+  const { data: auth } = await supabase.auth.getSession();
+  const me = auth.session?.user.id ?? null;
+  const { data, error } = await supabase
+    .from('night_late_change')
+    .select('id, kind, payload, queued_at, status, from_user')
+    .eq('session_id', sessionId)
+    .order('queued_at', { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({
+    id: r.id as string,
+    kind: r.kind as string,
+    payload: (r.payload ?? {}) as Record<string, unknown>,
+    queuedAt: r.queued_at as string,
+    status: r.status as LateChange['status'],
+    fromHere: r.from_user === me,
+  }));
+}
+
+/** Re-read one night's late changes and publish the summary. */
+export async function refreshLate(sessionId: string): Promise<LateSummary> {
+  const rows = await readLate(sessionId);
+  const mine = (await holdOf(sessionId))?.hold !== 'away';
+  const from = rows.filter((r) => r.fromHere);
+  const summary: LateSummary = {
+    toReview: mine ? rows.filter((r) => r.status === 'waiting').length : 0,
+    fromHere: {
+      waiting: from.filter((r) => r.status === 'waiting').length,
+      added: from.filter((r) => r.status === 'added').length,
+      leftOut: from.filter((r) => r.status === 'left_out').length,
+    },
+  };
+  publishLate(sessionId, summary);
+  return summary;
+}
+
+/**
+ * Decide every waiting change: the ones in `add` are re-recorded on this phone
+ * — in its own numbering, through the same store calls a tap would make — and
+ * marked added; the rest are marked left out. Neither is deleted: a change left
+ * out stays on the server, with who made it and when, saying so.
+ *
+ * IN THE ORDER THEY HAPPENED, so a guest joins before their buy-in and a count
+ * lands after the stack it counts.
+ */
+export async function decideLate(sessionId: string, add: ReadonlySet<string>): Promise<void> {
+  const waiting = (await readLate(sessionId)).filter((r) => r.status === 'waiting');
+  for (const change of waiting) {
+    const added = add.has(change.id) && (await applyLateChange(change.kind, change.payload));
+    await rpc<null>('decide_late_change', { target_id: change.id, added });
+  }
+  await refreshLate(sessionId);
 }
 
 /** How often the phone looks, while it is open. A night is read in one pass. */
@@ -218,7 +359,7 @@ export function useHoldWatch(): void {
   }, []);
 }
 
-/** How many changes this phone made to a night that could never be sent. */
-export async function droppedOn(sessionId: string): Promise<number> {
-  return (await holdOf(sessionId))?.dropped ?? 0;
+/** How many changes this phone handed in for a night, rather than sent. */
+export async function handedInOn(sessionId: string): Promise<number> {
+  return (await holdOf(sessionId))?.handedIn ?? 0;
 }

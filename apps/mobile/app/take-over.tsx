@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
@@ -7,7 +7,6 @@ import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { takeOver } from '../src/lib/handover';
 import { explainServerError, isSupabaseConfigured } from '../src/lib/supabase';
-import { useSession } from '../src/lib/useSession';
 
 /**
  * Take over a night — the other half of Pass the book. NOT DRAWN.
@@ -21,13 +20,16 @@ import { useSession } from '../src/lib/useSession';
  * it took, which is the confirmation — the table, with this phone's controls on
  * it.
  *
- * SIGNED IN ONLY. The server refuses an anonymous phone (`0016`), and saying so
- * before the reader types ten characters is kinder than after.
+ * NO ACCOUNT NEEDED since 0017 — the code is the grant. An anonymous phone
+ * holds the night it took and writes nothing else.
  */
 export default function TakeOver() {
   const t = useTheme();
-  const { who, loading } = useSession();
-  const [code, setCode] = useState('');
+  /* Arriving from a link (`takeOverLinkFor`), the code is already typed. */
+  const { c } = useLocalSearchParams<{ c?: string }>();
+  const [code, setCode] = useState(() =>
+    (c ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10),
+  );
   const [busy, setBusy] = useState(false);
   const [trouble, setTrouble] = useState<string | null>(null);
   const second = useRef<TextInput>(null);
@@ -36,11 +38,12 @@ export default function TakeOver() {
   const first = code.slice(0, 5);
   const rest = code.slice(5, 10);
 
+  /* NO ACCOUNT NEEDED — 0017. The code is the grant: it names one night, for
+     one use, from the phone that holds it. A phone with no session is signed in
+     anonymously on the way, exactly as claiming a seat does. */
   const blocked = !isSupabaseConfigured
     ? 'This build has no server, so there is nothing to take a night from.'
-    : !loading && who.kind !== 'person'
-      ? 'Recording a night goes through the server, so this phone has to be signed in first.'
-      : null;
+    : null;
 
   async function take() {
     if (busy || code.length !== 10) return;

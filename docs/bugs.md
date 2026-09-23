@@ -139,6 +139,24 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B93 — what a spend was for never reached the server
+
+```
+Screen      none directly — `nightStore.ts` `append`, so every spend's note
+            ("Pizza") on every phone that ever read a night back
+Seen        not seen; found wiring 0017, which re-records a handed-in entry
+            through the same call
+Expected    `ledgerRepo.recordEntry` puts the note in the queued payload — its
+            own comment says so — and `entryRow` sends it as `note`
+Found       23 Sept. `append` called `recordEntry(sessionId, draft, occurredAt)`
+            and never passed the note, so the phone kept it locally and the
+            server's `note` column was null for every entry ever sent
+Locked by   npm run check — `handover.test.ts` asserts the queued payload of
+            an entry recorded through `append` carries its note
+Status      fixed in this commit — NOT yet seen on a phone. Notes already lost
+            stay lost; the phone that recorded them still has them
+```
+
 ### B92 — a night pulled off the server forgot who paid for a spend
 
 ```

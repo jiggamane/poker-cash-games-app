@@ -97,6 +97,9 @@ const NIGHT: Record<string, string> = {
   replaceNight:
     'nothing: a handover — the server moved the night first, and this is the phone ' +
     'taking the server\'s copy in place of its own. See hold.ts',
+  applyLateChange:
+    'entry.append / seat.upsert / player.upsert / count.upsert — it re-records a handed-in ' +
+    'change through the same calls a tap makes, which queue it themselves',
   markHold:
     'nothing: where a night is being written is the server\'s to say ' +
     '(session.writer_user_id, moved only by 0016\'s functions); this is the phone ' +

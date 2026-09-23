@@ -346,9 +346,30 @@ recorded before `0016_pass_the_book.sql`), and it moves only two ways.
   (`/pass-book`, from Settings); a signed-in phone redeems them (`/take-over`).
   The night is that account's from then on. The host redeeming one is the night
   coming home.
-- **The host taking it back** (*Take the night back*, Settings), with no code —
-  for the phone that went flat with the night on it. Whatever that phone had not
-  sent is lost; its next send is refused, and it says how many changes that was.
+- **The host taking it back** (*Take the night back*, Settings, held for a
+  second), with no code — for the phone that went flat with the night on it.
+
+**Nothing either phone recorded is lost — `0017_nothing_lost.sql`.** A phone
+that still had changes queued when its night moved cannot put them in the ledger
+(the ledger has one writer and one numbering), so it **hands them in**: each
+operation, exactly as queued, is kept on the server beside the night
+(`night_late_change`) with a status — *waiting*, *added* or *left out*. The phone
+recording the night sees *N changes from another phone · Review* above its dock
+and decides each one on `/late-changes`; adding re-records it there, in that
+phone's numbering and under its original id, so a copy that did get through
+after all collapses to one row. A person decides because the host may already
+have recorded the same rebuy again by hand. Nothing is deleted either way, and
+the phone that made the changes reads what became of each in Settings.
+
+A phone never replaces its copy of a night while anything for it is still
+queued (`replaceNight` refuses); it hands in first, and with no signal it simply
+waits, marked away, until it can.
+
+**The code is enough (0017).** An anonymous phone may redeem one and write that
+night and nothing else — the host's book-level powers still refuse an anonymous
+caller. Such a phone drains a view of its queue holding only the nights it was
+handed (`handedNightsOnly` in `sync.ts`), so B91's hazard — a refusal parking the
+whole queue — cannot come back through it.
 
 Two phones writing the same night at once was the other option, and it was
 considered and not built: it needs numbering that cannot collide, a live merge
@@ -366,7 +387,8 @@ property this document is built on — there is still nothing to merge.
 | The code works only while the sheet showing it is open, so nothing is recorded between issuing and taking | `pass-book.tsx`, `checkHolds` withdraws an orphan |
 | The phone taking a night replaces its copy with the server's and numbers on from the server's highest | `replaceNight` — `nightStore.ts` |
 | The phone that passed a night refuses every write to it, locally and in the queue | `refuseIfAway`, `send()` — `nightStore.ts`, `sync.ts` |
-| A queue for a night that moved is dropped and counted, never left to halt the queue | `movedAway` — `sync.ts` |
+| A queue for a night that moved is handed in to the server, never dropped and never left to halt the queue | `handIn`, `movedAway` — `sync.ts`; `night_late_change` — `0017` |
+| A copy of a night is never replaced over changes still queued for it | `replaceNight` — `nightStore.ts` |
 | The taker's roster and rule writes go to the host's book, never a new one | `hold.ts` `book_id`, `heldBookFor` |
 
 **What the taker may do.** Everything on the night — money, seats, counts, the
@@ -376,12 +398,10 @@ and on the server they are book-level rows. Never remove anybody. They can read
 the whole book from the moment they redeem a code, and keep reading it: they
 recorded part of a night in it.
 
-**Which account.** A signed-in one, never anonymous — recording has always
-needed an account, and a claimed seat is claimed anonymously, so the account a
-night is passed to is usually not the one that claimed. The server does not ask
-that it be.
+**Which account.** Any, since 0017 — the code is the grant. A phone with no
+session is signed in anonymously on the way, as claiming a seat does.
 
-`supabase/test/09_pass_the_book.sql` plays it through as four accounts;
+`supabase/test/09_pass_the_book.sql` and `10_nothing_lost.sql` play it through;
 `apps/mobile/src/lib/handover.test.ts` holds the phone's half.
 
 ⚠ **Not yet seen on two phones.** Everything above is checked against a real

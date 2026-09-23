@@ -124,21 +124,27 @@ are leaving early, or they are dealing and you are playing — **pass the book**
 1. On the phone recording it: **Settings → Pass the book**. It shows ten
    characters. Anything not yet on the server has to get there first; the sheet
    says so if it has not.
-2. On theirs, **signed in**: **Settings → Take over a night**, type the ten.
-   They land on Tonight with the whole night on it, and record from there.
+2. On theirs: **Settings → Take over a night**, type the ten — or tap **Send it**
+   on your sheet and they open the link. **No account needed**; the code is the
+   permission. They land on Tonight with the whole night on it, and record from
+   there.
 3. Your phone follows along and records nothing on that night until it comes
    back.
 
 It comes back the same way — they pass it, you type the code — or, if their
 phone is flat or they have gone home, **Settings → Take the night back** on
-yours, no code needed. Only the host of the group can do that. Anything their
-phone had recorded and not yet sent is lost when you do; their phone says how
-many.
+yours: hold it for a second, no code needed. Only the host of the group can do
+that.
+
+**Nothing their phone recorded is lost.** Anything it had not sent when the
+night came back goes to the server as soon as it has signal, and your phone
+shows *N changes from another phone · Review* above the dock. You tick the ones
+that belong — untick anything you already re-entered by hand — and they are
+added. What you leave out stays on the server, marked left out; their phone says
+which were added and which were not.
 
 The code works while the sheet showing it is open, once, and for ten minutes at
-most. Their phone has to be **signed in with an account**, not just holding a
-claimed seat: recording money is an account's job. `storage-and-sync.md`
-§ Passing the book has the whole of it.
+most. `storage-and-sync.md` § Passing the book has the whole of it.
 
 ---
 

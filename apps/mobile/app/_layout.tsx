@@ -189,6 +189,9 @@ export default function RootLayout() {
             confirm — the code being taken, the code being typed. */}
         <Stack.Screen name="pass-book" options={SHEET} />
         <Stack.Screen name="take-over" options={SHEET} />
+        {/* What another phone recorded after the night moved — 0017. Ends in
+            a confirm: add them, or leave them out. */}
+        <Stack.Screen name="late-changes" options={SHEET} />
 
         {/*
          * X2 is NEITHER. It is the one screen in the app with no chrome at all:
