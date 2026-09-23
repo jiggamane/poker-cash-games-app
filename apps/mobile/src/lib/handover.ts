@@ -217,6 +217,11 @@ export async function checkHolds(): Promise<void> {
       if (where === null) continue;
 
       if (h.hold === 'away') {
+        /* The queue can mark a night away on its own (`movedAway` in
+           sync.ts), and it cannot reach the store the screens read. Say it
+           here too, before anything that needs signal, so a phone that learned
+           mid-send stops offering to record on the night — B94. */
+        await markHold(h.sessionId, 'away');
         await handIn(h.sessionId);
         const got = await pullNight(h.sessionId);
         if (got !== null) {
