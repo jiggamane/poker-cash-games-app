@@ -1,6 +1,6 @@
 # The screen ledger
 
-Thirty-nine screens. This says, for each one, what is watching it and whether
+Forty screens. This says, for each one, what is watching it and whether
 anybody has held it against the board it was drawn from.
 
 The point is to turn *"the app has bugs"* — which is not a thing anybody can
@@ -25,7 +25,7 @@ The three check columns are what runs in `npm run check:ui`:
   narrow width is there because B3 fitted its button at 393 by half a point and
   hung out of both sides of it at 360. It also holds a screen to the rows its
   board draws — see **Drawn rows** below.
-- **Sheet** — `ui-audit.mjs` pass 2. The 24 sheets across six devices — four
+- **Sheet** — `ui-audit.mjs` pass 2. The 25 sheets across six devices — four
   iPhones and two Androids — against the height cap. Only sheets have one.
 - **Night** — `ui-journeys.mjs`. A whole night played through, checking no
   figure is cut off, outside its card, off the phone, or broken across two
@@ -80,6 +80,7 @@ is settled when it is not.
 | `/hand-over` | sheet | ✓ | ✓ | — | ☐ |
 | `/house-rules` | sheet | ✓ | ✓ | — | ☐ |
 | `/invite` | sheet | ✓ | ✓ | — | ☐ |
+| `/late-changes` | sheet | ✓ | ✓ | — | ☐ |
 | `/log` | sheet | ✓ | ✓ | — | ☐ |
 | `/member` | sheet | ✓ | ✓ | — | ☐ |
 | `/money-rules` | sheet | ✓ | ✓ | — | ☐ |
@@ -106,8 +107,20 @@ is settled when it is not.
 | `/take-over` | sheet | ✓ | ✓ | — | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**39 screens · 39 under the rule pass · 23 under the sheet pass · 13 under a big
+**40 screens · 40 under the rule pass · 24 under the sheet pass · 13 under a big
 night · 0 conformed.**
+
+**`/late-changes` arrived with 0017, also undrawn, also invented copy.** It is
+where the phone recording a night adds what another phone handed in after the
+night moved: a ticked row per change, *Add N to the night*, and the decided ones
+kept underneath saying *added* or *left out*. Three more lines go with it and are
+equally mine: *"N changes from another phone · Review"* above Tonight's dock, the
+*Tonight's book* section in Settings (it moved out of *Account*, because a phone
+with no account can now hold a night), and the status sentence under *Being
+recorded · On another phone*. *Take the night back* is a `HoldButton` now, with
+the sub *"Hold to take it back"*. On a night held elsewhere, count-up loses its
+row taps, its two bars' chevrons and *Next*, and settle-up loses *Close the
+session*.
 
 **`/pass-book` and `/take-over` arrived on 23 September with no board and
 invented copy — flag, not decision.** Passing the book (`0016_pass_the_book.sql`,

@@ -837,12 +837,13 @@ async function append(
   draft: Omit<LedgerEntry, 'id' | 'seq'>,
   occurredAt: Date = new Date(),
   note?: string,
+  id?: string,
 ): Promise<LedgerEntry> {
   if (night === null) throw new Error('No night is open.');
   refuseIfAway(night);
   const db = await getDb();
 
-  const entry = await recordEntry(night.sessionId, draft, occurredAt);
+  const entry = await recordEntry(night.sessionId, draft, occurredAt, note, id);
 
   await db.runAsync(
     `INSERT INTO night_entry
@@ -2402,7 +2403,16 @@ export async function replaceNight(
     n.sessionId,
   );
 
-  await outbox.forgetSession(n.sessionId);
+  /*
+   * NOTHING QUEUED IS THROWN AWAY — 0017. Whatever this phone still had for the
+   * night is handed in (`handIn` in `sync.ts`) before a copy is replaced, and
+   * this refuses to run if that has not happened. Replacing over a queue would
+   * be the one way a handover could lose something somebody recorded.
+   */
+  const unsent = await outbox.countFor(n.sessionId);
+  if (unsent > 0) {
+    throw new Error(`${unsent} changes on this phone for this night have not reached the server.`);
+  }
   await db.withTransactionAsync(async () => {
     for (const table of [
       'night_count',
@@ -2432,6 +2442,78 @@ export async function replaceNight(
   if (target !== null) await openNightById(target);
   await refreshOpenGames();
 }
+
+/**
+ * Re-record one change another phone handed in (0017), on the night this phone
+ * is holding. Returns whether it went in.
+ *
+ * THROUGH THE SAME CALLS A TAP MAKES, so it lands in this phone's numbering,
+ * goes up through this phone's queue, and is refused by exactly what would
+ * refuse the tap — a settled night, a count on a night still being played.
+ * Only the four kinds that are a night's facts are carried: a guest, a seat,
+ * money, a count. Settings — rules, rounding, ticks — are the phone recording
+ * the night's to set, and are left out for a person to redo if they meant it.
+ */
+export async function applyLateChange(
+  kind: string,
+  payload: Record<string, unknown>,
+): Promise<boolean> {
+  if (night === null || night.status === 'settled') return false;
+  const current = night;
+
+  switch (kind) {
+    case 'player.upsert': {
+      const p = payload.player as { id: string; name: string } | undefined;
+      if (p === undefined) return false;
+      await addPlayer(p.name, p.id);
+      return true;
+    }
+    case 'seat.upsert': {
+      const id = payload.playerId as string | undefined;
+      if (id === undefined || !current.players.some((p) => p.id === id)) return false;
+      await seat(id);
+      return true;
+    }
+    case 'entry.append': {
+      const e = payload as unknown as LedgerEntry & { occurredAt?: string; note?: string };
+      if (current.entries.some((x) => x.id === e.id)) return true;
+      if (e.playerId != null && current.players.some((p) => p.id === e.playerId)) {
+        await seat(e.playerId);
+      }
+      await append(
+        {
+          type: e.type,
+          playerId: e.playerId ?? null,
+          payerId: e.payerId ?? null,
+          amount: e.amount,
+          correctsEntryId: e.correctsEntryId ?? null,
+          ...(e.coveredBy == null ? {} : { coveredBy: e.coveredBy }),
+          ...(e.spendGroup == null ? {} : { spendGroup: e.spendGroup }),
+        },
+        e.occurredAt === undefined ? new Date() : new Date(e.occurredAt),
+        e.note,
+        e.id,
+      );
+      return true;
+    }
+    case 'count.upsert': {
+      const id = payload.playerId as string | undefined;
+      const amount = payload.amount as number | undefined;
+      if (id === undefined || amount === undefined || current.status !== 'counting') return false;
+      await setFinalCount(id, amount as Money);
+      return true;
+    }
+    default:
+      return false;
+  }
+}
+
+/** Which kinds of change `applyLateChange` can carry. The review sheet asks. */
+export const carriesLate = (kind: string): boolean =>
+  kind === 'player.upsert' ||
+  kind === 'seat.upsert' ||
+  kind === 'entry.append' ||
+  kind === 'count.upsert';
 
 /**
  * Mark where a night is without touching its rows — a code going out, or the

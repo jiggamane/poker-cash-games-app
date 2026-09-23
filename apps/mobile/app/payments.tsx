@@ -92,7 +92,10 @@ export default function Payments() {
               variant="primary"
               onPress={() => {
                 for (const line of waiting) {
-                  void setPaid(line.fromPlayerId, line.toPlayerId, true);
+                  /* Refused on a night another phone holds (`hold.ts`); the
+                     tick simply does not land, and the row says so by not
+                     changing. */
+                  void setPaid(line.fromPlayerId, line.toPlayerId, true).catch(() => undefined);
                 }
               }}
             />
@@ -192,7 +195,9 @@ function TransferRow({ line }: { line: TransferLine }) {
       testID={line.paid ? 'transfer-paid' : 'transfer-open'}
       accessibilityLabel={`${line.from} pays ${line.to} ${formatMoney(line.amount)}`}
       accessibilityHint={line.paid ? 'Double tap to mark it unpaid.' : 'Double tap to mark it paid.'}
-      onPress={() => void setPaid(line.fromPlayerId, line.toPlayerId, !line.paid)}
+      onPress={() =>
+        void setPaid(line.fromPlayerId, line.toPlayerId, !line.paid).catch(() => undefined)
+      }
       style={({ pressed }) => [
         styles.row,
         { borderTopColor: t.hairline, opacity: line.paid ? 0.62 : 1 },

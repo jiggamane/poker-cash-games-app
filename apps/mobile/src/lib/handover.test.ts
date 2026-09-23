@@ -31,9 +31,18 @@ vi.mock('expo-crypto', () => ({
   randomUUID: () => `cccccccc-dddd-4eee-8fff-${String(nextId++).padStart(12, '0')}`,
 }));
 vi.mock('expo-linking', () => ({ createURL: (u: string) => `pokerclub://${u}`, parse: () => ({}) }));
+/* The server, as far as handing in goes: it takes the list and says how many.
+   Every call is kept so a test can say exactly what reached it. */
+const handedIn: Array<{ fn: string; args: Record<string, unknown> }> = [];
 vi.mock('./supabase', () => ({
   isSupabaseConfigured: false,
-  supabase: { auth: { getSession: async () => ({ data: { session: null } }) } },
+  supabase: {
+    auth: { getSession: async () => ({ data: { session: null } }) },
+    rpc: async (fn: string, args: Record<string, unknown>) => {
+      handedIn.push({ fn, args });
+      return { data: (args.changes as unknown[] | undefined)?.length ?? null, error: null };
+    },
+  },
 }));
 
 const uuid = (n: number): string =>
@@ -48,10 +57,13 @@ const store = () => import('./nightStore');
 const hold = () => import('./hold');
 const queue = async () => (await import('./sync')).outbox;
 
+const sync = () => import('./sync');
+
 beforeEach(() => {
   reset();
   vi.resetModules();
   nextId = 0;
+  handedIn.length = 0;
 });
 
 /** A night opened on this phone, two buy-ins in. */
@@ -108,10 +120,81 @@ function serverCopy(
   };
 }
 
+describe('nothing a phone recorded is thrown away (0017)', () => {
+  it('will not replace a night over changes still queued for it', async () => {
+    const night = await store();
+    const sessionId = await openHere(night);
+    // Opening the night queued it, its people and two buy-ins.
+    expect(await (await queue()).countFor(sessionId)).toBeGreaterThan(0);
+
+    await expect(
+      night.replaceNight(serverCopy(sessionId, []), 'away', BOOK),
+    ).rejects.toThrow(/have not reached the server/);
+    // And the night is still exactly what it was.
+    expect((await night.openNightById(sessionId))!.entries).toHaveLength(2);
+  });
+
+  it('hands them in — every one, as queued — and only then lets them go', async () => {
+    const night = await store();
+    const sessionId = await openHere(night);
+    const q = await queue();
+    const before = await q.forSession(sessionId);
+
+    expect(await (await sync()).handIn(sessionId)).toBe(before.length);
+
+    const call = handedIn.find((c) => c.fn === 'hand_in_late_changes')!;
+    expect(call.args.target_session_id).toBe(sessionId);
+    const sent = call.args.changes as Array<{ op_id: string; kind: string }>;
+    expect(sent.map((c) => c.op_id)).toEqual(before.map((i) => i.id));
+    expect(sent.filter((c) => c.kind === 'entry.append')).toHaveLength(2);
+    expect(await q.countFor(sessionId)).toBe(0);
+  });
+
+  it('adds a handed-in rebuy under its own id, in this phone’s numbering', async () => {
+    const night = await store();
+    const sessionId = await openHere(night);
+    await (await sync()).handIn(sessionId);
+
+    const late = uuid(777);
+    const added = await night.applyLateChange('entry.append', {
+      id: late,
+      seq: 2, // the other phone's number — which this phone already has
+      type: 'rebuy',
+      playerId: IVO,
+      payerId: null,
+      amount: 10_000,
+      occurredAt: '2026-09-23T23:41:00.000Z',
+      note: 'at the bar',
+    });
+    expect(added).toBe(true);
+
+    // B93: the note travels in the queued payload, so it reaches the server.
+    const queued = (await (await queue()).forSession(sessionId)).find((i) => i.id === late)!;
+    expect((queued.payload as { note?: string }).note).toBe('at the bar');
+
+    const now = (await night.openNightById(sessionId))!;
+    const it = now.entries.find((e) => e.id === late)!;
+    expect(it.seq).toBe(3);
+    expect(now.occurredAt[late]).toBe('2026-09-23T23:41:00.000Z');
+
+    // Twice is once.
+    await night.applyLateChange('entry.append', { id: late, type: 'rebuy', playerId: IVO, amount: 10_000 });
+    expect((await night.openNightById(sessionId))!.entries).toHaveLength(3);
+  });
+
+  it('does not add a count to a night still being played', async () => {
+    const night = await store();
+    await openHere(night);
+    expect(await night.applyLateChange('count.upsert', { playerId: DANA, amount: 5_000 })).toBe(false);
+    expect(await night.applyLateChange('rule.upsert', {})).toBe(false);
+  });
+});
+
 describe('the phone that passed the night', () => {
   it('reads the server copy and refuses to record on it', async () => {
     const night = await store();
     const sessionId = await openHere(night);
+    await (await sync()).handIn(sessionId);
 
     await night.replaceNight(
       serverCopy(sessionId, [
@@ -136,6 +219,8 @@ describe('the phone that passed the night', () => {
     await expect(night.setStatus('counting')).rejects.toBeInstanceOf(night.NightIsAwayError);
     // Nothing it tried went into the queue to halt it.
     expect(await (await queue()).countFor(sessionId)).toBe(0);
+    // And what it had queued before the night moved went to the server.
+    expect(handedIn.some((c) => c.fn === 'hand_in_late_changes')).toBe(true);
   });
 });
 
@@ -143,6 +228,7 @@ describe('the phone that took the night', () => {
   it('numbers its next entry after the highest one on the server', async () => {
     const night = await store();
     const sessionId = await openHere(night);
+    await (await sync()).handIn(sessionId);
 
     // Seven entries on the server; this phone had only two of them.
     await night.replaceNight(
@@ -170,6 +256,7 @@ describe('the phone that took the night', () => {
   it('comes in counting when the night was passed mid-count', async () => {
     const night = await store();
     const sessionId = await openHere(night);
+    await (await sync()).handIn(sessionId);
 
     await night.replaceNight(
       serverCopy(sessionId, [{ seq: 1, type: 'buyin', playerId: DANA, amount: 10_000 as Money }], 'counting'),
@@ -182,6 +269,7 @@ describe('the phone that took the night', () => {
   it('sends the group’s roster writes to the host’s book, not a new one', async () => {
     const night = await store();
     const sessionId = await openHere(night);
+    await (await sync()).handIn(sessionId);
     const h = await hold();
 
     expect(await h.heldBookFor(CLUB)).toBeNull();

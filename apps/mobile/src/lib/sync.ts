@@ -6,14 +6,15 @@ import {
   type MoneyRule,
   type Money,
   type OutboxItem,
+  type OutboxStore,
   type PlayerId,
   type RoundingMode,
 } from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { SqliteOutboxStore } from './outboxStore';
 import { leavesThePhone } from './queueable';
-import { canSend } from './who';
-import { heldBookFor, holdOf, noteDropped, setHold, type HoldRow } from './hold';
+import { canSend, whoIs } from './who';
+import { heldBookFor, heldHere, holdOf, noteHandedIn, setHold, type HoldRow } from './hold';
 import {
   bookPatch,
   countDelete,
@@ -487,17 +488,80 @@ async function run(): Promise<FlushResult> {
    * book behind a refusal it can never get past.
    */
   const { data } = await supabase.auth.getSession();
-  if (!canSend(data.session)) return { pushed: 0, remaining: await outbox.count() };
+
+  /*
+   * A PHONE WITH NO ACCOUNT SENDS ONE THING: the night it was handed with a
+   * code (`0017_nothing_lost.sql`). The server lets an anonymous caller write
+   * exactly the nights passed to it, and refuses everything else — which is
+   * B91's hazard, a refusal parking the whole queue. So such a phone drains a
+   * view of the queue holding only those nights, in their order, and leaves
+   * everything else waiting for an account.
+   */
+  const store = canSend(data.session)
+    ? outbox
+    : whoIs(data.session).kind === 'anonymous'
+      ? await handedNightsOnly()
+      : null;
+  if (store === null) return { pushed: 0, remaining: await outbox.count() };
 
   books.clear(); // re-resolved per drain, in case the account changed
 
-  return flushOutbox(outbox, async (items) => {
+  return flushOutbox(store, async (items) => {
     // Sequentially, in order, inside the batch. A batch may hold a session and
     // the entries that depend on it, and the server would refuse the second
     // before the first. Anything already sent is an idempotent upsert, so a
     // failure halfway is retried from the top of the batch without harm.
     for (const item of items) await send(item);
   });
+}
+
+/** The queue, narrowed to the nights this phone was handed. See `run`. */
+async function handedNightsOnly(): Promise<OutboxStore> {
+  const ids = await heldHere();
+  const view: OutboxStore = {
+    add: (item) => outbox.add(item),
+    pending: (limit) => outbox.pendingIn(ids, limit),
+    remove: (entryIds) => outbox.remove(entryIds),
+    markAttempt: (id, error) => outbox.markAttempt(id, error),
+    highestSeq: (sessionId) => outbox.highestSeq(sessionId),
+    count: () => outbox.countIn(ids),
+    forgetSession: (sessionId) => outbox.forgetSession(sessionId),
+  };
+  return view;
+}
+
+/**
+ * HAND IN what this phone has queued for a night it no longer writes — 0017.
+ *
+ * The server keeps each operation exactly as it was queued, beside the night,
+ * waiting; the phone recording the night adds it or leaves it out, and either
+ * way it stays on the server saying which. Only once the server has them are
+ * they taken out of this phone's queue. A failure leaves them queued, and the
+ * queue halts on them — correctly, because the only thing that fails here is
+ * the network, and the next drain hands them in.
+ *
+ * Returns how many were handed in.
+ */
+export async function handIn(sessionId: string): Promise<number> {
+  const items = await outbox.forSession(sessionId);
+  if (items.length === 0) return 0;
+
+  const { error } = await supabase.rpc('hand_in_late_changes', {
+    target_session_id: sessionId,
+    changes: items.map((i) => ({
+      op_id: i.id,
+      kind: i.kind,
+      payload: i.payload,
+      // An entry carries the moment it happened; anything else is placed at
+      // the moment it was handed in.
+      queued_at: (i.payload as { occurredAt?: string } | null)?.occurredAt ?? null,
+    })),
+  });
+  if (error) throw new Error(`hand in: ${error.message}`);
+
+  await outbox.remove(items.map((i) => i.id));
+  await noteHandedIn(sessionId, items.length);
+  return items.length;
 }
 
 async function send(item: OutboxItem): Promise<void> {
@@ -509,15 +573,16 @@ async function send(item: OutboxItem): Promise<void> {
   if (!isUuid(item.sessionId)) return;
 
   /*
-   * A NIGHT ANOTHER PHONE IS RECORDING. See `hold.ts`. Its writes are refused by
-   * the server, and a refusal halts the queue in front of every night behind it
-   * — so an operation for it is dropped here, counted, and never sent. The
-   * night store refuses to make one in the first place; this is for anything
-   * already queued when the night moved.
+   * A NIGHT ANOTHER PHONE IS RECORDING. See `hold.ts`. Its ledger refuses this
+   * phone, and a refusal halts the queue in front of every night behind it —
+   * so whatever is queued for it is HANDED IN instead (0017), kept on the
+   * server for the phone recording the night to add. The night store refuses
+   * to make anything new for it; this is for what was already queued when the
+   * night moved.
    */
   const held = await holdOf(item.sessionId);
   if (held?.hold === 'away') {
-    await noteDropped(item.sessionId, 1);
+    await handIn(item.sessionId);
     return;
   }
 
@@ -535,10 +600,9 @@ async function send(item: OutboxItem): Promise<void> {
  *
  * Asked only of a night that has been part of a handover, and only after a send
  * has failed, so an ordinary night pays nothing for it. If the server says the
- * night is no longer this phone's, everything queued for it is dropped and
- * counted — it can never be sent, and left in the line it would halt every
- * other night on the phone for good. Any other answer, including no answer at
- * all, leaves the failure to be retried as usual.
+ * night is no longer this phone's, the night is marked away and everything
+ * queued for it is handed in (`handIn`) rather than left to halt the queue. Any
+ * other answer, including no answer at all, leaves the failure to be retried.
  */
 async function movedAway(sessionId: string): Promise<boolean> {
   const { data, error } = await supabase.rpc('night_hold', { target_session_id: sessionId });
@@ -546,8 +610,13 @@ async function movedAway(sessionId: string): Promise<boolean> {
   if ((data as { yours: boolean }).yours) return false;
 
   await setHold(sessionId, 'away');
-  await noteDropped(sessionId, await outbox.countFor(sessionId));
-  await outbox.forgetSession(sessionId);
+  try {
+    await handIn(sessionId);
+  } catch {
+    // Marked away, so the next drain hands them in; this one reports the
+    // original failure.
+    return false;
+  }
   return true;
 }
 

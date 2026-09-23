@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Share, StyleSheet, Text, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
@@ -10,6 +11,7 @@ import {
   PassBlockedError,
   passSheet,
   passState,
+  takeOverLinkFor,
   watchFromHere,
   withdrawPass,
 } from '../src/lib/handover';
@@ -61,7 +63,10 @@ export default function PassBook() {
       setStage('blocked');
       return;
     }
-    if (who.kind !== 'person') {
+    /* Any session: since 0017 a phone that took a night with a code and no
+       account can pass it on the same way. The server decides whether this one
+       holds the night. */
+    if (who.kind === 'nobody') {
       setBlocked('Passing the night goes through the server, so you have to be signed in.');
       setStage('blocked');
       return;
@@ -150,9 +155,29 @@ export default function PassBook() {
             <Text selectable style={[styles.hero, { color: code === null ? t.muted : t.text }]}>
               {code === null ? '· · · · ·  · · · · ·' : grouped(code)}
             </Text>
+            {/* Read out, or sent: the code survives any channel, and the link
+                saves the other person typing it where it opens at all. */}
+            <View style={styles.chips}>
+              <Button
+                label="Copy"
+                variant="chip"
+                disabled={code === null}
+                onPress={() => void (code === null ? null : Clipboard.setStringAsync(code))}
+              />
+              <Button
+                label="Send it"
+                variant="chip"
+                disabled={code === null}
+                onPress={() =>
+                  void (code === null
+                    ? null
+                    : Share.share({ message: `${code}\n${takeOverLinkFor(code)}` }).catch(() => undefined))
+                }
+              />
+            </View>
             <Text style={[styles.note, { color: t.muted }]}>
-              On the other phone: Settings → Take over a night. It has to be signed in. The code
-              works while this is open, and once.
+              On the other phone: Settings → Take over a night. No account needed. The code works
+              while this is open, and once.
             </Text>
             <Text style={[styles.note, { color: t.muted }]}>
               From then on that phone records the night and this one follows along. You can take it
@@ -182,4 +207,5 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   note: { ...type.footnote },
+  chips: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
 });

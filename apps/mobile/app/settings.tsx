@@ -19,7 +19,9 @@ import { accountLine, type BackupState } from '../src/lib/accountLine';
 import * as Clipboard from 'expo-clipboard';
 import { readBackup, restoreBackup, useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
-import { droppedOn, takeBack } from '../src/lib/handover';
+import { handedInOn, takeBack, useLate } from '../src/lib/handover';
+import { HoldButton } from '../src/components/HoldButton';
+import { usePending } from '../src/lib/pending';
 
 /**
  * Settings — GR7. Four sections: the group, the money, the players, the exits.
@@ -59,12 +61,15 @@ export default function Settings() {
     void syncStatus().then(setBackup).catch(() => setBackup(null));
   });
 
-  /* Changes made here to a night after it moved, which could never be sent. */
-  const [dropped, setDropped] = useState(0);
+  /* Passing the book: what this phone handed in for a night after it moved,
+     what became of it, and what is waiting here to be added. See handover.ts. */
+  const [handedIn, setHandedIn] = useState(0);
   useEffect(() => {
     if (night === null) return;
-    void droppedOn(night.sessionId).then(setDropped).catch(() => setDropped(0));
+    void handedInOn(night.sessionId).then(setHandedIn).catch(() => setHandedIn(0));
   }, [night]);
+  const late = useLate(night?.sessionId);
+  const unsent = usePending(night?.sessionId).waiting;
 
   /*
    * WHO IS HOLDING THIS PHONE — B91, and it is not `session !== null`.
@@ -407,35 +412,6 @@ export default function Settings() {
             {night !== null && (
               <Action label="Stop sharing" onPress={() => void unshare()} />
             )}
-            {/*
-             * PASSING THE BOOK — `0016_pass_the_book.sql`, `handover.ts`. One
-             * phone records a night; these move which one. NOT DRAWN: the rows
-             * and their copy are mine and flagged in `docs/screens.md`.
-             *
-             * Pass is offered on a night this phone records and that is still
-             * being played. Take back is offered on a night another phone
-             * records, and the server decides whether this account may — only
-             * the group's host. Take over is always here: the code is what
-             * says which night.
-             */}
-            {night !== null && !night.seeded && night.hold !== 'away' && night.status !== 'settled' && (
-              <Action label="Pass the book" onPress={() => router.push('/pass-book')} />
-            )}
-            {night !== null && night.hold === 'away' && (
-              <>
-                {/* ONE TEXT NODE, for the reason `hand-over.tsx` gives: a
-                    fragment either side of an interpolation wraps on its own. */}
-                <Text style={[styles.note, { color: t.muted }]}>
-                  {`${night.tableName} is being recorded on another phone. This one follows along.${
-                    dropped > 0
-                      ? ` ${dropped} ${dropped === 1 ? 'change' : 'changes'} made here after it moved could not be sent.`
-                      : ''
-                  }`}
-                </Text>
-                <Action label="Take the night back" onPress={() => void reclaim()} />
-              </>
-            )}
-            <Action label="Take over a night" onPress={() => router.push('/take-over')} />
             {fetched !== null && <Text style={[styles.note, { color: t.muted }]}>{fetched}</Text>}
             {/* Every verdict EXCEPT the one about this phone's sign-in: that
                 one is the status line at the top of this section now, and
@@ -460,6 +436,59 @@ export default function Settings() {
              sentence about one thing rather than a note under a heading that
              has already said something else. This is the way out of it. */
           <Action label="Sign in" onPress={() => router.push('/sign-in')} last />
+        )}
+
+        {/*
+         * PASSING THE BOOK — 0016 and 0017, `handover.ts`. One phone records a
+         * night; these move which one. NOT DRAWN: the heading, the rows and
+         * their copy are mine and flagged in `docs/screens.md`.
+         *
+         * ITS OWN SECTION, NOT UNDER ACCOUNT, because since 0017 a phone with no
+         * account can take a night with its code and pass it back — the rows
+         * belong to whoever holds a night, not to whoever signed in. Taking a
+         * night BACK is the host's alone, and the server says so.
+         */}
+        {configured && !loading && (
+          <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Tonight's book</Text>
+        )}
+        {configured && !loading && night !== null && !night.seeded && (
+          <>
+
+            {night.hold === 'away' ? (
+              <>
+                <Fact label="Being recorded" value="On another phone" />
+                {/* ONE TEXT NODE, for the reason `hand-over.tsx` gives: a
+                    fragment either side of an interpolation wraps on its own. */}
+                <Text style={[styles.note, { color: t.muted }]}>
+                  {awayLine(night.tableName, unsent, handedIn, late.fromHere)}
+                </Text>
+                {signedIn && (
+                  <View style={styles.hold}>
+                    <HoldButton
+                      label="Take the night back"
+                      sub="Hold to take it back"
+                      onComplete={() => void reclaim()}
+                    />
+                  </View>
+                )}
+              </>
+            ) : (
+              <>
+                {late.toReview > 0 && (
+                  <Action
+                    label={`Review ${late.toReview} late ${late.toReview === 1 ? 'change' : 'changes'}`}
+                    onPress={() => router.push('/late-changes')}
+                  />
+                )}
+                {(signedIn || night.hold === 'here') && night.status !== 'settled' && (
+                  <Action label="Pass the book" onPress={() => router.push('/pass-book')} />
+                )}
+              </>
+            )}
+          </>
+        )}
+        {configured && !loading && (
+          <Action label="Take over a night" onPress={() => router.push('/take-over')} last />
         )}
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The exits</Text>
@@ -617,6 +646,44 @@ function FactAction({
   );
 }
 
+/**
+ * Where a night another phone is recording stands, from this phone — including
+ * everything recorded here after it moved, and what became of it. The question
+ * this answers is "did anything I recorded go missing", and the answer is
+ * always a count with a place: still on this phone, with the host waiting, or
+ * decided.
+ */
+function awayLine(
+  table: string,
+  unsent: number,
+  handedIn: number,
+  from: { waiting: number; added: number; leftOut: number },
+): string {
+  const parts = [`${table} is being recorded on another phone. This one follows along.`];
+  if (unsent > 0) {
+    parts.push(
+      `${unsent} ${unsent === 1 ? 'change' : 'changes'} made here after it moved ${
+        unsent === 1 ? 'is' : 'are'
+      } still on this phone, and will go to the server with the next signal.`,
+    );
+  }
+  const decided = from.added + from.leftOut;
+  if (handedIn > 0 || from.waiting + decided > 0) {
+    const bits = [
+      from.waiting > 0 ? `${from.waiting} waiting to be added` : null,
+      from.added > 0 ? `${from.added} added` : null,
+      from.leftOut > 0 ? `${from.leftOut} left out` : null,
+    ].filter((b) => b !== null);
+    const n = Math.max(handedIn, from.waiting + decided);
+    parts.push(
+      `${n} ${n === 1 ? 'change' : 'changes'} made here after it moved went to the server${
+        bits.length === 0 ? '.' : `: ${bits.join(', ')}.`
+      }`,
+    );
+  }
+  return parts.join(' ');
+}
+
 function Action({
   label,
   onPress,
@@ -651,6 +718,7 @@ function Action({
 const styles = StyleSheet.create({
   list: { marginHorizontal: space.page },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
+  hold: { paddingTop: 8, paddingBottom: 4 },
   after: { paddingTop: 22 },
   row: {
     flexDirection: 'row',

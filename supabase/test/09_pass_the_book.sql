@@ -6,7 +6,8 @@
 --
 --   the host       made the group; writes a night until they pass it
 --   the taker      a signed-in account the host hands the night to
---   an anonymous   a phone that opened a share link or claimed a seat
+--   an anonymous   a phone that opened a share link or claimed a seat (and,
+--                  since 0017, may take a night with a code — see 10)
 --   a stranger     signed in, nothing to do with this group
 --
 -- What it holds, in one line each:
@@ -159,11 +160,7 @@ select expect_eq(length((select c from code)), 10, 'a code is ten characters');
 select expect_text(night_handover_state('94000000-0000-0000-0000-000000000001'), 'waiting',
   'the issuing phone sees its code waiting');
 
--- An anonymous phone cannot take it: recording is an account's job.
-select as_user('91000000-0000-0000-0000-000000000003', true);
-select expect_rejected($q$
-  select redeem_night_handover((select c from code))
-$q$, 'an anonymous phone cannot take over a night');
+-- An anonymous phone taking a night is 0017's, and 10_nothing_lost.sql has it.
 
 select as_user('91000000-0000-0000-0000-000000000002');
 select expect_rejected($q$
