@@ -104,11 +104,15 @@ export async function forgetSignIn(): Promise<void> {
  * app is running — an exp:// dev URL inside Expo Go, pokerclub:// in a build.
  * Hardcoding either one breaks the other.
  *
- * shouldCreateUser is FALSE, and that single word is the whole invite system:
- * an address nobody has invited gets no account and no email, so the closed
- * test is enforced by the auth server rather than by us remembering who we told
- * about it. Testers are added by hand in the dashboard under Authentication ->
- * Users -> Invite. See docs/auth-test-period.md.
+ * shouldCreateUser is FALSE: an address with no account gets no email, and the
+ * sign-in sheet offers a code instead (`plan.ts`, `startWithCode`).
+ *
+ * IT IS NOT THE GATE, and this comment said it was until 0018. It is a word in
+ * a client, and anybody holding the public key can send the request without
+ * it — the project has signups on, because anonymous sign-in needs them. What
+ * actually decides who may start a group is the plan, in Postgres:
+ * `book_insert_needs_plan`. This only keeps the sheet from making accounts
+ * nobody asked for. See docs/accounts-roadmap.md, Stage 1.
  */
 export async function sendSignInLink(email: string, redirectTo: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({

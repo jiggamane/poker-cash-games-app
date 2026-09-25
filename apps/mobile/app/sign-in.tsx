@@ -19,6 +19,7 @@ import {
   isSupabaseConfigured,
   sendSignInLink,
 } from '../src/lib/supabase';
+import { resendConfirmation, startWithCode } from '../src/lib/plan';
 
 /**
  * The host signs in, with a link and only a link.
@@ -76,6 +77,26 @@ export default function SignIn() {
   const [cooldown, setCooldown] = useState<{ from: number; seconds: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /*
+   * THE OTHER WAY IN — 0018, `docs/accounts-roadmap.md` Stage 1.
+   *
+   * An address the server does not know used to be the end of this sheet: a
+   * sentence saying the host has to add you. Now a group can be started by
+   * anybody whose account has a plan, and a friend's plan arrives as a code —
+   * so the refusal opens a field for one. With a code, the account is made on
+   * this phone (the anonymous one it already holds, if it holds one, so a
+   * member keeps every seat they claimed) and the email is attached to it;
+   * what arrives in the inbox is a confirmation link, and it lands on
+   * `/auth-callback` exactly as a sign-in link does.
+   *
+   * `via` remembers which of the two sent the mail, because "Send another
+   * link" has to repeat the same one: a sign-in link to an address with no
+   * account would only be refused again.
+   */
+  const [needsCode, setNeedsCode] = useState(false);
+  const [code, setCode] = useState('');
+  const [via, setVia] = useState<'link' | 'code'>('link');
+  const codeOk = code.trim().length >= 4;
 
   const emailOk = /\S+@\S+\.\S+/.test(email.trim());
   const redirect = isSupabaseConfigured ? authRedirectUrl() : '';
@@ -86,7 +107,8 @@ export default function SignIn() {
     setError(null);
     setBusy(true);
     try {
-      await sendSignInLink(email.trim(), redirect);
+      if (via === 'code') await resendConfirmation(email.trim(), redirect);
+      else await sendSignInLink(email.trim(), redirect);
       setCooldown({ from: Date.now(), seconds: RESEND_WAIT_SECONDS });
       setStage('sent');
     } catch (e) {
@@ -99,9 +121,9 @@ export default function SignIn() {
        * anybody hits who was never added in the dashboard. Found beside B66.
        */
       if (isNotInvited(e)) {
-        setError(
-          'That address has not been invited yet. The app is in a closed test, so the host has to add you before a link can be sent.',
-        );
+        /* Not an error any more: the sheet grows the field for a code and
+           says why underneath it. */
+        setNeedsCode(true);
       } else {
         /*
          * The send failures first — no signal, and the throttle — then
@@ -124,6 +146,25 @@ export default function SignIn() {
        * they can correct a typo would be a punishment for our own error
        * message.
        */
+      if (isThrottled(e)) {
+        const said = waitSecondsIn(e instanceof Error ? e.message : String(e));
+        setCooldown({ from: Date.now(), seconds: said ?? RESEND_WAIT_SECONDS });
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function spendCode() {
+    setError(null);
+    setBusy(true);
+    try {
+      await startWithCode(email.trim(), code.trim(), redirect);
+      setVia('code');
+      setCooldown({ from: Date.now(), seconds: RESEND_WAIT_SECONDS });
+      setStage('sent');
+    } catch (e) {
+      setError(explainLinkFailure(e) ?? explainServerError(e));
       if (isThrottled(e)) {
         const said = waitSecondsIn(e instanceof Error ? e.message : String(e));
         setCooldown({ from: Date.now(), seconds: said ?? RESEND_WAIT_SECONDS });
@@ -225,6 +266,14 @@ export default function SignIn() {
     <Sheet
       title="Sign in"
       footer={
+        needsCode ? (
+          <Button
+            label={busy ? 'Opening…' : cooling ? `Open an account in ${wait}s` : 'Open an account'}
+            variant={!emailOk || !codeOk || busy || cooling ? 'blocked' : 'primary'}
+            disabled={!emailOk || !codeOk || busy || cooling}
+            onPress={spendCode}
+          />
+        ) : (
         <Button
           /*
            * The wait shows here too. The throttle is the project's, not the
@@ -237,6 +286,7 @@ export default function SignIn() {
           disabled={!emailOk || busy || cooling}
           onPress={send}
         />
+        )
       }
     >
       <View style={styles.page}>
@@ -248,13 +298,40 @@ export default function SignIn() {
           <Field
             label="Email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(v) => {
+              setEmail(v);
+              /* A different address may well have an account — ask again. */
+              setNeedsCode(false);
+            }}
             placeholder="you@example.com"
             keyboardType="email-address"
             autoFocus
             hint="No password. We email you a link that signs you in."
           />
         </View>
+
+        {/*
+         * ⚠ COPY NOT DRAWN — no board has this state; the sheet was drawn
+         * for a closed test in which it was a dead end. Written to the grammar
+         * of the sheet around it and listed in `docs/screens.md`.
+         */}
+        {needsCode && (
+          <>
+            <Text style={[styles.body, styles.spaced, { color: t.muted }]}>
+              That address has no account yet. If somebody gave you a code, type it here: it opens
+              an account for this address and emails it a link.
+            </Text>
+            <View style={styles.form}>
+              <Field
+                label="Code"
+                value={code}
+                onChangeText={setCode}
+                placeholder="FRIDAY"
+                hint="As you were given it. Capitals or not, it does not matter."
+              />
+            </View>
+          </>
+        )}
 
         {error !== null && <Text style={[styles.body, { color: t.loss }]}>{error}</Text>}
 

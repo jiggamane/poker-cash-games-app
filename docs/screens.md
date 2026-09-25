@@ -2675,3 +2675,38 @@ Its findings 1 and 3 are open questions rather than settled ones:
 - **The wizard's `1 of 3 · 2 of 3 · 3 of 3`** (Count up, Deductions, Settle up)
   and the 1 September cut's three screens (Count up, Settle up, the settled
   night) are two different threes. Nothing reconciles them.
+
+## Plans and codes — six strings no board draws (25 September)
+
+`0018_accounts.sql` made a plan the thing that lets an account start a group
+(`docs/accounts-roadmap.md`, Stage 1), and three screens had to say so before
+any board did. **Every string below is mine, flagged in the code as COPY NOT
+DRAWN, and wants review.** None of them is load-bearing in the way a money
+figure is; all of them are what a friend reads on their first minute.
+
+`/sign-in`, the state the closed-test sheet drew as a dead end — an address
+with no account:
+
+1. *"That address has no account yet. If somebody gave you a code, type it
+   here: it opens an account for this address and emails it a link."*
+2. The field: label **Code**, placeholder `FRIDAY`, hint *"As you were given
+   it. Capitals or not, it does not matter."*
+3. The primary: **Open an account** (`Opening…`, `Open an account in 12s`).
+4. A wrong code: *"That code does not open anything. Check it with whoever gave
+   it to you."* (`planWords.ts`, `CODE_OPENS_NOTHING`).
+
+`/settings`, Account:
+
+5. A **Plan** row: `Free`, `Pro · founder`, `Club · until 25 Sept 2027`
+   (`planLine`, tested in `planWords.test.ts`). Drawn only when signed in and
+   the server answered — never a guess.
+
+The sync error, wherever a failed sync is shown:
+
+6. *"This account has no plan, and starting a group on the server needs one.
+   The night is safe on this phone and goes up once there is a plan."*
+
+What is **not** here and is waiting on a board: Settings → Admin (grant, make a
+code, list them — the SQL editor does it until then), a place to redeem a code
+once signed in, and the app lock the owner asked for (Face ID / fingerprint /
+passcode over the app, not a password on the account).
