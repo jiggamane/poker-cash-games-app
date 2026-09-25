@@ -12,7 +12,8 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0014.
+-- Last checked against migrations 0001–0015 and 0018. 0016 and 0017 are the
+-- parked pass-the-book branch and have no row until it comes back.
 -- =============================================================================
 
 with c as (
@@ -99,6 +100,15 @@ probe as (
                                    and column_name = 'pays_kitty')
      and to_regclass('public.transfer_payment') is not null) as m14,
 
+    -- 0015 fees: the period rounding type is made there and nowhere else
+    exists (select 1 from pg_type where typname = 'rule_period_rounding') as m15,
+
+    -- 0018 accounts: the plan table, its reader, and the gate on a new book
+    (to_regclass('public.entitlement') is not null
+     and exists (select 1 from p where proname = 'my_plan')
+     and exists (select 1 from pg_policies where tablename = 'book'
+                                            and policyname = 'book_insert_needs_plan')) as m18,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
@@ -135,6 +145,9 @@ select v.n,
     (13, '0013 the night carries its rounding',       x.m13, 'run supabase/migrations/0013_night_rounding.sql'),
     (14, '0014 group settings, table name, roster, who has paid',
                                                       x.m14, 'run supabase/migrations/0014_the_whole_book.sql'),
+    (15, '0015 fees',                                 x.m15, 'run supabase/migrations/0015_fees.sql'),
+    (18, '0018 plans, promo codes, a plan to start a group',
+                                                      x.m18, 'run supabase/migrations/0018_accounts.sql — then seed app_admin, docs/accounts-roadmap.md'),
     (90, 'all eleven tables present',                    x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),

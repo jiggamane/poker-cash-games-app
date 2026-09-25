@@ -84,6 +84,10 @@ currently unreachable:
 
 ## What blocks other people starting their own groups
 
+> **Superseded 25 September by `0018_accounts.sql`.** The gate is now the plan,
+> enforced on `book` in Postgres; gate 1 below was only ever a word in the
+> client. `accounts-roadmap.md`, Stage 1.
+
 Exactly two gates. Both deliberate.
 
 **1. Signups are closed.** `sendSignInLink` passes `shouldCreateUser: false`

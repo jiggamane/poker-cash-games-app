@@ -10,6 +10,7 @@ import {
   type RoundingMode,
 } from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
+import { isNoPlanForGroup } from './planWords';
 import { SqliteOutboxStore } from './outboxStore';
 import { leavesThePhone } from './queueable';
 import { canSend } from './who';
@@ -632,7 +633,22 @@ async function ensureBook(groupName: string, previousName?: string): Promise<str
     .insert({ host_user_id: hostId, group_name: groupName })
     .select('id')
     .single();
-  if (createError) throw new Error(createError.message);
+  /*
+   * NO PLAN, NO NEW GROUP — 0018. The server's own words are a row-level
+   * security violation, which a host reads as a broken app. The night is not
+   * lost either way: it stays on the phone and in the queue, and goes up the
+   * moment the account has a plan.
+   *
+   * ⚠ COPY NOT DRAWN, listed in `docs/screens.md`.
+   */
+  if (createError) {
+    if (isNoPlanForGroup(createError.message)) {
+      throw new Error(
+        'This account has no plan, and starting a group on the server needs one. The night is safe on this phone and goes up once there is a plan.',
+      );
+    }
+    throw new Error(createError.message);
+  }
 
   const id = created.id as string;
   books.set(groupName, id);

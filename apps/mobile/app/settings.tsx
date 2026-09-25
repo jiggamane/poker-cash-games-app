@@ -19,6 +19,7 @@ import { accountLine, type BackupState } from '../src/lib/accountLine';
 import * as Clipboard from 'expo-clipboard';
 import { readBackup, restoreBackup, useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
+import { myPlan, planLine } from '../src/lib/plan';
 
 /**
  * Settings — GR7. Four sections: the group, the money, the players, the exits.
@@ -69,6 +70,28 @@ export default function Settings() {
    * this night — none of which that phone can do.
    */
   const signedIn = who.kind === 'person';
+
+  /*
+   * THE PLAN — 0018. Read from the server and nowhere else; a phone that
+   * cannot ask draws no row rather than a guess. Asked once per account, not
+   * per render: it changes when somebody grants or buys one, not while this
+   * screen is open.
+   */
+  const [plan, setPlan] = useState<string | null>(null);
+  const userId = session?.user.id ?? null;
+  useEffect(() => {
+    if (!signedIn) {
+      setPlan(null);
+      return;
+    }
+    let live = true;
+    void myPlan()
+      .then((p) => live && setPlan(planLine(p)))
+      .catch(() => live && setPlan(null));
+    return () => {
+      live = false;
+    };
+  }, [signedIn, userId]);
 
   /*
    * AND THE ONE LINE ABOUT WHERE THE BOOK LIVES — B90.
@@ -349,6 +372,8 @@ export default function Settings() {
             {who.kind === 'person' && who.email !== null && (
               <Fact label="Signed in as" value={who.email} />
             )}
+            {/* ⚠ COPY NOT DRAWN — the label. `planLine` has the rest. */}
+            {plan !== null && <Fact label="Plan" value={plan} />}
             <Action
               label={syncing ? 'Syncing…' : 'Sync now'}
               onPress={() => void drain()}

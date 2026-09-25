@@ -22,7 +22,7 @@ sequences, and where it disagrees with one of them it says so:
 | Stage | Who can use it | Distribution | Money | Gate to move on |
 |---|---|---|---|---|
 | **0 · Friends, today** | your group | Expo Go + a published update | none | a friend's phone signs in and claims a seat with nothing but a link and a code |
-| **1 · Friends start their own groups** | friends of friends, by your code | Expo Go | none — but the **plan table exists** and you can already grant | a friend runs a night in their own group on their own account |
+| **1 · Friends start their own groups** | anybody you give a plan — by hand or by code | Expo Go | none — but the **plan is the host right** and you can already grant | a friend runs a night in their own group on their own account |
 | **2 · Real builds** | the same people, installed | TestFlight + Play closed test | none | the build signs in with Apple and Google, and survives a phone swap |
 | **3 · Store launch, free** | anyone | App Store + Play Store | none | review passed; account deletion, privacy policy, captcha live |
 | **4 · Paid** | anyone | stores + optional web | IAP via RevenueCat, grants and promo codes alongside | a real subscription renews, a grant and a promo code both unlock the same thing |
@@ -132,56 +132,82 @@ update away from refusing your bundle. It is a test channel, not a product.
 
 ## Stage 1 — Friends start their own groups (small, in this repo)
 
-This is `accounts-and-groups.md` Phase 1 plus the plan table. Still Expo Go,
-still no money.
+**Your answers of 25 September decided its shape:** a group can be started by
+anybody whose plan is Pro or above; one active host at a time; no password on
+the account, but a lock on the app.
 
-**1a. A host code, instead of opening signups.** `host_invite` table and
-`redeem_host_invite(code)`; the sign-in sheet asks for the code before the OTP
-call for an address the server does not know. Keeps a closed door with a key
-you can copy, instead of `shouldCreateUser: true` on an unlisted, uncaptcha'd
-app. The `isNotInvited` copy is re-pointed at it. ⚠ The sheet needs a string for
-"enter your host code" that no board draws — **flag it for the designer rather
-than inventing it** (CLAUDE.md, "Copy is final").
+### Built — `0018_accounts.sql`, 25 September
 
-**1b. Anonymous → real account, same user id.** `supabase.auth.updateUser({
-email })` on a member's phone. Keeps every claimed seat, removes
-`is_anonymous_caller()` from their token, and so satisfies `book_host_all`
-without touching the policy. This is the one change that turns a member into
-somebody who can host.
+- **The plan table, and the plan is the host right.** `entitlement`,
+  `my_plan()`, and a restrictive policy on `book`: an account with no plan
+  cannot *create* a group. It is only creation — a group that exists keeps
+  every write whatever happens to the plan, because a lapsed plan must never
+  stop a running night. This also closes a hole: the old gate was
+  `shouldCreateUser: false` in the app, which anybody holding the public key
+  can leave out of their own request. The database is the gate now.
+- **Founders.** Everybody who could sign in the day the migration runs, and
+  everybody you invite from the dashboard after it, gets Pro for ever as a
+  `founder`. `pricing-model.md`'s "grandfather the founding hosts" is done on
+  the day it is true.
+- **Codes are how a friend gets a plan, and so how they get in.** There is no
+  separate host code: a promo code *is* the key. On the sign-in sheet an address
+  with no account now grows a **Code** field; with a live code the phone makes
+  the account (keeping the anonymous one it already holds, so a member keeps
+  every claimed seat), attaches the email, and spends the code. The email is a
+  confirmation link that lands on `/auth-callback` like a sign-in link.
+- **Your tools, from the SQL editor** until Settings → Admin has a board:
 
-**1c. `ensureBook` on a phone with several local groups.** Before anybody but
-you runs it (`accounts-and-groups.md`, last bullet of "full blown").
+  ```sql
+  -- once: make yourself the admin
+  insert into app_admin (user_id) select id from auth.users where email = 'you@…';
 
-**1d. The plan table, switched on and giving everyone everything.** A migration
-(`00NN_entitlements.sql` — take the next free number; 0016 and 0017 were used
-and reverted) with the schema above, `my_plan()`, the admin and promo
-functions, and `app_admin` seeded with your user id. **No paywall anywhere yet**
-— `my_plan()` is read, shown in Settings → Account, and gates nothing. What it
-buys now:
+  select admin_grant('petr@example.com');                         -- Pro, for ever
+  select admin_grant('eva@example.com', 'pro', 365, 'a year on me');
+  select admin_create_promo('pro', null, 1, 'FRIDAY', null, 'for Marek');  -- one use, for ever
+  select admin_create_promo('pro', 365, 20);                      -- 20 uses, a year each, random code
+  select admin_revoke('<entitlement id>', 'why');
+  select * from entitlement order by created_at desc;             -- who has what, and from where
+  ```
 
-- Every friend who joins in Stages 1–3 gets a `founder` row with no end date.
-  That is `pricing-model.md` §5-G's "grandfather the founding hosts
-  permanently", done by the database on the day it is true instead of
-  reconstructed from memory at launch.
-- `admin_grant` and `redeem_promo_code` exist and are **tested in
-  `supabase/test/`** long before a store transaction ever reaches them.
+- **Settings → Account → Plan** reads `my_plan()`: `Pro · founder`, `Free`,
+  `Club · until …`.
+- Tested in `supabase/test/11_accounts.sql` and `planWords.test.ts`. Six new
+  strings, all flagged — `docs/screens.md`, the last section.
 
-**1e. Settings → Admin**, drawn only when the caller is in `app_admin` (an
-`am_i_admin()` next to `my_plan()`): grant by email, make a code, list what was granted. Until it
-exists, the three functions are callable from the Supabase SQL editor, which is
-enough for a dozen friends. Needs a board; until there is one, SQL is the tool.
+### Before a friend can use it (you, in the dashboard)
 
-**1f. Account deletion.** `delete_my_account()`: releases claimed seats (as
-`revoke_player_invite` already does), hands or refuses hosted books, then
-deletes the auth user. Apple rejects any app that creates accounts without it,
-so it is cheaper to build it now than under review.
+1. Run `supabase/migrations/0018_accounts.sql`, then `state-check.sql` — row 18.
+2. Seed `app_admin` (above).
+3. **Authentication → Emails → Change email address.** An anonymous account
+   that attaches an email receives *this* mail, not the magic link. The stock
+   one works; it reads oddly ("from  to you@…") for an account that had no
+   address. Same `{{ .ConfirmationURL }}` rule as the magic link
+   (`docs/email-templates/README.md`).
+4. Stage 0's SMTP and redirect list, which this depends on like everything else.
 
-**1g. Co-host — only if you say yes.** `book_host` join table, `is_book_host`
-re-pointed at it. The open question in `accounts-and-groups.md` still stands;
-this plan does not assume the answer.
+### Still open in Stage 1
 
-Exit: somebody who is not you signs in with your host code, starts a group,
-runs a night, and you can see their `founder` row.
+- **The app lock** (your answer on passwords): Face ID / fingerprint / the
+  phone's passcode in front of the app, per phone, off by default — nothing to
+  do with the account. `expo-local-authentication` is in SDK 57's manifest and
+  runs in Expo Go, so it does not wait for Stage 2. Needs a board: where the
+  switch lives, and what the locked screen says. Worth asking whether it locks
+  on every open or after some minutes away.
+- **Settings → Admin**, and **redeeming a code when already signed in** — both
+  need a board. Until then: the SQL editor, and the sign-in path above.
+- **Account deletion** (Apple requires it before Stage 3). Blocked on the
+  question Settings already names: what happens to a group, and to nights other
+  people played in, when its host goes. For a member it is simple and can go
+  first.
+- **One host at a time** is the parked pass-the-book branch
+  (`claude/multi-admin-game-access-cpwbpw`); it comes back when its redesign is
+  done, not as part of this.
+- **`ensureBook` on a phone with several groups** resolves a book by its name
+  per host, so two local groups with the same name would land in one book.
+  Unlikely, not yet seen, and worth a guard before strangers.
+
+Exit: a friend with nothing but a code signs in, starts a group and runs a
+night on it; `select * from entitlement` shows where their plan came from.
 
 ---
 
@@ -193,8 +219,8 @@ The moment you pay Apple. Everything after this needs it.
 
 | | Cost | Note |
 |---|---|---|
-| Apple Developer Program | $99 / year | **Individual or organisation, decide now.** Individual shows your own name as the seller on the store page and is the quick one. Organisation needs a company and a D-U-N-S number (days to weeks) and shows the company. Moving from one to the other later is a support ticket, not a setting. |
-| Google Play Console | $25 once | ⚠ **A personal account created since November 2023 must run a closed test with at least 12 testers opted in for 14 continuous days before it may publish to production.** Your friends are that test — start it at the beginning of Stage 2, not the end, or it is two weeks of waiting at the end of Stage 3. An organisation account is exempt. |
+| Apple Developer Program | $99 / year | **As the company — decided 25 September.** Needs the company's D-U-N-S number (free, days to a couple of weeks if it has none) and shows the company as the seller. Start the enrolment first thing in this stage; it is the slow part. |
+| Google Play Console | $25 once | ⚠ **A personal account created since November 2023 must run a closed test with at least 12 testers opted in for 14 continuous days before it may publish to production.** Your friends are that test — start it at the beginning of Stage 2, not the end, or it is two weeks of waiting at the end of Stage 3. An organisation account is exempt — **so open Play as the company too**, and the two weeks disappear. |
 
 **The builds.** `eas.json` already has `development`, `preview` and
 `production`. What is missing:
@@ -219,7 +245,7 @@ the "share access" you asked for: one URL in the group chat.
 **Sign in with Apple and Google.** `signInWithIdToken` with
 `expo-apple-authentication` and Google's native sign-in; `linkIdentity` so an
 anonymous member upgrades to Apple/Google **keeping the same user id**, exactly
-as 1b does for email. Both together or neither: offering Google without an
+as the code path does for email in Stage 1. Both together or neither: offering Google without an
 equivalent privacy-preserving option gets rejected. This removes email from the
 critical path for most people and ends the `redirect_to` failure mode for them.
 Keep the magic link as the fallback.
@@ -248,7 +274,7 @@ rating):
   site is enough. The policy has to be true: Supabase (EU region?) stores email
   and the ledger; name them. GDPR applies — the audience is EU-first.
 - **Privacy nutrition labels**, matching the policy.
-- **In-app account deletion** (1f) reachable from Settings.
+- **In-app account deletion** (open in Stage 1) reachable from Settings.
 - **Review note, written in advance** (`pricing-model.md` §6): a ledger for a
   private game; it hosts no play, takes no stakes, moves no money. Include a
   demo account the reviewer can sign in with — **a password account made just
@@ -261,7 +287,9 @@ rating):
 - Captcha on anonymous sign-in and on sign-in (Supabase has the toggle; hCaptcha
   or Turnstile).
 - A cleanup job for stale anonymous users (`auth-test-period.md`, last list).
-- Decide 1a: keep host codes, or open signups now that there is a captcha.
+- Open signups (`shouldCreateUser: true`) once the captcha is on. A free
+  account can do nothing a watcher cannot; since 0018 the plan is the gate
+  that matters, and it is in the database.
 - **Supabase Pro ($25/mo)** — no pausing, daily backups. Point-in-time recovery
   is an add-on; worth it the day a stranger's money is in the book.
 - Crash reporting (Sentry has an Expo plugin) — you will not be at every table.
@@ -354,7 +382,7 @@ three different sources, through one function.
 
 ## Stage 5 — Club and group plans
 
-Co-hosts (if 1g was deferred), a group-level plan that covers everyone in the
+A group-level plan that covers everyone in the
 group, Player Plus. `pricing-model.md` §5 lists them; nothing in the schema
 above has to change — a club plan is an `entitlement` row on a book instead of
 a user, and `my_plan()` learns to look at both. Do it only when the Stage 4
@@ -362,17 +390,17 @@ numbers say groups, not hosts, are the buyer.
 
 ---
 
-## What you decide, and when
+## What was decided, 25 September
 
-| Decision | Needed by | Default if you say nothing |
-|---|---|---|
-| Co-host: can a second person *record* a night? | Stage 1 (1g) | no — read-only members, as today |
-| Who may start a group — your code, or anyone? | Stage 1 (1a) | your code until Stage 3's captcha |
-| Apple account: individual or company? | Stage 2 | individual |
-| Passwords, ever? | Stage 2 | no — magic link, Apple, Google. The review demo account is the one exception |
-| Price and trial | Stage 4 | `pricing-model.md` §4 as written |
-| Book Pass as a second product? | Stage 4 | leave it out of the first release |
-| Web checkout? | after Stage 4 | no |
+| Question | Answer |
+|---|---|
+| Co-host | **One active host at a time** — handing the night over, not sharing it. The parked pass-the-book branch. |
+| Who may start a group | **Anybody with a plan, Pro and above.** Built in 0018. |
+| Apple account | **The company.** Play as the company too. |
+| Passwords | **Not on the account.** An app lock — Face ID, fingerprint, passcode — against whoever else picks the phone up. |
+| Price and trial | **`pricing-model.md` as written.** |
+| Book Pass as a second product | open — default: not in the first release |
+| Web checkout | open — default: not until after Stage 4 |
 
 ## What only you can do (no session can reach these)
 

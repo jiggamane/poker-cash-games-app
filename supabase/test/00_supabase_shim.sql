@@ -12,7 +12,13 @@ create schema if not exists auth;
 
 create table if not exists auth.users (
   id uuid primary key default gen_random_uuid(),
-  email text
+  email text,
+  -- Set by a dashboard invite and by nothing else. 0018 reads it to decide who
+  -- may start a group. DEFAULTED HERE, and only here: every account the tests
+  -- before 11 make is a host of the kind the project really had — invited from
+  -- the dashboard — so they keep writing books as they did. 11_accounts.sql
+  -- passes null explicitly for the people who were not.
+  invited_at timestamptz default now()
 );
 
 -- Mirrors Supabase: reads the current request's JWT claims, which the test
@@ -22,7 +28,12 @@ returns uuid
 language sql
 stable
 as $$
-  select nullif(current_setting('request.jwt.claims', true)::jsonb ->> 'sub', '')::uuid;
+  -- Written as Supabase writes it: an unset claim is null, not a JSON error.
+  -- 0018's admin functions are called from the SQL editor, where there is no
+  -- JWT at all, and the old `''::jsonb` here failed where Supabase does not.
+  select nullif(
+    nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub', ''
+  )::uuid;
 $$;
 
 do $$
