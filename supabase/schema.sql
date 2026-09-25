@@ -2692,6 +2692,25 @@ begin
 end;
 $$;
 
+-- Whether a code would open anything, asked BEFORE anything is spent. The
+-- sign-in sheet asks this first, then attaches the email, then redeems: in that
+-- order a mistyped code costs a retype, not an email and a half-made account.
+-- It says no more than redeeming would, and is one bit.
+create or replace function promo_code_opens(code text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from promo_code p
+     where upper(trim(p.code)) = upper(trim(promo_code_opens.code))
+       and p.revoked_at is null
+       and (p.expires_at is null or p.expires_at > now())
+       and p.redeemed_count < p.max_redemptions);
+$$;
+
 -- =============================================================================
 -- The admin's tools — callable from the SQL editor until Settings → Admin exists
 -- =============================================================================
