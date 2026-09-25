@@ -3,6 +3,9 @@
 Written 17 September, in answer to: *let other people into my group, then let
 them start groups of their own, and stop the email limit getting in the way.*
 
+`docs/accounts-roadmap.md` (25 September) sequences this file, the pricing
+model and the stores into one order of work — start there.
+
 `docs/auth-test-period.md` is the operational companion to this file — it is the
 dashboard checklist. This one is the status and the decision.
 
