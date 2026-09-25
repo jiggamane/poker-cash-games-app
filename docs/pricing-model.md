@@ -265,6 +265,11 @@ You learn what converts without ever having to take something away.
 
 ## 6. Rails: why not App Store IAP (yet)
 
+> ⚠ **Superseded 25 September by `accounts-roadmap.md`, Stage 4.** This section
+> assumes a PWA. The app is now a store app, the reader-app exemption does not
+> cover it, and subscriptions go through App Store / Play billing via RevenueCat.
+> §7's `account_entitlement` is replaced there by one row per grant.
+
 You asked about IAP specifically, and the build plan's platform decision changes the answer:
 
 **Today the product is a PWA. There is no store, therefore no store commission.** Sell with
