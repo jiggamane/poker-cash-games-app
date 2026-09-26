@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Member } from './clubStore';
 import {
   canTakeGame,
+  passLine,
   membershipOf,
   passTargets,
   runsLine,
@@ -29,14 +30,15 @@ const member = (id: string, standing: Member['standing'] = 'member'): Member => 
   paysKitty: true,
 });
 
-const free: Membership = { tier: 'free', hostNightUsed: false, hostNightRenewsOn: null };
+const free: Membership = { tier: 'free', hostNightUsed: false, hostNightRenewsOn: null, known: true };
 const regularFree: Membership = {
   tier: 'regular',
   hostNightUsed: false,
   hostNightRenewsOn: new Date('2026-10-01'),
+  known: true,
 };
 const regularUsed: Membership = { ...regularFree, hostNightUsed: true };
-const full: Membership = { tier: 'full', hostNightUsed: false, hostNightRenewsOn: null };
+const full: Membership = { tier: 'full', hostNightUsed: false, hostNightRenewsOn: null, known: true };
 
 describe('who can take a game (README § 1)', () => {
   it('Full always, Regular while the host night is unused, Free never', () => {
@@ -93,7 +95,7 @@ describe('the pass sheet’s two lists (README § 2, passTargets)', () => {
 
 describe('what the seam answers today (rev 18 § 4)', () => {
   it('is Full, for everybody with the app', () => {
-    expect(membershipOf(member('anyone'))).toEqual(full);
+    expect(membershipOf(member('anyone'))).toEqual({ ...full, known: false });
     expect(canTakeGame(membershipOf(member('anyone')))).toBe(true);
   });
 
@@ -111,5 +113,32 @@ describe('what the seam answers today (rev 18 § 4)', () => {
     );
     expect(can).toHaveLength(2);
     expect(cannot.map((r) => (r.kind === 'cannot' ? r.why : null))).toEqual(['name_only']);
+  });
+});
+
+describe('the admin sees the tier at the moment of passing (owner, 26 Sept)', () => {
+  const day = (d: Date) => `${d.getDate()} Oct`;
+  const can = (m: Membership, spends = false) =>
+    ({ kind: 'can', member: member('x'), membership: m, spendsHostNight: spends }) as const;
+  const cannot = (m: Membership, why: 'name_only' | 'host_night_used' | 'free') =>
+    ({ kind: 'cannot', member: member('x'), membership: m, why }) as const;
+
+  it('leads with Free / Regular / Full when the answer is real', () => {
+    expect(passLine(can(full), true, day)).toBe('Full · at the table');
+    expect(passLine(can(full), false, day)).toBe('Full · not playing tonight');
+    expect(passLine(can(regularFree, true), true, day)).toBe(
+      'Regular · at the table · uses their one host night',
+    );
+    expect(passLine(cannot(regularUsed, 'host_night_used'), true, day)).toBe(
+      'Regular · host night used · back on 1 Oct',
+    );
+    expect(passLine(cannot(free, 'free'), true, day)).toBe('Free · can’t run a game');
+    expect(passLine(cannot(full, 'name_only'), true, day)).toBe('Name only · no app to send it to');
+  });
+
+  it('never prints a tier the seam made up', () => {
+    const placeholder = membershipOf(member('anyone'));
+    expect(passLine(can(placeholder), true, day)).toBe('At the table · can take it any night');
+    expect(passLine(can(placeholder), false, day)).toBe('Not playing tonight · any night');
   });
 });

@@ -141,8 +141,10 @@ stands. Read them newest first:
   built has both: the database gates only starting a group, and
   `apps/mobile/src/lib/membership.ts` is the one seam that answers for taking a
   game — Full for everybody, per rev 18 § 4 — so no gate and no "can't take it"
-  row shows on any phone yet. The mapping between the two vocabularies is the
-  owner's call and is written down as open in `docs/screens.md`. Its `README.md`
+  row shows on any phone yet. **Owner, 26 September: Free / Regular / Full are
+  the names**, and the admin sees each person's tier on the pass sheet at the
+  moment of passing — nowhere else. How 0018's pro / club map onto them is
+  still open (`docs/screens.md`). Its `README.md`
   § 7 lists fourteen strings marked UNSURE; `docs/screens.md` has the seven
   places the app departs from it and why.
 
