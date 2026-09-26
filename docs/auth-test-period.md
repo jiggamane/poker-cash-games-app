@@ -262,9 +262,12 @@ A free Supabase project **pauses after 7 days with no activity**, and poker is
 weekly. A paused project has to be restored by hand from the dashboard, which
 is a bad thing to discover at the table with everyone waiting.
 
-Any weekly request to the REST endpoint keeps it awake — a scheduled GitHub
-Action hitting the health endpoint costs nothing and is enough. Worth doing
-before the first night rather than after the first outage.
+**Done, 26 September: `.github/workflows/keep-awake.yml`** reads one row
+through the REST API every morning with the app's own public key, which is
+activity the pause counts. It fails on anything but a 200, and GitHub emails
+the owner when a scheduled run fails — so a paused project or a rotated key is
+found there rather than at the table. Run it by hand from the Actions tab
+(**Keep Supabase awake**) to check it, or to wake the project on a game day.
 
 ---
 

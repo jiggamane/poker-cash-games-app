@@ -1,0 +1,73 @@
+# Keep the Supabase project awake.
+#
+# A free Supabase project PAUSES AFTER 7 DAYS WITH NO ACTIVITY, and this group
+# plays weekly or less. A paused project answers nothing — no sign-in, no link
+# in an email, no watcher, no backup — and the only cure is somebody clicking
+# Restore in the dashboard and waiting. On 26 September that was found by a
+# SQL query timing out, which is the lucky way; the unlucky way is at the table.
+#
+# So once a day this reads one row through the REST API with the public key.
+# That is real database activity, which is what the pause counts. It sees what
+# anybody with the app sees (row-level security answers an empty list, and that
+# is fine), and it writes nothing.
+#
+# IT IS ALSO THE ALARM. It fails on anything but a 200, and GitHub emails the
+# repository owner when a scheduled run fails — so a project that has paused
+# anyway, or a key that has been rotated out from under the app, is found here
+# first rather than on a phone.
+#
+# Uses the two secrets the Expo Go publish already has. Nothing new to set up.
+#
+# Two limits worth knowing:
+#   · GitHub disables scheduled workflows in a repository with no commits for
+#     60 days, and emails before it does.
+#   · This is not a backup. Supabase Pro removes the pause and adds backups —
+#     docs/accounts-roadmap.md puts that at Stage 3.
+name: Keep Supabase awake
+
+on:
+  schedule:
+    # Daily, off the hour: runs queued at :00 are the ones GitHub delays.
+    - cron: '17 6 * * *'
+  # And by hand, from the Actions tab, to check it — or to wake a project on
+  # the day of a game.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read one row
+        env:
+          SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
+            echo "::error::EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY is missing from Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+          # The key goes in `apikey` only. A legacy anon key would also be
+          # accepted as a Bearer token, but a publishable key (sb_publishable_…)
+          # is not a JWT and is refused there — and this header works for both.
+          # Three tries, a minute apart: a project that is waking up times out
+          # on its first request, and that is not a failure worth an email.
+          for try in 1 2 3; do
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 60 \
+              -H "apikey: $SUPABASE_KEY" \
+              "${SUPABASE_URL%/}/rest/v1/book?select=id&limit=1" || echo 000)
+            if [ "$code" = "200" ]; then
+              echo "Awake — the project answered 200."
+              exit 0
+            fi
+            echo "Try $try: HTTP $code"
+            [ "$try" -lt 3 ] && sleep 60
+          done
+
+          echo "::error::The project did not answer 200 (last: HTTP $code). If it is paused, restore it in the Supabase dashboard. A 401 is the key — Settings → Connection on the phone says which."
+          head -c 500 /tmp/body 2>/dev/null || true
+          exit 1

@@ -106,14 +106,15 @@ opened in Expo Go (`live-test.md`, `.github/workflows/expo-go.yml`).
 
 What is in the way is not code:
 
-1. **The email wall.** Supabase's own mailer sends two mails an hour to project
+1. **The email wall.** **Done 26 September** — Resend on `pokercashapp.com`,
+   custom SMTP on, 30 an hour; a sign-in link arrived through it. Was: Supabase's own mailer sends two mails an hour to project
    members only. Steps 4–6 of `auth-test-period.md`: Resend SMTP, **raise the
    rate limit separately**, paste the template, add
    `exp://u.expo.dev/938b4629-9a41-4ddf-bcd8-86bb4e4696b3/**` to the redirect
    list.
-2. **The project falls asleep** after seven idle days, and poker is weekly. A
-   scheduled GitHub Action that hits the REST health endpoint once a day.
-   *This one is code — a ten-line workflow — and the only code in Stage 0.*
+2. **The project falls asleep** after seven idle days, and poker is weekly.
+   **Done 26 September:** `.github/workflows/keep-awake.yml`, a daily read that
+   also fails loudly if the project is down.
 3. **How a friend gets the app:** install Expo Go from the store, open the
    **branch page** link (`live-test.md` — never a single-update link, which
    pins the phone forever). Check once on a phone that is **not** signed in to
