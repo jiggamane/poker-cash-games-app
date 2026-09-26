@@ -1,0 +1,258 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Game admin boards</title>
+<style>
+/* Tokens copied from apps/mobile/src/design/tokens.ts — light and dark. */
+.light{--ground:#FFFFFF;--surface:#F4F4F6;--raised:#E8E8ED;--text:#0C0D0F;--muted:#6B6F76;--dim:#6A6E75;--hairline:rgba(12,13,15,.1);--dashed:rgba(12,13,15,.3);--quiet:rgba(12,13,15,.24);--win:#0A7A3D;--winWash:rgba(10,122,61,.13);--loss:#B03A28;--dangerEdge:rgba(176,58,40,.35);--amber:#9A6B12;--amberWash:rgba(232,180,85,.18);--sheet:#FFFFFF;--scrim:rgba(12,13,15,.32);--grab:rgba(12,13,15,.2);--round:rgba(12,13,15,.06);--onFill:#FFFFFF;--fill:#0C0D0F;--drawer:#F4F4F6;--drawerEdge:rgba(12,13,15,.12);--toast:#0C0D0F;--toastText:#FFFFFF;--toastMuted:#C4C6CC;--board:#E9E9EC;--note:#5A5F66}
+.dark{--ground:#0A0A0B;--surface:#16161A;--raised:#26262B;--text:#FFFFFF;--muted:#8B8D93;--dim:#7F8187;--hairline:rgba(255,255,255,.11);--dashed:rgba(255,255,255,.26);--quiet:rgba(255,255,255,.28);--win:#6FCF97;--winWash:rgba(111,207,151,.13);--loss:#F0705C;--dangerEdge:rgba(240,112,92,.35);--amber:#E8B455;--amberWash:rgba(232,180,85,.14);--sheet:#101013;--scrim:rgba(0,0,0,.55);--grab:rgba(255,255,255,.22);--round:rgba(255,255,255,.09);--onFill:#0C0D0F;--fill:#FFFFFF;--drawer:#16161A;--drawerEdge:rgba(255,255,255,.16);--toast:#FFFFFF;--toastText:#0C0D0F;--toastMuted:#4A4E55;--board:#1B1B1F;--note:#A8ABB1}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'SF Pro Text',Figtree,Helvetica,Arial,sans-serif;background:#888}
+.board{background:var(--board);padding:28px;display:flex;flex-wrap:wrap;gap:28px;width:max-content;max-width:2240px}
+.board h1{width:100%;font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.4px}
+.board h1 small{display:block;font-size:14px;font-weight:500;color:var(--muted);margin-top:4px;letter-spacing:0}
+.cell{display:flex;flex-direction:column;gap:10px;width:393px}
+.label{font-size:13px;font-weight:700;color:var(--text)}.label span{display:block;font-weight:500;color:var(--muted);margin-top:2px;line-height:17px}
+.phone{width:393px;height:852px;background:var(--ground);color:var(--text);position:relative;overflow:hidden;border-radius:14px;box-shadow:0 0 0 1px var(--hairline)}
+.phone.w360{width:360px}
+.hdr{display:flex;align-items:center;gap:14px;padding:58px 20px 0}
+.back{width:40px;height:40px;border-radius:20px;background:var(--round);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text);flex:none}
+.hdr h2{font-size:31px;font-weight:800;letter-spacing:-.6px;flex:1}
+.tag{background:var(--winWash);color:var(--win);font-weight:700;font-size:13px;border-radius:14px;padding:6px 12px;white-space:nowrap}
+.meta{margin:4px 20px 0 74px;font-size:13.5px;color:var(--muted);display:flex;align-items:center;gap:7px;white-space:nowrap}
+.role{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--text)}
+.role i{width:8px;height:8px;border-radius:4px;background:var(--win);display:inline-block}
+.role.watch i{background:transparent;box-shadow:inset 0 0 0 1.5px var(--muted)}
+.card{margin:14px 20px 0;border:1px solid var(--hairline);background:var(--surface);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between}
+.card .l{color:var(--muted);font-size:12.5px;font-weight:600}.card .big{font-size:38px;font-weight:800;letter-spacing:-1px;margin-top:2px}
+.card .m{color:var(--muted);font-size:12.5px;text-align:right;line-height:18px;align-self:flex-end}
+.sec{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:1.3px;margin:18px 22px 2px;text-transform:uppercase}
+.row{display:flex;align-items:center;justify-content:space-between;margin:0 22px;padding:14px 0;border-bottom:1px solid var(--hairline);font-size:17px;font-weight:600}
+.row b{font-weight:800;font-size:18px}.row b:after{content:'  ›';color:var(--muted);font-weight:400}
+.row.plain b:after{content:''}
+.dim .hdr,.dim .meta,.dim .card,.dim .sec,.dim .row{opacity:.35}
+.dock{position:absolute;left:14px;right:14px;bottom:0;background:var(--drawer);border:1px solid var(--drawerEdge);border-bottom:none;border-radius:22px 22px 0 0;padding:14px 12px 30px}
+.dock .ta{font-weight:700;font-size:15px;padding:4px 8px 12px;display:flex;justify-content:space-between}
+.dock .ta span{color:var(--muted);font-weight:500;font-size:12.5px}
+.item{background:var(--raised);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;font-size:16.5px;font-weight:700}
+.item .ic{width:20px;text-align:center;font-weight:400}.item .ch{margin-left:auto;color:var(--muted);font-weight:400}
+.item small{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-top:2px}
+.item.new{box-shadow:inset 0 0 0 2px var(--amber)}
+.end{border:1.5px solid var(--dangerEdge);border-radius:10px;padding:10px 16px;margin-bottom:10px;color:var(--loss);font-weight:700;font-size:16px}
+.end small{display:block;color:var(--muted);font-weight:500;font-size:12.5px}
+.btns{display:flex;gap:10px}.reb{flex:2;background:var(--fill);color:var(--onFill);border-radius:10px;height:62px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700}
+.bill{flex:1;border:2.5px solid var(--text);border-radius:10px;height:62px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.scrim{position:absolute;inset:0;background:var(--scrim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--sheet);border-radius:22px 22px 0 0;padding:10px 22px 34px;box-shadow:0 -1px 0 var(--hairline)}
+.grab{width:38px;height:5px;border-radius:3px;background:var(--grab);margin:0 auto 16px}
+.sheet h3{font-size:28px;font-weight:800;letter-spacing:-.5px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.x{width:32px;height:32px;border-radius:16px;background:var(--round);font-size:15px;display:flex;align-items:center;justify-content:center;font-weight:400;flex:none}
+.sub{color:var(--muted);font-size:14.5px;margin:6px 0 10px;line-height:20px}
+.pick{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--hairline)}
+.av{width:36px;height:36px;border-radius:18px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none}
+.pick .nm{font-size:17px;font-weight:600}.pick .sm{font-size:12.5px;color:var(--muted);margin-top:1px}
+.pick .sm.why{color:var(--muted)}
+.radio{margin-left:auto;width:22px;height:22px;border-radius:11px;border:1.5px solid var(--dashed);flex:none}
+.radio.on{border:2px solid var(--text);display:flex;align-items:center;justify-content:center}.radio.on:after{content:'';width:11px;height:11px;border-radius:6px;background:var(--text)}
+.radio.off{border-color:var(--hairline)}
+.note{font-size:12.5px;color:var(--muted);line-height:19px;margin-top:12px}
+.primary{background:var(--fill);color:var(--onFill);border-radius:12px;height:56px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;margin-top:16px}
+.primary.blocked{background:var(--raised);color:var(--muted)}
+.secondary{border:2px solid var(--text);border-radius:12px;height:52px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin-top:10px}
+.textbtn{text-align:center;font-weight:700;font-size:15px;margin-top:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--quiet);border-radius:18px;padding:8px 14px;font-weight:700;font-size:14px;margin-top:12px}
+.foot{position:absolute;left:0;right:0;bottom:0;border-top:1px solid var(--hairline);background:var(--surface);padding:14px 22px 34px;text-align:center}
+.foot b{display:block;font-size:15.5px;margin-bottom:3px}.foot span{font-size:12.5px;color:var(--muted);line-height:18px;display:block}
+.hold{margin-top:12px;border:1.5px solid var(--text);border-radius:12px;padding:10px;font-weight:700;font-size:15.5px;text-align:center}.hold small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.toast{margin:12px 14px 0;background:var(--toast);color:var(--toastText);border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.toast .i{font-size:19px;line-height:22px}.toast b{font-size:15.5px;display:block}.toast span{font-size:13px;color:var(--toastMuted);line-height:18px;display:block;margin-top:2px}
+.toast .c{margin-left:auto;color:var(--toastMuted);font-size:15px}
+.banner{position:absolute;top:50px;left:12px;right:12px;background:var(--toast);color:var(--toastText);border-radius:16px;padding:12px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.banner b{font-size:15px;display:block}.banner span{font-size:12.5px;color:var(--toastMuted)}
+.banner .go{margin-left:auto;font-weight:700;font-size:14px}
+.late{text-align:center;color:var(--amber);font-weight:700;font-size:13.5px;position:absolute;left:0;right:0;bottom:150px}
+.badge{font-size:10.5px;font-weight:700;letter-spacing:1.1px;background:var(--surface);color:var(--muted);border-radius:12px;padding:5px 9px;margin-left:10px;white-space:nowrap}
+.badge.go{background:var(--winWash);color:var(--win)}
+.prow{display:flex;align-items:center;gap:12px;margin:0 22px;padding:11px 0;border-bottom:1px solid var(--hairline)}
+.prow .nm{font-size:17px;font-weight:700}.prow .ch{margin-left:auto;color:var(--muted)}
+.field{margin:14px 20px 4px;border:1.5px dashed var(--dashed);background:var(--surface);border-radius:12px;padding:14px 16px;color:var(--muted);font-size:17px}
+.plan{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1.5px solid var(--hairline);border-radius:12px;margin-top:8px}
+.plan .pn{font-size:16.5px;font-weight:700}.plan .pp{font-size:13px;color:var(--muted);margin-top:2px;line-height:18px}
+.plan .tick{margin-left:auto;width:22px;height:22px;border-radius:11px;border:1.5px solid var(--dashed);flex:none}
+.plan.inc .pn,.plan.inc .pp{color:var(--muted)}.plan.inc .tick{border:1.5px solid var(--muted);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)}
+.plan.sel{border:2px solid var(--text)}.plan.sel .tick{background:var(--text);border-color:var(--text);color:var(--onFill);display:flex;align-items:center;justify-content:center;font-size:13px}
+.inc-tag{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);border:1px solid var(--hairline);border-radius:8px;padding:2px 6px;margin-left:8px}
+.list{margin-top:10px}.list div{font-size:14px;line-height:21px;display:flex;gap:8px}.list div:before{content:'✓';color:var(--win);font-weight:700}
+.list.no div:before{content:'—';color:var(--muted)}
+.qa{width:393px;background:var(--ground);color:var(--text);border-radius:14px;padding:22px;box-shadow:0 0 0 1px var(--hairline);font-size:14px;line-height:21px}
+.qa h4{font-size:17px;margin:14px 0 4px}.qa h4:first-child{margin-top:0}.qa p{color:var(--note)}
+.settledbig{margin:18px 20px 0;display:flex;gap:10px}
+.settledbig div{flex:1;background:var(--surface);border-radius:12px;padding:12px}.settledbig b{display:block;font-size:22px;font-weight:800}.settledbig span{font-size:12px;color:var(--muted)}
+.quiet{margin:18px 22px 0;padding:12px 14px;border-radius:12px;background:var(--surface);font-size:13.5px;line-height:19px;color:var(--muted)}
+.quiet b{color:var(--text)}
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+const T = (tag,cls,html)=>`<${tag} class="${cls||''}">${html}</${tag}>`;
+const hdr=(title,tag='● 3h 16m')=>`<div class="hdr"><div class="back">‹</div><h2>${title}</h2>${tag?`<div class="tag">${tag}</div>`:''}</div>`;
+const role={
+  rec:`<span class="role"><i></i>You’re recording</span>· started 19:34`,
+  watch:`<span class="role watch"><i></i>Watching</span>· Andro is recording`,
+  away:`<span class="role watch"><i></i>Watching</span>· you passed it to Lena`,
+  watchLena:`<span class="role watch"><i></i>Watching</span>· Lena is recording`,
+};
+const meta=(r)=>`<div class="meta">${r}</div>`;
+const card=(amt='$4,500',m='$5,000 in play<br>5 seated · 1 out')=>`<div class="card"><div><div class="l">On the table</div><div class="big">${amt}</div></div><div class="m">${m}</div></div>`;
+const rows=(list=[['Petr','$1,500'],['Lena','$1,000'],['Ivo','$1,000'],['Andro','$500'],['Tomáš','$500']],label='Still playing · 5')=>`<div class="sec">${label}</div>`+list.map(([n,a])=>`<div class="row"><span>${n}</span><b>${a}</b></div>`).join('');
+const dockClosed=(extra='seat · cash out · pass · end')=>`<div class="dock"><div class="ta">⌃ &nbsp;Table admin <span>${extra}</span></div><div class="btns"><div class="reb">+ Rebuy</div><div class="bill">Bill</div></div></div>`;
+const drawer=`<div class="dock"><div class="ta">⌄ &nbsp;Table admin</div>
+<div class="item"><span class="ic">◯</span>Seat a player<span class="ch">›</span></div>
+<div class="item"><span class="ic">⇥</span>Cash out a player<span class="ch">›</span></div>
+<div class="item"><span class="ic">▤</span>Money rules<span class="ch">›</span></div>
+<div class="item new"><span class="ic">⇄</span><span>Pass the game<small>Someone else records from here</small></span><span class="ch">›</span></div>
+<div class="end">⏱ End this poker night<small>Hold 1s · counting starts, no rebuys</small></div>
+<div class="btns"><div class="reb">+ Rebuy</div><div class="bill">Bill</div></div></div>`;
+const tonight=(r,inner='',dim=false)=>`<div class="phone ${dim?'dim':''}">${hdr('Tonight')}${meta(r)}${card()}${rows()}${inner}</div>`;
+const pick=(name,sub,state='')=>`<div class="pick"><div class="av">${name[0]}</div><div><div class="nm">${name}</div><div class="sm">${sub}</div></div><div class="radio ${state}"></div></div>`;
+const sheet=(title,body,sub='')=>`<div class="scrim"></div><div class="sheet"><div class="grab"></div><h3>${title}<span class="x">✕</span></h3>${sub?`<div class="sub">${sub}</div>`:''}${body}</div>`;
+
+const S = [];
+const add=(sec,num,title,why,html)=>S.push({sec,num,title,why,html});
+
+// ---- A · passing
+add('A',1,'Table admin, with Pass the game','Between Money rules and End. The sub-line says what it does, not who can take it.',
+  tonight(role.rec, drawer, true));
+add('A',2,'Pick who records','Plans stay private: a row says only whether they can take it, or why not.',
+  tonight(role.rec, sheet('Pass the game',
+    pick('Lena','at the table','on')+pick('Petr','at the table')+pick('Dana','not playing tonight')+
+    pick('Ivo','can’t run games yet','off')+pick('Tomáš','no app yet · invite first','off')+
+    `<div class="note">Lena records from the moment you pass. You follow along, and can take it back from here any time. Nothing recorded on either phone is lost.</div><div class="primary">Pass to Lena</div>`,
+    'Anyone with the app and a Pro plan can take it.'), true));
+add('A',3,'Nobody can take it','The incentive lives here — one line on what would make somebody eligible, and a share, never a purchase for someone else.',
+  tonight(role.rec, sheet('Nobody can take it yet',
+    pick('Lena','can’t run games yet','off')+pick('Ivo','can’t run games yet','off')+pick('Tomáš','no app yet · invite first','off')+
+    `<div class="note">Running a game needs Pro. Anyone who goes Pro on their own phone shows up here straight away.</div>
+     <div class="chip">↗ Ask Lena to go Pro</div>
+     <div class="secondary" style="margin-top:18px">Keep recording</div>`,
+    'You’re still recording. Nothing has changed.'), true));
+add('A',4,'Could not reach the server','The game has not moved. Said plainly, with the one thing to do.',
+  tonight(role.rec, sheet('Not passed yet',
+    `<div class="quiet" style="margin:4px 0 0"><b>No signal.</b> The game is still on this phone and you’re still recording. Nothing has changed on Lena’s phone.</div>
+     <div class="primary">Try again</div><div class="textbtn">Keep recording</div>`), true));
+add('A',5,'Passed — Lena’s phone not open yet','It is Lena’s on the server; Lena’s phone picks it up when the app opens. You can still take it back.',
+  `<div class="phone">${hdr('Tonight')}${meta(role.away)}${card()}${rows()}
+   <div class="foot"><b>Passed to Lena</b><span>Lena’s phone picks it up the next time the app opens. Until then nobody is recording.</span>
+   <div class="hold">Take the game back<small>Hold 1s</small></div></div></div>`);
+
+// ---- B · after it moves
+add('B',6,'You passed it — you watch','The table stays live. No dock: every control in it records money.',
+  `<div class="phone">${hdr('Tonight','● 3h 18m')}${meta(role.away)}${card('$5,000','$5,500 in play<br>5 seated · 1 out')}${rows([['Petr','$1,500'],['Lena','$1,000'],['Ivo','$1,500'],['Andro','$500'],['Tomáš','$500']])}
+   <div class="foot"><b>Lena is recording tonight</b><span>Updates the moment Lena records anything.</span><div class="hold">Take the game back<small>Hold 1s · Lena’s phone stops recording</small></div></div></div>`);
+add('B',7,'It arrives on Lena’s phone','No tap needed. Closes itself after 6 s, or with ✕. The dock is already there.',
+  `<div class="phone">${hdr('Tonight','● 3h 18m')}${meta(role.rec.replace('· started 19:34','· since 23:10'))}
+   <div class="toast"><div class="i">⇄</div><div><b>Andro passed you the game</b><span>You’re recording tonight now — rebuys, cash-outs and the count happen on this phone.</span></div><div class="c">✕</div></div>
+   ${card('$5,000','$5,500 in play<br>5 seated · 1 out')}${rows([['Petr','$1,500'],['Lena','$1,000'],['Ivo','$1,500']])}${dockClosed()}</div>`);
+add('B','7b','…while Lena is on another screen','A banner at the top of whatever is open. Tapping it goes to Tonight; it waits there until seen.',
+  `<div class="phone">${hdr('Thursday game','')}
+   <div class="banner"><div style="font-size:18px">⇄</div><div><b>Andro passed you the game</b><span>You’re recording tonight now</span></div><div class="go">Open ›</div></div>
+   <div class="card" style="margin-top:30px"><div><div class="l">Tonight · live</div><div class="big">$5,000</div></div><div class="m">5 seated<br>started 19:34</div></div>
+   <div class="sec">History</div><div class="row plain"><span>My stats</span><b>›</b></div><div class="row plain"><span>Sessions</span><b>›</b></div></div>`);
+add('B',8,'Taken back','Same vocabulary as arriving. The dock leaves with it.',
+  `<div class="phone">${hdr('Tonight','● 3h 40m')}${meta(role.watch)}
+   <div class="toast"><div class="i">⇄</div><div><b>Andro took the game back</b><span>This phone follows along now. Anything it hadn’t sent yet goes to Andro to add.</span></div><div class="c">✕</div></div>
+   ${card('$5,500','$6,000 in play<br>5 seated · 1 out')}${rows([['Petr','$2,000'],['Lena','$1,000'],['Ivo','$1,500']])}
+   <div class="foot"><b>Andro is recording tonight</b><span>Updates the moment Andro records anything.</span></div></div>`);
+add('B',9,'Late changes to add','Restyled from the build. Unticked ones stay on the server, marked left out — nothing is deleted.',
+  tonight(role.rec, sheet('Changes from Lena’s phone',
+    `<div class="pick"><div><div class="nm">Ivo rebought $100</div><div class="sm">23:41</div></div><div class="radio on"></div></div>
+     <div class="pick"><div><div class="nm">Mara joined and bought in $100</div><div class="sm">23:44</div></div><div class="radio on"></div></div>
+     <div class="pick"><div><div class="nm">Petr rebought $100</div><div class="sm">23:52 · you may have added this yourself</div></div><div class="radio"></div></div>
+     <div class="note">Recorded after the game came back to you. Untick anything you already added by hand.</div>
+     <div class="primary">Add 2 to the night</div>`,
+    'Lena’s phone had these when you took the game back.'), true)
+  );
+add('B','9a','…and where it starts','Above the dock, in amber, until somebody decides. Tapping it opens the sheet in 9.',
+  tonight(role.rec, `<div class="late">3 changes from Lena’s phone · Review</div>`+dockClosed()));
+
+// ---- C · plans
+const plans=(sel)=>`<div class="plan inc"><div><div class="pn">Free<span class="inc-tag">INCLUDED</span></div><div class="pp">Watch any game, claim your place, see your nights</div></div><div class="tick">✓</div></div>
+ <div class="plan ${sel==='pro'?'sel':''}"><div><div class="pn">Pro · $4.99/mo</div><div class="pp">or $29.99 a year · start groups, run and pass games</div></div><div class="tick">${sel==='pro'?'✓':''}</div></div>
+ <div class="plan"><div><div class="pn">Club · $69/yr per group</div><div class="pp">Pro for the group, with co-hosts</div></div><div class="tick"></div></div>`;
+add('C','10','Free taps New session — iOS','Nothing paid is pre-ticked; the primary asks for a choice. No code field on iPhone (Apple 3.1.1).',
+  `<div class="phone dim">${hdr('Thursday game','')}${card()}${sheet('Running a game needs Pro',
+    plans('')+`<div class="primary blocked">Choose a plan to run games</div><div class="textbtn">Not now</div>
+    <div class="note" style="text-align:center">Have a code? Redeem it on the web with this account, then come back.</div>`,
+    'You can still watch any game and claim your place — that stays free.')}</div>`);
+add('C','10b','Same gate — Android, Pro tapped','Android may take a code in the app.',
+  `<div class="phone dim">${hdr('Thursday game','')}${card()}${sheet('Running a game needs Pro',
+    plans('pro')+`<div class="primary">Start Pro · $4.99/mo</div><div class="textbtn">I have a code</div>`,
+    'You can still watch any game and claim your place — that stays free.')}</div>`);
+add('C',11,'After watching a night','The only nudge, at the end of a night they watched — never mid-game, never a popup.',
+  `<div class="phone">${hdr('Last night','')}${meta(role.watch.replace('Andro is recording','Andro recorded it'))}
+   <div class="settledbig"><div><b>$6,000</b><span>in play</span></div><div><b>+$420</b><span>your night</span></div><div><b>4</b><span>transfers</span></div></div>
+   ${rows([['Petr','+$640'],['You','+$420'],['Ivo','−$310']],'Final · 5')}
+   <div class="quiet"><b>Run your own game?</b> Andro ran this one with Pro. Start a group and run nights like this from your phone. <span style="color:var(--text);font-weight:700">See Pro ›</span></div></div>`);
+add('C',12,'Admin’s plan lapsed mid-game','Nothing on Tonight while it runs. One line after closing.',
+  `<div class="phone">${hdr('Last night','')}${meta(role.rec.replace('You’re recording','You recorded it').replace('· started 19:34','· 19:34–01:12'))}
+   <div class="settledbig"><div><b>$6,000</b><span>in play</span></div><div><b>+$420</b><span>your night</span></div><div><b>4</b><span>transfers</span></div></div>
+   ${rows([['Petr','+$640'],['Andro','+$420'],['Ivo','−$310']],'Final · 5')}
+   <div class="quiet">Your Pro plan ended during this game. It finished exactly as it started. <b>Your next game needs Pro.</b> <span style="color:var(--text);font-weight:700">Renew ›</span></div></div>`);
+add('C',13,'The plan list — the rule','Free first, already yours (muted, outline check, INCLUDED). Nothing paid pre-ticked. The gates keep the rule.',
+  `<div class="phone" style="height:auto;padding:22px">
+   <div class="sec" style="margin:0 0 6px">Default</div>${plans('')}
+   <div class="sec" style="margin:22px 0 6px">Pro tapped</div>${plans('pro')}
+   <div class="note">Primary reads “Choose a plan…” (blocked) until a paid row is tapped, then names it: “Start Pro · $4.99/mo”.</div></div>`);
+
+// ---- D · players and roles
+add('D',14,'Players — who can run a game','Sections, not badges: “Regular” already means a roster group, so no plan names appear.',
+  `<div class="phone">${hdr('Players','')}<div class="meta">7 on the roster · 3 can run a game</div><div class="field">Their name</div>
+   <div class="sec">Can run a game · 3</div>
+   <div class="prow"><div class="av">A</div><span class="nm">Andro</span><span class="badge">ADMIN</span><span class="ch">›</span></div>
+   <div class="prow"><div class="av">L</div><span class="nm">Lena</span><span class="badge go">CAN RUN</span><span class="ch">›</span></div>
+   <div class="prow"><div class="av">P</div><span class="nm">Petr</span><span class="badge go">CAN RUN</span><span class="ch">›</span></div>
+   <div class="sec">Has the app · 1</div>
+   <div class="prow"><div class="av">I</div><span class="nm">Ivo</span><span class="badge">APP</span><span class="ch">›</span></div>
+   <div class="sec">Name only · 3</div>
+   <div class="prow"><div class="av">D</div><span class="nm">Dana</span><span class="badge">NAME ONLY</span><span class="ch">›</span></div>
+   <div class="prow"><div class="av">T</div><span class="nm">Tomáš</span><span class="badge">NAME ONLY</span><span class="ch">›</span></div>
+   <div class="prow"><div class="av">R</div><span class="nm">Radka</span><span class="badge">NAME ONLY</span><span class="ch">›</span></div></div>`);
+add('D',15,'Same list, read by a member','Read-only: no field, no chevrons. Members see who can run a game, not anybody’s plan.',
+  `<div class="phone">${hdr('Players','')}<div class="meta">7 in Thursday game</div>
+   <div class="sec" style="margin-top:22px">Can run a game · 3</div>
+   <div class="prow"><div class="av">A</div><span class="nm">Andro</span><span class="badge">ADMIN</span></div>
+   <div class="prow"><div class="av">L</div><span class="nm">Lena</span><span class="badge go">CAN RUN</span></div>
+   <div class="prow"><div class="av">P</div><span class="nm">Petr</span><span class="badge go">CAN RUN</span></div>
+   <div class="sec">Everyone else · 4</div>
+   <div class="prow"><div class="av">I</div><span class="nm">Ivo</span></div><div class="prow"><div class="av">D</div><span class="nm">Dana</span></div>
+   <div class="prow"><div class="av">T</div><span class="nm">Tomáš</span></div><div class="prow"><div class="av">R</div><span class="nm">Radka</span></div></div>`);
+add('D','16a','Role on Tonight — recording','In the meta line under the title, so the top-right keeps only the live tag.',
+  tonight(role.rec, dockClosed()));
+add('D','16b','Role on Tonight — watching','Same place, hollow dot. Names who is recording.',
+  `<div class="phone">${hdr('Tonight')}${meta(role.watch)}${card()}${rows()}<div class="foot"><b>Andro is recording tonight</b><span>Updates the moment Andro records anything.</span></div></div>`);
+add('D','16c','Role on Tonight — passed away','Names who you passed it to; take back sits in the footer.',
+  `<div class="phone">${hdr('Tonight')}${meta(role.away)}${card()}${rows()}<div class="foot"><b>Lena is recording tonight</b><span>Updates the moment Lena records anything.</span><div class="hold">Take the game back<small>Hold 1s</small></div></div></div>`);
+add('D',17,'Watch link (X1) — same mark','The share-link watcher gets the same role line, and the read-only band says it once.',
+  `<div class="phone">${hdr('Thursday game','● live')}${meta(role.watch)}${card()}${rows()}<div class="foot"><span>Read-only. Only Andro can write to the ledger.</span></div></div>`);
+
+const QA=`<div class="qa">
+<h4>Open questions — answered</h4>
+<p><b>Pass to someone not at the table?</b> Yes. The row says “not playing tonight” so nobody is surprised.</p>
+<h4></h4><p><b>Does taking a game BACK need a plan?</b> No. The group’s host can always take their own game back — a lapsed plan must never strand a running night.</p>
+<h4></h4><p><b>Show plans by name in the pass sheet?</b> No. Plans are personal: rows say “can take it” or “can’t run games yet”, and the list and badges never say Pro or Club.</p>
+<h4>Contradictions flagged</h4>
+<p>09-navigation: nothing top-right on a push. The role goes in the meta line (16a–c), not the corner.</p>
+<p>“Regular” is a roster group in C2 and was a plan name in rev 18; these boards use neither for plans.</p>
+<p>State 5 has a gap with nobody recording. Proposal: allowed — nothing can be recorded, but nothing is lost, and take-back fixes it.</p>
+<h4>Copy</h4><p>Every string here is new and unreviewed.</p></div>`;
+
+const SECS={A:'A · Passing the game',B:'B · After it moves',C:'C · Plans — gates and incentives',D:'D · Players and roles'};
+const params=new URLSearchParams(location.search);
+const sec=params.get('sec')||'A', theme=params.get('theme')||'light', width=params.get('w');
+let html=`<div class="board ${theme}"><h1>${SECS[sec]}<small>Game admin boards · 393 × 852 · ${theme} · Every string is a draft</small></h1>`;
+for(const s of S.filter(x=>x.sec===sec)){
+  let ph=s.html; if(width==='360') ph=ph.replace('class="phone','class="phone w360');
+  html+=`<div class="cell"><div class="label">${s.num} · ${s.title}<span>${s.why}</span></div>${ph}</div>`;
+}
+if(sec==='D') html+=`<div class="cell"><div class="label">Notes<span>Answers to the prompt’s open questions</span></div>${QA}</div>`;
+html+='</div>';
+document.getElementById('root').innerHTML=html;
+</script></body></html>
