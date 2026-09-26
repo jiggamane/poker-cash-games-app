@@ -148,11 +148,16 @@ Seen        not seen; found 26 Sept checking what a phone needs from the
             `night_pass` (0020) beside the five reads that ARE the night, and
             any one refusal throws. On a project that has not run 0020 the
             table does not exist, so every share link read "This link isn't
-            live" — for want of one line on the feed
-Expected    the night, with no hand-off rows, until 0020 is applied
+            live" — for want of one line on the feed. The live updates had
+            the same shape: every table the screen listens to was one realtime
+            channel, and a channel naming a table the server lacks is refused
+            whole, so the watcher's figures stopped moving
+Expected    the night, live, with no hand-off rows, until 0020 is applied
 Locked by   nothing yet — the checks run with no server at all. The read is
-            marked optional in the code, beside the reason
-Status      fixed in this commit — NOT yet seen on a phone
+            marked optional and each table has its own channel, both with the
+            reason beside them in `watchNight.ts`
+Status      fixed — the read in 1ce38ad, the channels the commit after —
+            NOT yet seen on a phone
 ```
 
 ### B96 — a member reading a pulled night was handed the host's dock

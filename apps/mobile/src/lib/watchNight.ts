@@ -259,8 +259,16 @@ export function useWatchedNight(sessionId: string | null): {
      * be filtered — the row is gone — so they are heard unfiltered and cost one
      * re-read of a night nothing on it changed in.
      */
-    const channel = supabase.channel(`watch:${sessionId}`);
-    for (const feed of WATCH_FEED) {
+    /*
+     * ONE CHANNEL PER TABLE — B97. Realtime refuses a channel whose bindings
+     * name a table the server cannot give changes for, and it refuses the
+     * WHOLE channel: on a project that has not run the newest migration (0019's
+     * `final_count`, 0020's `night_pass`) one missing table took the ledger's
+     * live updates down with it. Apart, a missing table costs only its own
+     * line. They share one socket either way, so this is not seven connections.
+     */
+    const channels = WATCH_FEED.map((feed) => {
+      const channel = supabase.channel(`watch:${sessionId}:${feed.table}`);
       const filter =
         feed.scope === 'session'
           ? { filter: `session_id=eq.${sessionId}` }
@@ -272,12 +280,12 @@ export function useWatchedNight(sessionId: string | null): {
       if (feed.deletes) {
         channel.on('postgres_changes', { event: 'DELETE', schema: 'public', table: feed.table }, soon);
       }
-    }
-    channel.subscribe();
+      return channel.subscribe();
+    });
 
     return () => {
       alive = false;
-      void supabase.removeChannel(channel);
+      for (const channel of channels) void supabase.removeChannel(channel);
     };
   }, [sessionId, nonce]);
 
