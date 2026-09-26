@@ -53,6 +53,33 @@ export interface WatchedNight {
   finalCounts: Map<PlayerId, Money>;
 }
 
+/**
+ * The live feed a watcher's screen listens to — B95.
+ *
+ * One row per table the night is read from, and how a change to it is matched
+ * to this night: by `session_id`, by the session's own `id`, or not at all
+ * (book-level rows, which row-level security already limits to the watcher's
+ * book). `deletes` marks tables where a delete changes the figures — a count
+ * cleared by a cash-out — and has to be heard unfiltered.
+ *
+ * EVERY TABLE HERE MUST BE PUBLISHED by a migration
+ * (`alter publication supabase_realtime add table …`), or its changes are
+ * never sent at all. `watchFeed.test.ts` checks that against the files, and
+ * `supabase/test/12_live_feed.sql` against a migrated database.
+ */
+export const WATCH_FEED: ReadonlyArray<{
+  table: string;
+  scope: 'session' | 'self' | 'book';
+  deletes: boolean;
+}> = [
+  { table: 'ledger_entry', scope: 'session', deletes: false }, // append-only
+  { table: 'session', scope: 'self', deletes: false },
+  { table: 'session_seat', scope: 'session', deletes: true },
+  { table: 'final_count', scope: 'session', deletes: true },
+  { table: 'player', scope: 'book', deletes: false },
+  { table: 'money_rule', scope: 'book', deletes: true },
+];
+
 /** True once the night has been counted and closed — X1c rather than X1a. */
 export const hasEnded = (night: WatchedNight): boolean =>
   night.status === 'settled' || night.status === 'closed' || night.endedAt !== null;
@@ -141,7 +168,26 @@ export function useWatchedNight(sessionId: string | null): {
 
     let alive = true;
 
+    /*
+     * ONE READ AT A TIME, AND ONE MORE IF ANYTHING ARRIVED MEANWHILE. A rebuy
+     * is a seat and an entry, a guest is a player, a seat and an entry, and
+     * each is its own event — re-reading the whole night once per event would
+     * be three reads for one tap. Events that land while a read is in flight
+     * collapse into a single read after it.
+     */
+    let reading = false;
+    let again = false;
+    const soon = () => {
+      if (reading) {
+        again = true;
+        return;
+      }
+      read();
+    };
+
     const read = () => {
+      reading = true;
+      again = false;
       loadWatchedNight(sessionId)
         .then((n) => {
           if (!alive) return;
@@ -152,28 +198,40 @@ export function useWatchedNight(sessionId: string | null): {
           if (alive) setError(e instanceof Error ? e.message : String(e));
         })
         .finally(() => {
+          reading = false;
           if (alive) setLoading(false);
+          if (alive && again) read();
         });
     };
 
     read();
 
-    // Every table the feed is built from. A buy-in is a ledger_entry, a count
-    // is a final_count, and closing the night moves session.status — a watcher
-    // who only heard about entries would sit on a live screen after the night
-    // had ended.
-    const channel = supabase
-      .channel(`watch:${sessionId}`)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'ledger_entry', filter: `session_id=eq.${sessionId}` },
-        read)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'final_count', filter: `session_id=eq.${sessionId}` },
-        read)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'session', filter: `id=eq.${sessionId}` },
-        read)
-      .subscribe();
+    /*
+     * EVERY TABLE THE NIGHT IS READ FROM — B95. A change to any of them re-reads
+     * the night; `WATCH_FEED` is the list, and `watchFeed.test.ts` holds it to
+     * the tables `loadWatchedNight` reads and to the ones a migration publishes.
+     *
+     * Inserts and updates are filtered to this night where the table has a
+     * session_id; `player` and `money_rule` belong to the book, and row-level
+     * security already limits them to this watcher's one book. DELETES cannot
+     * be filtered — the row is gone — so they are heard unfiltered and cost one
+     * re-read of a night nothing on it changed in.
+     */
+    const channel = supabase.channel(`watch:${sessionId}`);
+    for (const feed of WATCH_FEED) {
+      const filter =
+        feed.scope === 'session'
+          ? { filter: `session_id=eq.${sessionId}` }
+          : feed.scope === 'self'
+            ? { filter: `id=eq.${sessionId}` }
+            : {};
+      channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: feed.table, ...filter }, soon);
+      channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: feed.table, ...filter }, soon);
+      if (feed.deletes) {
+        channel.on('postgres_changes', { event: 'DELETE', schema: 'public', table: feed.table }, soon);
+      }
+    }
+    channel.subscribe();
 
     return () => {
       alive = false;
@@ -231,6 +289,8 @@ interface EntryRow {
   corrects_entry_id: string | null;
   occurred_at: string;
   note: string | null;
+  covered_by: 'kitty' | 'unpaid' | null;
+  spend_group: string | null;
 }
 
 const toEntry = (e: EntryRow): LedgerEntry & { occurredAt: string; note: string | null } => ({
@@ -243,6 +303,10 @@ const toEntry = (e: EntryRow): LedgerEntry & { occurredAt: string; note: string 
   correctsEntryId: e.corrects_entry_id,
   occurredAt: e.occurred_at,
   note: e.note,
+  /* Who covered a spend. Dropped here until B95, so a watcher settled a
+     piggy-bank pizza differently from the host's phone. */
+  coveredBy: e.covered_by ?? null,
+  spendGroup: e.spend_group ?? null,
 });
 
 interface RuleRow {

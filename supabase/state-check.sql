@@ -12,7 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0015 and 0018. 0016 and 0017 are the
+-- Last checked against migrations 0001–0015, 0018 and 0019. 0016 and 0017 are the
 -- parked pass-the-book branch and have no row until it comes back.
 -- =============================================================================
 
@@ -109,6 +109,13 @@ probe as (
      and exists (select 1 from pg_policies where tablename = 'book'
                                             and policyname = 'book_insert_needs_plan')) as m18,
 
+    -- 0019 every table a watcher reads is on the live feed (B95). On a project
+    -- with no realtime publication at all this reads missing, which is right:
+    -- a watcher's screen would never update.
+    exists (select 1 from pg_publication_tables
+             where pubname = 'supabase_realtime' and schemaname = 'public'
+               and tablename = 'final_count') as m19,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
@@ -148,6 +155,7 @@ select v.n,
     (15, '0015 fees',                                 x.m15, 'run supabase/migrations/0015_fees.sql'),
     (18, '0018 plans, promo codes, a plan to start a group',
                                                       x.m18, 'run supabase/migrations/0018_accounts.sql — then seed app_admin, docs/accounts-roadmap.md'),
+    (19, '0019 counts, guests and rules on the live feed', x.m19, 'run supabase/migrations/0019_live_feed.sql'),
     (90, 'all eleven tables present',                    x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),

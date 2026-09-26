@@ -246,6 +246,14 @@ const toEntry = (e: EntryRow): LedgerEntry & { occurredAt: string; note: string 
   correctsEntryId: e.corrects_entry_id,
   occurredAt: e.occurred_at,
   note: e.note,
+  /*
+   * WHO COVERED A SPEND. Read with `*` and dropped here until B92. A pizza the
+   * piggy bank paid for arrived as a spend with no payer and no cover, which
+   * the engine reads differently, so a pulled night could freeze at figures
+   * nobody at the table was paid on.
+   */
+  coveredBy: e.covered_by ?? null,
+  spendGroup: e.spend_group ?? null,
 });
 
 const toRule = (r: RuleRow): MoneyRule => ({
@@ -322,6 +330,8 @@ interface EntryRow {
   corrects_entry_id: string | null;
   occurred_at: string;
   note: string | null;
+  covered_by: 'kitty' | 'unpaid' | null;
+  spend_group: string | null;
 }
 
 interface RuleRow {

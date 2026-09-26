@@ -139,6 +139,83 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B95 — a watcher's screen did not hear half of what changed
+
+```
+Screen      /watch (X1) — `watchNight.ts`, and the database's realtime feed
+Seen        not seen; found 25 Sept tracing how a watcher's screen updates.
+            The screen re-reads the night when the database says something
+            changed, and it listened for ledger_entry, final_count and session.
+            Only ledger_entry, session and session_seat were ever added to
+            the `supabase_realtime` publication (0001), so:
+              - counting a stack never reached a watcher until the next buy-in
+                or status change happened to arrive (final_count not published)
+              - a guest seated mid-game (session_seat) was published and not
+                listened for; their new name (player) was neither
+              - a money rule changed mid-game (money_rule) was neither
+              - a count cleared by a cash-out is a DELETE, and the feed cannot
+                filter deletes by night, so even a published table never said
+            And, separately, the watcher's copy of the ledger dropped
+            covered_by and spend_group — the B92 fault on the watch screen: a
+            spend the piggy bank paid for settled differently on a watcher's
+            phone than on the host's
+Expected    every change the watcher's figures depend on reaches their screen
+            as it happens, and the watcher settles the same ledger the host does
+Locked by   npm run check — `watchFeed.test.ts` holds every table the watch
+            screen reads to being both listened for and published by a
+            migration; npm run db:verify — `12_live_feed.sql` asserts the same
+            list is in the publication of a fully migrated database
+Status      fixed in this commit (0019) — NOT yet seen on a phone
+```
+
+*B92, B93 and B95 reached `main` on 26 September on their own, ahead of the
+pass-the-book work they were found in, which is parked on
+`claude/multi-admin-game-access-cpwbpw` for a redesign. **B94 is that branch's**
+— two faults in its own handover screens — and is not on `main` because the
+code it fixed is not; the number is taken, not skipped.*
+
+### B93 — what a spend was for never reached the server
+
+```
+Screen      none directly — `nightStore.ts` `append`, so every spend's note
+            ("Pizza") on every phone that ever read a night back
+Seen        not seen; found 23 Sept on the parked pass-the-book branch, which
+            re-records entries through the same call
+Expected    `ledgerRepo.recordEntry` puts the note in the queued payload — its
+            own comment says so — and `entryRow` sends it as `note`
+Found       23 Sept. `append` called `recordEntry(sessionId, draft, occurredAt)`
+            and never passed the note, so the phone kept it locally and the
+            server's `note` column was null for every entry ever sent
+Locked by   npm run check — `spendNote.test.ts` records a spend and asserts
+            the queued entry carries its note
+Status      fixed in this commit — NOT yet seen on a phone. Notes already lost
+            stay lost; the phone that recorded them still has them
+```
+
+### B92 — a night pulled off the server forgot who paid for a spend
+
+```
+Screen      none directly — `pull.ts` `toEntry`, and so every night a claimed
+            member reads back
+Seen        not seen; found reading the pull while building Pass the book.
+            `ledger_entry` is read with `*` and `toEntry` mapped nine of its
+            columns: `covered_by` and `spend_group` were dropped on the floor
+Expected    a spend the piggy bank paid for arrives as one. The engine reads
+            `coveredBy === 'kitty'` to take it out of the piggy bank
+            (`packages/core/src/ledger.ts`), so without it the figure moves
+Found       23 Sept, on the parked pass-the-book branch, reading the pull
+Locked by   ⚠ no test pins the two columns yet — `pull.test.ts` asserts the
+            READ lists, not what is kept
+Status      fixed in this commit — NOT yet seen on a phone. Nights already
+            pulled keep what they froze with; a reinstall reads them afresh
+```
+
+Since 0004 a spend has four shapes and two of them have no payer: one the piggy
+bank covered and one nobody has been named for. The send side has carried both
+columns since 0004 — `entryRow`'s own comment is about exactly this — and the
+read side never did. A member's frozen copy of a night with a piggy-bank pizza
+was therefore settled at figures the table was not paid on.
+
 ### B91 — a watch link read as an account, and the queue believed it
 
 ```

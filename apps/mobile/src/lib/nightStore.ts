@@ -813,7 +813,9 @@ async function append(
   if (night === null) throw new Error('No night is open.');
   const db = await getDb();
 
-  const entry = await recordEntry(night.sessionId, draft, occurredAt);
+  /* The note travels in the queued payload — B93. It was left off here, so the
+     phone kept "Pizza" and the server's `note` was null for every entry. */
+  const entry = await recordEntry(night.sessionId, draft, occurredAt, note);
 
   await db.runAsync(
     `INSERT INTO night_entry
