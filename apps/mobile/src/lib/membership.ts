@@ -39,9 +39,17 @@ export interface Membership {
    * Null for Free and Full.
    */
   hostNightRenewsOn: Date | null;
+  /**
+   * Whether this is a real answer or the seam's placeholder. The pass sheet
+   * names a person's tier only when it is real — printing "Full" beside
+   * everybody because the seam says yes would tell the admin something that
+   * is not true about their friends.
+   */
+  known: boolean;
 }
 
-const FULL: Membership = { tier: 'full', hostNightUsed: false, hostNightRenewsOn: null };
+/** The seam's placeholder: allows everything, and is not anybody's real tier. */
+const FULL: Membership = { tier: 'full', hostNightUsed: false, hostNightRenewsOn: null, known: false };
 
 /**
  * A person's membership. THE SEAM: it answers Full for everybody.
@@ -154,3 +162,48 @@ export function gateFor(m: Membership): 'free' | 'regular_used' | null {
   if (m.tier === 'regular' && m.hostNightUsed) return 'regular_used';
   return null;
 }
+
+/** The tier as the owner named it, 26 September: Free / Regular / Full. */
+export const TIER_NAME: Record<Tier, string> = { free: 'Free', regular: 'Regular', full: 'Full' };
+
+/**
+ * One row's sub-line on the pass sheet — `design/handoff-game-admin/` state 3,
+ * and since 26 September the owner's call on top of it: **the admin sees each
+ * person's tier at the moment of passing**, first on the line, where the seam
+ * has a real answer. Only there: GR4's *Who can run a game* view still never
+ * prints a tier name, and nobody but the phone passing the game sees one.
+ *
+ *   Full · at the table
+ *   Regular · at the table · uses their one host night
+ *   Full · not playing tonight
+ *   Regular · host night used · back on 1 Oct
+ *   Free · can't run a game
+ *   Name only · no app to send it to
+ *
+ * With the seam's placeholder (today, for everybody) the tier is left off and
+ * the line is the board's own: "At the table · can take it any night".
+ */
+export function passLine(row: PassRow, seated: boolean, day: (d: Date) => string): string {
+  const where = seated ? 'at the table' : 'not playing tonight';
+  const m = row.membership;
+  if (row.kind === 'cannot' && row.why === 'name_only') return 'Name only · no app to send it to';
+  if (row.kind === 'cannot' && row.why === 'free') {
+    return seated ? 'Free · can’t run a game' : 'Free · not playing tonight';
+  }
+  if (row.kind === 'cannot') {
+    const back = m.hostNightRenewsOn === null ? '—' : day(m.hostNightRenewsOn);
+    return `${m.known ? 'Regular · h' : 'H'}ost night used · back on ${back}`;
+  }
+  /* ⚠ "uses their one host night" is marked UNSURE on the board. */
+  const tail = row.spendsHostNight
+    ? 'uses their one host night'
+    : m.known
+      ? null
+      : seated
+        ? 'can take it any night'
+        : 'any night';
+  const lead = m.known ? `${TIER_NAME[m.tier]} · ${where}` : cap(where);
+  return tail === null ? lead : `${lead} · ${tail}`;
+}
+
+const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);

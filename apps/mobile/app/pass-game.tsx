@@ -10,7 +10,7 @@ import { block, radius, space, type } from '../src/design/tokens';
 import { useClub, type Member } from '../src/lib/clubStore';
 import { passTo, PassBlockedError } from '../src/lib/handover';
 import { claimedSeat } from '../src/lib/identity';
-import { passTargets, type PassRow } from '../src/lib/membership';
+import { passLine, passTargets, type PassRow } from '../src/lib/membership';
 import { useNight } from '../src/lib/nightStore';
 import { explainServerError, isSupabaseConfigured } from '../src/lib/supabase';
 
@@ -353,21 +353,9 @@ function PersonRow({
 }
 
 function subLine(row: PassRow, seated: boolean): string {
-  const where = seated ? 'At the table' : 'Not playing tonight';
-  if (row.kind === 'can') {
-    /* ⚠ "uses their one host night" is marked UNSURE on the board. */
-    return row.spendsHostNight ? `${where} · uses their one host night` : `${where} · ${seated ? 'can take it any night' : 'any night'}`;
-  }
-  switch (row.why) {
-    case 'name_only':
-      return 'Name only · no app to send it to';
-    case 'host_night_used': {
-      const back = row.membership.hostNightRenewsOn;
-      return `Host night used · back on ${back === null ? '—' : shortDay(back)}`;
-    }
-    case 'free':
-      return seated ? 'Free · can’t run a game' : 'Free · not playing tonight';
-  }
+  /* The tier, first, where the seam has a real one — the owner's call,
+     26 September. `passLine` has the rule and the tests. */
+  return passLine(row, seated, shortDay);
 }
 
 const shortDay = (d: Date): string => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });

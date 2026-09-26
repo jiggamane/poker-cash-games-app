@@ -6,9 +6,9 @@
 > same day. This file is the prompt as re-issued that morning against
 > `0018_accounts.sql`'s Free / Pro / Club, and it has not been answered. The
 > original brief the boards answer is kept beside them as
-> `design/handoff-game-admin/design-request-game-admin.md`. Which vocabulary is
-> final is the owner's call; `docs/screens.md` records it as open and
-> `apps/mobile/src/lib/membership.ts` is the one place the answer goes.
+> `design/handoff-game-admin/design-request-game-admin.md`. **Superseded:
+> the owner chose Free / Regular / Full on 26 September**, so this Pro / Club
+> revision is not the one to draw against.
 
 **Why this file exists.** Passing tonight's game to another phone was built on
 the branch `claude/multi-admin-game-access-cpwbpw` (migrations 0016–0017,

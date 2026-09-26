@@ -174,6 +174,22 @@ lives, is the owner's, not decided here. `docs/design-request-game-admin.md`
 is the prompt re-issued against Pro / Club on 26 September; the boards that
 came back answered the 25 September version.
 
+*The owner's call, 26 September: **Free / Regular / Full are the names**, and
+the admin sees each person's tier on the pass sheet at the moment of passing.*
+The sub-line leads with it — *Full · at the table*, *Regular · at the table ·
+uses their one host night*, *Regular · host night used · back on 1 Oct*, *Free ·
+can't run a game* (`passLine` in `membership.ts`, tested). **Only there**: GR4's
+view still never prints a tier, and no phone but the one passing sees one. It
+is drawn only when the seam has a real answer — `Membership.known` — so today
+every row still reads the board's *At the table · can take it any night*,
+because printing "Full" beside everybody on the strength of a placeholder would
+tell the admin something untrue about their friends. What is still open is how
+0018's pro / club become these three (pro and club → Full is the obvious
+reading; Regular has no source on the server yet). The other session's draft
+boards on `claude/multi-admin-game-access-cpwbpw` (`design/board-game-admin/`)
+drew Pro / Club / Free names on both screens; they are superseded by this call
+and were never merged.
+
 *Strings the board marks UNSURE, all on screen as written:* "Pass the game" ·
 "uses their one host night" · "Used tonight" · the Ask share text · "Until then
 nothing new is recorded." · the 12b sub-line · "Tick all" / "Untick all" ·

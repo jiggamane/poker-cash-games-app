@@ -20,8 +20,9 @@ and an explicit default wherever something isn't settled.*
 > only starting a group, and has no host night. The two vocabularies have not
 > been joined: `apps/mobile/src/lib/membership.ts` is the seam that answers for
 > taking a game (Full for everybody, until membership ships), and which tier a
-> Pro is — and where Regular's host night lives — is the owner's call. Until it
-> is made, this document is the design and 0018 is what is built.
+> Pro is — and where Regular's host night lives — is still to be decided.
+> **The names are decided (owner, 26 September): Free / Regular / Full**, as
+> above; 0018's pro / club are server words and will be mapped onto them.
 
 ---
 
