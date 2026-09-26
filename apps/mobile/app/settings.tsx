@@ -20,6 +20,9 @@ import * as Clipboard from 'expo-clipboard';
 import { readBackup, restoreBackup, useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
 import { myPlan, planLine } from '../src/lib/plan';
+import { handedInOn, takeBack, useLate } from '../src/lib/handover';
+import { HoldButton } from '../src/components/HoldButton';
+import { usePending } from '../src/lib/pending';
 
 /**
  * Settings — GR7. Four sections: the group, the money, the players, the exits.
@@ -58,6 +61,16 @@ export default function Settings() {
   useEffect(() => {
     void syncStatus().then(setBackup).catch(() => setBackup(null));
   });
+
+  /* Passing the book: what this phone handed in for a night after it moved,
+     what became of it, and what is waiting here to be added. See handover.ts. */
+  const [handedIn, setHandedIn] = useState(0);
+  useEffect(() => {
+    if (night === null) return;
+    void handedInOn(night.sessionId).then(setHandedIn).catch(() => setHandedIn(0));
+  }, [night]);
+  const late = useLate(night?.sessionId);
+  const unsent = usePending(night?.sessionId).waiting;
 
   /*
    * WHO IS HOLDING THIS PHONE — B91, and it is not `session !== null`.
@@ -158,6 +171,21 @@ export default function Settings() {
       setFetched(explainServerError(e));
     } finally {
       setSharing(false);
+    }
+  }
+
+  /**
+   * The host's way back for a night passed to another phone — no code, because
+   * the case it is for is the one where that phone cannot give one. The server
+   * refuses anybody but the group's host, and that refusal is shown as it comes.
+   */
+  async function reclaim() {
+    if (night === null) return;
+    try {
+      await takeBack(night.sessionId);
+      setFetched('The night is back on this phone.');
+    } catch (e) {
+      setFetched(explainServerError(e));
     }
   }
 
@@ -435,6 +463,59 @@ export default function Settings() {
           <Action label="Sign in" onPress={() => router.push('/sign-in')} last />
         )}
 
+        {/*
+         * PASSING THE BOOK — 0016 and 0017, `handover.ts`. One phone records a
+         * night; these move which one. NOT DRAWN: the heading, the rows and
+         * their copy are mine and flagged in `docs/screens.md`.
+         *
+         * ITS OWN SECTION, NOT UNDER ACCOUNT, because since 0017 a phone with no
+         * account can take a night with its code and pass it back — the rows
+         * belong to whoever holds a night, not to whoever signed in. Taking a
+         * night BACK is the host's alone, and the server says so.
+         */}
+        {configured && !loading && (
+          <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Tonight's book</Text>
+        )}
+        {configured && !loading && night !== null && !night.seeded && (
+          <>
+
+            {night.hold === 'away' ? (
+              <>
+                <Fact label="Being recorded" value="On another phone" />
+                {/* ONE TEXT NODE, for the reason `hand-over.tsx` gives: a
+                    fragment either side of an interpolation wraps on its own. */}
+                <Text style={[styles.note, { color: t.muted }]}>
+                  {awayLine(night.tableName, unsent, handedIn, late.fromHere)}
+                </Text>
+                {signedIn && (
+                  <View style={styles.hold}>
+                    <HoldButton
+                      label="Take the night back"
+                      sub="Hold to take it back"
+                      onComplete={() => void reclaim()}
+                    />
+                  </View>
+                )}
+              </>
+            ) : (
+              <>
+                {late.toReview > 0 && (
+                  <Action
+                    label={`Review ${late.toReview} late ${late.toReview === 1 ? 'change' : 'changes'}`}
+                    onPress={() => router.push('/late-changes')}
+                  />
+                )}
+                {(signedIn || night.hold === 'here') && night.status !== 'settled' && (
+                  <Action label="Pass the book" onPress={() => router.push('/pass-book')} />
+                )}
+              </>
+            )}
+          </>
+        )}
+        {configured && !loading && (
+          <Action label="Take over a night" onPress={() => router.push('/take-over')} last />
+        )}
+
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The exits</Text>
 
         {/* GR9. Only the admin sees it — there is nothing to hand over
@@ -590,6 +671,44 @@ function FactAction({
   );
 }
 
+/**
+ * Where a night another phone is recording stands, from this phone — including
+ * everything recorded here after it moved, and what became of it. The question
+ * this answers is "did anything I recorded go missing", and the answer is
+ * always a count with a place: still on this phone, with the host waiting, or
+ * decided.
+ */
+function awayLine(
+  table: string,
+  unsent: number,
+  handedIn: number,
+  from: { waiting: number; added: number; leftOut: number },
+): string {
+  const parts = [`${table} is being recorded on another phone. This one follows along.`];
+  if (unsent > 0) {
+    parts.push(
+      `${unsent} ${unsent === 1 ? 'change' : 'changes'} made here after it moved ${
+        unsent === 1 ? 'is' : 'are'
+      } still on this phone, and will go to the server with the next signal.`,
+    );
+  }
+  const decided = from.added + from.leftOut;
+  if (handedIn > 0 || from.waiting + decided > 0) {
+    const bits = [
+      from.waiting > 0 ? `${from.waiting} waiting to be added` : null,
+      from.added > 0 ? `${from.added} added` : null,
+      from.leftOut > 0 ? `${from.leftOut} left out` : null,
+    ].filter((b) => b !== null);
+    const n = Math.max(handedIn, from.waiting + decided);
+    parts.push(
+      `${n} ${n === 1 ? 'change' : 'changes'} made here after it moved went to the server${
+        bits.length === 0 ? '.' : `: ${bits.join(', ')}.`
+      }`,
+    );
+  }
+  return parts.join(' ');
+}
+
 function Action({
   label,
   onPress,
@@ -624,6 +743,7 @@ function Action({
 const styles = StyleSheet.create({
   list: { marginHorizontal: space.page },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
+  hold: { paddingTop: 8, paddingBottom: 4 },
   after: { paddingTop: 22 },
   row: {
     flexDirection: 'row',

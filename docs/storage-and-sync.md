@@ -333,14 +333,80 @@ in SDK 57's manifest, neither yet confirmed in Expo Go, which
 `apps/mobile/AGENTS.md` requires before either is designed around. A clipboard
 is fine for a season and awkward for years of nights.
 
-### The one real limit
+### Passing the book
 
-**One device writes a night.** `ledger_entry` is unique on `(session_id, seq)`,
-so two phones both numbering entry 7 for the same night is a collision the
-server will refuse — correctly. The design has always had a single writer per
-session; this is where that assumption is cashed. A second device opening the
-same night reads it; it does not write. If it ever needs to, the handover is an
-explicit act, not a race.
+**One device writes a night — and since 23 September, which one can move.**
+`ledger_entry` is unique on `(session_id, seq)`, so two phones both numbering
+entry 7 for the same night is a collision the server refuses, correctly. That
+stays true. What changed is that the writer is no longer fixed to the book's
+host: `session.writer_user_id` names it (null is the host, which is every night
+recorded before `0016_pass_the_book.sql`), and it moves only two ways.
+
+- **A code.** The phone recording a night issues ten characters
+  (`/pass-book`, from Settings); a signed-in phone redeems them (`/take-over`).
+  The night is that account's from then on. The host redeeming one is the night
+  coming home.
+- **The host taking it back** (*Take the night back*, Settings, held for a
+  second), with no code — for the phone that went flat with the night on it.
+
+**Nothing either phone recorded is lost — `0017_nothing_lost.sql`.** A phone
+that still had changes queued when its night moved cannot put them in the ledger
+(the ledger has one writer and one numbering), so it **hands them in**: each
+operation, exactly as queued, is kept on the server beside the night
+(`night_late_change`) with a status — *waiting*, *added* or *left out*. The phone
+recording the night sees *N changes from another phone · Review* above its dock
+and decides each one on `/late-changes`; adding re-records it there, in that
+phone's numbering and under its original id, so a copy that did get through
+after all collapses to one row. A person decides because the host may already
+have recorded the same rebuy again by hand. Nothing is deleted either way, and
+the phone that made the changes reads what became of each in Settings.
+
+A phone never replaces its copy of a night while anything for it is still
+queued (`replaceNight` refuses); it hands in first, and with no signal it simply
+waits, marked away, until it can.
+
+**The code is enough (0017).** An anonymous phone may redeem one and write that
+night and nothing else — the host's book-level powers still refuse an anonymous
+caller. Such a phone drains a view of its queue holding only the nights it was
+handed (`handedNightsOnly` in `sync.ts`), so B91's hazard — a refusal parking the
+whole queue — cannot come back through it.
+
+Two phones writing the same night at once was the other option, and it was
+considered and not built: it needs numbering that cannot collide, a live merge
+both ways, and an answer to who may count, close and settle. Passing keeps every
+property this document is built on — there is still nothing to merge.
+
+**The rules that make it safe, and where each one lives:**
+
+| Rule | Where |
+| --- | --- |
+| Exactly one account can write a night, and the host is not it while it is passed | `can_write_session`, every session-scoped write policy — `0016` |
+| The writer column moves only by the functions, never by an UPDATE | trigger `session_writer_guard` — `0016` |
+| A code is one use, ten minutes, one live per night | `night_handover` — `0016` |
+| A code is issued only when nothing for the night is waiting to send | `issuePass` — `handover.ts` |
+| The code works only while the sheet showing it is open, so nothing is recorded between issuing and taking | `pass-book.tsx`, `checkHolds` withdraws an orphan |
+| The phone taking a night replaces its copy with the server's and numbers on from the server's highest | `replaceNight` — `nightStore.ts` |
+| The phone that passed a night refuses every write to it, locally and in the queue | `refuseIfAway`, `send()` — `nightStore.ts`, `sync.ts` |
+| A queue for a night that moved is handed in to the server, never dropped and never left to halt the queue | `handIn`, `movedAway` — `sync.ts`; `night_late_change` — `0017` |
+| A copy of a night is never replaced over changes still queued for it | `replaceNight` — `nightStore.ts` |
+| The taker's roster and rule writes go to the host's book, never a new one | `hold.ts` `book_id`, `heldBookFor` |
+
+**What the taker may do.** Everything on the night — money, seats, counts, the
+close, the ticks afterwards — and, while it is unsettled, add or rename people
+in the group and change its money rules, because a night in progress needs both
+and on the server they are book-level rows. Never remove anybody. They can read
+the whole book from the moment they redeem a code, and keep reading it: they
+recorded part of a night in it.
+
+**Which account.** Any, since 0017 — the code is the grant. A phone with no
+session is signed in anonymously on the way, as claiming a seat does.
+
+`supabase/test/09_pass_the_book.sql` and `10_nothing_lost.sql` play it through;
+`apps/mobile/src/lib/handover.test.ts` holds the phone's half.
+
+⚠ **Not yet seen on two phones.** Everything above is checked against a real
+Postgres and a real SQLite, and none of it against a real handover across a
+table.
 
 ---
 

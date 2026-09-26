@@ -54,11 +54,17 @@ export async function recordEntry(
   draft: Omit<LedgerEntry, 'id' | 'seq'>,
   occurredAt: Date = new Date(),
   note?: string,
+  /**
+   * Only for a late change being added (0017): the entry keeps the id the
+   * phone that made it gave it, so if that phone's copy did reach the server
+   * after all, the two collapse to one row instead of becoming two rebuys.
+   */
+  id: string = randomUUID(),
 ): Promise<LedgerEntry> {
   // The id is generated on the device and is what makes a retry safe: the
   // server treats it as an idempotency key, so a half-sent entry collapses to
   // one row rather than becoming a second buy-in.
-  const entry = await enqueueEntry(outbox, sessionId, randomUUID(), draft, {
+  const entry = await enqueueEntry(outbox, sessionId, id, draft, {
     occurredAt: occurredAt.toISOString(),
     ...(note === undefined ? {} : { note }),
   });

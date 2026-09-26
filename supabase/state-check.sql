@@ -12,8 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0015, 0018 and 0019. 0016 and 0017 are the
--- parked pass-the-book branch and have no row until it comes back.
+-- Last checked against migrations 0001–0019.
 -- =============================================================================
 
 with c as (
@@ -109,6 +108,16 @@ probe as (
      and exists (select 1 from pg_policies where tablename = 'book'
                                             and policyname = 'book_insert_needs_plan')) as m18,
 
+    -- 0016 a night can be passed to another phone
+    (exists (select 1 from c where table_name = 'session'
+                               and column_name = 'writer_user_id')
+     and to_regclass('public.night_handover') is not null
+     and exists (select 1 from p where proname = 'redeem_night_handover')) as m16,
+
+    -- 0017 late changes kept, and a code alone takes a night
+    (to_regclass('public.night_late_change') is not null
+     and exists (select 1 from p where proname = 'hand_in_late_changes')) as m17,
+
     -- 0019 every table a watcher reads is on the live feed (B95). On a project
     -- with no realtime publication at all this reads missing, which is right:
     -- a watcher's screen would never update.
@@ -121,7 +130,8 @@ probe as (
       where table_schema = 'public'
         and table_name in ('book','player','session','session_seat','ledger_entry',
                            'money_rule','final_count','settlement','share_grant',
-                           'player_invite','transfer_payment')) = 11 as tables_ok,
+                           'player_invite','transfer_payment','night_handover',
+                           'night_late_change')) = 13 as tables_ok,
 
     not exists (select 1 from pg_tables
                  where schemaname = 'public' and not rowsecurity) as rls_ok,
@@ -153,10 +163,12 @@ select v.n,
     (14, '0014 group settings, table name, roster, who has paid',
                                                       x.m14, 'run supabase/migrations/0014_the_whole_book.sql'),
     (15, '0015 fees',                                 x.m15, 'run supabase/migrations/0015_fees.sql'),
+    (16, '0016 pass the book to another phone',       x.m16, 'run supabase/migrations/0016_pass_the_book.sql'),
+    (17, '0017 nothing lost when a night moves',      x.m17, 'run supabase/migrations/0017_nothing_lost.sql'),
     (18, '0018 plans, promo codes, a plan to start a group',
                                                       x.m18, 'run supabase/migrations/0018_accounts.sql — then seed app_admin, docs/accounts-roadmap.md'),
     (19, '0019 counts, guests and rules on the live feed', x.m19, 'run supabase/migrations/0019_live_feed.sql'),
-    (90, 'all eleven tables present',                    x.tables_ok,     'a migration above is missing — fix those first'),
+    (90, 'all thirteen tables present',                  x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),
     (93, 'CHECK BY HAND — Auth > Hooks > Customize Access Token > public.custom_access_token_hook, and Auth > Sign In/Providers > Anonymous sign-ins', false, 'neither toggle is visible from SQL. See docs/auth-test-period.md steps 2 and 3.')

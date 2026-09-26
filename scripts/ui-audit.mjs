@@ -17,7 +17,7 @@
  *
  * TWO PASSES. The first is every route in both themes at one size, which is
  * the older question. The second is SHEET GEOMETRY across the device matrix in
- * doc 15 § 4 — how tall each of the 22 sheets ends up on an SE, a mini, the
+ * doc 15 § 4 — how tall each of the 25 sheets ends up on an SE, a mini, the
  * reference phone, a Pro Max and two Androids, and whether the panel stops
  * where the boards stop it. Sheet height is the one measurement that changes
  * with the phone, so measuring it at one size measures almost nothing.
@@ -93,7 +93,7 @@ const ROUTES = [
   '/games', '/stats', '/players', '/member', '/groups', '/new-group', '/new-night',
   '/settings', '/club-rules', '/money-rules', '/rule', '/bill-rules', '/piggy-bank-rules',
   '/house-rules', '/sign-in', '/claim', '/invite', '/watch', '/hand-over',
-  '/rounding', '/share', '/auth-callback', '/end-time',
+  '/rounding', '/share', '/auth-callback', '/end-time', '/pass-book', '/take-over', '/late-changes',
 ];
 
 /*
@@ -1150,7 +1150,7 @@ const SHEET_ROUTES = [
   '/player', '/pick', '/log', '/entry', '/seat', '/bill', '/spend', '/bill-rules',
   '/piggy-bank-rules', '/house-rules', '/money-rules', '/rule', '/rounding', '/share',
   '/sign-in', '/member', '/hand-over', '/nudge', '/new-group', '/new-night', '/invite',
-  '/end-time',
+  '/end-time', '/pass-book', '/take-over', '/late-changes',
 ];
 
 /**
