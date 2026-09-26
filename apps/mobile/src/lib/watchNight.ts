@@ -126,19 +126,23 @@ export async function loadWatchedNight(sessionId: string): Promise<WatchedNight 
     rows<{ player_id: string; counted_chips: number }>('final_count', (q) =>
       q.select(READS.final_count).eq('session_id', sessionId),
     ),
-    /* The hand-offs, by name. `night_pass` holds account ids; the names come
-       from `night_role`, which resolves them inside the book — one call per
-       hand-off would be the wrong shape, so the feed reads the ids and the
-       names are looked up once below. */
+    /* The hand-offs, by name. `night_pass` holds account ids; the names are
+       looked up once below (`names_in_night`).
+
+       OPTIONAL, and on purpose — B97. Every other read here is the night
+       itself; this one is a line on the feed. A project that has not run
+       0020 yet has no such table, and letting that refusal take the whole
+       night down turned every watch link into "This link isn't live". A
+       failure here is an empty list of hand-offs, never a missing night. */
     rows<PassRow>('night_pass', (q) =>
       q
         .select('id, kind, from_user, to_user, passed_at')
         .eq('session_id', sessionId)
         .order('passed_at', { ascending: true }),
-    ),
+    ).catch(() => [] as PassRow[]),
   ]);
 
-  const named = await namesFor(sessionId, passes);
+  const named = await namesFor(sessionId, passes).catch(() => new Map<string, string | null>());
 
   const seated = new Set(seats.map((s) => s.player_id));
 

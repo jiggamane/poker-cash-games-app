@@ -139,6 +139,22 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B97 — a watch link died whole on a server without 0020
+
+```
+Screen      /watch (X1) — `watchNight.ts`, `loadWatchedNight`
+Seen        not seen; found 26 Sept checking what a phone needs from the
+            server before a real night. The watcher's read gained
+            `night_pass` (0020) beside the five reads that ARE the night, and
+            any one refusal throws. On a project that has not run 0020 the
+            table does not exist, so every share link read "This link isn't
+            live" — for want of one line on the feed
+Expected    the night, with no hand-off rows, until 0020 is applied
+Locked by   nothing yet — the checks run with no server at all. The read is
+            marked optional in the code, beside the reason
+Status      fixed in this commit — NOT yet seen on a phone
+```
+
 ### B96 — a member reading a pulled night was handed the host's dock
 
 ```
