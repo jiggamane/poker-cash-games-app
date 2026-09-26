@@ -121,15 +121,15 @@ const add=(sec,num,title,why,html)=>S.push({sec,num,title,why,html});
 // ---- A · passing
 add('A',1,'Table admin, with Pass the game','Between Money rules and End. The sub-line says what it does, not who can take it.',
   tonight(role.rec, drawer, true));
-add('A',2,'Pick who records','Plans stay private: a row says only whether they can take it, or why not.',
+add('A',2,'Pick who records','Each row names the person’s plan, then where they are tonight — or why they can’t take it.',
   tonight(role.rec, sheet('Pass the game',
-    pick('Lena','at the table','on')+pick('Petr','at the table')+pick('Dana','not playing tonight')+
-    pick('Ivo','can’t run games yet','off')+pick('Tomáš','no app yet · invite first','off')+
+    pick('Lena','Pro · at the table','on')+pick('Petr','Club · at the table')+pick('Dana','Pro · not playing tonight')+
+    pick('Ivo','Free · needs Pro to run a game','off')+pick('Tomáš','no app yet · invite first','off')+
     `<div class="note">Lena records from the moment you pass. You follow along, and can take it back from here any time. Nothing recorded on either phone is lost.</div><div class="primary">Pass to Lena</div>`,
     'Anyone with the app and a Pro plan can take it.'), true));
 add('A',3,'Nobody can take it','The incentive lives here — one line on what would make somebody eligible, and a share, never a purchase for someone else.',
   tonight(role.rec, sheet('Nobody can take it yet',
-    pick('Lena','can’t run games yet','off')+pick('Ivo','can’t run games yet','off')+pick('Tomáš','no app yet · invite first','off')+
+    pick('Lena','Free · needs Pro to run a game','off')+pick('Ivo','Free · needs Pro to run a game','off')+pick('Tomáš','no app yet · invite first','off')+
     `<div class="note">Running a game needs Pro. Anyone who goes Pro on their own phone shows up here straight away.</div>
      <div class="chip">↗ Ask Lena to go Pro</div>
      <div class="secondary" style="margin-top:18px">Keep recording</div>`,
@@ -203,26 +203,26 @@ add('C',13,'The plan list — the rule','Free first, already yours (muted, outli
    <div class="note">Primary reads “Choose a plan…” (blocked) until a paid row is tapped, then names it: “Start Pro · $4.99/mo”.</div></div>`);
 
 // ---- D · players and roles
-add('D',14,'Players — who can run a game','Sections, not badges: “Regular” already means a roster group, so no plan names appear.',
+add('D',14,'Players — who can run a game','Sections by what they can do; the badge names the plan. No “Regular” anywhere — it is already a roster group.',
   `<div class="phone">${hdr('Players','')}<div class="meta">7 on the roster · 3 can run a game</div><div class="field">Their name</div>
    <div class="sec">Can run a game · 3</div>
    <div class="prow"><div class="av">A</div><span class="nm">Andro</span><span class="badge">ADMIN</span><span class="ch">›</span></div>
-   <div class="prow"><div class="av">L</div><span class="nm">Lena</span><span class="badge go">CAN RUN</span><span class="ch">›</span></div>
-   <div class="prow"><div class="av">P</div><span class="nm">Petr</span><span class="badge go">CAN RUN</span><span class="ch">›</span></div>
+   <div class="prow"><div class="av">L</div><span class="nm">Lena</span><span class="badge go">PRO</span><span class="ch">›</span></div>
+   <div class="prow"><div class="av">P</div><span class="nm">Petr</span><span class="badge go">CLUB</span><span class="ch">›</span></div>
    <div class="sec">Has the app · 1</div>
-   <div class="prow"><div class="av">I</div><span class="nm">Ivo</span><span class="badge">APP</span><span class="ch">›</span></div>
+   <div class="prow"><div class="av">I</div><span class="nm">Ivo</span><span class="badge">FREE</span><span class="ch">›</span></div>
    <div class="sec">Name only · 3</div>
    <div class="prow"><div class="av">D</div><span class="nm">Dana</span><span class="badge">NAME ONLY</span><span class="ch">›</span></div>
    <div class="prow"><div class="av">T</div><span class="nm">Tomáš</span><span class="badge">NAME ONLY</span><span class="ch">›</span></div>
    <div class="prow"><div class="av">R</div><span class="nm">Radka</span><span class="badge">NAME ONLY</span><span class="ch">›</span></div></div>`);
-add('D',15,'Same list, read by a member','Read-only: no field, no chevrons. Members see who can run a game, not anybody’s plan.',
+add('D',15,'Same list, read by a member','Read-only: no field, no chevrons. Members see the same plans the admin does.',
   `<div class="phone">${hdr('Players','')}<div class="meta">7 in Thursday game</div>
    <div class="sec" style="margin-top:22px">Can run a game · 3</div>
    <div class="prow"><div class="av">A</div><span class="nm">Andro</span><span class="badge">ADMIN</span></div>
-   <div class="prow"><div class="av">L</div><span class="nm">Lena</span><span class="badge go">CAN RUN</span></div>
-   <div class="prow"><div class="av">P</div><span class="nm">Petr</span><span class="badge go">CAN RUN</span></div>
+   <div class="prow"><div class="av">L</div><span class="nm">Lena</span><span class="badge go">PRO</span></div>
+   <div class="prow"><div class="av">P</div><span class="nm">Petr</span><span class="badge go">CLUB</span></div>
    <div class="sec">Everyone else · 4</div>
-   <div class="prow"><div class="av">I</div><span class="nm">Ivo</span></div><div class="prow"><div class="av">D</div><span class="nm">Dana</span></div>
+   <div class="prow"><div class="av">I</div><span class="nm">Ivo</span><span class="badge">FREE</span></div><div class="prow"><div class="av">D</div><span class="nm">Dana</span></div>
    <div class="prow"><div class="av">T</div><span class="nm">Tomáš</span></div><div class="prow"><div class="av">R</div><span class="nm">Radka</span></div></div>`);
 add('D','16a','Role on Tonight — recording','In the meta line under the title, so the top-right keeps only the live tag.',
   tonight(role.rec, dockClosed()));
@@ -237,7 +237,7 @@ const QA=`<div class="qa">
 <h4>Open questions — answered</h4>
 <p><b>Pass to someone not at the table?</b> Yes. The row says “not playing tonight” so nobody is surprised.</p>
 <h4></h4><p><b>Does taking a game BACK need a plan?</b> No. The group’s host can always take their own game back — a lapsed plan must never strand a running night.</p>
-<h4></h4><p><b>Show plans by name in the pass sheet?</b> No. Plans are personal: rows say “can take it” or “can’t run games yet”, and the list and badges never say Pro or Club.</p>
+<h4></h4><p><b>Show plans by name?</b> Yes, for now — owner’s call, 26 Sept. The pass sheet and the Players list name each person’s plan (Pro, Club, Free) to everyone in the group. Founders and granted plans read as Pro.</p>
 <h4>Contradictions flagged</h4>
 <p>09-navigation: nothing top-right on a push. The role goes in the meta line (16a–c), not the corner.</p>
 <p>“Regular” is a roster group in C2 and was a plan name in rev 18; these boards use neither for plans.</p>
