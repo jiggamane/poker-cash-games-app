@@ -51,3 +51,14 @@ begin
   end if;
 end;
 $$;
+
+-- Supabase's realtime publication. Created here so the migrations' guarded
+-- `alter publication supabase_realtime add table …` blocks actually run under
+-- `db:verify`, and `12_live_feed.sql` can assert what is on the feed.
+do $$
+begin
+  if not exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    create publication supabase_realtime;
+  end if;
+end;
+$$;
