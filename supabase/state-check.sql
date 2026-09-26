@@ -12,7 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0019.
+-- Last checked against migrations 0001–0020.
 -- =============================================================================
 
 with c as (
@@ -125,13 +125,18 @@ probe as (
              where pubname = 'supabase_realtime' and schemaname = 'public'
                and tablename = 'final_count') as m19,
 
+    -- 0020 the game goes to a person by name: the log, and the pass
+    (to_regclass('public.night_pass') is not null
+     and exists (select 1 from p where proname = 'pass_night')
+     and exists (select 1 from p where proname = 'night_role')) as m20,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
         and table_name in ('book','player','session','session_seat','ledger_entry',
                            'money_rule','final_count','settlement','share_grant',
                            'player_invite','transfer_payment','night_handover',
-                           'night_late_change')) = 13 as tables_ok,
+                           'night_late_change','night_pass')) = 14 as tables_ok,
 
     not exists (select 1 from pg_tables
                  where schemaname = 'public' and not rowsecurity) as rls_ok,
@@ -168,7 +173,8 @@ select v.n,
     (18, '0018 plans, promo codes, a plan to start a group',
                                                       x.m18, 'run supabase/migrations/0018_accounts.sql — then seed app_admin, docs/accounts-roadmap.md'),
     (19, '0019 counts, guests and rules on the live feed', x.m19, 'run supabase/migrations/0019_live_feed.sql'),
-    (90, 'all thirteen tables present',                  x.tables_ok,     'a migration above is missing — fix those first'),
+    (20, '0020 the game is passed to a person by name', x.m20, 'run supabase/migrations/0020_pass_to_a_person.sql'),
+    (90, 'all fourteen tables present',                  x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),
     (93, 'CHECK BY HAND — Auth > Hooks > Customize Access Token > public.custom_access_token_hook, and Auth > Sign In/Providers > Anonymous sign-ins', false, 'neither toggle is visible from SQL. See docs/auth-test-period.md steps 2 and 3.')
