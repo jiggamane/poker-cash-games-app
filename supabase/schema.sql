@@ -2383,6 +2383,780 @@ comment on type rule_amount_kind is
 -- above are readable by everyone who could already read the rule. This note is
 -- here so that the next person adding a column checks, rather than assuming.
 
+-- ===== 0016_pass_the_book.sql =============================================
+
+-- =============================================================================
+-- Pass the book — another phone records tonight
+-- =============================================================================
+-- Until now the night's writer was the book's host, full stop: every write
+-- policy asked `is_book_host`, so the only phone that could record money was the
+-- one signed in as the person who created the group. A host who wanted somebody
+-- else to run the game had to have them open the night on their own phone at the
+-- start of the evening — you could not pass the book across the table at
+-- midnight. `docs/somebody-elses-phone.md` Step 3 said so in as many words.
+--
+-- THIS KEEPS ONE WRITER PER NIGHT. It moves which one. That is the whole design,
+-- and it is why nothing about sync changes: `ledger_entry` is still unique on
+-- (session_id, seq), there is still exactly one device numbering entries, and
+-- the merge rule is still "there is nothing to merge". Two phones writing the
+-- same night at once was considered and not built — see
+-- `docs/storage-and-sync.md` § Passing the book.
+--
+-- The shape:
+--
+--   session.writer_user_id   null  → the book's host writes it (every night
+--                                    ever recorded, unchanged)
+--                            a uid → that account writes it, and the host
+--                                    does not, until it comes back
+--
+--   night_handover           a ten-character code, minted by whoever holds the
+--                            night, good for ten minutes and one use. Redeeming
+--                            it moves the night to the redeemer. The host
+--                            redeeming one is the night coming home, and sets
+--                            the column back to null.
+--
+--   take_back_night()        the host's own way back, with no code — for the
+--                            phone that went flat with the night on it. The
+--                            host created the group; a night in it is never
+--                            out of their reach.
+--
+-- The column only moves inside those functions. A trigger refuses every other
+-- change to it, because the writer is also allowed to UPDATE the session row
+-- (status, table name, rounding) and a policy cannot compare old to new.
+-- =============================================================================
+
+alter table session
+  add column writer_user_id uuid references auth.users (id) on delete set null;
+
+comment on column session.writer_user_id is
+  'Who records this night, when it is not the book''s host. Null — every night recorded before 0016, and every night not passed — is the host. Moves only through redeem_night_handover and take_back_night.';
+
+-- --- Who may write a night ----------------------------------------------------
+-- The one question every write policy below asks. Anonymous callers never: an
+-- anonymous account is a phone that opened a share link or claimed a seat, and
+-- the ledger is not something it records. Same rule as `is_book_host` (0005).
+
+create or replace function can_write_session(target_session_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select not is_anonymous_caller() and exists (
+    select 1
+      from session s
+      join book b on b.id = s.book_id
+     where s.id = target_session_id
+       and coalesce(s.writer_user_id, b.host_user_id) = auth.uid()
+  );
+$$;
+
+comment on function can_write_session(uuid) is
+  'True when the caller records this night: its writer, or the book''s host while it has none. Every session-scoped write policy asks this.';
+
+-- A night being played brings a few book-level writes with it: a guest seated
+-- for the first time is a new `player` row, and tonight's rules are the book's
+-- `money_rule` rows (a night carries its own copy on the phone; on the server the
+-- current rules ARE the open night's rules). So whoever holds an unsettled night
+-- of a book may write those two tables for it — and only while the night is
+-- live. Settled, they go back to the host alone.
+
+create or replace function holds_live_night(target_book_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select not is_anonymous_caller() and exists (
+    select 1 from session s
+     where s.book_id = target_book_id
+       and s.writer_user_id = auth.uid()
+       and s.status <> 'settled'
+  );
+$$;
+
+comment on function holds_live_night(uuid) is
+  'True when the caller has been passed an unsettled night of this book. Grants the roster and rule writes a night in progress needs, and nothing else at book level.';
+
+-- --- The column moves only by handover ---------------------------------------
+
+create or replace function session_writer_moves_only_by_handover()
+returns trigger
+language plpgsql
+as $$
+begin
+  if coalesce(current_setting('poker.handover', true), '') = 'on' then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' and new.writer_user_id is not null then
+    raise exception 'A night opens with its host as the writer. It is passed with a code.';
+  end if;
+
+  if tg_op = 'UPDATE' and new.writer_user_id is distinct from old.writer_user_id then
+    raise exception 'The writer of a night changes only by a handover code or the host taking it back.';
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger session_writer_guard
+  before insert or update of writer_user_id on session
+  for each row execute function session_writer_moves_only_by_handover();
+
+-- =============================================================================
+-- night_handover — the code
+-- =============================================================================
+
+create table night_handover (
+  id           uuid primary key default gen_random_uuid(),
+  session_id   uuid not null references session (id) on delete cascade,
+  code         text not null unique,
+  created_by   uuid not null references auth.users (id) on delete cascade,
+  created_at   timestamptz not null default now(),
+  -- Ten minutes. A code is read across a table and typed straight in; one that
+  -- is still live an hour later is one somebody forgot to use, and the phone
+  -- that issued it has been recording ever since.
+  expires_at   timestamptz not null default now() + interval '10 minutes',
+  revoked_at   timestamptz,
+  redeemed_at  timestamptz,
+  redeemed_by  uuid references auth.users (id) on delete set null,
+
+  constraint night_handover_redeemed_whole
+    check ((redeemed_at is null) = (redeemed_by is null))
+);
+
+-- Is it redeemable right now? Asked by the functions below and nowhere else.
+-- It needs `now()`, which is not immutable, so it cannot be the predicate of the
+-- partial index — which is why issuing a code revokes the live one first.
+create unique index night_handover_one_live
+  on night_handover (session_id)
+  where redeemed_at is null and revoked_at is null;
+
+create index night_handover_redeemer_idx on night_handover (redeemed_by);
+
+comment on table night_handover is
+  'A code that moves a night to another account: one use, ten minutes, one live per night. Kept after use — who recorded which part of a night is exactly what somebody will ask afterwards.';
+
+alter table night_handover enable row level security;
+
+-- --- A member of the book, for reading ---------------------------------------
+-- Whoever holds a night has to be able to read the book it is in — the roster,
+-- the rules, the ledger they are about to continue. They need not have claimed a
+-- seat: claiming is done anonymously, and recording is not (see above), so the
+-- account a night is passed to is usually NOT the one that claimed.
+--
+-- Read access follows the grant for as long as the account has ever held a night
+-- of the book. It is not withdrawn when the night is passed back: they recorded
+-- part of it, and the same reasoning as a claimed player's applies — a night you
+-- were part of is one you can read.
+
+create or replace function is_book_member(target_book_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from player p
+    where p.book_id = target_book_id
+      and p.claimed_by_user_id = auth.uid()
+  ) or exists (
+    select 1 from night_handover h
+      join session s on s.id = h.session_id
+     where s.book_id = target_book_id
+       and h.redeemed_by = auth.uid()
+  );
+$$;
+
+-- Nobody reads the table. Everything goes through the functions, which say only
+-- what the caller needs: whether their own code is still waiting.
+
+-- --- Issue --------------------------------------------------------------------
+
+create or replace function create_night_handover(target_session_id uuid)
+returns text
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  fresh text;
+begin
+  if not can_write_session(target_session_id) then
+    raise exception 'Only the phone recording this night can pass it on.';
+  end if;
+
+  update night_handover
+     set revoked_at = now()
+   where session_id = target_session_id
+     and redeemed_at is null
+     and revoked_at is null;
+
+  fresh := new_invite_code();
+  insert into night_handover (session_id, code, created_by)
+  values (target_session_id, fresh, auth.uid());
+
+  return fresh;
+end;
+$$;
+
+-- --- Watch it, and withdraw it -----------------------------------------------
+-- The phone that issued the code asks these two, and nothing else can: the
+-- answer is about the caller's own most recent code for the night.
+--
+--   waiting — live, unexpired, unused
+--   taken   — redeemed: the night is on another phone now
+--   gone    — withdrawn, expired, or there never was one
+
+create or replace function night_handover_state(target_session_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((
+    select case
+             when h.redeemed_at is not null then 'taken'
+             when h.revoked_at is null and h.expires_at > now() then 'waiting'
+             else 'gone'
+           end
+      from night_handover h
+     where h.session_id = target_session_id
+       and h.created_by = auth.uid()
+     order by h.created_at desc
+     limit 1
+  ), 'gone');
+$$;
+
+create or replace function revoke_night_handover(target_session_id uuid)
+returns text
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+begin
+  update night_handover
+     set revoked_at = now()
+   where session_id = target_session_id
+     and created_by = auth.uid()
+     and redeemed_at is null
+     and revoked_at is null;
+
+  -- 'taken' if it was redeemed before this arrived: the sheet closing and the
+  -- other phone typing the last character are a race, and the answer to it is
+  -- whatever the database says happened first.
+  return night_handover_state(target_session_id);
+end;
+$$;
+
+-- --- Redeem -------------------------------------------------------------------
+
+create or replace function redeem_night_handover(code text)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  started  timestamptz := clock_timestamp();
+  wanted   text := upper(regexp_replace(coalesce(code, ''), '[^A-Za-z0-9]', '', 'g'));
+  h        night_handover%rowtype;
+  host     uuid;
+begin
+  -- Recording is an account's job. The phone has to be signed in.
+  if auth.uid() is null or is_anonymous_caller() then
+    perform pad_refusal(started);
+    raise exception 'Sign in to take over a night.';
+  end if;
+
+  select * into h
+    from night_handover n
+   where n.code = wanted
+     and n.redeemed_at is null
+     and n.revoked_at is null
+     and n.expires_at > now()
+   for update;
+
+  -- One sentence for every dead code — unknown, used, withdrawn, expired — for
+  -- the same reason invites have one (0009): the difference is only worth
+  -- anything to somebody guessing.
+  if not found then
+    perform pad_refusal(started);
+    raise exception 'That code is not live.';
+  end if;
+
+  select b.host_user_id into host
+    from session s join book b on b.id = s.book_id
+   where s.id = h.session_id;
+
+  update night_handover
+     set redeemed_at = now(), redeemed_by = auth.uid()
+   where id = h.id;
+
+  perform set_config('poker.handover', 'on', true);
+  update session
+     -- The host redeeming is the night coming home: null, not their own uid, so
+     -- there is one way of saying "the host writes this" and not two.
+     set writer_user_id = case when auth.uid() = host then null else auth.uid() end
+   where id = h.session_id;
+  perform set_config('poker.handover', '', true);
+
+  return h.session_id;
+end;
+$$;
+
+-- --- The host takes it back ---------------------------------------------------
+-- No code, because the case it exists for is the one where there is nobody to
+-- ask for one: the phone the night was passed to is flat, lost, or gone home.
+-- Anything that phone recorded and had not sent is lost with it, and its next
+-- send is refused — the app says so on that phone. That is the cost, and it is
+-- the only way a night can ever be stranded on a device the group cannot reach.
+
+create or replace function take_back_night(target_session_id uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+begin
+  if not exists (
+    select 1 from session s where s.id = target_session_id and is_book_host(s.book_id)
+  ) then
+    raise exception 'Only the host of this group can take a night back.';
+  end if;
+
+  update night_handover
+     set revoked_at = now()
+   where session_id = target_session_id
+     and redeemed_at is null
+     and revoked_at is null;
+
+  perform set_config('poker.handover', 'on', true);
+  update session set writer_user_id = null where id = target_session_id;
+  perform set_config('poker.handover', '', true);
+end;
+$$;
+
+-- --- Where a night is ---------------------------------------------------------
+-- What a phone asks to find out whether the night it holds is still its to
+-- write. Null when the caller cannot see the night at all — a night that never
+-- reached the server, or an account that has nothing to do with it — and the
+-- app then leaves its own answer alone rather than guessing.
+
+create or replace function night_hold(target_session_id uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+           'yours', can_write_session(s.id),
+           'host',  is_book_host(s.book_id),
+           'book',  s.book_id
+         )
+    from session s
+   where s.id = target_session_id
+     and (is_book_host(s.book_id) or is_book_member(s.book_id) or s.writer_user_id = auth.uid());
+$$;
+
+grant execute on function can_write_session(uuid)       to authenticated;
+grant execute on function create_night_handover(uuid)   to authenticated;
+grant execute on function night_handover_state(uuid)    to authenticated;
+grant execute on function revoke_night_handover(uuid)   to authenticated;
+grant execute on function redeem_night_handover(text)   to authenticated;
+grant execute on function take_back_night(uuid)         to authenticated;
+grant execute on function night_hold(uuid)              to authenticated;
+
+-- =============================================================================
+-- The write policies, re-pointed from the host to the writer
+-- =============================================================================
+-- Each `*_host_all` below was one policy for reading and writing. It becomes two:
+-- the host still READS everything in their book, whoever is writing it, and the
+-- WRITE goes to whoever holds the night. While nobody has been passed a night
+-- the two are the same person and nothing about any existing night changes.
+
+-- --- session --------------------------------------------------------------
+-- Creating a night is the host's (a night opens on the host's phone and is
+-- passed from there). Changing one — status, table name, rounding, the close —
+-- is the writer's.
+
+drop policy session_host_all on session;
+
+create policy session_host_read on session
+  for select to authenticated
+  using (is_book_host(book_id));
+
+create policy session_host_insert on session
+  for insert to authenticated
+  with check (is_book_host(book_id));
+
+create policy session_host_delete on session
+  for delete to authenticated
+  using (is_book_host(book_id));
+
+create policy session_writer_update on session
+  for update to authenticated
+  using (can_write_session(id))
+  with check (can_write_session(id));
+
+-- --- session_seat -------------------------------------------------------------
+
+drop policy session_seat_host_all on session_seat;
+
+create policy session_seat_host_read on session_seat
+  for select to authenticated
+  using (exists (select 1 from session s where s.id = session_id and is_book_host(s.book_id)));
+
+create policy session_seat_writer_all on session_seat
+  for all to authenticated
+  using (can_write_session(session_id))
+  with check (can_write_session(session_id));
+
+-- --- ledger_entry -------------------------------------------------------------
+-- Insert only, as ever. The ledger is append-only for everybody.
+
+drop policy ledger_entry_host_insert on ledger_entry;
+
+create policy ledger_entry_writer_insert on ledger_entry
+  for insert to authenticated
+  with check (can_write_session(session_id));
+
+-- --- final_count --------------------------------------------------------------
+
+drop policy final_count_host_all on final_count;
+
+create policy final_count_host_read on final_count
+  for select to authenticated
+  using (exists (select 1 from session s where s.id = session_id and is_book_host(s.book_id)));
+
+create policy final_count_writer_all on final_count
+  for all to authenticated
+  using (can_write_session(session_id))
+  with check (can_write_session(session_id));
+
+-- --- settlement ---------------------------------------------------------------
+-- Whoever holds the night closes it. The frozen-once trigger from 0002 still
+-- stands over all of them.
+
+drop policy settlement_host_all on settlement;
+
+create policy settlement_host_read on settlement
+  for select to authenticated
+  using (exists (select 1 from session s where s.id = session_id and is_book_host(s.book_id)));
+
+create policy settlement_writer_all on settlement
+  for all to authenticated
+  using (can_write_session(session_id))
+  with check (can_write_session(session_id));
+
+-- --- transfer_payment ---------------------------------------------------------
+
+drop policy transfer_payment_host_all on transfer_payment;
+
+create policy transfer_payment_host_read on transfer_payment
+  for select to authenticated
+  using (exists (select 1 from session s where s.id = session_id and is_book_host(s.book_id)));
+
+create policy transfer_payment_writer_all on transfer_payment
+  for all to authenticated
+  using (can_write_session(session_id))
+  with check (can_write_session(session_id));
+
+-- --- player and money_rule: the book-level writes a live night needs ---------
+-- Added beside the host's policies, not in place of them. The host keeps every
+-- power over the roster and the rules; the writer gets what a night in progress
+-- needs — a guest seated, a name fixed, tonight's rules changed — and never
+-- takes a person off the roster.
+
+create policy player_writer_insert on player
+  for insert to authenticated
+  with check (holds_live_night(book_id));
+
+create policy player_writer_update on player
+  for update to authenticated
+  using (holds_live_night(book_id))
+  with check (holds_live_night(book_id));
+
+create policy money_rule_writer_insert on money_rule
+  for insert to authenticated
+  with check (holds_live_night(book_id));
+
+create policy money_rule_writer_update on money_rule
+  for update to authenticated
+  using (holds_live_night(book_id))
+  with check (holds_live_night(book_id));
+
+-- A rule taken off tonight is a delete, on the phone that holds the night as on
+-- the host's. Unlike a person, a rule has no history hanging off it: a settled
+-- night carries the rules it was settled with in its own snapshot.
+create policy money_rule_writer_delete on money_rule
+  for delete to authenticated
+  using (holds_live_night(book_id));
+
+-- ===== 0017_nothing_lost.sql =============================================
+
+-- =============================================================================
+-- Nothing lost when a night moves, and the code is enough to take one
+-- =============================================================================
+-- Two changes to 0016, both about passing the book, both asked for the day it
+-- shipped.
+--
+-- 1. LATE CHANGES ARE KEPT, NOT DROPPED.
+--
+--    0016 kept one writer per night, and the one place that cost something was
+--    the host taking a night back: whatever the other phone had recorded and not
+--    yet sent was refused by the server from then on, and the phone threw it
+--    away and said how many. That is money somebody at the table handed over,
+--    and "your phone says 3 changes were lost" is not an answer to it.
+--
+--    Now the phone hands them in instead. `hand_in_late_changes` takes the
+--    operations it could not send, exactly as they were queued, and keeps them
+--    on the server beside the night with a status — waiting, added, or left out.
+--    The phone recording the night sees them and adds the ones that belong
+--    (`decide_late_change`); adding re-records them on that phone, in its own
+--    numbering, so the ledger still has one writer and one sequence. A change
+--    that is left out is still there, still says who made it and when, and still
+--    says it was left out. Nothing a phone recorded is ever deleted by this.
+--
+--    Why not append them straight to the ledger: the ledger is numbered by its
+--    one writer, and a second writer's entry 7 is the collision the whole design
+--    avoids. And a person has to look — the host who took the night back may
+--    already have recorded the same rebuy again by hand, and adding both is a
+--    second rebuy nobody made.
+--
+-- 2. THE CODE IS ENOUGH.
+--
+--    0016 refused an anonymous phone, so taking over a night meant having an
+--    email account — and sign-up is closed (`shouldCreateUser: false`), so it
+--    meant the owner inviting that person in the Supabase dashboard first. For
+--    a friend at the table that is not a step anybody will take mid-game.
+--
+--    The code is a grant from the phone that holds the night, naming one night,
+--    for one use, for ten minutes. That is a better credential than an account
+--    for this one purpose, so an anonymous phone may now redeem one and write
+--    THAT night — and nothing else. The host's own powers are untouched: every
+--    book-level host policy still asks `is_book_host`, which still refuses an
+--    anonymous caller (0005).
+-- =============================================================================
+
+-- --- 2. Anonymous writers, for a night they were handed ----------------------
+
+-- The explicit grant is the check. A writer is either the account the night was
+-- passed to, anonymous or not, or — while it has been passed to nobody — the
+-- host, who is never anonymous because `is_book_host` says so.
+create or replace function can_write_session(target_session_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select auth.uid() is not null and exists (
+    select 1
+      from session s
+     where s.id = target_session_id
+       and (s.writer_user_id = auth.uid()
+            or (s.writer_user_id is null and is_book_host(s.book_id)))
+  );
+$$;
+
+create or replace function holds_live_night(target_book_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select auth.uid() is not null and exists (
+    select 1 from session s
+     where s.book_id = target_book_id
+       and s.writer_user_id = auth.uid()
+       and s.status <> 'settled'
+  );
+$$;
+
+create or replace function redeem_night_handover(code text)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  started  timestamptz := clock_timestamp();
+  wanted   text := upper(regexp_replace(coalesce(code, ''), '[^A-Za-z0-9]', '', 'g'));
+  h        night_handover%rowtype;
+  host     uuid;
+begin
+  -- Somebody has to be on the other end: the app signs a phone in anonymously
+  -- before it redeems, exactly as it does for a claimed seat.
+  if auth.uid() is null then
+    perform pad_refusal(started);
+    raise exception 'That code is not live.';
+  end if;
+
+  select * into h
+    from night_handover n
+   where n.code = wanted
+     and n.redeemed_at is null
+     and n.revoked_at is null
+     and n.expires_at > now()
+   for update;
+
+  if not found then
+    perform pad_refusal(started);
+    raise exception 'That code is not live.';
+  end if;
+
+  select b.host_user_id into host
+    from session s join book b on b.id = s.book_id
+   where s.id = h.session_id;
+
+  update night_handover
+     set redeemed_at = now(), redeemed_by = auth.uid()
+   where id = h.id;
+
+  perform set_config('poker.handover', 'on', true);
+  update session
+     set writer_user_id = case when auth.uid() = host then null else auth.uid() end
+   where id = h.session_id;
+  perform set_config('poker.handover', '', true);
+
+  return h.session_id;
+end;
+$$;
+
+-- --- 1. Late changes ----------------------------------------------------------
+
+create table night_late_change (
+  id           uuid primary key default gen_random_uuid(),
+  session_id   uuid not null references session (id) on delete cascade,
+  -- The queue's own id for the operation. Handing the same one in twice — the
+  -- phone lost signal between the server storing it and hearing back — lands
+  -- once.
+  op_id        text not null,
+  -- The operation exactly as it was queued: `entry.append`, `seat.upsert`, …
+  -- and its payload. Nothing is interpreted on the way in; the phone that adds
+  -- it reads it the way it reads its own queue.
+  kind         text not null,
+  payload      jsonb not null,
+  -- When the phone recorded it, which is its place in the night.
+  queued_at    timestamptz not null default now(),
+  from_user    uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  handed_in_at timestamptz not null default now(),
+  status       text not null default 'waiting',
+  decided_at   timestamptz,
+  decided_by   uuid references auth.users (id) on delete set null,
+
+  unique (session_id, op_id),
+
+  constraint night_late_change_status_known
+    check (status in ('waiting', 'added', 'left_out')),
+  constraint night_late_change_decided_whole
+    check ((status = 'waiting') = (decided_at is null))
+);
+
+create index night_late_change_session_idx on night_late_change (session_id, status);
+
+comment on table night_late_change is
+  'Changes a phone recorded on a night after the night moved to another phone, kept instead of dropped. The phone recording the night adds them (re-recording them in its own numbering) or leaves them out; neither deletes them.';
+
+alter table night_late_change enable row level security;
+
+-- Read: the phone that handed a change in (to show its status), and whoever may
+-- write the night or hosts the book (to decide it).
+create policy night_late_change_read on night_late_change
+  for select to authenticated
+  using (
+    from_user = auth.uid()
+    or can_write_session(session_id)
+    or is_book_host(session_book_id(session_id))
+  );
+
+grant select on night_late_change to authenticated;
+
+-- Hand in. Only an account that has written the night — it held it by a code,
+-- or it is the book's host — can hand anything in for it. Returns how many were
+-- stored, not counting ones already there.
+create or replace function hand_in_late_changes(target_session_id uuid, changes jsonb)
+returns int
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  stored int;
+begin
+  if auth.uid() is null or not (
+       exists (select 1 from night_handover h
+                where h.session_id = target_session_id and h.redeemed_by = auth.uid())
+       or exists (select 1 from session s
+                   where s.id = target_session_id and is_book_host(s.book_id))
+     ) then
+    raise exception 'Only a phone that recorded this night can hand changes in for it.';
+  end if;
+
+  if jsonb_typeof(changes) <> 'array' then
+    raise exception 'Changes arrive as a list.';
+  end if;
+
+  insert into night_late_change (session_id, op_id, kind, payload, queued_at, from_user)
+  select target_session_id,
+         c ->> 'op_id',
+         c ->> 'kind',
+         coalesce(c -> 'payload', '{}'::jsonb),
+         coalesce((c ->> 'queued_at')::timestamptz, now()),
+         auth.uid()
+    from jsonb_array_elements(changes) c
+   where c ->> 'op_id' is not null and c ->> 'kind' is not null
+  on conflict (session_id, op_id) do nothing;
+
+  get diagnostics stored = row_count;
+  return stored;
+end;
+$$;
+
+-- Decide. The phone recording the night, only — adding means it has just
+-- re-recorded the change, and nobody else can.
+create or replace function decide_late_change(target_id uuid, added boolean)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  sid uuid;
+begin
+  select session_id into sid from night_late_change where id = target_id;
+  if sid is null or not can_write_session(sid) then
+    raise exception 'Only the phone recording this night can decide what joins it.';
+  end if;
+
+  update night_late_change
+     set status = case when added then 'added' else 'left_out' end,
+         decided_at = now(),
+         decided_by = auth.uid()
+   where id = target_id
+     and status = 'waiting';
+end;
+$$;
+
+grant execute on function hand_in_late_changes(uuid, jsonb) to authenticated;
+grant execute on function decide_late_change(uuid, boolean) to authenticated;
+
 -- ===== 0018_accounts.sql =============================================
 
 -- =============================================================================
@@ -2868,3 +3642,543 @@ begin
   end loop;
 end;
 $$;
+
+-- ===== 0020_pass_to_a_person.sql =============================================
+
+-- =============================================================================
+-- Passing the game to a person — the receiver does nothing
+-- =============================================================================
+-- `design/handoff-game-admin/`, cut 26 September. 0016 moved a night between
+-- phones by a ten-character code that the receiver had to type. The owner's
+-- decision since (`docs/design-request-game-admin.md`, 25 September): the admin
+-- PICKS A PERSON from the group, and the game arrives on that person's phone as
+-- an announcement — no code, no confirm, no tap. This file is that mechanism.
+--
+-- WHAT DOES NOT CHANGE. One writer per night, named by `session.writer_user_id`
+-- (null is the book's host); every write policy from 0016 still asks
+-- `can_write_session`; the column still moves only inside these functions,
+-- under the `session_writer_guard` trigger. Late changes (0017) are kept
+-- exactly as they were: a phone that recorded on a night after it moved hands
+-- them in, and the phone recording the night decides each one.
+--
+-- WHAT DOES.
+--
+--   night_pass         one row every time a night changes hands by name —
+--                      passed, or taken back — with who, to whom, and when.
+--                      It is the role line on every phone ("passed to Lena at
+--                      23:10"), the announcement on the receiving phone, the
+--                      hand-off row on a watcher's feed, and the answer to
+--                      "who may take it back".
+--
+--   pass_night()       whoever writes the night hands it to a CLAIMED player of
+--                      the book — a name the host typed has nobody behind it to
+--                      receive anything, and the sheet says so before this is
+--                      ever called. The game moves on the server the moment
+--                      this returns; the receiving phone learns on its next
+--                      look (`my_passes`) or, if it is open, from the realtime
+--                      feed `night_pass` is on.
+--
+--   take_back_night()  widened from 0016. The person who passed the game away
+--                      can take it back, and so can the book's host, who opened
+--                      it — with no code and no membership check: taking a game
+--                      BACK is running the game, not taking a new one.
+--
+--   ack_pass()         the receiving phone saying it has taken the game up, so
+--                      the phone that passed it can stop saying WAITING ON LENA.
+--
+--   night_role()       what one night is, from the caller's side: whether this
+--                      phone records it, who does, and the last hand-off.
+--
+--   my_passes()        every hand-off in the last week that named the caller,
+--                      either side — how a phone that has never held a night
+--                      discovers one that was just passed to it.
+--
+-- THE MEMBERSHIP CHECK IS NOT HERE. The handoff gates who may take a game by
+-- membership (Free never; Regular once a billing period; Full always), and rev
+-- 18 § 4 says to build none of it and keep one policy seam that answers yes —
+-- `apps/mobile/src/lib/membership.ts`. `0018_accounts.sql` enforces a plan for
+-- STARTING a group and nothing else, so passing to an account with no plan is
+-- not refused by the database yet. When it is, it is one check at the top of
+-- `pass_night`, against `my_plan()`'s answer for the receiver.
+--
+-- THE CODE PATH (0016) IS LEFT IN PLACE and no longer called by the app. Its
+-- functions are harmless — a code needs the phone recording the night to mint
+-- it — and dropping them is a separate, deliberate migration once nothing in
+-- the field can still be holding one.
+-- =============================================================================
+
+-- --- The log ----------------------------------------------------------------
+
+create table night_pass (
+  id            uuid primary key default gen_random_uuid(),
+  session_id    uuid not null references session (id) on delete cascade,
+  kind          text not null check (kind in ('passed', 'taken_back')),
+  -- Who held the night before this row, and who holds it after.
+  from_user     uuid not null references auth.users (id) on delete cascade,
+  to_user       uuid not null references auth.users (id) on delete cascade,
+  -- The roster row the game went to, when it went by name. Null on a take-back
+  -- by somebody with no seat in the book (the host, usually).
+  to_player_id  uuid references player (id) on delete set null,
+  passed_at     timestamptz not null default now(),
+  -- When the phone it went to took it up. Null until it has: the passing phone
+  -- reads WAITING ON <name> off this, and nothing is recorded in the gap.
+  opened_at     timestamptz
+);
+
+create index night_pass_session_idx on night_pass (session_id, passed_at desc);
+create index night_pass_to_idx on night_pass (to_user, passed_at desc);
+create index night_pass_from_idx on night_pass (from_user, passed_at desc);
+
+comment on table night_pass is
+  'Every time a night changed hands by name: passed to a claimed player, or taken back by the previous admin or the host. Kept for ever — who recorded which part of a night is exactly what somebody will ask afterwards.';
+
+alter table night_pass enable row level security;
+
+-- Read: either end of the hand-off, anyone who can read the night (a watcher
+-- over a share link, a claimed member, the host), and the phone writing it.
+create policy night_pass_read on night_pass
+  for select to authenticated
+  using (
+    from_user = auth.uid()
+    or to_user = auth.uid()
+    or can_read_session(session_id)
+    or is_book_member(session_book_id(session_id))
+    or can_write_session(session_id)
+  );
+
+grant select on night_pass to authenticated;
+
+-- On the live feed, so an open phone hears the game arrive the moment it does
+-- and a watcher's feed gains the row as it happens. Guarded like 0019: realtime
+-- goes through the read policy above, so nobody hears a hand-off they could
+-- not read.
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+       select 1 from pg_publication_tables
+        where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'night_pass'
+     ) then
+    execute 'alter publication supabase_realtime add table public.night_pass';
+  end if;
+end;
+$$;
+
+-- --- A name for an account, inside one book -----------------------------------
+-- The only place a uid becomes a word. A person who claimed no seat in this
+-- book has no name here and the caller says so in its own words.
+
+create or replace function name_in_book(target_book_id uuid, target_user uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.display_name
+    from player p
+   where p.book_id = target_book_id
+     and p.claimed_by_user_id = target_user
+   order by p.created_at
+   limit 1;
+$$;
+
+-- --- Pass it ------------------------------------------------------------------
+
+create or replace function pass_night(target_session_id uuid, to_player_id uuid)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  book_of   uuid;
+  host      uuid;
+  receiver  uuid;
+  made      uuid;
+begin
+  if not can_write_session(target_session_id) then
+    raise exception 'Only the phone recording this night can pass it on.';
+  end if;
+
+  select s.book_id, b.host_user_id into book_of, host
+    from session s join book b on b.id = s.book_id
+   where s.id = target_session_id;
+
+  select p.claimed_by_user_id into receiver
+    from player p
+   where p.id = to_player_id
+     and p.book_id = book_of
+     and p.removed_at is null;
+
+  if not found then
+    raise exception 'That person is not in this group.';
+  end if;
+  -- Copy for the state the sheet already refuses before asking (state 3's
+  -- "Name only · no app to send it to"); this is the floor under it.
+  if receiver is null then
+    raise exception 'That name has no app to send the game to.';
+  end if;
+  if receiver = auth.uid() then
+    raise exception 'The game is already on this phone.';
+  end if;
+
+  -- A code out for this night (0016) is withdrawn: the game is going by name.
+  update night_handover
+     set revoked_at = now()
+   where session_id = target_session_id
+     and redeemed_at is null
+     and revoked_at is null;
+
+  perform set_config('poker.handover', 'on', true);
+  update session
+     -- The host receiving it is the night coming home: null, not their uid,
+     -- so there is one way of saying "the host writes this" and not two.
+     set writer_user_id = case when receiver = host then null else receiver end
+   where id = target_session_id;
+  perform set_config('poker.handover', '', true);
+
+  insert into night_pass (session_id, kind, from_user, to_user, to_player_id)
+  values (target_session_id, 'passed', auth.uid(), receiver, to_player_id)
+  returning id into made;
+
+  return made;
+end;
+$$;
+
+comment on function pass_night(uuid, uuid) is
+  'Hand the night to a claimed player of its book. Moves the writer on the server at once; the receiving phone does nothing. Refuses a name with nobody behind it, and the caller''s own seat.';
+
+-- --- Take it back -------------------------------------------------------------
+-- Replaces 0016's, which let the host alone. The person who passed the game
+-- away — the previous admin — can take it back too, and neither is checked for
+-- anything: the night finishes on the membership it started with.
+
+create or replace function take_back_night(target_session_id uuid)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  book_of   uuid;
+  host      uuid;
+  holder    uuid;
+  previous  uuid;
+begin
+  select s.book_id, b.host_user_id, coalesce(s.writer_user_id, b.host_user_id)
+    into book_of, host, holder
+    from session s join book b on b.id = s.book_id
+   where s.id = target_session_id;
+
+  if book_of is null then
+    raise exception 'Only the host of this group, or whoever passed the game away, can take it back.';
+  end if;
+
+  -- Whoever last PASSED it away, if it is still where they passed it. A
+  -- take-back is not a pass: the person a game was taken back from does not
+  -- become somebody who can take it again, or a night would have two people
+  -- with a button (`12-the-group.md` § 4.1's argument, kept).
+  select case when p.kind = 'passed' then p.from_user end into previous
+    from night_pass p
+   where p.session_id = target_session_id
+   order by p.passed_at desc
+   limit 1;
+
+  -- Spelled out against NULL: with no pass on record `previous` is null, and
+  -- `auth.uid() = null` is neither true nor false, which `if not` would let
+  -- through. Every clause here is a real boolean.
+  if not (coalesce(auth.uid() = host, false)
+          or (previous is not null
+              and coalesce(auth.uid() = previous, false)
+              and previous is distinct from holder)) then
+    raise exception 'Only the host of this group, or whoever passed the game away, can take it back.';
+  end if;
+
+  -- Already here: nothing to move, nothing to log.
+  if auth.uid() = holder then
+    return;
+  end if;
+
+  update night_handover
+     set revoked_at = now()
+   where session_id = target_session_id
+     and redeemed_at is null
+     and revoked_at is null;
+
+  perform set_config('poker.handover', 'on', true);
+  update session
+     set writer_user_id = case when auth.uid() = host then null else auth.uid() end
+   where id = target_session_id;
+  perform set_config('poker.handover', '', true);
+
+  insert into night_pass (session_id, kind, from_user, to_user, to_player_id, opened_at)
+  values (target_session_id, 'taken_back', holder, auth.uid(),
+          (select p.id from player p where p.book_id = book_of and p.claimed_by_user_id = auth.uid()
+            order by p.created_at limit 1),
+          -- The phone taking it back is, by definition, the phone that opened it.
+          now());
+end;
+$$;
+
+comment on function take_back_night(uuid) is
+  'The host, or whoever passed the game away, takes it back with no code and no check. Logged as a hand-off the other way.';
+
+-- --- The receiving phone has it ----------------------------------------------
+
+create or replace function ack_pass(target_id uuid)
+returns void
+language sql
+volatile
+security definer
+set search_path = public
+as $$
+  update night_pass
+     set opened_at = now()
+   where id = target_id
+     and to_user = auth.uid()
+     and opened_at is null;
+$$;
+
+-- --- Where a night stands, from this phone ------------------------------------
+-- Null when the caller cannot see the night at all, as `night_hold` (0016).
+--
+--   yours      this phone records it
+--   host       this phone hosts the book
+--   book       the book's id, for the queue
+--   recorder   the name of whoever records it — null when they claimed no seat
+--   last       the most recent hand-off: kind, the two names, when, and whether
+--              the phone it went to has taken it up. Null on a night that has
+--              never changed hands.
+
+create or replace function night_role(target_session_id uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+           'yours', can_write_session(s.id),
+           'host',  is_book_host(s.book_id),
+           'book',  s.book_id,
+           'recorder', name_in_book(s.book_id, coalesce(s.writer_user_id, b.host_user_id)),
+           'recorder_user', coalesce(s.writer_user_id, b.host_user_id),
+           'last', (
+             select jsonb_build_object(
+                      'id', p.id,
+                      'kind', p.kind,
+                      'from_user', p.from_user,
+                      'to_user', p.to_user,
+                      'from_name', name_in_book(s.book_id, p.from_user),
+                      'to_name', name_in_book(s.book_id, p.to_user),
+                      'at', p.passed_at,
+                      'opened', p.opened_at is not null
+                    )
+               from night_pass p
+              where p.session_id = s.id
+              order by p.passed_at desc
+              limit 1
+           )
+         )
+    from session s
+    join book b on b.id = s.book_id
+   where s.id = target_session_id
+     and (is_book_host(s.book_id)
+          or is_book_member(s.book_id)
+          or s.writer_user_id = auth.uid()
+          or can_read_session(s.id));
+$$;
+
+grant execute on function name_in_book(uuid, uuid)  to authenticated;
+grant execute on function pass_night(uuid, uuid)    to authenticated;
+grant execute on function take_back_night(uuid)     to authenticated;
+grant execute on function ack_pass(uuid)            to authenticated;
+grant execute on function night_role(uuid)          to authenticated;
+
+-- --- Every hand-off that named this phone ------------------------------------
+-- One row per hand-off in the last `since`, either side, newest last. A phone
+-- polls this to find a night it has never held; `mine_now` says whether the
+-- night is this phone's at the moment of asking, which is what decides whether
+-- to take it up or merely to announce that it went.
+
+create or replace function my_passes(since interval default interval '7 days')
+returns table (
+  id          uuid,
+  session_id  uuid,
+  book_id     uuid,
+  kind        text,
+  from_user   uuid,
+  to_user     uuid,
+  from_name   text,
+  to_name     text,
+  passed_at   timestamptz,
+  opened      boolean,
+  mine_now    boolean
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.id,
+         p.session_id,
+         s.book_id,
+         p.kind,
+         p.from_user,
+         p.to_user,
+         name_in_book(s.book_id, p.from_user),
+         name_in_book(s.book_id, p.to_user),
+         p.passed_at,
+         p.opened_at is not null,
+         can_write_session(p.session_id)
+    from night_pass p
+    join session s on s.id = p.session_id
+   where (p.to_user = auth.uid() or p.from_user = auth.uid())
+     and p.passed_at > now() - since
+   order by p.passed_at asc;
+$$;
+
+grant execute on function my_passes(interval) to authenticated;
+
+-- --- Names for the accounts on a night's hand-offs ----------------------------
+-- A watcher's feed draws every hand-off by name ("23:10 · Marek passed the game
+-- to Lena", state 21), and a watcher cannot read who claimed which seat. So
+-- the names are given, inside the book and only to somebody who may read the
+-- night, for exactly the accounts asked about.
+
+create or replace function names_in_night(target_session_id uuid, user_ids uuid[])
+returns table (user_id uuid, name text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select u, name_in_book(s.book_id, u)
+    from session s, unnest(user_ids) as u
+   where s.id = target_session_id
+     and (is_book_host(s.book_id)
+          or is_book_member(s.book_id)
+          or s.writer_user_id = auth.uid()
+          or can_read_session(s.id));
+$$;
+
+grant execute on function names_in_night(uuid, uuid[]) to authenticated;
+
+-- --- Whose phone a late change came from ------------------------------------
+-- The review sheet is titled by the phone the changes came from ("From Lena's
+-- phone"). A member cannot read `claimed_by_user_id`, so the name is resolved
+-- here for whoever may decide the changes.
+
+create or replace function late_change_sources(target_session_id uuid)
+returns table (user_id uuid, name text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select distinct c.from_user, name_in_book(session_book_id(target_session_id), c.from_user)
+    from night_late_change c
+   where c.session_id = target_session_id
+     and (can_write_session(target_session_id)
+          or is_book_host(session_book_id(target_session_id)));
+$$;
+
+grant execute on function late_change_sources(uuid) to authenticated;
+
+-- --- Handing in, for a phone the game went to by name -------------------------
+-- 0017 let a phone hand changes in if it had redeemed a code for the night or
+-- hosted the book. A phone the game went to by name did neither, so its changes
+-- would have been refused — the one way this design could lose something.
+
+create or replace function hand_in_late_changes(target_session_id uuid, changes jsonb)
+returns int
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  stored int;
+begin
+  if auth.uid() is null or not (
+       exists (select 1 from night_handover h
+                where h.session_id = target_session_id and h.redeemed_by = auth.uid())
+       or exists (select 1 from night_pass p
+                   where p.session_id = target_session_id
+                     and (p.to_user = auth.uid() or p.from_user = auth.uid()))
+       or exists (select 1 from session s
+                   where s.id = target_session_id and is_book_host(s.book_id))
+     ) then
+    raise exception 'Only a phone that recorded this night can hand changes in for it.';
+  end if;
+
+  if jsonb_typeof(changes) <> 'array' then
+    raise exception 'Changes arrive as a list.';
+  end if;
+
+  insert into night_late_change (session_id, op_id, kind, payload, queued_at, from_user)
+  select target_session_id,
+         c ->> 'op_id',
+         c ->> 'kind',
+         coalesce(c -> 'payload', '{}'::jsonb),
+         coalesce((c ->> 'queued_at')::timestamptz, now()),
+         auth.uid()
+    from jsonb_array_elements(changes) c
+   where c ->> 'op_id' is not null and c ->> 'kind' is not null
+  on conflict (session_id, op_id) do nothing;
+
+  get diagnostics stored = row_count;
+  return stored;
+end;
+$$;
+
+-- --- The watcher's header names the recorder ---------------------------------
+-- X1's band reads "Read-only. Only Marek can write to the ledger", and since
+-- 0016 the person who can is not always the host. The header gains the
+-- recorder's name beside the host's; the app draws the recorder.
+
+drop function if exists night_header(uuid);
+
+create function night_header(target_session_id uuid)
+returns table (
+  group_name     text,
+  host_name      text,
+  player_count   int,
+  started_at     timestamptz,
+  ended_at       timestamptz,
+  status         text,
+  rounding_mode  text,
+  recorder_name  text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    b.group_name,
+    name_in_book(b.id, b.host_user_id),
+    (select count(*)::int from session_seat ss where ss.session_id = s.id),
+    s.started_at,
+    s.ended_at,
+    s.status::text,
+    s.rounding_mode::text,
+    name_in_book(b.id, coalesce(s.writer_user_id, b.host_user_id))
+  from session s
+  join book b on b.id = s.book_id
+  where s.id = target_session_id
+    and (
+      s.id = watcher_session_id()
+      or is_book_member(s.book_id)
+      or is_book_host(s.book_id)
+      or s.writer_user_id = auth.uid()
+    );
+$$;
+
+comment on function night_header(uuid) is
+  'The group, the host''s name, the recorder''s name, the seat count, the times and the rounding rule for ONE night, to somebody already entitled to read it. Feeds X1''s meta line and read-only band. Zero rows for anybody else.';
+
+grant execute on function night_header(uuid) to authenticated;

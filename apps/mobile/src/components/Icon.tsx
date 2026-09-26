@@ -49,6 +49,12 @@ export type IconName =
   | 'people'
   /** Cash a player out — a seat emptying, not a warning. */
   | 'cashOut'
+  /**
+   * Pass the game — two opposing arrows, 19px, on the drawer row
+   * (`design/handoff-game-admin/` state 1). The night changing hands, not
+   * leaving: the same weight as `cashOut` beside it.
+   */
+  | 'pass'
   /** The bill. */
   | 'receipt'
   /** Settled. */
@@ -344,6 +350,20 @@ export function Icon({
       );
     }
 
+    case 'pass': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M4 8.5h14M14.5 5l3.5 3.5-3.5 3.5M20 15.5H6M9.5 12L6 15.5 9.5 19"
+            stroke={color}
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
     case 'cashOut': {
       // A seat with an arrow leaving it. Never red: cashing out is expected,
       // and only ending the night is destructive.

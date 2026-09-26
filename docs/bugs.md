@@ -139,6 +139,29 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B96 — a member reading a pulled night was handed the host's dock
+
+```
+Screen      Tonight (`session.tsx`), on a claimed member's phone after Fetch my
+            nights, with the host's night still open
+Seen        not seen; found 26 Sept building the role line. Home hides the
+            start card from a reader who is not the admin (`useIsAdmin`), and
+            Tonight never asked: any phone that could open the night got the
+            dock, the drawer, End this poker night and a chevron on every row.
+            Every write the dock makes is refused by the server for that
+            account, and a refusal at the head of the queue parks every night
+            behind it (B91's hazard, by another door)
+Expected    a reader who does not record the night reads it: no dock, no
+            chevrons, the read-only band naming who does — states 2b and 20b
+            of `design/handoff-game-admin/`
+Locked by   nothing yet — the cold screen is the admin's on every phone the
+            checks drive, and a member's phone needs a second account. The
+            rule is one line (`recording = admin && !away`) and the states it
+            draws are the cut's, so a screen that shows a watcher a dock is a
+            screen that has lost the line
+Status      fixed in this commit — NOT yet seen on a phone
+```
+
 ### B95 — a watcher's screen did not hear half of what changed
 
 ```
@@ -173,6 +196,27 @@ pass-the-book work they were found in, which is parked on
 `claude/multi-admin-game-access-cpwbpw` for a redesign. **B94 is that branch's**
 — two faults in its own handover screens — and is not on `main` because the
 code it fixed is not; the number is taken, not skipped.*
+
+### B94 — two faults the first run of the handover in a browser found
+
+```
+Screen      /settings and Tonight on a phone whose night was taken back;
+            /late-changes
+Seen        23 Sept, driving the real web build through a handover against a
+            stubbed server (the screenshots the owner asked for):
+            1. the host took the night back while the dealer's phone had no
+               signal; the queue marked it away in SQLite, but the store the
+               screens read never heard — the phone went on offering Pass the
+               book and would have taken more rebuys (handed in later, so not
+               lost, but the screen said the wrong thing)
+            2. a guest added on the other phone read "Someone bought in" on
+               /late-changes, because the name lived in the row above
+Expected    1. away on the screen within one look (15 s) of the server saying so
+            2. "Mara bought in"
+Locked by   ⚠ neither is in a check yet — both were found and re-verified by
+            the same browser run, which is not in `check:ui`
+Status      fixed in this commit — NOT yet seen on a phone
+```
 
 ### B93 — what a spend was for never reached the server
 

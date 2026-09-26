@@ -333,14 +333,104 @@ in SDK 57's manifest, neither yet confirmed in Expo Go, which
 `apps/mobile/AGENTS.md` requires before either is designed around. A clipboard
 is fine for a season and awkward for years of nights.
 
-### The one real limit
+### Passing the game
 
-**One device writes a night.** `ledger_entry` is unique on `(session_id, seq)`,
-so two phones both numbering entry 7 for the same night is a collision the
-server will refuse — correctly. The design has always had a single writer per
-session; this is where that assumption is cashed. A second device opening the
-same night reads it; it does not write. If it ever needs to, the handover is an
-explicit act, not a race.
+**One device writes a night — and since 23 September, which one can move.**
+`ledger_entry` is unique on `(session_id, seq)`, so two phones both numbering
+entry 7 for the same night is a collision the server refuses, correctly. That
+stays true. What changed is that the writer is no longer fixed to the book's
+host: `session.writer_user_id` names it (null is the host, which is every night
+recorded before `0016_pass_the_book.sql`), and since `0020_pass_to_a_person.sql`
+(26 September, `design/handoff-game-admin/`) it moves **by name**:
+
+- **The admin picks a person.** *Pass the game* in the Table admin drawer on
+  Tonight opens `/pass-game`, which lists the group — who can take it, who
+  cannot and why. `pass_night(session, player)` moves the writer to that
+  player's account on the server at once. **The receiver does nothing.** Their
+  phone learns on its next look (`my_passes()`, every fifteen seconds while the
+  app is open, and the moment `night_pass` says so over the live feed), reads
+  the night whole off the server, and the game arrives as a card (`PassCard`).
+  Until that phone has taken it up (`ack_pass`) the passing phone reads
+  WAITING ON LENA, and nothing is recorded in the gap.
+- **Taking it back** — the hold row where the dock was, on the phone that
+  passed the game away or the host's — with no code and no check: taking back
+  is running the game, not taking a new one. A take-back does not make the
+  person it was taken from somebody who can take it again.
+- **Every hand-off is logged** in `night_pass`, both names and when, and that
+  row is the role line on every phone ("passed to Lena at 23:10"), the card on
+  the receiving phone, and the hand-off row on a watcher's feed.
+
+The ten-character code (0016, `/pass-book` and `/take-over`) is retired on the
+phone. Its server functions are left in place and nothing calls them; dropping
+them is a separate migration once nothing in the field can still hold one.
+
+**Nothing either phone recorded is lost — `0017_nothing_lost.sql`.** A phone
+that still had changes queued when its night moved cannot put them in the ledger
+(the ledger has one writer and one numbering), so it **hands them in**: each
+operation, exactly as queued, is kept on the server beside the night
+(`night_late_change`) with a status — *waiting*, *added* or *left out*. The phone
+recording the night sees *N changes from another phone · Review* above its dock
+and decides each one on `/late-changes` ("From Lena's phone"); adding
+re-records it there, in that phone's numbering and under its original id, so a
+copy that did get through after all collapses to one row. A person decides
+because the host may already have recorded the same rebuy again by hand.
+Nothing is deleted either way, and the phone that made the changes reads what
+became of each in Settings. 0020 lets a phone the game went to by name hand in,
+which 0017's check (a redeemed code, or the host) would have refused.
+
+A phone never replaces its copy of a night while anything for it is still
+queued (`replaceNight` refuses); it hands in first, and with no signal it simply
+waits, marked away, until it can. And a phone does not pass a game while
+anything for it is waiting to send (`passTo` throws): the sheet draws that as
+NOT PASSED, the same state as no connection, which from the table it is.
+
+**Who may take a game** is the handoff's membership rule — Full always, Regular
+once a billing period, Free never — and **none of it is enforced**, by design:
+rev 18 § 4 keeps one policy seam, `apps/mobile/src/lib/membership.ts`, which
+answers yes for everybody until membership ships. The database (`0018`) gates
+only starting a group. When the seam has real answers the server gets one
+check at the top of `pass_night`, against the receiver's plan.
+
+Two phones writing the same night at once was the other option, and it was
+considered and not built: it needs numbering that cannot collide, a live merge
+both ways, and an answer to who may count, close and settle. Passing keeps every
+property this document is built on — there is still nothing to merge.
+
+**The rules that make it safe, and where each one lives:**
+
+| Rule | Where |
+| --- | --- |
+| Exactly one account can write a night, and the host is not it while it is passed | `can_write_session`, every session-scoped write policy — `0016` |
+| The writer column moves only by the functions, never by an UPDATE | trigger `session_writer_guard` — `0016` |
+| A game goes only to a claimed player of the book, never to the caller's own seat | `pass_night` — `0020` |
+| Only the host, or whoever last passed the game away, can take it back | `take_back_night` — `0020` |
+| A game is passed only when nothing for the night is waiting to send | `passTo` — `handover.ts` |
+| The phone taking a night replaces its copy with the server's and numbers on from the server's highest | `replaceNight` — `nightStore.ts` |
+| The phone that passed a night refuses every write to it, locally and in the queue | `refuseIfAway`, `send()` — `nightStore.ts`, `sync.ts` |
+| A queue for a night that moved is handed in to the server, never dropped and never left to halt the queue | `handIn`, `movedAway` — `sync.ts`; `night_late_change` — `0017`, `0020` |
+| A copy of a night is never replaced over changes still queued for it | `replaceNight` — `nightStore.ts` |
+| The taker's roster and rule writes go to the host's book, never a new one | `hold.ts` `book_id`, `heldBookFor` |
+| Every hand-off is on record, with both names, and a watcher can read it | `night_pass`, its read policy and the live feed — `0020` |
+
+**What the taker may do.** Everything on the night — money, seats, counts, the
+close, the ticks afterwards — and, while it is unsettled, add or rename people
+in the group and change its money rules, because a night in progress needs both
+and on the server they are book-level rows. Never remove anybody. They can read
+the whole book from the moment the game is theirs, and keep reading it: they
+recorded part of a night in it.
+
+**Which account.** Any that has claimed a seat — the seat is how the admin
+names them. A seat claimed with a code is an anonymous account, and 0017 lets
+such an account write the one night it holds; a phone with no account at all
+cannot be named and is a *Name only · no app to send it to* row.
+
+`supabase/test/09_pass_the_book.sql`, `10_nothing_lost.sql` and
+`13_pass_to_a_person.sql` play it through; `apps/mobile/src/lib/handover.test.ts`
+holds the phone's half and `membership.test.ts` the seam.
+
+⚠ **Not yet seen on two phones.** Everything above is checked against a real
+Postgres and a real SQLite, and none of it against a real hand-off across a
+table.
 
 ---
 

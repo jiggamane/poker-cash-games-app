@@ -13,7 +13,7 @@ sequences, and where it disagrees with one of them it says so:
 |---|---|---|
 | `accounts-and-groups.md` | who can get in today, and what blocks the rest | current — its Phase 0/1 are this file's Stages 0/1 |
 | `auth-test-period.md` | the dashboard checklist | current — Stage 0 *is* its seven steps |
-| `pricing-model.md` | what is free, what is paid, the price | **tiers, prices and §7 guardrails stand. §6 "Rails" is superseded** — see Stage 4 |
+| `pricing-model.md` | what is free, what is paid, the price | **superseded 26 September for tiers and prices** by `design/handoff-game-admin/` (Free / Regular $2.49 / Full $9.99, a host night for Regular) — which names plans differently from the free / pro / club Stage 1 built; the seam in `apps/mobile/src/lib/membership.ts` holds the join open. §7 guardrails stand; §6 "Rails" is superseded — see Stage 4 |
 
 ---
 

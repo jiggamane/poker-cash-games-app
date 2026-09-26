@@ -112,12 +112,42 @@ Two preconditions and one warning:
 - **What moves is the money rules, settle-up, invites and the exits.** Nothing
   already settled changes hands. Every night keeps the host it was recorded by.
 
-**And the one thing handing over admin does not do: it does not move tonight.**
-One device writes a night — `ledger_entry` is unique on `(session_id, seq)`, and
-a second phone opening the same night reads it and does not write
-(`storage-and-sync.md` § The one real limit). So if you want somebody else to
-run the game, **they open the night on their phone at the start of the evening**
-and record it there; you cannot pass the book across the table at midnight.
+**Handing over admin does not move tonight.** That is a separate act, next.
+
+---
+
+## Step 3½ · Let them run tonight
+
+One phone records a night. To have somebody else record the rest of it — you
+are leaving early, or they are dealing and you are playing — **pass the game**,
+from the table (`design/handoff-game-admin/`):
+
+1. On the phone recording it: **Tonight → Table admin → Pass the game**. The
+   sheet lists the group — who can take it, and who cannot and why. A name
+   with nobody behind it (Step 2 not done) cannot; the row offers *Invite*.
+   Pick them, **Pass to Lena**. Anything not yet on the server has to get there
+   first; the sheet says NOT PASSED until it has.
+2. On theirs: **nothing.** The game is theirs on the server the moment you pass
+   it, and it arrives on their phone as a card — *Marek passed you the game* —
+   the next time they look at the app, at once if it is open. They record from
+   then; everything before is already there.
+3. Your phone follows along and records nothing on that night: the line under
+   *Tonight* reads *Watching · passed to Lena at 23:10*, and the band where the
+   dock was says WAITING ON LENA until her phone has opened it.
+
+It comes back the same way — they pass it to you — or, if their phone is flat
+or they have gone home, **Take the game back** on yours, in that band: hold it
+for a second and a half. You can, because you passed it away; so can the host
+of the group, whoever holds it. Nobody else.
+
+**Nothing their phone recorded is lost.** Anything it had not sent when the
+game came back goes to the server as soon as it has signal, and your phone
+shows *N changes from another phone · Review* above the dock. You tick the ones
+that belong — leave unticked anything you already re-entered by hand — and they
+are added. What you leave out stays on the server, marked LEFT OUT; their phone
+says which were added and which were not.
+
+`storage-and-sync.md` § Passing the game has the whole of it.
 
 ---
 

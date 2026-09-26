@@ -9,6 +9,9 @@ import { Icon, type IconName } from '../src/components/Icon';
 import { useClub, type Club } from '../src/lib/clubStore';
 import { useElapsed } from '../src/lib/elapsed';
 import { useOnline } from '../src/lib/online';
+import { useNotice } from '../src/lib/handover';
+import { canTakeGame, membershipOf } from '../src/lib/membership';
+import { PassCard } from '../src/components/PassCard';
 import { toggleTheme } from '../src/lib/themeStore';
 import {
   openNightById,
@@ -84,6 +87,15 @@ export default function ClubHome() {
   const games = useOpenGames();
   const live = games.filter((g) => g.status === 'open');
 
+  /* A game arriving, or going, while the reader is here — state 9b. */
+  const notice = useNotice();
+  /*
+   * WHETHER THIS PHONE MAY OPEN A GAME — `membership.ts`, the seam, which
+   * answers yes for everybody today. State 16: after a night closes, a lapsed
+   * membership is one line on the start row and the gate behind it.
+   */
+  const mayOpen = admin === undefined || canTakeGame(membershipOf(admin));
+
   // H8 · first paint. The club is known long before the night is read off the
   // database, so everything known paints immediately and only the unknown
   // block is a skeleton — in the exact geometry the card will take.
@@ -144,7 +156,7 @@ export default function ClubHome() {
           <CardSkeleton />
         ) : games.length === 0 ? (
           host ? (
-            <StartCard club={club} fresh={fresh} />
+            <StartCard club={club} fresh={fresh} lapsed={!mayOpen} />
           ) : null
         ) : (
           <>
@@ -187,6 +199,13 @@ export default function ClubHome() {
 
       {/* The only flexible thing on the screen. */}
       <View style={styles.slack} />
+
+      {/* The announcement, above the Settings pill — 9b. A card in the page. */}
+      {notice !== null && (
+        <View style={styles.notice}>
+          <PassCard notice={notice} on="home" />
+        </View>
+      )}
 
       <View style={styles.dock}>
         <Pill icon="settings" label="Settings" onPress={() => router.push('/settings')} />
@@ -263,8 +282,13 @@ async function goTo(sessionId: string, to = '/session'): Promise<void> {
   router.push(to);
 }
 
-/** H1 and H5 · no game running: the stakes are inherited, and the tap opens the night. */
-function StartCard({ club, fresh }: { club: Club | null; fresh: boolean }) {
+/**
+ * H1 and H5 · no game running: the stakes are inherited, and the tap opens the
+ * night. `lapsed` is state 16 of `design/handoff-game-admin/`: the membership
+ * ran out, the card says so on its second line, and the tap opens the gate
+ * (`/new-night` draws it). ⚠ The line is UNSURE on the board.
+ */
+function StartCard({ club, fresh, lapsed }: { club: Club | null; fresh: boolean; lapsed: boolean }) {
   const t = useTheme();
   return (
     <Pressable
@@ -281,9 +305,11 @@ function StartCard({ club, fresh }: { club: Club | null; fresh: boolean }) {
           {fresh ? 'Start the first session' : 'Start a session'}
         </Text>
         <Text style={[styles.cardMeta, { color: t.onFill }]} numberOfLines={1}>
-          {fresh
-            ? 'You’ll set the buy-in and blinds once, here'
-            : `${formatMoney(club?.defaultBuyIn ?? (0 as Money))} buy-in · same rules as last time`}
+          {lapsed
+            ? 'Your membership ended · renew to open one'
+            : fresh
+              ? 'You’ll set the buy-in and blinds once, here'
+              : `${formatMoney(club?.defaultBuyIn ?? (0 as Money))} buy-in · same rules as last time`}
         </Text>
       </View>
       <View style={styles.cardArrow}>
@@ -620,6 +646,8 @@ const styles = StyleSheet.create({
   rowSub: type.destinationSub,
 
   slack: { flex: 1 },
+  /* The card carries its own 14 of side margin; the dock's gutter is 20. */
+  notice: { marginHorizontal: home.gutter - 14, marginBottom: 10 },
 
   dock: {
     flexDirection: 'row',

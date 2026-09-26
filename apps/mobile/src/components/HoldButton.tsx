@@ -1,10 +1,13 @@
 import { useRef, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../design/useTheme';
 import { control, radius, type } from '../design/tokens';
 
-/** How long a hold has to be held. The dock's end-of-night row set it — rev 7, D9. */
-const HOLD_MS = 1000;
+/**
+ * How long a hold has to be held. The dock's end-of-night row sets it, and
+ * since `design/handoff-game-admin/` that is 1.5s — one hold in the app.
+ */
+import { HOLD_MS } from './Dock';
 
 /**
  * A filled primary that is held rather than tapped.
@@ -34,6 +37,7 @@ export function HoldButton({
   holdingLabel = 'Keep holding…',
   holdingSub = 'Release to cancel',
   onComplete,
+  variant = 'primary',
 }: {
   label: string;
   /** The resting second line — what the gesture is, since a tap does nothing. */
@@ -41,6 +45,13 @@ export function HoldButton({
   holdingLabel?: string;
   holdingSub?: string;
   onComplete: () => void;
+  /**
+   * `primary` is the filled button. `row` is the drawer's shape — an outlined
+   * two-line row with the wipe in the label's colour — for *Take the game back*
+   * on Tonight (`design/handoff-game-admin/` states 7 and 8), which sits where
+   * the dock was and is drawn as a row of it rather than as a button.
+   */
+  variant?: 'primary' | 'row';
 }) {
   const t = useTheme();
 
@@ -74,10 +85,14 @@ export function HoldButton({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${label}. Hold for one second.`}
+      accessibilityLabel={`${label}. Hold for a second and a half.`}
       onPressIn={startHold}
       onPressOut={cancelHold}
-      style={[styles.box, { backgroundColor: t.text }]}
+      style={
+        variant === 'row'
+          ? [styles.row, { borderColor: holding ? t.text : t.outline }]
+          : [styles.box, { backgroundColor: t.text }]
+      }
     >
       {/*
         The label's own colour at low alpha, not the loss colour: on a filled
@@ -89,13 +104,22 @@ export function HoldButton({
         style={[
           styles.wipe,
           {
-            backgroundColor: t.onFill,
+            backgroundColor: variant === 'row' ? t.text : t.onFill,
             width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
           },
         ]}
       />
-      <Text style={[styles.label, { color: t.onFill }]}>{holding ? holdingLabel : label}</Text>
-      <Text style={[styles.sub, { color: t.onFill }]}>{holding ? holdingSub : sub}</Text>
+      {variant === 'row' ? (
+        <View style={styles.rowText}>
+          <Text style={[styles.rowLabel, { color: t.text }]}>{holding ? holdingLabel : label}</Text>
+          <Text style={[styles.rowSub, { color: t.muted }]}>{holding ? holdingSub : sub}</Text>
+        </View>
+      ) : (
+        <>
+          <Text style={[styles.label, { color: t.onFill }]}>{holding ? holdingLabel : label}</Text>
+          <Text style={[styles.sub, { color: t.onFill }]}>{holding ? holdingSub : sub}</Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -115,4 +139,15 @@ const styles = StyleSheet.create({
   wipe: { ...StyleSheet.absoluteFill, right: undefined, opacity: 0.18 },
   label: { ...type.body, fontWeight: '700' },
   sub: { ...type.dockEndSub, opacity: 0.62 },
+  /* The drawer's End row, in the label's colour rather than the loss colour:
+     14 of padding, radius 10, a 1.5px outline, icon-less. */
+  row: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+  },
+  rowText: { gap: 2 },
+  rowLabel: type.dockEnd,
+  rowSub: type.dockEndSub,
 });
