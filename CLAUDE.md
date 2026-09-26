@@ -96,7 +96,7 @@ in the middle of it. Say those plainly and stop.
 
 ```bash
 npm run check      # typecheck + the money tests. Both must pass before a merge.
-npm run check:ui   # the screens: every route against the handoff's rules, all 25
+npm run check:ui   # the screens: every route against the handoff's rules, all 24
                    # sheets across six devices, and a big night played through
                    # checking no figure is cut off. Run it before a merge if you
                    # touched apps/mobile. Needs Playwright.
@@ -123,11 +123,30 @@ wins over anything older, `design/handoff-2026-08-13/` (rev 14) included. Start
 at its `START-HERE.md`, then `docs/CHANGELOG.md`, which is cumulative and names
 what each revision supersedes.
 
-**Seven partial cuts sit on top of it**, each superseding rev 18 only where it
+**Eight partial cuts sit on top of it**, each superseding rev 18 only where it
 speaks and nowhere else. Everything rev 18 says about every other screen still
 stands. Read them newest first:
 
-- **`design/handoff-game-settings/`, cut 10 September — start here.** O1 New
+- **`design/handoff-game-admin/`, cut 26 September — start here.** Running the
+  game: who can take one, **passing it to a person from the Table admin drawer**
+  (the receiver does nothing — it arrives as a card), the role line every phone
+  reads under Tonight's title (*You're recording · started 20:05* / *Watching ·
+  Lena is recording* / *Watching · passed to Lena at 23:10*), the late-changes
+  review restyled, GR4's *Who can run a game* filter, and the membership gates
+  on opening a game. It speaks on Tonight, the pass sheet, the announcement,
+  `/late-changes`, `/players`, `/watch` and O1's gate, and nowhere else. The
+  server side is `0020_pass_to_a_person.sql`; the 0016 code sheets are gone.
+  ⚠ **It names the tiers Free / Regular / Full, and `0018_accounts.sql` on
+  `main` (the day before) names an account's plan free / pro / club.** Nothing
+  built has both: the database gates only starting a group, and
+  `apps/mobile/src/lib/membership.ts` is the one seam that answers for taking a
+  game — Full for everybody, per rev 18 § 4 — so no gate and no "can't take it"
+  row shows on any phone yet. The mapping between the two vocabularies is the
+  owner's call and is written down as open in `docs/screens.md`. Its `README.md`
+  § 7 lists fourteen strings marked UNSURE; `docs/screens.md` has the seven
+  places the app departs from it and why.
+
+- **`design/handoff-game-settings/`, cut 10 September.** O1 New
   session, and the sheet behind it. **The settings collapse and the seating
   leads:** the five rows of *The game* are one reviewable line with a *Change*
   pill, and everything they held is edited in one card on **O1d Game details** —

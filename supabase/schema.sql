@@ -4043,6 +4043,30 @@ $$;
 
 grant execute on function my_passes(interval) to authenticated;
 
+-- --- Names for the accounts on a night's hand-offs ----------------------------
+-- A watcher's feed draws every hand-off by name ("23:10 · Marek passed the game
+-- to Lena", state 21), and a watcher cannot read who claimed which seat. So
+-- the names are given, inside the book and only to somebody who may read the
+-- night, for exactly the accounts asked about.
+
+create or replace function names_in_night(target_session_id uuid, user_ids uuid[])
+returns table (user_id uuid, name text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select u, name_in_book(s.book_id, u)
+    from session s, unnest(user_ids) as u
+   where s.id = target_session_id
+     and (is_book_host(s.book_id)
+          or is_book_member(s.book_id)
+          or s.writer_user_id = auth.uid()
+          or can_read_session(s.id));
+$$;
+
+grant execute on function names_in_night(uuid, uuid[]) to authenticated;
+
 -- --- Whose phone a late change came from ------------------------------------
 -- The review sheet is titled by the phone the changes came from ("From Lena's
 -- phone"). A member cannot read `claimed_by_user_id`, so the name is resolved

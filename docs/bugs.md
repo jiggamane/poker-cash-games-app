@@ -139,6 +139,29 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B96 — a member reading a pulled night was handed the host's dock
+
+```
+Screen      Tonight (`session.tsx`), on a claimed member's phone after Fetch my
+            nights, with the host's night still open
+Seen        not seen; found 26 Sept building the role line. Home hides the
+            start card from a reader who is not the admin (`useIsAdmin`), and
+            Tonight never asked: any phone that could open the night got the
+            dock, the drawer, End this poker night and a chevron on every row.
+            Every write the dock makes is refused by the server for that
+            account, and a refusal at the head of the queue parks every night
+            behind it (B91's hazard, by another door)
+Expected    a reader who does not record the night reads it: no dock, no
+            chevrons, the read-only band naming who does — states 2b and 20b
+            of `design/handoff-game-admin/`
+Locked by   nothing yet — the cold screen is the admin's on every phone the
+            checks drive, and a member's phone needs a second account. The
+            rule is one line (`recording = admin && !away`) and the states it
+            draws are the cut's, so a screen that shows a watcher a dock is a
+            screen that has lost the line
+Status      fixed in this commit — NOT yet seen on a phone
+```
+
 ### B95 — a watcher's screen did not hear half of what changed
 
 ```

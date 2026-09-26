@@ -29,6 +29,7 @@ export function Screen({
   badge,
   trailing,
   meta,
+  metaNode,
   metaTrailing,
   backTo,
   lede,
@@ -63,6 +64,17 @@ export function Screen({
   trailing?: ReactNode;
   /** Club · elapsed · since. One line, and it may be a fragment. */
   meta?: string;
+  /**
+   * The meta line as an element rather than a string — Tonight's role line
+   * (`design/handoff-game-admin/` § 4): "**You’re recording** · started 20:05",
+   * where the first word is 600 in the primary colour, the rest 500 muted, and
+   * a long name truncates while the time and the first word never do. One
+   * string cannot say which part gives, so the screen builds the row and this
+   * draws it in the meta line's slot, at the meta line's indent, with the meta
+   * line's name for `ui-audit.mjs`. `meta` and `metaTrailing` are ignored
+   * when it is given.
+   */
+  metaNode?: ReactNode;
   /**
    * A control sharing the meta line, pushed to its right-hand end.
    *
@@ -169,7 +181,13 @@ export function Screen({
      so `ui-audit.mjs` can say which side of the scroller it ended up on. */
   const sub = (
     <>
-      {meta !== undefined && metaTrailing === undefined && (
+      {metaNode !== undefined && (
+        <View nativeID="screen-meta" style={styles.metaNode}>
+          {metaNode}
+        </View>
+      )}
+
+      {metaNode === undefined && meta !== undefined && metaTrailing === undefined && (
         <Text
           nativeID="screen-meta"
           style={[styles.meta, { color: t.muted }]}
@@ -179,7 +197,7 @@ export function Screen({
         </Text>
       )}
 
-      {meta !== undefined && metaTrailing !== undefined && (
+      {metaNode === undefined && meta !== undefined && metaTrailing !== undefined && (
         <View style={styles.metaRow}>
           <Text
             nativeID="screen-meta"
@@ -302,6 +320,14 @@ const styles = StyleSheet.create({
   trailing: { marginLeft: 'auto' },
   meta: {
     ...type.pushMeta,
+    paddingTop: chrome.metaPadTop,
+    paddingRight: chrome.titlePadH,
+    paddingLeft: chrome.metaIndent,
+  },
+  /* The same slot as `meta`, holding a row rather than a string. */
+  metaNode: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingTop: chrome.metaPadTop,
     paddingRight: chrome.titlePadH,
     paddingLeft: chrome.metaIndent,

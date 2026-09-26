@@ -13,15 +13,7 @@ and an explicit default wherever something isn't settled.*
 > or Regular with a free host night. Settlement is identical on every tier. Where this document
 > says otherwise — decisions 2, 4 and 5, the tier table in §2, the zero-account first night, the
 > 3-night trial, Book Pass, Club and Founding Host — it is kept as background only. The
-> guardrails in §7 still apply. Design: `design/handoff-game-admin/README.md`.
->
-> ⚠ **And `0018_accounts.sql`, on `main` since 25 September, names the plans
-> free / pro / club** (`my_plan()`, `docs/accounts-roadmap.md` Stage 1), gates
-> only starting a group, and has no host night. The two vocabularies have not
-> been joined: `apps/mobile/src/lib/membership.ts` is the seam that answers for
-> taking a game (Full for everybody, until membership ships), and which tier a
-> Pro is — and where Regular's host night lives — is the owner's call. Until it
-> is made, this document is the design and 0018 is what is built.
+> guardrails in §7 still apply. Design: `design/design_handoff_game_admin/README.md`.
 
 ---
 

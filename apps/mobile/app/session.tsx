@@ -14,7 +14,7 @@ import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerLi
 import { NameTag, RebuyBar, TotalTag } from '../src/components/RebuyConfirmation';
 import { Screen } from '../src/components/Screen';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
+import { cappedFigure, unscaledLabel, radius, space, tabular, type } from '../src/design/tokens';
 import { clockLabel, useElapsed } from '../src/lib/elapsed';
 import {
   cashedOutAt,
@@ -25,7 +25,13 @@ import {
   type Standing,
 } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
-import { useLate } from '../src/lib/handover';
+import { takeBack, useLate, useNotice, useRole, type Role } from '../src/lib/handover';
+import { useIsAdmin } from '../src/lib/whoIsReading';
+import { useClub } from '../src/lib/clubStore';
+import { useSession } from '../src/lib/useSession';
+import { explainServerError, isSupabaseConfigured } from '../src/lib/supabase';
+import { HoldButton } from '../src/components/HoldButton';
+import { PassCard } from '../src/components/PassCard';
 
 /**
  * Tonight — T1, with T3 (the drawer), T3b (the hold) and T5 (nobody in yet).
@@ -94,6 +100,23 @@ export default function Session() {
   const pending = usePending(night?.sessionId);
   const late = useLate(night?.sessionId);
   const [drawer, setDrawer] = useState(false);
+
+  /*
+   * WHO IS READING, AND WHO IS RECORDING — `design/handoff-game-admin/` § 06.
+   *
+   * Every phone looking at Tonight says which it is: the admin records, and
+   * everybody else — a claimed player who pulled the night, the phone that
+   * passed it away — watches. `useIsAdmin` is the phone's own answer (the
+   * club's admin row, or the hold on a night that changed hands); `useRole` is
+   * the server's, which names the recorder and the last hand-off, and it is
+   * what turns "Watching" into "Watching · passed to Lena at 23:10".
+   */
+  const admin = useIsAdmin();
+  const role = useRole(night?.sessionId);
+  const club = useClub();
+  const { who } = useSession();
+  const notice = useNotice(night?.sessionId);
+  const [trouble, setTrouble] = useState<string | null>(null);
 
   /*
    * HOW MUCH ROOM THE MONEY CARD HAS BESIDE ITS FIGURE, measured rather than
@@ -202,6 +225,29 @@ export default function Session() {
   const totalIn = ledger.totalBoughtIn;
   const empty = standings.length === 0;
 
+  /* The night is elsewhere: another phone records it and this one reads. */
+  const away = night.hold === 'away';
+  /* Somebody who can record, on the phone that records. */
+  const recording = admin && !away;
+  const recorder = role?.recorder ?? club?.members.find((m) => m.standing === 'admin')?.name ?? null;
+  /* Whether this phone may take the game back: it passed the game away (the
+     last hand-off is a pass, and this phone is the one watching it), or it
+     hosts the book. The server refuses anybody else, and says so. */
+  const canTakeBack =
+    away && role !== undefined && (role.host || role.last?.kind === 'passed');
+  /* Passing needs a server and somebody to be: nothing is passed through thin
+     air, and a sample night has nothing on the server to pass. */
+  const canPass = recording && isSupabaseConfigured && !night.seeded && who.kind !== 'nobody';
+
+  async function reclaim() {
+    try {
+      setTrouble(null);
+      await takeBack(night!.sessionId);
+    } catch (e) {
+      setTrouble(explainServerError(e));
+    }
+  }
+
   return (
     <Screen
       title="Tonight"
@@ -211,6 +257,16 @@ export default function Session() {
          corner is where a reader looks for state. It is the only thing in that
          corner now that the start time has moved onto the card. */
       trailing={<LiveTag startedAt={night.startedAt} empty={empty} />}
+      metaNode={
+        <RoleLine
+          recording={recording}
+          away={away}
+          role={role}
+          recorder={recorder}
+          startedAt={night.startedAt}
+          empty={empty}
+        />
+      }
       scroll={false}
       dimmed={drawer}
       footerPad={false}
@@ -229,35 +285,80 @@ export default function Session() {
          * uncovered on purpose — a second rebuy is one tap away while the bar
          * is up.
          */
-        night.hold === 'away' ? (
+        !recording ? (
           /*
-           * A NIGHT ANOTHER PHONE IS RECORDING has no dock: every control on it
-           * records money, and this phone does not. The table above stays, and
-           * `useHoldWatch` keeps it current. NOT DRAWN — the line is mine and
-           * flagged in `docs/screens.md`.
+           * NOT THIS PHONE'S TO RECORD — states 2b, 7, 8, 11, 20b, 20c. No
+           * dock: every control in it records money. In its place X1's
+           * read-only band, which says who can, and — on the phone that
+           * passed the game away, or the host's — the hold that takes it back.
            */
-          <View style={styles.away}>
-            <Text style={[styles.awayLine, { color: t.muted }]}>
-              Being recorded on another phone. Settings → Take the night back.
-            </Text>
+          <View style={[styles.band, { borderTopColor: t.hairline }]}>
+            {notice !== null && (
+              <View style={styles.cardSlot}>
+                <PassCard notice={notice} on="tonight" />
+              </View>
+            )}
+            {away && role?.last?.kind === 'passed' && !role.last.opened ? (
+              <>
+                {/* 7 · the game is theirs on the server and their phone has
+                    not opened it. Nobody records in the gap. */}
+                <View style={[styles.pendingPill, { borderColor: t.amber }]}>
+                  <Text style={[styles.pendingLabel, { color: t.amber }]}>
+                    {`WAITING ON ${(role.last.toName ?? 'them').toUpperCase()}`}
+                  </Text>
+                </View>
+                <Text style={[styles.bandText, { color: t.muted }]}>
+                  {waitingLine(role.last.toName)}
+                </Text>
+              </>
+            ) : (
+              <Text style={[styles.bandText, { color: t.muted }]}>
+                {trouble ?? bandLine(away, role, recorder)}
+              </Text>
+            )}
+            {canTakeBack && (
+              <View style={styles.hold}>
+                <HoldButton
+                  variant="row"
+                  label="Take the game back"
+                  sub="Hold 1.5s · this phone records again"
+                  onComplete={() => void reclaim()}
+                />
+              </View>
+            )}
           </View>
         ) : (
         <>
           {/*
-           * CHANGES ANOTHER PHONE HANDED IN — 0017. Money somebody recorded on
-           * this night while it was on their phone and could not send before it
-           * came back. It sits above the dock, where the host is looking, until
-           * somebody decides it. NOT DRAWN — flagged in `docs/screens.md`.
+           * THE ANNOUNCEMENT, pinned above the dock — states 9 and 10. A card
+           * in the page; it goes on a tap, its close, or the first entry.
+           */}
+          {notice !== null && (
+            <View style={styles.cardSlot}>
+              <PassCard notice={notice} on="tonight" />
+            </View>
+          )}
+          {/*
+           * CHANGES ANOTHER PHONE HANDED IN — 0017, drawn as state 12: a
+           * chip-action outline row, the count in the amber pending pill,
+           * Review at the right. Money somebody recorded on this night while
+           * it was on their phone and could not send before it came back. It
+           * sits above the dock, where the host is looking, until it is decided.
            */}
           {late.toReview > 0 && (
             <Pressable
               accessibilityRole="button"
+              accessibilityLabel={`${late.toReview} changes from another phone. Review.`}
               onPress={() => router.push('/late-changes')}
-              style={styles.late}
+              style={({ pressed }) => [styles.late, { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 }]}
             >
-              <Text style={[styles.lateLine, { color: t.amber }]}>
-                {`${late.toReview} ${late.toReview === 1 ? 'change' : 'changes'} from another phone · Review`}
+              <View style={[styles.countPill, { borderColor: t.amber }]}>
+                <Text style={[styles.countLabel, { color: t.amber }]}>{late.toReview}</Text>
+              </View>
+              <Text style={[styles.lateLine, { color: t.text }]} numberOfLines={1}>
+                {`${late.toReview === 1 ? 'change' : 'changes'} from another phone`}
               </Text>
+              <Text style={[styles.review, { color: t.text }]}>Review</Text>
             </Pressable>
           )}
           <RebuyBar />
@@ -284,11 +385,27 @@ export default function Session() {
             }}
             /* O4 over Tonight — `09-navigation.md`: money rules open "from O1,
                or Tonight". Until now they opened from neither, so a rule agreed
-               before the night could not be changed during it. */
+               before the night could not be changed during it.
+
+               ⚠ KEPT AGAINST `design/handoff-game-admin/`, which draws the
+               drawer without it ("board T3 wins over the brief"). The board
+               wins on layout and the spec wins on behaviour, and this is the
+               spec's: 09-navigation names Tonight as a way in, and no other
+               control on this screen is one. `docs/screens.md` has it. */
             onRules={() => {
               setDrawer(false);
               router.push('/money-rules');
             }}
+            /* Pass the game — `design/handoff-game-admin/` state 1. The sheet
+               lists the group; the server moves the night. */
+            {...(canPass
+              ? {
+                  onPass: () => {
+                    setDrawer(false);
+                    router.push('/pass-game');
+                  },
+                }
+              : {})}
             /*
              * THE MOMENT THE CARDS STOPPED IS NOW, AND IT IS WRITTEN DOWN HERE
              * — B87.
@@ -397,16 +514,12 @@ export default function Session() {
                   ? `${seated.length} seated`
                   : `${seated.length} seated · ${out} out`}
             </Text>
-            {/* WHEN THE NIGHT STARTED SITS WITH WHO IS AT THE TABLE.
-                It was at the right edge of the title row, where it and the
-                running-time tag between them left "Tonight" too little to keep
-                one line. Here it is a fact about the night beside the other
-                two, the tag stays beside the title where it was drawn, and the
-                column is still shorter than the figure next to it — so the
-                card does not grow. */}
-            <Text style={[styles.started, { color: t.dim }]}>
-              {empty ? 'opened' : 'started'} {clockLabel(night.startedAt)}
-            </Text>
+            {/* WHEN THE NIGHT STARTED moved twice: off the title row, where
+                it and the running-time tag left "Tonight" too little to keep
+                one line, onto this card — and on 26 September off the card
+                onto the role line under the title, which is where
+                `design/handoff-game-admin/` § 4 puts it ("You're recording ·
+                started 20:05"). The card is the two lines the board draws. */}
           </View>
         </View>
 
@@ -454,7 +567,7 @@ export default function Session() {
                   name={p.name}
                   fact=""
                   last={i === seated.length - 1}
-                  {...(drawer ? {} : {
+                  {...(drawer || !recording ? {} : {
                     onPress: () => router.push({ pathname: '/player', params: { id: p.id } }),
                   })}
                   right={
@@ -475,7 +588,9 @@ export default function Session() {
                       <Text style={[styles.amount, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
                         {formatToFit(p.boughtIn, ROW_FITS)}
                       </Text>
-                      <Icon name="chevron" color={t.muted} />
+                      {/* A watcher's rows carry no chevron (2b, 20b): there
+                          is nothing behind them a watcher may open. */}
+                      {recording && <Icon name="chevron" color={t.muted} />}
                     </>
                   }
                 />
@@ -513,7 +628,7 @@ export default function Session() {
                   fact={goneFact(cashedOutAt(night, p.id), p.cashedOut)}
                   result={resultBeforeDeductions(p.boughtIn, p.cashedOut)}
                   fits={ROW_FITS}
-                  {...(drawer ? {} : {
+                  {...(drawer || !recording ? {} : {
                     opens: () => router.push({ pathname: '/player', params: { id: p.id } }),
                   })}
                 />
@@ -558,6 +673,95 @@ function PressableOrPlain({
   );
 }
 
+/**
+ * The role line — `design/handoff-game-admin/` § 2 and § 4, on the Chrome A
+ * meta line: "You’re recording · started 20:05", "Watching · Lena is
+ * recording", "Watching · passed to Lena at 23:10". The first word is what
+ * tells the three phones apart, so it is 600 in the text colour and never
+ * truncates; nor does the time. A long name gives, with an ellipsis, and the
+ * line never wraps — at 360 it has 272 points and "Watching · passed to
+ * Aleksandra at 23:10" measures about 244.
+ */
+function RoleLine({
+  recording,
+  away,
+  role,
+  recorder,
+  startedAt,
+  empty,
+}: {
+  recording: boolean;
+  away: boolean;
+  role: Role | undefined;
+  recorder: string | null;
+  startedAt: string;
+  empty: boolean;
+}) {
+  const t = useTheme();
+  if (recording) {
+    return (
+      <Text style={[styles.role, { color: t.muted }]} numberOfLines={1}>
+        <Text style={[styles.roleLead, { color: t.text }]}>You’re recording</Text>
+        {` · ${empty ? 'opened' : 'started'} ${clockLabel(startedAt)}`}
+      </Text>
+    );
+  }
+  /* The phone that passed the game away: who it went to, and when (20c). */
+  if (away && role?.last?.kind === 'passed') {
+    return (
+      <View style={styles.roleRow}>
+        <Text style={[styles.roleLead, { color: t.text }]}>Watching</Text>
+        <Text style={[styles.role, { color: t.muted }]}> · passed to </Text>
+        <Text style={[styles.roleName, { color: t.muted }]} numberOfLines={1}>
+          {role.last.toName ?? 'them'}
+        </Text>
+        <Text style={[styles.role, { color: t.muted }]}>{` at ${clockLabel(role.last.at)}`}</Text>
+      </View>
+    );
+  }
+  /* Anyone else: a claimed player, the phone a game was taken back from (20b). */
+  return (
+    <View style={styles.roleRow}>
+      <Text style={[styles.roleLead, { color: t.text }]}>Watching</Text>
+      <Text style={[styles.role, { color: t.muted }]}> · </Text>
+      <Text style={[styles.roleName, { color: t.muted }]} numberOfLines={1}>
+        {recorder ?? 'Another phone'}
+      </Text>
+      <Text style={[styles.role, { color: t.muted }]}> is recording</Text>
+    </View>
+  );
+}
+
+/**
+ * The band's line under a night this phone does not record.
+ *
+ *   8   the phone that passed it: "Lena is recording. Every entry she makes
+ *       shows here as she makes it." — drawn with THEY, not she: the app does
+ *       not know anybody's pronouns and the board's copy assumes Lena's.
+ *   11, 20b  everyone else: X1's line, "Read-only. Only Lena can write to the
+ *       ledger."
+ *
+ * A recorder with no seat in the group has no name; the line then says "the
+ * host", as X1 does.
+ */
+function bandLine(away: boolean, role: Role | undefined, recorder: string | null): string {
+  if (away && role?.last?.kind === 'passed') {
+    const name = role.last.toName;
+    return name === null
+      ? 'Another phone is recording. Every entry it makes shows here as it is made.'
+      : `${name} is recording. Every entry they make shows here as they make it.`;
+  }
+  return recorder === null
+    ? 'Read-only. Only the host can write to the ledger.'
+    : `Read-only. Only ${recorder} can write to the ledger.`;
+}
+
+/** State 7's line, with THEY for the same reason as above. */
+const waitingLine = (name: string | null): string =>
+  name === null
+    ? 'The game is theirs. It opens on their phone the next time they look at the app. Until then nothing new is recorded.'
+    : `The game is ${name}’s. It opens on their phone the next time they look at the app. Until then nothing new is recorded.`;
+
 function LiveTag({ startedAt, empty }: { startedAt: string; empty: boolean }) {
   const t = useTheme();
   // Ticks itself. It used to be computed once per render, which on this screen
@@ -594,10 +798,55 @@ const goneFact = (at: string | undefined, cashedOut: Money): string => {
 const styles = StyleSheet.create({
   body: { flex: 1 },
 
-  away: { paddingHorizontal: space.page, paddingTop: 12, paddingBottom: 12 },
-  awayLine: { ...type.footnote, textAlign: 'center' },
-  late: { paddingHorizontal: space.page, paddingVertical: 8 },
-  lateLine: { ...type.footnote, textAlign: 'center', fontWeight: '600' },
+  /* X1's band where the dock would be: hairline top, 15/22, 400 13/1.45. */
+  band: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 15,
+    paddingBottom: 6,
+    paddingHorizontal: space.page,
+    gap: 10,
+  },
+  bandText: { fontSize: 13, fontWeight: '400', lineHeight: 18.85 },
+  hold: { paddingTop: 4 },
+  cardSlot: { marginHorizontal: -14, paddingBottom: 4 },
+  /* State 6's pending pill, on the band of state 7. */
+  pendingPill: {
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 7,
+    borderWidth: 1,
+  },
+  pendingLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.05 },
+  /* State 12: a chip-action outline row above the dock. */
+  late: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: 14,
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1.5,
+  },
+  countPill: {
+    minWidth: 22,
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+    borderRadius: 7,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  countLabel: { fontSize: 11, fontWeight: '700', ...tabular },
+  lateLine: { ...type.chip, flexShrink: 1 },
+  review: { ...type.chip, fontWeight: '700', marginLeft: 'auto' },
+  /* The role line — § 4: 500 13, tabular, the first word 600 in the text
+     colour, one line that never wraps. The name is the one part that gives. */
+  roleRow: { flexDirection: 'row', alignItems: 'center', flexShrink: 1, minWidth: 0 },
+  role: { fontSize: 13, fontWeight: '500', ...tabular },
+  roleLead: { fontSize: 13, fontWeight: '600' },
+  roleName: { fontSize: 13, fontWeight: '500', flexShrink: 1 },
 
   tag: {
     flexDirection: 'row',
@@ -609,7 +858,6 @@ const styles = StyleSheet.create({
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
   tagText: type.liveTag,
-  started: type.startedAt,
 
   // --- the one money card --------------------------------------------------
   card: {

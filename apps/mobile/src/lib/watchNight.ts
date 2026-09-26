@@ -32,6 +32,14 @@ export interface WatchedNight {
   /** From `night_header`, which is the only thing that can tell a watcher. */
   groupName: string | null;
   hostName: string | null;
+  /**
+   * Who records the night — the host, or whoever it was passed to (0020).
+   * X1's role line and read-only band name this person, not the host, since
+   * `design/handoff-game-admin/` state 21.
+   */
+  recorderName: string | null;
+  /** Every time the night changed hands, oldest first — a feed row each. */
+  passes: NightPass[];
   playerCount: number;
   startedAt: string;
   endedAt: string | null;
@@ -51,6 +59,15 @@ export interface WatchedNight {
    */
   roundingMode: RoundingMode | null;
   finalCounts: Map<PlayerId, Money>;
+}
+
+/** One hand-off, as `night_pass` (0020) records it and the feed draws it. */
+export interface NightPass {
+  id: string;
+  kind: 'passed' | 'taken_back';
+  fromName: string | null;
+  toName: string | null;
+  at: string;
 }
 
 /**
@@ -78,6 +95,7 @@ export const WATCH_FEED: ReadonlyArray<{
   { table: 'final_count', scope: 'session', deletes: true },
   { table: 'player', scope: 'book', deletes: false },
   { table: 'money_rule', scope: 'book', deletes: true },
+  { table: 'night_pass', scope: 'session', deletes: false }, // 0020, append-only
 ];
 
 /** True once the night has been counted and closed — X1c rather than X1a. */
@@ -96,7 +114,7 @@ export async function loadWatchedNight(sessionId: string): Promise<WatchedNight 
    * with it, and the failure arrives as an empty page with nothing to say. Read
    * separately, a refused table is a visibly missing part of the night.
    */
-  const [seats, players, entries, rules, counts] = await Promise.all([
+  const [seats, players, entries, rules, counts, passes] = await Promise.all([
     rows<{ player_id: string }>('session_seat', (q) =>
       q.select(READS.session_seat).eq('session_id', sessionId),
     ),
@@ -108,7 +126,19 @@ export async function loadWatchedNight(sessionId: string): Promise<WatchedNight 
     rows<{ player_id: string; counted_chips: number }>('final_count', (q) =>
       q.select(READS.final_count).eq('session_id', sessionId),
     ),
+    /* The hand-offs, by name. `night_pass` holds account ids; the names come
+       from `night_role`, which resolves them inside the book — one call per
+       hand-off would be the wrong shape, so the feed reads the ids and the
+       names are looked up once below. */
+    rows<PassRow>('night_pass', (q) =>
+      q
+        .select('id, kind, from_user, to_user, passed_at')
+        .eq('session_id', sessionId)
+        .order('passed_at', { ascending: true }),
+    ),
   ]);
+
+  const named = await namesFor(sessionId, passes);
 
   const seated = new Set(seats.map((s) => s.player_id));
 
@@ -116,6 +146,14 @@ export async function loadWatchedNight(sessionId: string): Promise<WatchedNight 
     sessionId,
     groupName: header.group_name,
     hostName: header.host_name,
+    recorderName: header.recorder_name ?? header.host_name,
+    passes: passes.map((p) => ({
+      id: p.id,
+      kind: p.kind,
+      fromName: named.get(p.from_user) ?? null,
+      toName: named.get(p.to_user) ?? null,
+      at: p.passed_at,
+    })),
     playerCount: header.player_count,
     startedAt: header.started_at,
     endedAt: header.ended_at,
@@ -242,9 +280,39 @@ export function useWatchedNight(sessionId: string | null): {
   return { night, loading, error, reload: () => setNonce((n) => n + 1) };
 }
 
+interface PassRow {
+  id: string;
+  kind: 'passed' | 'taken_back';
+  from_user: string;
+  to_user: string;
+  passed_at: string;
+}
+
+/**
+ * The names behind the accounts on a night's hand-offs — `names_in_night`
+ * (0020), which answers inside the book and only to somebody who may read the
+ * night. A watcher cannot read who claimed which seat, so this is the one way.
+ */
+async function namesFor(sessionId: string, passes: PassRow[]): Promise<Map<string, string | null>> {
+  const names = new Map<string, string | null>();
+  if (passes.length === 0) return names;
+  const ids = [...new Set(passes.flatMap((p) => [p.from_user, p.to_user]))];
+  const { data, error } = await supabase.rpc('names_in_night', {
+    target_session_id: sessionId,
+    user_ids: ids,
+  });
+  if (error) throw new Error(`names_in_night: ${error.message}`);
+  for (const r of (data ?? []) as Array<{ user_id: string; name: string | null }>) {
+    names.set(r.user_id, r.name);
+  }
+  return names;
+}
+
 interface HeaderRow {
   group_name: string | null;
   host_name: string | null;
+  /** Added by 0020. Who records the night; null when they claimed no seat. */
+  recorder_name?: string | null;
   player_count: number;
   started_at: string;
   ended_at: string | null;

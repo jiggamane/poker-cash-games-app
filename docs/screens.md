@@ -1,6 +1,6 @@
 # The screen ledger
 
-Forty screens. This says, for each one, what is watching it and whether
+Thirty-nine screens. This says, for each one, what is watching it and whether
 anybody has held it against the board it was drawn from.
 
 The point is to turn *"the app has bugs"* — which is not a thing anybody can
@@ -25,7 +25,7 @@ The three check columns are what runs in `npm run check:ui`:
   narrow width is there because B3 fitted its button at 393 by half a point and
   hung out of both sides of it at 360. It also holds a screen to the rows its
   board draws — see **Drawn rows** below.
-- **Sheet** — `ui-audit.mjs` pass 2. The 25 sheets across six devices — four
+- **Sheet** — `ui-audit.mjs` pass 2. The 24 sheets across six devices — four
   iPhones and two Androids — against the height cap. Only sheets have one.
 - **Night** — `ui-journeys.mjs`. A whole night played through, checking no
   figure is cut off, outside its card, off the phone, or broken across two
@@ -87,7 +87,7 @@ is settled when it is not.
 | `/new-group` | sheet | ✓ | ✓ | — | ☐ |
 | `/new-night` | sheet | ✓ | ✓ | — | ☐ |
 | `/nudge` | sheet | ✓ | ✓ | ✓ | ☐ |
-| `/pass-book` | sheet | ✓ | ✓ | — | ☐ |
+| `/pass-game` | sheet | ✓ | ✓ | — | ☐ |
 | `/payments` | push | ✓ | — | ✓ | ☐ |
 | `/pick` | sheet | ✓ | ✓ | — | ☐ |
 | `/piggy-bank-rules` | sheet | ✓ | ✓ | — | ☐ |
@@ -104,39 +104,102 @@ is settled when it is not.
 | `/sign-in` | sheet | ✓ | ✓ | — | ☐ |
 | `/spend` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/stats` | push | ✓ | — | ✓ | ☐ |
-| `/take-over` | sheet | ✓ | ✓ | — | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**40 screens · 40 under the rule pass · 24 under the sheet pass · 13 under a big
+**39 screens · 39 under the rule pass · 23 under the sheet pass · 13 under a big
 night · 0 conformed.**
 
-**`/late-changes` arrived with 0017, also undrawn, also invented copy.** It is
-where the phone recording a night adds what another phone handed in after the
-night moved: a ticked row per change, *Add N to the night*, and the decided ones
-kept underneath saying *added* or *left out*. Three more lines go with it and are
-equally mine: *"N changes from another phone · Review"* above Tonight's dock, the
-*Tonight's book* section in Settings (it moved out of *Account*, because a phone
-with no account can now hold a night), and the status sentence under *Being
-recorded · On another phone*. *Take the night back* is a `HoldButton` now, with
-the sub *"Hold to take it back"*. On a night held elsewhere, count-up loses its
-row taps, its two bars' chevrons and *Next*, and settle-up loses *Close the
-session*.
+**Running the game — `design/handoff-game-admin/`, cut 26 September, built the
+same day.** Tonight, `/pass-game`, `/late-changes`, `/players`, `/watch`, home's
+card and O1's gate. Every string on those screens that this cut speaks to is
+the board's now, except the ones listed here. **Nothing below has been seen on
+two phones**: the server half is proved by `supabase/test/13_pass_to_a_person.sql`
+and the phone's by `handover.test.ts` and `membership.test.ts`, and the cold
+screens by `check:ui` — a game actually crossing a table has not been watched.
 
-**`/pass-book` and `/take-over` arrived on 23 September with no board and
-invented copy — flag, not decision.** Passing the book (`0016_pass_the_book.sql`,
-`docs/storage-and-sync.md` § Passing the book) lets another signed-in phone record
-tonight, and no handoff draws any of it. Both sheets are built from parts that
-are drawn: the code as the hero, grouped five and five, is C3's (`/invite`), and
-the two five-character fields are X2d's (`/claim`), because it is the same ten
-characters from the same alphabet. **Every string on them is mine**, and so are
-four more that go with them: Settings' *Pass the book*, *Take over a night* and
-*Take the night back* rows with the note above them, and the line that replaces
-Tonight's dock on a night another phone is recording — *"Being recorded on
-another phone. Settings → Take the night back."* That line stands where the dock
-was because every control in the dock records money; **it has not been seen at
-360**, and it is the one most likely to want a board. The player sheet on such a
-night shows only *Close*, the same one-way-out it already had for a settled
-night.
+*What the app does that the board does not say, and why:*
+
+1. **Money rules stays in the drawer.** The README's § 6 takes it out ("board T3
+   wins over the brief"). Kept: the board wins on layout and the spec on
+   behaviour, and `09-navigation.md` says O4 opens "from O1, or Tonight" — with
+   no other control on Tonight, taking the row out makes a rule agreed before
+   the night impossible to change during it. The rows read Seat · Cash out ·
+   Money rules · **Pass the game** · End, with Pass directly above End as drawn,
+   and the collapsed hint is the board's *seat · cash out · pass · end*.
+2. **They, not she.** States 7 and 8 read "It opens on her phone the next time
+   she looks" and "Every entry she makes shows here as she makes it"; the pass
+   confirm reads "It arrives on his phone and he records from then". The app
+   does not know anybody's pronouns and will not guess them from a name, so all
+   three say *they*.
+3. **The watcher's band is X1's line, not 2b's.** 2b draws "Marek admins the
+   game" (UNSURE) where 20b draws "Read-only. Only Lena can write to the ledger."
+   for the same state. The decided line is used on both; the UNSURE one is not
+   on any screen.
+4. **Invite from the pass sheet swaps the sheet, it does not nest.** "Invite
+   replaces the sheet's content with GR6 and keeps the close": GR6 is C3
+   (`/invite`) in this app, its own sheet, so the pass sheet is replaced by it
+   (`router.replace`) — one sheet on screen, one close, and a sheet never
+   pushes. Coming back is reopening Pass the game from the drawer.
+5. **The announcement is on Tonight and on home only.** The board says "above
+   the Settings pill on any other screen"; only home has a Settings pill, so
+   only home carries it away from the table. And **the system notification for
+   a closed app (9b) is not built** — `expo-notifications` is not a dependency,
+   and adding one is `apps/mobile/AGENTS.md`'s decision, not this cut's. A game
+   passed to a closed app arrives on the next open, as a card.
+6. **`/late-changes`' primary is disabled at zero ticked**, as the board says,
+   which means a night cannot leave every change out in one tap; it used to
+   offer *Leave them out*. Ticking some and adding leaves the rest LEFT OUT.
+   Rows the phone cannot carry (a setting, a rule) keep the earlier invented
+   sub-line *"a setting · redo it by hand if it is wanted"* and cannot be ticked.
+7. **GR4's meta line stays the count.** Frame 18 shows "Everyone who has ever
+   sat at this table" under the title; the cut speaks about the filter and the
+   groups, and the line under the title was never mentioned, so the app keeps
+   *N on the roster · k invited*. The add-a-name field is the admin's alone now
+   (19 is read-only), which it was not before.
+
+*The seam, and the two vocabularies.* `membership.ts` answers Full for
+everybody — rev 18 § 4's "build none of it, keep one policy seam" — so on every
+phone the pass sheet lists every claimed member under *Can take it* and only a
+name-only row under *Can't take it tonight*; `/players` has nobody under *Watch
+only*; O1 opens with no gate and no note; home's start card never says the
+membership lapsed; the confirm (4), the nobody state (5), the host-night
+sentence on the card (10) and the gates (13–15) are built and unreachable.
+**⚠ `0018_accounts.sql` names plans free / pro / club and this cut names tiers
+Free / Regular / Full**, and `docs/pricing-model.md` now says the latter is
+final while `docs/accounts-roadmap.md` builds the former. The database enforces
+a plan only for starting a group; passing to an account with no plan is not
+refused yet. Joining the two is one mapping in `membershipOf` and a check at the
+top of `pass_night` — and which tier a Pro is, and where Regular's host night
+lives, is the owner's, not decided here. `docs/design-request-game-admin.md`
+is the prompt re-issued against Pro / Club on 26 September; the boards that
+came back answered the 25 September version.
+
+*Strings the board marks UNSURE, all on screen as written:* "Pass the game" ·
+"uses their one host night" · "Used tonight" · the Ask share text · "Until then
+nothing new is recorded." · the 12b sub-line · "Tick all" / "Untick all" ·
+Full's "you run games as often as you like" · "YOURS" · "Wait for 1 October"
+(drawn as *Wait for {date}*) · GR4's section names · "Marek passed the game to
+Lena" as a feed row. Not on screen: "Marek admins the game" (3 above) and
+"Your Full ended on 25 Sep · renew to open one" — home draws *Your membership
+ended · renew to open one*, because the seam has no date to give and no tier
+name to print; both wait on the seam.
+
+*Strings that are mine, none drawn:* the card's title when the other phone has
+no seat in the group ("The game was passed to you" / "The game was taken
+back"); "Another phone is recording" where the recorder has no name; "From
+other phones" on `/late-changes` when changes came from more than one; "From
+another phone" when the phone has no name; a take-back the server refuses is
+shown as the server's sentence in the band; the *Tonight's book* sentence in
+Settings, which survives from 23 September because nothing draws what became
+of the changes a phone made after the game moved. `/hand-over` (GR9, the club's
+admin) is untouched: it moves the group, not tonight, and the cut does not
+speak on it.
+
+*What the role line does at 360.* § 4 measures the longest line at ~244 points
+in 272; the app draws the line as a row whose name is the one part that shrinks
+(`ellipsizeMode` tail on the name alone), so the first word and the time never
+truncate and the line never wraps. `check:ui` holds "You’re recording" on the
+cold screen at 360; a 13-character name has not been measured.
 
 **`/sign-in` lost its code field on 20 September — B88, and its copy is
 invented like `/auth-callback`'s.** The *Check your email* stage held a six-digit

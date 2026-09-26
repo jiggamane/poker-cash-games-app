@@ -85,7 +85,7 @@ What to preserve is the *seam*. Every gate goes through one policy module that r
 
 Record it here so nobody has to reverse-engineer it later. Do not implement it.
 
-One rule about it is already settled, because it decides whether a night can be interrupted: **a night finishes on the membership it started with.** If the table was opened while the host's membership was active, that same host takes it to the very end — every entry, the count, the deductions, settle-up and closing. A lapse mid-evening changes nothing until the night is on the book; the check guards *opening* a table, not running one, and no room's money is ever held hostage by a failed card. A game passed to someone else is checked once, against the receiver, when it is passed; from then the same rule applies to them. Settlement is identical on every tier: whoever admins the game counts, settles and closes it. See `design/handoff-game-admin/README.md` for passing.
+One rule about it is already settled, because it decides whether a night can be interrupted: **a night finishes on the membership it started with.** If the table was opened while the host's membership was active, that same host takes it to the very end — every entry, the count, the deductions, settle-up and closing. A lapse mid-evening changes nothing until the night is on the book; the check guards *opening* a table, not running one, and no room's money is ever held hostage by a failed card. A game passed to someone else is checked once, against the receiver, when it is passed; from then the same rule applies to them. Settlement is identical on every tier: whoever admins the game counts, settles and closes it. See `design_handoff_game_admin/README.md` for passing.
 
 ---
 

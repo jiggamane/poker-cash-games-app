@@ -8,7 +8,7 @@ import { ViewControl } from '../src/components/SessionViews';
 import { Screen } from '../src/components/Screen';
 import { setSessionView, useSessionView } from '../src/lib/sessionViewStore';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { radius, space, tabular, type } from '../src/design/tokens';
 import { claimedSeat } from '../src/lib/identity';
 import { openShareLink } from '../src/lib/shareLink';
 import { watchedSessionId } from '../src/lib/supabase';
@@ -183,13 +183,26 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
     <Screen
       title={ended ? nightDate(night.startedAt) : 'Tonight'}
       /*
-       * WATCHING, and nothing once the night has ended. E6: a confirmed result
-       * states no status of its own, and nothing at all is placed to the right
-       * of its title. While the night is still running the badge is not a
-       * result — it says what this reader is doing — so it stays.
+       * THE ROLE LINE, since `design/handoff-game-admin/` state 21: the
+       * WATCHING pill and "kept by Marek" are replaced by the same line every
+       * other phone reads — "Watching · Lena is recording" — so a share-link
+       * watcher and a claimed player read the same way. Nothing top-right, as
+       * ever. Once the night has ended the line is E6's: the state last.
        */
-      badge={ended ? undefined : <Status label="WATCHING" />}
-      meta={metaLine(night, ended)}
+      {...(ended
+        ? { meta: metaLine(night) }
+        : {
+            metaNode: (
+              <View style={styles.roleRow}>
+                <Text style={[styles.roleLead, { color: t.text }]}>Watching</Text>
+                <Text style={[styles.role, { color: t.muted }]}> · </Text>
+                <Text style={[styles.roleName, { color: t.muted }]} numberOfLines={1}>
+                  {night.recorderName ?? 'The host'}
+                </Text>
+                <Text style={[styles.role, { color: t.muted }]}> is recording</Text>
+              </View>
+            ),
+          })}
       /* The control shares the meta line here exactly as it does on
          `/settled` — and only once the night has ended, because there is
          nothing to read three ways while it is still running. */
@@ -244,7 +257,7 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
          * the scrolling body and the drawing puts it inside, under the list.
          */}
         <View style={[styles.band, { borderTopColor: t.hairline, backgroundColor: t.ground }]}>
-          <Text style={[styles.bandText, { color: t.muted }]}>{readOnlyLine(night.hostName)}</Text>
+          <Text style={[styles.bandText, { color: t.muted }]}>{readOnlyLine(night.recorderName)}</Text>
         </View>
       </View>
     </Screen>
@@ -311,10 +324,22 @@ function Live({
 
       <View style={styles.feed}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>The night so far</Text>
-        {[...night.entries]
-          .reverse()
+        {feedOf(night)
           .slice(0, 30)
-          .map((e) => {
+          .map((row) => {
+            if (row.kind === 'pass') {
+              /* The hand-off, as an entry with no amount (state 21):
+                 "23:10 · Marek passed the game to Lena". ⚠ UNSURE on the board. */
+              return (
+                <View key={row.id} style={styles.feedRow}>
+                  <Text style={[styles.feedTime, { color: t.muted }]}>{clock(row.at)}</Text>
+                  <Text style={[styles.feedName, { color: t.muted }]} numberOfLines={1}>
+                    {row.text}
+                  </Text>
+                </View>
+              );
+            }
+            const e = row.entry;
             const isMine = e.playerId !== null && e.playerId === me;
             const who = isMine ? 'You' : nameIn(night, e.playerId ?? e.payerId ?? null);
             return (
@@ -335,45 +360,53 @@ function Live({
 }
 
 /**
- * The WATCHING / SETTLED pill.
+ * The feed: every entry and every hand-off, newest first, as one list.
  *
- * NOT the `Pill` component and not the LIVE badge: 999px belongs to the host's
- * live badge alone, and this is a 7px status pill in card fill with a hairline
- * around it. Two things that look alike would say the same thing, and one of
- * them means "this night is running" while the other means "you are reading".
+ * A hand-off is an event of the night as much as a rebuy is, and the board
+ * draws it in the same column with the time and no figure. Sorted together by
+ * when they happened, so "Marek passed the game to Lena" sits between the
+ * entries either side of it.
  */
-function Status({ label }: { label: string }) {
-  const t = useTheme();
-  return (
-    <View style={[styles.status, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-      <Text style={[styles.statusLabel, { color: t.muted }]}>{label}</Text>
-    </View>
-  );
+type FeedRow =
+  | { kind: 'entry'; at: string; entry: WatchedNight['entries'][number] }
+  | { kind: 'pass'; at: string; id: string; text: string };
+
+function feedOf(night: WatchedNight): FeedRow[] {
+  const rows: FeedRow[] = night.entries.map((e) => ({ kind: 'entry', at: e.occurredAt, entry: e }));
+  for (const p of night.passes) {
+    const from = p.fromName ?? 'Someone';
+    const to = p.toName ?? 'someone';
+    rows.push({
+      kind: 'pass',
+      at: p.at,
+      id: p.id,
+      text: p.kind === 'passed' ? `${from} passed the game to ${to}` : `${to} took the game back`,
+    });
+  }
+  return rows.sort((a, b) => b.at.localeCompare(a.at));
 }
 
-/** "kept by Marek · 3h 17m" live; "· 6 players" once it has ended. */
-function metaLine(night: WatchedNight, ended: boolean): string {
-  const parts: string[] = [];
-  if (night.hostName !== null) parts.push(`kept by ${night.hostName}`);
-  parts.push(elapsed(night.startedAt, night.endedAt));
-  if (ended) parts.push(`${night.playerCount} players`);
+/** "3h 17m · 6 players · settled", once the night has ended. */
+function metaLine(night: WatchedNight): string {
+  const parts: string[] = [elapsed(night.startedAt, night.endedAt), `${night.playerCount} players`];
   /* AND THE STATE LAST, as `settled.tsx` writes it — E6 takes the status pill
      off a confirmed result, and this is where the word goes instead. */
-  if (ended) parts.push('settled');
+  parts.push('settled');
   return parts.join(' · ');
 }
 
 /**
- * The band's line, which names the host.
+ * The band's line, which names whoever records the night — the host, or the
+ * person it was passed to (0020).
  *
- * A host with no player row has no name to give (`0010_night_header.sql`), and
- * the sentence still has to be true. "Only the host can write to the ledger"
- * says the same thing without a hole in it.
+ * A recorder with no player row has no name to give (`0010_night_header.sql`),
+ * and the sentence still has to be true. "Only the host can write to the
+ * ledger" says the same thing without a hole in it.
  */
-const readOnlyLine = (hostName: string | null): string =>
-  hostName === null
+const readOnlyLine = (recorderName: string | null): string =>
+  recorderName === null
     ? 'Read-only. Only the host can write to the ledger.'
-    : `Read-only. Only ${hostName} can write to the ledger.`;
+    : `Read-only. Only ${recorderName} can write to the ledger.`;
 
 const nameIn = (night: WatchedNight, id: string | null): string =>
   night.players.find((p) => p.id === id)?.name ?? 'Someone';
@@ -410,8 +443,11 @@ const styles = StyleSheet.create({
   progressFill: { width: '38%', height: 2, borderRadius: 1 },
   refusedBody: { ...type.lede, marginHorizontal: space.page, marginTop: 12 },
 
-  status: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: 7, borderWidth: 1 },
-  statusLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.05 },
+  /* The role line — the same three styles Tonight draws it with. */
+  roleRow: { flexDirection: 'row', alignItems: 'center', flexShrink: 1, minWidth: 0 },
+  role: { fontSize: 13, fontWeight: '500', ...tabular },
+  roleLead: { fontSize: 13, fontWeight: '600' },
+  roleName: { fontSize: 13, fontWeight: '500', flexShrink: 1 },
 
   card: {
     marginHorizontal: space.card,

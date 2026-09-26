@@ -205,7 +205,7 @@ export default function CountUp() {
               now, so there is nothing behind the link to see. */}
           {away ? (
             <Text style={[styles.away, { color: t.muted }]}>
-              Being recorded on another phone. Settings → Take the night back.
+              Being recorded on another phone. Tonight → Take the game back.
             </Text>
           ) : (
             <Button

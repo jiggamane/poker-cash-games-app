@@ -185,3 +185,16 @@ The other half is that screens are now checked. `npm run check:ui` runs the
 three tools that existed and never ran — see `docs/screens.md` for what each one
 covers, and `docs/bugs.md` for the rule that every fix names the check that locks
 it.
+
+---
+
+## 26 September: the parked branch came home
+
+`claude/multi-admin-game-access-cpwbpw` held the pass-the-book work (0016,
+0017) that `main` reverted on the 23rd to be redesigned. The redesign —
+`design/handoff-game-admin/` — was built on top of that branch the day the
+boards came back, on `claude/handoff-conflict-check-5m1wjr`, and merged to
+`main` with it. Nothing is parked. The session that rebuilt the branch that
+morning had finished and pushed before this one started; the two did not open
+a file at the same time, which was checked before the first edit and is why
+this note exists.

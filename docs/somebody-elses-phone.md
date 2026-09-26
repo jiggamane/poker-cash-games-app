@@ -119,32 +119,35 @@ Two preconditions and one warning:
 ## Step 3½ · Let them run tonight
 
 One phone records a night. To have somebody else record the rest of it — you
-are leaving early, or they are dealing and you are playing — **pass the book**:
+are leaving early, or they are dealing and you are playing — **pass the game**,
+from the table (`design/handoff-game-admin/`):
 
-1. On the phone recording it: **Settings → Pass the book**. It shows ten
-   characters. Anything not yet on the server has to get there first; the sheet
-   says so if it has not.
-2. On theirs: **Settings → Take over a night**, type the ten — or tap **Send it**
-   on your sheet and they open the link. **No account needed**; the code is the
-   permission. They land on Tonight with the whole night on it, and record from
-   there.
-3. Your phone follows along and records nothing on that night until it comes
-   back.
+1. On the phone recording it: **Tonight → Table admin → Pass the game**. The
+   sheet lists the group — who can take it, and who cannot and why. A name
+   with nobody behind it (Step 2 not done) cannot; the row offers *Invite*.
+   Pick them, **Pass to Lena**. Anything not yet on the server has to get there
+   first; the sheet says NOT PASSED until it has.
+2. On theirs: **nothing.** The game is theirs on the server the moment you pass
+   it, and it arrives on their phone as a card — *Marek passed you the game* —
+   the next time they look at the app, at once if it is open. They record from
+   then; everything before is already there.
+3. Your phone follows along and records nothing on that night: the line under
+   *Tonight* reads *Watching · passed to Lena at 23:10*, and the band where the
+   dock was says WAITING ON LENA until her phone has opened it.
 
-It comes back the same way — they pass it, you type the code — or, if their
-phone is flat or they have gone home, **Settings → Take the night back** on
-yours: hold it for a second, no code needed. Only the host of the group can do
-that.
+It comes back the same way — they pass it to you — or, if their phone is flat
+or they have gone home, **Take the game back** on yours, in that band: hold it
+for a second and a half. You can, because you passed it away; so can the host
+of the group, whoever holds it. Nobody else.
 
 **Nothing their phone recorded is lost.** Anything it had not sent when the
-night came back goes to the server as soon as it has signal, and your phone
+game came back goes to the server as soon as it has signal, and your phone
 shows *N changes from another phone · Review* above the dock. You tick the ones
-that belong — untick anything you already re-entered by hand — and they are
-added. What you leave out stays on the server, marked left out; their phone says
-which were added and which were not.
+that belong — leave unticked anything you already re-entered by hand — and they
+are added. What you leave out stays on the server, marked LEFT OUT; their phone
+says which were added and which were not.
 
-The code works while the sheet showing it is open, once, and for ten minutes at
-most. `storage-and-sync.md` § Passing the book has the whole of it.
+`storage-and-sync.md` § Passing the game has the whole of it.
 
 ---
 

@@ -44,8 +44,11 @@ import {
   searchCurrencies,
   type Currency,
 } from '../src/data/currencies';
+import { PlanGate, PlanNote } from '../src/components/PlanGate';
+import { gateFor, membershipOf, willSpendHostNight, type Tier } from '../src/lib/membership';
 import {
   addMember,
+  currentClub,
   inheritedFor,
   playHistory,
   rememberLastGame,
@@ -85,10 +88,12 @@ import { draftRule, startNight, tableNameProblem, useOpenGames } from '../src/li
  * written until the table opens, and the club's own setting is untouched by
  * all of it.
  */
-type Step = 'game' | 'details' | 'players' | 'rule' | 'currency';
+type Step = 'gate' | 'game' | 'details' | 'players' | 'rule' | 'currency';
 
 /** Where the close and a completed step return to. The flow is one level deep. */
 const PARENT: Record<Step, Step | null> = {
+  /* The membership gate (13, 15) stands in O1's slot; its close is O1's. */
+  gate: null,
   game: null,
   details: 'game',
   players: 'game',
@@ -141,7 +146,21 @@ export default function NewNight() {
   /** What to call this table, asked only when it is not the club's only one. */
   const [tableName, setTableName] = useState('');
 
-  const [step, setStep] = useState<Step>('game');
+  /*
+   * THE GATE FIRST, when there is one — `design/handoff-game-admin/` § 04. The
+   * seam in `membership.ts` answers for the phone's own membership (the club's
+   * admin row is this phone), and it answers Full for everybody today, so this
+   * opens on O1 on every phone until it does not. Read once, synchronously,
+   * so the sheet never flashes O1 before deciding to gate it.
+   */
+  const own = membershipOf({
+    id: currentClub()?.members.find((m) => m.standing === 'admin')?.id ?? '',
+  });
+  const gate = gateFor(own);
+  const [step, setStep] = useState<Step>(gate === null ? 'game' : 'gate');
+  const [plan, setPlan] = useState<Tier | null>(null);
+  /* State 14: opening this game spends a Regular's host night. */
+  const spendsHostNight = willSpendHostNight(own, { hostNightSpentBy: new Set() }, '');
   /** +1 going deeper, −1 coming back — the direction the content slides from. */
   const direction = useRef<1 | -1>(1);
   /** The rule being edited, and whether Save adds it or replaces it. */
@@ -400,7 +419,9 @@ export default function NewNight() {
   // -------------------------------------------------------------------------
 
   const title =
-    step === 'game'
+    step === 'gate'
+      ? 'Open a game'
+      : step === 'game'
       ? 'New session'
       : step === 'details'
         ? 'Game details'
@@ -415,7 +436,29 @@ export default function NewNight() {
   const problem = draft === null ? null : ruleProblem(draft.rule, money(0));
 
   const footer =
-    step === 'game' ? (
+    step === 'gate' ? (
+      /*
+       * WHAT THE PRIMARY WOULD DO IS NOT BUILT — buying a plan is Stage 4 of
+       * `docs/accounts-roadmap.md`. It is drawn as the board draws it before a
+       * pick, and stays blocked after one; the secondary is the way out.
+       */
+      <>
+        <Button
+          label={gate === 'regular_used' ? 'Choose Full to open tonight' : 'Choose a plan to open a game'}
+          variant="blocked"
+          disabled
+        />
+        <Button
+          label={
+            gate === 'regular_used'
+              ? `Wait for ${own.hostNightRenewsOn === null ? 'next month' : own.hostNightRenewsOn.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`
+              : 'Not now'
+          }
+          variant="secondary"
+          onPress={() => router.back()}
+        />
+      </>
+    ) : step === 'game' ? (
       /*
        * O1c-3 · WITH AN AMOUNT OPEN THE PRIMARY IS REPLACED BY *Done*, on a bar
        * that keeps the running total in view. Opening the table is not the
@@ -485,6 +528,15 @@ export default function NewNight() {
     <Sheet
       title={title}
       {...(step === 'game' || step === 'details' ? { sub: club.name } : {})}
+      {...(step === 'gate'
+        ? {
+            sub:
+              gate === 'regular_used'
+                ? `You’ve used your host night for ${new Date().toLocaleDateString('en-GB', { month: 'long' })}. It comes back on ${own.hostNightRenewsOn === null ? '—' : own.hostNightRenewsOn.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}.`
+                : 'Running a game takes a paid membership. Watching, and your place in the group, stay free.',
+            sentence: true,
+          }
+        : {})}
       /* O1c-3 · with the keypad up the count moves off the button and into the
          header, which is the only place left for it. */
       {...(step === 'players' || editing !== null ? { meta: `${seatedCount} seated` } : {})}
@@ -492,8 +544,15 @@ export default function NewNight() {
       footer={footer}
     >
       <StepBody step={step} direction={direction.current}>
+        {step === 'gate' && gate !== null && (
+          <PlanGate gate={gate} own={own} passedGames={0} picked={plan} onPick={setPlan} />
+        )}
         {step === 'game' && (
           <>
+            {/* State 14 · a Regular's host night, spent by opening this. */}
+            {spendsHostNight && (
+              <PlanNote renewsOn={own.hostNightRenewsOn} onSeeFull={() => go('gate')} />
+            )}
             {/* A second table is named before it is opened: two cards on home
                 with money on both are told apart by nothing else. The first
                 table is not asked — while it is the only one it is "Tonight". */}

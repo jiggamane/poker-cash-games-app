@@ -93,7 +93,7 @@ const ROUTES = [
   '/games', '/stats', '/players', '/member', '/groups', '/new-group', '/new-night',
   '/settings', '/club-rules', '/money-rules', '/rule', '/bill-rules', '/piggy-bank-rules',
   '/house-rules', '/sign-in', '/claim', '/invite', '/watch', '/hand-over',
-  '/rounding', '/share', '/auth-callback', '/end-time', '/pass-book', '/take-over', '/late-changes',
+  '/rounding', '/share', '/auth-callback', '/end-time', '/pass-game', '/late-changes',
 ];
 
 /*
@@ -285,7 +285,21 @@ const DRAWN = {
      not say "finished" on its own; the slab says it, so the label is a name and
      a count. A screen that puts the words back is drawing a row that has
      stopped carrying its own meaning. */
-  '/session': ['STILL PLAYING', 'CASHED OUT'],
+  /*
+   * And, since `design/handoff-game-admin/` (26 September), the role line
+   * under the title, which says which phone this is: on the phone that opened
+   * the night it reads "You’re recording · started 20:05". (The Pass row lives
+   * behind the drawer and needs a server, so it is not asked for cold.)
+   */
+  '/session': ['STILL PLAYING', 'CASHED OUT', 'You’re recording'],
+
+  /*
+   * The same cut, § 05: GR4 gets a two-way filter and groups by who can run a
+   * game. The filter's two segments and the first group are on the cold
+   * screen; *Can take a game* needs a claimed member, which the sample club
+   * does not have.
+   */
+  '/players': ['Everyone', 'Who can run a game', 'Runs the games'],
 
   /*
    * ⚠ NO `/settled` ENTRY, still, and it is not an oversight — see the
@@ -410,6 +424,12 @@ const BEHIND = {
  * unrelated screen cannot say them by accident.
  */
 const GONE = [
+  // 26 Sep · `design/handoff-game-admin/`: the game is passed to a PERSON from
+  // the drawer, and nobody types a code. The two code sheets went with it, and
+  // so did X1's "kept by Marek" line — every phone reads the same role line.
+  'Pass the book',
+  'Take over a night',
+  'kept by ',
   // 30 Aug · every rule is taken off the gross win. `MoneyRule.basis` survives
   // in core so a night already stored as `net_after_others` still settles as it
   // did — see the header of `src/components/RuleFields.tsx` — but nothing in
@@ -1150,7 +1170,7 @@ const SHEET_ROUTES = [
   '/player', '/pick', '/log', '/entry', '/seat', '/bill', '/spend', '/bill-rules',
   '/piggy-bank-rules', '/house-rules', '/money-rules', '/rule', '/rounding', '/share',
   '/sign-in', '/member', '/hand-over', '/nudge', '/new-group', '/new-night', '/invite',
-  '/end-time', '/pass-book', '/take-over', '/late-changes',
+  '/end-time', '/pass-game', '/late-changes',
 ];
 
 /**

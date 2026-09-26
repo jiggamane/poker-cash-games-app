@@ -240,6 +240,17 @@ select expect_text((night_role('fd000000-0000-0000-0000-000000000001') ->> 'reco
   'night_role answers a watcher too');
 select expect_text((night_role('fd000000-0000-0000-0000-000000000001') ->> 'yours'), 'false',
   'and never says the night is theirs');
+select expect_text(
+  (select string_agg(coalesce(name, '?'), ',' order by name)
+     from names_in_night('fd000000-0000-0000-0000-000000000001',
+                         array['fa000000-0000-0000-0000-000000000001',
+                               'fa000000-0000-0000-0000-000000000002']::uuid[])),
+  'Lena,Marek', 'a watcher can name the accounts on the feed, inside this book');
+select as_user('fa000000-0000-0000-0000-000000000004');
+select expect_eq(
+  (select count(*) from names_in_night('fd000000-0000-0000-0000-000000000001',
+                                       array['fa000000-0000-0000-0000-000000000001']::uuid[])),
+  0, 'a stranger gets no names');
 
 -- =============================================================================
 -- 4. LENA PASSES TO IVO (anonymous); WHO CAN TAKE IT BACK

@@ -20,8 +20,7 @@ import * as Clipboard from 'expo-clipboard';
 import { readBackup, restoreBackup, useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
 import { myPlan, planLine } from '../src/lib/plan';
-import { handedInOn, takeBack, useLate } from '../src/lib/handover';
-import { HoldButton } from '../src/components/HoldButton';
+import { handedInOn, useLate } from '../src/lib/handover';
 import { usePending } from '../src/lib/pending';
 
 /**
@@ -171,21 +170,6 @@ export default function Settings() {
       setFetched(explainServerError(e));
     } finally {
       setSharing(false);
-    }
-  }
-
-  /**
-   * The host's way back for a night passed to another phone — no code, because
-   * the case it is for is the one where that phone cannot give one. The server
-   * refuses anybody but the group's host, and that refusal is shown as it comes.
-   */
-  async function reclaim() {
-    if (night === null) return;
-    try {
-      await takeBack(night.sessionId);
-      setFetched('The night is back on this phone.');
-    } catch (e) {
-      setFetched(explainServerError(e));
     }
   }
 
@@ -464,56 +448,24 @@ export default function Settings() {
         )}
 
         {/*
-         * PASSING THE BOOK — 0016 and 0017, `handover.ts`. One phone records a
-         * night; these move which one. NOT DRAWN: the heading, the rows and
-         * their copy are mine and flagged in `docs/screens.md`.
-         *
-         * ITS OWN SECTION, NOT UNDER ACCOUNT, because since 0017 a phone with no
-         * account can take a night with its code and pass it back — the rows
-         * belong to whoever holds a night, not to whoever signed in. Taking a
-         * night BACK is the host's alone, and the server says so.
+         * A NIGHT ANOTHER PHONE IS RECORDING — `handover.ts`. Passing the game
+         * and taking it back live on Tonight now (`design/handoff-game-admin/`:
+         * the drawer, and the band where the dock was), and the code sheets
+         * are gone with 0020. What stays here is the one thing no board draws:
+         * what became of the changes THIS phone made after the game moved —
+         * still here, handed in, added or left out. NOT DRAWN, and flagged in
+         * `docs/screens.md`.
          */}
-        {configured && !loading && (
-          <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Tonight's book</Text>
-        )}
-        {configured && !loading && night !== null && !night.seeded && (
+        {configured && !loading && night !== null && !night.seeded && night.hold === 'away' && (
           <>
-
-            {night.hold === 'away' ? (
-              <>
-                <Fact label="Being recorded" value="On another phone" />
-                {/* ONE TEXT NODE, for the reason `hand-over.tsx` gives: a
-                    fragment either side of an interpolation wraps on its own. */}
-                <Text style={[styles.note, { color: t.muted }]}>
-                  {awayLine(night.tableName, unsent, handedIn, late.fromHere)}
-                </Text>
-                {signedIn && (
-                  <View style={styles.hold}>
-                    <HoldButton
-                      label="Take the night back"
-                      sub="Hold to take it back"
-                      onComplete={() => void reclaim()}
-                    />
-                  </View>
-                )}
-              </>
-            ) : (
-              <>
-                {late.toReview > 0 && (
-                  <Action
-                    label={`Review ${late.toReview} late ${late.toReview === 1 ? 'change' : 'changes'}`}
-                    onPress={() => router.push('/late-changes')}
-                  />
-                )}
-                {(signedIn || night.hold === 'here') && night.status !== 'settled' && (
-                  <Action label="Pass the book" onPress={() => router.push('/pass-book')} />
-                )}
-              </>
-            )}
+            <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Tonight's book</Text>
+            <Fact label="Being recorded" value="On another phone" />
+            {/* ONE TEXT NODE, for the reason `hand-over.tsx` gives: a
+                fragment either side of an interpolation wraps on its own. */}
+            <Text style={[styles.note, { color: t.muted }]}>
+              {awayLine(night.tableName, unsent, handedIn, late.fromHere)}
+            </Text>
           </>
-        )}
-        {configured && !loading && (
-          <Action label="Take over a night" onPress={() => router.push('/take-over')} last />
         )}
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The exits</Text>
@@ -743,7 +695,6 @@ function Action({
 const styles = StyleSheet.create({
   list: { marginHorizontal: space.page },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  hold: { paddingTop: 8, paddingBottom: 4 },
   after: { paddingTop: 22 },
   row: {
     flexDirection: 'row',

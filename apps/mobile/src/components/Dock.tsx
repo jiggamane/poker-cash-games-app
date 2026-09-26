@@ -4,8 +4,14 @@ import { useTheme } from '../design/useTheme';
 import { type } from '../design/tokens';
 import { Icon } from './Icon';
 
-/** How long the end-of-night row has to be held. Rev 7, D9. */
-const HOLD_MS = 1000;
+/**
+ * How long the end-of-night row has to be held.
+ *
+ * 1.5s since `design/handoff-game-admin/` (26 September): rev 7's D9 drew it at
+ * 1s and the brief asked for Take back at 1s, and the boards draw both at 1.5s
+ * — "so the app has one hold". `HoldButton` is the same number.
+ */
+export const HOLD_MS = 1500;
 
 /**
  * The dock — 08-tonight-home.md.
@@ -39,6 +45,7 @@ export function Dock({
   onSeat,
   onCashOut,
   onRules,
+  onPass,
   onEnd,
 }: {
   variant?: 'resting' | 'empty-table';
@@ -62,6 +69,14 @@ export function Dock({
    * keeps the host-only things you touch once a night, which is what this is.
    */
   onRules: () => void;
+  /**
+   * Pass the game — `design/handoff-game-admin/` state 1. The fourth row,
+   * directly above End, the same size and weight as Seat and Cash out: no
+   * sub-line, no highlight, and nothing about what passing costs, because it
+   * costs nothing (state 2). Absent, the row is not drawn — a phone that
+   * cannot pass sees no greyed-out row (`12-the-group.md` § 4.1).
+   */
+  onPass?: () => void;
   onEnd: () => void;
 }) {
   const t = useTheme();
@@ -133,7 +148,9 @@ export function Dock({
               {waiting} waiting
             </Text>
           ) : (
-            <Text style={[styles.hint, { color: t.dim }]}>seat · cash out · end</Text>
+            <Text style={[styles.hint, { color: t.dim }]}>
+              {onPass === undefined ? 'seat · cash out · end' : 'seat · cash out · pass · end'}
+            </Text>
           ))}
       </Pressable>
 
@@ -142,11 +159,14 @@ export function Dock({
           <DrawerRow icon="person" label="Seat a player" onPress={onSeat} dim={holding} />
           <DrawerRow icon="cashOut" label="Cash out a player" onPress={onCashOut} dim={holding} />
           <DrawerRow icon="rules" label="Money rules" onPress={onRules} dim={holding} />
+          {onPass !== undefined && (
+            <DrawerRow icon="pass" label="Pass the game" onPress={onPass} dim={holding} />
+          )}
 
           {/* The only way to end a night. Press and keep pressing. */}
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="End this poker night. Hold for one second."
+            accessibilityLabel="End this poker night. Hold for a second and a half."
             onPressIn={startHold}
             onPressOut={cancelHold}
             style={[
@@ -173,7 +193,7 @@ export function Dock({
                 {holding ? 'Keep holding…' : 'End this poker night'}
               </Text>
               <Text style={[styles.endSub, { color: holding ? t.text : t.muted }]}>
-                {holding ? 'Release to cancel' : 'Hold 1s · counting starts, no rebuys'}
+                {holding ? 'Release to cancel' : 'Hold 1.5s · counting starts, no rebuys'}
               </Text>
             </View>
           </Pressable>
@@ -218,7 +238,7 @@ function DrawerRow({
   onPress,
   dim,
 }: {
-  icon: 'person' | 'cashOut' | 'rules';
+  icon: 'person' | 'cashOut' | 'rules' | 'pass';
   label: string;
   onPress: () => void;
   dim: boolean;

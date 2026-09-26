@@ -185,10 +185,10 @@ export default function RootLayout() {
         {/* C3, over Players. Its reset and its QR replace this sheet's own
             content rather than stacking a second one on top (S79). */}
         <Stack.Screen name="invite" options={SHEET} />
-        {/* Passing the book: another phone records tonight. Both end in a
-            confirm — the code being taken, the code being typed. */}
-        <Stack.Screen name="pass-book" options={SHEET} />
-        <Stack.Screen name="take-over" options={SHEET} />
+        {/* Passing the game to a person — `design/handoff-game-admin/`, from
+            the Table admin drawer on Tonight. One sheet whose content is
+            replaced per step (the list, the confirm), and it ends in the pass. */}
+        <Stack.Screen name="pass-game" options={SHEET} />
         {/* What another phone recorded after the night moved — 0017. Ends in
             a confirm: add them, or leave them out. */}
         <Stack.Screen name="late-changes" options={SHEET} />
