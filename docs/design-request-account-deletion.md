@@ -101,6 +101,11 @@ Worked as one function, `delete_my_account()`, `security definer`, keyed on
    redeemed count on a promo code does not go back up. `billing_event` keeps
    its rows with `user_id` nulled: store transactions are a financial record
    and are kept regardless, which the privacy policy will say.
+   **An App Store subscription is not cancelled by deleting the account** —
+   only Apple can stop it — and Apple expects the app to say so and point at
+   where it is cancelled. The host sheet carries one line and a *Manage
+   subscription* action (StoreKit's manage-subscriptions sheet) whenever the
+   account has an `entitlement` with `source = 'apple'`; nobody else sees it.
 
 6. **Then `delete from auth.users where id = auth.uid()`**, inside the same
    function, which Supabase's own schema cascades to identities, sessions and
@@ -137,6 +142,27 @@ And three that work by accident and should be decided rather than inherited:
 - `ledger_entry.created_by_user_id` has **no foreign key** — a bare uuid. After
   deletion it points at nothing, which is fine (a random id with no row behind
   it identifies nobody) and is worth one line in the privacy policy.
+
+### The name that stays, and why Apple allows it (owner, 28 September)
+
+5.1.1 (v) asks for the account and the data it holds to be deleted. After step
+2 nothing the deleted account supplied is left: no email, no sign-in, no link
+from any seat. What stays is the seat's display name **as the host typed it**
+and the figures against it. Both were written by the host, into the group's
+record of money that changed hands between other people, and a night only
+balances with every seat in it.
+
+Decided, and not offered as a choice: the member is **told, before the hold**,
+that their name as the group's admin added it and the nights they played stay
+in the group's history. No "show me as Former player" option. Members cannot
+set their own name, photo or any other detail today, so there is nothing of
+theirs on the seat to remove; **if renaming yourself is ever added, deletion
+must put the host's original name back** — keep the original on the row when
+that feature is built.
+
+The privacy policy says the same in the member line and the retention list.
+The one residual risk is a reviewer's reading, and the disclosure on the sheet
+is what answers it.
 
 ### Two decisions taken here, and why
 
@@ -215,7 +241,10 @@ which of these it is before anyone holds the button:
 
   A MEMBER — somebody who claimed a seat with a code. Their seat becomes a name
   again: the host still sees "Petr" and every night Petr played, and can
-  re-invite the seat. The person's phone loses its nights and stats.
+  re-invite the seat. The person's phone loses its nights and stats. They are
+  TOLD this before the hold — their name, as the group's admin added it, and
+  the nights they played stay in the group's history. It is a notice, not a
+  choice: there is no "hide my name" option, and none should be drawn.
 
   A HOST — the person who runs one or more groups. For each group:
     - nobody else ever claimed a seat → the group is deleted outright, every
@@ -234,7 +263,10 @@ which of these it is before anyone holds the button:
 Deletion is immediate. The confirm is the app's one hold — 1.5 s, the same
 gesture that ends a night — and there is no tap path to it. A founder or a
 paid plan does not survive deletion; signing up again with the same address is
-a new account with nothing on it.
+a new account with nothing on it. An App Store subscription is NOT cancelled by
+deleting — only Apple can stop it — so a host who pays through the App Store
+sees one line saying so and a "Manage subscription" action that opens Apple's
+own subscriptions sheet. Nobody without one sees it.
 
 ## THE ONE THING OFFERED FIRST
 
@@ -251,7 +283,8 @@ a row, a line, or the primary in a first stage is your call.
       account). Draw the row in the section as it exists.
 
   S2  The sheet, HOST, with at least one group that will close and at least one
-      that will be deleted. This is the hardest state and the one to design
+      that will be deleted, and the App Store subscription line (draw it on;
+      it is absent for anyone not paying through the App Store). This is the hardest state and the one to design
       first: it has to list groups by name with what happens to each, offer the
       backup, and carry the hold. Draw it with two groups; it must hold with
       one and with four.
@@ -316,6 +349,10 @@ table; the same register applies to somebody leaving.
                "Your seat in {Group} becomes a name again."
   S2 plan:     "Your plan ends with the account. Signing up again starts
                from nothing."
+  S2 store subscription (only when paid through the App Store):
+               "Deleting does not stop your App Store subscription. Cancel it
+               there first."
+               action: "Manage subscription"
   S2 backup:   "Copy a backup first" — the existing action; and one line on
                what it is: "The whole book, as text, on your clipboard."
   S2 hold:     "Hold to delete"
@@ -323,6 +360,9 @@ table; the same register applies to somebody leaving.
   S3 title:    "Delete your account"
   S3 lede:     "Your seat in {Group} becomes a name again. {Host} still sees
                every night you played, and can invite you back."
+  S3 record:   "Your name, as {Host} added it, and the nights you played stay
+               in {Group}'s history. They are the group's record of the money
+               that changed hands."
   S3 phone:    "This phone loses its nights and stats."
 
   S4 title:    "Remove this phone's access"
