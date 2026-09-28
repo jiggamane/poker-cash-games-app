@@ -32,6 +32,11 @@ https://jiggamane.github.io/poker-cash-games-app/
 with the rest at `/before.html`, `/night.html`, `/after.html`. **Those addresses
 are the ones this file has always given out and they have not changed.**
 
+Since 28 September the same folder also carries the two pages the App Store
+listing needs, `/privacy.html` and `/support.html`. They are plain HTML with no
+build step, styled from the app's own colour tokens, and `app-store-launch.md`
+A2 says what on them is still a promise.
+
 The same workflow also publishes the app itself, one folder down at `/app/`, so
 a host away from the machine can open the current build on a phone — see
 `phone-preview.md`. That is why the boards are deployed by a workflow rather

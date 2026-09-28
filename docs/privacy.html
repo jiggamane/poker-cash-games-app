@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<!--
+  THREE THINGS ON THIS PAGE ARE PROMISES THE REPOSITORY HAS NOT YET KEPT.
+  Check each before the URL goes into App Store Connect (docs/app-store-launch.md, A2):
+
+    1. "Settings → Account → Delete account" — not built. It is launch blocker
+       A1 / decision D2 in the plan, and Apple 5.1.1(v) requires it. The
+       sentence describes the D2 default (refuse while hosting, then delete).
+       If D2 is decided differently, change the paragraph under "Deleting your
+       account" to match — the nutrition labels and the review notes quote it.
+    2. support@pokercashapp.com — the domain is the Resend sender; nobody has
+       confirmed a mailbox at this address exists. Create it or change every
+       mailto on this page and on support.html.
+    3. The Supabase region (D7) is not written anywhere in the repository.
+       Read it off the dashboard and add it to the sentence marked D7 below.
+
+  Publishing is automatic: docs/ lands at the site root on every merge to main
+  (.github/workflows/pages.yml), so this page is
+  https://jiggamane.github.io/poker-cash-games-app/privacy.html
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Privacy Policy · The Poker Club</title>
+  <meta name="description" content="What The Poker Club stores, where, who processes it, and how to delete it.">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0A0A0B" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <link rel="icon" href="/poker-cash-games-app/app/favicon.ico">
+  <style>
+    /* Colours are the app's own tokens (apps/mobile/src/design/tokens.ts) so
+       the page reads as the same product a reviewer just opened. */
+    :root {
+      --ground: #0A0A0B; --surface: #16161A; --text: #FFFFFF; --muted: #8B8D93;
+      --accent: #D9D3C4; --rule: #26262B;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --ground: #FFFFFF; --surface: #F4F4F6; --text: #0C0D0F; --muted: #6B6F76;
+        --accent: #0C0D0F; --rule: #E8E8ED;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; background: var(--ground); color: var(--text);
+      font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 0 16px calc(48px + env(safe-area-inset-bottom));
+    }
+    main { max-width: 680px; margin: 0 auto; }
+    header { padding: 40px 0 8px; }
+    .eyebrow { color: var(--muted); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 8px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 8px; font-weight: 800; letter-spacing: -.01em; }
+    h2 { font-size: 20px; margin: 40px 0 8px; font-weight: 700; }
+    h3 { font-size: 17px; margin: 24px 0 4px; font-weight: 700; }
+    p, li { color: var(--text); }
+    .lede { color: var(--muted); margin: 0; }
+    a { color: var(--accent); text-underline-offset: 3px; }
+    ul { padding-left: 22px; }
+    li { margin: 6px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; }
+    th, td { text-align: left; vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+    th { color: var(--muted); font-weight: 600; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+    td:first-child { white-space: nowrap; font-weight: 600; }
+    .card { background: var(--surface); border-radius: 14px; padding: 16px 18px; margin: 16px 0; }
+    .card p { margin: 0; }
+    footer { color: var(--muted); font-size: 14px; margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule); }
+    footer a { color: var(--muted); }
+    @media (max-width: 480px) { td:first-child { white-space: normal; } h1 { font-size: 28px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">The Poker Club</p>
+    <h1>Privacy Policy</h1>
+    <p class="lede">Effective 28 September 2026 · <a href="support.html">Support</a></p>
+  </header>
+
+  <p>The Poker Club is a ledger for a home cash game. The person hosting the
+  night records every buy-in and cash-out on their phone, the app counts the
+  table at the end, applies the group's rules and says who pays whom. <strong>No
+  money moves through the app.</strong> It records what people at a table agreed;
+  it does not hold, transfer or process payments.</p>
+
+  <p>This policy says what the app stores, where it is kept, who else handles it
+  and how you get it removed. It is written to be read, not skimmed past.</p>
+
+  <h2>Who is responsible</h2>
+  <p>The Poker Club is operated by the developer named on its App Store listing
+  (the "operator"). For anything in this policy, write to
+  <a href="mailto:support@pokercashapp.com">support@pokercashapp.com</a>.</p>
+
+  <h2>What the app stores</h2>
+
+  <h3>If you sign in</h3>
+  <p>Hosts sign in with a magic link sent to their email address. Signing in
+  creates an account holding:</p>
+  <ul>
+    <li><strong>Your email address</strong>, used to send you the sign-in link and to identify your account. Nothing else is sent to it.</li>
+    <li><strong>An account identifier</strong>, a random ID the server uses to know which groups and nights are yours.</li>
+    <li><strong>Sign-in records</strong> kept by the authentication service: when you signed in and the device session that resulted.</li>
+    <li><strong>Your plan</strong>, if one has been granted to your account, and when it started and ends.</li>
+  </ul>
+
+  <h3>The ledger</h3>
+  <p>Everything a host records is the content of the app. For each group and each
+  night that means:</p>
+  <ul>
+    <li><strong>Player names</strong> as the host types them. Usually a first name or a nickname. A player does not need an account or an email address; the host simply types a name and a row appears.</li>
+    <li><strong>Money movements</strong>: every buy-in, cash-out, chip count, shared spend, correction and void, with its amount and the time it was recorded.</li>
+    <li><strong>The group's rules</strong>: stakes, default buy-in, how shared costs and rounding are handled, and who collects them.</li>
+    <li><strong>Settlements</strong>: the final figures for a night and the transfers between players that settle it.</li>
+    <li><strong>Who recorded what</strong>: which account was running the game, and when it was handed to another person.</li>
+  </ul>
+  <p>The ledger is append-only. A correction or a void is a new row; nothing
+  already written is edited or silently removed, which is what makes a settled
+  night trustworthy for everyone who sat at it.</p>
+
+  <h3>If you join or watch without an account</h3>
+  <ul>
+    <li><strong>Members</strong> join a group by typing a ten-character code the host gives them. Redeeming it links the player row the host created to a sign-in of yours, so your history follows you. The code itself, when it was issued and when it was used, is stored.</li>
+    <li><strong>Watchers</strong> open a share link to read one night live. The link is a random token, and opening it is recorded so the host can see it was used and can revoke it.</li>
+    <li><strong>Neither needs an email address.</strong> The app signs the device in anonymously, which creates an account identifier and nothing else, so the server can tell which device redeemed which code or link.</li>
+  </ul>
+
+  <h3>On your device</h3>
+  <p>The app keeps a full copy of your groups and nights in a local database on
+  the phone so it works with no signal and syncs when one returns. Deleting the
+  app deletes that copy.</p>
+
+  <h3>What the app does not collect</h3>
+  <ul>
+    <li>No advertising identifiers, no tracking across apps or sites, and no third-party analytics or advertising SDK.</li>
+    <li>No contacts, photos, camera, microphone or location. The app asks for none of these permissions.</li>
+    <li>No payment or card details. The app never handles money.</li>
+    <li>No profiling or automated decisions about you.</li>
+  </ul>
+
+  <h2>Why it is stored</h2>
+  <table>
+    <thead><tr><th>Purpose</th><th>Data</th><th>Legal basis (GDPR)</th></tr></thead>
+    <tbody>
+      <tr><td>Signing you in</td><td>Email address, sign-in records</td><td>Performance of a contract</td></tr>
+      <tr><td>Keeping the ledger and syncing it between your devices and the people in your group</td><td>The ledger, account identifier</td><td>Performance of a contract</td></tr>
+      <tr><td>Letting a member or watcher see a night the host shared with them</td><td>Codes, share tokens, when they were used</td><td>Performance of a contract; the host's legitimate interest in controlling who sees the night</td></tr>
+      <tr><td>Keeping the service safe</td><td>Sign-in records, rate limits</td><td>Legitimate interest</td></tr>
+      <tr><td>Answering a support request</td><td>Whatever you send us</td><td>Legitimate interest</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Who can see the ledger</h2>
+  <p>Access is enforced on the server, row by row. A night is readable by the
+  host who runs the group, by members the host has seated in it, and by anyone
+  holding a live share link for it. Nobody else can read it, including the
+  operator in the ordinary course of running the service. Player names typed
+  by a host are visible to the other people in that group, so a host should
+  type what they would say at the table.</p>
+
+  <h2>Who processes it for us</h2>
+  <p>The operator does not sell personal data and does not share it with
+  anyone for advertising. The service runs on these providers, each of which
+  handles data only on the operator's instructions:</p>
+  <table>
+    <thead><tr><th>Provider</th><th>What they do</th><th>What they hold</th></tr></thead>
+    <tbody>
+      <tr><td>Supabase</td><td>Database and sign-in</td><td>The account and the ledger described above</td></tr>
+      <tr><td>Resend</td><td>Sends the sign-in email</td><td>Your email address and the delivery record of each message</td></tr>
+      <tr><td>Expo (EAS)</td><td>Delivers app updates</td><td>A request from your device for the current version; no account data</td></tr>
+      <tr><td>Apple</td><td>App distribution</td><td>Governed by Apple's own terms and privacy policy</td></tr>
+    </tbody>
+  </table>
+  <!-- D7: add the region here, e.g. "in Frankfurt (eu-central-1)". -->
+  <p>The database is hosted by Supabase. Where a provider processes data
+  outside the European Economic Area, transfers rest on the European
+  Commission's standard contractual clauses in that provider's data processing
+  agreement.</p>
+
+  <h2>How long it is kept</h2>
+  <ul>
+    <li><strong>The ledger</strong> is kept for as long as the group exists. Settled nights are the group's record and stay until the group is closed or the host deletes their account.</li>
+    <li><strong>Your account</strong> is kept until you delete it.</li>
+    <li><strong>Sign-in links and invite codes</strong> expire on their own, a code after one month, and cannot be used after that. A share link lives as long as the night it opens, or until the host revokes it.</li>
+    <li><strong>Support email</strong> is kept for as long as it takes to resolve the matter.</li>
+  </ul>
+
+  <h2>Deleting your account and your data</h2>
+  <div class="card">
+    <p><strong>In the app:</strong> Settings → Account → <em>Delete account</em>. The account,
+    its sign-in records and every grant it holds are deleted. Player rows you
+    claimed in other people's groups lose the link to you and keep only the
+    name the host typed.</p>
+  </div>
+  <p>A host who still runs a group with other members is asked to pass the
+  group to another member or close it first, because a group whose ledger
+  other people rely on cannot be left with no one responsible for it. Closing
+  a group deletes its ledger for everyone.</p>
+  <p>If you cannot reach the app, email
+  <a href="mailto:support@pokercashapp.com">support@pokercashapp.com</a> from the
+  address you signed in with and the same deletion is carried out by hand within
+  30 days.</p>
+  <p>If your name appears in someone else's ledger and you never had an account,
+  the host of that group can rename or remove the row. If you would rather ask
+  us, write to the address above and say which group it is.</p>
+
+  <h2>Your rights</h2>
+  <p>Under the GDPR and similar laws you can ask for a copy of the personal data
+  held about you, ask for it to be corrected or deleted, object to or restrict
+  its processing, and receive it in a portable form. Write to
+  <a href="mailto:support@pokercashapp.com">support@pokercashapp.com</a>. You also
+  have the right to complain to your local data protection authority.</p>
+
+  <h2>Children</h2>
+  <p>The Poker Club is not for anyone under 18 and does not knowingly hold an
+  account for anyone under 18. If you believe it does, tell us and the account
+  will be removed.</p>
+
+  <h2>Security</h2>
+  <p>Traffic between the app and the server is encrypted in transit. Every
+  read and write is checked against who you are on the server itself, not only
+  in the app. Sign-in is by single-use link; the app never stores a password.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>When this policy changes, the date at the top changes with it and the
+  previous versions stay in the project's public history. A change that
+  affects what is collected or why is announced in the app before it takes
+  effect.</p>
+
+  <footer>
+    <p>The Poker Club · <a href="privacy.html">Privacy</a> · <a href="support.html">Support</a></p>
+  </footer>
+</main>
+</body>
+</html>
