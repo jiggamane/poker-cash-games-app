@@ -3,11 +3,13 @@
   THREE THINGS ON THIS PAGE ARE PROMISES THE REPOSITORY HAS NOT YET KEPT.
   Check each before the URL goes into App Store Connect (docs/app-store-launch.md, A2):
 
-    1. "Settings → Account → Delete account" — not built. It is launch blocker
-       A1 / decision D2 in the plan, and Apple 5.1.1(v) requires it. The
-       sentence describes the D2 default (refuse while hosting, then delete).
-       If D2 is decided differently, change the paragraph under "Deleting your
-       account" to match — the nutrition labels and the review notes quote it.
+    1. "Settings → Account → Delete account" — not built yet. It is launch
+       blocker A1, and Apple 5.1.1(v) requires it. The paragraphs under
+       "Deleting your account" describe the mechanics decided in
+       docs/design-request-account-deletion.md (28 September): immediate,
+       the record stays, the only refusal is while a game runs. If the build
+       departs from that file, change those paragraphs to match — the
+       nutrition labels and the review notes quote them.
     2. support@pokercashapp.com — the domain is the Resend sender; nobody has
        confirmed a mailbox at this address exists. Create it or change every
        mailto on this page and on support.html.
@@ -187,15 +189,20 @@
 
   <h2>Deleting your account and your data</h2>
   <div class="card">
-    <p><strong>In the app:</strong> Settings → Account → <em>Delete account</em>. The account,
-    its sign-in records and every grant it holds are deleted. Player rows you
-    claimed in other people's groups lose the link to you and keep only the
-    name the host typed.</p>
+    <p><strong>In the app:</strong> Settings → Account → <em>Delete account</em>. It is
+    immediate. Your email address, your sign-in and every link between you and
+    a seat are removed from the server at that moment.</p>
   </div>
-  <p>A host who still runs a group with other members is asked to pass the
-  group to another member or close it first, because a group whose ledger
-  other people rely on cannot be left with no one responsible for it. Closing
-  a group deletes its ledger for everyone.</p>
+  <p>The person leaves; the record stays. What that means depends on what you
+  held:</p>
+  <ul>
+    <li><strong>A watcher</strong> loses this phone's access to the nights it opened.</li>
+    <li><strong>A member</strong> becomes a name again. The host still sees the name they typed and every night that person played, with nothing linking it to you.</li>
+    <li><strong>A host</strong>: a group in which nobody else ever claimed a seat is deleted with its ledger. A group in which somebody did is closed and kept, read-only and with no host, so the people who played those nights keep their record.</li>
+  </ul>
+  <p>The one refusal is while a game is running on your account, either because
+  you are recording tonight or because you passed the game to somebody who is.
+  Settle the night and the deletion goes through.</p>
   <p>If you cannot reach the app, email
   <a href="mailto:support@pokercashapp.com">support@pokercashapp.com</a> from the
   address you signed in with and the same deletion is carried out by hand within
