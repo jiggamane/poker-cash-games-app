@@ -6,7 +6,8 @@ App Store, the users database behind it, and account upgrades: free upgrades I
 hand to friends, by hand or with promo codes, and a normal payment system for
 everybody else.*
 
-This file is the **order of work**. It does not repeat the three docs it
+**The App Store half of this, step by step against what is built, is
+`app-store-launch.md` (28 September).** This file is the **order of work**. It does not repeat the three docs it
 sequences, and where it disagrees with one of them it says so:
 
 | Doc | What it owns | Status against this plan |
