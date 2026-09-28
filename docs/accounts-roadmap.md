@@ -197,10 +197,11 @@ the account, but a lock on the app.
   on every open or after some minutes away.
 - **Settings → Admin**, and **redeeming a code when already signed in** — both
   need a board. Until then: the SQL editor, and the sign-in path above.
-- **Account deletion** (Apple requires it before Stage 3). Blocked on the
-  question Settings already names: what happens to a group, and to nights other
-  people played in, when its host goes. For a member it is simple and can go
-  first.
+- **Account deletion** (Apple requires it before Stage 3). The question —
+  what happens to a group, and to nights other people played in, when its host
+  goes — is answered in `design-request-account-deletion.md`, 28 September,
+  with the mechanics, the five schema changes a delete needs, and the prompt
+  for the sheet's board. Not built.
 - **One host at a time** is the parked pass-the-book branch
   (`claude/multi-admin-game-access-cpwbpw`); it comes back when its redesign is
   done, not as part of this.
