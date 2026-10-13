@@ -1,0 +1,629 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Poker rules advice services</title><style>
+:root{--ink:#1c1b19;--muted:#5d5a54;--rule:#e2ddd3;--accent:#7a2e1f;--bg:#fbf9f5;--tint:#f2eee6}
+*{box-sizing:border-box}
+html{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Iowan Old Style","Times New Roman",serif;line-height:1.55}
+main{max-width:46rem;margin:0 auto;padding:3rem 1rem 4rem}
+header.title{border-bottom:3px solid var(--accent);padding-bottom:1rem;margin-bottom:2rem}
+header.title h1{font-size:2.1rem;line-height:1.15;margin:0 0 .5rem}
+header.title p{margin:0;color:var(--muted);font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:.9rem}
+h1,h2,h3{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.4rem 0 .8rem;padding-top:.4rem;border-top:1px solid var(--rule)}
+h3{font-size:1.1rem;margin:1.8rem 0 .5rem;color:var(--accent)}
+p{margin:0 0 1rem}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(122,46,31,.35)}
+strong{font-weight:700}
+table{width:100%;border-collapse:collapse;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:.88rem;margin:1.2rem 0 1.6rem}
+th,td{text-align:left;vertical-align:top;padding:.55rem .6rem;border-bottom:1px solid var(--rule)}
+th{background:var(--tint);font-weight:600}
+tr:nth-child(even) td{background:#f7f4ee}
+ul,ol{padding-left:1.4rem}
+li{margin-bottom:.4rem}
+blockquote{margin:1rem 0;padding:.2rem 1rem;border-left:3px solid var(--rule);color:var(--muted)}
+hr{border:0;border-top:1px solid var(--rule);margin:2rem 0}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:var(--tint);padding:.1em .3em;border-radius:3px}
+@media (max-width:600px){html{font-size:15px}main{padding:2rem 1rem 3rem}header.title h1{font-size:1.7rem}table{display:block;overflow-x:auto}}
+@media print{body{background:#fff}main{max-width:none;padding:0}a{border-bottom:0;color:var(--ink)}h2{break-after:avoid}table,tr{break-inside:avoid}}
+@page{size:A4;margin:18mm 16mm 20mm}
+</style></head><body><main><header class="title"><h1>Rulings belong inside the ledger app</h1><p>Research report · Online poker rules advice for amateur players, what drives their questions, and the build decision · 13 October 2026</p></header>
+<p>Amateur poker players get rules advice almost entirely from
+general-purpose peer forums and a handful of orphaned documents, not
+from any product built for it. r/poker (about <strong>360,000
+members</strong>), PokerChipForum (<strong>17,739 members, 2.9 million
+messages</strong>) and Quora absorb the questions; the one purpose-built
+venue, the Poker TDA forum, has <strong>2,032 members</strong> and a
+tournament remit; the only cash-game reference text, Robert's Rules of
+Poker, has been <strong>frozen since its author died in May
+2022</strong>; and the single "ask a ruling" app is an iPad tool for
+tournament floor staff that answers from a superseded rulebook and shows
+no ratings. Interest splits into two kinds of question: high-volume
+beginner lookups (who wins, kickers, blinds — one Stack Exchange
+question has <strong>200,299 views</strong>, and "poker rules" draws
+roughly <strong>165,000 searches a month</strong>) and lower-volume,
+high-argument judgement calls (a winning hand that touched the muck,
+verbal versus chips, slow rolls, exposed cards, string bets), where a
+single "was this right?" post on r/poker routinely draws <strong>100–286
+comments</strong>. Home cash games add a third layer the rulebooks never
+touch — short banks, unrecorded rebuys, rebuy caps, going south, leaving
+early, IOUs — which hosts settle by procedure and host fiat. The
+evidence points to <strong>adding a rules and ruling feature to the
+ledger app rather than building a separate product</strong>: no
+standalone rules app has an audience (0–22 ratings across the whole
+category), the only demonstrated willingness to pay is for running the
+night, and the ledger already holds the three inputs a ruling needs —
+the players, the stakes and the host — plus the end-of-night money
+record where most home-game disputes actually happen. To be
+differentiated it must be cash-game and house-rule aware, cite the rule
+and the reasoning, work offline at a kitchen table, and leave a
+timestamped ruling in the night's record.</p>
+<h2
+id="rules-questions-land-in-general-forums-not-anywhere-built-for-rulings">Rules
+questions land in general forums, not anywhere built for rulings</h2>
+<p>The venues amateurs actually use are peer communities where rules
+questions compete with strategy, session reports and promotion. r/poker
+is tracked at 360,000 members, up about 40,000 (12.5%) in a year, and
+"Home Game" is a top-ten topic keyword there, but its common flairs are
+Discussion, Hand Analysis, Help and Promo — there is no rules flair (<a
+href="https://gummysearch.com/r/poker">GummySearch</a>). Since March
+2025 a moderator partnership has pinned GGPoker promotional threads,
+which tells you how the largest amateur venue is monetised (<a
+href="https://www.pokerlistings.com/news/jaime-staples-questions-ggpokers-advertisement-technique-on-poker-subreddit">PokerListings</a>).
+CardsChat now redirects to a casino-affiliate domain and has <strong>no
+rules board and no home-games board</strong> at all (<a
+href="https://www.casino.us/cardschat/">CardsChat on casino.us</a>).
+PokerChipForum is the closest thing to a home-game rules community:
+143,100 threads and daily traffic on its "Home Game General" and
+"Tournaments and Cash Games" boards (<a
+href="https://www.pokerchipforum.com/">PokerChipForum</a>), plus a
+login-walled "Poker Rules and Rulings" subforum (<a
+href="https://www.pokerchipforum.com/forums/poker-rules-and-rulings.57/">PokerChipForum</a>).
+A representative PCF ruling thread — a single oversized chip thrown in
+without "raise" in a self-dealt 1-2-5 PLO game — drew 20 replies in one
+day, nearly all citing Robert's Rules v11 or the TDA rules, and
+<strong>nobody mentioned an app or website for settling it</strong> (<a
+href="https://www.pokerchipforum.com/threads/home-game-ruling.42199/latest">PokerChipForum</a>).</p>
+<p>The only forum built for rulings is small and institutional. The
+Poker TDA forum holds 13,929 posts across 1,687 topics from 2,032
+members; its general rules board has 9,649 posts, and a dedicated
+<strong>"Live Cash Game Rules" board carries 936 posts in 114 topics,
+with activity as recent as September 2026</strong> — about 10% of the
+forum's question traffic, on a body that publishes no cash rules at all
+(<a href="https://www.pokertda.com/forum/">Poker TDA forum</a>). The
+more telling signal is that amateurs route around the forum to a person:
+Matt Savage, the WPT director and TDA co-founder, says he receives
+ruling questions on X "in the neighbourhood of 25–30 a day" in summer
+and 5–10 otherwise, and that the single most-asked question is the
+one-chip rule (<a
+href="https://www.pokerstrategy.com/?p=45939">PokerStrategy</a>; the
+interview is undated and older than the page's 2026 update). One
+director on Twitter fields more rulings a day than the whole TDA rules
+board receives in a typical month.</p>
+<h3
+id="the-rulebooks-they-cite-are-either-frozen-or-tournament-only">The
+rulebooks they cite are either frozen or tournament-only</h3>
+<p>Every forum answer rests on two documents with opposite fates. Bob
+Ciaffone, author of Robert's Rules of Poker, died on 13 May 2022 (<a
+href="https://www.pokernews.com/news/2022/05/poker-columnist-bob-ciaffone-passes-away-at-age-81-41213.htm">PokerNews</a>);
+his site had already been taken down, and hobbyists now point each other
+to Wayback snapshots from before 2020 (<a
+href="https://www.pokerchipforum.com/goto/post?id=2116556">PokerChipForum</a>).
+Version 11 for cardrooms and a separate <strong>62-page private-game
+edition</strong> survive as PDFs on pagat.com, and the private-game
+edition's copyright notice bars commercial use without Ciaffone's
+specific consent — a constraint on any product that wants to bundle it
+(<a href="https://www.pagat.com/docs/RobsPkrRulesHome.pdf">Robert's
+Rules, private-game edition</a>). The Poker TDA rules, by contrast, are
+maintained on a two-year cycle, with the 2026 edition current, but the
+rules page never mentions cash games and directs all interpretation
+questions to the forum (<a
+href="https://www.pokertda.com/poker-tda-rules/">pokertda.com</a>).
+Worse, the copy of the TDA rules that HomePokerTourney — the home-game
+reference site Google and forum posters point hosts to — distributes is
+the <strong>2013 edition</strong>, six revisions behind, on a site whose
+creator died in 2017 and whose pages still read "Copyright © 2017" (<a
+href="https://www.homepokertourney.org/poker-rules.htm">HomePokerTourney</a>).
+Hosts' own practice is "Robert's for cash games and TDA for tournaments"
+(<a
+href="https://www.pokerchipforum.com/goto/post?id=2116556">PokerChipForum</a>),
+and nearly every published house-rules template ends with "host is the
+floor; Robert's Rules otherwise" (<a
+href="https://www.homepokertourney.org/poker-rules-house.htm">HomePokerTourney
+house rules</a>).</p>
+<p>The media layer adds nothing adjudicative. Card Player's
+reader-question column "The Rules Guy" has no dated entries found after
+January 2017 (<a
+href="https://cardplayer.com/author/article/all/11/4623">Card Player
+archive</a>). PokerNews' rules hub, last updated April 2026, is a
+beginner guide to variants and hand rankings with no coverage of string
+bets, misdeals, showdown order or side pots and no Q&amp;A (<a
+href="https://www.pokernews.com/poker-rules/">PokerNews</a>); Upswing's
+rules page is the same shape (<a
+href="https://upswingpoker.com/poker-rules/">Upswing</a>). YouTube
+carries disputes as entertainment — the EPT Monaco 2025 angle, WSOP
+floor arguments (<a
+href="https://www.youtube.com/watch?v=nkMjHkz5ihE">YouTube</a>) — not as
+instruction, and since March 2025 the platform auto-rates all poker
+videos 18+, which creators call a headwind (<a
+href="https://sigma.world/ko/news/youtubes-policy-threatens-poker-creators/">Sigma
+World</a>). No paid or subscription rulings service for amateurs was
+found anywhere; every venue is free and funded by ads, affiliates,
+sponsorship or volunteer association.</p>
+<h3 id="general-chatbots-fail-on-exactly-the-procedural-parts">General
+chatbots fail on exactly the procedural parts</h3>
+<p>The "ask an AI" route exists but is unreliable where it matters. Nate
+Silver's May 2025 test of OpenAI's o3 and Deep Research on simulated
+hands found the models <strong>miscounted the pot and stacks,
+double-counted a straddle, misapplied the best-five-cards rule and
+awarded pots to the wrong players</strong> (<a
+href="https://www.natesilver.net/p/chatgpt-is-shockingly-bad-at-poker">Silver
+Bulletin</a>) — pot size, straddles and hand reading being precisely the
+categories that cause home-game disputes. The institutional answer is
+Poker TD Assistant, a free iPad app from the World Poker Federation with
+the TDA that answers plain-language questions against the TDA 2024
+rules, keeps a ruling history, and warns that "critical rulings should
+be verified against the official rulebook"; it has no displayed ratings
+and still cites 2024 rules after the 2026 edition shipped (<a
+href="https://apps.apple.com/app/id6776635266">App Store</a>). Outside
+poker, the board-game referee bots that reviewers reward differentiate
+on citing the exact rulebook page and asking for a missing fact rather
+than guessing (<a
+href="https://www.producthunt.com/products/ludus-judge-ai">Ludus Judge
+AI on Product Hunt</a>).</p>
+<h2
+id="mucked-hands-and-verbal-bets-generate-argument-hand-rankings-generate-lookups">Mucked
+hands and verbal bets generate argument; hand rankings generate
+lookups</h2>
+<p>Demand has two shapes, and they live in different places. On r/poker
+the rules stream is a steady minority — measured at roughly <strong>7
+"ruling" posts and 6 "mucked" posts a month in 2025–26</strong> — whose
+typical post scores low (median 2–5 points) but whose comment counts are
+high (median 13–21), so a rules post reliably starts an argument rather
+than earning applause (<a
+href="https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=poker&amp;query=ruling&amp;limit=100">Arctic
+Shift r/poker archive</a>). The most-engaged situations are all
+first-person "was this right?" posts with the stakes in the title: a
+dealer mucking a hand after a verbal all-in (180 points, 141 comments —
+<a href="https://redd.it/1kxqqwy">r/poker</a>); QQ mucked for want of a
+card protector (65 / 160 — <a
+href="https://redd.it/1vzkf0m">r/poker</a>); "how binding is verbal?"
+(136 / 44 — <a href="https://redd.it/1mfiazt">r/poker</a>); an
+out-of-turn etiquette dispute, "was I in the wrong?", at <strong>314
+points and 286 comments</strong>, the highest comment count of any rules
+thread sampled (<a href="https://redd.it/wwho0f">r/poker</a>); slow-roll
+disputes at 120 / 140 and 126 / 122 (<a
+href="https://redd.it/1kdwsqs">r/poker</a>; <a
+href="https://redd.it/1kaqfqk">r/poker</a>); an incorrect floor ruling
+on a $4,600 hand (130 / 90 — <a
+href="https://redd.it/1tjfu28">r/poker</a>); and a player tabling three
+cards, "pocket 997", at 381 / 91 (<a
+href="https://redd.it/1eb7umb">r/poker</a>). Strategy and session posts
+in the same samples score far higher — one pro's first live day drew
+1,593 points (<a href="https://redd.it/chhcit">r/poker</a>) — which
+confirms that rules content is a minority of the subreddit but a
+disproportionate share of its arguments.</p>
+<p>The professional venue ranks the same way. On the TDA forum's general
+board, "accidental muck" has 23,186 views and "is my hand dead?" 20,060,
+while the most-replied thread of all is "Standardization of rules — a
+pipe dream?" at 37,366 views, the community's own admission that rulings
+are unsettled (<a
+href="https://www.pokertda.com/forum/index.php?board=1.0;sort=views;desc">Poker
+TDA forum, sorted by views</a>). The cash-game board's top threads are a
+direct, if small-sample, ranking of what cardroom staff find hard in
+cash play: <strong>"Dealer error: do we force player to pay?" 61,367
+views, "Running it twice" 58,513, forward motion and straddles 33,557,
+moving versus dead button 19,858, the single-chip call-or-raise 18,726,
+and rake on split and side pots 18,345</strong> (<a
+href="https://www.pokertda.com/forum/index.php?board=25.0">Poker TDA
+forum, cash board</a>). The same handful of situations recur on
+TwoPlusTwo under different titles — "Floor ruling on dealer mucking
+winning hand after player doesn't show kicker", "Tabled hand is mucked,
+hits muck, floor rules it's live??", "2 Boxed cards ruling" (<a
+href="https://forumserver.twoplustwo.com/27/casino-amp-cardroom-poker/floor-ruling-dealer-mucking-winning-hand-after-player-doesnt-show-kicker-1795131/index2.html">2+2</a>)
+— and on PokerForum.ca ("Showdown: who is required to show their hand
+first?", "When is hand technically dead?") (<a
+href="https://pokerforum.ca/discussion/19164/showdown-who-is-required-to-show-their-hand-first">pokerforum.ca</a>).</p>
+<p>Lookup questions are a different animal: enormous views, no argument.
+On Board &amp; Card Games Stack Exchange, "How do you determine the
+winner of a Texas Hold'em hand?" has 200,299 views, "ante versus blinds"
+131,837, heads-up blind structure 83,121, "flush tie or not?" 28,691 and
+"can a player use only the community cards?" 27,229, against 5,407 for
+the top strategy question on the tag (<a
+href="https://boardgames.stackexchange.com/questions/9771/how-do-you-determine-the-winner-of-a-texas-holdem-poker-hand">Stack
+Exchange</a>). Search volume tells the same story at larger scale:
+third-party estimates put "poker rules" at about 165,000 global searches
+a month and "poker hand rankings" at 90,500, with all series
+<strong>peaking in December–January</strong> — a holiday home-game
+pattern, not a WSOP one (<a
+href="https://www.rankhero.com/keywords/poker-rules">RankHero: poker
+rules</a>; <a
+href="https://www.rankhero.com/keywords/poker-hand-rankings">RankHero:
+poker hand rankings</a>). These figures sit on Google Keyword Planner
+bucket values and should be read as orders of magnitude only. Google
+autocomplete, fetched live, says what that searcher wants: "poker rules"
+completes to simple, hands, for beginners, cheat sheet, sheet, pdf,
+printable — a one-page sheet for the table, not a mid-hand adjudication
+(<a
+href="https://www.google.com/complete/search?q=poker%20rules&amp;client=firefox&amp;hl=en">Google
+autocomplete</a>). Individual procedure phrases ("who shows first
+poker", "poker kicker rules", "can you check raise", "split pot poker
+rules") each fill their autocomplete slots, which confirms they are
+asked, while "misdeal", "string bet" and "side pot" are crowded out
+after three or four suggestions (<a
+href="https://www.google.com/complete/search?q=who%20shows%20first%20poker&amp;client=firefox&amp;hl=en">Google
+autocomplete</a>).</p>
+<p>Putting the measured engagement, views and recurrence together gives
+the following ranking. Frequency and engagement are the researchers'
+synthesis of the sources above, not a survey; no survey, moderator tally
+or FAQ ranking rules questions exists on any venue searched.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Situation cluster</th>
+<th>How often asked</th>
+<th>How much argument</th>
+<th>Where it lives</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Winning hand mucked, dealer-mucked after verbal all-in, "is my hand
+dead?", who shows first</td>
+<td>High</td>
+<td>Highest (141, 160, 128, 122-comment threads; TDA 23k views)</td>
+<td>Reddit, 2+2, TDA forum</td>
+</tr>
+<tr class="even">
+<td>Verbal vs chips, string bet, "I see your bet and raise",
+single-chip, out-of-turn action</td>
+<td>High</td>
+<td>Very high (183/69, 136/44, 134/128)</td>
+<td>Reddit, PCF, TDA forum</td>
+</tr>
+<tr class="odd">
+<td>Etiquette with no written rule: slow roll, tanking with the nuts,
+talking about the hand</td>
+<td>High</td>
+<td>Very high (286, 140, 113 comments)</td>
+<td>Reddit</td>
+</tr>
+<tr class="even">
+<td>Hand rankings, kickers, ties, board plays, flush vs straight</td>
+<td>Very high in views, rare on forums</td>
+<td>Low (lookup)</td>
+<td>Stack Exchange, Google</td>
+</tr>
+<tr class="odd">
+<td>Dealing errors: exposed card, boxed card, extra card, misdeal</td>
+<td>Medium; "most common mistake in home games"</td>
+<td>Medium–high (381/91, 162/100)</td>
+<td>2+2 Home Poker, PCF</td>
+</tr>
+<tr class="even">
+<td>Floor got it wrong on a big pot — what are my options?</td>
+<td>Medium</td>
+<td>High (130/90, 98/97, 76/84)</td>
+<td>Reddit</td>
+</tr>
+<tr class="odd">
+<td>Cash-game mechanics: running it twice, straddles, dead button, side
+pots, dealer-error payment</td>
+<td>Medium</td>
+<td>Medium (TDA cash board 18k–61k views)</td>
+<td>TDA forum, explainer pages</td>
+</tr>
+<tr class="even">
+<td>Home-game governance: who decides, banning a winner, cheating,
+IOUs</td>
+<td>Medium</td>
+<td>Medium (79/44, 49/53)</td>
+<td>Reddit, PCF</td>
+</tr>
+</tbody>
+</table>
+<p>The pattern underneath the heat is worth stating plainly: argument
+correlates with <strong>ambiguity of fact</strong>, not ambiguity of
+rule. The TDA standard that cards remain live while "100% identifiable
+and retrievable" is clear (<a
+href="https://thelodgepokerclub.com/tda-rules/">The Lodge TDA
+rules</a>); what is contested is whether they were, whether "raise" was
+said, whether the dealer heard it — and the poster is always a party.
+Etiquette disputes are the exception: slow rolls are heated precisely
+because no rulebook settles them, and they are the one category where
+posters are routinely told they were the one in the wrong.</p>
+<h2
+id="home-cash-games-fight-over-money-procedure-which-no-rulebook-covers">Home
+cash games fight over money procedure, which no rulebook covers</h2>
+<p>The home-game forums that could be read show a different centre of
+gravity from the casino threads: <strong>money-procedure threads
+outnumber hand-ruling threads</strong>, and they are host-to-host policy
+questions rather than player-versus-host disputes. The recurring
+end-of-night problems are a chip count that does not match recorded
+buy-ins, an unrecorded or unpaid rebuy, non-payment after a
+settle-at-the-end game, and awkward change at cash-out. The community's
+fix for all of them is process rather than adjudication. In the PCF
+cash-out thread several hosts say the host cashes out last and "is the
+only one responsible if the bank is short"; one has been short "a dollar
+or two a few times, never a substantial amount" (<a
+href="https://www.pokerchipforum.com/threads/is-there-a-standard-or-preferred-home-cash-game-cashout-out-procedure.96306/latest">PokerChipForum</a>).
+A host of 100+ games who wrote "split the loss evenly among all players,
+winners included" into his rules got, as the most common objection, that
+the organiser should bear shortages and that mentioning theft "seems
+unfair or suspicious" (<a
+href="https://www.pokerchipforum.com/goto/post?id=2044449">PokerChipForum</a>).
+A banker who lost money when Venmo rebuys never arrived, when he forgot
+informal "can I get 50 more?" requests, and when he took chips from his
+own stack, absorbed most of it himself; members' advice was cash only or
+a running tally, chips only after the payment shows, and the player
+recounting rebuy chips aloud (<a
+href="https://www.pokerchipforum.com/goto/post?id=2057421">PokerChipForum</a>).
+"Who eats a short bank" is genuinely contested, but the forum norm leans
+toward the banker owning the error, and a product that defaults to "host
+absorbs" with an optional split rule would match expectations better
+than the pro-rata scaling one app vendor proposes (<a
+href="https://partypotapp.com.advisoryapps.com/blog/poker-chips-dont-add-up-cash-out/">PartyPot</a>).</p>
+<p>Numeric parameters are where groups diverge most, and there is no
+citable default. The one hard engagement figure found in the home-game
+sections is a <strong>60-vote poll on the maximum rebuy as a share of
+the largest stack: 28 chose 50%, 10 chose 100%, 3 chose 75% and 19
+"other"</strong> — no majority even among enthusiasts, with arguments on
+both sides about collusion by rebuying upward and the unpleasantness of
+being down and unable to buy back (<a
+href="https://www.pokerchipforum.com/goto/post?id=895515">PokerChipForum</a>).
+Notice before leaving ranges from one orbit to one hour; a one-hour rule
+drew the reply that it is too long for emergencies (<a
+href="https://www.pokerchipforum.com/threads/home-game-rules.57803">PokerChipForum</a>).
+Going south is uniformly condemned — "in home games you never leave
+based on your stack" — but <strong>no one described a host formally
+enforcing it; it is a social norm</strong> (<a
+href="https://www.pokerchipforum.com/threads/strange-rule-going-south.98359/post-2049895">PokerChipForum</a>).
+Non-payment is treated as a membership problem, never a rules problem:
+settle before you leave, no IOUs, "anyone who hasn't settled sits out
+the next game" (<a
+href="https://chipsoffury.com/learn/how-to-handle-poker-buy-ins-with-friends/">Chips
+of Fury</a>); one host's rules give three days for Venmo and require a
+non-payer to tell the organiser privately so the group can enforce,
+exclude or absorb (<a
+href="https://www.pokerchipforum.com/goto/post?id=2044449">PokerChipForum</a>);
+Brunson's column records a weekly game that died over an unpaid $200
+loan (<a
+href="https://www.poker1.com/archives/12024/brunson-deans-poker-lending-disease">poker1.com</a>).
+Rounding at cash-out is settled by declaring it in advance — most groups
+round to $1, $5 or $20, with leftover change going to a tip jar or a
+final flip hand — and the caution that a host who fusses over small
+change "may not be invited back" (<a
+href="https://pokerchipforum.com/threads/0-25-0-50-home-game-not-wanting-to-dole-out-25s-in-payouts-ideas-for-rounding-up-down.115563">PokerChipForum</a>).
+In the thread sharing a free web ledger, a member asked how hosts handle
+totals that do not balance, and <strong>nobody answered</strong> (<a
+href="https://www.pokerchipforum.com/threads/simple-ledger-to-calculate-payments-from-losers-to-winners.136287/">PokerChipForum</a>).</p>
+<p>Robert's Rules helps with some of this and is silent on the rest. Its
+private-game edition does fix table stakes ("the amount bought must be
+announced to the table, or only the amount of the minimum buy-in
+plays"), a full no-limit buy-in of forty big blinds, one short buy per
+session, add-ons in any quantity between hands, return within an hour at
+the amount removed, no splitting pots by agreement, and dealing twice
+when all-in (<a
+href="https://www.pagat.com/docs/RobsPkrRulesHome.pdf">Robert's Rules,
+private-game edition</a>). It never uses the phrase "going south", says
+nothing about notice before leaving, rebuy caps as a share of stacks,
+IOUs or who covers a short bank, and does not define who the
+decision-maker is in a private game. Published house-rules templates
+converge on the same dozen clauses — buy-in range, rebuy cap and timing,
+no mid-hand buys, no going south, notice before leaving, re-entry at the
+same amount, no credit or a payment deadline, who absorbs bank errors,
+run-it-twice cap, chop policy, straddles, and host-as-floor — each
+written to pre-empt a known argument (<a
+href="https://www.homepokertourney.org/poker-rules-house.htm">HomePokerTourney
+house rules</a>). Autocomplete confirms hosts search for exactly this:
+"poker cash game rules" completes to <strong>home poker cash game rules,
+poker cash game house rules, poker cash game buy in rules</strong> and
+"are cash poker games illegal" (<a
+href="https://www.google.com/complete/search?q=poker%20cash%20game%20rules&amp;client=firefox&amp;hl=en">Google
+autocomplete</a>) — a legality question that Robert's Rules opens with
+and that house-fee threads keep returning to (<a
+href="https://www.pokerchipforum.com/threads/common-house-fee.88157/post-1808309">PokerChipForum</a>).</p>
+<p>One caveat governs this whole section. Reddit and TwoPlusTwo blocked
+every fetch, the archive API returned nothing for r/homepoker, and
+<strong>ledger and settlement disputes did not appear in any measured
+community thread</strong> — only in PCF host threads and vendor FAQs.
+Either they are rare on public forums or they live in private group
+chats; the research cannot tell which.</p>
+<h2 id="no-app-has-made-a-ruling-convenient-and-none-has-an-audience">No
+app has made a ruling convenient, and none has an audience</h2>
+<p>The app-store "rules" category is effectively unoccupied rather than
+crowded. Of thirteen Google Play results for "poker rules", only two are
+rules references — both the TDA's — and the rest are games and GTO
+trainers (<a
+href="https://play.google.com/store/search?q=poker%20rules&amp;c=apps">Google
+Play</a>). The Official Poker TDA Rules app is a free rulebook reader
+with keyword search and no Q&amp;A, last updated in December 2024 with
+"slight grammatical updates", and shows too few ratings to display a
+score (<a href="https://apps.apple.com/app/id6738895825">App Store</a>).
+The cheat sheets that make up the rest of the category have <strong>3 to
+22 ratings each</strong>, and the only substantive content complaint in
+any of their reviews is "no explanations" — "impossibly hard quiz with
+no explanations", "no help system" (<a
+href="https://apps.apple.com/app/id1547131406">App Store: Poker Hands
+Quiz</a>). Nothing found addresses cash-game procedure or home-game
+house rules; both TDA products are built on a tournament rulebook and
+designed for iPad.</p>
+<p>Home-game tooling split in 2025–26 into two halves, and rules content
+is absent from both. Pokerrrr 2 is the audience: 4.5 from 29,000 US
+ratings (<a href="https://apps.apple.com/us/app/id592081067">App
+Store</a>) and an estimated 2.3 million installs (<a
+href="https://appgoblin.info/apps/592081067">AppGoblin</a>). Its tagline
+is "Your Crew. Your Table. Your Rules.", but its only rule-shaped
+features are variant toggles, and the complaint that recurs is trust:
+reviews alleging the app favours the host, an affiliate blacklist citing
+"unfair practices" (<a
+href="https://www.pokerlistings.com/pokerrrr">PokerListings</a>), and an
+Indie Hackers thread where a group "almost quit Pokerrrr 2 several times
+due to people not trusting the app" and a developer observed that
+"custom game rules" are what apps are missing (<a
+href="https://www.indiehackers.com/post/does-anyone-play-poker-online-with-friends-37169f45f2">Indie
+Hackers</a>). PokerNow encodes house rules as per-table toggles — live
+straddle, run it twice, bomb pot, 7-2 bounty — and shipped a Session
+Ledger in August 2026 that sums buy-ins and buy-outs but leaves
+settlement "up to the group" (<a
+href="https://www.pokernow.com/blog/session-ledger-buy-in-buy-out-summary">PokerNow</a>).
+The other half is a cohort of near-identical iOS settle-up trackers
+launched in the last eighteen months — ChipUp (<span
+class="math inline">4.99/<em>m</em><em>o</em><em>n</em><em>t</em><em>h</em>,  *  * 1.0<em>f</em><em>r</em><em>o</em><em>m</em>2<em>r</em><em>a</em><em>t</em><em>i</em><em>n</em><em>g</em><em>s</em> * *,<em>w</em><em>i</em><em>t</em><em>h</em><em>a</em><em>c</em><em>r</em><em>a</em><em>s</em><em>h</em><em>r</em><em>e</em><em>v</em><em>i</em><em>e</em><em>w</em>)([<em>A</em><em>p</em><em>p</em><em>S</em><em>t</em><em>o</em><em>r</em><em>e</em>](<em>h</em><em>t</em><em>t</em><em>p</em><em>s</em>://<em>a</em><em>p</em><em>p</em><em>s</em>.<em>a</em><em>p</em><em>p</em><em>l</em><em>e</em>.<em>c</em><em>o</em><em>m</em>/<em>u</em><em>s</em>/<em>a</em><em>p</em><em>p</em>/<em>c</em><em>h</em><em>i</em><em>p</em><em>u</em><em>p</em>/<em>i</em><em>d</em>6747723921)), <em>T</em><em>i</em><em>l</em><em>t</em>(<em>p</em><em>e</em><em>r</em>−<em>g</em><em>a</em><em>m</em><em>e</em><em>t</em><em>i</em><em>c</em><em>k</em><em>e</em><em>t</em><em>s</em>,<em>n</em><em>o</em><em>r</em><em>a</em><em>t</em><em>i</em><em>n</em><em>g</em><em>s</em><em>s</em><em>h</em><em>o</em><em>w</em><em>n</em>)([<em>A</em><em>p</em><em>p</em><em>S</em><em>t</em><em>o</em><em>r</em><em>e</em>](<em>h</em><em>t</em><em>t</em><em>p</em><em>s</em>://<em>a</em><em>p</em><em>p</em><em>s</em>.<em>a</em><em>p</em><em>p</em><em>l</em><em>e</em>.<em>c</em><em>o</em><em>m</em>/<em>u</em><em>s</em>/<em>a</em><em>p</em><em>p</em>/<em>i</em><em>d</em>6761335586)), <em>P</em><em>o</em><em>k</em><em>e</em><em>r</em><em>S</em><em>q</em><em>u</em><em>a</em><em>d</em>(</span>3.99/month,
+one rating) (<a
+href="https://apps.apple.com/app/pokersquad/id6757091892">App
+Store</a>), HG Poker, Pokertally, StackPro, PartyPot — every one of
+which computes who pays whom, and <strong>not one of which carries a
+rulebook, a house-rules editor, a ruling tool or a dispute log</strong>.
+ChipUp's claim that its records "help avoid arguments over missing
+money" is the only dispute-adjacent sentence in the category, and it is
+about the ledger, not rulings. The one tool that ships Robert's Rules
+text is Poker Mavens, a hosted online-poker server, in its documentation
+(<a href="https://briggsoft.com/docs/pmavens/Rules_Roberts.htm">Poker
+Mavens docs</a>).</p>
+<p>Willingness to pay for rules content specifically is weak and
+indirect. Robert's Rules was once sold and is now free (<a
+href="https://www.pokerology.com/?p=1388">Pokerology</a>); the TDA's
+revenue comes from membership and certification, not from the text; the
+paid rules-adjacent apps cost <span class="math inline">0.99–</span>1.99
+and have tiny rating counts. The money in home-game apps is charged for
+running the night — settlement, leaderboards, clubs — at $2–5 a month or
+per game. The clearest published evidence that disputes are the selling
+angle for rules content is a book marketed as holding "the answer to
+every poker argument, standstill, or face-off imaginable" (<a
+href="https://www.everand.com/book/414912247">Everand</a>).</p>
+<h2
+id="recommendation-build-the-ruling-feature-into-the-ledger-not-a-second-app">Recommendation:
+build the ruling feature into the ledger, not a second app</h2>
+<p>The evidence supports a feature, not a product, and it does so from
+three directions. First, distribution: a standalone rules app would have
+to acquire users from a store category nobody searches — the
+best-maintained rules product in existence has zero displayed ratings
+months after launch, and the whole category tops out at 22. The large
+search demand that does exist is for hand rankings and printable
+beginner sheets, served free by a dozen SEO pages with near-zero CPC on
+the hand-ranking terms (<a
+href="https://www.theseolabs.com/keywords-lists/poker/">TheSEOLabs</a>),
+and there is no evidence that traffic converts to an app (the
+cheat-sheet apps that chase it have three ratings). Second, inputs: a
+ruling needs the seated players, the stakes, the house rules and the
+host, and the ledger already holds all four while no rules app holds
+any. Third, the moment: on the measured evidence, home cash-game
+disputes cluster at the end of the night around the bank, the rebuy
+record, rounding and who owes whom — which is the exact record the
+ledger app already keeps and the exact point where it already shows a
+Rounding sheet and a money-rules screen. The steelman for a separate app
+is that a rules-first product could capture the ~165,000 monthly "poker
+rules" searches and the December home-game season as a top-of-funnel;
+but a free printable house-rules sheet generated by the ledger app,
+published on the web, captures that funnel without a second product to
+maintain, and the most recent forum evidence on rules-apps-as-business
+is a 2013 International Poker Rules Association app that no longer
+surfaces anywhere (<a
+href="https://www.pokernews.com/news/2013/05/marcel-luske-s-international-poker-rules-association-15045.htm">PokerNews</a>).</p>
+<h3 id="what-differentiated-has-to-mean">What differentiated has to
+mean</h3>
+<p>Nothing in the market does any of the following, and together they
+are the feature.</p>
+<p><strong>Cash-game and home-game first.</strong> Table stakes, going
+south, rebuy minimums and caps, chips in play, leaving with chips, time
+away, splitting by agreement, running it twice, straddles, misdeals and
+exposed cards in a self-dealt dealer's-choice game — none of it is in
+the TDA rulebook the existing tools use. This alone is unoccupied
+ground.</p>
+<p><strong>House rules as data, set once per group, with cited defaults
+and honest blanks.</strong> Where Robert's Rules speaks — forty big
+blinds for a full buy-in, one short buy per session, return within an
+hour at the amount removed, no splitting pots by agreement, dealing
+twice permitted — pre-fill it and cite it (<a
+href="https://www.pagat.com/docs/RobsPkrRulesHome.pdf">Robert's Rules,
+private-game edition</a>). Where it is silent — rebuy cap as a share of
+stacks, notice before leaving, who absorbs a short bank, the rounding
+unit, IOU deadline — present the choice as a choice with the forum range
+(50%/75%/100% of the big stack; one orbit to one hour; host absorbs or
+split; <span class="math inline">1/</span>5/$20), default to the
+community norm (host absorbs; declare rounding in advance), and never
+invent a rule. PokerNow proved toggles are the natural shape; nobody has
+built them for a physical table.</p>
+<p><strong>A walkthrough that produces a verdict with the rule and the
+reasoning.</strong> For the fifteen or so situations that drive the
+argument — the mucked winner, verbal versus chips, the single chip,
+string bets, the out-of-turn call, who shows first, exposed and extra
+cards, running it twice, the short all-in reopening the betting,
+side-pot eligibility — a short decision tree ("Was 'raise' said? Was the
+chip larger than the bet? Had anyone acted after?") gives a
+deterministic answer with the rule cited and the facts restated. That
+answers the "no explanations" complaint and avoids the invented-rule
+failure the board-game referee bots exist to fix. If an AI layer is
+added later, it should map the player's description onto that tree
+rather than free-generate a verdict, and the rules edition and date
+should sit on every answer — the TDA assistant's drift from 2024 to 2026
+is the maintenance failure to design against.</p>
+<p><strong>A timestamped ruling attached to the night.</strong> The PCF
+dispute was unresolvable because both hosts were in the hand (<a
+href="https://www.pokerchipforum.com/threads/home-game-ruling.42199/latest">PokerChipForum</a>);
+every hosting guide's one rule is to name a final decision-maker (<a
+href="https://advancedpokertraining.com/poker/articles/beyond-basics/hosting-a-home-game.php">Advanced
+Poker Training</a>); Robert's Rules says a pot ruling must be requested
+before the next deal starts. A ruling record — who asked, the facts as
+agreed, the rule applied, who decided (with a stand-in when the host is
+in the hand), who acknowledged, timestamped and closed at the next deal
+— is what a ledger app uniquely can do, and it is the trust mechanism
+Pokerrrr 2's reviewers are asking for in another form. The same pattern
+already works for money in one host's game, where every buy-in
+notification must be disputed immediately or stands (<a
+href="https://www.pokerchipforum.com/goto/post?id=2044449">PokerChipForum</a>).</p>
+<p><strong>Money-dispute procedure where the ledger already is.</strong>
+A short-bank checklist at count-up (chips in play should equal buy-ins
+plus rebuys; audit the rebuys; check the float; search the room) with
+the group's shortfall rule applied automatically; rebuys acknowledged by
+the player at the moment of recording; an IOU with a settle-by date and
+the "sits out until settled" consequence recorded, since exclusion is
+the community's only enforcement. These are extensions of the ledger's
+existing rows, not a new vocabulary.</p>
+<p><strong>Offline, no ads, and a printable sheet.</strong> Rulings
+happen at a kitchen table, and the cheat-sheet apps advertise offline
+for that reason (<a
+href="https://apps.apple.com/us/app/id6757372869">App Store: Poker Hands
+- Cheat Sheet</a>). A one-page house-rules sheet generated from the
+group's settings — "we use these rules; the host decides anything not on
+this page" — matches the advice hosts already follow (<a
+href="https://www.homepokertourney.org/poker-rules-house.htm">HomePokerTourney
+house rules</a>), matches the printable/pdf intent behind the search
+demand, and is the feature's own distribution channel when shared to a
+group chat before the night.</p>
+<p><strong>Write the rules text in-house.</strong> Robert's Rules cannot
+be reproduced commercially without consent that can no longer be
+obtained; restating its provisions in original wording with attribution
+is both the legal path and what makes them customisable.</p>
+<h3 id="sequence-and-what-remains-unproven">Sequence and what remains
+unproven</h3>
+<p>The cheapest first step is the one closest to the app's existing
+domain: the house-rules settings with cited defaults, the shortfall and
+rounding rules applied at count-up, and the printable sheet — none of
+which needs rulebook content beyond a few restated lines. The
+hand-ruling walkthrough for the top ten to fifteen situations follows,
+and a grounded assistant is optional and last. Three things the research
+could not establish should be checked before committing to the second
+step: how often a real group opens a ruling at the table (instrument the
+feature and watch), whether r/homepoker's unmeasured traffic changes the
+ranking of situations, and whether anyone will pay for rules content at
+all — the honest reading is that the feature earns retention and
+differentiation for the paid tier rather than revenue of its own.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>The market has settled into a shape that nobody intended: the rules
+of a home cash game are kept by a dead author's PDF, interpreted by a
+forum consensus or a famous director's Twitter replies, and enforced by
+whoever is hosting — while a dozen new apps compete to compute the same
+minimum-transfer settlement and not one of them records what the group
+agreed to. That gap is not a product category waiting for a standalone
+entrant; it is a missing layer in the thing hosts already use, and the
+reason it is missing is that only a ledger knows who was at the table,
+for how much, and under whose authority.</p>
+<p>What changes with this understanding is the definition of a "ruling".
+The casino model — a floor arrives, consults a rulebook, decides — is
+the wrong template for a kitchen table where the floor is in the hand.
+The useful artefact is not the verdict but the record: the house rule
+declared before the night, the facts agreed at the time, the decision
+and who acknowledged it, closed before the next deal. Build that into
+the ledger and the app stops being a calculator the losers have to trust
+and becomes the thing the group points at when the argument starts.</p>
+</main></body></html>
