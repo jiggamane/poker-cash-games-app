@@ -1,0 +1,1664 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rules and rulings design</title><style>
+:root{--ink:#1c1b19;--muted:#5d5a54;--rule:#e2ddd3;--accent:#7a2e1f;--bg:#fbf9f5;--tint:#f2eee6}
+*{box-sizing:border-box}
+html{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Iowan Old Style","Times New Roman",serif;line-height:1.55}
+main{max-width:46rem;margin:0 auto;padding:3rem 1rem 4rem}
+header.title{border-bottom:3px solid var(--accent);padding-bottom:1rem;margin-bottom:2rem}
+header.title h1{font-size:2.1rem;line-height:1.15;margin:0 0 .5rem}
+header.title p{margin:0;color:var(--muted);font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:.9rem}
+h1,h2,h3{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:2.4rem 0 .8rem;padding-top:.4rem;border-top:1px solid var(--rule)}
+h3{font-size:1.1rem;margin:1.8rem 0 .5rem;color:var(--accent)}
+p{margin:0 0 1rem}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(122,46,31,.35)}
+strong{font-weight:700}
+table{width:100%;border-collapse:collapse;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:.88rem;margin:1.2rem 0 1.6rem}
+th,td{text-align:left;vertical-align:top;padding:.55rem .6rem;border-bottom:1px solid var(--rule)}
+th{background:var(--tint);font-weight:600}
+tr:nth-child(even) td{background:#f7f4ee}
+ul,ol{padding-left:1.4rem}
+li{margin-bottom:.4rem}
+blockquote{margin:1rem 0;padding:.2rem 1rem;border-left:3px solid var(--rule);color:var(--muted)}
+hr{border:0;border-top:1px solid var(--rule);margin:2rem 0}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:var(--tint);padding:.1em .3em;border-radius:3px}
+@media (max-width:600px){html{font-size:15px}main{padding:2rem 1rem 3rem}header.title h1{font-size:1.7rem}table{display:block;overflow-x:auto}}
+@media print{body{background:#fff}main{max-width:none;padding:0}a{border-bottom:0;color:var(--ink)}h2{break-after:avoid}table,tr{break-inside:avoid}}
+@page{size:A4;margin:18mm 16mm 20mm}
+.glance{margin-bottom:2.5rem}
+.glance .lede{color:var(--muted);font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:.95rem}
+.diagram{width:100%;height:auto;display:block;margin:.6rem 0 1.8rem;background:#fff;border:1px solid var(--rule);border-radius:8px}
+@media print{.diagram{break-inside:avoid}}
+</style></head><body><main><header class="title"><h1>Rules &amp; rulings — a design</h1><p>The Poker Club · a rules library, the group's own table rules, an AI fallback marked as such, a review queue, and rulings saved to the night · 20 October 2026 · docs/rulings.md</p></header>
+<section class="glance">
+<h2 id="structure-at-a-glance">Structure at a glance</h2>
+<p class="lede">Two pictures before the prose. The first is where the feature sits in the app and which chrome each screen wears. The second is how a question becomes an answer, and how an unanswered one becomes a verified answer in the next edition.</p>
+
+<h3>Navigation</h3>
+<svg class="diagram" viewBox="0 0 920 560" role="img" aria-label="Navigation map: three entry points leading to the same situation sheet">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5d5a54"/></marker>
+<style>
+.push{fill:#fff;stroke:#7a2e1f;stroke-width:2}
+.root{fill:#f2eee6;stroke:#1c1b19;stroke-width:2}
+.sheet{fill:#fbf9f5;stroke:#7a2e1f;stroke-width:2;stroke-dasharray:7 4}
+.step{fill:#fff;stroke:#5d5a54;stroke-width:1.5;stroke-dasharray:2 3}
+.drawer{fill:#fff;stroke:#5d5a54;stroke-width:1.5}
+.t{font:600 13px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#1c1b19}
+.s{font:500 11px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#5d5a54}
+.cap{font:600 11px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#7a2e1f;letter-spacing:.06em}
+.ln{fill:none;stroke:#5d5a54;stroke-width:1.5;marker-end:url(#arr)}
+.lbl{font:500 10.5px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#5d5a54}
+</style>
+</defs>
+
+<!-- legend -->
+<g transform="translate(20,18)">
+<rect class="root" x="0" y="0" width="16" height="12" rx="2"/><text class="s" x="22" y="10">root</text>
+<rect class="push" x="70" y="0" width="16" height="12" rx="2"/><text class="s" x="92" y="10">push · Chrome A (back button)</text>
+<rect class="sheet" x="275" y="0" width="16" height="12" rx="6"/><text class="s" x="297" y="10">sheet · Chrome B (grabber, close, swipe down)</text>
+<rect class="step" x="560" y="0" width="16" height="12" rx="2"/><text class="s" x="582" y="10">replaces a sheet's content, keeps its close</text>
+<rect class="drawer" x="810" y="0" width="16" height="12" rx="2"/><text class="s" x="832" y="10">drawer</text>
+</g>
+
+<!-- root -->
+<rect class="root" x="380" y="52" width="160" height="40" rx="6"/>
+<text class="t" x="460" y="71" text-anchor="middle">Club home</text>
+<text class="s" x="460" y="85" text-anchor="middle">root · no chevron</text>
+
+<!-- column captions -->
+<text class="cap" x="90" y="128">BEFORE THE NIGHT</text>
+<text class="cap" x="420" y="128">AT THE TABLE</text>
+<text class="cap" x="740" y="128">ENDING THE NIGHT</text>
+
+<!-- Settings column -->
+<rect class="push" x="30" y="140" width="150" height="40" rx="6"/>
+<text class="t" x="105" y="159" text-anchor="middle">Settings</text>
+<text class="s" x="105" y="173" text-anchor="middle">push · back → club</text>
+
+<rect class="push" x="20" y="220" width="170" height="54" rx="6"/>
+<text class="t" x="105" y="240" text-anchor="middle">Rules</text>
+<text class="s" x="105" y="254" text-anchor="middle">push · back → Settings</text>
+<text class="s" x="105" y="267" text-anchor="middle">search · areas · Your rules</text>
+
+<rect class="sheet" x="30" y="320" width="150" height="54" rx="12"/>
+<text class="t" x="105" y="340" text-anchor="middle">Table rules</text>
+<text class="s" x="105" y="354" text-anchor="middle">sheet over Rules</text>
+<text class="s" x="105" y="367" text-anchor="middle">ends with Save</text>
+
+<rect class="step" x="30" y="410" width="150" height="40" rx="4"/>
+<text class="t" x="105" y="429" text-anchor="middle">Share the rules sheet</text>
+<text class="s" x="105" y="442" text-anchor="middle">printable · a sharing format</text>
+
+<!-- Tonight column -->
+<rect class="push" x="355" y="140" width="210" height="40" rx="6"/>
+<text class="t" x="460" y="159" text-anchor="middle">Tonight</text>
+<text class="s" x="460" y="173" text-anchor="middle">push · back → club · recording phone</text>
+
+<rect class="drawer" x="355" y="210" width="210" height="40" rx="6"/>
+<text class="t" x="460" y="229" text-anchor="middle">Table admin drawer</text>
+<text class="s" x="460" y="243" text-anchor="middle">dock expanding · not in the stack</text>
+
+<rect class="sheet" x="355" y="282" width="210" height="68" rx="12"/>
+<text class="t" x="460" y="302" text-anchor="middle">Rulings</text>
+<text class="s" x="460" y="316" text-anchor="middle">sheet 1 over Tonight</text>
+<text class="s" x="460" y="329" text-anchor="middle">search · ★ twelve · area chips</text>
+<text class="s" x="460" y="342" text-anchor="middle">header → Table rules, read-only</text>
+
+<rect class="step" x="590" y="282" width="110" height="68" rx="4"/>
+<text class="t" x="645" y="304" text-anchor="middle">Ask</text>
+<text class="s" x="645" y="318" text-anchor="middle">AI fallback</text>
+<text class="s" x="645" y="331" text-anchor="middle">replaces search</text>
+<text class="s" x="645" y="344" text-anchor="middle">content</text>
+
+<!-- Count up column -->
+<rect class="push" x="720" y="140" width="170" height="54" rx="6"/>
+<text class="t" x="805" y="160" text-anchor="middle">Count up</text>
+<text class="s" x="805" y="174" text-anchor="middle">pushed step 1 of 3</text>
+<text class="s" x="805" y="187" text-anchor="middle">"If the bank is short" row</text>
+
+<!-- Situation sheet (shared) -->
+<rect class="sheet" x="270" y="400" width="380" height="76" rx="12"/>
+<text class="t" x="460" y="422" text-anchor="middle">A situation</text>
+<text class="s" x="460" y="437" text-anchor="middle">sheet · the only sheet from Rules · sheet 2, the floor, from Rulings</text>
+<text class="s" x="460" y="451" text-anchor="middle">answer · Your group · Source · Tournament (only if it differs)</text>
+<text class="s" x="460" y="465" text-anchor="middle">Record this ruling (only with a night open) · Helpful?</text>
+
+<rect class="step" x="270" y="505" width="380" height="40" rx="4"/>
+<text class="t" x="460" y="524" text-anchor="middle">Record this ruling</text>
+<text class="s" x="460" y="538" text-anchor="middle">replaces the situation sheet's content · Decided by · Note · Record</text>
+
+<!-- arrows -->
+<path class="ln" d="M380 72 L105 140"/>
+<path class="ln" d="M460 92 L460 140"/>
+<path class="ln" d="M540 72 L805 140"/>
+<path class="ln" d="M105 180 L105 220"/>
+<path class="ln" d="M105 274 L105 320"/>
+<path class="ln" d="M105 374 L105 410"/>
+<path class="ln" d="M460 180 L460 210"/>
+<path class="ln" d="M460 250 L460 282"/>
+<path class="ln" d="M565 316 L590 316"/>
+<path class="ln" d="M460 350 L460 400"/>
+<path class="ln" d="M190 247 C 250 247, 290 330, 310 400"/>
+<path class="ln" d="M805 194 C 805 300, 710 330, 620 400"/>
+<path class="ln" d="M645 350 L 540 400"/>
+<path class="ln" d="M460 476 L460 505"/>
+
+<text class="lbl" x="195" y="240">a row</text>
+<text class="lbl" x="760" y="310">the row</text>
+<text class="lbl" x="614" y="374">answer</text>
+<text class="lbl" x="468" y="382">a row · sheet 2</text>
+<text class="lbl" x="470" y="496">Record</text>
+</svg>
+
+<h3>Data and the loop</h3>
+<svg class="diagram" viewBox="0 0 930 600" role="img" aria-label="Data flow: question to answer, capture to review, ruling to the night">
+<defs>
+<marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5d5a54"/></marker>
+<style>
+.ph{fill:#fff;stroke:#1c1b19;stroke-width:1.5}
+.core{fill:#f2eee6;stroke:#1c1b19;stroke-width:1.5}
+.srv{fill:#fbf9f5;stroke:#7a2e1f;stroke-width:1.5}
+.us{fill:#fff;stroke:#5d5a54;stroke-width:1.5;stroke-dasharray:4 3}
+.ai{fill:#fff;stroke:#7a2e1f;stroke-width:1.5;stroke-dasharray:7 4}
+.t2{font:600 13px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#1c1b19}
+.s2{font:500 11px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#5d5a54}
+.cap2{font:600 11px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#7a2e1f;letter-spacing:.06em}
+.ln2{fill:none;stroke:#5d5a54;stroke-width:1.5;marker-end:url(#arr2)}
+.loop{fill:none;stroke:#7a2e1f;stroke-width:1.5;stroke-dasharray:5 4;marker-end:url(#arr2)}
+.lbl2{font:500 10.5px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#5d5a54}
+</style>
+</defs>
+
+<!-- lanes -->
+<text class="cap2" x="20" y="24">ON THE PHONE · WORKS OFFLINE</text>
+<line x1="20" y1="30" x2="580" y2="30" stroke="#e2ddd3"/>
+<text class="cap2" x="610" y="24">SERVER · SUPABASE</text>
+<line x1="610" y1="30" x2="900" y2="30" stroke="#e2ddd3"/>
+
+<!-- bundle -->
+<rect class="core" x="20" y="50" width="200" height="66" rx="6"/>
+<text class="t2" x="120" y="72" text-anchor="middle">situations.json</text>
+<text class="s2" x="120" y="87" text-anchor="middle">in the bundle · RULES_EDITION</text>
+<text class="s2" x="120" y="101" text-anchor="middle">cash · tournament note · binds</text>
+
+<!-- table rules -->
+<rect class="core" x="20" y="140" width="200" height="66" rx="6"/>
+<text class="t2" x="120" y="162" text-anchor="middle">TableRules</text>
+<text class="s2" x="120" y="177" text-anchor="middle">club default → night snapshot</text>
+<text class="s2" x="120" y="191" text-anchor="middle">rebuy cap · going south · bank</text>
+
+<!-- engine -->
+<rect class="core" x="20" y="230" width="200" height="66" rx="6"/>
+<text class="t2" x="120" y="252" text-anchor="middle">packages/core</text>
+<text class="s2" x="120" y="267" text-anchor="middle">sidePots · shortBank · rebuyAllowed</text>
+<text class="s2" x="120" y="281" text-anchor="middle">the only arithmetic · tested</text>
+
+<!-- search -->
+<rect class="ph" x="262" y="50" width="186" height="52" rx="6"/>
+<text class="t2" x="355" y="72" text-anchor="middle">Search</text>
+<text class="s2" x="355" y="88" text-anchor="middle">title · aliases · keywords</text>
+
+<!-- verified answer -->
+<rect class="ph" x="262" y="140" width="186" height="66" rx="6"/>
+<text class="t2" x="355" y="162" text-anchor="middle">Verified answer</text>
+<text class="s2" x="355" y="177" text-anchor="middle">body with {{rule.key}} resolved</text>
+<text class="s2" x="355" y="191" text-anchor="middle">Your group · Source · Tournament</text>
+
+<!-- engine answer -->
+<rect class="ph" x="262" y="230" width="186" height="52" rx="6"/>
+<text class="t2" x="355" y="252" text-anchor="middle">Engine answer</text>
+<text class="s2" x="355" y="268" text-anchor="middle">the figure, with its sentence</text>
+
+<!-- ask -->
+<rect class="ai" x="262" y="320" width="186" height="66" rx="6"/>
+<text class="t2" x="355" y="342" text-anchor="middle">Ask</text>
+<text class="s2" x="355" y="357" text-anchor="middle">names → Player A, Player B</text>
+<text class="s2" x="355" y="371" text-anchor="middle">rules snapshot · 3 nearest ids</text>
+
+<!-- AI answer -->
+<rect class="ai" x="262" y="420" width="186" height="80" rx="6"/>
+<text class="t2" x="355" y="442" text-anchor="middle">AI answer</text>
+<text class="s2" x="355" y="457" text-anchor="middle">pill AI · "not verified"</text>
+<text class="s2" x="355" y="471" text-anchor="middle">what it relied on · Was this right?</text>
+<text class="s2" x="355" y="485" text-anchor="middle">needsFact → one question back</text>
+
+<!-- outbox -->
+<rect class="ph" x="480" y="400" width="100" height="120" rx="6"/>
+<text class="t2" x="530" y="426" text-anchor="middle">Outbox</text>
+<text class="s2" x="530" y="442" text-anchor="middle">client ids</text>
+<text class="s2" x="530" y="456" text-anchor="middle">seq order</text>
+<text class="s2" x="530" y="470" text-anchor="middle">drains when</text>
+<text class="s2" x="530" y="484" text-anchor="middle">there is signal</text>
+
+<!-- record -->
+<rect class="ph" x="262" y="530" width="186" height="52" rx="6"/>
+<text class="t2" x="355" y="552" text-anchor="middle">Record this ruling</text>
+<text class="s2" x="355" y="568" text-anchor="middle">decided by · note · source</text>
+
+<!-- server: edge fn -->
+<rect class="srv" x="610" y="320" width="290" height="66" rx="6"/>
+<text class="t2" x="755" y="342" text-anchor="middle">ruling-assist · edge function</text>
+<text class="s2" x="755" y="357" text-anchor="middle">holds the key · tier gate · rate limit</text>
+<text class="s2" x="755" y="371" text-anchor="middle">Opus 5.5 · library cached · structured output</text>
+
+<!-- server: ruling_question -->
+<rect class="srv" x="620" y="420" width="270" height="66" rx="6"/>
+<text class="t2" x="755" y="442" text-anchor="middle">ruling_question</text>
+<text class="s2" x="755" y="457" text-anchor="middle">asked · thumbs_down · no_match</text>
+<text class="s2" x="755" y="471" text-anchor="middle">anonymised text · snapshot · nearest id · edition</text>
+
+<!-- server: night_ruling -->
+<rect class="srv" x="620" y="520" width="270" height="66" rx="6"/>
+<text class="t2" x="755" y="542" text-anchor="middle">night_ruling</text>
+<text class="s2" x="755" y="557" text-anchor="middle">beside night_pass · not a ledger entry</text>
+<text class="s2" x="755" y="571" text-anchor="middle">→ /log row · /settled meta · watcher feed</text>
+
+<!-- us: review -->
+<rect class="us" x="620" y="50" width="270" height="66" rx="6"/>
+<text class="t2" x="755" y="72" text-anchor="middle">ruling_question_review · export</text>
+<text class="s2" x="755" y="87" text-anchor="middle">grouped by stem · count · marked wrong</text>
+<text class="s2" x="755" y="101" text-anchor="middle">write · verify · ship in the next edition</text>
+
+<!-- arrows -->
+<path class="ln2" d="M220 83 L262 76"/>
+<path class="ln2" d="M220 173 L262 173"/>
+<path class="ln2" d="M355 102 L355 140"/>
+<path class="ln2" d="M355 206 L355 230"/>
+<path class="ln2" d="M220 263 L262 256"/>
+<path class="ln2" d="M355 282 L355 320"/>
+<path class="ln2" d="M448 350 L610 350"/>
+<path class="ln2" d="M755 386 L755 420"/>
+<path class="ln2" d="M610 368 L448 368"/>
+<path class="ln2" d="M448 455 L480 455"/>
+<path class="ln2" d="M448 196 C 530 240, 530 330, 530 400"/>
+<path class="ln2" d="M580 470 L620 462"/>
+<path class="ln2" d="M355 500 L355 530"/>
+<path class="ln2" d="M448 556 L620 553"/>
+<path class="ln2" d="M220 190 C 240 240, 236 500, 262 548"/>
+<path class="loop" d="M890 453 L908 453 L908 83 L890 83"/>
+<path class="loop" d="M620 83 C 450 12, 250 12, 120 50"/>
+
+<text class="lbl2" x="500" y="342">one call</text>
+<text class="lbl2" x="770" y="406">queue row, same call</text>
+<text class="lbl2" x="505" y="382">answer</text>
+<text class="lbl2" x="540" y="392">👎 · no_match</text>
+<text class="lbl2" x="585" y="490">drain</text>
+<text class="lbl2" x="902" y="270" text-anchor="end">weekly</text>
+<text class="lbl2" x="340" y="20">next edition</text>
+<text class="lbl2" x="120" y="330" text-anchor="middle">rules snapshot → the ruling row</text>
+</svg>
+</section>
+<p>A host at a kitchen table, a pot in the middle, two people certain of
+opposite things. This is the feature that answers them from the phone
+that is already recording the night. It is a design, not a build:
+nothing in <code>apps/</code>, <code>packages/</code> or
+<code>supabase/</code> changes with this file. Written 20 October 2026
+against <code>main</code> at <code>9a78e1c</code>, from
+<code>reports/Poker rules advice services.md</code> and the five note
+files behind it.</p>
+<p><strong>How to read it.</strong> § 1 is the decisions the owner has
+already made and this file builds on. § 2 is where the feature sits in
+the app and which chrome each screen wears. § 3 is how a host finds a
+situation in three taps. § 4 is the content model for a verified answer.
+§ 5 is how the group's own rules feed the answers. § 6 is the AI
+fallback and how it is marked. § 7 is the review queue that turns
+unanswered questions into verified ones. § 8 is the ruling saved to the
+night. § 9 is the first draft of the situation list. § 10 is copy, § 11
+the checks, § 12 what is open, § 13 the build order.</p>
+<p>Every string in this file that no board draws is marked
+<strong>UNSURE</strong> at the place it first appears, per the copy rule
+in <code>CLAUDE.md</code>. There are many, because no handoff has drawn
+any of this yet.</p>
+<hr />
+<h2 id="1--the-decisions-this-builds-on">1 · The decisions this builds
+on</h2>
+<p>From the owner, 20 October, and from the research the week
+before:</p>
+<ol type="1">
+<li><strong>Inside the ledger app, not a separate app.</strong> The
+research found no audience for standalone rules apps (0–22 ratings
+across the category), no willingness to pay for rules text, and a ledger
+that already holds the three things a ruling needs: the players, the
+stakes and the host.</li>
+<li><strong>A default list of verified answers, written by us.</strong>
+The app ships the list; the list is the product.</li>
+<li><strong>AI for anything the list misses, visibly marked as
+AI.</strong> The AI answer is never presented as ours.</li>
+<li><strong>Every miss is captured for review</strong>, so the list
+grows from what people actually ask rather than from what we imagine
+they ask.</li>
+<li><strong>Cash game first.</strong> Every answer is written for a cash
+game. Where a tournament ruling differs, the answer says so in a note
+that cannot be mistaken for the answer.</li>
+<li><strong>Navigation is the hard part.</strong> Seven areas, sixty
+situations, a host with one thumb and a table waiting.</li>
+</ol>
+<p>Two constraints from the research that shape the whole thing:</p>
+<ul>
+<li><strong>Robert's Rules of Poker cannot be bundled.</strong> Its
+private-game edition bars commercial use without the late author's
+consent. Every answer here is written in our words, and cites Robert's
+Rules or the TDA rules as <em>source</em>, never quotes them at
+length.</li>
+<li><strong>General chatbots fail on exactly the procedural
+parts</strong> — pot counting, straddles, the five-card rule (Silver,
+May 2025). So the AI never does arithmetic. Side pots, rebuy caps,
+rounding and the short bank are computed in <code>packages/core</code>,
+which is the only place arithmetic happens in this app and the only
+place it is tested. The AI explains; the engine counts.</li>
+</ul>
+<hr />
+<h2 id="2--where-it-lives">2 · Where it lives</h2>
+<p>Three entry points, one library, two chromes. The pattern already
+exists in the app: <strong>Money rules</strong> is a push from Settings
+(the group's defaults, a place) and a sheet from Tonight (tonight's
+list, one thing to do). Rulings follow it exactly, which means nothing
+new for a host to learn about which gesture gets them back.</p>
+<h3 id="21-the-screens">2.1 The screens</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Screen</th>
+<th>Chrome</th>
+<th>Opens from</th>
+<th>Why that chrome</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Rules</strong> — the library</td>
+<td><strong>Push</strong> (Chrome A), back → Settings</td>
+<td>Settings, a new row under <em>Money rules</em></td>
+<td>A reference you browse and stay in. Club → Settings → Rules is two
+pushes below the root, the limit, so nothing pushes from it.</td>
+</tr>
+<tr class="even">
+<td><strong>A situation</strong> — the answer</td>
+<td><strong>Sheet</strong> (Chrome B)</td>
+<td>A row on Rules, a row on the Rulings sheet, the count-up hook,
+search</td>
+<td>One thing: read the answer, optionally record the ruling. Ends with
+a confirm, so a sheet by <code>09-navigation.md</code>'s test.</td>
+</tr>
+<tr class="odd">
+<td><strong>Record this ruling</strong></td>
+<td>Replaces the situation sheet's content, keeps its close</td>
+<td><em>Record</em> on a situation</td>
+<td>A step in a flow, not a place.</td>
+</tr>
+<tr class="even">
+<td><strong>Rulings</strong> — at the table</td>
+<td><strong>Sheet</strong> over Tonight</td>
+<td>The table-admin drawer, a new row</td>
+<td>The host is mid-night and needs to get back to Tonight unchanged, by
+swipe. Same reason tonight's Money rules is a sheet.</td>
+</tr>
+<tr class="odd">
+<td><strong>Table rules</strong> — the group's parameters</td>
+<td><strong>Sheet</strong> over Rules (from Settings), or
+<strong>read-only sheet</strong> over Tonight</td>
+<td><em>Your rules</em> row; the Rulings sheet's header</td>
+<td>Ends with Save → sheet. Over Tonight it is read-only, for the same
+reason <code>house-rules.tsx</code> is: a night's rules are a snapshot
+taken when it opened.</td>
+</tr>
+<tr class="even">
+<td><strong>Ask</strong> — the AI fallback</td>
+<td>Replaces the Rulings or Rules search content</td>
+<td><em>Nothing matches? Ask</em></td>
+<td>A step, not a place.</td>
+</tr>
+</tbody>
+</table>
+<p>Depth is legal everywhere: from Tonight, the Rulings sheet is the
+first sheet and a situation is the second, which
+<code>09-navigation.md</code> names as the floor. <em>Record</em>
+replaces that second sheet's content rather than raising a third. From
+Settings → Rules, a situation is the only sheet.</p>
+<h3 id="22-the-three-entry-points">2.2 The three entry points</h3>
+<p><strong>Settings.</strong> A new Action row after <em>Money
+rules</em>: <strong>Rules &amp; rulings</strong> (UNSURE — label). It
+pushes <code>/rules</code>. This is where a host reads before a night,
+sets the group's table rules, and shares the printable sheet.</p>
+<p><strong>The table-admin drawer on Tonight.</strong> A fifth row,
+<strong>Rulings</strong> (UNSURE — label; icon not drawn), between
+<em>Money rules</em> and <em>Pass the game</em>. It opens the Rulings
+sheet. The drawer is "the dock expanding in place" and does not join the
+navigation stack, so this costs nothing in depth. Only the phone
+recording the night sees the drawer; a watcher gets the same library
+from Settings and cannot record a ruling.</p>
+<p><strong>Count up.</strong> When <em>In play</em> and <em>Accounted
+for</em> disagree, the discrepancy is already the headline. One row
+beneath the counted list — <strong>If the bank is short</strong>
+(UNSURE) — opens the short-bank situation directly, resolved against the
+group's rule. The count-up header is owned by the 6 September cut and
+this row must sit outside the block the cut draws. Whether it should
+exist at all is in § 12.</p>
+<h3 id="23-what-is-deliberately-not-an-entry-point">2.3 What is
+deliberately not an entry point</h3>
+<ul>
+<li><strong>Not a dock button.</strong> The dock has three slots and
+they are money.</li>
+<li><strong>Not a tab.</strong> There is no tab bar.</li>
+<li><strong>Not the club home.</strong> The root is the night and the
+book. A host who wants rules before a night goes to Settings, the same
+way they go for Money rules.</li>
+<li><strong>Not a sheet over a player card.</strong> A ruling is about
+the table, not a player, and the player card already raises the amount
+sheet, which is the floor.</li>
+</ul>
+<hr />
+<h2 id="3--finding-a-situation-in-three-taps">3 · Finding a situation in
+three taps</h2>
+<p>The research is specific about what a host needs at the table: the
+dozen judgement calls that start arguments (mucked winner, verbal versus
+chips, string bet, out of turn, exposed card) and the dozen
+money-procedure questions that rulebooks never cover (short bank, rebuy
+cap, going south, leaving). Lookups — who wins, kickers, blinds — are
+asked a hundred times more often but by beginners, usually before the
+night and usually of Google. So the two surfaces are weighted
+differently.</p>
+<h3 id="31-the-rulings-sheet-at-the-table">3.1 The Rulings sheet (at the
+table)</h3>
+<pre><code>▬▬▬
+Rulings                                   [×]
+Cash game · your rules apply · edition 2026.1
+┌──────────────────────────────────────────┐
+│ 🔍  What happened?                       │
+└──────────────────────────────────────────┘
+AT THE TABLE
+  Winning hand hit the muck                 ›
+  Said &quot;raise&quot;, put in one chip             ›
+  Bet in two motions                        ›
+  Acted before their turn                   ›
+  Card flashed while dealing                ›
+  Someone has three cards                   ›
+  Who shows first?                          ›
+  Three people all in — the pots            ›
+  Bank is short                             ›
+  Wants to buy back in                      ›
+  Leaving with a big stack                  ›
+  Was that a slow roll?                     ›
+MORE
+  Betting · Showdown · Hands · Dealing · Money · Behaviour
+Nothing matches?  Ask ›</code></pre>
+<p>Every string in the mock is UNSURE. The structure is the
+decision:</p>
+<ul>
+<li><strong>Search first</strong>, because a host who knows what
+happened types two words. Search runs offline over title, aliases and
+keywords (§ 4), ranks by prefix match then substring, and shows at most
+six rows. A phrase that matches nothing shows the <em>Ask</em> row
+alone.</li>
+<li><strong>Twelve situations, by name of what happened</strong>, not by
+rule. "Winning hand hit the muck", not "Dead hands". The host is
+describing, not classifying. These twelve are the research's ranking (§
+9 marks them ★) and the list is fixed per content edition, not
+personalised — a host should find the same row in the same place every
+week.</li>
+<li><strong>Areas as a chip row</strong> underneath, for the long tail.
+Tapping an area replaces the twelve with that area's list; the sheet's
+search and close stay.</li>
+<li><strong>The sub-line names the edition and that the group's rules
+apply.</strong> A ruling read from this sheet is dated by it.</li>
+</ul>
+<h3 id="32-the-rules-push-from-settings">3.2 The Rules push (from
+Settings)</h3>
+<p>The same library as a place. Search at the top; then the seven areas
+as sections, each a captioned list of its situations in the order § 9
+gives; then <strong>Your rules</strong> (UNSURE) as the last section,
+with the parameters the group has set and the ones still at default, and
+a <strong>Share the rules sheet</strong> row (UNSURE) that produces the
+one-page printable the research found hosts search for ("poker rules
+printable", "poker cash game house rules").</p>
+<h3 id="33-the-situation-sheet">3.3 The situation sheet</h3>
+<pre><code>▬▬▬
+Winning hand hit the muck                 [×]
+Showdown · verified · edition 2026.1
+
+If the cards are face up on the table, they
+play. Cards speak: the dealer reads them,
+and a hand the player misread still wins.
+
+If they went face down into the muck and
+can be pulled out with no doubt which they
+were, they are live. If there is any doubt,
+the hand is dead and the pot goes to the
+best hand still showing.
+
+YOUR GROUP
+  Who decides a dispute      Lena (host)
+  Change ›
+
+SOURCE
+  Robert&#39;s Rules of Poker, Showdown · TDA 2026 r.15, 17
+
+TOURNAMENT
+  Different in a tournament ›
+
+[ Record this ruling ]      Helpful?  👍 👎</code></pre>
+<p>Decisions in the sheet:</p>
+<ul>
+<li><strong>The answer is the body, plain prose, at most three short
+paragraphs.</strong> No bullets in an answer: the host reads it
+aloud.</li>
+<li><strong>Your group</strong> is the house-rule binding (§ 5): the
+parameter this situation depends on, with its value, and <em>Change</em>
+which goes to Table rules. When the parameter is unset, the row reads
+the default and says <strong>Not set for your group</strong> (UNSURE) so
+a host knows the answer is ours, not theirs.</li>
+<li><strong>Source</strong> is a citation, never a quote (§ 1).</li>
+<li><strong>Tournament</strong> is a collapsed row, muted, and only
+present when the ruling differs. Expanded, it is one or two sentences in
+the same muted colour under a <strong>TOURNAMENT</strong> caption. The
+cash answer stays the only text at body weight on the screen. When the
+ruling is the same the row is absent — saying "same in a tournament"
+sixty times teaches people to stop reading the row.</li>
+<li><strong>Record this ruling</strong> is the one primary button,
+present only when a night is open on this phone (§ 8). From the Settings
+push there is no night, so the button is absent and the sheet ends at
+<em>Helpful?</em>.</li>
+<li><strong>Helpful?</strong> feeds the review queue (§ 7). A 👎 on a
+verified answer is the strongest signal we get.</li>
+</ul>
+<hr />
+<h2 id="4--the-content-model">4 · The content model</h2>
+<p>The library ships inside the app as data, versioned by edition, so it
+works at a kitchen table with no signal and so a ruling can say which
+edition it was read from. One file,
+<code>packages/core/src/rulings/situations.json</code> (path UNSURE —
+wherever the engine's own data lives), typed and linted by a test.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> Situation {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  id<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>                 <span class="co">// &#39;showdown.mucked-winner&#39; — stable for ever; rows are keyed by it</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  area<span class="op">:</span> Area<span class="op">;</span>                 <span class="co">// &#39;betting&#39; | &#39;showdown&#39; | &#39;hands&#39; | &#39;dealing&#39; | &#39;money&#39; | &#39;behaviour&#39;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  atTheTable<span class="op">:</span> <span class="dt">boolean</span><span class="op">;</span>        <span class="co">// one of the twelve on the Rulings sheet</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  order<span class="op">:</span> <span class="dt">number</span><span class="op">;</span>              <span class="co">// position within its area</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  title<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>              <span class="co">// what happened, as a player says it</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  aliases<span class="op">:</span> <span class="dt">string</span>[]<span class="op">;</span>          <span class="co">// other ways people say it — search reads these</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  keywords<span class="op">:</span> <span class="dt">string</span>[]<span class="op">;</span>         <span class="co">// the words search matches on</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  cash<span class="op">:</span> Answer<span class="op">;</span>               <span class="co">// the ruling, for a cash game — always present</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  tournament<span class="op">?:</span> {              <span class="co">// present only when the ruling differs</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    note<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>             <span class="co">// one or two sentences</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    source<span class="op">:</span> Citation[]<span class="op">;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  binds<span class="op">?:</span> TableRuleKey[]<span class="op">;</span>     <span class="co">// the group parameters the answer reads (§ 5)</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  computes<span class="op">?:</span> <span class="st">&#39;sidePots&#39;</span> <span class="op">|</span> <span class="st">&#39;shortBank&#39;</span> <span class="op">|</span> <span class="st">&#39;rebuyCap&#39;</span><span class="op">;</span>   <span class="co">// hands the numbers to the engine</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  related<span class="op">:</span> <span class="dt">string</span>[]<span class="op">;</span>          <span class="co">// ids</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  status<span class="op">:</span> <span class="st">&#39;verified&#39;</span> <span class="op">|</span> <span class="st">&#39;draft&#39;</span><span class="op">;</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  verified<span class="op">?:</span> { on<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> by<span class="op">:</span> <span class="dt">string</span> }<span class="op">;</span>   <span class="co">// ISO date; a name, for the file, not a screen</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> Answer {</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  body<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>               <span class="co">// ≤ 3 paragraphs; may contain {{rule.key}} placeholders</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  source<span class="op">:</span> Citation[]<span class="op">;</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> Citation {</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  work<span class="op">:</span> <span class="st">&#39;roberts&#39;</span> <span class="op">|</span> <span class="st">&#39;tda&#39;</span> <span class="op">|</span> <span class="st">&#39;house&#39;</span><span class="op">;</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  ref<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>                <span class="co">// &#39;Showdown&#39;, &#39;r.15&#39;, or the TableRuleKey for &#39;house&#39;</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Rules of the file:</p>
+<ul>
+<li><strong><code>id</code> never changes and is never reused.</strong>
+A recorded ruling (§ 8) and a queued question (§ 7) point at it across
+editions.</li>
+<li><strong><code>cash</code> is required; <code>tournament</code> is
+present only when it differs.</strong> The lint test refuses a
+<code>tournament</code> whose note is empty and refuses a
+<code>cash</code> body over three paragraphs.</li>
+<li><strong>Every <code>{{rule.key}}</code> in a body must name a key in
+<code>binds</code></strong>, and every key in <code>binds</code> must
+exist in <code>TableRules</code> (§ 5). The test resolves every body
+against a fully-set and a fully-unset <code>TableRules</code> and
+asserts both render.</li>
+<li><strong><code>status: 'draft'</code> ships but does not
+show.</strong> It is how a situation gets into the file ahead of its
+answer being verified, so that search can capture interest in it (§ 7)
+without presenting it as ours.</li>
+<li><strong>The edition is one constant</strong>,
+<code>RULES_EDITION = '2026.1'</code>, shown on the Rulings sheet's
+sub-line, on every situation sheet, and stamped into every recorded
+ruling and queued question.</li>
+</ul>
+<p>Why data in the bundle rather than fetched: the night is
+offline-first and a ruling is needed in the thirty seconds the argument
+lasts. An edition ships with an app release. Fetching a newer edition
+between releases is in § 12.</p>
+<hr />
+<h2 id="5--the-groups-own-rules">5 · The group's own rules</h2>
+<p>The research's third finding is that home games argue about money
+procedure and that no rulebook covers it: rebuy caps, going south,
+notice before leaving, who absorbs a short bank, rounding, IOUs. A
+60-vote poll on the rebuy cap had no majority. So these cannot have one
+right answer; they are <strong>parameters the group sets</strong>, and
+the answer reads them.</p>
+<h3 id="51-tablerules-beside-moneyrule">5.1 <code>TableRules</code>,
+beside <code>MoneyRule</code></h3>
+<p><code>MoneyRule</code> is what comes <em>off</em> the table at
+settle-up — the bill, the piggy bank, a host fee — and
+<code>ruleText.ts</code> turns each one into a sentence.
+<code>TableRules</code> is how the table is <em>run</em>, and it is a
+different thing: one object per group, not a list, with no arithmetic of
+its own except where § 1 sends it to the engine.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> TableRules {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  buyIn<span class="op">:</span> { min<span class="op">:</span> Money<span class="op">;</span> max<span class="op">:</span> Money } <span class="op">|</span> <span class="dt">null</span><span class="op">;</span>       <span class="co">// the standard buy-in already in Settings is the default max</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  shortBuy<span class="op">:</span> <span class="st">&#39;one&#39;</span> <span class="op">|</span> <span class="st">&#39;none&#39;</span> <span class="op">|</span> <span class="st">&#39;any&#39;</span><span class="op">;</span>               <span class="co">// Robert&#39;s: one short buy per session</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  rebuyCap<span class="op">:</span> { kind<span class="op">:</span> <span class="st">&#39;none&#39;</span> } <span class="op">|</span> { kind<span class="op">:</span> <span class="st">&#39;largestStack&#39;</span><span class="op">;</span> percent<span class="op">:</span> <span class="dv">50</span> <span class="op">|</span> <span class="dv">75</span> <span class="op">|</span> <span class="dv">100</span> } <span class="op">|</span> { kind<span class="op">:</span> <span class="st">&#39;fixed&#39;</span><span class="op">;</span> amount<span class="op">:</span> Money } <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  goingSouth<span class="op">:</span> <span class="st">&#39;forbidden&#39;</span> <span class="op">|</span> <span class="st">&#39;allowed&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span>     <span class="co">// chips off the table mid-session</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  leaveNotice<span class="op">:</span> <span class="st">&#39;none&#39;</span> <span class="op">|</span> <span class="st">&#39;oneOrbit&#39;</span> <span class="op">|</span> <span class="st">&#39;thirtyMinutes&#39;</span> <span class="op">|</span> <span class="st">&#39;oneHour&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  returnWithin<span class="op">:</span> <span class="st">&#39;oneHour&#39;</span> <span class="op">|</span> <span class="st">&#39;never&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span>       <span class="co">// Robert&#39;s: back within an hour at the amount removed</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  runItTwice<span class="op">:</span> <span class="st">&#39;byAgreement&#39;</span> <span class="op">|</span> <span class="st">&#39;never&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  chops<span class="op">:</span> <span class="st">&#39;allowed&#39;</span> <span class="op">|</span> <span class="st">&#39;never&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  straddle<span class="op">:</span> <span class="st">&#39;none&#39;</span> <span class="op">|</span> <span class="st">&#39;underTheGun&#39;</span> <span class="op">|</span> <span class="st">&#39;button&#39;</span> <span class="op">|</span> <span class="st">&#39;any&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  button<span class="op">:</span> <span class="st">&#39;dead&#39;</span> <span class="op">|</span> <span class="st">&#39;moving&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  rabbitHunt<span class="op">:</span> <span class="st">&#39;allowed&#39;</span> <span class="op">|</span> <span class="st">&#39;never&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  checkRaise<span class="op">:</span> <span class="st">&#39;allowed&#39;</span> <span class="op">|</span> <span class="st">&#39;never&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  shortBank<span class="op">:</span> <span class="st">&#39;hostAbsorbs&#39;</span> <span class="op">|</span> <span class="st">&#39;splitAll&#39;</span> <span class="op">|</span> <span class="st">&#39;splitLosers&#39;</span> <span class="op">|</span> <span class="st">&#39;decideThen&#39;</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  credit<span class="op">:</span> { kind<span class="op">:</span> <span class="st">&#39;none&#39;</span> } <span class="op">|</span> { kind<span class="op">:</span> <span class="st">&#39;deadlineDays&#39;</span><span class="op">;</span> days<span class="op">:</span> <span class="dt">number</span> } <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  decider<span class="op">:</span> { kind<span class="op">:</span> <span class="st">&#39;host&#39;</span> } <span class="op">|</span> { kind<span class="op">:</span> <span class="st">&#39;player&#39;</span><span class="op">;</span> playerId<span class="op">:</span> PlayerId } <span class="op">|</span> { kind<span class="op">:</span> <span class="st">&#39;notInHand&#39;</span> } <span class="op">|</span> <span class="dt">null</span><span class="op">;</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>null</code> means <strong>not set</strong>, and the answer says
+so. Rounding is <strong>not</strong> here: the night already carries a
+<code>RoundingMode</code>, and the rounding situation reads that.</p>
+<h3 id="52-the-chain-and-the-snapshot">5.2 The chain, and the
+snapshot</h3>
+<p>Table rules follow the money rules' chain exactly, because a host
+already understands it from <code>club-rules.tsx</code>'s own
+comment:</p>
+<pre><code>this night (snapshot at open)  →  club default  →  not set</code></pre>
+<ul>
+<li>The club default is edited on the <strong>Table rules</strong> sheet
+from Settings → Rules.</li>
+<li>A night takes a <strong>snapshot</strong> when it opens, next to its
+<code>rules</code> snapshot. A ruling read on the night cites the
+snapshot, not the current default, so a rule changed on Tuesday does not
+rewrite what Saturday's ruling said.</li>
+<li><strong>No mid-night edit</strong>, for the reason
+<code>house-rules.tsx</code> gives: changing a rule a night is running
+under is an act that needs a record, and until there is a record there
+is no edit. Over Tonight the Table rules sheet is read-only, with a line
+saying so (UNSURE — "Set before the night opens, in Settings").</li>
+</ul>
+<h3 id="53-how-an-answer-reads-them">5.3 How an answer reads them</h3>
+<p>A body says <code>{{rule.rebuyCap}}</code> and the renderer
+substitutes a sentence from a small map in core, the way
+<code>rateLabel</code> does for money rules:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Key</th>
+<th>Set</th>
+<th>Not set</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>rebuyCap</code></td>
+<td><em>Your group caps a rebuy at half the biggest stack.</em></td>
+<td><em>Your group has not set a cap. Most groups cap at half the
+biggest stack; some allow a full match.</em></td>
+</tr>
+<tr class="even">
+<td><code>shortBank</code></td>
+<td><em>Your group's rule: the host covers a short bank.</em></td>
+<td><em>Your group has not decided. The common rule is that whoever ran
+the bank covers it; some groups split it.</em></td>
+</tr>
+<tr class="odd">
+<td><code>decider</code></td>
+<td><em>Lena decides disputes tonight.</em></td>
+<td><em>Nobody is named. Hosts usually decide; when the host is in the
+hand, pick someone who is not.</em></td>
+</tr>
+</tbody>
+</table>
+<p>All UNSURE. The point is the shape: a set rule reads as the group's
+own, an unset one reads as ours and is honest about it, and the
+<strong>Your group</strong> row on the sheet gives the <em>Change</em>
+link either way.</p>
+<h3 id="54-where-the-numbers-go">5.4 Where the numbers go</h3>
+<p>Three situations compute rather than explain, and they go to
+<code>packages/core</code>:</p>
+<ul>
+<li><strong><code>sidePots(stacks, bets)</code></strong> — several
+players all in for different amounts; who is eligible for which pot.
+Pure, tested against the handoff's canonical night and against the
+textbook three-way example.</li>
+<li><strong><code>shortBank(rules, inPlay, accountedFor, players)</code></strong>
+— how much is missing and who carries it under the group's
+<code>shortBank</code> rule. Reads the same <code>balance</code> the
+count-up header reads; never its own sum.</li>
+<li><strong><code>rebuyAllowed(rules, stacks, player, amount)</code></strong>
+— yes or no, and the cap.</li>
+</ul>
+<p>The AI (§ 6) is never asked these. If a question routes to one of
+them, the answer is the engine's figure with the engine's sentence under
+it.</p>
+<hr />
+<h2 id="6--the-ai-fallback">6 · The AI fallback</h2>
+<h3 id="61-when-it-runs">6.1 When it runs</h3>
+<p>Only when search finds no verified situation, or when the host taps
+<em>Ask</em> under a result that did not fit. It never runs on its own,
+never pre-empts a verified answer, and never runs for a situation whose
+<code>computes</code> is set — those go to the engine, and a question
+the engine can answer is routed by search to the situation, not to the
+model.</p>
+<h3 id="62-where-it-runs">6.2 Where it runs</h3>
+<p><strong>On the server, never on the phone.</strong> A Supabase Edge
+Function, <code>ruling-assist</code> (name UNSURE), holds the API key,
+checks the caller's membership tier, rate limits per group, and writes
+the queue row (§ 7) in the same call. The phone sends:</p>
+<ul>
+<li>the question as typed;</li>
+<li>the game kind, always <code>cash</code> today;</li>
+<li>the night's <code>TableRules</code> snapshot (or the club default
+when there is no night);</li>
+<li>the ids of the three nearest verified situations, by search score,
+so the model answers in the library's own terms and the response can say
+<em>closest verified situation: …</em>;</li>
+<li>the content edition.</li>
+</ul>
+<p>Names are <strong>not</strong> sent as names. The phone replaces
+roster names in the question with <em>Player A</em>, <em>Player B</em>
+before sending — it knows the roster — and maps them back on display.
+The queue stores the anonymised text (§ 7).</p>
+<h3 id="63-the-call">6.3 The call</h3>
+<p>Claude Opus 5.5 (<code>claude-opus-5-5</code>), one request,
+structured output, adaptive thinking at <code>effort: 'medium'</code>.
+Not an agent: there is no tool to call and no loop to run. The whole
+verified library is the system prompt, under a
+<code>cache_control</code> breakpoint with a one-hour TTL, so the
+per-question cost is the question and the answer, not the library. The
+server-side <code>fallbacks: "default"</code> parameter is on, so a
+refusal on the primary model is retried on a fallback inside the same
+call; a refusal that survives that is shown as <em>Couldn't answer this
+one</em> (UNSURE) and still queued.</p>
+<p>The system prompt says, in substance:</p>
+<ul>
+<li>You are answering for a <strong>home cash game</strong>. These are
+the verified situations; prefer their language. Cite the rule you rely
+on by name.</li>
+<li><strong>Do not do arithmetic.</strong> If the question needs a pot,
+a stack or a share counted, say which calculator answers it and
+stop.</li>
+<li><strong>Do not invent a house rule.</strong> If the answer depends
+on a parameter the group has not set, say the common default and that
+the group has not chosen.</li>
+<li>If the ruling would differ in a tournament, say so in one sentence,
+separately.</li>
+<li>If a fact is missing that changes the ruling (were the cards face
+up? had anyone acted?), ask for it instead of guessing.</li>
+</ul>
+<p>The response shape, enforced by
+<code>output_config.format</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> AssistRuling {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  answer<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>                       <span class="co">// ≤ 3 paragraphs, the host&#39;s words</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  reliesOn<span class="op">:</span> Citation[]<span class="op">;</span>                 <span class="co">// what it cited</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  tournamentDiffers<span class="op">:</span> <span class="dt">string</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span>     <span class="co">// one sentence or null</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  needsFact<span class="op">:</span> <span class="dt">string</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span>             <span class="co">// a question back, or null</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  nearestSituation<span class="op">:</span> <span class="dt">string</span> <span class="op">|</span> <span class="dt">null</span><span class="op">;</span>      <span class="co">// a verified id, or null</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  confidence<span class="op">:</span> <span class="st">&#39;high&#39;</span> <span class="op">|</span> <span class="st">&#39;medium&#39;</span> <span class="op">|</span> <span class="st">&#39;low&#39;</span><span class="op">;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>needsFact</code> renders as one question with a text field and
+a <em>That's it</em> button (UNSURE); the second call carries the first
+answer and the fact. Two rounds at most, then the answer stands as
+given.</p>
+<h3 id="64-how-it-is-marked">6.4 How it is marked</h3>
+<p>The AI answer wears the situation sheet's layout with four
+differences, and all four are on the screen at once:</p>
+<ol type="1">
+<li>The title is the host's question, and the sub-line reads <strong>AI
+answer · not verified · edition 2026.1</strong> (UNSURE).</li>
+<li>A <strong>status pill</strong> after the title — the same pill the
+app uses for <em>Not settled</em> — reading <strong>AI</strong>
+(UNSURE). Muted fill, not the accent.</li>
+<li><strong>Source</strong> reads <em>What the AI relied on</em>
+(UNSURE) and lists <code>reliesOn</code>.</li>
+<li>The footer is <strong>Was this right?</strong> (UNSURE) 👍 👎, and
+under it one line: <em>We'll check this one and add a verified
+answer</em> (UNSURE). The <em>Record this ruling</em> button is present
+— a host may record an AI-assisted ruling — and the recorded row carries
+<code>source: 'ai'</code> for ever (§ 8).</li>
+</ol>
+<p>A verified answer carries none of these. The pill is the thing a host
+can see across the table.</p>
+<h3 id="65-cost-so-the-tier-decision-has-a-number">6.5 Cost, so the tier
+decision has a number</h3>
+<table>
+<tbody>
+<tr class="odd">
+<td>Library in the system prompt</td>
+<td>≈ 60 situations × 250 words ≈ 20k tokens, cached</td>
+</tr>
+<tr class="even">
+<td>Per question, uncached</td>
+<td>question + rules snapshot ≈ 600 tokens in, ≈ 400 out</td>
+</tr>
+<tr class="odd">
+<td>Per question, at list price</td>
+<td>under one cent with the cache warm; a few cents cold</td>
+</tr>
+</tbody>
+</table>
+<p>Which tiers get the AI is in § 12. The library itself should be free:
+the research names the printable rules sheet as the one acquisition hook
+in the category, and a library nobody can read captures no
+questions.</p>
+<hr />
+<h2 id="7--the-review-queue">7 · The review queue</h2>
+<p>Every question that reaches <em>Ask</em>, every 👎, and every search
+that ended with no tap is a row we want. The loop is: capture → cluster
+→ write → ship → the question stops arriving.</p>
+<h3 id="71-capture">7.1 Capture</h3>
+<p>One row per event, written through the outbox like everything else
+the phone records, so a question asked with no signal arrives when the
+signal does:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">create</span> <span class="kw">table</span> ruling_question (</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>              uuid <span class="kw">primary</span> <span class="kw">key</span>,          <span class="co">-- client-generated: the idempotency key</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_id</span>        uuid <span class="kw">not</span> <span class="kw">null</span> <span class="kw">references</span> club(<span class="kw">id</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  night_id        uuid <span class="kw">references</span> <span class="kw">session</span>(<span class="kw">id</span>),   <span class="co">-- null from Settings</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  asked_at        timestamptz <span class="kw">not</span> <span class="kw">null</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  kind            text <span class="kw">not</span> <span class="kw">null</span> <span class="kw">check</span> (kind <span class="kw">in</span> (<span class="st">&#39;asked&#39;</span>, <span class="st">&#39;thumbs_down&#39;</span>, <span class="st">&#39;no_match&#39;</span>)),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  question        text <span class="kw">not</span> <span class="kw">null</span>,             <span class="co">-- anonymised: Player A, Player B</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  situation_id    text,                      <span class="co">-- the verified id a 👎 was on, or the nearest match</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  answered_by     text <span class="kw">not</span> <span class="kw">null</span> <span class="kw">check</span> (answered_by <span class="kw">in</span> (<span class="st">&#39;verified&#39;</span>, <span class="st">&#39;ai&#39;</span>, <span class="st">&#39;engine&#39;</span>, <span class="st">&#39;none&#39;</span>)),</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  ai_answer       jsonb,                     <span class="co">-- the AssistRuling, when answered_by = &#39;ai&#39;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  ai_model        text,                      <span class="co">-- the model id that answered</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  rules_snapshot  jsonb <span class="kw">not</span> <span class="kw">null</span>,            <span class="co">-- the TableRules the answer was read against</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  feedback        text <span class="kw">check</span> (feedback <span class="kw">in</span> (<span class="st">&#39;helpful&#39;</span>, <span class="st">&#39;wrong&#39;</span>)),</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  recorded        <span class="dt">boolean</span> <span class="kw">not</span> <span class="kw">null</span> <span class="kw">default</span> <span class="kw">false</span>,   <span class="co">-- did the host record it to the night</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  edition         text <span class="kw">not</span> <span class="kw">null</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  app_version     text <span class="kw">not</span> <span class="kw">null</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<p>Policies: the phone that wrote it may insert and may update
+<code>feedback</code> and <code>recorded</code> on its own rows; nobody
+on the client side may read another group's rows; reading everything is
+the service role, for us. The table names a table and a session the same
+way <code>night_pass</code> does, and it is <strong>not</strong> a
+ledger entry: <code>verify.ts</code> sums money, and a question is not
+money.</p>
+<p><code>no_match</code> rows are written locally on every search that
+ended without a tap and flushed in one batch when the sheet closes, so a
+host typing three variants of one phrase produces three rows with one
+<code>asked_at</code> minute, which is exactly the signal we want and
+easy to collapse.</p>
+<h3 id="72-review">7.2 Review</h3>
+<p>At first, no admin screen: a SQL view and an export.</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">create</span> <span class="kw">view</span> ruling_question_review <span class="kw">as</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">select</span> <span class="fu">lower</span>(<span class="fu">regexp_replace</span>(question, <span class="st">&#39;[^a-z ]&#39;</span>, <span class="st">&#39;&#39;</span>, <span class="st">&#39;gi&#39;</span>)) <span class="kw">as</span> stem,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>       <span class="fu">count</span>(<span class="op">*</span>)                       <span class="kw">as</span> asked,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>       <span class="fu">count</span>(<span class="op">*</span>) <span class="kw">filter</span> (<span class="kw">where</span> feedback <span class="op">=</span> <span class="st">&#39;wrong&#39;</span>) <span class="kw">as</span> marked_wrong,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>       <span class="fu">max</span>(asked_at)                  <span class="kw">as</span> last_asked,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>       <span class="kw">mode</span>() within <span class="kw">group</span> (<span class="kw">order</span> <span class="kw">by</span> situation_id) <span class="kw">as</span> nearest,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>       array_agg(<span class="kw">distinct</span> edition)    <span class="kw">as</span> editions</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="kw">from</span> ruling_question</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="kw">group</span> <span class="kw">by</span> <span class="dv">1</span> <span class="kw">order</span> <span class="kw">by</span> asked <span class="kw">desc</span>;</span></code></pre></div>
+<p><code>npm run rulings:export</code> (UNSURE — script name) pulls the
+view and the raw rows to a CSV. The workflow is: read the top of the
+view each week; for each stem with more than a handful of rows, write a
+situation, verify it, ship it in the next edition; the next release's
+<code>no_match</code> count for that stem goes to zero, which is the
+check that it worked. A 👎 on a verified answer is reviewed first, every
+time.</p>
+<p>An admin page can come later and is not on the build order.</p>
+<h3 id="73-what-we-do-not-keep">7.3 What we do not keep</h3>
+<p>The question as typed, with names. The phone anonymises before send
+(§ 6.2) and the row holds only that. A group name is not in the row
+either; <code>group_id</code> is. Nothing in the row identifies a person
+who is not the host, and the host is identified only as the writer of
+the night, which the server already knows.</p>
+<hr />
+<h2 id="8--the-ruling-saved-to-the-night">8 · The ruling, saved to the
+night</h2>
+<p>A dispute that is settled and then re-litigated at cash-out is the
+research's own description of why hosts write house rules. A recorded
+ruling is the trace.</p>
+<h3 id="81-what-is-recorded">8.1 What is recorded</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">create</span> <span class="kw">table</span> night_ruling (</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>            uuid <span class="kw">primary</span> <span class="kw">key</span>,          <span class="co">-- client-generated</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  session_id    uuid <span class="kw">not</span> <span class="kw">null</span> <span class="kw">references</span> <span class="kw">session</span>(<span class="kw">id</span>),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  seq           <span class="dt">integer</span> <span class="kw">not</span> <span class="kw">null</span>,          <span class="co">-- the host&#39;s counter, like a ledger entry: order is the host&#39;s</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  decided_at    timestamptz <span class="kw">not</span> <span class="kw">null</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  decided_by    uuid <span class="kw">references</span> player(<span class="kw">id</span>),   <span class="co">-- null = the host</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  situation_id  text,                      <span class="co">-- verified id, or null for an AI or free-text ruling</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  question_id   uuid <span class="kw">references</span> ruling_question(<span class="kw">id</span>),   <span class="co">-- when it came from Ask</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">source</span>        text <span class="kw">not</span> <span class="kw">null</span> <span class="kw">check</span> (<span class="kw">source</span> <span class="kw">in</span> (<span class="st">&#39;verified&#39;</span>, <span class="st">&#39;ai&#39;</span>, <span class="st">&#39;engine&#39;</span>, <span class="st">&#39;host&#39;</span>)),</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">summary</span>       text <span class="kw">not</span> <span class="kw">null</span>,             <span class="co">-- the first paragraph of what was shown, frozen</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  note          text,                      <span class="co">-- the host&#39;s own line, optional</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  edition       text <span class="kw">not</span> <span class="kw">null</span>,</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  rules_snapshot jsonb <span class="kw">not</span> <span class="kw">null</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<p>Written through the outbox under <code>can_write_session</code>, so
+only the phone recording the night can record a ruling, and a watcher
+cannot. <strong>Not a ledger entry</strong> and not an
+<code>EntryType</code>: the ledger is money and is summed; a ruling is a
+sentence. It sits beside <code>night_pass</code>, which is the precedent
+for a non-money row the night carries.</p>
+<h3 id="82-the-step">8.2 The step</h3>
+<p><em>Record this ruling</em> replaces the situation sheet's
+content:</p>
+<pre><code>▬▬▬
+Record this ruling                        [×]
+Winning hand hit the muck · 22:41
+
+Decided by      Lena (host)            Change ›
+Note            ___________________________
+                (optional — &quot;cards were face up&quot;)
+
+[ Record ]</code></pre>
+<p>(All UNSURE.) <em>Decided by</em> defaults to the group's
+<code>decider</code> rule, then the host. <em>Change</em> opens the same
+player picker the night uses to pick who cashes out (N4/N8), so there is
+no new picker.</p>
+<h3 id="83-where-it-shows">8.3 Where it shows</h3>
+<ul>
+<li><strong>The night's log (<code>/log</code>)</strong>, as a row
+between the money entries at its <code>seq</code>: <strong>Ruling ·
+Winning hand hit the muck · Lena · 22:41</strong> (UNSURE), with the AI
+pill when <code>source = 'ai'</code>. The log is the night's own record
+and already holds every other event in order.</li>
+<li><strong>The settled night (<code>/settled</code>)</strong>, one
+phrase in the meta line — <strong>· 2 rulings</strong> (UNSURE) — that
+opens the log. Nothing in the body: the 9 September cut owns that
+screen's body and lists what sits under the table, and a rulings block
+is not in it. A phrase in the meta is the smallest thing that can carry
+the fact; whether even that is allowed is in § 12.</li>
+<li><strong>A watcher's feed</strong>, as the hand-off row is today: a
+ruling is news at a table, and the watcher is the person who was not in
+the room.</li>
+</ul>
+<hr />
+<h2 id="9--the-situation-list--first-draft">9 · The situation list —
+first draft</h2>
+<p>Sixty situations, seven areas, in the order they should appear. ★
+marks the twelve on the Rulings sheet. <strong>Every one-line answer is
+a DRAFT for the owner to verify</strong> before it is written up and
+marked <code>verified</code>; none of it is final copy. <em>T</em> says
+whether a tournament ruling differs. <em>Binds</em> names the group rule
+the answer reads, if any.</p>
+<h3 id="betting">Betting</h3>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>What happened</th>
+<th>Cash answer (draft)</th>
+<th>T</th>
+<th>Binds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>★</td>
+<td>Said "raise", put in one chip</td>
+<td>Facing a bet, one big chip without saying "raise" is a call. Said
+"raise" first: it is a raise, and the amount is what they then put
+in.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>★</td>
+<td>Bet in two motions</td>
+<td>A bet goes in one motion or with the amount said first. Two trips to
+the stack without a number is a call of the first trip.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>"I'll see your bet… and raise"</td>
+<td>The words "call" or "see" came first and they bind. It is a
+call.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>★</td>
+<td>Acted before their turn</td>
+<td>A check, call or fold out of turn stands if nobody before them
+changes the action. If somebody does, the early action is taken back and
+they may act again.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Verbal "all in", chips still in the stack</td>
+<td>Said in turn, it binds. The chips follow.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>All-in for less than a full raise</td>
+<td>It does not reopen the betting for anyone who has already acted.
+They can call the extra, not re-raise.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Minimum raise</td>
+<td>At least the size of the last bet or raise in this round.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Check-raise</td>
+<td>Allowed unless your group has turned it off.</td>
+<td>same</td>
+<td>checkRaise</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Straddle</td>
+<td>Whatever your group allows: none, under the gun, the button, or
+anyone. A straddle is a blind raise and acts last before the flop.</td>
+<td><strong>differs</strong> — no straddles</td>
+<td>straddle</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Betting out of turn on purpose</td>
+<td>Treat it as the out-of-turn rule, and tell them once. Twice is an
+angle (see Behaviour).</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Mis-called the pot size</td>
+<td>Whoever counted it, the pot is what is in it. Nobody is bound by a
+wrong count.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="showdown">Showdown</h3>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>What happened</th>
+<th>Cash answer (draft)</th>
+<th>T</th>
+<th>Binds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>★</td>
+<td>Winning hand hit the muck</td>
+<td>Face up on the table: it plays, cards speak. Face down into the muck
+and certain which it was: live. Any doubt: dead.</td>
+<td>same</td>
+<td>decider</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Dealer mucked a hand by mistake</td>
+<td>Certain and retrievable: restored. Otherwise dead — and what happens
+to that player's money already in is for the group to decide
+beforehand.</td>
+<td>same</td>
+<td>decider</td>
+</tr>
+<tr class="odd">
+<td>★</td>
+<td>Who shows first?</td>
+<td>The last person who bet or raised on the river. If nobody bet on the
+river, the first player left of the button. Anyone may table at
+once.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Misread their hand ("I have two pair" with a flush)</td>
+<td>The cards decide, not the words. The best five of seven.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Showed one card, mucked the other</td>
+<td>The hand is dead unless both are tabled face up. Showing one is not
+showing a hand.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Can I see the hand they mucked?</td>
+<td>In a cash game the caller may ask to see a called hand; it is bad
+form to ask for any other reason. The group can turn this off.</td>
+<td><strong>differs</strong> — only on suspicion of collusion, floor
+only</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Showed a card to one player during the hand</td>
+<td>Show one, show all: at the end of the hand anyone at the table may
+ask to see it.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Tied hands</td>
+<td>The pot splits. An odd chip goes to the first player left of the
+button.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>★</td>
+<td>Three people all in — the pots</td>
+<td>Each pot holds only what everybody in it could match. The calculator
+lays it out.</td>
+<td>same</td>
+<td>computes</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Board plays (all five on the board)</td>
+<td>Everyone left in the hand splits, kickers in the hand do not
+count.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Showing a hand after everyone folded</td>
+<td>They may; nobody can make them.</td>
+<td>same</td>
+<td>rabbitHunt</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hands--ties">Hands &amp; ties</h3>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>What happened</th>
+<th>Cash answer (draft)</th>
+<th>T</th>
+<th>Binds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>Which wins — rankings</td>
+<td>The ranking, one screen, no prose.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Both have a pair: the kicker</td>
+<td>Highest card outside the pair, then the next, up to five cards.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Two pair against two pair</td>
+<td>Highest pair first, then the second pair, then the kicker.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Flush against flush</td>
+<td>Highest card, then the next, down through all five. Suits never
+rank.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Is A-2-3-4-5 a straight?</td>
+<td>Yes, the lowest one. K-A-2-3-4 is not.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Full house against full house</td>
+<td>The three of a kind decides, then the pair.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Only the board makes a straight</td>
+<td>The board plays; split unless a hole card improves it.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Does a flush beat a straight?</td>
+<td>Yes.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Six cards to a straight</td>
+<td>A hand is five cards. The best five count.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dealing">Dealing</h3>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>What happened</th>
+<th>Cash answer (draft)</th>
+<th>T</th>
+<th>Binds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>★</td>
+<td>Card flashed while dealing</td>
+<td>One hole card seen by the table: it becomes the burn and the player
+gets the next card after the deal. The first card to a player, or two
+cards: misdeal.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>★</td>
+<td>Someone has three cards</td>
+<td>Before anyone acts: misdeal. After action: that hand is dead, the
+rest play on and bets stay.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Card found face up in the deck</td>
+<td>A boxed card is as if it were not there. Next card replaces it.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Flop dealt before betting was done</td>
+<td>The flop goes back, the deck is reshuffled without the burn, and a
+new flop is dealt after betting finishes.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Turn dealt early</td>
+<td>The early card is set aside, the river card becomes the turn, then
+the set-aside card is shuffled back for the river.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Dealt from the wrong seat, button in the wrong place</td>
+<td>Before action: fix it and redeal. After action: the hand stands and
+the button is corrected next hand.</td>
+<td>same</td>
+<td>button</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Dealt to an empty seat</td>
+<td>The hand is dead and goes to the muck; blinds already posted stay.
+Fix the deal next hand.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Forgot to burn</td>
+<td>Discovered before the card is seen: burn now. After: the card
+stands.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Ran out of cards</td>
+<td>Reshuffle the burns and the muck, never the folded hands that were
+tabled; deal the rest.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Who deals, and who shuffles</td>
+<td>The group's way. The common one: dealer shuffles, player on the
+right cuts.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="money--the-bank">Money &amp; the bank</h3>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>What happened</th>
+<th>Cash answer (draft)</th>
+<th>T</th>
+<th>Binds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>★</td>
+<td>Wants to buy back in</td>
+<td>A rebuy is any amount between the minimum and the group's cap,
+between hands, never during one.</td>
+<td>—</td>
+<td>rebuyCap, buyIn</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Buying in short</td>
+<td>One short buy a session is the usual rule; after that a full
+buy-in.</td>
+<td>—</td>
+<td>shortBuy</td>
+</tr>
+<tr class="odd">
+<td>★</td>
+<td>Leaving with a big stack</td>
+<td>Nobody has to stay. Say so an orbit ahead if that is the group's
+rule, and do not come back tonight with less than you left with.</td>
+<td>—</td>
+<td>leaveNotice, returnWithin</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Took chips off the table</td>
+<td>Going south. The group's rule; the usual one is never. The chips go
+back.</td>
+<td>—</td>
+<td>goingSouth</td>
+</tr>
+<tr class="odd">
+<td>★</td>
+<td>Bank is short</td>
+<td>The count is the count. Who covers it is the group's rule; the usual
+one is whoever ran the bank.</td>
+<td>—</td>
+<td>shortBank, computes</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Bank is over</td>
+<td>The host holds it until the owner is found; after that it is the
+group's.</td>
+<td>—</td>
+<td>shortBank</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Rebuy paid by app, not seen</td>
+<td>No chips until the payment shows. A rebuy said aloud is a rebuy
+recorded.</td>
+<td>—</td>
+<td>credit</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Wants to play on credit</td>
+<td>The group's rule; the usual one is none. If allowed, a deadline, and
+the ledger says who owes.</td>
+<td>—</td>
+<td>credit</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Running it twice</td>
+<td>Only in a cash game, only with everyone in the pot agreeing, only
+when all are all in.</td>
+<td><strong>differs</strong> — never</td>
+<td>runItTwice</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Chopping the blinds</td>
+<td>If the group allows it and both agree before the flop, the blinds
+come back.</td>
+<td><strong>differs</strong> — never</td>
+<td>chops</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Change at cash-out</td>
+<td>Tonight's rounding rule says what happens to the odd dollars.</td>
+<td>—</td>
+<td>(night rounding)</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Host fee, time charge, rake</td>
+<td>What the group has set in Money rules. Note that a fee can be the
+thing that makes a private game unlawful where you are.</td>
+<td>—</td>
+<td>(money rules)</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Left without paying</td>
+<td>Not a rules question. Settle before leaving is the rule; the ledger
+says who owes whom; the group decides who plays next week.</td>
+<td>—</td>
+<td>credit</td>
+</tr>
+</tbody>
+</table>
+<h3 id="behaviour">Behaviour</h3>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>What happened</th>
+<th>Cash answer (draft)</th>
+<th>T</th>
+<th>Binds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>★</td>
+<td>Was that a slow roll?</td>
+<td>Taking your time to table the winner when you know it is the winner.
+No rule, no penalty — a word from the host.</td>
+<td><strong>differs</strong> — penalties exist</td>
+<td>decider</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Talking about the hand with others in it</td>
+<td>Not during the hand. Fold the talker's hand if the group has agreed
+that; otherwise a warning.</td>
+<td><strong>differs</strong> — penalty</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Rabbit hunting</td>
+<td>The group's rule; the usual one is never.</td>
+<td><strong>differs</strong> — never</td>
+<td>rabbitHunt</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Angle shooting</td>
+<td>Doing a legal thing to mislead. The host decides, and the group's
+stand-in when the host is in the hand.</td>
+<td>same</td>
+<td>decider</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Phone at the table</td>
+<td>Etiquette. No cards on camera, no phone in a hand with a bet in
+front of you.</td>
+<td>same</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Exposing a card on purpose</td>
+<td>Allowed heads-up unless the group forbids it; multiway, the hand is
+dead.</td>
+<td><strong>differs</strong> — penalty</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Who decides a dispute</td>
+<td>The host; when the host is in the hand, the person the group
+named.</td>
+<td>—</td>
+<td>decider</td>
+</tr>
+</tbody>
+</table>
+<h3 id="your-rules">Your rules</h3>
+<p>Not situations, but the eight parameters most groups argue about,
+shown as the group's sheet: buy-in range, rebuy cap, going south,
+leaving, run it twice, straddle, short bank, credit. The printable is
+this list and nothing else.</p>
+<hr />
+<h2 id="10--copy">10 · Copy</h2>
+<p>Three rules for the words, beyond <code>CLAUDE.md</code>'s:</p>
+<ol type="1">
+<li><strong>A title is what happened, in the words a player
+uses.</strong> "Winning hand hit the muck", not "Dead hand at showdown".
+Search reads aliases for the other phrasings.</li>
+<li><strong>An answer is read aloud.</strong> Short sentences, no
+bullets, the ruling first and the reason second. The research's heated
+threads are all "was this right?", and a sentence the host can say is
+what ends them.</li>
+<li><strong>The AI is named as AI every time it speaks.</strong> A pill,
+a sub-line, a changed footer. Never only one of them.</li>
+</ol>
+<p>The strings this file invents, all UNSURE, in one place so a handoff
+can replace them: <em>Rules &amp; rulings</em> · <em>Rulings</em> ·
+<em>If the bank is short</em> · <em>Your rules</em> · <em>Share the
+rules sheet</em> · <em>Not set for your group</em> · <em>Table
+rules</em> · <em>Set before the night opens, in Settings</em> · <em>AI
+answer · not verified</em> · <em>AI</em> · <em>What the AI relied
+on</em> · <em>Was this right?</em> · <em>We'll check this one and add a
+verified answer</em> · <em>Couldn't answer this one</em> · <em>That's
+it</em> · <em>Record this ruling</em> · <em>Decided by</em> ·
+<em>Record</em> · <em>Ruling · … · Lena · 22:41</em> · <em>· 2
+rulings</em> · <em>Nothing matches? Ask</em> · <em>AT THE TABLE</em> ·
+<em>MORE</em> · <em>YOUR GROUP</em> · <em>SOURCE</em> ·
+<em>TOURNAMENT</em> · <em>Helpful?</em> · and every title and answer in
+§ 9.</p>
+<hr />
+<h2 id="11--the-checks">11 · The checks</h2>
+<p><code>CLAUDE.md</code>: a screen bug neither check can see is not
+finished being fixed. What goes red if this comes back wrong:</p>
+<ul>
+<li><strong><code>npm run check</code></strong> — a content lint over
+<code>situations.json</code> (§ 4's rules: every <code>id</code> unique
+and never removed between editions, <code>cash</code> present,
+<code>tournament</code> only with a note, every placeholder bound and
+resolvable both set and unset, ≤ 3 paragraphs, <code>status</code>
+known); <code>sidePots</code>, <code>shortBank</code> and
+<code>rebuyAllowed</code> against the canonical night and the textbook
+cases; the resolver's set-and-unset sentences.</li>
+<li><strong><code>npm run check:ui</code></strong> — <code>/rules</code>
+and the Rulings sheet added to <code>ui-audit.mjs</code>'s route list,
+driven across the six devices; the situation sheet opened on the longest
+verified answer with the Your-group row, Tournament row and footer all
+present, measuring that nothing is cut off; the AI-marked variant opened
+through a stubbed <code>ruling-assist</code>, asserting all four marks
+are on screen at once.</li>
+<li><strong><code>npm run db:verify</code></strong> —
+<code>0021_rulings.sql</code> (name UNSURE) applied to the throwaway
+Postgres; a watcher's token refused on <code>night_ruling</code> insert;
+a group's rows invisible to another group; <code>ruling_question</code>
+writable by its writer and readable by nobody else.</li>
+</ul>
+<hr />
+<h2 id="12--open">12 · Open</h2>
+<ol type="1">
+<li><strong>Which tiers get the AI.</strong> The library free for all is
+argued above. The AI on Regular and Full, or Full only, is the owner's
+call and lands in <code>membership.ts</code>, the one seam, as a fifth
+function.</li>
+<li><strong>The count-up hook.</strong> The short-bank row under the
+counted list is the one place this design touches a screen a cut owns.
+If the cut's author would not draw it, it goes, and the host reaches the
+situation from the drawer instead.</li>
+<li><strong>The meta phrase on <code>/settled</code>.</strong> Same
+question, smaller. The 9 September cut draws the meta line; <em>· 2
+rulings</em> is an addition to it.</li>
+<li><strong>Fetching an edition between releases.</strong> Data in the
+bundle is simplest and always works offline. A fetched edition would let
+a verified answer ship the week it is written. Worth doing once the
+queue shows questions arriving faster than releases.</li>
+<li><strong>Robert's Rules citation style.</strong> Citing by section
+name is safe; quoting is not. Whether to cite at all, given the licence,
+is for the owner.</li>
+<li><strong>The Table rules sheet over Tonight is read-only.</strong> A
+group that discovers mid-night it never set a rebuy cap will want to set
+it then. The honest path is the one <code>house-rules.tsx</code> already
+takes — show it, do not edit it — and a mid-night change is a later
+feature with its own record (a <code>night_ruling</code> row with
+<code>source: 'host'</code> is the obvious shape).</li>
+<li><strong>Dealer-mucked hand and the money.</strong> § 9 leaves what
+happens to the mucked player's money as a group decision because the
+sources disagree. The owner may want a default.</li>
+<li><strong>Two-player and short-handed blinds, dealer's choice
+games.</strong> Out of the first edition on purpose; the research shows
+them as lookups, not disputes.</li>
+</ol>
+<hr />
+<h2 id="13--build-order">13 · Build order</h2>
+<p>Three steps, each shippable, each on its own branch and its own files
+per <code>CLAUDE.md</code>'s rule about parallel sessions. Step 1
+touches Settings and nothing on Tonight; step 2 touches Tonight and the
+ending flow and nothing in Settings; step 3 is server-side and the two
+sheets' <em>Ask</em> content.</p>
+<p><strong>Step 1 — the library and the group's rules.</strong>
+<code>TableRules</code> in core with its resolver and the three
+calculators; <code>situations.json</code> with the ★ twelve and the
+Money area verified first, the rest <code>draft</code>; the content
+lint; the night snapshot; <code>/rules</code> as a push from Settings;
+the situation sheet; offline search; the Table rules sheet; the
+printable sheet as a sharing format. No server change. This step is
+useful on its own and is the acquisition hook.</p>
+<p><strong>Step 2 — at the table.</strong> <code>0021_rulings.sql</code>
+with <code>night_ruling</code> and <code>ruling_question</code>; the
+outbox ops; the drawer row and the Rulings sheet over Tonight;
+<em>Record this ruling</em>; the log row and the settled meta phrase;
+the watcher feed row; <code>no_match</code> and 👎 capture; the export
+script. Still no AI. After this step the queue is filling.</p>
+<p><strong>Step 3 — the AI.</strong> The edge function, the anonymiser,
+the <em>Ask</em> content, the four marks, <code>needsFact</code>, the
+tier gate in <code>membership.ts</code>. After this step every question
+gets an answer, and every answer we did not write says so.</p>
+<p>Nothing here starts until the owner says so.</p>
+</main></body></html>
