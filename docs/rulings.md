@@ -5,14 +5,14 @@ things. This is the feature that answers them from the phone that is already
 recording the night. It is a design, not a build: nothing in `apps/`, `packages/`
 or `supabase/` changes with this file. Written 20 October 2026 against `main`
 at `9a78e1c`, from `reports/Poker rules advice services.md` and the five note
-files behind it.
+files behind it; revised 22 October after the owner's review (§ 1 items 7–8).
 
 **How to read it.** § 1 is the decisions the owner has already made and this file
 builds on. § 2 is where the feature sits in the app and which chrome each screen
 wears. § 3 is how a host finds a situation in three taps. § 4 is the content
 model for a verified answer. § 5 is how the group's own rules feed the answers.
 § 6 is the AI fallback and how it is marked. § 7 is the review queue that turns
-unanswered questions into verified ones. § 8 is the ruling saved to the night.
+unanswered questions into verified ones. § 8 is what is deliberately not recorded.
 § 9 is the first draft of the situation list. § 10 is copy, § 11 the checks,
 § 12 what is open, § 13 the build order.
 
@@ -41,6 +41,13 @@ From the owner, 20 October, and from the research the week before:
    mistaken for the answer.
 6. **Navigation is the hard part.** Seven areas, sixty situations, a host with
    one thumb and a table waiting.
+7. **Reference only.** (22 October.) A ruling is read at the table and that is
+   the end of it: nothing is written to the night, the log or the settled
+   screen. The ledger stays money. What the app keeps is the *question*, for
+   the review queue, never the *decision*.
+8. **Verified and AI answers are both badged**, in the app's own pill: a check
+   and VERIFIED on ours, AI in the amber the app already uses for anything
+   waiting on somebody.
 
 Two constraints from the research that shape the whole thing:
 
@@ -69,16 +76,15 @@ them back.
 | Screen | Chrome | Opens from | Why that chrome |
 |---|---|---|---|
 | **Rules** — the library | **Push** (Chrome A), back → Settings | Settings, a new row under *Money rules* | A reference you browse and stay in. Club → Settings → Rules is two pushes below the root, the limit, so nothing pushes from it. |
-| **A situation** — the answer | **Sheet** (Chrome B) | A row on Rules, a row on the Rulings sheet, the count-up hook, search | One thing: read the answer, optionally record the ruling. Ends with a confirm, so a sheet by `09-navigation.md`'s test. |
-| **Record this ruling** | Replaces the situation sheet's content, keeps its close | *Record* on a situation | A step in a flow, not a place. |
+| **A situation** — the answer | **Sheet** (Chrome B) | A row on Rules, a row on the Rulings sheet, the count-up hook, search | One thing: read one answer and swipe back to the table. From Tonight it must be a sheet in any case, because the Rulings sheet is already open and a sheet never pushes. |
 | **Rulings** — at the table | **Sheet** over Tonight | The table-admin drawer, a new row | The host is mid-night and needs to get back to Tonight unchanged, by swipe. Same reason tonight's Money rules is a sheet. |
 | **Table rules** — the group's parameters | **Sheet** over Rules (from Settings), or **read-only sheet** over Tonight | *Your rules* row; the Rulings sheet's header | Ends with Save → sheet. Over Tonight it is read-only, for the same reason `house-rules.tsx` is: a night's rules are a snapshot taken when it opened. |
 | **Ask** — the AI fallback | Replaces the Rulings or Rules search content | *Nothing matches? Ask* | A step, not a place. |
 
 Depth is legal everywhere: from Tonight, the Rulings sheet is the first sheet
-and a situation is the second, which `09-navigation.md` names as the floor.
-*Record* replaces that second sheet's content rather than raising a third. From
-Settings → Rules, a situation is the only sheet.
+and a situation is the second, which `09-navigation.md` names as the floor, and
+nothing opens from a situation. From Settings → Rules, a situation is the only
+sheet.
 
 ### 2.2 The three entry points
 
@@ -90,8 +96,7 @@ sets the group's table rules, and shares the printable sheet.
 label; icon not drawn), between *Money rules* and *Pass the game*. It opens the
 Rulings sheet. The drawer is "the dock expanding in place" and does not join the
 navigation stack, so this costs nothing in depth. Only the phone recording the
-night sees the drawer; a watcher gets the same library from Settings and cannot
-record a ruling.
+night sees the drawer; a watcher gets the same library from Settings.
 
 **Count up.** When *In play* and *Accounted for* disagree, the discrepancy is
 already the headline. One row beneath the counted list — **If the bank is
@@ -178,8 +183,8 @@ that produces the one-page printable the research found hosts search for
 
 ```
 ▬▬▬
-Winning hand hit the muck                 [×]
-Showdown · verified · edition 2026.1
+Winning hand hit the muck   ✓ VERIFIED   [×]
+Showdown · edition 2026.1
 
 If the cards are face up on the table, they
 play. Cards speak: the dealer reads them,
@@ -201,11 +206,17 @@ SOURCE
 TOURNAMENT
   Different in a tournament ›
 
-[ Record this ruling ]      Helpful?  👍 👎
+Helpful?                              👍 👎
 ```
 
 Decisions in the sheet:
 
+- **The badge is in the title row**, where the app puts every state: the
+  `Pill` component, plain tone, a check glyph and VERIFIED (UNSURE — label).
+  Plain, not green: the token file is explicit that if something in this app
+  is coloured, it is money. The AI answer's pill is the same component in the
+  amber tone (§ 6.4), so the two states sit in the same place and differ in
+  colour and word, and a host can tell them apart across the table.
 - **The answer is the body, plain prose, at most three short paragraphs.** No
   bullets in an answer: the host reads it aloud.
 - **Your group** is the house-rule binding (§ 5): the parameter this situation
@@ -218,9 +229,8 @@ Decisions in the sheet:
   **TOURNAMENT** caption. The cash answer stays the only text at body weight on
   the screen. When the ruling is the same the row is absent — saying "same in a
   tournament" sixty times teaches people to stop reading the row.
-- **Record this ruling** is the one primary button, present only when a night
-  is open on this phone (§ 8). From the Settings push there is no night, so the
-  button is absent and the sheet ends at *Helpful?*.
+- **No primary button.** The sheet ends at *Helpful?*; there is nothing to
+  save (§ 8). A host reads it and swipes it away.
 - **Helpful?** feeds the review queue (§ 7). A 👎 on a verified answer is the
   strongest signal we get.
 
@@ -267,8 +277,8 @@ interface Citation {
 
 Rules of the file:
 
-- **`id` never changes and is never reused.** A recorded ruling (§ 8) and a
-  queued question (§ 7) point at it across editions.
+- **`id` never changes and is never reused.** A queued question (§ 7) points
+  at it across editions.
 - **`cash` is required; `tournament` is present only when it differs.** The
   lint test refuses a `tournament` whose note is empty and refuses a `cash`
   body over three paragraphs.
@@ -280,7 +290,7 @@ Rules of the file:
   interest in it (§ 7) without presenting it as ours.
 - **The edition is one constant**, `RULES_EDITION = '2026.1'`, shown on the
   Rulings sheet's sub-line, on every situation sheet, and stamped into every
-  recorded ruling and queued question.
+  queued question.
 
 Why data in the bundle rather than fetched: the night is offline-first and a
 ruling is needed in the thirty seconds the argument lasts. An edition ships with
@@ -453,16 +463,17 @@ four are on the screen at once:
 
 1. The title is the host's question, and the sub-line reads **AI answer · not
    verified · edition 2026.1** (UNSURE).
-2. A **status pill** after the title — the same pill the app uses for *Not
-   settled* — reading **AI** (UNSURE). Muted fill, not the accent.
+2. A **status pill** after the title — the same `Pill` the app uses for *Not
+   settled* — reading **AI** (UNSURE), in the **amber tone with its 1px amber
+   border**: the token the app reserves for *pending, unclaimed, unpaid*, which
+   is exactly what an unverified answer is. Louder than the muted tone, and
+   still not a colour the app spends on anything but waiting.
 3. **Source** reads *What the AI relied on* (UNSURE) and lists `reliesOn`.
 4. The footer is **Was this right?** (UNSURE) 👍 👎, and under it one line:
-   *We'll check this one and add a verified answer* (UNSURE). The *Record this
-   ruling* button is present — a host may record an AI-assisted ruling — and
-   the recorded row carries `source: 'ai'` for ever (§ 8).
+   *We'll check this one and add a verified answer* (UNSURE).
 
-A verified answer carries none of these. The pill is the thing a host can see
-across the table.
+A verified answer carries none of these; it carries the check and VERIFIED
+instead. The pill is the thing a host can see across the table.
 
 ### 6.5 Cost, so the tier decision has a number
 
@@ -503,16 +514,15 @@ create table ruling_question (
   ai_model        text,                      -- the model id that answered
   rules_snapshot  jsonb not null,            -- the TableRules the answer was read against
   feedback        text check (feedback in ('helpful', 'wrong')),
-  recorded        boolean not null default false,   -- did the host record it to the night
   edition         text not null,
   app_version     text not null
 );
 ```
 
-Policies: the phone that wrote it may insert and may update `feedback` and
-`recorded` on its own rows; nobody on the client side may read another group's
-rows; reading everything is the service role, for us. The table names a table
-and a session the same way `night_pass` does, and it is **not** a ledger entry:
+Policies: the phone that wrote it may insert and may update `feedback` on its
+own rows; nobody on the client side may read another group's
+rows; reading everything is the service role, for us. The table names a group
+and, when there is one, a session, and it is **not** a ledger entry:
 `verify.ts` sums money, and a question is not money.
 
 `no_match` rows are written locally on every search that ended without a tap and
@@ -554,69 +564,28 @@ identified only as the writer of the night, which the server already knows.
 
 ---
 
-## 8 · The ruling, saved to the night
+## 8 · What is deliberately not recorded
 
-A dispute that is settled and then re-litigated at cash-out is the research's
-own description of why hosts write house rules. A recorded ruling is the trace.
+The first draft of this file saved a ruling to the night: a `night_ruling` row
+beside `night_pass`, a *Record this ruling* step with *Decided by* and a note,
+a row in `/log`, a phrase in the settled night's meta, a line on the watcher's
+feed. **The owner took it out on 22 October: the feature is for reference, and
+the night's record stays what it is today.** Three reasons stand behind that,
+and they are worth keeping so the idea does not come back by accident:
 
-### 8.1 What is recorded
+- **The ledger is money.** Every row the night carries is summed or verified
+  by `packages/core`. A sentence about a mucked hand is neither, and the first
+  non-money row invites the second.
+- **A recorded decision is a thing people argue with later.** The research's
+  heated threads are all "was this right?" — a record with a name on it is a
+  thing to re-litigate at cash-out, not a thing that ends the argument.
+- **Nothing in the review loop needs it.** The queue (§ 7) keeps the question,
+  the rules it was read against and whether the answer helped. That is what we
+  need to write the next edition. Who decided what, we do not need and should
+  not hold.
 
-```sql
-create table night_ruling (
-  id            uuid primary key,          -- client-generated
-  session_id    uuid not null references session(id),
-  seq           integer not null,          -- the host's counter, like a ledger entry: order is the host's
-  decided_at    timestamptz not null,
-  decided_by    uuid references player(id),   -- null = the host
-  situation_id  text,                      -- verified id, or null for an AI or free-text ruling
-  question_id   uuid references ruling_question(id),   -- when it came from Ask
-  source        text not null check (source in ('verified', 'ai', 'engine', 'host')),
-  summary       text not null,             -- the first paragraph of what was shown, frozen
-  note          text,                      -- the host's own line, optional
-  edition       text not null,
-  rules_snapshot jsonb not null
-);
-```
-
-Written through the outbox under `can_write_session`, so only the phone
-recording the night can record a ruling, and a watcher cannot. **Not a ledger
-entry** and not an `EntryType`: the ledger is money and is summed; a ruling is a
-sentence. It sits beside `night_pass`, which is the precedent for a non-money
-row the night carries.
-
-### 8.2 The step
-
-*Record this ruling* replaces the situation sheet's content:
-
-```
-▬▬▬
-Record this ruling                        [×]
-Winning hand hit the muck · 22:41
-
-Decided by      Lena (host)            Change ›
-Note            ___________________________
-                (optional — "cards were face up")
-
-[ Record ]
-```
-
-(All UNSURE.) *Decided by* defaults to the group's `decider` rule, then the
-host. *Change* opens the same player picker the night uses to pick who cashes
-out (N4/N8), so there is no new picker.
-
-### 8.3 Where it shows
-
-- **The night's log (`/log`)**, as a row between the money entries at its
-  `seq`: **Ruling · Winning hand hit the muck · Lena · 22:41** (UNSURE), with the
-  AI pill when `source = 'ai'`. The log is the night's own record and already
-  holds every other event in order.
-- **The settled night (`/settled`)**, one phrase in the meta line — **· 2
-  rulings** (UNSURE) — that opens the log. Nothing in the body: the 9 September
-  cut owns that screen's body and lists what sits under the table, and a
-  rulings block is not in it. A phrase in the meta is the smallest thing that
-  can carry the fact; whether even that is allowed is in § 12.
-- **A watcher's feed**, as the hand-off row is today: a ruling is news at a
-  table, and the watcher is the person who was not in the room.
+What remains of the idea is the `decider` parameter in Table rules (§ 5), which
+answers *who decides a dispute* inside the answers, and nothing that writes.
 
 ---
 
@@ -745,8 +714,7 @@ replace them: *Rules & rulings* · *Rulings* · *If the bank is short* · *Your
 rules* · *Share the rules sheet* · *Not set for your group* · *Table rules* ·
 *Set before the night opens, in Settings* · *AI answer · not verified* · *AI* ·
 *What the AI relied on* · *Was this right?* · *We'll check this one and add a
-verified answer* · *Couldn't answer this one* · *That's it* · *Record this
-ruling* · *Decided by* · *Record* · *Ruling · … · Lena · 22:41* · *· 2 rulings* ·
+verified answer* · *Couldn't answer this one* · *That's it* · *Verified* ·
 *Nothing matches? Ask* · *AT THE TABLE* · *MORE* · *YOUR GROUP* · *SOURCE* ·
 *TOURNAMENT* · *Helpful?* · and every title and answer in § 9.
 
@@ -768,11 +736,12 @@ What goes red if this comes back wrong:
   sheet opened on the longest verified answer with the Your-group row,
   Tournament row and footer all present, measuring that nothing is cut off; the
   AI-marked variant opened through a stubbed `ruling-assist`, asserting all four
-  marks are on screen at once.
+  marks are on screen at once; the verified variant asserting the VERIFIED pill
+  and no primary button.
 - **`npm run db:verify`** — `0021_rulings.sql` (name UNSURE) applied to the
-  throwaway Postgres; a watcher's token refused on `night_ruling` insert; a
-  group's rows invisible to another group; `ruling_question` writable by its
-  writer and readable by nobody else.
+  throwaway Postgres; a group's rows invisible to another group;
+  `ruling_question` writable by its writer and readable by nobody else; no
+  new column on any money table.
 
 ---
 
@@ -784,23 +753,20 @@ What goes red if this comes back wrong:
 2. **The count-up hook.** The short-bank row under the counted list is the one
    place this design touches a screen a cut owns. If the cut's author would not
    draw it, it goes, and the host reaches the situation from the drawer instead.
-3. **The meta phrase on `/settled`.** Same question, smaller. The 9 September
-   cut draws the meta line; *· 2 rulings* is an addition to it.
-4. **Fetching an edition between releases.** Data in the bundle is simplest and
+3. **Fetching an edition between releases.** Data in the bundle is simplest and
    always works offline. A fetched edition would let a verified answer ship the
    week it is written. Worth doing once the queue shows questions arriving
    faster than releases.
-5. **Robert's Rules citation style.** Citing by section name is safe; quoting
+4. **Robert's Rules citation style.** Citing by section name is safe; quoting
    is not. Whether to cite at all, given the licence, is for the owner.
-6. **The Table rules sheet over Tonight is read-only.** A group that discovers
+5. **The Table rules sheet over Tonight is read-only.** A group that discovers
    mid-night it never set a rebuy cap will want to set it then. The honest path
    is the one `house-rules.tsx` already takes — show it, do not edit it — and a
-   mid-night change is a later feature with its own record (a `night_ruling` row
-   with `source: 'host'` is the obvious shape).
-7. **Dealer-mucked hand and the money.** § 9 leaves what happens to the mucked
+   mid-night change is a later feature with its own record.
+6. **Dealer-mucked hand and the money.** § 9 leaves what happens to the mucked
    player's money as a group decision because the sources disagree. The owner
    may want a default.
-8. **Two-player and short-handed blinds, dealer's choice games.** Out of the
+7. **Two-player and short-handed blinds, dealer's choice games.** Out of the
    first edition on purpose; the research shows them as lookups, not disputes.
 
 ---
@@ -819,11 +785,10 @@ snapshot; `/rules` as a push from Settings; the situation sheet; offline search;
 the Table rules sheet; the printable sheet as a sharing format. No server
 change. This step is useful on its own and is the acquisition hook.
 
-**Step 2 — at the table.** `0021_rulings.sql` with `night_ruling` and
-`ruling_question`; the outbox ops; the drawer row and the Rulings sheet over
-Tonight; *Record this ruling*; the log row and the settled meta phrase; the
-watcher feed row; `no_match` and 👎 capture; the export script. Still no AI.
-After this step the queue is filling.
+**Step 2 — at the table.** `0021_rulings.sql` with `ruling_question`; the
+outbox op; the drawer row and the Rulings sheet over Tonight; the count-up
+hook if § 12 allows it; `no_match` and 👎 capture; the export script. Still no
+AI. After this step the queue is filling.
 
 **Step 3 — the AI.** The edge function, the anonymiser, the *Ask* content, the
 four marks, `needsFact`, the tier gate in `membership.ts`. After this step every
