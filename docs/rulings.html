@@ -29,13 +29,13 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background
 .glance .lede{color:var(--muted);font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:.95rem}
 .diagram{width:100%;height:auto;display:block;margin:.6rem 0 1.8rem;background:#fff;border:1px solid var(--rule);border-radius:8px}
 @media print{.diagram{break-inside:avoid}}
-</style></head><body><main><header class="title"><h1>Rules &amp; rulings — a design</h1><p>The Poker Club · a rules library, the group's own table rules, an AI fallback marked as such, a review queue, and rulings saved to the night · 20 October 2026 · docs/rulings.md</p></header>
+</style></head><body><main><header class="title"><h1>Rules &amp; rulings — a design</h1><p>The Poker Club · a rules library for reference at the table, the group's own table rules, an AI fallback marked as such, and a review queue · revised 22 October 2026 · docs/rulings.md</p></header>
 <section class="glance">
 <h2 id="structure-at-a-glance">Structure at a glance</h2>
-<p class="lede">Two pictures before the prose. The first is where the feature sits in the app and which chrome each screen wears. The second is how a question becomes an answer, and how an unanswered one becomes a verified answer in the next edition.</p>
+<p class="lede">Two pictures before the prose. The first is where the feature sits in the app and which chrome each screen wears. The second is how a question becomes an answer, and how an unanswered one becomes a verified answer in the next edition. Nothing is written to the night: the feature is reference only.</p>
 
 <h3>Navigation</h3>
-<svg class="diagram" viewBox="0 0 920 560" role="img" aria-label="Navigation map: three entry points leading to the same situation sheet">
+<svg class="diagram" viewBox="0 0 920 500" role="img" aria-label="Navigation map: three entry points leading to the same situation sheet">
 <defs>
 <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5d5a54"/></marker>
 <style>
@@ -122,11 +122,8 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background
 <text class="t" x="460" y="422" text-anchor="middle">A situation</text>
 <text class="s" x="460" y="437" text-anchor="middle">sheet · the only sheet from Rules · sheet 2, the floor, from Rulings</text>
 <text class="s" x="460" y="451" text-anchor="middle">answer · Your group · Source · Tournament (only if it differs)</text>
-<text class="s" x="460" y="465" text-anchor="middle">Record this ruling (only with a night open) · Helpful?</text>
+<text class="s" x="460" y="465" text-anchor="middle">VERIFIED or AI pill in the title row · Helpful? · nothing to save</text>
 
-<rect class="step" x="270" y="505" width="380" height="40" rx="4"/>
-<text class="t" x="460" y="524" text-anchor="middle">Record this ruling</text>
-<text class="s" x="460" y="538" text-anchor="middle">replaces the situation sheet's content · Decided by · Note · Record</text>
 
 <!-- arrows -->
 <path class="ln" d="M380 72 L105 140"/>
@@ -142,17 +139,15 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background
 <path class="ln" d="M190 247 C 250 247, 290 330, 310 400"/>
 <path class="ln" d="M805 194 C 805 300, 710 330, 620 400"/>
 <path class="ln" d="M645 350 L 540 400"/>
-<path class="ln" d="M460 476 L460 505"/>
 
 <text class="lbl" x="195" y="240">a row</text>
 <text class="lbl" x="760" y="310">the row</text>
 <text class="lbl" x="614" y="374">answer</text>
 <text class="lbl" x="468" y="382">a row · sheet 2</text>
-<text class="lbl" x="470" y="496">Record</text>
 </svg>
 
 <h3>Data and the loop</h3>
-<svg class="diagram" viewBox="0 0 930 600" role="img" aria-label="Data flow: question to answer, capture to review, ruling to the night">
+<svg class="diagram" viewBox="0 0 930 540" role="img" aria-label="Data flow: question to answer, capture to review, ruling to the night">
 <defs>
 <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5d5a54"/></marker>
 <style>
@@ -219,7 +214,7 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background
 <!-- AI answer -->
 <rect class="ai" x="262" y="420" width="186" height="80" rx="6"/>
 <text class="t2" x="355" y="442" text-anchor="middle">AI answer</text>
-<text class="s2" x="355" y="457" text-anchor="middle">pill AI · "not verified"</text>
+<text class="s2" x="355" y="457" text-anchor="middle">amber AI pill · "not verified"</text>
 <text class="s2" x="355" y="471" text-anchor="middle">what it relied on · Was this right?</text>
 <text class="s2" x="355" y="485" text-anchor="middle">needsFact → one question back</text>
 
@@ -232,9 +227,6 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background
 <text class="s2" x="530" y="484" text-anchor="middle">there is signal</text>
 
 <!-- record -->
-<rect class="ph" x="262" y="530" width="186" height="52" rx="6"/>
-<text class="t2" x="355" y="552" text-anchor="middle">Record this ruling</text>
-<text class="s2" x="355" y="568" text-anchor="middle">decided by · note · source</text>
 
 <!-- server: edge fn -->
 <rect class="srv" x="610" y="320" width="290" height="66" rx="6"/>
@@ -249,10 +241,6 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background
 <text class="s2" x="755" y="471" text-anchor="middle">anonymised text · snapshot · nearest id · edition</text>
 
 <!-- server: night_ruling -->
-<rect class="srv" x="620" y="520" width="270" height="66" rx="6"/>
-<text class="t2" x="755" y="542" text-anchor="middle">night_ruling</text>
-<text class="s2" x="755" y="557" text-anchor="middle">beside night_pass · not a ledger entry</text>
-<text class="s2" x="755" y="571" text-anchor="middle">→ /log row · /settled meta · watcher feed</text>
 
 <!-- us: review -->
 <rect class="us" x="620" y="50" width="270" height="66" rx="6"/>
@@ -273,9 +261,6 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background
 <path class="ln2" d="M448 455 L480 455"/>
 <path class="ln2" d="M448 196 C 530 240, 530 330, 530 400"/>
 <path class="ln2" d="M580 470 L620 462"/>
-<path class="ln2" d="M355 500 L355 530"/>
-<path class="ln2" d="M448 556 L620 553"/>
-<path class="ln2" d="M220 190 C 240 240, 236 500, 262 548"/>
 <path class="loop" d="M890 453 L908 453 L908 83 L890 83"/>
 <path class="loop" d="M620 83 C 450 12, 250 12, 120 50"/>
 
@@ -286,7 +271,6 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background
 <text class="lbl2" x="585" y="490">drain</text>
 <text class="lbl2" x="902" y="270" text-anchor="end">weekly</text>
 <text class="lbl2" x="340" y="20">next edition</text>
-<text class="lbl2" x="120" y="330" text-anchor="middle">rules snapshot → the ruling row</text>
 </svg>
 </section>
 <p>A host at a kitchen table, a pot in the middle, two people certain of
@@ -296,16 +280,17 @@ nothing in <code>apps/</code>, <code>packages/</code> or
 <code>supabase/</code> changes with this file. Written 20 October 2026
 against <code>main</code> at <code>9a78e1c</code>, from
 <code>reports/Poker rules advice services.md</code> and the five note
-files behind it.</p>
+files behind it; revised 22 October after the owner's review (§ 1 items
+7–8).</p>
 <p><strong>How to read it.</strong> § 1 is the decisions the owner has
 already made and this file builds on. § 2 is where the feature sits in
 the app and which chrome each screen wears. § 3 is how a host finds a
 situation in three taps. § 4 is the content model for a verified answer.
 § 5 is how the group's own rules feed the answers. § 6 is the AI
 fallback and how it is marked. § 7 is the review queue that turns
-unanswered questions into verified ones. § 8 is the ruling saved to the
-night. § 9 is the first draft of the situation list. § 10 is copy, § 11
-the checks, § 12 what is open, § 13 the build order.</p>
+unanswered questions into verified ones. § 8 is what is deliberately not
+recorded. § 9 is the first draft of the situation list. § 10 is copy, §
+11 the checks, § 12 what is open, § 13 the build order.</p>
 <p>Every string in this file that no board draws is marked
 <strong>UNSURE</strong> at the place it first appears, per the copy rule
 in <code>CLAUDE.md</code>. There are many, because no handoff has drawn
@@ -333,6 +318,14 @@ game. Where a tournament ruling differs, the answer says so in a note
 that cannot be mistaken for the answer.</li>
 <li><strong>Navigation is the hard part.</strong> Seven areas, sixty
 situations, a host with one thumb and a table waiting.</li>
+<li><strong>Reference only.</strong> (22 October.) A ruling is read at
+the table and that is the end of it: nothing is written to the night,
+the log or the settled screen. The ledger stays money. What the app
+keeps is the <em>question</em>, for the review queue, never the
+<em>decision</em>.</li>
+<li><strong>Verified and AI answers are both badged</strong>, in the
+app's own pill: a check and VERIFIED on ours, AI in the amber the app
+already uses for anything waiting on somebody.</li>
 </ol>
 <p>Two constraints from the research that shape the whole thing:</p>
 <ul>
@@ -378,23 +371,18 @@ pushes below the root, the limit, so nothing pushes from it.</td>
 <td><strong>Sheet</strong> (Chrome B)</td>
 <td>A row on Rules, a row on the Rulings sheet, the count-up hook,
 search</td>
-<td>One thing: read the answer, optionally record the ruling. Ends with
-a confirm, so a sheet by <code>09-navigation.md</code>'s test.</td>
+<td>One thing: read one answer and swipe back to the table. From Tonight
+it must be a sheet in any case, because the Rulings sheet is already
+open and a sheet never pushes.</td>
 </tr>
 <tr class="odd">
-<td><strong>Record this ruling</strong></td>
-<td>Replaces the situation sheet's content, keeps its close</td>
-<td><em>Record</em> on a situation</td>
-<td>A step in a flow, not a place.</td>
-</tr>
-<tr class="even">
 <td><strong>Rulings</strong> — at the table</td>
 <td><strong>Sheet</strong> over Tonight</td>
 <td>The table-admin drawer, a new row</td>
 <td>The host is mid-night and needs to get back to Tonight unchanged, by
 swipe. Same reason tonight's Money rules is a sheet.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Table rules</strong> — the group's parameters</td>
 <td><strong>Sheet</strong> over Rules (from Settings), or
 <strong>read-only sheet</strong> over Tonight</td>
@@ -403,7 +391,7 @@ swipe. Same reason tonight's Money rules is a sheet.</td>
 reason <code>house-rules.tsx</code> is: a night's rules are a snapshot
 taken when it opened.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Ask</strong> — the AI fallback</td>
 <td>Replaces the Rulings or Rules search content</td>
 <td><em>Nothing matches? Ask</em></td>
@@ -413,9 +401,8 @@ taken when it opened.</td>
 </table>
 <p>Depth is legal everywhere: from Tonight, the Rulings sheet is the
 first sheet and a situation is the second, which
-<code>09-navigation.md</code> names as the floor. <em>Record</em>
-replaces that second sheet's content rather than raising a third. From
-Settings → Rules, a situation is the only sheet.</p>
+<code>09-navigation.md</code> names as the floor, and nothing opens from
+a situation. From Settings → Rules, a situation is the only sheet.</p>
 <h3 id="22-the-three-entry-points">2.2 The three entry points</h3>
 <p><strong>Settings.</strong> A new Action row after <em>Money
 rules</em>: <strong>Rules &amp; rulings</strong> (UNSURE — label). It
@@ -427,7 +414,7 @@ sets the group's table rules, and shares the printable sheet.</p>
 sheet. The drawer is "the dock expanding in place" and does not join the
 navigation stack, so this costs nothing in depth. Only the phone
 recording the night sees the drawer; a watcher gets the same library
-from Settings and cannot record a ruling.</p>
+from Settings.</p>
 <p><strong>Count up.</strong> When <em>In play</em> and <em>Accounted
 for</em> disagree, the discrepancy is already the headline. One row
 beneath the counted list — <strong>If the bank is short</strong>
@@ -514,8 +501,8 @@ one-page printable the research found hosts search for ("poker rules
 printable", "poker cash game house rules").</p>
 <h3 id="33-the-situation-sheet">3.3 The situation sheet</h3>
 <pre><code>▬▬▬
-Winning hand hit the muck                 [×]
-Showdown · verified · edition 2026.1
+Winning hand hit the muck   ✓ VERIFIED   [×]
+Showdown · edition 2026.1
 
 If the cards are face up on the table, they
 play. Cards speak: the dealer reads them,
@@ -537,9 +524,16 @@ SOURCE
 TOURNAMENT
   Different in a tournament ›
 
-[ Record this ruling ]      Helpful?  👍 👎</code></pre>
+Helpful?                              👍 👎</code></pre>
 <p>Decisions in the sheet:</p>
 <ul>
+<li><strong>The badge is in the title row</strong>, where the app puts
+every state: the <code>Pill</code> component, plain tone, a check glyph
+and VERIFIED (UNSURE — label). Plain, not green: the token file is
+explicit that if something in this app is coloured, it is money. The AI
+answer's pill is the same component in the amber tone (§ 6.4), so the
+two states sit in the same place and differ in colour and word, and a
+host can tell them apart across the table.</li>
 <li><strong>The answer is the body, plain prose, at most three short
 paragraphs.</strong> No bullets in an answer: the host reads it
 aloud.</li>
@@ -555,10 +549,9 @@ the same muted colour under a <strong>TOURNAMENT</strong> caption. The
 cash answer stays the only text at body weight on the screen. When the
 ruling is the same the row is absent — saying "same in a tournament"
 sixty times teaches people to stop reading the row.</li>
-<li><strong>Record this ruling</strong> is the one primary button,
-present only when a night is open on this phone (§ 8). From the Settings
-push there is no night, so the button is absent and the sheet ends at
-<em>Helpful?</em>.</li>
+<li><strong>No primary button.</strong> The sheet ends at
+<em>Helpful?</em>; there is nothing to save (§ 8). A host reads it and
+swipes it away.</li>
 <li><strong>Helpful?</strong> feeds the review queue (§ 7). A 👎 on a
 verified answer is the strongest signal we get.</li>
 </ul>
@@ -601,8 +594,7 @@ wherever the engine's own data lives), typed and linted by a test.</p>
 <p>Rules of the file:</p>
 <ul>
 <li><strong><code>id</code> never changes and is never reused.</strong>
-A recorded ruling (§ 8) and a queued question (§ 7) point at it across
-editions.</li>
+A queued question (§ 7) points at it across editions.</li>
 <li><strong><code>cash</code> is required; <code>tournament</code> is
 present only when it differs.</strong> The lint test refuses a
 <code>tournament</code> whose note is empty and refuses a
@@ -618,8 +610,8 @@ answer being verified, so that search can capture interest in it (§ 7)
 without presenting it as ours.</li>
 <li><strong>The edition is one constant</strong>,
 <code>RULES_EDITION = '2026.1'</code>, shown on the Rulings sheet's
-sub-line, on every situation sheet, and stamped into every recorded
-ruling and queued question.</li>
+sub-line, on every situation sheet, and stamped into every queued
+question.</li>
 </ul>
 <p>Why data in the bundle rather than fetched: the night is
 offline-first and a ruling is needed in the thirty seconds the argument
@@ -810,19 +802,22 @@ differences, and all four are on the screen at once:</p>
 <ol type="1">
 <li>The title is the host's question, and the sub-line reads <strong>AI
 answer · not verified · edition 2026.1</strong> (UNSURE).</li>
-<li>A <strong>status pill</strong> after the title — the same pill the
-app uses for <em>Not settled</em> — reading <strong>AI</strong>
-(UNSURE). Muted fill, not the accent.</li>
+<li>A <strong>status pill</strong> after the title — the same
+<code>Pill</code> the app uses for <em>Not settled</em> — reading
+<strong>AI</strong> (UNSURE), in the <strong>amber tone with its 1px
+amber border</strong>: the token the app reserves for <em>pending,
+unclaimed, unpaid</em>, which is exactly what an unverified answer is.
+Louder than the muted tone, and still not a colour the app spends on
+anything but waiting.</li>
 <li><strong>Source</strong> reads <em>What the AI relied on</em>
 (UNSURE) and lists <code>reliesOn</code>.</li>
 <li>The footer is <strong>Was this right?</strong> (UNSURE) 👍 👎, and
 under it one line: <em>We'll check this one and add a verified
-answer</em> (UNSURE). The <em>Record this ruling</em> button is present
-— a host may record an AI-assisted ruling — and the recorded row carries
-<code>source: 'ai'</code> for ever (§ 8).</li>
+answer</em> (UNSURE).</li>
 </ol>
-<p>A verified answer carries none of these. The pill is the thing a host
-can see across the table.</p>
+<p>A verified answer carries none of these; it carries the check and
+VERIFIED instead. The pill is the thing a host can see across the
+table.</p>
 <h3 id="65-cost-so-the-tier-decision-has-a-number">6.5 Cost, so the tier
 decision has a number</h3>
 <table>
@@ -868,17 +863,15 @@ class="sourceCode sql"><code class="sourceCode sql"><span id="cb7-1"><a href="#c
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  ai_model        text,                      <span class="co">-- the model id that answered</span></span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  rules_snapshot  jsonb <span class="kw">not</span> <span class="kw">null</span>,            <span class="co">-- the TableRules the answer was read against</span></span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  feedback        text <span class="kw">check</span> (feedback <span class="kw">in</span> (<span class="st">&#39;helpful&#39;</span>, <span class="st">&#39;wrong&#39;</span>)),</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  recorded        <span class="dt">boolean</span> <span class="kw">not</span> <span class="kw">null</span> <span class="kw">default</span> <span class="kw">false</span>,   <span class="co">-- did the host record it to the night</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  edition         text <span class="kw">not</span> <span class="kw">null</span>,</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  app_version     text <span class="kw">not</span> <span class="kw">null</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  edition         text <span class="kw">not</span> <span class="kw">null</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  app_version     text <span class="kw">not</span> <span class="kw">null</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
 <p>Policies: the phone that wrote it may insert and may update
-<code>feedback</code> and <code>recorded</code> on its own rows; nobody
-on the client side may read another group's rows; reading everything is
-the service role, for us. The table names a table and a session the same
-way <code>night_pass</code> does, and it is <strong>not</strong> a
-ledger entry: <code>verify.ts</code> sums money, and a question is not
-money.</p>
+<code>feedback</code> on its own rows; nobody on the client side may
+read another group's rows; reading everything is the service role, for
+us. The table names a group and, when there is one, a session, and it is
+<strong>not</strong> a ledger entry: <code>verify.ts</code> sums money,
+and a question is not money.</p>
 <p><code>no_match</code> rows are written locally on every search that
 ended without a tap and flushed in one batch when the sheet closes, so a
 host typing three variants of one phrase produces three rows with one
@@ -911,66 +904,33 @@ either; <code>group_id</code> is. Nothing in the row identifies a person
 who is not the host, and the host is identified only as the writer of
 the night, which the server already knows.</p>
 <hr />
-<h2 id="8--the-ruling-saved-to-the-night">8 · The ruling, saved to the
-night</h2>
-<p>A dispute that is settled and then re-litigated at cash-out is the
-research's own description of why hosts write house rules. A recorded
-ruling is the trace.</p>
-<h3 id="81-what-is-recorded">8.1 What is recorded</h3>
-<div class="sourceCode" id="cb9"><pre
-class="sourceCode sql"><code class="sourceCode sql"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">create</span> <span class="kw">table</span> night_ruling (</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>            uuid <span class="kw">primary</span> <span class="kw">key</span>,          <span class="co">-- client-generated</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  session_id    uuid <span class="kw">not</span> <span class="kw">null</span> <span class="kw">references</span> <span class="kw">session</span>(<span class="kw">id</span>),</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  seq           <span class="dt">integer</span> <span class="kw">not</span> <span class="kw">null</span>,          <span class="co">-- the host&#39;s counter, like a ledger entry: order is the host&#39;s</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  decided_at    timestamptz <span class="kw">not</span> <span class="kw">null</span>,</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  decided_by    uuid <span class="kw">references</span> player(<span class="kw">id</span>),   <span class="co">-- null = the host</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  situation_id  text,                      <span class="co">-- verified id, or null for an AI or free-text ruling</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  question_id   uuid <span class="kw">references</span> ruling_question(<span class="kw">id</span>),   <span class="co">-- when it came from Ask</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">source</span>        text <span class="kw">not</span> <span class="kw">null</span> <span class="kw">check</span> (<span class="kw">source</span> <span class="kw">in</span> (<span class="st">&#39;verified&#39;</span>, <span class="st">&#39;ai&#39;</span>, <span class="st">&#39;engine&#39;</span>, <span class="st">&#39;host&#39;</span>)),</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">summary</span>       text <span class="kw">not</span> <span class="kw">null</span>,             <span class="co">-- the first paragraph of what was shown, frozen</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  note          text,                      <span class="co">-- the host&#39;s own line, optional</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  edition       text <span class="kw">not</span> <span class="kw">null</span>,</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  rules_snapshot jsonb <span class="kw">not</span> <span class="kw">null</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
-<p>Written through the outbox under <code>can_write_session</code>, so
-only the phone recording the night can record a ruling, and a watcher
-cannot. <strong>Not a ledger entry</strong> and not an
-<code>EntryType</code>: the ledger is money and is summed; a ruling is a
-sentence. It sits beside <code>night_pass</code>, which is the precedent
-for a non-money row the night carries.</p>
-<h3 id="82-the-step">8.2 The step</h3>
-<p><em>Record this ruling</em> replaces the situation sheet's
-content:</p>
-<pre><code>▬▬▬
-Record this ruling                        [×]
-Winning hand hit the muck · 22:41
-
-Decided by      Lena (host)            Change ›
-Note            ___________________________
-                (optional — &quot;cards were face up&quot;)
-
-[ Record ]</code></pre>
-<p>(All UNSURE.) <em>Decided by</em> defaults to the group's
-<code>decider</code> rule, then the host. <em>Change</em> opens the same
-player picker the night uses to pick who cashes out (N4/N8), so there is
-no new picker.</p>
-<h3 id="83-where-it-shows">8.3 Where it shows</h3>
+<h2 id="8--what-is-deliberately-not-recorded">8 · What is deliberately
+not recorded</h2>
+<p>The first draft of this file saved a ruling to the night: a
+<code>night_ruling</code> row beside <code>night_pass</code>, a
+<em>Record this ruling</em> step with <em>Decided by</em> and a note, a
+row in <code>/log</code>, a phrase in the settled night's meta, a line
+on the watcher's feed. <strong>The owner took it out on 22 October: the
+feature is for reference, and the night's record stays what it is
+today.</strong> Three reasons stand behind that, and they are worth
+keeping so the idea does not come back by accident:</p>
 <ul>
-<li><strong>The night's log (<code>/log</code>)</strong>, as a row
-between the money entries at its <code>seq</code>: <strong>Ruling ·
-Winning hand hit the muck · Lena · 22:41</strong> (UNSURE), with the AI
-pill when <code>source = 'ai'</code>. The log is the night's own record
-and already holds every other event in order.</li>
-<li><strong>The settled night (<code>/settled</code>)</strong>, one
-phrase in the meta line — <strong>· 2 rulings</strong> (UNSURE) — that
-opens the log. Nothing in the body: the 9 September cut owns that
-screen's body and lists what sits under the table, and a rulings block
-is not in it. A phrase in the meta is the smallest thing that can carry
-the fact; whether even that is allowed is in § 12.</li>
-<li><strong>A watcher's feed</strong>, as the hand-off row is today: a
-ruling is news at a table, and the watcher is the person who was not in
-the room.</li>
+<li><strong>The ledger is money.</strong> Every row the night carries is
+summed or verified by <code>packages/core</code>. A sentence about a
+mucked hand is neither, and the first non-money row invites the
+second.</li>
+<li><strong>A recorded decision is a thing people argue with
+later.</strong> The research's heated threads are all "was this right?"
+— a record with a name on it is a thing to re-litigate at cash-out, not
+a thing that ends the argument.</li>
+<li><strong>Nothing in the review loop needs it.</strong> The queue (§
+7) keeps the question, the rules it was read against and whether the
+answer helped. That is what we need to write the next edition. Who
+decided what, we do not need and should not hold.</li>
 </ul>
+<p>What remains of the idea is the <code>decider</code> parameter in
+Table rules (§ 5), which answers <em>who decides a dispute</em> inside
+the answers, and nothing that writes.</p>
 <hr />
 <h2 id="9--the-situation-list--first-draft">9 · The situation list —
 first draft</h2>
@@ -1569,10 +1529,8 @@ rules</em> · <em>Set before the night opens, in Settings</em> · <em>AI
 answer · not verified</em> · <em>AI</em> · <em>What the AI relied
 on</em> · <em>Was this right?</em> · <em>We'll check this one and add a
 verified answer</em> · <em>Couldn't answer this one</em> · <em>That's
-it</em> · <em>Record this ruling</em> · <em>Decided by</em> ·
-<em>Record</em> · <em>Ruling · … · Lena · 22:41</em> · <em>· 2
-rulings</em> · <em>Nothing matches? Ask</em> · <em>AT THE TABLE</em> ·
-<em>MORE</em> · <em>YOUR GROUP</em> · <em>SOURCE</em> ·
+it</em> · <em>Verified</em> · <em>Nothing matches? Ask</em> · <em>AT THE
+TABLE</em> · <em>MORE</em> · <em>YOUR GROUP</em> · <em>SOURCE</em> ·
 <em>TOURNAMENT</em> · <em>Helpful?</em> · and every title and answer in
 § 9.</p>
 <hr />
@@ -1594,12 +1552,13 @@ driven across the six devices; the situation sheet opened on the longest
 verified answer with the Your-group row, Tournament row and footer all
 present, measuring that nothing is cut off; the AI-marked variant opened
 through a stubbed <code>ruling-assist</code>, asserting all four marks
-are on screen at once.</li>
+are on screen at once; the verified variant asserting the VERIFIED pill
+and no primary button.</li>
 <li><strong><code>npm run db:verify</code></strong> —
 <code>0021_rulings.sql</code> (name UNSURE) applied to the throwaway
-Postgres; a watcher's token refused on <code>night_ruling</code> insert;
-a group's rows invisible to another group; <code>ruling_question</code>
-writable by its writer and readable by nobody else.</li>
+Postgres; a group's rows invisible to another group;
+<code>ruling_question</code> writable by its writer and readable by
+nobody else; no new column on any money table.</li>
 </ul>
 <hr />
 <h2 id="12--open">12 · Open</h2>
@@ -1612,9 +1571,6 @@ function.</li>
 counted list is the one place this design touches a screen a cut owns.
 If the cut's author would not draw it, it goes, and the host reaches the
 situation from the drawer instead.</li>
-<li><strong>The meta phrase on <code>/settled</code>.</strong> Same
-question, smaller. The 9 September cut draws the meta line; <em>· 2
-rulings</em> is an addition to it.</li>
 <li><strong>Fetching an edition between releases.</strong> Data in the
 bundle is simplest and always works offline. A fetched edition would let
 a verified answer ship the week it is written. Worth doing once the
@@ -1626,8 +1582,7 @@ is for the owner.</li>
 group that discovers mid-night it never set a rebuy cap will want to set
 it then. The honest path is the one <code>house-rules.tsx</code> already
 takes — show it, do not edit it — and a mid-night change is a later
-feature with its own record (a <code>night_ruling</code> row with
-<code>source: 'host'</code> is the obvious shape).</li>
+feature with its own record.</li>
 <li><strong>Dealer-mucked hand and the money.</strong> § 9 leaves what
 happens to the mucked player's money as a group decision because the
 sources disagree. The owner may want a default.</li>
@@ -1651,11 +1606,10 @@ the situation sheet; offline search; the Table rules sheet; the
 printable sheet as a sharing format. No server change. This step is
 useful on its own and is the acquisition hook.</p>
 <p><strong>Step 2 — at the table.</strong> <code>0021_rulings.sql</code>
-with <code>night_ruling</code> and <code>ruling_question</code>; the
-outbox ops; the drawer row and the Rulings sheet over Tonight;
-<em>Record this ruling</em>; the log row and the settled meta phrase;
-the watcher feed row; <code>no_match</code> and 👎 capture; the export
-script. Still no AI. After this step the queue is filling.</p>
+with <code>ruling_question</code>; the outbox op; the drawer row and the
+Rulings sheet over Tonight; the count-up hook if § 12 allows it;
+<code>no_match</code> and 👎 capture; the export script. Still no AI.
+After this step the queue is filling.</p>
 <p><strong>Step 3 — the AI.</strong> The edge function, the anonymiser,
 the <em>Ask</em> content, the four marks, <code>needsFact</code>, the
 tier gate in <code>membership.ts</code>. After this step every question
