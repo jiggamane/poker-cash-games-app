@@ -46,8 +46,10 @@ From the owner, 20 October, and from the research the week before:
    screen. The ledger stays money. What the app keeps is the *question*, for
    the review queue, never the *decision*.
 8. **Verified and AI answers are both badged**, in the app's own pill: a check
-   and VERIFIED on ours, AI in the amber the app already uses for anything
-   waiting on somebody.
+   and VERIFIED in green on ours, AI in the amber the app already uses for
+   anything waiting on somebody. The green is the owner's call (22 October)
+   against the token file's green-is-money rule, and it takes the LIVE badge's
+   treatment rather than a new one.
 
 Two constraints from the research that shape the whole thing:
 
@@ -212,11 +214,14 @@ Helpful?                              👍 👎
 Decisions in the sheet:
 
 - **The badge is in the title row**, where the app puts every state: the
-  `Pill` component, plain tone, a check glyph and VERIFIED (UNSURE — label).
-  Plain, not green: the token file is explicit that if something in this app
-  is coloured, it is money. The AI answer's pill is the same component in the
-  amber tone (§ 6.4), so the two states sit in the same place and differ in
-  colour and word, and a host can tell them apart across the table.
+  `Pill` component in the `win` tone, a check glyph and VERIFIED (UNSURE —
+  label), drawn as the LIVE badge is — win text on `winTint`, tinted and never
+  outlined. The token file says a coloured thing in this app is money; the
+  owner chose green here anyway, and reusing LIVE's treatment keeps it one
+  exception rather than a new colour. The AI answer's pill is the same
+  component in the amber tone (§ 6.4), so the two states sit in the same place
+  and differ in colour and word, and a host can tell them apart across the
+  table.
 - **The answer is the body, plain prose, at most three short paragraphs.** No
   bullets in an answer: the host reads it aloud.
 - **Your group** is the house-rule binding (§ 5): the parameter this situation
@@ -472,8 +477,8 @@ four are on the screen at once:
 4. The footer is **Was this right?** (UNSURE) 👍 👎, and under it one line:
    *We'll check this one and add a verified answer* (UNSURE).
 
-A verified answer carries none of these; it carries the check and VERIFIED
-instead. The pill is the thing a host can see across the table.
+A verified answer carries none of these; it carries the green check and
+VERIFIED instead. The pill is the thing a host can see across the table.
 
 ### 6.5 Cost, so the tier decision has a number
 
