@@ -509,8 +509,8 @@ one-page printable the research found hosts search for ("poker rules
 printable", "poker cash game house rules").</p>
 <h3 id="33-the-situation-sheet">3.3 The situation sheet</h3>
 <pre><code>▬▬▬
-Winning hand hit the muck   ✓ VERIFIED   [×]
-Showdown · edition 2026.1
+Winning hand hit the muck                 [×]
+✓ VERIFIED · Showdown · edition 2026.1
 
 If the cards are face up on the table, they
 play. Cards speak: the dealer reads them,
@@ -534,16 +534,21 @@ a table parameter — the money ones in § 9. This one binds nothing, so it
 has none.)</p>
 <p>Decisions in the sheet:</p>
 <ul>
-<li><strong>The badge is in the title row</strong>, where the app puts
-every state: the <code>Pill</code> component in the <code>win</code>
-tone, a check glyph and VERIFIED (UNSURE — label), drawn as the LIVE
-badge is — win text on <code>winTint</code>, tinted and never outlined.
-The token file says a coloured thing in this app is money; the owner
-chose green here anyway, and reusing LIVE's treatment keeps it one
-exception rather than a new colour. The AI answer's pill is the same
-component in the amber tone (§ 6.4), so the two states sit in the same
-place and differ in colour and word, and a host can tell them apart
-across the table.</li>
+<li><strong>The badge leads the line under the question</strong>: the
+<code>Pill</code> component in the <code>win</code> tone, a check glyph
+and VERIFIED (UNSURE — label), drawn as the LIVE badge is — win text on
+<code>winTint</code>, tinted and never outlined — followed by the area
+and the edition. ⚠ This departs from the app's own rule for the pill,
+which <code>Pill.tsx</code> states as "it sits directly after a title,
+in the same row". The owner moved it (23 October) because the question
+is the title here and can run to three lines, and a pill beside a
+three-line title floats. The title row keeps only the close. The token
+file says a coloured thing in this app is money; the owner chose green
+here anyway, and reusing LIVE's treatment keeps it one exception rather
+than a new colour. The AI answer's pill is the same component in the
+amber tone (§ 6.4), so the two states sit in the same place and differ
+in colour and word, and a host can tell them apart across the
+table.</li>
 <li><strong>The answer is the body, plain prose, at most three short
 paragraphs.</strong> No bullets in an answer: the host reads it
 aloud.</li>
@@ -804,15 +809,15 @@ given.</p>
 <p>The AI answer wears the situation sheet's layout with four
 differences, and all four are on the screen at once:</p>
 <ol type="1">
-<li>The title is the host's question, and the sub-line reads <strong>AI
-answer · not verified · edition 2026.1</strong> (UNSURE).</li>
-<li>A <strong>status pill</strong> after the title — the same
-<code>Pill</code> the app uses for <em>Not settled</em> — reading
-<strong>AI</strong> (UNSURE), in the <strong>amber tone with its 1px
-amber border</strong>: the token the app reserves for <em>pending,
-unclaimed, unpaid</em>, which is exactly what an unverified answer is.
-Louder than the muted tone, and still not a colour the app spends on
-anything but waiting.</li>
+<li>The title is the host's question, and the line under it reads
+<strong>Not verified · edition 2026.1</strong> (UNSURE).</li>
+<li>A <strong>status pill</strong> leading that line — the same
+<code>Pill</code> the app uses for <em>Not settled</em>, in the same
+place the verified pill sits — reading <strong>AI</strong> (UNSURE), in
+the <strong>amber tone with its 1px amber border</strong>: the token the
+app reserves for <em>pending, unclaimed, unpaid</em>, which is exactly
+what an unverified answer is. Louder than the muted tone, and still not
+a colour the app spends on anything but waiting.</li>
 <li><strong>Source</strong> reads <em>What the AI relied on</em>
 (UNSURE) and lists <code>reliesOn</code>.</li>
 <li>The footer is <strong>Was this right?</strong> (UNSURE) 👍 👎, and
