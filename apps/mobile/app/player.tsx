@@ -974,6 +974,15 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    /*
+     * B99. "270 of the 288" above was measured on a fallback face; with Figtree
+     * rendered at the ×1.1 cap three figures in the millions come to more than
+     * the card, and the third left it. The pairs wrap now: a third that will
+     * not fit drops to a second line rather than clipping or leaving the card.
+     * At the board's width and figures nothing wraps.
+     */
+    flexWrap: 'wrap',
+    rowGap: 10,
     justifyContent: 'space-between',
     gap: 8,
     marginTop: 10,
@@ -1000,7 +1009,7 @@ const styles = StyleSheet.create({
   list: { marginHorizontal: 20 },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4 },
-  time: { ...type.time, width: 44 },
+  time: { ...type.time, minWidth: 44, flexShrink: 0 }, // B99: grows with the text
   entryText: { gap: 2, flexShrink: 1 },
   entryHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   struck: { textDecorationLine: 'line-through' },

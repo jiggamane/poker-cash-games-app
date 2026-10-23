@@ -864,7 +864,7 @@ function Seat({
               // needed. The floor was two here, which is a box for `50` that a
               // four-digit buy-in was typed straight out of.
               {...cappedFigure}
-              style={[styles.typingValue, { color: t.text, width: fieldWidth(amount, 10.4, 4) }]}
+              style={[styles.typingValue, { color: t.text, width: fieldWidth(amount, 17, 4) }]}
             />
           </View>
         ) : (
@@ -1011,9 +1011,23 @@ function monogram(name: string): string {
  * out of view. Four is what a group playing for thousands needs, and it is a
  * floor, not a cap: a five-digit figure still widens the box.
  */
-function fieldWidth(text: string, advance: number, floor = 1): number {
-  return Math.max(floor, [...text].length) * advance * moneyMaxFontScale;
+function fieldWidth(text: string, fontSize: number, floor = 1): number {
+  return Math.max(floor, [...text].length) * fontSize * DIGIT_EM * moneyMaxFontScale;
 }
+
+/**
+ * How wide a digit is, as a share of the font size — B99.
+ *
+ * This used to be an ADVANCE IN POINTS passed by each call site (9.8 for the
+ * card's fields, 10.4 for the seat's), which was a number read off one
+ * rendering on one machine. The first run of the gate with Figtree installed
+ * — the face every board is drawn in — measured the widest digit at 0.666 of
+ * the font size and found every field in this card 9% too narrow for four of
+ * them. A share of the font size moves with the face and with the cap; a
+ * number of points moves with nothing. 0.68 clears Figtree's widest digit,
+ * SF Pro's and Roboto's, with a little over.
+ */
+const DIGIT_EM = 0.68;
 
 function NoHost() {
   const t = useTheme();
@@ -1328,7 +1342,7 @@ function MoneyField({
         // characters of floor: the blinds, the buy-in and the straddle are all
         // three- and four-digit figures in this card.
         {...cappedFigure}
-        style={[styles.moneyValue, { color: t.text, width: fieldWidth(text, 9.8, 4) }]}
+        style={[styles.moneyValue, { color: t.text, width: fieldWidth(text, 16, 4) }]}
       />
     </View>
   );

@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
 
   /* time (44) · label 600 16 + sub 400 12.5 · amount 700 17 · tick */
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 4 },
-  time: { width: 44, fontSize: 13, fontWeight: '600', ...tabular },
+  time: { minWidth: 44, flexShrink: 0, fontSize: 13, fontWeight: '600', ...tabular }, // B99
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   what: { fontSize: 16, fontWeight: '600' },
   sub: { fontSize: 12.5, fontWeight: '400' },

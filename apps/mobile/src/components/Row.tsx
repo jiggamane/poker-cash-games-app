@@ -135,7 +135,10 @@ const styles = StyleSheet.create({
   // 44, which is what L1 draws and what the player card's entries use. It was
   // 42 here, so the same column was two pixels narrower depending on which
   // component happened to draw it.
-  time: { ...type.time, width: 44, flexGrow: 0, flexShrink: 0 },
+  // A MINIMUM, not a width — B99. At 120% text a time is wider than 44 and a
+  // fixed box wrapped it onto two lines. Every time is five characters, so a
+  // column that grows with its content still lines up down the list.
+  time: { ...type.time, minWidth: 44, flexGrow: 0, flexShrink: 0 },
   middle: { flexShrink: 1 },
   name: type.rowName,
   detail: type.rowDetail,

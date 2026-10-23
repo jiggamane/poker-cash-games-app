@@ -491,12 +491,11 @@ export default function Session() {
           </View>
 
           <View style={styles.cardRight}>
+            {/* No `numberOfLines` on the figure below: B99 — this is the line
+                that reflows when the headline needs the room, and a line that
+                cannot wrap clips. */}
             {totalIn !== onTable && (
-              <Text
-                style={[styles.totalIn, { color: t.muted }]}
-                numberOfLines={1}
-                {...cappedFigure}
-              >
+              <Text style={[styles.totalIn, { color: t.muted }]} {...cappedFigure}>
                 {/* `in play`, not `total in` — 5 September, on the owner's
                     instruction. One word for this figure everywhere it is
                     drawn: it was `total in` here, `BOUGHT IN` on E2 and
@@ -877,7 +876,16 @@ const styles = StyleSheet.create({
      right column is content-sized and was already pushed right by its own auto
      margin. What it buys is that the row inside stretches to the width the
      column HAS, which is the number the rebuy tag is measured against. */
-  cardLeft: { gap: 8, flex: 1, minWidth: 0 },
+  /*
+   * B99. `flex: 1` is a basis of ZERO: the column never claimed the width of
+   * its own headline and took whatever the right column left, which at 120%
+   * text on a 360 phone was 159 points for a figure needing 163 — so the
+   * headline clipped to "$14…" while the small print beside it kept every
+   * point. A basis of auto with no shrink claims the figure's width first;
+   * the right column is the one that gives, which is what the comment under
+   * it always said.
+   */
+  cardLeft: { gap: 8, flexGrow: 1, flexShrink: 0, flexBasis: 'auto', minWidth: 0 },
   /* The figure and the `+$500` that announces a change to it — `gap: 10`,
      tops aligned, and the tag never shrinks the figure it is about. */
   figureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: FIGURE_TAG_GAP },
@@ -886,9 +894,11 @@ const styles = StyleSheet.create({
   // The right column keeps its width and the figure beside it gives, never
   // the other way round: three lines of small print reflow into a column of
   // single words long before a headline runs out of room.
-  cardRight: { marginLeft: 'auto', alignItems: 'flex-end', gap: 3, flexShrink: 0 },
-  totalIn: type.tableTotal,
-  seats: type.tableSeats,
+  cardRight: { marginLeft: 'auto', alignItems: 'flex-end', gap: 3, flexShrink: 1, minWidth: 0 },
+  /* Right-aligned so a line that reflows ("$239M" over "in play") keeps the
+     column's edge. */
+  totalIn: { ...type.tableTotal, textAlign: 'right' },
+  seats: { ...type.tableSeats, textAlign: 'right' },
 
   // --- the table -----------------------------------------------------------
   list: { flex: 1, marginHorizontal: 22 },

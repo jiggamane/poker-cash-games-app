@@ -160,14 +160,56 @@ Expected    the gate green on main — B78 says the fields were, on 15 Sept
 Locked by   the two passes that found it: ui-audit.mjs "amount-field-too-
             narrow" and ui-journeys.mjs's clipped pass at 120% text. This
             entry records that they are red, not a new check
-Status      open. B78 is back in effect: `fieldWidth()`'s per-character
-            advance comes out 9% short of what the rendered face needs, and
-            this run was the first on this machine with Figtree installed
-            (`ui-fonts.sh` fetched it), which is the likeliest reason the
-            figure moved. The times are a separate fault with the same shape.
-            feat/rulings-step-1 (0d0b166) is pushed and unmerged until the
-            owner says whether to merge over a red that is main's own
+Status      fixed in this commit — all of it, on the owner's word to fix it
+            before merging the rulings branch over it
 ```
+
+**The advance was a number of points, and a number of points moves with
+nothing.** `fieldWidth()` took 9.8 for the card's fields and 10.4 for the
+seat's, read off one rendering on one machine — B78's own fix. The gate's
+first run on this machine with Figtree installed (`ui-fonts.sh` fetched it;
+every board is drawn in it) measured the widest digit at 0.666 of the font
+size, which is 10.65 points at 16 and 11.72 at the ×1.1 cap: four of them
+need 46.87 in a box of 43. It takes the font size now and a digit width as a
+share of it, `DIGIT_EM = 0.68`, which clears Figtree's widest digit, SF Pro's
+and Roboto's. The cap is unchanged; it was never the half that was wrong.
+
+**The time column was a box, and a time at 120% text is wider than the box.**
+Five files drew a time in `width: 44` — `Row`, `SpendList`, the bill, the
+player card, late changes — and the journeys pass found "07:01" on two lines
+at 120% on every stop that draws one. `minWidth: 44` with `flexShrink: 0` is
+the whole fix: every time is five characters, so a column that grows with its
+content still lines up down a list, and a column that cannot grow wraps.
+
+**And three figures the same face pushed out, which the first two had hidden.**
+With the times fixed the journeys pass reported what was under them, and all
+three are on main too: the *Left to move* figure on Who pays whom reads
+"$13,…" at 120% because the status pill beside it grew and the figure's column
+was the one allowed to shrink; and on the player card the three summary
+figures in the millions come to more than the card at 360 and the third
+either clips ("$140M", 163 in 159) or leaves the card ("−$1.2M"). The card's
+own comment had measured "270 of the 288" on the fallback face. Both cards
+wrap now — `flexWrap` with a row gap — so the half that will not fit drops to
+a second line and is read in full; at the board's width and figures nothing
+wraps, and nothing shrinks a figure.
+
+**And one more, on Tonight, under the sheet.** The last "$140M" the pass
+reported was not on the player card at all: a sheet's pass reads the whole
+page, and this was Tonight's own 44-point headline behind it. Its column was
+`flex: 1` — a basis of zero — so it never claimed its figure's width and took
+what the right column left, 159 points for a figure needing 163, while the
+small print beside it kept every point: the opposite of what the stylesheet's
+own comment said the row was for. The headline column has a basis of auto and
+no shrink now, the right column shrinks and its `in play` line is allowed to
+wrap, right-aligned, which is the reflow the comment described.
+
+**Why it was clean before.** Neither pass had changed. The face had: a check
+that measures text in whatever font the machine renders measures a different
+width on a machine with the drawn face than on one without it, and until this
+run the gate on this machine had been measuring the fallback. That is the
+same mechanism as B14 in a different coat — a pass reporting clean over a
+state it never saw — and the reason the gate installs Figtree first.
+
 
 ### B98 — the scrim is the ground at 94%, and every word about it says 68%
 

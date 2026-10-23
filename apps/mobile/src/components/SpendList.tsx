@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 4,
   },
-  time: { ...type.time, width: 44 },
+  time: { ...type.time, minWidth: 44, flexShrink: 0 }, // B99: grows with the text
   rowText: { gap: 2, flexShrink: 1 },
   note: type.entryType,
   fronted: type.entryProvenance,
