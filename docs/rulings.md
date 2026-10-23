@@ -190,8 +190,8 @@ that produces the one-page printable the research found hosts search for
 
 ```
 ▬▬▬
-Winning hand hit the muck   ✓ VERIFIED   [×]
-Showdown · edition 2026.1
+Winning hand hit the muck                 [×]
+✓ VERIFIED · Showdown · edition 2026.1
 
 If the cards are face up on the table, they
 play. Cards speak: the dealer reads them,
@@ -217,10 +217,14 @@ parameter — the money ones in § 9. This one binds nothing, so it has none.)
 
 Decisions in the sheet:
 
-- **The badge is in the title row**, where the app puts every state: the
-  `Pill` component in the `win` tone, a check glyph and VERIFIED (UNSURE —
-  label), drawn as the LIVE badge is — win text on `winTint`, tinted and never
-  outlined. The token file says a coloured thing in this app is money; the
+- **The badge leads the line under the question**: the `Pill` component in
+  the `win` tone, a check glyph and VERIFIED (UNSURE — label), drawn as the
+  LIVE badge is — win text on `winTint`, tinted and never outlined — followed
+  by the area and the edition. ⚠ This departs from the app's own rule for the
+  pill, which `Pill.tsx` states as "it sits directly after a title, in the same
+  row". The owner moved it (23 October) because the question is the title here
+  and can run to three lines, and a pill beside a three-line title floats.
+  The title row keeps only the close. The token file says a coloured thing in this app is money; the
   owner chose green here anyway, and reusing LIVE's treatment keeps it one
   exception rather than a new colour. The AI answer's pill is the same
   component in the amber tone (§ 6.4), so the two states sit in the same place
@@ -469,11 +473,11 @@ most, then the answer stands as given.
 The AI answer wears the situation sheet's layout with four differences, and all
 four are on the screen at once:
 
-1. The title is the host's question, and the sub-line reads **AI answer · not
+1. The title is the host's question, and the line under it reads **Not
    verified · edition 2026.1** (UNSURE).
-2. A **status pill** after the title — the same `Pill` the app uses for *Not
-   settled* — reading **AI** (UNSURE), in the **amber tone with its 1px amber
-   border**: the token the app reserves for *pending, unclaimed, unpaid*, which
+2. A **status pill** leading that line — the same `Pill` the app uses for *Not
+   settled*, in the same place the verified pill sits — reading **AI**
+   (UNSURE), in the **amber tone with its 1px amber border**: the token the app reserves for *pending, unclaimed, unpaid*, which
    is exactly what an unverified answer is. Louder than the muted tone, and
    still not a colour the app spends on anything but waiting.
 3. **Source** reads *What the AI relied on* (UNSURE) and lists `reliesOn`.
