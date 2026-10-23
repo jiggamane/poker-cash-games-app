@@ -193,6 +193,16 @@ wrap now — `flexWrap` with a row gap — so the half that will not fit drops t
 a second line and is read in full; at the board's width and figures nothing
 wraps, and nothing shrinks a figure.
 
+**And one more, on Tonight, under the sheet.** The last "$140M" the pass
+reported was not on the player card at all: a sheet's pass reads the whole
+page, and this was Tonight's own 44-point headline behind it. Its column was
+`flex: 1` — a basis of zero — so it never claimed its figure's width and took
+what the right column left, 159 points for a figure needing 163, while the
+small print beside it kept every point: the opposite of what the stylesheet's
+own comment said the row was for. The headline column has a basis of auto and
+no shrink now, the right column shrinks and its `in play` line is allowed to
+wrap, right-aligned, which is the reflow the comment described.
+
 **Why it was clean before.** Neither pass had changed. The face had: a check
 that measures text in whatever font the machine renders measures a different
 width on a machine with the drawn face than on one without it, and until this
