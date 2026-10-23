@@ -139,6 +139,32 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B98 — the scrim is the ground at 94%, and every word about it says 68%
+
+```
+Screen      every sheet (Chrome B) — `Sheet.tsx`, and `scrim` in `tokens.ts`
+Seen        not on a phone; found 22 Oct drawing the rulings mockups against
+            the code. The token is the ground at 94% in both themes
+            (`rgba(12,13,15,0.94)` / `rgba(244,244,246,0.94)`), so the screen
+            behind a sheet shows through at 6%. The comment three lines above
+            it says ".32 behind, the ground at 68%"; the comment in `Sheet.tsx`
+            says the same; `09-navigation.md` § Chrome B draws "what you were
+            looking at, opacity .32"; and `chrome.behindSheet` is 0.32 and
+            read by nothing. All of it arrived in one commit (18a94a3, 10 Sept)
+            already disagreeing, so the phone has shown 94% from the first day
+            and no doc has ever said so
+Expected    one answer. Either the board's: 0.68 in both themes, and the
+            screen behind reads as a screen. Or 94% on purpose — a sheet's
+            content behind it is noise at 32% and nobody reads it — in which
+            case the two comments, the doc and `behindSheet` say 94% too
+Locked by   nothing yet — `ui-audit.mjs`'s sheet pass measures the panel and
+            never the scrim. One line reading the scrim view's alpha against
+            `chrome.behindSheet` holds whichever is chosen, and gives that
+            constant its first reader
+Status      open — the owner's call. Nothing in the app changed for this entry;
+            the rulings mockups (`docs/rulings-screens.html`) draw the token
+```
+
 ### B97 — a watch link died whole on a server without 0020
 
 ```
