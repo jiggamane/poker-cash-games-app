@@ -17,6 +17,7 @@ import { leavesThePhone } from './queueable';
 import { clubForBook, rosterAdditions, sameName, type RosterPerson } from './rosterMerge';
 import { PROMOTE_CLAIMED, SET_INVITED } from './seatReconcile';
 import { isSupabaseConfigured } from './supabase';
+import { EMPTY_TABLE_RULES, readTableRules, type TableRules } from '@poker-club/core';
 import { drain, queueBook, queuePlayerTerms, queueRosterPlayer, queueRule, queueRuleDelete } from './sync';
 
 /**
@@ -83,6 +84,14 @@ export interface Club {
    * compare against the constant to guess whether anybody chose it.
    */
   stakes: Stakes | null;
+  /**
+   * How the table is run — the parameters a rules answer reads
+   * (`docs/rulings.md` § 5). Every key is null until the group says, and an
+   * answer that reads a null says so. LOCAL ONLY for now: nothing queues it to
+   * the book, so a second phone does not see it. Step 2 of the rulings build
+   * adds the column on the server and the queue op.
+   */
+  tableRules: TableRules;
   members: Member[];
 }
 
@@ -197,6 +206,9 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
       // blind and no big one is not a state the app has words for.
       ['club', 'stakes_json TEXT'],
       ['club_last_game', 'stakes_json TEXT'],
+      // How the table is run (`docs/rulings.md` § 5). One JSON column, tolerant
+      // on read: a key this phone has never heard of is dropped.
+      ['club', 'table_rules_json TEXT'],
     ] as const) {
       try {
         await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column};`);
@@ -282,6 +294,7 @@ interface ClubRow {
   currency: string;
   default_buy_in: number | null;
   rules_json: string;
+  table_rules_json?: string | null;
   book_id: string | null;
   rounding_mode: RoundingMode | null;
   stakes_json: string | null;
@@ -352,6 +365,7 @@ export async function loadClubs(seed?: {
       rules: JSON.parse(c.rules_json) as MoneyRule[],
       roundingMode: c.rounding_mode ?? null,
       stakes: readStakes(c.stakes_json ?? null),
+      tableRules: readTableRules(c.table_rules_json ?? null),
       members: members
         .filter((m) => m.club_id === c.id)
         .map((m) => ({
@@ -603,6 +617,23 @@ export async function setClubRounding(
  * and nothing about a night already running: a game copies its stakes at birth
  * and settles with what it opened with.
  */
+/**
+ * The group's table rules — `docs/rulings.md` § 5. Like every other club
+ * default this is the group's own layer; a night does not yet take a snapshot
+ * of it (step 2), so for now every answer reads the current default.
+ *
+ * Not queued to the book: the server has no column for it yet.
+ */
+export async function setClubTableRules(clubId: string, tableRules: TableRules): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE club SET table_rules_json = ? WHERE id = ?`, JSON.stringify(tableRules), clubId);
+  state = {
+    ...state,
+    clubs: state.clubs.map((c) => (c.id === clubId ? { ...c, tableRules } : c)),
+  };
+  emit();
+}
+
 export async function setClubStakes(clubId: string, stakes: Stakes): Promise<void> {
   const db = await getDb();
   await db.runAsync(`UPDATE club SET stakes_json = ? WHERE id = ?`, JSON.stringify(stakes), clubId);

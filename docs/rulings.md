@@ -807,4 +807,43 @@ AI. After this step the queue is filling.
 four marks, `needsFact`, the tier gate in `membership.ts`. After this step every
 question gets an answer, and every answer we did not write says so.
 
-Nothing here starts until the owner says so.
+### Step 1 — built, 23 October
+
+The owner said so on 23 October and step 1 is on `main`. What shipped, and
+where it departs from the plan above:
+
+- **Core.** `packages/core/src/rulings/`: `tableRules.ts` (the type, every
+  key's label, choices and sentences, the placeholder resolver, a tolerant
+  reader), `calculators.ts` (`sidePots`, `shortBank`, `rebuyAllowed`) and
+  `situations.ts` — 58 situations across the six areas, the twelve ★ rows,
+  and the lint in `situations.test.ts` holding § 4's rules.
+- **Every answer ships as `draft`, and drafts SHOW.** § 4 said a draft does
+  not show. A library that hides everything until it is verified cannot be
+  reviewed on a phone, which is how it gets verified — so a draft wears a
+  DRAFT pill in the muted tone where the VERIFIED pill will go, and the
+  owner flips each one in the data file as they sign it off. Nothing is
+  marked verified yet.
+- **The night snapshot is not built.** A night reads the club's current
+  table rules. The snapshot needs a column on the night and on the server,
+  which is step 2's migration, and step 1 has no server change.
+- **Table rules are local to the phone.** `setClubTableRules` writes
+  `club.table_rules_json` and queues nothing; `storageCoverage.test.ts` says
+  so. A second phone sees the empty set.
+- **The calculators are engine-only.** The three functions exist and are
+  tested; no screen takes stacks and shows pots yet. The side-pots answer
+  no longer promises one.
+- **The buy-in range is read, not edited.** Its value is an amount and the
+  Table rules sheet edits by choice; until a keypad step exists the row
+  reads the standard buy-in from Settings.
+- **No Helpful? on the sheet.** It feeds the queue, and the queue is step 2.
+  A control that stores nothing was not shipped.
+- **See also** rows on a situation replace the sheet's content in place
+  (`router.setParams`), per the navigation doc; *Change* on a bound rule
+  replaces the sheet with Table rules (`router.replace`), so the count of
+  sheets never rises.
+- **Screens:** `/rules` (push from Settings), `/situation` (sheet),
+  `/table-rules` (sheet); the Settings row *Rules & rulings*; the printable
+  through `Share.share`. All three are in `ui-audit.mjs`'s route list and
+  the two sheets in its sheet pass.
+
+Nothing further starts until the owner says so.

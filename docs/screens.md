@@ -575,6 +575,39 @@ Pass 3 is the working. Fix it before drawing anything new for the invite flow.
 *Add a line here when a screen is conformed, or when something about it is worth
 telling the next session that opens it.*
 
+⚠ **`/rules`, `/situation` and `/table-rules` — 23 October, the rules library,
+step 1 of `docs/rulings.md`.** COPY NOT DRAWN: no handoff covers any of it. The
+design doc marks every invented string UNSURE and `docs/rulings-screens.html`
+is the mockup the three were built against, in both themes.
+
+*What is on the screens.* `/rules` is a push from Settings (back → Settings):
+a search field over the library, the six areas as hairline lists, then **Your
+rules** — one row per table parameter, the value in the group's words or
+*Not set* in amber — and *Share the rules sheet*, which is plain text through
+the share sheet. `/situation` is a sheet: the question as the title, the
+DRAFT or VERIFIED pill leading the line under it (under, not beside — the
+owner's call against `Pill.tsx`'s own rule, because the question runs to
+three lines), the answer as prose, a **Your group** card for every parameter
+the answer reads, the source, the tournament note collapsed and only where it
+differs, and *See also* rows that replace the sheet's content in place. No
+Record, no Helpful, no name: reference only. `/table-rules` is a sheet ending
+with Save; tapping a row replaces its content with the choices and keeps the
+close.
+
+*Decided here against no doc at all.* Every answer ships as `draft` and shows
+with a DRAFT pill, so the owner can verify them on a phone; the design doc had
+drafts hidden. The buy-in row reads the standard buy-in from Settings rather
+than being edited, because its value is an amount and the sheet edits by
+choice. A bound rule's *Change* replaces the situation sheet with Table rules
+rather than stacking a sheet.
+
+*What the checks see.* All three are in `ui-audit.mjs`'s `ROUTES`, the two
+sheets in `SHEET_ROUTES`, and `/situation` opens on `showdown.mucked-winner`,
+the longest answer with a tournament row. `situations.test.ts` is the content
+lint; `tableRules.test.ts` and `calculators.test.ts` the sentences and the
+arithmetic; `search.test.ts` and `rulesSheet.test.ts` the two lib files.
+Nothing drives the search field or the option step yet.
+
 ⚠ **`/rule`, `/money-rules`, `/house-rules`, `/club-rules`, `/piggy-bank-rules`
 and `/deductions` — 14 September, fees that are not a share of a win.** COPY NOT
 DRAWN: no handoff cut covers a rule charged by the hour or per head, so every
