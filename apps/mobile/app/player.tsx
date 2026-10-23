@@ -974,6 +974,15 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    /*
+     * B99. "270 of the 288" above was measured on a fallback face; with Figtree
+     * rendered at the ×1.1 cap three figures in the millions come to more than
+     * the card, and the third left it. The pairs wrap now: a third that will
+     * not fit drops to a second line rather than clipping or leaving the card.
+     * At the board's width and figures nothing wraps.
+     */
+    flexWrap: 'wrap',
+    rowGap: 10,
     justifyContent: 'space-between',
     gap: 8,
     marginTop: 10,

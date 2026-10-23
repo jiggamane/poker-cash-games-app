@@ -101,8 +101,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 14,
+    /*
+     * B99. The figure is the headline and it was the half giving way: at 120%
+     * text on a 360 phone the pill grew and the figure went to "$13,…". Neither
+     * half shrinks now; when the two will not fit on one line the status drops
+     * under the figure, right-aligned by its own auto margin, and both are
+     * read in full. At the board's width and size nothing wraps.
+     */
+    flexWrap: 'wrap',
+    rowGap: 8,
   },
-  left: { flexDirection: 'column', gap: 4, flexShrink: 1, minWidth: 0 },
+  left: { flexDirection: 'column', gap: 4, flexShrink: 0 },
   right: { marginLeft: 'auto', alignItems: 'flex-end', gap: 6, flexShrink: 0 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
   figure: { fontSize: 30, fontWeight: '800', letterSpacing: -1.4, lineHeight: 31 },

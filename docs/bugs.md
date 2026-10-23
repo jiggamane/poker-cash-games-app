@@ -160,8 +160,8 @@ Expected    the gate green on main — B78 says the fields were, on 15 Sept
 Locked by   the two passes that found it: ui-audit.mjs "amount-field-too-
             narrow" and ui-journeys.mjs's clipped pass at 120% text. This
             entry records that they are red, not a new check
-Status      fixed in this commit — both halves, on the owner's word to fix
-            it before merging the rulings branch over it
+Status      fixed in this commit — all of it, on the owner's word to fix it
+            before merging the rulings branch over it
 ```
 
 **The advance was a number of points, and a number of points moves with
@@ -180,6 +180,18 @@ player card, late changes — and the journeys pass found "07:01" on two lines
 at 120% on every stop that draws one. `minWidth: 44` with `flexShrink: 0` is
 the whole fix: every time is five characters, so a column that grows with its
 content still lines up down a list, and a column that cannot grow wraps.
+
+**And three figures the same face pushed out, which the first two had hidden.**
+With the times fixed the journeys pass reported what was under them, and all
+three are on main too: the *Left to move* figure on Who pays whom reads
+"$13,…" at 120% because the status pill beside it grew and the figure's column
+was the one allowed to shrink; and on the player card the three summary
+figures in the millions come to more than the card at 360 and the third
+either clips ("$140M", 163 in 159) or leaves the card ("−$1.2M"). The card's
+own comment had measured "270 of the 288" on the fallback face. Both cards
+wrap now — `flexWrap` with a row gap — so the half that will not fit drops to
+a second line and is read in full; at the board's width and figures nothing
+wraps, and nothing shrinks a figure.
 
 **Why it was clean before.** Neither pass had changed. The face had: a check
 that measures text in whatever font the machine renders measures a different
