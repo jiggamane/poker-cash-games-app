@@ -125,6 +125,10 @@ const CLUB: Record<string, string> = {
   setClubRounding: 'book.upsert',
   setClubStakes: 'book.upsert',
   setClubRules: 'rule.upsert + rule.delete',
+  setClubTableRules:
+    'nothing yet, deliberately: the book has no column for how the table is run. ' +
+    'Step 2 of docs/rulings.md adds the column and the op; until then a second ' +
+    'phone reads the empty set and every answer says "not set"',
   addMember: 'player.upsert',
   renameMember: 'player.upsert',
   setPaysKitty: 'player.terms',

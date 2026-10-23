@@ -94,6 +94,9 @@ const ROUTES = [
   '/settings', '/club-rules', '/money-rules', '/rule', '/bill-rules', '/piggy-bank-rules',
   '/house-rules', '/sign-in', '/claim', '/invite', '/watch', '/hand-over',
   '/rounding', '/share', '/auth-callback', '/end-time', '/pass-game', '/late-changes',
+  // The rules library (`docs/rulings.md`): a push from Settings, one answer as a
+  // sheet, and the group's table rules as a sheet ending with Save.
+  '/rules', '/situation', '/table-rules',
 ];
 
 /*
@@ -133,6 +136,9 @@ const PARAMS = {
   // line — "Nobody by that name tonight" — which is what the pass measured
   // until B15.
   '/player': '?id=seed-dana',
+  // The situation with the longest verified-shape answer and a tournament row;
+  // bare, the route renders a titled sheet with nothing in it.
+  '/situation': '?id=showdown.mucked-winner',
 };
 
 /** The URL a route is actually opened at. */
@@ -1170,7 +1176,7 @@ const SHEET_ROUTES = [
   '/player', '/pick', '/log', '/entry', '/seat', '/bill', '/spend', '/bill-rules',
   '/piggy-bank-rules', '/house-rules', '/money-rules', '/rule', '/rounding', '/share',
   '/sign-in', '/member', '/hand-over', '/nudge', '/new-group', '/new-night', '/invite',
-  '/end-time', '/pass-game', '/late-changes',
+  '/end-time', '/pass-game', '/late-changes', '/situation', '/table-rules',
 ];
 
 /**

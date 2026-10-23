@@ -43,3 +43,8 @@ export * from './verify';
 /* A settled night's figures, written down and read back — a past game is never
    re-derived by a newer engine. */
 export * from './frozen';
+/* The rules library — `docs/rulings.md`. How the table is run, as parameters an
+   answer reads; the situations themselves, as data; and the three that compute. */
+export * from './rulings/tableRules';
+export * from './rulings/calculators';
+export * from './rulings/situations';

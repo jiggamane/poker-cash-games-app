@@ -285,7 +285,9 @@ export default function Settings() {
               : formatMoney(club.defaultBuyIn)
           }
         />
-        <Action label="Money rules" onPress={() => router.push('/club-rules')} last />
+        <Action label="Money rules" onPress={() => router.push('/club-rules')} />
+        {/* ⚠ COPY NOT DRAWN — `docs/rulings.md` § 2.2. The library, and the group's table rules behind it. */}
+        <Action label="Rules & rulings" onPress={() => router.push('/rules')} last />
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The people</Text>
 
