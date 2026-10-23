@@ -139,6 +139,36 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B99 — check:ui is red on main, and it was red before the rulings branch
+
+```
+Screen      /new-night — the Small blind, Big blind and Standard buy-in fields
+            behind Change (B78's screen); and every stop of the played night
+            that draws a clock time at 120% text — deductions, a spend after
+            the count, the spend keypad's covered-by, the player card counted
+            out, a share by hand
+Seen        23 Oct, running the gate before merging feat/rulings-step-1, and
+            then again on main at 5aa9f32 with none of the branch's files
+            present. The same findings both times: "amount-field-too-narrow —
+            4 digits need 46.87 in 43 at ×1.1" twelve times on /new-night, in
+            both themes at 393 and at 360; and thirty-seven "wrapped — 2 lines
+            · 120% text" lines across the night's stops, every one of them a
+            time such as 07:01. Only the times differ between the two runs,
+            because the night is played at the wall clock. The audit's other
+            passes and all 26 sheets are clean on both
+Expected    the gate green on main — B78 says the fields were, on 15 Sept
+Locked by   the two passes that found it: ui-audit.mjs "amount-field-too-
+            narrow" and ui-journeys.mjs's clipped pass at 120% text. This
+            entry records that they are red, not a new check
+Status      open. B78 is back in effect: `fieldWidth()`'s per-character
+            advance comes out 9% short of what the rendered face needs, and
+            this run was the first on this machine with Figtree installed
+            (`ui-fonts.sh` fetched it), which is the likeliest reason the
+            figure moved. The times are a separate fault with the same shape.
+            feat/rulings-step-1 (0d0b166) is pushed and unmerged until the
+            owner says whether to merge over a red that is main's own
+```
+
 ### B98 — the scrim is the ground at 94%, and every word about it says 68%
 
 ```
