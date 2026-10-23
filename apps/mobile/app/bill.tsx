@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
   // A spend is a transfer-height row on L1, not a feed-height one: 15, not 13.
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
-  time: { ...type.time, width: 44 },
+  time: { ...type.time, minWidth: 44, flexShrink: 0 }, // B99: grows with the text
   rowText: { gap: 2, flexShrink: 1 },
   note: type.entryType,
   fronted: type.entryProvenance,

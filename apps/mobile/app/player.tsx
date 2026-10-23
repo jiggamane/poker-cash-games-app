@@ -1000,7 +1000,7 @@ const styles = StyleSheet.create({
   list: { marginHorizontal: 20 },
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4 },
-  time: { ...type.time, width: 44 },
+  time: { ...type.time, minWidth: 44, flexShrink: 0 }, // B99: grows with the text
   entryText: { gap: 2, flexShrink: 1 },
   entryHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   struck: { textDecorationLine: 'line-through' },
