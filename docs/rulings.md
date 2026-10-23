@@ -50,6 +50,11 @@ From the owner, 20 October, and from the research the week before:
    anything waiting on somebody. The green is the owner's call (22 October)
    against the token file's green-is-money rule, and it takes the LIVE badge's
    treatment rather than a new one.
+9. **The library never says who decides.** (23 October.) No *decider*
+   parameter, no *who decides a dispute* row, no name on an answer. A rule can
+   be read out; a person cannot be appointed by the app. What the group has
+   set about the *table* — buy-in, rebuy cap, going south, the short bank —
+   still reads into the answers, because that is reference, not judgement.
 
 Two constraints from the research that shape the whole thing:
 
@@ -198,10 +203,6 @@ were, they are live. If there is any doubt,
 the hand is dead and the pot goes to the
 best hand still showing.
 
-YOUR GROUP
-  Who decides a dispute      Lena (host)
-  Change ›
-
 SOURCE
   Robert's Rules of Poker, Showdown · TDA 2026 r.15, 17
 
@@ -210,6 +211,9 @@ TOURNAMENT
 
 Helpful?                              👍 👎
 ```
+
+(The *Your group* block appears only on a situation that binds a table
+parameter — the money ones in § 9. This one binds nothing, so it has none.)
 
 Decisions in the sheet:
 
@@ -224,10 +228,11 @@ Decisions in the sheet:
   table.
 - **The answer is the body, plain prose, at most three short paragraphs.** No
   bullets in an answer: the host reads it aloud.
-- **Your group** is the house-rule binding (§ 5): the parameter this situation
-  depends on, with its value, and *Change* which goes to Table rules. When the
-  parameter is unset, the row reads the default and says **Not set for your
-  group** (UNSURE) so a host knows the answer is ours, not theirs.
+- **Your group** is the house-rule binding (§ 5), on the situations that have
+  one: the parameter this situation depends on, with its value, and *Change*
+  which goes to Table rules. When the parameter is unset, the row reads the
+  default and says **Not set for your group** (UNSURE) so a host knows the
+  answer is ours, not theirs. It never names a person.
 - **Source** is a citation, never a quote (§ 1).
 - **Tournament** is a collapsed row, muted, and only present when the ruling
   differs. Expanded, it is one or two sentences in the same muted colour under a
@@ -335,7 +340,6 @@ interface TableRules {
   checkRaise: 'allowed' | 'never' | null;
   shortBank: 'hostAbsorbs' | 'splitAll' | 'splitLosers' | 'decideThen' | null;
   credit: { kind: 'none' } | { kind: 'deadlineDays'; days: number } | null;
-  decider: { kind: 'host' } | { kind: 'player'; playerId: PlayerId } | { kind: 'notInHand' } | null;
 }
 ```
 
@@ -369,7 +373,6 @@ small map in core, the way `rateLabel` does for money rules:
 |---|---|---|
 | `rebuyCap` | *Your group caps a rebuy at half the biggest stack.* | *Your group has not set a cap. Most groups cap at half the biggest stack; some allow a full match.* |
 | `shortBank` | *Your group's rule: the host covers a short bank.* | *Your group has not decided. The common rule is that whoever ran the bank covers it; some groups split it.* |
-| `decider` | *Lena decides disputes tonight.* | *Nobody is named. Hosts usually decide; when the host is in the hand, pick someone who is not.* |
 
 All UNSURE. The point is the shape: a set rule reads as the group's own, an
 unset one reads as ours and is honest about it, and the **Your group** row on
@@ -589,8 +592,10 @@ and they are worth keeping so the idea does not come back by accident:
   need to write the next edition. Who decided what, we do not need and should
   not hold.
 
-What remains of the idea is the `decider` parameter in Table rules (§ 5), which
-answers *who decides a dispute* inside the answers, and nothing that writes.
+Nothing remains of it. The `decider` parameter went the next day (§ 1, item
+9): a library that names who decides is adjudicating, and this one only
+informs. Where an answer used to end "the host decides", it now ends at the
+rule.
 
 ---
 
@@ -622,8 +627,8 @@ answer reads, if any.
 
 | # | What happened | Cash answer (draft) | T | Binds |
 |---|---|---|---|---|
-| ★ | Winning hand hit the muck | Face up on the table: it plays, cards speak. Face down into the muck and certain which it was: live. Any doubt: dead. | same | decider |
-| | Dealer mucked a hand by mistake | Certain and retrievable: restored. Otherwise dead — and what happens to that player's money already in is for the group to decide beforehand. | same | decider |
+| ★ | Winning hand hit the muck | Face up on the table: it plays, cards speak. Face down into the muck and certain which it was: live. Any doubt: dead. | same | — |
+| | Dealer mucked a hand by mistake | Certain and retrievable: restored. Otherwise dead — and what happens to that player's money already in is a house rule to agree before the night. | same | — |
 | ★ | Who shows first? | The last person who bet or raised on the river. If nobody bet on the river, the first player left of the button. Anyone may table at once. | same | — |
 | | Misread their hand ("I have two pair" with a flush) | The cards decide, not the words. The best five of seven. | same | — |
 | | Showed one card, mucked the other | The hand is dead unless both are tabled face up. Showing one is not showing a hand. | same | — |
@@ -685,13 +690,12 @@ answer reads, if any.
 
 | # | What happened | Cash answer (draft) | T | Binds |
 |---|---|---|---|---|
-| ★ | Was that a slow roll? | Taking your time to table the winner when you know it is the winner. No rule, no penalty — a word from the host. | **differs** — penalties exist | decider |
-| | Talking about the hand with others in it | Not during the hand. Fold the talker's hand if the group has agreed that; otherwise a warning. | **differs** — penalty | — |
+| ★ | Was that a slow roll? | Taking your time to table the winner when you know it is the winner. No rule and no penalty in a cash game; etiquette only. | **differs** — penalties exist | — |
+| | Talking about the hand with others in it | Not during the hand. Some groups fold the talker's hand; most settle for a word. | **differs** — penalty | — |
 | | Rabbit hunting | The group's rule; the usual one is never. | **differs** — never | rabbitHunt |
-| | Angle shooting | Doing a legal thing to mislead. The host decides, and the group's stand-in when the host is in the hand. | same | decider |
+| | Angle shooting | Doing a legal thing to mislead. No rule covers it; the table's own standard does, which is why house rules name it. | same | — |
 | | Phone at the table | Etiquette. No cards on camera, no phone in a hand with a bet in front of you. | same | — |
 | | Exposing a card on purpose | Allowed heads-up unless the group forbids it; multiway, the hand is dead. | **differs** — penalty | — |
-| | Who decides a dispute | The host; when the host is in the hand, the person the group named. | — | decider |
 
 ### Your rules
 
