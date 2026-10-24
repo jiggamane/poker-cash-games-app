@@ -92,6 +92,22 @@ describe('equity is exact', () => {
     expect(seven.seats.every((s) => s.equity === 1 / 7)).toBe(true);
   });
 
+  it('splits a pot k ways exactly, for every k from two to nine', () => {
+    /* A royal flush on the board plays for everybody, so k hands holding
+       nothing of use all tie, and each is owed exactly 1/k. */
+    const board = cards('As Ks Qs Js Ts');
+    const pool = ['2c3d', '4h5d', '6c7d', '8c9d', '2h3c', '4c5h', '6h7c', '8h9c', '2d3h'].map(hand);
+    for (let k = 2; k <= 9; k++) {
+      const r = odds({ hands: pool.slice(0, k), board });
+      expect(r.boards).toBe(1);
+      for (const s of r.seats) {
+        expect(s.wins).toBe(0);
+        expect(s.ties).toBe(1);
+        expect(s.equity).toBe(1 / k);
+      }
+    }
+  });
+
   it('does not drift over a million three-way ties', () => {
     /* Three hands of the same rank before the flop: over a million boards are
        shared three ways, and adding 1/3 that many times in floating point

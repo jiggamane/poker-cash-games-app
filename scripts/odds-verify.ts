@@ -1,9 +1,8 @@
 /**
  * The odds engine, held to the facts about poker that nobody disputes.
  *
- *   npm run odds:verify                 about a minute
- *   npm run odds:verify -- --reference  and, after it, a full independent pass
- *                                       over one pre-flop table: several minutes
+ *   npm run odds:verify                 a few minutes
+ *   npm run odds:verify -- --spots=60   more random tables per street (default 30)
  *
  * `npm run check` proves the engine against a slow second implementation, and
  * against every five-card hand there is. This goes the rest of the way and is
@@ -34,15 +33,19 @@
  *    the suits renamed, the seats reordered, and the hands mirrored. Poker says
  *    none of it can change an answer, so none of it may change a count.
  *
- * 3. `--reference`: one three-handed pre-flop table, every one of its
- *    1,370,754 boards ranked a second time by a slow five-card ranker that
- *    shares nothing with the engine, and the win and tie counts compared.
+ * 3. RANDOM TABLES, EVERY BOARD. Thirty tables on each street — before the
+ *    flop, on the flop, the turn and the river — two to nine players, with up to
+ *    three dead cards, each calculated by the engine and again by a reference
+ *    that shares nothing with it: boards enumerated by plain recursion, each
+ *    hand ranked through the five-card table above. Boards, wins and ties must
+ *    match for every seat. Before the flop that is up to 1.7 million boards a
+ *    table, every one of them counted twice.
  */
 
 import { DECK, cardText, parseCards, type Card } from '../packages/core/src/odds/cards';
 import { evaluate } from '../packages/core/src/odds/evaluate';
 import { odds, type Hand } from '../packages/core/src/odds/odds';
-import { bestOfSeven, compareRanked, rankFive } from '../packages/core/src/odds/reference';
+import { dealRandom, rankFive, rng } from '../packages/core/src/odds/reference';
 
 const hand = (s: string): Hand => parseCards(s)! as unknown as Hand;
 let failed = 0;
@@ -108,10 +111,13 @@ function fiveCardTable(): Int32Array {
   return table;
 }
 
+let TABLE: Int32Array | null = null;
+const fiveTable = (): Int32Array => (TABLE ??= fiveCardTable());
+
 function census() {
   console.log('\n1 · every hand of seven cards');
   const t = Date.now();
-  const table = fiveCardTable();
+  const table = fiveTable();
   console.log(`    all 2,598,960 five-card hands ranked by the slow ranker (${seconds(t)})`);
 
   /* The 21 ways to leave two of seven cards out: positions of the five kept. */
@@ -238,44 +244,105 @@ function invariance() {
   console.log(`    (${seconds(t)})`);
 }
 
-/* ── 3 · one table, ranked a second time by the slow ranker ───────────── */
+/* ── 3 · random tables, every board, counted twice ──────────────────── */
 
-function reference() {
-  console.log('\n3 · one pre-flop table against the slow ranker, every board');
-  const t = Date.now();
-  const hands = [hand('AsKs'), hand('QdQc'), hand('7h6h')];
-  const used = new Set<Card>(hands.flat());
+/** The reference for one table: boards by recursion, hands by the five-card table. */
+function referenceCounts(hands: readonly Hand[], board: readonly Card[], dead: readonly Card[]) {
+  const table = fiveTable();
+  const used = new Set<Card>([...hands.flat(), ...board, ...dead]);
   const deck = DECK.filter((c) => !used.has(c));
-  const wins = [0, 0, 0];
-  const ties = [0, 0, 0];
+  const toCome = 5 - board.length;
+  const wins = hands.map(() => 0);
+  const ties = hands.map(() => 0);
   let boards = 0;
-  const m = deck.length;
-  for (let a = 0; a < m; a++)
-    for (let b = a + 1; b < m; b++)
-      for (let c = b + 1; c < m; c++)
-        for (let d = c + 1; d < m; d++)
-          for (let e = d + 1; e < m; e++) {
-            const board = [deck[a]!, deck[b]!, deck[c]!, deck[d]!, deck[e]!];
-            const ranked = hands.map((h) => bestOfSeven([...board, ...h]));
-            let top = ranked[0]!;
-            for (const x of ranked) if (compareRanked(x, top) > 0) top = x;
-            const winners = ranked.map((x) => compareRanked(x, top) === 0);
-            const k = winners.filter(Boolean).length;
-            winners.forEach((w, i) => w && (k === 1 ? wins : ties)[i]!++);
-            boards++;
-            if (boards % 50_000 === 0) process.stdout.write(`    …${n(boards)} boards, ${seconds(t)}\r`);
-          }
-  const r = odds({ hands, board: [] });
-  say(boards === r.boards, `${n(boards)} boards ranked, ${n(r.boards)} counted by the engine`);
-  say(r.seats.every((s, i) => s.wins === wins[i]), `wins   ${wins.map(n).join(' / ')}   engine ${r.seats.map((s) => n(s.wins)).join(' / ')}`);
-  say(r.seats.every((s, i) => s.ties === ties[i]), `ties   ${ties.map(n).join(' / ')}   engine ${r.seats.map((s) => n(s.ties)).join(' / ')}`);
-  console.log(`    (${seconds(t)})`);
+  const keep: number[] = [];
+  for (let i = 0; i < 7; i++)
+    for (let j = i + 1; j < 7; j++) for (let p = 0; p < 7; p++) if (p !== i && p !== j) keep.push(p);
+  const [B1, B2, B3, B4, B5] = [BINOM[1]!, BINOM[2]!, BINOM[3]!, BINOM[4]!, BINOM[5]!];
+  const seven: Card[] = [0, 0, 0, 0, 0, 0, 0];
+  const strength = (full: readonly Card[], h: Hand): number => {
+    for (let i = 0; i < 5; i++) seven[i] = full[i]!;
+    seven[5] = h[0];
+    seven[6] = h[1];
+    /* Insertion sort: the five-card table is indexed by the SORTED cards. */
+    for (let i = 1; i < 7; i++) {
+      const x = seven[i]!;
+      let j = i - 1;
+      while (j >= 0 && seven[j]! > x) seven[j + 1] = seven[j--]!;
+      seven[j + 1] = x;
+    }
+    let best = -1;
+    for (let q = 0; q < 105; q += 5) {
+      const at =
+        B1[seven[keep[q]!]!]! + B2[seven[keep[q + 1]!]!]! + B3[seven[keep[q + 2]!]!]! +
+        B4[seven[keep[q + 3]!]!]! + B5[seven[keep[q + 4]!]!]!;
+      if (table[at]! > best) best = table[at]!;
+    }
+    return best;
+  };
+  const full: Card[] = [...board, 0, 0, 0, 0, 0].slice(0, 5);
+  const settle = () => {
+    boards++;
+    let top = -1;
+    let k = 0;
+    const v = hands.map((h) => strength(full, h));
+    for (const x of v) top = x > top ? x : top;
+    for (const x of v) if (x === top) k++;
+    v.forEach((x, i) => x === top && (k === 1 ? wins : ties)[i]!++);
+  };
+  /* Plain recursion over the cards still to come, in deck order. */
+  const pick = (from: number, at: number): void => {
+    if (at === 5) return settle();
+    for (let i = from; i <= deck.length - (5 - at); i++) {
+      full[at] = deck[i]!;
+      pick(i + 1, at + 1);
+    }
+  };
+  pick(0, board.length);
+  return { boards, wins, ties };
 }
 
+function tables(perStreet: number) {
+  console.log('\n3 · random tables, every board counted twice');
+  const t = Date.now();
+  const next = rng(20261024);
+  let spots = 0;
+  let boardsChecked = 0;
+  let bad = 0;
+  for (const boardSize of [0, 3, 4, 5]) {
+    const label = { 0: 'before the flop', 3: 'on the flop', 4: 'on the turn', 5: 'on the river' }[boardSize]!;
+    let ok = 0;
+    for (let i = 0; i < perStreet; i++) {
+      const players = 2 + (i % 8);
+      const deadN = Math.floor(next() * 4);
+      const dealt = dealRandom(next, players * 2 + boardSize + deadN);
+      const hands: Hand[] = [];
+      for (let p = 0; p < players; p++) hands.push([dealt[2 * p]!, dealt[2 * p + 1]!]);
+      const board = dealt.slice(players * 2, players * 2 + boardSize);
+      const dead = dealt.slice(players * 2 + boardSize);
+      const mine = odds({ hands, board, dead });
+      const theirs = referenceCounts(hands, board, dead);
+      const same =
+        mine.boards === theirs.boards &&
+        mine.seats.every((x, j) => x.wins === theirs.wins[j] && x.ties === theirs.ties[j]);
+      if (same) ok++;
+      else {
+        bad++;
+        console.log(`    MISMATCH ${players} players, board ${board.map(cardText).join(' ')}, dead ${dead.map(cardText).join(' ')}`);
+        console.log(`      hands ${hands.map((h) => h.map(cardText).join('')).join(' ')}`);
+      }
+      spots++;
+      boardsChecked += theirs.boards;
+    }
+    say(ok === perStreet, `${label.padEnd(16)} ${ok} of ${perStreet} tables identical, every seat   (${seconds(t)})`);
+  }
+  say(bad === 0, `${n(spots)} tables, ${n(boardsChecked)} boards each counted twice, ${bad} disagreements`);
+}
+
+const perStreet = Number(process.argv.find((a) => a.startsWith('--spots='))?.split('=')[1] ?? 30);
 census();
 invariance();
-if (process.argv.includes('--reference')) reference();
-else console.log('\n3 · skipped: pass --reference for the full independent pass over one table');
+tables(perStreet);
 
 console.log(failed === 0 ? '\nthe odds engine agrees with every fact checked.' : `\n${failed} FAILED — the engine disagrees with the facts above.`);
 process.exit(failed === 0 ? 0 : 1);
