@@ -172,8 +172,10 @@ export default function OddsCalculator() {
   const t = useTheme();
   const [table, setTable] = useState<Table>(emptyTable);
   const [active, setActive] = useState<Slot>(FIRST);
-  const [result, setResult] = useState<Odds | null>(null);
-  const [progress, setProgress] = useState<number | null>(null);
+  /* Both are kept WITH the table they belong to. A result is only ever shown
+     for the cards it was calculated from — see `shown` below. */
+  const [result, setResult] = useState<{ key: string; odds: Odds } | null>(null);
+  const [progress, setProgress] = useState<{ key: string; done: number } | null>(null);
 
   const used = useMemo(
     () => new Set<Card>([...table.seats.flat(), ...table.board].filter((c): c is Card => c !== null).concat(table.dead)),
@@ -191,13 +193,29 @@ export default function OddsCalculator() {
   const halfDealt = table.seats.findIndex((s) => s.some((c) => c !== null) && s.some((c) => c === null));
   const boardCards = table.board.filter((c): c is Card => c !== null);
 
+  /* The table as the calculation sees it, written out: hands in seat order, the
+     board, the dead cards. Two tables with the same key have the same answer,
+     which is why adding an empty seat does not throw a finished one away. */
+  const inputKey = `${complete.map((x) => x.hand.join('.')).join('|')}/${boardCards.join('.')}/${table.dead.join('.')}`;
   const input = useMemo(
     () => ({ hands: complete.map((x) => x.hand), board: boardCards, dead: table.dead }),
-    // The signature is the cards themselves; the arrays above are rebuilt per render.
+    // `inputKey` IS the cards; the arrays above are rebuilt every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [table],
+    [inputKey],
   );
   const problem = halfDealt >= 0 ? `Player ${halfDealt + 1} needs a second card` : oddsProblem(input);
+
+  /*
+   * WHAT IS SHOWN IS ONLY EVER WHAT WAS CALCULATED FOR THIS TABLE. The first
+   * render after a tap still holds the last table's result — the effect below
+   * has not run yet — and showing it painted one frame of figures that belonged
+   * to different cards, and, when the hands themselves had changed, read a seat
+   * the old result did not have and threw. Found by planting a bug in the
+   * half-dealt guard and watching the page die (B101).
+   */
+  const shown = result !== null && result.key === inputKey ? result.odds : null;
+  const calculating = problem === null && shown === null;
+  const doneShare = progress !== null && progress.key === inputKey ? progress.done : 0;
 
   /*
    * THE CALCULATION, SLICED. A heads-up hand before the flop is 1.7 million
@@ -215,14 +233,14 @@ export default function OddsCalculator() {
       return;
     }
     const e = new OddsEnumeration(input);
-    setProgress(0);
+    setProgress({ key: inputKey, done: 0 });
     const slice = () => {
       if (run.current !== id) return;
       if (e.step(30_000)) {
-        setResult(e.result());
+        setResult({ key: inputKey, odds: e.result() });
         setProgress(null);
       } else {
-        setProgress(e.done / e.total);
+        setProgress({ key: inputKey, done: e.done / e.total });
         setTimeout(slice, 0);
       }
     };
@@ -230,7 +248,7 @@ export default function OddsCalculator() {
     return () => {
       run.current++;
     };
-  }, [input, problem]);
+  }, [inputKey, problem]);
 
   const deal = (c: Card) => {
     const next = place(table, active, c);
@@ -253,24 +271,21 @@ export default function OddsCalculator() {
     setTable({ ...table, seats: [...table.seats, emptySeat()] });
   };
 
-  const meta =
-    progress !== null
-      ? `Calculating · ${Math.round(progress * 100)}%`
-      : result !== null
-        ? `${grouped(result.boards)} ${result.boards === 1 ? 'board' : 'boards'} dealt · exact`
-        : problem === null
-          ? 'Texas hold’em'
-          : halfDealt >= 0 || complete.length >= 2
-            ? /* A seat short of a card, or two full hands the engine will not
-                 take — too few cards left for the board is the one a reader
-                 can reach, by dealing dead cards until the deck runs out. */
-              problem
-            : 'Texas hold’em · deal two hands';
+  const meta = calculating
+    ? `Calculating · ${Math.round(doneShare * 100)}%`
+    : shown !== null
+      ? `${grouped(shown.boards)} ${shown.boards === 1 ? 'board' : 'boards'} dealt · exact`
+      : halfDealt >= 0 || complete.length >= 2
+        ? /* A seat short of a card, or two full hands the engine will not
+             take — too few cards left for the board is the one a reader
+             can reach, by dealing dead cards until the deck runs out. */
+          (problem ?? 'Texas hold’em')
+        : 'Texas hold’em · deal two hands';
 
   const seatOdds = (seat: number) => {
-    if (result === null) return null;
+    if (shown === null) return null;
     const i = complete.findIndex((x) => x.seat === seat);
-    return i < 0 ? null : result.seats[i]!;
+    return i < 0 ? null : (shown.seats[i] ?? null);
   };
 
   const slotProps = (slot: Slot, c: Card | null, label: string) => ({
@@ -378,11 +393,11 @@ export default function OddsCalculator() {
                  * come. A bar that fills, where the figure is about to be,
                  * in every seat that is in the hand.
                  */}
-                {progress !== null && complete.some((x) => x.seat === seat) ? (
-                  <View style={styles.loading} accessibilityLabel={`Calculating, ${Math.round(progress * 100)}%`}>
+                {calculating && complete.some((x) => x.seat === seat) ? (
+                  <View style={styles.loading} accessibilityLabel={`Calculating, ${Math.round(doneShare * 100)}%`}>
                     <Text style={[styles.figureLabel, { color: t.muted }]}>Calculating</Text>
                     <View style={[styles.track, { backgroundColor: t.hairline }]}>
-                      <View style={[styles.fill, { backgroundColor: t.text, width: `${Math.max(2, Math.round(progress * 100))}%` }]} />
+                      <View style={[styles.fill, { backgroundColor: t.text, width: `${Math.max(2, Math.round(doneShare * 100))}%` }]} />
                     </View>
                   </View>
                 ) : (

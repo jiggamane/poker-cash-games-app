@@ -139,6 +139,38 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B101 — the odds screen painted the last table's figures for one frame, and could crash on them
+
+```
+Screen      /odds
+Seen        24 Oct, by planting a bug in the screen's half-dealt-seat guard to
+            see whether ui-odds.mjs would notice: the page died with "Cannot
+            read properties of undefined (reading 'win')" on the tap that made
+            a third hand. Without the planted bug nothing crashed — but the same
+            fault was there in a milder form: the first render after ANY tap
+            still held the previous table's result, because the effect that
+            replaces it runs after the paint, so one frame of figures and a
+            "boards dealt" line belonging to different cards was on screen
+Expected    figures only ever for the cards they were calculated from
+Locked by   the crash form: ui-odds.mjs now fails a table on any uncaught page
+            error, and said "timed out after 90 seconds" before that. The
+            one-frame stale paint is NOT held by any check: a single frame is not
+            observable from a browser script, so it is held by the code — the
+            result and the progress are stored with a key made of the cards, and
+            what is shown is derived from them only when the key matches
+Status      fixed in this commit
+```
+
+Today the crash could not be reached by a person. Every change to which hands
+are complete passes through a seat with one card, which sets a problem and
+clears the result before the next hand arrives — so the guard was holding the
+whole thing up, and nothing said so. Planting a bug in the guard is what made
+it say so.
+
+The fix costs nothing a person can see and one thing they cannot: adding an
+empty seat used to restart a finished calculation, because the table object was
+new, and no longer does, because the key is the cards.
+
 ### B100 — the meta line under a pushed title loses its descenders on a long screen
 
 ```

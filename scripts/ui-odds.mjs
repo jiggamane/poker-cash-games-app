@@ -3,6 +3,7 @@
  * figure it prints held against the engine's.
  *
  *   node scripts/ui-odds.mjs            against UI_CHECK_BASE, default :4321
+ *   node scripts/ui-odds.mjs --bail     stop at the first table that is wrong
  *
  * `npm run odds:verify` holds the ENGINE to the facts about poker. This holds
  * the screen to the engine: that a card tapped for Player 5 lands in Player 5's
@@ -30,6 +31,9 @@ let failed = 0;
 for (const [n, c] of cases.entries()) {
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   const fail = [];
+  /* A crash is a failure in its own right and says so. Until this was here one
+     read as a 90-second wait for a line that never came: B101. */
+  page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
   try {
     await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
     await page.waitForSelector('#screen-title');
@@ -81,7 +85,10 @@ for (const [n, c] of cases.entries()) {
   await page.close();
   console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  ${String(n + 1).padStart(2)}  ${c.title}`);
   for (const f of fail) console.log(`        ${f}`);
-  if (fail.length) failed++;
+  if (fail.length) {
+    failed++;
+    if (process.argv.includes('--bail')) break;
+  }
 }
 await browser.close();
 
