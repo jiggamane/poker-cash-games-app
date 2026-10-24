@@ -139,6 +139,8 @@ export default function RootLayout() {
         <Stack.Screen name="club-rules" />
         {/* The rules library — a place, pushed from Settings (`docs/rulings.md` § 2). */}
         <Stack.Screen name="rules" />
+        {/* The odds calculator — a tool you stay in, pushed from Settings. No board draws it. */}
+        <Stack.Screen name="odds" />
         {/*
          * X1 is a PUSH, not a root (S77). There is no watcher's install: every
          * install is a host install with a book in it, so a share link opens

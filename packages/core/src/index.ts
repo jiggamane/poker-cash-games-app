@@ -48,3 +48,6 @@ export * from './frozen';
 export * from './rulings/tableRules';
 export * from './rulings/calculators';
 export * from './rulings/situations';
+/* Texas hold'em odds — win and tie per hand, every board dealt. Not money, but
+   arithmetic, and arithmetic is tested here or nowhere. */
+export * from './odds/index';

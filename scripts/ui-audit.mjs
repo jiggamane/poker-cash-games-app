@@ -97,6 +97,8 @@ const ROUTES = [
   // The rules library (`docs/rulings.md`): a push from Settings, one answer as a
   // sheet, and the group's table rules as a sheet ending with Save.
   '/rules', '/situation', '/table-rules',
+  // The odds calculator: a tool pushed from Settings, no sheet behind it.
+  '/odds',
 ];
 
 /*

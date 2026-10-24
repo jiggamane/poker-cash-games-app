@@ -87,6 +87,7 @@ is settled when it is not.
 | `/new-group` | sheet | ✓ | ✓ | — | ☐ |
 | `/new-night` | sheet | ✓ | ✓ | — | ☐ |
 | `/nudge` | sheet | ✓ | ✓ | ✓ | ☐ |
+| `/odds` | push | ✓ | — | — | ☐ |
 | `/pass-game` | sheet | ✓ | ✓ | — | ☐ |
 | `/payments` | push | ✓ | — | ✓ | ☐ |
 | `/pick` | sheet | ✓ | ✓ | — | ☐ |
@@ -95,19 +96,25 @@ is settled when it is not.
 | `/players` | push | ✓ | — | — | ☐ |
 | `/rounding` | sheet | ✓ | ✓ | — | ☐ |
 | `/rule` | sheet | ✓ | ✓ | — | ☐ |
+| `/rules` | push | ✓ | — | — | ☐ |
+| `/rule` | sheet | ✓ | ✓ | — | ☐ |
 | `/seat` | sheet | ✓ | ✓ | — | ☐ |
 | `/session` | push | ✓ | — | ✓ | ☐ |
 | `/settings` | push | ✓ | — | — | ☐ |
 | `/settle-up` | push | ✓ | — | ✓ | ☐ |
 | `/settled` | push | ✓ | — | ✓ | ☐ |
+| `/situation` | sheet | ✓ | ✓ | — | ☐ |
 | `/share` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/sign-in` | sheet | ✓ | ✓ | — | ☐ |
 | `/spend` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/stats` | push | ✓ | — | ✓ | ☐ |
+| `/table-rules` | sheet | ✓ | ✓ | — | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**39 screens · 39 under the rule pass · 23 under the sheet pass · 13 under a big
-night · 0 conformed.**
+**44 screens · 44 under the rule pass · 26 under the sheet pass · 13 under a big
+night · 0 conformed.** (The three rulings screens and the odds calculator were
+added to this table on 24 October; the count had stood at 39 since before the
+rulings merge, and the rows are `ROUTES` and `SHEET_ROUTES` in `ui-audit.mjs`.)
 
 **Running the game — `design/handoff-game-admin/`, cut 26 September, built the
 same day.** Tonight, `/pass-game`, `/late-changes`, `/players`, `/watch`, home's
@@ -2853,3 +2860,50 @@ What is **not** here and is waiting on a board: Settings → Admin (grant, make 
 code, list them — the SQL editor does it until then), a place to redeem a code
 once signed in, and the app lock the owner asked for (Face ID / fingerprint /
 passcode over the app, not a password on the account).
+
+## The odds calculator — a tool no board drew (24 October)
+
+`/odds`, pushed from Settings under *Rules & rulings*. It is the classic web
+hold'em calculator rebuilt inside the app with the same arithmetic behind it:
+nine seats of two cards, the five board cards, a row of dead cards, and the
+deck to deal from; **win and tie per hand, over every board that can still
+come**. Nothing is sampled — a heads-up hand before the flop is the full
+1,712,304 boards — so the same cards always give the same figures.
+
+The arithmetic is `packages/core/src/odds/` and is held by `evaluate.test.ts`
+and `odds.test.ts`: the hand ranking on every category, the kicker rules, the
+wheel; and the odds on spots a person can count by hand — eighteen outs of
+forty-four on the turn, a dead card making it seventeen of forty-three, a board
+that plays for everyone splitting the pot. Aces against kings before the flop
+is the one published figure asserted (82.4 / 17.1 / 0.5), and it is also the
+clock: the worst case runs in under half a second in node. **How long it takes
+on a phone in Expo Go has not been measured.** The screen slices the work and
+counts it down on the meta line so nothing freezes, but the number of seconds
+a reader waits on a real device is open.
+
+**Every string on it is mine and wants review** — COPY NOT DRAWN in the file:
+*Odds calculator*, *Players*, *Player 1*…*Player 9*, *Win*, *Tie*, *Board*,
+*Dead cards*, *New hand*, the hint under the deck, and the meta line's states
+(*Texas hold’em · deal two hands*, *Player 3 needs a second card*,
+*Calculating · 34%*, *1,712,304 boards dealt · exact*).
+
+*Where it departs from the original, and why:*
+
+1. **The next place is outlined in the text colour, not red.** The original
+   highlights it in red; in this app red is money lost and nothing else. The
+   suit colours are the one exception kept: hearts and diamonds are drawn in
+   the loss red because every deck draws them red.
+2. **The deal moves on by itself only as far as a dealer would.** Second hole
+   card, then the second seat for the first two seats, then the board, then
+   dead. Seats three to nine are dealt where the reader taps. The original
+   fills seats in order; nine hands are the exception on a phone and the board
+   is not.
+3. **Equity is computed and not shown.** The engine returns `win`, `tie` and
+   `equity` (a win is 1, an n-way tie 1/n); the screen shows the original's two
+   figures. One more column per seat did not fit the two-up grid at 360.
+4. **No Help panel.** The original's instructions are the one line under the
+   deck.
+
+*Open:* whether this lives under Settings or on the club's home as a tool
+beside the rules; how it reads at 120% text, which the rule pass measures only
+on the stops a night produces; and the Expo Go timing above.
