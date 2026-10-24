@@ -2885,9 +2885,11 @@ a reader waits on a real device is open.
 
 **Every string on it is mine and wants review** — COPY NOT DRAWN in the file:
 *Odds calculator*, *Players*, *Player 1*…*Player 9*, *Win*, *Tie*, *Board*,
-*Dead cards*, *New hand*, the hint under the deck, and the meta line's states
-(*Texas hold’em · deal two hands*, *Player 3 needs a second card*,
-*Calculating · 34%*, *1,712,304 boards dealt · exact*).
+*Dead cards*, *New hand* (now the restart icon's name), and the status line's
+five states (*Texas hold’em · deal two hands*, *Player 3 needs a second card*,
+*Calculating · 34%*, *1,712,304 boards dealt · exact*, and the engine's *Not
+enough cards left in the deck to finish the board.*), which `src/lib/oddsStatus.ts`
+writes down in the order they win.
 
 *How the arithmetic is held, 24 October.* `npm run check` runs the engine
 against a slow second ranker on random tables of two to nine players, against
@@ -2938,7 +2940,7 @@ whole of this is the web build in a desktop browser.
 3. **Equity is computed and not shown.** The engine returns `win`, `tie` and
    `equity` (a win is 1, an n-way tie 1/n); the screen shows the original's two
    figures, which is what it is a rebuild of.
-5. **One row per seat, not a two-up grid.** The grid was built first and cut
+4. **One row per seat, not a two-up grid.** The grid was built first and cut
    the figures to `82….` at 393 — beside two cards, a figure and its label need
    110 points and half the phone less the cards has 64. The route pass did not
    see it (B12's check reads amount fields, not these), the screenshot did, so
@@ -2946,10 +2948,47 @@ whole of this is the web build in a desktop browser.
    the row's width at every text size. Driven in a browser: aces against kings
    reads 82.36 / 0.54 / 17.09 after about a second, a flop re-deals 990 boards
    and taking a board card back re-deals 15,180.
-6. **It surfaced B100.** The meta line under the title was being squeezed on
-   every long pushed screen; this one was long enough to make it obvious.
-4. **No Help panel.** The original's instructions are the one line under the
-   deck.
+5. **It surfaced B100 and B101, and then B102.** The meta line under the title
+   was being squeezed on every long pushed screen; a result outlived the table
+   it was counted for; and a seat given its first card kept the last result up
+   for one frame because the key leaves a half-dealt seat out of it.
+6. **No Help panel, no instructions line, no New hand button under the deck.**
+   Decided by the owner, 24 October. With the hint gone nothing says that
+   tapping a dealt card takes it back; that is open.
+
+*Decided on 24 October, built the same day (from the canvas in the handoff):*
+
+- **New hand is a 34 pt round icon at the right end of the status line**, the
+  back button's fill, named *New hand* for the screen reader, with a 50 pt hit
+  area. It is **not** in the top-right corner: `docs/09-navigation.md` keeps that
+  corner empty on a pushed screen because a control there reads as a sheet's
+  close. `Screen`'s `metaTrailing` is the place the app already puts a control on
+  that line (Sessions' group scope, the past session's view), and it carries its
+  own floor (B68, B82): the text shrinks, the icon does not. The glyph is the new
+  `restart` in `Icon.tsx`.
+- **The line's logic is one function with the states in the order they win:**
+  a half-dealt seat, a result for this exact table, counting, two hands the
+  engine will not take, then the invitation. `oddsStatus.test.ts` holds each
+  state and the precedence, including B102.
+- **Pressing a card shows it large** (option D on the canvas, chosen over four
+  others): a 58 × 80 pt copy above the finger with a stem and a shadow, the
+  pressed cell ringed in the text colour, gone on release; a tap is still one
+  tap. The deck's cells are 25 × 40 pt, below the 44 × 44 a thumb can be sure
+  of, and this is the change that leaves the layout alone. It stays 8 pt inside
+  the screen on the A and 2 columns and takes no touches.
+- **`ui-odds.mjs` holds it:** the copy appears on press with the card's rank,
+  above the cell, taking no touches; releasing deals the card and removes it; the
+  two edge columns stay on screen; a press that slides off and lets go deals
+  nothing. **On the web build the copy goes on release, not the moment the finger
+  leaves the cell**, because react-native-web has no `pressRetentionOffset`; on a
+  phone React Native hides it as soon as the finger is 6 pt outside. Not seen on
+  a phone. Shown to go red against a callout that never appears, one that takes
+  touches, and one that hangs off the screen on the A column.
+- **Open, flagged on the canvas:** beside the icon the status line has about 270
+  pt at 402 wide, so *Not enough cards left in the deck to finish the board.* is
+  cut with an ellipsis. It needs shorter copy or a second line. The share
+  feature and four other ways of entering a card are drawn on the canvas and not
+  built.
 
 *Open:* whether this lives under Settings or on the club's home as a tool
 beside the rules; how it reads at 120% text, which the rule pass measures only

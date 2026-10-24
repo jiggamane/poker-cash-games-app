@@ -139,6 +139,31 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B102 — a seat given its first card kept the last result on screen for one frame
+
+```
+Screen      /odds
+Seen        24 Oct, writing the status line's logic down as a spec and reading
+            the code against it. The result is kept with a key made of the
+            COMPLETE hands, the board and the dead cards. A seat holding one card
+            is none of those, so dealing someone their first card leaves the key
+            unchanged and the old result still matches it: for one frame the line
+            said "1,712,304 boards dealt · exact" and the other seats still showed
+            their figures, beside a seat that needs a second card. The spec says
+            that state wins over everything
+Expected    "Player N needs a second card", and no figures, the moment the card
+            lands
+Locked by   `oddsStatus.test.ts` holds the precedence in the one function that
+            writes the line; and `shown` is now derived only while the table is
+            valid, so the figures cannot outlive it either. The single frame
+            itself is not observable from a browser script, as with B101
+Status      fixed in this commit
+```
+
+The same family as B101 and for the same reason: the key says which cards a
+result was counted for, and it was never asked whether the table is still one
+that can be counted.
+
 ### B101 — the odds screen painted the last table's figures for one frame, and could crash on them
 
 ```

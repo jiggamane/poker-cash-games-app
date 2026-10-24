@@ -59,8 +59,8 @@ percentage (`100.00%`) at 360 wide.
 - The light theme: ivory on white is faint and may want an edge.
 - Whether to show **equity** (share of the pot) beside Win and Tie. The engine
   returns it exactly; the screen does not draw it.
-- Wording: the title, *Players*, *Board*, *Dead cards*, *Win*, *Tie*, the hint
-  under the deck, and the five status-line states.
+- Wording: the title, *Players*, *Board*, *Dead cards*, *Win*, *Tie*, and the five
+  status-line states.
 
 ## What the checks hold, so a return can be built without breaking them
 
@@ -71,7 +71,7 @@ same commit — say so on the canvas and it will be done, but do not assume it.
   every card place is a button named `Player 3, card 2, empty` /
   `Board, card 4, 7♦` / `Next dead card, empty`; the deck's cards are `A♠`…`2♣`
   (`, dealt` appended once used); the controls are `Add a player` and
-  `New hand`. A redesign that renames or merges these needs the driver edited.
+  `New hand` (now the restart icon at the right end of the status line). A redesign that renames or merges these needs the driver edited.
 - **The status line** (`#screen-meta`) is compared word for word with what
   `scripts/odds-ui-cases.ts` expects, including the grouped board count
   (`1,712,304 boards dealt · exact`).
@@ -117,3 +117,41 @@ All of it is in `docs/screens.md`. The two worth knowing before drawing:
 - **A seat with one card is not a hand yet** and holds the calculation up, with
   a sentence saying which seat. The odds are for the table the reader has set,
   never a guess at it.
+
+## Decided on 24 October
+
+Taken on the canvas by the owner, built the same day. **These win over anything
+above that says otherwise.** The canvas's note "BUILD INSTRUCTIONS" is the same
+list.
+
+1. **The hint under the deck is removed.** Nothing now says that tapping a dealt
+   card takes it back; open.
+2. **New hand is a 34 pt round icon** (circular arrow, 18 pt glyph, stroke 2, the
+   back button's fill) at the **right end of the status line** via `Screen`'s
+   `metaTrailing` — not in the top-right corner, which a pushed screen keeps empty
+   (`docs/09-navigation.md`). Named *New hand*; it clears every card and keeps the
+   seats.
+3. **Card entry is option D:** the 4 × 13 deck as built; **pressing a live card
+   shows an enlarged ivory copy**, 58 × 80 pt (rank 32/800, pip 26), above the
+   pressed cell with a 14 pt stem and a soft shadow, the pressed cell ringed 2 pt
+   in the text colour. It appears on press-in and goes on release, or when the
+   finger leaves the cell (on a phone; in a browser it goes on release); releasing
+   on the cell deals it as before, so a tap is one tap. A dealt cell shows none. It
+   stays 8 pt inside the screen on the A and 2 columns and takes no touches.
+4. **The status line's logic**, the first of these that is true, written in code
+   in `apps/mobile/src/lib/oddsStatus.ts` and held by its test:
+   1. a seat holds exactly one card → `Player N needs a second card`, N the lowest
+      such seat — this wins over everything, and nothing is counted or shown for
+      the other seats while it is true (B102);
+   2. a result for this exact table → `1,712,304 boards dealt · exact`, commas
+      grouped, `1 board dealt · exact` when it is one;
+   3. counting → `Calculating · NN%`, a whole number;
+   4. two or more full hands the engine will not take (dead cards left too few for
+      the board) → `Not enough cards left in the deck to finish the board.`;
+   5. otherwise, fewer than two full hands → `Texas hold’em · deal two hands`.
+5. **Not built:** the share feature (icon, sheet and card) while its design is
+   settled, and options B, C, E and F for card entry. They are drawn on the canvas.
+
+**Open:** beside the icon the status line has about 270 pt at 402 wide, so state 4
+is cut with an ellipsis. It needs shorter copy or a second line.
+

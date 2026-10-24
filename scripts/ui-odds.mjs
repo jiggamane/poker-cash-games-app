@@ -28,6 +28,89 @@ const cases = JSON.parse(
 
 const browser = await chromium.launch();
 let failed = 0;
+
+/*
+ * THE PRESS CALLOUT (option D, 24 October). A card pressed in the deck shows an
+ * enlarged copy above the finger; letting go deals it and the copy goes; sliding
+ * off the cell cancels it and nothing is dealt. The deck's cells are 25 pt wide,
+ * so what a press shows is the only confirmation a thumb has.
+ *
+ * Held here: it appears on press-in and carries the card's rank; it sits above
+ * the pressed cell; it stays inside the screen on the A and 2 columns; it takes
+ * no touches; release removes it AND deals the card; a slide off removes it and
+ * deals nothing.
+ */
+{
+  const fail = [];
+  const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
+  page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
+  try {
+    await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
+    await page.waitForSelector('#screen-title');
+    const callout = page.locator('#deck-callout');
+    const centre = async (label) => {
+      const b = await page.getByRole('button', { name: label, exact: true }).boundingBox();
+      return { b, x: b.x + b.width / 2, y: b.y + b.height / 2 };
+    };
+
+    /* In the middle of the deck: appears with its rank, above the cell, takes no touches; release deals it. */
+    const q = await centre('Q♦');
+    await page.mouse.move(q.x, q.y);
+    await page.mouse.down();
+    await callout.waitFor({ state: 'visible', timeout: 5000 }).catch(() => fail.push('no callout on press'));
+    if (await callout.count()) {
+      const text = (await callout.textContent()) ?? '';
+      if (!text.includes('Q')) fail.push(`callout reads "${text}", wanted the Q`);
+      const cb = await callout.boundingBox();
+      if (cb && cb.y + cb.height > q.b.y + 1) fail.push('the callout is not above the pressed cell');
+      const events = await callout.evaluate((el) => getComputedStyle(el).pointerEvents);
+      if (events !== 'none') fail.push(`the callout takes touches (pointer-events: ${events})`);
+    }
+    await page.mouse.up();
+    await callout.waitFor({ state: 'detached', timeout: 3000 }).catch(() => fail.push('the callout stayed after release'));
+    await page
+      .getByRole('button', { name: 'Player 1, card 1, Q♦', exact: true })
+      .waitFor({ state: 'visible', timeout: 3000 })
+      .catch(() => fail.push('releasing on the card did not deal it'));
+
+    /* The two edge columns keep the copy inside the screen. */
+    for (const label of ['A♣', '2♠']) {
+      const e = await centre(label);
+      await page.mouse.move(e.x, e.y);
+      await page.mouse.down();
+      await callout.waitFor({ state: 'visible', timeout: 5000 }).catch(() => fail.push(`no callout on ${label}`));
+      const cb = await callout.boundingBox();
+      if (cb && (cb.x < 8 - 0.5 || cb.x + cb.width > 393 - 8 + 0.5))
+        fail.push(`the callout for ${label} leaves the screen: ${Math.round(cb.x)}–${Math.round(cb.x + cb.width)}`);
+      await page.mouse.up();
+    }
+
+    /*
+     * Slide off the cell and let go: the copy is gone and the card is NOT dealt.
+     * On a phone React Native hides the copy the moment the finger leaves the
+     * cell (`pressRetentionOffset`); react-native-web has no such offset, so in
+     * this browser it goes on release instead. Both are asserted here as one
+     * thing — after letting go, no copy and no card — because that is the part
+     * a person can lose a hand to.
+     */
+    const k = await centre('K♥');
+    await page.mouse.move(k.x, k.y);
+    await page.mouse.down();
+    await callout.waitFor({ state: 'visible', timeout: 5000 }).catch(() => fail.push('no callout on K♥'));
+    await page.mouse.move(k.x, k.y - 260, { steps: 8 });
+    await page.mouse.up();
+    await callout.waitFor({ state: 'detached', timeout: 3000 }).catch(() => fail.push('the callout stayed after a slide off and release'));
+    if ((await page.getByRole('button', { name: 'K♥, dealt', exact: true }).count()) > 0)
+      fail.push('sliding off the cell still dealt it');
+  } catch (e) {
+    fail.push(String(e.message ?? e).split('\n')[0]);
+  }
+  await page.close();
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  press callout: appears, deals on release, stays on screen, a slide off deals nothing`);
+  for (const f of fail) console.log(`        ${f}`);
+  if (fail.length) failed++;
+}
+
 for (const [n, c] of cases.entries()) {
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   const fail = [];
@@ -95,6 +178,6 @@ await browser.close();
 console.log(
   failed === 0
     ? `\nthe odds screen shows exactly what the engine says, ${cases.length} tables played through.`
-    : `\n${failed} of ${cases.length} tables show something other than what the engine says.`,
+    : `\n${failed} check${failed === 1 ? '' : 's'} failed: a table that shows something other than what the engine says, or the press callout.`,
 );
 process.exit(failed === 0 ? 0 : 1);

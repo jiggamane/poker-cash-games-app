@@ -32,6 +32,8 @@ export type IconName =
   | 'backspace'
   /** Adds something — always paired with a dashed outline. */
   | 'plus'
+  /** Start again: a circular arrow. The odds calculator's New hand. */
+  | 'restart'
   /** A sheet's close. The only glyph that dismisses rather than navigates. */
   | 'close'
   /** The dock's disclosure, pointing at the drawer it opens. */
@@ -277,6 +279,21 @@ export function Icon({
       return (
         <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
           <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'restart': {
+      const s = size ?? 18;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8M21 3v5h-5"
+            stroke={color}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </Svg>
       );
     }

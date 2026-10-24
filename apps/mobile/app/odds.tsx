@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 import {
   BOARD_CARDS,
@@ -17,6 +17,7 @@ import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
+import { oddsStatus } from '../src/lib/oddsStatus';
 
 /**
  * Odds calculator — Texas hold'em, win and tie per hand.
@@ -32,16 +33,24 @@ import { control, radius, space, type } from '../src/design/tokens';
  * dealt to the outlined place; tap a dealt card and it goes back. The outlined
  * place moves on by itself — the second hole card, then the next seat, then
  * the board, then the dead cards — and tapping any empty place moves it there.
- * *New hand* clears the cards and keeps the seats.
+ * *New hand* is a round restart icon at the right end of the status line — not
+ * in the top-right corner, which a pushed screen keeps empty — and clears the
+ * cards and keeps the seats. There is no hint under the deck: the owner took it
+ * out on 24 October.
+ *
+ * PRESSING A CARD SHOWS IT LARGE (option D on the canvas, chosen 24 October).
+ * The deck is 25 × 40 pt a card, below what a thumb can be sure of, so a press
+ * lifts an enlarged copy of the card above the finger: you see what you are
+ * about to deal, and sliding off the cell cancels it. A tap is still one tap.
  *
  * The board is at the top and the seats under it, three to begin with and one
  * more per tap of *Add a player* up to nine — the owner's instruction, 24
  * October, over the original's nine seats always on show.
  *
  * ⚠ COPY NOT DRAWN. No board draws this screen, so every string on it is mine
- * and wants review: the title, the meta line's three states, the hint, the
- * seat labels, *Win* and *Tie*, *Board*, *Dead cards*, *Add a player*, *New
- * hand*.
+ * and wants review: the title, the status line's five states (written down in
+ * `src/lib/oddsStatus.ts`), the seat labels, *Win* and *Tie*, *Board*, *Dead
+ * cards*, *Add a player*, *New hand*.
  *
  * DELIBERATE DEVIATIONS from the original it is rebuilt from:
  *
@@ -163,10 +172,6 @@ function remove(t: Table, c: Card): Table {
 const SUIT_GLYPH = ['♣', '♦', '♥', '♠'] as const;
 
 const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
-/* Grouped with commas by hand: the count is read against the figures in the
-   tests and the docs, which are written that way, and a locale can turn it
-   into `1.712.304` on the same phone that shows the money with commas. */
-const grouped = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
 export default function OddsCalculator() {
   const t = useTheme();
@@ -176,6 +181,10 @@ export default function OddsCalculator() {
      for the cards it was calculated from — see `shown` below. */
   const [result, setResult] = useState<{ key: string; odds: Odds } | null>(null);
   const [progress, setProgress] = useState<{ key: string; done: number } | null>(null);
+  /* The card under the finger, for the enlarged copy above it, and how wide the
+     deck is, which is what places that copy over the right column. */
+  const [pressedCard, setPressedCard] = useState<Card | null>(null);
+  const [deckW, setDeckW] = useState(0);
 
   const used = useMemo(
     () => new Set<Card>([...table.seats.flat(), ...table.board].filter((c): c is Card => c !== null).concat(table.dead)),
@@ -211,9 +220,11 @@ export default function OddsCalculator() {
    * has not run yet — and showing it painted one frame of figures that belonged
    * to different cards, and, when the hands themselves had changed, read a seat
    * the old result did not have and threw. Found by planting a bug in the
-   * half-dealt guard and watching the page die (B101).
+   * half-dealt guard and watching the page die (B101). And ONLY WHILE THE TABLE
+   * CAN BE COUNTED: a seat holding one card is not part of the key, so without
+   * `problem === null` here the old result still matched it for one frame (B102).
    */
-  const shown = result !== null && result.key === inputKey ? result.odds : null;
+  const shown = problem === null && result !== null && result.key === inputKey ? result.odds : null;
   const calculating = problem === null && shown === null;
   const doneShare = progress !== null && progress.key === inputKey ? progress.done : 0;
 
@@ -251,6 +262,7 @@ export default function OddsCalculator() {
   }, [inputKey, problem]);
 
   const deal = (c: Card) => {
+    setPressedCard(null);
     const next = place(table, active, c);
     setTable(next);
     setActive(nextSlot(active, next));
@@ -262,6 +274,7 @@ export default function OddsCalculator() {
   };
 
   const newHand = () => {
+    setPressedCard(null);
     setTable(emptyTable(table.seats.length));
     setActive(FIRST);
   };
@@ -271,16 +284,14 @@ export default function OddsCalculator() {
     setTable({ ...table, seats: [...table.seats, emptySeat()] });
   };
 
-  const meta = calculating
-    ? `Calculating · ${Math.round(doneShare * 100)}%`
-    : shown !== null
-      ? `${grouped(shown.boards)} ${shown.boards === 1 ? 'board' : 'boards'} dealt · exact`
-      : halfDealt >= 0 || complete.length >= 2
-        ? /* A seat short of a card, or two full hands the engine will not
-             take — too few cards left for the board is the one a reader
-             can reach, by dealing dead cards until the deck runs out. */
-          (problem ?? 'Texas hold’em')
-        : 'Texas hold’em · deal two hands';
+  const meta = oddsStatus({
+    halfDealtSeat: halfDealt,
+    fullHands: complete.length,
+    problem,
+    boardsDealt: shown === null ? null : shown.boards,
+    calculating,
+    progress: doneShare,
+  });
 
   const seatOdds = (seat: number) => {
     if (shown === null) return null;
@@ -295,14 +306,33 @@ export default function OddsCalculator() {
     onPress: () => (c === null ? setActive(slot) : takeBack(c, slot)),
   });
 
+  /*
+   * WHERE THE ENLARGED CARD GOES. The deck is thirteen cells to a row with a gap
+   * of DECK_GAP; the cell under the finger fixes the centre, and the copy sits
+   * CALLOUT_GAP above that cell, which puts it over the rows above it — as a
+   * keyboard's key callout does. Kept CALLOUT_EDGE inside the screen on the A
+   * and 2 columns, where a centred copy would hang off it, with the stem still
+   * pointing at the cell.
+   */
+  const calloutAt = (c: Card) => {
+    const col = 12 - (c >> 2);
+    const row = 3 - (c & 3);
+    const cellW = (deckW - 12 * DECK_GAP) / 13;
+    const centre = col * (cellW + DECK_GAP) + cellW / 2;
+    const left = Math.min(
+      Math.max(centre - CALLOUT_W / 2, CALLOUT_EDGE - space.card),
+      deckW + space.card - CALLOUT_EDGE - CALLOUT_W,
+    );
+    const top = row * (DECK_CELL_H + DECK_GAP) - CALLOUT_GAP - CALLOUT_H;
+    const stem = Math.min(Math.max(centre - left - STEM / 2, 8), CALLOUT_W - STEM - 8);
+    return { left, top, stem };
+  };
+
   const deck = (
-    <View style={styles.deckWrap}>
-      <View style={styles.deckRow}>
-        <Text style={[styles.hint, { color: t.muted }]}>
-          Tap a card to deal it to the outlined place. Tap a dealt card to take it back.
-        </Text>
-        <Button label="New hand" variant="chip" onPress={newHand} />
-      </View>
+    <View
+      style={styles.deckWrap}
+      onLayout={(e: LayoutChangeEvent) => setDeckW(e.nativeEvent.layout.width)}
+    >
       {/* One row per suit, aces first — the shape every deck picker has had
           since the first one, because it is how a person finds a card. Each
           cell is a small card of its own: stock, rank, pip. A card already on
@@ -318,14 +348,19 @@ export default function OddsCalculator() {
                 accessibilityRole="button"
                 accessibilityLabel={`${RANKS[12 - r]}${SUIT_GLYPH[suit]}${gone ? ', dealt' : ''}`}
                 disabled={gone}
+                onPressIn={() => setPressedCard(c)}
+                onPressOut={() => setPressedCard((now) => (now === c ? null : now))}
+                /* Slide a little off the cell and the press is cancelled, so a
+                   wrong card is never dealt by a finger that moved to look. */
+                pressRetentionOffset={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 onPress={() => deal(c)}
-                style={({ pressed }) => [
+                style={[
                   styles.deckCard,
                   /* A card already on the table is a flat blank where it
                      was — no edge, no ink — so it cannot be mistaken for
                      a place that takes one. */
                   { backgroundColor: gone ? t.surface : CARD_FACE },
-                  { opacity: pressed ? 0.6 : 1 },
+                  pressedCard === c && !gone && { borderWidth: 2, borderColor: t.text },
                 ]}
               >
                 {!gone && (
@@ -339,7 +374,28 @@ export default function OddsCalculator() {
           })}
         </View>
       ))}
+      {pressedCard !== null && !used.has(pressedCard) && deckW > 0 && (
+        <Callout card={pressedCard} {...calloutAt(pressedCard)} />
+      )}
     </View>
+  );
+
+  /* New hand: a round icon, the back button's fill, at the right end of the
+     status line. See `Screen`'s `metaTrailing`: the text beside it shrinks and
+     this does not. Its hit area is 50 pt with the slop. */
+  const restart = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="New hand"
+      hitSlop={8}
+      onPress={newHand}
+      style={({ pressed }) => [
+        styles.restart,
+        { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 },
+      ]}
+    >
+      <Icon name="restart" color={t.text} />
+    </Pressable>
   );
 
   return (
@@ -347,6 +403,7 @@ export default function OddsCalculator() {
       title="Odds calculator"
       backTo="Settings"
       meta={meta}
+      metaTrailing={restart}
       footer={deck}
     >
       <View style={styles.list}>
@@ -441,6 +498,27 @@ function Figure({ label, value }: { label: string; value: string }) {
 }
 
 /**
+ * The enlarged card above a pressed one — 58 × 80, rank 32 and a pip of 26, on
+ * card stock with a stem pointing at the cell. It takes no touches, and is
+ * hidden from the screen reader: the cell under it is what is announced.
+ */
+function Callout({ card, left, top, stem }: { card: Card; left: number; top: number; stem: number }) {
+  return (
+    <View
+      nativeID="deck-callout"
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={[styles.callout, { left, top }]}
+    >
+      <View style={[styles.stem, { left: stem }]} />
+      <Text style={[styles.calloutRank, { color: inkOf(card) }]}>{RANKS[card >> 2]}</Text>
+      <Pip suit={card & 3} size={26} color={inkOf(card)} />
+    </View>
+  );
+}
+
+/**
  * One place a card can be: empty, outlined when it is next, or holding one.
  *
  * An empty place is a dashed edge with a plus in it — dashed because dashed
@@ -493,6 +571,15 @@ function CardSlot({
   );
 }
 
+/* The deck's own numbers, and the callout's, which are measured against them. */
+const DECK_GAP = 3;
+const DECK_CELL_H = 40;
+const CALLOUT_W = 58;
+const CALLOUT_H = 80;
+const CALLOUT_GAP = 4;
+const CALLOUT_EDGE = 8;
+const STEM = 14;
+
 const SLOT_W = 36;
 const SLOT_H = 50;
 
@@ -534,17 +621,42 @@ const styles = StyleSheet.create({
   },
   slotRank: { fontSize: 17, fontWeight: '800', lineHeight: 19, marginBottom: 1 },
 
-  deckWrap: { gap: 3 },
-  deckRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 6 },
-  hint: { ...type.footnote, flex: 1 },
-  suitRow: { flexDirection: 'row', gap: 3 },
+  /* Above the body: the callout hangs up over the rows and the table. */
+  deckWrap: { gap: DECK_GAP, position: 'relative', zIndex: 10 },
+  suitRow: { flexDirection: 'row', gap: DECK_GAP },
   deckCard: {
     flex: 1,
-    height: 40,
+    height: DECK_CELL_H,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   deckRank: { fontSize: 12, fontWeight: '800', lineHeight: 14, marginBottom: 1 },
   add: { paddingTop: 12, paddingHorizontal: 4 },
+  restart: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  callout: {
+    position: 'absolute',
+    width: CALLOUT_W,
+    height: CALLOUT_H,
+    borderRadius: 12,
+    backgroundColor: CARD_FACE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 20,
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.55,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+  },
+  stem: {
+    position: 'absolute',
+    bottom: -6,
+    width: STEM,
+    height: STEM,
+    borderRadius: 2,
+    backgroundColor: CARD_FACE,
+    transform: [{ rotate: '45deg' }],
+  },
+  calloutRank: { fontSize: 32, fontWeight: '800', lineHeight: 34 },
 });
