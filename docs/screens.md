@@ -87,6 +87,7 @@ is settled when it is not.
 | `/new-group` | sheet | ✓ | ✓ | — | ☐ |
 | `/new-night` | sheet | ✓ | ✓ | — | ☐ |
 | `/nudge` | sheet | ✓ | ✓ | ✓ | ☐ |
+| `/odds` | push | ✓ | — | — | ☐ |
 | `/pass-game` | sheet | ✓ | ✓ | — | ☐ |
 | `/payments` | push | ✓ | — | ✓ | ☐ |
 | `/pick` | sheet | ✓ | ✓ | — | ☐ |
@@ -95,19 +96,25 @@ is settled when it is not.
 | `/players` | push | ✓ | — | — | ☐ |
 | `/rounding` | sheet | ✓ | ✓ | — | ☐ |
 | `/rule` | sheet | ✓ | ✓ | — | ☐ |
+| `/rules` | push | ✓ | — | — | ☐ |
+| `/rule` | sheet | ✓ | ✓ | — | ☐ |
 | `/seat` | sheet | ✓ | ✓ | — | ☐ |
 | `/session` | push | ✓ | — | ✓ | ☐ |
 | `/settings` | push | ✓ | — | — | ☐ |
 | `/settle-up` | push | ✓ | — | ✓ | ☐ |
 | `/settled` | push | ✓ | — | ✓ | ☐ |
+| `/situation` | sheet | ✓ | ✓ | — | ☐ |
 | `/share` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/sign-in` | sheet | ✓ | ✓ | — | ☐ |
 | `/spend` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/stats` | push | ✓ | — | ✓ | ☐ |
+| `/table-rules` | sheet | ✓ | ✓ | — | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**39 screens · 39 under the rule pass · 23 under the sheet pass · 13 under a big
-night · 0 conformed.**
+**44 screens · 44 under the rule pass · 26 under the sheet pass · 13 under a big
+night · 0 conformed.** (The three rulings screens and the odds calculator were
+added to this table on 24 October; the count had stood at 39 since before the
+rulings merge, and the rows are `ROUTES` and `SHEET_ROUTES` in `ui-audit.mjs`.)
 
 **Running the game — `design/handoff-game-admin/`, cut 26 September, built the
 same day.** Tonight, `/pass-game`, `/late-changes`, `/players`, `/watch`, home's
@@ -2813,8 +2820,10 @@ Its findings 1 and 3 are open questions rather than settled ones:
 - **R1's meta line renders in a 12px box against a 17px line**, `overflow:
   hidden`, so `players · settled` loses every descender — in both themes.
   `/payments` draws the identical component at its full 17, so this is R1's
-  head being squeezed by a long body rather than the component. Not written up
-  in `docs/bugs.md` yet because the fix is in `Screen.tsx`, which is app-wide.
+  head being squeezed by a long body rather than the component. **B100, fixed
+  24 October**: a `Text` shrinks on the web and the meta line was one in a
+  column with a shrinking scroller; `flexShrink: 0` in `Screen.tsx`, and
+  `ui-audit.mjs` "head-clipped" holds it on every route.
 - **The wizard's `1 of 3 · 2 of 3 · 3 of 3`** (Count up, Deductions, Settle up)
   and the 1 September cut's three screens (Count up, Settle up, the settled
   night) are two different threes. Nothing reconciles them.
@@ -2853,3 +2862,65 @@ What is **not** here and is waiting on a board: Settings → Admin (grant, make 
 code, list them — the SQL editor does it until then), a place to redeem a code
 once signed in, and the app lock the owner asked for (Face ID / fingerprint /
 passcode over the app, not a password on the account).
+
+## The odds calculator — a tool no board drew (24 October)
+
+`/odds`, pushed from Settings under *Rules & rulings*. It is the classic web
+hold'em calculator rebuilt inside the app with the same arithmetic behind it:
+the five board cards, then the seats — three to begin with, *Add a player* for
+each one more up to nine — then a row of dead cards, and the deck to deal from;
+**win and tie per hand, over every board that can still come**. Nothing is sampled — a heads-up hand before the flop is the full
+1,712,304 boards — so the same cards always give the same figures.
+
+The arithmetic is `packages/core/src/odds/` and is held by `evaluate.test.ts`
+and `odds.test.ts`: the hand ranking on every category, the kicker rules, the
+wheel; and the odds on spots a person can count by hand — eighteen outs of
+forty-four on the turn, a dead card making it seventeen of forty-three, a board
+that plays for everyone splitting the pot. Aces against kings before the flop
+is the one published figure asserted (82.4 / 17.1 / 0.5), and it is also the
+clock: the worst case runs in under half a second in node. **How long it takes
+on a phone in Expo Go has not been measured.** The screen slices the work and
+counts it down on the meta line so nothing freezes, but the number of seconds
+a reader waits on a real device is open.
+
+**Every string on it is mine and wants review** — COPY NOT DRAWN in the file:
+*Odds calculator*, *Players*, *Player 1*…*Player 9*, *Win*, *Tie*, *Board*,
+*Dead cards*, *New hand*, the hint under the deck, and the meta line's states
+(*Texas hold’em · deal two hands*, *Player 3 needs a second card*,
+*Calculating · 34%*, *1,712,304 boards dealt · exact*).
+
+*Where it departs from the original, and why:*
+
+1. **The next place is outlined in the text colour, not red.** The original
+   highlights it in red; in this app red is money lost and nothing else.
+   **The cards themselves are the one exception, on the owner's instruction
+   (24 October): ivory stock, black ink, red ink for hearts and diamonds, in
+   both themes.** Ivory rather than white so a card on the light theme's white
+   ground is still a card and not a hole; the three values are the only
+   colours in the app that are not tokens, and `odds.tsx` says so at its head.
+   Red ink on ivory measures 5.6:1, which clears the floor at the deck's 12
+   points.
+2. **The deal moves on by itself the way a dealer's would.** Second hole card,
+   then every seat on show in turn, then the board, then dead. A seat the
+   reader has not added is not dealt to; adding it is how they say it is in
+   the hand. The original shows nine seats always; the owner asked for three
+   and one more per tap, and for the board above the seats, both 24 October.
+3. **Equity is computed and not shown.** The engine returns `win`, `tie` and
+   `equity` (a win is 1, an n-way tie 1/n); the screen shows the original's two
+   figures, which is what it is a rebuild of.
+5. **One row per seat, not a two-up grid.** The grid was built first and cut
+   the figures to `82….` at 393 — beside two cards, a figure and its label need
+   110 points and half the phone less the cards has 64. The route pass did not
+   see it (B12's check reads amount fields, not these), the screenshot did, so
+   the seats are the hairline list every other screen uses and the figure has
+   the row's width at every text size. Driven in a browser: aces against kings
+   reads 82.36 / 0.54 / 17.09 after about a second, a flop re-deals 990 boards
+   and taking a board card back re-deals 15,180.
+6. **It surfaced B100.** The meta line under the title was being squeezed on
+   every long pushed screen; this one was long enough to make it obvious.
+4. **No Help panel.** The original's instructions are the one line under the
+   deck.
+
+*Open:* whether this lives under Settings or on the club's home as a tool
+beside the rules; how it reads at 120% text, which the rule pass measures only
+on the stops a night produces; and the Expo Go timing above.

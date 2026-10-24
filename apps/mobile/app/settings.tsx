@@ -287,7 +287,9 @@ export default function Settings() {
         />
         <Action label="Money rules" onPress={() => router.push('/club-rules')} />
         {/* ⚠ COPY NOT DRAWN — `docs/rulings.md` § 2.2. The library, and the group's table rules behind it. */}
-        <Action label="Rules & rulings" onPress={() => router.push('/rules')} last />
+        <Action label="Rules & rulings" onPress={() => router.push('/rules')} />
+        {/* ⚠ COPY NOT DRAWN. Win and tie per hand, every board dealt — `packages/core/src/odds`. */}
+        <Action label="Odds calculator" onPress={() => router.push('/odds')} last />
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The people</Text>
 
