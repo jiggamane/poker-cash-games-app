@@ -2905,9 +2905,19 @@ board (1,370,754 of them) and matched; `odds:verify -- --reference` re-runs it.
 for the board (reachable by dealing dead cards without limit) made the walk
 never end, a hand of other than two cards was scored with a hole in it, a slice
 of nothing made no progress, and equity added in floating point drifted 1.4e-11
-over a million three-way ties. **Not held:** nothing automated deals a card on
-this screen, so the screen's own logic — where the next card goes, adding a seat,
-the loading state — is checked by hand only, and no real phone has run it.
+over a million three-way ties.
+
+*The screen is held to the engine too (`ui-odds.mjs`, in `check:ui`).* Thirty-six
+random tables are played through the built screen with real taps — seats with
+gaps between them, a board dealt out of order and in places, dead cards, a card
+put in the wrong place and taken back, a seat left short of a card — and every
+percentage and the status line are compared with what the engine gives for the
+table those taps made. Shown to go red against four bugs planted in the screen
+one at a time: results read by position instead of by seat, dead cards left out,
+a take-back that leaves a ghost on the board, a half-dealt seat dropped. Planting
+the last of them found B101. **Not held:** the loading bar's look while it fills
+(only that the line settles), a single painted frame, and any real phone — the
+whole of this is the web build in a desktop browser.
 
 *Where it departs from the original, and why:*
 
