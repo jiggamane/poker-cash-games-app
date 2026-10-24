@@ -2889,6 +2889,36 @@ a reader waits on a real device is open.
 (*Texas hold’em · deal two hands*, *Player 3 needs a second card*,
 *Calculating · 34%*, *1,712,304 boards dealt · exact*).
 
+*How the arithmetic is held, 24 October.* `npm run check` runs the engine
+against a slow second ranker on random tables of two to nine players, against
+every one of the 2,598,960 five-card hands, and through the symmetries that
+cannot change an answer: renaming the suits, reordering the seats, the board
+and a hand's two cards, mirrored hands. Those tests were shown to go red
+against eight bugs planted in the engine one at a time. `npm run odds:verify`
+is the slow half and is run before a merge that touches the engine: all
+133,784,560 seven-card hands against the published category counts, and ranked
+a second time by the slow reference, one-to-one and in the same order — 4,824
+distinct strengths on both sides — and the pre-flop answer over every board.
+One three-handed pre-flop table has also been ranked a second time board by
+board (1,370,754 of them) and matched; `odds:verify -- --reference` re-runs it.
+*Found by reading it, fixed, each with a failing test first:* too few cards left
+for the board (reachable by dealing dead cards without limit) made the walk
+never end, a hand of other than two cards was scored with a hole in it, a slice
+of nothing made no progress, and equity added in floating point drifted 1.4e-11
+over a million three-way ties.
+
+*The screen is held to the engine too (`ui-odds.mjs`, in `check:ui`).* Thirty-six
+random tables are played through the built screen with real taps — seats with
+gaps between them, a board dealt out of order and in places, dead cards, a card
+put in the wrong place and taken back, a seat left short of a card — and every
+percentage and the status line are compared with what the engine gives for the
+table those taps made. Shown to go red against four bugs planted in the screen
+one at a time: results read by position instead of by seat, dead cards left out,
+a take-back that leaves a ghost on the board, a half-dealt seat dropped. Planting
+the last of them found B101. **Not held:** the loading bar's look while it fills
+(only that the line settles), a single painted frame, and any real phone — the
+whole of this is the web build in a desktop browser.
+
 *Where it departs from the original, and why:*
 
 1. **The next place is outlined in the text colour, not red.** The original

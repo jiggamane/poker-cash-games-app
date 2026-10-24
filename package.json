@@ -15,7 +15,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:verify": "bash scripts/db-verify.sh",
     "check": "npm run typecheck && npm run test",
-    "//check:ui": "The screen half of the gate: builds the app, serves it, holds every route to the handoff rules, measures all 24 sheets on six devices, plays a big night through checking no figure is cut off, then walks the money screens again in a three-letter currency. Needs Playwright. Run it before a merge — see scripts/ui-gate.sh.",
+    "//check:ui": "The screen half of the gate: builds the app, serves it, holds every route to the handoff rules, measures all 24 sheets on six devices, plays a big night through checking no figure is cut off, then walks the money screens again in a three-letter currency, then plays 36 odds-calculator tables through with real taps and holds every figure to the engine's. Needs Playwright. Run it before a merge — see scripts/ui-gate.sh.",
     "check:ui": "bash scripts/ui-gate.sh",
     "check:all": "npm run check && npm run check:ui",
     "//ui": "Fonts, web export and a server for scripts/ui-check.mjs — the tool that holds a built screen against the board it was drawn from. Foreground; Ctrl-C stops it. See docs/ui-guide.md.",
@@ -26,6 +26,8 @@
   "//journeys": "Play a big night through the built app and check that no figure on any screen is cut off, outside its card, or off the phone. Reaches the screens no URL can — deductions, settle up, who has paid. Needs `npm run ui` running.",
     "journeys": "node scripts/ui-journeys.mjs",
     "//audit": "Re-check every settled night on the server and report the failure rate. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY exported in the shell — never written to a file. See docs/verification.md.",
+    "//odds:verify": "The odds engine against the facts about poker nobody disputes: all 133,784,560 seven-card hands against the published category counts and exactly 7,462 distinct strengths, the pre-flop answer under renamed suits, reordered seats and mirrored hands, and random tables on every street, two to nine players, every board counted twice. Too slow for `npm run check`; run it before a merge that touched packages/core/src/odds. `-- --spots=60` for more tables per street.",
+    "odds:verify": "vite-node scripts/odds-verify.ts",
     "audit": "vite-node scripts/audit.ts"
   },
   "devDependencies": {

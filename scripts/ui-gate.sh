@@ -138,6 +138,10 @@ echo "── the same screens in a three-letter currency ──"
 node scripts/ui-currency.mjs || failed=1
 
 echo
+echo "── the odds calculator played through with real taps, held to the engine ──"
+node scripts/ui-odds.mjs || failed=1
+
+echo
 if [ "$failed" = 0 ]; then
   echo "screens: clean."
 else

@@ -61,6 +61,15 @@ export interface Odds {
   boards: number;
 }
 
+/**
+ * Equity is counted in whole units, not fractions. A tie among k seats pays
+ * each 1/k of the pot, and adding 1/3 a million times in floating point drifts
+ * by 1e-11 — invisible on a screen, wrong in a count. 2520 is the least number
+ * 1 to 9 all divide, 9 being the most seats there are, so every share is a
+ * whole number of units: a win is 2520, a three-way tie 840 each.
+ */
+export const EQUITY_UNIT = 2520;
+
 /** A hand is complete at two cards; a seat with one card is not yet a hand. */
 export const HOLE_CARDS = 2;
 export const BOARD_CARDS = 5;
@@ -73,6 +82,7 @@ export const MAX_SEATS = 9;
 export function oddsProblem(input: OddsInput): string | null {
   if (input.hands.length < 2) return 'Two hands are needed before there are odds.';
   if (input.hands.length > MAX_SEATS) return `No more than ${MAX_SEATS} hands.`;
+  if (input.hands.some((h) => h.length !== HOLE_CARDS)) return 'A hand is two cards.';
   if (input.board.length > BOARD_CARDS) return `The board holds ${BOARD_CARDS} cards.`;
   const seen = new Set<Card>();
   const all = [...input.hands.flat(), ...input.board, ...(input.dead ?? [])];
@@ -80,6 +90,17 @@ export function oddsProblem(input: OddsInput): string | null {
     if (!Number.isInteger(c) || c < 0 || c > 51) return 'That is not a card.';
     if (seen.has(c)) return 'The same card is dealt twice.';
     seen.add(c);
+  }
+  /*
+   * ENOUGH LEFT TO FINISH THE BOARD. Every card in `seen` is out of the deck,
+   * and the board needs `BOARD_CARDS - board.length` more from what remains.
+   * With fewer than that the combination walk has nowhere to go and — because
+   * it ends only when the last index reaches the last card — never ends. The
+   * screen lets a reader deal dead cards without limit, so this is reachable
+   * by tapping, and the answer has to be a sentence, not a frozen screen.
+   */
+  if (DECK.length - seen.size < BOARD_CARDS - input.board.length) {
+    return 'Not enough cards left in the deck to finish the board.';
   }
   return null;
 }
@@ -141,6 +162,8 @@ export class OddsEnumeration {
    */
   step(limit = 50_000): boolean {
     if (this.finished) return true;
+    /* A slice of nothing would return false for ever; one board at least. */
+    limit = limit >= 1 ? Math.floor(limit) : 1;
     const { deck, idx, toCome } = this;
     const n = deck.length;
     let dealt = 0;
@@ -172,7 +195,7 @@ export class OddsEnumeration {
         ties: this.ties[i]!,
         win: this.wins[i]! / boards,
         tie: this.ties[i]! / boards,
-        equity: this.equity[i]! / boards,
+        equity: this.equity[i]! / (EQUITY_UNIT * boards),
       })),
     };
   }
@@ -220,12 +243,12 @@ export class OddsEnumeration {
       for (let p = 0; p < hands.length; p++) {
         if (values[p] === best) {
           this.wins[p]!++;
-          this.equity[p]! += 1;
+          this.equity[p]! += EQUITY_UNIT;
           break;
         }
       }
     } else {
-      const share = 1 / bestCount;
+      const share = EQUITY_UNIT / bestCount;
       for (let p = 0; p < hands.length; p++) {
         if (values[p] === best) {
           this.ties[p]!++;
