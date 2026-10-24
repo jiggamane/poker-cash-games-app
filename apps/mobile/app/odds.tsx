@@ -13,9 +13,10 @@ import {
   type Odds,
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
+import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
+import { control, radius, space, type } from '../src/design/tokens';
 
 /**
  * Odds calculator — Texas hold'em, win and tie per hand.
@@ -302,9 +303,10 @@ export default function OddsCalculator() {
                 onPress={() => deal(c)}
                 style={({ pressed }) => [
                   styles.deckCard,
-                  gone
-                    ? { borderColor: t.hairline, borderWidth: StyleSheet.hairlineWidth }
-                    : { backgroundColor: CARD_FACE },
+                  /* A card already on the table is a flat blank where it
+                     was — no edge, no ink — so it cannot be mistaken for
+                     a place that takes one. */
+                  { backgroundColor: gone ? t.surface : CARD_FACE },
                   { opacity: pressed ? 0.6 : 1 },
                 ]}
               >
@@ -423,10 +425,14 @@ function Figure({ label, value }: { label: string; value: string }) {
 /**
  * One place a card can be: empty, outlined when it is next, or holding one.
  *
- * An empty place is a border and nothing else — a fill the colour of what is
- * behind it is a block that paints nothing, which `ui-audit.mjs` calls
- * surface-on-itself and is right to. A dealt card is card stock with ink on
- * it, the same in both themes; see the head of the file.
+ * An empty place is a dashed edge with a plus in it — dashed because dashed
+ * means "creates something" (`tokens.ts`), the plus because the owner asked
+ * (24 October) for a place that takes a card to look unlike a card that has
+ * been taken, which in the deck is a flat blank. The next place is the same
+ * plus inside a solid outline in the text colour. No fill on either: a fill
+ * the colour of what is behind it is a block that paints nothing, which
+ * `ui-audit.mjs` calls surface-on-itself and is right to. A dealt card is
+ * card stock with ink on it, the same in both themes; see the head of the file.
  */
 function CardSlot({
   card,
@@ -450,13 +456,16 @@ function CardSlot({
         styles.slot,
         {
           backgroundColor: card === null ? 'transparent' : CARD_FACE,
-          borderColor: active ? t.text : card === null ? t.hairline : CARD_FACE,
-          borderWidth: active ? 2 : StyleSheet.hairlineWidth,
+          borderColor: active ? t.text : card === null ? t.dashed : CARD_FACE,
+          borderWidth: active ? 2 : card === null ? control.quietWidth : StyleSheet.hairlineWidth,
+          borderStyle: card === null && !active ? 'dashed' : 'solid',
           opacity: pressed ? 0.6 : 1,
         },
       ]}
     >
-      {card !== null && (
+      {card === null ? (
+        <Icon name="plus" color={active ? t.text : t.muted} size={16} />
+      ) : (
         <>
           <Text style={[styles.slotRank, { color: inkOf(card) }]}>{RANKS[card >> 2]}</Text>
           <Pip suit={card & 3} size={14} color={inkOf(card)} />
