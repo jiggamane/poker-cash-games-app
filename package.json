@@ -26,6 +26,8 @@
   "//journeys": "Play a big night through the built app and check that no figure on any screen is cut off, outside its card, or off the phone. Reaches the screens no URL can — deductions, settle up, who has paid. Needs `npm run ui` running.",
     "journeys": "node scripts/ui-journeys.mjs",
     "//audit": "Re-check every settled night on the server and report the failure rate. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY exported in the shell — never written to a file. See docs/verification.md.",
+    "//odds:verify": "The odds engine against the facts about poker nobody disputes: all 133,784,560 seven-card hands against the published category counts and exactly 7,462 distinct strengths, and the pre-flop answer under renamed suits, reordered seats and mirrored hands. Too slow for `npm run check`; run it before a merge that touched packages/core/src/odds. Add `-- --reference` for a full independent pass over one table, several minutes more.",
+    "odds:verify": "vite-node scripts/odds-verify.ts",
     "audit": "vite-node scripts/audit.ts"
   },
   "devDependencies": {
