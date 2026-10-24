@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Path, Svg } from 'react-native-svg';
 import {
   BOARD_CARDS,
   HOLE_CARDS,
@@ -64,6 +65,28 @@ const CARD_FACE = '#FAF8F3';
 const INK_BLACK = '#141416';
 const INK_RED = '#C8102E';
 const inkOf = (c: Card): string => (isRed(c) ? INK_RED : INK_BLACK);
+
+/*
+ * THE PIPS ARE DRAWN, NOT TYPED. Figtree has no suit glyphs, so ♠ ♥ ♦ ♣ fell
+ * back to whatever font the platform had — a different one per character on
+ * the web, which is why the heart came out half again the size of the spade.
+ * Four paths on one 24-box, one size: the heart's, which was the one that
+ * looked like a card.
+ */
+const PIP: Record<number, string> = {
+  /* clubs */ 0: 'M12 2.5a4.2 4.2 0 0 0-4 5.4A4.3 4.3 0 1 0 10.6 15c-.2 2-1 3.6-2.8 5h8.4c-1.8-1.4-2.6-3-2.8-5a4.3 4.3 0 1 0 2.6-7.1A4.2 4.2 0 0 0 12 2.5z',
+  /* diamonds */ 1: 'M12 2 20.5 12 12 22 3.5 12z',
+  /* hearts */ 2: 'M12 21.5S3 15.6 3 9.3A4.9 4.9 0 0 1 12 6.6a4.9 4.9 0 0 1 9 2.7c0 6.3-9 12.2-9 12.2z',
+  /* spades */ 3: 'M12 2.5C12 2.5 3.5 9.5 3.5 14.2a4.2 4.2 0 0 0 7.4 2.7c-.2 1.8-.9 3.2-2.7 4.6h7.6c-1.8-1.4-2.5-2.8-2.7-4.6a4.2 4.2 0 0 0 7.4-2.7C20.5 9.5 12 2.5 12 2.5z',
+};
+
+function Pip({ suit, size, color }: { suit: number; size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d={PIP[suit]!} fill={color} />
+    </Svg>
+  );
+}
 
 type Slot = { kind: 'seat'; seat: number; i: number } | { kind: 'board'; i: number } | { kind: 'dead' };
 
@@ -288,7 +311,7 @@ export default function OddsCalculator() {
                 {!gone && (
                   <>
                     <Text style={[styles.deckRank, { color: inkOf(c) }]}>{RANKS[12 - r]}</Text>
-                    <Text style={[styles.deckSuit, { color: inkOf(c) }]}>{SUIT_GLYPH[suit]}</Text>
+                    <Pip suit={suit} size={11} color={inkOf(c)} />
                   </>
                 )}
               </Pressable>
@@ -343,10 +366,26 @@ export default function OddsCalculator() {
               </View>
               <View style={styles.seatText}>
                 <Text style={[styles.seatLabel, { color: t.muted }]}>Player {seat + 1}</Text>
-                <View style={styles.figures}>
-                  <Figure label="Win" value={o === null ? '—' : pct(o.win)} />
-                  <Figure label="Tie" value={o === null ? '—' : pct(o.tie)} />
-                </View>
+                {/*
+                 * WHILE THE BOARDS ARE BEING DEALT the figures are not shown —
+                 * not the last ones, which are for a table that no longer
+                 * exists, and not a dash, which says there is nothing to
+                 * come. A bar that fills, where the figure is about to be,
+                 * in every seat that is in the hand.
+                 */}
+                {progress !== null && complete.some((x) => x.seat === seat) ? (
+                  <View style={styles.loading} accessibilityLabel={`Calculating, ${Math.round(progress * 100)}%`}>
+                    <Text style={[styles.figureLabel, { color: t.muted }]}>Calculating</Text>
+                    <View style={[styles.track, { backgroundColor: t.hairline }]}>
+                      <View style={[styles.fill, { backgroundColor: t.text, width: `${Math.max(2, Math.round(progress * 100))}%` }]} />
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.figures}>
+                    <Figure label="Win" value={o === null ? '—' : pct(o.win)} />
+                    <Figure label="Tie" value={o === null ? '—' : pct(o.tie)} />
+                  </View>
+                )}
               </View>
             </View>
           );
@@ -420,7 +459,7 @@ function CardSlot({
       {card !== null && (
         <>
           <Text style={[styles.slotRank, { color: inkOf(card) }]}>{RANKS[card >> 2]}</Text>
-          <Text style={[styles.slotSuit, { color: inkOf(card) }]}>{SUIT_GLYPH[card & 3]}</Text>
+          <Pip suit={card & 3} size={14} color={inkOf(card)} />
         </>
       )}
     </Pressable>
@@ -451,6 +490,11 @@ const styles = StyleSheet.create({
   figure: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
   figureLabel: { ...type.rowDetail },
   figureValue: { ...type.rowName, fontVariant: ['tabular-nums'] },
+  /* The loading state stands exactly as tall as the figures line it replaces,
+     so the row does not jump when the result lands. */
+  loading: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 22 },
+  track: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
+  fill: { height: 4, borderRadius: 2 },
 
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 4 },
 
@@ -461,8 +505,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  slotRank: { fontSize: 17, fontWeight: '800', lineHeight: 19 },
-  slotSuit: { fontSize: 13, lineHeight: 15 },
+  slotRank: { fontSize: 17, fontWeight: '800', lineHeight: 19, marginBottom: 1 },
 
   deckWrap: { gap: 3 },
   deckRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 6 },
@@ -475,7 +518,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  deckRank: { fontSize: 12, fontWeight: '800', lineHeight: 14 },
-  deckSuit: { fontSize: 10, lineHeight: 12 },
+  deckRank: { fontSize: 12, fontWeight: '800', lineHeight: 14, marginBottom: 1 },
   add: { paddingTop: 12, paddingHorizontal: 4 },
 });
