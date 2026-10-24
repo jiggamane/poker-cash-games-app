@@ -2867,9 +2867,9 @@ passcode over the app, not a password on the account).
 
 `/odds`, pushed from Settings under *Rules & rulings*. It is the classic web
 hold'em calculator rebuilt inside the app with the same arithmetic behind it:
-nine seats of two cards, the five board cards, a row of dead cards, and the
-deck to deal from; **win and tie per hand, over every board that can still
-come**. Nothing is sampled — a heads-up hand before the flop is the full
+the five board cards, then the seats — three to begin with, *Add a player* for
+each one more up to nine — then a row of dead cards, and the deck to deal from;
+**win and tie per hand, over every board that can still come**. Nothing is sampled — a heads-up hand before the flop is the full
 1,712,304 boards — so the same cards always give the same figures.
 
 The arithmetic is `packages/core/src/odds/` and is held by `evaluate.test.ts`
@@ -2892,14 +2892,19 @@ a reader waits on a real device is open.
 *Where it departs from the original, and why:*
 
 1. **The next place is outlined in the text colour, not red.** The original
-   highlights it in red; in this app red is money lost and nothing else. The
-   suit colours are the one exception kept: hearts and diamonds are drawn in
-   the loss red because every deck draws them red.
-2. **The deal moves on by itself only as far as a dealer would.** Second hole
-   card, then the second seat for the first two seats, then the board, then
-   dead. Seats three to nine are dealt where the reader taps. The original
-   fills seats in order; nine hands are the exception on a phone and the board
-   is not.
+   highlights it in red; in this app red is money lost and nothing else.
+   **The cards themselves are the one exception, on the owner's instruction
+   (24 October): ivory stock, black ink, red ink for hearts and diamonds, in
+   both themes.** Ivory rather than white so a card on the light theme's white
+   ground is still a card and not a hole; the three values are the only
+   colours in the app that are not tokens, and `odds.tsx` says so at its head.
+   Red ink on ivory measures 5.6:1, which clears the floor at the deck's 12
+   points.
+2. **The deal moves on by itself the way a dealer's would.** Second hole card,
+   then every seat on show in turn, then the board, then dead. A seat the
+   reader has not added is not dealt to; adding it is how they say it is in
+   the hand. The original shows nine seats always; the owner asked for three
+   and one more per tap, and for the board above the seats, both 24 October.
 3. **Equity is computed and not shown.** The engine returns `win`, `tie` and
    `equity` (a win is 1, an n-way tie 1/n); the screen shows the original's two
    figures, which is what it is a rebuild of.

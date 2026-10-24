@@ -28,25 +28,42 @@ import { radius, space, type } from '../src/design/tokens';
  *
  * It is the classic web calculator, rebuilt: tap a card in the deck and it is
  * dealt to the outlined place; tap a dealt card and it goes back. The outlined
- * place moves on by itself — the second hole card, then the next seat for the
- * first two seats, then the board, then the dead cards — and tapping any empty
- * place moves it there. *New hand* clears the table.
+ * place moves on by itself — the second hole card, then the next seat, then
+ * the board, then the dead cards — and tapping any empty place moves it there.
+ * *New hand* clears the cards and keeps the seats.
+ *
+ * The board is at the top and the seats under it, three to begin with and one
+ * more per tap of *Add a player* up to nine — the owner's instruction, 24
+ * October, over the original's nine seats always on show.
  *
  * ⚠ COPY NOT DRAWN. No board draws this screen, so every string on it is mine
- * and wants review: the title, the meta line's three states, the lede, the
- * seat labels, *Win* and *Tie*, *Board*, *Dead cards*, *New hand*.
+ * and wants review: the title, the meta line's three states, the hint, the
+ * seat labels, *Win* and *Tie*, *Board*, *Dead cards*, *Add a player*, *New
+ * hand*.
  *
  * DELIBERATE DEVIATIONS from the original it is rebuilt from:
  *
  * - The place the next card is dealt to is outlined in the text colour, not
  *   red. In this app red means money lost and nothing else (`tokens.ts`); a
  *   red outline on an empty slot would read as a figure gone wrong.
- * - The suit colours are the one place red is not money: hearts and diamonds
- *   are drawn in the loss red because every deck in the world draws them red
- *   and a black heart is a card nobody can read at a glance.
  * - The work is sliced so the screen keeps drawing while 1.7 million boards
  *   are dealt, and the meta line counts it down. The original showed a spinner.
+ *
+ * AND ONE FROM THE APP'S OWN RULE. A card is drawn as a card: ivory stock,
+ * black ink, red ink for hearts and diamonds, in both themes — the owner's
+ * instruction, same day. `tokens.ts` says nothing in the app is coloured but
+ * money, and the three constants below are the only colours in the app that
+ * are not tokens. They are not a palette; they are what a deck looks like, and
+ * a black heart or a white-on-black ace is a card nobody reads at a glance.
  */
+
+/** Card stock and ink. Ivory rather than white so that a card on the light
+    theme's white ground is still a card and not a hole in the page. */
+const isRed = (c: Card): boolean => (c & 3) === 1 || (c & 3) === 2;
+const CARD_FACE = '#FAF8F3';
+const INK_BLACK = '#141416';
+const INK_RED = '#C8102E';
+const inkOf = (c: Card): string => (isRed(c) ? INK_RED : INK_BLACK);
 
 type Slot = { kind: 'seat'; seat: number; i: number } | { kind: 'board'; i: number } | { kind: 'dead' };
 
@@ -56,8 +73,11 @@ type Table = {
   dead: Card[];
 };
 
-const emptyTable = (): Table => ({
-  seats: Array.from({ length: MAX_SEATS }, () => Array<Card | null>(HOLE_CARDS).fill(null)),
+/** Three seats to begin with; `Add a player` brings the next one in. */
+const FIRST_SEATS = 3;
+const emptySeat = (): (Card | null)[] => Array<Card | null>(HOLE_CARDS).fill(null);
+const emptyTable = (seats = FIRST_SEATS): Table => ({
+  seats: Array.from({ length: seats }, emptySeat),
   board: Array<Card | null>(BOARD_CARDS).fill(null),
   dead: [],
 });
@@ -70,9 +90,9 @@ const sameSlot = (a: Slot, b: Slot): boolean =>
 
 /**
  * Where the card after this one goes. The deal runs the way a dealer's would:
- * finish the hand, give the second seat its hand, then the board, then
- * anything else is dead. Beyond the second seat a hand is dealt only where the
- * reader taps, because nine hands are the exception and the board is not.
+ * finish the hand, then every seat on show in turn, then the board, then
+ * anything else is dead. A seat the reader has not added is not dealt to —
+ * adding it is how they say it is in the hand.
  */
 function nextSlot(after: Slot, t: Table): Slot {
   const firstEmpty = (seat: number): Slot | null => {
@@ -84,11 +104,9 @@ function nextSlot(after: Slot, t: Table): Slot {
     return i < 0 ? null : { kind: 'board', i };
   };
   if (after.kind === 'seat') {
-    const same = firstEmpty(after.seat);
-    if (same !== null) return same;
-    if (after.seat === 0) {
-      const second = firstEmpty(1);
-      if (second !== null) return second;
+    for (let seat = after.seat; seat < t.seats.length; seat++) {
+      const empty = firstEmpty(seat);
+      if (empty !== null) return empty;
     }
     return boardEmpty() ?? { kind: 'dead' };
   }
@@ -119,7 +137,6 @@ function remove(t: Table, c: Card): Table {
 }
 
 const SUIT_GLYPH = ['♣', '♦', '♥', '♠'] as const;
-const isRed = (c: Card): boolean => (c & 3) === 1 || (c & 3) === 2;
 
 const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
 /* Grouped with commas by hand: the count is read against the figures in the
@@ -203,8 +220,13 @@ export default function OddsCalculator() {
   };
 
   const newHand = () => {
-    setTable(emptyTable());
+    setTable(emptyTable(table.seats.length));
     setActive(FIRST);
+  };
+
+  const addSeat = () => {
+    if (table.seats.length >= MAX_SEATS) return;
+    setTable({ ...table, seats: [...table.seats, emptySeat()] });
   };
 
   const meta =
@@ -240,10 +262,11 @@ export default function OddsCalculator() {
         <Button label="New hand" variant="chip" onPress={newHand} />
       </View>
       {/* One row per suit, aces first — the shape every deck picker has had
-          since the first one, because it is how a person finds a card. */}
+          since the first one, because it is how a person finds a card. Each
+          cell is a small card of its own: stock, rank, pip. A card already on
+          the table is a gap where it was. */}
       {[3, 2, 1, 0].map((suit) => (
         <View key={suit} style={styles.suitRow}>
-          <Text style={[styles.suitGlyph, { color: isRed(suit) ? t.loss : t.text }]}>{SUIT_GLYPH[suit]}</Text>
           {RANKS.map((rank, r) => {
             const c = (12 - r) * 4 + suit;
             const gone = used.has(c);
@@ -256,17 +279,18 @@ export default function OddsCalculator() {
                 onPress={() => deal(c)}
                 style={({ pressed }) => [
                   styles.deckCard,
-                  { backgroundColor: gone ? 'transparent' : t.surface, opacity: pressed ? 0.6 : 1 },
+                  gone
+                    ? { borderColor: t.hairline, borderWidth: StyleSheet.hairlineWidth }
+                    : { backgroundColor: CARD_FACE },
+                  { opacity: pressed ? 0.6 : 1 },
                 ]}
               >
-                <Text
-                  style={[
-                    styles.deckRank,
-                    { color: gone ? t.disabled : isRed(suit) ? t.loss : t.text },
-                  ]}
-                >
-                  {RANKS[12 - r]}
-                </Text>
+                {!gone && (
+                  <>
+                    <Text style={[styles.deckRank, { color: inkOf(c) }]}>{RANKS[12 - r]}</Text>
+                    <Text style={[styles.deckSuit, { color: inkOf(c) }]}>{SUIT_GLYPH[suit]}</Text>
+                  </>
+                )}
               </Pressable>
             );
           })}
@@ -283,7 +307,14 @@ export default function OddsCalculator() {
       footer={deck}
     >
       <View style={styles.list}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Players</Text>
+        <Text style={[styles.sectionLabel, { color: t.muted }]}>Board</Text>
+        <View style={styles.row}>
+          {table.board.map((c, i) => (
+            <CardSlot key={i} {...slotProps({ kind: 'board', i }, c, `Board, card ${i + 1}`)} />
+          ))}
+        </View>
+
+        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Players</Text>
         {/*
          * One row per seat, the hairline list every other screen uses. A
          * two-up grid was tried first and did not have the width: beside two
@@ -299,10 +330,7 @@ export default function OddsCalculator() {
               key={seat}
               style={[
                 styles.seatRow,
-                {
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth: seat === table.seats.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                },
+                { borderBottomColor: t.hairline, borderBottomWidth: StyleSheet.hairlineWidth },
               ]}
             >
               <View style={styles.pair}>
@@ -323,13 +351,13 @@ export default function OddsCalculator() {
             </View>
           );
         })}
-
-        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Board</Text>
-        <View style={styles.row}>
-          {table.board.map((c, i) => (
-            <CardSlot key={i} {...slotProps({ kind: 'board', i }, c, `Board, card ${i + 1}`)} />
-          ))}
-        </View>
+        {/* Dashed, because dashed means "creates something" (`tokens.ts`).
+            Gone at nine, which is the table's limit and the engine's. */}
+        {table.seats.length < MAX_SEATS && (
+          <View style={styles.add}>
+            <Button label="Add a player" variant="add" onPress={addSeat} />
+          </View>
+        )}
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Dead cards</Text>
         <View style={styles.row}>
@@ -358,22 +386,19 @@ function Figure({ label, value }: { label: string; value: string }) {
  *
  * An empty place is a border and nothing else — a fill the colour of what is
  * behind it is a block that paints nothing, which `ui-audit.mjs` calls
- * surface-on-itself and is right to. A dealt card takes the next rung of the
- * ladder above whatever it sits on: `raised` inside a seat's card, `surface`
- * on the ground for the board and the dead cards.
+ * surface-on-itself and is right to. A dealt card is card stock with ink on
+ * it, the same in both themes; see the head of the file.
  */
 function CardSlot({
   card,
   active,
   label,
   onPress,
-  on = 'ground',
 }: {
   card: Card | null;
   active: boolean;
   label: string;
   onPress: () => void;
-  on?: 'ground' | 'surface';
 }) {
   const t = useTheme();
   const text = card === null ? `${label}, empty` : `${label}, ${RANKS[card >> 2]}${SUIT_GLYPH[card & 3]}`;
@@ -385,8 +410,8 @@ function CardSlot({
       style={({ pressed }) => [
         styles.slot,
         {
-          backgroundColor: card === null ? 'transparent' : on === 'surface' ? t.raised : t.surface,
-          borderColor: active ? t.text : t.hairline,
+          backgroundColor: card === null ? 'transparent' : CARD_FACE,
+          borderColor: active ? t.text : card === null ? t.hairline : CARD_FACE,
           borderWidth: active ? 2 : StyleSheet.hairlineWidth,
           opacity: pressed ? 0.6 : 1,
         },
@@ -394,8 +419,8 @@ function CardSlot({
     >
       {card !== null && (
         <>
-          <Text style={[styles.slotRank, { color: isRed(card) ? t.loss : t.text }]}>{RANKS[card >> 2]}</Text>
-          <Text style={[styles.slotSuit, { color: isRed(card) ? t.loss : t.text }]}>{SUIT_GLYPH[card & 3]}</Text>
+          <Text style={[styles.slotRank, { color: inkOf(card) }]}>{RANKS[card >> 2]}</Text>
+          <Text style={[styles.slotSuit, { color: inkOf(card) }]}>{SUIT_GLYPH[card & 3]}</Text>
         </>
       )}
     </Pressable>
@@ -439,17 +464,18 @@ const styles = StyleSheet.create({
   slotRank: { fontSize: 17, fontWeight: '800', lineHeight: 19 },
   slotSuit: { fontSize: 13, lineHeight: 15 },
 
-  deckWrap: { gap: 4 },
+  deckWrap: { gap: 3 },
   deckRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 6 },
   hint: { ...type.footnote, flex: 1 },
-  suitRow: { flexDirection: 'row', gap: 2, alignItems: 'center' },
-  suitGlyph: { width: 16, fontSize: 13, textAlign: 'center' },
+  suitRow: { flexDirection: 'row', gap: 3 },
   deckCard: {
     flex: 1,
-    height: 34,
-    borderRadius: 5,
+    height: 40,
+    borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  deckRank: { fontSize: 13, fontWeight: '700' },
+  deckRank: { fontSize: 12, fontWeight: '800', lineHeight: 14 },
+  deckSuit: { fontSize: 10, lineHeight: 12 },
+  add: { paddingTop: 12, paddingHorizontal: 4 },
 });
