@@ -260,8 +260,11 @@ export default function OddsCalculator() {
         ? `${grouped(result.boards)} ${result.boards === 1 ? 'board' : 'boards'} dealt · exact`
         : problem === null
           ? 'Texas hold’em'
-          : halfDealt >= 0
-            ? problem
+          : halfDealt >= 0 || complete.length >= 2
+            ? /* A seat short of a card, or two full hands the engine will not
+                 take — too few cards left for the board is the one a reader
+                 can reach, by dealing dead cards until the deck runs out. */
+              problem
             : 'Texas hold’em · deal two hands';
 
   const seatOdds = (seat: number) => {

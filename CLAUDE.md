@@ -102,6 +102,10 @@ npm run check:ui   # the screens: every route against the handoff's rules, all 2
                    # touched apps/mobile. Needs Playwright.
 npm run db:verify  # applies every migration to a throwaway Postgres and asserts
                    # the money invariants. Run it if you touched supabase/.
+npm run odds:verify # the odds calculator's engine against the facts about poker:
+                   # all 133,784,560 seven-card hands against the published counts
+                   # and against a second, slow ranking of every one of them; about
+                   # a minute. Run it if you touched packages/core/src/odds.
 ```
 
 `check` is seconds and is for every commit. `check:ui` builds the app and drives
