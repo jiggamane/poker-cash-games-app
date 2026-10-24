@@ -643,6 +643,36 @@ const ROOM = `
     }
   }
 
+  // ---- 10 · the head is drawn whole ----------------------------------------
+  //
+  // B100. The meta line is a Text in the column above the scroller, and on the
+  // web a Text shrinks: a body taller than the phone squeezed it to twelve
+  // points holding an eighteen-point line, descenders gone, on every long
+  // pushed screen. Contrast, overflow and wrapping all passed — the text was
+  // there, legible by every measure but the one that asks whether all of it
+  // was drawn. So this asks that: the box each named head element is given
+  // must hold the text it was given.
+  //
+  // WITH A TENTH OF SLACK, and the tenth is not the fault. The title is set
+  // 32 on a 33.6 line, which is the board's own figure, and Figtree's line box
+  // for a 32-point face is 36 — so every title in the app reads "34 holding
+  // 36" and is drawn whole, because that box is the font's ascent and descent
+  // reserve rather than ink. The squeeze this is for took a third of the
+  // line, not a fifteenth; anything inside the tenth is the type being set as
+  // it was drawn.
+  for (const id of ['screen-title', 'screen-meta', 'sheet-title']) {
+    const el = document.getElementById(id);
+    if (el === null) continue;
+    if (el.scrollHeight > el.clientHeight * 1.1) {
+      findings.push({
+        check: 'head-clipped',
+        detail: px(el.clientHeight) + ' holding ' + px(el.scrollHeight),
+        where: label(el),
+        box: { w: px(el.getBoundingClientRect().width) },
+      });
+    }
+  }
+
   // ---- 6 · nothing breaks inside a word -----------------------------------
   //
   // Measured off the text node itself: a word that fits on one line has one

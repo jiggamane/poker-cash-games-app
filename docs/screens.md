@@ -2820,8 +2820,10 @@ Its findings 1 and 3 are open questions rather than settled ones:
 - **R1's meta line renders in a 12px box against a 17px line**, `overflow:
   hidden`, so `players · settled` loses every descender — in both themes.
   `/payments` draws the identical component at its full 17, so this is R1's
-  head being squeezed by a long body rather than the component. Not written up
-  in `docs/bugs.md` yet because the fix is in `Screen.tsx`, which is app-wide.
+  head being squeezed by a long body rather than the component. **B100, fixed
+  24 October**: a `Text` shrinks on the web and the meta line was one in a
+  column with a shrinking scroller; `flexShrink: 0` in `Screen.tsx`, and
+  `ui-audit.mjs` "head-clipped" holds it on every route.
 - **The wizard's `1 of 3 · 2 of 3 · 3 of 3`** (Count up, Deductions, Settle up)
   and the 1 September cut's three screens (Count up, Settle up, the settled
   night) are two different threes. Nothing reconciles them.
@@ -2900,7 +2902,17 @@ a reader waits on a real device is open.
    is not.
 3. **Equity is computed and not shown.** The engine returns `win`, `tie` and
    `equity` (a win is 1, an n-way tie 1/n); the screen shows the original's two
-   figures. One more column per seat did not fit the two-up grid at 360.
+   figures, which is what it is a rebuild of.
+5. **One row per seat, not a two-up grid.** The grid was built first and cut
+   the figures to `82….` at 393 — beside two cards, a figure and its label need
+   110 points and half the phone less the cards has 64. The route pass did not
+   see it (B12's check reads amount fields, not these), the screenshot did, so
+   the seats are the hairline list every other screen uses and the figure has
+   the row's width at every text size. Driven in a browser: aces against kings
+   reads 82.36 / 0.54 / 17.09 after about a second, a flop re-deals 990 boards
+   and taking a board card back re-deals 15,180.
+6. **It surfaced B100.** The meta line under the title was being squeezed on
+   every long pushed screen; this one was long enough to make it obvious.
 4. **No Help panel.** The original's instructions are the one line under the
    deck.
 

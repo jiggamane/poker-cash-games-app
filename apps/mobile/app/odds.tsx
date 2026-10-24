@@ -122,6 +122,10 @@ const SUIT_GLYPH = ['♣', '♦', '♥', '♠'] as const;
 const isRed = (c: Card): boolean => (c & 3) === 1 || (c & 3) === 2;
 
 const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
+/* Grouped with commas by hand: the count is read against the figures in the
+   tests and the docs, which are written that way, and a locale can turn it
+   into `1.712.304` on the same phone that shows the money with commas. */
+const grouped = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
 export default function OddsCalculator() {
   const t = useTheme();
@@ -207,7 +211,7 @@ export default function OddsCalculator() {
     progress !== null
       ? `Calculating · ${Math.round(progress * 100)}%`
       : result !== null
-        ? `${result.boards.toLocaleString('en-US')} ${result.boards === 1 ? 'board' : 'boards'} dealt · exact`
+        ? `${grouped(result.boards)} ${result.boards === 1 ? 'board' : 'boards'} dealt · exact`
         : problem === null
           ? 'Texas hold’em'
           : halfDealt >= 0
@@ -230,7 +234,7 @@ export default function OddsCalculator() {
   const deck = (
     <View style={styles.deckWrap}>
       <View style={styles.deckRow}>
-        <Text style={[styles.hint, { color: t.muted }]} numberOfLines={2}>
+        <Text style={[styles.hint, { color: t.muted }]}>
           Tap a card to deal it to the outlined place. Tap a dealt card to take it back.
         </Text>
         <Button label="New hand" variant="chip" onPress={newHand} />
@@ -280,30 +284,45 @@ export default function OddsCalculator() {
     >
       <View style={styles.list}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Players</Text>
-        <View style={styles.grid}>
-          {table.seats.map((hand, seat) => {
-            const o = seatOdds(seat);
-            return (
-              <View key={seat} style={[styles.cell, { backgroundColor: t.surface }]}>
-                <Text style={[styles.cellLabel, { color: t.muted }]}>Player {seat + 1}</Text>
-                <View style={styles.cellBody}>
-                  <View style={styles.pair}>
-                    {hand.map((c, i) => (
-                      <CardSlot
-                        key={i}
-                        {...slotProps({ kind: 'seat', seat, i }, c, `Player ${seat + 1}, card ${i + 1}`)}
-                      />
-                    ))}
-                  </View>
-                  <View style={styles.figures}>
-                    <Figure label="Win" value={o === null ? '—' : pct(o.win)} />
-                    <Figure label="Tie" value={o === null ? '—' : pct(o.tie)} />
-                  </View>
+        {/*
+         * One row per seat, the hairline list every other screen uses. A
+         * two-up grid was tried first and did not have the width: beside two
+         * cards, `82.36%` and its label need 110 points, and half of a 360
+         * phone minus the cards is 64. A figure cut to `82….` is the fault
+         * this repository's whole UI gate exists for, so the row is the one
+         * layout where the figure has the room at every width and text size.
+         */}
+        {table.seats.map((hand, seat) => {
+          const o = seatOdds(seat);
+          return (
+            <View
+              key={seat}
+              style={[
+                styles.seatRow,
+                {
+                  borderBottomColor: t.hairline,
+                  borderBottomWidth: seat === table.seats.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                },
+              ]}
+            >
+              <View style={styles.pair}>
+                {hand.map((c, i) => (
+                  <CardSlot
+                    key={i}
+                    {...slotProps({ kind: 'seat', seat, i }, c, `Player ${seat + 1}, card ${i + 1}`)}
+                  />
+                ))}
+              </View>
+              <View style={styles.seatText}>
+                <Text style={[styles.seatLabel, { color: t.muted }]}>Player {seat + 1}</Text>
+                <View style={styles.figures}>
+                  <Figure label="Win" value={o === null ? '—' : pct(o.win)} />
+                  <Figure label="Tie" value={o === null ? '—' : pct(o.tie)} />
                 </View>
               </View>
-            );
-          })}
-        </View>
+            </View>
+          );
+        })}
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Board</Text>
         <View style={styles.row}>
@@ -329,24 +348,32 @@ function Figure({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.figure}>
       <Text style={[styles.figureLabel, { color: t.muted }]}>{label}</Text>
-      <Text style={[styles.figureValue, { color: t.text }]} numberOfLines={1}>
-        {value}
-      </Text>
+      <Text style={[styles.figureValue, { color: t.text }]}>{value}</Text>
     </View>
   );
 }
 
-/** One place a card can be: empty, outlined when it is next, or holding one. */
+/**
+ * One place a card can be: empty, outlined when it is next, or holding one.
+ *
+ * An empty place is a border and nothing else — a fill the colour of what is
+ * behind it is a block that paints nothing, which `ui-audit.mjs` calls
+ * surface-on-itself and is right to. A dealt card takes the next rung of the
+ * ladder above whatever it sits on: `raised` inside a seat's card, `surface`
+ * on the ground for the board and the dead cards.
+ */
 function CardSlot({
   card,
   active,
   label,
   onPress,
+  on = 'ground',
 }: {
   card: Card | null;
   active: boolean;
   label: string;
   onPress: () => void;
+  on?: 'ground' | 'surface';
 }) {
   const t = useTheme();
   const text = card === null ? `${label}, empty` : `${label}, ${RANKS[card >> 2]}${SUIT_GLYPH[card & 3]}`;
@@ -358,7 +385,7 @@ function CardSlot({
       style={({ pressed }) => [
         styles.slot,
         {
-          backgroundColor: card === null ? t.ground : t.raised,
+          backgroundColor: card === null ? 'transparent' : on === 'surface' ? t.raised : t.surface,
           borderColor: active ? t.text : t.hairline,
           borderWidth: active ? 2 : StyleSheet.hairlineWidth,
           opacity: pressed ? 0.6 : 1,
@@ -380,27 +407,25 @@ const SLOT_H = 50;
 
 const styles = StyleSheet.create({
   list: { marginHorizontal: space.page },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 8, paddingTop: 4 },
+  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 8, paddingTop: 14 },
   after: { paddingTop: 22 },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  cell: {
-    /* Two to a row at every width in the device matrix: 360 − 44 − 8 = 308,
-       half of which is 154, and the cell asks for less than that. */
-    flexBasis: '48%',
-    flexGrow: 1,
-    borderRadius: radius.pressable + 2,
-    paddingHorizontal: 10,
+  seatRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
     paddingVertical: 8,
-    gap: 6,
+    paddingHorizontal: 4,
   },
-  cellLabel: { ...type.statLabel },
-  cellBody: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   pair: { flexDirection: 'row', gap: 4 },
-  figures: { flex: 1, gap: 4, minWidth: 0 },
-  figure: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 6 },
+  seatText: { flex: 1, minWidth: 0, gap: 2 },
+  seatLabel: { ...type.rowDetail },
+  /* The two figures on one line, wrapping to two only if the text setting
+     leaves them no room — never truncating. */
+  figures: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 2 },
+  figure: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
   figureLabel: { ...type.rowDetail },
-  figureValue: { ...type.time, flexShrink: 1 },
+  figureValue: { ...type.rowName, fontVariant: ['tabular-nums'] },
 
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 4 },
 

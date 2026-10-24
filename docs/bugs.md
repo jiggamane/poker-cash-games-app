@@ -139,6 +139,41 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B100 — the meta line under a pushed title loses its descenders on a long screen
+
+```
+Screen      every pushed screen whose body is taller than the phone — Settings,
+            and the odds calculator the moment it existed; `docs/screens.md`
+            had noticed it on R1 (/payments) on 6 September and left it,
+            because the fix is in Screen.tsx
+Seen        24 Oct, on the odds calculator's screenshots: "1,712,304 boards
+            dealt · exact" with the bottom third of every glyph gone. Measured
+            in the built app at 393 × 852: #screen-meta is a 12-point box
+            holding an 18-point line on /odds and on /settings, and the full
+            18 on /players and /club-rules, whose bodies fit the phone
+Expected    the line drawn whole on every screen, whatever is under it
+Locked by   npm run check:ui — ui-audit.mjs, "head-clipped": the title and the
+            meta line of every route must be at least as tall as the text in
+            them. Against the build before the fix it reports /odds and
+            /settings in both themes at both widths; after, nothing
+Status      fixed in this commit
+```
+
+`Screen` is a column: the title row, the meta line, the lede, then the scroller
+with `flexShrink: 1` so that a long body gives way to the footer. A React Native
+`View` does not shrink unless told to, and the title row is one, so the title
+was never touched. A `Text` on the web DOES — react-native-web gives it
+`flexShrink: 1` — and the meta line and the lede are `Text`s, so when the body
+overflows they give way too, in proportion to their height against the body's.
+A body twice the phone takes a third of the meta line; a body that fits takes
+nothing, which is why it looked like a fault of the long screens.
+
+The fix is `flexShrink: 0` on the two, which is what the title row already had
+by being a `View`. Nothing else moves: the scroller still absorbs the overflow,
+and a screen that fit before fits now. `metaShared` keeps its `flexShrink: 1`,
+which is horizontal — that one sits in a row beside a control and B82 is about
+it giving way to the control, not to the body.
+
 ### B99 — check:ui is red on main, and it was red before the rulings branch
 
 ```

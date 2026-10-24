@@ -323,6 +323,11 @@ const styles = StyleSheet.create({
     paddingTop: chrome.metaPadTop,
     paddingRight: chrome.titlePadH,
     paddingLeft: chrome.metaIndent,
+    /* NOT A SHRINKING CHILD OF THE COLUMN. On the web a Text shrinks by
+       default, and this one sits above a scroller that is allowed to: a body
+       taller than the phone took a third of this line's height and the
+       descenders with it, on every long pushed screen. B100. */
+    flexShrink: 0,
   },
   /* The same slot as `meta`, holding a row rather than a string. */
   metaNode: {
@@ -369,7 +374,7 @@ const styles = StyleSheet.create({
     paddingBottom: chrome.metaPadBottom,
   },
   metaShared: { ...type.pushMeta, flexShrink: 1 },
-  lede: { ...type.lede, marginTop: 8, marginHorizontal: space.page },
+  lede: { ...type.lede, marginTop: 8, marginHorizontal: space.page, flexShrink: 0 },
 
   // Every board draws the footer `14px 20px 0` with `gap: 10` — E2b, E4, E5,
   // L1, N5, N7, GR4. The 16 and the 12 here were neither, and a two-pixel
