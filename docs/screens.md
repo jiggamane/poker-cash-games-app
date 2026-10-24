@@ -2990,6 +2990,55 @@ whole of this is the web build in a desktop browser.
   feature and four other ways of entering a card are drawn on the canvas and not
   built.
 
+
+*Pot odds — an experiment, decided and built 24 October (canvas boards `Pot-closed`
+and `Pot-open`).* **Off by default**, behind a switch under Settings → Odds
+calculator, *Pot odds (experiment)*: a preference of the phone
+(`src/lib/potOddsStore.ts`, as `themeStore` keeps the theme), not of the group and
+not in the ledger. While it is off the odds screen is exactly what it was. On, and
+only while an exact result is on screen **and the flop is down** and Player 1 is in
+the hand, one section sits under the players: *POT ODDS · YOU* with *Experiment*
+at the right, closed as a single row (*Pot odds* / *Type the pot and what you must
+call*), opened in place — it is a place you stay, not a sheet — to the fields *Pot*
+and *To call*, the figures *Needs* and *You have*, a bar with a break-even marker,
+and one line of money. **Player 1 is "you"** and wears a *You* tag on the players
+list while the setting is on. `PotOddsCard.tsx` lays it out; **every figure comes
+from `potOdds()` in `packages/core/src/odds/potOdds.ts`** — needs = call ÷ (pot +
+call), has = Player 1's equity, returns = has × (pot + call) − call — all in
+integers (equity is recovered as a whole number of the engine's 1/2520 units and
+refused if it is not one; the one product that can pass 2^53 is a BigInt), held by
+`potOdds.test.ts` including the canvas's own example. Typing a field puts the
+amount keypad in the deck's place with a *Done*; one footer, one job. It never says
+call, fold or should, and leaves out side pots (the formula line says so) and the
+pre-flop. `ui-odds.mjs` deals ten tables with the setting on, types the amounts on
+the real keypad and holds Needs, You have, the money line and the formula to the
+function, and holds the card **absent** before the flop, on two cards of board, and
+with Player 1 out of the hand; it also turns the switch on from Settings and checks
+the card appears after a reload, that the setting is off by default, and that every
+line fits at 393 and 320 wide, with the keypad up and down. Shown red against three
+planted faults: Needs showing what the hand has, the digits going to the other
+field, and the card showing before the flop.
+
+*Where the app departs from the board, and why:*
+
+1. **No cents.** The board draws `$75.00`, `$25.00` and `+$15.91`; the app has none
+   (`money.ts`: whole units, `Money` refuses a fraction). The fields read `$75`,
+   `$25` and the money line `+$16` — rounded **half away from zero**, so a gain and
+   a loss of the same size round the same way (half up on a negative would not).
+   Needs and You have keep their two decimals: they are shares, not money.
+2. **Amber for the break-even marker and its label** is the app's "waiting" colour.
+   Kept because the owner chose the board; it is the one use of it on this screen.
+3. **The money line is in the money colours, and the loss case is not drawn.** A
+   negative reads `returns −$35` in the loss colour, a zero `$0` in the text colour.
+   The board draws only the gain.
+4. **⚠ COPY NOT DRAWN:** the setting's label (the owner's words), *Done* on the
+   keypad, the *—* that *Needs* shows before a call is typed (and the money line,
+   formula and marker are then not shown), and the *You* tag on the players list —
+   the board tags only the card. The status line is unchanged.
+5. **Typing hides what is under the keypad.** The card is above the pad and the
+   money line scrolls under it while an amount is typed; *Done* returns the deck and
+   the whole card. Not seen on a phone.
+
 *Open:* whether this lives under Settings or on the club's home as a tool
 beside the rules; how it reads at 120% text, which the rule pass measures only
 on the stops a night produces; and the Expo Go timing above.

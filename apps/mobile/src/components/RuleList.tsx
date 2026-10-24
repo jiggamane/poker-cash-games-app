@@ -143,7 +143,7 @@ export function RuleList({
 }
 
 /** 44 × 26, knob 20. Filled when on — no colour, because colour is money. */
-function Switch({ on, onPress }: { on: boolean; onPress: () => void }) {
+export function Switch({ on, onPress }: { on: boolean; onPress: () => void }) {
   const t = useTheme();
   return (
     <Pressable

@@ -25,6 +25,9 @@ const BASE = process.env.UI_CHECK_BASE ?? 'http://127.0.0.1:4321';
 const cases = JSON.parse(
   execFileSync('npx', ['vite-node', 'scripts/odds-ui-cases.ts'], { encoding: 'utf8', maxBuffer: 1 << 26 }),
 );
+const potCases = JSON.parse(
+  execFileSync('npx', ['vite-node', 'scripts/odds-pot-cases.ts'], { encoding: 'utf8', maxBuffer: 1 << 26 }),
+);
 
 const browser = await chromium.launch();
 let failed = 0;
@@ -111,6 +114,158 @@ let failed = 0;
   if (fail.length) failed++;
 }
 
+
+/*
+ * POT ODDS (an experiment behind a setting, decided 24 October). Two halves.
+ *
+ * OFF, which is how it ships: the screen has no pot odds card and no You tag,
+ * and Settings has the switch, off. Turning that switch on, with a tap, is what
+ * puts the card on the screen — the setting is held across a reload and read by
+ * the odds screen, which is the whole path a reader takes.
+ *
+ * ON: each scenario in `odds-pot-cases.ts` is dealt with taps, the pot and the
+ * call are typed on the amount keypad, and what the card prints — Needs, You
+ * have, the money line and the formula under it — is held to `potOdds()` in
+ * core, which is where the arithmetic is. Where the table says the card must
+ * not be there (before the flop, Player 1 out of the hand) it is held to not
+ * being there. And every line of it is held inside the screen, at two phones,
+ * with the keypad up and with it away: a figure cut off is the fault this whole
+ * gate is for.
+ */
+const POT_KEY = 'odds.potOdds';
+const dealTable = async (page, c) => {
+  const tap = (label) => page.getByRole('button', { name: label, exact: true }).click({ timeout: 10_000 });
+  for (let s = 3; s < c.seats; s++) await tap('Add a player');
+  for (const p of c.placements) {
+    await tap(`${p.slot}, empty`);
+    await tap(p.card);
+  }
+  await page
+    .waitForFunction((want) => document.getElementById('screen-meta')?.textContent === want, c.meta, { timeout: 90_000 })
+    .catch(() => {});
+  return tap;
+};
+/** Every line of text inside `#pot-odds` (and the keypad, when it is up) must sit inside its own box and inside the screen. */
+const cutOff = (page) =>
+  page.evaluate(() => {
+    const out = [];
+    const W = window.innerWidth;
+    const roots = [document.getElementById('pot-odds')].filter(Boolean);
+    for (const root of roots) {
+      for (const el of root.querySelectorAll('*')) {
+        if (el.children.length > 0 && el.tagName !== 'DIV') continue;
+        const text = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim();
+        if (text === '') continue;
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const r = range.getBoundingClientRect();
+        const b = el.getBoundingClientRect();
+        /* A line that wraps keeps the space it wrapped at hanging off its end (pre-wrap), a third of an
+           em past the box and invisible. That is not a figure cut off; a single line wider than its box is. */
+        const lines = range.getClientRects().length;
+        const slack = lines > 1 ? parseFloat(getComputedStyle(el).fontSize) * 0.35 : 1.5;
+        if (r.width > b.width + slack) out.push(`"${text.slice(0, 30)}" is ${Math.round(r.width)} wide in a box of ${Math.round(b.width)}`);
+        if (r.right > W + 0.5 || r.left < -0.5) out.push(`"${text.slice(0, 30)}" leaves the screen (${Math.round(r.left)}–${Math.round(r.right)} of ${W})`);
+        if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflow !== 'visible') out.push(`"${text.slice(0, 30)}" is clipped`);
+      }
+    }
+    return out;
+  });
+
+{
+  const fail = [];
+  const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
+  page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
+  try {
+    const c = potCases[0];
+    /* Off: not there. */
+    await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
+    await page.waitForSelector('#screen-title');
+    await dealTable(page, c);
+    if ((await page.locator('#pot-odds').count()) > 0) fail.push('the pot odds card is on the screen with the setting off');
+    if ((await page.getByText('You', { exact: true }).count()) > 0) fail.push('a You tag is on the screen with the setting off');
+    /* Settings has the switch, off; one tap turns it on. */
+    await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
+    const sw = page.getByRole('switch', { name: 'Pot odds (experiment)' });
+    await sw.waitFor({ state: 'visible', timeout: 10_000 });
+    if ((await sw.getAttribute('aria-checked')) !== 'false') fail.push('the Pot odds switch does not start off');
+    await sw.click();
+    if ((await sw.getAttribute('aria-checked')) !== 'true') fail.push('tapping the Pot odds switch did not turn it on');
+    /* On, after a reload: the setting is remembered, and the card is there. */
+    await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
+    await page.waitForSelector('#screen-title');
+    if (!(await page.evaluate((k) => window.localStorage.getItem(k) === 'on', POT_KEY))) fail.push('the setting was not written to storage');
+    await dealTable(page, c);
+    await page.locator('#pot-odds').waitFor({ state: 'visible', timeout: 5000 }).catch(() => fail.push('the card is not there with the setting on'));
+    if ((await page.getByText('You', { exact: true }).count()) === 0) fail.push('no You tag on Player 1 with the setting on');
+  } catch (e) {
+    fail.push(String(e.message ?? e).split('\n')[0]);
+  }
+  await page.close();
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  pot odds: off by default, on from Settings, remembered, You tag only while on`);
+  for (const f of fail) console.log(`        ${f}`);
+  if (fail.length) failed++;
+}
+
+for (const [n, c] of potCases.entries()) {
+  for (const [w, h, scheme] of [[393, 852, 'dark'], [320, 568, 'light']]) {
+    /* The small light phone only for the scenarios that print the most. */
+    if (w === 320 && ![0, 1, 3, 6].includes(n)) continue;
+    const fail = [];
+    const page = await browser.newPage({ viewport: { width: w, height: h }, colorScheme: scheme });
+    page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
+    await page.addInitScript((k) => window.localStorage.setItem(k, 'on'), POT_KEY);
+    try {
+      await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
+      await page.waitForSelector('#screen-title');
+      const tap = await dealTable(page, c);
+      const card = page.locator('#pot-odds');
+      if (!c.visible) {
+        if ((await card.count()) > 0) fail.push('the card is on the screen where it must not be');
+      } else {
+        await card.waitFor({ state: 'visible', timeout: 5000 }).catch(() => fail.push('the card is not on the screen'));
+        /* Closed: one row. Open: the fields. */
+        if ((await page.getByRole('button', { name: 'Pot odds, closed', exact: true }).count()) === 0) fail.push('the card does not start closed');
+        const closedCut = await cutOff(page);
+        for (const f of closedCut) fail.push(`closed: ${f}`);
+        await tap('Pot odds, closed');
+        const type = async (field, digits) => {
+          await page.getByRole('button', { name: new RegExp(`^${field}, `) }).click({ timeout: 10_000 });
+          for (const d of digits) await tap(d);
+          /* With the keypad up, the card still fits and so does the pad. */
+          for (const f of await cutOff(page)) fail.push(`typing ${field}: ${f}`);
+          const done = await page.getByRole('button', { name: 'Done', exact: true }).boundingBox();
+          if (!done || done.y + done.height > h + 0.5) fail.push(`typing ${field}: Done is off the bottom of the screen`);
+          await tap('Done');
+        };
+        if (c.pot !== null) await type('Pot', c.pot);
+        if (c.call !== null) await type('To call', c.call);
+        if ((await page.getByRole('button', { name: `Pot, ${c.potShown}`, exact: true }).count()) === 0) fail.push(`the Pot field does not read ${c.potShown}`);
+        if ((await page.getByRole('button', { name: `To call, ${c.callShown}`, exact: true }).count()) === 0) fail.push(`the To call field does not read ${c.callShown}`);
+        const text = await card.innerText();
+        const needs = /Needs\s+(\S+)/.exec(text)?.[1];
+        const has = /You have\s+(\S+)/.exec(text)?.[1];
+        if (needs !== c.needs) fail.push(`Needs reads ${needs}, wanted ${c.needs}`);
+        if (has !== c.has) fail.push(`You have reads ${has}, wanted ${c.has}`);
+        const returns = (await page.locator('#pot-odds-returns').count()) ? (await page.locator('#pot-odds-returns').innerText()).replace(/\s+/g, ' ').trim() : null;
+        if ((c.returns ?? null) !== returns) fail.push(`the money line reads ${JSON.stringify(returns)}, wanted ${JSON.stringify(c.returns ?? null)}`);
+        const formula = (await page.locator('#pot-odds-formula').count()) ? (await page.locator('#pot-odds-formula').innerText()).replace(/\s+/g, ' ').trim() : null;
+        if ((c.formula ?? null) !== formula) fail.push(`the formula reads ${JSON.stringify(formula)}, wanted ${JSON.stringify(c.formula ?? null)}`);
+        /* The marker is on the bar exactly when there is a call, and the words never tell anyone what to do. */
+        if ((c.needs !== '—') !== ((await page.locator('#pot-odds-marker').count()) > 0)) fail.push('the break-even marker is wrong for whether a call is typed');
+        if (/\b(call it|should|fold|you must fold)\b/i.test(text.replace(/this call returns/, ''))) fail.push('the card tells the reader what to do');
+        for (const f of await cutOff(page)) fail.push(`open: ${f}`);
+      }
+    } catch (e) {
+      fail.push(String(e.message ?? e).split('\n')[0]);
+    }
+    await page.close();
+    console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  pot ${String(n + 1).padStart(2)}  ${c.title}  ·  ${w}${scheme === 'light' ? ' light' : ''}`);
+    for (const f of fail) console.log(`        ${f}`);
+    if (fail.length) failed++;
+  }
+}
+
 for (const [n, c] of cases.entries()) {
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   const fail = [];
@@ -177,7 +332,7 @@ await browser.close();
 
 console.log(
   failed === 0
-    ? `\nthe odds screen shows exactly what the engine says, ${cases.length} tables played through.`
+    ? `\nthe odds screen shows exactly what the engine says, ${cases.length} tables played through, and the pot odds card what potOdds() says, ${potCases.length} more.`
     : `\n${failed} check${failed === 1 ? '' : 's'} failed: a table that shows something other than what the engine says, or the press callout.`,
 );
 process.exit(failed === 0 ? 0 : 1);
