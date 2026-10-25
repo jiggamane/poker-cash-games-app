@@ -184,3 +184,32 @@ The names the check drives: the buttons `Pot
 odds, closed` / `Pot odds, open`, `Pot, $75`, `To call, $25`, the keypad's digits
 and `Done`; the card `#pot-odds` and its lines `#pot-odds-returns` and
 `#pot-odds-formula`. Rename any of them and `scripts/ui-odds.mjs` changes with it.
+
+## Player card layout, decided 25 October
+
+The owner's "layout G" (canvas red note "main-layout"; boards `Turn-outs`, `Outs-G`) is the
+main layout, built the same day.
+
+1. **Every player is a card** — `surface`, radius 14 — holding the hand, the name with its
+   word (*Favourite*, *Underdog*, *Too close*; *Winner* and *Beaten* on the river) and *Win* and
+   *Tie*. The *Win* figure and the word take the colour; *Tie* stays neutral.
+2. **The colour rule** was decided on 24 October and is built now: a hand's equity minus the best
+   other hand's equity; 8 points or more is green or red, inside 8 is amber for every hand in
+   the band; pale at 8, full at 70. Dark and light values are in `src/lib/oddsTone.ts`. The light
+   green starts at 33%, as the canvas's build note says. An exception to "red and green mean
+   money", written in `tokens.ts`; the word always goes with the colour.
+3. **The outs control** is for a hand that is chasing — *Underdog* or *Too close* — with exactly
+   four cards of board and at least one card that wins it. A round chevron on the card; closed it
+   names the kinds (no numbers), open it is the fanned table. The favourite has none.
+4. **The flop is not built**: two cards to come, nothing drawn.
+5. **Where the code is:** `packages/core/src/odds/outs.ts` and `standing.ts` (with `outs.test.ts`),
+   `src/lib/oddsTone.ts`, `src/components/OutsBlock.tsx` and `PlayingCard.tsx`,
+   `apps/mobile/app/odds.tsx`. The scenarios are `scripts/odds-outs-cases.ts`.
+6. **⚠ The canvas drew *Flush 9* for A♥K♥ on Q♥ J♥ 3♠ 7♣; the screen reads *Straight flush 1* and
+   *Flush 8*.** The ten of hearts makes the royal. Same 18 cards. The canvas's Outs boards should say so.
+
+The names the check drives: `Outs for Player N` (the chevron, with `aria-expanded`), the card
+`#seat-N`, the word `#seat-N-word`, `#outs-names-N`, `#outs-table-N` and the rows
+`#outs-row-N-<category>`, each fanned card an image labelled `T♥`. Rename any of them and
+`scripts/ui-odds.mjs` changes with it.
+

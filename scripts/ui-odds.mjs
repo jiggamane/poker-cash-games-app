@@ -4,6 +4,7 @@
  *
  *   node scripts/ui-odds.mjs            against UI_CHECK_BASE, default :4321
  *   node scripts/ui-odds.mjs --bail     stop at the first table that is wrong
+ *   node scripts/ui-odds.mjs --outs     only the player cards and their outs
  *
  * `npm run odds:verify` holds the ENGINE to the facts about poker. This holds
  * the screen to the engine: that a card tapped for Player 5 lands in Player 5's
@@ -28,9 +29,14 @@ const cases = JSON.parse(
 const potCases = JSON.parse(
   execFileSync('npx', ['vite-node', 'scripts/odds-pot-cases.ts'], { encoding: 'utf8', maxBuffer: 1 << 26 }),
 );
+const outsCases = JSON.parse(
+  execFileSync('npx', ['vite-node', 'scripts/odds-outs-cases.ts'], { encoding: 'utf8', maxBuffer: 1 << 26 }),
+);
 
 const browser = await chromium.launch();
 let failed = 0;
+/** `--outs`: only the player cards and their outs, which is the part a change to them needs. */
+const onlyOuts = process.argv.includes('--outs');
 
 /*
  * THE PRESS CALLOUT (option D, 24 October). A card pressed in the deck shows an
@@ -43,7 +49,7 @@ let failed = 0;
  * no touches; release removes it AND deals the card; a slide off removes it and
  * deals nothing.
  */
-{
+if (!onlyOuts) {
   const fail = [];
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
@@ -144,11 +150,11 @@ const dealTable = async (page, c) => {
   return tap;
 };
 /** Every line of text inside `#pot-odds` (and the keypad, when it is up) must sit inside its own box and inside the screen. */
-const cutOff = (page) =>
-  page.evaluate(() => {
+const cutOff = (page, selectors = ['#pot-odds']) =>
+  page.evaluate((sel) => {
     const out = [];
     const W = window.innerWidth;
-    const roots = [document.getElementById('pot-odds')].filter(Boolean);
+    const roots = sel.flatMap((q) => [...document.querySelectorAll(q)]);
     for (const root of roots) {
       for (const el of root.querySelectorAll('*')) {
         if (el.children.length > 0 && el.tagName !== 'DIV') continue;
@@ -168,9 +174,9 @@ const cutOff = (page) =>
       }
     }
     return out;
-  });
+  }, selectors);
 
-{
+if (!onlyOuts) {
   const fail = [];
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
@@ -198,7 +204,7 @@ const cutOff = (page) =>
   if (fail.length) failed++;
 }
 
-for (const [n, c] of potCases.entries()) {
+for (const [n, c] of (onlyOuts ? [] : potCases).entries()) {
   for (const [w, h, scheme] of [[393, 852, 'dark'], [320, 568, 'light']]) {
     /* The small light phone only for the scenarios that print the most. */
     if (w === 320 && ![0, 1, 3, 6].includes(n)) continue;
@@ -256,7 +262,98 @@ for (const [n, c] of potCases.entries()) {
   }
 }
 
-for (const [n, c] of cases.entries()) {
+
+/*
+ * THE PLAYER CARDS AND THEIR OUTS (layout G, decided 25 October). Every hand is
+ * a card with a word beside its name — Favourite, Underdog, Too close; Winner and
+ * Beaten on the river — and, for a hand that is not ahead with exactly one card
+ * to come and at least one card that wins it, a round chevron at the end of the
+ * card. Closed it names the kinds of out and says no number; open it is a table
+ * of kind, count and the cards in order. The answers are `odds-outs-cases.ts`,
+ * which asks core; nothing here knows poker.
+ *
+ * Held: the word on every seat in the hand and on none outside it; the control
+ * on exactly the hands that should have it and on no other (not the favourite,
+ * not on the flop, not before it, not on the river, not with one hand alone, not
+ * for a hand that no card wins); closed shows the kinds and not one digit; open
+ * shows each kind's count and its cards in core's order; the chevron's own label
+ * and its expanded state follow the card; and every line of every seat card sits
+ * inside it and inside the screen, closed and open, at two phones.
+ */
+const SEATS = ['[id^="seat-"]'];
+for (const [n, c] of outsCases.entries()) {
+  for (const [w, h, scheme] of [[393, 852, 'dark'], [320, 568, 'light']]) {
+    const fail = [];
+    const page = await browser.newPage({ viewport: { width: w, height: h }, colorScheme: scheme });
+    page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
+    try {
+      await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
+      await page.waitForSelector('#screen-title');
+      const tap = await dealTable(page, c);
+      const meta = await page.locator('#screen-meta').textContent();
+      if (meta !== c.meta) fail.push(`meta: "${meta}", wanted "${c.meta}"`);
+      for (const f of await cutOff(page, SEATS)) fail.push(`closed: ${f}`);
+      for (const [i, want] of c.want.entries()) {
+        const seat = i + 1;
+        const tag = `Player ${seat}`;
+        const word = (await page.locator(`#seat-${seat}-word`).count()) ? (await page.locator(`#seat-${seat}-word`).innerText()).trim() : null;
+        /* CSS uppercases the word; what is held is the letters. */
+        if ((word === null ? null : word.toLowerCase()) !== (want.word === null ? null : want.word.toLowerCase()))
+          fail.push(`${tag}: the word reads ${JSON.stringify(word)}, wanted ${JSON.stringify(want.word)}`);
+        const control = page.getByRole('button', { name: `Outs for ${tag}`, exact: true });
+        const has = (await control.count()) > 0;
+        if (has !== want.control) fail.push(`${tag}: the outs control is ${has ? 'on' : 'off'} the card, wanted ${want.control ? 'on' : 'off'}`);
+        const names = (await page.locator(`#outs-names-${seat}`).count()) > 0;
+        const table = (await page.locator(`#outs-table-${seat}`).count()) > 0;
+        if (!want.control) {
+          if (names || table) fail.push(`${tag}: shows outs where it has none`);
+          continue;
+        }
+        if (!names || table) fail.push(`${tag}: does not start closed with the kinds named`);
+        if (names) {
+          const text = (await page.locator(`#outs-names-${seat}`).innerText()).replace(/\s+/g, ' ').trim();
+          if (/\d/.test(text)) fail.push(`${tag}: the closed card shows a number: "${text}"`);
+          if (text.toLowerCase() !== want.names.join(' ').toLowerCase()) fail.push(`${tag}: the closed card names "${text}", wanted "${want.names.join(' ')}"`);
+        }
+        if ((await control.getAttribute('aria-expanded')) !== 'false') fail.push(`${tag}: the control does not say it is closed`);
+        await control.click();
+        if ((await control.getAttribute('aria-expanded')) !== 'true') fail.push(`${tag}: the control does not say it is open`);
+        if ((await page.locator(`#outs-table-${seat}`).count()) === 0) fail.push(`${tag}: opening did not show the table`);
+        if ((await page.locator(`#outs-names-${seat}`).count()) > 0) fail.push(`${tag}: the names stay once it is open`);
+        for (const row of want.rows) {
+          const r = page.locator(`#outs-row-${seat}-${row.category.replace(/\s+/g, '-').toLowerCase()}`);
+          if ((await r.count()) === 0) {
+            fail.push(`${tag}: no row for ${row.kind}`);
+            continue;
+          }
+          const label = await r.getAttribute('aria-label');
+          const wantLabel = `${row.kind}, ${row.count} ${row.count === 1 ? 'card' : 'cards'}`;
+          if (label !== wantLabel) fail.push(`${tag}: the ${row.kind} row is "${label}", wanted "${wantLabel}"`);
+          /* The label is what is announced; what is SEEN is held too — a count on the screen is not read off the label. */
+          const seen = (await r.innerText()).split('\n').map((x) => x.trim());
+          const wantCount = `${row.count} ${row.count === 1 ? 'card' : 'cards'}`;
+          if (!seen.includes(row.kind)) fail.push(`${tag}: the ${row.kind} row does not name its kind on the screen: ${JSON.stringify(seen.slice(0, 2))}`);
+          if (!seen.includes(wantCount)) fail.push(`${tag}: the ${row.kind} row's count reads ${JSON.stringify(seen[1] ?? null)}, wanted ${JSON.stringify(wantCount)}`);
+          const shown = await r.locator('[role="img"]').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
+          if (shown.join(' ') !== row.cards.join(' ')) fail.push(`${tag}: ${row.kind} cards ${shown.join(' ')}, wanted ${row.cards.join(' ')}`);
+        }
+        const rows = await page.locator(`[id^="outs-row-${seat}-"]`).count();
+        if (rows !== want.rows.length) fail.push(`${tag}: ${rows} rows, wanted ${want.rows.length}`);
+        for (const f of await cutOff(page, SEATS)) fail.push(`${tag} open: ${f}`);
+        await control.click();
+        if ((await page.locator(`#outs-names-${seat}`).count()) === 0) fail.push(`${tag}: closing did not bring the names back`);
+      }
+    } catch (e) {
+      fail.push(String(e.message ?? e).split('\n')[0]);
+    }
+    await page.close();
+    console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  outs ${String(n + 1).padStart(2)}  ${c.title}  ·  ${w}${scheme === 'light' ? ' light' : ''}`);
+    for (const f of fail) console.log(`        ${f}`);
+    if (fail.length) failed++;
+  }
+}
+
+for (const [n, c] of (onlyOuts ? [] : cases).entries()) {
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   const fail = [];
   /* A crash is a failure in its own right and says so. Until this was here one
@@ -322,7 +419,7 @@ await browser.close();
 
 console.log(
   failed === 0
-    ? `\nthe odds screen shows exactly what the engine says, ${cases.length} tables played through, and the pot odds card what potOdds() says, ${potCases.length} more.`
-    : `\n${failed} check${failed === 1 ? '' : 's'} failed: a table that shows something other than what the engine says, or the press callout.`,
+    ? `\nthe odds screen shows exactly what the engine says, ${cases.length} tables played through, and the pot odds card what potOdds() says, ${potCases.length} more, and the player cards and their outs what core says, ${outsCases.length} more.`
+    : `\n${failed} check${failed === 1 ? '' : 's'} failed: a table that shows something other than what the engine says, the press callout, or a player card.`,
 );
 process.exit(failed === 0 ? 0 : 1);
