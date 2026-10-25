@@ -6,11 +6,11 @@ import { useTheme } from '../design/useTheme';
 import { formatMoney, formatSigned } from '../lib/money';
 
 /**
- * POT ODDS — an experiment under the players on the odds screen.
+ * POT ODDS — under the players on the odds screen. Permanent since 25 October; it was an experiment behind a setting for a day.
  *
  * `design/handoff-odds-calculator`, "Pot odds, decided 24 October", boards
- * `Pot-closed` and `Pot-open`. Off until the reader turns it on in Settings, and
- * even then one quiet row, only while an exact result is on screen. Player 1 is
+ * `Pot-closed` and `Pot-open`. One quiet row, only on the flop and the turn
+ * while an exact result is on screen. Player 1 is
  * always "you". Two amounts are typed — the pot, and what the call costs — and
  * the card says three things about them and nothing else:
  *
@@ -67,8 +67,7 @@ export function PotOddsCard({
   return (
     <View nativeID="pot-odds">
       <View style={styles.head}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Pot odds · you</Text>
-        <Text style={[styles.experiment, { color: t.muted }]}>Experiment</Text>
+        <Text style={[styles.sectionLabel, { color: t.muted }]}>Pot odds</Text>
       </View>
 
       {!open ? (
@@ -205,7 +204,6 @@ function Figure({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 4, paddingTop: 22, paddingBottom: 8, gap: 12 },
   sectionLabel: { ...type.sectionLabel, flexShrink: 1 },
-  experiment: { fontSize: 13, fontWeight: '600' },
 
   card: { marginHorizontal: 4, borderRadius: radius.card - 2 },
   closed: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 16 },
