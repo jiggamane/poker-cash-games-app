@@ -2929,7 +2929,8 @@ whole of this is the web build in a desktop browser.
    (24 October): ivory stock, black ink, red ink for hearts and diamonds, in
    both themes.** Ivory rather than white so a card on the light theme's white
    ground is still a card and not a hole; the three values are the only
-   colours in the app that are not tokens, and `odds.tsx` says so at its head.
+   colours in the app that are not tokens, and `PlayingCard.tsx` says so at its head
+   (it moved there from `odds.tsx` on 25 October with the player cards).
    Red ink on ivory measures 5.6:1, which clears the floor at the deck's 12
    points.
 2. **The deal moves on by itself the way a dealer's would.** Second hole card,
@@ -3038,6 +3039,78 @@ wide, with the keypad up and down.
 5. **Typing hides what is under the keypad.** The card is above the pad and the
    money line scrolls under it while an amount is typed; *Done* returns the deck and
    the whole card. Not seen on a phone.
+
+*The player card layout — layout G, decided 25 October (canvas red note "main-layout";
+boards `Turn-outs`, `Outs-G`, `Result`, `Light`, `Flop-3way`, `Main`, `Calculating`,
+`Half-dealt`, `PotOdds`), and built the same day.* **Every player on the odds screen is a
+card:** the `surface` token, radius 14, 10 / 12 of padding, 8 apart — the hand, the name
+with its word, and *Win* and *Tie* — in every state: empty seat, a seat short of a card,
+calculating, a result, dark and light. The pot odds card sits under the player cards and
+above *Add a player*, as on the board. Three things came with it.
+
+1. **The colour rule — decided 24 October, NOT built until now.** A hand's *Win* figure
+   and the word beside its name take a colour by its lead over the best OTHER hand,
+   in equity points (wins plus a share of every tie): 8 or more ahead is green *Favourite*, 8 or
+   more behind is red *Underdog*, anywhere within 8 is amber *Too close* — for every hand in the
+   band, so heads-up level is both. The colour deepens from pale at 8 points to full at 70
+   (`t = min(1, (lead − 8) / 62)`). **On the river the words are *Winner* and *Beaten*.**
+   *Tie* stays neutral. The arithmetic is `standings()` in `packages/core/src/odds/standing.ts`;
+   the ink is `oddsTone()` / `oddsTones()` in `src/lib/oddsTone.ts`; both are tested, including the
+   82.63 / 17.36, the 50.08 / 49.92, the 42.86 / 47.62 / 9.52 and the river 100 / 0 of the brief.
+   Dark: green hsl(142, 38→66%, 64→58%), red hsl(6, 45→80%, 68→62%), amber the theme's `amber`.
+   Light: green hsl(142, 55→65%, **33**→27%) — 33 and not the canvas's 36, its own build note, so the
+   palest clears 4.5 : 1 — red hsl(6, 55→75%, 46→38%), amber the theme's light `amber`.
+   **This is an exception to the app's rule that red and green mean money and nothing else**,
+   and `tokens.ts` says so where the money colours are declared. It is the only place it holds,
+   and **the colour is never alone: the word is always beside it**, which is what a reader who
+   cannot tell the two apart reads.
+2. **The outs control, for a hand that is chasing, with one card to come.** On a table with
+   exactly four cards of board and a result on screen, a hand whose word is *Underdog* or *Too
+   close* — and which has at least one card that wins it — carries a round chevron at the
+   right end of its card (`aria-label` **Outs for Player N**, `aria-expanded`). A hand that is
+   ahead has none: it is waiting for blanks. **Closed**, the card names the kinds its outs
+   make — *Flush*, *Straight*, *One pair* — as quiet chips, strongest first, **with no number
+   anywhere**. **Open**, the names give way to a table: the kind and *9 cards* / *1 card* on
+   the left, the cards fanned on the right, corner index showing, nine to a line at most and
+   more on a second line split evenly (ten is 5 + 5), fewer to a line on a phone too narrow
+   for nine. Several players can be open. All pairs are one group. The groups are
+   `outsToCome()` and `groupOuts()` in `packages/core/src/odds/outs.ts`, which rank every unseen
+   card with the engine's own evaluator: a seat's wins are its win count in `odds()` and its
+   splits its tie count, held on 150 random tables and card by card against the slow reference
+   ranker. A card that splits the pot is never an out.
+3. **The cards moved.** `Pip`, the card stock and ink and the suit glyphs left `odds.tsx` for
+   `components/PlayingCard.tsx`, which also draws the fanned card.
+
+*Where the app departs from the board, and why:*
+
+1. **⚠ THE CANVAS'S OUTS WERE WRONG ABOUT THE TEN OF HEARTS.** For A♥K♥ on Q♥ J♥ 3♠ 7♣ the
+   board draws *Flush 9* — the nine remaining hearts. The ten of hearts is not a flush: A♥K♥Q♥J♥T♥
+   is the royal, a straight flush. So the screen reads *Straight flush 1*, *Flush 8*,
+   *Straight 3*, *One pair 6* — the same 18 cards. The engine decides; the test says why
+   (`outs.test.ts`).
+2. **The card is `surface`, not the board's `#121216`.** The boards draw the card a hair darker
+   than the app's surface token (`#16161A` dark; the light is the same `#F4F4F6`). A token, not a raw hex.
+3. **Hands are cards in a list that is not a hairline list any more:** the hairline between seats is
+   gone; the card is the separation.
+4. **THE FLOP IS NOT BUILT.** With two cards to come no single card wins a hand, and the board
+   draws no flop outs, so there are none: the control appears on the turn only (four cards of
+   board). The canvas says "flop and turn"; the flop waits for a design.
+5. **⚠ NOT DRAWN, so mine:** the chevron's label *Outs for Player N* and its expanded state; the
+   rows' own labels (*Flush, 8 cards*); *card* / *cards*; a chasing hand that **no card wins** (drawing
+   dead, or only splits) has **no control** — there is nothing to open; cards that split the pot are
+   computed and returned by the engine and **not shown anywhere**; and a **chopped pot on the river**
+   reads *Too close* for both hands, because the rule says a lead inside 8 points is — which is an
+   odd word for a split, and wants a decision (*Split*?) rather than mine.
+6. **A seat open and then changed.** Opened outs are kept per seat for as long as the table is
+   one the control applies to; *New hand* closes them all. Dealing another card closes nothing,
+   but the control is gone the moment it no longer applies.
+
+`ui-odds.mjs` holds, for every table in `odds-outs-cases.ts` (twelve, at 393 dark and 320 light):
+the word on every seat in the hand and none outside it; the control on exactly the hands that
+should have it — not the favourite, not on the flop, before it, or on the river, not with one
+hand alone, not for a hand no card wins; closed, the kinds and not one digit; open, each row's
+count (as announced AND as seen) and its cards in core's order; the control's expanded state; and
+every line of every seat card inside its box and the screen, closed and open. `--outs` runs only that part.
 
 *Open:* whether this lives under Settings or on the club's home as a tool
 beside the rules; how it reads at 120% text, which the rule pass measures only

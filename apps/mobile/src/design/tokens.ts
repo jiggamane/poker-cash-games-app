@@ -5,6 +5,12 @@
  * weight, which leaves green and red free to mean exactly one thing: money won
  * and money lost. If something in this app is coloured, it is money.
  *
+ * ONE EXCEPTION, decided 24 October: on the odds calculator green, red and amber
+ * also say "ahead", "behind" and "too close" — a hand's win figure and the word
+ * beside its name (`src/lib/oddsTone.ts`). It is the only place they do, it
+ * is never colour alone (the word always goes with it), and nothing else in the
+ * app may borrow it.
+ *
  * Values here are the shipped ones. Don't invent new colours — if a screen
  * seems to need one, it probably needs a different weight or fill instead.
  */
@@ -34,7 +40,7 @@ export interface Theme {
   /** 1.5px dashed outline — dashed always means "creates something". */
   dashed: string;
 
-  /** Money, and nothing else. */
+  /** Money — and, on the odds calculator only, "ahead" and "behind": see the head of this file. */
   win: string;
   loss: string;
   /**

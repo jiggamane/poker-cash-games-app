@@ -1,26 +1,33 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
-import { Path, Svg } from 'react-native-svg';
 import {
   BOARD_CARDS,
   HOLE_CARDS,
   MAX_SEATS,
   OddsEnumeration,
   RANKS,
+  groupOuts,
   oddsProblem,
+  outsToCome,
+  standings,
   type Card,
   type Hand,
   type Odds,
+  type SeatOuts,
+  type Standing,
 } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Keypad } from '../src/components/Keypad';
+import { OutsNames, OutsTable } from '../src/components/OutsBlock';
+import { CARD_FACE, Pip, SUIT_GLYPH, inkOf } from '../src/components/PlayingCard';
 import { PotOddsCard, type PotField } from '../src/components/PotOddsCard';
 import { Screen } from '../src/components/Screen';
 import { amountOf, useTypedAmount } from '../src/components/typedAmount';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
 import { oddsStatus } from '../src/lib/oddsStatus';
+import { oddsTone } from '../src/lib/oddsTone';
 
 /**
  * Odds calculator — Texas hold'em, win and tie per hand.
@@ -81,36 +88,6 @@ import { oddsStatus } from '../src/lib/oddsStatus';
  * are not tokens. They are not a palette; they are what a deck looks like, and
  * a black heart or a white-on-black ace is a card nobody reads at a glance.
  */
-
-/** Card stock and ink. Ivory rather than white so that a card on the light
-    theme's white ground is still a card and not a hole in the page. */
-const isRed = (c: Card): boolean => (c & 3) === 1 || (c & 3) === 2;
-const CARD_FACE = '#FAF8F3';
-const INK_BLACK = '#141416';
-const INK_RED = '#C8102E';
-const inkOf = (c: Card): string => (isRed(c) ? INK_RED : INK_BLACK);
-
-/*
- * THE PIPS ARE DRAWN, NOT TYPED. Figtree has no suit glyphs, so ♠ ♥ ♦ ♣ fell
- * back to whatever font the platform had — a different one per character on
- * the web, which is why the heart came out half again the size of the spade.
- * Four paths on one 24-box, one size: the heart's, which was the one that
- * looked like a card.
- */
-const PIP: Record<number, string> = {
-  /* clubs */ 0: 'M12 2.5a4.2 4.2 0 0 0-4 5.4A4.3 4.3 0 1 0 10.6 15c-.2 2-1 3.6-2.8 5h8.4c-1.8-1.4-2.6-3-2.8-5a4.3 4.3 0 1 0 2.6-7.1A4.2 4.2 0 0 0 12 2.5z',
-  /* diamonds */ 1: 'M12 2 20.5 12 12 22 3.5 12z',
-  /* hearts */ 2: 'M12 21.5S3 15.6 3 9.3A4.9 4.9 0 0 1 12 6.6a4.9 4.9 0 0 1 9 2.7c0 6.3-9 12.2-9 12.2z',
-  /* spades */ 3: 'M12 2.5C12 2.5 3.5 9.5 3.5 14.2a4.2 4.2 0 0 0 7.4 2.7c-.2 1.8-.9 3.2-2.7 4.6h7.6c-1.8-1.4-2.5-2.8-2.7-4.6a4.2 4.2 0 0 0 7.4-2.7C20.5 9.5 12 2.5 12 2.5z',
-};
-
-function Pip({ suit, size, color }: { suit: number; size: number; color: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path d={PIP[suit]!} fill={color} />
-    </Svg>
-  );
-}
 
 type Slot = { kind: 'seat'; seat: number; i: number } | { kind: 'board'; i: number } | { kind: 'dead' };
 
@@ -183,8 +160,6 @@ function remove(t: Table, c: Card): Table {
   };
 }
 
-const SUIT_GLYPH = ['♣', '♦', '♥', '♠'] as const;
-
 const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
 
 export default function OddsCalculator() {
@@ -205,6 +180,8 @@ export default function OddsCalculator() {
   const [editing, setEditing] = useState<PotField | null>(null);
   const potField = useTypedAmount(0);
   const callField = useTypedAmount(0);
+  /* Which seats have their outs open. Only a hand that is chasing has any. */
+  const [outsOpen, setOutsOpen] = useState<ReadonlySet<number>>(new Set());
 
   const used = useMemo(
     () => new Set<Card>([...table.seats.flat(), ...table.board].filter((c): c is Card => c !== null).concat(table.dead)),
@@ -299,6 +276,7 @@ export default function OddsCalculator() {
     potField.offer(0);
     callField.offer(0);
     setEditing(null);
+    setOutsOpen(new Set());
     setTable(emptyTable(table.seats.length));
     setActive(FIRST);
   };
@@ -322,6 +300,28 @@ export default function OddsCalculator() {
     const i = complete.findIndex((x) => x.seat === seat);
     return i < 0 ? null : (shown.seats[i] ?? null);
   };
+
+  /*
+   * WHERE EACH HAND STANDS, and — with exactly one card still to come — which
+   * cards win it. Both are core's (`standings`, `outsToCome`): the screen colours
+   * and words a figure by the first, and shows the second under a hand that is
+   * not ahead. Only for the result on screen, so a table that has just changed
+   * has neither until its own result lands.
+   */
+  const stands: Standing[] | null = useMemo(() => (shown === null ? null : standings(shown.seats)), [shown]);
+  const outsAll: SeatOuts[] | null = useMemo(
+    () => (shown !== null && boardCards.length === 4 ? outsToCome(input) : null),
+    // `inputKey` IS the cards, as above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [shown, inputKey],
+  );
+  const boardComplete = boardCards.length === BOARD_CARDS;
+  const toggleOuts = (seat: number) =>
+    setOutsOpen((now) => {
+      const next = new Set(now);
+      if (!next.delete(seat)) next.add(seat);
+      return next;
+    });
 
   /* POT ODDS SHOW only when a result is on screen, the flop or the turn is down
      (before the flop the figures are the same but nobody is deciding yet; on the
@@ -462,73 +462,97 @@ export default function OddsCalculator() {
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Players</Text>
         {/*
-         * One row per seat, the hairline list every other screen uses. A
-         * two-up grid was tried first and did not have the width: beside two
-         * cards, `82.36%` and its label need 110 points, and half of a 360
-         * phone minus the cards is 64. A figure cut to `82….` is the fault
-         * this repository's whole UI gate exists for, so the row is the one
-         * layout where the figure has the room at every width and text size.
+         * One CARD per seat — layout G, decided 25 October: the hand, the name
+         * with its word (Favourite, Underdog, Too close) and the figures, on a
+         * surface a step off the ground. It was a hairline row; a two-up grid was
+         * tried before that and did not have the width: beside two cards,
+         * `82.36%` and its label need 110 points, and half of a 360 phone minus
+         * the cards is 64. A figure cut to `82….` is the fault this repository's
+         * whole UI gate exists for, so a card is one to a line, where the figure
+         * has the room at every width and text size.
+         *
+         * OUTS. A hand that is not ahead, with exactly one card still to come and
+         * at least one card that wins it, has a round chevron at the right end of
+         * its card; closed, the names of what those cards make sit under it with
+         * no numbers, open, the table. A hand that is ahead has none: it is
+         * waiting for blanks. The flop (two to come) is not drawn on the board and
+         * is not built.
          */}
         {table.seats.map((hand, seat) => {
           const o = seatOdds(seat);
+          const idx = complete.findIndex((x) => x.seat === seat);
+          const standing = stands !== null && idx >= 0 ? (stands[idx] ?? null) : null;
+          const tone = standing === null ? null : oddsTone(standing, t, boardComplete);
+          const groups =
+            standing !== null && standing.kind !== 'ahead' && outsAll !== null ? groupOuts(outsAll[idx]?.wins ?? []) : [];
+          const hasOuts = groups.length > 0;
+          const open = hasOuts && outsOpen.has(seat);
           return (
-            <View
-              key={seat}
-              style={[
-                styles.seatRow,
-                { borderBottomColor: t.hairline, borderBottomWidth: StyleSheet.hairlineWidth },
-              ]}
-            >
-              <View style={styles.pair}>
-                {hand.map((c, i) => (
-                  <CardSlot
-                    key={i}
-                    {...slotProps({ kind: 'seat', seat, i }, c, `Player ${seat + 1}, card ${i + 1}`)}
-                  />
-                ))}
-              </View>
-              <View style={styles.seatText}>
-                <View style={styles.seatName}>
-                  <Text style={[styles.seatLabel, { color: t.muted }]}>Player {seat + 1}</Text>
-                  {/* While the pot odds card is showing: the first seat is "you". */}
-                  {potShown && seat === 0 && (
-                    <View style={[styles.youTag, { backgroundColor: t.roundFill }]}>
-                      <Text style={[styles.youText, { color: t.text }]}>You</Text>
+            <View key={seat} nativeID={`seat-${seat + 1}`} style={[styles.seatCard, { backgroundColor: t.surface }]}>
+              <View style={styles.seatRow}>
+                <View style={styles.pair}>
+                  {hand.map((c, i) => (
+                    <CardSlot
+                      key={i}
+                      {...slotProps({ kind: 'seat', seat, i }, c, `Player ${seat + 1}, card ${i + 1}`)}
+                    />
+                  ))}
+                </View>
+                <View style={styles.seatText}>
+                  <View style={styles.seatName}>
+                    <Text style={[styles.seatLabel, { color: t.muted }]}>Player {seat + 1}</Text>
+                    {tone !== null && (
+                      <Text nativeID={`seat-${seat + 1}-word`} style={[styles.word, { color: tone.color }]}>
+                        {tone.word}
+                      </Text>
+                    )}
+                    {/* While the pot odds card is showing: the first seat is "you". */}
+                    {potShown && seat === 0 && (
+                      <View style={[styles.youTag, { backgroundColor: t.roundFill }]}>
+                        <Text style={[styles.youText, { color: t.text }]}>You</Text>
+                      </View>
+                    )}
+                  </View>
+                  {/*
+                   * WHILE THE BOARDS ARE BEING DEALT the figures are not shown —
+                   * not the last ones, which are for a table that no longer
+                   * exists, and not a dash, which says there is nothing to
+                   * come. A bar that fills, where the figure is about to be,
+                   * in every seat that is in the hand.
+                   */}
+                  {calculating && complete.some((x) => x.seat === seat) ? (
+                    <View style={styles.loading} accessibilityLabel={`Calculating, ${Math.round(doneShare * 100)}%`}>
+                      <Text style={[styles.figureLabel, { color: t.muted }]}>Calculating</Text>
+                      <View style={[styles.track, { backgroundColor: t.hairline }]}>
+                        <View style={[styles.fill, { backgroundColor: t.text, width: `${Math.max(2, Math.round(doneShare * 100))}%` }]} />
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.figures}>
+                      <Figure label="Win" value={o === null ? '—' : pct(o.win)} color={tone?.color} />
+                      <Figure label="Tie" value={o === null ? '—' : pct(o.tie)} />
                     </View>
                   )}
                 </View>
-                {/*
-                 * WHILE THE BOARDS ARE BEING DEALT the figures are not shown —
-                 * not the last ones, which are for a table that no longer
-                 * exists, and not a dash, which says there is nothing to
-                 * come. A bar that fills, where the figure is about to be,
-                 * in every seat that is in the hand.
-                 */}
-                {calculating && complete.some((x) => x.seat === seat) ? (
-                  <View style={styles.loading} accessibilityLabel={`Calculating, ${Math.round(doneShare * 100)}%`}>
-                    <Text style={[styles.figureLabel, { color: t.muted }]}>Calculating</Text>
-                    <View style={[styles.track, { backgroundColor: t.hairline }]}>
-                      <View style={[styles.fill, { backgroundColor: t.text, width: `${Math.max(2, Math.round(doneShare * 100))}%` }]} />
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.figures}>
-                    <Figure label="Win" value={o === null ? '—' : pct(o.win)} />
-                    <Figure label="Tie" value={o === null ? '—' : pct(o.tie)} />
-                  </View>
+                {hasOuts && (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Outs for Player ${seat + 1}`}
+                    aria-expanded={open}
+                    hitSlop={8}
+                    onPress={() => toggleOuts(seat)}
+                    style={({ pressed }) => [styles.chevron, { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 }]}
+                  >
+                    <Icon name={open ? 'chevronUp' : 'chevronDown'} color={t.muted} />
+                  </Pressable>
                 )}
               </View>
+              {hasOuts && (open ? <OutsTable seat={seat + 1} groups={groups} /> : <OutsNames seat={seat + 1} groups={groups} />)}
             </View>
           );
         })}
-        {/* Dashed, because dashed means "creates something" (`tokens.ts`).
-            Gone at nine, which is the table's limit and the engine's. */}
-        {table.seats.length < MAX_SEATS && (
-          <View style={styles.add}>
-            <Button label="Add a player" variant="add" onPress={addSeat} />
-          </View>
-        )}
 
+        {/* Pot odds sit under the cards and above the way to add another hand. */}
         {potShown && youOdds !== null && shown !== null && (
           <PotOddsCard
             seat={youOdds}
@@ -545,6 +569,14 @@ export default function OddsCalculator() {
           />
         )}
 
+        {/* Dashed, because dashed means "creates something" (`tokens.ts`).
+            Gone at nine, which is the table's limit and the engine's. */}
+        {table.seats.length < MAX_SEATS && (
+          <View style={styles.add}>
+            <Button label="Add a player" variant="add" onPress={addSeat} />
+          </View>
+        )}
+
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Dead cards</Text>
         <View style={styles.row}>
           {table.dead.map((c) => (
@@ -557,12 +589,12 @@ export default function OddsCalculator() {
   );
 }
 
-function Figure({ label, value }: { label: string; value: string }) {
+function Figure({ label, value, color }: { label: string; value: string; color?: string | undefined }) {
   const t = useTheme();
   return (
     <View style={styles.figure}>
       <Text style={[styles.figureLabel, { color: t.muted }]}>{label}</Text>
-      <Text style={[styles.figureValue, { color: t.text }]}>{value}</Text>
+      <Text style={[styles.figureValue, { color: color ?? t.text }]}>{value}</Text>
     </View>
   );
 }
@@ -658,16 +690,14 @@ const styles = StyleSheet.create({
   sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 8, paddingTop: 14 },
   after: { paddingTop: 22 },
 
-  seatRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
+  /* A card: the surface token, 14 round, 10 / 12 of padding — the boards' own. */
+  seatCard: { marginTop: 8, paddingVertical: 10, paddingHorizontal: 12, borderRadius: radius.card },
+  seatRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   pair: { flexDirection: 'row', gap: 4 },
   seatText: { flex: 1, minWidth: 0, gap: 2 },
-  seatName: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  seatName: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 2 },
+  word: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
+  chevron: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   seatLabel: { ...type.rowDetail },
   youTag: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 9 },
   youText: { fontSize: 11, fontWeight: '700' },
