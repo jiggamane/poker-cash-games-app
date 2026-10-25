@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Circle, Path, Rect, Svg } from 'react-native-svg';
+import { Circle, G, Path, Rect, Svg } from 'react-native-svg';
 
 /**
  * The drawn glyphs, copied path-for-path out of the design boards.
@@ -114,17 +114,48 @@ export type IconName =
    * sun.
    */
   | 'sun'
-  | 'moon';
+  | 'moon'
+  /*
+   * THE POKER TOOLS SET, decided on the canvas on 25 October ("Odds and rules,
+   * where they live"): three cards on one 24 box, stroke 2, drawn at 21 inside a
+   * 40 round. The pip is what differs — a percent sign for the calculator, a
+   * question mark for the rules library, a spade where one tile stands for
+   * both. The calculator's own glyph (the fanned pair) was decided a day
+   * earlier on "Poker calculator · ways in", look 3, and is copied from it.
+   */
+  /** The poker calculator: a fanned pair of cards, the front one's pip a percent. */
+  | 'calculator'
+  /** Rules & rulings: one card, its pip a question mark — "what happened?". */
+  | 'questionCard'
+  /** Poker tools, the pair of them: one card with a spade pip. */
+  | 'spadeCard'
+  /*
+   * THE HOME GRID'S OTHER TWO, from the same canvas (N6, 25 October): the
+   * destinations that were text rows now carry a glyph each. Both are new and
+   * no handoff draws them; `people` is the third and already existed.
+   */
+  /** Sessions: a calendar. */
+  | 'calendar'
+  /** My stats: three bars on a baseline. */
+  | 'bars';
 
 export function Icon({
   name,
   color,
   size,
+  ground,
 }: {
   name: IconName;
   color: string;
   /** Omit to get the size it is drawn at on the board. */
   size?: number;
+  /**
+   * What is behind the glyph. Only `calculator` reads it: its front card has to
+   * hide the back card's edge, which a stroke alone cannot do, so it is filled
+   * with the colour of whatever it sits on. Omitted, the fill is left off and
+   * the two outlines show through each other.
+   */
+  ground?: string;
 }) {
   switch (name) {
     case 'arrow': {
@@ -579,6 +610,93 @@ export function Icon({
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+        </Svg>
+      );
+    }
+
+    case 'calculator': {
+      const s = size ?? 21;
+      const fill = ground ?? 'none';
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Rect
+            x={3}
+            y={5.5}
+            width={11}
+            height={15}
+            rx={2}
+            transform="rotate(-12 8.5 13)"
+            fill={fill}
+            stroke={color}
+            strokeWidth={2}
+            strokeLinejoin="round"
+          />
+          <Rect
+            x={9.5}
+            y={4}
+            width={11}
+            height={15}
+            rx={2}
+            transform="rotate(10 15 11.5)"
+            fill={fill}
+            stroke={color}
+            strokeWidth={2}
+            strokeLinejoin="round"
+          />
+          <G transform="rotate(10 15 11.5)">
+            <Circle cx={13.2} cy={9.3} r={1.2} stroke={color} strokeWidth={1.5} />
+            <Circle cx={16.8} cy={13.7} r={1.2} stroke={color} strokeWidth={1.5} />
+            <Path d="M17.2 8.6l-4.4 5.8" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+          </G>
+        </Svg>
+      );
+    }
+
+    case 'questionCard': {
+      const s = size ?? 21;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Rect x={5} y={2.5} width={14} height={19} rx={2.2} stroke={color} strokeWidth={2} />
+          <Path
+            d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.6v.6"
+            stroke={color}
+            strokeWidth={1.6}
+            strokeLinecap="round"
+          />
+          <Circle cx={12} cy={16.8} r={1} fill={color} />
+        </Svg>
+      );
+    }
+
+    case 'spadeCard': {
+      const s = size ?? 21;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Rect x={5} y={2.5} width={14} height={19} rx={2.2} stroke={color} strokeWidth={2} />
+          <Path
+            d="M12 7.5c-1.6 2.2-3.8 3.6-3.8 5.8a2 2 0 0 0 3.4 1.4l.4-.4.4.4a2 2 0 0 0 3.4-1.4c0-2.2-2.2-3.6-3.8-5.8z"
+            fill={color}
+          />
+          <Path d="M12 14.6v2.4M10.8 17h2.4" stroke={color} strokeWidth={1.4} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'calendar': {
+      const s = size ?? 21;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Rect x={3.5} y={5} width={17} height={15} rx={2.5} stroke={color} strokeWidth={2} />
+          <Path d="M3.5 10h17M8 3v4M16 3v4" stroke={color} strokeWidth={2} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'bars': {
+      const s = size ?? 21;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path d="M4 20h16M7 16v-5M12 16V6M17 16v-8" stroke={color} strokeWidth={2} strokeLinecap="round" />
         </Svg>
       );
     }

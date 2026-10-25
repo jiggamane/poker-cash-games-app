@@ -99,6 +99,9 @@ const ROUTES = [
   '/rules', '/situation', '/table-rules',
   // The odds calculator: a tool pushed from Settings, no sheet behind it.
   '/odds',
+  // Poker tools: the home grid's fourth tile, a push holding the calculator and
+  // the library (the canvas "Odds and rules, where they live", 25 October).
+  '/tools',
 ];
 
 /*

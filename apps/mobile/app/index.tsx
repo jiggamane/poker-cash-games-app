@@ -28,18 +28,25 @@ import {
  *
  * THE SHAPE OF THE SCREEN, top to bottom: who this is (eyebrow, club name,
  * and the offline line when there is one) · the game or the invitation to
- * start one · three destinations · ONE flexible spacer · the dock.
+ * start one · four destinations as a two-by-two grid of tiles · ONE flexible
+ * spacer · the dock.
  *
- * THE SPACER IS THE WHOLE LAYOUT RULE. A row is intrinsic height — 74pt — and
- * never stretches; every leftover point on a tall screen goes into the single
- * `flex: 1` between the rows and the dock. Spread that slack into the rows
- * instead and the screen looks fine on the phone it was built on and pushes
- * content under the fold on every other one.
+ * THE SPACER IS THE WHOLE LAYOUT RULE. A tile is intrinsic height — 124pt, two
+ * rows of them with 10 between — and never stretches; every leftover point on
+ * a tall screen goes into the single `flex: 1` between the grid and the dock.
+ * Spread that slack into the tiles instead and the screen looks fine on the
+ * phone it was built on and pushes content under the fold on every other one.
+ *
+ * THE GRID REPLACED THREE ROWS ON 25 OCTOBER — the canvas "Odds and rules,
+ * where they live", board N6, the owner's pick — so that Poker tools (the
+ * calculator and the rules library) could join the main navigation without a
+ * fifth row. It costs 258pt where the rows cost 222; `docs/home-handoff.md`
+ * § "The grid" has the arithmetic and what the handoff said instead.
  *
  * THE CARD LIST IS THE ONE THING THAT SCROLLS — doc 10 § H3, "past three live
  * cards the card list scrolls; the rows and dock stay put". It is the only
- * block here whose height is unbounded: the header is three lines, the rows
- * are three fixed 74s and the dock is one, but a club can open a table and
+ * block here whose height is unbounded: the header is three lines, the grid
+ * is two fixed 124s and the dock is one, but a club can open a table and
  * then another, each card ~90pt, and the list grows with them. Every other
  * child of this column is intrinsic and refuses to shrink, so once the cards
  * outgrew the phone they simply pushed the rows and the dock off the bottom —
@@ -58,7 +65,9 @@ import {
  * moment it is settled, and history is a list, not the top of the home screen.
  * No figure beside My stats — a number there is a result before the reader
  * asked for one, and it is wrong as often as it is right. No tab bar, no
- * full-width buttons, no icon-only controls.
+ * full-width buttons. (The handoff also said no icon-only controls; the
+ * invite button in the dock is one since 25 October, by the owner's call —
+ * see `RoundButton`.)
  */
 export default function ClubHome() {
   const t = useTheme();
@@ -185,16 +194,29 @@ export default function ClubHome() {
         )}
       </ScrollView>
 
-      <View style={styles.rows}>
-        <Row name="The group" sub="players, money rules, the piggy bank" to="/players" />
-        <Row name="My stats" sub="across every group you play in" to="/stats" waiting={fresh} />
-        <Row
-          name="Sessions"
-          sub="every night you played, most recent first"
-          to="/games"
-          waiting={fresh}
-          last
-        />
+      {/*
+       * THE GRID — four destinations, two by two, since 25 October: the canvas
+       * "Odds and rules, where they live", board N6, the owner's pick over the
+       * three rows the club-home handoff drew (and over six other layouts on
+       * the same canvas). The order is the owner's too: Sessions second, Poker
+       * tools last. `Poker tools` is the one new destination — the calculator
+       * and the rules library, which used to be reachable only from Settings.
+       */}
+      <View style={styles.grid}>
+        <View style={styles.gridRow}>
+          <Tile icon="people" name="The group" sub="players, money rules, the piggy bank" to="/players" />
+          <Tile
+            icon="calendar"
+            name="Sessions"
+            sub="every night you played, most recent first"
+            to="/games"
+            waiting={fresh}
+          />
+        </View>
+        <View style={styles.gridRow}>
+          <Tile icon="bars" name="My stats" sub="across every group you play in" to="/stats" waiting={fresh} />
+          <Tile icon="spadeCard" name="Poker tools" sub="poker calculator, rules & rulings" to="/tools" />
+        </View>
       </View>
 
       {/* The only flexible thing on the screen. */}
@@ -210,7 +232,14 @@ export default function ClubHome() {
       <View style={styles.dock}>
         <Pill icon="settings" label="Settings" onPress={() => router.push('/settings')} />
         {host && (
-          <Pill
+          /*
+           * ICON-ONLY, since 25 October — the owner's call on the canvas
+           * ("use only an icon in all versions"), against the handoff's rule
+           * that a dock pill is never icon-only. The label is the
+           * accessibility name. `filled` while the club is fresh is kept: the
+           * first thing a new host must do is still the one lit control.
+           */
+          <RoundButton
             icon="invite"
             label="Invite a player"
             filled={fresh}
@@ -447,60 +476,57 @@ function Skeleton({ width, height }: { width: number | `${number}%`; height: num
 // ---------------------------------------------------------------------------
 
 /**
- * A destination. Intrinsic height, and the arrow rides the name's line rather
- * than the middle of the block — a row is two lines of different weight and
- * the second describes the first, so centring the arrow aims it at the gap.
+ * A destination, as a tile — board N6 of the canvas "Odds and rules, where
+ * they live", 25 October, which replaced the handoff's rows. The glyph sits
+ * top-left in a 40 round, the name and its sub-line at the foot, so the two
+ * never share a line: the first round of this layout put a 26pt glyph beside
+ * a 24pt name and the owner turned it down for exactly that. No chevron — a
+ * tile reads as a button on its own, which a row never quite did.
  *
- * `waiting` is a row with nothing in it yet. It states what it will hold and
- * does not navigate; it is never removed, because an empty row is how a reader
- * learns the app has somewhere to put this.
+ * `waiting` is a tile with nothing behind it yet. It states what it will hold
+ * and does not navigate; it is never removed, because an empty tile is how a
+ * reader learns the app has somewhere to put this.
  */
-function Row({
+function Tile({
+  icon,
   name,
   sub,
   to,
   waiting = false,
-  last = false,
 }: {
+  icon: IconName;
   name: string;
   sub: string;
   to: string;
   waiting?: boolean;
-  last?: boolean;
 }) {
   const t = useTheme();
+  const ink = waiting ? t.disabled : t.text;
   return (
     <Pressable
       accessibilityRole={waiting ? 'text' : 'button'}
+      accessibilityLabel={`${name}, ${sub}`}
       disabled={waiting}
       onPress={() => router.push(to)}
       style={({ pressed }) => [
-        styles.row,
-        {
-          borderBottomColor: t.hairline,
-          borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth,
-          opacity: pressed ? 0.6 : 1,
-        },
+        styles.tile,
+        { backgroundColor: t.dockFill, opacity: pressed ? 0.6 : 1 },
       ]}
     >
-      <View style={styles.nameLine}>
-        <Text
-          style={[styles.rowName, { color: waiting ? t.disabled : t.text }]}
-          numberOfLines={1}
-        >
+      <View style={[styles.round, { backgroundColor: t.roundFill }]}>
+        {/* The calculator's front card hides the back card's edge with the
+            colour it sits on; the tile's two washes over the ground are the
+            surface, near enough, and `people` is drawn on a 20 box at 21. */}
+        <Icon name={icon} color={ink} size={21} ground={t.surface} />
+      </View>
+      <View style={styles.tileText}>
+        <Text style={[styles.tileName, { color: ink }]} numberOfLines={1}>
           {name}
         </Text>
-        {!waiting && (
-          <View style={styles.pushRight}>
-            {/* A row goes somewhere and a card opens something: the boards
-                draw the first with a chevron and the second with an arrow. */}
-            <Icon name="chevron" color={t.muted} />
-          </View>
-        )}
+        <Text style={[styles.tileSub, { color: waiting ? t.disabled : t.muted }]} numberOfLines={2}>
+          {sub}
+        </Text>
       </View>
-      <Text style={[styles.rowSub, { color: waiting ? t.disabled : t.muted }]} numberOfLines={1}>
-        {sub}
-      </Text>
     </Pressable>
   );
 }
@@ -536,6 +562,45 @@ function Pill({
       <Text style={[styles.pillLabel, { color: ink }]} numberOfLines={1}>
         {label}
       </Text>
+    </Pressable>
+  );
+}
+
+/**
+ * A round dock button: the theme button's shape with a job of its own. Since
+ * 25 October the invite is one — the owner's call on the canvas, against the
+ * handoff's "never icon-only" — because the home grid's four tiles have the
+ * width the pair of labelled pills needed, and a 42 round beside Settings
+ * keeps the dock to one row at 360 wide. `label` is the accessibility name.
+ */
+function RoundButton({
+  icon,
+  label,
+  onPress,
+  filled = false,
+  disabled = false,
+}: {
+  icon: IconName;
+  label: string;
+  onPress: () => void;
+  filled?: boolean;
+  disabled?: boolean;
+}) {
+  const t = useTheme();
+  const ink = disabled ? t.disabled : filled ? t.onFill : t.text;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.themeButton,
+        { backgroundColor: filled && !disabled ? t.text : t.dockFill, opacity: pressed ? 0.6 : 1 },
+      ]}
+    >
+      <Icon name={icon} color={ink} size={18} />
     </Pressable>
   );
 }
@@ -639,11 +704,27 @@ const styles = StyleSheet.create({
   secondaryTitle: type.secondary,
   secondarySub: type.destinationSub,
 
-  rows: { marginTop: home.listGap, marginHorizontal: home.rowGutter },
-  row: { paddingVertical: home.rowPadV, gap: home.rowGap },
-  nameLine: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  rowName: type.destination,
-  rowSub: type.destinationSub,
+  // The grid: the card list's own gutter, two rows of two, 10 between.
+  grid: { marginTop: home.listGap, marginHorizontal: home.gutter, gap: home.tileGap },
+  gridRow: { flexDirection: 'row', gap: home.tileGap },
+  tile: {
+    flex: 1,
+    minWidth: 0,
+    height: home.tileHeight,
+    padding: home.tilePad,
+    borderRadius: home.tileRadius,
+    justifyContent: 'space-between',
+  },
+  round: {
+    width: home.tileRound,
+    height: home.tileRound,
+    borderRadius: home.tileRound / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tileText: { gap: 2 },
+  tileName: type.tileName,
+  tileSub: type.tileSub,
 
   slack: { flex: 1 },
   /* The card carries its own 14 of side margin; the dock's gutter is 20. */
