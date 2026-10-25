@@ -32,7 +32,7 @@ export default function PokerTools() {
         <Tile
           icon="calculator"
           name="Poker calculator"
-          sub="win and tie per hand, every board dealt"
+          sub="hand and pot odds"
           onPress={() => router.push({ pathname: '/odds', params: { from: 'tools' } })}
         />
         <Tile

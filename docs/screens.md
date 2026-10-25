@@ -3178,7 +3178,7 @@ screen behind the tile.
 **⚠ COPY NOT DRAWN by any handoff, and marked UNSURE on the canvas:** *Poker
 tools* (the tile and the title), the tile's sub-line *poker calculator, rules &
 rulings*, the Poker tools meta line *nothing here touches the ledger*, and the
-two sub-lines on `/tools` — *win and tie per hand, every board dealt* and *what
+two sub-lines on `/tools` — *hand and pot odds* (the owner's retype of 25 October) and *what
 happened, and what the rule says*. The calculator's own screen is still titled
 *Odds calculator*; the canvas of 25 October renames it *Poker calculator*, and
 `ui-odds.mjs` finds the Settings row by that title, so the rename is a
