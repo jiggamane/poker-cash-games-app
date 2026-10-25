@@ -21,25 +21,23 @@ describe('the canvas example: A♥K♥ against 2♣2♦ on Q♥ J♥ 3♠ 7♣',
   });
 
   /*
-   * THE CANVAS SAID "FLUSH 9" AND THE CANVAS WAS WRONG. Of the nine hearts left,
-   * the ten of hearts does not make a flush: A♥ K♥ Q♥ J♥ T♥ is a straight flush
-   * — the royal. So it is Straight flush 1 and Flush 8, which is the same nine
-   * cards and the same 18 outs, and a hand that wins on the royal says so.
+   * THE CANVAS SAID "FLUSH 9", AND UNDER THE OWNER'S RULE IT IS RIGHT. The ten of
+   * hearts makes A♥ K♥ Q♥ J♥ T♥, the royal — but a plain ace-high flush would have
+   * beaten a pair of deuces just the same, so the ten is a heart like the other
+   * eight and the group reads "Flush 9". "Straight flush" is a group of its own
+   * only where a flush would not have won (the full house below).
    */
-  it('Player 1: a straight flush on the ten of hearts, a flush on eight hearts, a straight on three tens, one pair on six aces and kings', () => {
+  it('Player 1: a flush on nine hearts — the ten of hearts among them, royal or not — a straight on three tens, one pair on six aces and kings', () => {
     const groups = groupOuts(outs[0]!.wins);
     expect(groups.map((g) => [g.kind, g.cards.length])).toEqual([
-      ['Straight flush', 1],
-      ['Flush', 8],
+      ['Flush', 9],
       ['Straight', 3],
       ['One pair', 6],
     ]);
-    expect(text(groups[0]!.cards)).toBe('Th');
-    expect(text(groups[1]!.cards)).toBe('2h 3h 4h 5h 6h 7h 8h 9h');
-    expect(text(groups[2]!.cards)).toBe('Tc Td Ts');
-    expect(text(groups[3]!.cards)).toBe('Ac Ad As Kc Kd Ks');
-    /* The nine hearts are all there between the two. */
-    expect(groups[0]!.cards.length + groups[1]!.cards.length).toBe(9);
+    expect(text(groups[0]!.cards)).toBe('2h 3h 4h 5h 6h 7h 8h 9h Th');
+    expect(text(groups[1]!.cards)).toBe('Tc Td Ts');
+    expect(text(groups[2]!.cards)).toBe('Ac Ad As Kc Kd Ks');
+    expect(groups.some((g) => g.kind === 'Straight flush')).toBe(false);
   });
 
   it('Player 2: three of a kind on the last deuce, two pair on ten, a pair that holds on fifteen', () => {
@@ -56,8 +54,8 @@ describe('the canvas example: A♥K♥ against 2♣2♦ on Q♥ J♥ 3♠ 7♣',
 
   it('the groups are the strongest hand first, and the best rank first inside one', () => {
     const groups = groupOuts(outs[0]!.wins);
-    expect(groups[3]!.cards.map(cardText)).toEqual(['Ac', 'Ad', 'As', 'Kc', 'Kd', 'Ks']);
-    expect(groups[1]!.cards.map(cardText)).toEqual(['9h', '8h', '7h', '6h', '5h', '4h', '3h', '2h']);
+    expect(groups[2]!.cards.map(cardText)).toEqual(['Ac', 'Ad', 'As', 'Kc', 'Kd', 'Ks']);
+    expect(groups[0]!.cards.map(cardText)).toEqual(['Th', '9h', '8h', '7h', '6h', '5h', '4h', '3h', '2h']);
   });
 
   it('every pair is one group, whatever its rank: an ace and a king are both One pair', () => {
@@ -68,6 +66,31 @@ describe('the canvas example: A♥K♥ against 2♣2♦ on Q♥ J♥ 3♠ 7♣',
   it('where Player 1 is the underdog and Player 2 the favourite', () => {
     const r = odds(input);
     expect(standings(r.seats).map((s) => s.kind)).toEqual(['behind', 'ahead']);
+  });
+});
+
+describe('a straight flush is named only where a flush would not win: T♥J♥ against 9♠8♠ on 9♥ 8♥ 9♣ 8♣', () => {
+  /* The other hand holds nines full of eights. A heart gives Player 1 a flush,
+     which loses to it; only the seven and the queen of hearts — 7 8 9 T J and
+     8 9 T J Q, straight flushes — win. So here the combination is the group. */
+  const input = { hands: [hand('ThJh'), hand('9s8s')], board: cards('9h 8h 9c 8c') };
+  const outs = outsToCome(input)!;
+
+  it('wins on exactly the two straight-flush cards, and they read Straight flush', () => {
+    expect(text(outs[0]!.wins.map((o) => o.card))).toBe('7h Qh');
+    expect(groupOuts(outs[0]!.wins).map((g) => [g.kind, g.cards.length])).toEqual([['Straight flush', 2]]);
+    expect(outs[0]!.splits).toHaveLength(0);
+  });
+
+  it('a plain heart is not a win: a flush loses to the full house', () => {
+    const won = new Set(outs[0]!.wins.map((o) => cardText(o.card)));
+    for (const h of ['2h', '3h', '4h', '5h', '6h', 'Ah', 'Kh']) expect(won.has(h)).toBe(false);
+  });
+
+  it('is still the engine’s own count', () => {
+    const r = odds(input);
+    expect(outs[0]!.wins).toHaveLength(r.seats[0]!.wins);
+    expect(r.seats[0]!.wins).toBe(2);
   });
 });
 

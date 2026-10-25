@@ -28,7 +28,7 @@
 
 import type { Card } from './cards';
 import { DECK } from './cards';
-import { HAND_CATEGORIES, categoryOf, evaluate, type HandCategory } from './evaluate';
+import { HAND_CATEGORIES, categoryOf, evaluate, flushValue, type HandCategory } from './evaluate';
 import { oddsProblem, type OddsInput } from './odds';
 
 /** The hand a card makes, named the way the screen names a group of outs. */
@@ -46,7 +46,11 @@ export const OUT_KIND: Record<HandCategory, string> = {
 
 export interface Out {
   card: Card;
-  /** The category of this seat's best five cards once the card is down. */
+  /**
+   * The category of this seat's best five cards once the card is down — except
+   * that a straight flush a flush would have done for reads as 'Flush' (see
+   * `outsToCome`).
+   */
   category: HandCategory;
 }
 
@@ -61,6 +65,18 @@ export interface SeatOuts {
  * For every seat, the unseen cards that win it the pot and the ones that split
  * it. `null` unless the board has exactly four cards. Throws the engine's own
  * sentence when the table cannot be calculated.
+ *
+ * A STRAIGHT FLUSH IS A FLUSH, UNLESS ONLY A STRAIGHT FLUSH WINS. The owner's
+ * rule of 25 October: a card that makes a straight flush is listed under
+ * "Flush" when a plain flush would already have beaten every other hand on
+ * that card — the ten of hearts beside A♥K♥ on Q♥ J♥ is a heart like the other
+ * eight, and the group reads "Flush 9". Only where a flush would not win — the
+ * other hand holds a full house or quads — is the card tagged "Straight
+ * flush", because then the combination itself is what the hand needs. Nothing
+ * else collapses: no other category is two draws at once. The test is the
+ * engine's own packing (`flushValue`, the flush score of the same seven cards)
+ * against every other seat's `evaluate`, so it cannot disagree with the ranking
+ * that decided the card was a win.
  */
 export function outsToCome(input: OddsInput): SeatOuts[] | null {
   const problem = oddsProblem(input);
@@ -75,7 +91,12 @@ export function outsToCome(input: OddsInput): SeatOuts[] | null {
     const best = Math.max(...values);
     const winners = values.flatMap((v, p) => (v === best ? [p] : []));
     for (const p of winners) {
-      (winners.length === 1 ? out[p]!.wins : out[p]!.splits).push({ card, category: categoryOf(values[p]!) });
+      let category = categoryOf(values[p]!);
+      if (winners.length === 1 && category === 'Straight flush') {
+        const asFlush = flushValue([...input.hands[p]!, ...input.board, card]);
+        if (values.every((v, q) => q === p || asFlush > v)) category = 'Flush';
+      }
+      (winners.length === 1 ? out[p]!.wins : out[p]!.splits).push({ card, category });
     }
   }
   return out;

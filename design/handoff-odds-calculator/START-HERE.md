@@ -158,6 +158,8 @@ list.
    5. otherwise, fewer than two full hands → `Texas hold’em · deal two hands`.
 5. **Not built:** the share feature (icon, sheet and card) while its design is
    settled, and options B, C, E and F for card entry. They are drawn on the canvas.
+   **The share icon is hidden for now** (the owner, 25 October): the sharing feature
+   is parked until it is finished, so nothing for it shows on the status line.
 
 **Open:** beside the icon the status line has about 270 pt at 402 wide, so state 4
 is cut with an ellipsis. It needs shorter copy or a second line.
@@ -211,8 +213,10 @@ main layout, built the same day.
 5. **Where the code is:** `packages/core/src/odds/outs.ts` and `standing.ts` (with `outs.test.ts`),
    `src/lib/oddsTone.ts`, `src/components/OutsBlock.tsx` and `PlayingCard.tsx`,
    `apps/mobile/app/odds.tsx`. The scenarios are `scripts/odds-outs-cases.ts`.
-6. **⚠ The canvas drew *Flush 9* for A♥K♥ on Q♥ J♥ 3♠ 7♣; the screen reads *Straight flush 1* and
-   *Flush 8*.** The ten of hearts makes the royal. Same 18 cards. The canvas's Outs boards should say so.
+6. **A straight flush is a flush, unless only a straight flush wins** (the owner, 25 October).
+   For A♥K♥ on Q♥ J♥ 3♠ 7♣ the group is *Flush 9*, the ten of hearts among them although it
+   makes the royal, because a flush alone would have won. Where a flush would not win — against
+   a full house or quads — the group reads *Straight flush*. The canvas's *Flush 9* was right.
 
 The names the check drives: `Outs for Player N` (the chevron, with `aria-expanded`), the card
 `#seat-N`, the word `#seat-N-word`, `#outs-names-N`, `#outs-table-N` and the rows

@@ -3083,11 +3083,15 @@ above *Add a player*, as on the board. Three things came with it.
 
 *Where the app departs from the board, and why:*
 
-1. **⚠ THE CANVAS'S OUTS WERE WRONG ABOUT THE TEN OF HEARTS.** For A♥K♥ on Q♥ J♥ 3♠ 7♣ the
-   board draws *Flush 9* — the nine remaining hearts. The ten of hearts is not a flush: A♥K♥Q♥J♥T♥
-   is the royal, a straight flush. So the screen reads *Straight flush 1*, *Flush 8*,
-   *Straight 3*, *One pair 6* — the same 18 cards. The engine decides; the test says why
-   (`outs.test.ts`).
+1. **A straight flush is a flush, unless only a straight flush wins** (the owner, 25 October).
+   For A♥K♥ on Q♥ J♥ 3♠ 7♣ the board draws *Flush 9*, and the ten of hearts is among the nine
+   although it makes the royal: a plain ace-high flush would have beaten the pair of deuces just
+   the same, so the card is a heart like the other eight. Only where a flush would not have won —
+   T♥J♥ against nines full on 9♥ 8♥ 9♣ 8♣, where the seven and the queen of hearts are the only
+   outs — does the group read *Straight flush*, because then the combination is what the hand
+   needs. Nothing else collapses. `outsToCome` decides it with the engine's own packing
+   (`flushValue` against every other seat's `evaluate`); `outs.test.ts` holds both tables and
+   `odds-outs-cases.ts` plays both through the screen.
 2. **The card is `surface`, not the board's `#121216`.** The boards draw the card a hair darker
    than the app's surface token (`#16161A` dark; the light is the same `#F4F4F6`). A token, not a raw hex.
 3. **Hands are cards in a list that is not a hairline list any more:** the hairline between seats is

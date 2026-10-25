@@ -183,6 +183,31 @@ export function score(rankMask: number, count: Uint8Array, bySuit: Uint16Array):
   return (HIGH_CARD << 20) | top5(rankMask);
 }
 
+/**
+ * The packed value the cards would score as a plain flush — the category and
+ * the five highest ranks of the flush suit — or -1 where there is no flush.
+ * Same packing as `score`, same `top5`, so it compares against any value from
+ * `evaluate`. `outs.ts` asks it one question: on a card that makes a straight
+ * flush, would a flush alone have won?
+ */
+export function flushValue(cards: readonly Card[]): number {
+  suitMask.fill(0);
+  for (let i = 0; i < cards.length; i++) {
+    const c = cards[i]!;
+    suitMask[c & 3]! |= 1 << (c >> 2);
+  }
+  for (let s = 0; s < 4; s++) {
+    let v = suitMask[s]!;
+    let n = 0;
+    while (v) {
+      v &= v - 1;
+      n++;
+    }
+    if (n >= 5) return (FLUSH << 20) | top5(suitMask[s]!);
+  }
+  return -1;
+}
+
 /** Which category a packed value is — for a label, never for a comparison. */
 export function categoryOf(value: number): HandCategory {
   return HAND_CATEGORIES[value >> 20]!;
