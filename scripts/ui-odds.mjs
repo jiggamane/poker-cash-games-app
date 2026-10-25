@@ -5,6 +5,7 @@
  *   node scripts/ui-odds.mjs            against UI_CHECK_BASE, default :4321
  *   node scripts/ui-odds.mjs --bail     stop at the first table that is wrong
  *   node scripts/ui-odds.mjs --outs     only the player cards and their outs
+ *   node scripts/ui-odds.mjs --run-out  only the run-out: the button and the picture
  *
  * `npm run odds:verify` holds the ENGINE to the facts about poker. This holds
  * the screen to the engine: that a card tapped for Player 5 lands in Player 5's
@@ -32,11 +33,16 @@ const potCases = JSON.parse(
 const outsCases = JSON.parse(
   execFileSync('npx', ['vite-node', 'scripts/odds-outs-cases.ts'], { encoding: 'utf8', maxBuffer: 1 << 26 }),
 );
+const runOutCases = JSON.parse(
+  execFileSync('npx', ['vite-node', 'scripts/odds-runout-cases.ts'], { encoding: 'utf8', maxBuffer: 1 << 26 }),
+);
 
 const browser = await chromium.launch();
 let failed = 0;
 /** `--outs`: only the player cards and their outs, which is the part a change to them needs. */
-const onlyOuts = process.argv.includes('--outs');
+const onlyOuts = process.argv.includes('--outs') || process.argv.includes('--run-out');
+/** `--run-out`: only the run-out — the button on the odds screen and the picture behind it. */
+const onlyRunOut = process.argv.includes('--run-out');
 
 /*
  * THE PRESS CALLOUT (option D, 24 October). A card pressed in the deck shows an
@@ -281,7 +287,7 @@ for (const [n, c] of (onlyOuts ? [] : potCases).entries()) {
  * inside it and inside the screen, closed and open, at two phones.
  */
 const SEATS = ['[id^="seat-"]'];
-for (const [n, c] of outsCases.entries()) {
+for (const [n, c] of (onlyRunOut ? [] : outsCases).entries()) {
   for (const [w, h, scheme] of [[393, 852, 'dark'], [320, 568, 'light']]) {
     const fail = [];
     const page = await browser.newPage({ viewport: { width: w, height: h }, colorScheme: scheme });
@@ -415,11 +421,109 @@ for (const [n, c] of (onlyOuts ? [] : cases).entries()) {
     if (process.argv.includes('--bail')) break;
   }
 }
+/*
+ * THE RUN-OUT (board 19, "How it ran out"). Each scenario in
+ * `odds-runout-cases.ts` is dealt on the odds screen with taps; *Run it out* is
+ * held to being there exactly when the board has a flop; it is tapped, and what
+ * `/run-out` prints — the headline and the small figures on every street, the
+ * spoken label that carries the word the picture leaves off, and the box at the
+ * foot — is held to what core says for THAT street's table. And every line of
+ * it sits inside the screen at two phones, once the pre-flop column has
+ * counted: a figure cut off is the fault this whole gate is for.
+ *
+ * Also: the bare route draws no picture and says to deal a hand first.
+ */
+const STREETS = ['preflop', 'flop', 'turn', 'river'];
+const squash = (s) => (s ?? '').replace(/\s+/g, ' ').trim();
+for (const [n, c] of runOutCases.entries()) {
+  for (const [w, h, scheme] of [[393, 852, 'dark'], [320, 568, 'light']]) {
+    /* The small light phone for the scenarios that print the most. */
+    if (w === 320 && ![0, 3, 5].includes(n)) continue;
+    const fail = [];
+    const page = await browser.newPage({ viewport: { width: w, height: h }, colorScheme: scheme });
+    page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
+    try {
+      await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
+      await page.waitForSelector('#screen-title');
+      const tap = (label) => page.getByRole('button', { name: label, exact: true }).click({ timeout: 10_000 });
+      for (let s = 3; s < c.seats; s++) await tap('Add a player');
+      for (const p of c.placements) {
+        await tap(`${p.slot}, empty`);
+        await tap(p.card);
+      }
+      const button = page.getByRole('button', { name: 'Run it out', exact: true });
+      const has = (await button.count()) > 0;
+      if (has !== c.button) fail.push(`Run it out is ${has ? 'on' : 'off'} the odds screen, wanted ${c.button ? 'on' : 'off'}`);
+      if (!c.button) {
+        /* Nothing to run; the picture is still reachable by its link, and says the same table. */
+        await page.goto(BASE + '/run-out?h=AhKh,2c2d&b=', { waitUntil: 'networkidle' });
+      } else {
+        await button.click();
+      }
+      await page.waitForSelector('#run-out', { timeout: 10_000 }).catch(() => fail.push('no picture'));
+      /* Settled once every street is counted. */
+      await page
+        .waitForFunction(() => /Every street counted exactly/.test(document.body.innerText), null, { timeout: 120_000 })
+        .catch(() => fail.push('the pre-flop count did not settle'));
+      /* The calculator stays mounted under the push, so there are two titles; the picture's is the last. */
+      const title = await page.locator('#screen-title').last().textContent();
+      if (title !== 'How it ran out') fail.push(`the title reads "${title}"`);
+      for (const s of STREETS) {
+        const want = c.streets[s];
+        const col = page.locator(`#street-${s}`);
+        if ((await col.count()) === 0) {
+          fail.push(`${s}: no column`);
+          continue;
+        }
+        const figure = squash(await page.locator(`#street-${s}-figure`).innerText().catch(() => '')).replace(/\s/g, '');
+        if (figure !== want.figure) fail.push(`${s}: the headline reads "${figure}", wanted "${want.figure}"`);
+        const others = (await page.locator(`#street-${s}-others`).count()) ? squash(await page.locator(`#street-${s}-others`).innerText()) : '';
+        if (others !== want.others.join(' ')) fail.push(`${s}: under it "${others}", wanted "${want.others.join(' ')}"`);
+        const label = await col.getAttribute('aria-label');
+        if (label !== want.label) fail.push(`${s}: the spoken label is "${label}", wanted "${want.label}"`);
+        /* A street the board reached shows its cards, and one it has not shows the dashed places. */
+        const faces = await col.locator('[aria-label]').count();
+        const wantFaces = Math.min(c.placements.filter((p) => p.slot.startsWith('Board')).length, { preflop: 0, flop: 3, turn: 4, river: 5 }[s]);
+        if (faces !== wantFaces) fail.push(`${s}: ${faces} board cards drawn, wanted ${wantFaces}`);
+      }
+      const footTitle = (await page.locator('#run-out-foot-title').count()) ? squash(await page.locator('#run-out-foot-title').innerText()) : null;
+      const footDetail = (await page.locator('#run-out-foot-detail').count()) ? squash(await page.locator('#run-out-foot-detail').innerText()) : null;
+      if (footTitle !== c.foot.title) fail.push(`the foot reads "${footTitle}", wanted "${c.foot.title}"`);
+      if (footDetail !== c.foot.detail) fail.push(`the foot's detail reads ${JSON.stringify(footDetail)}, wanted ${JSON.stringify(c.foot.detail)}`);
+      for (const f of await cutOff(page, ['#run-out'])) fail.push(f);
+      /* And back is a push's back, to the calculator. */
+      if ((await page.getByRole('button', { name: 'Back to Odds calculator', exact: true }).count()) === 0) fail.push('no back button to the calculator');
+    } catch (e) {
+      fail.push(String(e.message ?? e).split('\n')[0]);
+    }
+    await page.close();
+    console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  run-out ${String(n + 1).padStart(2)}  ${c.title}  ·  ${w}${scheme === 'light' ? ' light' : ''}`);
+    for (const f of fail) console.log(`        ${f}`);
+    if (fail.length) failed++;
+  }
+}
+{
+  const fail = [];
+  const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
+  page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
+  try {
+    await page.goto(BASE + '/run-out', { waitUntil: 'networkidle' });
+    await page.waitForSelector('#screen-title');
+    if ((await page.locator('#run-out').count()) > 0) fail.push('the bare route draws a picture of nothing');
+    if (!/Deal two hands on the odds calculator first\./.test(await page.innerText('body'))) fail.push('the bare route does not say to deal a hand first');
+  } catch (e) {
+    fail.push(String(e.message ?? e).split('\n')[0]);
+  }
+  await page.close();
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  run-out: the bare route draws nothing and says so`);
+  for (const f of fail) console.log(`        ${f}`);
+  if (fail.length) failed++;
+}
 await browser.close();
 
 console.log(
   failed === 0
-    ? `\nthe odds screen shows exactly what the engine says, ${cases.length} tables played through, and the pot odds card what potOdds() says, ${potCases.length} more, and the player cards and their outs what core says, ${outsCases.length} more.`
-    : `\n${failed} check${failed === 1 ? '' : 's'} failed: a table that shows something other than what the engine says, the press callout, or a player card.`,
+    ? `\nthe odds screen shows exactly what the engine says, ${cases.length} tables played through, and the pot odds card what potOdds() says, ${potCases.length} more, and the player cards and their outs what core says, ${outsCases.length} more, and the run-out every street's figures, ${runOutCases.length} more.`
+    : `\n${failed} check${failed === 1 ? '' : 's'} failed: a table that shows something other than what the engine says, the press callout, a player card, or the run-out.`,
 );
 process.exit(failed === 0 ? 0 : 1);

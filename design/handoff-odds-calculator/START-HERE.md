@@ -160,6 +160,9 @@ list.
    settled, and options B, C, E and F for card entry. They are drawn on the canvas.
    **The share icon is hidden for now** (the owner, 25 October): the sharing feature
    is parked until it is finished, so nothing for it shows on the status line.
+   **The run-out's one-card summary (picture 19) IS built**, 25 October, as
+   `/run-out` behind a *Run it out* button under the board — every street counted
+   exactly, pre-flop included (`decided-2026-10-25.md` § 8, `docs/screens.md`).
 
 **Open:** beside the icon the status line has about 270 pt at 402 wide, so state 4
 is cut with an ellipsis. It needs shorter copy or a second line.
