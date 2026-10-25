@@ -110,6 +110,7 @@ is settled when it is not.
 | `/spend` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/stats` | push | ✓ | — | ✓ | ☐ |
 | `/table-rules` | sheet | ✓ | ✓ | — | ☐ |
+| `/tools` | push | ✓ | — | — | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
 **44 screens · 44 under the rule pass · 26 under the sheet pass · 13 under a big
@@ -3117,9 +3118,10 @@ hand alone, not for a hand no card wins; closed, the kinds and not one digit; op
 count (as announced AND as seen) and its cards in core's order; the control's expanded state; and
 every line of every seat card inside its box and the screen, closed and open. `--outs` runs only that part.
 
-*Open:* whether this lives under Settings or on the club's home as a tool
-beside the rules; how it reads at 120% text, which the rule pass measures only
-on the stops a night produces; and the Expo Go timing above.
+*Open:* how it reads at 120% text, which the rule pass measures only on the
+stops a night produces; and the Expo Go timing above. *Where it lives* was
+answered on 25 October — the home grid's Poker tools tile, and still Settings;
+the section below.
 
 ### The run-out — board 19, "How it ran out", built 25 October
 
@@ -3201,3 +3203,76 @@ and any real phone.
 *Open:* the PNG through the share sheet (§ 7 — the component takes a `width`
 for it); the four-street replay with the pills and the one bar (boards 15–18),
 which this screen does not draw; the pre-flop count's time on a real phone.
+
+## The home grid, and Poker tools (25 October)
+
+The club home's three destination rows are a two-by-two grid of tiles, and
+the fourth tile is new: **Poker tools**, a pushed screen holding the odds
+calculator and the rules library. Both were reachable only from Settings
+before, and Settings keeps its two rows. Decided by the owner on the canvas
+*Odds and rules, where they live* (private to the owner's account; its boards
+are the record), after seven layouts for the home screen and three for the
+screen behind the tile.
+
+**What the canvas decided, in order:**
+
+1. The icon set — the calculator's fanned pair with a percent pip (decided a
+   day earlier on *Poker calculator · ways in*, look 3), a card whose pip is a
+   question mark for Rules & rulings, a card with a spade pip where one tile
+   stands for both. All three new to `Icon.tsx`; the house `rules` glyph stays
+   Money rules in the drawer.
+2. The grid (board N6) over the rows, after a first round in which a 26-point
+   glyph beside the 24-point row name was turned down ("I don't like how the
+   icons interact with the titles"). The tile puts the glyph top-left in the
+   40-point round the role line's icon was decided at, and the name at the
+   foot, so the two never share a line.
+3. The order: The group · Sessions · My stats · Poker tools. The name *Poker
+   tools* replaced *The game*.
+4. The invite button in the dock is icon-only ("use only an icon in all
+   versions"), against the club-home handoff's "never icon-only". The label is
+   the accessibility name; `filled` while the club is fresh is kept.
+5. The tile's glyph sits in the 40 round at 21 ("use proper size for icon"),
+   not bare at 26.
+6. The screen behind the tile is board P2: the same two tiles, pushed, Chrome
+   A, back to the club. Boards P3 and P4 (the title to the right of the icon,
+   full and half width) and the colour boards C1–C3 and the switch were drawn
+   after the build was asked for and are **not built**: the tiles are neutral,
+   and the title sits at the foot.
+
+**What the app does that no board says:**
+
+- **`/tools` is one push below the club**, so the calculator and the library
+  are each the second push, the limit (`09-navigation.md` § Depth). A
+  situation then opens as a sheet, as from Settings. The back button's label
+  reads *Back to Poker tools* when a tool opened from here and *Back to
+  Settings* from Settings, by a `from` param; nothing else on either screen
+  moves.
+- **Three glyphs the canvas drew for the other tiles** — two figures (the
+  existing `people`), a calendar, three bars — are the first icons the home
+  destinations have had. No handoff draws them.
+- **The tile's geometry is in `home.tile*`** (124 tall, 16 padding, radius 16,
+  10 between, 40 round) and its type in `type.tileName` / `type.tileSub`
+  (20/800 and 13/500), measured off the board. `/tools` draws the same tile at
+  the same numbers from its own component, on purpose: a shared tile would be
+  a shared file (`CLAUDE.md`).
+- **Height:** two tiles and a gap are 258 points where the three rows were 222,
+  so the slack above the dock is 36 shorter. `ui-audit.mjs` holds `/` at 393
+  and 360 in both themes; the card list still scrolls on its own.
+- **A fresh club's waiting tiles** (Sessions, My stats) are drawn in
+  `disabled`, as the rows were, and do not navigate.
+
+**⚠ COPY NOT DRAWN by any handoff, and marked UNSURE on the canvas:** *Poker
+tools* (the tile and the title), the tile's sub-line *poker calculator, rules &
+rulings*, the Poker tools meta line *nothing here touches the ledger*, and the
+two sub-lines on `/tools` — *hand and pot odds* (the owner's retype of 25 October) and *what
+happened, and what the rule says*. The calculator's own screen is still titled
+*Odds calculator*; the canvas of 25 October renames it *Poker calculator*, and
+`ui-odds.mjs` finds the Settings row by that title, so the rename is a
+separate change with its check.
+
+**Held by:** `ui-audit.mjs` (`/` and `/tools` on the route list, both themes,
+393 and 360), `ui-journeys.mjs` (reaches My stats and Sessions from home by
+tapping their names, which the tiles still carry). `ui-frames.mjs` holds the
+chrome of `/` against *H3 Home · live*; the body is not among its checks, so
+the grid against the frame's rows is a difference it does not report. The
+canvas boards are the drawing the grid is held to.

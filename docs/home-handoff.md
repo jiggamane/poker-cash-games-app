@@ -155,3 +155,26 @@ name. That was harmless while it was the only round glyph on the screen and is
 not harmless now that it sits in the same dock row as a theme button whose whole
 job is to be a sun. It is a cog now, at the same size and stroke. If the board
 draws it differently, the board wins.
+
+---
+
+## The grid, and the icon-only invite (25 October)
+
+Two of the handoff's rules above are now broken on purpose, by the owner on
+the canvas *Odds and rules, where they live*:
+
+- **The three destination rows are a two-by-two grid of four tiles** — The
+  group, Sessions, My stats, Poker tools — each a 124-point tile with the
+  glyph in a 40 round and the name at the foot. The fourth is new: the odds
+  calculator and the rules library, which lived under Settings alone. The row
+  arithmetic in § 2 (17 + 21 + 4 + 15 + 17) no longer applies to them;
+  `home.tile*` and `type.tileName` / `tileSub` are the new numbers, measured
+  off board N6.
+- **The invite is icon-only**, a 42 round beside the Settings pill, where
+  "never icon-only" was the rule. The label is the accessibility name, the
+  first-run fill is kept, and the dock stays one row at 360 wide.
+
+Everything else in this file stands — the spacer, the card list as the one
+scroller, the theme button, the type scale for the card and the dock.
+`docs/screens.md` § "The home grid, and Poker tools" has the decisions in
+order and what the app does that the boards do not say.

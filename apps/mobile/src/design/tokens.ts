@@ -524,6 +524,15 @@ export const type = {
   destination: { fontSize: 21, fontWeight: '800', letterSpacing: -0.462, lineHeight: 22 },
   /** The line under it. One line, truncates. */
   destinationSub: { fontSize: 12.5, fontWeight: '400', lineHeight: 15 },
+  /**
+   * A home tile's name — the destinations as a two-by-two grid since 25
+   * October (the canvas "Odds and rules, where they live", N6). A step down
+   * from `destination` because the tile is half the width and the name shares
+   * it with nothing: 800 20/24. One line, truncates.
+   */
+  tileName: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4, lineHeight: 24 },
+  /** The line under it: 500 13/16, two lines at most. */
+  tileSub: { fontSize: 13, fontWeight: '500', lineHeight: 16 },
   /** "Start another game" — a secondary row, a step down from a destination. */
   secondary: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.155 },
   /** The group's name in a pushed screen's back bar. */
@@ -762,6 +771,19 @@ export const home = {
   dockBottom: 4,
   /** The theme button, and the floor under every tappable thing on this screen. */
   tap: 44,
+
+  /**
+   * THE GRID — the four destinations as tiles, two by two, since 25 October
+   * (the canvas "Odds and rules, where they live", board N6). Measured off the
+   * board: 124 tall, 16 of padding, radius 16, 10 between tiles; the glyph sits
+   * in a 40 round at 21, the size the role line's icon was decided at a day
+   * earlier. `/tools` draws the same tile at the same numbers.
+   */
+  tileHeight: 124,
+  tilePad: 16,
+  tileRadius: 16,
+  tileGap: 10,
+  tileRound: 40,
 } as const;
 
 /**

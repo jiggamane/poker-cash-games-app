@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   AREAS,
@@ -38,6 +38,10 @@ export default function Rules() {
   const club = useClub();
   const symbol = useMoneySymbol();
   const [query, setQuery] = useState('');
+  /* Where back goes, for the screen reader: Settings as before, or Poker tools
+     since the home grid (25 October) reaches the library through it. */
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const backTo = from === 'tools' ? 'Poker tools' : 'Settings';
 
   const results = useMemo(() => searchSituations(query), [query]);
   const searching = query.trim().length > 0;
@@ -54,7 +58,7 @@ export default function Rules() {
   }
 
   return (
-    <Screen title="Rules" backTo="Settings" meta={`cash game first · edition ${RULES_EDITION}`}>
+    <Screen title="Rules" backTo={backTo} meta={`cash game first · edition ${RULES_EDITION}`}>
       <View style={styles.searchWrap}>
         <TextInput
           value={query}

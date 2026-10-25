@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -166,6 +167,10 @@ const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
 
 export default function OddsCalculator() {
   const t = useTheme();
+  /* Where back goes, for the screen reader: Settings as before, or Poker tools
+     since the home grid (25 October) reaches the calculator through it. */
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const backTo = from === 'tools' ? 'Poker tools' : 'Settings';
   const [table, setTable] = useState<Table>(emptyTable);
   const [active, setActive] = useState<Slot>(FIRST);
   /* Both are kept WITH the table they belong to. A result is only ever shown
@@ -436,7 +441,7 @@ export default function OddsCalculator() {
   return (
     <Screen
       title="Odds calculator"
-      backTo="Settings"
+      backTo={backTo}
       meta={meta}
       metaTrailing={restart}
       footer={
