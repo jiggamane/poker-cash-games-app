@@ -13,7 +13,9 @@
  *
  * The tables are hand-picked where the board draws one (the canvas's A♥K♥ against
  * 2♣2♦) and FOUND, by a seeded search, where it does not: two hands level, three
- * hands with one ahead, a hand drawing dead, a hand whose only outs are splits.
+ * hands with one ahead, a hand drawing dead, a hand whose only outs are splits. One more is hand-picked
+ * for the naming rule: against a full house only a straight flush wins, and the
+ * group says so, where beside A♥K♥ the royal is one heart among nine (`outs.ts`).
  */
 
 import { cardText, parseCards, type Card } from '../packages/core/src/odds/cards';
@@ -128,6 +130,8 @@ const cases: Case[] = [
   build('turn, heads-up: A♥K♥ against 2♣2♦ (the canvas example)', ['AhKh', '2c2d'], 'Qh Jh 3s 7c'),
   /* The same table with Player 2 in the first seat: the control follows the hand, not the seat. */
   build('the same table with the seats swapped', ['2c2d', 'AhKh'], 'Qh Jh 3s 7c'),
+  /* Against a full house a flush does not win, so the two straight-flush cards are named for what they are. */
+  build('turn, against a full house: only a straight flush wins', ['ThJh', '9s8s'], '9h 8h 9c 8c'),
   /* A dead card takes an out away. */
   build('dead cards take outs away', ['AhKh', '2c2d'], 'Qh Jh 3s 7c', 'Th 9h'),
   /* A seat of three with an empty one between. */
