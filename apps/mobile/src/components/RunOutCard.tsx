@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import {
   RANKS,
   STREET_CARDS,
@@ -62,8 +63,15 @@ export function RunOutCard({
   width?: number;
 }) {
   const t = useTheme();
-  const window = useWindowDimensions();
-  const inner = (width ?? window.width) - 2 * space.page;
+  /*
+   * SIZED FROM ITS OWN BOX, NOT THE WINDOW. `useWindowDimensions` reads the
+   * browser's visual viewport on the web, and `ui-audit.mjs` stands one up
+   * with a height and no width — which came back NaN and laid the four
+   * columns out at nine hundred points apiece. The card measures itself once
+   * it is on screen; until then it draws at the house frame's width.
+   */
+  const [measured, setMeasured] = useState(0);
+  const inner = width !== undefined ? width - 2 * space.page : measured > 0 ? measured : 402 - 2 * space.page;
   const colW = (inner - 3 * COL_GAP) / 4;
   /* Five places and four gaps across a column. */
   const placeW = Math.floor(((colW - 4 * PLACE_GAP) / 5) * 2) / 2;
@@ -85,7 +93,7 @@ export function RunOutCard({
   }
 
   return (
-    <View nativeID="run-out" style={styles.card}>
+    <View nativeID="run-out" style={styles.card} onLayout={(e: LayoutChangeEvent) => setMeasured(e.nativeEvent.layout.width)}>
       {/* THE HANDS — in sight on every frame (§ 8). Heads-up they face each other across "against". */}
       <View style={styles.hands}>
         {input.hands.map((hand, seat) => (
