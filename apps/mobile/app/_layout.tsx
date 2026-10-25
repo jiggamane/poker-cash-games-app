@@ -141,6 +141,8 @@ export default function RootLayout() {
         <Stack.Screen name="rules" />
         {/* The odds calculator — a tool you stay in, pushed from Settings. No board draws it. */}
         <Stack.Screen name="odds" />
+        {/* The run-out — the same hands on every street, pushed from the odds calculator (board 19). */}
+        <Stack.Screen name="run-out" />
         {/*
          * X1 is a PUSH, not a root (S77). There is no watcher's install: every
          * install is a host install with a book in it, so a share link opens

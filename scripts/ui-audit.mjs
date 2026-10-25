@@ -97,8 +97,9 @@ const ROUTES = [
   // The rules library (`docs/rulings.md`): a push from Settings, one answer as a
   // sheet, and the group's table rules as a sheet ending with Save.
   '/rules', '/situation', '/table-rules',
-  // The odds calculator: a tool pushed from Settings, no sheet behind it.
-  '/odds',
+  // The odds calculator: a tool pushed from Settings, no sheet behind it; and
+  // the run-out it pushes, the same hands on every street as one picture.
+  '/odds', '/run-out',
 ];
 
 /*
@@ -141,6 +142,9 @@ const PARAMS = {
   // The situation with the longest verified-shape answer and a tournament row;
   // bare, the route renders a titled sheet with nothing in it.
   '/situation': '?id=showdown.mucked-winner',
+  // The canvas's own hand (board 19): A♥K♥ all in against 2♣2♦, run out Q♥ J♥
+  // 3♠ 7♣ K♣. Bare, the route says to deal a hand first and draws nothing.
+  '/run-out': '?h=AhKh,2c2d&b=QhJh3s7cKc',
 };
 
 /** The URL a route is actually opened at. */

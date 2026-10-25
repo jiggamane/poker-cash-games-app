@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import { router } from 'expo-router';
 import {
   BOARD_CARDS,
   HOLE_CARDS,
@@ -28,6 +29,7 @@ import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
 import { oddsStatus } from '../src/lib/oddsStatus';
 import { oddsTone } from '../src/lib/oddsTone';
+import { runOutParams } from '../src/lib/runOut';
 
 /**
  * Odds calculator — Texas hold'em, win and tie per hand.
@@ -460,6 +462,20 @@ export default function OddsCalculator() {
           ))}
         </View>
 
+        {/*
+         * RUN IT OUT — the same hands on every street as one picture (`/run-out`,
+         * board 19). Under the board because it is about the board: it appears
+         * with the third board card, once two hands are in and the engine will
+         * take the table, and goes with the card that made it. Before the flop
+         * there is one street and nothing to run. ⚠ COPY NOT DRAWN: the label is
+         * the canvas's own name for the replay (§ 8), on a button it did not draw.
+         */}
+        {problem === null && boardCards.length >= 3 && (
+          <View style={styles.runOut}>
+            <Button label="Run it out" variant="secondary" onPress={() => router.push({ pathname: '/run-out', params: runOutParams(input) })} />
+          </View>
+        )}
+
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Players</Text>
         {/*
          * One CARD per seat — layout G, decided 25 October: the hand, the name
@@ -736,6 +752,7 @@ const styles = StyleSheet.create({
   },
   deckRank: { fontSize: 12, fontWeight: '800', lineHeight: 14, marginBottom: 1 },
   add: { paddingTop: 12, paddingHorizontal: 4 },
+  runOut: { paddingTop: 14, paddingHorizontal: 4 },
   amountFoot: { gap: 10, paddingBottom: 6 },
   doneWrap: { paddingHorizontal: space.card },
   restart: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
