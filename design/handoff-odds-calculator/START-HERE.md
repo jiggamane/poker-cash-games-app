@@ -10,6 +10,12 @@ apart from the short list under *Keep* below.
 This is the handoff **out** to Claude Design and the instructions for the
 handoff **back**. Nothing here supersedes rev 18 or any cut on any other screen.
 
+**Read `decided-2026-10-25.md` first.** It is everything the owner settled on
+the canvas on 24 and 25 October, with the logic and the navigation, and twenty
+renders of the decided boards in `boards/`. Where it and this file disagree, it
+wins; the sections below dated 24 and 25 October are the build's own record of
+the same decisions.
+
 - **The canvas** (private to the owner's account; the link is in the chat that
   made this file, and the owner has it): six artboards at the house frame,
   402 × 874, drawn from the built screen's own measurements — one per state, plus
