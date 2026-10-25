@@ -116,23 +116,21 @@ let failed = 0;
 
 
 /*
- * POT ODDS (an experiment behind a setting, decided 24 October). Two halves.
+ * POT ODDS (decided 24 October, permanent from 25 October: no setting). Two halves.
  *
- * OFF, which is how it ships: the screen has no pot odds card and no You tag,
- * and Settings has the switch, off. Turning that switch on, with a tap, is what
- * puts the card on the screen — the setting is held across a reload and read by
- * the odds screen, which is the whole path a reader takes.
+ * WHERE IT SHOWS. The card, and the *You* tag on Player 1 that goes with it, are
+ * on the screen on the flop and the turn when there is a result and Player 1 is
+ * in the hand — and nowhere else: not before the flop, not on the river, not
+ * with Player 1 out, not with no result. Settings has no switch for it any more.
  *
- * ON: each scenario in `odds-pot-cases.ts` is dealt with taps, the pot and the
- * call are typed on the amount keypad, and what the card prints — Needs, You
- * have, the money line and the formula under it — is held to `potOdds()` in
- * core, which is where the arithmetic is. Where the table says the card must
- * not be there (before the flop, Player 1 out of the hand) it is held to not
- * being there. And every line of it is held inside the screen, at two phones,
- * with the keypad up and with it away: a figure cut off is the fault this whole
- * gate is for.
+ * WHAT IT SAYS. Each scenario in `odds-pot-cases.ts` is dealt with taps, the pot
+ * and the call are typed on the amount keypad, and what the card prints — Needs,
+ * You have, the money line and the formula under it — is held to `potOdds()` in
+ * core, which is where the arithmetic is. Where the table says the card must not
+ * be there it is held to not being there. And every line of it is held inside
+ * the screen, at two phones, with the keypad up and with it away: a figure cut
+ * off is the fault this whole gate is for.
  */
-const POT_KEY = 'odds.potOdds';
 const dealTable = async (page, c) => {
   const tap = (label) => page.getByRole('button', { name: label, exact: true }).click({ timeout: 10_000 });
   for (let s = 3; s < c.seats; s++) await tap('Add a player');
@@ -177,32 +175,25 @@ const cutOff = (page) =>
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
   try {
-    const c = potCases[0];
-    /* Off: not there. */
-    await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
-    await page.waitForSelector('#screen-title');
-    await dealTable(page, c);
-    if ((await page.locator('#pot-odds').count()) > 0) fail.push('the pot odds card is on the screen with the setting off');
-    if ((await page.getByText('You', { exact: true }).count()) > 0) fail.push('a You tag is on the screen with the setting off');
-    /* Settings has the switch, off; one tap turns it on. */
+    /* Every scenario says whether the card is there; the You tag goes exactly with it, and neither is there otherwise. */
+    for (const c of potCases) {
+      await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
+      await page.waitForSelector('#screen-title');
+      await dealTable(page, c);
+      const card = (await page.locator('#pot-odds').count()) > 0;
+      const you = (await page.getByText('You', { exact: true }).count()) > 0;
+      if (card !== c.visible) fail.push(`${c.title}: the card is ${card ? 'on' : 'off'} the screen, wanted ${c.visible ? 'on' : 'off'}`);
+      if (you !== c.visible) fail.push(`${c.title}: the You tag is ${you ? 'on' : 'off'} the screen, wanted ${c.visible ? 'on' : 'off'}`);
+    }
+    /* And Settings no longer has a switch for it. */
     await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
-    const sw = page.getByRole('switch', { name: 'Pot odds (experiment)' });
-    await sw.waitFor({ state: 'visible', timeout: 10_000 });
-    if ((await sw.getAttribute('aria-checked')) !== 'false') fail.push('the Pot odds switch does not start off');
-    await sw.click();
-    if ((await sw.getAttribute('aria-checked')) !== 'true') fail.push('tapping the Pot odds switch did not turn it on');
-    /* On, after a reload: the setting is remembered, and the card is there. */
-    await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
-    await page.waitForSelector('#screen-title');
-    if (!(await page.evaluate((k) => window.localStorage.getItem(k) === 'on', POT_KEY))) fail.push('the setting was not written to storage');
-    await dealTable(page, c);
-    await page.locator('#pot-odds').waitFor({ state: 'visible', timeout: 5000 }).catch(() => fail.push('the card is not there with the setting on'));
-    if ((await page.getByText('You', { exact: true }).count()) === 0) fail.push('no You tag on Player 1 with the setting on');
+    await page.getByRole('button', { name: 'Odds calculator' }).first().waitFor({ state: 'visible', timeout: 10_000 });
+    if ((await page.getByRole('switch', { name: /pot odds/i }).count()) > 0) fail.push('Settings still has a Pot odds switch');
   } catch (e) {
     fail.push(String(e.message ?? e).split('\n')[0]);
   }
   await page.close();
-  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  pot odds: off by default, on from Settings, remembered, You tag only while on`);
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  pot odds: the card and the You tag on the flop and the turn only; no switch in Settings`);
   for (const f of fail) console.log(`        ${f}`);
   if (fail.length) failed++;
 }
@@ -214,7 +205,6 @@ for (const [n, c] of potCases.entries()) {
     const fail = [];
     const page = await browser.newPage({ viewport: { width: w, height: h }, colorScheme: scheme });
     page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
-    await page.addInitScript((k) => window.localStorage.setItem(k, 'on'), POT_KEY);
     try {
       await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
       await page.waitForSelector('#screen-title');

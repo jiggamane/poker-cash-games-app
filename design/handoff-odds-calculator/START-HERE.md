@@ -89,7 +89,7 @@ same commit — say so on the canvas and it will be done, but do not assume it.
 |---|---|
 | The screen | `apps/mobile/app/odds.tsx` |
 | The arithmetic — **not for design to touch** | `packages/core/src/odds/` |
-| Pot odds: the card, the function, the switch | `apps/mobile/src/components/PotOddsCard.tsx`, `packages/core/src/odds/potOdds.ts`, `apps/mobile/src/lib/potOddsStore.ts` |
+| Pot odds: the card and the function | `apps/mobile/src/components/PotOddsCard.tsx`, `packages/core/src/odds/potOdds.ts` |
 | Tokens | `apps/mobile/src/design/tokens.ts` (shared: change one only alone) |
 | The screen check and its tables | `scripts/ui-odds.mjs`, `scripts/odds-ui-cases.ts`, `scripts/odds-pot-cases.ts` |
 | What was decided and why | `docs/screens.md` § *The odds calculator*, `docs/bugs.md` B100 and B101 |
@@ -156,21 +156,23 @@ list.
 **Open:** beside the icon the status line has about 270 pt at 402 wide, so state 4
 is cut with an ellipsis. It needs shorter copy or a second line.
 
-## Pot odds, decided 24 October
+## Pot odds, decided 24 October, permanent from 25 October
 
-Taken on the canvas ("POT ODDS — AN EXPERIMENT, NOT THE MAIN UI"), built the same
-day. An experiment: the owner wants to see whether it is fun and useful before it
-is anything more, so it is **off by default** and one quiet row when on.
+Taken on the canvas on 24 October as an experiment behind a switch; on 25 October
+the owner made it permanent ("not an experiment anymore, use it on odds calc
+screens in all states where it applies"). **There is no setting and no
+*Experiment* label.**
 
-1. **A switch** under Settings → Odds calculator, *Pot odds (experiment)*, off,
-   remembered per phone.
-2. **When on**, and only while an exact result is on screen with the flop down and
-   Player 1 in the hand: *POT ODDS · YOU* / *Experiment*, a closed row, opened in
-   place to *Pot* and *To call* typed on the app's keypad (with a *Done*), *Needs*
-   and *You have*, a bar with a break-even marker, `Over many runs this call returns
-   +$16`, and the formula line ending *Side pots are not counted.*
-3. **Player 1 is "you"**, with a *You* tag on the players list while it is on.
-4. **No "call" or "fold" wording, no side pots, nothing before the flop.**
+1. **When it shows:** on the **flop and the turn**, while an exact result is on
+   screen and Player 1 is in the hand. Not before the flop, not on the river, not
+   with Player 1 out, not with no result.
+2. **What it is:** under the players, *POT ODDS*, a closed row, opened in place to
+   *Pot* and *To call* typed on the app's keypad (with a *Done*), *Needs* and *You
+   have*, a bar with a break-even marker, `Over many runs this call returns +$16`,
+   and the formula line ending *Side pots are not counted.*
+3. **Player 1 is "you"**, with a *You* tag on the players list while the card is
+   showing.
+4. **No "call" or "fold" wording, no side pots.**
 5. **The arithmetic is `potOdds()` in `packages/core/src/odds/potOdds.ts`**, tested;
    the screen adds up nothing.
 6. **Departures from the board:** whole units, no cents (`+$16` for the board's
@@ -178,7 +180,7 @@ is anything more, so it is **off by default** and one quiet row when on.
    `returns −$35` in the loss colour); *Done*, the *—* before a call is typed and
    the *You* tag on the list are not drawn. See `docs/screens.md`.
 
-The names the check drives: the switch `Pot odds (experiment)`; the buttons `Pot
+The names the check drives: the buttons `Pot
 odds, closed` / `Pot odds, open`, `Pot, $75`, `To call, $25`, the keypad's digits
 and `Done`; the card `#pot-odds` and its lines `#pot-odds-returns` and
 `#pot-odds-formula`. Rename any of them and `scripts/ui-odds.mjs` changes with it.

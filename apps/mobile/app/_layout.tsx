@@ -11,7 +11,6 @@ import { loadBook } from '../src/lib/bookStore';
 import { useBackupPump } from '../src/lib/backupPump';
 import { useHoldWatch } from '../src/lib/handover';
 import { loadSessionView } from '../src/lib/sessionViewStore';
-import { loadPotOdds } from '../src/lib/potOddsStore';
 import { loadThemeChoice } from '../src/lib/themeStore';
 
 /**
@@ -102,9 +101,6 @@ export default function RootLayout() {
     /* Which group and which stretch the book is read at — shared by Sessions
        and My stats, and persisted per user. */
     void loadBook();
-    /* Whether the odds calculator shows pot odds — an experiment, off until the reader
-       turns it on in Settings. */
-    void loadPotOdds();
   }, []);
 
   // The sign-in link comes back into the app here. It has to be handled at the

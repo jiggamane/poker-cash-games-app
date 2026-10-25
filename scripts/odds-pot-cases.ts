@@ -7,12 +7,14 @@
  * reads the JSON, and nothing in the browser script knows poker or arithmetic.
  * What it holds is the screen between a tap on a keypad and a figure: that the
  * digits typed are the amount used, that the amount goes to the right field,
- * that the card is where the setting and the table say it should be, and that
- * what it prints is what the function says.
+ * that the card is where the table says it should be, and that what it prints is
+ * what the function says.
  *
- * Pot odds is an experiment behind a setting (decided 24 October), so each
- * scenario says whether the card should be there at all — and an extra pair,
- * run with the setting left off, says it never is.
+ * Pot odds is permanent (decided 24 October, made so on 25 October: no setting),
+ * and applies on the flop and the turn only — with a result on screen and Player
+ * 1 in the hand. So each scenario says whether the card should be there at all:
+ * not before the flop, not on the river, not with Player 1 out, not with no
+ * result.
  */
 
 import { cardText, parseCards, type Card } from '../packages/core/src/odds/cards';
@@ -64,17 +66,23 @@ function scenario(title: string, t: Table, pot: string | null, call: string | nu
   });
   const board = t.board === '' ? [] : cards(t.board);
   board.forEach((c, i) => placements.push({ slot: `Board, card ${i + 1}`, card: name(c) }));
+  const seats = Math.max(3, t.hands.length);
+  /* Fewer than two hands is no result: the line under the title says so and there is no card. */
+  if (full.length < 2) {
+    return { title, seats, placements, meta: 'Texas hold’em · deal two hands', pot, call, visible: false };
+  }
   const r = odds({ hands: full, board });
   const base = {
     title,
-    seats: Math.max(3, t.hands.length),
+    seats,
     placements,
     meta: `${grouped(r.boards)} ${r.boards === 1 ? 'board' : 'boards'} dealt · exact`,
     pot,
     call,
   };
-  /* The card needs the flop down and Player 1 (the first seat) in the hand. */
-  if (board.length < 3 || youIndex < 0) return { ...base, visible: false };
+  /* The card needs the flop or the turn down (not the river: the board is
+     complete) and Player 1 (the first seat) in the hand. */
+  if (board.length < 3 || board.length > 4 || youIndex < 0) return { ...base, visible: false };
   const potN = pot === null ? 0 : Number(pot);
   const callN = call === null ? 0 : Number(call);
   const p = potOdds(potN, callN, r.seats[youIndex]!, r.boards);
@@ -97,14 +105,16 @@ const scenarios: Scenario[] = [
   /* The canvas's own example: $25 into $75, turn, the hand ahead by 18 river cards of 44. */
   scenario('turn, heads-up: $25 into $75 (the canvas example)', { hands: ['AhKh', '2c2d'], board: 'Qh Jh 3s 7c' }, '75', '25'),
   scenario('flop, three-way: $50 into $200', { hands: ['9s8s', 'AhAd', 'KcQc'], board: '2s 7s Td' }, '200', '50'),
-  scenario('river, the hand has won: $10 into $40', { hands: ['AhKh', '2c2d'], board: 'Qh Jh 3s 7c Kc' }, '40', '10'),
+  scenario('turn, the hand cannot lose: $10 into $40 (a royal flush)', { hands: ['AhKh', '2c2d'], board: 'Qh Jh Th 3s' }, '40', '10'),
   scenario('turn, behind: $100 into $10 is a loss', { hands: ['2c2d', 'AhKh'], board: 'Qh Jh 3s 7c' }, '10', '100'),
-  scenario('a split pot on the river: half the pot back', { hands: ['AsKd', 'AdKs'], board: '2c 3d 4h 5s 9c' }, '100', '100'),
+  scenario('a near split on the flop: the same hand in other suits', { hands: ['AsKd', 'AdKs'], board: '2c 3d 4h' }, '100', '100'),
   scenario('no call typed yet: Needs is a dash and there is no money line', { hands: ['AhKh', '2c2d'], board: 'Qh Jh 3s 7c' }, '50', null),
   scenario('the biggest amounts the keypad types, on the flop', { hands: ['AhKh', '2c2d'], board: 'Qh Jh 3s' }, '999999999', '999999999'),
   /* Where it must not be. */
-  scenario('before the flop: nothing, whatever the setting', { hands: ['AhKh', '2c2d'], board: '' }, null, null),
+  scenario('before the flop: nothing', { hands: ['AhKh', '2c2d'], board: '' }, null, null),
   scenario('two cards of board: nothing', { hands: ['AhKh', '2c2d'], board: 'Qh Jh' }, null, null),
+  scenario('the river: nothing, the board is complete', { hands: ['AhKh', '2c2d'], board: 'Qh Jh 3s 7c Kc' }, null, null),
+  scenario('one hand alone on the flop: no result, nothing', { hands: ['AhKh', null], board: 'Qh Jh 3s' }, null, null),
   scenario('Player 1 is not in the hand: nothing', { hands: [null, 'AhKh', '2c2d'], board: 'Qh Jh 3s' }, null, null),
 ];
 

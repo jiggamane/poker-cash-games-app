@@ -21,7 +21,6 @@ import { amountOf, useTypedAmount } from '../src/components/typedAmount';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
 import { oddsStatus } from '../src/lib/oddsStatus';
-import { usePotOdds } from '../src/lib/potOddsStore';
 
 /**
  * Odds calculator — Texas hold'em, win and tie per hand.
@@ -47,10 +46,11 @@ import { usePotOdds } from '../src/lib/potOddsStore';
  * lifts an enlarged copy of the card above the finger: you see what you are
  * about to deal, and sliding off the cell cancels it. A tap is still one tap.
  *
- * POT ODDS — an experiment, decided 24 October, OFF until it is turned on in
- * Settings → Odds calculator — is one section under the players, shown only
- * while an exact result is on screen and the flop is down, for Player 1, who is
- * "you" and wears a *You* tag while the setting is on. `PotOddsCard` lays it
+ * POT ODDS — decided 24 October, made permanent on 25 October (no setting, no
+ * "experiment") — is one section under the players, shown only while an exact
+ * result is on screen and the flop or the turn is down (not before the flop, not
+ * on the river), for Player 1, who is "you" and wears a *You* tag while the card
+ * is showing. `PotOddsCard` lays it
  * out and `potOdds()` in core does every figure of it. Typing the pot or the
  * call swaps the deck at the foot for the amount keypad and a *Done*: one
  * footer, one job, so a card cannot be dealt while an amount is being typed.
@@ -199,9 +199,8 @@ export default function OddsCalculator() {
      deck is, which is what places that copy over the right column. */
   const [pressedCard, setPressedCard] = useState<Card | null>(null);
   const [deckW, setDeckW] = useState(0);
-  /* POT ODDS, an experiment behind a setting. Which amount the keypad is on, if
-     either; whether the card is open; and the two amounts as typed. */
-  const potOn = usePotOdds();
+  /* POT ODDS. Which amount the keypad is on, if either; whether the card is
+     open; and the two amounts as typed. */
   const [potOpen, setPotOpen] = useState(false);
   const [editing, setEditing] = useState<PotField | null>(null);
   const potField = useTypedAmount(0);
@@ -324,10 +323,11 @@ export default function OddsCalculator() {
     return i < 0 ? null : (shown.seats[i] ?? null);
   };
 
-  /* POT ODDS SHOW only when the setting is on, a result is on screen, the flop is
-     down (before it the figures are the same but nobody is deciding yet) and
-     Player 1 is in the hand — "you" is always the first seat. */
-  const youOdds = potOn && boardCards.length >= 3 ? seatOdds(0) : null;
+  /* POT ODDS SHOW only when a result is on screen, the flop or the turn is down
+     (before the flop the figures are the same but nobody is deciding yet; on the
+     river the board is complete and the figure is 0 or 100) and Player 1 is in
+     the hand — "you" is always the first seat. */
+  const youOdds = boardCards.length >= 3 && boardCards.length < 5 ? seatOdds(0) : null;
   const potShown = shown !== null && youOdds !== null;
   const typing = potShown && potOpen ? editing : null;
   const field = typing === 'pot' ? potField : callField;
@@ -490,8 +490,8 @@ export default function OddsCalculator() {
               <View style={styles.seatText}>
                 <View style={styles.seatName}>
                   <Text style={[styles.seatLabel, { color: t.muted }]}>Player {seat + 1}</Text>
-                  {/* Only while pot odds are on: the first seat is "you". */}
-                  {potOn && seat === 0 && (
+                  {/* While the pot odds card is showing: the first seat is "you". */}
+                  {potShown && seat === 0 && (
                     <View style={[styles.youTag, { backgroundColor: t.roundFill }]}>
                       <Text style={[styles.youText, { color: t.text }]}>You</Text>
                     </View>

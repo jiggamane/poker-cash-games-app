@@ -4,8 +4,6 @@ import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { formatMoney } from '../src/lib/money';
 import { Icon } from '../src/components/Icon';
 import { Screen } from '../src/components/Screen';
-import { Switch } from '../src/components/RuleList';
-import { setPotOdds, usePotOdds } from '../src/lib/potOddsStore';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
 import { currencyFor } from '../src/data/currencies';
@@ -44,7 +42,6 @@ export default function Settings() {
   const { session, loading, configured, who } = useSession();
   const night = useNight();
   const club = useClub();
-  const potOdds = usePotOdds();
   /* Whether this phone runs the group, read exactly as home reads it: a reader
      is the host unless the club positively says somebody else is. */
   const adminRow = club?.members.find((m) => m.standing === 'admin');
@@ -292,9 +289,7 @@ export default function Settings() {
         {/* ⚠ COPY NOT DRAWN — `docs/rulings.md` § 2.2. The library, and the group's table rules behind it. */}
         <Action label="Rules & rulings" onPress={() => router.push('/rules')} />
         {/* ⚠ COPY NOT DRAWN. Win and tie per hand, every board dealt — `packages/core/src/odds`. */}
-        <Action label="Odds calculator" onPress={() => router.push('/odds')} />
-        {/* ⚠ COPY NOT DRAWN, but the label is the owner's (24 October). Off until turned on; this phone only. */}
-        <Toggle label="Pot odds (experiment)" on={potOdds} onToggle={() => setPotOdds(!potOdds)} last />
+        <Action label="Odds calculator" onPress={() => router.push('/odds')} last />
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>The people</Text>
 
@@ -670,49 +665,6 @@ function awayLine(
   return parts.join(' ');
 }
 
-/** A row that switches something on and off: the label, and the same switch the rule lists use. */
-function Toggle({
-  label,
-  on,
-  onToggle,
-  last = false,
-}: {
-  label: string;
-  on: boolean;
-  onToggle: () => void;
-  last?: boolean;
-}) {
-  const t = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="switch"
-      accessibilityLabel={label}
-      accessibilityState={{ checked: on }}
-      aria-checked={on}
-      onPress={onToggle}
-      style={({ pressed }) => [
-        styles.row,
-        {
-          borderBottomColor: t.hairline,
-          borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth,
-          opacity: pressed ? 0.6 : 1,
-        },
-      ]}
-    >
-      <Text style={[styles.label, { color: t.text }]}>{label}</Text>
-      {/* Drawn, not pressed: the whole row is the switch, and a second one inside it would be read out twice. */}
-      <View
-        pointerEvents="none"
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={styles.toggleMark}
-      >
-        <Switch on={on} onPress={onToggle} />
-      </View>
-    </Pressable>
-  );
-}
-
 function Action({
   label,
   onPress,
@@ -758,7 +710,6 @@ const styles = StyleSheet.create({
   label: type.rowName,
   value: { ...type.meta, marginLeft: 'auto', flexShrink: 1 },
   chevron: { marginLeft: 'auto' },
-  toggleMark: { marginLeft: 'auto' },
   note: { ...type.footnote, paddingHorizontal: 4, paddingBottom: 14 },
   /* The last line on the screen, at the page's own inset, tabular so the
      commit reads as an identifier rather than as a word. */
