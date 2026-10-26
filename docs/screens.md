@@ -3129,12 +3129,15 @@ question that day was which format to share a hand's flop-turn-river in; the
 answer built is the one-card summary the canvas already settled (§ 8 of
 `design/handoff-odds-calculator/decided-2026-10-25.md`, picture 19), as a
 screen first — the shape the PNG and any later video are rendered from, and
-the thing a screenshot shares today. Four columns, *Pre-flop · Flop · Turn ·
-River*, always four: the board filling in under each name, Player 1's figure
-under that in the street's odds colour, the other hands' figures small beneath
-it (`P2 49.9`), and a box at the foot — *Player 1 won on the river · A pair of
-kings beats a pair of deuces* on a complete board, else what the last street
-leaves open (*990 boards still to come*, *44 cards could still come*).
+the thing a screenshot shares today. **Reworked on the owner's instruction, 26
+October: one board, not one per street.** The hands, then the five places once
+with *Flop · Turn · River* named under the cards they are (the turn is the flop
+and one card, the river one more), then the figures as a grid — a column per
+street, *Pre-flop · Flop · Turn · River*, always four, and a row per hand
+(`P1`, `P2`…), every figure signed and in its own street's odds colour — and a
+box at the foot: *Player 1 won on the river · A pair of kings beats a pair of
+deuces* on a complete board, else what the last street leaves open (*990 boards
+still to come*, *44 cards could still come*).
 
 **The arithmetic is core's and every street is exact, pre-flop included.**
 `packages/core/src/odds/runout.ts` counts each street as the table stood —
@@ -3156,10 +3159,11 @@ them on the far phone. The bare route refuses with a sentence.
 
 *Held by `ui-odds.mjs` (`--run-out` runs only this), in `check:ui`:* seven
 tables dealt with taps on the calculator; the button on exactly the tables that
-have a flop; on the picture every street's headline and every small figure
-against core for that street's table (the turn with a dead card, the flop
-stopped short, three- and four-handed, a split); each column's spoken label,
-which carries the standing word the picture leaves off; the foot's two lines;
+have a flop; on the picture one board with as many cards as were dealt, and
+every cell of the grid against core for that street's table, with its sign (the
+turn with a dead card, the flop stopped short, three- and four-handed, a
+split); each row's spoken label, which carries the standing word the picture
+leaves off; the foot's two lines;
 every line inside the screen at 393 dark and 320 light; a back button to the
 calculator; and the bare route drawing nothing. Shown to go red against a
 headline read from the wrong seat (28 failures). `ui-audit.mjs` opens the route
@@ -3171,30 +3175,35 @@ and any real phone.
 1. **No brand line, no *ALL IN* tag.** In the app the pushed title row is the
    brand line; both belong to the exported picture and go on when it is drawn
    at 1080 × 1350.
-2. **The headline has no word beside its colour.** Board 19 draws none — the
-   words are in the box at the foot — so this is the one place the app departs
-   from § 5's "never colour alone", on the board's own call. The column's
-   accessibility label carries the word (*Pre-flop: Player 1 49.8%, too close;
-   Player 2 49.6%*). **Open:** whether a sighted colour-blind reader needs it
+2. **One board, and a grid of equal figures, not Player 1 large over `P2
+   49.9` small.** The owner, 26 October: the board is drawn once with the
+   streets marked on it, and every hand's figure is the same size, signed, in
+   its own colour — a grid that reads the same way along every row, which is
+   what three or four hands need. The board's unsigned small figures are gone.
+3. **No word beside a colour.** Board 19 draws none — the words are in the box
+   at the foot — so this is the one place the app departs from § 5's "never
+   colour alone", on the board's own call. Each row's accessibility label
+   carries the words (*Player 1: Pre-flop 49.8%, too close; Flop 64.7%,
+   favourite; …*). **Open:** whether a sighted colour-blind reader needs them
    drawn.
-3. **Ties are not on the picture.** The board prints win figures only;
+4. **Ties are not on the picture.** The board prints win figures only;
    `49.8 / 49.6` leaves the split unsaid. The calculator's own screen still
    shows *Tie*.
-4. **The board's figures were illustrative.** It draws `50.1 / 49.9` pre-flop
+5. **The board's figures were illustrative.** It draws `50.1 / 49.9` pre-flop
    for A♥K♥ against 2♣2♦; the engine says `49.8 / 49.6`, and that is what the
    screen prints. Exact beats drawn.
-5. **⚠ NOT DRAWN, so mine:** a street the board has not reached (`—` under
-   its dashed places, the known board cards drawn in the places they would
-   hold); a street still counting (the calculator's bar in the figure's place);
-   three or more hands (a wrapping row, no *against*, the headline always
-   Player 1's, `P3`, `P4` lines stacking under it); a **split pot** (*Player 1
+6. **⚠ NOT DRAWN, so mine:** a street the board has not reached (`—` in its
+   cells, its places on the board dashed); a street still counting (the
+   calculator's bar in each of its cells); the row labels `P1`, `P2`; the
+   street names under the board; three or more hands (a wrapping row, no
+   *against*, a row each); a **split pot** (*Player 1
    and Player 2 split it on the river* over *Both hold an ace-high straight*, or
    over what the split beat); every hand name but *a pair of kings* / *a pair of
    deuces* (`showdown.ts` lists them); *Counting every street exactly* while
    the bar fills; *Deal two hands on the odds calculator first.* on the bare
    route; and the button's label *Run it out*, which is the canvas's own name
    for the replay on a button it did not draw.
-6. **The chopped river still reads *Too close*** in the spoken label — the
+7. **The chopped river still reads *Too close*** in the spoken label — the
    known open point (handoff § 11.8), now with a word in the foot that says
    *split*.
 
