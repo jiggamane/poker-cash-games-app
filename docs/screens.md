@@ -3265,7 +3265,12 @@ screen behind the tile.
 tools* (the tile and the title), the tile's sub-line *poker calculator, rules &
 rulings*, the Poker tools meta line *nothing here touches the ledger*, and the
 two sub-lines on `/tools` — *hand and pot odds* (the owner's retype of 25 October) and *what
-happened, and what the rule says*. The calculator's own screen is still titled
+happened, and what the rule says*. **The two tile names on `/tools` are *Calculator*
+and *Rulings*, by the owner on 26 October**, from a screenshot of the 25 October
+build: the canvas's *Poker calculator* and *Rules & rulings* both cut to
+*Poker calcu…* and *Rules & ruli…* at 20/800 in a half-width tile on a 393
+phone. The home tile's sub-line keeps the long names, and the screens behind
+keep their titles. The calculator's own screen is still titled
 *Odds calculator*; the canvas of 25 October renames it *Poker calculator*, and
 `ui-odds.mjs` finds the Settings row by that title, so the rename is a
 separate change with its check.
