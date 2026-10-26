@@ -3265,10 +3265,10 @@ screen behind the tile.
 tools* (the tile and the title), the tile's sub-line *poker calculator, rules &
 rulings*, the Poker tools meta line *nothing here touches the ledger*, and the
 two sub-lines on `/tools` — *hand and pot odds* (the owner's retype of 25 October) and *what
-happened, and what the rule says*. The calculator's own screen is still titled
-*Odds calculator*; the canvas of 25 October renames it *Poker calculator*, and
-`ui-odds.mjs` finds the Settings row by that title, so the rename is a
-separate change with its check.
+happened, and what the rule says*. The calculator's own screen was still titled
+*Odds calculator* when this was built; it is *Poker calculator* since 26
+October, with the Settings row and `ui-odds.mjs` renamed in the same commit
+(the section below).
 
 **Held by:** `ui-audit.mjs` (`/` and `/tools` on the route list, both themes,
 393 and 360), `ui-journeys.mjs` (reaches My stats and Sessions from home by
@@ -3276,3 +3276,67 @@ tapping their names, which the tiles still carry). `ui-frames.mjs` holds the
 chrome of `/` against *H3 Home · live*; the body is not among its checks, so
 the grid against the frame's rows is a difference it does not report. The
 canvas boards are the drawing the grid is held to.
+
+## Tonight's two tools, and the calculator's name (26 October)
+
+The role line under *Tonight* — *You’re recording · started 20:05*, *Watching ·
+Lena is recording* — ends in **two round icons on every phone**: Rules
+(the card with a question mark) and the Poker calculator (the fanned pair with
+the percent pip), 40 round with the glyph at 21, the back button's fill, Rules
+first. Both are pushes with *Back to Tonight*. `/watch` reading a live night
+draws the same two; once the night has ended its line carries the view
+control instead, as before. Decided by the owner on the canvas *Poker
+calculator · ways in* (private to the owner's account; its boards are the
+record), 25–26 October, in this order:
+
+1. The icon over the alternatives: an outline row above the dock in the
+   late-changes *Review* row's shape, and a row in the Table admin drawer.
+   Both are still drawn on the canvas; neither is built.
+2. The glyph: look 3 of six, the fanned pair with a percent pip (the
+   calculator's glyph everywhere since). Then the size: 40, over the 34 the
+   calculator's own *New hand* icon uses ("40–42 pt look better").
+3. **The recording phone gets it in the same spot as a watcher** ("put it on
+   same spot as on viewers' interface") — not the drawer, whose every control
+   records money (`docs/08`) and which a watcher has not got.
+4. Rules joins it, as a card with a question mark — the glyph the home grid
+   had decided for Rules & rulings the day before.
+
+**What the app does that no board says:**
+
+- **`Screen` draws `metaNode` and `metaTrailing` together now.** The role
+  line is an element (the first word and the time never truncate, the name
+  does), and the icons are the control; the row takes the floor a meta line
+  with a control takes (B68), so the On-the-table card sits 6 points lower
+  than it did and everything below it with it. The head dims with the drawer,
+  icons included.
+- **The role line gives up about 100 points** at 393 wide. *Watching · passed
+  to Aleksandra at 23:10* measured about 244 of 272 at 360 before; with the
+  icons it has about 180, and the name truncates. The first word and the time
+  still never do. ⚠ Against `design/handoff-game-admin/`, which draws the
+  line without a control.
+- **The calculator's dealt cards survive leaving.** A host who steps back to
+  Tonight to record a rebuy and returns finds the table they set: the last
+  table and the active place live in memory for as long as the app runs
+  (`kept` in `odds.tsx`), never in the ledger and never on disk. *New hand*
+  clears it. The checks load `/odds` fresh per table and never see one carried
+  over.
+- **The name is *Poker calculator* everywhere it is written**: the screen's
+  title, the Settings row, the back button from the run-out, the role line's
+  icon and the Poker tools tile (which already had it). The handoff folder
+  keeps its dated name. `ui-odds.mjs` finds the Settings row and the run-out's
+  back button by the new name.
+- **Depth.** Club → Tonight → a tool is a third push, which `09-navigation.md`
+  calls a smell. Count up is already one from Tonight, so the precedent stood;
+  the alternative — the calculator as a sheet over Tonight — would put the
+  deck's press-and-slide under swipe-down and give one screen two chromes.
+
+**⚠ COPY NOT DRAWN:** the two icons' spoken names, *Rules* and *Poker
+calculator*. The canvas's home row and its sub-line (*win and tie per hand,
+any table*) are superseded by the home grid's Poker tools tile, decided a day
+later on *Odds and rules, where they live*, and are not built.
+
+**Held by:** `ui-audit.mjs` (`/session` and `/watch` on the route list, both
+themes, 393 and 360, with B100's whole-head check), `ui-odds.mjs` (the
+Settings row and the run-out's back button by name). `ui-frames.mjs` holds
+`/session`'s chrome against *T1 Tonight · resting*, which has no icons on the
+line; the difference is this section.

@@ -139,7 +139,7 @@ export default function RootLayout() {
         <Stack.Screen name="club-rules" />
         {/* The rules library — a place, pushed from Settings (`docs/rulings.md` § 2). */}
         <Stack.Screen name="rules" />
-        {/* The odds calculator — a tool you stay in, pushed from Settings or Poker tools. */}
+        {/* The odds calculator — a tool you stay in, pushed from Settings, Poker tools or Tonight. */}
         <Stack.Screen name="odds" />
         {/* The run-out — the same hands on every street, pushed from the odds calculator (board 19). */}
         <Stack.Screen name="run-out" />
