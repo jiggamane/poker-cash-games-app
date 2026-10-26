@@ -425,9 +425,10 @@ for (const [n, c] of (onlyOuts ? [] : cases).entries()) {
  * THE RUN-OUT (board 19, "How it ran out"). Each scenario in
  * `odds-runout-cases.ts` is dealt on the odds screen with taps; *Run it out* is
  * held to being there exactly when the board has a flop; it is tapped, and what
- * `/run-out` prints — the headline and the small figures on every street, the
- * spoken label that carries the word the picture leaves off, and the box at the
- * foot — is held to what core says for THAT street's table. And every line of
+ * `/run-out` prints — the one board with the cards dealt, a row per hand with a
+ * signed figure per street, the spoken label that carries the word the picture
+ * leaves off, and the box at the foot — is held to what core says for THAT
+ * street's table. And every line of
  * it sits inside the screen at two phones, once the pre-flop column has
  * counted: a figure cut off is the fault this whole gate is for.
  *
@@ -468,23 +469,23 @@ for (const [n, c] of runOutCases.entries()) {
       /* The calculator stays mounted under the push, so there are two titles; the picture's is the last. */
       const title = await page.locator('#screen-title').last().textContent();
       if (title !== 'How it ran out') fail.push(`the title reads "${title}"`);
-      for (const s of STREETS) {
-        const want = c.streets[s];
-        const col = page.locator(`#street-${s}`);
-        if ((await col.count()) === 0) {
-          fail.push(`${s}: no column`);
-          continue;
+      /* One board, with as many cards as the reader dealt and the rest dashed. */
+      const faces = await page.locator('#run-out-board [aria-label]').count();
+      if (faces !== c.boardCards) fail.push(`${faces} board cards drawn, wanted ${c.boardCards}`);
+      if ((await page.locator('#run-out-board').count()) !== 1) fail.push('the board is not drawn once');
+      /* A row per hand, a cell per street: every figure the engine's for that street's table, signed. */
+      const rows = await page.locator('[id^="run-out-row-"]').count();
+      if (rows !== c.rows.length) fail.push(`rows: ${rows}, wanted ${c.rows.length}`);
+      for (const [i, want] of c.rows.entries()) {
+        const seat = i + 1;
+        for (const s of STREETS) {
+          const cell = page.locator(`#cell-${s}-${seat}`);
+          const text = (await cell.count()) ? squash(await cell.innerText()) : '(no cell)';
+          if (text !== want.cells[s]) fail.push(`P${seat} ${s}: reads "${text}", wanted "${want.cells[s]}"`);
+          if (/\d/.test(text) && !text.endsWith('%')) fail.push(`P${seat} ${s}: "${text}" has no % sign`);
         }
-        const figure = squash(await page.locator(`#street-${s}-figure`).innerText().catch(() => '')).replace(/\s/g, '');
-        if (figure !== want.figure) fail.push(`${s}: the headline reads "${figure}", wanted "${want.figure}"`);
-        const others = (await page.locator(`#street-${s}-others`).count()) ? squash(await page.locator(`#street-${s}-others`).innerText()) : '';
-        if (others !== want.others.join(' ')) fail.push(`${s}: under it "${others}", wanted "${want.others.join(' ')}"`);
-        const label = await col.getAttribute('aria-label');
-        if (label !== want.label) fail.push(`${s}: the spoken label is "${label}", wanted "${want.label}"`);
-        /* A street the board reached shows its cards, and one it has not shows the dashed places. */
-        const faces = await col.locator('[aria-label]').count();
-        const wantFaces = Math.min(c.placements.filter((p) => p.slot.startsWith('Board')).length, { preflop: 0, flop: 3, turn: 4, river: 5 }[s]);
-        if (faces !== wantFaces) fail.push(`${s}: ${faces} board cards drawn, wanted ${wantFaces}`);
+        const label = await page.locator(`#run-out-row-${seat}`).getAttribute('aria-label');
+        if (label !== want.label) fail.push(`P${seat}: the spoken label is "${label}", wanted "${want.label}"`);
       }
       const footTitle = (await page.locator('#run-out-foot-title').count()) ? squash(await page.locator('#run-out-foot-title').innerText()) : null;
       const footDetail = (await page.locator('#run-out-foot-detail').count()) ? squash(await page.locator('#run-out-foot-detail').innerText()) : null;

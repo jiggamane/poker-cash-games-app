@@ -20,19 +20,17 @@ import { STREETS, runOut, type Street } from '../packages/core/src/odds/runout';
 import { showdown } from '../packages/core/src/odds/showdown';
 import { standings } from '../packages/core/src/odds/standing';
 import { oddsTone } from '../apps/mobile/src/lib/oddsTone';
-import { STREET_LABEL, otherFigure, runOutFigure, stillToCome, verdictOf } from '../apps/mobile/src/lib/runOut';
+import { STREET_LABEL, runOutFigure, stillToCome, verdictOf } from '../apps/mobile/src/lib/runOut';
 
 const GLYPH: Record<string, string> = { c: '♣', d: '♦', h: '♥', s: '♠' };
 const name = (c: Card): string => cardText(c)[0]! + GLYPH[cardText(c)[1]!]!;
 const cards = (s: string) => parseCards(s)!;
 
 type Placement = { slot: string; card: string };
-type StreetWant = {
-  /** `49.8%`, or `—` for a street the board has not reached. */
-  figure: string;
-  /** `P2 49.6`, one per other hand; empty where not reached. */
-  others: string[];
-  /** The column's spoken label, which carries the word the picture leaves off. */
+type RowWant = {
+  /** Per street: `49.8%`, or `—` for a street the board has not reached. */
+  cells: Record<Street, string>;
+  /** The row's spoken label, which carries the word the picture leaves off. */
   label: string;
 };
 type Case = {
@@ -41,7 +39,10 @@ type Case = {
   placements: Placement[];
   /** Whether *Run it out* is on the odds screen for this table. */
   button: boolean;
-  streets: Record<Street, StreetWant>;
+  /** How many cards the one board shows. */
+  boardCards: number;
+  /** A row per hand, in seat order. */
+  rows: RowWant[];
   /** The box at the foot: the verdict on the river, else what is still to come. Null until a street is counted. */
   foot: { title: string; detail: string | null } | null;
 };
@@ -63,24 +64,24 @@ function build(title: string, hands: string[], board: string, dead = ''): Case {
   if (oddsProblem(input) !== null) throw new Error(`${title}: ${oddsProblem(input)}`);
   const button = boardCards.length >= 3;
   const r = runOut(input);
-  const streets = {} as Record<Street, StreetWant>;
   let last: Street = 'preflop';
-  for (const s of STREETS) {
-    const o = r.get(s);
-    if (o === undefined) {
-      streets[s] = { figure: '—', others: [], label: `${STREET_LABEL[s]}: not reached` };
-      continue;
+  for (const s of STREETS) if (r.has(s)) last = s;
+  const rows: RowWant[] = full.map((_, seat) => {
+    const cells = {} as Record<Street, string>;
+    const spoken: string[] = [];
+    for (const s of STREETS) {
+      const o = r.get(s);
+      if (o === undefined) {
+        cells[s] = '—';
+        spoken.push(`${STREET_LABEL[s]} not reached`);
+        continue;
+      }
+      const tone = oddsTone(standings(o.seats)[seat]!, { name: 'dark', amber: '' }, s === 'river');
+      cells[s] = runOutFigure(o.seats[seat]!.win);
+      spoken.push(`${STREET_LABEL[s]} ${cells[s]}, ${tone.word.toLowerCase()}`);
     }
-    last = s;
-    const tone = oddsTone(standings(o.seats)[0]!, { name: 'dark', amber: '' }, s === 'river');
-    streets[s] = {
-      figure: runOutFigure(o.seats[0]!.win),
-      others: o.seats.slice(1).map((x, i) => otherFigure(i + 1, x.win)),
-      label: `${STREET_LABEL[s]}: ${o.seats
-        .map((x, i) => `Player ${i + 1} ${runOutFigure(x.win)}${i === 0 ? `, ${tone.word.toLowerCase()}` : ''}`)
-        .join('; ')}`,
-    };
-  }
+    return { cells, label: `Player ${seat + 1}: ${spoken.join('; ')}` };
+  });
   const foot =
     last === 'river'
       ? (() => {
@@ -88,7 +89,7 @@ function build(title: string, hands: string[], board: string, dead = ''): Case {
           return { title: v.title, detail: v.detail };
         })()
       : { title: stillToCome(last, r.get(last)!.boards), detail: null };
-  return { title, seats, placements, button, streets, foot };
+  return { title, seats, placements, button, boardCards: boardCards.length, rows, foot };
 }
 
 const cases: Case[] = [

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseCards, showdown, type Hand } from '@poker-club/core';
-import { otherFigure, parseRunOutParams, playersNamed, runOutFigure, runOutParams, stillToCome, verdictOf } from './runOut';
+import { parseRunOutParams, playersNamed, runOutFigure, runOutParams, stillToCome, verdictOf } from './runOut';
 
 const hand = (s: string): Hand => parseCards(s)! as unknown as Hand;
 const cards = (s: string) => parseCards(s)!;
@@ -13,12 +13,6 @@ describe('the figures, as board 19 prints them', () => {
     expect(runOutFigure(1)).toBe('100%');
     expect(runOutFigure(0)).toBe('0%');
     expect(runOutFigure(0.0049)).toBe('0.5%');
-  });
-
-  it('the other hands under it: P2 49.9, P2 0', () => {
-    expect(otherFigure(1, 0.4988)).toBe('P2 49.9');
-    expect(otherFigure(1, 0)).toBe('P2 0');
-    expect(otherFigure(2, 0.12)).toBe('P3 12');
   });
 });
 

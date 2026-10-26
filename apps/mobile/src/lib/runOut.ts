@@ -20,7 +20,7 @@ import { grouped } from './oddsStatus';
  * against the board's own strings where the board draws one.
  *
  * ⚠ COPY NOT DRAWN, beyond what the boards print. The boards draw the four
- * street names, `50.1%` / `100%`, `P2 49.9`, *1,712,304 boards still to come*,
+ * street names, `50.1%` / `100%`, *1,712,304 boards still to come*,
  * *990 boards still to come*, *44 cards could still come*, and *Player 1 won on
  * the river · A pair of kings beats a pair of deuces*. A split pot, a street the
  * board has not reached (`—`), and the title's *All in before the flop* on a
@@ -36,17 +36,13 @@ export const STREET_LABEL: Readonly<Record<Street, string>> = {
 
 /**
  * A figure on the run-out: one decimal, as board 19 prints it — `50.1%`,
- * `64.8%` — and a whole number where the decimal is nought: `100%`, `0`. The
+ * `64.8%` — and a whole number where the decimal is nought: `100%`, `0%`. The
  * calculator's own screen prints two decimals; the picture is read at a
- * glance and the board chose one.
+ * glance and the board chose one. Every figure carries its sign (the owner,
+ * 26 October — the board left it off the small ones).
  */
 export function runOutFigure(x: number): string {
   return `${(x * 100).toFixed(1).replace(/\.0$/, '')}%`;
-}
-
-/** The other hands' figures under the headline: `P2 49.9`, `P3 12` — no sign, as drawn. */
-export function otherFigure(seat: number, x: number): string {
-  return `P${seat + 1} ${(x * 100).toFixed(1).replace(/\.0$/, '')}`;
 }
 
 /**
