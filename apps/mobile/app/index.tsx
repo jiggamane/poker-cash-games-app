@@ -215,7 +215,7 @@ export default function ClubHome() {
         </View>
         <View style={styles.gridRow}>
           <Tile icon="bars" name="My stats" sub="across every group you play in" to="/stats" waiting={fresh} />
-          <Tile icon="spadeCard" name="Poker tools" sub="poker calculator, rules & rulings" to="/tools" />
+          <Tile icon="questionCard" name="Poker tools" sub="poker calculator, rules & rulings" to="/tools" />
         </View>
       </View>
 

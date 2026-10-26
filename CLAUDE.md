@@ -262,11 +262,12 @@ Amounts are integers in minor units. `Money` refuses anything fractional.
 
 ## The app
 
-Expo SDK 57, pinned to what Expo Go supports — see `apps/mobile/AGENTS.md`
+Expo SDK 58, pinned to what Expo Go supports — see `apps/mobile/AGENTS.md`
 before touching a dependency. The ledger is append-only: corrections and voids
 are new rows, never edits.
 
-**This line said 54 until 8 September, three SDKs after the app moved.** It is
+**This line said 54 until 8 September, three SDKs after the app moved, and 57
+until 26 October, four days after Expo Go 58 reached the App Store.** It is
 the exact fault `AGENTS.md` was rewritten to name — a pin that has fallen behind
 Expo Go reads like a pin that is protecting something, and the cost of being
 behind is silent, because an `exposdk:` mismatch is refused with nothing on the
@@ -275,9 +276,9 @@ screen. The version lives in `AGENTS.md` and in the `exposdk:` literal in
 moves with them.
 
 ⚠ `app.json` HAS NO `sdkVersion` FIELD, so the runtime version a publish stamps
-comes from the fallback in that literal — `out.sdkVersion ?? '57.0.0'` — and not
-from the config. It is correct today (the 8 September publish stamped
-`exposdk:57.0.0`, which is what Expo Go 57.0.9 asks for) and it is held up by
+comes from the fallback in that literal — `out.sdkVersion ?? '58.0.0'` — and not
+from the config. It is correct today (Expo Go 58.0.5, in the App Store since 22
+October, asks for `exposdk:58.0.0`, and the literal moved to it on 26 October) and it is held up by
 one hard-coded string rather than by the field it appears to read. **Open:** put
 `sdkVersion` in `app.json` so the two cannot disagree, or say in the config why
 it is deliberately absent.

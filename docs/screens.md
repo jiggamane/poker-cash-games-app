@@ -3229,7 +3229,9 @@ screen behind the tile.
    day earlier on *Poker calculator · ways in*, look 3), a card whose pip is a
    question mark for Rules & rulings, a card with a spade pip where one tile
    stands for both. All three new to `Icon.tsx`; the house `rules` glyph stays
-   Money rules in the drawer.
+   Money rules in the drawer. **26 October: the home tile draws the question
+   card, not the spade** — the owner, from a screenshot of the 25 October
+   build. The spade card stays in `Icon.tsx`, unused.
 2. The grid (board N6) over the rows, after a first round in which a 26-point
    glyph beside the 24-point row name was turned down ("I don't like how the
    icons interact with the titles"). The tile puts the glyph top-left in the
@@ -3274,7 +3276,12 @@ screen behind the tile.
 tools* (the tile and the title), the tile's sub-line *poker calculator, rules &
 rulings*, the Poker tools meta line *nothing here touches the ledger*, and the
 two sub-lines on `/tools` — *hand and pot odds* (the owner's retype of 25 October) and *what
-happened, and what the rule says*. The calculator's own screen was still titled
+happened, and what the rule says*. **The two tile names on `/tools` are *Calculator*
+and *Rulings*, by the owner on 26 October**, from a screenshot of the 25 October
+build: the canvas's *Poker calculator* and *Rules & rulings* both cut to
+*Poker calcu…* and *Rules & ruli…* at 20/800 in a half-width tile on a 393
+phone. The home tile's sub-line keeps the long names, and the screens behind
+keep their titles. The calculator's own screen was still titled
 *Odds calculator* when this was built; it is *Poker calculator* since 26
 October, with the Settings row and `ui-odds.mjs` renamed in the same commit
 (the section below).

@@ -172,7 +172,7 @@ jobs:
       # So the BRANCH comes first now and the update link second, labelled for
       # what each one is. Opening the project from Expo Go's own Home tab is the
       # same thing and needs no link at all: Expo Go asks the branch what is
-      # newest for `exposdk:57.0.0` and gets it.
+      # newest for `exposdk:58.0.0` and gets it.
       #
       # With them, the one property of the update that no link and no publish
       # table shows: which of the two apps this is. A host reads that here or

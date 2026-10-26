@@ -23,6 +23,12 @@ import { home, space, type } from '../src/design/tokens';
  *
  * ⚠ COPY NOT DRAWN by any handoff: the title, the meta line and the two
  * sub-lines are the canvas's, marked UNSURE there (`docs/screens.md`).
+ *
+ * The tile names are *Calculator* and *Rulings*, the owner's call of 26
+ * October: the canvas's *Poker calculator* and *Rules & rulings* both cut to an
+ * ellipsis at 20/800 in a half-width tile on a 393 phone. The home tile's
+ * sub-line still says *poker calculator, rules & rulings* in full, and the
+ * screens behind keep their own titles.
  */
 export default function PokerTools() {
   const t = useTheme();
@@ -31,13 +37,13 @@ export default function PokerTools() {
       <View style={styles.grid}>
         <Tile
           icon="calculator"
-          name="Poker calculator"
+          name="Calculator"
           sub="hand and pot odds"
           onPress={() => router.push({ pathname: '/odds', params: { from: 'tools' } })}
         />
         <Tile
           icon="questionCard"
-          name="Rules & rulings"
+          name="Rulings"
           sub="what happened, and what the rule says"
           onPress={() => router.push({ pathname: '/rules', params: { from: 'tools' } })}
         />
