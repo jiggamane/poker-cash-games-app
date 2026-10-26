@@ -131,6 +131,13 @@ values
 insert into share_grant (session_id, user_id)
 values ('fd000000-0000-0000-0000-000000000001', 'fa000000-0000-0000-0000-000000000005');
 
+-- Since 0021 a game goes only to an account that may take it. Marek and Lena
+-- are founders (the shim invites every emailed account, so they are Full);
+-- Ivo, anonymous, is given Regular by hand — his one host night is what the
+-- pass to him below spends. 14_membership.sql holds the rules themselves.
+insert into entitlement (user_id, plan, source, note)
+values ('fa000000-0000-0000-0000-000000000003', 'regular', 'grant', 'a test');
+
 create temporary table made (id uuid);
 grant all on made to authenticated;
 
@@ -264,6 +271,8 @@ insert into made select pass_night('fd000000-0000-0000-0000-000000000001',
 select as_user('fa000000-0000-0000-0000-000000000003', true);
 select expect_text(can_write_session('fd000000-0000-0000-0000-000000000001')::text, 'true',
   'an anonymous claimed account writes the night it was passed');
+select expect_eq((select count(*) from host_night where session_id = 'fd000000-0000-0000-0000-000000000001'),
+  1, 'and, on Regular, the pass spent his host night on this game (0021)');
 insert into ledger_entry (id, session_id, seq, type, player_id, amount, occurred_at)
 values ('fe000000-0000-0000-0000-000000000003', 'fd000000-0000-0000-0000-000000000001',
         3, 'rebuy', 'fc000000-0000-0000-0000-000000000003', 500, now());

@@ -14,7 +14,7 @@ sequences, and where it disagrees with one of them it says so:
 |---|---|---|
 | `accounts-and-groups.md` | who can get in today, and what blocks the rest | current — its Phase 0/1 are this file's Stages 0/1 |
 | `auth-test-period.md` | the dashboard checklist | current — Stage 0 *is* its seven steps |
-| `pricing-model.md` | what is free, what is paid, the price | **superseded 26 September for tiers and prices** by `design/handoff-game-admin/` (Free / Regular $2.49 / Full $9.99, a host night for Regular) — which names plans differently from the free / pro / club Stage 1 built; the seam in `apps/mobile/src/lib/membership.ts` holds the join open. §7 guardrails stand; §6 "Rails" is superseded — see Stage 4 |
+| `pricing-model.md` | what is free, what is paid, the price | **superseded 26 September for tiers and prices** by `design/handoff-game-admin/` (Free / Regular $2.49 / Full $9.99, a host night for Regular) — joined to the free / pro / club Stage 1 built on 26 October by `0021_membership.sql`: pro and club are Full, `regular` is a third plan value with one host night a billing period. §7 guardrails stand; §6 "Rails" is superseded — see Stage 4 |
 
 ---
 
@@ -176,9 +176,19 @@ the account, but a lock on the app.
 - Tested in `supabase/test/11_accounts.sql` and `planWords.test.ts`. Six new
   strings, all flagged — `docs/screens.md`, the last section.
 
+### Built — `0021_membership.sql`, 26 October
+
+- **The plan is a tier.** `regular` joins pro and club as a plan value;
+  `my_membership()` reads it as Free / Regular / Full (pro and club are Full),
+  with Regular's host night: spent once per game per person, on the server,
+  by `pass_night` and by opening a night; the period is the person's own month
+  from the day the plan started. `admin_grant('eva@…', 'regular')` and
+  `admin_create_promo('regular', …)` work as for pro. `14_membership.sql`.
+
 ### Before a friend can use it (you, in the dashboard)
 
 1. Run `supabase/migrations/0018_accounts.sql`, then `state-check.sql` — row 18.
+   Then `0021_membership.sql` — row 21.
 2. Seed `app_admin` (above).
 3. **Authentication → Emails → Change email address.** An anonymous account
    that attaches an email receives *this* mail, not the magic link. The stock

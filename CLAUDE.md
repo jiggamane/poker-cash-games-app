@@ -140,17 +140,18 @@ stands. Read them newest first:
   on opening a game. It speaks on Tonight, the pass sheet, the announcement,
   `/late-changes`, `/players`, `/watch` and O1's gate, and nowhere else. The
   server side is `0020_pass_to_a_person.sql`; the 0016 code sheets are gone.
-  ⚠ **It names the tiers Free / Regular / Full, and `0018_accounts.sql` on
-  `main` (the day before) names an account's plan free / pro / club.** Nothing
-  built has both: the database gates only starting a group, and
-  `apps/mobile/src/lib/membership.ts` is the one seam that answers for taking a
-  game — Full for everybody, per rev 18 § 4 — so no gate and no "can't take it"
-  row shows on any phone yet. **Owner, 26 September: Free / Regular / Full are
-  the names**, and the admin sees each person's tier on the pass sheet at the
-  moment of passing — nowhere else. How 0018's pro / club map onto them is
-  still open (`docs/screens.md`). Its `README.md`
-  § 7 lists fourteen strings marked UNSURE; `docs/screens.md` has the seven
-  places the app departs from it and why.
+  **It names the tiers Free / Regular / Full, and `0018_accounts.sql` names an
+  account's plan free / pro / club. Joined 26 October, `0021_membership.sql`:
+  pro and club are Full; Regular is a plan of its own with one host night a
+  billing period, counted on the server and checked inside `pass_night` and on
+  opening a night.** `apps/mobile/src/lib/membership.ts` is still the one seam
+  every screen reads, fed by `membershipStore.ts` from `my_membership()` and
+  `roster_membership()`; with no answer it still says Full and `known: false`.
+  **Owner, 26 September: Free / Regular / Full are the names**, and the admin
+  sees each person's tier on the pass sheet at the moment of passing — nowhere
+  else. Not yet seen on a phone with a Regular on it (`docs/screens.md`). Its
+  `README.md` § 7 lists fourteen strings marked UNSURE; `docs/screens.md` has
+  the seven places the app departs from it and why.
 
 - **`design/handoff-game-settings/`, cut 10 September.** O1 New
   session, and the sheet behind it. **The settings collapse and the seating
@@ -262,11 +263,12 @@ Amounts are integers in minor units. `Money` refuses anything fractional.
 
 ## The app
 
-Expo SDK 57, pinned to what Expo Go supports — see `apps/mobile/AGENTS.md`
+Expo SDK 58, pinned to what Expo Go supports — see `apps/mobile/AGENTS.md`
 before touching a dependency. The ledger is append-only: corrections and voids
 are new rows, never edits.
 
-**This line said 54 until 8 September, three SDKs after the app moved.** It is
+**This line said 54 until 8 September, three SDKs after the app moved, and 57
+until 26 October, four days after Expo Go 58 reached the App Store.** It is
 the exact fault `AGENTS.md` was rewritten to name — a pin that has fallen behind
 Expo Go reads like a pin that is protecting something, and the cost of being
 behind is silent, because an `exposdk:` mismatch is refused with nothing on the
@@ -275,9 +277,9 @@ screen. The version lives in `AGENTS.md` and in the `exposdk:` literal in
 moves with them.
 
 ⚠ `app.json` HAS NO `sdkVersion` FIELD, so the runtime version a publish stamps
-comes from the fallback in that literal — `out.sdkVersion ?? '57.0.0'` — and not
-from the config. It is correct today (the 8 September publish stamped
-`exposdk:57.0.0`, which is what Expo Go 57.0.9 asks for) and it is held up by
+comes from the fallback in that literal — `out.sdkVersion ?? '58.0.0'` — and not
+from the config. It is correct today (Expo Go 58.0.5, in the App Store since 22
+October, asks for `exposdk:58.0.0`, and the literal moved to it on 26 October) and it is held up by
 one hard-coded string rather than by the field it appears to read. **Open:** put
 `sdkVersion` in `app.json` so the two cannot disagree, or say in the config why
 it is deliberately absent.

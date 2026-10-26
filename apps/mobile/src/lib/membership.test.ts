@@ -1,11 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { Member } from './clubStore';
 import {
   canTakeGame,
+  forgetMemberships,
+  fromRow,
+  gameFor,
   passLine,
   membershipOf,
   passTargets,
   runsLine,
+  setMemberships,
+  tierOfPlan,
   willSpendHostNight,
   type Membership,
 } from './membership';
@@ -14,12 +19,13 @@ import {
  * THE SEAM, HELD TO THE HANDOFF'S RULES — `design/handoff-game-admin/README.md`
  * § 1 and § 2.
  *
- * Two halves. The first holds the rules as written, against memberships built
- * by hand, so the day `membershipOf` returns real answers the screens already
- * do the right thing with them. The second holds what the seam answers TODAY —
- * Full for everybody — because a screen that starts gating people is the
- * regression this file exists to catch, and rev 18 § 4 says it must not happen
- * until membership ships.
+ * Three parts. The first holds the rules as written, against memberships built
+ * by hand. The second holds what the seam answers with NO answer from the
+ * server — Full for everybody, and not a real tier — because a screen that
+ * starts gating people on a placeholder is the regression this file exists to
+ * catch. The third holds the join the owner made on 26 October: pro and club
+ * are Full, Regular is Regular, and the server's rows land in `membershipOf`
+ * by seat.
  */
 
 const member = (id: string, standing: Member['standing'] = 'member'): Member => ({
@@ -93,7 +99,9 @@ describe('the pass sheet’s two lists (README § 2, passTargets)', () => {
   });
 });
 
-describe('what the seam answers today (rev 18 § 4)', () => {
+describe('what the seam answers with no word from the server (rev 18 § 4)', () => {
+  beforeEach(() => forgetMemberships());
+
   it('is Full, for everybody with the app', () => {
     expect(membershipOf(member('anyone'))).toEqual({ ...full, known: false });
     expect(canTakeGame(membershipOf(member('anyone')))).toBe(true);
@@ -140,5 +148,58 @@ describe('the admin sees the tier at the moment of passing (owner, 26 Sept)', ()
     const placeholder = membershipOf(member('anyone'));
     expect(passLine(can(placeholder), true, day)).toBe('At the table · can take it any night');
     expect(passLine(can(placeholder), false, day)).toBe('Not playing tonight · any night');
+  });
+});
+
+describe('the join (owner, 26 October): plans become tiers, and the server answers by seat', () => {
+  beforeEach(() => forgetMemberships());
+
+  it('pro and club are Full; regular is Regular; no plan is Free', () => {
+    expect(tierOfPlan('pro')).toBe('full');
+    expect(tierOfPlan('club')).toBe('full');
+    expect(tierOfPlan('regular')).toBe('regular');
+    expect(tierOfPlan('free')).toBe('free');
+  });
+
+  it('a row from the server is a real, known membership', () => {
+    expect(
+      fromRow({ tier: 'regular', host_night_used: true, host_night_renews_on: '2026-11-15T00:00:00Z', spent_on_this: false }),
+    ).toEqual({ tier: 'regular', hostNightUsed: true, hostNightRenewsOn: new Date('2026-11-15T00:00:00Z'), known: true });
+    expect(fromRow({ tier: 'full', host_night_used: false, host_night_renews_on: null, spent_on_this: false })).toEqual(full);
+  });
+
+  it('answers each seat the server spoke about, the caller under their own row, and the placeholder for the rest', () => {
+    setMemberships({
+      byPlayer: new Map([['ivo', regularUsed], ['tomas', free]]),
+      mine: { playerId: 'marek', membership: full },
+      sessionId: 'night-1',
+      spentBy: new Set(['ivo']),
+    });
+    expect(membershipOf(member('ivo'))).toEqual(regularUsed);
+    expect(membershipOf(member('tomas'))).toEqual(free);
+    expect(membershipOf(member('marek'))).toEqual(full);
+    expect(membershipOf(member('lena'))).toEqual({ ...full, known: false });
+  });
+
+  it('lists a Regular whose night THIS game already spent, for nothing — and refuses them on another', () => {
+    setMemberships({
+      byPlayer: new Map([['ivo', regularUsed]]),
+      mine: null,
+      sessionId: 'night-1',
+      spentBy: new Set(['ivo']),
+    });
+    const same = passTargets([member('ivo')], null, gameFor('night-1'));
+    expect(same.can.map((r) => r.member.id)).toEqual(['ivo']);
+    expect(same.can[0].spendsHostNight).toBe(false);
+
+    const other = passTargets([member('ivo')], null, gameFor('night-2'));
+    expect(other.can).toHaveLength(0);
+    expect(other.cannot[0]).toMatchObject({ why: 'host_night_used' });
+  });
+
+  it('forgets everything on sign-out', () => {
+    setMemberships({ byPlayer: new Map([['ivo', free]]), mine: null, sessionId: null, spentBy: new Set() });
+    forgetMemberships();
+    expect(membershipOf(member('ivo'))).toEqual({ ...full, known: false });
   });
 });

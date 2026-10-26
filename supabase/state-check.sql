@@ -12,7 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0020.
+-- Last checked against migrations 0001–0021.
 -- =============================================================================
 
 with c as (
@@ -130,6 +130,11 @@ probe as (
      and exists (select 1 from p where proname = 'pass_night')
      and exists (select 1 from p where proname = 'night_role')) as m20,
 
+    -- 0021 the plan is a tier and Regular's host night is counted
+    (to_regclass('public.host_night') is not null
+     and exists (select 1 from p where proname = 'my_membership')
+     and exists (select 1 from p where proname = 'roster_membership')) as m21,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
@@ -174,6 +179,7 @@ select v.n,
                                                       x.m18, 'run supabase/migrations/0018_accounts.sql — then seed app_admin, docs/accounts-roadmap.md'),
     (19, '0019 counts, guests and rules on the live feed', x.m19, 'run supabase/migrations/0019_live_feed.sql'),
     (20, '0020 the game is passed to a person by name', x.m20, 'run supabase/migrations/0020_pass_to_a_person.sql'),
+    (21, '0021 membership: tiers, and Regular''s host night', x.m21, 'run supabase/migrations/0021_membership.sql'),
     (90, 'all fourteen tables present',                  x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),

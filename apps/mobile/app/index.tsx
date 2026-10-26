@@ -11,6 +11,7 @@ import { useElapsed } from '../src/lib/elapsed';
 import { useOnline } from '../src/lib/online';
 import { useNotice } from '../src/lib/handover';
 import { canTakeGame, membershipOf } from '../src/lib/membership';
+import { useMemberships } from '../src/lib/membershipStore';
 import { PassCard } from '../src/components/PassCard';
 import { toggleTheme } from '../src/lib/themeStore';
 import {
@@ -99,10 +100,14 @@ export default function ClubHome() {
   /* A game arriving, or going, while the reader is here — state 9b. */
   const notice = useNotice();
   /*
-   * WHETHER THIS PHONE MAY OPEN A GAME — `membership.ts`, the seam, which
-   * answers yes for everybody today. State 16: after a night closes, a lapsed
-   * membership is one line on the start row and the gate behind it.
+   * WHETHER THIS PHONE MAY OPEN A GAME — `membership.ts`, the seam, fed by the
+   * server since 0021 (`useMemberships` asks, and re-renders when the answer
+   * lands; until it does the seam answers yes). State 16: after a night
+   * closes, a lapsed membership is one line on the start row and the gate
+   * behind it. Home is the screen that warms the answer, so O1 — which reads
+   * it once, synchronously, to decide whether to gate — finds it there.
    */
+  useMemberships(null);
   const mayOpen = admin === undefined || canTakeGame(membershipOf(admin));
 
   // H8 · first paint. The club is known long before the night is read off the
@@ -215,7 +220,7 @@ export default function ClubHome() {
         </View>
         <View style={styles.gridRow}>
           <Tile icon="bars" name="My stats" sub="across every group you play in" to="/stats" waiting={fresh} />
-          <Tile icon="spadeCard" name="Poker tools" sub="poker calculator, rules & rulings" to="/tools" />
+          <Tile icon="questionCard" name="Poker tools" sub="poker calculator, rules & rulings" to="/tools" />
         </View>
       </View>
 

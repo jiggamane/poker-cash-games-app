@@ -3,7 +3,7 @@
  */
 
 export type Plan = {
-  plan: 'free' | 'pro' | 'club';
+  plan: 'free' | 'regular' | 'pro' | 'club';
   source: 'founder' | 'grant' | 'promo' | 'apple' | 'google' | 'web' | null;
   /** Null is for ever, or no plan at all. */
   endsAt: string | null;
@@ -17,7 +17,7 @@ export type Plan = {
  */
 export function planLine(p: Plan, now: Date = new Date()): string {
   if (p.plan === 'free') return 'Free';
-  const name = p.plan === 'club' ? 'Club' : 'Pro';
+  const name = p.plan === 'club' ? 'Club' : p.plan === 'regular' ? 'Regular' : 'Pro';
   const why = p.source === 'founder' ? ' · founder' : '';
   if (p.endsAt === null) return `${name}${why}`;
   const ends = new Date(p.endsAt);
@@ -39,4 +39,17 @@ export const CODE_OPENS_NOTHING = 'That code does not open anything. Check it wi
 export function isNoPlanForGroup(error: unknown): boolean {
   const raw = error instanceof Error ? error.message : String(error);
   return /book_insert_needs_plan/.test(raw);
+}
+
+/**
+ * True when the server refused a new night because the account may not open
+ * one: no plan, or a Regular whose host night this period is spent.
+ *
+ * `0021_membership.sql`'s trigger says it with this prefix and nothing else
+ * does. The phone gates O1 first (states 13–15), so this is only ever seen by
+ * a night opened before the plan ran out, or on a phone whose answer was stale.
+ */
+export function isHostNightGate(error: unknown): boolean {
+  const raw = error instanceof Error ? error.message : String(error);
+  return /host_night_gate:/.test(raw);
 }

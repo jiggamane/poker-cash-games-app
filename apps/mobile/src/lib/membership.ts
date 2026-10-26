@@ -5,26 +5,30 @@ import type { Member } from './clubStore';
  *
  * `design/handoff-game-admin/` (cut 26 September) gates taking a game — opening
  * one, or being passed one — by membership: Full always, Regular while this
- * billing period's host night is unused, Free never. Rev 18 § 4 says to build
+ * billing period's host night is unused, Free never. Rev 18 § 4 said to build
  * none of it and keep ONE seam that answers yes to everything until membership
- * ships, and this file is that seam. Every screen the handoff draws is built
- * against these four functions; the gates and the "can't take it" rows appear
- * the day this file returns real answers, and not before.
+ * ships, and this file was that seam. Every screen the handoff draws is built
+ * against these functions.
  *
- * ⚠ TWO VOCABULARIES, AND THIS IS WHERE THEY MEET. The handoff (and rev 18
- * `01-product-logic.md` § 4, and `docs/pricing-model.md` since this cut) name
- * the tiers Free / Regular / Full. `0018_accounts.sql` on main, cut the day
- * before, names an account's plan free / pro / club, and `my_plan()` is its one
- * reader. Nothing built has both: the database enforces a plan only for STARTING
- * A GROUP, and this seam answers for taking a game. When the two are joined it
- * is one mapping in `membershipOf` below (pro → full is the obvious one; where
- * Regular's host night lives is the owner's call) and nothing on any screen.
- * `docs/screens.md` carries the question.
+ * SINCE 26 OCTOBER THE SEAM HAS A REAL ANSWER. The owner joined the two
+ * vocabularies — `0018_accounts.sql`'s plan free / pro / club and the handoff's
+ * tiers Free / Regular / Full — as: pro and club are Full, and Regular is a
+ * plan of its own with ONE host night a billing period, counted on the server
+ * (`0021_membership.sql`). This file is still pure: `membershipStore.ts` asks
+ * the server (`my_membership`, `roster_membership`) and hands the answers to
+ * `setMemberships` below; `membershipOf` reads them. Until an answer lands,
+ * and on a phone the server gives no answer to (a member reading GR4), the
+ * seam answers the placeholder it always did — Full, and `known: false`, so no
+ * screen prints a tier it made up.
  *
- * TODAY: everyone with the app is Full. A name the host typed (`name_only`) has
- * nobody behind it, which is not a membership fact and is not answered here —
- * `passTargets` asks it first, because the handoff runs the checks in that
- * order: claimed, then membership, then not the current admin.
+ * The server is the floor under every answer here: `pass_night` refuses what
+ * `passTargets` would not list, and opening a night is checked by a trigger.
+ * A stale list on the phone costs a refused pass, never a wrong one.
+ *
+ * A name the host typed (`name_only`) has nobody behind it, which is not a
+ * membership fact and is not answered here — `passTargets` asks it first,
+ * because the handoff runs the checks in that order: claimed, then membership,
+ * then not the current admin.
  */
 
 export type Tier = 'free' | 'regular' | 'full';
@@ -51,14 +55,85 @@ export interface Membership {
 /** The seam's placeholder: allows everything, and is not anybody's real tier. */
 const FULL: Membership = { tier: 'full', hostNightUsed: false, hostNightRenewsOn: null, known: false };
 
+/** A plan as `my_plan()` names it. `0021` maps it to a tier: pro and club are Full. */
+export type Plan = 'free' | 'regular' | 'pro' | 'club';
+
+export const tierOfPlan = (plan: Plan): Tier =>
+  plan === 'pro' || plan === 'club' ? 'full' : plan;
+
+/** One row as `my_membership()` and `roster_membership()` return it. */
+export interface MembershipRow {
+  tier: Tier;
+  host_night_used: boolean;
+  host_night_renews_on: string | null;
+  /** Whether the night asked about already spent this person's host night. */
+  spent_on_this: boolean;
+}
+
+export const fromRow = (r: MembershipRow): Membership => ({
+  tier: r.tier,
+  hostNightUsed: r.host_night_used,
+  hostNightRenewsOn: r.host_night_renews_on === null ? null : new Date(r.host_night_renews_on),
+  known: true,
+});
+
 /**
- * A person's membership. THE SEAM: it answers Full for everybody.
+ * What the server has said, and about which night.
  *
- * Takes the roster row so the call sites are already right when there is a
- * real answer to look up by it.
+ *   byPlayer    each claimed seat the caller may read — the host's phone and
+ *               the phone recording a night get the roster; a member gets none
+ *   mine        the caller's own, under the roster row that is theirs
+ *   spentBy     the seats whose host night the night asked about already spent
  */
-export function membershipOf(_member: Pick<Member, 'id'>): Membership {
+interface Answers {
+  byPlayer: Map<string, Membership>;
+  mine: { playerId: string; membership: Membership } | null;
+  sessionId: string | null;
+  spentBy: Set<string>;
+}
+
+let answers: Answers = { byPlayer: new Map(), mine: null, sessionId: null, spentBy: new Set() };
+
+/** The store hands the server's answers in here. Tests do too. */
+export function setMemberships(next: {
+  byPlayer: ReadonlyMap<string, Membership>;
+  mine: { playerId: string; membership: Membership } | null;
+  sessionId: string | null;
+  spentBy: ReadonlySet<string>;
+}): void {
+  answers = {
+    byPlayer: new Map(next.byPlayer),
+    mine: next.mine,
+    sessionId: next.sessionId,
+    spentBy: new Set(next.spentBy),
+  };
+}
+
+/** Back to the placeholder — a sign-out, and the tests. */
+export function forgetMemberships(): void {
+  answers = { byPlayer: new Map(), mine: null, sessionId: null, spentBy: new Set() };
+}
+
+/**
+ * A person's membership: the server's answer for their seat, the caller's own
+ * under their own row, and the placeholder for everybody else.
+ */
+export function membershipOf(member: Pick<Member, 'id'>): Membership {
+  const row = answers.byPlayer.get(member.id);
+  if (row !== undefined) return row;
+  if (answers.mine !== null && answers.mine.playerId === member.id) return answers.mine.membership;
   return FULL;
+}
+
+/**
+ * The night the answers were asked about, as `passTargets` and
+ * `willSpendHostNight` take it: who this game already landed on. Empty for a
+ * night the server was not asked about, and for a new one.
+ */
+export function gameFor(sessionId: string | null): { hostNightSpentBy: ReadonlySet<string> } {
+  return {
+    hostNightSpentBy: sessionId !== null && sessionId === answers.sessionId ? answers.spentBy : new Set(),
+  };
 }
 
 /** Whether this membership can take a game tonight — open one, or be passed one. */
@@ -110,7 +185,9 @@ export function passTargets(
     const membership = membershipOf(member);
     if (member.standing === 'name_only') {
       cannot.push({ kind: 'cannot', member, membership, why: 'name_only' });
-    } else if (!canTakeGame(membership)) {
+    } else if (!canTakeGame(membership) && !game.hostNightSpentBy.has(member.id)) {
+      /* A Regular whose night THIS game already spent can have it back for
+         nothing — README § 1, and what `pass_night` allows. */
       cannot.push({
         kind: 'cannot',
         member,
