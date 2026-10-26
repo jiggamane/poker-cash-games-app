@@ -26,7 +26,8 @@ const name = (c: Card): string => {
   return t[0]! + GLYPH[t[1]!]!;
 };
 const grouped = (x: number): string => String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
+/** Two decimals; a whole number once the board is complete (decided 26 October). */
+const pct = (x: number, whole: boolean): string => (whole ? `${Math.round(x * 100)}%` : `${(x * 100).toFixed(2)}%`);
 
 type Placement = { slot: string; card: string; decoy?: string };
 type Case = {
@@ -113,7 +114,7 @@ for (let i = 0; i < 36; i++) {
     figures = state.map((st) => {
       if (st !== 'full') return null;
       const s = r.seats[k++]!;
-      return [pct(s.win), pct(s.tie)];
+      return [pct(s.win, board.length === 5), pct(s.tie, board.length === 5)];
     });
     meta = `${grouped(r.boards)} ${r.boards === 1 ? 'board' : 'boards'} dealt · exact`;
   }

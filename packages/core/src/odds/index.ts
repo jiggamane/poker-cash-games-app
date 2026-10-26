@@ -6,3 +6,4 @@ export * from './potOdds';
 export * from './standing';
 export * from './runout';
 export * from './showdown';
+export * from './hand';

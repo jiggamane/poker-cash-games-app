@@ -11,10 +11,12 @@ import {
   groupOuts,
   oddsProblem,
   outsToCome,
+  riverHands,
   standings,
   type Card,
   type Hand,
   type Odds,
+  type RiverHand,
   type SeatOuts,
   type Standing,
 } from '@poker-club/core';
@@ -22,7 +24,7 @@ import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Keypad } from '../src/components/Keypad';
 import { OutsNames, OutsTable } from '../src/components/OutsBlock';
-import { CARD_FACE, Pip, SUIT_GLYPH, inkOf } from '../src/components/PlayingCard';
+import { CARD_FACE, HandCard, Pip, SUIT_GLYPH, inkOf } from '../src/components/PlayingCard';
 import { PotOddsCard, type PotField } from '../src/components/PotOddsCard';
 import { Screen } from '../src/components/Screen';
 import { amountOf, useTypedAmount } from '../src/components/typedAmount';
@@ -68,6 +70,16 @@ import { runOutParams } from '../src/lib/runOut';
  * footer, one job, so a card cannot be dealt while an amount is being typed.
  * ⚠ NOT DRAWN: *Done*, the *—* a Needs shows before a call is typed, and the
  * *You* tag on the players list (the board tags the pot odds card only).
+ *
+ * THE RIVER (decided 26 October, board 21). Once the fifth card is down nothing
+ * is left to count, and the card says so three ways: the figures are whole —
+ * 100%, 0%, 50% on a chop — the hand's name sits under them (*Pair of kings*,
+ * with *· king kicker* only when the kicker decided the pot), and the chevron,
+ * now on every player in the hand, opens the five cards that make it. The
+ * names, the five and the kicker are `riverHands()` in core, off the engine's
+ * own value; the outs never show on the river, and neither does pot odds.
+ * ⚠ NOT DRAWN: the chevron's label *Hand for Player N*; a chop reads *Too close*
+ * on both cards, which wants a word of its own (`oddsTone`).
  *
  * The board is at the top and the seats under it, three to begin with and one
  * more per tap of *Add a player* up to nine — the owner's instruction, 24
@@ -178,7 +190,12 @@ function remove(t: Table, c: Card): Table {
   };
 }
 
-const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
+/**
+ * A share as the card prints it: two decimals while boards are still to come,
+ * a whole number once the board is complete and the share is a verdict —
+ * decided 26 October. One function, so the two forms cannot drift apart.
+ */
+const pct = (x: number, whole = false): string => (whole ? `${Math.round(x * 100)}%` : `${(x * 100).toFixed(2)}%`);
 
 export default function OddsCalculator() {
   const t = useTheme();
@@ -208,7 +225,8 @@ export default function OddsCalculator() {
   const [editing, setEditing] = useState<PotField | null>(null);
   const potField = useTypedAmount(0);
   const callField = useTypedAmount(0);
-  /* Which seats have their outs open. Only a hand that is chasing has any. */
+  /* Which seats have their chevron open: the outs on the turn, the five cards on
+     the river. Only a hand that is chasing has outs; every hand has a hand. */
   const [outsOpen, setOutsOpen] = useState<ReadonlySet<number>>(new Set());
 
   const used = useMemo(
@@ -344,6 +362,14 @@ export default function OddsCalculator() {
     [shown, inputKey],
   );
   const boardComplete = boardCards.length === BOARD_CARDS;
+  /* ON THE RIVER: every hand named, its five cards, and the kicker that decided
+     it — core's, for the result on screen. */
+  const river: RiverHand[] | null = useMemo(
+    () => (shown !== null && boardComplete ? riverHands(input) : null),
+    // `inputKey` IS the cards, as above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [shown, inputKey],
+  );
   const toggleOuts = (seat: number) =>
     setOutsOpen((now) => {
       const next = new Set(now);
@@ -528,7 +554,10 @@ export default function OddsCalculator() {
           const groups =
             standing !== null && standing.kind !== 'ahead' && outsAll !== null ? groupOuts(outsAll[idx]?.wins ?? []) : [];
           const hasOuts = groups.length > 0;
-          const open = hasOuts && outsOpen.has(seat);
+          /* The river: the hand this seat holds, named, with its five cards behind the same chevron. */
+          const settled = river !== null && idx >= 0 ? (river[idx] ?? null) : null;
+          const hasControl = hasOuts || settled !== null;
+          const open = hasControl && outsOpen.has(seat);
           return (
             <View key={seat} nativeID={`seat-${seat + 1}`} style={[styles.seatCard, { backgroundColor: t.surface }]}>
               <View style={styles.seatRow}>
@@ -571,15 +600,15 @@ export default function OddsCalculator() {
                     </View>
                   ) : (
                     <View style={styles.figures}>
-                      <Figure label="Win" value={o === null ? '—' : pct(o.win)} color={tone?.color} />
-                      <Figure label="Tie" value={o === null ? '—' : pct(o.tie)} />
+                      <Figure label="Win" value={o === null ? '—' : pct(o.win, boardComplete)} color={tone?.color} />
+                      <Figure label="Tie" value={o === null ? '—' : pct(o.tie, boardComplete)} />
                     </View>
                   )}
                 </View>
-                {hasOuts && (
+                {hasControl && (
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`Outs for Player ${seat + 1}`}
+                    accessibilityLabel={`${settled !== null ? 'Hand' : 'Outs'} for Player ${seat + 1}`}
                     aria-expanded={open}
                     hitSlop={8}
                     onPress={() => toggleOuts(seat)}
@@ -589,7 +618,22 @@ export default function OddsCalculator() {
                   </Pressable>
                 )}
               </View>
-              {hasOuts && (open ? <OutsTable seat={seat + 1} groups={groups} /> : <OutsNames seat={seat + 1} groups={groups} />)}
+              {settled !== null ? (
+                <>
+                  <Text nativeID={`hand-name-${seat + 1}`} style={[styles.handName, { color: t.text }]}>
+                    {settled.label}
+                  </Text>
+                  {open && (
+                    <View nativeID={`hand-five-${seat + 1}`} style={styles.handFive}>
+                      {settled.five.map((c) => (
+                        <HandCard key={c} card={c} />
+                      ))}
+                    </View>
+                  )}
+                </>
+              ) : (
+                hasOuts && (open ? <OutsTable seat={seat + 1} groups={groups} /> : <OutsNames seat={seat + 1} groups={groups} />)
+              )}
             </View>
           );
         })}
@@ -742,6 +786,10 @@ const styles = StyleSheet.create({
   chevron: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   seatLabel: { ...type.rowDetail },
   youTag: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 9 },
+  /* The river: the hand's name under the figures, 15/500 in the text colour, and
+     its five cards in a row under that — board 21's own measures. */
+  handName: { fontSize: 15, fontWeight: '500', lineHeight: 20, paddingTop: 10 },
+  handFive: { flexDirection: 'row', gap: 4, paddingTop: 8 },
   youText: { fontSize: 11, fontWeight: '700' },
   /* The two figures on one line, wrapping to two only if the text setting
      leaves them no room — never truncating. */
