@@ -20,6 +20,7 @@ import * as Clipboard from 'expo-clipboard';
 import { readBackup, restoreBackup, useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
 import { myPlan, planLine } from '../src/lib/plan';
+import { clearMemberships } from '../src/lib/membershipStore';
 import { handedInOn, useLate } from '../src/lib/handover';
 import { usePending } from '../src/lib/pending';
 
@@ -439,6 +440,8 @@ export default function Settings() {
             <Action
               label="Sign out"
               onPress={() => {
+                /* Nobody's tier outlives their account on this phone. */
+                clearMemberships();
                 void supabase.auth.signOut();
               }}
               last

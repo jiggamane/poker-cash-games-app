@@ -10,7 +10,8 @@ import { block, radius, space, type } from '../src/design/tokens';
 import { useClub, type Member } from '../src/lib/clubStore';
 import { passTo, PassBlockedError } from '../src/lib/handover';
 import { claimedSeat } from '../src/lib/identity';
-import { passLine, passTargets, type PassRow } from '../src/lib/membership';
+import { gameFor, passLine, passTargets, type PassRow } from '../src/lib/membership';
+import { useMemberships } from '../src/lib/membershipStore';
 import { useNight } from '../src/lib/nightStore';
 import { explainServerError, isSupabaseConfigured } from '../src/lib/supabase';
 
@@ -33,10 +34,13 @@ import { explainServerError, isSupabaseConfigured } from '../src/lib/supabase';
  * changes. When it returns the sheet closes and Tonight reads WAITING ON LENA
  * (7) off the role line.
  *
- * THE MEMBERSHIP ANSWERS COME FROM THE SEAM — `membership.ts` — which answers
- * Full for everybody today, so the only row under *Can't take it tonight* on
- * any phone is a name with nobody behind it. The other rows, the confirm and
- * the nobody state are built and never drawn until the seam says otherwise.
+ * THE MEMBERSHIP ANSWERS COME FROM THE SEAM — `membership.ts`, fed by the
+ * server for this night (`useMemberships(sessionId)`, 0021): each claimed
+ * seat's tier, whether its host night is spent, and whether THIS game already
+ * spent it. Until an answer lands the seam answers Full for everybody and the
+ * only row under *Can't take it tonight* is a name with nobody behind it. The
+ * server runs the same check inside `pass_night`, so a stale list here is a
+ * refused pass (6), never a wrong one.
  */
 type Stage = 'list' | 'confirm' | 'failed';
 
@@ -66,14 +70,13 @@ export default function PassGame() {
   const [busy, setBusy] = useState(false);
   const [why, setWhy] = useState<string | null>(null);
 
+  const answered = useMemberships(sessionId);
   const { can, cannot } = useMemo(
-    () =>
-      passTargets(club?.members ?? [], me, {
-        /* Who this game has already spent a host night on — nobody, until the
-           seam keeps the answer. */
-        hostNightSpentBy: new Set<string>(),
-      }),
-    [club, me],
+    /* `gameFor` is who this game has already spent a host night on, so the
+       same game going back to a Regular is listed, and costs nothing. */
+    () => passTargets(club?.members ?? [], me, gameFor(sessionId)),
+    /* `answered` is the server's answer landing; the list is read again. */
+    [club, me, sessionId, answered],
   );
   const seated = useMemo(
     () => new Set((night?.players ?? []).filter((p) => p.atTable).map((p) => p.id)),

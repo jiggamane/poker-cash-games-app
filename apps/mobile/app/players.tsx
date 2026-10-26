@@ -10,6 +10,7 @@ import { control, radius, space, type } from '../src/design/tokens';
 import { addMember, reconcileSeats, useClub, type Member } from '../src/lib/clubStore';
 import { claimedSeat } from '../src/lib/identity';
 import { canTakeGame, membershipOf, runsLine } from '../src/lib/membership';
+import { useMemberships } from '../src/lib/membershipStore';
 import { useNight } from '../src/lib/nightStore';
 import { useIsAdmin } from '../src/lib/whoIsReading';
 
@@ -85,6 +86,14 @@ export default function Roster() {
       if (clubId !== null) void reconcileSeats(clubId);
     }, [clubId]),
   );
+
+  /*
+   * WHO CAN RUN A GAME — the seam, fed by the server for the host's phone and
+   * for the phone recording tonight (0021). A member asking gets no rows and
+   * the view keeps the placeholder: everybody with the app under *Can take a
+   * game*, nobody under *Watch only*, which is what it drew before.
+   */
+  useMemberships(night?.sessionId ?? null);
 
   const trimmed = name.trim();
   const clash = club?.members.some((m) => m.name.toLowerCase() === trimmed.toLowerCase()) ?? false;

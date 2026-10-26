@@ -11,7 +11,7 @@ import {
   type RoundingMode,
 } from '@poker-club/core';
 import { isSupabaseConfigured, supabase } from './supabase';
-import { isNoPlanForGroup } from './planWords';
+import { isHostNightGate, isNoPlanForGroup } from './planWords';
 import { SqliteOutboxStore } from './outboxStore';
 import { leavesThePhone } from './queueable';
 import { canSend, whoIs } from './who';
@@ -683,7 +683,21 @@ async function write(w: RowWrite): Promise<void> {
       onConflict: w.onConflict,
       ...(w.ignoreDuplicates === true ? { ignoreDuplicates: true } : {}),
     });
-  if (error) throw new Error(`${w.table}: ${error.message}`);
+  if (error) {
+    /*
+     * A night the server would not open — `0021`: no plan, or a Regular's host
+     * night already spent this period. The phone gated O1 before this night
+     * was made, so it is a plan that ran out between the two, or a stale
+     * answer. The night stays on the phone, like a group with no plan.
+     * ⚠ COPY NOT DRAWN, listed in `docs/screens.md`.
+     */
+    if (w.table === 'session' && isHostNightGate(error.message)) {
+      throw new Error(
+        'This account can’t open a game on the server right now — no plan, or the host night is used. The night is safe on this phone and goes up once it can.',
+      );
+    }
+    throw new Error(`${w.table}: ${error.message}`);
+  }
 }
 
 /**
