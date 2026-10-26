@@ -226,3 +226,28 @@ The names the check drives: `Outs for Player N` (the chevron, with `aria-expande
 `#outs-row-N-<category>`, each fanned card an image labelled `T♥`. Rename any of them and
 `scripts/ui-odds.mjs` changes with it.
 
+## The river, decided 26 October
+
+Four decisions the owner took on the canvas (the minimal river frame and the new
+`River` board, picture 21 of `decided-2026-10-25.md`), built the same day.
+
+1. **Whole numbers on a settled board.** On the river every figure is whole:
+   `100%` / `0%`, `50%` / `50%` on a chop, `Tie 0%`. Every other street keeps two
+   decimals. One `pct` in `odds.tsx`.
+2. **The hand, named**, under the figures: *Pair of kings*, *Flush, ace high*,
+   *Royal flush*, with a kicker only where it decided the pot — *Pair of aces ·
+   king kicker* against *Pair of aces · queen kicker*. `nameHand()`,
+   `decidingKicker()` and `riverHands()` in `packages/core/src/odds/hand.ts`,
+   off `evaluate()`'s own packing.
+3. **The five cards behind the chevron.** On the river the chevron is on every
+   hand (*Hand for Player N*) and opens the five cards that make it, 27 × 38,
+   the making cards first (`bestFive()`, `HandCard`). No outs chips there.
+4. **The river state of the screen:** the fifth card dealt, `1 board dealt ·
+   exact`, *Winner* / *Beaten*, and no pot odds row.
+
+**Flagged:** the plural of two is *deuces* (the run-out's wording in
+`showdown.ts`; the brief preferred *twos* — one array to change); a chop reads
+*Too close* on both cards and wants a word; the chevron's label and the five
+cards' spoken names are not drawn. The scenarios are `scripts/odds-river-cases.ts`
+(`ui-odds.mjs --river`); the names the check drives are `Hand for Player N`,
+`#hand-name-N` and `#hand-five-N`.

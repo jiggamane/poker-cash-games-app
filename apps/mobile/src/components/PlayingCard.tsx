@@ -70,7 +70,35 @@ export function FanCard({ card, first }: { card: Card; first: boolean }) {
   );
 }
 
+/**
+ * A card in a player's five on the river — 27 × 38, smaller than the 36 × 50
+ * of a place on the table (board 21: the hand is a footnote to the figure, not
+ * a second table). Laid side by side with a 4 pt gap, not fanned, so the rank
+ * and the pip sit centred as on a place.
+ */
+export const HAND_W = 27;
+export const HAND_H = 38;
+
+export function HandCard({ card }: { card: Card }) {
+  const ink = inkOf(card);
+  return (
+    <View accessible accessibilityRole="image" accessibilityLabel={cardName(card)} style={styles.hand}>
+      <Text style={[styles.handRank, { color: ink }]}>{RANKS[card >> 2]}</Text>
+      <Pip suit={card & 3} size={9} color={ink} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  hand: {
+    width: HAND_W,
+    height: HAND_H,
+    borderRadius: 4,
+    backgroundColor: CARD_FACE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  handRank: { fontSize: 12, fontWeight: '800', lineHeight: 13, marginBottom: 1 },
   fan: {
     width: FAN_W,
     height: FAN_H,

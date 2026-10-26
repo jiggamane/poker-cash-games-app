@@ -6,6 +6,7 @@
  *   node scripts/ui-odds.mjs --bail     stop at the first table that is wrong
  *   node scripts/ui-odds.mjs --outs     only the player cards and their outs
  *   node scripts/ui-odds.mjs --run-out  only the run-out: the button and the picture
+ *   node scripts/ui-odds.mjs --river    only the river: the hands named, the five cards, whole numbers
  *
  * `npm run odds:verify` holds the ENGINE to the facts about poker. This holds
  * the screen to the engine: that a card tapped for Player 5 lands in Player 5's
@@ -36,6 +37,9 @@ const outsCases = JSON.parse(
 const runOutCases = JSON.parse(
   execFileSync('npx', ['vite-node', 'scripts/odds-runout-cases.ts'], { encoding: 'utf8', maxBuffer: 1 << 26 }),
 );
+const riverCases = JSON.parse(
+  execFileSync('npx', ['vite-node', 'scripts/odds-river-cases.ts'], { encoding: 'utf8', maxBuffer: 1 << 26 }),
+);
 
 const browser = await chromium.launch();
 let failed = 0;
@@ -43,6 +47,11 @@ let failed = 0;
 const onlyOuts = process.argv.includes('--outs') || process.argv.includes('--run-out');
 /** `--run-out`: only the run-out — the button on the odds screen and the picture behind it. */
 const onlyRunOut = process.argv.includes('--run-out');
+/** `--river`: only the river state of the player cards. */
+const onlyRiver = process.argv.includes('--river');
+if (onlyRiver) {
+  /* The river is its own part; nothing else runs with it. */
+}
 
 /*
  * THE PRESS CALLOUT (option D, 24 October). A card pressed in the deck shows an
@@ -55,7 +64,7 @@ const onlyRunOut = process.argv.includes('--run-out');
  * no touches; release removes it AND deals the card; a slide off removes it and
  * deals nothing.
  */
-if (!onlyOuts) {
+if (!onlyOuts && !onlyRiver) {
   const fail = [];
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
@@ -182,7 +191,7 @@ const cutOff = (page, selectors = ['#pot-odds']) =>
     return out;
   }, selectors);
 
-if (!onlyOuts) {
+if (!onlyOuts && !onlyRiver) {
   const fail = [];
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
@@ -210,7 +219,7 @@ if (!onlyOuts) {
   if (fail.length) failed++;
 }
 
-for (const [n, c] of (onlyOuts ? [] : potCases).entries()) {
+for (const [n, c] of (onlyOuts || onlyRiver ? [] : potCases).entries()) {
   for (const [w, h, scheme] of [[393, 852, 'dark'], [320, 568, 'light']]) {
     /* The small light phone only for the scenarios that print the most. */
     if (w === 320 && ![0, 1, 3, 6].includes(n)) continue;
@@ -287,7 +296,7 @@ for (const [n, c] of (onlyOuts ? [] : potCases).entries()) {
  * inside it and inside the screen, closed and open, at two phones.
  */
 const SEATS = ['[id^="seat-"]'];
-for (const [n, c] of (onlyRunOut ? [] : outsCases).entries()) {
+for (const [n, c] of (onlyRunOut || onlyRiver ? [] : outsCases).entries()) {
   for (const [w, h, scheme] of [[393, 852, 'dark'], [320, 568, 'light']]) {
     const fail = [];
     const page = await browser.newPage({ viewport: { width: w, height: h }, colorScheme: scheme });
@@ -359,7 +368,75 @@ for (const [n, c] of (onlyRunOut ? [] : outsCases).entries()) {
   }
 }
 
-for (const [n, c] of (onlyOuts ? [] : cases).entries()) {
+
+/*
+ * THE RIVER (decided 26 October, board 21). Once the board is complete the
+ * player cards change three ways, and `odds-river-cases.ts` — which asks core —
+ * says what each seat has to show: the figures are WHOLE NUMBERS (100%, 0%, 50%
+ * on a chop; two decimals on the turn, held on the same tables for contrast);
+ * the hand's NAME sits under them, with `· king kicker` appended only when the
+ * kicker decided; and the chevron is on EVERY hand in the hand — labelled
+ * `Hand for Player N`, never `Outs for` — opening the FIVE cards that make it,
+ * the making cards first, as images named `K♣`. No outs chips on the river.
+ * Every line of every seat card sits inside it and the screen, closed and open,
+ * at two phones.
+ */
+for (const [n, c] of (onlyOuts && !onlyRiver ? [] : riverCases).entries()) {
+  for (const [w, h, scheme] of [[393, 852, 'dark'], [320, 568, 'light']]) {
+    const fail = [];
+    const page = await browser.newPage({ viewport: { width: w, height: h }, colorScheme: scheme });
+    page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
+    try {
+      await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
+      await page.waitForSelector('#screen-title');
+      await dealTable(page, c);
+      const meta = await page.locator('#screen-meta').textContent();
+      if (meta !== c.meta) fail.push(`meta: "${meta}", wanted "${c.meta}"`);
+      for (const f of await cutOff(page, SEATS)) fail.push(`closed: ${f}`);
+      for (const [i, want] of c.want.entries()) {
+        const seat = i + 1;
+        const tag = `Player ${seat}`;
+        const text = (await page.locator(`#seat-${seat}`).innerText()).replace(/\s+/g, ' ');
+        const win = /Win (\S+)/.exec(text)?.[1] ?? null;
+        const tie = /Tie (\S+)/.exec(text)?.[1] ?? null;
+        if (win !== want.win || tie !== want.tie) fail.push(`${tag}: reads Win ${win} Tie ${tie}, wanted Win ${want.win} Tie ${want.tie}`);
+        const word = (await page.locator(`#seat-${seat}-word`).count()) ? (await page.locator(`#seat-${seat}-word`).innerText()).trim().toLowerCase() : null;
+        if (word !== (want.word === null ? null : want.word.toLowerCase())) fail.push(`${tag}: the word reads ${JSON.stringify(word)}, wanted ${JSON.stringify(want.word)}`);
+        const handControl = page.getByRole('button', { name: `Hand for ${tag}`, exact: true });
+        const outsControl = page.getByRole('button', { name: `Outs for ${tag}`, exact: true });
+        const hasHand = (await handControl.count()) > 0;
+        const hasOuts = (await outsControl.count()) > 0;
+        if (hasHand !== want.hand) fail.push(`${tag}: the hand control is ${hasHand ? 'on' : 'off'} the card, wanted ${want.hand ? 'on' : 'off'}`);
+        if (hasOuts !== want.outs) fail.push(`${tag}: the outs control is ${hasOuts ? 'on' : 'off'} the card, wanted ${want.outs ? 'on' : 'off'}`);
+        if (c.river && (await page.locator(`#outs-names-${seat}`).count()) > 0) fail.push(`${tag}: outs chips on the river`);
+        const name = (await page.locator(`#hand-name-${seat}`).count()) ? (await page.locator(`#hand-name-${seat}`).innerText()).replace(/\s+/g, ' ').trim() : null;
+        if (name !== want.label) fail.push(`${tag}: the hand reads ${JSON.stringify(name)}, wanted ${JSON.stringify(want.label)}`);
+        if (!want.hand) continue;
+        if ((await page.locator(`#hand-five-${seat}`).count()) > 0) fail.push(`${tag}: the five cards show before the chevron is pressed`);
+        if ((await handControl.getAttribute('aria-expanded')) !== 'false') fail.push(`${tag}: the control does not say it is closed`);
+        await handControl.click();
+        if ((await handControl.getAttribute('aria-expanded')) !== 'true') fail.push(`${tag}: the control does not say it is open`);
+        const five = page.locator(`#hand-five-${seat}`);
+        if ((await five.count()) === 0) {
+          fail.push(`${tag}: opening did not show the five cards`);
+        } else {
+          const shown = await five.locator('[role="img"]').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
+          if (shown.join(' ') !== want.five.join(' ')) fail.push(`${tag}: the five read ${shown.join(' ')}, wanted ${want.five.join(' ')}`);
+        }
+        for (const f of await cutOff(page, SEATS)) fail.push(`${tag} open: ${f}`);
+        await handControl.click();
+        if ((await five.count()) > 0) fail.push(`${tag}: closing did not hide the five cards`);
+      }
+    } catch (e) {
+      fail.push(String(e.message ?? e).split('\n')[0]);
+    }
+    await page.close();
+    console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  river ${String(n + 1).padStart(2)}  ${c.title}  ·  ${w}${scheme === 'light' ? ' light' : ''}`);
+    for (const f of fail) console.log(`        ${f}`);
+    if (fail.length) failed++;
+  }
+}
+for (const [n, c] of (onlyOuts || onlyRiver ? [] : cases).entries()) {
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   const fail = [];
   /* A crash is a failure in its own right and says so. Until this was here one
@@ -402,7 +479,8 @@ for (const [n, c] of (onlyOuts ? [] : cases).entries()) {
         fail.push(`Player ${seat + 1}: no row`);
         continue;
       }
-      const shown = [...text.matchAll(/(\d+\.\d\d%)/g)].map((m) => m[1]);
+      /* Two decimals, or a whole number on a completed board. */
+      const shown = [...text.matchAll(/(\d+(?:\.\d\d)?%)/g)].map((m) => m[1]);
       const want = c.figures[seat];
       if (want === null) {
         if (shown.length !== 0) fail.push(`Player ${seat + 1} is not in the hand but shows ${shown.join(' ')}`);
@@ -435,7 +513,7 @@ for (const [n, c] of (onlyOuts ? [] : cases).entries()) {
  */
 const STREETS = ['preflop', 'flop', 'turn', 'river'];
 const squash = (s) => (s ?? '').replace(/\s+/g, ' ').trim();
-for (const [n, c] of runOutCases.entries()) {
+for (const [n, c] of (onlyRiver ? [] : runOutCases).entries()) {
   for (const [w, h, scheme] of [[393, 852, 'dark'], [320, 568, 'light']]) {
     /* The small light phone for the scenarios that print the most. */
     if (w === 320 && ![0, 3, 5].includes(n)) continue;
@@ -502,7 +580,7 @@ for (const [n, c] of runOutCases.entries()) {
     if (fail.length) failed++;
   }
 }
-{
+if (!onlyRiver) {
   const fail = [];
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
@@ -523,7 +601,7 @@ await browser.close();
 
 console.log(
   failed === 0
-    ? `\nthe odds screen shows exactly what the engine says, ${cases.length} tables played through, and the pot odds card what potOdds() says, ${potCases.length} more, and the player cards and their outs what core says, ${outsCases.length} more, and the run-out every street's figures, ${runOutCases.length} more.`
-    : `\n${failed} check${failed === 1 ? '' : 's'} failed: a table that shows something other than what the engine says, the press callout, a player card, or the run-out.`,
+    ? `\nthe odds screen shows exactly what the engine says, ${cases.length} tables played through, and the pot odds card what potOdds() says, ${potCases.length} more, and the player cards and their outs what core says, ${outsCases.length} more, and the river its hands, ${riverCases.length} more, and the run-out every street's figures, ${runOutCases.length} more.`
+    : `\n${failed} check${failed === 1 ? '' : 's'} failed: a table that shows something other than what the engine says, the press callout, a player card, the river, or the run-out.`,
 );
 process.exit(failed === 0 ? 0 : 1);

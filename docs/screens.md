@@ -3118,6 +3118,56 @@ hand alone, not for a hand no card wins; closed, the kinds and not one digit; op
 count (as announced AND as seen) and its cards in core's order; the control's expanded state; and
 every line of every seat card inside its box and the screen, closed and open. `--outs` runs only that part.
 
+*The river — decided 26 October (canvas board `River`, the handoff's picture 21, and the
+minimal river frame), built the same day.* Once the fifth board card is down nothing is left to
+count, and every player card in the hand says so three ways:
+
+1. **Whole numbers.** `Win 100%`, `Tie 0%`; on a chop `Win 0%`, `Tie 100%`; a three-way chop
+   `33%`. Every other street keeps its two decimals. One function in `odds.tsx` (`pct`) prints
+   both forms, keyed on the board being complete, so they cannot drift apart; `odds-ui-cases.ts`
+   prints its expectations the same way.
+2. **The hand, named**, 15/500 in the text colour under the figures: *Pair of kings*, *Two pair,
+   aces and kings*, *Three of a kind, sevens*, *Straight, nine to king* (the wheel: *ace to
+   five*), *Flush, ace high*, *Full house, kings full of sevens*, *Four of a kind, sevens*,
+   *Straight flush, five to nine*, *Royal flush*, *High card, ace*. **A kicker is named only when
+   it decided**: the same hand of the same ranks on both sides and a kicker that differs, measured
+   against the best OTHER hand the way the word is — *Pair of aces · king kicker* against *Pair of
+   aces · queen kicker*; the pair of kings against the pair of deuces names none. A straight, a
+   flush, a full house and a straight flush have no kickers: two that differ are different hands.
+3. **The five cards behind the chevron.** The chevron is on **every** hand on the river — every
+   hand has a hand to show — labelled *Hand for Player N* (never *Outs for*), and opens, in place,
+   the five cards that make the hand at 27 × 38 (`HandCard`, against the places' 36 × 50), the
+   making cards first and the kickers in descending order: `K♣ K♥ A♥ Q♥ J♥`. No outs chips and no
+   outs table on the river; pot odds does not show there either.
+
+All three read the engine's own value: `nameHand()`, `bestFive()`, `decidingKicker()` and
+`riverHands()` in `packages/core/src/odds/hand.ts` work off `evaluate()`'s packing and the seven
+cards, there is no second ranker, and `hand.test.ts` holds every category, the kicker case, the
+wheel, the royal, a chop, the canonical river, and that the five re-evaluate to the seven's value
+on 2,000 random hands.
+
+*Where the app departs from the board, and why:*
+
+1. **⚠ *Deuces*, not *twos*.** The brief for the build preferred *twos*; `showdown.ts` already
+   names ranks for the run-out's foot (*a pair of kings beats a pair of deuces*, which is the
+   canvas's own wording) and one app should not say both, so the river's names share its
+   `RANK_PLURAL`. One array to change if the owner wants *twos*.
+2. **A chop reads *Too close* on both cards.** The colour rule says a lead inside 8 points is,
+   and 50 / 50 is; it is an odd word for a split and wants one of its own (*Split*?). Not mine
+   to invent; flagged on the canvas and in the handoff.
+3. **⚠ NOT DRAWN, so mine:** the chevron's label *Hand for Player N* and its expanded state;
+   the kicker suffix's form (` · king kicker`, the owner's example); the five cards' spoken names
+   (`K♣`, as the fanned cards). The board draws the name, the five and the whole numbers.
+4. **Three or more hands:** each hand is measured against the best other, so two losers with the
+   same pair name their kickers against the winner, not against each other.
+
+`ui-odds.mjs` holds, for every table in `odds-river-cases.ts` (four rivers and a turn, at 393 dark
+and 320 light): the figures as printed — whole on the river, two decimals on the turn — the word,
+the hand's name with the kicker only where it decided, the chevron on every hand on the river as
+*Hand for* and on no favourite on the turn as *Outs for*, no outs chips on the river, the five
+cards in core's order once opened and gone once closed, the control's expanded state, and every
+line of every seat card inside its box and the screen. `--river` runs only that part.
+
 *Open:* how it reads at 120% text, which the rule pass measures only on the
 stops a night produces; and the Expo Go timing above. *Where it lives* was
 answered on 25 October — the home grid's Poker tools tile, and still Settings;
