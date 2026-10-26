@@ -3220,7 +3220,9 @@ screen behind the tile.
    day earlier on *Poker calculator · ways in*, look 3), a card whose pip is a
    question mark for Rules & rulings, a card with a spade pip where one tile
    stands for both. All three new to `Icon.tsx`; the house `rules` glyph stays
-   Money rules in the drawer.
+   Money rules in the drawer. **26 October: the home tile draws the question
+   card, not the spade** — the owner, from a screenshot of the 25 October
+   build. The spade card stays in `Icon.tsx`, unused.
 2. The grid (board N6) over the rows, after a first round in which a 26-point
    glyph beside the 24-point row name was turned down ("I don't like how the
    icons interact with the titles"). The tile puts the glyph top-left in the

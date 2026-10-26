@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
+import type { TextInputInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
 import { useTheme } from '../src/design/useTheme';
@@ -339,7 +340,9 @@ function Typing({
   onCheck: () => void;
 }) {
   const t = useTheme();
-  const second = useRef<TextInput>(null);
+  // The instance type, not the component: React Native 0.88 (SDK 58) stopped
+  // accepting the class as a ref type.
+  const second = useRef<TextInputInstance>(null);
 
   const clean = (v: string) => v.toUpperCase().replace(/[^A-Z0-9]/g, '');
   const first = code.slice(0, 5);
