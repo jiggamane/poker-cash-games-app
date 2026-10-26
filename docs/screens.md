@@ -166,22 +166,32 @@ screens by `check:ui` — a game actually crossing a table has not been watched.
    *N on the roster · k invited*. The add-a-name field is the admin's alone now
    (19 is read-only), which it was not before.
 
-*The seam, and the two vocabularies.* `membership.ts` answers Full for
-everybody — rev 18 § 4's "build none of it, keep one policy seam" — so on every
-phone the pass sheet lists every claimed member under *Can take it* and only a
-name-only row under *Can't take it tonight*; `/players` has nobody under *Watch
-only*; O1 opens with no gate and no note; home's start card never says the
-membership lapsed; the confirm (4), the nobody state (5), the host-night
-sentence on the card (10) and the gates (13–15) are built and unreachable.
-**⚠ `0018_accounts.sql` names plans free / pro / club and this cut names tiers
-Free / Regular / Full**, and `docs/pricing-model.md` now says the latter is
-final while `docs/accounts-roadmap.md` builds the former. The database enforces
-a plan only for starting a group; passing to an account with no plan is not
-refused yet. Joining the two is one mapping in `membershipOf` and a check at the
-top of `pass_night` — and which tier a Pro is, and where Regular's host night
-lives, is the owner's, not decided here. `docs/design-request-game-admin.md`
+*The seam, and the two vocabularies — joined 26 October.* `membership.ts`
+answered Full for everybody — rev 18 § 4's "build none of it, keep one policy
+seam" — until the owner joined the two vocabularies: **pro and club are Full;
+Regular is a plan of its own with one host night a billing period, counted on
+the server.** `0021_membership.sql` is the join — `my_membership()` and
+`roster_membership(ids, night)` answer by seat, `pass_night` refuses Free and a
+Regular whose night is spent (and spends it as the game moves), and a trigger
+on `session` does the same for the phone opening a night — and
+`membershipStore.ts` feeds those answers into the seam (`setMemberships`), so
+the pass sheet's *Can't take it tonight* rows, the confirm (4), the nobody state
+(5), GR4's *Watch only*, home's lapsed line (16) and O1's gates (13–15) are all
+reachable now, on the host's phone and on the phone recording tonight. A member
+reading GR4 gets no rows from the server and still sees the placeholder, by
+design: nobody but the phone passing the game sees a tier. **Nothing of this has
+been seen on a phone with a Regular on it** — `14_membership.sql` proves the
+server and `membership.test.ts` the seam. `docs/design-request-game-admin.md`
 is the prompt re-issued against Pro / Club on 26 September; the boards that
-came back answered the 25 September version.
+came back answered the 25 September version, which is the one built.
+
+*What the join decided without a board, and should be checked:* the billing
+period is the person's own month from the day their Regular started (a store
+subscription, Stage 4, will push `ends_at` and not move the anchor); a Regular
+may start a group, because `can_start_group()` reads "any plan" and a Regular
+has one night to open in it; a host whose plan lapsed cannot open a NEW night
+on the server (state 16's gate, now with a floor under it), and a night the
+phone opened anyway stays on the phone with the sync sentence below.
 
 *The owner's call, 26 September: **Free / Regular / Full are the names**, and
 the admin sees each person's tier on the pass sheet at the moment of passing.*
@@ -209,7 +219,13 @@ Lena" as a feed row. Not on screen: "Marek admins the game" (3 above) and
 ended · renew to open one*, because the seam has no date to give and no tier
 name to print; both wait on the seam.
 
-*Strings that are mine, none drawn:* the card's title when the other phone has
+*Strings that are mine, none drawn:* `pass_night`'s two refusals, seen only
+when the sheet's list was stale — *That person is on Free and can’t run a game.*
+and *That person has used their host night. It comes back on 15 Nov.*; the sync
+sentence for a night the server would not open — *This account can’t open a
+game on the server right now — no plan, or the host night is used. The night is
+safe on this phone and goes up once it can.* (`sync.ts`, `isHostNightGate`);
+the card's title when the other phone has
 no seat in the group ("The game was passed to you" / "The game was taken
 back"); "Another phone is recording" where the recorder has no name; "From
 other phones" on `/late-changes` when changes came from more than one; "From
@@ -2851,9 +2867,12 @@ with no account:
 
 `/settings`, Account:
 
-5. A **Plan** row: `Free`, `Pro · founder`, `Club · until 25 Sept 2027`
-   (`planLine`, tested in `planWords.test.ts`). Drawn only when signed in and
-   the server answered — never a guess.
+5. A **Plan** row: `Free`, `Pro · founder`, `Club · until 25 Sept 2027`, and
+   since 0021 `Regular · until 25 Nov 2026` (`planLine`, tested in
+   `planWords.test.ts`). Drawn only when signed in and the server answered —
+   never a guess. ⚠ It prints the plan's server word, so a founder reads
+   `Pro · founder` where every other screen would say Full; whether the row
+   should say the tier instead is open.
 
 The sync error, wherever a failed sync is shown:
 

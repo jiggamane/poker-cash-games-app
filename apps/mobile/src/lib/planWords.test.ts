@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isNoPlanForGroup, planLine } from './planWords';
+import { isHostNightGate, isNoPlanForGroup, planLine } from './planWords';
 
 describe('the plan row', () => {
   const now = new Date('2026-09-25T12:00:00Z');
@@ -15,6 +15,12 @@ describe('the plan row', () => {
   it('a plan with an end names the day', () => {
     expect(planLine({ plan: 'club', source: 'promo', endsAt: '2027-09-25T12:00:00Z' }, now)).toBe(
       'Club · until 25 Sept 2027',
+    );
+  });
+
+  it('Regular is a plan of its own (0021)', () => {
+    expect(planLine({ plan: 'regular', source: 'promo', endsAt: '2026-11-25T12:00:00Z' }, now)).toBe(
+      'Regular · until 25 Nov 2026',
     );
   });
 
@@ -35,5 +41,16 @@ describe('telling a refused group from any other refusal', () => {
   it('and nothing else — a plain RLS refusal is some other fault', () => {
     expect(isNoPlanForGroup('new row violates row-level security policy for table "book"')).toBe(false);
     expect(isNoPlanForGroup(new Error('Network request failed'))).toBe(false);
+  });
+});
+
+describe('telling a refused night from any other refusal', () => {
+  it('reads the prefix 0021 raises with', () => {
+    expect(isHostNightGate("host_night_gate: this account's host night is used until 15 Nov.")).toBe(true);
+    expect(isHostNightGate(new Error('session: host_night_gate: this account has no plan, and opening a game needs one.'))).toBe(true);
+  });
+
+  it('and nothing else', () => {
+    expect(isHostNightGate('new row violates row-level security policy for table "session"')).toBe(false);
   });
 });

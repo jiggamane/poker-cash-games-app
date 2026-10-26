@@ -140,17 +140,18 @@ stands. Read them newest first:
   on opening a game. It speaks on Tonight, the pass sheet, the announcement,
   `/late-changes`, `/players`, `/watch` and O1's gate, and nowhere else. The
   server side is `0020_pass_to_a_person.sql`; the 0016 code sheets are gone.
-  ⚠ **It names the tiers Free / Regular / Full, and `0018_accounts.sql` on
-  `main` (the day before) names an account's plan free / pro / club.** Nothing
-  built has both: the database gates only starting a group, and
-  `apps/mobile/src/lib/membership.ts` is the one seam that answers for taking a
-  game — Full for everybody, per rev 18 § 4 — so no gate and no "can't take it"
-  row shows on any phone yet. **Owner, 26 September: Free / Regular / Full are
-  the names**, and the admin sees each person's tier on the pass sheet at the
-  moment of passing — nowhere else. How 0018's pro / club map onto them is
-  still open (`docs/screens.md`). Its `README.md`
-  § 7 lists fourteen strings marked UNSURE; `docs/screens.md` has the seven
-  places the app departs from it and why.
+  **It names the tiers Free / Regular / Full, and `0018_accounts.sql` names an
+  account's plan free / pro / club. Joined 26 October, `0021_membership.sql`:
+  pro and club are Full; Regular is a plan of its own with one host night a
+  billing period, counted on the server and checked inside `pass_night` and on
+  opening a night.** `apps/mobile/src/lib/membership.ts` is still the one seam
+  every screen reads, fed by `membershipStore.ts` from `my_membership()` and
+  `roster_membership()`; with no answer it still says Full and `known: false`.
+  **Owner, 26 September: Free / Regular / Full are the names**, and the admin
+  sees each person's tier on the pass sheet at the moment of passing — nowhere
+  else. Not yet seen on a phone with a Regular on it (`docs/screens.md`). Its
+  `README.md` § 7 lists fourteen strings marked UNSURE; `docs/screens.md` has
+  the seven places the app departs from it and why.
 
 - **`design/handoff-game-settings/`, cut 10 September.** O1 New
   session, and the sheet behind it. **The settings collapse and the seating
