@@ -33,9 +33,11 @@ import { oddsTone } from '../src/lib/oddsTone';
 import { runOutParams } from '../src/lib/runOut';
 
 /**
- * Odds calculator — Texas hold'em, win and tie per hand.
+ * Poker calculator — Texas hold'em, win and tie per hand. *Odds calculator*
+ * until 26 October; the owner named it on the canvas "Poker calculator · ways
+ * in" and the name is the same everywhere it is written.
  *
- * A PUSH from Settings (Chrome A, back → Settings): a tool you stay in and
+ * A PUSH (Chrome A, back → Settings, Poker tools or Tonight): a tool you stay in and
  * play with, with no Save at the end of it. Nine seats of two cards, the five
  * board cards, a row of dead cards, and the deck underneath to deal from. Odds
  * are calculated as soon as two hands are complete, over every board that can
@@ -111,6 +113,19 @@ const emptyTable = (seats = FIRST_SEATS): Table => ({
 
 const FIRST: Slot = { kind: 'seat', seat: 0, i: 0 };
 
+/**
+ * THE DEALT CARDS SURVIVE LEAVING THE SCREEN.
+ *
+ * Since Tonight is a way in (26 October) the calculator is opened mid-hand,
+ * and a host who steps back to record a rebuy and returns expects the table
+ * they set, not an empty one. The last table and the place the next card goes
+ * live here for as long as the app runs — in memory, never in the ledger and
+ * never on disk: a hand is not a record of anything. *New hand* clears it
+ * through the state it mirrors. The checks load the route fresh for every
+ * table (`ui-odds.mjs`), so none of them see a table carried over.
+ */
+let kept: { table: Table; active: Slot } | null = null;
+
 const sameSlot = (a: Slot, b: Slot): boolean =>
   a.kind === b.kind &&
   (a.kind === 'dead' || (a.kind === 'seat' && b.kind === 'seat' ? a.seat === b.seat && a.i === b.i : a.kind === 'board' && b.kind === 'board' && a.i === b.i));
@@ -167,12 +182,18 @@ const pct = (x: number): string => `${(x * 100).toFixed(2)}%`;
 
 export default function OddsCalculator() {
   const t = useTheme();
-  /* Where back goes, for the screen reader: Settings as before, or Poker tools
-     since the home grid (25 October) reaches the calculator through it. */
+  /* Where back goes, for the screen reader: Settings as before; Poker tools
+     since the home grid (25 October) reaches the calculator through it; and
+     Tonight since the role line's icon does (26 October). */
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const backTo = from === 'tools' ? 'Poker tools' : 'Settings';
-  const [table, setTable] = useState<Table>(emptyTable);
-  const [active, setActive] = useState<Slot>(FIRST);
+  const backTo = from === 'tonight' ? 'Tonight' : from === 'tools' ? 'Poker tools' : 'Settings';
+  /* THE TABLE OUTLIVES THE SCREEN — `kept`, above. A host who steps out
+     mid-hand to record a rebuy comes back to the cards they dealt. */
+  const [table, setTable] = useState<Table>(() => kept?.table ?? emptyTable());
+  const [active, setActive] = useState<Slot>(() => kept?.active ?? FIRST);
+  useEffect(() => {
+    kept = { table, active };
+  }, [table, active]);
   /* Both are kept WITH the table they belong to. A result is only ever shown
      for the cards it was calculated from — see `shown` below. */
   const [result, setResult] = useState<{ key: string; odds: Odds } | null>(null);
@@ -440,7 +461,7 @@ export default function OddsCalculator() {
 
   return (
     <Screen
-      title="Odds calculator"
+      title="Poker calculator"
       backTo={backTo}
       meta={meta}
       metaTrailing={restart}

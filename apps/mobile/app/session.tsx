@@ -13,6 +13,7 @@ import { Icon } from '../src/components/Icon';
 import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
 import { NameTag, RebuyBar, TotalTag } from '../src/components/RebuyConfirmation';
 import { Screen } from '../src/components/Screen';
+import { ToolIcons } from '../src/components/ToolIcons';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, tabular, type } from '../src/design/tokens';
 import { clockLabel, useElapsed } from '../src/lib/elapsed';
@@ -267,6 +268,12 @@ export default function Session() {
           empty={empty}
         />
       }
+      /* The two poker tools at the right end of the role line — the same
+         spot on the recording phone and a watcher's, by the owner's decision
+         of 25 October ("Poker calculator · ways in"), and NOT a row in the
+         drawer, whose every control records money. They dim with the drawer
+         like the rest of the head. `ToolIcons` has the rest. */
+      metaTrailing={<ToolIcons />}
       scroll={false}
       dimmed={drawer}
       footerPad={false}
@@ -699,7 +706,7 @@ function RoleLine({
   const t = useTheme();
   if (recording) {
     return (
-      <Text style={[styles.role, { color: t.muted }]} numberOfLines={1}>
+      <Text style={[styles.role, styles.roleLine, { color: t.muted }]} numberOfLines={1}>
         <Text style={[styles.roleLead, { color: t.text }]}>You’re recording</Text>
         {` · ${empty ? 'opened' : 'started'} ${clockLabel(startedAt)}`}
       </Text>
@@ -844,6 +851,11 @@ const styles = StyleSheet.create({
      colour, one line that never wraps. The name is the one part that gives. */
   roleRow: { flexDirection: 'row', alignItems: 'center', flexShrink: 1, minWidth: 0 },
   role: { fontSize: 13, fontWeight: '500', ...tabular },
+  /* The one-Text form of the line, beside the tool icons: it has to be the
+     child that shrinks, or the icons are pushed off the edge on a 360 phone.
+     The ` · ` fragments inside `roleRow` deliberately do not take this — the
+     name is the part that gives there, not the separators. */
+  roleLine: { flexShrink: 1, minWidth: 0 },
   roleLead: { fontSize: 13, fontWeight: '600' },
   roleName: { fontSize: 13, fontWeight: '500', flexShrink: 1 },
 

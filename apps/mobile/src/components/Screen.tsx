@@ -71,8 +71,10 @@ export function Screen({
    * a long name truncates while the time and the first word never do. One
    * string cannot say which part gives, so the screen builds the row and this
    * draws it in the meta line's slot, at the meta line's indent, with the meta
-   * line's name for `ui-audit.mjs`. `meta` and `metaTrailing` are ignored
-   * when it is given.
+   * line's name for `ui-audit.mjs`. `meta` is ignored when it is given;
+   * `metaTrailing` is not, since 26 October — Tonight's role line carries the
+   * two poker-tool icons at its right end on every phone (`ToolIcons`), and
+   * the row then takes the floor a meta line with a control takes (B68).
    */
   metaNode?: ReactNode;
   /**
@@ -181,9 +183,18 @@ export function Screen({
      so `ui-audit.mjs` can say which side of the scroller it ended up on. */
   const sub = (
     <>
-      {metaNode !== undefined && (
+      {metaNode !== undefined && metaTrailing === undefined && (
         <View nativeID="screen-meta" style={styles.metaNode}>
           {metaNode}
+        </View>
+      )}
+
+      {metaNode !== undefined && metaTrailing !== undefined && (
+        <View style={styles.metaRow}>
+          <View nativeID="screen-meta" style={styles.metaNodeShared}>
+            {metaNode}
+          </View>
+          {metaTrailing}
         </View>
       )}
 
@@ -374,6 +385,9 @@ const styles = StyleSheet.create({
     paddingBottom: chrome.metaPadBottom,
   },
   metaShared: { ...type.pushMeta, flexShrink: 1 },
+  /* The element form of `metaShared`: it takes what the control leaves and
+     its own text shrinks inside it, which is what `minWidth: 0` is for. */
+  metaNodeShared: { flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 },
   lede: { ...type.lede, marginTop: 8, marginHorizontal: space.page, flexShrink: 0 },
 
   // Every board draws the footer `14px 20px 0` with `gap: 10` — E2b, E4, E5,

@@ -199,7 +199,7 @@ if (!onlyOuts) {
     }
     /* And Settings no longer has a switch for it. */
     await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
-    await page.getByRole('button', { name: 'Odds calculator' }).first().waitFor({ state: 'visible', timeout: 10_000 });
+    await page.getByRole('button', { name: 'Poker calculator' }).first().waitFor({ state: 'visible', timeout: 10_000 });
     if ((await page.getByRole('switch', { name: /pot odds/i }).count()) > 0) fail.push('Settings still has a Pot odds switch');
   } catch (e) {
     fail.push(String(e.message ?? e).split('\n')[0]);
@@ -492,7 +492,7 @@ for (const [n, c] of runOutCases.entries()) {
       if (footDetail !== c.foot.detail) fail.push(`the foot's detail reads ${JSON.stringify(footDetail)}, wanted ${JSON.stringify(c.foot.detail)}`);
       for (const f of await cutOff(page, ['#run-out'])) fail.push(f);
       /* And back is a push's back, to the calculator. */
-      if ((await page.getByRole('button', { name: 'Back to Odds calculator', exact: true }).count()) === 0) fail.push('no back button to the calculator');
+      if ((await page.getByRole('button', { name: 'Back to Poker calculator', exact: true }).count()) === 0) fail.push('no back button to the calculator');
     } catch (e) {
       fail.push(String(e.message ?? e).split('\n')[0]);
     }

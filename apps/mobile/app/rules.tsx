@@ -41,7 +41,7 @@ export default function Rules() {
   /* Where back goes, for the screen reader: Settings as before, or Poker tools
      since the home grid (25 October) reaches the library through it. */
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const backTo = from === 'tools' ? 'Poker tools' : 'Settings';
+  const backTo = from === 'tonight' ? 'Tonight' : from === 'tools' ? 'Poker tools' : 'Settings';
 
   const results = useMemo(() => searchSituations(query), [query]);
   const searching = query.trim().length > 0;

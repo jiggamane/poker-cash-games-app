@@ -226,3 +226,17 @@ The names the check drives: `Outs for Player N` (the chevron, with `aria-expande
 `#outs-row-N-<category>`, each fanned card an image labelled `T♥`. Rename any of them and
 `scripts/ui-odds.mjs` changes with it.
 
+
+## Ways in, decided 25–26 October
+
+Taken on the canvas *Poker calculator · ways in* (private to the owner's
+account), built 26 October. **The name is Poker calculator**: the title, the
+Settings row, the run-out's back button and every check that names them.
+On a live night the role line under *Tonight* ends in two 40 pt round icons on
+every phone — Rules (a card with a question mark) and the calculator (the
+fanned pair, look 3 of six) — each a push with *Back to Tonight*; the
+recording phone gets them in the same spot as a watcher, not in the drawer.
+The dealt cards survive leaving the screen for as long as the app runs.
+`docs/screens.md` § *Tonight's two tools* has what the app does that the
+canvas does not say. The home row the canvas also drew is superseded by the
+home grid's Poker tools tile (*Odds and rules, where they live*, 25 October).

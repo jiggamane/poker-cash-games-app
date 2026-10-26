@@ -11,7 +11,7 @@ import { parseRunOutParams } from '../src/lib/runOut';
 /**
  * How it ran out — the same hands on every street, as one picture.
  *
- * A PUSH from the odds calculator (Chrome A, back → Odds calculator): a place
+ * A PUSH from the odds calculator (Chrome A, back → Poker calculator): a place
  * you look at, with nothing to save and nothing to confirm. It is board 19 of
  * `design/handoff-odds-calculator/`, the one-card summary of the run-out —
  * pre-flop, flop, turn and river in four columns, the board filling in, Player
@@ -62,7 +62,7 @@ export default function RunOut() {
   }, [input, problem]);
 
   return (
-    <Screen title="How it ran out" backTo="Odds calculator" meta="All in before the flop">
+    <Screen title="How it ran out" backTo="Poker calculator" meta="All in before the flop">
       {input === null || problem !== null ? (
         <Text style={[styles.problem, { color: t.muted }]}>{problem}</Text>
       ) : (
