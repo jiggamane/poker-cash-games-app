@@ -56,7 +56,9 @@ if (onlyRiver) {
 /*
  * THE PRESS CALLOUT (option D, 24 October). A card pressed in the deck shows an
  * enlarged copy above the finger; letting go deals it and the copy goes; sliding
- * off the cell cancels it and nothing is dealt. The deck's cells are 25 pt wide,
+
+ * off the deck cancels it and nothing is dealt; between the two, sliding from
+ * card to card moves the copy with the finger (27 October). The deck's cells are 25 pt wide,
  * so what a press shows is the only confirmation a thumb has.
  *
  * Held here: it appears on press-in and carries the card's rank; it sits above
@@ -97,6 +99,25 @@ if (!onlyOuts && !onlyRiver) {
       .waitFor({ state: 'visible', timeout: 3000 })
       .catch(() => fail.push('releasing on the card did not deal it'));
 
+    /*
+     * SLIDE TO PICK (27 October): down on one card, slide to another, and the
+     * copy follows; letting go deals the card under the finger, not the first.
+     */
+    const s1 = await centre('7♣');
+    const s2 = await centre('9♥');
+    await page.mouse.move(s1.x, s1.y);
+    await page.mouse.down();
+    await callout.waitFor({ state: 'visible', timeout: 5000 }).catch(() => fail.push('no callout on 7♣'));
+    await page.mouse.move(s2.x, s2.y, { steps: 8 });
+    const slid = (await callout.count()) ? ((await callout.textContent()) ?? '') : '';
+    if (!slid.includes('9')) fail.push(`after sliding to 9♥ the callout reads "${slid}"`);
+    const scb = await callout.boundingBox();
+    if (scb && Math.abs(scb.x + scb.width / 2 - s2.x) > scb.width / 2) fail.push('the callout did not move over 9♥');
+    await page.mouse.up();
+    await callout.waitFor({ state: 'detached', timeout: 3000 }).catch(() => fail.push('the callout stayed after a slide and release'));
+    if ((await page.getByRole('button', { name: '9♥, dealt', exact: true }).count()) === 0) fail.push('sliding to 9♥ and letting go did not deal it');
+    if ((await page.getByRole('button', { name: '7♣, dealt', exact: true }).count()) > 0) fail.push('the card first pressed, 7♣, was dealt');
+
     /* The two edge columns keep the copy inside the screen. */
     for (const label of ['A♣', '2♠']) {
       const e = await centre(label);
@@ -110,12 +131,9 @@ if (!onlyOuts && !onlyRiver) {
     }
 
     /*
-     * Slide off the cell and let go: the copy is gone and the card is NOT dealt.
-     * On a phone React Native hides the copy the moment the finger leaves the
-     * cell (`pressRetentionOffset`); react-native-web has no such offset, so in
-     * this browser it goes on release instead. Both are asserted here as one
-     * thing — after letting go, no copy and no card — because that is the part
-     * a person can lose a hand to.
+     * Slide off the deck and let go: the copy is gone and the card is NOT dealt
+     * — the copy goes the moment the finger leaves the deck, and letting go
+     * there deals nothing. That is the part a person can lose a hand to.
      */
     const k = await centre('K♥');
     await page.mouse.move(k.x, k.y);
@@ -130,7 +148,7 @@ if (!onlyOuts && !onlyRiver) {
     fail.push(String(e.message ?? e).split('\n')[0]);
   }
   await page.close();
-  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  press callout: appears, deals on release, stays on screen, a slide off deals nothing`);
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  press callout: appears, follows a slide, deals on release, stays on screen, a slide off deals nothing`);
   for (const f of fail) console.log(`        ${f}`);
   if (fail.length) failed++;
 }
@@ -530,15 +548,9 @@ for (const [n, c] of (onlyRiver ? [] : runOutCases).entries()) {
         await tap(`${p.slot}, empty`);
         await tap(p.card);
       }
-      const button = page.getByRole('button', { name: 'Run it out', exact: true });
-      const has = (await button.count()) > 0;
-      if (has !== c.button) fail.push(`Run it out is ${has ? 'on' : 'off'} the odds screen, wanted ${c.button ? 'on' : 'off'}`);
-      if (!c.button) {
-        /* Nothing to run; the picture is still reachable by its link, and says the same table. */
-        await page.goto(BASE + '/run-out?h=AhKh,2c2d&b=', { waitUntil: 'networkidle' });
-      } else {
-        await button.click();
-      }
+      /* *Run it out* is hidden (the owner, 27 October): never on the odds screen. The picture is reached by the link it carried. */
+      if ((await page.getByRole('button', { name: 'Run it out', exact: true }).count()) > 0) fail.push('Run it out is on the odds screen, and it is hidden');
+      await page.goto(BASE + c.href, { waitUntil: 'networkidle' });
       await page.waitForSelector('#run-out', { timeout: 10_000 }).catch(() => fail.push('no picture'));
       /* Settled once every street is counted. */
       await page

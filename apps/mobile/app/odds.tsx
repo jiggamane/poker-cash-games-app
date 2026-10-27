@@ -58,7 +58,9 @@ import { runOutParams } from '../src/lib/runOut';
  * PRESSING A CARD SHOWS IT LARGE (option D on the canvas, chosen 24 October).
  * The deck is 25 × 40 pt a card, below what a thumb can be sure of, so a press
  * lifts an enlarged copy of the card above the finger: you see what you are
- * about to deal, and sliding off the cell cancels it. A tap is still one tap.
+ * about to deal. Since 27 October the finger can slide from card to card
+ * before letting go, as on a keyboard, and the copy follows it; letting go off
+ * the deck cancels. A tap is still one tap.
  *
  * POT ODDS — decided 24 October, made permanent on 25 October (no setting, no
  * "experiment") — is one section under the players, shown only while an exact
@@ -415,6 +417,44 @@ export default function OddsCalculator() {
     return { left, top, stem };
   };
 
+  /*
+   * SLIDE TO PICK, the way a phone keyboard works (the owner, 27 October). The
+   * finger goes down on any cell and the enlarged copy shows the card under it;
+   * sliding moves the copy from card to card; letting go deals the card under
+   * the finger. Let go off the deck, or over a card already on the table, and
+   * nothing is dealt — the old "slide off to cancel", kept.
+   *
+   * Every cell is a responder of its own, so the cell under the first touch
+   * keeps the gesture (a responder keeps every move until release). Where that
+   * cell is in the deck is known — its column and row — so the deck's origin on
+   * the page is the touch less its offset in the cell less the cell's offset in
+   * the deck, and every later move is placed against that origin in arithmetic.
+   * The cell's contents take no touches (`box-only`), so the offset is always
+   * the cell's, never the rank's or the pip's.
+   */
+  const origin = useRef({ x: 0, y: 0 });
+  const hovered = useRef<Card | null>(null);
+  const cellW = (deckW - 12 * DECK_GAP) / 13;
+  const deckH = 4 * DECK_CELL_H + 3 * DECK_GAP;
+  const cardUnder = (pageX: number, pageY: number): Card | null => {
+    const x = pageX - origin.current.x;
+    const y = pageY - origin.current.y;
+    if (deckW <= 0 || x < -SLIDE_SLOP || x > deckW + SLIDE_SLOP || y < -SLIDE_SLOP || y > deckH + SLIDE_SLOP) return null;
+    const col = Math.min(12, Math.max(0, Math.floor((x + DECK_GAP / 2) / (cellW + DECK_GAP))));
+    const row = Math.min(3, Math.max(0, Math.floor((y + DECK_GAP / 2) / (DECK_CELL_H + DECK_GAP))));
+    const c = (12 - col) * 4 + (3 - row);
+    return used.has(c) ? null : c;
+  };
+  const hover = (c: Card | null) => {
+    hovered.current = c;
+    setPressedCard(c);
+  };
+  const endSlide = (dealIt: boolean) => {
+    const c = hovered.current;
+    hover(null);
+    if (dealIt && c !== null) deal(c);
+  };
+
   const deck = (
     <View
       style={styles.deckWrap}
@@ -424,23 +464,41 @@ export default function OddsCalculator() {
           since the first one, because it is how a person finds a card. Each
           cell is a small card of its own: stock, rank, pip. A card already on
           the table is a gap where it was. */}
-      {[3, 2, 1, 0].map((suit) => (
+      {[3, 2, 1, 0].map((suit, row) => (
         <View key={suit} style={styles.suitRow}>
-          {RANKS.map((rank, r) => {
-            const c = (12 - r) * 4 + suit;
+          {RANKS.map((rank, col) => {
+            const c = (12 - col) * 4 + suit;
             const gone = used.has(c);
             return (
-              <Pressable
+              <View
                 key={rank}
+                accessible
                 accessibilityRole="button"
-                accessibilityLabel={`${RANKS[12 - r]}${SUIT_GLYPH[suit]}${gone ? ', dealt' : ''}`}
-                disabled={gone}
-                onPressIn={() => setPressedCard(c)}
-                onPressOut={() => setPressedCard((now) => (now === c ? null : now))}
-                /* Slide a little off the cell and the press is cancelled, so a
-                   wrong card is never dealt by a finger that moved to look. */
-                pressRetentionOffset={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                onPress={() => deal(c)}
+                accessibilityLabel={`${RANKS[12 - col]}${SUIT_GLYPH[suit]}${gone ? ', dealt' : ''}`}
+                accessibilityState={{ disabled: gone }}
+                /* VoiceOver and TalkBack activate the cell rather than touch it. */
+                onAccessibilityTap={() => !gone && deal(c)}
+                pointerEvents="box-only"
+                onStartShouldSetResponder={() => true}
+                onMoveShouldSetResponder={() => true}
+                onResponderTerminationRequest={() => false}
+                onResponderGrant={(e) => {
+                  const { pageX, pageY, locationX, locationY } = e.nativeEvent;
+                  origin.current = {
+                    x: pageX - locationX - col * (cellW + DECK_GAP),
+                    y: pageY - locationY - row * (DECK_CELL_H + DECK_GAP),
+                  };
+                  hover(gone ? null : c);
+                }}
+                onResponderMove={(e) => {
+                  const next = cardUnder(e.nativeEvent.pageX, e.nativeEvent.pageY);
+                  if (next !== hovered.current) hover(next);
+                }}
+                onResponderRelease={(e) => {
+                  hovered.current = cardUnder(e.nativeEvent.pageX, e.nativeEvent.pageY);
+                  endSlide(true);
+                }}
+                onResponderTerminate={() => endSlide(false)}
                 style={[
                   styles.deckCard,
                   /* A card already on the table is a flat blank where it
@@ -452,11 +510,11 @@ export default function OddsCalculator() {
               >
                 {!gone && (
                   <>
-                    <Text style={[styles.deckRank, { color: inkOf(c) }]}>{RANKS[12 - r]}</Text>
+                    <Text style={[styles.deckRank, { color: inkOf(c) }]}>{RANKS[12 - col]}</Text>
                     <Pip suit={suit} size={11} color={inkOf(c)} />
                   </>
                 )}
-              </Pressable>
+              </View>
             );
           })}
         </View>
@@ -521,8 +579,10 @@ export default function OddsCalculator() {
          * take the table, and goes with the card that made it. Before the flop
          * there is one street and nothing to run. ⚠ COPY NOT DRAWN: the label is
          * the canvas's own name for the replay (§ 8), on a button it did not draw.
+         * HIDDEN on 27 October (the owner): `RUN_IT_OUT` below. The route stays,
+         * reachable by its link.
          */}
-        {problem === null && boardCards.length >= 3 && (
+        {RUN_IT_OUT && problem === null && boardCards.length >= 3 && (
           <View style={styles.runOut}>
             <Button label="Run it out" variant="secondary" onPress={() => router.push({ pathname: '/run-out', params: runOutParams(input) })} />
           </View>
@@ -759,9 +819,16 @@ function CardSlot({
   );
 }
 
+/* *Run it out* under the board — hidden on 27 October by the owner's word;
+   `/run-out` is still there behind its link. */
+const RUN_IT_OUT = false;
+
 /* The deck's own numbers, and the callout's, which are measured against them. */
 const DECK_GAP = 3;
 const DECK_CELL_H = 40;
+/* How far past the deck's edge a slide still reads the edge card; beyond it the
+   finger is off the deck and letting go deals nothing. */
+const SLIDE_SLOP = 6;
 const CALLOUT_W = 58;
 const CALLOUT_H = 80;
 const CALLOUT_GAP = 4;
