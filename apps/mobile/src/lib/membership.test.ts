@@ -10,7 +10,6 @@ import {
   passTargets,
   runsLine,
   setMemberships,
-  tierOfPlan,
   willSpendHostNight,
   type Membership,
 } from './membership';
@@ -23,9 +22,8 @@ import {
  * by hand. The second holds what the seam answers with NO answer from the
  * server — Full for everybody, and not a real tier — because a screen that
  * starts gating people on a placeholder is the regression this file exists to
- * catch. The third holds the join the owner made on 26 October: pro and club
- * are Full, Regular is Regular, and the server's rows land in `membershipOf`
- * by seat.
+ * catch. The third holds the server's rows landing in `membershipOf` by
+ * seat.
  */
 
 const member = (id: string, standing: Member['standing'] = 'member'): Member => ({
@@ -151,15 +149,8 @@ describe('the admin sees the tier at the moment of passing (owner, 26 Sept)', ()
   });
 });
 
-describe('the join (owner, 26 October): plans become tiers, and the server answers by seat', () => {
+describe('the server answers by seat (0021, 0022)', () => {
   beforeEach(() => forgetMemberships());
-
-  it('pro and club are Full; regular is Regular; no plan is Free', () => {
-    expect(tierOfPlan('pro')).toBe('full');
-    expect(tierOfPlan('club')).toBe('full');
-    expect(tierOfPlan('regular')).toBe('regular');
-    expect(tierOfPlan('free')).toBe('free');
-  });
 
   it('a row from the server is a real, known membership', () => {
     expect(

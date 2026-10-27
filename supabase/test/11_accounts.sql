@@ -90,7 +90,7 @@ select expect_text(my_plan.plan, 'free', 'and its plan is free')
   from my_plan();
 
 select expect_rejected(
-  $$select admin_create_promo('pro', null, 1, 'LETMEIN')$$,
+  $$select admin_create_promo('full', null, 1, 'LETMEIN')$$,
   'a signed-in account that is not an admin cannot make a code');
 
 select expect_rejected(
@@ -107,7 +107,7 @@ set request.jwt.claims = '{"sub":"ac000000-0000-0000-0000-000000000001"}';
 
 create temporary table made (c text);
 grant all on made to authenticated;
-insert into made select admin_create_promo('pro', null, 1, 'friday', null, 'for the Friday group');
+insert into made select admin_create_promo('full', null, 1, 'friday', null, 'for the Friday group');
 
 select expect_text((select c from made), 'FRIDAY', 'a chosen code is kept, uppercased');
 
@@ -195,7 +195,7 @@ select expect_text(
 
 -- A comp given by hand, for thirty days, from the SQL editor.
 create temporary table granted (id uuid);
-insert into granted select admin_grant('FRIEND@example.com', 'pro', 30, 'plays Fridays');
+insert into granted select admin_grant('FRIEND@example.com', 'regular', 30, 'plays Fridays');
 
 set role authenticated;
 set request.jwt.claims = '{"sub":"ac000000-0000-0000-0000-000000000005"}';
@@ -221,13 +221,13 @@ select expect_text(my_plan.plan, 'free', 'a revoked grant is no plan')
 reset role;
 reset request.jwt.claims;
 
-select admin_create_promo('pro', 365, 2, 'year-on-me', null, 'Christmas');
-select admin_create_promo('club', null, 1, 'CLUB-FOREVER');
+select admin_create_promo('regular', 365, 2, 'year-on-me', null, 'Christmas');
+select admin_create_promo('full', null, 1, 'FULL-FOREVER');
 
 set role authenticated;
 set request.jwt.claims = '{"sub":"ac000000-0000-0000-0000-000000000005"}';
 
-select expect_text(r.plan, 'pro', 'a promo code grants its plan')
+select expect_text(r.plan, 'regular', 'a promo code grants its plan')
   from redeem_promo_code('year-on-me') r;
 
 select expect_rejected(
@@ -237,9 +237,9 @@ select expect_rejected(
 select expect_text(my_plan.source, 'promo', 'and my_plan reads it')
   from my_plan();
 
-select * from redeem_promo_code('club-forever');
+select * from redeem_promo_code('full-forever');
 
-select expect_text(my_plan.plan, 'club', 'club outranks pro')
+select expect_text(my_plan.plan, 'full', 'full outranks regular')
   from my_plan();
 select expect_text(my_plan.ends_at::text, null, 'and lasts for ever')
   from my_plan();
@@ -247,17 +247,17 @@ select expect_text(my_plan.ends_at::text, null, 'and lasts for ever')
 set request.jwt.claims = '{"sub":"ac000000-0000-0000-0000-000000000003","is_anonymous":false}';
 
 select expect_rejected(
-  $$select * from redeem_promo_code('CLUB-FOREVER')$$,
+  $$select * from redeem_promo_code('FULL-FOREVER')$$,
   'a single-use code is used up');
 
 select * from redeem_promo_code('YEAR-ON-ME');
 
-select expect_text(my_plan.plan, 'pro', 'the friend is back on a plan')
+select expect_text(my_plan.plan, 'regular', 'the friend is back on a plan')
   from my_plan();
 
 select expect_rejected(
   $$insert into entitlement (user_id, plan, source)
-    values ('ac000000-0000-0000-0000-000000000003', 'club', 'grant')$$,
+    values ('ac000000-0000-0000-0000-000000000003', 'full', 'grant')$$,
   'nobody writes a plan for themselves');
 
 reset role;
@@ -266,6 +266,13 @@ reset request.jwt.claims;
 select expect_text(
   (select redeemed_count::text from promo_code where code = 'YEAR-ON-ME'),
   '2', 'the two-use code counted both');
+
+select expect_rejected(
+  $$select admin_create_promo('pro', null, 1, 'OLD-NAME')$$,
+  'the old plan names are gone (0022): pro is refused');
+select expect_rejected(
+  $$select admin_create_promo('club', null, 1, 'OLD-NAME-2')$$,
+  'and so is club');
 
 select expect_rejected(
   $$select admin_grant('nobody@example.com')$$,

@@ -12,7 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0021.
+-- Last checked against migrations 0001–0022.
 -- =============================================================================
 
 with c as (
@@ -135,6 +135,12 @@ probe as (
      and exists (select 1 from p where proname = 'my_membership')
      and exists (select 1 from p where proname = 'roster_membership')) as m21,
 
+    -- 0022 one set of names: the plan check reads regular / full
+    exists (select 1 from pg_constraint
+             where conname = 'entitlement_plan_check'
+               and pg_get_constraintdef(oid) like '%full%'
+               and pg_get_constraintdef(oid) not like '%pro%') as m22,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
@@ -180,6 +186,7 @@ select v.n,
     (19, '0019 counts, guests and rules on the live feed', x.m19, 'run supabase/migrations/0019_live_feed.sql'),
     (20, '0020 the game is passed to a person by name', x.m20, 'run supabase/migrations/0020_pass_to_a_person.sql'),
     (21, '0021 membership: tiers, and Regular''s host night', x.m21, 'run supabase/migrations/0021_membership.sql'),
+    (22, '0022 one set of plan names: Free, Regular, Full', x.m22, 'run supabase/migrations/0022_tier_names.sql'),
     (90, 'all fourteen tables present',                  x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),

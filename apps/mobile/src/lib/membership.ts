@@ -10,11 +10,11 @@ import type { Member } from './clubStore';
  * ships, and this file was that seam. Every screen the handoff draws is built
  * against these functions.
  *
- * SINCE 26 OCTOBER THE SEAM HAS A REAL ANSWER. The owner joined the two
- * vocabularies — `0018_accounts.sql`'s plan free / pro / club and the handoff's
- * tiers Free / Regular / Full — as: pro and club are Full, and Regular is a
- * plan of its own with ONE host night a billing period, counted on the server
- * (`0021_membership.sql`). This file is still pure: `membershipStore.ts` asks
+ * SINCE 26 OCTOBER THE SEAM HAS A REAL ANSWER. Regular is a plan with ONE
+ * host night a billing period, counted on the server (`0021_membership.sql`),
+ * and since 27 October the server stores the same three names every screen
+ * uses — Free, Regular, Full (`0022_tier_names.sql`; 0018's pro and club were
+ * renamed to full). A plan and a tier are one word now. This file is still pure: `membershipStore.ts` asks
  * the server (`my_membership`, `roster_membership`) and hands the answers to
  * `setMemberships` below; `membershipOf` reads them. Until an answer lands,
  * and on a phone the server gives no answer to (a member reading GR4), the
@@ -54,12 +54,6 @@ export interface Membership {
 
 /** The seam's placeholder: allows everything, and is not anybody's real tier. */
 const FULL: Membership = { tier: 'full', hostNightUsed: false, hostNightRenewsOn: null, known: false };
-
-/** A plan as `my_plan()` names it. `0021` maps it to a tier: pro and club are Full. */
-export type Plan = 'free' | 'regular' | 'pro' | 'club';
-
-export const tierOfPlan = (plan: Plan): Tier =>
-  plan === 'pro' || plan === 'club' ? 'full' : plan;
 
 /** One row as `my_membership()` and `roster_membership()` return it. */
 export interface MembershipRow {
