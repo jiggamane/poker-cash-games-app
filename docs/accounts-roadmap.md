@@ -14,7 +14,7 @@ sequences, and where it disagrees with one of them it says so:
 |---|---|---|
 | `accounts-and-groups.md` | who can get in today, and what blocks the rest | current — its Phase 0/1 are this file's Stages 0/1 |
 | `auth-test-period.md` | the dashboard checklist | current — Stage 0 *is* its seven steps |
-| `pricing-model.md` | what is free, what is paid, the price | **superseded 26 September for tiers and prices** by `design/handoff-game-admin/` (Free / Regular $2.49 / Full $9.99, a host night for Regular) — joined to the free / pro / club Stage 1 built on 26 October by `0021_membership.sql`: pro and club are Full, `regular` is a third plan value with one host night a billing period. §7 guardrails stand; §6 "Rails" is superseded — see Stage 4 |
+| `pricing-model.md` | what is free, what is paid, the price | **superseded 26 September for tiers and prices** by `design/handoff-game-admin/` (Free / Regular $2.49 / Full $9.99, a host night for Regular) — and since 27 October the server uses the same names: `0022_tier_names.sql` renamed Stage 1's pro and club to `full`, and `regular` (0021) has one host night a billing period. §7 guardrails stand; §6 "Rails" is superseded — see Stage 4 |
 
 ---
 
@@ -59,7 +59,7 @@ Why this, and not "RevenueCat is the source of truth":
 The table (Stage 1 builds it; Stage 4 only adds writers):
 
 ```
-entitlement        id, user_id, plan (pro | club), source (grant | promo |
+entitlement        id, user_id, plan (regular | full), source (grant | promo |
                    founder | apple | google | web), starts_at, ends_at (null =
                    forever), granted_by (user_id, for grants), promo_code_id,
                    provider_ref (store transaction / subscription id), note,
@@ -163,10 +163,10 @@ the account, but a lock on the app.
   -- once: make yourself the admin
   insert into app_admin (user_id) select id from auth.users where email = 'you@…';
 
-  select admin_grant('petr@example.com');                         -- Pro, for ever
-  select admin_grant('eva@example.com', 'pro', 365, 'a year on me');
-  select admin_create_promo('pro', null, 1, 'FRIDAY', null, 'for Marek');  -- one use, for ever
-  select admin_create_promo('pro', 365, 20);                      -- 20 uses, a year each, random code
+  select admin_grant('petr@example.com');                         -- Full, for ever
+  select admin_grant('eva@example.com', 'regular', 365, 'a year on me');
+  select admin_create_promo('full', null, 1, 'FRIDAY', null, 'for Marek');  -- one use, for ever
+  select admin_create_promo('regular', 365, 20);                  -- 20 uses, a year each, random code
   select admin_revoke('<entitlement id>', 'why');
   select * from entitlement order by created_at desc;             -- who has what, and from where
   ```
@@ -178,17 +178,18 @@ the account, but a lock on the app.
 
 ### Built — `0021_membership.sql`, 26 October
 
-- **The plan is a tier.** `regular` joins pro and club as a plan value;
-  `my_membership()` reads it as Free / Regular / Full (pro and club are Full),
+- **The plan is a tier.** `regular` is a plan value (and since 0022 the
+  others are `full` — pro and club were renamed); `my_membership()` reads
+  Free / Regular / Full,
   with Regular's host night: spent once per game per person, on the server,
   by `pass_night` and by opening a night; the period is the person's own month
   from the day the plan started. `admin_grant('eva@…', 'regular')` and
-  `admin_create_promo('regular', …)` work as for pro. `14_membership.sql`.
+  `admin_create_promo('regular', …)` work as for Full. `14_membership.sql`.
 
 ### Before a friend can use it (you, in the dashboard)
 
 1. Run `supabase/migrations/0018_accounts.sql`, then `state-check.sql` — row 18.
-   Then `0021_membership.sql` — row 21.
+   Then `0021_membership.sql` — row 21, and `0022_tier_names.sql` — row 22.
 2. Seed `app_admin` (above).
 3. **Authentication → Emails → Change email address.** An anonymous account
    that attaches an email receives *this* mail, not the magic link. The stock
@@ -360,7 +361,7 @@ changes nothing for them, which is the whole reason the table came first.
 
 | | How | Where it works | Store-safe? |
 |---|---|---|---|
-| **Grant by hand** | `admin_grant('petr@…', 'pro', null, 'plays Fridays')` or Settings → Admin | everywhere, instantly | **Yes.** It is your server deciding what an account is entitled to; nothing is sold or unlocked by the app. The app still offers IAP to everybody else. |
+| **Grant by hand** | `admin_grant('petr@…', 'full', null, 'plays Fridays')` or Settings → Admin | everywhere, instantly | **Yes.** It is your server deciding what an account is entitled to; nothing is sold or unlocked by the app. The app still offers IAP to everybody else. |
 | **Store offer codes** | Apple **Offer Codes** (App Store Connect → subscription → Offer Codes; custom codes like `FRIDAYNIGHT` or one-time codes), Google Play **promo codes**. Redeemed in the store's own sheet; the app can open Apple's with `presentCodeRedemptionSheet`. | iOS / Android respectively | **Yes** — the sanctioned route. Arrives through the same webhook as a purchase, so it is just a `source = apple` row. Limits: offer codes are *subscription offers* (a free period, then it renews unless cancelled) — good for "a year on me", wrong for "free forever". |
 | **Your own promo codes** | `admin_create_promo(...)`, redeemed with `redeem_promo_code` | Android, web, and a redeem page on the GitHub Pages site | ⚠ **Not inside the iOS app.** Apple's 3.1.1 forbids unlocking features with the app's own codes or keys. Redeem on a web page (signed in with the same account), and the iOS app simply reads the resulting `my_plan()` — that is permitted as content bought elsewhere, *provided the same thing is also on sale through IAP*, which it is. |
 

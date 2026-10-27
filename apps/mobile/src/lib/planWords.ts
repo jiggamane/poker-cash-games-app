@@ -3,7 +3,8 @@
  */
 
 export type Plan = {
-  plan: 'free' | 'regular' | 'pro' | 'club';
+  /** The same three names every screen uses — `0022_tier_names.sql`. */
+  plan: 'free' | 'regular' | 'full';
   source: 'founder' | 'grant' | 'promo' | 'apple' | 'google' | 'web' | null;
   /** Null is for ever, or no plan at all. */
   endsAt: string | null;
@@ -12,11 +13,9 @@ export type Plan = {
 /**
  * The words for a plan on the Settings row. Pure, so it is tested.
  *
- * IT SAYS THE TIER, NOT THE PLAN — owner, 27 October. The server's plan words
- * are free / regular / pro / club; the names a person knows are Free / Regular
- * / Full (`membership.ts`, `tierOfPlan`), and a founder on pro reads `Full ·
- * founder`, the same word every other screen uses for them. Nothing on a phone
- * prints pro or club.
+ * One set of names, owner, 27 October: the server stores free / regular /
+ * full (`0022_tier_names.sql`) and this prints them capitalised. A founder
+ * reads `Full · founder`.
  *
  * ⚠ COPY NOT DRAWN — no board has an Account row for a plan. Written to the
  * grammar of the rows around it, and listed in `docs/screens.md`.

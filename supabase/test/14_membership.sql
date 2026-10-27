@@ -5,8 +5,9 @@
 -- billing period, checked and spent before the game is passed to them.
 --
 -- What it holds, one line each:
---   * pro and club read as full; regular as regular; no plan as free; club
---     outranks pro outranks regular when an account holds several
+--   * full reads as full; regular as regular; no plan as free; full
+--     outranks regular when an account holds several (0022 renamed pro
+--     and club to full)
 --   * a Regular's period is their own month, anchored to the day the plan
 --     started — never the calendar month — and a plan that ends sooner
 --     renews when it ends
@@ -107,7 +108,7 @@ $$;
 -- Fixtures
 -- =============================================================================
 --   Marek   the host; emailed, so the shim invited him: a founder, Full
---   Lena    a claimed seat with an email; given pro by hand: Full
+--   Lena    a claimed seat with an email; given Full by hand
 --   Ivo     a claimed seat, anonymous; Regular since 40 days ago, so his
 --           current period began 10 days ago and renews in 20
 --   Tomáš   a claimed seat, anonymous, no plan: Free
@@ -126,7 +127,7 @@ insert into auth.users (id, email, invited_at) values
   ('1a000000-0000-0000-0000-000000000009', 'stranger@example.com', null);
 
 insert into entitlement (user_id, plan, source, starts_at, note) values
-  ('1a000000-0000-0000-0000-000000000002', 'pro', 'grant', now() - interval '1 day', 'Lena'),
+  ('1a000000-0000-0000-0000-000000000002', 'full', 'grant', now() - interval '1 day', 'Lena'),
   ('1a000000-0000-0000-0000-000000000003', 'regular', 'grant', now() - interval '40 days', 'Ivo'),
   ('1a000000-0000-0000-0000-000000000006', 'regular', 'grant', now() - interval '3 days', 'Eva');
 
@@ -184,7 +185,7 @@ select expect_text((select host_night_renews_on::text from my_membership()), nul
   'nor a day it renews on');
 
 select as_user('1a000000-0000-0000-0000-000000000002');
-select expect_text((select tier from my_membership()), 'full', 'pro is Full');
+select expect_text((select tier from my_membership()), 'full', 'a Full grant is Full');
 
 select as_user('1a000000-0000-0000-0000-000000000004', true);
 select expect_text((select tier from my_membership()), 'free', 'no plan is Free');
@@ -203,13 +204,13 @@ reset role;
 
 -- Several plans at once: the best live one answers.
 insert into entitlement (user_id, plan, source, ends_at, note) values
-  ('1a000000-0000-0000-0000-000000000003', 'club', 'grant', now() + interval '1 day', 'a club day');
+  ('1a000000-0000-0000-0000-000000000003', 'full', 'grant', now() + interval '1 day', 'a full day');
 set role authenticated;
 select as_user('1a000000-0000-0000-0000-000000000003', true);
-select expect_text((select plan from my_plan()), 'club', 'club outranks regular');
-select expect_text((select tier from my_membership()), 'full', 'and club is Full');
+select expect_text((select plan from my_plan()), 'full', 'full outranks regular');
+select expect_text((select tier from my_membership()), 'full', 'and reads as Full');
 reset role;
-update entitlement set revoked_at = now() where note = 'a club day';
+update entitlement set revoked_at = now() where note = 'a full day';
 
 -- A Regular whose plan ends before the period does: it renews when it ends.
 insert into entitlement (user_id, plan, source, ends_at, note) values

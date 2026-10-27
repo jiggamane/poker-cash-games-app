@@ -140,11 +140,11 @@ stands. Read them newest first:
   on opening a game. It speaks on Tonight, the pass sheet, the announcement,
   `/late-changes`, `/players`, `/watch` and O1's gate, and nowhere else. The
   server side is `0020_pass_to_a_person.sql`; the 0016 code sheets are gone.
-  **It names the tiers Free / Regular / Full, and `0018_accounts.sql` names an
-  account's plan free / pro / club. Joined 26 October, `0021_membership.sql`:
-  pro and club are Full; Regular is a plan of its own with one host night a
-  billing period, counted on the server and checked inside `pass_night` and on
-  opening a night.** `apps/mobile/src/lib/membership.ts` is still the one seam
+  **It names the tiers Free / Regular / Full, and since 27 October so does
+  the server** (`0022_tier_names.sql` renamed 0018's pro and club to `full`):
+  one set of names everywhere. Regular has one host night a billing period,
+  counted on the server and checked inside `pass_night` and on opening a night
+  (`0021_membership.sql`). `apps/mobile/src/lib/membership.ts` is still the one seam
   every screen reads, fed by `membershipStore.ts` from `my_membership()` and
   `roster_membership()`; with no answer it still says Full and `known: false`.
   **Owner, 26 September: Free / Regular / Full are the names**, and the admin

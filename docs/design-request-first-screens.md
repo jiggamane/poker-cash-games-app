@@ -29,11 +29,9 @@ the vocabulary is still split.
   September: a group (a *book* on the server) can only be **created** by an
   account whose plan is not free. Only created — a group that exists keeps every
   write whatever happens to the plan, and a lapse never stops a running night.
-- ⚠ **The server says `free / pro / club`; the screens say Free / Regular /
-  Full.** `my_plan()` answers the former, `membership.ts` the latter, and the
-  mapping between them is the open question in `docs/screens.md`. The brief
-  uses the screen names. Nothing the designer draws should depend on how the
-  server words it.
+- **The server and the screens use the same names: Free / Regular / Full**
+  (since 27 October, `0022_tier_names.sql`; the server said pro / club before).
+  The brief uses those names.
 - **The plan list rule (X2b, S85, rule 17):** every list of plans is ascending,
   the reader's own plan first, drawn as already theirs — muted, outline check,
   `INCLUDED` — and **nothing paid is ever pre-ticked**. The gate for a Regular
@@ -60,7 +58,7 @@ the vocabulary is still split.
 | New group (GR3) | `/new-group` | Built: one sheet, three steps replacing their own content — *Name and currency* → *The money side* → *Who is in it* — with *Skip · defaults are fine* and *Add players later*. No gate in front of it. |
 | Claim a place (X2a–X2d) | `/claim`, `/invite` | Built and drawn. X2b's plan offer is drawn (S85) and not built. |
 | The plan gate (states 13–15) | `PlanGate.tsx` | Built against the game-admin board, unreachable while the seam answers Full for everybody. |
-| Plan on Settings | `/settings` | A *Plan* row reading `Free` / `Pro · founder` / `Club · until 3 Mar 2027`. Copy not drawn, and it prints the server's words. |
+| Plan on Settings | `/settings` | A *Plan* row reading `Free` / `Full · founder` / `Regular · until 3 Mar 2027`. Copy not drawn. |
 | Welcome | — | Drawn nowhere, built nowhere. |
 | Intro | — | Nothing. The only animation specified anywhere is E2's counted-stack sequence (`design/handoff-count-up-header/README.md` § Animation), which is the motion vocabulary the intro should extend rather than replace. |
 
@@ -381,8 +379,8 @@ Any change to Tonight, the ending flow, the pass sheet or the settled night —
 the intro plays them as they are. No new tokens, no change to the sheet
 object or to the navigation vocabulary. If a screen here makes you want to
 change one of those, say so separately; an app-wide change runs on its own,
-with nothing else in flight. And no strings for the server's own plan words
-(pro, club): they are not on any screen.
+with nothing else in flight. And no strings for pro or club: those names are
+retired.
 ```
 
 ---

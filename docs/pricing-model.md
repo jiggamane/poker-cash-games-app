@@ -15,10 +15,9 @@ and an explicit default wherever something isn't settled.*
 > 3-night trial, Book Pass, Club and Founding Host — it is kept as background only. The
 > guardrails in §7 still apply. Design: `design/handoff-game-admin/README.md`.
 >
-> **And `0018_accounts.sql` names the plans free / pro / club** (`my_plan()`,
-> `docs/accounts-roadmap.md` Stage 1). **Joined 26 October, `0021_membership.sql`:
-> pro and club are Full; `regular` is a plan of its own with one host night a
-> billing period, counted on the server.** `apps/mobile/src/lib/membership.ts`
+> **The server uses the same names since 27 October** (`0022_tier_names.sql`
+> renamed 0018's pro and club to `full`); `regular` (0021) has one host night a
+> billing period, counted on the server. `apps/mobile/src/lib/membership.ts`
 > is still the seam every screen reads, fed by the server now. **The names
 > (owner, 26 September): Free / Regular / Full**, as above.
 

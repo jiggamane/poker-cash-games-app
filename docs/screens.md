@@ -170,7 +170,9 @@ screens by `check:ui` — a game actually crossing a table has not been watched.
 answered Full for everybody — rev 18 § 4's "build none of it, keep one policy
 seam" — until the owner joined the two vocabularies: **pro and club are Full;
 Regular is a plan of its own with one host night a billing period, counted on
-the server.** `0021_membership.sql` is the join — `my_membership()` and
+the server** — and on 27 October made them one: `0022_tier_names.sql` renamed
+pro and club to `full`, so the server stores free / regular / full and nothing
+anywhere says pro or club. `0021_membership.sql` is the join — `my_membership()` and
 `roster_membership(ids, night)` answer by seat, `pass_night` refuses Free and a
 Regular whose night is spent (and spends it as the game moves), and a trigger
 on `session` does the same for the phone opening a night — and
@@ -202,9 +204,9 @@ view still never prints a tier, and no phone but the one passing sees one. It
 is drawn only when the seam has a real answer — `Membership.known` — so today
 every row still reads the board's *At the table · can take it any night*,
 because printing "Full" beside everybody on the strength of a placeholder would
-tell the admin something untrue about their friends. What is still open is how
-0018's pro / club become these three (pro and club → Full is the obvious
-reading; Regular has no source on the server yet). The other session's draft
+tell the admin something untrue about their friends. (How 0018's pro / club
+became these three was open here until 26 October; it is answered above.) The
+other session's draft
 boards on `claude/multi-admin-game-access-cpwbpw` (`design/board-game-admin/`)
 drew Pro / Club / Free names on both screens; they are superseded by this call
 and were never merged.
@@ -2870,7 +2872,8 @@ with no account:
 5. A **Plan** row: `Free`, `Full · founder`, `Full · until 25 Sept 2027`,
    `Regular · until 25 Nov 2026` (`planLine`, tested in `planWords.test.ts`).
    Drawn only when signed in and the server answered — never a guess. **It
-   says the tier, not the plan** (owner, 27 October): pro and club both read
+   says the tier, not the plan** (owner, 27 October) — and since 0022 the
+   plan IS the tier; before it, pro and club both read
    Full, so a founder reads the same word every other screen uses for them,
    and no phone prints a server word.
 
