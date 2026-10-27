@@ -32,7 +32,7 @@ import {
  * start one · four destinations as a two-by-two grid of tiles · ONE flexible
  * spacer · the dock.
  *
- * THE SPACER IS THE WHOLE LAYOUT RULE. A tile is intrinsic height — 124pt, two
+ * THE SPACER IS THE WHOLE LAYOUT RULE. A tile is intrinsic height — 108pt, two
  * rows of them with 10 between — and never stretches; every leftover point on
  * a tall screen goes into the single `flex: 1` between the grid and the dock.
  * Spread that slack into the tiles instead and the screen looks fine on the
@@ -41,13 +41,13 @@ import {
  * THE GRID REPLACED THREE ROWS ON 25 OCTOBER — the canvas "Odds and rules,
  * where they live", board N6, the owner's pick — so that Poker tools (the
  * calculator and the rules library) could join the main navigation without a
- * fifth row. It costs 258pt where the rows cost 222; `docs/home-handoff.md`
+ * fifth row. It costs 226pt where the rows cost 222; `docs/home-handoff.md`
  * § "The grid" has the arithmetic and what the handoff said instead.
  *
  * THE CARD LIST IS THE ONE THING THAT SCROLLS — doc 10 § H3, "past three live
  * cards the card list scrolls; the rows and dock stay put". It is the only
  * block here whose height is unbounded: the header is three lines, the grid
- * is two fixed 124s and the dock is one, but a club can open a table and
+ * is two fixed 108s and the dock is one, but a club can open a table and
  * then another, each card ~90pt, and the list grows with them. Every other
  * child of this column is intrinsic and refuses to shrink, so once the cards
  * outgrew the phone they simply pushed the rows and the dock off the bottom —
@@ -209,18 +209,12 @@ export default function ClubHome() {
        */}
       <View style={styles.grid}>
         <View style={styles.gridRow}>
-          <Tile icon="people" name="The group" sub="players, money rules, the piggy bank" to="/players" />
-          <Tile
-            icon="calendar"
-            name="Sessions"
-            sub="every night you played, most recent first"
-            to="/games"
-            waiting={fresh}
-          />
+          <Tile icon="people" name="The group" to="/players" />
+          <Tile icon="calendar" name="Sessions" to="/games" waiting={fresh} />
         </View>
         <View style={styles.gridRow}>
-          <Tile icon="bars" name="My stats" sub="across every group you play in" to="/stats" waiting={fresh} />
-          <Tile icon="questionCard" name="Poker tools" sub="poker calculator, rules & rulings" to="/tools" />
+          <Tile icon="bars" name="My stats" to="/stats" waiting={fresh} />
+          <Tile icon="questionCard" name="Poker tools" to="/tools" />
         </View>
       </View>
 
@@ -483,10 +477,16 @@ function Skeleton({ width, height }: { width: number | `${number}%`; height: num
 /**
  * A destination, as a tile — board N6 of the canvas "Odds and rules, where
  * they live", 25 October, which replaced the handoff's rows. The glyph sits
- * top-left in a 40 round, the name and its sub-line at the foot, so the two
- * never share a line: the first round of this layout put a 26pt glyph beside
- * a 24pt name and the owner turned it down for exactly that. No chevron — a
+ * top-left in a 40 round and the name alone at the foot, so the two never
+ * share a line: the first round of this layout put a 26pt glyph beside a
+ * 24pt name and the owner turned it down for exactly that. No chevron — a
  * tile reads as a button on its own, which a row never quite did.
+ *
+ * NO SUB-LINE, since 27 October — the owner's call: the two-line description
+ * under each name ("players, money rules, the piggy bank") is gone from home.
+ * With it gone the tile is `home.tileHeightBare`, not `tileHeight`: the round
+ * and the name sit 12 apart rather than with the sub-line's 28 of air between
+ * them. `/tools` keeps its sub-lines and the taller tile.
  *
  * `waiting` is a tile with nothing behind it yet. It states what it will hold
  * and does not navigate; it is never removed, because an empty tile is how a
@@ -495,13 +495,11 @@ function Skeleton({ width, height }: { width: number | `${number}%`; height: num
 function Tile({
   icon,
   name,
-  sub,
   to,
   waiting = false,
 }: {
   icon: IconName;
   name: string;
-  sub: string;
   to: string;
   waiting?: boolean;
 }) {
@@ -510,7 +508,7 @@ function Tile({
   return (
     <Pressable
       accessibilityRole={waiting ? 'text' : 'button'}
-      accessibilityLabel={`${name}, ${sub}`}
+      accessibilityLabel={name}
       disabled={waiting}
       onPress={() => router.push(to)}
       style={({ pressed }) => [
@@ -524,14 +522,9 @@ function Tile({
             surface, near enough, and `people` is drawn on a 20 box at 21. */}
         <Icon name={icon} color={ink} size={21} ground={t.surface} />
       </View>
-      <View style={styles.tileText}>
-        <Text style={[styles.tileName, { color: ink }]} numberOfLines={1}>
-          {name}
-        </Text>
-        <Text style={[styles.tileSub, { color: waiting ? t.disabled : t.muted }]} numberOfLines={2}>
-          {sub}
-        </Text>
-      </View>
+      <Text style={[styles.tileName, { color: ink }]} numberOfLines={1}>
+        {name}
+      </Text>
     </Pressable>
   );
 }
@@ -712,10 +705,12 @@ const styles = StyleSheet.create({
   // The grid: the card list's own gutter, two rows of two, 10 between.
   grid: { marginTop: home.listGap, marginHorizontal: home.gutter, gap: home.tileGap },
   gridRow: { flexDirection: 'row', gap: home.tileGap },
+  // Name only, so the bare height: round at the top, name at the foot, 12
+  // between — not the 124 that `/tools` keeps for its two-line sub-lines.
   tile: {
     flex: 1,
     minWidth: 0,
-    height: home.tileHeight,
+    height: home.tileHeightBare,
     padding: home.tilePad,
     borderRadius: home.tileRadius,
     justifyContent: 'space-between',
@@ -727,9 +722,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tileText: { gap: 2 },
   tileName: type.tileName,
-  tileSub: type.tileSub,
 
   slack: { flex: 1 },
   /* The card carries its own 14 of side margin; the dock's gutter is 20. */

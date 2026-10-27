@@ -3338,8 +3338,10 @@ screen behind the tile.
   (20/800 and 13/500), measured off the board. `/tools` draws the same tile at
   the same numbers from its own component, on purpose: a shared tile would be
   a shared file (`CLAUDE.md`).
-- **Height:** two tiles and a gap are 258 points where the three rows were 222,
-  so the slack above the dock is 36 shorter. `ui-audit.mjs` holds `/` at 393
+- **Height:** two tiles and a gap were 258 points where the three rows were
+  222; since 27 October, with the sub-lines gone from home (the owner's call —
+  the name alone under the round, 12 apart, `home.tileHeightBare` = 108), they
+  are 226, four more than the rows. `ui-audit.mjs` holds `/` at 393
   and 360 in both themes; the card list still scrolls on its own.
 - **A fresh club's waiting tiles** (Sessions, My stats) are drawn in
   `disabled`, as the rows were, and do not navigate.
@@ -3352,7 +3354,8 @@ happened, and what the rule says*. **The two tile names on `/tools` are *Calcula
 and *Rulings*, by the owner on 26 October**, from a screenshot of the 25 October
 build: the canvas's *Poker calculator* and *Rules & rulings* both cut to
 *Poker calcu…* and *Rules & ruli…* at 20/800 in a half-width tile on a 393
-phone. The home tile's sub-line keeps the long names, and the screens behind
+phone. The home tile's sub-line kept the long names until 27 October, when
+home's sub-lines went altogether (above); the screens behind
 keep their titles. The calculator's own screen was still titled
 *Odds calculator* when this was built; it is *Poker calculator* since 26
 October, with the Settings row and `ui-odds.mjs` renamed in the same commit
