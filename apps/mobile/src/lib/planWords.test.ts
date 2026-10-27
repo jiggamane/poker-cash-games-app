@@ -8,14 +8,20 @@ describe('the plan row', () => {
     expect(planLine({ plan: 'free', source: null, endsAt: null }, now)).toBe('Free');
   });
 
-  it('a founder says so, and has no end', () => {
-    expect(planLine({ plan: 'pro', source: 'founder', endsAt: null }, now)).toBe('Pro · founder');
+  it('a founder says so, and has no end — and pro reads as the tier, Full', () => {
+    expect(planLine({ plan: 'pro', source: 'founder', endsAt: null }, now)).toBe('Full · founder');
   });
 
   it('a plan with an end names the day', () => {
     expect(planLine({ plan: 'club', source: 'promo', endsAt: '2027-09-25T12:00:00Z' }, now)).toBe(
-      'Club · until 25 Sept 2027',
+      'Full · until 25 Sept 2027',
     );
+  });
+
+  it('never prints a server word — pro and club are both Full (owner, 27 October)', () => {
+    for (const plan of ['pro', 'club'] as const) {
+      expect(planLine({ plan, source: 'grant', endsAt: null }, now)).toBe('Full');
+    }
   });
 
   it('Regular is a plan of its own (0021)', () => {
@@ -25,7 +31,7 @@ describe('the plan row', () => {
   });
 
   it('an end already passed is never drawn as a date in the past', () => {
-    expect(planLine({ plan: 'pro', source: 'grant', endsAt: '2026-01-01T00:00:00Z' }, now)).toBe('Pro');
+    expect(planLine({ plan: 'pro', source: 'grant', endsAt: '2026-01-01T00:00:00Z' }, now)).toBe('Full');
   });
 });
 

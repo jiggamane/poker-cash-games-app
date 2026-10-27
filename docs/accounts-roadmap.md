@@ -171,8 +171,8 @@ the account, but a lock on the app.
   select * from entitlement order by created_at desc;             -- who has what, and from where
   ```
 
-- **Settings → Account → Plan** reads `my_plan()`: `Pro · founder`, `Free`,
-  `Club · until …`.
+- **Settings → Account → Plan** reads `my_plan()` and says the tier (owner,
+  27 October): `Full · founder`, `Free`, `Regular · until …`.
 - Tested in `supabase/test/11_accounts.sql` and `planWords.test.ts`. Six new
   strings, all flagged — `docs/screens.md`, the last section.
 
