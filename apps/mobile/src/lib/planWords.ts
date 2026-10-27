@@ -12,12 +12,18 @@ export type Plan = {
 /**
  * The words for a plan on the Settings row. Pure, so it is tested.
  *
+ * IT SAYS THE TIER, NOT THE PLAN — owner, 27 October. The server's plan words
+ * are free / regular / pro / club; the names a person knows are Free / Regular
+ * / Full (`membership.ts`, `tierOfPlan`), and a founder on pro reads `Full ·
+ * founder`, the same word every other screen uses for them. Nothing on a phone
+ * prints pro or club.
+ *
  * ⚠ COPY NOT DRAWN — no board has an Account row for a plan. Written to the
  * grammar of the rows around it, and listed in `docs/screens.md`.
  */
 export function planLine(p: Plan, now: Date = new Date()): string {
   if (p.plan === 'free') return 'Free';
-  const name = p.plan === 'club' ? 'Club' : p.plan === 'regular' ? 'Regular' : 'Pro';
+  const name = p.plan === 'regular' ? 'Regular' : 'Full';
   const why = p.source === 'founder' ? ' · founder' : '';
   if (p.endsAt === null) return `${name}${why}`;
   const ends = new Date(p.endsAt);

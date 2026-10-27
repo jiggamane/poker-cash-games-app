@@ -2867,12 +2867,12 @@ with no account:
 
 `/settings`, Account:
 
-5. A **Plan** row: `Free`, `Pro · founder`, `Club · until 25 Sept 2027`, and
-   since 0021 `Regular · until 25 Nov 2026` (`planLine`, tested in
-   `planWords.test.ts`). Drawn only when signed in and the server answered —
-   never a guess. ⚠ It prints the plan's server word, so a founder reads
-   `Pro · founder` where every other screen would say Full; whether the row
-   should say the tier instead is open.
+5. A **Plan** row: `Free`, `Full · founder`, `Full · until 25 Sept 2027`,
+   `Regular · until 25 Nov 2026` (`planLine`, tested in `planWords.test.ts`).
+   Drawn only when signed in and the server answered — never a guess. **It
+   says the tier, not the plan** (owner, 27 October): pro and club both read
+   Full, so a founder reads the same word every other screen uses for them,
+   and no phone prints a server word.
 
 The sync error, wherever a failed sync is shown:
 
