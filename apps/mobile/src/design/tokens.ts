@@ -778,8 +778,13 @@ export const home = {
    * board: 124 tall, 16 of padding, radius 16, 10 between tiles; the glyph sits
    * in a 40 round at 21, the size the role line's icon was decided at a day
    * earlier. `/tools` draws the same tile at the same numbers.
+   *
+   * `tileHeightBare` is the tile with no sub-line — home's four, since 27
+   * October, by the owner: 16 + 40 round + 12 + the 24 name line + 16. The 124
+   * is the two-line tile `/tools` still draws.
    */
   tileHeight: 124,
+  tileHeightBare: 108,
   tilePad: 16,
   tileRadius: 16,
   tileGap: 10,

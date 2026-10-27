@@ -164,8 +164,11 @@ Two of the handoff's rules above are now broken on purpose, by the owner on
 the canvas *Odds and rules, where they live*:
 
 - **The three destination rows are a two-by-two grid of four tiles** — The
-  group, Sessions, My stats, Poker tools — each a 124-point tile with the
-  glyph in a 40 round and the name at the foot. The fourth is new: the odds
+  group, Sessions, My stats, Poker tools — each a tile with the glyph in a 40
+  round and the name at the foot. **The sub-line under each name went on 27
+  October**, the owner's call, and the tile went from 124 to 108
+  (`home.tileHeightBare`) so the name sits 12 under the round rather than
+  with the sub-line's air between them; `/tools` keeps its sub-lines at 124. The fourth is new: the odds
   calculator and the rules library, which lived under Settings alone. The row
   arithmetic in § 2 (17 + 21 + 4 + 15 + 17) no longer applies to them;
   `home.tile*` and `type.tileName` / `tileSub` are the new numbers, measured
