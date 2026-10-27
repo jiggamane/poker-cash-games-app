@@ -20,7 +20,7 @@ import { STREETS, runOut, type Street } from '../packages/core/src/odds/runout';
 import { showdown } from '../packages/core/src/odds/showdown';
 import { standings } from '../packages/core/src/odds/standing';
 import { oddsTone } from '../apps/mobile/src/lib/oddsTone';
-import { STREET_LABEL, runOutFigure, stillToCome, verdictOf } from '../apps/mobile/src/lib/runOut';
+import { STREET_LABEL, runOutFigure, runOutParams, stillToCome, verdictOf } from '../apps/mobile/src/lib/runOut';
 
 const GLYPH: Record<string, string> = { c: '♣', d: '♦', h: '♥', s: '♠' };
 const name = (c: Card): string => cardText(c)[0]! + GLYPH[cardText(c)[1]!]!;
@@ -37,8 +37,10 @@ type Case = {
   title: string;
   seats: number;
   placements: Placement[];
-  /** Whether *Run it out* is on the odds screen for this table. */
+  /** Whether *Run it out* would be on the odds screen for this table — it is hidden (27 October), so never drawn. */
   button: boolean;
+  /** The link the button carried: how the gate reaches the picture while the button is hidden. */
+  href: string;
   /** How many cards the one board shows. */
   boardCards: number;
   /** A row per hand, in seat order. */
@@ -89,7 +91,8 @@ function build(title: string, hands: string[], board: string, dead = ''): Case {
           return { title: v.title, detail: v.detail };
         })()
       : { title: stillToCome(last, r.get(last)!.boards), detail: null };
-  return { title, seats, placements, button, boardCards: boardCards.length, rows, foot };
+  const href = `/run-out?${new URLSearchParams({ ...runOutParams(input) }).toString()}`;
+  return { title, seats, placements, button, href, boardCards: boardCards.length, rows, foot };
 }
 
 const cases: Case[] = [

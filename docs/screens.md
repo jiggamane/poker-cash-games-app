@@ -3001,14 +3001,20 @@ whole of this is the web build in a desktop browser.
   tap. The deck's cells are 25 × 40 pt, below the 44 × 44 a thumb can be sure
   of, and this is the change that leaves the layout alone. It stays 8 pt inside
   the screen on the A and 2 columns and takes no touches.
+- **Slide to pick, as on a keyboard** (the owner, 27 October). The finger can
+  go down on one card and slide across the deck; the ring and the copy follow
+  the card under it, and letting go deals that card. Letting go more than 6 pt
+  off the deck, or over a card already dealt, deals nothing — the old "slide off
+  to cancel". Each cell is its own responder, so the first cell keeps the
+  gesture; it fixes where the deck sits on the page, and every move after is
+  placed against the 13 × 4 grid in arithmetic (`cardUnder` in `odds.tsx`).
+  Screen readers activate a cell with `onAccessibilityTap`.
 - **`ui-odds.mjs` holds it:** the copy appears on press with the card's rank,
-  above the cell, taking no touches; releasing deals the card and removes it; the
-  two edge columns stay on screen; a press that slides off and lets go deals
-  nothing. **On the web build the copy goes on release, not the moment the finger
-  leaves the cell**, because react-native-web has no `pressRetentionOffset`; on a
-  phone React Native hides it as soon as the finger is 6 pt outside. Not seen on
-  a phone. Shown to go red against a callout that never appears, one that takes
-  touches, and one that hangs off the screen on the A column.
+  above the cell, taking no touches; releasing deals the card and removes it; a
+  slide from 7♣ to 9♥ moves the copy over 9♥ and deals 9♥, not 7♣; the two edge
+  columns stay on screen; a press that slides off the deck and lets go deals
+  nothing. **Not seen on a phone** — in particular, whether a slide reads the
+  right card at the deck's edges on a real thumb.
 - **Open, flagged on the canvas:** beside the icon the status line has about 270
   pt at 402 wide, so *Not enough cards left in the deck to finish the board.* is
   cut with an ellipsis. It needs shorter copy or a second line. The share
@@ -3223,6 +3229,11 @@ value, so the sentence cannot disagree with the 100 %. `runout.test.ts` holds
 each street to `odds()` on that street's table, the order and the progress;
 `showdown.test.ts` every category's name and the split; `src/lib/runOut.test.ts`
 the one-decimal figures, the lines, the verdict and the link.
+
+**⚠ *Run it out* is hidden (the owner, 27 October)** — `RUN_IT_OUT` in
+`odds.tsx`, so nothing on the calculator reaches this screen; it is reachable by
+its link only, and `ui-odds.mjs` goes there by the link the button carried and
+holds that the button is absent. What follows describes it as it was:
 
 **Reached by *Run it out*** under the board on `/odds`, there from the third
 board card while two hands are in and the engine will take the table — before
