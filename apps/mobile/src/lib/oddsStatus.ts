@@ -1,5 +1,14 @@
 /**
- * The line under the odds calculator's title — one sentence, chosen here.
+ * The line under the odds calculator's title. It never changes (the owner, 29
+ * October): once cards were in it used to become the status below, and the
+ * screen read as a different screen from one card to the next.
+ */
+export const ODDS_SUBTITLE = 'Texas Hold’em card and chip odds';
+
+/**
+ * Where the table stands — one sentence, chosen here. It was the line under the
+ * title until 29 October; it is now said to a screen reader as it changes and
+ * drawn nowhere.
  *
  * It lives apart from the screen so the rule can be tested and written down
  * once: `design/handoff-odds-calculator/START-HERE.md` has the same five states
