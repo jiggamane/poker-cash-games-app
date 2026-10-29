@@ -5,7 +5,10 @@ things. This is the feature that answers them from the phone that is already
 recording the night. It is a design, not a build: nothing in `apps/`, `packages/`
 or `supabase/` changes with this file. Written 20 October 2026 against `main`
 at `9a78e1c`, from `reports/Poker rules advice services.md` and the five note
-files behind it; revised 22 October after the owner's review (§ 1 items 7–8).
+files behind it; revised 22 October after the owner's review (§ 1 items 7–8). **§ 3, § 6 and § 7
+are revised by `docs/rulings-find.md` (29 October)**: the field reads a
+description rather than keywords, the AI routes to a verified answer before it
+writes one, and the queue gets an admin list and a badge in the app.
 
 **How to read it.** § 1 is the decisions the owner has already made and this file
 builds on. § 2 is where the feature sits in the app and which chrome each screen
@@ -125,6 +128,10 @@ in § 12.
 ---
 
 ## 3 · Finding a situation in three taps
+
+> Revised by `docs/rulings-find.md` § 3–4 (29 October): measured, a sentence
+> typed into this field finds nothing 53 times in 54. The structure below
+> stands; the matcher and the result list do not.
 
 The research is specific about what a host needs at the table: the dozen
 judgement calls that start arguments (mucked winner, verbal versus chips, string
@@ -401,6 +408,10 @@ answer is the engine's figure with the engine's sentence under it.
 
 ## 6 · The AI fallback
 
+> Revised by `docs/rulings-find.md` § 5 (29 October): the model chooses from
+> the library first and writes only when nothing fits; the cost in § 6.5 is
+> corrected there.
+
 ### 6.1 When it runs
 
 Only when search finds no verified situation, or when the host taps *Ask* under
@@ -502,6 +513,10 @@ category, and a library nobody can read captures no questions.
 ---
 
 ## 7 · The review queue
+
+> Revised by `docs/rulings-find.md` § 6 (29 October): an admin-only list and a
+> badge in the app, and one outbound channel, instead of a view and an export
+> alone.
 
 Every question that reaches *Ask*, every 👎, and every search that ended with
 no tap is a row we want. The loop is: capture → cluster → write → ship → the
