@@ -2915,6 +2915,16 @@ five states (*Texas hold’em · deal two hands*, *Player 3 needs a second card*
 enough cards left in the deck to finish the board.*), which `src/lib/oddsStatus.ts`
 writes down in the order they win.
 
+**29 October (the owner): the line under the title never changes** — it is
+*Texas Hold’em card and chip odds* (`ODDS_SUBTITLE`) in every state, because it
+turning into the status once cards were in made the screen read as a different
+screen. The five states above are no longer drawn anywhere: they sit in a
+one-point, invisible `#odds-status` that a screen reader hears as it changes
+and that `ui-odds.mjs` waits on and checks, as it used to check the meta line.
+⚠ So a half-dealt hand, a table the engine refuses and the count while it runs
+now show on screen only as figures that have not arrived. `ui-odds.mjs` holds
+the line under the title to the one string on every table it deals.
+
 *How the arithmetic is held, 24 October.* `npm run check` runs the engine
 against a slow second ranker on random tables of two to nine players, against
 every one of the 2,598,960 five-card hands, and through the symmetries that
@@ -3230,7 +3240,8 @@ each street to `odds()` on that street's table, the order and the progress;
 `showdown.test.ts` every category's name and the split; `src/lib/runOut.test.ts`
 the one-decimal figures, the lines, the verdict and the link.
 
-**⚠ *Run it out* is hidden (the owner, 27 October)** — `RUN_IT_OUT` in
+**⚠ *Run it out* is gone from the calculator (the owner, hidden 27 October,
+removed 29 October)** — the button and its `RUN_IT_OUT` flag are deleted from
 `odds.tsx`, so nothing on the calculator reaches this screen; it is reachable by
 its link only, and `ui-odds.mjs` goes there by the link the button carried and
 holds that the button is absent. What follows describes it as it was:

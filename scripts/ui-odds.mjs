@@ -178,7 +178,7 @@ const dealTable = async (page, c) => {
     await tap(p.card);
   }
   await page
-    .waitForFunction((want) => document.getElementById('screen-meta')?.textContent === want, c.meta, { timeout: 90_000 })
+    .waitForFunction((want) => document.getElementById('odds-status')?.textContent === want, c.meta, { timeout: 90_000 })
     .catch(() => {});
   return tap;
 };
@@ -323,7 +323,7 @@ for (const [n, c] of (onlyRunOut || onlyRiver ? [] : outsCases).entries()) {
       await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
       await page.waitForSelector('#screen-title');
       const tap = await dealTable(page, c);
-      const meta = await page.locator('#screen-meta').textContent();
+      const meta = await page.locator('#odds-status').textContent();
       if (meta !== c.meta) fail.push(`meta: "${meta}", wanted "${c.meta}"`);
       for (const f of await cutOff(page, SEATS)) fail.push(`closed: ${f}`);
       for (const [i, want] of c.want.entries()) {
@@ -408,7 +408,7 @@ for (const [n, c] of (onlyOuts && !onlyRiver ? [] : riverCases).entries()) {
       await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
       await page.waitForSelector('#screen-title');
       await dealTable(page, c);
-      const meta = await page.locator('#screen-meta').textContent();
+      const meta = await page.locator('#odds-status').textContent();
       if (meta !== c.meta) fail.push(`meta: "${meta}", wanted "${c.meta}"`);
       for (const f of await cutOff(page, SEATS)) fail.push(`closed: ${f}`);
       for (const [i, want] of c.want.entries()) {
@@ -480,13 +480,16 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : cases).entries()) {
     /* Settled: the line under the title says what this table has to say. */
     await page
       .waitForFunction(
-        (want) => document.getElementById('screen-meta')?.textContent === want,
+        (want) => document.getElementById('odds-status')?.textContent === want,
         c.meta,
         { timeout: 90_000 },
       )
       .catch(() => {});
-    const meta = await page.locator('#screen-meta').textContent();
-    if (meta !== c.meta) fail.push(`meta: "${meta}", wanted "${c.meta}"`);
+    const meta = await page.locator('#odds-status').textContent();
+    if (meta !== c.meta) fail.push(`status: "${meta}", wanted "${c.meta}"`);
+    /* The line under the title says one thing whatever is dealt (the owner, 29 October). */
+    const sub = await page.locator('#screen-meta').textContent();
+    if (sub !== 'Texas Hold’em card and chip odds') fail.push(`line under the title: "${sub}"`);
 
     for (let seat = 0; seat < c.seats; seat++) {
       const text = await page.evaluate((s) => {

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
-import { router } from 'expo-router';
 import {
   BOARD_CARDS,
   HOLE_CARDS,
@@ -30,9 +29,8 @@ import { Screen } from '../src/components/Screen';
 import { amountOf, useTypedAmount } from '../src/components/typedAmount';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
-import { oddsStatus } from '../src/lib/oddsStatus';
+import { ODDS_SUBTITLE, oddsStatus } from '../src/lib/oddsStatus';
 import { oddsTone } from '../src/lib/oddsTone';
-import { runOutParams } from '../src/lib/runOut';
 
 /**
  * Poker calculator — Texas hold'em, win and tie per hand. *Odds calculator*
@@ -334,7 +332,7 @@ export default function OddsCalculator() {
     setTable({ ...table, seats: [...table.seats, emptySeat()] });
   };
 
-  const meta = oddsStatus({
+  const status = oddsStatus({
     halfDealtSeat: halfDealt,
     fullHands: complete.length,
     problem,
@@ -547,7 +545,7 @@ export default function OddsCalculator() {
     <Screen
       title="Poker calculator"
       backTo={backTo}
-      meta={meta}
+      meta={ODDS_SUBTITLE}
       metaTrailing={restart}
       footer={
         typing === null ? (
@@ -565,28 +563,21 @@ export default function OddsCalculator() {
       footerPad={typing === null}
     >
       <View style={styles.list}>
+        {/*
+         * Where the table stands — half dealt, counting, the engine's refusal,
+         * boards dealt — is no longer the line under the title, which says
+         * ODDS_SUBTITLE always (the owner, 29 October). It is still said, to a
+         * screen reader as it changes, and it is what `ui-odds.mjs` waits on.
+         */}
+        <Text nativeID="odds-status" accessibilityLiveRegion="polite" style={styles.status}>
+          {status}
+        </Text>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>Board</Text>
         <View style={styles.row}>
           {table.board.map((c, i) => (
             <CardSlot key={i} {...slotProps({ kind: 'board', i }, c, `Board, card ${i + 1}`)} />
           ))}
         </View>
-
-        {/*
-         * RUN IT OUT — the same hands on every street as one picture (`/run-out`,
-         * board 19). Under the board because it is about the board: it appears
-         * with the third board card, once two hands are in and the engine will
-         * take the table, and goes with the card that made it. Before the flop
-         * there is one street and nothing to run. ⚠ COPY NOT DRAWN: the label is
-         * the canvas's own name for the replay (§ 8), on a button it did not draw.
-         * HIDDEN on 27 October (the owner): `RUN_IT_OUT` below. The route stays,
-         * reachable by its link.
-         */}
-        {RUN_IT_OUT && problem === null && boardCards.length >= 3 && (
-          <View style={styles.runOut}>
-            <Button label="Run it out" variant="secondary" onPress={() => router.push({ pathname: '/run-out', params: runOutParams(input) })} />
-          </View>
-        )}
 
         <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Players</Text>
         {/*
@@ -819,10 +810,6 @@ function CardSlot({
   );
 }
 
-/* *Run it out* under the board — hidden on 27 October by the owner's word;
-   `/run-out` is still there behind its link. */
-const RUN_IT_OUT = false;
-
 /* The deck's own numbers, and the callout's, which are measured against them. */
 const DECK_GAP = 3;
 const DECK_CELL_H = 40;
@@ -893,10 +880,11 @@ const styles = StyleSheet.create({
   },
   deckRank: { fontSize: 12, fontWeight: '800', lineHeight: 14, marginBottom: 1 },
   add: { paddingTop: 12, paddingHorizontal: 4 },
-  runOut: { paddingTop: 14, paddingHorizontal: 4 },
   amountFoot: { gap: 10, paddingBottom: 6 },
   doneWrap: { paddingHorizontal: space.card },
   restart: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  /* Off screen but in the tree: one point square, clipped, nothing drawn. */
+  status: { position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0 },
   callout: {
     position: 'absolute',
     width: CALLOUT_W,
