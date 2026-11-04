@@ -2922,8 +2922,9 @@ name changes when a third is added. `src/lib/seatName.ts` is the one place it is
 decided; the label, each place's spoken name, the chevron's *Outs for…* /
 *Hand for…*, and the status sentence (*My hand needs a second card*) all read it,
 and so do the `odds-*-cases.ts` that deal by those names. *New hand* now clears
-back to two seats rather than keeping the count. ⚠ The pot odds card's *You* tag
-still sits beside *Me* — two words for one seat; unanswered. The run-out
+back to two seats rather than keeping the count. The *You* tag that sat beside the
+first seat while the pot odds card showed is dropped (the owner, same day): the
+seat is called *Me*, and `ui-odds.mjs` holds that the tag is never on screen. The run-out
 (`/run-out`, reachable only by its link) still says *Player N*.
 
 **4 November (the owner): the pot odds keypad goes away once both amounts are

@@ -214,7 +214,7 @@ if (!onlyOuts && !onlyRiver) {
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
   try {
-    /* Every scenario says whether the card is there; the You tag goes exactly with it, and neither is there otherwise. */
+    /* Every scenario says whether the card is there. The You tag is gone (the owner, 4 November): the seat is called Me. */
     for (const c of potCases) {
       await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
       await page.waitForSelector('#screen-title');
@@ -222,7 +222,7 @@ if (!onlyOuts && !onlyRiver) {
       const card = (await page.locator('#pot-odds').count()) > 0;
       const you = (await page.getByText('You', { exact: true }).count()) > 0;
       if (card !== c.visible) fail.push(`${c.title}: the card is ${card ? 'on' : 'off'} the screen, wanted ${c.visible ? 'on' : 'off'}`);
-      if (you !== c.visible) fail.push(`${c.title}: the You tag is ${you ? 'on' : 'off'} the screen, wanted ${c.visible ? 'on' : 'off'}`);
+      if (you) fail.push(`${c.title}: the You tag is on the screen, and it is dropped`);
     }
     /* And Settings no longer has a switch for it. */
     await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
@@ -232,7 +232,7 @@ if (!onlyOuts && !onlyRiver) {
     fail.push(String(e.message ?? e).split('\n')[0]);
   }
   await page.close();
-  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  pot odds: the card and the You tag on the flop and the turn only; no switch in Settings`);
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  pot odds: the card on the flop and the turn only, no You tag; no switch in Settings`);
   for (const f of fail) console.log(`        ${f}`);
   if (fail.length) failed++;
 }

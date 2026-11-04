@@ -64,13 +64,13 @@ import { oddsTone } from '../src/lib/oddsTone';
  * POT ODDS — decided 24 October, made permanent on 25 October (no setting, no
  * "experiment") — is one section under the players, shown only while an exact
  * result is on screen and the flop or the turn is down (not before the flop, not
- * on the river), for Player 1, who is "you" and wears a *You* tag while the card
- * is showing. `PotOddsCard` lays it
+ * on the river), for the first seat, *Me*. It wore a *You* tag while the card
+ * showed until 4 November, when the seat itself was named *Me* and the owner
+ * dropped the tag. `PotOddsCard` lays it
  * out and `potOdds()` in core does every figure of it. Typing the pot or the
  * call swaps the deck at the foot for the amount keypad and a *Done*: one
  * footer, one job, so a card cannot be dealt while an amount is being typed.
- * ⚠ NOT DRAWN: *Done*, the *—* a Needs shows before a call is typed, and the
- * *You* tag on the players list (the board tags the pot odds card only).
+ * ⚠ NOT DRAWN: *Done*, and the *—* a Needs shows before a call is typed.
  *
  * THE RIVER (decided 26 October, board 21). Once the fifth card is down nothing
  * is left to count, and the card says so three ways: the figures are whole —
@@ -714,12 +714,6 @@ export default function OddsCalculator() {
                         {tone.word}
                       </Text>
                     )}
-                    {/* While the pot odds card is showing: the first seat is "you". */}
-                    {potShown && seat === 0 && (
-                      <View style={[styles.youTag, { backgroundColor: t.roundFill }]}>
-                        <Text style={[styles.youText, { color: t.text }]}>You</Text>
-                      </View>
-                    )}
                   </View>
                   {/*
                    * WHILE THE BOARDS ARE BEING DEALT the figures are not shown —
@@ -925,12 +919,10 @@ const styles = StyleSheet.create({
   word: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
   chevron: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   seatLabel: { ...type.rowDetail },
-  youTag: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 9 },
   /* The river: the hand's name under the figures, 15/500 in the text colour, and
      its five cards in a row under that — board 21's own measures. */
   handName: { fontSize: 15, fontWeight: '500', lineHeight: 20, paddingTop: 10 },
   handFive: { flexDirection: 'row', gap: 4, paddingTop: 8 },
-  youText: { fontSize: 11, fontWeight: '700' },
   /* The two figures on one line, wrapping to two only if the text setting
      leaves them no room — never truncating. */
   figures: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 2 },
