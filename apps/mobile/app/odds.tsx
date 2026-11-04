@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import { PanResponder, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import {
   BOARD_CARDS,
   HOLE_CARDS,
@@ -81,9 +81,23 @@ import { oddsTone } from '../src/lib/oddsTone';
  * ⚠ NOT DRAWN: the chevron's label *Hand for Player N*; a chop reads *Too close*
  * on both cards, which wants a word of its own (`oddsTone`).
  *
- * The board is at the top and the seats under it, three to begin with and one
+ * The board is at the top and the seats under it, two to begin with and one
  * more per tap of *Add a player* up to nine — the owner's instruction, 24
- * October, over the original's nine seats always on show.
+ * October, over the original's nine seats always on show; two rather than
+ * three since 4 November (the owner): a third hand is one somebody adds.
+ *
+ * THE DECK IS A KEYBOARD (the owner, 4 November). It is up while there is a
+ * card to deal and goes away by itself once every hole card and all five board
+ * cards are in — the moment there is nothing blank left to fill, not after
+ * each card. Three more ways away, all of them the owner's: *Done* on the strip
+ * above it, a swipe down on that strip (or a slide that lets go below the
+ * deck), and a tap anywhere on the screen that is not a control. Tapping an
+ * empty place brings it back with that place outlined; while it is away
+ * nothing is outlined, since nothing is waiting for a card. Tapping a dealt
+ * card still takes it back and leaves the deck as it was. Whatever is on the
+ * screen has the room while it is away. ⚠ NOT DRAWN: the strip, and *Done* on
+ * it (the keypad's word). No grabber on it: a grabber means a sheet
+ * (`09-navigation.md`), and this is a push.
  *
  * ⚠ COPY NOT DRAWN. No board draws this screen, so every string on it is mine
  * and wants review: the title, the status line's five states (written down in
@@ -114,8 +128,8 @@ type Table = {
   dead: Card[];
 };
 
-/** Three seats to begin with; `Add a player` brings the next one in. */
-const FIRST_SEATS = 3;
+/** Two seats to begin with; `Add a player` brings the next one in. */
+const FIRST_SEATS = 2;
 const emptySeat = (): (Card | null)[] => Array<Card | null>(HOLE_CARDS).fill(null);
 const emptyTable = (seats = FIRST_SEATS): Table => ({
   seats: Array.from({ length: seats }, emptySeat),
@@ -124,6 +138,9 @@ const emptyTable = (seats = FIRST_SEATS): Table => ({
 });
 
 const FIRST: Slot = { kind: 'seat', seat: 0, i: 0 };
+
+/** No blank left on the table: every hole card and all five on the board. Dead cards are never "blank". */
+const filled = (t: Table): boolean => t.seats.every((s) => s.every((c) => c !== null)) && t.board.every((c) => c !== null);
 
 /**
  * THE DEALT CARDS SURVIVE LEAVING THE SCREEN.
@@ -211,6 +228,9 @@ export default function OddsCalculator() {
   useEffect(() => {
     kept = { table, active };
   }, [table, active]);
+  /* THE DECK, UP OR AWAY — the keyboard, in the header above. Up whenever the
+     screen opens on a table with a blank in it. */
+  const [deckOpen, setDeckOpen] = useState(() => !filled(kept?.table ?? emptyTable()));
   /* Both are kept WITH the table they belong to. A result is only ever shown
      for the cards it was calculated from — see `shown` below. */
   const [result, setResult] = useState<{ key: string; odds: Odds } | null>(null);
@@ -309,6 +329,9 @@ export default function OddsCalculator() {
     const next = place(table, active, c);
     setTable(next);
     setActive(nextSlot(active, next));
+    /* Away on the card that fills the last blank — not on a dead card dealt
+       after it, which would close the deck on every one. */
+    if (!filled(table) && filled(next)) setDeckOpen(false);
   };
 
   const takeBack = (c: Card, from: Slot) => {
@@ -325,6 +348,7 @@ export default function OddsCalculator() {
     setOutsOpen(new Set());
     setTable(emptyTable(table.seats.length));
     setActive(FIRST);
+    setDeckOpen(true);
   };
 
   const addSeat = () => {
@@ -388,9 +412,13 @@ export default function OddsCalculator() {
 
   const slotProps = (slot: Slot, c: Card | null, label: string) => ({
     card: c,
-    active: sameSlot(slot, active),
+    active: deckOpen && sameSlot(slot, active),
     label,
-    onPress: () => (c === null ? setActive(slot) : takeBack(c, slot)),
+    onPress: () => {
+      if (c !== null) return takeBack(c, slot);
+      setActive(slot);
+      setDeckOpen(true);
+    },
   });
 
   /*
@@ -452,8 +480,33 @@ export default function OddsCalculator() {
     hover(null);
     if (dealIt && c !== null) deal(c);
   };
+  /* Letting go BELOW the deck sends it away, as a swipe down a keyboard does.
+     Anywhere else off the deck still only cancels. */
+  const belowDeck = (pageY: number) => pageY - origin.current.y > deckH + SLIDE_SLOP;
+
+  /* The strip above the deck: *Done*, and a swipe down on it. */
+  const swipe = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => g.dy > 6 && Math.abs(g.dy) > Math.abs(g.dx),
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > 24) setDeckOpen(false);
+      },
+    }),
+  ).current;
 
   const deck = (
+    <View>
+      <View {...swipe.panHandlers} style={styles.deckStrip}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Done"
+          hitSlop={8}
+          onPress={() => setDeckOpen(false)}
+          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        >
+          <Text style={[styles.deckDone, { color: t.text }]}>Done</Text>
+        </Pressable>
+      </View>
     <View
       style={styles.deckWrap}
       onLayout={(e: LayoutChangeEvent) => setDeckW(e.nativeEvent.layout.width)}
@@ -494,7 +547,9 @@ export default function OddsCalculator() {
                 }}
                 onResponderRelease={(e) => {
                   hovered.current = cardUnder(e.nativeEvent.pageX, e.nativeEvent.pageY);
+                  const away = hovered.current === null && belowDeck(e.nativeEvent.pageY);
                   endSlide(true);
+                  if (away) setDeckOpen(false);
                 }}
                 onResponderTerminate={() => endSlide(false)}
                 style={[
@@ -520,6 +575,7 @@ export default function OddsCalculator() {
       {pressedCard !== null && !used.has(pressedCard) && deckW > 0 && (
         <Callout card={pressedCard} {...calloutAt(pressedCard)} />
       )}
+    </View>
     </View>
   );
 
@@ -549,7 +605,7 @@ export default function OddsCalculator() {
       metaTrailing={restart}
       footer={
         typing === null ? (
-          deck
+          deckOpen ? deck : undefined
         ) : (
           /* The amount keypad in the deck's place, with the way back to the deck. */
           <View style={styles.amountFoot}>
@@ -562,7 +618,14 @@ export default function OddsCalculator() {
       }
       footerPad={typing === null}
     >
-      <View style={styles.list}>
+      {/* A tap on the screen that lands on no control sends the deck away. Not a
+          control itself: nothing for a screen reader, which has *Done*. */}
+      <Pressable
+        accessible={false}
+        focusable={false}
+        onPress={() => setDeckOpen(false)}
+        style={styles.list}
+      >
         {/*
          * Where the table stands — half dealt, counting, the engine's refusal,
          * boards dealt — is no longer the line under the title, which says
@@ -721,7 +784,7 @@ export default function OddsCalculator() {
           ))}
           <CardSlot {...slotProps({ kind: 'dead' }, null, 'Next dead card')} />
         </View>
-      </View>
+      </Pressable>
     </Screen>
   );
 }
@@ -869,6 +932,9 @@ const styles = StyleSheet.create({
   slotRank: { fontSize: 17, fontWeight: '800', lineHeight: 19, marginBottom: 1 },
 
   /* Above the body: the callout hangs up over the rows and the table. */
+  /* Done at the right, at text size; the strip is the swipe's target, 36 tall. */
+  deckStrip: { height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingHorizontal: 4 },
+  deckDone: { ...type.secondary },
   deckWrap: { gap: DECK_GAP, position: 'relative', zIndex: 10 },
   suitRow: { flexDirection: 'row', gap: DECK_GAP },
   deckCard: {

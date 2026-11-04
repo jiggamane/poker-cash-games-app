@@ -44,8 +44,8 @@ const next = rng(20261024);
 const cases: Case[] = [];
 
 for (let i = 0; i < 36; i++) {
-  const seats = 2 + Math.floor(next() * 8); // 2..9; the screen opens with three
-  const shown = Math.max(seats, 3);
+  const seats = 2 + Math.floor(next() * 8); // 2..9; the screen opens with two
+  const shown = Math.max(seats, 2);
   /* Which seats hold a full hand, which hold one card, which are empty. */
   const state: ('full' | 'one' | 'none')[] = Array.from({ length: shown }, () => 'none');
   const wantFull = 2 + Math.floor(next() * Math.min(shown - 1, 4));

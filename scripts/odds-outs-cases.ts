@@ -65,7 +65,7 @@ function build(title: string, hands: (string | null)[], board: string, dead = ''
   boardCards.forEach((c, i) => placements.push({ slot: `Board, card ${i + 1}`, card: name(c) }));
   const deadCards = dead === '' ? [] : cards(dead);
   deadCards.forEach((c) => placements.push({ slot: 'Next dead card', card: name(c) }));
-  const seats = Math.max(3, hands.length);
+  const seats = Math.max(2, hands.length);
   const want: SeatWant[] = Array.from({ length: seats }, () => ({ word: null, control: false, names: [], rows: [] }));
   if (full.length < 2) {
     return { title, seats, placements, meta: 'Texas hold’em · deal two hands', want };

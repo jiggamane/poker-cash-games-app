@@ -66,7 +66,7 @@ function scenario(title: string, t: Table, pot: string | null, call: string | nu
   });
   const board = t.board === '' ? [] : cards(t.board);
   board.forEach((c, i) => placements.push({ slot: `Board, card ${i + 1}`, card: name(c) }));
-  const seats = Math.max(3, t.hands.length);
+  const seats = Math.max(2, t.hands.length);
   /* Fewer than two hands is no result: the line under the title says so and there is no card. */
   if (full.length < 2) {
     return { title, seats, placements, meta: 'Texas hold’em · deal two hands', pot, call, visible: false };
