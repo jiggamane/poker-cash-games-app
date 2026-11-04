@@ -162,16 +162,16 @@ tested and the nets are the engine's frozen scores. Open: the graph and
 `Last games` follow the group but not the period, deliberately (they are counts
 of nights, `stats.tsx`), which can read as the total disagreeing with them.
 
-### B105 — the past night's meta line gains its length
+### B105 — the past night's meta line gains its length (open)
 
 ```
 Screen      /settled, the line under the date
 Asked       4 Nov, the owner: show how long the game ran beside the two times
-Now         `20:05 → 00:15 · 4h 10m`, from `nightSpanWithLength`
-Locked by   `elapsed.test.ts`: never past 23 characters short of a hundred
-            days — B81 was 28 meeting the view control; and `ui-audit.mjs`'s
-            `meta-line-truncated` on every phone
-Status      changed in this commit
+Tried       `12:02 → 15:18 · 3h 17m` on that line. check:ui, the big night at
+            360: "meta-line-truncated — needs 153 in 138", and 183 in 163 at
+            120% text. The view control shares the line, which is B81 again
+Status      open — not shipped. Needs the owner to choose where the length
+            goes; the attempt is commit c6577ec on claude/sharp-carson-3ok5wm
 ```
 
 ### B106 — a dealt card left a blank in the card keyboard

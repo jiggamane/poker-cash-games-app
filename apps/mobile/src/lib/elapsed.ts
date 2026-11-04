@@ -37,24 +37,18 @@ export function elapsedLabel(startedAt: string, now: number): string {
    */
   if (since < MINUTE) return 'just opened';
 
-  return lengthLabel(Math.max(0, Math.round(since / MINUTE)));
-}
+  const minutes = Math.max(0, Math.round(since / MINUTE));
 
-/**
- * `4h 10m` — a stretch of minutes, as the live tag and the past night's meta
- * line both print it.
- *
- * PAST 99 HOURS IT SWITCHES TO DAYS. A four-figure hour count is not a
- * duration anybody reads — and a night left open over a holiday reaches it.
- * The hours stay padded so the figure keeps its width as it counts, and it is
- * never wider than `99h 59m` short of a hundred days: seven characters, which is what lets `/settled`
- * put it on a line it shares with a control (B105).
- */
-function lengthLabel(minutes: number): string {
+  /*
+   * PAST 99 HOURS IT SWITCHES TO DAYS. A four-figure hour count is not a
+   * duration anybody reads — and a night left open over a holiday reaches it.
+   * The hours stay padded so the figure keeps its width as it counts.
+   */
   const hours = Math.floor(minutes / 60);
   if (hours > 99) {
     return `${Math.floor(hours / 24)}d ${String(hours % 24).padStart(2, '0')}h`;
   }
+
   return `${hours}h ${String(minutes % 60).padStart(2, '0')}m`;
 }
 
@@ -136,26 +130,6 @@ export const clockLabel = (at: string | Date): string =>
 export function nightSpan(startedAt: string, endedAt: string | null): string {
   const started = clockLabel(startedAt);
   return endedAt === null ? started : `${started} → ${clockLabel(endedAt)}`;
-}
-
-/**
- * `20:05 → 00:15 · 4h 10m` — the span, and how long it was.
- *
- * Owner, 4 November: the past night says its length beside its two clocks, so
- * nobody does the subtraction across midnight in their head (B105). It stays
- * BOUNDED rather than fixed — 13 characters of clocks and at most 7 of
- * length, 23 in all, against the 28 that B81 photographed running into the
- * view control. `ui-audit.mjs`'s `meta-line-truncated` measures it on every
- * phone.
- */
-export function nightSpanWithLength(startedAt: string, endedAt: string | null): string {
-  const span = nightSpan(startedAt, endedAt);
-  if (endedAt === null) return span;
-  const minutes = Math.max(
-    0,
-    Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / MINUTE),
-  );
-  return `${span} · ${lengthLabel(minutes)}`;
 }
 
 /**

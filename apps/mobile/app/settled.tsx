@@ -22,7 +22,7 @@ import {
 } from '../src/components/SessionViews';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, unscaledLabel } from '../src/design/tokens';
-import { nightSpanWithLength } from '../src/lib/elapsed';
+import { nightSpan } from '../src/lib/elapsed';
 import { endedRowLabel, endedRowValue } from '../src/lib/endTime';
 import { setSessionView, useSessionView } from '../src/lib/sessionViewStore';
 import { settlementOf, standingsOf, useNight } from '../src/lib/nightStore';
@@ -368,13 +368,7 @@ function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
  */
 
 /**
- * "20:05 → 06:38 · 10h 33m" — when the table opened, when it closed, and how
- * long that was.
- *
- * ⚠ THE LENGTH CAME BACK ON 4 NOVEMBER, by the owner's ruling (B105), and in
- * the one form the argument below allows: bounded. It is at most seven
- * characters at any night this app can record, so the line is never wider
- * than 23 — the count and the status that B81 lost stay off it.
+ * "20:05 → 06:38" — when the table opened and when it closed.
  *
  * ⚠ THIS LINE HAS BEEN CUT TWICE AND THIS IS THE CUT THAT HOLDS. It read
  * `20:05 → 06:38 · 10h 46m · 7 players · settled` until 9 September, when the
@@ -395,7 +389,7 @@ function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
  * settled* screen above, with its own lede — so `Not closed yet` was a string
  * this line could not draw. `/log` has every stamp, entry by entry.
  *
- * `nightSpanWithLength` is the whole of it, and it is `elapsed.ts`'s so that the clock
+ * `nightSpan` is the whole of it, and it is `elapsed.ts`'s so that the clock
  * here is the clock every other screen prints. This screen's own `elapsed`
  * helper went with the figure it formatted.
  */
@@ -404,7 +398,7 @@ function metaLine(night: NonNullable<ReturnType<typeof useNight>>): string {
   const last = stamps.length === 0 ? null : stamps.reduce((a, b) => (a > b ? a : b));
   /* The close is the night's own stamp, and the last thing that happened at
      the table when it has none. */
-  return nightSpanWithLength(night.startedAt, night.endedAt ?? last);
+  return nightSpan(night.startedAt, night.endedAt ?? last);
 }
 
 /* "Sat 29 Aug". SHORT, so the title holds one line at full width. */

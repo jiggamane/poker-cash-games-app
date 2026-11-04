@@ -5,7 +5,6 @@ import {
   msUntilNextLabelChange,
   msUntilNextMinute,
   nightSpan,
-  nightSpanWithLength,
 } from './elapsed';
 
 /**
@@ -155,25 +154,6 @@ describe("the night's span", () => {
     // one. Unreachable on /settled — a night with no result never gets here —
     // but the function answers rather than printing "Invalid Date".
     expect(nightSpan(START, null)).toBe(clockLabel(START));
-  });
-
-  it('says how long the night was beside the two clocks', () => {
-    // 20:05-ish to 06:38 the next morning; `START` is the file's own.
-    const minutes = Math.round((Date.parse(ENDED) - Date.parse(START)) / MINUTE);
-    const h = Math.floor(minutes / 60);
-    const m = String(minutes % 60).padStart(2, '0');
-    expect(nightSpanWithLength(START, ENDED)).toBe(`${nightSpan(START, ENDED)} · ${h}h ${m}m`);
-    expect(nightSpanWithLength(START, null)).toBe(nightSpan(START, null));
-  });
-
-  it('never runs past 23 characters with the length on it (B105)', () => {
-    // B81 was 28 characters meeting the view control. The length is the one
-    // term that grows with the night, so it is held at its widest here.
-    // Up to 99 days; a night left open for a season reads `375d 00h`, one wider.
-    for (const hours of [0, 1, 9.99, 10, 99.98, 100, 1000, 2399]) {
-      const end = new Date(new Date(START).getTime() + hours * 60 * MINUTE).toISOString();
-      expect(nightSpanWithLength(START, end).length).toBeLessThanOrEqual(23);
-    }
   });
 
   it('does not get wider at a longer night, which is the whole point', () => {
