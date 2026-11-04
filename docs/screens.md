@@ -2915,6 +2915,17 @@ five states (*Texas hold’em · deal two hands*, *Player 3 needs a second card*
 enough cards left in the deck to finish the board.*), which `src/lib/oddsStatus.ts`
 writes down in the order they win.
 
+**4 November (the owner): the seats are *Me* and *Opponent*, and New hand goes
+back to two.** The first seat is *Me*; heads-up the other is *Opponent*; from
+three seats the others are *Opponent 1*, *Opponent 2*… — so the second seat's
+name changes when a third is added. `src/lib/seatName.ts` is the one place it is
+decided; the label, each place's spoken name, the chevron's *Outs for…* /
+*Hand for…*, and the status sentence (*My hand needs a second card*) all read it,
+and so do the `odds-*-cases.ts` that deal by those names. *New hand* now clears
+back to two seats rather than keeping the count. ⚠ The pot odds card's *You* tag
+still sits beside *Me* — two words for one seat; unanswered. The run-out
+(`/run-out`, reachable only by its link) still says *Player N*.
+
 **4 November (the owner): the pot odds keypad goes away once both amounts are
 in.** A figure being typed has no last digit, so the moment is *Done*: on an
 amount while the other is still blank it moves the keypad to the other one; with

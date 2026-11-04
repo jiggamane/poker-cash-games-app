@@ -19,6 +19,7 @@
  */
 
 import { cardText, parseCards, type Card } from '../packages/core/src/odds/cards';
+import { seatName } from '../apps/mobile/src/lib/seatName';
 import { odds, oddsProblem, type Hand } from '../packages/core/src/odds/odds';
 import { groupOuts, outsToCome } from '../packages/core/src/odds/outs';
 import { dealRandom, rng } from '../packages/core/src/odds/reference';
@@ -45,6 +46,8 @@ type SeatWant = {
 type Case = {
   title: string;
   seats: number;
+  /** What each seat is called on the screen (`seatName`). */
+  names: string[];
   placements: Placement[];
   meta: string;
   want: SeatWant[];
@@ -57,7 +60,7 @@ function build(title: string, hands: (string | null)[], board: string, dead = ''
   hands.forEach((h, seat) => {
     if (h === null) return;
     const [a, b] = cards(h) as [Card, Card];
-    placements.push({ slot: `Player ${seat + 1}, card 1`, card: name(a) }, { slot: `Player ${seat + 1}, card 2`, card: name(b) });
+    placements.push({ slot: `${seatName(seat, Math.max(2, hands.length))}, card 1`, card: name(a) }, { slot: `${seatName(seat, Math.max(2, hands.length))}, card 2`, card: name(b) });
     full.push([a, b]);
     seatOf.push(seat);
   });
@@ -68,7 +71,7 @@ function build(title: string, hands: (string | null)[], board: string, dead = ''
   const seats = Math.max(2, hands.length);
   const want: SeatWant[] = Array.from({ length: seats }, () => ({ word: null, control: false, names: [], rows: [] }));
   if (full.length < 2) {
-    return { title, seats, placements, meta: 'Texas hold’em · deal two hands', want };
+    return { title, seats, names: Array.from({ length: seats }, (_, s) => seatName(s, seats)), placements, meta: 'Texas hold’em · deal two hands', want };
   }
   const input = { hands: full, board: boardCards, dead: deadCards };
   if (oddsProblem(input) !== null) throw new Error(`${title}: ${oddsProblem(input)}`);
@@ -93,6 +96,7 @@ function build(title: string, hands: (string | null)[], board: string, dead = ''
   return {
     title,
     seats,
+    names: Array.from({ length: seats }, (_, s) => seatName(s, seats)),
     placements,
     meta: `${grouped(r.boards)} ${r.boards === 1 ? 'board' : 'boards'} dealt · exact`,
     want,

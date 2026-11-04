@@ -18,6 +18,7 @@
  */
 
 import { cardText, parseCards, type Card } from '../packages/core/src/odds/cards';
+import { seatName } from '../apps/mobile/src/lib/seatName';
 import { odds, type Hand } from '../packages/core/src/odds/odds';
 import { formatHundredths, potOdds } from '../packages/core/src/odds/potOdds';
 import { formatMoney, formatSigned, money } from '../packages/core/src/money';
@@ -60,7 +61,7 @@ function scenario(title: string, t: Table, pot: string | null, call: string | nu
   t.hands.forEach((h, seat) => {
     if (h === null) return;
     const [a, b] = cards(h) as [Card, Card];
-    placements.push({ slot: `Player ${seat + 1}, card 1`, card: name(a) }, { slot: `Player ${seat + 1}, card 2`, card: name(b) });
+    placements.push({ slot: `${seatName(seat, Math.max(2, t.hands.length))}, card 1`, card: name(a) }, { slot: `${seatName(seat, Math.max(2, t.hands.length))}, card 2`, card: name(b) });
     if (seat === 0) youIndex = full.length;
     full.push([a, b]);
   });

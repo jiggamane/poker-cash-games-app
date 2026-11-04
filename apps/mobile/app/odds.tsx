@@ -30,6 +30,7 @@ import { amountOf, useTypedAmount } from '../src/components/typedAmount';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
 import { ODDS_SUBTITLE, oddsStatus } from '../src/lib/oddsStatus';
+import { needsSecondCard, seatName } from '../src/lib/seatName';
 import { oddsTone } from '../src/lib/oddsTone';
 
 /**
@@ -50,7 +51,7 @@ import { oddsTone } from '../src/lib/oddsTone';
  * the board, then the dead cards — and tapping any empty place moves it there.
  * *New hand* is a round restart icon at the right end of the status line — not
  * in the top-right corner, which a pushed screen keeps empty — and clears the
- * cards and keeps the seats. There is no hint under the deck: the owner took it
+ * cards and goes back to two seats (since 4 November; it kept the seats). There is no hint under the deck: the owner took it
  * out on 24 October.
  *
  * PRESSING A CARD SHOWS IT LARGE (option D on the canvas, chosen 24 October).
@@ -84,7 +85,9 @@ import { oddsTone } from '../src/lib/oddsTone';
  * The board is at the top and the seats under it, two to begin with and one
  * more per tap of *Add a player* up to nine — the owner's instruction, 24
  * October, over the original's nine seats always on show; two rather than
- * three since 4 November (the owner): a third hand is one somebody adds.
+ * three since 4 November (the owner): a third hand is one somebody adds. The
+ * seats are *Me* and *Opponent*, and *Opponent 1*, *Opponent 2*… from three
+ * (`seatName`, the owner, 4 November) — they were *Player 1*…*Player 9*.
  *
  * THE DECK IS A KEYBOARD (the owner, 4 November). It is up while there is a
  * card to deal and goes away by itself once every hole card and all five board
@@ -276,7 +279,7 @@ export default function OddsCalculator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [inputKey],
   );
-  const problem = halfDealt >= 0 ? `Player ${halfDealt + 1} needs a second card` : oddsProblem(input);
+  const problem = halfDealt >= 0 ? needsSecondCard(halfDealt, table.seats.length) : oddsProblem(input);
 
   /*
    * WHAT IS SHOWN IS ONLY EVER WHAT WAS CALCULATED FOR THIS TABLE. The first
@@ -350,7 +353,8 @@ export default function OddsCalculator() {
     callField.offer(0);
     setEditing(null);
     setOutsOpen(new Set());
-    setTable(emptyTable(table.seats.length));
+    /* Back to two seats as well (the owner, 4 November): a new hand starts heads-up. */
+    setTable(emptyTable());
     setActive(FIRST);
     setDeckOpen(true);
   };
@@ -362,6 +366,7 @@ export default function OddsCalculator() {
 
   const status = oddsStatus({
     halfDealtSeat: halfDealt,
+    seats: table.seats.length,
     fullHands: complete.length,
     problem,
     boardsDealt: shown === null ? null : shown.boards,
@@ -697,13 +702,13 @@ export default function OddsCalculator() {
                   {hand.map((c, i) => (
                     <CardSlot
                       key={i}
-                      {...slotProps({ kind: 'seat', seat, i }, c, `Player ${seat + 1}, card ${i + 1}`)}
+                      {...slotProps({ kind: 'seat', seat, i }, c, `${seatName(seat, table.seats.length)}, card ${i + 1}`)}
                     />
                   ))}
                 </View>
                 <View style={styles.seatText}>
                   <View style={styles.seatName}>
-                    <Text style={[styles.seatLabel, { color: t.muted }]}>Player {seat + 1}</Text>
+                    <Text style={[styles.seatLabel, { color: t.muted }]}>{seatName(seat, table.seats.length)}</Text>
                     {tone !== null && (
                       <Text nativeID={`seat-${seat + 1}-word`} style={[styles.word, { color: tone.color }]}>
                         {tone.word}
@@ -740,7 +745,7 @@ export default function OddsCalculator() {
                 {hasControl && (
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`${settled !== null ? 'Hand' : 'Outs'} for Player ${seat + 1}`}
+                    accessibilityLabel={`${settled !== null ? 'Hand' : 'Outs'} for ${seatName(seat, table.seats.length)}`}
                     aria-expanded={open}
                     hitSlop={8}
                     onPress={() => toggleOuts(seat)}

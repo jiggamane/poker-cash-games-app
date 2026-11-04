@@ -17,8 +17,8 @@ export const ODDS_SUBTITLE = 'Texas Hold’em card and chip odds';
  *
  * The first of these that is true wins:
  *
- *   1. A seat holds exactly one card → "Player N needs a second card", N the
- *      lowest such seat. This beats everything: nothing is counted while a hand
+ *   1. A seat holds exactly one card → "Opponent 2 needs a second card", for the
+ *      lowest such seat, named by `seatName` ("My hand needs…" for the first). This beats everything: nothing is counted while a hand
  *      is half dealt, and any figure still showing is for a table that is gone.
  *   2. A result for THIS exact table → "1,712,304 boards dealt · exact", "1 board
  *      dealt · exact" when it is one.
@@ -32,12 +32,16 @@ export const ODDS_SUBTITLE = 'Texas Hold’em card and chip odds';
  * result for this table — so their order between themselves is only tidiness.
  */
 
+import { needsSecondCard } from './seatName';
+
 /** Commas by hand: a locale can write 1.712.304 on the phone that writes money with commas. */
 export const grouped = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
 export interface OddsStatusInput {
   /** The lowest seat holding exactly one card, or -1 when none does. */
   halfDealtSeat: number;
+  /** How many seats are on the table — which decides what a seat is called. */
+  seats: number;
   /** How many seats hold two cards. */
   fullHands: number;
   /** The engine's refusal for this table, or null when it can be counted. */
@@ -51,7 +55,7 @@ export interface OddsStatusInput {
 }
 
 export function oddsStatus(s: OddsStatusInput): string {
-  if (s.halfDealtSeat >= 0) return `Player ${s.halfDealtSeat + 1} needs a second card`;
+  if (s.halfDealtSeat >= 0) return needsSecondCard(s.halfDealtSeat, s.seats);
   if (s.boardsDealt !== null) {
     return `${grouped(s.boardsDealt)} ${s.boardsDealt === 1 ? 'board' : 'boards'} dealt · exact`;
   }

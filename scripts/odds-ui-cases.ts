@@ -16,6 +16,7 @@
  */
 
 import { DECK, cardText, type Card } from '../packages/core/src/odds/cards';
+import { needsSecondCard, seatName } from '../apps/mobile/src/lib/seatName';
 import { odds, oddsProblem, type Hand } from '../packages/core/src/odds/odds';
 import { dealRandom, rng } from '../packages/core/src/odds/reference';
 
@@ -33,6 +34,8 @@ type Placement = { slot: string; card: string; decoy?: string };
 type Case = {
   title: string;
   seats: number;
+  /** What each seat is called on the screen (`seatName`). */
+  names: string[];
   placements: Placement[];
   /** Per seat in order: [win, tie], or null where the seat is not in the hand. */
   figures: ([string, string] | null)[];
@@ -70,9 +73,9 @@ for (let i = 0; i < 36; i++) {
     const a = take();
     const b = st === 'full' ? take() : null;
     const first = Math.floor(next() * 2); // which of the two places is filled first, and whether a hand is split
-    placements.push({ slot: `Player ${seat + 1}, card ${first + 1}`, card: name(a) });
+    placements.push({ slot: `${seatName(seat, shown)}, card ${first + 1}`, card: name(a) });
     if (b !== null) {
-      placements.push({ slot: `Player ${seat + 1}, card ${2 - first}`, card: name(b) });
+      placements.push({ slot: `${seatName(seat, shown)}, card ${2 - first}`, card: name(b) });
       hands.push([a, b]);
     }
   });
@@ -105,7 +108,7 @@ for (let i = 0; i < 36; i++) {
   let meta: string;
   if (halfDealt) {
     const seat = state.findIndex((x) => x === 'one');
-    meta = `Player ${seat + 1} needs a second card`;
+    meta = needsSecondCard(seat, shown);
   } else if (problem !== null) {
     meta = hands.length < 2 ? 'Texas hold’em · deal two hands' : problem;
   } else {
@@ -121,6 +124,7 @@ for (let i = 0; i < 36; i++) {
   cases.push({
     title: `${state.map((x) => ({ full: 'H', one: 'h', none: '.' })[x]).join('')} · board ${board.length} · dead ${dead.length}${halfDealt ? ' · half-dealt seat' : ''}${shuffled.some((p) => p.decoy) ? ' · take-back' : ''}`,
     seats: shown,
+    names: Array.from({ length: shown }, (_, s) => seatName(s, shown)),
     placements: shuffled,
     figures,
     meta,

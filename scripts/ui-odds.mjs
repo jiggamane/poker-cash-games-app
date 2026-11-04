@@ -95,7 +95,7 @@ if (!onlyOuts && !onlyRiver) {
     await page.mouse.up();
     await callout.waitFor({ state: 'detached', timeout: 3000 }).catch(() => fail.push('the callout stayed after release'));
     await page
-      .getByRole('button', { name: 'Player 1, card 1, Q♦', exact: true })
+      .getByRole('button', { name: 'Me, card 1, Q♦', exact: true })
       .waitFor({ state: 'visible', timeout: 3000 })
       .catch(() => fail.push('releasing on the card did not deal it'));
 
@@ -255,8 +255,19 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
   try {
     await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
     await page.waitForSelector('#screen-title');
-    if ((await page.getByRole('button', { name: /^Player 3, card/ }).count()) > 0) fail.push('the screen opens with three seats, wanted two');
-    if ((await page.getByRole('button', { name: /^Player 2, card 1/ }).count()) === 0) fail.push('the screen opens without a second seat');
+    const seatsAre = async (want) => {
+      const got = await page.locator('[aria-label$=", card 1, empty"], [aria-label*=", card 1, "]').evaluateAll((els) =>
+        els.map((e) => e.getAttribute('aria-label').split(', card 1')[0]).filter((n) => n === 'Me' || n.startsWith('Opponent')),
+      );
+      if (got.join('|') !== want.join('|')) fail.push(`the seats are ${got.join(', ') || 'none'}, wanted ${want.join(', ')}`);
+    };
+    /* Two seats to begin with, Me and Opponent; a third numbers the opponents. */
+    await seatsAre(['Me', 'Opponent']);
+    await tap('Add a player');
+    await seatsAre(['Me', 'Opponent 1', 'Opponent 2']);
+    /* New hand goes back to two seats (the owner, 4 November). */
+    await tap('New hand');
+    await seatsAre(['Me', 'Opponent']);
     if (!(await up())) fail.push('the deck is not up on an empty table');
     await tap('Done');
     if (await up()) fail.push('Done did not send the deck away');
@@ -265,7 +276,7 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
     /* A tap on the screen off any control: the Board label. */
     await page.getByText('Board', { exact: true }).click();
     if (await up()) fail.push('a tap off any control did not send the deck away');
-    await tap('Player 1, card 1, empty');
+    await tap('Me, card 1, empty');
     /* A swipe down on the strip above the deck. */
     const strip = await page.getByRole('button', { name: 'Done', exact: true }).boundingBox();
     if (strip) {
@@ -275,7 +286,7 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
       await page.mouse.up();
     }
     if (await up()) fail.push('a swipe down on the strip did not send the deck away');
-    await tap('Player 1, card 1, empty');
+    await tap('Me, card 1, empty');
     /* Dealt in order, the outline moving on: two hands, then the board. */
     const cards = ['A♠', 'K♠', 'Q♥', 'Q♦', '2♣', '7♦', '9♥', 'J♣'];
     for (const c of cards) {
@@ -406,7 +417,7 @@ for (const [n, c] of (onlyRunOut || onlyRiver ? [] : outsCases).entries()) {
       for (const f of await cutOff(page, SEATS)) fail.push(`closed: ${f}`);
       for (const [i, want] of c.want.entries()) {
         const seat = i + 1;
-        const tag = `Player ${seat}`;
+        const tag = c.names[i];
         const word = (await page.locator(`#seat-${seat}-word`).count()) ? (await page.locator(`#seat-${seat}-word`).innerText()).trim() : null;
         /* CSS uppercases the word; what is held is the letters. */
         if ((word === null ? null : word.toLowerCase()) !== (want.word === null ? null : want.word.toLowerCase()))
@@ -491,7 +502,7 @@ for (const [n, c] of (onlyOuts && !onlyRiver ? [] : riverCases).entries()) {
       for (const f of await cutOff(page, SEATS)) fail.push(`closed: ${f}`);
       for (const [i, want] of c.want.entries()) {
         const seat = i + 1;
-        const tag = `Player ${seat}`;
+        const tag = c.names[i];
         const text = (await page.locator(`#seat-${seat}`).innerText()).replace(/\s+/g, ' ');
         const win = /Win (\S+)/.exec(text)?.[1] ?? null;
         const tie = /Tie (\S+)/.exec(text)?.[1] ?? null;
@@ -571,20 +582,20 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : cases).entries()) {
 
     for (let seat = 0; seat < c.seats; seat++) {
       const text = await page.evaluate((s) => {
-        const b = document.querySelector(`[aria-label^="Player ${s}, card 1"]`);
+        const b = document.querySelector(`[aria-label^="${s}, card 1,"]`);
         return b?.parentElement?.parentElement?.innerText ?? null;
-      }, seat + 1);
+      }, c.names[seat]);
       if (text === null) {
-        fail.push(`Player ${seat + 1}: no row`);
+        fail.push(`${c.names[seat]}: no row`);
         continue;
       }
       /* Two decimals, or a whole number on a completed board. */
       const shown = [...text.matchAll(/(\d+(?:\.\d\d)?%)/g)].map((m) => m[1]);
       const want = c.figures[seat];
       if (want === null) {
-        if (shown.length !== 0) fail.push(`Player ${seat + 1} is not in the hand but shows ${shown.join(' ')}`);
+        if (shown.length !== 0) fail.push(`${c.names[seat]} is not in the hand but shows ${shown.join(' ')}`);
       } else if (shown.join(' ') !== want.join(' ')) {
-        fail.push(`Player ${seat + 1}: ${shown.join(' ') || 'nothing'}, wanted ${want.join(' ')}`);
+        fail.push(`${c.names[seat]}: ${shown.join(' ') || 'nothing'}, wanted ${want.join(' ')}`);
       }
     }
   } catch (e) {
