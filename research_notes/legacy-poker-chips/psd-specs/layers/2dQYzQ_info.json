@@ -1,0 +1,87 @@
+{
+ "file": "2dQYzQ_info.psd",
+ "canvas": [
+  2666,
+  1593
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Layer 7",
+   "kind": "pixel",
+   "bbox": [
+    1358,
+    137,
+    2494,
+    777
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Layer 8",
+   "kind": "pixel",
+   "bbox": [
+    1358,
+    827,
+    2494,
+    1467
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Layer 6",
+   "kind": "pixel",
+   "bbox": [
+    172,
+    827,
+    1308,
+    1467
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Layer 9",
+   "kind": "pixel",
+   "bbox": [
+    172,
+    137,
+    1308,
+    777
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

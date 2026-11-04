@@ -1,0 +1,198 @@
+{
+ "file": "25Vc0U_bet_2.psd",
+ "canvas": [
+  1906,
+  4184
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "iPhone 5S Gold",
+   "kind": "group",
+   "bbox": [
+    172,
+    625,
+    1760,
+    3380
+   ],
+   "visible": true,
+   "size": [
+    1588,
+    2755
+   ],
+   "children": [
+    {
+     "name": "Layer 1",
+     "kind": "pixel",
+     "bbox": [
+      0,
+      1287,
+      1906,
+      4184
+     ],
+     "visible": false,
+     "size": [
+      1906,
+      2897
+     ]
+    },
+    {
+     "name": "Rectangle 1",
+     "kind": "shape",
+     "bbox": [
+      -845,
+      1256,
+      2410,
+      4276
+     ],
+     "visible": false,
+     "size": [
+      3255,
+      3020
+     ],
+     "fill": "#2B2B2B"
+    },
+    {
+     "name": "Shadow",
+     "kind": "pixel",
+     "bbox": [
+      1725,
+      1910,
+      1775,
+      2764
+     ],
+     "visible": false,
+     "size": [
+      50,
+      854
+     ],
+     "opacity": 60,
+     "blend": "MULTIPLY"
+    },
+    {
+     "name": "iPhone 5S Gold",
+     "kind": "pixel",
+     "bbox": [
+      163,
+      1967,
+      1760,
+      2727
+     ],
+     "visible": false,
+     "size": [
+      1597,
+      760
+     ]
+    },
+    {
+     "name": "silver / space gray",
+     "kind": "smartobject",
+     "bbox": [
+      165,
+      1969,
+      1758,
+      2728
+     ],
+     "visible": false,
+     "size": [
+      1593,
+      759
+     ]
+    },
+    {
+     "name": "iPhone 5 - Gold",
+     "kind": "smartobject",
+     "bbox": [
+      172,
+      1966,
+      1760,
+      2714
+     ],
+     "visible": true,
+     "size": [
+      1588,
+      748
+     ]
+    },
+    {
+     "name": "Screen (100% black) copy",
+     "kind": "shape",
+     "bbox": [
+      399,
+      2021,
+      1537,
+      2663
+     ],
+     "visible": true,
+     "size": [
+      1138,
+      642
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Layer 2",
+     "kind": "pixel",
+     "bbox": [
+      400,
+      625,
+      1536,
+      1265
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Layer 5",
+     "kind": "pixel",
+     "bbox": [
+      400,
+      2740,
+      1536,
+      3380
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Layer 3",
+     "kind": "pixel",
+     "bbox": [
+      400,
+      1294,
+      1536,
+      1934
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Layer 4",
+     "kind": "pixel",
+     "bbox": [
+      400,
+      2023,
+      1536,
+      2663
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

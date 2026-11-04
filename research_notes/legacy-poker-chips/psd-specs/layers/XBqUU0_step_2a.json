@@ -1,0 +1,857 @@
+{
+ "file": "XBqUU0_step_2a.psd",
+ "canvas": [
+  640,
+  1136
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "rebuys",
+   "kind": "group",
+   "bbox": [
+    0,
+    0,
+    640,
+    1136
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ],
+   "children": [
+    {
+     "name": "Layer 18",
+     "kind": "pixel",
+     "bbox": [
+      0,
+      0,
+      640,
+      1136
+     ],
+     "visible": true,
+     "size": [
+      640,
+      1136
+     ]
+    },
+    {
+     "name": "_1",
+     "kind": "group",
+     "bbox": [
+      17,
+      284,
+      624,
+      421
+     ],
+     "visible": true,
+     "size": [
+      607,
+      137
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        17,
+        284,
+        623,
+        411
+       ],
+       "visible": true,
+       "size": [
+        606,
+        127
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rectangle 13",
+       "kind": "shape",
+       "bbox": [
+        17,
+        408,
+        623,
+        421
+       ],
+       "visible": true,
+       "size": [
+        606,
+        13
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "no rebuys or add-ons",
+       "kind": "type",
+       "bbox": [
+        40,
+        361,
+        335,
+        398
+       ],
+       "visible": true,
+       "size": [
+        295,
+        37
+       ],
+       "type": {
+        "text": "no rebuys or add-ons",
+        "runs": [
+         {
+          "chars": "no rebuys or add-ons",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 40.74,
+          "color": "#000000"
+         }
+        ],
+        "transform_scale": [
+         0.932,
+         0.9328
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "info 2",
+       "kind": "shape",
+       "bbox": [
+        588,
+        293,
+        624,
+        329
+       ],
+       "visible": true,
+       "size": [
+        36,
+        36
+       ],
+       "fill": "#116FF0"
+      },
+      {
+       "name": "freezeout ",
+       "kind": "type",
+       "bbox": [
+        22,
+        285,
+        343,
+        338
+       ],
+       "visible": true,
+       "size": [
+        321,
+        53
+       ],
+       "type": {
+        "text": "freezeout\r",
+        "runs": [
+         {
+          "chars": "f",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         },
+         {
+          "chars": "reezeout\r",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_2",
+     "kind": "group",
+     "bbox": [
+      17,
+      449,
+      624,
+      586
+     ],
+     "visible": true,
+     "size": [
+      607,
+      137
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        17,
+        449,
+        623,
+        576
+       ],
+       "visible": true,
+       "size": [
+        606,
+        127
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rectangle 13",
+       "kind": "shape",
+       "bbox": [
+        17,
+        574,
+        623,
+        586
+       ],
+       "visible": true,
+       "size": [
+        606,
+        12
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "x2 add-on at the end of rebuy period",
+       "kind": "type",
+       "bbox": [
+        38,
+        525,
+        547,
+        563
+       ],
+       "visible": true,
+       "size": [
+        509,
+        38
+       ],
+       "type": {
+        "text": "x2 add-on at the end of rebuy period",
+        "runs": [
+         {
+          "chars": "x2 add-on at the end of rebuy period",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 40.74,
+          "color": "#000000"
+         }
+        ],
+        "transform_scale": [
+         0.932,
+         0.9328
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "info 2",
+       "kind": "shape",
+       "bbox": [
+        588,
+        458,
+        624,
+        494
+       ],
+       "visible": true,
+       "size": [
+        36,
+        36
+       ],
+       "fill": "#116FF0"
+      },
+      {
+       "name": "unlimited rebuys ",
+       "kind": "type",
+       "bbox": [
+        22,
+        450,
+        561,
+        503
+       ],
+       "visible": true,
+       "size": [
+        539,
+        53
+       ],
+       "type": {
+        "text": "unlimited rebuys\r",
+        "runs": [
+         {
+          "chars": "u",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         },
+         {
+          "chars": "nlimited rebuys\r",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_3",
+     "kind": "group",
+     "bbox": [
+      17,
+      614,
+      623,
+      797
+     ],
+     "visible": true,
+     "size": [
+      606,
+      183
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        17,
+        614,
+        623,
+        741
+       ],
+       "visible": true,
+       "size": [
+        606,
+        127
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rectangle 13",
+       "kind": "shape",
+       "bbox": [
+        17,
+        785,
+        623,
+        797
+       ],
+       "visible": true,
+       "size": [
+        606,
+        12
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "x1 rebuy or add-on until the end  of rebuy period",
+       "kind": "type",
+       "bbox": [
+        38,
+        692,
+        485,
+        774
+       ],
+       "visible": true,
+       "size": [
+        447,
+        82
+       ],
+       "type": {
+        "text": "x1 rebuy or add-on until the end \rof rebuy period",
+        "runs": [
+         {
+          "chars": "x1 rebuy or add-on until the end \rof reb",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 40.74,
+          "color": "#000000"
+         }
+        ],
+        "transform_scale": [
+         0.932,
+         0.9325
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "1 Rebuy or Add-on",
+       "kind": "type",
+       "bbox": [
+        24,
+        615,
+        542,
+        668
+       ],
+       "visible": true,
+       "size": [
+        518,
+        53
+       ],
+       "type": {
+        "text": "1 Rebuy or Add-on",
+        "runs": [
+         {
+          "chars": "1",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "tracking": -100.0,
+          "leading": 65.06,
+          "caps": 2
+         },
+         {
+          "chars": "Rebuy or Add-on",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "tracking": -25.0,
+          "leading": 65.06,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Rectangle 2 copy",
+       "kind": "shape",
+       "bbox": [
+        569,
+        614,
+        623,
+        668
+       ],
+       "visible": true,
+       "size": [
+        54,
+        54
+       ],
+       "fill": "#E9E9E9"
+      },
+      {
+       "name": "Pencil copy",
+       "kind": "shape",
+       "bbox": [
+        581,
+        625,
+        613,
+        658
+       ],
+       "visible": true,
+       "size": [
+        32,
+        33
+       ],
+       "fill": "#000000"
+      }
+     ]
+    },
+    {
+     "name": "_4",
+     "kind": "group",
+     "bbox": [
+      17,
+      824,
+      623,
+      905
+     ],
+     "visible": true,
+     "size": [
+      606,
+      81
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 4",
+       "kind": "shape",
+       "bbox": [
+        17,
+        824,
+        623,
+        905
+       ],
+       "visible": true,
+       "size": [
+        606,
+        81
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rectangle 13 copy",
+       "kind": "shape",
+       "bbox": [
+        17,
+        893,
+        623,
+        905
+       ],
+       "visible": true,
+       "size": [
+        606,
+        12
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "Custom ",
+       "kind": "type",
+       "bbox": [
+        22,
+        825,
+        252,
+        878
+       ],
+       "visible": true,
+       "size": [
+        230,
+        53
+       ],
+       "type": {
+        "text": "Custom ",
+        "runs": [
+         {
+          "chars": "C",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         },
+         {
+          "chars": "ustom ",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         1.0,
+         0.9943
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "_2",
+   "kind": "group",
+   "bbox": [
+    -1,
+    166,
+    641,
+    237
+   ],
+   "visible": true,
+   "size": [
+    642,
+    71
+   ],
+   "children": [
+    {
+     "name": "Rectangle 10",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      166,
+      641,
+      237
+     ],
+     "visible": true,
+     "size": [
+      642,
+      71
+     ],
+     "fill": "#E9E9E9"
+    },
+    {
+     "name": "Rectangle 12",
+     "kind": "shape",
+     "bbox": [
+      571,
+      166,
+      641,
+      237
+     ],
+     "visible": true,
+     "size": [
+      70,
+      71
+     ],
+     "fill": "#C2C2C2"
+    },
+    {
+     "name": "3",
+     "kind": "type",
+     "bbox": [
+      596,
+      181,
+      616,
+      220
+     ],
+     "visible": true,
+     "size": [
+      20,
+      39
+     ],
+     "type": {
+      "text": "3",
+      "runs": [
+       {
+        "chars": "3",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 52.0,
+        "color": "#000000"
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Rectangle 12 copy",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      166,
+      69,
+      236
+     ],
+     "visible": true,
+     "size": [
+      70,
+      70
+     ],
+     "fill": "#116FF0"
+    },
+    {
+     "name": "1",
+     "kind": "type",
+     "bbox": [
+      26,
+      182,
+      38,
+      219
+     ],
+     "visible": true,
+     "size": [
+      12,
+      37
+     ],
+     "type": {
+      "text": "1",
+      "runs": [
+       {
+        "chars": "1",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 52.0,
+        "color": "#FFFFFF"
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Rectangle 12 copy 2",
+     "kind": "shape",
+     "bbox": [
+      91,
+      166,
+      549,
+      236
+     ],
+     "visible": true,
+     "size": [
+      458,
+      70
+     ],
+     "fill": "#116FF0"
+    },
+    {
+     "name": "2 Rebuys",
+     "kind": "type",
+     "bbox": [
+      233,
+      179,
+      408,
+      230
+     ],
+     "visible": true,
+     "size": [
+      175,
+      51
+     ],
+     "type": {
+      "text": "2 Rebuys",
+      "runs": [
+       {
+        "chars": "2 Rebuys",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 52.0,
+        "color": "#FFFFFF"
+       }
+      ],
+      "align": "center"
+     }
+    }
+   ]
+  },
+  {
+   "name": "head",
+   "kind": "group",
+   "bbox": [
+    -1,
+    -1,
+    641,
+    139
+   ],
+   "visible": true,
+   "size": [
+    642,
+    140
+   ],
+   "children": [
+    {
+     "name": "Rectangle 7 copy",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      -1,
+      641,
+      139
+     ],
+     "visible": true,
+     "size": [
+      642,
+      140
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Create Game",
+     "kind": "type",
+     "bbox": [
+      236,
+      54,
+      404,
+      81
+     ],
+     "visible": true,
+     "size": [
+      168,
+      27
+     ],
+     "type": {
+      "text": "Create Game",
+      "runs": [
+       {
+        "chars": "Create Game",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 36.0,
+        "color": "#000000"
+       }
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "next copy",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "Rectangle 2 copy",
+       "kind": "shape",
+       "bbox": [
+        535,
+        33,
+        608,
+        106
+       ],
+       "visible": false,
+       "size": [
+        73,
+        73
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Back icon copy",
+       "kind": "shape",
+       "bbox": [
+        564,
+        52,
+        586,
+        87
+       ],
+       "visible": false,
+       "size": [
+        22,
+        35
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    },
+    {
+     "name": "back copy",
+     "kind": "group",
+     "bbox": [
+      33,
+      33,
+      106,
+      106
+     ],
+     "visible": true,
+     "size": [
+      73,
+      73
+     ],
+     "children": [
+      {
+       "name": "Rectangle 2 copy",
+       "kind": "shape",
+       "bbox": [
+        33,
+        33,
+        106,
+        106
+       ],
+       "visible": true,
+       "size": [
+        73,
+        73
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Back icon",
+       "kind": "shape",
+       "bbox": [
+        55,
+        52,
+        76,
+        86
+       ],
+       "visible": true,
+       "size": [
+        21,
+        34
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

@@ -1,0 +1,168 @@
+{
+ "file": "Gw5cWs_WHW_3.psd",
+ "canvas": [
+  1413,
+  2325
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Layer 10 copy",
+   "kind": "pixel",
+   "bbox": [
+    573,
+    869,
+    1413,
+    1509
+   ],
+   "visible": false,
+   "size": [
+    840,
+    640
+   ]
+  },
+  {
+   "name": "Layer 11",
+   "kind": "pixel",
+   "bbox": [
+    573,
+    1559,
+    1413,
+    2199
+   ],
+   "visible": false,
+   "size": [
+    840,
+    640
+   ]
+  },
+  {
+   "name": "Layer 10",
+   "kind": "pixel",
+   "bbox": [
+    151,
+    133,
+    1287,
+    773
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Group 1",
+   "kind": "group",
+   "bbox": [
+    151,
+    1513,
+    1287,
+    2153
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ],
+   "children": [
+    {
+     "name": "Layer 13",
+     "kind": "pixel",
+     "bbox": [
+      151,
+      1513,
+      1287,
+      2153
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Rectangle 1",
+     "kind": "shape",
+     "bbox": [
+      788,
+      1565,
+      997,
+      1601
+     ],
+     "visible": true,
+     "size": [
+      209,
+      36
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "hand ranks",
+     "kind": "type",
+     "bbox": [
+      802,
+      1570,
+      980,
+      1595
+     ],
+     "visible": true,
+     "size": [
+      178,
+      25
+     ],
+     "type": {
+      "text": "hand ranks",
+      "runs": [
+       {
+        "chars": "h",
+        "font": "'Univers-CondensedBold'",
+        "size": 32.03,
+        "caps": 2
+       },
+       {
+        "chars": "and ranks",
+        "font": "'Univers-CondensedBold'",
+        "size": 32.03,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Layer 12",
+   "kind": "pixel",
+   "bbox": [
+    151,
+    823,
+    1287,
+    1463
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

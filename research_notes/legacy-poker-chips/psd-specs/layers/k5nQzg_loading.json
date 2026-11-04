@@ -1,0 +1,172 @@
+{
+ "file": "k5nQzg_loading.psd",
+ "canvas": [
+  726,
+  334
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Rectangle 1 copy 9",
+   "kind": "shape",
+   "bbox": [
+    -74,
+    -183,
+    1064,
+    460
+   ],
+   "visible": true,
+   "size": [
+    1138,
+    643
+   ],
+   "fill": "#FFDB3C"
+  },
+  {
+   "name": "_1",
+   "kind": "group",
+   "bbox": [
+    105,
+    14,
+    223,
+    125
+   ],
+   "visible": true,
+   "size": [
+    118,
+    111
+   ],
+   "children": [
+    {
+     "name": "_3",
+     "kind": "smartobject",
+     "bbox": [
+      112,
+      38,
+      193,
+      119
+     ],
+     "visible": true,
+     "size": [
+      81,
+      81
+     ]
+    },
+    {
+     "name": "Ellipse 12 copy 2",
+     "kind": "shape",
+     "bbox": [
+      105,
+      14,
+      223,
+      125
+     ],
+     "visible": true,
+     "size": [
+      118,
+      111
+     ],
+     "fill": "#2EFF86"
+    }
+   ]
+  },
+  {
+   "name": "_2",
+   "kind": "group",
+   "bbox": [
+    221,
+    14,
+    339,
+    142
+   ],
+   "visible": true,
+   "size": [
+    118,
+    128
+   ],
+   "children": [
+    {
+     "name": "_3 copy",
+     "kind": "smartobject",
+     "bbox": [
+      228,
+      38,
+      309,
+      119
+     ],
+     "visible": true,
+     "size": [
+      81,
+      81
+     ]
+    },
+    {
+     "name": "Ellipse 12 copy 3",
+     "kind": "shape",
+     "bbox": [
+      221,
+      14,
+      339,
+      142
+     ],
+     "visible": true,
+     "size": [
+      118,
+      128
+     ],
+     "fill": "#FF9500"
+    }
+   ]
+  },
+  {
+   "name": "_3",
+   "kind": "group",
+   "bbox": [
+    319,
+    14,
+    464,
+    161
+   ],
+   "visible": true,
+   "size": [
+    145,
+    147
+   ],
+   "children": [
+    {
+     "name": "_3 copy",
+     "kind": "smartobject",
+     "bbox": [
+      343,
+      38,
+      424,
+      119
+     ],
+     "visible": true,
+     "size": [
+      81,
+      81
+     ]
+    },
+    {
+     "name": "Ellipse 12 copy 4",
+     "kind": "shape",
+     "bbox": [
+      319,
+      14,
+      464,
+      161
+     ],
+     "visible": true,
+     "size": [
+      145,
+      147
+     ],
+     "fill": "#FF3824"
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

@@ -1,0 +1,117 @@
+{
+ "file": "TRWOHM_create_1.psd",
+ "canvas": [
+  4432,
+  1475
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 1",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    1518,
+    1475
+   ],
+   "visible": false,
+   "size": [
+    1518,
+    1475
+   ]
+  },
+  {
+   "name": "Layer 5",
+   "kind": "pixel",
+   "bbox": [
+    3696,
+    155,
+    4336,
+    1291
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    2982,
+    155,
+    3622,
+    1291
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 6",
+   "kind": "pixel",
+   "bbox": [
+    2268,
+    155,
+    2908,
+    1291
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 4",
+   "kind": "pixel",
+   "bbox": [
+    1554,
+    155,
+    2194,
+    1291
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 7",
+   "kind": "pixel",
+   "bbox": [
+    840,
+    155,
+    1480,
+    1291
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 3",
+   "kind": "pixel",
+   "bbox": [
+    126,
+    155,
+    766,
+    1291
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

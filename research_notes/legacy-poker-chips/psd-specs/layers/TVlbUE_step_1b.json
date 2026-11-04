@@ -1,0 +1,1215 @@
+{
+ "file": "TVlbUE_step_1b.psd",
+ "canvas": [
+  640,
+  1136
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 19",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    640,
+    1136
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 23",
+   "kind": "pixel",
+   "bbox": [
+    16,
+    28,
+    624,
+    1107
+   ],
+   "visible": true,
+   "size": [
+    608,
+    1079
+   ]
+  },
+  {
+   "name": "Layer 22",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    640,
+    1136
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ],
+   "opacity": 50
+  },
+  {
+   "name": "Rectangle 11 copy",
+   "kind": "shape",
+   "bbox": [
+    -1,
+    49,
+    641,
+    1137
+   ],
+   "visible": true,
+   "size": [
+    642,
+    1088
+   ],
+   "fill": "#FFFFFF"
+  },
+  {
+   "name": "blinds",
+   "kind": "group",
+   "bbox": [
+    -137,
+    752,
+    776,
+    1317
+   ],
+   "visible": true,
+   "size": [
+    913,
+    565
+   ],
+   "children": [
+    {
+     "name": "num copy 3",
+     "kind": "group",
+     "bbox": [
+      -137,
+      839,
+      776,
+      1317
+     ],
+     "visible": true,
+     "size": [
+      913,
+      478
+     ],
+     "children": [
+      {
+       "name": "10/20 15/30 20/40 25/50 30/60 40/80 50/100",
+       "kind": "type",
+       "bbox": [
+        274,
+        1029,
+        368,
+        1317
+       ],
+       "visible": true,
+       "size": [
+        94,
+        288
+       ],
+       "type": {
+        "text": "10/20\r15/30\r20/40\r25/50\r30/60\r40/80\r50/100",
+        "runs": [
+         {
+          "chars": "10/20\r15/30\r20/40\r25/50\r30/60\r40/80\r50/1",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 38.55
+         }
+        ],
+        "transform_scale": [
+         0.94,
+         0.9338
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "_3",
+       "kind": "group",
+       "bbox": [
+        467,
+        845,
+        776,
+        1001
+       ],
+       "visible": true,
+       "size": [
+        309,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13 copy",
+         "kind": "shape",
+         "bbox": [
+          467,
+          845,
+          776,
+          1001
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "fast",
+         "kind": "type",
+         "bbox": [
+          567,
+          892,
+          676,
+          954
+         ],
+         "visible": true,
+         "size": [
+          109,
+          62
+         ],
+         "type": {
+          "text": "fast",
+          "runs": [
+           {
+            "chars": "fast",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 150.69
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_1",
+       "kind": "group",
+       "bbox": [
+        -137,
+        845,
+        172,
+        1001
+       ],
+       "visible": true,
+       "size": [
+        309,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13 copy",
+         "kind": "shape",
+         "bbox": [
+          -137,
+          845,
+          172,
+          1001
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "slow",
+         "kind": "type",
+         "bbox": [
+          -49,
+          892,
+          81,
+          953
+         ],
+         "visible": true,
+         "size": [
+          130,
+          61
+         ],
+         "type": {
+          "text": "slow",
+          "runs": [
+           {
+            "chars": "slow",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 150.69
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_2",
+       "kind": "group",
+       "bbox": [
+        159,
+        839,
+        481,
+        1007
+       ],
+       "visible": true,
+       "size": [
+        322,
+        168
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13",
+         "kind": "shape",
+         "bbox": [
+          165,
+          845,
+          474,
+          1001
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "medium",
+         "kind": "type",
+         "bbox": [
+          205,
+          892,
+          433,
+          953
+         ],
+         "visible": true,
+         "size": [
+          228,
+          61
+         ],
+         "type": {
+          "text": "medium",
+          "runs": [
+           {
+            "chars": "medium",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 150.69
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        },
+        {
+         "name": "центральный блок copy",
+         "kind": "shape",
+         "bbox": [
+          159,
+          839,
+          481,
+          1007
+         ],
+         "visible": true,
+         "size": [
+          322,
+          168
+         ],
+         "fill": "#FFFFFF"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "blinds (sb/bb)",
+     "kind": "type",
+     "bbox": [
+      211,
+      755,
+      429,
+      792
+     ],
+     "visible": true,
+     "size": [
+      218,
+      37
+     ],
+     "type": {
+      "text": "blinds (sb/bb)",
+      "runs": [
+       {
+        "chars": "b",
+        "font": "'RobotoCondensed-Bold'",
+        "size": 36.05,
+        "color": "#000000",
+        "caps": 2
+       },
+       {
+        "chars": "linds (sb/bb)",
+        "font": "'RobotoCondensed-Bold'",
+        "size": 36.05,
+        "color": "#000000",
+        "caps": 2
+       }
+      ],
+      "transform_scale": [
+       1.0004,
+       0.9989
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "info 2 copy 3",
+     "kind": "shape",
+     "bbox": [
+      588,
+      752,
+      624,
+      788
+     ],
+     "visible": true,
+     "size": [
+      36,
+      36
+     ],
+     "fill": "#116FF0"
+    }
+   ]
+  },
+  {
+   "name": "levels",
+   "kind": "group",
+   "bbox": [
+    -56,
+    459,
+    696,
+    709
+   ],
+   "visible": true,
+   "size": [
+    752,
+    250
+   ],
+   "children": [
+    {
+     "name": "num copy 2",
+     "kind": "group",
+     "bbox": [
+      -56,
+      540,
+      696,
+      709
+     ],
+     "visible": true,
+     "size": [
+      752,
+      169
+     ],
+     "children": [
+      {
+       "name": "_2",
+       "kind": "group",
+       "bbox": [
+        93,
+        546,
+        249,
+        702
+       ],
+       "visible": true,
+       "size": [
+        156,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13",
+         "kind": "shape",
+         "bbox": [
+          93,
+          546,
+          249,
+          702
+         ],
+         "visible": true,
+         "size": [
+          156,
+          156
+         ]
+        },
+        {
+         "name": "2",
+         "kind": "type",
+         "bbox": [
+          151,
+          587,
+          190,
+          657
+         ],
+         "visible": true,
+         "size": [
+          39,
+          70
+         ],
+         "type": {
+          "text": "2",
+          "runs": [
+           {
+            "chars": "2",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_1",
+       "kind": "group",
+       "bbox": [
+        -56,
+        546,
+        101,
+        702
+       ],
+       "visible": true,
+       "size": [
+        157,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13",
+         "kind": "shape",
+         "bbox": [
+          -56,
+          546,
+          101,
+          702
+         ],
+         "visible": true,
+         "size": [
+          157,
+          156
+         ]
+        },
+        {
+         "name": "1",
+         "kind": "type",
+         "bbox": [
+          7,
+          588,
+          28,
+          657
+         ],
+         "visible": true,
+         "size": [
+          21,
+          69
+         ],
+         "type": {
+          "text": "1",
+          "runs": [
+           {
+            "chars": "1",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_4",
+       "kind": "group",
+       "bbox": [
+        391,
+        546,
+        547,
+        702
+       ],
+       "visible": true,
+       "size": [
+        156,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13",
+         "kind": "shape",
+         "bbox": [
+          391,
+          546,
+          547,
+          702
+         ],
+         "visible": true,
+         "size": [
+          156,
+          156
+         ]
+        },
+        {
+         "name": "4",
+         "kind": "type",
+         "bbox": [
+          448,
+          588,
+          490,
+          657
+         ],
+         "visible": true,
+         "size": [
+          42,
+          69
+         ],
+         "type": {
+          "text": "4",
+          "runs": [
+           {
+            "chars": "4",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_5",
+       "kind": "group",
+       "bbox": [
+        540,
+        546,
+        696,
+        702
+       ],
+       "visible": true,
+       "size": [
+        156,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13",
+         "kind": "shape",
+         "bbox": [
+          540,
+          546,
+          696,
+          702
+         ],
+         "visible": true,
+         "size": [
+          156,
+          156
+         ]
+        },
+        {
+         "name": "5",
+         "kind": "type",
+         "bbox": [
+          600,
+          588,
+          637,
+          658
+         ],
+         "visible": true,
+         "size": [
+          37,
+          70
+         ],
+         "type": {
+          "text": "5",
+          "runs": [
+           {
+            "chars": "5",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_3",
+       "kind": "group",
+       "bbox": [
+        236,
+        540,
+        404,
+        709
+       ],
+       "visible": true,
+       "size": [
+        168,
+        169
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13",
+         "kind": "shape",
+         "bbox": [
+          242,
+          546,
+          398,
+          702
+         ],
+         "visible": true,
+         "size": [
+          156,
+          156
+         ]
+        },
+        {
+         "name": "3",
+         "kind": "type",
+         "bbox": [
+          300,
+          587,
+          338,
+          658
+         ],
+         "visible": true,
+         "size": [
+          38,
+          71
+         ],
+         "type": {
+          "text": "3",
+          "runs": [
+           {
+            "chars": "3",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        },
+        {
+         "name": "центральный блок copy",
+         "kind": "shape",
+         "bbox": [
+          236,
+          540,
+          404,
+          709
+         ],
+         "visible": true,
+         "size": [
+          168,
+          169
+         ],
+         "fill": "#FFFFFF"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "levels (mins)",
+     "kind": "type",
+     "bbox": [
+      217,
+      462,
+      422,
+      499
+     ],
+     "visible": true,
+     "size": [
+      205,
+      37
+     ],
+     "type": {
+      "text": "levels (mins)",
+      "runs": [
+       {
+        "chars": "l",
+        "font": "'RobotoCondensed-Bold'",
+        "size": 36.05,
+        "color": "#000000",
+        "caps": 2
+       },
+       {
+        "chars": "evels (mins)",
+        "font": "'RobotoCondensed-Bold'",
+        "size": 36.05,
+        "color": "#000000",
+        "caps": 2
+       }
+      ],
+      "transform_scale": [
+       1.0004,
+       0.9989
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "info 2 copy 3",
+     "kind": "shape",
+     "bbox": [
+      588,
+      459,
+      624,
+      495
+     ],
+     "visible": true,
+     "size": [
+      36,
+      36
+     ],
+     "fill": "#116FF0"
+    }
+   ]
+  },
+  {
+   "name": "statrting stack",
+   "kind": "group",
+   "bbox": [
+    -137,
+    165,
+    776,
+    414
+   ],
+   "visible": true,
+   "size": [
+    913,
+    249
+   ],
+   "children": [
+    {
+     "name": "num copy 2",
+     "kind": "group",
+     "bbox": [
+      -137,
+      246,
+      776,
+      414
+     ],
+     "visible": true,
+     "size": [
+      913,
+      168
+     ],
+     "children": [
+      {
+       "name": "_3",
+       "kind": "group",
+       "bbox": [
+        467,
+        252,
+        776,
+        408
+       ],
+       "visible": true,
+       "size": [
+        309,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13 copy",
+         "kind": "shape",
+         "bbox": [
+          467,
+          252,
+          776,
+          408
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "2000",
+         "kind": "type",
+         "bbox": [
+          534,
+          293,
+          710,
+          364
+         ],
+         "visible": true,
+         "size": [
+          176,
+          71
+         ],
+         "type": {
+          "text": "2000",
+          "runs": [
+           {
+            "chars": "2000",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_1",
+       "kind": "group",
+       "bbox": [
+        -137,
+        252,
+        172,
+        408
+       ],
+       "visible": true,
+       "size": [
+        309,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13 copy",
+         "kind": "shape",
+         "bbox": [
+          -137,
+          252,
+          172,
+          408
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "1500",
+         "kind": "type",
+         "bbox": [
+          -65,
+          293,
+          106,
+          364
+         ],
+         "visible": true,
+         "size": [
+          171,
+          71
+         ],
+         "type": {
+          "text": "1500",
+          "runs": [
+           {
+            "chars": "1500",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_2",
+       "kind": "group",
+       "bbox": [
+        159,
+        246,
+        481,
+        414
+       ],
+       "visible": true,
+       "size": [
+        322,
+        168
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13",
+         "kind": "shape",
+         "bbox": [
+          165,
+          252,
+          474,
+          408
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "1500",
+         "kind": "type",
+         "bbox": [
+          237,
+          293,
+          408,
+          364
+         ],
+         "visible": true,
+         "size": [
+          171,
+          71
+         ],
+         "type": {
+          "text": "1500",
+          "runs": [
+           {
+            "chars": "1500",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        },
+        {
+         "name": "центральный блок copy",
+         "kind": "shape",
+         "bbox": [
+          159,
+          246,
+          481,
+          414
+         ],
+         "visible": true,
+         "size": [
+          322,
+          168
+         ],
+         "fill": "#FFFFFF"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "Starting Stack (chips)",
+     "kind": "type",
+     "bbox": [
+      141,
+      168,
+      498,
+      205
+     ],
+     "visible": true,
+     "size": [
+      357,
+      37
+     ],
+     "type": {
+      "text": "Starting Stack (chips)",
+      "runs": [
+       {
+        "chars": "S",
+        "font": "'RobotoCondensed-Bold'",
+        "size": 36.05,
+        "color": "#000000",
+        "caps": 2
+       },
+       {
+        "chars": "tarting Stack (chips)",
+        "font": "'RobotoCondensed-Bold'",
+        "size": 36.05,
+        "color": "#000000",
+        "caps": 2
+       }
+      ],
+      "transform_scale": [
+       1.0004,
+       0.9989
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "info 2 copy 3",
+     "kind": "shape",
+     "bbox": [
+      588,
+      165,
+      624,
+      201
+     ],
+     "visible": true,
+     "size": [
+      36,
+      36
+     ],
+     "fill": "#116FF0"
+    }
+   ]
+  },
+  {
+   "name": "head_2",
+   "kind": "group",
+   "bbox": [
+    -1,
+    49,
+    641,
+    121
+   ],
+   "visible": true,
+   "size": [
+    642,
+    72
+   ],
+   "children": [
+    {
+     "name": "Rectangle 12",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      49,
+      641,
+      121
+     ],
+     "visible": true,
+     "size": [
+      642,
+      72
+     ],
+     "fill": "#E9E9E9"
+    },
+    {
+     "name": "Game Type",
+     "kind": "type",
+     "bbox": [
+      257,
+      73,
+      404,
+      107
+     ],
+     "visible": true,
+     "size": [
+      147,
+      34
+     ],
+     "type": {
+      "text": "Game Type",
+      "runs": [
+       {
+        "chars": "Game Type",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 36.0,
+        "color": "#000000"
+       }
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "Done",
+     "kind": "type",
+     "bbox": [
+      538,
+      73,
+      605,
+      100
+     ],
+     "visible": true,
+     "size": [
+      67,
+      27
+     ],
+     "type": {
+      "text": "Done",
+      "runs": [
+       {
+        "chars": "Done",
+        "font": "'RobotoCondensed-Bold'",
+        "size": 36.0,
+        "color": "#116FF0"
+       }
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "Favorite",
+     "kind": "type",
+     "bbox": [
+      38,
+      72,
+      145,
+      101
+     ],
+     "visible": true,
+     "size": [
+      107,
+      29
+     ],
+     "type": {
+      "text": "Favorite",
+      "runs": [
+       {
+        "chars": "Favorite",
+        "font": "'RobotoCondensed-Bold'",
+        "size": 36.0,
+        "color": "#116FF0"
+       }
+      ],
+      "align": "center"
+     }
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

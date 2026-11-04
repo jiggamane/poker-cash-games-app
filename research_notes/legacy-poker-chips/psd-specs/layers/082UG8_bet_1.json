@@ -1,0 +1,182 @@
+{
+ "file": "082UG8_bet_1.psd",
+ "canvas": [
+  4413,
+  4184
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "iPhone 5S Gold",
+   "kind": "group",
+   "bbox": [
+    747,
+    636,
+    4657,
+    3379
+   ],
+   "visible": true,
+   "size": [
+    3910,
+    2743
+   ],
+   "children": [
+    {
+     "name": "Group 1",
+     "kind": "group",
+     "bbox": [
+      1908,
+      1966,
+      3496,
+      2714
+     ],
+     "visible": true,
+     "size": [
+      1588,
+      748
+     ],
+     "children": [
+      {
+       "name": "iPhone 5 - Gold",
+       "kind": "smartobject",
+       "bbox": [
+        1908,
+        1966,
+        3496,
+        2714
+       ],
+       "visible": true,
+       "size": [
+        1588,
+        748
+       ]
+      },
+      {
+       "name": "Screen (100% black) copy",
+       "kind": "shape",
+       "bbox": [
+        2134,
+        2020,
+        3273,
+        2664
+       ],
+       "visible": true,
+       "size": [
+        1139,
+        644
+       ],
+       "fill": "#000000"
+      }
+     ]
+    },
+    {
+     "name": "screens",
+     "kind": "pixel",
+     "bbox": [
+      2136,
+      2021,
+      3272,
+      2661
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "4",
+     "kind": "pixel",
+     "bbox": [
+      2136,
+      2739,
+      3272,
+      3379
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "2",
+     "kind": "pixel",
+     "bbox": [
+      2136,
+      1276,
+      3272,
+      1916
+     ],
+     "visible": false,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Layer 1",
+     "kind": "pixel",
+     "bbox": [
+      747,
+      2020,
+      1883,
+      2660
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Layer 3",
+     "kind": "pixel",
+     "bbox": [
+      3521,
+      2020,
+      4657,
+      2660
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Layer 2",
+     "kind": "pixel",
+     "bbox": [
+      2136,
+      1301,
+      3272,
+      1941
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "1",
+     "kind": "pixel",
+     "bbox": [
+      2136,
+      636,
+      3272,
+      1276
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

@@ -1,0 +1,1022 @@
+{
+ "file": "0Y1eFk_side_menu.psd",
+ "canvas": [
+  1136,
+  640
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "6 играков copy",
+   "kind": "smartobject",
+   "bbox": [
+    432,
+    0,
+    1568,
+    640
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Rectangle 1",
+   "kind": "shape",
+   "bbox": [
+    -1,
+    -1,
+    433,
+    641
+   ],
+   "visible": true,
+   "size": [
+    434,
+    642
+   ],
+   "fill": "#000000"
+  },
+  {
+   "name": "my profile",
+   "kind": "group",
+   "bbox": [
+    67,
+    73,
+    365,
+    145
+   ],
+   "visible": true,
+   "size": [
+    298,
+    72
+   ],
+   "children": [
+    {
+     "name": "Rectangle 2",
+     "kind": "shape",
+     "bbox": [
+      67,
+      73,
+      138,
+      145
+     ],
+     "visible": true,
+     "size": [
+      71,
+      72
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 2 copy",
+     "kind": "shape",
+     "bbox": [
+      135,
+      73,
+      365,
+      145
+     ],
+     "visible": true,
+     "size": [
+      230,
+      72
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Group 1 copy 2",
+     "kind": "pixel",
+     "bbox": [
+      82,
+      82,
+      123,
+      123
+     ],
+     "visible": true,
+     "size": [
+      41,
+      41
+     ]
+    },
+    {
+     "name": "my profile",
+     "kind": "type",
+     "bbox": [
+      161,
+      91,
+      309,
+      114
+     ],
+     "visible": true,
+     "size": [
+      148,
+      23
+     ],
+     "type": {
+      "text": "my profile",
+      "runs": [
+       {
+        "chars": "m",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "y",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "p",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "r",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "o",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "f",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "i",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "l",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "e",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Poker Cam",
+   "kind": "group",
+   "bbox": [
+    67,
+    161,
+    365,
+    232
+   ],
+   "visible": true,
+   "size": [
+    298,
+    71
+   ],
+   "children": [
+    {
+     "name": "Rectangle 2",
+     "kind": "shape",
+     "bbox": [
+      67,
+      161,
+      138,
+      232
+     ],
+     "visible": true,
+     "size": [
+      71,
+      71
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 2 copy",
+     "kind": "shape",
+     "bbox": [
+      135,
+      161,
+      365,
+      232
+     ],
+     "visible": true,
+     "size": [
+      230,
+      71
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Group 1 copy 2",
+     "kind": "pixel",
+     "bbox": [
+      82,
+      169,
+      123,
+      210
+     ],
+     "visible": true,
+     "size": [
+      41,
+      41
+     ]
+    },
+    {
+     "name": "Poker Cam",
+     "kind": "type",
+     "bbox": [
+      162,
+      178,
+      309,
+      201
+     ],
+     "visible": true,
+     "size": [
+      147,
+      23
+     ],
+     "type": {
+      "text": "Poker Cam",
+      "runs": [
+       {
+        "chars": "P",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "o",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "k",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "e",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "r",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "C",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "a",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "m",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Multiplayer",
+   "kind": "group",
+   "bbox": [
+    67,
+    248,
+    365,
+    319
+   ],
+   "visible": true,
+   "size": [
+    298,
+    71
+   ],
+   "children": [
+    {
+     "name": "Rectangle 2",
+     "kind": "shape",
+     "bbox": [
+      67,
+      248,
+      138,
+      319
+     ],
+     "visible": true,
+     "size": [
+      71,
+      71
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 2 copy",
+     "kind": "shape",
+     "bbox": [
+      135,
+      248,
+      365,
+      319
+     ],
+     "visible": true,
+     "size": [
+      230,
+      71
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Group 1 copy 2",
+     "kind": "pixel",
+     "bbox": [
+      82,
+      256,
+      123,
+      297
+     ],
+     "visible": true,
+     "size": [
+      41,
+      41
+     ]
+    },
+    {
+     "name": "Multiplayer",
+     "kind": "type",
+     "bbox": [
+      161,
+      265,
+      333,
+      288
+     ],
+     "visible": true,
+     "size": [
+      172,
+      23
+     ],
+     "type": {
+      "text": "Multiplayer",
+      "runs": [
+       {
+        "chars": "M",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "u",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "l",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "t",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "i",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "p",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "l",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "a",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "y",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "e",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "r",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Pause",
+   "kind": "group",
+   "bbox": [
+    67,
+    336,
+    365,
+    406
+   ],
+   "visible": true,
+   "size": [
+    298,
+    70
+   ],
+   "children": [
+    {
+     "name": "Rectangle 2",
+     "kind": "shape",
+     "bbox": [
+      67,
+      336,
+      138,
+      406
+     ],
+     "visible": true,
+     "size": [
+      71,
+      70
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 2 copy",
+     "kind": "shape",
+     "bbox": [
+      135,
+      336,
+      365,
+      406
+     ],
+     "visible": true,
+     "size": [
+      230,
+      70
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Group 1 copy 2",
+     "kind": "pixel",
+     "bbox": [
+      82,
+      344,
+      123,
+      385
+     ],
+     "visible": true,
+     "size": [
+      41,
+      41
+     ]
+    },
+    {
+     "name": "Pause",
+     "kind": "type",
+     "bbox": [
+      162,
+      353,
+      243,
+      376
+     ],
+     "visible": true,
+     "size": [
+      81,
+      23
+     ],
+     "type": {
+      "text": "Pause",
+      "runs": [
+       {
+        "chars": "P",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "a",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "u",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "s",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "e",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "the rights",
+   "kind": "group",
+   "bbox": [
+    67,
+    423,
+    365,
+    493
+   ],
+   "visible": true,
+   "size": [
+    298,
+    70
+   ],
+   "children": [
+    {
+     "name": "Rectangle 2",
+     "kind": "shape",
+     "bbox": [
+      67,
+      423,
+      138,
+      493
+     ],
+     "visible": true,
+     "size": [
+      71,
+      70
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 2 copy",
+     "kind": "shape",
+     "bbox": [
+      135,
+      423,
+      365,
+      493
+     ],
+     "visible": true,
+     "size": [
+      230,
+      70
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Group 1 copy 2",
+     "kind": "pixel",
+     "bbox": [
+      82,
+      431,
+      123,
+      472
+     ],
+     "visible": true,
+     "size": [
+      41,
+      41
+     ]
+    },
+    {
+     "name": "the rights",
+     "kind": "type",
+     "bbox": [
+      160,
+      440,
+      307,
+      463
+     ],
+     "visible": true,
+     "size": [
+      147,
+      23
+     ],
+     "type": {
+      "text": "the rights",
+      "runs": [
+       {
+        "chars": "t",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "h",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "e",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "r",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "i",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "g",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "h",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "t",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "s",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Settings",
+   "kind": "group",
+   "bbox": [
+    67,
+    510,
+    365,
+    580
+   ],
+   "visible": true,
+   "size": [
+    298,
+    70
+   ],
+   "children": [
+    {
+     "name": "Rectangle 2",
+     "kind": "shape",
+     "bbox": [
+      67,
+      510,
+      137,
+      580
+     ],
+     "visible": true,
+     "size": [
+      70,
+      70
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 2 copy",
+     "kind": "shape",
+     "bbox": [
+      135,
+      510,
+      365,
+      580
+     ],
+     "visible": true,
+     "size": [
+      230,
+      70
+     ],
+     "opacity": 18,
+     "fill": "#000000"
+    },
+    {
+     "name": "Group 1 copy 2",
+     "kind": "pixel",
+     "bbox": [
+      82,
+      518,
+      123,
+      559
+     ],
+     "visible": true,
+     "size": [
+      41,
+      41
+     ]
+    },
+    {
+     "name": "Settings",
+     "kind": "type",
+     "bbox": [
+      161,
+      527,
+      284,
+      550
+     ],
+     "visible": true,
+     "size": [
+      123,
+      23
+     ],
+     "type": {
+      "text": "Settings",
+      "runs": [
+       {
+        "chars": "S",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "e",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "t",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "t",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "i",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "n",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "g",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       },
+       {
+        "chars": "s",
+        "font": "'Univers-CondensedBold'",
+        "size": 30.0,
+        "color": "#FFFFFF",
+        "leading": 115.01,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "menu",
+   "kind": "type",
+   "bbox": [
+    148,
+    38,
+    224,
+    58
+   ],
+   "visible": false,
+   "size": [
+    76,
+    20
+   ],
+   "type": {
+    "text": "menu",
+    "runs": [
+     {
+      "chars": "m",
+      "font": "'Univers-Condensed'",
+      "size": 36.0
+     },
+     {
+      "chars": "e",
+      "font": "'Univers-Condensed'",
+      "size": 36.0
+     },
+     {
+      "chars": "n",
+      "font": "'Univers-Condensed'",
+      "size": 36.0
+     },
+     {
+      "chars": "u",
+      "font": "'Univers-Condensed'",
+      "size": 36.0
+     }
+    ],
+    "align": "left"
+   }
+  },
+  {
+   "name": "side menu",
+   "kind": "group",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ],
+   "children": []
+  }
+ ],
+ "dpi": 72.0
+}

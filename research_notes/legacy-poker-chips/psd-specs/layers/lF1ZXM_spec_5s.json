@@ -1,0 +1,372 @@
+{
+ "file": "lF1ZXM_spec_5s.psd",
+ "canvas": [
+  3043,
+  1714
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 1",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    3043,
+    1714
+   ],
+   "visible": true,
+   "size": [
+    3043,
+    1714
+   ]
+  },
+  {
+   "name": "normal copy",
+   "kind": "group",
+   "bbox": [
+    -1,
+    527,
+    641,
+    657
+   ],
+   "visible": true,
+   "size": [
+    642,
+    130
+   ],
+   "children": [
+    {
+     "name": "Rectangle 10 copy",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      527,
+      641,
+      657
+     ],
+     "visible": true,
+     "size": [
+      642,
+      130
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Rectangle 13 copy",
+     "kind": "shape",
+     "bbox": [
+      29,
+      557,
+      611,
+      627
+     ],
+     "visible": true,
+     "size": [
+      582,
+      70
+     ],
+     "fill": "#1158F0"
+    },
+    {
+     "name": "Send request",
+     "kind": "type",
+     "bbox": [
+      194,
+      569,
+      446,
+      620
+     ],
+     "visible": true,
+     "size": [
+      252,
+      51
+     ],
+     "type": {
+      "text": "Send request",
+      "runs": [
+       {
+        "chars": "Send request",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 52.0,
+        "color": "#FFFFFF",
+        "leading": 80.0
+       }
+      ],
+      "align": "center"
+     }
+    }
+   ]
+  },
+  {
+   "name": "input",
+   "kind": "group",
+   "bbox": [
+    -1,
+    262,
+    641,
+    450
+   ],
+   "visible": true,
+   "size": [
+    642,
+    188
+   ],
+   "children": [
+    {
+     "name": "Rectangle 10",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      262,
+      641,
+      450
+     ],
+     "visible": true,
+     "size": [
+      642,
+      188
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Rectangle 3 copy 3",
+     "kind": "shape",
+     "bbox": [
+      28,
+      292,
+      612,
+      419
+     ],
+     "visible": true,
+     "size": [
+      584,
+      127
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "marta@gmail.com",
+     "kind": "type",
+     "bbox": [
+      34,
+      343,
+      522,
+      414
+     ],
+     "visible": true,
+     "size": [
+      488,
+      71
+     ],
+     "type": {
+      "text": "marta@gmail.com",
+      "runs": [
+       {
+        "chars": "marta@gmail.com",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 76.99
+       }
+      ],
+      "transform_scale": [
+       0.9361,
+       0.9352
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Email:",
+     "kind": "type",
+     "bbox": [
+      32,
+      295,
+      111,
+      324
+     ],
+     "visible": true,
+     "size": [
+      79,
+      29
+     ],
+     "type": {
+      "text": "Email:",
+      "runs": [
+       {
+        "chars": "E",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 36.03
+       },
+       {
+        "chars": "mail:",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 36.03
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "head",
+   "kind": "group",
+   "bbox": [
+    -1,
+    -1,
+    641,
+    130
+   ],
+   "visible": true,
+   "size": [
+    642,
+    131
+   ],
+   "children": [
+    {
+     "name": "Rectangle 7",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      -1,
+      641,
+      130
+     ],
+     "visible": true,
+     "size": [
+      642,
+      131
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Forgot password",
+     "kind": "type",
+     "bbox": [
+      209,
+      46,
+      430,
+      82
+     ],
+     "visible": true,
+     "size": [
+      221,
+      36
+     ],
+     "type": {
+      "text": "Forgot password",
+      "runs": [
+       {
+        "chars": "Forgot password",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 36.0,
+        "color": "#000000"
+       }
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "back",
+     "kind": "group",
+     "bbox": [
+      28,
+      28,
+      99,
+      99
+     ],
+     "visible": true,
+     "size": [
+      71,
+      71
+     ],
+     "children": [
+      {
+       "name": "Rectangle 2 copy",
+       "kind": "shape",
+       "bbox": [
+        28,
+        28,
+        99,
+        99
+       ],
+       "visible": true,
+       "size": [
+        71,
+        71
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Back icon",
+       "kind": "shape",
+       "bbox": [
+        50,
+        47,
+        71,
+        81
+       ],
+       "visible": true,
+       "size": [
+        21,
+        34
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    },
+    {
+     "name": "next",
+     "kind": "group",
+     "bbox": [
+      540,
+      28,
+      612,
+      99
+     ],
+     "visible": true,
+     "size": [
+      72,
+      71
+     ],
+     "children": [
+      {
+       "name": "Rectangle 2 copy",
+       "kind": "shape",
+       "bbox": [
+        540,
+        28,
+        612,
+        99
+       ],
+       "visible": true,
+       "size": [
+        72,
+        71
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Back icon",
+       "kind": "shape",
+       "bbox": [
+        569,
+        47,
+        590,
+        81
+       ],
+       "visible": true,
+       "size": [
+        21,
+        34
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

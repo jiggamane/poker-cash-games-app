@@ -1,0 +1,2400 @@
+{
+ "file": "VNFY0E_step_1a.psd",
+ "canvas": [
+  640,
+  1136
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 18",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    640,
+    1136
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "content",
+   "kind": "group",
+   "bbox": [
+    17,
+    284,
+    624,
+    1077
+   ],
+   "visible": true,
+   "size": [
+    607,
+    793
+   ],
+   "children": [
+    {
+     "name": "_1",
+     "kind": "group",
+     "bbox": [
+      17,
+      284,
+      624,
+      434
+     ],
+     "visible": true,
+     "size": [
+      607,
+      150
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        17,
+        284,
+        623,
+        434
+       ],
+       "visible": true,
+       "size": [
+        606,
+        150
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rectangle 13",
+       "kind": "shape",
+       "bbox": [
+        17,
+        422,
+        623,
+        434
+       ],
+       "visible": true,
+       "size": [
+        606,
+        12
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "info_gh",
+       "kind": "group",
+       "bbox": [
+        17,
+        336,
+        619,
+        424
+       ],
+       "visible": true,
+       "size": [
+        602,
+        88
+       ],
+       "children": [
+        {
+         "name": "_3",
+         "kind": "shape",
+         "bbox": [
+          417,
+          336,
+          619,
+          424
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "min",
+         "kind": "group",
+         "bbox": [
+          437,
+          352,
+          570,
+          410
+         ],
+         "visible": true,
+         "size": [
+          133,
+          58
+         ],
+         "children": [
+          {
+           "name": "10min",
+           "kind": "type",
+           "bbox": [
+            485,
+            352,
+            570,
+            382
+           ],
+           "visible": true,
+           "size": [
+            85,
+            30
+           ],
+           "type": {
+            "text": "10min",
+            "runs": [
+             {
+              "chars": "10min",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 40.64,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9431,
+             0.935
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "time",
+           "kind": "type",
+           "bbox": [
+            486,
+            386,
+            532,
+            410
+           ],
+           "visible": true,
+           "size": [
+            46,
+            24
+           ],
+           "type": {
+            "text": "time",
+            "runs": [
+             {
+              "chars": "time",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.09,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9353,
+             0.935
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "63",
+           "kind": "shape",
+           "bbox": [
+            437,
+            359,
+            473,
+            406
+           ],
+           "visible": true,
+           "size": [
+            36,
+            47
+           ],
+           "fill": "#000000"
+          }
+         ]
+        },
+        {
+         "name": "_2",
+         "kind": "shape",
+         "bbox": [
+          217,
+          336,
+          419,
+          424
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "blind",
+         "kind": "group",
+         "bbox": [
+          237,
+          352,
+          380,
+          409
+         ],
+         "visible": true,
+         "size": [
+          143,
+          57
+         ],
+         "children": [
+          {
+           "name": "25/50",
+           "kind": "type",
+           "bbox": [
+            297,
+            352,
+            380,
+            383
+           ],
+           "visible": true,
+           "size": [
+            83,
+            31
+           ],
+           "type": {
+            "text": "25/50",
+            "runs": [
+             {
+              "chars": "25/50",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 41.05,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9365,
+             0.9257
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "blind",
+           "kind": "type",
+           "bbox": [
+            299,
+            385,
+            349,
+            409
+           ],
+           "visible": true,
+           "size": [
+            50,
+            24
+           ],
+           "type": {
+            "text": "blind",
+            "runs": [
+             {
+              "chars": "blind",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.41,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9322,
+             0.9257
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "help",
+           "kind": "shape",
+           "bbox": [
+            237,
+            355,
+            287,
+            406
+           ],
+           "visible": true,
+           "size": [
+            50,
+            51
+           ],
+           "fill": "#000000"
+          },
+          {
+           "name": "help copy 2",
+           "kind": "shape",
+           "bbox": [
+            247,
+            354,
+            288,
+            394
+           ],
+           "visible": true,
+           "size": [
+            41,
+            40
+           ],
+           "fill": "#000000"
+          }
+         ]
+        },
+        {
+         "name": "_1",
+         "kind": "shape",
+         "bbox": [
+          17,
+          336,
+          219,
+          424
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "stack",
+         "kind": "group",
+         "bbox": [
+          36,
+          352,
+          148,
+          409
+         ],
+         "visible": true,
+         "size": [
+          112,
+          57
+         ],
+         "children": [
+          {
+           "name": "100",
+           "kind": "type",
+           "bbox": [
+            93,
+            352,
+            142,
+            381
+           ],
+           "visible": true,
+           "size": [
+            49,
+            29
+           ],
+           "type": {
+            "text": "100",
+            "runs": [
+             {
+              "chars": "100",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 40.74,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.932,
+             0.9328
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "stack",
+           "kind": "type",
+           "bbox": [
+            91,
+            385,
+            148,
+            409
+           ],
+           "visible": true,
+           "size": [
+            57,
+            24
+           ],
+           "type": {
+            "text": "stack",
+            "runs": [
+             {
+              "chars": "stack",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.16,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.932,
+             0.9328
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "Shape 1",
+           "kind": "shape",
+           "bbox": [
+            36,
+            358,
+            76,
+            405
+           ],
+           "visible": true,
+           "size": [
+            40,
+            47
+           ],
+           "fill": "#000000"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "info 2",
+       "kind": "shape",
+       "bbox": [
+        588,
+        293,
+        624,
+        329
+       ],
+       "visible": true,
+       "size": [
+        36,
+        36
+       ],
+       "fill": "#116FF0"
+      },
+      {
+       "name": "Starter ",
+       "kind": "type",
+       "bbox": [
+        20,
+        285,
+        269,
+        338
+       ],
+       "visible": true,
+       "size": [
+        249,
+        53
+       ],
+       "type": {
+        "text": "Starter\r",
+        "runs": [
+         {
+          "chars": "S",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         },
+         {
+          "chars": "tarter\r",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_2",
+     "kind": "group",
+     "bbox": [
+      17,
+      462,
+      624,
+      612
+     ],
+     "visible": true,
+     "size": [
+      607,
+      150
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        17,
+        462,
+        623,
+        612
+       ],
+       "visible": true,
+       "size": [
+        606,
+        150
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rectangle 13",
+       "kind": "shape",
+       "bbox": [
+        17,
+        600,
+        623,
+        612
+       ],
+       "visible": true,
+       "size": [
+        606,
+        12
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "info_gh",
+       "kind": "group",
+       "bbox": [
+        17,
+        514,
+        619,
+        602
+       ],
+       "visible": true,
+       "size": [
+        602,
+        88
+       ],
+       "children": [
+        {
+         "name": "_3",
+         "kind": "shape",
+         "bbox": [
+          417,
+          514,
+          619,
+          602
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "min",
+         "kind": "group",
+         "bbox": [
+          437,
+          530,
+          570,
+          588
+         ],
+         "visible": true,
+         "size": [
+          133,
+          58
+         ],
+         "children": [
+          {
+           "name": "10min",
+           "kind": "type",
+           "bbox": [
+            485,
+            530,
+            570,
+            560
+           ],
+           "visible": true,
+           "size": [
+            85,
+            30
+           ],
+           "type": {
+            "text": "10min",
+            "runs": [
+             {
+              "chars": "10min",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 40.64,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9431,
+             0.935
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "time",
+           "kind": "type",
+           "bbox": [
+            486,
+            564,
+            532,
+            588
+           ],
+           "visible": true,
+           "size": [
+            46,
+            24
+           ],
+           "type": {
+            "text": "time",
+            "runs": [
+             {
+              "chars": "time",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.09,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9353,
+             0.935
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "63",
+           "kind": "shape",
+           "bbox": [
+            437,
+            537,
+            473,
+            584
+           ],
+           "visible": true,
+           "size": [
+            36,
+            47
+           ],
+           "fill": "#000000"
+          }
+         ]
+        },
+        {
+         "name": "_2",
+         "kind": "shape",
+         "bbox": [
+          217,
+          514,
+          419,
+          602
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "blind",
+         "kind": "group",
+         "bbox": [
+          237,
+          530,
+          398,
+          587
+         ],
+         "visible": true,
+         "size": [
+          161,
+          57
+         ],
+         "children": [
+          {
+           "name": "50/100",
+           "kind": "type",
+           "bbox": [
+            298,
+            530,
+            398,
+            561
+           ],
+           "visible": true,
+           "size": [
+            100,
+            31
+           ],
+           "type": {
+            "text": "50/100",
+            "runs": [
+             {
+              "chars": "50/100",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 41.05,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9365,
+             0.9257
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "blind",
+           "kind": "type",
+           "bbox": [
+            299,
+            563,
+            349,
+            587
+           ],
+           "visible": true,
+           "size": [
+            50,
+            24
+           ],
+           "type": {
+            "text": "blind",
+            "runs": [
+             {
+              "chars": "blind",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.41,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9322,
+             0.9257
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "help",
+           "kind": "shape",
+           "bbox": [
+            237,
+            533,
+            287,
+            584
+           ],
+           "visible": true,
+           "size": [
+            50,
+            51
+           ],
+           "fill": "#000000"
+          },
+          {
+           "name": "help copy 2",
+           "kind": "shape",
+           "bbox": [
+            247,
+            532,
+            288,
+            572
+           ],
+           "visible": true,
+           "size": [
+            41,
+            40
+           ],
+           "fill": "#000000"
+          }
+         ]
+        },
+        {
+         "name": "_1",
+         "kind": "shape",
+         "bbox": [
+          17,
+          514,
+          219,
+          602
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "stack",
+         "kind": "group",
+         "bbox": [
+          36,
+          530,
+          148,
+          587
+         ],
+         "visible": true,
+         "size": [
+          112,
+          57
+         ],
+         "children": [
+          {
+           "name": "500",
+           "kind": "type",
+           "bbox": [
+            92,
+            530,
+            142,
+            559
+           ],
+           "visible": true,
+           "size": [
+            50,
+            29
+           ],
+           "type": {
+            "text": "500",
+            "runs": [
+             {
+              "chars": "500",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 40.74,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.932,
+             0.9328
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "stack",
+           "kind": "type",
+           "bbox": [
+            91,
+            563,
+            148,
+            587
+           ],
+           "visible": true,
+           "size": [
+            57,
+            24
+           ],
+           "type": {
+            "text": "stack",
+            "runs": [
+             {
+              "chars": "stack",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.16,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.932,
+             0.9328
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "Shape 1",
+           "kind": "shape",
+           "bbox": [
+            36,
+            536,
+            76,
+            583
+           ],
+           "visible": true,
+           "size": [
+            40,
+            47
+           ],
+           "fill": "#000000"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "info 2 copy",
+       "kind": "shape",
+       "bbox": [
+        588,
+        471,
+        624,
+        507
+       ],
+       "visible": true,
+       "size": [
+        36,
+        36
+       ],
+       "fill": "#116FF0"
+      },
+      {
+       "name": "classic ",
+       "kind": "type",
+       "bbox": [
+        22,
+        463,
+        253,
+        516
+       ],
+       "visible": true,
+       "size": [
+        231,
+        53
+       ],
+       "type": {
+        "text": "classic\r",
+        "runs": [
+         {
+          "chars": "c",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         },
+         {
+          "chars": "lassic\r",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_3",
+     "kind": "group",
+     "bbox": [
+      17,
+      640,
+      624,
+      790
+     ],
+     "visible": true,
+     "size": [
+      607,
+      150
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        17,
+        640,
+        623,
+        790
+       ],
+       "visible": true,
+       "size": [
+        606,
+        150
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rectangle 13",
+       "kind": "shape",
+       "bbox": [
+        17,
+        778,
+        623,
+        790
+       ],
+       "visible": true,
+       "size": [
+        606,
+        12
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "info_gh",
+       "kind": "group",
+       "bbox": [
+        17,
+        692,
+        619,
+        780
+       ],
+       "visible": true,
+       "size": [
+        602,
+        88
+       ],
+       "children": [
+        {
+         "name": "_3",
+         "kind": "shape",
+         "bbox": [
+          417,
+          692,
+          619,
+          780
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "min",
+         "kind": "group",
+         "bbox": [
+          437,
+          708,
+          570,
+          766
+         ],
+         "visible": true,
+         "size": [
+          133,
+          58
+         ],
+         "children": [
+          {
+           "name": "15min",
+           "kind": "type",
+           "bbox": [
+            485,
+            708,
+            570,
+            738
+           ],
+           "visible": true,
+           "size": [
+            85,
+            30
+           ],
+           "type": {
+            "text": "15min",
+            "runs": [
+             {
+              "chars": "15min",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 40.64,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9431,
+             0.935
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "time",
+           "kind": "type",
+           "bbox": [
+            486,
+            742,
+            532,
+            766
+           ],
+           "visible": true,
+           "size": [
+            46,
+            24
+           ],
+           "type": {
+            "text": "time",
+            "runs": [
+             {
+              "chars": "time",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.09,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9353,
+             0.935
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "63",
+           "kind": "shape",
+           "bbox": [
+            437,
+            715,
+            473,
+            762
+           ],
+           "visible": true,
+           "size": [
+            36,
+            47
+           ],
+           "fill": "#000000"
+          }
+         ]
+        },
+        {
+         "name": "_2",
+         "kind": "shape",
+         "bbox": [
+          217,
+          692,
+          419,
+          780
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "blind",
+         "kind": "group",
+         "bbox": [
+          237,
+          708,
+          416,
+          765
+         ],
+         "visible": true,
+         "size": [
+          179,
+          57
+         ],
+         "children": [
+          {
+           "name": "100/200",
+           "kind": "type",
+           "bbox": [
+            299,
+            708,
+            416,
+            739
+           ],
+           "visible": true,
+           "size": [
+            117,
+            31
+           ],
+           "type": {
+            "text": "100/200",
+            "runs": [
+             {
+              "chars": "100/200",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 41.05,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9365,
+             0.9257
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "blind",
+           "kind": "type",
+           "bbox": [
+            299,
+            741,
+            349,
+            765
+           ],
+           "visible": true,
+           "size": [
+            50,
+            24
+           ],
+           "type": {
+            "text": "blind",
+            "runs": [
+             {
+              "chars": "blind",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.41,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9322,
+             0.9257
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "help",
+           "kind": "shape",
+           "bbox": [
+            237,
+            711,
+            287,
+            762
+           ],
+           "visible": true,
+           "size": [
+            50,
+            51
+           ],
+           "fill": "#000000"
+          },
+          {
+           "name": "help copy 2",
+           "kind": "shape",
+           "bbox": [
+            247,
+            710,
+            288,
+            750
+           ],
+           "visible": true,
+           "size": [
+            41,
+            40
+           ],
+           "fill": "#000000"
+          }
+         ]
+        },
+        {
+         "name": "_1",
+         "kind": "shape",
+         "bbox": [
+          17,
+          692,
+          219,
+          780
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "stack",
+         "kind": "group",
+         "bbox": [
+          36,
+          708,
+          167,
+          765
+         ],
+         "visible": true,
+         "size": [
+          131,
+          57
+         ],
+         "children": [
+          {
+           "name": "1,000",
+           "kind": "type",
+           "bbox": [
+            93,
+            708,
+            167,
+            742
+           ],
+           "visible": true,
+           "size": [
+            74,
+            34
+           ],
+           "type": {
+            "text": "1,000",
+            "runs": [
+             {
+              "chars": "1,000",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 40.74,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.932,
+             0.9328
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "stack",
+           "kind": "type",
+           "bbox": [
+            91,
+            741,
+            148,
+            765
+           ],
+           "visible": true,
+           "size": [
+            57,
+            24
+           ],
+           "type": {
+            "text": "stack",
+            "runs": [
+             {
+              "chars": "stack",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.16,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.932,
+             0.9328
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "Shape 1",
+           "kind": "shape",
+           "bbox": [
+            36,
+            714,
+            76,
+            761
+           ],
+           "visible": true,
+           "size": [
+            40,
+            47
+           ],
+           "fill": "#000000"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "turbo ",
+       "kind": "type",
+       "bbox": [
+        19,
+        641,
+        207,
+        694
+       ],
+       "visible": true,
+       "size": [
+        188,
+        53
+       ],
+       "type": {
+        "text": "turbo\r",
+        "runs": [
+         {
+          "chars": "t",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         },
+         {
+          "chars": "urbo\r",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "info 2 copy 2",
+       "kind": "shape",
+       "bbox": [
+        588,
+        649,
+        624,
+        685
+       ],
+       "visible": true,
+       "size": [
+        36,
+        36
+       ],
+       "fill": "#116FF0"
+      }
+     ]
+    },
+    {
+     "name": "_4",
+     "kind": "group",
+     "bbox": [
+      17,
+      818,
+      623,
+      968
+     ],
+     "visible": true,
+     "size": [
+      606,
+      150
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        17,
+        818,
+        623,
+        968
+       ],
+       "visible": true,
+       "size": [
+        606,
+        150
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rectangle 13",
+       "kind": "shape",
+       "bbox": [
+        17,
+        956,
+        623,
+        968
+       ],
+       "visible": true,
+       "size": [
+        606,
+        12
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "info_gh",
+       "kind": "group",
+       "bbox": [
+        17,
+        870,
+        619,
+        958
+       ],
+       "visible": true,
+       "size": [
+        602,
+        88
+       ],
+       "children": [
+        {
+         "name": "_3",
+         "kind": "shape",
+         "bbox": [
+          417,
+          870,
+          619,
+          958
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "min",
+         "kind": "group",
+         "bbox": [
+          437,
+          886,
+          570,
+          944
+         ],
+         "visible": true,
+         "size": [
+          133,
+          58
+         ],
+         "children": [
+          {
+           "name": "10min",
+           "kind": "type",
+           "bbox": [
+            485,
+            886,
+            570,
+            916
+           ],
+           "visible": true,
+           "size": [
+            85,
+            30
+           ],
+           "type": {
+            "text": "10min",
+            "runs": [
+             {
+              "chars": "10min",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 40.64,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9431,
+             0.935
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "time",
+           "kind": "type",
+           "bbox": [
+            486,
+            920,
+            532,
+            944
+           ],
+           "visible": true,
+           "size": [
+            46,
+            24
+           ],
+           "type": {
+            "text": "time",
+            "runs": [
+             {
+              "chars": "time",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.09,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9353,
+             0.935
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "63",
+           "kind": "shape",
+           "bbox": [
+            437,
+            893,
+            473,
+            940
+           ],
+           "visible": true,
+           "size": [
+            36,
+            47
+           ],
+           "fill": "#000000"
+          }
+         ]
+        },
+        {
+         "name": "_2",
+         "kind": "shape",
+         "bbox": [
+          217,
+          870,
+          419,
+          958
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "blind",
+         "kind": "group",
+         "bbox": [
+          237,
+          885,
+          410,
+          943
+         ],
+         "visible": true,
+         "size": [
+          173,
+          58
+         ],
+         "children": [
+          {
+           "name": "medium",
+           "kind": "type",
+           "bbox": [
+            298,
+            885,
+            410,
+            915
+           ],
+           "visible": true,
+           "size": [
+            112,
+            30
+           ],
+           "type": {
+            "text": "medium",
+            "runs": [
+             {
+              "chars": "medium",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 41.05,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9365,
+             0.9257
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "blind",
+           "kind": "type",
+           "bbox": [
+            299,
+            919,
+            349,
+            943
+           ],
+           "visible": true,
+           "size": [
+            50,
+            24
+           ],
+           "type": {
+            "text": "blind",
+            "runs": [
+             {
+              "chars": "blind",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.41,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.9322,
+             0.9257
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "help",
+           "kind": "shape",
+           "bbox": [
+            237,
+            889,
+            287,
+            940
+           ],
+           "visible": true,
+           "size": [
+            50,
+            51
+           ],
+           "fill": "#000000"
+          },
+          {
+           "name": "help copy 2",
+           "kind": "shape",
+           "bbox": [
+            247,
+            888,
+            288,
+            928
+           ],
+           "visible": true,
+           "size": [
+            41,
+            40
+           ],
+           "fill": "#000000"
+          }
+         ]
+        },
+        {
+         "name": "_1",
+         "kind": "shape",
+         "bbox": [
+          17,
+          870,
+          219,
+          958
+         ],
+         "visible": true,
+         "size": [
+          202,
+          88
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "stack",
+         "kind": "group",
+         "bbox": [
+          36,
+          886,
+          167,
+          943
+         ],
+         "visible": true,
+         "size": [
+          131,
+          57
+         ],
+         "children": [
+          {
+           "name": "5,000",
+           "kind": "type",
+           "bbox": [
+            92,
+            886,
+            167,
+            920
+           ],
+           "visible": true,
+           "size": [
+            75,
+            34
+           ],
+           "type": {
+            "text": "5,000",
+            "runs": [
+             {
+              "chars": "5,000",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 40.74,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.932,
+             0.9328
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "stack",
+           "kind": "type",
+           "bbox": [
+            91,
+            919,
+            148,
+            943
+           ],
+           "visible": true,
+           "size": [
+            57,
+            24
+           ],
+           "type": {
+            "text": "stack",
+            "runs": [
+             {
+              "chars": "stack",
+              "font": "'RobotoCondensed-Light'",
+              "size": 32.16,
+              "color": "#000000"
+             }
+            ],
+            "transform_scale": [
+             0.932,
+             0.9328
+            ],
+            "align": "left"
+           }
+          },
+          {
+           "name": "Shape 1",
+           "kind": "shape",
+           "bbox": [
+            36,
+            892,
+            76,
+            939
+           ],
+           "visible": true,
+           "size": [
+            40,
+            47
+           ],
+           "fill": "#000000"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "favorite ",
+       "kind": "type",
+       "bbox": [
+        22,
+        819,
+        285,
+        872
+       ],
+       "visible": true,
+       "size": [
+        263,
+        53
+       ],
+       "type": {
+        "text": "favorite\r",
+        "runs": [
+         {
+          "chars": "f",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         },
+         {
+          "chars": "avorite\r",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Rectangle 2 copy",
+       "kind": "shape",
+       "bbox": [
+        569,
+        818,
+        623,
+        872
+       ],
+       "visible": true,
+       "size": [
+        54,
+        54
+       ],
+       "fill": "#E9E9E9"
+      },
+      {
+       "name": "Pencil copy",
+       "kind": "shape",
+       "bbox": [
+        581,
+        829,
+        613,
+        862
+       ],
+       "visible": true,
+       "size": [
+        32,
+        33
+       ],
+       "fill": "#000000"
+      }
+     ]
+    },
+    {
+     "name": "_5",
+     "kind": "group",
+     "bbox": [
+      17,
+      996,
+      623,
+      1077
+     ],
+     "visible": true,
+     "size": [
+      606,
+      81
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 4",
+       "kind": "shape",
+       "bbox": [
+        17,
+        996,
+        623,
+        1077
+       ],
+       "visible": true,
+       "size": [
+        606,
+        81
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rectangle 13 copy",
+       "kind": "shape",
+       "bbox": [
+        17,
+        1065,
+        623,
+        1077
+       ],
+       "visible": true,
+       "size": [
+        606,
+        12
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "Custom ",
+       "kind": "type",
+       "bbox": [
+        22,
+        996,
+        252,
+        1049
+       ],
+       "visible": true,
+       "size": [
+        230,
+        53
+       ],
+       "type": {
+        "text": "Custom ",
+        "runs": [
+         {
+          "chars": "C",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         },
+         {
+          "chars": "ustom ",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 72.07,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "state_1 copy",
+   "kind": "group",
+   "bbox": [
+    -1,
+    -1,
+    641,
+    237
+   ],
+   "visible": true,
+   "size": [
+    642,
+    238
+   ],
+   "children": [
+    {
+     "name": "_1",
+     "kind": "group",
+     "bbox": [
+      -1,
+      166,
+      641,
+      237
+     ],
+     "visible": true,
+     "size": [
+      642,
+      71
+     ],
+     "children": [
+      {
+       "name": "Rectangle 10",
+       "kind": "shape",
+       "bbox": [
+        -1,
+        166,
+        641,
+        237
+       ],
+       "visible": true,
+       "size": [
+        642,
+        71
+       ],
+       "fill": "#E9E9E9"
+      },
+      {
+       "name": "Rectangle 12",
+       "kind": "shape",
+       "bbox": [
+        571,
+        166,
+        641,
+        237
+       ],
+       "visible": true,
+       "size": [
+        70,
+        71
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "3",
+       "kind": "type",
+       "bbox": [
+        596,
+        181,
+        616,
+        220
+       ],
+       "visible": true,
+       "size": [
+        20,
+        39
+       ],
+       "type": {
+        "text": "3",
+        "runs": [
+         {
+          "chars": "3",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 52.0,
+          "color": "#000000"
+         }
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Rectangle 12 copy",
+       "kind": "shape",
+       "bbox": [
+        479,
+        166,
+        549,
+        237
+       ],
+       "visible": true,
+       "size": [
+        70,
+        71
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "2",
+       "kind": "type",
+       "bbox": [
+        504,
+        181,
+        525,
+        219
+       ],
+       "visible": true,
+       "size": [
+        21,
+        38
+       ],
+       "type": {
+        "text": "2",
+        "runs": [
+         {
+          "chars": "2",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 52.0,
+          "color": "#000000"
+         }
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Rectangle 12 copy 2",
+       "kind": "shape",
+       "bbox": [
+        -1,
+        166,
+        457,
+        237
+       ],
+       "visible": true,
+       "size": [
+        458,
+        71
+       ],
+       "fill": "#116FF0"
+      },
+      {
+       "name": "1 Game Type",
+       "kind": "type",
+       "bbox": [
+        101,
+        181,
+        346,
+        230
+       ],
+       "visible": true,
+       "size": [
+        245,
+        49
+       ],
+       "type": {
+        "text": "1 Game Type",
+        "runs": [
+         {
+          "chars": "1 Game Type",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 52.0,
+          "color": "#FFFFFF"
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "head",
+     "kind": "group",
+     "bbox": [
+      -1,
+      -1,
+      641,
+      139
+     ],
+     "visible": true,
+     "size": [
+      642,
+      140
+     ],
+     "children": [
+      {
+       "name": "Rectangle 7 copy",
+       "kind": "shape",
+       "bbox": [
+        -1,
+        -1,
+        641,
+        139
+       ],
+       "visible": true,
+       "size": [
+        642,
+        140
+       ],
+       "fill": "#FFDB3C"
+      },
+      {
+       "name": "close copy",
+       "kind": "group",
+       "bbox": [
+        33,
+        33,
+        106,
+        106
+       ],
+       "visible": true,
+       "size": [
+        73,
+        73
+       ],
+       "children": [
+        {
+         "name": "Rectangle 2 copy",
+         "kind": "shape",
+         "bbox": [
+          33,
+          33,
+          106,
+          106
+         ],
+         "visible": true,
+         "size": [
+          73,
+          73
+         ],
+         "fill": "#000000"
+        },
+        {
+         "name": "Rectangle 10",
+         "kind": "shape",
+         "bbox": [
+          54,
+          53,
+          84,
+          84
+         ],
+         "visible": false,
+         "size": [
+          30,
+          31
+         ],
+         "fill": "#4FBAA7"
+        },
+        {
+         "name": "Back icon",
+         "kind": "shape",
+         "bbox": [
+          54,
+          53,
+          85,
+          84
+         ],
+         "visible": true,
+         "size": [
+          31,
+          31
+         ],
+         "fill": "#FFFFFF"
+        }
+       ]
+      },
+      {
+       "name": "Create Game",
+       "kind": "type",
+       "bbox": [
+        236,
+        54,
+        404,
+        81
+       ],
+       "visible": true,
+       "size": [
+        168,
+        27
+       ],
+       "type": {
+        "text": "Create Game",
+        "runs": [
+         {
+          "chars": "Create Game",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 36.0,
+          "color": "#000000"
+         }
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "next copy",
+       "kind": "group",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ],
+       "children": [
+        {
+         "name": "Rectangle 2 copy",
+         "kind": "shape",
+         "bbox": [
+          535,
+          33,
+          608,
+          106
+         ],
+         "visible": false,
+         "size": [
+          73,
+          73
+         ],
+         "fill": "#000000"
+        },
+        {
+         "name": "Back icon copy",
+         "kind": "shape",
+         "bbox": [
+          564,
+          52,
+          586,
+          87
+         ],
+         "visible": false,
+         "size": [
+          22,
+          35
+         ],
+         "fill": "#FFFFFF"
+        }
+       ]
+      },
+      {
+       "name": "back copy",
+       "kind": "group",
+       "bbox": [
+        33,
+        33,
+        106,
+        106
+       ],
+       "visible": true,
+       "size": [
+        73,
+        73
+       ],
+       "children": [
+        {
+         "name": "Rectangle 2 copy",
+         "kind": "shape",
+         "bbox": [
+          33,
+          33,
+          106,
+          106
+         ],
+         "visible": true,
+         "size": [
+          73,
+          73
+         ],
+         "fill": "#000000"
+        },
+        {
+         "name": "Back icon",
+         "kind": "shape",
+         "bbox": [
+          55,
+          52,
+          76,
+          86
+         ],
+         "visible": true,
+         "size": [
+          21,
+          34
+         ],
+         "fill": "#FFFFFF"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

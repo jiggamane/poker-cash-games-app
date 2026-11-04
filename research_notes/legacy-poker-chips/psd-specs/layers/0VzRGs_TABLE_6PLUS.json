@@ -1,0 +1,43 @@
+{
+ "file": "0VzRGs_TABLE_6PLUS.psd",
+ "canvas": [
+  11338,
+  9041
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 1",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    11338,
+    9041
+   ],
+   "visible": true,
+   "size": [
+    11338,
+    9041
+   ]
+  },
+  {
+   "name": "Rectangle 1",
+   "kind": "shape",
+   "bbox": [
+    -1,
+    -1,
+    2209,
+    1243
+   ],
+   "visible": true,
+   "size": [
+    2210,
+    1244
+   ],
+   "fill": "#FFDB3C"
+  }
+ ],
+ "dpi": 401.0
+}

@@ -1,0 +1,42 @@
+{
+ "file": "U90alU_table.psd",
+ "canvas": [
+  5000,
+  3338
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "background",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    5000,
+    3338
+   ],
+   "visible": true,
+   "size": [
+    5000,
+    3338
+   ]
+  },
+  {
+   "name": "REPLACE ME",
+   "kind": "smartobject",
+   "bbox": [
+    1778,
+    1506,
+    2925,
+    2235
+   ],
+   "visible": true,
+   "size": [
+    1147,
+    729
+   ]
+  }
+ ],
+ "dpi": 240.0
+}

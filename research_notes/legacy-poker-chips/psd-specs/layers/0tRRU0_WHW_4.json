@@ -1,0 +1,183 @@
+{
+ "file": "0tRRU0_WHW_4.psd",
+ "canvas": [
+  3834,
+  972
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Layer 10 copy",
+   "kind": "pixel",
+   "bbox": [
+    573,
+    189,
+    1413,
+    829
+   ],
+   "visible": false,
+   "size": [
+    840,
+    640
+   ]
+  },
+  {
+   "name": "Layer 11",
+   "kind": "pixel",
+   "bbox": [
+    573,
+    879,
+    1413,
+    972
+   ],
+   "visible": false,
+   "size": [
+    840,
+    93
+   ]
+  },
+  {
+   "name": "Layer 10",
+   "kind": "pixel",
+   "bbox": [
+    1337,
+    143,
+    2473,
+    783
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Group 1",
+   "kind": "group",
+   "bbox": [
+    2522,
+    143,
+    3658,
+    783
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ],
+   "children": [
+    {
+     "name": "Layer 13",
+     "kind": "pixel",
+     "bbox": [
+      2523,
+      143,
+      3659,
+      783
+     ],
+     "visible": false,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Layer 14",
+     "kind": "pixel",
+     "bbox": [
+      2522,
+      143,
+      3658,
+      783
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Rectangle 1",
+     "kind": "shape",
+     "bbox": [
+      3160,
+      194,
+      3370,
+      231
+     ],
+     "visible": true,
+     "size": [
+      210,
+      37
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "hand ranks",
+     "kind": "type",
+     "bbox": [
+      3174,
+      200,
+      3352,
+      225
+     ],
+     "visible": true,
+     "size": [
+      178,
+      25
+     ],
+     "type": {
+      "text": "hand ranks",
+      "runs": [
+       {
+        "chars": "h",
+        "font": "'Univers-CondensedBold'",
+        "size": 32.03,
+        "caps": 2
+       },
+       {
+        "chars": "and ranks",
+        "font": "'Univers-CondensedBold'",
+        "size": 32.03,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "Layer 12",
+   "kind": "pixel",
+   "bbox": [
+    151,
+    143,
+    1287,
+    783
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

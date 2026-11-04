@@ -1,0 +1,1930 @@
+{
+ "file": "FF0N1U_lobby.psd",
+ "canvas": [
+  640,
+  1136
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    640,
+    1136
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Ellipse 1",
+   "kind": "shape",
+   "bbox": [
+    249,
+    990,
+    391,
+    1132
+   ],
+   "visible": false,
+   "size": [
+    142,
+    142
+   ],
+   "fill": "#FFDB3C"
+  },
+  {
+   "name": "альбом",
+   "kind": "group",
+   "bbox": [
+    -1,
+    763,
+    641,
+    1193
+   ],
+   "visible": true,
+   "size": [
+    642,
+    430
+   ],
+   "children": [
+    {
+     "name": "_1",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      763,
+      215,
+      979
+     ],
+     "visible": true,
+     "size": [
+      216,
+      216
+     ],
+     "fill": "#B84A4A"
+    },
+    {
+     "name": "Layer 10",
+     "kind": "pixel",
+     "bbox": [
+      -119,
+      764,
+      248,
+      984
+     ],
+     "visible": true,
+     "size": [
+      367,
+      220
+     ]
+    },
+    {
+     "name": "Layer 6 copy",
+     "kind": "pixel",
+     "bbox": [
+      -1,
+      750,
+      224,
+      986
+     ],
+     "visible": false,
+     "size": [
+      225,
+      236
+     ]
+    },
+    {
+     "name": "_2",
+     "kind": "shape",
+     "bbox": [
+      212,
+      763,
+      428,
+      979
+     ],
+     "visible": true,
+     "size": [
+      216,
+      216
+     ],
+     "fill": "#AA6565"
+    },
+    {
+     "name": "Layer 11",
+     "kind": "pixel",
+     "bbox": [
+      52,
+      719,
+      526,
+      1035
+     ],
+     "visible": true,
+     "size": [
+      474,
+      316
+     ]
+    },
+    {
+     "name": "Layer 6 copy 2",
+     "kind": "pixel",
+     "bbox": [
+      206,
+      750,
+      431,
+      986
+     ],
+     "visible": false,
+     "size": [
+      225,
+      236
+     ]
+    },
+    {
+     "name": "_3",
+     "kind": "shape",
+     "bbox": [
+      425,
+      763,
+      641,
+      979
+     ],
+     "visible": true,
+     "size": [
+      216,
+      216
+     ],
+     "fill": "#4C1C1C"
+    },
+    {
+     "name": "Layer 12",
+     "kind": "pixel",
+     "bbox": [
+      273,
+      681,
+      747,
+      1315
+     ],
+     "visible": true,
+     "size": [
+      474,
+      634
+     ]
+    },
+    {
+     "name": "Layer 6 copy 3",
+     "kind": "pixel",
+     "bbox": [
+      421,
+      750,
+      646,
+      986
+     ],
+     "visible": false,
+     "size": [
+      225,
+      236
+     ]
+    },
+    {
+     "name": "_4",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      977,
+      215,
+      1193
+     ],
+     "visible": true,
+     "size": [
+      216,
+      216
+     ],
+     "fill": "#5B1B1B"
+    },
+    {
+     "name": "Layer 13",
+     "kind": "pixel",
+     "bbox": [
+      -19,
+      805,
+      282,
+      1106
+     ],
+     "visible": false,
+     "size": [
+      301,
+      301
+     ]
+    },
+    {
+     "name": "Layer 14",
+     "kind": "pixel",
+     "bbox": [
+      -14,
+      888,
+      307,
+      1192
+     ],
+     "visible": false,
+     "size": [
+      321,
+      304
+     ]
+    },
+    {
+     "name": "Layer 6 copy 4",
+     "kind": "pixel",
+     "bbox": [
+      -1,
+      961,
+      224,
+      1197
+     ],
+     "visible": true,
+     "size": [
+      225,
+      236
+     ]
+    },
+    {
+     "name": "_5",
+     "kind": "shape",
+     "bbox": [
+      212,
+      977,
+      428,
+      1193
+     ],
+     "visible": true,
+     "size": [
+      216,
+      216
+     ],
+     "fill": "#EF9292"
+    },
+    {
+     "name": "Layer 15",
+     "kind": "pixel",
+     "bbox": [
+      177,
+      951,
+      477,
+      1251
+     ],
+     "visible": true,
+     "size": [
+      300,
+      300
+     ]
+    },
+    {
+     "name": "_6",
+     "kind": "shape",
+     "bbox": [
+      425,
+      977,
+      641,
+      1193
+     ],
+     "visible": true,
+     "size": [
+      216,
+      216
+     ],
+     "fill": "#921515"
+    },
+    {
+     "name": "Layer 16",
+     "kind": "pixel",
+     "bbox": [
+      97,
+      711,
+      833,
+      1447
+     ],
+     "visible": true,
+     "size": [
+      736,
+      736
+     ]
+    },
+    {
+     "name": "Layer 6 copy 6",
+     "kind": "pixel",
+     "bbox": [
+      421,
+      961,
+      646,
+      1197
+     ],
+     "visible": false,
+     "size": [
+      225,
+      236
+     ]
+    }
+   ]
+  },
+  {
+   "name": "альбом copy",
+   "kind": "smartobject",
+   "bbox": [
+    32,
+    745,
+    606,
+    1129
+   ],
+   "visible": false,
+   "size": [
+    574,
+    384
+   ]
+  },
+  {
+   "name": "summary",
+   "kind": "group",
+   "bbox": [
+    32,
+    358,
+    607,
+    702
+   ],
+   "visible": true,
+   "size": [
+    575,
+    344
+   ],
+   "children": [
+    {
+     "name": "_1",
+     "kind": "group",
+     "bbox": [
+      32,
+      358,
+      308,
+      514
+     ],
+     "visible": true,
+     "size": [
+      276,
+      156
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        32,
+        358,
+        308,
+        514
+       ],
+       "visible": true,
+       "size": [
+        276,
+        156
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        139,
+        406,
+        225,
+        492
+       ],
+       "visible": false,
+       "size": [
+        86,
+        86
+       ],
+       "fill": "#F44E59"
+      },
+      {
+       "name": "210",
+       "kind": "type",
+       "bbox": [
+        39,
+        409,
+        185,
+        493
+       ],
+       "visible": true,
+       "size": [
+        146,
+        84
+       ],
+       "type": {
+        "text": "210",
+        "runs": [
+         {
+          "chars": "210",
+          "font": "'Univers-Condensed'",
+          "size": 124.03
+         }
+        ],
+        "transform_scale": [
+         0.9361,
+         0.9352
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Playtime:",
+       "kind": "type",
+       "bbox": [
+        37,
+        360,
+        164,
+        393
+       ],
+       "visible": true,
+       "size": [
+        127,
+        33
+       ],
+       "type": {
+        "text": "Playtime:",
+        "runs": [
+         {
+          "chars": "P",
+          "font": "'Univers-Condensed'",
+          "size": 36.0
+         },
+         {
+          "chars": "laytime:",
+          "font": "'Univers-Condensed'",
+          "size": 36.0
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_2",
+     "kind": "group",
+     "bbox": [
+      331,
+      358,
+      607,
+      514
+     ],
+     "visible": true,
+     "size": [
+      276,
+      156
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        331,
+        358,
+        607,
+        514
+       ],
+       "visible": true,
+       "size": [
+        276,
+        156
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        438,
+        406,
+        524,
+        492
+       ],
+       "visible": false,
+       "size": [
+        86,
+        86
+       ],
+       "fill": "#F44E59"
+      },
+      {
+       "name": "25:30",
+       "kind": "type",
+       "bbox": [
+        338,
+        409,
+        561,
+        493
+       ],
+       "visible": true,
+       "size": [
+        223,
+        84
+       ],
+       "type": {
+        "text": "25:30",
+        "runs": [
+         {
+          "chars": "25:30",
+          "font": "'Univers-Condensed'",
+          "size": 124.03
+         }
+        ],
+        "transform_scale": [
+         0.9361,
+         0.9352
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Rewards:",
+       "kind": "type",
+       "bbox": [
+        335,
+        360,
+        467,
+        387
+       ],
+       "visible": true,
+       "size": [
+        132,
+        27
+       ],
+       "type": {
+        "text": "Rewards:",
+        "runs": [
+         {
+          "chars": "R",
+          "font": "'Univers-Condensed'",
+          "size": 36.0
+         },
+         {
+          "chars": "ewards:",
+          "font": "'Univers-Condensed'",
+          "size": 36.0
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_3",
+     "kind": "group",
+     "bbox": [
+      32,
+      546,
+      308,
+      702
+     ],
+     "visible": true,
+     "size": [
+      276,
+      156
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        32,
+        546,
+        308,
+        702
+       ],
+       "visible": true,
+       "size": [
+        276,
+        156
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        139,
+        594,
+        225,
+        680
+       ],
+       "visible": false,
+       "size": [
+        86,
+        86
+       ],
+       "fill": "#F44E59"
+      },
+      {
+       "name": "1017",
+       "kind": "type",
+       "bbox": [
+        44,
+        597,
+        234,
+        681
+       ],
+       "visible": true,
+       "size": [
+        190,
+        84
+       ],
+       "type": {
+        "text": "1017",
+        "runs": [
+         {
+          "chars": "1017",
+          "font": "'Univers-Condensed'",
+          "size": 124.03
+         }
+        ],
+        "transform_scale": [
+         0.9361,
+         0.9352
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Followers:",
+       "kind": "type",
+       "bbox": [
+        36,
+        548,
+        179,
+        575
+       ],
+       "visible": true,
+       "size": [
+        143,
+        27
+       ],
+       "type": {
+        "text": "Followers:",
+        "runs": [
+         {
+          "chars": "F",
+          "font": "'Univers-Condensed'",
+          "size": 36.0
+         },
+         {
+          "chars": "ollowers:",
+          "font": "'Univers-Condensed'",
+          "size": 36.0
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_4",
+     "kind": "group",
+     "bbox": [
+      331,
+      546,
+      607,
+      702
+     ],
+     "visible": true,
+     "size": [
+      276,
+      156
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        331,
+        546,
+        607,
+        702
+       ],
+       "visible": true,
+       "size": [
+        276,
+        156
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        438,
+        594,
+        524,
+        680
+       ],
+       "visible": false,
+       "size": [
+        86,
+        86
+       ],
+       "fill": "#F44E59"
+      },
+      {
+       "name": "96",
+       "kind": "type",
+       "bbox": [
+        337,
+        597,
+        432,
+        681
+       ],
+       "visible": true,
+       "size": [
+        95,
+        84
+       ],
+       "type": {
+        "text": "96",
+        "runs": [
+         {
+          "chars": "96",
+          "font": "'Univers-Condensed'",
+          "size": 124.03
+         }
+        ],
+        "transform_scale": [
+         0.9361,
+         0.9352
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Following:",
+       "kind": "type",
+       "bbox": [
+        335,
+        548,
+        476,
+        581
+       ],
+       "visible": true,
+       "size": [
+        141,
+        33
+       ],
+       "type": {
+        "text": "Following:",
+        "runs": [
+         {
+          "chars": "F",
+          "font": "'Univers-Condensed'",
+          "size": 36.0
+         },
+         {
+          "chars": "ollowing:",
+          "font": "'Univers-Condensed'",
+          "size": 36.0
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Layer 8",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Rectangle 7",
+   "kind": "shape",
+   "bbox": [
+    -1,
+    -1,
+    641,
+    253
+   ],
+   "visible": true,
+   "size": [
+    642,
+    254
+   ],
+   "fill": "#FFDB3C"
+  },
+  {
+   "name": "Layer 9 copy",
+   "kind": "pixel",
+   "bbox": [
+    -1,
+    -240,
+    747,
+    520
+   ],
+   "visible": true,
+   "size": [
+    748,
+    760
+   ],
+   "opacity": 50,
+   "blend": "OVERLAY"
+  },
+  {
+   "name": "avatars",
+   "kind": "shape",
+   "bbox": [
+    247,
+    164,
+    391,
+    308
+   ],
+   "visible": true,
+   "size": [
+    144,
+    144
+   ],
+   "fill": "#619F57"
+  },
+  {
+   "name": "Layer 9",
+   "kind": "pixel",
+   "bbox": [
+    222,
+    138,
+    414,
+    330
+   ],
+   "visible": true,
+   "size": [
+    192,
+    192
+   ]
+  },
+  {
+   "name": "avatars copy",
+   "kind": "shape",
+   "bbox": [
+    227,
+    141,
+    412,
+    326
+   ],
+   "visible": true,
+   "size": [
+    185,
+    185
+   ],
+   "fill": "#619F57"
+  },
+  {
+   "name": "Layer 9 copy 2",
+   "kind": "pixel",
+   "bbox": [
+    222,
+    138,
+    414,
+    330
+   ],
+   "visible": true,
+   "size": [
+    192,
+    192
+   ]
+  },
+  {
+   "name": "pages",
+   "kind": "group",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": false,
+   "size": [
+    0,
+    0
+   ],
+   "children": [
+    {
+     "name": "Ellipse 2",
+     "kind": "shape",
+     "bbox": [
+      282,
+      87,
+      296,
+      101
+     ],
+     "visible": false,
+     "size": [
+      14,
+      14
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Ellipse 2 copy",
+     "kind": "shape",
+     "bbox": [
+      312,
+      87,
+      326,
+      101
+     ],
+     "visible": false,
+     "size": [
+      14,
+      14
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Ellipse 2 copy 2",
+     "kind": "shape",
+     "bbox": [
+      342,
+      87,
+      356,
+      101
+     ],
+     "visible": false,
+     "size": [
+      14,
+      14
+     ],
+     "fill": "#FFFFFF"
+    }
+   ]
+  },
+  {
+   "name": "Settings",
+   "kind": "group",
+   "bbox": [
+    535,
+    33,
+    608,
+    106
+   ],
+   "visible": true,
+   "size": [
+    73,
+    73
+   ],
+   "children": [
+    {
+     "name": "Rectangle 2 copy",
+     "kind": "shape",
+     "bbox": [
+      535,
+      33,
+      608,
+      106
+     ],
+     "visible": true,
+     "size": [
+      73,
+      73
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Settings",
+     "kind": "shape",
+     "bbox": [
+      558,
+      56,
+      584,
+      83
+     ],
+     "visible": true,
+     "size": [
+      26,
+      27
+     ],
+     "fill": "#FFFFFF"
+    }
+   ]
+  },
+  {
+   "name": "Tommy ford",
+   "kind": "type",
+   "bbox": [
+    233,
+    49,
+    405,
+    72
+   ],
+   "visible": false,
+   "size": [
+    172,
+    23
+   ],
+   "type": {
+    "text": "Tommy ford",
+    "runs": [
+     {
+      "chars": "Tommy ford",
+      "font": "'Univers-CondensedBold'",
+      "size": 30.0,
+      "color": "#000000",
+      "caps": 2
+     }
+    ],
+    "align": "center"
+   }
+  },
+  {
+   "name": "pages copy",
+   "kind": "group",
+   "bbox": [
+    282,
+    33,
+    356,
+    47
+   ],
+   "visible": true,
+   "size": [
+    74,
+    14
+   ],
+   "children": [
+    {
+     "name": "Ellipse 2",
+     "kind": "shape",
+     "bbox": [
+      282,
+      33,
+      296,
+      47
+     ],
+     "visible": true,
+     "size": [
+      14,
+      14
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Ellipse 2 copy",
+     "kind": "shape",
+     "bbox": [
+      312,
+      33,
+      326,
+      47
+     ],
+     "visible": true,
+     "size": [
+      14,
+      14
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Ellipse 2 copy 2",
+     "kind": "shape",
+     "bbox": [
+      342,
+      33,
+      356,
+      47
+     ],
+     "visible": true,
+     "size": [
+      14,
+      14
+     ],
+     "fill": "#FFFFFF"
+    }
+   ]
+  },
+  {
+   "name": "Tommy ford copy",
+   "kind": "type",
+   "bbox": [
+    233,
+    69,
+    405,
+    92
+   ],
+   "visible": true,
+   "size": [
+    172,
+    23
+   ],
+   "type": {
+    "text": "Tommy ford",
+    "runs": [
+     {
+      "chars": "Tommy ford",
+      "font": "'Univers-CondensedBold'",
+      "size": 30.0,
+      "color": "#000000",
+      "caps": 2
+     }
+    ],
+    "align": "center"
+   }
+  },
+  {
+   "name": "navigation",
+   "kind": "group",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": false,
+   "size": [
+    0,
+    0
+   ],
+   "children": [
+    {
+     "name": "Rectangle 1",
+     "kind": "shape",
+     "bbox": [
+      -2,
+      1045,
+      641,
+      1187
+     ],
+     "visible": false,
+     "size": [
+      643,
+      142
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Ellipse 1 copy",
+     "kind": "shape",
+     "bbox": [
+      213,
+      990,
+      428,
+      1204
+     ],
+     "visible": false,
+     "size": [
+      215,
+      214
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Rectangle 8",
+     "kind": "shape",
+     "bbox": [
+      219,
+      1010,
+      419,
+      1174
+     ],
+     "visible": false,
+     "size": [
+      200,
+      164
+     ],
+     "fill": "#FFDB3C"
+    }
+   ]
+  },
+  {
+   "name": "navigation copy",
+   "kind": "group",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": false,
+   "size": [
+    0,
+    0
+   ],
+   "children": [
+    {
+     "name": "Rectangle 1",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      1010,
+      641,
+      1152
+     ],
+     "visible": false,
+     "size": [
+      642,
+      142
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Ellipse 1 copy",
+     "kind": "shape",
+     "bbox": [
+      213,
+      1003,
+      428,
+      1217
+     ],
+     "visible": false,
+     "size": [
+      215,
+      214
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Rectangle 8 copy",
+     "kind": "shape",
+     "bbox": [
+      427,
+      1010,
+      641,
+      1174
+     ],
+     "visible": false,
+     "size": [
+      214,
+      164
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 8",
+     "kind": "shape",
+     "bbox": [
+      212,
+      1010,
+      426,
+      1174
+     ],
+     "visible": false,
+     "size": [
+      214,
+      164
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 8 copy 2",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      1010,
+      213,
+      1174
+     ],
+     "visible": false,
+     "size": [
+      214,
+      164
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "play",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "circle",
+       "kind": "shape",
+       "bbox": [
+        289,
+        1025,
+        356,
+        1092
+       ],
+       "visible": false,
+       "size": [
+        67,
+        67
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "play",
+       "kind": "shape",
+       "bbox": [
+        316,
+        1046,
+        335,
+        1070
+       ],
+       "visible": false,
+       "size": [
+        19,
+        24
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    },
+    {
+     "name": "Tools",
+     "kind": "type",
+     "bbox": [
+      77,
+      1107,
+      126,
+      1126
+     ],
+     "visible": false,
+     "size": [
+      49,
+      19
+     ],
+     "type": {
+      "text": "Tools",
+      "runs": [
+       {
+        "chars": "T",
+        "font": "'Univers-Condensed'",
+        "size": 24.0
+       },
+       {
+        "chars": "ools",
+        "font": "'Univers-Condensed'",
+        "size": 24.0
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Start",
+     "kind": "type",
+     "bbox": [
+      298,
+      1107,
+      344,
+      1126
+     ],
+     "visible": false,
+     "size": [
+      46,
+      19
+     ],
+     "type": {
+      "text": "Start",
+      "runs": [
+       {
+        "chars": "S",
+        "font": "'Univers-Condensed'",
+        "size": 24.0,
+        "color": "#FFFFFF"
+       },
+       {
+        "chars": "tart",
+        "font": "'Univers-Condensed'",
+        "size": 24.0,
+        "color": "#FFFFFF"
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Profile",
+     "kind": "type",
+     "bbox": [
+      509,
+      1107,
+      569,
+      1126
+     ],
+     "visible": false,
+     "size": [
+      60,
+      19
+     ],
+     "type": {
+      "text": "Profile",
+      "runs": [
+       {
+        "chars": "P",
+        "font": "'Univers-Condensed'",
+        "size": 24.0,
+        "color": "#000000"
+       },
+       {
+        "chars": "rofile",
+        "font": "'Univers-Condensed'",
+        "size": 24.0,
+        "color": "#000000"
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "circle copy",
+     "kind": "shape",
+     "bbox": [
+      508,
+      1033,
+      575,
+      1100
+     ],
+     "visible": false,
+     "size": [
+      67,
+      67
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "user",
+     "kind": "shape",
+     "bbox": [
+      526,
+      1047,
+      558,
+      1082
+     ],
+     "visible": false,
+     "size": [
+      32,
+      35
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Shopping bag",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "circle",
+       "kind": "shape",
+       "bbox": [
+        68,
+        1033,
+        135,
+        1100
+       ],
+       "visible": false,
+       "size": [
+        67,
+        67
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "bag",
+       "kind": "shape",
+       "bbox": [
+        87,
+        1052,
+        118,
+        1082
+       ],
+       "visible": false,
+       "size": [
+        31,
+        30
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "navigation copy 2",
+   "kind": "group",
+   "bbox": [
+    -1,
+    1003,
+    641,
+    1217
+   ],
+   "visible": true,
+   "size": [
+    642,
+    214
+   ],
+   "children": [
+    {
+     "name": "Rectangle 1",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      1025,
+      641,
+      1152
+     ],
+     "visible": true,
+     "size": [
+      642,
+      127
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Ellipse 1 copy",
+     "kind": "shape",
+     "bbox": [
+      211,
+      1003,
+      427,
+      1217
+     ],
+     "visible": true,
+     "size": [
+      216,
+      214
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Rectangle 8 copy",
+     "kind": "shape",
+     "bbox": [
+      427,
+      1010,
+      641,
+      1174
+     ],
+     "visible": false,
+     "size": [
+      214,
+      164
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 8",
+     "kind": "shape",
+     "bbox": [
+      212,
+      1010,
+      426,
+      1174
+     ],
+     "visible": false,
+     "size": [
+      214,
+      164
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 8 copy 2",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      1010,
+      213,
+      1174
+     ],
+     "visible": false,
+     "size": [
+      214,
+      164
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Tools",
+     "kind": "type",
+     "bbox": [
+      80,
+      1111,
+      129,
+      1130
+     ],
+     "visible": true,
+     "size": [
+      49,
+      19
+     ],
+     "type": {
+      "text": "Tools",
+      "runs": [
+       {
+        "chars": "T",
+        "font": "'Univers-Condensed'",
+        "size": 24.0
+       },
+       {
+        "chars": "ools",
+        "font": "'Univers-Condensed'",
+        "size": 24.0
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Start",
+     "kind": "type",
+     "bbox": [
+      297,
+      1111,
+      343,
+      1130
+     ],
+     "visible": true,
+     "size": [
+      46,
+      19
+     ],
+     "type": {
+      "text": "Start",
+      "runs": [
+       {
+        "chars": "S",
+        "font": "'Univers-Condensed'",
+        "size": 24.0,
+        "color": "#000000"
+       },
+       {
+        "chars": "tart",
+        "font": "'Univers-Condensed'",
+        "size": 24.0,
+        "color": "#000000"
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Profile",
+     "kind": "type",
+     "bbox": [
+      504,
+      1111,
+      564,
+      1130
+     ],
+     "visible": true,
+     "size": [
+      60,
+      19
+     ],
+     "type": {
+      "text": "Profile",
+      "runs": [
+       {
+        "chars": "P",
+        "font": "'Univers-Condensed'",
+        "size": 24.0,
+        "color": "#000000"
+       },
+       {
+        "chars": "rofile",
+        "font": "'Univers-Condensed'",
+        "size": 24.0,
+        "color": "#000000"
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "play",
+     "kind": "group",
+     "bbox": [
+      285,
+      1037,
+      352,
+      1104
+     ],
+     "visible": true,
+     "size": [
+      67,
+      67
+     ],
+     "children": [
+      {
+       "name": "circle",
+       "kind": "shape",
+       "bbox": [
+        285,
+        1037,
+        352,
+        1104
+       ],
+       "visible": true,
+       "size": [
+        67,
+        67
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "play",
+       "kind": "shape",
+       "bbox": [
+        312,
+        1058,
+        331,
+        1082
+       ],
+       "visible": true,
+       "size": [
+        19,
+        24
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    },
+    {
+     "name": "profile",
+     "kind": "group",
+     "bbox": [
+      499,
+      1037,
+      566,
+      1104
+     ],
+     "visible": true,
+     "size": [
+      67,
+      67
+     ],
+     "children": [
+      {
+       "name": "Ellipse 3",
+       "kind": "shape",
+       "bbox": [
+        501,
+        1038,
+        565,
+        1102
+       ],
+       "visible": true,
+       "size": [
+        64,
+        64
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "circle copy",
+       "kind": "shape",
+       "bbox": [
+        499,
+        1037,
+        566,
+        1104
+       ],
+       "visible": true,
+       "size": [
+        67,
+        67
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "user",
+       "kind": "shape",
+       "bbox": [
+        517,
+        1049,
+        550,
+        1090
+       ],
+       "visible": true,
+       "size": [
+        33,
+        41
+       ],
+       "fill": "#FFDB3C"
+      },
+      {
+       "name": "user copy",
+       "kind": "shape",
+       "bbox": [
+        517,
+        1049,
+        550,
+        1090
+       ],
+       "visible": false,
+       "size": [
+        33,
+        41
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Layer 17",
+       "kind": "pixel",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": true,
+       "size": [
+        0,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "name": "Shopping bag",
+     "kind": "group",
+     "bbox": [
+      71,
+      1037,
+      138,
+      1104
+     ],
+     "visible": true,
+     "size": [
+      67,
+      67
+     ],
+     "children": [
+      {
+       "name": "circle",
+       "kind": "shape",
+       "bbox": [
+        71,
+        1037,
+        138,
+        1104
+       ],
+       "visible": true,
+       "size": [
+        67,
+        67
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "bag",
+       "kind": "shape",
+       "bbox": [
+        90,
+        1056,
+        121,
+        1086
+       ],
+       "visible": true,
+       "size": [
+        31,
+        30
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

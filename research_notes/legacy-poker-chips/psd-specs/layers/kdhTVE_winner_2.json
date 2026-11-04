@@ -1,0 +1,118 @@
+{
+ "file": "kdhTVE_winner_2.psd",
+ "canvas": [
+  3801,
+  1092
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Layer 4",
+   "kind": "pixel",
+   "bbox": [
+    172,
+    411,
+    1308,
+    1051
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Layer 3",
+   "kind": "pixel",
+   "bbox": [
+    1358,
+    411,
+    2494,
+    1051
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Layer 5",
+   "kind": "pixel",
+   "bbox": [
+    2544,
+    411,
+    3680,
+    1051
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Ellipse 1",
+   "kind": "shape",
+   "bbox": [
+    2653,
+    4,
+    3138,
+    489
+   ],
+   "visible": true,
+   "size": [
+    485,
+    485
+   ]
+  },
+  {
+   "name": "Layer 6",
+   "kind": "pixel",
+   "bbox": [
+    2582,
+    0,
+    3344,
+    617
+   ],
+   "visible": true,
+   "size": [
+    762,
+    617
+   ]
+  },
+  {
+   "name": "Polygon 1",
+   "kind": "shape",
+   "bbox": [
+    3075,
+    346,
+    3129,
+    394
+   ],
+   "visible": true,
+   "size": [
+    54,
+    48
+   ],
+   "fill": "#C2C2C2"
+  }
+ ],
+ "dpi": 72.0
+}

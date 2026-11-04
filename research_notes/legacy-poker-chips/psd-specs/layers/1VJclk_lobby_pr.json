@@ -1,0 +1,3497 @@
+{
+ "file": "1VJclk_lobby_pr.psd",
+ "canvas": [
+  1940,
+  1220
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 0",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    1940,
+    1220
+   ],
+   "visible": false,
+   "size": [
+    1940,
+    1220
+   ]
+  },
+  {
+   "name": "Rectangle 2",
+   "kind": "shape",
+   "bbox": [
+    1160,
+    -3,
+    1941,
+    1221
+   ],
+   "visible": false,
+   "size": [
+    781,
+    1224
+   ],
+   "fill": "#3E4143"
+  },
+  {
+   "name": "navigation copy 2",
+   "kind": "smartobject",
+   "bbox": [
+    1295,
+    153,
+    1807,
+    1062
+   ],
+   "visible": true,
+   "size": [
+    512,
+    909
+   ]
+  },
+  {
+   "name": "Rectangle 1",
+   "kind": "shape",
+   "bbox": [
+    -22,
+    -30,
+    1163,
+    1262
+   ],
+   "visible": true,
+   "size": [
+    1185,
+    1292
+   ],
+   "fill": "#E2F3FC"
+  },
+  {
+   "name": "Layer 77",
+   "kind": "pixel",
+   "bbox": [
+    -227,
+    -61,
+    1721,
+    1365
+   ],
+   "visible": true,
+   "size": [
+    1948,
+    1426
+   ]
+  },
+  {
+   "name": "Layer 78",
+   "kind": "pixel",
+   "bbox": [
+    -12,
+    -82,
+    1221,
+    1679
+   ],
+   "visible": false,
+   "size": [
+    1233,
+    1761
+   ]
+  },
+  {
+   "name": "Layer 80",
+   "kind": "pixel",
+   "bbox": [
+    -47,
+    -195,
+    1215,
+    1821
+   ],
+   "visible": false,
+   "size": [
+    1262,
+    2016
+   ]
+  },
+  {
+   "name": "Layer 79",
+   "kind": "pixel",
+   "bbox": [
+    1,
+    -11,
+    1290,
+    1685
+   ],
+   "visible": false,
+   "size": [
+    1289,
+    1696
+   ]
+  },
+  {
+   "name": "Layer 76",
+   "kind": "pixel",
+   "bbox": [
+    -117,
+    -245,
+    1819,
+    1362
+   ],
+   "visible": false,
+   "size": [
+    1936,
+    1607
+   ]
+  },
+  {
+   "name": "in hand",
+   "kind": "group",
+   "bbox": [
+    -503,
+    81,
+    1153,
+    1539
+   ],
+   "visible": true,
+   "size": [
+    1656,
+    1458
+   ],
+   "children": [
+    {
+     "name": "Hand",
+     "kind": "group",
+     "bbox": [
+      -503,
+      81,
+      1067,
+      1539
+     ],
+     "visible": true,
+     "size": [
+      1570,
+      1458
+     ],
+     "children": [
+      {
+       "name": "Hand",
+       "kind": "pixel",
+       "bbox": [
+        -465,
+        242,
+        1017,
+        1493
+       ],
+       "visible": true,
+       "size": [
+        1482,
+        1251
+       ]
+      },
+      {
+       "name": "adjustements",
+       "kind": "group",
+       "bbox": [
+        -503,
+        81,
+        1005,
+        1539
+       ],
+       "visible": true,
+       "size": [
+        1508,
+        1458
+       ],
+       "children": [
+        {
+         "name": "Layer 59",
+         "kind": "pixel",
+         "bbox": [
+          334,
+          823,
+          658,
+          970
+         ],
+         "visible": true,
+         "size": [
+          324,
+          147
+         ]
+        },
+        {
+         "name": "Layer 51",
+         "kind": "pixel",
+         "bbox": [
+          701,
+          527,
+          883,
+          798
+         ],
+         "visible": true,
+         "size": [
+          182,
+          271
+         ]
+        },
+        {
+         "name": "Layer 73",
+         "kind": "pixel",
+         "bbox": [
+          711,
+          629,
+          805,
+          779
+         ],
+         "visible": true,
+         "size": [
+          94,
+          150
+         ],
+         "opacity": 40
+        },
+        {
+         "name": "Layer 74",
+         "kind": "pixel",
+         "bbox": [
+          781,
+          526,
+          882,
+          657
+         ],
+         "visible": true,
+         "size": [
+          101,
+          131
+         ],
+         "opacity": 30
+        },
+        {
+         "name": "Layer 52",
+         "kind": "pixel",
+         "bbox": [
+          670,
+          761,
+          723,
+          881
+         ],
+         "visible": true,
+         "size": [
+          53,
+          120
+         ]
+        },
+        {
+         "name": "Layer 53",
+         "kind": "pixel",
+         "bbox": [
+          813,
+          349,
+          995,
+          624
+         ],
+         "visible": true,
+         "size": [
+          182,
+          275
+         ]
+        },
+        {
+         "name": "Layer 54",
+         "kind": "pixel",
+         "bbox": [
+          624,
+          617,
+          868,
+          976
+         ],
+         "visible": true,
+         "size": [
+          244,
+          359
+         ]
+        },
+        {
+         "name": "Layer 55",
+         "kind": "pixel",
+         "bbox": [
+          335,
+          821,
+          665,
+          985
+         ],
+         "visible": true,
+         "size": [
+          330,
+          164
+         ],
+         "opacity": 70
+        },
+        {
+         "name": "Layer 56",
+         "kind": "pixel",
+         "bbox": [
+          365,
+          851,
+          715,
+          984
+         ],
+         "visible": true,
+         "size": [
+          350,
+          133
+         ],
+         "opacity": 30
+        },
+        {
+         "name": "Layer 71",
+         "kind": "pixel",
+         "bbox": [
+          336,
+          785,
+          452,
+          910
+         ],
+         "visible": true,
+         "size": [
+          116,
+          125
+         ]
+        },
+        {
+         "name": "Layer 72",
+         "kind": "pixel",
+         "bbox": [
+          321,
+          741,
+          414,
+          880
+         ],
+         "visible": true,
+         "size": [
+          93,
+          139
+         ],
+         "opacity": 50
+        },
+        {
+         "name": "Layer 70",
+         "kind": "pixel",
+         "bbox": [
+          334,
+          780,
+          438,
+          908
+         ],
+         "visible": true,
+         "size": [
+          104,
+          128
+         ],
+         "opacity": 80
+        },
+        {
+         "name": "Layer 57",
+         "kind": "pixel",
+         "bbox": [
+          312,
+          794,
+          722,
+          1052
+         ],
+         "visible": true,
+         "size": [
+          410,
+          258
+         ],
+         "opacity": 60
+        },
+        {
+         "name": "Layer 60",
+         "kind": "pixel",
+         "bbox": [
+          354,
+          761,
+          715,
+          989
+         ],
+         "visible": true,
+         "size": [
+          361,
+          228
+         ],
+         "opacity": 30
+        },
+        {
+         "name": "Layer 61",
+         "kind": "pixel",
+         "bbox": [
+          602,
+          845,
+          743,
+          979
+         ],
+         "visible": true,
+         "size": [
+          141,
+          134
+         ]
+        },
+        {
+         "name": "Layer 62",
+         "kind": "pixel",
+         "bbox": [
+          290,
+          441,
+          622,
+          886
+         ],
+         "visible": true,
+         "size": [
+          332,
+          445
+         ],
+         "opacity": 40
+        },
+        {
+         "name": "Layer 63",
+         "kind": "pixel",
+         "bbox": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "visible": true,
+         "size": [
+          0,
+          0
+         ]
+        },
+        {
+         "name": "Layer 58",
+         "kind": "pixel",
+         "bbox": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "visible": true,
+         "size": [
+          0,
+          0
+         ]
+        },
+        {
+         "name": "Layer 38",
+         "kind": "pixel",
+         "bbox": [
+          -181,
+          411,
+          575,
+          897
+         ],
+         "visible": true,
+         "size": [
+          756,
+          486
+         ]
+        },
+        {
+         "name": "Layer 35",
+         "kind": "pixel",
+         "bbox": [
+          -503,
+          422,
+          534,
+          1506
+         ],
+         "visible": true,
+         "size": [
+          1037,
+          1084
+         ],
+         "blend": "LIGHTEN"
+        },
+        {
+         "name": "Layer 36",
+         "kind": "pixel",
+         "bbox": [
+          -503,
+          412,
+          515,
+          1539
+         ],
+         "visible": true,
+         "size": [
+          1018,
+          1127
+         ],
+         "opacity": 70,
+         "blend": "LIGHTEN"
+        },
+        {
+         "name": "Layer 68",
+         "kind": "pixel",
+         "bbox": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "visible": true,
+         "size": [
+          0,
+          0
+         ]
+        },
+        {
+         "name": "Layer 69",
+         "kind": "pixel",
+         "bbox": [
+          379,
+          874,
+          677,
+          969
+         ],
+         "visible": true,
+         "size": [
+          298,
+          95
+         ]
+        },
+        {
+         "name": "Layer 37",
+         "kind": "pixel",
+         "bbox": [
+          -503,
+          299,
+          539,
+          1455
+         ],
+         "visible": true,
+         "size": [
+          1042,
+          1156
+         ],
+         "blend": "OVERLAY"
+        },
+        {
+         "name": "Layer 40",
+         "kind": "pixel",
+         "bbox": [
+          41,
+          81,
+          559,
+          814
+         ],
+         "visible": true,
+         "size": [
+          518,
+          733
+         ]
+        },
+        {
+         "name": "Layer 64",
+         "kind": "pixel",
+         "bbox": [
+          490,
+          257,
+          685,
+          552
+         ],
+         "visible": true,
+         "size": [
+          195,
+          295
+         ]
+        },
+        {
+         "name": "Layer 67",
+         "kind": "pixel",
+         "bbox": [
+          685,
+          335,
+          1005,
+          869
+         ],
+         "visible": true,
+         "size": [
+          320,
+          534
+         ]
+        },
+        {
+         "name": "Layer 65",
+         "kind": "pixel",
+         "bbox": [
+          532,
+          270,
+          707,
+          480
+         ],
+         "visible": true,
+         "size": [
+          175,
+          210
+         ]
+        },
+        {
+         "name": "Layer 66",
+         "kind": "pixel",
+         "bbox": [
+          595,
+          251,
+          676,
+          407
+         ],
+         "visible": true,
+         "size": [
+          81,
+          156
+         ]
+        }
+       ]
+      },
+      {
+       "name": "finger nails",
+       "kind": "group",
+       "bbox": [
+        573,
+        242,
+        844,
+        849
+       ],
+       "visible": true,
+       "size": [
+        271,
+        607
+       ],
+       "children": [
+        {
+         "name": "Group 6",
+         "kind": "group",
+         "bbox": [
+          721,
+          783,
+          769,
+          849
+         ],
+         "visible": true,
+         "size": [
+          48,
+          66
+         ],
+         "children": [
+          {
+           "name": "Layer 41",
+           "kind": "pixel",
+           "bbox": [
+            721,
+            783,
+            768,
+            848
+           ],
+           "visible": true,
+           "size": [
+            47,
+            65
+           ],
+           "opacity": 70
+          },
+          {
+           "name": "Layer 42",
+           "kind": "pixel",
+           "bbox": [
+            721,
+            783,
+            736,
+            833
+           ],
+           "visible": true,
+           "size": [
+            15,
+            50
+           ]
+          },
+          {
+           "name": "Layer 43",
+           "kind": "pixel",
+           "bbox": [
+            722,
+            783,
+            769,
+            849
+           ],
+           "visible": true,
+           "size": [
+            47,
+            66
+           ]
+          },
+          {
+           "name": "Shape 13",
+           "kind": "shape",
+           "bbox": [
+            720,
+            780,
+            771,
+            852
+           ],
+           "visible": false,
+           "size": [
+            51,
+            72
+           ],
+           "fill": "#FFFFFF"
+          }
+         ]
+        },
+        {
+         "name": "Group 7",
+         "kind": "group",
+         "bbox": [
+          573,
+          242,
+          844,
+          752
+         ],
+         "visible": true,
+         "size": [
+          271,
+          510
+         ],
+         "children": [
+          {
+           "name": "Shape 14",
+           "kind": "shape",
+           "bbox": [
+            797,
+            681,
+            844,
+            752
+           ],
+           "visible": true,
+           "size": [
+            47,
+            71
+           ]
+          },
+          {
+           "name": "Layer 45",
+           "kind": "pixel",
+           "bbox": [
+            798,
+            682,
+            840,
+            750
+           ],
+           "visible": true,
+           "size": [
+            42,
+            68
+           ],
+           "opacity": 30
+          },
+          {
+           "name": "Layer 44",
+           "kind": "pixel",
+           "bbox": [
+            798,
+            682,
+            840,
+            750
+           ],
+           "visible": true,
+           "size": [
+            42,
+            68
+           ]
+          },
+          {
+           "name": "Layer 46",
+           "kind": "pixel",
+           "bbox": [
+            798,
+            682,
+            840,
+            750
+           ],
+           "visible": true,
+           "size": [
+            42,
+            68
+           ]
+          },
+          {
+           "name": "Layer 47",
+           "kind": "pixel",
+           "bbox": [
+            798,
+            682,
+            815,
+            746
+           ],
+           "visible": true,
+           "size": [
+            17,
+            64
+           ],
+           "opacity": 50
+          },
+          {
+           "name": "Layer 48",
+           "kind": "pixel",
+           "bbox": [
+            573,
+            242,
+            636,
+            294
+           ],
+           "visible": true,
+           "size": [
+            63,
+            52
+           ],
+           "opacity": 70
+          },
+          {
+           "name": "Layer 50",
+           "kind": "pixel",
+           "bbox": [
+            573,
+            244,
+            636,
+            294
+           ],
+           "visible": true,
+           "size": [
+            63,
+            50
+           ],
+           "opacity": 10
+          },
+          {
+           "name": "Shape 16",
+           "kind": "shape",
+           "bbox": [
+            531,
+            227,
+            638,
+            308
+           ],
+           "visible": false,
+           "size": [
+            107,
+            81
+           ],
+           "fill": "#FFFFFF"
+          },
+          {
+           "name": "Layer 49",
+           "kind": "pixel",
+           "bbox": [
+            628,
+            242,
+            636,
+            265
+           ],
+           "visible": true,
+           "size": [
+            8,
+            23
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "Vibrance 1",
+       "kind": "vibrance",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": true,
+       "size": [
+        0,
+        0
+       ]
+      },
+      {
+       "name": "Shadow",
+       "kind": "pixel",
+       "bbox": [
+        748,
+        238,
+        1067,
+        706
+       ],
+       "visible": true,
+       "size": [
+        319,
+        468
+       ],
+       "opacity": 50,
+       "blend": "MULTIPLY"
+      }
+     ]
+    },
+    {
+     "name": "iPhone 5S",
+     "kind": "group",
+     "bbox": [
+      332,
+      120,
+      1153,
+      990
+     ],
+     "visible": true,
+     "size": [
+      821,
+      870
+     ],
+     "children": [
+      {
+       "name": "phone",
+       "kind": "group",
+       "bbox": [
+        332,
+        120,
+        1153,
+        990
+       ],
+       "visible": true,
+       "size": [
+        821,
+        870
+       ],
+       "children": [
+        {
+         "name": "Background",
+         "kind": "group",
+         "bbox": [
+          332,
+          120,
+          1048,
+          990
+         ],
+         "visible": true,
+         "size": [
+          716,
+          870
+         ],
+         "children": [
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            346,
+            188,
+            1048,
+            990
+           ],
+           "visible": true,
+           "size": [
+            702,
+            802
+           ],
+           "fill": "#FFFFFF"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            332,
+            177,
+            1038,
+            947
+           ],
+           "visible": true,
+           "size": [
+            706,
+            770
+           ],
+           "fill": "#010000"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            590,
+            912,
+            650,
+            944
+           ],
+           "visible": true,
+           "size": [
+            60,
+            32
+           ],
+           "fill": "#B5B9C3"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            332,
+            790,
+            391,
+            870
+           ],
+           "visible": true,
+           "size": [
+            59,
+            80
+           ],
+           "fill": "#AEB3BD"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            1001,
+            177,
+            1038,
+            265
+           ],
+           "visible": true,
+           "size": [
+            37,
+            88
+           ],
+           "fill": "#A6ABB6"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            332,
+            123,
+            1038,
+            940
+           ],
+           "visible": true,
+           "size": [
+            706,
+            817
+           ],
+           "fill": "#000000"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            333,
+            121,
+            1037,
+            943
+           ],
+           "visible": true,
+           "size": [
+            704,
+            822
+           ],
+           "fill": "#1E1E1E"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            341,
+            120,
+            1033,
+            933
+           ],
+           "visible": true,
+           "size": [
+            692,
+            813
+           ],
+           "fill": "#000004"
+          },
+          {
+           "name": "screen border",
+           "kind": "shape",
+           "bbox": [
+            402,
+            216,
+            974,
+            836
+           ],
+           "visible": true,
+           "size": [
+            572,
+            620
+           ],
+           "fill": "#19191A"
+          }
+         ]
+        },
+        {
+         "name": "Bottom",
+         "kind": "group",
+         "bbox": [
+          376,
+          868,
+          588,
+          954
+         ],
+         "visible": true,
+         "size": [
+          212,
+          86
+         ],
+         "children": [
+          {
+           "name": "Sound",
+           "kind": "group",
+           "bbox": [
+            403,
+            879,
+            588,
+            954
+           ],
+           "visible": true,
+           "size": [
+            185,
+            75
+           ],
+           "children": [
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              574,
+              944,
+              588,
+              954
+             ],
+             "visible": true,
+             "size": [
+              14,
+              10
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                574,
+                944,
+                588,
+                954
+               ],
+               "visible": true,
+               "size": [
+                14,
+                10
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                575,
+                944,
+                588,
+                954
+               ],
+               "visible": true,
+               "size": [
+                13,
+                10
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                578,
+                944,
+                585,
+                950
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              431,
+              893,
+              441,
+              901
+             ],
+             "visible": true,
+             "size": [
+              10,
+              8
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                431,
+                893,
+                441,
+                901
+               ],
+               "visible": true,
+               "size": [
+                10,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                431,
+                893,
+                440,
+                901
+               ],
+               "visible": true,
+               "size": [
+                9,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                433,
+                893,
+                439,
+                898
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              427,
+              887,
+              437,
+              895
+             ],
+             "visible": true,
+             "size": [
+              10,
+              8
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                427,
+                887,
+                437,
+                895
+               ],
+               "visible": true,
+               "size": [
+                10,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                427,
+                888,
+                436,
+                895
+               ],
+               "visible": true,
+               "size": [
+                9,
+                7
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                429,
+                888,
+                435,
+                893
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              424,
+              890,
+              434,
+              898
+             ],
+             "visible": true,
+             "size": [
+              10,
+              8
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                424,
+                890,
+                434,
+                898
+               ],
+               "visible": true,
+               "size": [
+                10,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                425,
+                891,
+                434,
+                898
+               ],
+               "visible": true,
+               "size": [
+                9,
+                7
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                426,
+                891,
+                432,
+                896
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              420,
+              885,
+              430,
+              893
+             ],
+             "visible": true,
+             "size": [
+              10,
+              8
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                420,
+                885,
+                430,
+                893
+               ],
+               "visible": true,
+               "size": [
+                10,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                421,
+                885,
+                430,
+                893
+               ],
+               "visible": true,
+               "size": [
+                9,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                422,
+                885,
+                428,
+                890
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              418,
+              888,
+              428,
+              896
+             ],
+             "visible": true,
+             "size": [
+              10,
+              8
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                418,
+                888,
+                428,
+                896
+               ],
+               "visible": true,
+               "size": [
+                10,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                419,
+                889,
+                427,
+                896
+               ],
+               "visible": true,
+               "size": [
+                8,
+                7
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                420,
+                889,
+                426,
+                893
+               ],
+               "visible": true,
+               "size": [
+                6,
+                4
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              415,
+              883,
+              424,
+              891
+             ],
+             "visible": true,
+             "size": [
+              9,
+              8
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                415,
+                883,
+                424,
+                891
+               ],
+               "visible": true,
+               "size": [
+                9,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                415,
+                883,
+                424,
+                891
+               ],
+               "visible": true,
+               "size": [
+                9,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                416,
+                883,
+                422,
+                888
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              413,
+              886,
+              422,
+              894
+             ],
+             "visible": true,
+             "size": [
+              9,
+              8
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                413,
+                886,
+                422,
+                894
+               ],
+               "visible": true,
+               "size": [
+                9,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                413,
+                886,
+                421,
+                894
+               ],
+               "visible": true,
+               "size": [
+                8,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                414,
+                886,
+                420,
+                891
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              409,
+              881,
+              418,
+              888
+             ],
+             "visible": true,
+             "size": [
+              9,
+              7
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                409,
+                881,
+                418,
+                888
+               ],
+               "visible": true,
+               "size": [
+                9,
+                7
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                409,
+                881,
+                418,
+                888
+               ],
+               "visible": true,
+               "size": [
+                9,
+                7
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                410,
+                881,
+                416,
+                886
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              406,
+              884,
+              416,
+              892
+             ],
+             "visible": true,
+             "size": [
+              10,
+              8
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                406,
+                884,
+                416,
+                892
+               ],
+               "visible": true,
+               "size": [
+                10,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                407,
+                884,
+                415,
+                892
+               ],
+               "visible": true,
+               "size": [
+                8,
+                8
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                408,
+                884,
+                414,
+                889
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              559,
+              934,
+              572,
+              943
+             ],
+             "visible": true,
+             "size": [
+              13,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                559,
+                934,
+                572,
+                943
+               ],
+               "visible": true,
+               "size": [
+                13,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                559,
+                934,
+                571,
+                943
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                562,
+                934,
+                569,
+                940
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              565,
+              940,
+              578,
+              950
+             ],
+             "visible": true,
+             "size": [
+              13,
+              10
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                565,
+                940,
+                578,
+                950
+               ],
+               "visible": true,
+               "size": [
+                13,
+                10
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                565,
+                941,
+                577,
+                950
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                568,
+                941,
+                575,
+                947
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              555,
+              937,
+              568,
+              947
+             ],
+             "visible": true,
+             "size": [
+              13,
+              10
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                555,
+                937,
+                568,
+                947
+               ],
+               "visible": true,
+               "size": [
+                13,
+                10
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                556,
+                937,
+                567,
+                947
+               ],
+               "visible": true,
+               "size": [
+                11,
+                10
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                558,
+                938,
+                565,
+                944
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              550,
+              930,
+              562,
+              939
+             ],
+             "visible": true,
+             "size": [
+              12,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                550,
+                930,
+                562,
+                939
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                550,
+                930,
+                562,
+                939
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                553,
+                931,
+                560,
+                936
+               ],
+               "visible": true,
+               "size": [
+                7,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              546,
+              934,
+              558,
+              943
+             ],
+             "visible": true,
+             "size": [
+              12,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                546,
+                934,
+                558,
+                943
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                546,
+                934,
+                558,
+                943
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                549,
+                934,
+                556,
+                940
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              541,
+              927,
+              553,
+              936
+             ],
+             "visible": true,
+             "size": [
+              12,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                541,
+                927,
+                553,
+                936
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                541,
+                927,
+                552,
+                936
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                543,
+                927,
+                550,
+                933
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              537,
+              930,
+              549,
+              940
+             ],
+             "visible": true,
+             "size": [
+              12,
+              10
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                537,
+                930,
+                549,
+                940
+               ],
+               "visible": true,
+               "size": [
+                12,
+                10
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                537,
+                931,
+                549,
+                940
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                540,
+                931,
+                547,
+                937
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              532,
+              924,
+              543,
+              933
+             ],
+             "visible": true,
+             "size": [
+              11,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                532,
+                924,
+                543,
+                933
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                532,
+                924,
+                543,
+                933
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                534,
+                924,
+                541,
+                930
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              528,
+              927,
+              540,
+              936
+             ],
+             "visible": true,
+             "size": [
+              12,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                528,
+                927,
+                540,
+                936
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                528,
+                928,
+                539,
+                936
+               ],
+               "visible": true,
+               "size": [
+                11,
+                8
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                531,
+                928,
+                537,
+                933
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              523,
+              921,
+              535,
+              930
+             ],
+             "visible": true,
+             "size": [
+              12,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                523,
+                921,
+                535,
+                930
+               ],
+               "visible": true,
+               "size": [
+                12,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                523,
+                921,
+                534,
+                930
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                526,
+                921,
+                532,
+                927
+               ],
+               "visible": true,
+               "size": [
+                6,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              520,
+              924,
+              531,
+              933
+             ],
+             "visible": true,
+             "size": [
+              11,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                520,
+                924,
+                531,
+                933
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                520,
+                925,
+                531,
+                933
+               ],
+               "visible": true,
+               "size": [
+                11,
+                8
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                522,
+                925,
+                529,
+                930
+               ],
+               "visible": true,
+               "size": [
+                7,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              515,
+              918,
+              526,
+              927
+             ],
+             "visible": true,
+             "size": [
+              11,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                515,
+                918,
+                526,
+                927
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                515,
+                918,
+                526,
+                927
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                517,
+                918,
+                524,
+                924
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              511,
+              921,
+              522,
+              930
+             ],
+             "visible": true,
+             "size": [
+              11,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                511,
+                921,
+                522,
+                930
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                511,
+                922,
+                522,
+                930
+               ],
+               "visible": true,
+               "size": [
+                11,
+                8
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                514,
+                922,
+                520,
+                927
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              506,
+              915,
+              517,
+              924
+             ],
+             "visible": true,
+             "size": [
+              11,
+              9
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                506,
+                915,
+                517,
+                924
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                506,
+                915,
+                517,
+                924
+               ],
+               "visible": true,
+               "size": [
+                11,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                509,
+                915,
+                515,
+                921
+               ],
+               "visible": true,
+               "size": [
+                6,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              568,
+              936,
+              582,
+              946
+             ],
+             "visible": true,
+             "size": [
+              14,
+              10
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                568,
+                936,
+                582,
+                946
+               ],
+               "visible": true,
+               "size": [
+                14,
+                10
+               ],
+               "fill": "#050505"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                569,
+                937,
+                582,
+                946
+               ],
+               "visible": true,
+               "size": [
+                13,
+                9
+               ],
+               "fill": "#050506"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                572,
+                937,
+                579,
+                943
+               ],
+               "visible": true,
+               "size": [
+                7,
+                6
+               ],
+               "fill": "#020201"
+              }
+             ]
+            },
+            {
+             "name": "Hole",
+             "kind": "group",
+             "bbox": [
+              403,
+              879,
+              412,
+              886
+             ],
+             "visible": true,
+             "size": [
+              9,
+              7
+             ],
+             "children": [
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                403,
+                879,
+                412,
+                886
+               ],
+               "visible": true,
+               "size": [
+                9,
+                7
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                403,
+                879,
+                411,
+                886
+               ],
+               "visible": true,
+               "size": [
+                8,
+                7
+               ],
+               "fill": "#000000"
+              },
+              {
+               "name": "Shape",
+               "kind": "shape",
+               "bbox": [
+                404,
+                879,
+                410,
+                884
+               ],
+               "visible": true,
+               "size": [
+                6,
+                5
+               ],
+               "fill": "#020201"
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            495,
+            913,
+            510,
+            924
+           ],
+           "visible": true,
+           "size": [
+            15,
+            11
+           ],
+           "fill": "#686C6E"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            495,
+            913,
+            510,
+            924
+           ],
+           "visible": true,
+           "size": [
+            15,
+            11
+           ],
+           "fill": "#686C6E"
+          },
+          {
+           "name": "star",
+           "kind": "shape",
+           "bbox": [
+            499,
+            915,
+            506,
+            922
+           ],
+           "visible": true,
+           "size": [
+            7,
+            7
+           ],
+           "fill": "#0F1010"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            436,
+            892,
+            449,
+            902
+           ],
+           "visible": true,
+           "size": [
+            13,
+            10
+           ],
+           "fill": "#686C6E"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            436,
+            892,
+            449,
+            902
+           ],
+           "visible": true,
+           "size": [
+            13,
+            10
+           ],
+           "fill": "#686C6E"
+          },
+          {
+           "name": "star",
+           "kind": "shape",
+           "bbox": [
+            439,
+            894,
+            446,
+            900
+           ],
+           "visible": true,
+           "size": [
+            7,
+            6
+           ],
+           "fill": "#131414"
+          },
+          {
+           "name": "Shape 4",
+           "kind": "shape",
+           "bbox": [
+            445,
+            894,
+            498,
+            922
+           ],
+           "visible": true,
+           "size": [
+            53,
+            28
+           ],
+           "fill": "#0A0A0A"
+          },
+          {
+           "name": "Shape 5",
+           "kind": "shape",
+           "bbox": [
+            447,
+            895,
+            497,
+            920
+           ],
+           "visible": true,
+           "size": [
+            50,
+            25
+           ],
+           "fill": "#686C6E"
+          },
+          {
+           "name": "Shape 6",
+           "kind": "shape",
+           "bbox": [
+            449,
+            896,
+            495,
+            919
+           ],
+           "visible": true,
+           "size": [
+            46,
+            23
+           ],
+           "fill": "#09090A"
+          },
+          {
+           "name": "Shape 7",
+           "kind": "shape",
+           "bbox": [
+            449,
+            896,
+            495,
+            919
+           ],
+           "visible": true,
+           "size": [
+            46,
+            23
+           ],
+           "fill": "#606773"
+          },
+          {
+           "name": "Light",
+           "kind": "shape",
+           "bbox": [
+            449,
+            896,
+            495,
+            919
+           ],
+           "visible": true,
+           "size": [
+            46,
+            23
+           ],
+           "fill": "#606773"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            376,
+            868,
+            400,
+            887
+           ],
+           "visible": true,
+           "size": [
+            24,
+            19
+           ],
+           "fill": "#59595B"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            376,
+            868,
+            399,
+            886
+           ],
+           "visible": true,
+           "size": [
+            23,
+            18
+           ],
+           "fill": "#060606"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            376,
+            869,
+            399,
+            886
+           ],
+           "visible": true,
+           "size": [
+            23,
+            17
+           ],
+           "fill": "#5B5C5F"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            376,
+            869,
+            398,
+            886
+           ],
+           "visible": true,
+           "size": [
+            22,
+            17
+           ],
+           "fill": "#676E7A"
+          }
+         ]
+        },
+        {
+         "name": "Side",
+         "kind": "group",
+         "bbox": [
+          665,
+          252,
+          1030,
+          905
+         ],
+         "visible": true,
+         "size": [
+          365,
+          653
+         ],
+         "children": [
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            999,
+            252,
+            1030,
+            287
+           ],
+           "visible": true,
+           "size": [
+            31,
+            35
+           ],
+           "opacity": 80,
+           "fill": "#09090A"
+          },
+          {
+           "name": "Shape",
+           "kind": "shape",
+           "bbox": [
+            665,
+            872,
+            697,
+            905
+           ],
+           "visible": true,
+           "size": [
+            32,
+            33
+           ],
+           "opacity": 80,
+           "fill": "#060605"
+          },
+          {
+           "name": "Sim",
+           "kind": "group",
+           "bbox": [
+            823,
+            526,
+            881,
+            635
+           ],
+           "visible": true,
+           "size": [
+            58,
+            109
+           ],
+           "children": [
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              823,
+              526,
+              881,
+              635
+             ],
+             "visible": true,
+             "size": [
+              58,
+              109
+             ],
+             "fill": "#706970"
+            },
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              826,
+              613,
+              835,
+              631
+             ],
+             "visible": true,
+             "size": [
+              9,
+              18
+             ],
+             "fill": "#0B0C0C"
+            },
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              826,
+              613,
+              835,
+              630
+             ],
+             "visible": true,
+             "size": [
+              9,
+              17
+             ],
+             "fill": "#2B2C2D"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "name": "Home Button",
+         "kind": "group",
+         "bbox": [
+          471,
+          796,
+          545,
+          875
+         ],
+         "visible": true,
+         "size": [
+          74,
+          79
+         ],
+         "children": [
+          {
+           "name": "Shape 8",
+           "kind": "shape",
+           "bbox": [
+            471,
+            796,
+            545,
+            875
+           ],
+           "visible": true,
+           "size": [
+            74,
+            79
+           ],
+           "fill": "#000000"
+          }
+         ]
+        },
+        {
+         "name": "Top",
+         "kind": "group",
+         "bbox": [
+          821,
+          173,
+          887,
+          221
+         ],
+         "visible": true,
+         "size": [
+          66,
+          48
+         ],
+         "children": [
+          {
+           "name": "Micro",
+           "kind": "group",
+           "bbox": [
+            821,
+            192,
+            887,
+            221
+           ],
+           "visible": true,
+           "size": [
+            66,
+            29
+           ],
+           "children": [
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              821,
+              192,
+              887,
+              221
+             ],
+             "visible": true,
+             "size": [
+              66,
+              29
+             ],
+             "fill": "#000000"
+            },
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              821,
+              192,
+              887,
+              221
+             ],
+             "visible": true,
+             "size": [
+              66,
+              29
+             ],
+             "fill": "#000000"
+            },
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              827,
+              197,
+              884,
+              219
+             ],
+             "visible": true,
+             "size": [
+              57,
+              22
+             ],
+             "fill": "#000000"
+            }
+           ]
+          },
+          {
+           "name": "Camera",
+           "kind": "group",
+           "bbox": [
+            860,
+            173,
+            878,
+            192
+           ],
+           "visible": true,
+           "size": [
+            18,
+            19
+           ],
+           "children": [
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              860,
+              173,
+              878,
+              192
+             ],
+             "visible": true,
+             "size": [
+              18,
+              19
+             ],
+             "fill": "#202020"
+            },
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              865,
+              181,
+              874,
+              190
+             ],
+             "visible": true,
+             "size": [
+              9,
+              9
+             ],
+             "fill": "#031428"
+            },
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              868,
+              184,
+              872,
+              190
+             ],
+             "visible": true,
+             "size": [
+              4,
+              6
+             ],
+             "fill": "#3A9BD3"
+            },
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              869,
+              182,
+              874,
+              188
+             ],
+             "visible": true,
+             "size": [
+              5,
+              6
+             ],
+             "fill": "#02458C"
+            },
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              867,
+              181,
+              872,
+              186
+             ],
+             "visible": true,
+             "size": [
+              5,
+              5
+             ],
+             "fill": "#1A6784"
+            },
+            {
+             "name": "Shape",
+             "kind": "shape",
+             "bbox": [
+              865,
+              183,
+              870,
+              190
+             ],
+             "visible": true,
+             "size": [
+              5,
+              7
+             ],
+             "fill": "#113E87"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "name": "Shadow",
+         "kind": "pixel",
+         "bbox": [
+          636,
+          265,
+          1153,
+          955
+         ],
+         "visible": true,
+         "size": [
+          517,
+          690
+         ]
+        }
+       ]
+      },
+      {
+       "name": "YOUR SCREEN HERE",
+       "kind": "smartobject",
+       "bbox": [
+        408,
+        221,
+        968,
+        831
+       ],
+       "visible": true,
+       "size": [
+        560,
+        610
+       ]
+      },
+      {
+       "name": "glare",
+       "kind": "shape",
+       "bbox": [
+        502,
+        123,
+        952,
+        551
+       ],
+       "visible": true,
+       "size": [
+        450,
+        428
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

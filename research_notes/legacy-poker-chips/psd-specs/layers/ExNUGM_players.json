@@ -1,0 +1,1158 @@
+{
+ "file": "ExNUGM_players.psd",
+ "canvas": [
+  640,
+  1136
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "version_3",
+   "kind": "group",
+   "bbox": [
+    -2,
+    -1,
+    641,
+    1244
+   ],
+   "visible": true,
+   "size": [
+    643,
+    1245
+   ],
+   "children": [
+    {
+     "name": "Layer 18",
+     "kind": "pixel",
+     "bbox": [
+      0,
+      0,
+      640,
+      1136
+     ],
+     "visible": true,
+     "size": [
+      640,
+      1136
+     ]
+    },
+    {
+     "name": "Rectangle 8 copy 2",
+     "kind": "shape",
+     "bbox": [
+      -2,
+      487,
+      641,
+      1244
+     ],
+     "visible": true,
+     "size": [
+      643,
+      757
+     ],
+     "fill": "#E9E9E9"
+    },
+    {
+     "name": "Rectangle 8 copy 3",
+     "kind": "shape",
+     "bbox": [
+      -2,
+      487,
+      641,
+      1244
+     ],
+     "visible": true,
+     "size": [
+      643,
+      757
+     ],
+     "fill": "#E9E9E9"
+    },
+    {
+     "name": "_1",
+     "kind": "group",
+     "bbox": [
+      33,
+      615,
+      306,
+      748
+     ],
+     "visible": true,
+     "size": [
+      273,
+      133
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        33,
+        615,
+        306,
+        748
+       ],
+       "visible": true,
+       "size": [
+        273,
+        133
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        46,
+        639,
+        133,
+        726
+       ],
+       "visible": true,
+       "size": [
+        87,
+        87
+       ],
+       "fill": "#F44E59"
+      },
+      {
+       "name": "_3",
+       "kind": "smartobject",
+       "bbox": [
+        43,
+        639,
+        137,
+        733
+       ],
+       "visible": true,
+       "size": [
+        94,
+        94
+       ]
+      },
+      {
+       "name": "PABLO",
+       "kind": "type",
+       "bbox": [
+        211,
+        671,
+        284,
+        694
+       ],
+       "visible": true,
+       "size": [
+        73,
+        23
+       ],
+       "type": {
+        "text": "PABLO",
+        "runs": [
+         {
+          "chars": "PABLO",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 30.0,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9952,
+         1.002
+        ],
+        "align": "right"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_2",
+     "kind": "group",
+     "bbox": [
+      335,
+      615,
+      608,
+      748
+     ],
+     "visible": true,
+     "size": [
+      273,
+      133
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        335,
+        615,
+        608,
+        748
+       ],
+       "visible": true,
+       "size": [
+        273,
+        133
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        348,
+        639,
+        435,
+        726
+       ],
+       "visible": true,
+       "size": [
+        87,
+        87
+       ],
+       "fill": "#F44E59"
+      },
+      {
+       "name": "_1",
+       "kind": "smartobject",
+       "bbox": [
+        345,
+        640,
+        439,
+        733
+       ],
+       "visible": true,
+       "size": [
+        94,
+        93
+       ]
+      },
+      {
+       "name": "Mark",
+       "kind": "type",
+       "bbox": [
+        520,
+        671,
+        588,
+        693
+       ],
+       "visible": true,
+       "size": [
+        68,
+        22
+       ],
+       "type": {
+        "text": "Mark",
+        "runs": [
+         {
+          "chars": "Mark",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 30.0,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9952,
+         1.002
+        ],
+        "align": "right"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_3",
+     "kind": "group",
+     "bbox": [
+      33,
+      745,
+      306,
+      877
+     ],
+     "visible": true,
+     "size": [
+      273,
+      132
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        33,
+        745,
+        306,
+        877
+       ],
+       "visible": true,
+       "size": [
+        273,
+        132
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        46,
+        769,
+        133,
+        856
+       ],
+       "visible": true,
+       "size": [
+        87,
+        87
+       ],
+       "fill": "#F44E59"
+      },
+      {
+       "name": "Layer 20",
+       "kind": "pixel",
+       "bbox": [
+        19,
+        767,
+        147,
+        895
+       ],
+       "visible": true,
+       "size": [
+        128,
+        128
+       ]
+      },
+      {
+       "name": "JENNY",
+       "kind": "type",
+       "bbox": [
+        208,
+        801,
+        286,
+        824
+       ],
+       "visible": true,
+       "size": [
+        78,
+        23
+       ],
+       "type": {
+        "text": "JENNY",
+        "runs": [
+         {
+          "chars": "JENNY",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 30.0,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9952,
+         1.002
+        ],
+        "align": "right"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_4",
+     "kind": "group",
+     "bbox": [
+      335,
+      745,
+      608,
+      877
+     ],
+     "visible": true,
+     "size": [
+      273,
+      132
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        335,
+        745,
+        608,
+        877
+       ],
+       "visible": true,
+       "size": [
+        273,
+        132
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        348,
+        769,
+        435,
+        856
+       ],
+       "visible": true,
+       "size": [
+        87,
+        87
+       ],
+       "fill": "#F44E59"
+      },
+      {
+       "name": "_8",
+       "kind": "smartobject",
+       "bbox": [
+        345,
+        770,
+        439,
+        864
+       ],
+       "visible": true,
+       "size": [
+        94,
+        94
+       ]
+      },
+      {
+       "name": "John",
+       "kind": "type",
+       "bbox": [
+        522,
+        801,
+        587,
+        824
+       ],
+       "visible": true,
+       "size": [
+        65,
+        23
+       ],
+       "type": {
+        "text": "John",
+        "runs": [
+         {
+          "chars": "John",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 30.0,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9952,
+         1.002
+        ],
+        "align": "right"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_5",
+     "kind": "group",
+     "bbox": [
+      33,
+      874,
+      306,
+      1007
+     ],
+     "visible": true,
+     "size": [
+      273,
+      133
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        33,
+        874,
+        306,
+        1007
+       ],
+       "visible": true,
+       "size": [
+        273,
+        133
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        46,
+        899,
+        133,
+        985
+       ],
+       "visible": true,
+       "size": [
+        87,
+        86
+       ],
+       "fill": "#F44E59"
+      },
+      {
+       "name": "Layer 21",
+       "kind": "pixel",
+       "bbox": [
+        43,
+        893,
+        133,
+        983
+       ],
+       "visible": true,
+       "size": [
+        90,
+        90
+       ]
+      },
+      {
+       "name": "roberto",
+       "kind": "type",
+       "bbox": [
+        177,
+        931,
+        284,
+        954
+       ],
+       "visible": true,
+       "size": [
+        107,
+        23
+       ],
+       "type": {
+        "text": "roberto",
+        "runs": [
+         {
+          "chars": "roberto",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 30.0,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9952,
+         1.002
+        ],
+        "align": "right"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_6",
+     "kind": "group",
+     "bbox": [
+      335,
+      874,
+      608,
+      1007
+     ],
+     "visible": true,
+     "size": [
+      273,
+      133
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        335,
+        874,
+        608,
+        1007
+       ],
+       "visible": true,
+       "size": [
+        273,
+        133
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        348,
+        899,
+        435,
+        985
+       ],
+       "visible": true,
+       "size": [
+        87,
+        86
+       ],
+       "fill": "#B1B1B1"
+      },
+      {
+       "name": "Group 1 copy 2",
+       "kind": "smartobject",
+       "bbox": [
+        335,
+        891,
+        449,
+        1002
+       ],
+       "visible": false,
+       "size": [
+        114,
+        111
+       ]
+      },
+      {
+       "name": "player_6",
+       "kind": "type",
+       "bbox": [
+        473,
+        931,
+        587,
+        957
+       ],
+       "visible": true,
+       "size": [
+        114,
+        26
+       ],
+       "type": {
+        "text": "player_6",
+        "runs": [
+         {
+          "chars": "player_6",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 30.0,
+          "color": "#A9A9A9",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9952,
+         1.002
+        ],
+        "align": "right"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_7",
+     "kind": "group",
+     "bbox": [
+      33,
+      1004,
+      306,
+      1137
+     ],
+     "visible": true,
+     "size": [
+      273,
+      133
+     ],
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        33,
+        1004,
+        306,
+        1137
+       ],
+       "visible": true,
+       "size": [
+        273,
+        133
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        46,
+        1029,
+        133,
+        1115
+       ],
+       "visible": true,
+       "size": [
+        87,
+        86
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "Group 1 copy 2",
+       "kind": "smartobject",
+       "bbox": [
+        33,
+        1021,
+        147,
+        1132
+       ],
+       "visible": false,
+       "size": [
+        114,
+        111
+       ]
+      },
+      {
+       "name": "player_7",
+       "kind": "type",
+       "bbox": [
+        171,
+        1061,
+        285,
+        1087
+       ],
+       "visible": true,
+       "size": [
+        114,
+        26
+       ],
+       "type": {
+        "text": "player_7",
+        "runs": [
+         {
+          "chars": "player_7",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 30.0,
+          "color": "#C2C2C2",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9952,
+         1.002
+        ],
+        "align": "right"
+       }
+      }
+     ]
+    },
+    {
+     "name": "_8",
+     "kind": "group",
+     "bbox": [
+      335,
+      1004,
+      608,
+      1137
+     ],
+     "visible": true,
+     "size": [
+      273,
+      133
+     ],
+     "opacity": 30,
+     "children": [
+      {
+       "name": "Rectangle 3 copy 3",
+       "kind": "shape",
+       "bbox": [
+        335,
+        1004,
+        608,
+        1137
+       ],
+       "visible": true,
+       "size": [
+        273,
+        133
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Ellipse 1",
+       "kind": "shape",
+       "bbox": [
+        348,
+        1029,
+        435,
+        1115
+       ],
+       "visible": true,
+       "size": [
+        87,
+        86
+       ],
+       "fill": "#C2C2C2"
+      },
+      {
+       "name": "Layer 21",
+       "kind": "pixel",
+       "bbox": [
+        347,
+        1028,
+        437,
+        1118
+       ],
+       "visible": false,
+       "size": [
+        90,
+        90
+       ]
+      },
+      {
+       "name": "Group 1 copy 2",
+       "kind": "smartobject",
+       "bbox": [
+        335,
+        1021,
+        449,
+        1132
+       ],
+       "visible": false,
+       "size": [
+        114,
+        111
+       ]
+      },
+      {
+       "name": "player_8",
+       "kind": "type",
+       "bbox": [
+        473,
+        1061,
+        587,
+        1087
+       ],
+       "visible": true,
+       "size": [
+        114,
+        26
+       ],
+       "type": {
+        "text": "player_8",
+        "runs": [
+         {
+          "chars": "player_8",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 30.0,
+          "color": "#C2C2C2",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9952,
+         1.002
+        ],
+        "align": "right"
+       }
+      }
+     ]
+    },
+    {
+     "name": "players ",
+     "kind": "type",
+     "bbox": [
+      36,
+      531,
+      282,
+      584
+     ],
+     "visible": true,
+     "size": [
+      246,
+      53
+     ],
+     "type": {
+      "text": "players ",
+      "runs": [
+       {
+        "chars": "players ",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.0,
+        "color": "#000000",
+        "caps": 2
+       }
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "Rounded Rectangle 2 copy",
+     "kind": "shape",
+     "bbox": [
+      309,
+      516,
+      624,
+      590
+     ],
+     "visible": true,
+     "size": [
+      315,
+      74
+     ],
+     "fill": "#1159F0"
+    },
+    {
+     "name": "add multiplayer",
+     "kind": "type",
+     "bbox": [
+      352,
+      537,
+      582,
+      577
+     ],
+     "visible": true,
+     "size": [
+      230,
+      40
+     ],
+     "type": {
+      "text": "add multiplayer",
+      "runs": [
+       {
+        "chars": "a",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 40.0,
+        "color": "#FFFFFF"
+       },
+       {
+        "chars": "dd multiplayer",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 40.0,
+        "color": "#FFFFFF"
+       }
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "head",
+     "kind": "group",
+     "bbox": [
+      -1,
+      -1,
+      641,
+      464
+     ],
+     "visible": true,
+     "size": [
+      642,
+      465
+     ],
+     "children": [
+      {
+       "name": "Let other players scan QR for quick connection to the game",
+       "kind": "type",
+       "bbox": [
+        87,
+        175,
+        555,
+        255
+       ],
+       "visible": true,
+       "size": [
+        468,
+        80
+       ],
+       "type": {
+        "text": "Let other players scan QR for quick connection to the game",
+        "runs": [
+         {
+          "chars": "Let other players scan QR for quick conn",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 36.0
+         }
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "Layer 19",
+       "kind": "pixel",
+       "bbox": [
+        224,
+        275,
+        413,
+        464
+       ],
+       "visible": true,
+       "size": [
+        189,
+        189
+       ]
+      },
+      {
+       "name": "Rectangle 7",
+       "kind": "shape",
+       "bbox": [
+        -1,
+        -1,
+        641,
+        140
+       ],
+       "visible": true,
+       "size": [
+        642,
+        141
+       ],
+       "fill": "#FFDB3C"
+      },
+      {
+       "name": "Poker Night password: 123",
+       "kind": "type",
+       "bbox": [
+        203,
+        35,
+        435,
+        114
+       ],
+       "visible": true,
+       "size": [
+        232,
+        79
+       ],
+       "type": {
+        "text": "Poker Night\rpassword: 123",
+        "runs": [
+         {
+          "chars": "Poker Night\r",
+          "font": "'Roboto-Bold'",
+          "size": 36.0,
+          "color": "#000000"
+         },
+         {
+          "chars": "password: 123",
+          "font": "'Roboto-Regular'",
+          "size": 36.0,
+          "color": "#000000"
+         }
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "close",
+       "kind": "group",
+       "bbox": [
+        33,
+        33,
+        106,
+        106
+       ],
+       "visible": true,
+       "size": [
+        73,
+        73
+       ],
+       "children": [
+        {
+         "name": "Rectangle 2 copy",
+         "kind": "shape",
+         "bbox": [
+          33,
+          33,
+          106,
+          106
+         ],
+         "visible": true,
+         "size": [
+          73,
+          73
+         ],
+         "fill": "#000000"
+        },
+        {
+         "name": "Rectangle 10",
+         "kind": "shape",
+         "bbox": [
+          54,
+          53,
+          84,
+          84
+         ],
+         "visible": false,
+         "size": [
+          30,
+          31
+         ],
+         "fill": "#4FBAA7"
+        },
+        {
+         "name": "Back icon",
+         "kind": "shape",
+         "bbox": [
+          54,
+          53,
+          85,
+          84
+         ],
+         "visible": true,
+         "size": [
+          31,
+          31
+         ],
+         "fill": "#FFFFFF"
+        }
+       ]
+      },
+      {
+       "name": "back copy 2",
+       "kind": "group",
+       "bbox": [
+        535,
+        33,
+        608,
+        106
+       ],
+       "visible": true,
+       "size": [
+        73,
+        73
+       ],
+       "children": [
+        {
+         "name": "Rectangle 2 copy",
+         "kind": "shape",
+         "bbox": [
+          535,
+          33,
+          608,
+          106
+         ],
+         "visible": true,
+         "size": [
+          73,
+          73
+         ],
+         "fill": "#000000"
+        },
+        {
+         "name": "Back icon",
+         "kind": "shape",
+         "bbox": [
+          564,
+          52,
+          585,
+          86
+         ],
+         "visible": true,
+         "size": [
+          21,
+          34
+         ],
+         "fill": "#FFFFFF"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

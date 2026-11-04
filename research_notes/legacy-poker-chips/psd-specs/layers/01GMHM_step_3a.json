@@ -1,0 +1,920 @@
+{
+ "file": "01GMHM_step_3a.psd",
+ "canvas": [
+  640,
+  1136
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 18",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    640,
+    1136
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "_1",
+   "kind": "group",
+   "bbox": [
+    17,
+    284,
+    624,
+    421
+   ],
+   "visible": true,
+   "size": [
+    607,
+    137
+   ],
+   "children": [
+    {
+     "name": "Rectangle 3 copy 3",
+     "kind": "shape",
+     "bbox": [
+      17,
+      284,
+      623,
+      411
+     ],
+     "visible": true,
+     "size": [
+      606,
+      127
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Rectangle 13",
+     "kind": "shape",
+     "bbox": [
+      17,
+      408,
+      623,
+      421
+     ],
+     "visible": true,
+     "size": [
+      606,
+      13
+     ],
+     "fill": "#C2C2C2"
+    },
+    {
+     "name": "~25% entrants in cash",
+     "kind": "type",
+     "bbox": [
+      40,
+      361,
+      351,
+      391
+     ],
+     "visible": true,
+     "size": [
+      311,
+      30
+     ],
+     "type": {
+      "text": "~25% entrants in cash",
+      "runs": [
+       {
+        "chars": "~25% entrants in cash",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 40.74,
+        "color": "#000000"
+       }
+      ],
+      "transform_scale": [
+       0.932,
+       0.9328
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "info 2",
+     "kind": "shape",
+     "bbox": [
+      588,
+      293,
+      624,
+      329
+     ],
+     "visible": true,
+     "size": [
+      36,
+      36
+     ],
+     "fill": "#116FF0"
+    },
+    {
+     "name": "Classical",
+     "kind": "type",
+     "bbox": [
+      22,
+      285,
+      325,
+      338
+     ],
+     "visible": true,
+     "size": [
+      303,
+      53
+     ],
+     "type": {
+      "text": "Classical",
+      "runs": [
+       {
+        "chars": "C",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "caps": 2
+       },
+       {
+        "chars": "lassical",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "_2",
+   "kind": "group",
+   "bbox": [
+    17,
+    449,
+    624,
+    586
+   ],
+   "visible": true,
+   "size": [
+    607,
+    137
+   ],
+   "children": [
+    {
+     "name": "Rectangle 3 copy 3",
+     "kind": "shape",
+     "bbox": [
+      17,
+      449,
+      623,
+      576
+     ],
+     "visible": true,
+     "size": [
+      606,
+      127
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Rectangle 13",
+     "kind": "shape",
+     "bbox": [
+      17,
+      574,
+      623,
+      586
+     ],
+     "visible": true,
+     "size": [
+      606,
+      12
+     ],
+     "fill": "#C2C2C2"
+    },
+    {
+     "name": "~33% entrants in cash",
+     "kind": "type",
+     "bbox": [
+      40,
+      526,
+      351,
+      556
+     ],
+     "visible": true,
+     "size": [
+      311,
+      30
+     ],
+     "type": {
+      "text": "~33% entrants in cash",
+      "runs": [
+       {
+        "chars": "~33% entrants in cash",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 40.74,
+        "color": "#000000"
+       }
+      ],
+      "transform_scale": [
+       0.932,
+       0.9328
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "info 2",
+     "kind": "shape",
+     "bbox": [
+      588,
+      458,
+      624,
+      494
+     ],
+     "visible": true,
+     "size": [
+      36,
+      36
+     ],
+     "fill": "#116FF0"
+    },
+    {
+     "name": "friendly",
+     "kind": "type",
+     "bbox": [
+      22,
+      450,
+      285,
+      502
+     ],
+     "visible": true,
+     "size": [
+      263,
+      52
+     ],
+     "type": {
+      "text": "friendly",
+      "runs": [
+       {
+        "chars": "f",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "caps": 2
+       },
+       {
+        "chars": "riendly",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "_3",
+   "kind": "group",
+   "bbox": [
+    17,
+    614,
+    624,
+    751
+   ],
+   "visible": true,
+   "size": [
+    607,
+    137
+   ],
+   "children": [
+    {
+     "name": "Rectangle 3 copy 3",
+     "kind": "shape",
+     "bbox": [
+      17,
+      614,
+      623,
+      741
+     ],
+     "visible": true,
+     "size": [
+      606,
+      127
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Rectangle 13",
+     "kind": "shape",
+     "bbox": [
+      17,
+      739,
+      623,
+      751
+     ],
+     "visible": true,
+     "size": [
+      606,
+      12
+     ],
+     "fill": "#C2C2C2"
+    },
+    {
+     "name": "25% of plrs in cash",
+     "kind": "type",
+     "bbox": [
+      39,
+      690,
+      304,
+      728
+     ],
+     "visible": true,
+     "size": [
+      265,
+      38
+     ],
+     "type": {
+      "text": "25% of plrs in cash",
+      "runs": [
+       {
+        "chars": "25% of plrs in cash",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 40.74,
+        "color": "#000000"
+       }
+      ],
+      "transform_scale": [
+       0.932,
+       0.9328
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "info 2",
+     "kind": "shape",
+     "bbox": [
+      588,
+      623,
+      624,
+      659
+     ],
+     "visible": true,
+     "size": [
+      36,
+      36
+     ],
+     "fill": "#116FF0"
+    },
+    {
+     "name": "Winner takes  all",
+     "kind": "type",
+     "bbox": [
+      20,
+      615,
+      561,
+      668
+     ],
+     "visible": true,
+     "size": [
+      541,
+      53
+     ],
+     "type": {
+      "text": "Winner takes  all",
+      "runs": [
+       {
+        "chars": "W",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "tracking": -10.0,
+        "caps": 2
+       },
+       {
+        "chars": "inner takes  all",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "tracking": -10.0,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "_4",
+   "kind": "group",
+   "bbox": [
+    17,
+    779,
+    623,
+    1007
+   ],
+   "visible": true,
+   "size": [
+    606,
+    228
+   ],
+   "children": [
+    {
+     "name": "Rectangle 3 copy 3",
+     "kind": "shape",
+     "bbox": [
+      17,
+      779,
+      623,
+      906
+     ],
+     "visible": true,
+     "size": [
+      606,
+      127
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Rectangle 13",
+     "kind": "shape",
+     "bbox": [
+      17,
+      995,
+      623,
+      1007
+     ],
+     "visible": true,
+     "size": [
+      606,
+      12
+     ],
+     "fill": "#C2C2C2"
+    },
+    {
+     "name": "1st - 50%   2nd - 10%  3rd -10%    4th - 10%  5th - 10%",
+     "kind": "type",
+     "bbox": [
+      39,
+      856,
+      378,
+      977
+     ],
+     "visible": true,
+     "size": [
+      339,
+      121
+     ],
+     "type": {
+      "text": "1st - 50% \t\t2nd - 10% \r3rd -10% \t\t\t4th - 10% \r5th - 10%",
+      "runs": [
+       {
+        "chars": "1st - 50% \t\t2nd - 10% \r3rd -10% \t\t\t4th -",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 40.74,
+        "color": "#000000"
+       }
+      ],
+      "transform_scale": [
+       0.932,
+       0.9328
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Rectangle 2 copy",
+     "kind": "shape",
+     "bbox": [
+      569,
+      779,
+      623,
+      833
+     ],
+     "visible": true,
+     "size": [
+      54,
+      54
+     ],
+     "fill": "#E9E9E9"
+    },
+    {
+     "name": "Pencil copy",
+     "kind": "shape",
+     "bbox": [
+      581,
+      790,
+      613,
+      823
+     ],
+     "visible": true,
+     "size": [
+      32,
+      33
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "favorite",
+     "kind": "type",
+     "bbox": [
+      22,
+      780,
+      280,
+      833
+     ],
+     "visible": true,
+     "size": [
+      258,
+      53
+     ],
+     "type": {
+      "text": "favorite",
+      "runs": [
+       {
+        "chars": "f",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "tracking": -10.0,
+        "caps": 2
+       },
+       {
+        "chars": "avorite",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "tracking": -10.0,
+        "caps": 2
+       }
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "_5",
+   "kind": "group",
+   "bbox": [
+    17,
+    1035,
+    623,
+    1116
+   ],
+   "visible": true,
+   "size": [
+    606,
+    81
+   ],
+   "children": [
+    {
+     "name": "Rectangle 3 copy 4",
+     "kind": "shape",
+     "bbox": [
+      17,
+      1035,
+      623,
+      1116
+     ],
+     "visible": true,
+     "size": [
+      606,
+      81
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Rectangle 13 copy",
+     "kind": "shape",
+     "bbox": [
+      17,
+      1104,
+      623,
+      1116
+     ],
+     "visible": true,
+     "size": [
+      606,
+      12
+     ],
+     "fill": "#C2C2C2"
+    },
+    {
+     "name": "Custom ",
+     "kind": "type",
+     "bbox": [
+      22,
+      1036,
+      252,
+      1089
+     ],
+     "visible": true,
+     "size": [
+      230,
+      53
+     ],
+     "type": {
+      "text": "Custom ",
+      "runs": [
+       {
+        "chars": "C",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "caps": 2
+       },
+       {
+        "chars": "ustom ",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 72.07,
+        "caps": 2
+       }
+      ],
+      "transform_scale": [
+       1.0,
+       0.9943
+      ],
+      "align": "left"
+     }
+    }
+   ]
+  },
+  {
+   "name": "step_3",
+   "kind": "group",
+   "bbox": [
+    -1,
+    166,
+    641,
+    237
+   ],
+   "visible": true,
+   "size": [
+    642,
+    71
+   ],
+   "children": [
+    {
+     "name": "Rectangle 10",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      166,
+      641,
+      237
+     ],
+     "visible": true,
+     "size": [
+      642,
+      71
+     ],
+     "fill": "#E9E9E9"
+    },
+    {
+     "name": "Rectangle 12",
+     "kind": "shape",
+     "bbox": [
+      91,
+      166,
+      161,
+      236
+     ],
+     "visible": true,
+     "size": [
+      70,
+      70
+     ],
+     "fill": "#116FF0"
+    },
+    {
+     "name": "2",
+     "kind": "type",
+     "bbox": [
+      116,
+      181,
+      137,
+      219
+     ],
+     "visible": true,
+     "size": [
+      21,
+      38
+     ],
+     "type": {
+      "text": "2",
+      "runs": [
+       {
+        "chars": "2",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 52.0,
+        "color": "#FFFFFF"
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Rectangle 12 copy",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      166,
+      69,
+      236
+     ],
+     "visible": true,
+     "size": [
+      70,
+      70
+     ],
+     "fill": "#116FF0"
+    },
+    {
+     "name": "1",
+     "kind": "type",
+     "bbox": [
+      26,
+      182,
+      38,
+      219
+     ],
+     "visible": true,
+     "size": [
+      12,
+      37
+     ],
+     "type": {
+      "text": "1",
+      "runs": [
+       {
+        "chars": "1",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 52.0,
+        "color": "#FFFFFF"
+       }
+      ],
+      "align": "left"
+     }
+    },
+    {
+     "name": "Rectangle 12 copy 2",
+     "kind": "shape",
+     "bbox": [
+      183,
+      166,
+      641,
+      236
+     ],
+     "visible": true,
+     "size": [
+      458,
+      70
+     ],
+     "fill": "#116FF0"
+    },
+    {
+     "name": "3 Payouts",
+     "kind": "type",
+     "bbox": [
+      318,
+      181,
+      507,
+      230
+     ],
+     "visible": true,
+     "size": [
+      189,
+      49
+     ],
+     "type": {
+      "text": "3 Payouts",
+      "runs": [
+       {
+        "chars": "3 Payouts",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 52.0,
+        "color": "#FFFFFF"
+       }
+      ],
+      "align": "center"
+     }
+    }
+   ]
+  },
+  {
+   "name": "head",
+   "kind": "group",
+   "bbox": [
+    -1,
+    -1,
+    641,
+    139
+   ],
+   "visible": true,
+   "size": [
+    642,
+    140
+   ],
+   "children": [
+    {
+     "name": "Rectangle 7 copy",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      -1,
+      641,
+      139
+     ],
+     "visible": true,
+     "size": [
+      642,
+      140
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Create Game",
+     "kind": "type",
+     "bbox": [
+      236,
+      54,
+      404,
+      81
+     ],
+     "visible": true,
+     "size": [
+      168,
+      27
+     ],
+     "type": {
+      "text": "Create Game",
+      "runs": [
+       {
+        "chars": "Create Game",
+        "font": "'RobotoCondensed-Regular'",
+        "size": 36.0,
+        "color": "#000000"
+       }
+      ],
+      "align": "center"
+     }
+    },
+    {
+     "name": "back copy",
+     "kind": "group",
+     "bbox": [
+      33,
+      33,
+      106,
+      106
+     ],
+     "visible": true,
+     "size": [
+      73,
+      73
+     ],
+     "children": [
+      {
+       "name": "Rectangle 2 copy",
+       "kind": "shape",
+       "bbox": [
+        33,
+        33,
+        106,
+        106
+       ],
+       "visible": true,
+       "size": [
+        73,
+        73
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Back icon",
+       "kind": "shape",
+       "bbox": [
+        55,
+        52,
+        76,
+        86
+       ],
+       "visible": true,
+       "size": [
+        21,
+        34
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

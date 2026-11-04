@@ -1,0 +1,74 @@
+{
+ "file": "1NfM3M__startscreen.psd",
+ "canvas": [
+  5000,
+  3338
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "background",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    5000,
+    3338
+   ],
+   "visible": true,
+   "size": [
+    5000,
+    3338
+   ]
+  },
+  {
+   "name": "REPLACE ME",
+   "kind": "smartobject",
+   "bbox": [
+    1914,
+    1207,
+    2950,
+    2446
+   ],
+   "visible": true,
+   "size": [
+    1036,
+    1239
+   ]
+  },
+  {
+   "name": "foreground",
+   "kind": "group",
+   "bbox": [
+    1916,
+    1213,
+    2951,
+    2346
+   ],
+   "visible": true,
+   "size": [
+    1035,
+    1133
+   ],
+   "children": [
+    {
+     "name": "effects",
+     "kind": "pixel",
+     "bbox": [
+      1916,
+      1213,
+      2951,
+      2346
+     ],
+     "visible": true,
+     "size": [
+      1035,
+      1133
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 240.0
+}

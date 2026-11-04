@@ -1,0 +1,102 @@
+{
+ "file": "05mcjg_pokercam.psd",
+ "canvas": [
+  3159,
+  3964
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Layer 2 copy",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Layer 3",
+   "kind": "pixel",
+   "bbox": [
+    1605,
+    2032,
+    2605,
+    3532
+   ],
+   "visible": true,
+   "size": [
+    1000,
+    1500
+   ]
+  },
+  {
+   "name": "Layer 4",
+   "kind": "pixel",
+   "bbox": [
+    555,
+    482,
+    1555,
+    1982
+   ],
+   "visible": true,
+   "size": [
+    1000,
+    1500
+   ]
+  },
+  {
+   "name": "Layer 5",
+   "kind": "pixel",
+   "bbox": [
+    555,
+    2032,
+    1555,
+    3532
+   ],
+   "visible": true,
+   "size": [
+    1000,
+    1500
+   ]
+  },
+  {
+   "name": "Layer 6",
+   "kind": "pixel",
+   "bbox": [
+    1605,
+    482,
+    2605,
+    1982
+   ],
+   "visible": true,
+   "size": [
+    1000,
+    1500
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

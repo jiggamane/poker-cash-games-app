@@ -1,0 +1,1516 @@
+{
+ "file": "FpMLWs_step_2b.psd",
+ "canvas": [
+  640,
+  1136
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 19",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    640,
+    1136
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 21",
+   "kind": "pixel",
+   "bbox": [
+    16,
+    28,
+    624,
+    1107
+   ],
+   "visible": true,
+   "size": [
+    608,
+    1079
+   ]
+  },
+  {
+   "name": "Layer 20",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    640,
+    1136
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ],
+   "opacity": 50
+  },
+  {
+   "name": "over copy 2",
+   "kind": "group",
+   "bbox": [
+    -439,
+    49,
+    776,
+    1137
+   ],
+   "visible": true,
+   "size": [
+    1215,
+    1088
+   ],
+   "children": [
+    {
+     "name": "Rectangle 11 copy",
+     "kind": "shape",
+     "bbox": [
+      -1,
+      49,
+      641,
+      1137
+     ],
+     "visible": true,
+     "size": [
+      642,
+      1088
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Layer 22",
+     "kind": "type",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": true,
+     "size": [
+      0,
+      0
+     ],
+     "type": {
+      "text": "",
+      "runs": [],
+      "align": "center"
+     }
+    },
+    {
+     "name": "size",
+     "kind": "group",
+     "bbox": [
+      -56,
+      860,
+      696,
+      1107
+     ],
+     "visible": true,
+     "size": [
+      752,
+      247
+     ],
+     "children": [
+      {
+       "name": "num copy 2",
+       "kind": "group",
+       "bbox": [
+        -56,
+        938,
+        696,
+        1107
+       ],
+       "visible": true,
+       "size": [
+        752,
+        169
+       ],
+       "children": [
+        {
+         "name": "_2",
+         "kind": "group",
+         "bbox": [
+          93,
+          944,
+          249,
+          1101
+         ],
+         "visible": true,
+         "size": [
+          156,
+          157
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            93,
+            944,
+            249,
+            1101
+           ],
+           "visible": true,
+           "size": [
+            156,
+            157
+           ]
+          },
+          {
+           "name": "x2",
+           "kind": "type",
+           "bbox": [
+            129,
+            985,
+            211,
+            1055
+           ],
+           "visible": true,
+           "size": [
+            82,
+            70
+           ],
+           "type": {
+            "text": "x2",
+            "runs": [
+             {
+              "chars": "x2",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5178
+            ],
+            "align": "center"
+           }
+          }
+         ]
+        },
+        {
+         "name": "_1",
+         "kind": "group",
+         "bbox": [
+          -56,
+          944,
+          101,
+          1101
+         ],
+         "visible": true,
+         "size": [
+          157,
+          157
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            -56,
+            944,
+            101,
+            1101
+           ],
+           "visible": true,
+           "size": [
+            157,
+            157
+           ]
+          },
+          {
+           "name": "x1",
+           "kind": "type",
+           "bbox": [
+            -20,
+            986,
+            49,
+            1055
+           ],
+           "visible": true,
+           "size": [
+            69,
+            69
+           ],
+           "type": {
+            "text": "x1",
+            "runs": [
+             {
+              "chars": "x1",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5178
+            ],
+            "align": "center"
+           }
+          }
+         ]
+        },
+        {
+         "name": "_4",
+         "kind": "group",
+         "bbox": [
+          391,
+          944,
+          547,
+          1101
+         ],
+         "visible": true,
+         "size": [
+          156,
+          157
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            391,
+            944,
+            547,
+            1101
+           ],
+           "visible": true,
+           "size": [
+            156,
+            157
+           ]
+          },
+          {
+           "name": "x4",
+           "kind": "type",
+           "bbox": [
+            427,
+            986,
+            511,
+            1055
+           ],
+           "visible": true,
+           "size": [
+            84,
+            69
+           ],
+           "type": {
+            "text": "x4",
+            "runs": [
+             {
+              "chars": "x4",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5178
+            ],
+            "align": "center"
+           }
+          }
+         ]
+        },
+        {
+         "name": "_5",
+         "kind": "group",
+         "bbox": [
+          540,
+          944,
+          696,
+          1101
+         ],
+         "visible": true,
+         "size": [
+          156,
+          157
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            540,
+            944,
+            696,
+            1101
+           ],
+           "visible": true,
+           "size": [
+            156,
+            157
+           ]
+          },
+          {
+           "name": "x50",
+           "kind": "type",
+           "bbox": [
+            553,
+            985,
+            680,
+            1056
+           ],
+           "visible": true,
+           "size": [
+            127,
+            71
+           ],
+           "type": {
+            "text": "x50",
+            "runs": [
+             {
+              "chars": "x50",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5178
+            ],
+            "align": "center"
+           }
+          }
+         ]
+        },
+        {
+         "name": "_3",
+         "kind": "group",
+         "bbox": [
+          236,
+          938,
+          404,
+          1107
+         ],
+         "visible": true,
+         "size": [
+          168,
+          169
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            242,
+            944,
+            398,
+            1101
+           ],
+           "visible": true,
+           "size": [
+            156,
+            157
+           ]
+          },
+          {
+           "name": "x3",
+           "kind": "type",
+           "bbox": [
+            278,
+            985,
+            359,
+            1056
+           ],
+           "visible": true,
+           "size": [
+            81,
+            71
+           ],
+           "type": {
+            "text": "x3",
+            "runs": [
+             {
+              "chars": "x3",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5178
+            ],
+            "align": "center"
+           }
+          },
+          {
+           "name": "центральный блок copy",
+           "kind": "shape",
+           "bbox": [
+            236,
+            938,
+            404,
+            1107
+           ],
+           "visible": true,
+           "size": [
+            168,
+            169
+           ],
+           "fill": "#FFFFFF"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "add-on size (buy-ins)",
+       "kind": "type",
+       "bbox": [
+        154,
+        860,
+        483,
+        897
+       ],
+       "visible": true,
+       "size": [
+        329,
+        37
+       ],
+       "type": {
+        "text": "add-on size (buy-ins)",
+        "runs": [
+         {
+          "chars": "a",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 36.05,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "dd-on size (buy-ins)",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 36.05,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "align": "center"
+       }
+      }
+     ]
+    },
+    {
+     "name": "rebuy period",
+     "kind": "group",
+     "bbox": [
+      -56,
+      518,
+      696,
+      820
+     ],
+     "visible": true,
+     "size": [
+      752,
+      302
+     ],
+     "children": [
+      {
+       "name": "num copy 2",
+       "kind": "group",
+       "bbox": [
+        -56,
+        596,
+        696,
+        820
+       ],
+       "visible": true,
+       "size": [
+        752,
+        224
+       ],
+       "children": [
+        {
+         "name": "_2",
+         "kind": "group",
+         "bbox": [
+          93,
+          602,
+          249,
+          758
+         ],
+         "visible": true,
+         "size": [
+          156,
+          156
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            93,
+            602,
+            249,
+            758
+           ],
+           "visible": true,
+           "size": [
+            156,
+            156
+           ]
+          },
+          {
+           "name": "x7",
+           "kind": "type",
+           "bbox": [
+            129,
+            644,
+            211,
+            713
+           ],
+           "visible": true,
+           "size": [
+            82,
+            69
+           ],
+           "type": {
+            "text": "x7",
+            "runs": [
+             {
+              "chars": "x7",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5176
+            ],
+            "align": "center"
+           }
+          }
+         ]
+        },
+        {
+         "name": "_1",
+         "kind": "group",
+         "bbox": [
+          -56,
+          602,
+          101,
+          758
+         ],
+         "visible": true,
+         "size": [
+          157,
+          156
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            -56,
+            602,
+            101,
+            758
+           ],
+           "visible": true,
+           "size": [
+            157,
+            156
+           ]
+          },
+          {
+           "name": "x6",
+           "kind": "type",
+           "bbox": [
+            -20,
+            643,
+            63,
+            714
+           ],
+           "visible": true,
+           "size": [
+            83,
+            71
+           ],
+           "type": {
+            "text": "x6",
+            "runs": [
+             {
+              "chars": "x6",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5176
+            ],
+            "align": "center"
+           }
+          }
+         ]
+        },
+        {
+         "name": "_4",
+         "kind": "group",
+         "bbox": [
+          391,
+          602,
+          547,
+          758
+         ],
+         "visible": true,
+         "size": [
+          156,
+          156
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            391,
+            602,
+            547,
+            758
+           ],
+           "visible": true,
+           "size": [
+            156,
+            156
+           ]
+          },
+          {
+           "name": "x9",
+           "kind": "type",
+           "bbox": [
+            427,
+            643,
+            508,
+            714
+           ],
+           "visible": true,
+           "size": [
+            81,
+            71
+           ],
+           "type": {
+            "text": "x9",
+            "runs": [
+             {
+              "chars": "x9",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5176
+            ],
+            "align": "center"
+           }
+          }
+         ]
+        },
+        {
+         "name": "_5",
+         "kind": "group",
+         "bbox": [
+          540,
+          602,
+          696,
+          758
+         ],
+         "visible": true,
+         "size": [
+          156,
+          156
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            540,
+            602,
+            696,
+            758
+           ],
+           "visible": true,
+           "size": [
+            156,
+            156
+           ]
+          },
+          {
+           "name": "x10",
+           "kind": "type",
+           "bbox": [
+            553,
+            643,
+            680,
+            714
+           ],
+           "visible": true,
+           "size": [
+            127,
+            71
+           ],
+           "type": {
+            "text": "x10",
+            "runs": [
+             {
+              "chars": "x10",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5176
+            ],
+            "align": "center"
+           }
+          }
+         ]
+        },
+        {
+         "name": "_3",
+         "kind": "group",
+         "bbox": [
+          110,
+          596,
+          530,
+          820
+         ],
+         "visible": true,
+         "size": [
+          420,
+          224
+         ],
+         "children": [
+          {
+           "name": "Rectangle 13",
+           "kind": "shape",
+           "bbox": [
+            242,
+            602,
+            398,
+            758
+           ],
+           "visible": true,
+           "size": [
+            156,
+            156
+           ]
+          },
+          {
+           "name": "x8",
+           "kind": "type",
+           "bbox": [
+            278,
+            643,
+            360,
+            714
+           ],
+           "visible": true,
+           "size": [
+            82,
+            71
+           ],
+           "type": {
+            "text": "x8",
+            "runs": [
+             {
+              "chars": "x8",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 187.4
+             }
+            ],
+            "transform_scale": [
+             0.5198,
+             0.5176
+            ],
+            "align": "center"
+           }
+          },
+          {
+           "name": "центральный блок copy",
+           "kind": "shape",
+           "bbox": [
+            236,
+            596,
+            404,
+            765
+           ],
+           "visible": true,
+           "size": [
+            168,
+            169
+           ],
+           "fill": "#FFFFFF"
+          },
+          {
+           "name": "Total = 5min (level) x 8 = 40min",
+           "kind": "type",
+           "bbox": [
+            110,
+            782,
+            530,
+            820
+           ],
+           "visible": true,
+           "size": [
+            420,
+            38
+           ],
+           "type": {
+            "text": "Total = 5min (level) x 8 = 40min",
+            "runs": [
+             {
+              "chars": "Total = 5min (level) x 8 = 40min",
+              "font": "'RobotoCondensed-Regular'",
+              "size": 38.55
+             }
+            ],
+            "transform_scale": [
+             0.94,
+             0.9315
+            ],
+            "align": "center"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "rebuy period (levels)",
+       "kind": "type",
+       "bbox": [
+        151,
+        518,
+        489,
+        555
+       ],
+       "visible": true,
+       "size": [
+        338,
+        37
+       ],
+       "type": {
+        "text": "rebuy period (levels)",
+        "runs": [
+         {
+          "chars": "r",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 36.05,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "ebuy period (levels)",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 36.05,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         1.0004,
+         0.9989
+        ],
+        "align": "center"
+       }
+      }
+     ]
+    },
+    {
+     "name": "num copy 2",
+     "kind": "group",
+     "bbox": [
+      -439,
+      172,
+      776,
+      471
+     ],
+     "visible": true,
+     "size": [
+      1215,
+      299
+     ],
+     "children": [
+      {
+       "name": "_3",
+       "kind": "group",
+       "bbox": [
+        165,
+        254,
+        474,
+        410
+       ],
+       "visible": true,
+       "size": [
+        309,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13 copy",
+         "kind": "shape",
+         "bbox": [
+          165,
+          254,
+          474,
+          410
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "1R+1A",
+         "kind": "type",
+         "bbox": [
+          206,
+          296,
+          440,
+          365
+         ],
+         "visible": true,
+         "size": [
+          234,
+          69
+         ],
+         "type": {
+          "text": "1R+1A",
+          "runs": [
+           {
+            "chars": "1R+1A",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_3 copy",
+       "kind": "group",
+       "bbox": [
+        467,
+        254,
+        776,
+        410
+       ],
+       "visible": true,
+       "size": [
+        309,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13 copy",
+         "kind": "shape",
+         "bbox": [
+          467,
+          254,
+          776,
+          410
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "NL R+A",
+         "kind": "type",
+         "bbox": [
+          491,
+          296,
+          757,
+          365
+         ],
+         "visible": true,
+         "size": [
+          266,
+          69
+         ],
+         "type": {
+          "text": "NL R+A",
+          "runs": [
+           {
+            "chars": "NL R+A",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_1",
+       "kind": "group",
+       "bbox": [
+        -439,
+        254,
+        -130,
+        410
+       ],
+       "visible": true,
+       "size": [
+        309,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13 copy",
+         "kind": "shape",
+         "bbox": [
+          -439,
+          254,
+          -130,
+          410
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "freezeout",
+         "kind": "type",
+         "bbox": [
+          -389,
+          308,
+          -179,
+          356
+         ],
+         "visible": true,
+         "size": [
+          210,
+          48
+         ],
+         "type": {
+          "text": "freezeout",
+          "runs": [
+           {
+            "chars": "freezeout",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 116.2
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "_2",
+       "kind": "group",
+       "bbox": [
+        -137,
+        254,
+        172,
+        410
+       ],
+       "visible": true,
+       "size": [
+        309,
+        156
+       ],
+       "children": [
+        {
+         "name": "Rectangle 13",
+         "kind": "shape",
+         "bbox": [
+          -137,
+          254,
+          172,
+          410
+         ],
+         "visible": true,
+         "size": [
+          309,
+          156
+         ]
+        },
+        {
+         "name": "1R/A",
+         "kind": "type",
+         "bbox": [
+          -65,
+          296,
+          108,
+          371
+         ],
+         "visible": true,
+         "size": [
+          173,
+          75
+         ],
+         "type": {
+          "text": "1R/A",
+          "runs": [
+           {
+            "chars": "1R/A",
+            "font": "'RobotoCondensed-Regular'",
+            "size": 187.4
+           }
+          ],
+          "transform_scale": [
+           0.5198,
+           0.5176
+          ],
+          "align": "center"
+         }
+        }
+       ]
+      },
+      {
+       "name": "Rebuy & Add-on",
+       "kind": "type",
+       "bbox": [
+        213,
+        435,
+        427,
+        471
+       ],
+       "visible": true,
+       "size": [
+        214,
+        36
+       ],
+       "type": {
+        "text": "Rebuy & Add-on",
+        "runs": [
+         {
+          "chars": "Rebuy & Add-on",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 38.55
+         }
+        ],
+        "transform_scale": [
+         0.94,
+         0.9315
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "центральный блок copy",
+       "kind": "shape",
+       "bbox": [
+        159,
+        247,
+        481,
+        416
+       ],
+       "visible": true,
+       "size": [
+        322,
+        169
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "#rebuys",
+       "kind": "type",
+       "bbox": [
+        254,
+        172,
+        383,
+        199
+       ],
+       "visible": true,
+       "size": [
+        129,
+        27
+       ],
+       "type": {
+        "text": "#rebuys",
+        "runs": [
+         {
+          "chars": "#",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 36.05,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "rebuys",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 36.05,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         1.0004,
+         0.9986
+        ],
+        "align": "center"
+       }
+      }
+     ]
+    },
+    {
+     "name": "head_2",
+     "kind": "group",
+     "bbox": [
+      -1,
+      49,
+      641,
+      121
+     ],
+     "visible": true,
+     "size": [
+      642,
+      72
+     ],
+     "children": [
+      {
+       "name": "Rectangle 12",
+       "kind": "shape",
+       "bbox": [
+        -1,
+        49,
+        641,
+        121
+       ],
+       "visible": true,
+       "size": [
+        642,
+        72
+       ],
+       "fill": "#E9E9E9"
+      },
+      {
+       "name": "Rectangle 2 copy 2",
+       "kind": "shape",
+       "bbox": [
+        569,
+        49,
+        641,
+        121
+       ],
+       "visible": true,
+       "size": [
+        72,
+        72
+       ],
+       "fill": "#E9E9E9"
+      },
+      {
+       "name": "check",
+       "kind": "shape",
+       "bbox": [
+        586,
+        70,
+        624,
+        99
+       ],
+       "visible": false,
+       "size": [
+        38,
+        29
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Rectangle 2 copy 3",
+       "kind": "shape",
+       "bbox": [
+        -1,
+        49,
+        71,
+        121
+       ],
+       "visible": true,
+       "size": [
+        72,
+        72
+       ],
+       "fill": "#E9E9E9"
+      },
+      {
+       "name": "2",
+       "kind": "shape",
+       "bbox": [
+        14,
+        64,
+        57,
+        107
+       ],
+       "visible": false,
+       "size": [
+        43,
+        43
+       ]
+      },
+      {
+       "name": "Rebuys",
+       "kind": "type",
+       "bbox": [
+        283,
+        71,
+        379,
+        107
+       ],
+       "visible": true,
+       "size": [
+        96,
+        36
+       ],
+       "type": {
+        "text": "Rebuys",
+        "runs": [
+         {
+          "chars": "Rebuys",
+          "font": "'RobotoCondensed-Regular'",
+          "size": 36.0,
+          "color": "#000000"
+         }
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "Done",
+       "kind": "type",
+       "bbox": [
+        538,
+        73,
+        605,
+        100
+       ],
+       "visible": true,
+       "size": [
+        67,
+        27
+       ],
+       "type": {
+        "text": "Done",
+        "runs": [
+         {
+          "chars": "Done",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 36.0,
+          "color": "#116FF0"
+         }
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "Favorite",
+       "kind": "type",
+       "bbox": [
+        38,
+        72,
+        145,
+        101
+       ],
+       "visible": true,
+       "size": [
+        107,
+        29
+       ],
+       "type": {
+        "text": "Favorite",
+        "runs": [
+         {
+          "chars": "Favorite",
+          "font": "'RobotoCondensed-Bold'",
+          "size": 36.0,
+          "color": "#116FF0"
+         }
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "%",
+       "kind": "type",
+       "bbox": [
+        235,
+        69,
+        264,
+        98
+       ],
+       "visible": false,
+       "size": [
+        29,
+        29
+       ],
+       "type": {
+        "text": "%",
+        "runs": [
+         {
+          "chars": "%",
+          "font": "'Univers-Bold'",
+          "size": 36.0,
+          "color": "#000000"
+         }
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "$",
+       "kind": "type",
+       "bbox": [
+        397,
+        70,
+        416,
+        99
+       ],
+       "visible": false,
+       "size": [
+        19,
+        29
+       ],
+       "type": {
+        "text": "$",
+        "runs": [
+         {
+          "chars": "$",
+          "font": "'Univers-Bold'",
+          "size": 36.0,
+          "color": "#000000"
+         }
+        ],
+        "align": "center"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

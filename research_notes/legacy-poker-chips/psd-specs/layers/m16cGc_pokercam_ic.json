@@ -1,0 +1,301 @@
+{
+ "file": "m16cGc_pokercam_ic.psd",
+ "canvas": [
+  2529,
+  1428
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Q",
+   "kind": "group",
+   "bbox": [
+    1322,
+    199,
+    2307,
+    1251
+   ],
+   "visible": true,
+   "size": [
+    985,
+    1052
+   ],
+   "children": [
+    {
+     "name": "веер",
+     "kind": "smartobject",
+     "bbox": [
+      1322,
+      199,
+      1668,
+      404
+     ],
+     "visible": true,
+     "size": [
+      346,
+      205
+     ]
+    },
+    {
+     "name": "корона",
+     "kind": "smartobject",
+     "bbox": [
+      1798,
+      208,
+      2018,
+      396
+     ],
+     "visible": true,
+     "size": [
+      220,
+      188
+     ]
+    },
+    {
+     "name": "цветок",
+     "kind": "smartobject",
+     "bbox": [
+      1387,
+      472,
+      1603,
+      805
+     ],
+     "visible": true,
+     "size": [
+      216,
+      333
+     ]
+    },
+    {
+     "name": "цветок_2",
+     "kind": "smartobject",
+     "bbox": [
+      2148,
+      199,
+      2307,
+      682
+     ],
+     "visible": true,
+     "size": [
+      159,
+      483
+     ]
+    },
+    {
+     "name": "острая корона",
+     "kind": "smartobject",
+     "bbox": [
+      1798,
+      509,
+      2017,
+      646
+     ],
+     "visible": true,
+     "size": [
+      219,
+      137
+     ]
+    },
+    {
+     "name": "круглая корона",
+     "kind": "smartobject",
+     "bbox": [
+      1825,
+      1091,
+      2000,
+      1251
+     ],
+     "visible": true,
+     "size": [
+      175,
+      160
+     ]
+    },
+    {
+     "name": "кристал",
+     "kind": "smartobject",
+     "bbox": [
+      1825,
+      759,
+      1991,
+      978
+     ],
+     "visible": true,
+     "size": [
+      166,
+      219
+     ]
+    },
+    {
+     "name": "КОКТЕЙЛЬ",
+     "kind": "smartobject",
+     "bbox": [
+      2156,
+      757,
+      2300,
+      1087
+     ],
+     "visible": true,
+     "size": [
+      144,
+      330
+     ]
+    },
+    {
+     "name": "космополитан",
+     "kind": "smartobject",
+     "bbox": [
+      1384,
+      873,
+      1603,
+      1091
+     ],
+     "visible": true,
+     "size": [
+      219,
+      218
+     ]
+    }
+   ]
+  },
+  {
+   "name": "K",
+   "kind": "group",
+   "bbox": [
+    169,
+    199,
+    994,
+    1131
+   ],
+   "visible": true,
+   "size": [
+    825,
+    932
+   ],
+   "children": [
+    {
+     "name": "SIMPLE copy",
+     "kind": "smartobject",
+     "bbox": [
+      492,
+      199,
+      698,
+      347
+     ],
+     "visible": true,
+     "size": [
+      206,
+      148
+     ]
+    },
+    {
+     "name": "КОРОНА",
+     "kind": "smartobject",
+     "bbox": [
+      476,
+      471,
+      713,
+      549
+     ],
+     "visible": true,
+     "size": [
+      237,
+      78
+     ]
+    },
+    {
+     "name": "корона_круглая",
+     "kind": "smartobject",
+     "bbox": [
+      492,
+      699,
+      692,
+      867
+     ],
+     "visible": true,
+     "size": [
+      200,
+      168
+     ]
+    },
+    {
+     "name": "КОРОНА_квадрат copy 2",
+     "kind": "smartobject",
+     "bbox": [
+      504,
+      1002,
+      684,
+      1131
+     ],
+     "visible": true,
+     "size": [
+      180,
+      129
+     ]
+    },
+    {
+     "name": "ДЕРЖАВА copy",
+     "kind": "smartobject",
+     "bbox": [
+      815,
+      873,
+      994,
+      1130
+     ],
+     "visible": true,
+     "size": [
+      179,
+      257
+     ]
+    },
+    {
+     "name": "МЕЧ",
+     "kind": "smartobject",
+     "bbox": [
+      843,
+      199,
+      966,
+      785
+     ],
+     "visible": true,
+     "size": [
+      123,
+      586
+     ]
+    },
+    {
+     "name": "GLASS_6",
+     "kind": "smartobject",
+     "bbox": [
+      169,
+      776,
+      330,
+      984
+     ],
+     "visible": true,
+     "size": [
+      161,
+      208
+     ]
+    },
+    {
+     "name": "жезл",
+     "kind": "smartobject",
+     "bbox": [
+      189,
+      200,
+      310,
+      699
+     ],
+     "visible": true,
+     "size": [
+      121,
+      499
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 144.0
+}

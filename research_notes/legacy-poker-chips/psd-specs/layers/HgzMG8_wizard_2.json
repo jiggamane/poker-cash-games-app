@@ -1,0 +1,117 @@
+{
+ "file": "HgzMG8_wizard_2.psd",
+ "canvas": [
+  2538,
+  1308
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 1",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    1225,
+    245,
+    1308
+   ],
+   "visible": false,
+   "size": [
+    245,
+    83
+   ]
+  },
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    1557,
+    140,
+    2197,
+    1276
+   ],
+   "visible": false,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 4",
+   "kind": "pixel",
+   "bbox": [
+    867,
+    140,
+    1507,
+    1276
+   ],
+   "visible": false,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 3",
+   "kind": "pixel",
+   "bbox": [
+    177,
+    140,
+    817,
+    1276
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 5",
+   "kind": "pixel",
+   "bbox": [
+    1557,
+    140,
+    2197,
+    1276
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 6",
+   "kind": "pixel",
+   "bbox": [
+    867,
+    140,
+    1507,
+    1276
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 7",
+   "kind": "pixel",
+   "bbox": [
+    177,
+    782,
+    817,
+    1308
+   ],
+   "visible": false,
+   "size": [
+    640,
+    526
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

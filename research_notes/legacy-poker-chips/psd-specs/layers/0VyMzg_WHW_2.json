@@ -1,0 +1,137 @@
+{
+ "file": "0VyMzg_WHW_2.psd",
+ "canvas": [
+  2666,
+  1593
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Layer 10",
+   "kind": "pixel",
+   "bbox": [
+    172,
+    137,
+    1308,
+    777
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Layer 10 copy",
+   "kind": "pixel",
+   "bbox": [
+    1358,
+    137,
+    2494,
+    777
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Rectangle 8",
+   "kind": "shape",
+   "bbox": [
+    1356,
+    135,
+    2495,
+    327
+   ],
+   "visible": true,
+   "size": [
+    1139,
+    192
+   ],
+   "opacity": 30,
+   "fill": "#000000"
+  },
+  {
+   "name": "Layer 11",
+   "kind": "pixel",
+   "bbox": [
+    1358,
+    827,
+    2494,
+    1467
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Layer 12",
+   "kind": "pixel",
+   "bbox": [
+    172,
+    827,
+    1308,
+    1467
+   ],
+   "visible": true,
+   "size": [
+    1136,
+    640
+   ]
+  },
+  {
+   "name": "Rectangle 9",
+   "kind": "shape",
+   "bbox": [
+    1356,
+    587,
+    2495,
+    778
+   ],
+   "visible": true,
+   "size": [
+    1139,
+    191
+   ],
+   "opacity": 30,
+   "fill": "#000000"
+  },
+  {
+   "name": "move",
+   "kind": "shape",
+   "bbox": [
+    2212,
+    553,
+    2279,
+    624
+   ],
+   "visible": true,
+   "size": [
+    67,
+    71
+   ],
+   "fill": "#116FF0"
+  }
+ ],
+ "dpi": 72.0
+}

@@ -1,0 +1,1451 @@
+{
+ "file": "kYzdUk_all_progect.psd",
+ "canvas": [
+  15028,
+  11603
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 1",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    15592,
+    13043
+   ],
+   "visible": true,
+   "size": [
+    15592,
+    13043
+   ]
+  },
+  {
+   "name": "registration",
+   "kind": "group",
+   "bbox": [
+    50,
+    50,
+    2760,
+    3558
+   ],
+   "visible": true,
+   "size": [
+    2710,
+    3508
+   ],
+   "children": [
+    {
+     "name": "log in",
+     "kind": "group",
+     "bbox": [
+      2120,
+      50,
+      2760,
+      3558
+     ],
+     "visible": true,
+     "size": [
+      640,
+      3508
+     ],
+     "children": [
+      {
+       "name": "Layer 9",
+       "kind": "pixel",
+       "bbox": [
+        2120,
+        50,
+        2760,
+        1186
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      },
+      {
+       "name": "Layer 10",
+       "kind": "pixel",
+       "bbox": [
+        2120,
+        1236,
+        2760,
+        2372
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      },
+      {
+       "name": "Layer 65",
+       "kind": "pixel",
+       "bbox": [
+        2120,
+        2422,
+        2760,
+        3558
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      }
+     ]
+    },
+    {
+     "name": "facebook",
+     "kind": "group",
+     "bbox": [
+      1430,
+      50,
+      2070,
+      1186
+     ],
+     "visible": true,
+     "size": [
+      640,
+      1136
+     ],
+     "children": [
+      {
+       "name": "Layer 8",
+       "kind": "pixel",
+       "bbox": [
+        1430,
+        50,
+        2070,
+        1186
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      }
+     ]
+    },
+    {
+     "name": "email",
+     "kind": "group",
+     "bbox": [
+      740,
+      50,
+      1380,
+      3558
+     ],
+     "visible": true,
+     "size": [
+      640,
+      3508
+     ],
+     "children": [
+      {
+       "name": "Layer 5",
+       "kind": "pixel",
+       "bbox": [
+        740,
+        50,
+        1380,
+        1186
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      },
+      {
+       "name": "Layer 6",
+       "kind": "pixel",
+       "bbox": [
+        740,
+        1236,
+        1380,
+        2372
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      },
+      {
+       "name": "Layer 7",
+       "kind": "pixel",
+       "bbox": [
+        740,
+        2422,
+        1380,
+        3558
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      }
+     ]
+    },
+    {
+     "name": "welcome",
+     "kind": "pixel",
+     "bbox": [
+      50,
+      1236,
+      690,
+      2372
+     ],
+     "visible": true,
+     "size": [
+      640,
+      1136
+     ]
+    },
+    {
+     "name": "splash",
+     "kind": "pixel",
+     "bbox": [
+      50,
+      50,
+      690,
+      1186
+     ],
+     "visible": true,
+     "size": [
+      640,
+      1136
+     ]
+    }
+   ]
+  },
+  {
+   "name": "menu",
+   "kind": "group",
+   "bbox": [
+    2810,
+    46,
+    6901,
+    10674
+   ],
+   "visible": true,
+   "size": [
+    4091,
+    10628
+   ],
+   "children": [
+    {
+     "name": "start screen",
+     "kind": "group",
+     "bbox": [
+      2810,
+      50,
+      3450,
+      1186
+     ],
+     "visible": true,
+     "size": [
+      640,
+      1136
+     ],
+     "children": [
+      {
+       "name": "Layer 11",
+       "kind": "pixel",
+       "bbox": [
+        2810,
+        50,
+        3450,
+        1186
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      },
+      {
+       "name": "Layer 61",
+       "kind": "pixel",
+       "bbox": [
+        2810,
+        50,
+        3450,
+        1186
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      },
+      {
+       "name": "Layer 62",
+       "kind": "pixel",
+       "bbox": [
+        2810,
+        50,
+        3450,
+        1186
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      }
+     ]
+    },
+    {
+     "name": "wizard",
+     "kind": "group",
+     "bbox": [
+      3500,
+      46,
+      5520,
+      10674
+     ],
+     "visible": true,
+     "size": [
+      2020,
+      10628
+     ],
+     "children": [
+      {
+       "name": "multiplayer",
+       "kind": "group",
+       "bbox": [
+        3500,
+        46,
+        4140,
+        9488
+       ],
+       "visible": true,
+       "size": [
+        640,
+        9442
+       ],
+       "children": [
+        {
+         "name": "Layer 12",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          5980,
+          4140,
+          7116
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 13",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          7166,
+          4140,
+          8302
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 17",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          3608,
+          4140,
+          4744
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 79",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          3608,
+          4140,
+          4744
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 18",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          4794,
+          4140,
+          5930
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 14",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          50,
+          4140,
+          1186
+         ],
+         "visible": false,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 77",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          46,
+          4140,
+          1182
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 15",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          1236,
+          4140,
+          2372
+         ],
+         "visible": false,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 16",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          2422,
+          4140,
+          3558
+         ],
+         "visible": false,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 78",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          2422,
+          4140,
+          3558
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 76",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          1236,
+          4140,
+          2372
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 80",
+         "kind": "pixel",
+         "bbox": [
+          3500,
+          8352,
+          4140,
+          9488
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        }
+       ]
+      },
+      {
+       "name": "updated flow",
+       "kind": "group",
+       "bbox": [
+        4189,
+        50,
+        4830,
+        7116
+       ],
+       "visible": true,
+       "size": [
+        641,
+        7066
+       ],
+       "children": [
+        {
+         "name": "Layer 19",
+         "kind": "pixel",
+         "bbox": [
+          4190,
+          50,
+          4830,
+          1186
+         ],
+         "visible": false,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 74",
+         "kind": "pixel",
+         "bbox": [
+          4189,
+          50,
+          4829,
+          1186
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 20",
+         "kind": "pixel",
+         "bbox": [
+          4190,
+          1236,
+          4830,
+          2372
+         ],
+         "visible": false,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 66",
+         "kind": "pixel",
+         "bbox": [
+          4190,
+          1236,
+          4830,
+          2372
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 21",
+         "kind": "pixel",
+         "bbox": [
+          4190,
+          2422,
+          4830,
+          3558
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 22",
+         "kind": "pixel",
+         "bbox": [
+          4190,
+          3608,
+          4830,
+          4744
+         ],
+         "visible": false,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 67",
+         "kind": "pixel",
+         "bbox": [
+          4190,
+          3608,
+          4830,
+          4744
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 23",
+         "kind": "pixel",
+         "bbox": [
+          4190,
+          4794,
+          4830,
+          5930
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 68",
+         "kind": "pixel",
+         "bbox": [
+          4189,
+          5980,
+          4829,
+          7116
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        }
+       ]
+      },
+      {
+       "name": "wizard",
+       "kind": "group",
+       "bbox": [
+        4880,
+        50,
+        5520,
+        10674
+       ],
+       "visible": true,
+       "size": [
+        640,
+        10624
+       ],
+       "children": [
+        {
+         "name": "Layer 24",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          50,
+          5520,
+          1186
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 25",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          1236,
+          5520,
+          2372
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 71",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          2440,
+          5520,
+          3576
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 27",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          3608,
+          5520,
+          4744
+         ],
+         "visible": false,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 72",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          3608,
+          5520,
+          4744
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 69",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          5980,
+          5520,
+          7116
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 70",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          7164,
+          5520,
+          8300
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 31",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          8352,
+          5520,
+          9488
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 32",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          9538,
+          5520,
+          10674
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        },
+        {
+         "name": "Layer 73",
+         "kind": "pixel",
+         "bbox": [
+          4880,
+          4793,
+          5520,
+          5929
+         ],
+         "visible": true,
+         "size": [
+          640,
+          1136
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "profile",
+     "kind": "group",
+     "bbox": [
+      5570,
+      50,
+      6210,
+      1186
+     ],
+     "visible": true,
+     "size": [
+      640,
+      1136
+     ],
+     "children": [
+      {
+       "name": "Layer 33",
+       "kind": "pixel",
+       "bbox": [
+        5570,
+        50,
+        6210,
+        1186
+       ],
+       "visible": true,
+       "size": [
+        640,
+        1136
+       ]
+      }
+     ]
+    },
+    {
+     "name": "extras",
+     "kind": "group",
+     "bbox": [
+      6258,
+      49,
+      6901,
+      1187
+     ],
+     "visible": true,
+     "size": [
+      643,
+      1138
+     ],
+     "children": [
+      {
+       "name": "Rectangle 1",
+       "kind": "shape",
+       "bbox": [
+        6258,
+        49,
+        6901,
+        1187
+       ],
+       "visible": true,
+       "size": [
+        643,
+        1138
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "gameplay",
+   "kind": "group",
+   "bbox": [
+    6950,
+    50,
+    14016,
+    4140
+   ],
+   "visible": true,
+   "size": [
+    7066,
+    4090
+   ],
+   "children": [
+    {
+     "name": "table modes",
+     "kind": "group",
+     "bbox": [
+      6950,
+      50,
+      8086,
+      3450
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      3400
+     ],
+     "children": [
+      {
+       "name": "Layer 34",
+       "kind": "pixel",
+       "bbox": [
+        6950,
+        50,
+        8086,
+        690
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 35",
+       "kind": "pixel",
+       "bbox": [
+        6950,
+        740,
+        8086,
+        1380
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 36",
+       "kind": "pixel",
+       "bbox": [
+        6950,
+        1430,
+        8086,
+        2070
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 37",
+       "kind": "pixel",
+       "bbox": [
+        6950,
+        2120,
+        8086,
+        2760
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 38",
+       "kind": "pixel",
+       "bbox": [
+        6950,
+        2810,
+        8086,
+        3450
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      }
+     ]
+    },
+    {
+     "name": "winner",
+     "kind": "group",
+     "bbox": [
+      8136,
+      50,
+      9272,
+      3450
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      3400
+     ],
+     "children": [
+      {
+       "name": "Layer 39",
+       "kind": "pixel",
+       "bbox": [
+        8136,
+        50,
+        9272,
+        690
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 40",
+       "kind": "pixel",
+       "bbox": [
+        8136,
+        740,
+        9272,
+        1380
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 41",
+       "kind": "pixel",
+       "bbox": [
+        8136,
+        1430,
+        9272,
+        2070
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 42",
+       "kind": "pixel",
+       "bbox": [
+        8136,
+        2120,
+        9272,
+        2760
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 43",
+       "kind": "pixel",
+       "bbox": [
+        8136,
+        2810,
+        9272,
+        3450
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      }
+     ]
+    },
+    {
+     "name": "WHW",
+     "kind": "group",
+     "bbox": [
+      9322,
+      50,
+      10460,
+      3450
+     ],
+     "visible": true,
+     "size": [
+      1138,
+      3400
+     ],
+     "children": [
+      {
+       "name": "Layer 44",
+       "kind": "pixel",
+       "bbox": [
+        9322,
+        50,
+        10458,
+        690
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 45",
+       "kind": "pixel",
+       "bbox": [
+        9322,
+        1430,
+        10458,
+        2070
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 49",
+       "kind": "pixel",
+       "bbox": [
+        9322,
+        2810,
+        10457,
+        3450
+       ],
+       "visible": true,
+       "size": [
+        1135,
+        640
+       ]
+      },
+      {
+       "name": "Layer 48",
+       "kind": "pixel",
+       "bbox": [
+        9322,
+        2117,
+        10460,
+        2760
+       ],
+       "visible": true,
+       "size": [
+        1138,
+        643
+       ]
+      },
+      {
+       "name": "Layer 46",
+       "kind": "pixel",
+       "bbox": [
+        9322,
+        740,
+        10458,
+        1380
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      }
+     ]
+    },
+    {
+     "name": "bet",
+     "kind": "group",
+     "bbox": [
+      10508,
+      50,
+      11646,
+      4140
+     ],
+     "visible": true,
+     "size": [
+      1138,
+      4090
+     ],
+     "children": [
+      {
+       "name": "Layer 50",
+       "kind": "pixel",
+       "bbox": [
+        10508,
+        50,
+        11644,
+        690
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 51",
+       "kind": "pixel",
+       "bbox": [
+        10508,
+        740,
+        11644,
+        1380
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 52",
+       "kind": "pixel",
+       "bbox": [
+        10508,
+        1430,
+        11644,
+        2070
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 53",
+       "kind": "pixel",
+       "bbox": [
+        10510,
+        2120,
+        11646,
+        2760
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 54",
+       "kind": "pixel",
+       "bbox": [
+        10510,
+        2810,
+        11646,
+        3450
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 55",
+       "kind": "pixel",
+       "bbox": [
+        10508,
+        3500,
+        11644,
+        4140
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      }
+     ]
+    },
+    {
+     "name": "info",
+     "kind": "group",
+     "bbox": [
+      11694,
+      50,
+      12830,
+      2070
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      2020
+     ],
+     "children": [
+      {
+       "name": "Layer 56",
+       "kind": "pixel",
+       "bbox": [
+        11694,
+        50,
+        12830,
+        690
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 57",
+       "kind": "pixel",
+       "bbox": [
+        11694,
+        740,
+        12830,
+        1380
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 58",
+       "kind": "pixel",
+       "bbox": [
+        11694,
+        1430,
+        12830,
+        2070
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      }
+     ]
+    },
+    {
+     "name": "pokercam",
+     "kind": "group",
+     "bbox": [
+      12880,
+      50,
+      14016,
+      1380
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      1330
+     ],
+     "children": [
+      {
+       "name": "Layer 59",
+       "kind": "pixel",
+       "bbox": [
+        12880,
+        50,
+        14016,
+        690
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      },
+      {
+       "name": "Layer 60",
+       "kind": "pixel",
+       "bbox": [
+        12880,
+        740,
+        14016,
+        1380
+       ],
+       "visible": true,
+       "size": [
+        1136,
+        640
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Layer 75",
+   "kind": "type",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ],
+   "type": {
+    "text": "",
+    "runs": [],
+    "align": "center"
+   }
+  },
+  {
+   "name": "Layer 63",
+   "kind": "pixel",
+   "bbox": [
+    2743,
+    63,
+    13188,
+    8247
+   ],
+   "visible": true,
+   "size": [
+    10445,
+    8184
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

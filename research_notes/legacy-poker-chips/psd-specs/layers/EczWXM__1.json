@@ -1,0 +1,244 @@
+{
+ "file": "EczWXM__1.psd",
+ "canvas": [
+  3193,
+  1242
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 1",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    3193,
+    1242
+   ],
+   "visible": true,
+   "size": [
+    3193,
+    1242
+   ]
+  },
+  {
+   "name": "_3",
+   "kind": "group",
+   "bbox": [
+    2005,
+    497,
+    2765,
+    987
+   ],
+   "visible": true,
+   "size": [
+    760,
+    490
+   ],
+   "children": [
+    {
+     "name": "Layer 9",
+     "kind": "pixel",
+     "bbox": [
+      2005,
+      507,
+      2290,
+      947
+     ],
+     "visible": true,
+     "size": [
+      285,
+      440
+     ],
+     "opacity": 61
+    },
+    {
+     "name": "Layer 10",
+     "kind": "pixel",
+     "bbox": [
+      2212,
+      500,
+      2219,
+      961
+     ],
+     "visible": true,
+     "size": [
+      7,
+      461
+     ]
+    },
+    {
+     "name": "Layer 11",
+     "kind": "pixel",
+     "bbox": [
+      2410,
+      497,
+      2765,
+      987
+     ],
+     "visible": true,
+     "size": [
+      355,
+      490
+     ]
+    }
+   ]
+  },
+  {
+   "name": "_2",
+   "kind": "group",
+   "bbox": [
+    1201,
+    323,
+    1850,
+    1013
+   ],
+   "visible": true,
+   "size": [
+    649,
+    690
+   ],
+   "children": [
+    {
+     "name": "Layer 6",
+     "kind": "pixel",
+     "bbox": [
+      1201,
+      323,
+      1521,
+      964
+     ],
+     "visible": true,
+     "size": [
+      320,
+      641
+     ]
+    },
+    {
+     "name": "Layer 7",
+     "kind": "pixel",
+     "bbox": [
+      1641,
+      369,
+      1850,
+      1013
+     ],
+     "visible": true,
+     "size": [
+      209,
+      644
+     ]
+    },
+    {
+     "name": "Layer 8",
+     "kind": "pixel",
+     "bbox": [
+      1676,
+      399,
+      1842,
+      947
+     ],
+     "visible": true,
+     "size": [
+      166,
+      548
+     ]
+    }
+   ]
+  },
+  {
+   "name": "_1",
+   "kind": "group",
+   "bbox": [
+    108,
+    34,
+    1201,
+    1034
+   ],
+   "visible": true,
+   "size": [
+    1093,
+    1000
+   ],
+   "children": [
+    {
+     "name": "Layer 3",
+     "kind": "pixel",
+     "bbox": [
+      898,
+      34,
+      1201,
+      1028
+     ],
+     "visible": true,
+     "size": [
+      303,
+      994
+     ]
+    },
+    {
+     "name": "Layer 5 copy",
+     "kind": "pixel",
+     "bbox": [
+      740,
+      342,
+      1029,
+      944
+     ],
+     "visible": true,
+     "size": [
+      289,
+      602
+     ]
+    },
+    {
+     "name": "Layer 2",
+     "kind": "pixel",
+     "bbox": [
+      108,
+      342,
+      580,
+      970
+     ],
+     "visible": true,
+     "size": [
+      472,
+      628
+     ]
+    },
+    {
+     "name": "images",
+     "kind": "smartobject",
+     "bbox": [
+      463,
+      90,
+      696,
+      479
+     ],
+     "visible": false,
+     "size": [
+      233,
+      389
+     ]
+    },
+    {
+     "name": "Layer 4",
+     "kind": "pixel",
+     "bbox": [
+      334,
+      329,
+      343,
+      1034
+     ],
+     "visible": true,
+     "size": [
+      9,
+      705
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

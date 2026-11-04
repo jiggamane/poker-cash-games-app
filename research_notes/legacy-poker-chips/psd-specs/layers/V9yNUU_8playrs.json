@@ -1,0 +1,3497 @@
+{
+ "file": "V9yNUU_8playrs.psd",
+ "canvas": [
+  1136,
+  640
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "8 играков",
+   "kind": "group",
+   "bbox": [
+    -1,
+    -2,
+    1137,
+    641
+   ],
+   "visible": true,
+   "size": [
+    1138,
+    643
+   ],
+   "children": [
+    {
+     "name": "Layer 19",
+     "kind": "pixel",
+     "bbox": [
+      0,
+      0,
+      1136,
+      640
+     ],
+     "visible": true,
+     "size": [
+      1136,
+      640
+     ]
+    },
+    {
+     "name": "Polygon 1",
+     "kind": "shape",
+     "bbox": [
+      214,
+      143,
+      920,
+      553
+     ],
+     "visible": false,
+     "size": [
+      706,
+      410
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Polygon 1 copy",
+     "kind": "shape",
+     "bbox": [
+      313,
+      219,
+      822,
+      477
+     ],
+     "visible": false,
+     "size": [
+      509,
+      258
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "PNG:im_table_4",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "Rectangle 2",
+       "kind": "shape",
+       "bbox": [
+        248,
+        143,
+        886,
+        553
+       ],
+       "visible": false,
+       "size": [
+        638,
+        410
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Rectangle 2 copy",
+       "kind": "shape",
+       "bbox": [
+        325,
+        218,
+        810,
+        476
+       ],
+       "visible": false,
+       "size": [
+        485,
+        258
+       ],
+       "fill": "#000000"
+      }
+     ]
+    },
+    {
+     "name": "Polygon 1",
+     "kind": "shape",
+     "bbox": [
+      214,
+      142,
+      920,
+      552
+     ],
+     "visible": false,
+     "size": [
+      706,
+      410
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Polygon 1 copy",
+     "kind": "shape",
+     "bbox": [
+      313,
+      218,
+      822,
+      476
+     ],
+     "visible": false,
+     "size": [
+      509,
+      258
+     ],
+     "fill": "#FFDB3C"
+    },
+    {
+     "name": "Polygon 5",
+     "kind": "shape",
+     "bbox": [
+      225,
+      139,
+      910,
+      552
+     ],
+     "visible": true,
+     "size": [
+      685,
+      413
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Polygon 5 copy",
+     "kind": "shape",
+     "bbox": [
+      313,
+      217,
+      822,
+      475
+     ],
+     "visible": true,
+     "size": [
+      509,
+      258
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Layer 28",
+     "kind": "pixel",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": true,
+     "size": [
+      0,
+      0
+     ]
+    },
+    {
+     "name": "load",
+     "kind": "group",
+     "bbox": [
+      -1,
+      633,
+      1137,
+      641
+     ],
+     "visible": true,
+     "size": [
+      1138,
+      8
+     ],
+     "children": [
+      {
+       "name": "Shape 3",
+       "kind": "shape",
+       "bbox": [
+        -1,
+        633,
+        1137,
+        641
+       ],
+       "visible": true,
+       "size": [
+        1138,
+        8
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Shape 3 copy",
+       "kind": "shape",
+       "bbox": [
+        -1,
+        633,
+        748,
+        641
+       ],
+       "visible": true,
+       "size": [
+        749,
+        8
+       ],
+       "fill": "#0EB2AB"
+      },
+      {
+       "name": "Ellipse 2",
+       "kind": "shape",
+       "bbox": [
+        739,
+        633,
+        750,
+        644
+       ],
+       "visible": false,
+       "size": [
+        11,
+        11
+       ],
+       "fill": "#FFEB8F"
+      }
+     ]
+    },
+    {
+     "name": " 3_items_2 copy 2",
+     "kind": "group",
+     "bbox": [
+      245,
+      23,
+      888,
+      50
+     ],
+     "visible": true,
+     "size": [
+      643,
+      27
+     ],
+     "children": [
+      {
+       "name": "Blinds: 25/50",
+       "kind": "type",
+       "bbox": [
+        245,
+        23,
+        390,
+        50
+       ],
+       "visible": true,
+       "size": [
+        145,
+        27
+       ],
+       "type": {
+        "text": "Blinds: 25/50",
+        "runs": [
+         {
+          "chars": "B",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "tracking": -50.0,
+          "caps": 2
+         },
+         {
+          "chars": "l",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "tracking": -50.0,
+          "caps": 2
+         },
+         {
+          "chars": "i",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "tracking": -50.0,
+          "caps": 2
+         },
+         {
+          "chars": "n",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "tracking": -50.0,
+          "caps": 2
+         },
+         {
+          "chars": "d",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "tracking": -50.0,
+          "caps": 2
+         },
+         {
+          "chars": "s",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "tracking": -50.0,
+          "caps": 2
+         },
+         {
+          "chars": ":",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "tracking": -50.0,
+          "caps": 2
+         },
+         {
+          "chars": "2",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "5",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "/",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "5",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "0",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9988,
+         0.9999
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Next level in: 3’14’’",
+       "kind": "type",
+       "bbox": [
+        442,
+        24,
+        674,
+        47
+       ],
+       "visible": true,
+       "size": [
+        232,
+        23
+       ],
+       "type": {
+        "text": "Next level in: 3’14’’",
+        "runs": [
+         {
+          "chars": "N",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "e",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "x",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "t",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "l",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "e",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "v",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "e",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "l",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "i",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "n",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": ":",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "3",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "’",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "1",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "4",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "’",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "’",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9988,
+         0.9999
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Av. stack: 2347",
+       "kind": "type",
+       "bbox": [
+        709,
+        23,
+        888,
+        47
+       ],
+       "visible": true,
+       "size": [
+        179,
+        24
+       ],
+       "type": {
+        "text": "Av. stack: 2347",
+        "runs": [
+         {
+          "chars": "A",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "v",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": ".",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "s",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "t",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "a",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "c",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "k",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": ":",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "2",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "3",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "4",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         },
+         {
+          "chars": "7",
+          "font": "'Univers-CondensedLight'",
+          "size": 30.03,
+          "color": "#000000",
+          "caps": 2
+         }
+        ],
+        "transform_scale": [
+         0.9988,
+         0.9999
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "кнопки",
+     "kind": "group",
+     "bbox": [
+      -1,
+      -2,
+      1137,
+      636
+     ],
+     "visible": true,
+     "size": [
+      1138,
+      638
+     ],
+     "children": [
+      {
+       "name": "Rectangle 2 copy 4",
+       "kind": "shape",
+       "bbox": [
+        -1,
+        -2,
+        71,
+        69
+       ],
+       "visible": true,
+       "size": [
+        72,
+        71
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Rectangle 2 copy 5",
+       "kind": "shape",
+       "bbox": [
+        1066,
+        -1,
+        1137,
+        71
+       ],
+       "visible": true,
+       "size": [
+        71,
+        72
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "Rectangle 2 copy 6",
+       "kind": "shape",
+       "bbox": [
+        1066,
+        565,
+        1137,
+        636
+       ],
+       "visible": true,
+       "size": [
+        71,
+        71
+       ],
+       "fill": "#000000"
+      },
+      {
+       "name": "icons copy 2",
+       "kind": "group",
+       "bbox": [
+        21,
+        16,
+        1109,
+        619
+       ],
+       "visible": true,
+       "size": [
+        1088,
+        603
+       ],
+       "children": [
+        {
+         "name": "Ellipse 3",
+         "kind": "shape",
+         "bbox": [
+          1097,
+          583,
+          1106,
+          619
+         ],
+         "visible": true,
+         "size": [
+          9,
+          36
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "Rectangle 1 copy",
+         "kind": "shape",
+         "bbox": [
+          1071,
+          41,
+          1088,
+          75
+         ],
+         "visible": false,
+         "size": [
+          17,
+          34
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "Rectangle 3 copy",
+         "kind": "shape",
+         "bbox": [
+          1094,
+          19,
+          1109,
+          51
+         ],
+         "visible": true,
+         "size": [
+          15,
+          32
+         ],
+         "fill": "#000000"
+        },
+        {
+         "name": "Back icon",
+         "kind": "shape",
+         "bbox": [
+          21,
+          16,
+          42,
+          50
+         ],
+         "visible": true,
+         "size": [
+          21,
+          34
+         ],
+         "fill": "#FFFFFF"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "D",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "Ellipse 6 copy 4",
+       "kind": "shape",
+       "bbox": [
+        776,
+        253,
+        815,
+        291
+       ],
+       "visible": false,
+       "size": [
+        39,
+        38
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "d",
+       "kind": "type",
+       "bbox": [
+        789,
+        263,
+        805,
+        281
+       ],
+       "visible": false,
+       "size": [
+        16,
+        18
+       ],
+       "type": {
+        "text": "d",
+        "runs": [
+         {
+          "chars": "d",
+          "font": "'Univers-Bold'",
+          "size": 25.03,
+          "color": "#000000",
+          "tracking": -100.0,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      }
+     ]
+    },
+    {
+     "name": "cards",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "cards copy 16",
+       "kind": "smartobject",
+       "bbox": [
+        769,
+        209,
+        814,
+        260
+       ],
+       "visible": false,
+       "size": [
+        45,
+        51
+       ]
+      },
+      {
+       "name": "cards copy 20",
+       "kind": "smartobject",
+       "bbox": [
+        317,
+        396,
+        362,
+        447
+       ],
+       "visible": false,
+       "size": [
+        45,
+        51
+       ]
+      },
+      {
+       "name": "cards copy 21",
+       "kind": "smartobject",
+       "bbox": [
+        340,
+        210,
+        385,
+        261
+       ],
+       "visible": false,
+       "size": [
+        45,
+        51
+       ]
+      },
+      {
+       "name": "cards copy 18",
+       "kind": "smartobject",
+       "bbox": [
+        778,
+        397,
+        823,
+        448
+       ],
+       "visible": false,
+       "size": [
+        45,
+        51
+       ]
+      },
+      {
+       "name": "cards copy 19",
+       "kind": "smartobject",
+       "bbox": [
+        574,
+        478,
+        619,
+        529
+       ],
+       "visible": false,
+       "size": [
+        45,
+        51
+       ]
+      },
+      {
+       "name": "cards copy 17",
+       "kind": "group",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ],
+       "children": [
+        {
+         "name": "card",
+         "kind": "group",
+         "bbox": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "visible": false,
+         "size": [
+          0,
+          0
+         ],
+         "children": [
+          {
+           "name": "Rounded Rectangle 5",
+           "kind": "shape",
+           "bbox": [
+            538,
+            289,
+            568,
+            334
+           ],
+           "visible": false,
+           "size": [
+            30,
+            45
+           ],
+           "fill": "#000000"
+          },
+          {
+           "name": "Rounded Rectangle 6",
+           "kind": "shape",
+           "bbox": [
+            542,
+            293,
+            564,
+            330
+           ],
+           "visible": false,
+           "size": [
+            22,
+            37
+           ],
+           "fill": "#FFDB3C"
+          }
+         ]
+        },
+        {
+         "name": "card copy",
+         "kind": "group",
+         "bbox": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "visible": false,
+         "size": [
+          0,
+          0
+         ],
+         "children": [
+          {
+           "name": "Rounded Rectangle 5",
+           "kind": "shape",
+           "bbox": [
+            546,
+            279,
+            585,
+            329
+           ],
+           "visible": false,
+           "size": [
+            39,
+            50
+           ],
+           "fill": "#000000"
+          },
+          {
+           "name": "Rounded Rectangle 6",
+           "kind": "shape",
+           "bbox": [
+            551,
+            284,
+            580,
+            324
+           ],
+           "visible": false,
+           "size": [
+            29,
+            40
+           ],
+           "fill": "#FFDB3C"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "фишки",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "Group 1",
+       "kind": "group",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ],
+       "children": [
+        {
+         "name": "Ellipse 6",
+         "kind": "shape",
+         "bbox": [
+          589,
+          363,
+          621,
+          394
+         ],
+         "visible": false,
+         "size": [
+          32,
+          31
+         ],
+         "fill": "#E159DF"
+        },
+        {
+         "name": "Ellipse 6 copy",
+         "kind": "shape",
+         "bbox": [
+          589,
+          356,
+          621,
+          389
+         ],
+         "visible": false,
+         "size": [
+          32,
+          33
+         ],
+         "fill": "#E159DF"
+        },
+        {
+         "name": "Ellipse 6 copy 2",
+         "kind": "shape",
+         "bbox": [
+          589,
+          351,
+          621,
+          383
+         ],
+         "visible": false,
+         "size": [
+          32,
+          32
+         ],
+         "fill": "#E159DF"
+        },
+        {
+         "name": "Ellipse 6 copy 3",
+         "kind": "shape",
+         "bbox": [
+          589,
+          345,
+          621,
+          376
+         ],
+         "visible": false,
+         "size": [
+          32,
+          31
+         ],
+         "fill": "#E159DF"
+        }
+       ]
+      },
+      {
+       "name": "Group 1 copy 3",
+       "kind": "group",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ],
+       "children": [
+        {
+         "name": "Ellipse 6",
+         "kind": "shape",
+         "bbox": [
+          698,
+          363,
+          729,
+          394
+         ],
+         "visible": false,
+         "size": [
+          31,
+          31
+         ],
+         "fill": "#57FA4F"
+        },
+        {
+         "name": "Ellipse 6 copy",
+         "kind": "shape",
+         "bbox": [
+          698,
+          356,
+          729,
+          389
+         ],
+         "visible": false,
+         "size": [
+          31,
+          33
+         ],
+         "fill": "#57FA4F"
+        },
+        {
+         "name": "Ellipse 6 copy 2",
+         "kind": "shape",
+         "bbox": [
+          698,
+          351,
+          729,
+          383
+         ],
+         "visible": false,
+         "size": [
+          31,
+          32
+         ],
+         "fill": "#57FA4F"
+        },
+        {
+         "name": "Ellipse 6 copy 3",
+         "kind": "shape",
+         "bbox": [
+          698,
+          345,
+          729,
+          376
+         ],
+         "visible": false,
+         "size": [
+          31,
+          31
+         ],
+         "fill": "#57FA4F"
+        }
+       ]
+      },
+      {
+       "name": "Group 1 copy",
+       "kind": "group",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ],
+       "children": [
+        {
+         "name": "Ellipse 6",
+         "kind": "shape",
+         "bbox": [
+          624,
+          363,
+          657,
+          394
+         ],
+         "visible": false,
+         "size": [
+          33,
+          31
+         ],
+         "fill": "#36C9C3"
+        },
+        {
+         "name": "Ellipse 6 copy",
+         "kind": "shape",
+         "bbox": [
+          624,
+          356,
+          657,
+          389
+         ],
+         "visible": false,
+         "size": [
+          33,
+          33
+         ],
+         "fill": "#04C4BC"
+        }
+       ]
+      },
+      {
+       "name": "Group 1 copy 2",
+       "kind": "group",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ],
+       "children": [
+        {
+         "name": "Ellipse 6",
+         "kind": "shape",
+         "bbox": [
+          661,
+          363,
+          694,
+          394
+         ],
+         "visible": false,
+         "size": [
+          33,
+          31
+         ],
+         "fill": "#FE3967"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "ui scroul",
+     "kind": "group",
+     "bbox": [
+      1096,
+      281,
+      1121,
+      359
+     ],
+     "visible": true,
+     "size": [
+      25,
+      78
+     ],
+     "children": [
+      {
+       "name": "Shape 2",
+       "kind": "shape",
+       "bbox": [
+        1096,
+        281,
+        1101,
+        359
+       ],
+       "visible": true,
+       "size": [
+        5,
+        78
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Shape 2 copy",
+       "kind": "shape",
+       "bbox": [
+        1106,
+        281,
+        1111,
+        359
+       ],
+       "visible": true,
+       "size": [
+        5,
+        78
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Shape 2 copy 2",
+       "kind": "shape",
+       "bbox": [
+        1115,
+        281,
+        1121,
+        359
+       ],
+       "visible": true,
+       "size": [
+        6,
+        78
+       ],
+       "fill": "#FFFFFF"
+      }
+     ]
+    },
+    {
+     "name": "play copy",
+     "kind": "group",
+     "bbox": [
+      80,
+      101,
+      1075,
+      569
+     ],
+     "visible": true,
+     "size": [
+      995,
+      468
+     ],
+     "children": [
+      {
+       "name": "_7",
+       "kind": "group",
+       "bbox": [
+        151,
+        126,
+        372,
+        209
+       ],
+       "visible": true,
+       "size": [
+        221,
+        83
+       ],
+       "children": [
+        {
+         "name": "Rectangle 1",
+         "kind": "shape",
+         "bbox": [
+          160,
+          126,
+          338,
+          209
+         ],
+         "visible": false,
+         "size": [
+          178,
+          83
+         ],
+         "fill": "#FFDB3C"
+        },
+        {
+         "name": "Rectangle 1 copy 8",
+         "kind": "shape",
+         "bbox": [
+          151,
+          126,
+          162,
+          209
+         ],
+         "visible": true,
+         "size": [
+          11,
+          83
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "tim tom",
+         "kind": "type",
+         "bbox": [
+          170,
+          143,
+          282,
+          166
+         ],
+         "visible": true,
+         "size": [
+          112,
+          23
+         ],
+         "type": {
+          "text": "tim tom",
+          "runs": [
+           {
+            "chars": "t",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "i",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "m",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "t",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "o",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "m",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "500",
+         "kind": "type",
+         "bbox": [
+          171,
+          172,
+          214,
+          197
+         ],
+         "visible": true,
+         "size": [
+          43,
+          25
+         ],
+         "type": {
+          "text": "500",
+          "runs": [
+           {
+            "chars": "5",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "Layer 25",
+         "kind": "smartobject",
+         "bbox": [
+          291,
+          127,
+          372,
+          208
+         ],
+         "visible": true,
+         "size": [
+          81,
+          81
+         ]
+        },
+        {
+         "name": "Layer 27 copy 5",
+         "kind": "pixel",
+         "bbox": [
+          153,
+          117,
+          892,
+          727
+         ],
+         "visible": true,
+         "size": [
+          739,
+          610
+         ]
+        }
+       ]
+      },
+      {
+       "name": "_6",
+       "kind": "group",
+       "bbox": [
+        80,
+        306,
+        291,
+        389
+       ],
+       "visible": true,
+       "size": [
+        211,
+        83
+       ],
+       "children": [
+        {
+         "name": "Rectangle 1 copy 4",
+         "kind": "shape",
+         "bbox": [
+          80,
+          306,
+          91,
+          389
+         ],
+         "visible": true,
+         "size": [
+          11,
+          83
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "grisha",
+         "kind": "type",
+         "bbox": [
+          99,
+          322,
+          195,
+          345
+         ],
+         "visible": true,
+         "size": [
+          96,
+          23
+         ],
+         "type": {
+          "text": "grisha",
+          "runs": [
+           {
+            "chars": "g",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "r",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "i",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "s",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "h",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "a",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "3,650",
+         "kind": "type",
+         "bbox": [
+          96,
+          351,
+          163,
+          380
+         ],
+         "visible": true,
+         "size": [
+          67,
+          29
+         ],
+         "type": {
+          "text": "3,650",
+          "runs": [
+           {
+            "chars": "3",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": ",",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "6",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "5",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "Layer 23",
+         "kind": "pixel",
+         "bbox": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "visible": true,
+         "size": [
+          0,
+          0
+         ]
+        },
+        {
+         "name": "Layer 27 copy 4",
+         "kind": "smartobject",
+         "bbox": [
+          210,
+          307,
+          291,
+          388
+         ],
+         "visible": true,
+         "size": [
+          81,
+          81
+         ]
+        }
+       ]
+      },
+      {
+       "name": "_5",
+       "kind": "group",
+       "bbox": [
+        161,
+        486,
+        372,
+        569
+       ],
+       "visible": true,
+       "size": [
+        211,
+        83
+       ],
+       "children": [
+        {
+         "name": "Rectangle 1 copy 4",
+         "kind": "shape",
+         "bbox": [
+          161,
+          486,
+          172,
+          569
+         ],
+         "visible": true,
+         "size": [
+          11,
+          83
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "brayan",
+         "kind": "type",
+         "bbox": [
+          183,
+          502,
+          284,
+          524
+         ],
+         "visible": true,
+         "size": [
+          101,
+          22
+         ],
+         "type": {
+          "text": "brayan",
+          "runs": [
+           {
+            "chars": "b",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "r",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "a",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "y",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "a",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "n",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "500",
+         "kind": "type",
+         "bbox": [
+          180,
+          531,
+          223,
+          556
+         ],
+         "visible": true,
+         "size": [
+          43,
+          25
+         ],
+         "type": {
+          "text": "500",
+          "runs": [
+           {
+            "chars": "5",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "Layer 23",
+         "kind": "pixel",
+         "bbox": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "visible": true,
+         "size": [
+          0,
+          0
+         ]
+        },
+        {
+         "name": "Layer 24",
+         "kind": "smartobject",
+         "bbox": [
+          291,
+          487,
+          372,
+          568
+         ],
+         "visible": true,
+         "size": [
+          81,
+          81
+         ]
+        },
+        {
+         "name": "Layer 27 copy 3",
+         "kind": "pixel",
+         "bbox": [
+          276,
+          107,
+          1015,
+          717
+         ],
+         "visible": true,
+         "size": [
+          739,
+          610
+         ]
+        }
+       ]
+      },
+      {
+       "name": "_4",
+       "kind": "group",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ],
+       "children": [
+        {
+         "name": "Rectangle 1 copy 2",
+         "kind": "shape",
+         "bbox": [
+          511,
+          510,
+          666,
+          594
+         ],
+         "visible": false,
+         "size": [
+          155,
+          84
+         ],
+         "fill": "#FFDB3C"
+        },
+        {
+         "name": "Rectangle 1 copy 6",
+         "kind": "shape",
+         "bbox": [
+          663,
+          510,
+          674,
+          594
+         ],
+         "visible": false,
+         "size": [
+          11,
+          84
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "Roller",
+         "kind": "type",
+         "bbox": [
+          563,
+          528,
+          654,
+          551
+         ],
+         "visible": false,
+         "size": [
+          91,
+          23
+         ],
+         "type": {
+          "text": "Roller",
+          "runs": [
+           {
+            "chars": "R",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "o",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "l",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "l",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "e",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "r",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "center"
+         }
+        },
+        {
+         "name": "1,280",
+         "kind": "type",
+         "bbox": [
+          590,
+          556,
+          654,
+          585
+         ],
+         "visible": false,
+         "size": [
+          64,
+          29
+         ],
+         "type": {
+          "text": "1,280",
+          "runs": [
+           {
+            "chars": "1",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": ",",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "2",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "8",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "center"
+         }
+        },
+        {
+         "name": "Layer 22",
+         "kind": "smartobject",
+         "bbox": [
+          462,
+          511,
+          543,
+          592
+         ],
+         "visible": false,
+         "size": [
+          81,
+          81
+         ]
+        }
+       ]
+      },
+      {
+       "name": "_3",
+       "kind": "group",
+       "bbox": [
+        764,
+        486,
+        976,
+        569
+       ],
+       "visible": true,
+       "size": [
+        212,
+        83
+       ],
+       "children": [
+        {
+         "name": "Rectangle 1 copy 4",
+         "kind": "shape",
+         "bbox": [
+          964,
+          486,
+          976,
+          569
+         ],
+         "visible": true,
+         "size": [
+          12,
+          83
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "Rayn F.",
+         "kind": "type",
+         "bbox": [
+          861,
+          502,
+          953,
+          524
+         ],
+         "visible": true,
+         "size": [
+          92,
+          22
+         ],
+         "type": {
+          "text": "Rayn F.",
+          "runs": [
+           {
+            "chars": "R",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "a",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "y",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "n",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "F",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": ".",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "500",
+         "kind": "type",
+         "bbox": [
+          909,
+          531,
+          952,
+          556
+         ],
+         "visible": true,
+         "size": [
+          43,
+          25
+         ],
+         "type": {
+          "text": "500",
+          "runs": [
+           {
+            "chars": "5",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "Layer 23",
+         "kind": "pixel",
+         "bbox": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "visible": true,
+         "size": [
+          0,
+          0
+         ]
+        },
+        {
+         "name": "Layer 27 copy 6",
+         "kind": "smartobject",
+         "bbox": [
+          764,
+          487,
+          845,
+          568
+         ],
+         "visible": true,
+         "size": [
+          81,
+          81
+         ]
+        }
+       ]
+      },
+      {
+       "name": "_2",
+       "kind": "group",
+       "bbox": [
+        843,
+        306,
+        1075,
+        389
+       ],
+       "visible": true,
+       "size": [
+        232,
+        83
+       ],
+       "children": [
+        {
+         "name": "Rectangle 1",
+         "kind": "shape",
+         "bbox": [
+          1064,
+          306,
+          1075,
+          389
+         ],
+         "visible": true,
+         "size": [
+          11,
+          83
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "Yammy",
+         "kind": "type",
+         "bbox": [
+          954,
+          323,
+          1054,
+          345
+         ],
+         "visible": true,
+         "size": [
+          100,
+          22
+         ],
+         "type": {
+          "text": "Yammy",
+          "runs": [
+           {
+            "chars": "Y",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "a",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "m",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "m",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "y",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "750",
+         "kind": "type",
+         "bbox": [
+          1010,
+          352,
+          1053,
+          377
+         ],
+         "visible": true,
+         "size": [
+          43,
+          25
+         ],
+         "type": {
+          "text": "750",
+          "runs": [
+           {
+            "chars": "7",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "5",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "Layer 27 copy",
+         "kind": "smartobject",
+         "bbox": [
+          843,
+          307,
+          924,
+          388
+         ],
+         "visible": true,
+         "size": [
+          81,
+          81
+         ]
+        }
+       ]
+      },
+      {
+       "name": "_1",
+       "kind": "group",
+       "bbox": [
+        764,
+        126,
+        996,
+        209
+       ],
+       "visible": true,
+       "size": [
+        232,
+        83
+       ],
+       "children": [
+        {
+         "name": "Rectangle 1",
+         "kind": "shape",
+         "bbox": [
+          985,
+          126,
+          996,
+          209
+         ],
+         "visible": true,
+         "size": [
+          11,
+          83
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "John g.",
+         "kind": "type",
+         "bbox": [
+          873,
+          143,
+          975,
+          166
+         ],
+         "visible": true,
+         "size": [
+          102,
+          23
+         ],
+         "type": {
+          "text": "John g.",
+          "runs": [
+           {
+            "chars": "J",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "o",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "h",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "n",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "g",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": ".",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "2,850",
+         "kind": "type",
+         "bbox": [
+          909,
+          172,
+          975,
+          201
+         ],
+         "visible": true,
+         "size": [
+          66,
+          29
+         ],
+         "type": {
+          "text": "2,850",
+          "runs": [
+           {
+            "chars": "2",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": ",",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "8",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "5",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "left"
+         }
+        },
+        {
+         "name": "Layer 25",
+         "kind": "smartobject",
+         "bbox": [
+          764,
+          127,
+          845,
+          208
+         ],
+         "visible": true,
+         "size": [
+          81,
+          81
+         ]
+        },
+        {
+         "name": "Layer 27",
+         "kind": "pixel",
+         "bbox": [
+          30,
+          -87,
+          1084,
+          783
+         ],
+         "visible": true,
+         "size": [
+          1054,
+          870
+         ]
+        }
+       ]
+      },
+      {
+       "name": "_0",
+       "kind": "group",
+       "bbox": [
+        462,
+        101,
+        674,
+        186
+       ],
+       "visible": true,
+       "size": [
+        212,
+        85
+       ],
+       "children": [
+        {
+         "name": "Rectangle 1 copy 2",
+         "kind": "shape",
+         "bbox": [
+          511,
+          101,
+          666,
+          186
+         ],
+         "visible": true,
+         "size": [
+          155,
+          85
+         ],
+         "fill": "#FFDB3C"
+        },
+        {
+         "name": "Rectangle 1 copy 7",
+         "kind": "shape",
+         "bbox": [
+          663,
+          101,
+          674,
+          186
+         ],
+         "visible": true,
+         "size": [
+          11,
+          85
+         ],
+         "fill": "#FFFFFF"
+        },
+        {
+         "name": "Mark",
+         "kind": "type",
+         "bbox": [
+          579,
+          117,
+          654,
+          139
+         ],
+         "visible": true,
+         "size": [
+          75,
+          22
+         ],
+         "type": {
+          "text": "Mark",
+          "runs": [
+           {
+            "chars": "M",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "a",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "r",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "k",
+            "font": "'Univers-CondensedBold'",
+            "size": 30.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "center"
+         }
+        },
+        {
+         "name": "1,280",
+         "kind": "type",
+         "bbox": [
+          588,
+          145,
+          652,
+          174
+         ],
+         "visible": true,
+         "size": [
+          64,
+          29
+         ],
+         "type": {
+          "text": "1,280",
+          "runs": [
+           {
+            "chars": "1",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": ",",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "2",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "8",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           },
+           {
+            "chars": "0",
+            "font": "'Univers-Condensed'",
+            "size": 34.0,
+            "color": "#000000",
+            "leading": 115.01,
+            "caps": 2
+           }
+          ],
+          "align": "center"
+         }
+        },
+        {
+         "name": "Layer 26",
+         "kind": "smartobject",
+         "bbox": [
+          462,
+          103,
+          543,
+          184
+         ],
+         "visible": true,
+         "size": [
+          81,
+          81
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "_3 copy",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "Rectangle 1 copy 4",
+       "kind": "shape",
+       "bbox": [
+        844,
+        496,
+        856,
+        579
+       ],
+       "visible": false,
+       "size": [
+        12,
+        83
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Rayn F.",
+       "kind": "type",
+       "bbox": [
+        741,
+        512,
+        833,
+        534
+       ],
+       "visible": false,
+       "size": [
+        92,
+        22
+       ],
+       "type": {
+        "text": "Rayn F.",
+        "runs": [
+         {
+          "chars": "R",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "a",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "y",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "n",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "F",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": ".",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "500",
+       "kind": "type",
+       "bbox": [
+        789,
+        541,
+        832,
+        566
+       ],
+       "visible": false,
+       "size": [
+        43,
+        25
+       ],
+       "type": {
+        "text": "500",
+        "runs": [
+         {
+          "chars": "5",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "0",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "0",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Layer 23",
+       "kind": "pixel",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ]
+      },
+      {
+       "name": "Layer 27 copy 6",
+       "kind": "smartobject",
+       "bbox": [
+        644,
+        497,
+        725,
+        578
+       ],
+       "visible": false,
+       "size": [
+        81,
+        81
+       ]
+      }
+     ]
+    },
+    {
+     "name": "_5 copy",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "Rectangle 1 copy 4",
+       "kind": "shape",
+       "bbox": [
+        261,
+        498,
+        272,
+        581
+       ],
+       "visible": false,
+       "size": [
+        11,
+        83
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "brayan",
+       "kind": "type",
+       "bbox": [
+        283,
+        514,
+        384,
+        536
+       ],
+       "visible": false,
+       "size": [
+        101,
+        22
+       ],
+       "type": {
+        "text": "brayan",
+        "runs": [
+         {
+          "chars": "b",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "r",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "a",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "y",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "a",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "n",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "500",
+       "kind": "type",
+       "bbox": [
+        280,
+        543,
+        323,
+        568
+       ],
+       "visible": false,
+       "size": [
+        43,
+        25
+       ],
+       "type": {
+        "text": "500",
+        "runs": [
+         {
+          "chars": "5",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "0",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "0",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         }
+        ],
+        "align": "left"
+       }
+      },
+      {
+       "name": "Layer 23",
+       "kind": "pixel",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ]
+      },
+      {
+       "name": "Layer 24",
+       "kind": "smartobject",
+       "bbox": [
+        391,
+        499,
+        472,
+        580
+       ],
+       "visible": false,
+       "size": [
+        81,
+        81
+       ]
+      },
+      {
+       "name": "Layer 27 copy 3",
+       "kind": "pixel",
+       "bbox": [
+        376,
+        119,
+        1115,
+        729
+       ],
+       "visible": false,
+       "size": [
+        739,
+        610
+       ]
+      }
+     ]
+    },
+    {
+     "name": "_3",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "Rectangle 1 copy 2",
+       "kind": "shape",
+       "bbox": [
+        470,
+        510,
+        658,
+        594
+       ],
+       "visible": false,
+       "size": [
+        188,
+        84
+       ],
+       "fill": "#FFDB3C"
+      },
+      {
+       "name": "Rectangle 1 copy 6",
+       "kind": "shape",
+       "bbox": [
+        462,
+        510,
+        473,
+        594
+       ],
+       "visible": false,
+       "size": [
+        11,
+        84
+       ],
+       "fill": "#FFFFFF"
+      },
+      {
+       "name": "Roller",
+       "kind": "type",
+       "bbox": [
+        488,
+        528,
+        579,
+        551
+       ],
+       "visible": false,
+       "size": [
+        91,
+        23
+       ],
+       "type": {
+        "text": "Roller",
+        "runs": [
+         {
+          "chars": "R",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "o",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "l",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "l",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "e",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "r",
+          "font": "'Univers-CondensedBold'",
+          "size": 30.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         }
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "1,280",
+       "kind": "type",
+       "bbox": [
+        488,
+        556,
+        552,
+        585
+       ],
+       "visible": false,
+       "size": [
+        64,
+        29
+       ],
+       "type": {
+        "text": "1,280",
+        "runs": [
+         {
+          "chars": "1",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": ",",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "2",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "8",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         },
+         {
+          "chars": "0",
+          "font": "'Univers-Condensed'",
+          "size": 34.0,
+          "color": "#000000",
+          "leading": 115.01,
+          "caps": 2
+         }
+        ],
+        "align": "center"
+       }
+      },
+      {
+       "name": "Layer 29",
+       "kind": "smartobject",
+       "bbox": [
+        592,
+        511,
+        673,
+        592
+       ],
+       "visible": false,
+       "size": [
+        81,
+        81
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "// ASSET BOUNDS",
+   "kind": "group",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": false,
+   "size": [
+    0,
+    0
+   ],
+   "children": [
+    {
+     "name": "im_table_4",
+     "kind": "pixel",
+     "bbox": [
+      177,
+      130,
+      957,
+      560
+     ],
+     "visible": false,
+     "size": [
+      780,
+      430
+     ],
+     "opacity": 30
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

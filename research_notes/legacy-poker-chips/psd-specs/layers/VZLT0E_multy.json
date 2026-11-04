@@ -1,0 +1,57 @@
+{
+ "file": "VZLT0E_multy.psd",
+ "canvas": [
+  2538,
+  1598
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 6",
+   "kind": "pixel",
+   "bbox": [
+    1614,
+    209,
+    2254,
+    1345
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 7",
+   "kind": "pixel",
+   "bbox": [
+    924,
+    210,
+    1564,
+    1346
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 9",
+   "kind": "pixel",
+   "bbox": [
+    234,
+    210,
+    874,
+    1346
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

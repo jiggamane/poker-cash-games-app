@@ -1,0 +1,245 @@
+{
+ "file": "m5PSHc_pokerCam.psd",
+ "canvas": [
+  1940,
+  1220
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 0",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    1940,
+    1220
+   ],
+   "visible": false,
+   "size": [
+    1940,
+    1220
+   ]
+  },
+  {
+   "name": "_4",
+   "kind": "shape",
+   "bbox": [
+    908,
+    651,
+    1632,
+    1060
+   ],
+   "visible": true,
+   "size": [
+    724,
+    409
+   ],
+   "fill": "#D9D9DB"
+  },
+  {
+   "name": "_3",
+   "kind": "shape",
+   "bbox": [
+    149,
+    651,
+    871,
+    1060
+   ],
+   "visible": true,
+   "size": [
+    722,
+    409
+   ],
+   "fill": "#D9D9DB"
+  },
+  {
+   "name": "_2",
+   "kind": "shape",
+   "bbox": [
+    908,
+    204,
+    1632,
+    614
+   ],
+   "visible": false,
+   "size": [
+    724,
+    410
+   ],
+   "fill": "#1D0EAA"
+  },
+  {
+   "name": "_1",
+   "kind": "shape",
+   "bbox": [
+    149,
+    204,
+    871,
+    614
+   ],
+   "visible": false,
+   "size": [
+    722,
+    410
+   ],
+   "fill": "#1D0EAA"
+  },
+  {
+   "name": "table_2",
+   "kind": "smartobject",
+   "bbox": [
+    910,
+    206,
+    1630,
+    612
+   ],
+   "visible": false,
+   "size": [
+    720,
+    406
+   ]
+  },
+  {
+   "name": "Layer 1",
+   "kind": "pixel",
+   "bbox": [
+    910,
+    205,
+    1630,
+    611
+   ],
+   "visible": true,
+   "size": [
+    720,
+    406
+   ]
+  },
+  {
+   "name": "4 играков_1",
+   "kind": "smartobject",
+   "bbox": [
+    150,
+    206,
+    871,
+    612
+   ],
+   "visible": false,
+   "size": [
+    721,
+    406
+   ]
+  },
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    150,
+    205,
+    871,
+    611
+   ],
+   "visible": true,
+   "size": [
+    721,
+    406
+   ]
+  },
+  {
+   "name": "presentation",
+   "kind": "group",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": false,
+   "size": [
+    0,
+    0
+   ],
+   "children": [
+    {
+     "name": "Background",
+     "kind": "pixel",
+     "bbox": [
+      0,
+      0,
+      1950,
+      1300
+     ],
+     "visible": false,
+     "size": [
+      1950,
+      1300
+     ]
+    },
+    {
+     "name": "Smart Object",
+     "kind": "smartobject",
+     "bbox": [
+      480,
+      256,
+      1438,
+      797
+     ],
+     "visible": false,
+     "size": [
+      958,
+      541
+     ]
+    },
+    {
+     "name": "Adjustments",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "Photo Filter 1",
+       "kind": "photofilter",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ]
+      },
+      {
+       "name": "Curves 1",
+       "kind": "curves",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

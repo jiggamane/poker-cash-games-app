@@ -1,0 +1,317 @@
+{
+ "file": "DlIVWM_Which_hand_wins.psd",
+ "canvas": [
+  1940,
+  1220
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "_4",
+   "kind": "shape",
+   "bbox": [
+    908,
+    651,
+    1632,
+    1060
+   ],
+   "visible": true,
+   "size": [
+    724,
+    409
+   ],
+   "fill": "#D9D9DB"
+  },
+  {
+   "name": "_3",
+   "kind": "shape",
+   "bbox": [
+    149,
+    651,
+    871,
+    1060
+   ],
+   "visible": false,
+   "size": [
+    722,
+    409
+   ],
+   "fill": "#1D0EAA"
+  },
+  {
+   "name": "_2",
+   "kind": "shape",
+   "bbox": [
+    908,
+    204,
+    1632,
+    614
+   ],
+   "visible": false,
+   "size": [
+    724,
+    410
+   ],
+   "fill": "#1D0EAA"
+  },
+  {
+   "name": "_1",
+   "kind": "shape",
+   "bbox": [
+    149,
+    204,
+    871,
+    614
+   ],
+   "visible": false,
+   "size": [
+    722,
+    410
+   ],
+   "fill": "#1D0EAA"
+  },
+  {
+   "name": "v_1",
+   "kind": "smartobject",
+   "bbox": [
+    150,
+    206,
+    870,
+    612
+   ],
+   "visible": true,
+   "size": [
+    720,
+    406
+   ]
+  },
+  {
+   "name": "номинал",
+   "kind": "group",
+   "bbox": [
+    909,
+    204,
+    1632,
+    613
+   ],
+   "visible": true,
+   "size": [
+    723,
+    409
+   ],
+   "children": [
+    {
+     "name": "v_1 copy 2",
+     "kind": "smartobject",
+     "bbox": [
+      910,
+      206,
+      1631,
+      612
+     ],
+     "visible": true,
+     "size": [
+      721,
+      406
+     ]
+    },
+    {
+     "name": "Rectangle 8",
+     "kind": "shape",
+     "bbox": [
+      909,
+      204,
+      1632,
+      327
+     ],
+     "visible": true,
+     "size": [
+      723,
+      123
+     ],
+     "opacity": 30,
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 9",
+     "kind": "shape",
+     "bbox": [
+      909,
+      491,
+      1632,
+      613
+     ],
+     "visible": true,
+     "size": [
+      723,
+      122
+     ],
+     "opacity": 30,
+     "fill": "#000000"
+    },
+    {
+     "name": "move",
+     "kind": "shape",
+     "bbox": [
+      1452,
+      468,
+      1495,
+      514
+     ],
+     "visible": true,
+     "size": [
+      43,
+      46
+     ],
+     "fill": "#116FF0"
+    }
+   ]
+  },
+  {
+   "name": "масти",
+   "kind": "group",
+   "bbox": [
+    149,
+    651,
+    872,
+    1059
+   ],
+   "visible": true,
+   "size": [
+    723,
+    408
+   ],
+   "children": [
+    {
+     "name": "v_1 copy",
+     "kind": "smartobject",
+     "bbox": [
+      150,
+      652,
+      871,
+      1058
+     ],
+     "visible": true,
+     "size": [
+      721,
+      406
+     ]
+    },
+    {
+     "name": "Rectangle 8 copy",
+     "kind": "shape",
+     "bbox": [
+      149,
+      651,
+      872,
+      1059
+     ],
+     "visible": true,
+     "size": [
+      723,
+      408
+     ],
+     "opacity": 30,
+     "fill": "#000000"
+    },
+    {
+     "name": "вертикально",
+     "kind": "shape",
+     "bbox": [
+      570,
+      680,
+      624,
+      721
+     ],
+     "visible": true,
+     "size": [
+      54,
+      41
+     ],
+     "fill": "#116FF0"
+    }
+   ]
+  },
+  {
+   "name": "presentation",
+   "kind": "group",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": false,
+   "size": [
+    0,
+    0
+   ],
+   "children": [
+    {
+     "name": "Layer 1",
+     "kind": "pixel",
+     "bbox": [
+      -11,
+      -3,
+      1946,
+      1220
+     ],
+     "visible": false,
+     "size": [
+      1957,
+      1223
+     ]
+    },
+    {
+     "name": "Place your screen in here",
+     "kind": "smartobject",
+     "bbox": [
+      497,
+      470,
+      1403,
+      977
+     ],
+     "visible": false,
+     "size": [
+      906,
+      507
+     ]
+    },
+    {
+     "name": "Lighting",
+     "kind": "pixel",
+     "bbox": [
+      480,
+      425,
+      1442,
+      750
+     ],
+     "visible": false,
+     "size": [
+      962,
+      325
+     ],
+     "blend": "SOFT_LIGHT"
+    },
+    {
+     "name": "Tint",
+     "kind": "pixel",
+     "bbox": [
+      -11,
+      -3,
+      1946,
+      1220
+     ],
+     "visible": false,
+     "size": [
+      1957,
+      1223
+     ],
+     "blend": "SCREEN"
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

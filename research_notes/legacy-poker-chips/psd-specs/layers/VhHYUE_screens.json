@@ -1,0 +1,352 @@
+{
+ "file": "VhHYUE_screens.psd",
+ "canvas": [
+  1940,
+  1220
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "РАСКАДРОВКА",
+   "kind": "group",
+   "bbox": [
+    127,
+    241,
+    1941,
+    757
+   ],
+   "visible": true,
+   "size": [
+    1814,
+    516
+   ],
+   "children": [
+    {
+     "name": "Layer 81",
+     "kind": "pixel",
+     "bbox": [
+      0,
+      0,
+      1940,
+      1220
+     ],
+     "visible": false,
+     "size": [
+      1940,
+      1220
+     ]
+    },
+    {
+     "name": "Rectangle 3",
+     "kind": "shape",
+     "bbox": [
+      127,
+      241,
+      421,
+      757
+     ],
+     "visible": true,
+     "size": [
+      294,
+      516
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Rectangle 4",
+     "kind": "shape",
+     "bbox": [
+      246,
+      452,
+      301,
+      506
+     ],
+     "visible": true,
+     "size": [
+      55,
+      54
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 3 copy",
+     "kind": "shape",
+     "bbox": [
+      431,
+      241,
+      725,
+      757
+     ],
+     "visible": true,
+     "size": [
+      294,
+      516
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "Polygon 1",
+     "kind": "shape",
+     "bbox": [
+      502,
+      413,
+      654,
+      545
+     ],
+     "visible": true,
+     "size": [
+      152,
+      132
+     ],
+     "fill": "#000000"
+    },
+    {
+     "name": "Rectangle 3 copy 2",
+     "kind": "shape",
+     "bbox": [
+      735,
+      241,
+      1029,
+      757
+     ],
+     "visible": true,
+     "size": [
+      294,
+      516
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "CHIPS",
+     "kind": "smartobject",
+     "bbox": [
+      806,
+      414,
+      955,
+      781
+     ],
+     "visible": true,
+     "size": [
+      149,
+      367
+     ]
+    },
+    {
+     "name": "Rectangle 3 copy 3",
+     "kind": "shape",
+     "bbox": [
+      1039,
+      241,
+      1333,
+      757
+     ],
+     "visible": true,
+     "size": [
+      294,
+      516
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "chips copy 2",
+     "kind": "smartobject",
+     "bbox": [
+      933,
+      242,
+      1440,
+      902
+     ],
+     "visible": true,
+     "size": [
+      507,
+      660
+     ]
+    },
+    {
+     "name": "Rectangle 3 copy 4",
+     "kind": "shape",
+     "bbox": [
+      1343,
+      241,
+      1637,
+      757
+     ],
+     "visible": true,
+     "size": [
+      294,
+      516
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "500 copy",
+     "kind": "smartobject",
+     "bbox": [
+      1439,
+      702,
+      1511,
+      776
+     ],
+     "visible": true,
+     "size": [
+      72,
+      74
+     ]
+    },
+    {
+     "name": "100 copy",
+     "kind": "smartobject",
+     "bbox": [
+      1473,
+      229,
+      1544,
+      300
+     ],
+     "visible": true,
+     "size": [
+      71,
+      71
+     ]
+    },
+    {
+     "name": "Rectangle 1",
+     "kind": "shape",
+     "bbox": [
+      1441,
+      376,
+      1595,
+      580
+     ],
+     "visible": true,
+     "size": [
+      154,
+      204
+     ]
+    },
+    {
+     "name": "Rectangle 1 copy",
+     "kind": "shape",
+     "bbox": [
+      1427,
+      377,
+      1529,
+      559
+     ],
+     "visible": true,
+     "size": [
+      102,
+      182
+     ]
+    },
+    {
+     "name": "500",
+     "kind": "smartobject",
+     "bbox": [
+      1402,
+      258,
+      1469,
+      334
+     ],
+     "visible": true,
+     "size": [
+      67,
+      76
+     ]
+    },
+    {
+     "name": "1000",
+     "kind": "smartobject",
+     "bbox": [
+      1376,
+      633,
+      1443,
+      709
+     ],
+     "visible": true,
+     "size": [
+      67,
+      76
+     ]
+    },
+    {
+     "name": "1000 copy",
+     "kind": "smartobject",
+     "bbox": [
+      1410,
+      609,
+      1481,
+      680
+     ],
+     "visible": true,
+     "size": [
+      71,
+      71
+     ]
+    },
+    {
+     "name": "100",
+     "kind": "smartobject",
+     "bbox": [
+      1544,
+      256,
+      1611,
+      332
+     ],
+     "visible": true,
+     "size": [
+      67,
+      76
+     ]
+    },
+    {
+     "name": "25",
+     "kind": "smartobject",
+     "bbox": [
+      1528,
+      654,
+      1595,
+      730
+     ],
+     "visible": true,
+     "size": [
+      67,
+      76
+     ]
+    },
+    {
+     "name": "Rectangle 3 copy 5",
+     "kind": "shape",
+     "bbox": [
+      1647,
+      241,
+      1941,
+      757
+     ],
+     "visible": true,
+     "size": [
+      294,
+      516
+     ],
+     "fill": "#FFFFFF"
+    },
+    {
+     "name": "poker chips  genius",
+     "kind": "smartobject",
+     "bbox": [
+      1611,
+      238,
+      2003,
+      817
+     ],
+     "visible": true,
+     "size": [
+      392,
+      579
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

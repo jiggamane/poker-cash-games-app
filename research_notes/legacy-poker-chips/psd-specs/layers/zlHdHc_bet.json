@@ -1,0 +1,245 @@
+{
+ "file": "zlHdHc_bet.psd",
+ "canvas": [
+  1940,
+  1220
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "_4",
+   "kind": "shape",
+   "bbox": [
+    909,
+    651,
+    1631,
+    1059
+   ],
+   "visible": false,
+   "size": [
+    722,
+    408
+   ],
+   "fill": "#1D0EAA"
+  },
+  {
+   "name": "_3",
+   "kind": "shape",
+   "bbox": [
+    149,
+    651,
+    871,
+    1059
+   ],
+   "visible": false,
+   "size": [
+    722,
+    408
+   ],
+   "fill": "#1D0EAA"
+  },
+  {
+   "name": "_2",
+   "kind": "shape",
+   "bbox": [
+    909,
+    205,
+    1631,
+    613
+   ],
+   "visible": false,
+   "size": [
+    722,
+    408
+   ],
+   "fill": "#1D0EAA"
+  },
+  {
+   "name": "_1",
+   "kind": "shape",
+   "bbox": [
+    149,
+    204,
+    871,
+    613
+   ],
+   "visible": false,
+   "size": [
+    722,
+    409
+   ],
+   "fill": "#1D0EAA"
+  },
+  {
+   "name": "_3",
+   "kind": "smartobject",
+   "bbox": [
+    150,
+    652,
+    871,
+    1058
+   ],
+   "visible": true,
+   "size": [
+    721,
+    406
+   ]
+  },
+  {
+   "name": "_1",
+   "kind": "pixel",
+   "bbox": [
+    150,
+    206,
+    871,
+    612
+   ],
+   "visible": true,
+   "size": [
+    721,
+    406
+   ]
+  },
+  {
+   "name": "_2",
+   "kind": "pixel",
+   "bbox": [
+    910,
+    206,
+    1632,
+    613
+   ],
+   "visible": true,
+   "size": [
+    722,
+    407
+   ]
+  },
+  {
+   "name": "_4",
+   "kind": "pixel",
+   "bbox": [
+    910,
+    652,
+    1632,
+    1059
+   ],
+   "visible": true,
+   "size": [
+    722,
+    407
+   ]
+  },
+  {
+   "name": "presentation",
+   "kind": "group",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": false,
+   "size": [
+    0,
+    0
+   ],
+   "children": [
+    {
+     "name": "Background",
+     "kind": "pixel",
+     "bbox": [
+      -16,
+      -81,
+      1957,
+      1235
+     ],
+     "visible": false,
+     "size": [
+      1973,
+      1316
+     ]
+    },
+    {
+     "name": "Smart Object",
+     "kind": "smartobject",
+     "bbox": [
+      548,
+      306,
+      1384,
+      775
+     ],
+     "visible": false,
+     "size": [
+      836,
+      469
+     ]
+    },
+    {
+     "name": "Adjustments",
+     "kind": "group",
+     "bbox": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "visible": false,
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "Photo Filter 1",
+       "kind": "photofilter",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ]
+      },
+      {
+       "name": "Color Balance 1",
+       "kind": "colorbalance",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ]
+      },
+      {
+       "name": "Curves 1",
+       "kind": "curves",
+       "bbox": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "visible": false,
+       "size": [
+        0,
+        0
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

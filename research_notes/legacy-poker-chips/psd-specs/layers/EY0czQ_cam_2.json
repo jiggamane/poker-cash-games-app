@@ -1,0 +1,162 @@
+{
+ "file": "EY0czQ_cam_2.psd",
+ "canvas": [
+  3142,
+  1598
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 2",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "visible": true,
+   "size": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Layer 7",
+   "kind": "pixel",
+   "bbox": [
+    2304,
+    211,
+    2944,
+    1347
+   ],
+   "visible": false,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 8",
+   "kind": "pixel",
+   "bbox": [
+    1614,
+    211,
+    2254,
+    1347
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 4",
+   "kind": "pixel",
+   "bbox": [
+    924,
+    211,
+    1564,
+    1347
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 12",
+   "kind": "pixel",
+   "bbox": [
+    926,
+    301,
+    1562,
+    1254
+   ],
+   "visible": true,
+   "size": [
+    636,
+    953
+   ]
+  },
+  {
+   "name": "Layer 10",
+   "kind": "pixel",
+   "bbox": [
+    1616,
+    304,
+    2252,
+    1258
+   ],
+   "visible": false,
+   "size": [
+    636,
+    954
+   ]
+  },
+  {
+   "name": "Layer 13",
+   "kind": "pixel",
+   "bbox": [
+    1616,
+    304,
+    2252,
+    1260
+   ],
+   "visible": true,
+   "size": [
+    636,
+    956
+   ]
+  },
+  {
+   "name": "Layer 11",
+   "kind": "pixel",
+   "bbox": [
+    2306,
+    211,
+    2946,
+    1347
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 5",
+   "kind": "pixel",
+   "bbox": [
+    234,
+    211,
+    874,
+    1347
+   ],
+   "visible": true,
+   "size": [
+    640,
+    1136
+   ]
+  },
+  {
+   "name": "Layer 9",
+   "kind": "pixel",
+   "bbox": [
+    235,
+    303,
+    872,
+    1259
+   ],
+   "visible": true,
+   "size": [
+    637,
+    956
+   ]
+  }
+ ],
+ "dpi": 72.0
+}

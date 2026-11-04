@@ -1,0 +1,541 @@
+{
+ "file": "Vh6UDg_suit_cards.psd",
+ "canvas": [
+  1940,
+  1220
+ ],
+ "color_mode": "3",
+ "depth": 8,
+ "layers": [
+  {
+   "name": "Layer 0",
+   "kind": "pixel",
+   "bbox": [
+    0,
+    0,
+    1940,
+    1220
+   ],
+   "visible": false,
+   "size": [
+    1940,
+    1220
+   ]
+  },
+  {
+   "name": "Rectangle 5",
+   "kind": "shape",
+   "bbox": [
+    303,
+    450,
+    405,
+    553
+   ],
+   "visible": true,
+   "size": [
+    102,
+    103
+   ],
+   "fill": "#FFFFFF"
+  },
+  {
+   "name": "бубна",
+   "kind": "group",
+   "bbox": [
+    178,
+    450,
+    280,
+    552
+   ],
+   "visible": true,
+   "size": [
+    102,
+    102
+   ],
+   "children": [
+    {
+     "name": "Rectangle 4",
+     "kind": "shape",
+     "bbox": [
+      178,
+      450,
+      280,
+      552
+     ],
+     "visible": true,
+     "size": [
+      102,
+      102
+     ],
+     "fill": "#F44E59"
+    }
+   ]
+  },
+  {
+   "name": "крестя",
+   "kind": "group",
+   "bbox": [
+    303,
+    450,
+    405,
+    552
+   ],
+   "visible": true,
+   "size": [
+    102,
+    102
+   ],
+   "children": [
+    {
+     "name": "Polygon 1",
+     "kind": "shape",
+     "bbox": [
+      319,
+      499,
+      389,
+      552
+     ],
+     "visible": true,
+     "size": [
+      70,
+      53
+     ],
+     "fill": "#686869"
+    },
+    {
+     "name": "Polygon 1 copy",
+     "kind": "shape",
+     "bbox": [
+      330,
+      450,
+      379,
+      503
+     ],
+     "visible": true,
+     "size": [
+      49,
+      53
+     ],
+     "fill": "#686869"
+    },
+    {
+     "name": "Polygon 1 copy 3",
+     "kind": "shape",
+     "bbox": [
+      352,
+      477,
+      405,
+      526
+     ],
+     "visible": true,
+     "size": [
+      53,
+      49
+     ],
+     "fill": "#686869"
+    },
+    {
+     "name": "Polygon 1 copy 4",
+     "kind": "shape",
+     "bbox": [
+      303,
+      477,
+      356,
+      526
+     ],
+     "visible": true,
+     "size": [
+      53,
+      49
+     ],
+     "fill": "#686869"
+    }
+   ]
+  },
+  {
+   "name": "чирва",
+   "kind": "group",
+   "bbox": [
+    427,
+    450,
+    531,
+    554
+   ],
+   "visible": true,
+   "size": [
+    104,
+    104
+   ],
+   "children": [
+    {
+     "name": "Polygon 2 copy 2",
+     "kind": "shape",
+     "bbox": [
+      427,
+      450,
+      531,
+      554
+     ],
+     "visible": true,
+     "size": [
+      104,
+      104
+     ]
+    },
+    {
+     "name": "Polygon 3 copy",
+     "kind": "shape",
+     "bbox": [
+      467,
+      477,
+      491,
+      490
+     ],
+     "visible": true,
+     "size": [
+      24,
+      13
+     ],
+     "fill": "#F44E59"
+    }
+   ]
+  },
+  {
+   "name": "пика",
+   "kind": "group",
+   "bbox": [
+    553,
+    449,
+    655,
+    552
+   ],
+   "visible": true,
+   "size": [
+    102,
+    103
+   ],
+   "children": [
+    {
+     "name": "Polygon 1 copy 2",
+     "kind": "shape",
+     "bbox": [
+      569,
+      499,
+      639,
+      552
+     ],
+     "visible": true,
+     "size": [
+      70,
+      53
+     ],
+     "fill": "#686869"
+    },
+    {
+     "name": "Polygon 1 copy 5",
+     "kind": "shape",
+     "bbox": [
+      553,
+      449,
+      655,
+      527
+     ],
+     "visible": true,
+     "size": [
+      102,
+      78
+     ],
+     "fill": "#686869"
+    }
+   ]
+  },
+  {
+   "name": "пика copy 2",
+   "kind": "smartobject",
+   "bbox": [
+    712,
+    500,
+    950,
+    551
+   ],
+   "visible": true,
+   "size": [
+    238,
+    51
+   ]
+  },
+  {
+   "name": "пика copy 3",
+   "kind": "smartobject",
+   "bbox": [
+    1001,
+    526,
+    1119,
+    551
+   ],
+   "visible": true,
+   "size": [
+    118,
+    25
+   ]
+  },
+  {
+   "name": "бубна copy",
+   "kind": "group",
+   "bbox": [
+    178,
+    612,
+    280,
+    714
+   ],
+   "visible": true,
+   "size": [
+    102,
+    102
+   ],
+   "children": [
+    {
+     "name": "Rectangle 4",
+     "kind": "shape",
+     "bbox": [
+      178,
+      612,
+      280,
+      714
+     ],
+     "visible": true,
+     "size": [
+      102,
+      102
+     ],
+     "fill": "#F44E59"
+    }
+   ]
+  },
+  {
+   "name": "крестя copy",
+   "kind": "group",
+   "bbox": [
+    303,
+    612,
+    405,
+    714
+   ],
+   "visible": true,
+   "size": [
+    102,
+    102
+   ],
+   "children": [
+    {
+     "name": "Polygon 1",
+     "kind": "shape",
+     "bbox": [
+      319,
+      661,
+      389,
+      714
+     ],
+     "visible": true,
+     "size": [
+      70,
+      53
+     ],
+     "fill": "#686869"
+    },
+    {
+     "name": "Polygon 1 copy",
+     "kind": "shape",
+     "bbox": [
+      330,
+      612,
+      379,
+      665
+     ],
+     "visible": true,
+     "size": [
+      49,
+      53
+     ]
+    },
+    {
+     "name": "Polygon 1 copy 3",
+     "kind": "shape",
+     "bbox": [
+      352,
+      639,
+      405,
+      688
+     ],
+     "visible": true,
+     "size": [
+      53,
+      49
+     ],
+     "fill": "#686869"
+    },
+    {
+     "name": "Polygon 1 copy 4",
+     "kind": "shape",
+     "bbox": [
+      303,
+      639,
+      356,
+      688
+     ],
+     "visible": true,
+     "size": [
+      53,
+      49
+     ],
+     "fill": "#686869"
+    }
+   ]
+  },
+  {
+   "name": "чирва copy",
+   "kind": "group",
+   "bbox": [
+    427,
+    612,
+    531,
+    716
+   ],
+   "visible": true,
+   "size": [
+    104,
+    104
+   ],
+   "children": [
+    {
+     "name": "Polygon 2 copy 2",
+     "kind": "shape",
+     "bbox": [
+      427,
+      612,
+      531,
+      716
+     ],
+     "visible": true,
+     "size": [
+      104,
+      104
+     ],
+     "fill": "#F44E59"
+    },
+    {
+     "name": "Polygon 3 copy",
+     "kind": "shape",
+     "bbox": [
+      467,
+      639,
+      491,
+      653
+     ],
+     "visible": false,
+     "size": [
+      24,
+      14
+     ],
+     "fill": "#F44E59"
+    }
+   ]
+  },
+  {
+   "name": "пика copy",
+   "kind": "group",
+   "bbox": [
+    553,
+    611,
+    655,
+    714
+   ],
+   "visible": true,
+   "size": [
+    102,
+    103
+   ],
+   "children": [
+    {
+     "name": "Polygon 1 copy 2",
+     "kind": "shape",
+     "bbox": [
+      569,
+      661,
+      639,
+      714
+     ],
+     "visible": true,
+     "size": [
+      70,
+      53
+     ],
+     "fill": "#686869"
+    },
+    {
+     "name": "Polygon 1 copy 5",
+     "kind": "shape",
+     "bbox": [
+      553,
+      611,
+      655,
+      688
+     ],
+     "visible": true,
+     "size": [
+      102,
+      77
+     ],
+     "fill": "#686869"
+    },
+    {
+     "name": "Polygon 2",
+     "kind": "shape",
+     "bbox": [
+      587,
+      664,
+      622,
+      689
+     ],
+     "visible": true,
+     "size": [
+      35,
+      25
+     ],
+     "fill": "#FFFFFF"
+    }
+   ]
+  },
+  {
+   "name": "пика copy 4",
+   "kind": "smartobject",
+   "bbox": [
+    712,
+    665,
+    950,
+    716
+   ],
+   "visible": true,
+   "size": [
+    238,
+    51
+   ]
+  },
+  {
+   "name": "пика copy 5",
+   "kind": "smartobject",
+   "bbox": [
+    1000,
+    687,
+    1119,
+    712
+   ],
+   "visible": true,
+   "size": [
+    119,
+    25
+   ]
+  }
+ ],
+ "dpi": 72.0
+}
