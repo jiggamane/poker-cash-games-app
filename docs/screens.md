@@ -2186,7 +2186,9 @@ Was `My games`. The 40-point period total at the top of it and its three period
 tabs are **gone** — both were a second copy of what My stats already draws, and
 two screens each carrying their own total is exactly the drift this batch keeps
 finding. The screen is the list, top to bottom, with the group dropdown on the
-meta line and the count stated as `8 nights · newest first`.
+meta line. **The count is gone from it** — it read `8 nights · newest first`
+until the owner ruled on 4 November that it said what the list already shows.
+The row stays for the control, with nothing on its left.
 
 **The meta line has a floor under it and the text-only one does not** — 14
 points, `chrome.metaPadBottom`, on `Screen`'s `metaRow` alone. A line of

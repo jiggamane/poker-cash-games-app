@@ -64,7 +64,14 @@ export default function Sessions() {
   return (
     <Screen
       title="Sessions"
-      meta={metaLine(nights.length)}
+      /*
+       * NO TEXT ON THE META LINE, only the group control — owner, 4 November.
+       * `9 nights · newest first` said what the list already shows, and it was
+       * the line B82 had to win width back for. The row stays, empty on the
+       * left, because the control lives on it; `metaNode` is how `Screen`
+       * draws that row without a string.
+       */
+      metaNode={<View />}
       metaTrailing={
         <Dropdown
           testID="sessions-scope"
@@ -113,19 +120,6 @@ export default function Sessions() {
       </View>
     </Screen>
   );
-}
-
-/**
- * `28 nights · newest first`.
- *
- * THE COUNT IS THE COUNT OF ROWS DRAWN, not of nights that exist: it is under
- * a group filter, and a line saying 28 over a list of 6 would be the header
- * disagreeing with the screen. `newest first` is the order stated rather than
- * implied, because the alternative is a reader checking the first two dates.
- */
-function metaLine(nights: number): string {
-  if (nights === 0) return 'no nights yet';
-  return `${nights} ${nights === 1 ? 'night' : 'nights'} · newest first`;
 }
 
 const styles = StyleSheet.create({

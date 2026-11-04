@@ -1303,8 +1303,19 @@ function nightAsMine(night: Night): MyNight | null {
     }
   }
 
+  /*
+   * THE NIGHT'S OWN CLOSE FIRST — `endedAt`, which the host sets on `/end-time`
+   * and which `/settled` already prints. The last entry is only the fallback.
+   *
+   * ⚠ IT WAS THE LAST ENTRY ALONE, and that is B104. A late change made the
+   * next afternoon is an entry, so a night that finished at one in the morning
+   * read as a sixteen-hour sitting, and My stats' period hours carried every
+   * hour of it. The highest `seq`'s stamp is not even the latest stamp: a
+   * correction can be backdated.
+   */
   const last = [...night.entries].sort((a, b) => b.seq - a.seq)[0];
-  const ended = last === undefined ? undefined : night.occurredAt[last.id];
+  const ended =
+    night.endedAt ?? (last === undefined ? undefined : night.occurredAt[last.id]);
 
   return {
     sessionId: night.sessionId,

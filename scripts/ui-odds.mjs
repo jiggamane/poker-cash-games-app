@@ -117,6 +117,10 @@ if (!onlyOuts && !onlyRiver) {
     await callout.waitFor({ state: 'detached', timeout: 3000 }).catch(() => fail.push('the callout stayed after a slide and release'));
     if ((await page.getByRole('button', { name: '9♥, dealt', exact: true }).count()) === 0) fail.push('sliding to 9♥ and letting go did not deal it');
     if ((await page.getByRole('button', { name: '7♣, dealt', exact: true }).count()) > 0) fail.push('the card first pressed, 7♣, was dealt');
+    /* B106: a dealt card's place in the deck keeps its name, muted, as a placeholder. */
+    const held = page.getByRole('button', { name: '9♥, dealt', exact: true }).first();
+    if ((await held.count()) && !((await held.textContent()) ?? '').includes('9'))
+      fail.push('the dealt 9♥ left a blank in the deck rather than a placeholder');
 
     /* The two edge columns keep the copy inside the screen. */
     for (const label of ['A♣', '2♠']) {

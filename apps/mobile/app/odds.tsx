@@ -519,7 +519,7 @@ export default function OddsCalculator() {
       {/* One row per suit, aces first — the shape every deck picker has had
           since the first one, because it is how a person finds a card. Each
           cell is a small card of its own: stock, rank, pip. A card already on
-          the table is a gap where it was. */}
+          the table is a blank where it was, holding its name in muted ink. */}
       {[3, 2, 1, 0].map((suit, row) => (
         <View key={suit} style={styles.suitRow}>
           {RANKS.map((rank, col) => {
@@ -560,18 +560,21 @@ export default function OddsCalculator() {
                 style={[
                   styles.deckCard,
                   /* A card already on the table is a flat blank where it
-                     was — no edge, no ink — so it cannot be mistaken for
-                     a place that takes one. */
+                     was — no card stock, no edge — so it cannot be mistaken
+                     for one that can still be picked. Its rank and pip stay on
+                     it in the muted ink, as a placeholder: owner, 4 November
+                     (B106) — a row of gaps did not say which cards were out. */
                   { backgroundColor: gone ? t.surface : CARD_FACE },
                   pressedCard === c && !gone && { borderWidth: 2, borderColor: t.text },
                 ]}
               >
-                {!gone && (
-                  <>
-                    <Text style={[styles.deckRank, { color: inkOf(c) }]}>{RANKS[12 - col]}</Text>
-                    <Pip suit={suit} size={11} color={inkOf(c)} />
-                  </>
-                )}
+                <Text
+                  testID={gone ? 'deck-placeholder' : undefined}
+                  style={[styles.deckRank, { color: gone ? t.muted : inkOf(c) }]}
+                >
+                  {RANKS[12 - col]}
+                </Text>
+                <Pip suit={suit} size={11} color={gone ? t.muted : inkOf(c)} />
               </View>
             );
           })}
@@ -831,7 +834,7 @@ function Callout({ card, left, top, stem }: { card: Card; left: number; top: num
  * An empty place is a dashed edge with a plus in it — dashed because dashed
  * means "creates something" (`tokens.ts`), the plus because the owner asked
  * (24 October) for a place that takes a card to look unlike a card that has
- * been taken, which in the deck is a flat blank. The next place is the same
+ * been taken, which in the deck is a flat blank with its name in muted ink. The next place is the same
  * plus inside a solid outline in the text colour. No fill on either: a fill
  * the colour of what is behind it is a block that paints nothing, which
  * `ui-audit.mjs` calls surface-on-itself and is right to. A dealt card is
