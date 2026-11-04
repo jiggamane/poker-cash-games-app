@@ -160,6 +160,13 @@ describe('the nights the server sends back', () => {
       expect(one.groupName).toBe(CLUB);
       expect(one.players).toBe(2);
       expect(one.terms.length).toBeGreaterThan(0);
+      /*
+       * B104. 18:00 to 23:00 is five hours, from the night's own `endedAt`.
+       * Read off the last entry instead — the second buy-in, at 18:00 — it was
+       * nothing, and every pulled night added no hours to My stats' total.
+       */
+      expect(one.minutes).toBe(300);
+      expect(one.times).toMatch(/ – /);
     }
   });
 

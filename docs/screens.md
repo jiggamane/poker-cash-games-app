@@ -2186,7 +2186,9 @@ Was `My games`. The 40-point period total at the top of it and its three period
 tabs are **gone** — both were a second copy of what My stats already draws, and
 two screens each carrying their own total is exactly the drift this batch keeps
 finding. The screen is the list, top to bottom, with the group dropdown on the
-meta line and the count stated as `8 nights · newest first`.
+meta line. **The count is gone from it** — it read `8 nights · newest first`
+until the owner ruled on 4 November that it said what the list already shows.
+The row stays for the control, with nothing on its left.
 
 **The meta line has a floor under it and the text-only one does not** — 14
 points, `chrome.metaPadBottom`, on `Screen`'s `metaRow` alone. A line of
@@ -2251,8 +2253,11 @@ exception the top of `tokens.ts` refuses everybody else. A night at exactly zero
 has no height to derive: green would call it a win, red a loss, and nothing
 would lose it from a graph of eight. It gets 2px of `#E8B84B` above the baseline
 and 2px below, it keeps full colour while another night is tapped — 4px of mark
-cannot survive being dimmed to 34% — and it is the only column that labels
-itself, because it is the only one whose height says nothing.
+cannot survive being dimmed to 34%. **It does not label itself** — a
+departure from the cut, which drew `$0` over it as the only column whose height
+says nothing. The owner ruled on 4 November that it reads like every other
+night: no figure on the graph until a column is tapped, and then in the readout
+(B103).
 
 **The readout** is one state with one timer counting from the last tap: figure,
 bar, white date label and brightened baseline slice arrive together over 120ms,

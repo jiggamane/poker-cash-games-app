@@ -139,6 +139,74 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B104 — My stats' hours, and every night's length, ignored when the night ended
+
+```
+Screen      G4 My stats (the period card's `6 games · 25 h`), Sessions and
+            Last games (each row's length)
+Seen        4 Nov, the owner: the period totals do not count correctly.
+            `nightAsMine` took a night's length from its LAST LEDGER ENTRY and
+            never read `endedAt`. A night pulled from the server carries its
+            buy-ins as entries and its counts as counts, so its last entry is
+            the last buy-in and it lasted minutes, or nothing; and a late change
+            the next day stretched a night to sixteen hours
+Expected    start to `endedAt` — the close the host sets on `/end-time`, the
+            one `/settled` prints — with the last entry only as a fallback
+Locked by   `book.test.ts`, "are in the book": a pulled 18:00–23:00 night is
+            300 minutes. Red before the fix (it read 0)
+Status      fixed in this commit
+```
+
+The money totals were read against the same night and add up — `summarise` is
+tested and the nets are the engine's frozen scores. Open: the graph and
+`Last games` follow the group but not the period, deliberately (they are counts
+of nights, `stats.tsx`), which can read as the total disagreeing with them.
+
+### B105 — the past night's meta line gains its length (open)
+
+```
+Screen      /settled, the line under the date
+Asked       4 Nov, the owner: show how long the game ran beside the two times
+Tried       `12:02 → 15:18 · 3h 17m` on that line. check:ui, the big night at
+            360: "meta-line-truncated — needs 153 in 138", and 183 in 163 at
+            120% text. The view control shares the line, which is B81 again
+Status      open — not shipped. Needs the owner to choose where the length
+            goes; the attempt is commit c6577ec on claude/sharp-carson-3ok5wm
+```
+
+### B106 — a dealt card left a blank in the card keyboard
+
+```
+Screen      /odds, the deck
+Asked       4 Nov, the owner: a card already picked should show a placeholder,
+            not a gap
+Now         the blank keeps its rank and pip in `muted`, on `surface` with no
+            card stock — readable, and plainly not a card that can be picked
+Locked by   `ui-odds.mjs`: the dealt 9♥ still names itself in the deck
+Status      changed in this commit
+```
+
+### B103 — My stats' graph wrote `$0` over a break-even night before any tap
+
+```
+Screen      G4 My stats, the RESULT PER NIGHT graph
+Seen        4 Nov, reported by the owner: no column states its figure until it
+            is tapped, except the break-even one, which wrote `$0` over its
+            yellow mark all the time
+Expected    the same as every other night — the mark alone, and the figure in
+            the readout when the column is tapped
+Locked by   `nightsChart.contract.test.ts` (in `npm run check`): the chart may
+            write a figure only in the readout and the accessibility label. No
+            browser check can see it — the `ui-journeys` My stats stop has no
+            nights to draw after B79
+Status      fixed in this commit
+```
+
+The label was the `handoff-sessions-stats` cut's own, drawn deliberately as
+"the only column whose height says nothing". The owner overruled it; the
+departure is recorded in `docs/screens.md` under the graph, so a later session
+holding the screen against the board does not put it back.
+
 ### B102 — a seat given its first card kept the last result on screen for one frame
 
 ```

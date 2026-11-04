@@ -247,8 +247,8 @@ export interface Theme {
    * zero that is nothing at all. Drawing it green would call a level night a
    * win and red a loss, and drawing nothing would lose the night from a graph
    * of eight. So it gets 2px above the baseline and 2px below, in a colour
-   * that is neither — and it is the only column that labels itself, because it
-   * is the only one whose height says nothing.
+   * that is neither. It no longer labels itself `$0` — like every other
+   * column, its figure is read by tapping it (B103).
    */
   breakEven: string;
   /** The tapped column's slice of the chart baseline, and only that slice. */
