@@ -249,7 +249,8 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
   const fail = [];
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
-  const up = async () => (await page.getByRole('button', { name: 'A♠', exact: true }).count()) > 0;
+  /* Up is the deck's own Done on the page — a card's name changes once it is dealt. */
+  const up = async () => (await page.getByRole('button', { name: 'Done', exact: true }).count()) > 0;
   const tap = (label) => page.getByRole('button', { name: label, exact: true }).click({ timeout: 10_000 });
   try {
     await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });

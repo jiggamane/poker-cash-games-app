@@ -487,9 +487,14 @@ export default function OddsCalculator() {
   /* The strip above the deck: *Done*, and a swipe down on it. */
   const swipe = useRef(
     PanResponder.create({
+      /* From the first touch: the strip has nothing else to do with one, and
+         *Done* inside it is deeper and so still takes its own tap. */
+      onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, g) => g.dy > 6 && Math.abs(g.dy) > Math.abs(g.dx),
+      /* A swipe down crosses the deck, whose cells ask for every move; keep it. */
+      onPanResponderTerminationRequest: () => false,
       onPanResponderRelease: (_, g) => {
-        if (g.dy > 24) setDeckOpen(false);
+        if (g.dy > 24 && Math.abs(g.dy) > Math.abs(g.dx)) setDeckOpen(false);
       },
     }),
   ).current;
