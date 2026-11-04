@@ -2933,6 +2933,17 @@ amount while the other is still blank it moves the keypad to the other one; with
 both in it puts the keypad away. Tapping either amount brings it back on that one.
 `ui-odds.mjs` holds it on every pot table with both amounts typed.
 
+**And the field being typed stays in sight above the keypad** (the owner, same
+day). It did not: measured with *Pot* open, the field sat 16 points under the top
+row of keys on a 393 × 852 phone, and on a 320 × 568 one the keypad reached up
+past the line under the title. Two halves: under 700 points tall the keys are 44
+rather than 58 (`Keypad`'s `compact`, used by this screen only — every money
+screen keeps the full keys), and each time the keypad comes up or moves to the
+other amount the field is scrolled into what is visible (`Screen`'s `scrollRef`).
+`ui-odds.mjs` now measures the field against the top key and the head on every
+pot table, at 393 and at 320; it measured clipped text before, never overlap,
+which is how this got through.
+
 **4 November (the owner): the deck is a keyboard, and two seats to begin
 with.** The deck is up while there is a blank to fill and goes away by itself
 when the last hole card or board card goes in — not after each card, and not

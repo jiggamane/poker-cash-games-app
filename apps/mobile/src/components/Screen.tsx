@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ComponentRef, ReactNode, RefObject } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -39,6 +39,8 @@ export function Screen({
   scroll = true,
   headScroll = 'none',
   dimmed = false,
+  scrollRef,
+  onScrollY,
 }: {
   title: string;
   /**
@@ -109,6 +111,12 @@ export function Screen({
   footerPad?: boolean;
   /** Off when the screen manages its own scrolling — a list with a dock. */
   scroll?: boolean;
+  /**
+   * The scroller and how far it is scrolled, for a screen that has to bring
+   * something into view itself — the odds calculator's amount above its keypad.
+   */
+  scrollRef?: RefObject<ComponentRef<typeof ScrollView> | null>;
+  onScrollY?: (y: number) => void;
   /**
    * HOW MUCH OF THE HEAD THE BODY CARRIES AWAY WITH IT.
    *
@@ -266,6 +274,9 @@ export function Screen({
         {moving === 'none' && sub}
         {scroll ? (
           <ScrollView
+            ref={scrollRef}
+            onScroll={onScrollY === undefined ? undefined : (e) => onScrollY(e.nativeEvent.contentOffset.y)}
+            scrollEventThrottle={16}
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
             style={styles.body}

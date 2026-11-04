@@ -1,3 +1,4 @@
+import type { ComponentRef, Ref } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { money, potOdds, formatHundredths, type SeatOdds } from '@poker-club/core';
 import { Icon } from './Icon';
@@ -46,6 +47,7 @@ export function PotOddsCard({
   editing,
   onToggle,
   onEdit,
+  activeRef,
 }: {
   /** Player 1's line of the odds result. */
   seat: SeatOdds;
@@ -57,6 +59,8 @@ export function PotOddsCard({
   editing: PotField | null;
   onToggle: () => void;
   onEdit: (field: PotField) => void;
+  /** On the amount being typed, so the screen can keep it above the keypad. */
+  activeRef?: Ref<ComponentRef<typeof View>>;
 }) {
   const t = useTheme();
   const p = potOdds(pot, call, seat, boards);
@@ -106,8 +110,16 @@ export function PotOddsCard({
             active={editing === 'pot'}
             onPress={() => onEdit('pot')}
             last={false}
+            boxRef={editing === 'pot' ? activeRef : undefined}
           />
-          <AmountRow label="To call" amount={call} active={editing === 'call'} onPress={() => onEdit('call')} last />
+          <AmountRow
+            label="To call"
+            amount={call}
+            active={editing === 'call'}
+            onPress={() => onEdit('call')}
+            last
+            boxRef={editing === 'call' ? activeRef : undefined}
+          />
 
           <View style={styles.pair}>
             <Figure label="Needs" value={needs} />
@@ -160,12 +172,14 @@ function AmountRow({
   active,
   onPress,
   last,
+  boxRef,
 }: {
   label: string;
   amount: number;
   active: boolean;
   onPress: () => void;
   last: boolean;
+  boxRef?: Ref<ComponentRef<typeof View>> | undefined;
 }) {
   const t = useTheme();
   const shown = formatMoney(money(amount));
@@ -173,6 +187,7 @@ function AmountRow({
     <View style={[styles.amountRow, !last && { borderBottomColor: t.hairline, borderBottomWidth: StyleSheet.hairlineWidth }]}>
       <Text style={[styles.amountLabel, { color: t.text }]}>{label}</Text>
       <Pressable
+        ref={boxRef}
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${shown}`}
         onPress={onPress}

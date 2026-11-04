@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { PanResponder, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
 import {
   BOARD_CARDS,
   HOLE_CARDS,
@@ -418,6 +418,40 @@ export default function OddsCalculator() {
   const potShown = shown !== null && youOdds !== null;
   const typing = potShown && potOpen ? editing : null;
   const field = typing === 'pot' ? potField : callField;
+
+  /*
+   * THE AMOUNT BEING TYPED STAYS ABOVE THE KEYPAD (the owner, 4 November). The
+   * keypad takes the deck's place at the foot and the scroller shrinks to what
+   * is left, so the field could end up under the keys — on a 393 phone by 16
+   * points, on a 320 × 568 one under all of it. Two halves: on a short phone the
+   * keys are 44 tall rather than 58 (`compact`), which leaves room; and each
+   * time the keypad comes up or moves to the other amount, the field is
+   * scrolled to sit inside what is visible, with a little air.
+   */
+  const { height: screenH } = useWindowDimensions();
+  const compactPad = screenH < SHORT_PHONE;
+  const scroller = useRef<ComponentRef<typeof ScrollView> | null>(null);
+  const scrolledY = useRef(0);
+  const typingRef = useRef<ComponentRef<typeof View> | null>(null);
+  useEffect(() => {
+    if (typing === null) return;
+    /* After the footer has swapped and the scroller has its new height. */
+    const id = setTimeout(() => {
+      const box = typingRef.current;
+      const view = scroller.current as unknown as ComponentRef<typeof View> | null;
+      if (box === null || view === null) return;
+      view.measureInWindow((_x, top, _w, height) => {
+        box.measureInWindow((_fx, y, _fw, h) => {
+          const air = 12;
+          let by = 0;
+          if (y + h > top + height - air) by = y + h - (top + height - air);
+          else if (y < top + air) by = y - (top + air);
+          if (by !== 0) scroller.current?.scrollTo({ y: Math.max(0, scrolledY.current + by), animated: true });
+        });
+      });
+    }, 60);
+    return () => clearTimeout(id);
+  }, [typing]);
   /* DONE ON THE KEYPAD moves to the other amount while it is still blank, and
      puts the keypad away once both are in (the owner, 4 November) — a figure
      being typed has no last digit, so *Done* is the moment it is finished.
@@ -632,7 +666,7 @@ export default function OddsCalculator() {
         ) : (
           /* The amount keypad in the deck's place, with the way back to the deck. */
           <View style={styles.amountFoot}>
-            <Keypad {...field.keys} />
+            <Keypad {...field.keys} compact={compactPad} />
             <View style={styles.doneWrap}>
               <Button label="Done" onPress={finishAmount} />
             </View>
@@ -640,6 +674,8 @@ export default function OddsCalculator() {
         )
       }
       footerPad={typing === null}
+      scrollRef={scroller}
+      onScrollY={(y) => (scrolledY.current = y)}
     >
       {/* A tap on the screen that lands on no control sends the deck away. Not a
           control itself: nothing for a screen reader, which has *Done*. */}
@@ -783,6 +819,7 @@ export default function OddsCalculator() {
               setEditing(null);
             }}
             onEdit={(f) => setEditing(f)}
+            activeRef={typingRef}
           />
         )}
 
@@ -889,6 +926,9 @@ function CardSlot({
     </Pressable>
   );
 }
+
+/* Under this many points tall the amount keypad's keys are the short ones. */
+const SHORT_PHONE = 700;
 
 /* The deck's own numbers, and the callout's, which are measured against them. */
 const DECK_GAP = 3;

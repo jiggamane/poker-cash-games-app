@@ -342,6 +342,17 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : potCases).entries()) {
           /* Done on Pot leaves the keypad up on To call (4 November), so the second amount is typed straight in. */
           if (!(await padUp())) await page.getByRole('button', { name: new RegExp(`^${field}, `) }).click({ timeout: 10_000 });
           for (const d of digits) await tap(d);
+          /* With the keypad up, the field being typed sits in sight: under the line below the
+             title, above the top row of keys — not under either (the owner, 4 November). */
+          await page.waitForTimeout(400);
+          const fb = await page.getByRole('button', { name: new RegExp(`^${field}, `) }).boundingBox();
+          const k1 = await page.getByRole('button', { name: '1', exact: true }).boundingBox();
+          const head = await page.locator('#screen-meta').boundingBox();
+          if (!fb || !k1 || !head) fail.push(`typing ${field}: could not measure the field against the keypad`);
+          else {
+            if (fb.y + fb.height > k1.y + 0.5) fail.push(`typing ${field}: the keypad covers the field (field ends ${Math.round(fb.y + fb.height)}, keys start ${Math.round(k1.y)})`);
+            if (fb.y < head.y + head.height - 0.5) fail.push(`typing ${field}: the field is under the head (field starts ${Math.round(fb.y)}, head ends ${Math.round(head.y + head.height)})`);
+          }
           /* With the keypad up, the card still fits and so does the pad. */
           for (const f of await cutOff(page)) fail.push(`typing ${field}: ${f}`);
           const done = await page.getByRole('button', { name: 'Done', exact: true }).boundingBox();
