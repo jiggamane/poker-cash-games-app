@@ -61,7 +61,7 @@ function build(title: string, hands: string[], board: string, dead = ''): Case {
   boardCards.forEach((c, i) => placements.push({ slot: `Board, card ${i + 1}`, card: name(c) }));
   const deadCards = dead === '' ? [] : cards(dead);
   deadCards.forEach((c) => placements.push({ slot: 'Next dead card', card: name(c) }));
-  const seats = Math.max(3, hands.length);
+  const seats = Math.max(2, hands.length);
   const input = { hands: full, board: boardCards, dead: deadCards };
   if (oddsProblem(input) !== null) throw new Error(`${title}: ${oddsProblem(input)}`);
   const button = boardCards.length >= 3;

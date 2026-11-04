@@ -65,7 +65,7 @@ function build(title: string, hands: string[], board: string): Case {
   });
   const boardCards = cards(board);
   boardCards.forEach((c, i) => placements.push({ slot: `Board, card ${i + 1}`, card: name(c) }));
-  const seats = Math.max(3, hands.length);
+  const seats = Math.max(2, hands.length);
   const river = boardCards.length === 5;
   const input = { hands: full, board: boardCards };
   if (oddsProblem(input) !== null) throw new Error(`${title}: ${oddsProblem(input)}`);

@@ -172,7 +172,7 @@ if (!onlyOuts && !onlyRiver) {
  */
 const dealTable = async (page, c) => {
   const tap = (label) => page.getByRole('button', { name: label, exact: true }).click({ timeout: 10_000 });
-  for (let s = 3; s < c.seats; s++) await tap('Add a player');
+  for (let s = 2; s < c.seats; s++) await tap('Add a player');
   for (const p of c.placements) {
     await tap(`${p.slot}, empty`);
     await tap(p.card);
@@ -233,6 +233,68 @@ if (!onlyOuts && !onlyRiver) {
   }
   await page.close();
   console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  pot odds: the card and the You tag on the flop and the turn only; no switch in Settings`);
+  for (const f of fail) console.log(`        ${f}`);
+  if (fail.length) failed++;
+}
+
+/*
+ * THE DECK IS A KEYBOARD (the owner, 4 November). Two seats to begin with. The
+ * deck is up on an empty table and goes away by itself only when the last blank
+ * — every hole card, five on the board — is filled, not after each card; *Done*,
+ * a swipe down on its strip and a tap on the screen off any control each send it
+ * away; tapping an empty place brings it back. While it is away nothing is
+ * outlined and the screen has the room: there is no footer at all.
+ */
+if (!onlyOuts && !onlyRiver && !onlyRunOut) {
+  const fail = [];
+  const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
+  page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
+  /* Up is the deck's own Done on the page — a card's name changes once it is dealt. */
+  const up = async () => (await page.getByRole('button', { name: 'Done', exact: true }).count()) > 0;
+  const tap = (label) => page.getByRole('button', { name: label, exact: true }).click({ timeout: 10_000 });
+  try {
+    await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
+    await page.waitForSelector('#screen-title');
+    if ((await page.getByRole('button', { name: /^Player 3, card/ }).count()) > 0) fail.push('the screen opens with three seats, wanted two');
+    if ((await page.getByRole('button', { name: /^Player 2, card 1/ }).count()) === 0) fail.push('the screen opens without a second seat');
+    if (!(await up())) fail.push('the deck is not up on an empty table');
+    await tap('Done');
+    if (await up()) fail.push('Done did not send the deck away');
+    await tap('Board, card 1, empty');
+    if (!(await up())) fail.push('tapping an empty place did not bring the deck back');
+    /* A tap on the screen off any control: the Board label. */
+    await page.getByText('Board', { exact: true }).click();
+    if (await up()) fail.push('a tap off any control did not send the deck away');
+    await tap('Player 1, card 1, empty');
+    /* A swipe down on the strip above the deck. */
+    const strip = await page.getByRole('button', { name: 'Done', exact: true }).boundingBox();
+    if (strip) {
+      await page.mouse.move(strip.x - 120, strip.y + strip.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(strip.x - 120, strip.y + 60, { steps: 6 });
+      await page.mouse.up();
+    }
+    if (await up()) fail.push('a swipe down on the strip did not send the deck away');
+    await tap('Player 1, card 1, empty');
+    /* Dealt in order, the outline moving on: two hands, then the board. */
+    const cards = ['A♠', 'K♠', 'Q♥', 'Q♦', '2♣', '7♦', '9♥', 'J♣'];
+    for (const c of cards) {
+      await tap(c);
+      if (!(await up())) fail.push(`the deck went away after ${c}, with blanks still on the table`);
+    }
+    await tap('3♠');
+    if (await up()) fail.push('the deck is still up with every blank filled');
+    if ((await page.locator('#deck-callout').count()) > 0) fail.push('the enlarged card is still showing');
+    /* A dead card brings it back and does not send it away. */
+    await tap('Next dead card, empty');
+    if (!(await up())) fail.push('tapping the next dead card did not bring the deck back');
+    await tap('4♣');
+    if (!(await up())) fail.push('the deck went away after a dead card');
+  } catch (e) {
+    fail.push(String(e.message ?? e).split('\n')[0]);
+  }
+  await page.close();
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  the deck as a keyboard: up while a blank is left, away by Done, a swipe, a tap off any control`);
   for (const f of fail) console.log(`        ${f}`);
   if (fail.length) failed++;
 }
@@ -464,7 +526,7 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : cases).entries()) {
     await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
     await page.waitForSelector('#screen-title');
     const tap = (label) => page.getByRole('button', { name: label, exact: true }).click({ timeout: 10_000 });
-    for (let s = 3; s < c.seats; s++) await tap('Add a player');
+    for (let s = 2; s < c.seats; s++) await tap('Add a player');
 
     for (const p of c.placements) {
       if (p.decoy) {
@@ -546,7 +608,7 @@ for (const [n, c] of (onlyRiver ? [] : runOutCases).entries()) {
       await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
       await page.waitForSelector('#screen-title');
       const tap = (label) => page.getByRole('button', { name: label, exact: true }).click({ timeout: 10_000 });
-      for (let s = 3; s < c.seats; s++) await tap('Add a player');
+      for (let s = 2; s < c.seats; s++) await tap('Add a player');
       for (const p of c.placements) {
         await tap(`${p.slot}, empty`);
         await tap(p.card);

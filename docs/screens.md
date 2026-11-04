@@ -2915,6 +2915,19 @@ five states (*Texas hold’em · deal two hands*, *Player 3 needs a second card*
 enough cards left in the deck to finish the board.*), which `src/lib/oddsStatus.ts`
 writes down in the order they win.
 
+**4 November (the owner): the deck is a keyboard, and two seats to begin
+with.** The deck is up while there is a blank to fill and goes away by itself
+when the last hole card or board card goes in — not after each card, and not
+after a dead card. *Done* on a 36-pt strip above it, a swipe down on that strip
+(or a slide that lets go below the deck), and a tap on the screen off any control
+each send it away; tapping an empty place brings it back, outlined. Away means
+no footer at all, so the screen has the room; nothing is outlined. A dealt card
+tapped still goes back, deck left as it was (the owner: *keep as is*). The strip
+has no grabber, deliberately: a grabber says sheet (`09-navigation.md`) and this
+is a push. ⚠ NOT DRAWN: the strip and its *Done*. `ui-odds.mjs` holds all of it
+(*the deck as a keyboard*); its other passes add seats from two. **Not yet seen
+on a phone** — the swipe in particular has only been driven with a mouse.
+
 **29 October (the owner): the line under the title never changes** — it is
 *Texas Hold’em card and chip odds* (`ODDS_SUBTITLE`) in every state, because it
 turning into the status once cards were in made the screen read as a different
