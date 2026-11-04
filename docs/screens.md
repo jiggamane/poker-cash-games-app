@@ -2915,6 +2915,12 @@ five states (*Texas hold’em · deal two hands*, *Player 3 needs a second card*
 enough cards left in the deck to finish the board.*), which `src/lib/oddsStatus.ts`
 writes down in the order they win.
 
+**4 November (the owner): the pot odds keypad goes away once both amounts are
+in.** A figure being typed has no last digit, so the moment is *Done*: on an
+amount while the other is still blank it moves the keypad to the other one; with
+both in it puts the keypad away. Tapping either amount brings it back on that one.
+`ui-odds.mjs` holds it on every pot table with both amounts typed.
+
 **4 November (the owner): the deck is a keyboard, and two seats to begin
 with.** The deck is up while there is a blank to fill and goes away by itself
 when the last hole card or board card goes in — not after each card, and not

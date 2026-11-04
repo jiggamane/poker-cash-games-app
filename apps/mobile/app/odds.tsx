@@ -413,6 +413,15 @@ export default function OddsCalculator() {
   const potShown = shown !== null && youOdds !== null;
   const typing = potShown && potOpen ? editing : null;
   const field = typing === 'pot' ? potField : callField;
+  /* DONE ON THE KEYPAD moves to the other amount while it is still blank, and
+     puts the keypad away once both are in (the owner, 4 November) — a figure
+     being typed has no last digit, so *Done* is the moment it is finished.
+     Tapping either amount brings the keypad back on it, as before. */
+  const finishAmount = () => {
+    const other: PotField = typing === 'pot' ? 'call' : 'pot';
+    const blank = amountOf((other === 'pot' ? potField : callField).typed) === 0;
+    setEditing(blank ? other : null);
+  };
 
   const slotProps = (slot: Slot, c: Card | null, label: string) => ({
     card: c,
@@ -620,7 +629,7 @@ export default function OddsCalculator() {
           <View style={styles.amountFoot}>
             <Keypad {...field.keys} />
             <View style={styles.doneWrap}>
-              <Button label="Done" onPress={() => setEditing(null)} />
+              <Button label="Done" onPress={finishAmount} />
             </View>
           </View>
         )

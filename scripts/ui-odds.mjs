@@ -337,6 +337,16 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : potCases).entries()) {
         };
         if (c.pot !== null) await type('Pot', c.pot);
         if (c.call !== null) await type('To call', c.call);
+        /* Both in: the keypad is away. Tapping an amount brings it back; Done puts it away again. */
+        const padUp = async () => (await page.getByRole('button', { name: '7', exact: true }).count()) > 0;
+        const blank = (shown) => /^\D*0$/.test(shown);
+        if (c.pot !== null && c.call !== null && !blank(c.potShown) && !blank(c.callShown)) {
+          if (await padUp()) fail.push('the keypad is still up with both amounts in');
+          await page.getByRole('button', { name: /^Pot, / }).click({ timeout: 10_000 });
+          if (!(await padUp())) fail.push('tapping Pot did not bring the keypad back');
+          await tap('Done');
+          if (await padUp()) fail.push('Done did not put the keypad away with both amounts in');
+        }
         if ((await page.getByRole('button', { name: `Pot, ${c.potShown}`, exact: true }).count()) === 0) fail.push(`the Pot field does not read ${c.potShown}`);
         if ((await page.getByRole('button', { name: `To call, ${c.callShown}`, exact: true }).count()) === 0) fail.push(`the To call field does not read ${c.callShown}`);
         const text = await card.innerText();
