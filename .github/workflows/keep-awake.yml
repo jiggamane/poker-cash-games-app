@@ -6,10 +6,20 @@
 # Restore in the dashboard and waiting. On 26 September that was found by a
 # SQL query timing out, which is the lucky way; the unlucky way is at the table.
 #
-# So once a day this reads one row through the REST API with the public key.
-# That is real database activity, which is what the pause counts. It sees what
-# anybody with the app sees (row-level security answers an empty list, and that
-# is fine), and it writes nothing.
+# So once a day this WRITES one row: `keep_awake()` (migration 0023) moves a
+# single timestamp, called through the REST API with the public key. It touches
+# nothing else and nobody reads it.
+#
+# ⚠ UNTIL 4 NOVEMBER IT ONLY READ, and that was not enough. It read `book`
+# with no sign-in, row-level security answered an empty list, every run passed
+# for 38 days — and Supabase emailed anyway that the project "has not seen
+# sufficient activity for more than 7 days" and would be paused. A green run
+# was not evidence of anything Supabase counts. A write is the least ambiguous
+# activity there is, so that is what it does now.
+#
+# If 0023 has not been applied to the project the function is missing (404).
+# The run then does the old read, stays green, and prints a warning naming the
+# file to run — so it never goes red over a migration, only over the project.
 #
 # IT IS ALSO THE ALARM. It fails on anything but a 200, and GitHub emails the
 # repository owner when a scheduled run fails — so a project that has paused
@@ -39,9 +49,9 @@ permissions:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - name: Read one row
+      - name: Write the heartbeat
         env:
           SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
@@ -50,19 +60,37 @@ jobs:
             echo "::error::EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY is missing from Settings → Secrets and variables → Actions."
             exit 1
           fi
+          base="${SUPABASE_URL%/}"
 
           # The key goes in `apikey` only. A legacy anon key would also be
           # accepted as a Bearer token, but a publishable key (sb_publishable_…)
           # is not a JWT and is refused there — and this header works for both.
+          beat() {
+            curl -sS -o /tmp/body -w '%{http_code}' --max-time 60 \
+              -X POST -H "apikey: $SUPABASE_KEY" -H 'Content-Type: application/json' \
+              -d '{}' "$base/rest/v1/rpc/keep_awake" || echo 000
+          }
+          read_one() {
+            curl -sS -o /tmp/body -w '%{http_code}' --max-time 60 \
+              -H "apikey: $SUPABASE_KEY" \
+              "$base/rest/v1/book?select=id&limit=1" || echo 000
+          }
+
           # Three tries, a minute apart: a project that is waking up times out
           # on its first request, and that is not a failure worth an email.
           for try in 1 2 3; do
-            code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 60 \
-              -H "apikey: $SUPABASE_KEY" \
-              "${SUPABASE_URL%/}/rest/v1/book?select=id&limit=1" || echo 000)
+            code=$(beat)
             if [ "$code" = "200" ]; then
-              echo "Awake — the project answered 200."
+              echo "Awake — heartbeat written at $(cat /tmp/body)."
               exit 0
+            fi
+            if [ "$code" = "404" ]; then
+              echo "::warning::keep_awake() is not on the project yet — run supabase/migrations/0023_keep_awake.sql in the SQL Editor. Until then this only reads, which Supabase has not been counting as activity."
+              code=$(read_one)
+              if [ "$code" = "200" ]; then
+                echo "Answered — read one row (200)."
+                exit 0
+              fi
             fi
             echo "Try $try: HTTP $code"
             [ "$try" -lt 3 ] && sleep 60

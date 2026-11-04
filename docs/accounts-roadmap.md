@@ -115,7 +115,11 @@ What is in the way is not code:
    list.
 2. **The project falls asleep** after seven idle days, and poker is weekly.
    **Done 26 September:** `.github/workflows/keep-awake.yml`, a daily read that
-   also fails loudly if the project is down.
+   also fails loudly if the project is down. **Not enough, 4 November:** 38
+   green runs and Supabase still emailed that the project was idle and due to
+   pause. The workflow now writes a heartbeat through `keep_awake()`
+   (`0023_keep_awake.sql`), which has to be run in the SQL Editor — until it is,
+   the run warns and falls back to the read. Pro is the only guarantee.
 3. **How a friend gets the app:** install Expo Go from the store, open the
    **branch page** link (`live-test.md` — never a single-update link, which
    pins the phone forever). Check once on a phone that is **not** signed in to
