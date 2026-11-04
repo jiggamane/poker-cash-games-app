@@ -337,8 +337,10 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : potCases).entries()) {
         const closedCut = await cutOff(page);
         for (const f of closedCut) fail.push(`closed: ${f}`);
         await tap('Pot odds, closed');
+        const padUp = async () => (await page.getByRole('button', { name: '7', exact: true }).count()) > 0;
         const type = async (field, digits) => {
-          await page.getByRole('button', { name: new RegExp(`^${field}, `) }).click({ timeout: 10_000 });
+          /* Done on Pot leaves the keypad up on To call (4 November), so the second amount is typed straight in. */
+          if (!(await padUp())) await page.getByRole('button', { name: new RegExp(`^${field}, `) }).click({ timeout: 10_000 });
           for (const d of digits) await tap(d);
           /* With the keypad up, the card still fits and so does the pad. */
           for (const f of await cutOff(page)) fail.push(`typing ${field}: ${f}`);
@@ -349,7 +351,6 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : potCases).entries()) {
         if (c.pot !== null) await type('Pot', c.pot);
         if (c.call !== null) await type('To call', c.call);
         /* Both in: the keypad is away. Tapping an amount brings it back; Done puts it away again. */
-        const padUp = async () => (await page.getByRole('button', { name: '7', exact: true }).count()) > 0;
         const blank = (shown) => /^\D*0$/.test(shown);
         if (c.pot !== null && c.call !== null && !blank(c.potShown) && !blank(c.callShown)) {
           if (await padUp()) fail.push('the keypad is still up with both amounts in');
