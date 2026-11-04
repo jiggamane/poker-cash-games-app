@@ -37,6 +37,13 @@ import { cappedFigure, tabular, unscaledLabel } from '../design/tokens';
  * three things happen. A tap outside the plot is this component's, and it is
  * the one it can see.
  *
+ * NO COLUMN STATES ITS FIGURE UNTIL IT IS TAPPED — the break-even night
+ * included. The handoff had that column label itself `$0`, the only one whose
+ * height says nothing; the owner ruled on 4 November that it reads the same way
+ * as every other night: its yellow mark says "level", and a tap says the figure
+ * (B103). `nightsChart.contract.test.ts` holds that the readout is the only
+ * place a figure is drawn.
+ *
  * NOTHING ELSE REACTS. The period figure, Last games and the stat pairs are
  * unaffected: the tap is a read, not a filter.
  */
@@ -216,13 +223,6 @@ export function NightsChart({
                 {night.label}
               </Text>
 
-              {/* THE ONLY COLUMN THAT LABELS ITSELF, because it is the only one
-                  whose height says nothing. 2 points above its upper mark. */}
-              {bar.side === 'even' && (
-                <Text style={[styles.zero, tabular, { color: t.breakEven }]} {...cappedFigure}>
-                  {formatSigned(0 as Money)}
-                </Text>
-              )}
             </Pressable>
           );
         })}
@@ -273,6 +273,4 @@ const styles = StyleSheet.create({
 
   label: { fontSize: 9.5, fontWeight: '500', paddingTop: 4 },
   labelOn: { fontSize: 9.5, fontWeight: '600', paddingTop: 4 },
-  /* Above its own upper mark, which is `BAND` from the top of the column. */
-  zero: { position: 'absolute', top: BAND - 20, fontSize: 14, fontWeight: '700' },
 });

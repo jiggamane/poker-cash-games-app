@@ -139,6 +139,27 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B103 — My stats' graph wrote `$0` over a break-even night before any tap
+
+```
+Screen      G4 My stats, the RESULT PER NIGHT graph
+Seen        4 Nov, reported by the owner: no column states its figure until it
+            is tapped, except the break-even one, which wrote `$0` over its
+            yellow mark all the time
+Expected    the same as every other night — the mark alone, and the figure in
+            the readout when the column is tapped
+Locked by   `nightsChart.contract.test.ts` (in `npm run check`): the chart may
+            write a figure only in the readout and the accessibility label. No
+            browser check can see it — the `ui-journeys` My stats stop has no
+            nights to draw after B79
+Status      fixed in this commit
+```
+
+The label was the `handoff-sessions-stats` cut's own, drawn deliberately as
+"the only column whose height says nothing". The owner overruled it; the
+departure is recorded in `docs/screens.md` under the graph, so a later session
+holding the screen against the board does not put it back.
+
 ### B102 — a seat given its first card kept the last result on screen for one frame
 
 ```
