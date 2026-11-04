@@ -2922,7 +2922,8 @@ after a dead card. *Done* on a 36-pt strip above it, a swipe down on that strip
 (or a slide that lets go below the deck), and a tap on the screen off any control
 each send it away; tapping an empty place brings it back, outlined. Away means
 no footer at all, so the screen has the room; nothing is outlined. A dealt card
-tapped still goes back, deck left as it was (the owner: *keep as is*). The strip
+tapped goes back and brings the deck up on the place it left, to deal the
+card that replaces it (the owner, 4 November, revising *keep as is*). The strip
 has no grabber, deliberately: a grabber says sheet (`09-navigation.md`) and this
 is a push. ⚠ NOT DRAWN: the strip and its *Done*. `ui-odds.mjs` holds all of it
 (*the deck as a keyboard*); its other passes add seats from two. **Not yet seen

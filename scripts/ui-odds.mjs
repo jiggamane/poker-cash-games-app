@@ -285,6 +285,12 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
     await tap('3♠');
     if (await up()) fail.push('the deck is still up with every blank filled');
     if ((await page.locator('#deck-callout').count()) > 0) fail.push('the enlarged card is still showing');
+    /* Taking a dealt card back brings the deck up on the place it left; filling it again sends it away. */
+    await tap('Board, card 5, 3♠');
+    if (!(await up())) fail.push('taking a dealt card back did not bring the deck up');
+    if ((await page.getByRole('button', { name: 'Board, card 5, empty', exact: true }).count()) === 0) fail.push('the card taken back did not leave its place blank');
+    await tap('3♠');
+    if (await up()) fail.push('the deck is still up with the blank filled again');
     /* A dead card brings it back and does not send it away. */
     await tap('Next dead card, empty');
     if (!(await up())) fail.push('tapping the next dead card did not bring the deck back');
@@ -294,7 +300,7 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
     fail.push(String(e.message ?? e).split('\n')[0]);
   }
   await page.close();
-  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  the deck as a keyboard: up while a blank is left, away by Done, a swipe, a tap off any control`);
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  the deck as a keyboard: up while a blank is left, away by Done, a swipe, a tap off any control; up again on a card taken back`);
   for (const f of fail) console.log(`        ${f}`);
   if (fail.length) failed++;
 }

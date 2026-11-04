@@ -94,7 +94,8 @@ import { oddsTone } from '../src/lib/oddsTone';
  * deck), and a tap anywhere on the screen that is not a control. Tapping an
  * empty place brings it back with that place outlined; while it is away
  * nothing is outlined, since nothing is waiting for a card. Tapping a dealt
- * card still takes it back and leaves the deck as it was. Whatever is on the
+ * card takes it back and brings the deck up on the place it left, to deal
+ * the card that replaces it (the owner, 4 November). Whatever is on the
  * screen has the room while it is away. ⚠ NOT DRAWN: the strip, and *Done* on
  * it (the keypad's word). No grabber on it: a grabber means a sheet
  * (`09-navigation.md`), and this is a push.
@@ -337,6 +338,9 @@ export default function OddsCalculator() {
   const takeBack = (c: Card, from: Slot) => {
     setTable(remove(table, c));
     setActive(from.kind === 'dead' ? { kind: 'dead' } : from);
+    /* The place it left is blank, outlined, and waiting for the card that
+       replaces it — so the deck comes up (the owner, 4 November). */
+    setDeckOpen(true);
   };
 
   const newHand = () => {
