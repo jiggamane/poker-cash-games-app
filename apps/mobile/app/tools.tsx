@@ -29,6 +29,9 @@ import { home, space, type } from '../src/design/tokens';
  * ellipsis at 20/800 in a half-width tile on a 393 phone. The home tile's
  * sub-line still says *poker calculator, rules & rulings* in full, and the
  * screens behind keep their own titles.
+ *
+ * *Rulings* reads *look up a ruling*, one line, the owner's pick of 4 November
+ * over the canvas's *what happened, and what the rule says*, which wrapped.
  */
 export default function PokerTools() {
   const t = useTheme();
@@ -44,7 +47,7 @@ export default function PokerTools() {
         <Tile
           icon="questionCard"
           name="Rulings"
-          sub="what happened, and what the rule says"
+          sub="look up a ruling"
           onPress={() => router.push({ pathname: '/rules', params: { from: 'tools' } })}
         />
       </View>

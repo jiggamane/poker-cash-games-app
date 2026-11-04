@@ -3384,8 +3384,9 @@ screen behind the tile.
 **⚠ COPY NOT DRAWN by any handoff, and marked UNSURE on the canvas:** *Poker
 tools* (the tile and the title), the tile's sub-line *poker calculator, rules &
 rulings*, the Poker tools meta line *nothing here touches the ledger*, and the
-two sub-lines on `/tools` — *hand and pot odds* (the owner's retype of 25 October) and *what
-happened, and what the rule says*. **The two tile names on `/tools` are *Calculator*
+two sub-lines on `/tools` — *hand and pot odds* (the owner's retype of 25 October) and *look
+up a ruling* (the owner's pick of 4 November, one line, over the canvas's *what happened,
+and what the rule says*, which wrapped to two). **The two tile names on `/tools` are *Calculator*
 and *Rulings*, by the owner on 26 October**, from a screenshot of the 25 October
 build: the canvas's *Poker calculator* and *Rules & rulings* both cut to
 *Poker calcu…* and *Rules & ruli…* at 20/800 in a half-width tile on a 393
