@@ -15,6 +15,7 @@
  */
 
 import { cardText, parseCards, type Card } from '../packages/core/src/odds/cards';
+import { seatName } from '../apps/mobile/src/lib/seatName';
 import { oddsProblem, type Hand } from '../packages/core/src/odds/odds';
 import { STREETS, runOut, type Street } from '../packages/core/src/odds/runout';
 import { showdown } from '../packages/core/src/odds/showdown';
@@ -54,7 +55,7 @@ function build(title: string, hands: string[], board: string, dead = ''): Case {
   const full: Hand[] = [];
   hands.forEach((h, seat) => {
     const [a, b] = cards(h) as [Card, Card];
-    placements.push({ slot: `Player ${seat + 1}, card 1`, card: name(a) }, { slot: `Player ${seat + 1}, card 2`, card: name(b) });
+    placements.push({ slot: `${seatName(seat, Math.max(2, hands.length))}, card 1`, card: name(a) }, { slot: `${seatName(seat, Math.max(2, hands.length))}, card 2`, card: name(b) });
     full.push([a, b]);
   });
   const boardCards = board === '' ? [] : cards(board);

@@ -95,7 +95,7 @@ if (!onlyOuts && !onlyRiver) {
     await page.mouse.up();
     await callout.waitFor({ state: 'detached', timeout: 3000 }).catch(() => fail.push('the callout stayed after release'));
     await page
-      .getByRole('button', { name: 'Player 1, card 1, Q♦', exact: true })
+      .getByRole('button', { name: 'Me, card 1, Q♦', exact: true })
       .waitFor({ state: 'visible', timeout: 3000 })
       .catch(() => fail.push('releasing on the card did not deal it'));
 
@@ -214,7 +214,7 @@ if (!onlyOuts && !onlyRiver) {
   const page = await browser.newPage({ viewport: { width: 393, height: 852 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => fail.push(`page error: ${e.message}`));
   try {
-    /* Every scenario says whether the card is there; the You tag goes exactly with it, and neither is there otherwise. */
+    /* Every scenario says whether the card is there. The You tag is gone (the owner, 4 November): the seat is called Me. */
     for (const c of potCases) {
       await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
       await page.waitForSelector('#screen-title');
@@ -222,7 +222,7 @@ if (!onlyOuts && !onlyRiver) {
       const card = (await page.locator('#pot-odds').count()) > 0;
       const you = (await page.getByText('You', { exact: true }).count()) > 0;
       if (card !== c.visible) fail.push(`${c.title}: the card is ${card ? 'on' : 'off'} the screen, wanted ${c.visible ? 'on' : 'off'}`);
-      if (you !== c.visible) fail.push(`${c.title}: the You tag is ${you ? 'on' : 'off'} the screen, wanted ${c.visible ? 'on' : 'off'}`);
+      if (you) fail.push(`${c.title}: the You tag is on the screen, and it is dropped`);
     }
     /* And Settings no longer has a switch for it. */
     await page.goto(BASE + '/settings', { waitUntil: 'networkidle' });
@@ -232,7 +232,7 @@ if (!onlyOuts && !onlyRiver) {
     fail.push(String(e.message ?? e).split('\n')[0]);
   }
   await page.close();
-  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  pot odds: the card and the You tag on the flop and the turn only; no switch in Settings`);
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  pot odds: the card on the flop and the turn only, no You tag; no switch in Settings`);
   for (const f of fail) console.log(`        ${f}`);
   if (fail.length) failed++;
 }
@@ -255,8 +255,19 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
   try {
     await page.goto(BASE + '/odds', { waitUntil: 'networkidle' });
     await page.waitForSelector('#screen-title');
-    if ((await page.getByRole('button', { name: /^Player 3, card/ }).count()) > 0) fail.push('the screen opens with three seats, wanted two');
-    if ((await page.getByRole('button', { name: /^Player 2, card 1/ }).count()) === 0) fail.push('the screen opens without a second seat');
+    const seatsAre = async (want) => {
+      const got = await page.locator('[aria-label$=", card 1, empty"], [aria-label*=", card 1, "]').evaluateAll((els) =>
+        els.map((e) => e.getAttribute('aria-label').split(', card 1')[0]).filter((n) => n === 'Me' || n.startsWith('Opponent')),
+      );
+      if (got.join('|') !== want.join('|')) fail.push(`the seats are ${got.join(', ') || 'none'}, wanted ${want.join(', ')}`);
+    };
+    /* Two seats to begin with, Me and Opponent; a third numbers the opponents. */
+    await seatsAre(['Me', 'Opponent']);
+    await tap('Add a player');
+    await seatsAre(['Me', 'Opponent 1', 'Opponent 2']);
+    /* New hand goes back to two seats (the owner, 4 November). */
+    await tap('New hand');
+    await seatsAre(['Me', 'Opponent']);
     if (!(await up())) fail.push('the deck is not up on an empty table');
     await tap('Done');
     if (await up()) fail.push('Done did not send the deck away');
@@ -265,7 +276,7 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
     /* A tap on the screen off any control: the Board label. */
     await page.getByText('Board', { exact: true }).click();
     if (await up()) fail.push('a tap off any control did not send the deck away');
-    await tap('Player 1, card 1, empty');
+    await tap('Me, card 1, empty');
     /* A swipe down on the strip above the deck. */
     const strip = await page.getByRole('button', { name: 'Done', exact: true }).boundingBox();
     if (strip) {
@@ -275,7 +286,7 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
       await page.mouse.up();
     }
     if (await up()) fail.push('a swipe down on the strip did not send the deck away');
-    await tap('Player 1, card 1, empty');
+    await tap('Me, card 1, empty');
     /* Dealt in order, the outline moving on: two hands, then the board. */
     const cards = ['A♠', 'K♠', 'Q♥', 'Q♦', '2♣', '7♦', '9♥', 'J♣'];
     for (const c of cards) {
@@ -285,6 +296,12 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
     await tap('3♠');
     if (await up()) fail.push('the deck is still up with every blank filled');
     if ((await page.locator('#deck-callout').count()) > 0) fail.push('the enlarged card is still showing');
+    /* Taking a dealt card back brings the deck up on the place it left; filling it again sends it away. */
+    await tap('Board, card 5, 3♠');
+    if (!(await up())) fail.push('taking a dealt card back did not bring the deck up');
+    if ((await page.getByRole('button', { name: 'Board, card 5, empty', exact: true }).count()) === 0) fail.push('the card taken back did not leave its place blank');
+    await tap('3♠');
+    if (await up()) fail.push('the deck is still up with the blank filled again');
     /* A dead card brings it back and does not send it away. */
     await tap('Next dead card, empty');
     if (!(await up())) fail.push('tapping the next dead card did not bring the deck back');
@@ -294,7 +311,7 @@ if (!onlyOuts && !onlyRiver && !onlyRunOut) {
     fail.push(String(e.message ?? e).split('\n')[0]);
   }
   await page.close();
-  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  the deck as a keyboard: up while a blank is left, away by Done, a swipe, a tap off any control`);
+  console.log(`${fail.length === 0 ? '  ok ' : ' FAIL'}  --  the deck as a keyboard: up while a blank is left, away by Done, a swipe, a tap off any control; up again on a card taken back`);
   for (const f of fail) console.log(`        ${f}`);
   if (fail.length) failed++;
 }
@@ -320,9 +337,22 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : potCases).entries()) {
         const closedCut = await cutOff(page);
         for (const f of closedCut) fail.push(`closed: ${f}`);
         await tap('Pot odds, closed');
+        const padUp = async () => (await page.getByRole('button', { name: '7', exact: true }).count()) > 0;
         const type = async (field, digits) => {
-          await page.getByRole('button', { name: new RegExp(`^${field}, `) }).click({ timeout: 10_000 });
+          /* Done on Pot leaves the keypad up on To call (4 November), so the second amount is typed straight in. */
+          if (!(await padUp())) await page.getByRole('button', { name: new RegExp(`^${field}, `) }).click({ timeout: 10_000 });
           for (const d of digits) await tap(d);
+          /* With the keypad up, the field being typed sits in sight: under the line below the
+             title, above the top row of keys — not under either (the owner, 4 November). */
+          await page.waitForTimeout(400);
+          const fb = await page.getByRole('button', { name: new RegExp(`^${field}, `) }).boundingBox();
+          const k1 = await page.getByRole('button', { name: '1', exact: true }).boundingBox();
+          const head = await page.locator('#screen-meta').boundingBox();
+          if (!fb || !k1 || !head) fail.push(`typing ${field}: could not measure the field against the keypad`);
+          else {
+            if (fb.y + fb.height > k1.y + 0.5) fail.push(`typing ${field}: the keypad covers the field (field ends ${Math.round(fb.y + fb.height)}, keys start ${Math.round(k1.y)})`);
+            if (fb.y < head.y + head.height - 0.5) fail.push(`typing ${field}: the field is under the head (field starts ${Math.round(fb.y)}, head ends ${Math.round(head.y + head.height)})`);
+          }
           /* With the keypad up, the card still fits and so does the pad. */
           for (const f of await cutOff(page)) fail.push(`typing ${field}: ${f}`);
           const done = await page.getByRole('button', { name: 'Done', exact: true }).boundingBox();
@@ -331,6 +361,15 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : potCases).entries()) {
         };
         if (c.pot !== null) await type('Pot', c.pot);
         if (c.call !== null) await type('To call', c.call);
+        /* Both in: the keypad is away. Tapping an amount brings it back; Done puts it away again. */
+        const blank = (shown) => /^\D*0$/.test(shown);
+        if (c.pot !== null && c.call !== null && !blank(c.potShown) && !blank(c.callShown)) {
+          if (await padUp()) fail.push('the keypad is still up with both amounts in');
+          await page.getByRole('button', { name: /^Pot, / }).click({ timeout: 10_000 });
+          if (!(await padUp())) fail.push('tapping Pot did not bring the keypad back');
+          await tap('Done');
+          if (await padUp()) fail.push('Done did not put the keypad away with both amounts in');
+        }
         if ((await page.getByRole('button', { name: `Pot, ${c.potShown}`, exact: true }).count()) === 0) fail.push(`the Pot field does not read ${c.potShown}`);
         if ((await page.getByRole('button', { name: `To call, ${c.callShown}`, exact: true }).count()) === 0) fail.push(`the To call field does not read ${c.callShown}`);
         const text = await card.innerText();
@@ -390,7 +429,7 @@ for (const [n, c] of (onlyRunOut || onlyRiver ? [] : outsCases).entries()) {
       for (const f of await cutOff(page, SEATS)) fail.push(`closed: ${f}`);
       for (const [i, want] of c.want.entries()) {
         const seat = i + 1;
-        const tag = `Player ${seat}`;
+        const tag = c.names[i];
         const word = (await page.locator(`#seat-${seat}-word`).count()) ? (await page.locator(`#seat-${seat}-word`).innerText()).trim() : null;
         /* CSS uppercases the word; what is held is the letters. */
         if ((word === null ? null : word.toLowerCase()) !== (want.word === null ? null : want.word.toLowerCase()))
@@ -475,7 +514,7 @@ for (const [n, c] of (onlyOuts && !onlyRiver ? [] : riverCases).entries()) {
       for (const f of await cutOff(page, SEATS)) fail.push(`closed: ${f}`);
       for (const [i, want] of c.want.entries()) {
         const seat = i + 1;
-        const tag = `Player ${seat}`;
+        const tag = c.names[i];
         const text = (await page.locator(`#seat-${seat}`).innerText()).replace(/\s+/g, ' ');
         const win = /Win (\S+)/.exec(text)?.[1] ?? null;
         const tie = /Tie (\S+)/.exec(text)?.[1] ?? null;
@@ -555,20 +594,20 @@ for (const [n, c] of (onlyOuts || onlyRiver ? [] : cases).entries()) {
 
     for (let seat = 0; seat < c.seats; seat++) {
       const text = await page.evaluate((s) => {
-        const b = document.querySelector(`[aria-label^="Player ${s}, card 1"]`);
+        const b = document.querySelector(`[aria-label^="${s}, card 1,"]`);
         return b?.parentElement?.parentElement?.innerText ?? null;
-      }, seat + 1);
+      }, c.names[seat]);
       if (text === null) {
-        fail.push(`Player ${seat + 1}: no row`);
+        fail.push(`${c.names[seat]}: no row`);
         continue;
       }
       /* Two decimals, or a whole number on a completed board. */
       const shown = [...text.matchAll(/(\d+(?:\.\d\d)?%)/g)].map((m) => m[1]);
       const want = c.figures[seat];
       if (want === null) {
-        if (shown.length !== 0) fail.push(`Player ${seat + 1} is not in the hand but shows ${shown.join(' ')}`);
+        if (shown.length !== 0) fail.push(`${c.names[seat]} is not in the hand but shows ${shown.join(' ')}`);
       } else if (shown.join(' ') !== want.join(' ')) {
-        fail.push(`Player ${seat + 1}: ${shown.join(' ') || 'nothing'}, wanted ${want.join(' ')}`);
+        fail.push(`${c.names[seat]}: ${shown.join(' ') || 'nothing'}, wanted ${want.join(' ')}`);
       }
     }
   } catch (e) {

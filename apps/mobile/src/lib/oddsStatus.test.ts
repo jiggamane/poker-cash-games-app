@@ -3,6 +3,7 @@ import { grouped, oddsStatus, type OddsStatusInput } from './oddsStatus';
 
 const base: OddsStatusInput = {
   halfDealtSeat: -1,
+  seats: 3,
   fullHands: 0,
   problem: null,
   boardsDealt: null,
@@ -13,8 +14,8 @@ const line = (over: Partial<OddsStatusInput>) => oddsStatus({ ...base, ...over }
 
 describe('the five states, as the brief writes them', () => {
   it('1 · a seat with one card names the lowest such seat, one-based', () => {
-    expect(line({ halfDealtSeat: 0 })).toBe('Player 1 needs a second card');
-    expect(line({ halfDealtSeat: 2, fullHands: 2 })).toBe('Player 3 needs a second card');
+    expect(line({ halfDealtSeat: 0 })).toBe('My hand needs a second card');
+    expect(line({ halfDealtSeat: 2, fullHands: 2 })).toBe('Opponent 2 needs a second card');
   });
 
   it('2 · a result says how many boards, grouped by commas, singular for one', () => {
@@ -47,16 +48,16 @@ describe('the five states, as the brief writes them', () => {
 describe('precedence', () => {
   it('a half-dealt seat beats a result still in hand — B102', () => {
     expect(line({ halfDealtSeat: 2, fullHands: 2, boardsDealt: 1_712_304 })).toBe(
-      'Player 3 needs a second card',
+      'Opponent 2 needs a second card',
     );
   });
 
   it('a half-dealt seat beats counting and beats the engine’s refusal', () => {
     expect(line({ halfDealtSeat: 0, fullHands: 2, calculating: true, progress: 0.5 })).toBe(
-      'Player 1 needs a second card',
+      'My hand needs a second card',
     );
     expect(line({ halfDealtSeat: 1, fullHands: 2, problem: 'anything' })).toBe(
-      'Player 2 needs a second card',
+      'Opponent 1 needs a second card',
     );
   });
 

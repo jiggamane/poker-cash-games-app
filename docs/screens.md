@@ -2915,6 +2915,35 @@ five states (*Texas hold’em · deal two hands*, *Player 3 needs a second card*
 enough cards left in the deck to finish the board.*), which `src/lib/oddsStatus.ts`
 writes down in the order they win.
 
+**4 November (the owner): the seats are *Me* and *Opponent*, and New hand goes
+back to two.** The first seat is *Me*; heads-up the other is *Opponent*; from
+three seats the others are *Opponent 1*, *Opponent 2*… — so the second seat's
+name changes when a third is added. `src/lib/seatName.ts` is the one place it is
+decided; the label, each place's spoken name, the chevron's *Outs for…* /
+*Hand for…*, and the status sentence (*My hand needs a second card*) all read it,
+and so do the `odds-*-cases.ts` that deal by those names. *New hand* now clears
+back to two seats rather than keeping the count. The *You* tag that sat beside the
+first seat while the pot odds card showed is dropped (the owner, same day): the
+seat is called *Me*, and `ui-odds.mjs` holds that the tag is never on screen. The run-out
+(`/run-out`, reachable only by its link) still says *Player N*.
+
+**4 November (the owner): the pot odds keypad goes away once both amounts are
+in.** A figure being typed has no last digit, so the moment is *Done*: on an
+amount while the other is still blank it moves the keypad to the other one; with
+both in it puts the keypad away. Tapping either amount brings it back on that one.
+`ui-odds.mjs` holds it on every pot table with both amounts typed.
+
+**And the field being typed stays in sight above the keypad** (the owner, same
+day). It did not: measured with *Pot* open, the field sat 16 points under the top
+row of keys on a 393 × 852 phone, and on a 320 × 568 one the keypad reached up
+past the line under the title. Two halves: under 700 points tall the keys are 44
+rather than 58 (`Keypad`'s `compact`, used by this screen only — every money
+screen keeps the full keys), and each time the keypad comes up or moves to the
+other amount the field is scrolled into what is visible (`Screen`'s `scrollRef`).
+`ui-odds.mjs` now measures the field against the top key and the head on every
+pot table, at 393 and at 320; it measured clipped text before, never overlap,
+which is how this got through.
+
 **4 November (the owner): the deck is a keyboard, and two seats to begin
 with.** The deck is up while there is a blank to fill and goes away by itself
 when the last hole card or board card goes in — not after each card, and not
@@ -2922,7 +2951,8 @@ after a dead card. *Done* on a 36-pt strip above it, a swipe down on that strip
 (or a slide that lets go below the deck), and a tap on the screen off any control
 each send it away; tapping an empty place brings it back, outlined. Away means
 no footer at all, so the screen has the room; nothing is outlined. A dealt card
-tapped still goes back, deck left as it was (the owner: *keep as is*). The strip
+tapped goes back and brings the deck up on the place it left, to deal the
+card that replaces it (the owner, 4 November, revising *keep as is*). The strip
 has no grabber, deliberately: a grabber says sheet (`09-navigation.md`) and this
 is a push. ⚠ NOT DRAWN: the strip and its *Done*. `ui-odds.mjs` holds all of it
 (*the deck as a keyboard*); its other passes add seats from two. **Not yet seen
@@ -3384,8 +3414,9 @@ screen behind the tile.
 **⚠ COPY NOT DRAWN by any handoff, and marked UNSURE on the canvas:** *Poker
 tools* (the tile and the title), the tile's sub-line *poker calculator, rules &
 rulings*, the Poker tools meta line *nothing here touches the ledger*, and the
-two sub-lines on `/tools` — *hand and pot odds* (the owner's retype of 25 October) and *what
-happened, and what the rule says*. **The two tile names on `/tools` are *Calculator*
+two sub-lines on `/tools` — *hand and pot odds* (the owner's retype of 25 October) and *look
+up a ruling* (the owner's pick of 4 November, one line, over the canvas's *what happened,
+and what the rule says*, which wrapped to two). **The two tile names on `/tools` are *Calculator*
 and *Rulings*, by the owner on 26 October**, from a screenshot of the 25 October
 build: the canvas's *Poker calculator* and *Rules & rulings* both cut to
 *Poker calcu…* and *Rules & ruli…* at 20/800 in a half-width tile on a 393

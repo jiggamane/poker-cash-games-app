@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { PanResponder, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
 import {
   BOARD_CARDS,
   HOLE_CARDS,
@@ -30,6 +30,7 @@ import { amountOf, useTypedAmount } from '../src/components/typedAmount';
 import { useTheme } from '../src/design/useTheme';
 import { control, radius, space, type } from '../src/design/tokens';
 import { ODDS_SUBTITLE, oddsStatus } from '../src/lib/oddsStatus';
+import { needsSecondCard, seatName } from '../src/lib/seatName';
 import { oddsTone } from '../src/lib/oddsTone';
 
 /**
@@ -50,7 +51,7 @@ import { oddsTone } from '../src/lib/oddsTone';
  * the board, then the dead cards — and tapping any empty place moves it there.
  * *New hand* is a round restart icon at the right end of the status line — not
  * in the top-right corner, which a pushed screen keeps empty — and clears the
- * cards and keeps the seats. There is no hint under the deck: the owner took it
+ * cards and goes back to two seats (since 4 November; it kept the seats). There is no hint under the deck: the owner took it
  * out on 24 October.
  *
  * PRESSING A CARD SHOWS IT LARGE (option D on the canvas, chosen 24 October).
@@ -63,13 +64,13 @@ import { oddsTone } from '../src/lib/oddsTone';
  * POT ODDS — decided 24 October, made permanent on 25 October (no setting, no
  * "experiment") — is one section under the players, shown only while an exact
  * result is on screen and the flop or the turn is down (not before the flop, not
- * on the river), for Player 1, who is "you" and wears a *You* tag while the card
- * is showing. `PotOddsCard` lays it
+ * on the river), for the first seat, *Me*. It wore a *You* tag while the card
+ * showed until 4 November, when the seat itself was named *Me* and the owner
+ * dropped the tag. `PotOddsCard` lays it
  * out and `potOdds()` in core does every figure of it. Typing the pot or the
  * call swaps the deck at the foot for the amount keypad and a *Done*: one
  * footer, one job, so a card cannot be dealt while an amount is being typed.
- * ⚠ NOT DRAWN: *Done*, the *—* a Needs shows before a call is typed, and the
- * *You* tag on the players list (the board tags the pot odds card only).
+ * ⚠ NOT DRAWN: *Done*, and the *—* a Needs shows before a call is typed.
  *
  * THE RIVER (decided 26 October, board 21). Once the fifth card is down nothing
  * is left to count, and the card says so three ways: the figures are whole —
@@ -84,7 +85,9 @@ import { oddsTone } from '../src/lib/oddsTone';
  * The board is at the top and the seats under it, two to begin with and one
  * more per tap of *Add a player* up to nine — the owner's instruction, 24
  * October, over the original's nine seats always on show; two rather than
- * three since 4 November (the owner): a third hand is one somebody adds.
+ * three since 4 November (the owner): a third hand is one somebody adds. The
+ * seats are *Me* and *Opponent*, and *Opponent 1*, *Opponent 2*… from three
+ * (`seatName`, the owner, 4 November) — they were *Player 1*…*Player 9*.
  *
  * THE DECK IS A KEYBOARD (the owner, 4 November). It is up while there is a
  * card to deal and goes away by itself once every hole card and all five board
@@ -94,7 +97,8 @@ import { oddsTone } from '../src/lib/oddsTone';
  * deck), and a tap anywhere on the screen that is not a control. Tapping an
  * empty place brings it back with that place outlined; while it is away
  * nothing is outlined, since nothing is waiting for a card. Tapping a dealt
- * card still takes it back and leaves the deck as it was. Whatever is on the
+ * card takes it back and brings the deck up on the place it left, to deal
+ * the card that replaces it (the owner, 4 November). Whatever is on the
  * screen has the room while it is away. ⚠ NOT DRAWN: the strip, and *Done* on
  * it (the keypad's word). No grabber on it: a grabber means a sheet
  * (`09-navigation.md`), and this is a push.
@@ -275,7 +279,7 @@ export default function OddsCalculator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [inputKey],
   );
-  const problem = halfDealt >= 0 ? `Player ${halfDealt + 1} needs a second card` : oddsProblem(input);
+  const problem = halfDealt >= 0 ? needsSecondCard(halfDealt, table.seats.length) : oddsProblem(input);
 
   /*
    * WHAT IS SHOWN IS ONLY EVER WHAT WAS CALCULATED FOR THIS TABLE. The first
@@ -337,6 +341,9 @@ export default function OddsCalculator() {
   const takeBack = (c: Card, from: Slot) => {
     setTable(remove(table, c));
     setActive(from.kind === 'dead' ? { kind: 'dead' } : from);
+    /* The place it left is blank, outlined, and waiting for the card that
+       replaces it — so the deck comes up (the owner, 4 November). */
+    setDeckOpen(true);
   };
 
   const newHand = () => {
@@ -346,7 +353,8 @@ export default function OddsCalculator() {
     callField.offer(0);
     setEditing(null);
     setOutsOpen(new Set());
-    setTable(emptyTable(table.seats.length));
+    /* Back to two seats as well (the owner, 4 November): a new hand starts heads-up. */
+    setTable(emptyTable());
     setActive(FIRST);
     setDeckOpen(true);
   };
@@ -358,6 +366,7 @@ export default function OddsCalculator() {
 
   const status = oddsStatus({
     halfDealtSeat: halfDealt,
+    seats: table.seats.length,
     fullHands: complete.length,
     problem,
     boardsDealt: shown === null ? null : shown.boards,
@@ -409,6 +418,49 @@ export default function OddsCalculator() {
   const potShown = shown !== null && youOdds !== null;
   const typing = potShown && potOpen ? editing : null;
   const field = typing === 'pot' ? potField : callField;
+
+  /*
+   * THE AMOUNT BEING TYPED STAYS ABOVE THE KEYPAD (the owner, 4 November). The
+   * keypad takes the deck's place at the foot and the scroller shrinks to what
+   * is left, so the field could end up under the keys — on a 393 phone by 16
+   * points, on a 320 × 568 one under all of it. Two halves: on a short phone the
+   * keys are 44 tall rather than 58 (`compact`), which leaves room; and each
+   * time the keypad comes up or moves to the other amount, the field is
+   * scrolled to sit inside what is visible, with a little air.
+   */
+  const { height: screenH } = useWindowDimensions();
+  const compactPad = screenH < SHORT_PHONE;
+  const scroller = useRef<ComponentRef<typeof ScrollView> | null>(null);
+  const scrolledY = useRef(0);
+  const typingRef = useRef<ComponentRef<typeof View> | null>(null);
+  useEffect(() => {
+    if (typing === null) return;
+    /* After the footer has swapped and the scroller has its new height. */
+    const id = setTimeout(() => {
+      const box = typingRef.current;
+      const view = scroller.current as unknown as ComponentRef<typeof View> | null;
+      if (box === null || view === null) return;
+      view.measureInWindow((_x, top, _w, height) => {
+        box.measureInWindow((_fx, y, _fw, h) => {
+          const air = 12;
+          let by = 0;
+          if (y + h > top + height - air) by = y + h - (top + height - air);
+          else if (y < top + air) by = y - (top + air);
+          if (by !== 0) scroller.current?.scrollTo({ y: Math.max(0, scrolledY.current + by), animated: true });
+        });
+      });
+    }, 60);
+    return () => clearTimeout(id);
+  }, [typing]);
+  /* DONE ON THE KEYPAD moves to the other amount while it is still blank, and
+     puts the keypad away once both are in (the owner, 4 November) — a figure
+     being typed has no last digit, so *Done* is the moment it is finished.
+     Tapping either amount brings the keypad back on it, as before. */
+  const finishAmount = () => {
+    const other: PotField = typing === 'pot' ? 'call' : 'pot';
+    const blank = amountOf((other === 'pot' ? potField : callField).typed) === 0;
+    setEditing(blank ? other : null);
+  };
 
   const slotProps = (slot: Slot, c: Card | null, label: string) => ({
     card: c,
@@ -614,14 +666,16 @@ export default function OddsCalculator() {
         ) : (
           /* The amount keypad in the deck's place, with the way back to the deck. */
           <View style={styles.amountFoot}>
-            <Keypad {...field.keys} />
+            <Keypad {...field.keys} compact={compactPad} />
             <View style={styles.doneWrap}>
-              <Button label="Done" onPress={() => setEditing(null)} />
+              <Button label="Done" onPress={finishAmount} />
             </View>
           </View>
         )
       }
       footerPad={typing === null}
+      scrollRef={scroller}
+      onScrollY={(y) => (scrolledY.current = y)}
     >
       {/* A tap on the screen that lands on no control sends the deck away. Not a
           control itself: nothing for a screen reader, which has *Done*. */}
@@ -684,23 +738,17 @@ export default function OddsCalculator() {
                   {hand.map((c, i) => (
                     <CardSlot
                       key={i}
-                      {...slotProps({ kind: 'seat', seat, i }, c, `Player ${seat + 1}, card ${i + 1}`)}
+                      {...slotProps({ kind: 'seat', seat, i }, c, `${seatName(seat, table.seats.length)}, card ${i + 1}`)}
                     />
                   ))}
                 </View>
                 <View style={styles.seatText}>
                   <View style={styles.seatName}>
-                    <Text style={[styles.seatLabel, { color: t.muted }]}>Player {seat + 1}</Text>
+                    <Text style={[styles.seatLabel, { color: t.muted }]}>{seatName(seat, table.seats.length)}</Text>
                     {tone !== null && (
                       <Text nativeID={`seat-${seat + 1}-word`} style={[styles.word, { color: tone.color }]}>
                         {tone.word}
                       </Text>
-                    )}
-                    {/* While the pot odds card is showing: the first seat is "you". */}
-                    {potShown && seat === 0 && (
-                      <View style={[styles.youTag, { backgroundColor: t.roundFill }]}>
-                        <Text style={[styles.youText, { color: t.text }]}>You</Text>
-                      </View>
                     )}
                   </View>
                   {/*
@@ -727,7 +775,7 @@ export default function OddsCalculator() {
                 {hasControl && (
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`${settled !== null ? 'Hand' : 'Outs'} for Player ${seat + 1}`}
+                    accessibilityLabel={`${settled !== null ? 'Hand' : 'Outs'} for ${seatName(seat, table.seats.length)}`}
                     aria-expanded={open}
                     hitSlop={8}
                     onPress={() => toggleOuts(seat)}
@@ -771,6 +819,7 @@ export default function OddsCalculator() {
               setEditing(null);
             }}
             onEdit={(f) => setEditing(f)}
+            activeRef={typingRef}
           />
         )}
 
@@ -878,6 +927,9 @@ function CardSlot({
   );
 }
 
+/* Under this many points tall the amount keypad's keys are the short ones. */
+const SHORT_PHONE = 700;
+
 /* The deck's own numbers, and the callout's, which are measured against them. */
 const DECK_GAP = 3;
 const DECK_CELL_H = 40;
@@ -907,12 +959,10 @@ const styles = StyleSheet.create({
   word: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
   chevron: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   seatLabel: { ...type.rowDetail },
-  youTag: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 9 },
   /* The river: the hand's name under the figures, 15/500 in the text colour, and
      its five cards in a row under that — board 21's own measures. */
   handName: { fontSize: 15, fontWeight: '500', lineHeight: 20, paddingTop: 10 },
   handFive: { flexDirection: 'row', gap: 4, paddingTop: 8 },
-  youText: { fontSize: 11, fontWeight: '700' },
   /* The two figures on one line, wrapping to two only if the text setting
      leaves them no room — never truncating. */
   figures: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 2 },

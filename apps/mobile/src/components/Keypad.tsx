@@ -18,13 +18,19 @@ import { Icon } from './Icon';
  * append to it — is `typedAmount.ts`, beside this file. It is the half of this
  * control no board draws and the half that four screens each got to decide for
  * themselves until B20.
+ *
+ * `compact` is the odds calculator's, on a short phone (4 November): keys 44
+ * tall rather than 58, so the field being typed into still has room above the
+ * pad. Every money screen keeps the full keys.
  */
 export function Keypad({
   onDigits,
   onBackspace,
+  compact = false,
 }: {
   onDigits: (digits: string) => void;
   onBackspace: () => void;
+  compact?: boolean;
 }) {
   const t = useTheme();
 
@@ -36,6 +42,7 @@ export function Keypad({
       onPress={() => onDigits(label)}
       style={({ pressed }) => [
         styles.key,
+        compact && styles.compact,
         filled && { backgroundColor: t.surface },
         { opacity: pressed ? 0.6 : 1 },
       ]}
@@ -53,7 +60,7 @@ export function Keypad({
         accessibilityRole="button"
         accessibilityLabel="Delete"
         onPress={onBackspace}
-        style={({ pressed }) => [styles.key, styles.delete, { opacity: pressed ? 0.6 : 1 }]}
+        style={({ pressed }) => [styles.key, compact && styles.compact, styles.delete, { opacity: pressed ? 0.6 : 1 }]}
       >
         <Icon name="backspace" color={t.muted} />
       </Pressable>
@@ -77,6 +84,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: radius.pressable,
   },
+  compact: { paddingVertical: 7 },
   delete: { backgroundColor: 'transparent' },
   digit: { fontSize: 25, fontWeight: '500' },
 });
