@@ -145,6 +145,8 @@ export default function RootLayout() {
         <Stack.Screen name="run-out" />
         {/* Poker tools — the home grid's fourth tile: the calculator and the library behind one push. */}
         <Stack.Screen name="tools" />
+        {/* Game boosters — Poker tools' third tile: bomb pots, straddles and side games, listed. */}
+        <Stack.Screen name="boosters" />
         {/*
          * X1 is a PUSH, not a root (S77). There is no watcher's install: every
          * install is a host install with a book in it, so a share link opens
@@ -178,6 +180,8 @@ export default function RootLayout() {
         {/* One answer, read at the table; and the group's table rules, ending with Save. */}
         <Stack.Screen name="situation" options={SHEET} />
         <Stack.Screen name="table-rules" options={SHEET} />
+        {/* One game booster, described — read, then swipe back to the list. */}
+        <Stack.Screen name="booster" options={SHEET} />
         <Stack.Screen name="rule" options={SHEET} />
         {/* How coarsely the group settles — a money rule, so it ends with a
             Save and is therefore a sheet. Opened from both layers of the

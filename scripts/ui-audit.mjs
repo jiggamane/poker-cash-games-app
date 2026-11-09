@@ -103,6 +103,9 @@ const ROUTES = [
   // Poker tools: the home grid's fourth tile, a push holding the calculator and
   // the library (the canvas "Odds and rules, where they live", 25 October).
   '/tools',
+  // Game boosters: Poker tools' third tile (9 November), a push listing them,
+  // and one booster described as a sheet.
+  '/boosters', '/booster',
 ];
 
 /*
@@ -148,6 +151,10 @@ const PARAMS = {
   // The canvas's own hand (board 19): A♥K♥ all in against 2♣2♦, run out Q♥ J♥
   // 3♠ 7♣ K♣. Bare, the route says to deal a hand first and draws nothing.
   '/run-out': '?h=AhKh,2c2d&b=QhJh3s7cKc',
+  // The booster with the most on it — three steps, three to agree and three
+  // variations, the only section the others do not all draw.
+  // Bare, the route renders a titled sheet with nothing in it.
+  '/booster': '?id=straddle',
 };
 
 /** The URL a route is actually opened at. */
@@ -1215,7 +1222,7 @@ const SHEET_ROUTES = [
   '/player', '/pick', '/log', '/entry', '/seat', '/bill', '/spend', '/bill-rules',
   '/piggy-bank-rules', '/house-rules', '/money-rules', '/rule', '/rounding', '/share',
   '/sign-in', '/member', '/hand-over', '/nudge', '/new-group', '/new-night', '/invite',
-  '/end-time', '/pass-game', '/late-changes', '/situation', '/table-rules',
+  '/end-time', '/pass-game', '/late-changes', '/situation', '/table-rules', '/booster',
 ];
 
 /**

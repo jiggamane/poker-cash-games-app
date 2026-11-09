@@ -51,3 +51,6 @@ export * from './rulings/situations';
 /* Texas hold'em odds — win and tie per hand, every board dealt. Not money, but
    arithmetic, and arithmetic is tested here or nowhere. */
 export * from './odds/index';
+/* Game boosters — bomb pots, straddles and the side games, as reference data
+   for `/boosters`. Not money: every one is played in chips at the table. */
+export * from './boosters';
