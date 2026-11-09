@@ -106,6 +106,8 @@ const ROUTES = [
   // Game boosters: Poker tools' third tile (9 November), a push listing them,
   // and one booster described as a sheet.
   '/boosters', '/booster',
+  // Poker tools as a sheet: what Tonight's one tools icon opens (9 November).
+  '/pick-tool',
 ];
 
 /*
@@ -1223,6 +1225,7 @@ const SHEET_ROUTES = [
   '/piggy-bank-rules', '/house-rules', '/money-rules', '/rule', '/rounding', '/share',
   '/sign-in', '/member', '/hand-over', '/nudge', '/new-group', '/new-night', '/invite',
   '/end-time', '/pass-game', '/late-changes', '/situation', '/table-rules', '/booster',
+  '/pick-tool',
 ];
 
 /**

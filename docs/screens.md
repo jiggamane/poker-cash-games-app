@@ -93,6 +93,7 @@ is settled when it is not.
 | `/pass-game` | sheet | ✓ | ✓ | — | ☐ |
 | `/payments` | push | ✓ | — | ✓ | ☐ |
 | `/pick` | sheet | ✓ | ✓ | — | ☐ |
+| `/pick-tool` | sheet | ✓ | ✓ | — | ☐ |
 | `/piggy-bank-rules` | sheet | ✓ | ✓ | — | ☐ |
 | `/player` | sheet | ✓ | ✓ | ✓ | ☐ |
 | `/players` | push | ✓ | — | — | ☐ |
@@ -115,8 +116,9 @@ is settled when it is not.
 | `/tools` | push | ✓ | — | — | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**46 screens · 46 under the rule pass · 27 under the sheet pass · 13 under a big
-night · 0 conformed.** (`/boosters` and `/booster` added 9 November.) (The three rulings screens and the odds calculator were
+**47 screens · 47 under the rule pass · 28 under the sheet pass · 13 under a big
+night · 0 conformed.** (`/boosters` and `/booster` added 9 November, and
+`/pick-tool` the same day.) (The three rulings screens and the odds calculator were
 added to this table on 24 October; the count had stood at 39 since before the
 rulings merge, and the rows are `ROUTES` and `SHEET_ROUTES` in `ui-audit.mjs`.)
 
@@ -3483,6 +3485,17 @@ the route list, both themes, 393 and 360; `/booster` on the sheet pass across
 the six devices).
 
 ## Tonight's two tools, and the calculator's name (26 October)
+
+> **Superseded on Tonight, 9 November (the owner):** with Boosters as a third
+> tool the two icons on the role line are ONE — the question card the home
+> grid's Poker tools tile draws — opening **`/pick-tool`**, a sheet with the
+> same three tiles `/tools` draws (`ToolTiles`, shared by both). It is a sheet
+> and not `/tools` because club → Tonight is already one push: `/tools` would
+> be the second and every tool behind it a third (`09-navigation.md` § Depth).
+> A tile closes the sheet first — a sheet never pushes — and then pushes the
+> tool from Tonight with `from=tonight`, so back is Tonight, exactly where the
+> two icons used to put it. The same on `/watch` while the night runs. What
+> follows still holds for where the tools sit and why.
 
 The role line under *Tonight* — *You’re recording · started 20:05*, *Watching ·
 Lena is recording* — ends in **two round icons on every phone**: Rules

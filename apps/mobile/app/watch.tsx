@@ -6,7 +6,7 @@ import { formatMoney } from '../src/lib/money';
 import { NightResult } from '../src/components/NightResult';
 import { ViewControl } from '../src/components/SessionViews';
 import { Screen } from '../src/components/Screen';
-import { ToolIcons } from '../src/components/ToolIcons';
+import { ToolsButton } from '../src/components/ToolsButton';
 import { setSessionView, useSessionView } from '../src/lib/sessionViewStore';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { radius, space, tabular, type } from '../src/design/tokens';
@@ -207,12 +207,13 @@ function Night({ night, me }: { night: WatchedNight; me: PlayerId | null }) {
       /* The control shares the meta line here exactly as it does on
          `/settled` — and only once the night has ended, because there is
          nothing to read three ways while it is still running. While it IS
-         running the line's end holds the two poker tools instead, as it does
-         on Tonight for every other phone (`ToolIcons`, 26 October): a watcher
+         running the line's end holds the poker tools instead, as it does
+         on Tonight for every other phone (`ToolsButton`, 26 October; one icon
+         since 9 November): a watcher
          is a player in the hands, and the calculator is for them most of all. */
       metaTrailing={
         !ended ? (
-          <ToolIcons />
+          <ToolsButton />
         ) : result === null ? undefined : (
           <ViewControl
             view={view}
