@@ -18,8 +18,8 @@ import { home, space, type } from '../design/tokens';
  * fresh club.
  *
  * The icons, 9 November (the owner): the calculator a bare percent sign and
- * Boosters a flame, with no card outline; Rulings keeps its question card, leaning
- * 12° to the right — the angle of the calculator glyph's front card. All
+ * Boosters a flame, with no card outline; Rulings keeps its question card, which
+ * leans 12° to the right everywhere (`Icon.tsx`). All
  * three in the same line and colour — the flame was the 🔥 emoji for an hour,
  * and one tile in colour among greyscale ones was the problem.
  *
@@ -33,15 +33,13 @@ export type ToolPath = '/odds' | '/rules' | '/boosters';
 export interface Tool {
   path: ToolPath;
   icon: IconName;
-  /** Degrees clockwise the glyph is turned in its round. Rulings' card leans right (the owner, 9 November). */
-  tilt?: number;
   name: string;
   sub: string;
 }
 
 export const TOOLS: readonly Tool[] = [
   { path: '/odds', icon: 'percent', name: 'Calculator', sub: 'hand and pot odds' },
-  { path: '/rules', icon: 'questionCard', tilt: 12, name: 'Rulings', sub: 'look up a ruling' },
+  { path: '/rules', icon: 'questionCard', name: 'Rulings', sub: 'look up a ruling' },
   { path: '/boosters', icon: 'flame', name: 'Boosters', sub: 'bomb pots and more' },
 ];
 
@@ -75,9 +73,7 @@ function Tile({ tool, onPress }: { tool: Tool; onPress: () => void }) {
       ]}
     >
       <View style={[styles.round, { backgroundColor: t.roundFill }]}>
-        <View style={tool.tilt === undefined ? undefined : { transform: [{ rotate: `${tool.tilt}deg` }] }}>
-          <Icon name={tool.icon} color={t.text} />
-        </View>
+        <Icon name={tool.icon} color={t.text} />
       </View>
       <View style={styles.tileText}>
         <Text style={[styles.tileName, { color: t.text }]} numberOfLines={1}>
