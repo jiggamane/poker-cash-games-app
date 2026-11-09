@@ -1,5 +1,17 @@
 # Prompt: deleting an account — the mechanics, and a board for the sheet
 
+> **9 November — Part 1 is built** as `supabase/migrations/0024_delete_account.sql`
+> (B107), with `supabase/test/16_delete_account.sql`. Three things this file
+> missed are in it: the shortfall's own check, the writer guard, and the
+> append-only trigger each refused the delete as well — B107 has them. The
+> sheet reads `account_deletion_plan()` before the hold and calls
+> `delete_my_account()` on it; both return one jsonb (`running`, `groups` with
+> `deleted`/`closed` each, `seats` with group and host name,
+> `store_subscription`). **Part 2, the board, has not been drawn**, so nothing
+> is on screen and none of the strings below is final. Still open on the app
+> side: a hand-off whose person was deleted has a null `from_user`/`to_user`,
+> and the feed row needs the one string Part 2 asks for.
+
 **Why this file exists.** Apple refuses an app that creates accounts and cannot
 delete them in-app (guideline 5.1.1 (v)); it is blocker A1 in
 `app-store-launch.md`. This app creates three kinds of account and has no way to

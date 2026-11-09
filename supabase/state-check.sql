@@ -12,7 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0022.
+-- Last checked against migrations 0001–0024.
 -- =============================================================================
 
 with c as (
@@ -144,6 +144,10 @@ probe as (
     -- 0023 keep awake: the daily workflow's heartbeat
     exists (select 1 from p where proname = 'keep_awake') as m23,
 
+    -- 0024 deleting an account: the function, and a group that may lose its host
+    (exists (select 1 from p where proname = 'delete_my_account')
+     and exists (select 1 from pg_constraint where conname = 'book_hostless_is_closed')) as m24,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
@@ -191,6 +195,7 @@ select v.n,
     (21, '0021 membership: tiers, and Regular''s host night', x.m21, 'run supabase/migrations/0021_membership.sql'),
     (22, '0022 one set of plan names: Free, Regular, Full', x.m22, 'run supabase/migrations/0022_tier_names.sql'),
     (23, '0023 keep awake: the daily heartbeat',        x.m23, 'run supabase/migrations/0023_keep_awake.sql'),
+    (24, '0024 deleting an account',                    x.m24, 'run supabase/migrations/0024_delete_account.sql'),
     (90, 'all fourteen tables present',                  x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),

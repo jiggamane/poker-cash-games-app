@@ -216,7 +216,9 @@ the account, but a lock on the app.
   what happens to a group, and to nights other people played in, when its host
   goes — is answered in `design-request-account-deletion.md`, 28 September,
   with the mechanics, the five schema changes a delete needs, and the prompt
-  for the sheet's board. Not built.
+  for the sheet's board. **Server side built 9 November** —
+  `0024_delete_account.sql`, B107 (it needed eight schema changes, not five).
+  The sheet waits for its board.
 - **One host at a time** is the parked pass-the-book branch
   (`claude/multi-admin-game-access-cpwbpw`); it comes back when its redesign is
   done, not as part of this.
