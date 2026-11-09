@@ -42,7 +42,10 @@ type State =
   | { at: 'refused'; plan: DeletionPlan }
   | { at: 'working' }
   | { at: 'done' }
-  | { at: 'failed'; reason: string | null };
+  /* `reading` is a failure to read the plan: nothing was shown, so nothing may
+     be held — its Try again reads the plan again. `deleting` is a failure of
+     the delete itself, after the plan was on screen, and S8 holds again. */
+  | { at: 'failed'; reason: string | null; during: 'reading' | 'deleting' };
 
 export default function DeleteAccount() {
   const t = useTheme();
@@ -56,7 +59,7 @@ export default function DeleteAccount() {
     setState({ at: 'reading' });
     void readDeletionPlan()
       .then((p) => setState(p.running !== null ? { at: 'refused', plan: p } : { at: 'plan', plan: p }))
-      .catch(() => setState({ at: 'failed', reason: null }));
+      .catch(() => setState({ at: 'failed', reason: null, during: 'reading' }));
   }
 
   useEffect(() => {
@@ -93,7 +96,11 @@ export default function DeleteAccount() {
       router.replace('/');
     } catch (e) {
       const message = e instanceof Error ? e.message : '';
-      setState({ at: 'failed', reason: /fetch|network/i.test(message) ? null : message || null });
+      setState({
+        at: 'failed',
+        reason: /fetch|network/i.test(message) ? null : message || null,
+        during: 'deleting',
+      });
     }
   }
 
@@ -123,7 +130,19 @@ export default function DeleteAccount() {
     return (
       <Sheet
         title="Delete your account"
-        footer={<HoldButton variant="danger" icon="trash" label="Try again" sub="Hold 1.5s · deletes now, no undo" onComplete={() => void goAhead()} />}
+        footer={
+          state.during === 'reading' ? (
+            <Button label="Try again" onPress={read} />
+          ) : (
+            <HoldButton
+              variant="danger"
+              icon="trash"
+              label="Try again"
+              sub="Hold 1.5s · deletes now, no undo"
+              onComplete={() => void goAhead()}
+            />
+          )
+        }
       >
         <View style={styles.body}>
           <Text style={[styles.lede, text]}>

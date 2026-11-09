@@ -191,7 +191,9 @@ Found       28 September, `design-request-account-deletion.md`; worked
 Locked by   db:verify — `supabase/test/16_delete_account.sql` deletes a host,
             a member and a watcher, each with real holdings, and asserts what
             is left. The sheet has no board yet, so check:ui cannot see it
-Status      server side fixed in 0024; the sheet is open (no board)
+Status      fixed — server in 0024 (9 Nov), the sheet built to the approved
+            board `design/handoff-account-and-names/` the same day
+            (`/delete-account`). Not yet seen deleting on a real phone
 ```
 
 The design doc counted five things in the way. Working it against 0023 found

@@ -1,7 +1,9 @@
 # Account and names — a board drawn for review, 9 November
 
-**Status: a PROPOSAL waiting for the owner's review. It is not a handoff yet.**
-Nothing here is built, and no string in it is final until the owner says so.
+**Status: APPROVED by the owner on 9 November ("approved, build it"), and
+built the same day.** It is the handoff for these screens now; the strings on
+it are the shipped ones, UNSURE tags included. `docs/screens.md` has the
+routes and the six places the build departs from it.
 
 The owner chose, on 9 November, to have the board drawn first and reviewed
 before any screen is built (rather than build from placeholders, or wait for

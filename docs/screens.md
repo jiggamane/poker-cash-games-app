@@ -3558,3 +3558,52 @@ themes, 393 and 360, with B100's whole-head check), `ui-odds.mjs` (the
 Settings row and the run-out's back button by name). `ui-frames.mjs` holds
 `/session`'s chrome against *T1 Tonight · resting*, which has no icons on the
 line; the difference is this section.
+
+## Account and names — the board drawn here, approved 9 November
+
+`design/handoff-account-and-names/` — drawn in this repository from
+`docs/design-request-account-deletion.md` Part 2 and **approved by the owner on
+9 November** ("approved, build it"). Three parts, one board: A · deleting an
+account (S1–S8), B · your name at first sign-in (N1–N5), C · renaming your own
+seat (R1–R3). The six open questions are answered at the top of the board.
+
+| Screen | Route | Board | Server |
+|---|---|---|---|
+| S1 the row | `/settings`, own group at the foot | S1 | — |
+| S2–S8 the sheet | `/delete-account` (Chrome B) | S2–S8 | `account_deletion_plan`, `delete_my_account` (0024, 0029, 0030) |
+| N1–N3 the name step | `/your-name`, pushed by `/auth-callback` when the account has none | N1–N3 | `my_name`, `set_my_name` (0029); a group needs one (0030) |
+| N5 the name row | `/settings` → Name | N5 | as above |
+| R1 your seat's name | `/seat-name?id=`, from Settings → You on a claimed seat | R1 | `rename_my_seat` (0030) |
+| R2 the roster line | `/players`, admin's phone | R2 | `player.admin_name`, read apart from the roster in `pull.ts` (B97) |
+| R3 use their name again | `/member`, admin's phone | R3 | `use_admin_name` (0030) |
+
+**Strings marked UNSURE on the board, shipped as drawn:** the note under
+Delete account; "Groups you run" / "Your seats elsewhere"; the deleted and the
+closed-at-0 lines; the hold's sub-line *Hold 1.5s · deletes now, no undo*;
+"Remove access"; *It started at 20:05.* and *Nothing has been deleted.*; S7's
+two lines; S8's *Try again*; *Closing this signs the phone out again.*; R1's
+title and footnote; R2's *named themselves · you added Petr*; R3's *Use Petr
+again*.
+
+**Where the build departs from the board, and why:**
+
+1. **S7 keeps a close.** `Sheet` always draws one, and Chrome B says it must;
+   while deleting it does nothing. The board drew S7 without one.
+2. **Reading the plan is not drawn.** The sheet is empty until the server
+   answers — a second or less on a signal.
+3. **A failure to read the plan is S8's words with a plain *Try again* button,
+   not the hold.** Nothing has been shown, so nothing may be held: a hold there
+   would delete without the person having seen what. The board's S8 — the hold
+   — is the failure of the delete itself.
+4. **N4 is not built,** as the board says: the name is asked in one place,
+   after the link, for an invite and a code alike.
+5. **The phone after a delete is a fresh install,** sample night and all — the
+   wipe empties every table and AsyncStorage and reloads. What a fresh install
+   should show is A7 in `app-store-launch.md`, a separate question.
+6. **R1 is reached only by a claimed seat** (an anonymous phone that redeemed a
+   code). On the admin's phone *You* still opens the member sheet, where the
+   admin renames their own seat as before.
+
+**Not yet seen on a phone.** `check:ui` walks the routes; nobody has deleted
+an account on a real phone. The first real delete should be a throwaway
+account, not the owner's.
