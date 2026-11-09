@@ -166,7 +166,7 @@ export const BOOSTERS: readonly Booster[] = [
     ],
     agree: [
       'The amount each button collects.',
-      'Whether a chopped pot gives both players a button.',
+      'Whether a chopped pot gives a button to each winner. A winner who already has one just keeps it — nobody holds two.',
       'Whether a player who leaves mid-round with no button pays before they go.',
     ],
     worth: 'Some tables play it the other way up: the amount goes in a pot at the start of each round, and the last player to win a pot takes it. Agree which before the first round.',
