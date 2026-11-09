@@ -18,7 +18,15 @@ import { clubForBook, rosterAdditions, sameName, type RosterPerson } from './ros
 import { PROMOTE_CLAIMED, SET_INVITED } from './seatReconcile';
 import { isSupabaseConfigured } from './supabase';
 import { EMPTY_TABLE_RULES, readTableRules, type TableRules } from '@poker-club/core';
-import { drain, queueBook, queuePlayerTerms, queueRosterPlayer, queueRule, queueRuleDelete } from './sync';
+import {
+  drain,
+  queueBook,
+  queuePlayerTerms,
+  queueRosterPlayer,
+  queueRule,
+  queueRuleDelete,
+  resolveAdminSeatWith,
+} from './sync';
 
 /**
  * The club, on this phone. 12-the-group.md.
@@ -273,6 +281,13 @@ export function currentClub(): Club | null {
 
 /** Subscribe to the club from outside React. Returns the unsubscribe. */
 export const onClubChange = subscribe;
+
+/* B48: the sync binds each group's admin seat on the server, and only this
+   store knows which roster row that is — `sync.ts`, beside `bindAdminSeat`. */
+resolveAdminSeatWith(
+  (groupName) =>
+    state.clubs.find((c) => c.name === groupName)?.members.find((m) => m.standing === 'admin')?.id ?? null,
+);
 
 export function useClubs(): State {
   return useSyncExternalStore(subscribe, snapshot, snapshot);

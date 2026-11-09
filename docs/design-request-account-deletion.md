@@ -6,6 +6,10 @@
 > is the reasoning, kept as written on 28 September; where it and the code
 > disagree the code wins, and B107 says where (it found eight schema changes,
 > not five). The board has not been drawn, so nothing is on screen.
+>
+> **Widened 9 November** to the name step at first sign-in (part B, server
+> half in `0029_names.sql`) and a player renaming their own seat (part C, not
+> built) — one board for the three.
 
 **Why this file exists.** Apple refuses an app that creates accounts and cannot
 delete them in-app (guideline 5.1.1 (v)); it is blocker A1 in
@@ -212,18 +216,32 @@ hand the sheet, and missed three states the server can produce (a group closed
 with nobody counted in it, a seat whose group has no host name, an account
 with nothing attached). It is replaced, not amended.
 
-Paste the block below into the design tool. It asks for **one sheet, in the
-states the server produces**, plus the one row that opens it, and nothing on any
-other screen. Every string in it is a placeholder; the board's strings are the
-ones that ship.
+**Widened the same evening (owner, 9 November)** to two more things about
+names, on the same board: an email account is asked **"Your name" at first
+sign-in, and it is required** (0029 stores it), and **a player can change the
+name on their own seat** — never asked for one, but free to change it. And 0029
+fixed B48, so the "admin's name is missing" state the first rewrite asked for
+can no longer happen and is gone from it.
+
+Paste the block below into the design tool. It asks for **the delete sheet in
+the states the server produces, the name step at first sign-in, and renaming
+your own seat**, and nothing on any other screen. Every string in it is a
+placeholder; the board's strings are the ones that ship.
 
 ---
 
 ```text
-I need a board for one screen of the poker cash-game ledger app: the sheet a
-person gets when they delete their account, in every state the server can
-produce, and the one Settings row that opens it. App Review requires it and it
-does not exist in any form. This is a new board rather than a delta.
+I need one board for three related things in the poker cash-game ledger app,
+all about a person's account and their name:
+
+  A. DELETING AN ACCOUNT — the sheet, in every state the server can produce,
+     and the Settings row that opens it. App Review requires it.
+  B. YOUR NAME AT FIRST SIGN-IN — an email account is asked for its name the
+     first time it signs in, and cannot go on without one.
+  C. RENAMING YOUR OWN SEAT — a player changes the name on their own seat in a
+     group, which until now only the group's admin could do.
+
+None of them exists in any form. This is a new board rather than a delta.
 
 Work inside the existing system — Style Guide v2, the rev 18 geometry
 (doc 15), the boards, and the Settings screen as it stands. Do not introduce a
@@ -241,9 +259,10 @@ says who pays whom, and the nights add up into the group's history.
 
 The person leaves; the record stays. Deleting an account removes the person —
 their email, their sign-in, every link between them and a seat — and never
-removes a figure from a night somebody else played in. The seat keeps the name
-the admin typed for it, on every night and every hand-off, because the person
-never gave us that name and a night only balances with every seat in it.
+removes a figure from a night somebody else played in. The seat stays, under
+the name the admin typed for it — put back, if the player had renamed it
+(part C) — on every night and every hand-off, because a night only balances
+with every seat in it.
 
 This is BUILT. The server already does all of it; the sheet only has to say it.
 
@@ -257,9 +276,9 @@ Before the hold, the app asks the server what deleting would do, and gets:
             it — DELETED or CLOSED — and a number: how many OTHER people hold
             a claimed seat in it.
   seats     every seat this person holds in somebody else's group: the seat's
-            name (as that group's admin typed it), the GROUP NAME, and the
-            ADMIN'S NAME — which can be MISSING, when that admin never claimed
-            a seat in their own group.
+            name, the GROUP NAME, and the ADMIN'S NAME — always there: an
+            admin is named by their own seat in the group, or by their account
+            name (part B) when they run it without playing.
   store_subscription   whether a plan came through the App Store or Google
             Play. Nobody can buy one today, so this is false for everyone at
             launch — draw it anyway, as the state it will be.
@@ -354,8 +373,9 @@ deleting, anywhere.
       backup, the plan line, the store line ON, and the hold. The hardest
       state; design it first. It must hold with one group and with four, with
       long group names, and with a CLOSED count of 0.
-  S3  MEMBER: one seat, and three seats in three groups — one of them a group
-      whose admin's name is missing.
+  S3  MEMBER: one seat, and three seats in three groups — one of them a seat
+      the player renamed themselves (part C), so the sheet has to say the
+      admin's original name comes back.
   S4  ACCOUNT WITH NOTHING IN IT: email account, Free, no group, no seat.
   S5  WATCHER: the smallest version. One line and the hold.
   S6  REFUSED — a game is running. Names the group and when it started; one
@@ -412,7 +432,8 @@ table; the same register applies to somebody leaving one.
 
   S3 lede:     "Your seat in {Group} becomes a name again. {Admin} still sees
                every night you played, and can invite you back."
-               (and with {Admin} missing?)
+  S3 renamed:  "You changed your name in {Group} to {Mine}. It goes back to
+               {Theirs}, the name {Admin} gave the seat."
   S3 record:   "Your name, as {Admin} added it, and the nights you played stay
                in {Group}'s history. They are the group's record of the money
                that changed hands."
@@ -435,6 +456,96 @@ table; the same register applies to somebody leaving one.
 
 If a state needs a string I have not listed, write one and flag it.
 
+## B. YOUR NAME AT FIRST SIGN-IN
+
+Owner's decision: an account with an email is asked "Your name" the first time
+it signs in, and it is REQUIRED — no skip, no "later", no way past it without
+one. It is stored on the account and can be changed afterwards.
+
+Who is asked: only an account with an email. That is how anybody runs a
+group, so every group's admin has a name. A phone that claimed a seat with a
+code, or only watches, is NOT asked — they are known in a group by the name
+on their seat (part C), and nothing anywhere shows an anonymous phone's name.
+
+Where its name is read: for a group's admin who runs the game without
+playing — "{admin} added you as Petr" on an invite, "kept by {admin}" under a
+past night, the delete sheet's seat lines. An admin who plays is named by their
+own seat in the group, as everybody else is. And in Settings, beside "Signed
+in as".
+
+How an email account first signs in today — draw the name step into both:
+
+  1. INVITED: the owner invites the address from the server's dashboard. They
+     open the app, Settings → Sign in, type the address, "Email me a link",
+     and open the link (the "Check your email" state). The link lands them in
+     the app signed in. The name step comes the moment it lands.
+  2. WITH A CODE: on the same Sign in sheet, an address with no account grows
+     a "Code" field; "Open an account" with a live code makes the account and
+     mails a confirmation link, which lands the same way. The name could be a
+     field on this sheet, beside Email and Code, or the same step as 1 after
+     the link — your call; say which.
+
+STATES TO DRAW
+
+  N1  The name step, empty — required, so the one action is unavailable until
+      something is typed. It is a SHEET (Chrome B), not a full screen, and its
+      close must not leave the account without a name: decide what closing it
+      does, and draw it.
+  N2  Filled, and saving.
+  N3  Refused by the server: blank, or over 40 characters (it trims spaces and
+      folds runs of them into one). Say what is wrong in the house voice.
+  N4  The code path (2), if the name lives on the Sign in sheet rather than in
+      the step after the link.
+  N5  Settings → Account, signed in: where the name sits beside "Signed in as"
+      and "Plan", and changing it — the same sheet as N1, filled.
+
+COPY — placeholders
+
+  N1 title:    "Your name"
+  N1 line:     "How the people you play with will see you when you run a game."
+  N1 field:    placeholder "Lena"
+  N1 action:   "Save"
+  N3:          "A name can't be empty." / "Keep it under 40 characters."
+  N5 row:      "Name" · {name}
+
+## C. RENAMING YOUR OWN SEAT
+
+Until now a seat's name is whatever the group's admin typed — "Petr" — and only
+the admin can change it. Owner's decision: a player is never ASKED for a name
+when they claim a seat, but they may CHANGE the name on their own seat, from
+their own phone, in each group they are in.
+
+The rule it must keep: the admin's original is never lost. If the player
+deletes their account (part A, S3), their seat goes back to the name the admin
+typed. While the name is theirs, the group sees the player's name everywhere —
+the table, the settled nights, the stats.
+
+Questions this part has to answer on the board, not in the code:
+
+  - Where a player does it. Settings → PLAYERS has a "You" row today (the
+    seat that is yours); is that where, for a member as for an admin?
+  - What the ADMIN sees when a player renames their seat: does the roster
+    say it was the player's choice, and can the admin put their own name back?
+  - Whether the admin's own seat and the admin's account name (part B) are
+    one name or two. Today they can differ: the account name is only read
+    when the admin holds no seat.
+
+STATES TO DRAW
+
+  R1  The rename sheet for your own seat — the group's name on it, the current
+      name filled in, and the admin's original named somewhere if it differs.
+  R2  The admin's roster with one seat renamed by its player.
+  R3  The admin opening that seat — what they can do about the name.
+
+COPY — placeholders
+
+  R1 title:    "Your name in {Group}"
+  R1 line:     "Everyone in {Group} will see this. {Admin} added you as
+               {Theirs}."
+  R1 action:   "Save"
+  R2 badge:    "named by Petr"
+  R3 action:   "Use {Theirs} again"
+
 ## OPEN QUESTIONS — ANSWER THEM ON THE BOARD
 
 1. Is the backup a row inside S2, or a first stage the hold only appears
@@ -443,24 +554,28 @@ If a state needs a string I have not listed, write one and flag it.
    Draw whichever holds at four groups with long names.
 3. Does S1 sit last in ACCOUNT, after Sign out, or in its own section at the
    very foot of Settings, apart from everything that is not destructive?
-4. The CLOSED line at a count of 0, and the member lede with no admin name —
-   what do they say?
+4. The CLOSED line at a count of 0 — what does it say?
+5. Part B: the name on the Sign in sheet beside Email and Code, or a step after
+   the link — and what closing the required step does.
+6. Part C: the three questions under it.
 
 ## WHAT TO HAND BACK
 
-1. A board for S1–S8 at 393 × 852, in the same format as the existing boards:
+1. A board for S1–S8, N1–N5 and R1–R3 at 393 × 852, in the same format as the
+   existing boards:
    every dimension, weight and colour inline on the element, so it can be
    copied rather than re-derived.
 2. Both themes.
 3. A short note on anything you deliberately departed from in the existing
    system, and why.
-4. Your answers to the four questions above.
+4. Your answers to the six questions above.
 
 ## WHAT I AM NOT ASKING FOR
 
 Handing a group to another person before leaving — not built; when it is, S2
-gains one row above the hold and nothing else here changes. Anything on any
-other screen: the hand-off line ("passed to Lena at 23:10") keeps the name
+gains one row above the hold and nothing else here changes. A name for phones
+that only watch or claimed a seat — they are not asked (part B). Anything on
+any other screen: the hand-off line ("passed to Lena at 23:10") keeps the name
 the admin typed after a deletion, so it needs no new string. No change to the
 sheet object, the tokens, or the navigation vocabulary — if this screen makes
 you want one, say so separately.
@@ -485,6 +600,19 @@ you want one, say so separately.
   file.
 - A `check:ui` walk of S1–S8 goes red if it regresses; add it to B107's
   *Locked by* when it exists.
+- **Part B's server half is done (0029):** `set_my_name(name)` and `my_name()`,
+  for an email account only. What is not: the step itself, and the server-side
+  gate that makes the name truly required — `book_insert_needs_plan`'s
+  neighbour, *no name, no new group*. Switch that on in the same change that
+  ships N1, never before: before it, it stops the owner's own phone, which has
+  no way to set a name.
+- **Part C has no server half yet.** It needs, in one migration: the admin's
+  original kept on the row (`player.admin_name`) when a player renames, a
+  `rename_my_seat(player, name)` for the claimant, `release_seat` putting the
+  admin's original back, and the roster sync changed so the admin's phone
+  upserting a roster row cannot write over a name the player chose — today
+  `playerRow` sends `display_name` on every upsert. That last part is the one
+  that silently loses a player's choice if it is missed.
 - The privacy policy (`app-store-launch.md` Step 4) gets three sentences from
   this file: what deletion removes, that a closed group's figures stay for its
   members, and that store billing records are kept.

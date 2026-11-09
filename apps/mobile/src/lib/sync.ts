@@ -432,6 +432,42 @@ export async function queueClose(payload: ClosePayload): Promise<void> {
  */
 const books = new Map<string, string>();
 
+/*
+ * B48 — THE ADMIN'S OWN SEAT IS THEIRS ON THE SERVER. Nothing ever bound it, so
+ * every group's admin read as a blank wherever the server names them: the
+ * invite screen's "{admin} added you as {name}", "kept by {admin}" under a past
+ * night, the delete-account sheet. `bind_my_seat` (0029) binds it; the server
+ * checks it is the caller's own group and a free seat, and answers no to
+ * anything else without raising.
+ *
+ * WHICH ROW IS THE ADMIN'S is a fact this phone holds and the server does not,
+ * so the club store tells this file through a resolver — a function rather
+ * than an import, because `clubStore` already imports this file.
+ *
+ * It is asked twice, and both are needed: when a group's book is first
+ * resolved this run (a group that reached the server before 0029, which is
+ * every group there is), and right after the admin's roster row is sent (a new
+ * group, whose seat does not exist on the server until that write lands). A
+ * failure is ignored: a project without 0029 has no such function, and the
+ * cost of not binding is a blank name, never a lost write.
+ */
+let adminSeatOf: (groupName: string) => string | null = () => null;
+
+/** The club store says which roster row is each group's admin. */
+export function resolveAdminSeatWith(resolve: (groupName: string) => string | null): void {
+  adminSeatOf = resolve;
+}
+
+async function bindAdminSeat(groupName: string): Promise<void> {
+  const seat = adminSeatOf(groupName);
+  if (seat === null) return;
+  try {
+    await supabase.rpc('bind_my_seat', { target_player_id: seat });
+  } catch {
+    // No 0029 on this project, or no signal: the next sync asks again.
+  }
+}
+
 /**
  * Send what is queued, oldest first.
  *
@@ -638,7 +674,12 @@ async function deliver(item: OutboxItem, held: HoldRow | null): Promise<void> {
     }
     case 'player.upsert': {
       const p = item.payload as PlayerPayload;
-      return write(playerRow(p, await bookFor(p.groupName)));
+      await write(playerRow(p, await bookFor(p.groupName)));
+      // A night this phone was passed is somebody else's group: no seat to bind.
+      if (held?.bookId == null && adminSeatOf(p.groupName) === p.player.id) {
+        await bindAdminSeat(p.groupName);
+      }
+      return;
     }
     case 'seat.upsert':
       return write(seatRow(item.payload as SeatPayload));
@@ -770,6 +811,7 @@ async function ensureBook(groupName: string, previousName?: string): Promise<str
   if (found !== undefined) {
     const id = found.id as string;
     books.set(groupName, id);
+    await bindAdminSeat(groupName);
     return id;
   }
 
