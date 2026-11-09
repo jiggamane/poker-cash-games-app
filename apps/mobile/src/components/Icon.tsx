@@ -129,11 +129,17 @@ export type IconName =
   | 'questionCard'
   /** Poker tools, the pair of them: one card with a spade pip. */
   | 'spadeCard'
-  /**
-   * Game boosters (9 November): the same card, its pip a lightning bolt — more
-   * action. Drawn here to match the set; no canvas draws it.
+  /*
+   * THE TOOL TILES' OWN GLYPHS, 9 November (the owner): on Poker tools and
+   * Tonight's tools sheet the card shapes are gone, so a tool is its pip alone
+   * — a percent sign for the calculator, a question mark for the rulings.
+   * Boosters is the 🔥 emoji, drawn by `ToolTiles` as text. The card glyphs
+   * above stay for the home tile and Tonight's icon.
    */
-  | 'boostCard'
+  /** The calculator's tile: a percent sign. */
+  | 'percent'
+  /** The rulings' tile: a question mark. */
+  | 'question'
   /*
    * THE HOME GRID'S OTHER TWO, from the same canvas (N6, 25 October): the
    * destinations that were text rows now carry a glyph each. Both are new and
@@ -687,12 +693,28 @@ export function Icon({
       );
     }
 
-    case 'boostCard': {
+    case 'percent': {
       const s = size ?? 21;
       return (
         <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-          <Rect x={5} y={2.5} width={14} height={19} rx={2.2} stroke={color} strokeWidth={2} />
-          <Path d="M13.4 6.6L9.2 12.6h3l-.8 4.8 4.2-6h-3z" fill={color} stroke={color} strokeWidth={0.8} strokeLinejoin="round" />
+          <Circle cx={7.5} cy={7.5} r={2.6} stroke={color} strokeWidth={2} />
+          <Circle cx={16.5} cy={16.5} r={2.6} stroke={color} strokeWidth={2} />
+          <Path d="M18.5 5.5l-13 13" stroke={color} strokeWidth={2} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'question': {
+      const s = size ?? 21;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M7.6 8a4.4 4.4 0 1 1 6.2 4c-1.1.5-1.8 1.5-1.8 2.7v.8"
+            stroke={color}
+            strokeWidth={2.2}
+            strokeLinecap="round"
+          />
+          <Circle cx={12} cy={19.6} r={1.4} fill={color} />
         </Svg>
       );
     }
