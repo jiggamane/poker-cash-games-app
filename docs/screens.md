@@ -67,6 +67,8 @@ is settled when it is not.
 |---|---|:--:|:--:|:--:|:--:|
 | `/` | push | ✓ | — | — | ☐ |
 | `/auth-callback` | push | ✓ | — | — | ☐ |
+| `/booster` | sheet | ✓ | ✓ | — | ☐ |
+| `/boosters` | push | ✓ | — | — | ☐ |
 | `/bill` | sheet | ✓ | ✓ | — | ☐ |
 | `/bill-rules` | sheet | ✓ | ✓ | — | ☐ |
 | `/claim` | push | ✓ | — | — | ☐ |
@@ -113,8 +115,8 @@ is settled when it is not.
 | `/tools` | push | ✓ | — | — | ☐ |
 | `/watch` | push | ✓ | — | — | ☐ |
 
-**44 screens · 44 under the rule pass · 26 under the sheet pass · 13 under a big
-night · 0 conformed.** (The three rulings screens and the odds calculator were
+**46 screens · 46 under the rule pass · 27 under the sheet pass · 13 under a big
+night · 0 conformed.** (`/boosters` and `/booster` added 9 November.) (The three rulings screens and the odds calculator were
 added to this table on 24 October; the count had stood at 39 since before the
 rulings merge, and the rows are `ROUTES` and `SHEET_ROUTES` in `ui-audit.mjs`.)
 
@@ -3438,6 +3440,42 @@ tapping their names, which the tiles still carry). `ui-frames.mjs` holds the
 chrome of `/` against *H3 Home · live*; the body is not among its checks, so
 the grid against the frame's rows is a difference it does not report. The
 canvas boards are the drawing the grid is held to.
+
+## Game boosters (9 November)
+
+A third tile on Poker tools, **Boosters**, by the owner's request: house rules
+a table can add for more action. Two sections, side games first (the owner's
+order): **Side games** — the stand-up game, the button game, the 7-2 game; and
+**Bigger pots** — the bomb pot, the double-board bomb pot, the straddle and the
+table ante. The owner dropped the kill pot and the high-hand bonus from the
+first draft. Listed first, by name with one line each, on **`/boosters`** (a push,
+back → Poker tools), and each described on **`/booster`** (a sheet, like
+`/situation`): what it is, how it works in numbered steps, *Agree before you
+start* in a card, variations where there are any, *Worth knowing*, and a line
+at the foot that it is all played in chips, so nothing needs recording.
+
+- **No canvas, board or handoff draws any of it.** The layout borrows `/rules`
+  (section labels, hairline rows) and `/situation` (a read-only sheet). The
+  glyph, `boostCard`, is the tools set's card with a lightning-bolt pip.
+- **The third tile starts a second row** of the two-up grid, half width, the
+  other half empty, so no tile narrows below the width the names were measured
+  at. Club → Poker tools → Game boosters is the second push, the limit; a
+  booster is a sheet for that reason.
+- **The content is data in `packages/core/src/boosters.ts`**, shape held by
+  `boosters.test.ts`. Nothing in the app runs, counts or records a booster.
+
+**⚠ COPY NOT DRAWN, all of it UNSURE:** the tile (*Boosters*, *bomb pots and
+more*), the title *Game boosters*, the meta line *house rules for more action*,
+the section labels *Bigger pots* and *Side games*, the sheet's labels *How it
+works*, *Agree before you start*, *Variations*, *Worth knowing*, the money note,
+and every booster's text. **The Button game has more than one house meaning**;
+it is written as the stand-up game played with markers, so it can run all night,
+with the other way up (the last to win a pot takes a pool) under *Worth
+knowing*. **Not yet seen on a phone.**
+
+**Held by:** `ui-audit.mjs` (`/tools`, `/boosters` and `/booster?id=straddle` on
+the route list, both themes, 393 and 360; `/booster` on the sheet pass across
+the six devices).
 
 ## Tonight's two tools, and the calculator's name (26 October)
 

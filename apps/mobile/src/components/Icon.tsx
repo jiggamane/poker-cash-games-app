@@ -129,6 +129,11 @@ export type IconName =
   | 'questionCard'
   /** Poker tools, the pair of them: one card with a spade pip. */
   | 'spadeCard'
+  /**
+   * Game boosters (9 November): the same card, its pip a lightning bolt — more
+   * action. Drawn here to match the set; no canvas draws it.
+   */
+  | 'boostCard'
   /*
    * THE HOME GRID'S OTHER TWO, from the same canvas (N6, 25 October): the
    * destinations that were text rows now carry a glyph each. Both are new and
@@ -678,6 +683,16 @@ export function Icon({
             fill={color}
           />
           <Path d="M12 14.6v2.4M10.8 17h2.4" stroke={color} strokeWidth={1.4} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'boostCard': {
+      const s = size ?? 21;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Rect x={5} y={2.5} width={14} height={19} rx={2.2} stroke={color} strokeWidth={2} />
+          <Path d="M13.4 6.6L9.2 12.6h3l-.8 4.8 4.2-6h-3z" fill={color} stroke={color} strokeWidth={0.8} strokeLinejoin="round" />
         </Svg>
       );
     }

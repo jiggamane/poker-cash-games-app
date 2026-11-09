@@ -32,24 +32,42 @@ import { home, space, type } from '../src/design/tokens';
  *
  * *Rulings* reads *look up a ruling*, one line, the owner's pick of 4 November
  * over the canvas's *what happened, and what the rule says*, which wrapped.
+ *
+ * *Boosters* is the third tile, 9 November, the owner's request: bomb pots,
+ * straddles and the side games, listed on `/boosters`. It starts a second row
+ * of the same two-up grid rather than squeezing three across, so every tile
+ * keeps the half width the names were measured at; the empty half beside it is
+ * left empty. The name is *Boosters*, not the screen's *Game boosters*, for the
+ * same reason *Calculator* is not *Poker calculator*. ⚠ UNSURE, both lines.
  */
 export default function PokerTools() {
   const t = useTheme();
   return (
     <Screen title="Poker tools" backTo="the club" meta="nothing here touches the ledger">
       <View style={styles.grid}>
-        <Tile
-          icon="calculator"
-          name="Calculator"
-          sub="hand and pot odds"
-          onPress={() => router.push({ pathname: '/odds', params: { from: 'tools' } })}
-        />
-        <Tile
-          icon="questionCard"
-          name="Rulings"
-          sub="look up a ruling"
-          onPress={() => router.push({ pathname: '/rules', params: { from: 'tools' } })}
-        />
+        <View style={styles.gridRow}>
+          <Tile
+            icon="calculator"
+            name="Calculator"
+            sub="hand and pot odds"
+            onPress={() => router.push({ pathname: '/odds', params: { from: 'tools' } })}
+          />
+          <Tile
+            icon="questionCard"
+            name="Rulings"
+            sub="look up a ruling"
+            onPress={() => router.push({ pathname: '/rules', params: { from: 'tools' } })}
+          />
+        </View>
+        <View style={styles.gridRow}>
+          <Tile
+            icon="boostCard"
+            name="Boosters"
+            sub="bomb pots and more"
+            onPress={() => router.push('/boosters')}
+          />
+          <View style={styles.tileSpace} />
+        </View>
       </View>
     </Screen>
   );
@@ -100,7 +118,12 @@ function Tile({
 
 const styles = StyleSheet.create({
   /* The pushed screen's own inset, not home's 20: `Screen` pads nothing. */
-  grid: { flexDirection: 'row', gap: home.tileGap, marginHorizontal: space.page, paddingTop: 4 },
+  grid: { gap: home.tileGap, marginHorizontal: space.page, paddingTop: 4 },
+  gridRow: { flexDirection: 'row', gap: home.tileGap },
+  /* The empty half beside an odd tile, so it keeps the half width. It carries
+     the tile's padding because a flex basis of 0 still counts padding: without
+     it the tile beside it came out 16 points wider than the two above. */
+  tileSpace: { flex: 1, minWidth: 0, padding: home.tilePad },
   tile: {
     flex: 1,
     minWidth: 0,
