@@ -1926,6 +1926,9 @@ Status      fixed in 0029 (9 Nov): `bind_my_seat`, called by the sync for the
             admin row (`sync.ts`, `bindAdminSeat`); an admin with no seat is
             named by their account name (`profile`). A group already on the
             server is bound the next time the admin's phone syncs it
+            — and the live project's one group was bound by hand on 9 Nov,
+            owner's word: "Andro" is the owner's seat, and the account's name
+            is Andro
 ```
 
 `preview_player_invite` finds the host's name with
