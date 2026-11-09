@@ -180,6 +180,18 @@ a host would have deleted the record of who they handed a night to — and with
 it the redeemer's `is_book_member`, which reads that table. It is `set null`
 now, with the other hand-off columns.
 
+**And the names, 9 November (0025).** The owner's rule is that a deleted
+person's seat keeps the name the admin typed. 0024 kept it on the seat, but two
+records name a person by account — who passed a night to whom, and whose phone
+a late change came from — and read the name through the account's claimed
+seat, which a delete removes. Those rows would have gone nameless, and the
+design doc had proposed a new string, *"a former member"*, for them. Instead
+each row now remembers its seat, filled by a trigger on insert and backfilled,
+and every reader takes the seat's name first: `night_role`, `my_passes`,
+`late_change_sources`, and the watch feed in `watchNight.ts`. No new string.
+Locked by the same suite: a hand-off between two deleted accounts still reads
+*Hana → Olek*.
+
 ### B104 — My stats' hours, and every night's length, ignored when the night ended
 
 ```

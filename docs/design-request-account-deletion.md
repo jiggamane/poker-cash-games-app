@@ -8,9 +8,12 @@
 > `delete_my_account()` on it; both return one jsonb (`running`, `groups` with
 > `deleted`/`closed` each, `seats` with group and host name,
 > `store_subscription`). **Part 2, the board, has not been drawn**, so nothing
-> is on screen and none of the strings below is final. Still open on the app
-> side: a hand-off whose person was deleted has a null `from_user`/`to_user`,
-> and the feed row needs the one string Part 2 asks for.
+> is on screen and none of the strings below is final.
+>
+> **The feed-row string is no longer needed (0025, owner 9 November).** A
+> hand-off and a late change remember the seat as well as the account, so a
+> deleted person reads by the name the admin typed — "passed to Lena at
+> 23:10" stays exactly that. Drop "a former member" from the prompt below.
 
 **Why this file exists.** Apple refuses an app that creates accounts and cannot
 delete them in-app (guideline 5.1.1 (v)); it is blocker A1 in
