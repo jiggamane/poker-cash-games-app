@@ -85,6 +85,7 @@ async function pullBook(
   const people = await rows<PlayerRow>('player', (q) =>
     q.select(READS.player).eq('book_id', bookId),
   );
+  const chosen = await chosenNames(bookId);
   const roster = await importRoster({
     id: bookId,
     groupName,
@@ -103,6 +104,7 @@ async function pullBook(
       name: p.display_name,
       paysKitty: p.pays_kitty,
       removedAt: p.removed_at,
+      adminName: chosen === null ? undefined : (chosen.get(p.id) ?? null),
     })),
   });
 
@@ -274,6 +276,7 @@ export async function pullNight(
   const people = await rows<PlayerRow>('player', (q) =>
     q.select(READS.player).eq('book_id', bookId),
   );
+  const chosen = await chosenNames(bookId);
   const { clubId } = await importRoster({
     id: bookId,
     groupName: book.group_name,
@@ -288,6 +291,7 @@ export async function pullNight(
       name: p.display_name,
       paysKitty: p.pays_kitty,
       removedAt: p.removed_at,
+      adminName: chosen === null ? undefined : (chosen.get(p.id) ?? null),
     })),
   });
 
@@ -495,4 +499,22 @@ interface SettlementRow {
   discrepancy_confirmed_at: string | null;
   discrepancy_note: string | null;
   discrepancy_absorbed_by: string | null;
+}
+
+/**
+ * Which seats their players named themselves, and what the admin had called
+ * them — 0030. Read APART from the roster on purpose (B97): a project without
+ * 0030 has no such column, and naming it in the roster's own read would take
+ * the whole roster down with it. Null when the server cannot say; the pull
+ * then leaves every name as this phone has it.
+ */
+async function chosenNames(bookId: string): Promise<Map<string, string | null> | null> {
+  try {
+    const named = await rows<{ id: string; admin_name: string | null }>('player', (q) =>
+      q.select('id, admin_name').eq('book_id', bookId),
+    );
+    return new Map(named.map((r) => [r.id, r.admin_name]));
+  } catch {
+    return null;
+  }
 }

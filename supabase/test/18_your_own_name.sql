@@ -174,6 +174,10 @@ set role authenticated;
 
 select as_user('41000000-0000-0000-0000-000000000004', true);
 select rename_my_seat('43000000-0000-0000-0000-000000000004', 'Mira K');
+select expect_text(
+  (select s ->> 'display_name' || ' → ' || (s ->> 'admin_name')
+     from jsonb_array_elements(account_deletion_plan() -> 'seats') s),
+  'Mira K → Mira', 'the delete sheet knows the seat goes back to the admin''s name');
 select delete_my_account();
 reset role;
 select expect_text(names_of('43000000-0000-0000-0000-000000000004') || ' · ' ||

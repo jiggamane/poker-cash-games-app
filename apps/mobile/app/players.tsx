@@ -214,7 +214,10 @@ export default function Roster() {
                   sub={
                     m.standing === 'admin'
                       ? 'admin · opens and records'
-                      : runsLine(m, membershipOf(m), shortDay)
+                      : /* R2: a seat its player renamed, and what the admin had typed. */
+                        `${runsLine(m, membershipOf(m), shortDay)}${
+                          admin && m.adminName !== null ? ` · named themselves · you added ${m.adminName}` : ''
+                        }`
                   }
                 />
               ))}

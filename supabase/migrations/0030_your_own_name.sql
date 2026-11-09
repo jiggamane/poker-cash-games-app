@@ -253,3 +253,94 @@ create policy book_insert_needs_name on book
   as restrictive
   for insert to authenticated
   with check (exists (select 1 from profile pr where pr.user_id = auth.uid()));
+
+-- --- The delete sheet says when a seat's name will change back (S3) ----------
+-- deletion_plan_for as 0029 left it, with each seat's admin_name: set, the
+-- player renamed it and leaving puts the admin's name back, which the sheet
+-- says before the hold.
+create or replace function deletion_plan_for(target uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with hosted as (
+    select b.id, b.group_name, b.created_at,
+           (
+             exists (select 1 from player p
+                      where p.book_id = b.id
+                        and p.claimed_by_user_id is not null
+                        and p.claimed_by_user_id <> target)
+             or exists (select 1 from night_handover h
+                          join session s on s.id = h.session_id
+                         where s.book_id = b.id
+                           and h.redeemed_by is not null
+                           and h.redeemed_by <> target)
+             or exists (select 1 from night_pass np
+                          join session s on s.id = np.session_id
+                         where s.book_id = b.id
+                           and np.to_user is not null
+                           and np.to_user <> target)
+             or exists (select 1 from share_grant g
+                          join session s on s.id = g.session_id
+                         where s.book_id = b.id
+                           and g.revoked_at is null
+                           and g.user_id <> target)
+           ) as others_in_it,
+           (select count(distinct p.claimed_by_user_id)
+              from player p
+             where p.book_id = b.id
+               and p.claimed_by_user_id is not null
+               and p.claimed_by_user_id <> target) as members
+      from book b
+     where b.host_user_id = target
+  ),
+  seats as (
+    select p.id as player_id, p.display_name, p.admin_name, b.id as book_id, b.group_name,
+           name_in_book(b.id, b.host_user_id) as host_name
+      from player p
+      join book b on b.id = p.book_id
+     where p.claimed_by_user_id = target
+       and b.host_user_id is distinct from target
+  ),
+  running as (
+    select s.id as session_id, b.id as book_id, b.group_name, s.started_at
+      from session s
+      join book b on b.id = s.book_id
+     where s.status <> 'settled'
+       and (coalesce(s.writer_user_id, b.host_user_id) = target
+            or b.host_user_id = target)
+     order by s.started_at desc
+     limit 1
+  )
+  select jsonb_build_object(
+    'running', (select to_jsonb(r) from running r),
+    'groups', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'book_id', h.id,
+               'group_name', h.group_name,
+               'outcome', case when h.others_in_it then 'closed' else 'deleted' end,
+               'members', h.members)
+             order by h.created_at)
+        from hosted h), '[]'::jsonb),
+    'seats', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'player_id', st.player_id,
+               'display_name', st.display_name,
+               'admin_name', st.admin_name,
+               'book_id', st.book_id,
+               'group_name', st.group_name,
+               'host_name', st.host_name)
+             order by st.group_name)
+        from seats st), '[]'::jsonb),
+    'store_subscription', exists (
+      select 1 from entitlement e
+       where e.user_id = target
+         and e.source in ('apple', 'google')
+         and e.revoked_at is null
+         and (e.ends_at is null or e.ends_at > now()))
+  );
+$$;
+
+revoke execute on function deletion_plan_for(uuid) from public, anon, authenticated;

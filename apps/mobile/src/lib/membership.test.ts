@@ -32,6 +32,7 @@ const member = (id: string, standing: Member['standing'] = 'member'): Member => 
   standing,
   invited: false,
   paysKitty: true,
+  adminName: null,
 });
 
 const free: Membership = { tier: 'free', hostNightUsed: false, hostNightRenewsOn: null, known: true };

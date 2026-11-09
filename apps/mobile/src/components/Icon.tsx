@@ -36,6 +36,12 @@ export type IconName =
   | 'restart'
   /** A sheet's close. The only glyph that dismisses rather than navigates. */
   | 'close'
+  /** Delete account's hold — `design/handoff-account-and-names/`, S2. */
+  | 'trash'
+  /** A watcher's hold: this phone's access, not an account — S5. */
+  | 'phoneOff'
+  /** Copy a backup, offered above the delete hold — S2. */
+  | 'clipboard'
   /** The dock's disclosure, pointing at the drawer it opens. */
   | 'chevronUp'
   /** Its opposite: a row that opens downward into itself — E6's receipt. */
@@ -577,6 +583,47 @@ export function Icon({
             d="M15.5 4.5H5.5a1 1 0 00-1 1v10"
             stroke={color}
             strokeWidth={1.9}
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'trash': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M4 7h16M9 7V4.5h6V7M6.5 7l1 12.5h9l1-12.5M10 11v5M14 11v5"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    }
+
+    case 'phoneOff': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Rect x={7} y={3} width={10} height={18} rx={2.5} stroke={color} strokeWidth={1.9} />
+          <Path d="M4 4l16 16" stroke={color} strokeWidth={1.9} strokeLinecap="round" />
+        </Svg>
+      );
+    }
+
+    case 'clipboard': {
+      const s = size ?? 19;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Rect x={6} y={4.5} width={12} height={16} rx={2} stroke={color} strokeWidth={1.9} />
+          <Path
+            d="M9.5 4.5V3h5v1.5M9.5 10h5M9.5 14h5"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinecap="round"
             strokeLinejoin="round"
           />
         </Svg>

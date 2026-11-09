@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../design/useTheme';
 import { control, radius, type } from '../design/tokens';
+import { Icon, type IconName } from './Icon';
 
 /**
  * How long a hold has to be held. The dock's end-of-night row sets it, and
@@ -38,6 +39,7 @@ export function HoldButton({
   holdingSub = 'Release to cancel',
   onComplete,
   variant = 'primary',
+  icon,
 }: {
   label: string;
   /** The resting second line — what the gesture is, since a tap does nothing. */
@@ -51,7 +53,16 @@ export function HoldButton({
    * on Tonight (`design/handoff-game-admin/` states 7 and 8), which sits where
    * the dock was and is drawn as a row of it rather than as a button.
    */
-  variant?: 'primary' | 'row';
+  /**
+   * `danger` is the dock's End row itself — the one destructive hold: a 1.5px
+   * outline in the loss colour at 55 %, solid while held, the wipe in the loss
+   * colour, the label red at rest and white while held (rev 18 doc 08,
+   * H3/H3b). Deleting an account is the second thing it guards
+   * (`design/handoff-account-and-names/`, S2–S5).
+   */
+  variant?: 'primary' | 'row' | 'danger';
+  /** A glyph before the two lines. `danger` only, as the board draws it. */
+  icon?: IconName;
 }) {
   const t = useTheme();
 
@@ -89,9 +100,11 @@ export function HoldButton({
       onPressIn={startHold}
       onPressOut={cancelHold}
       style={
-        variant === 'row'
-          ? [styles.row, { borderColor: holding ? t.text : t.outline }]
-          : [styles.box, { backgroundColor: t.text }]
+        variant === 'danger'
+          ? [styles.row, styles.danger, { borderColor: holding ? t.loss : `${t.loss}8C` }]
+          : variant === 'row'
+            ? [styles.row, { borderColor: holding ? t.text : t.outline }]
+            : [styles.box, { backgroundColor: t.text }]
       }
     >
       {/*
@@ -104,12 +117,25 @@ export function HoldButton({
         style={[
           styles.wipe,
           {
-            backgroundColor: variant === 'row' ? t.text : t.onFill,
+            backgroundColor: variant === 'danger' ? t.loss : variant === 'row' ? t.text : t.onFill,
             width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
           },
+          variant === 'danger' && styles.dangerWipe,
         ]}
       />
-      {variant === 'row' ? (
+      {variant === 'danger' ? (
+        <>
+          {icon !== undefined && <Icon name={icon} color={holding ? t.text : t.loss} />}
+          <View style={styles.rowText}>
+            <Text style={[styles.rowLabel, { color: holding ? t.text : t.loss }]}>
+              {holding ? holdingLabel : label}
+            </Text>
+            <Text style={[styles.rowSub, { color: holding ? t.text : t.muted }]}>
+              {holding ? holdingSub : sub}
+            </Text>
+          </View>
+        </>
+      ) : variant === 'row' ? (
         <View style={styles.rowText}>
           <Text style={[styles.rowLabel, { color: t.text }]}>{holding ? holdingLabel : label}</Text>
           <Text style={[styles.rowSub, { color: t.muted }]}>{holding ? holdingSub : sub}</Text>
@@ -147,7 +173,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     overflow: 'hidden',
   },
-  rowText: { gap: 2 },
+  rowText: { gap: 2, flexShrink: 1 },
+  danger: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dangerWipe: { opacity: 0.34 },
   rowLabel: type.dockEnd,
   rowSub: type.dockEndSub,
 });

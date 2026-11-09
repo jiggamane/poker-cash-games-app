@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { myName } from '../src/lib/account';
 import { router } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { StyleSheet, Text, View } from 'react-native';
@@ -54,7 +55,19 @@ export default function AuthCallback() {
    * mounts — so this waits for it rather than deciding on the first render.
    */
   useEffect(() => {
-    if (signedIn) router.replace('/');
+    if (!signedIn) return;
+    router.replace('/');
+    /* N1 — `design/handoff-account-and-names/`: an account with an email is
+       asked its name the moment its first sign-in lands, an invite and a
+       promo code alike. Required: `your-name.tsx` signs the phone out again if
+       it is closed with none. An account that already has one goes home. */
+    void myName()
+      .then((n) => {
+        if (n === null) router.push('/your-name');
+      })
+      .catch(() => {
+        // No 0029 on this server, or no signal: asked again at the next sign-in.
+      });
   }, [signedIn]);
 
   /*

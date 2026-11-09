@@ -5,7 +5,8 @@ import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
 import { radius, space, type } from '../src/design/tokens';
-import { makeAdmin, removeMember, renameMember, setPaysKitty, useClub } from '../src/lib/clubStore';
+import { applySeatName, makeAdmin, removeMember, renameMember, setPaysKitty, useClub } from '../src/lib/clubStore';
+import { nameRefusal, useAdminName } from '../src/lib/account';
 import { sameName } from '../src/lib/rosterMerge';
 
 /**
@@ -30,6 +31,7 @@ export default function MemberSheet() {
 
   const [name, setName] = useState(member?.name ?? '');
   const [busy, setBusy] = useState(false);
+  const [refusal, setRefusal] = useState<string | null>(null);
 
   if (club === null || member === undefined) {
     return (
@@ -98,6 +100,37 @@ export default function MemberSheet() {
           ]}
         />
       </View>
+
+      {/*
+       * R3 — `design/handoff-account-and-names/`. The player named this seat
+       * themselves (0030). Say so, and offer the admin their own name back.
+       * Their choice wins if they change it again; the server sees to that.
+       */}
+      {member.adminName !== null && (
+        <View style={styles.rows}>
+          <Text style={[styles.chosen, { color: t.text }]}>
+            {`${member.name} chose this name. You added this seat as ${member.adminName}.`}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            disabled={busy}
+            onPress={() => {
+              const back = member.adminName!;
+              setBusy(true);
+              setRefusal(null);
+              void useAdminName(member.id)
+                .then(() => applySeatName(member.id, back, null))
+                .then(() => setName(back))
+                .catch((e: unknown) => setRefusal(nameRefusal(e instanceof Error ? e.message : '')))
+                .finally(() => setBusy(false));
+            }}
+            style={({ pressed }) => [styles.row, { borderBottomColor: t.hairline, opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Text style={[styles.rowLabel, { color: t.text }]}>{`Use ${member.adminName} again`}</Text>
+          </Pressable>
+          {refusal !== null && <Text style={[styles.chosen, { color: t.text }]}>{refusal}</Text>}
+        </View>
+      )}
 
       <View style={styles.rows}>
         {/*
@@ -208,6 +241,7 @@ const styles = StyleSheet.create({
   },
 
   rows: { marginHorizontal: space.page },
+  chosen: { fontSize: 16, fontWeight: '400', lineHeight: 24, paddingBottom: 4 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
