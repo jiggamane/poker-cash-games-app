@@ -92,7 +92,16 @@ insert into auth.users (id, email) values
   ('f1000000-0000-0000-0000-000000000001', 'privacy-host@example.com'),
   ('f1000000-0000-0000-0000-000000000002', null),  -- the person who spent one
   ('f1000000-0000-0000-0000-000000000003', null),  -- a stranger doing the trying
-  ('f1000000-0000-0000-0000-000000000004', null);  -- takes the seat after a Reset
+  ('f1000000-0000-0000-0000-000000000004', null);
+
+-- Since 0028 a dashboard invite is Free, so the hosts here are given their plan
+-- by hand — as the owner gives a friend theirs. (It used to come with the invite.)
+insert into entitlement (user_id, plan, source, note)
+select u.id, 'full', 'grant', 'test host'
+  from auth.users u
+ where u.email is not null and u.invited_at is not null
+   and not exists (select 1 from entitlement e where e.user_id = u.id);
+  -- takes the seat after a Reset
 
 insert into book (id, host_user_id, group_name) values
   ('f2000000-0000-0000-0000-000000000001',

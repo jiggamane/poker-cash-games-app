@@ -151,10 +151,12 @@ the account, but a lock on the app.
   stop a running night. This also closes a hole: the old gate was
   `shouldCreateUser: false` in the app, which anybody holding the public key
   can leave out of their own request. The database is the gate now.
-- **Founders.** Everybody who could sign in the day the migration runs, and
-  everybody you invite from the dashboard after it, gets Pro for ever as a
-  `founder`. `pricing-model.md`'s "grandfather the founding hosts" is done on
-  the day it is true.
+- **Founders.** Everybody who could sign in the day the migration runs gets
+  Pro (Full since 0022) for ever as a `founder`. `pricing-model.md`'s
+  "grandfather the founding hosts" is done on the day it is true.
+  ⚠ **Since 9 November (0028) a dashboard invite is Free.** It used to make a
+  founder too; the owner's call is that an invite gives an account and the
+  upgrade is given by hand — `admin_grant` below.
 - **Codes are how a friend gets a plan, and so how they get in.** There is no
   separate host code: a promo code *is* the key. On the sign-in sheet an address
   with no account now grows a **Code** field; with a live code the phone makes
