@@ -3463,7 +3463,7 @@ at the foot that it is all played in chips, so nothing needs recording.
   one tile in colour among greyscale ones. The same day the card outlines went from all three tiles on
   `/tools` and the tools sheet: the calculator is a percent sign (`percent`).
   The rulings were a bare question mark for an hour and are the question card
-  again, by the owner's call. Home's Poker tools tile and Tonight's tools icon
+  again, by the owner's call, turned 12° to the right on these tiles only. Home's Poker tools tile and Tonight's tools icon
   draw the question card too.
 - **The third tile starts a second row** of the two-up grid, half width, the
   other half empty, so no tile narrows below the width the names were measured
