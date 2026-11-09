@@ -24,10 +24,13 @@
 
 export type BoosterSection = 'pots' | 'side';
 
-/** The sections in the order `/boosters` lists them. ⚠ labels UNSURE. */
+/**
+ * The sections in the order `/boosters` lists them — side games first, the
+ * owner's call of 9 November. ⚠ labels UNSURE.
+ */
 export const BOOSTER_SECTIONS: readonly { id: BoosterSection; label: string }[] = [
-  { id: 'pots', label: 'Bigger pots' },
   { id: 'side', label: 'Side games' },
+  { id: 'pots', label: 'Bigger pots' },
 ];
 
 export interface Booster {
@@ -131,23 +134,6 @@ export const BOOSTERS: readonly Booster[] = [
     ],
   },
   {
-    id: 'kill-pot',
-    section: 'pots',
-    name: 'Kill pot',
-    summary: 'Win two in a row, the next hand plays bigger',
-    what: 'A player who wins two pots in a row posts a kill blind on the next hand, and that hand is played at higher stakes.',
-    how: [
-      'When a player wins two pots in a row, they post the kill on the next hand: twice the big blind for a full kill, one and a half times for a half kill.',
-      "The kill is that hand's big blind. In a limit game the betting limits go up with it; in no-limit it plays like a straddle, and the killer acts last before the flop.",
-      'After that hand the stakes go back to normal, and the count of pots in a row starts again.',
-    ],
-    agree: [
-      'A full kill or a half kill.',
-      'Whether a pot has to reach a set size to count towards the two in a row.',
-      'Whether a chopped pot counts as a win.',
-    ],
-  },
-  {
     id: 'stand-up',
     section: 'side',
     name: 'Stand-up game',
@@ -202,24 +188,6 @@ export const BOOSTERS: readonly Booster[] = [
       'Who pays: everyone dealt in, or only the players who put money in the pot.',
     ],
     worth: 'It turns the worst hand into a bluffing hand, and everyone at the table knows it.',
-  },
-  {
-    id: 'high-hand',
-    section: 'side',
-    name: 'High-hand bonus',
-    summary: 'The best hand of the night takes a pool',
-    what: 'Everyone puts a small amount in a pool at the start. At the end of the night, the player who showed the best hand takes it.',
-    how: [
-      'Collect the agreed stake from every player before the first hand, and keep the pool apart from the pots.',
-      'To qualify, a hand has to be shown at showdown and play both hole cards.',
-      'A better qualifying hand replaces the one before. At the end of the night the holder of the best hand takes the pool.',
-    ],
-    agree: [
-      'The stake per player, and whether a late arrival pays in.',
-      'The lowest hand that qualifies — aces full or better is common.',
-      'What happens if nothing qualifies: hand the stakes back, or carry the pool to the next game.',
-    ],
-    worth: 'Pay the pool out before the count. Chips set aside for it are still chips the table bought, and without them the count comes up short.',
   },
 ];
 

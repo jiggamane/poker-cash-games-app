@@ -3444,10 +3444,11 @@ canvas boards are the drawing the grid is held to.
 ## Game boosters (9 November)
 
 A third tile on Poker tools, **Boosters**, by the owner's request: house rules
-a table can add for more action — bomb pots, the double-board bomb pot,
-straddles, the table ante, the kill pot, and the side games paid across the
-table: the stand-up game, the button game, the 7-2 game and the high-hand
-bonus. Listed first, by name with one line each, on **`/boosters`** (a push,
+a table can add for more action. Two sections, side games first (the owner's
+order): **Side games** — the stand-up game, the button game, the 7-2 game; and
+**Bigger pots** — the bomb pot, the double-board bomb pot, the straddle and the
+table ante. The owner dropped the kill pot and the high-hand bonus from the
+first draft. Listed first, by name with one line each, on **`/boosters`** (a push,
 back → Poker tools), and each described on **`/booster`** (a sheet, like
 `/situation`): what it is, how it works in numbered steps, *Agree before you
 start* in a card, variations where there are any, *Worth knowing*, and a line
