@@ -3458,7 +3458,11 @@ at the foot that it is all played in chips, so nothing needs recording.
 
 - **No canvas, board or handoff draws any of it.** The layout borrows `/rules`
   (section labels, hairline rows) and `/situation` (a read-only sheet). The
-  glyph, `boostCard`, is the tools set's card with a lightning-bolt pip.
+  tile's icon is the 🔥 emoji (the owner, 9 November), drawn as text in the
+  40 round. The same day the card outlines went from all three tiles on
+  `/tools` and the tools sheet: the calculator is a percent sign (`percent`),
+  the rulings a question mark (`question`). Home's Poker tools tile and
+  Tonight's tools icon still draw the question card.
 - **The third tile starts a second row** of the two-up grid, half width, the
   other half empty, so no tile narrows below the width the names were measured
   at. Club → Poker tools → Game boosters is the second push, the limit; a
