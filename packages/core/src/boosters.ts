@@ -160,13 +160,13 @@ export const BOOSTERS: readonly Booster[] = [
     what: 'The stand-up game played with markers, so it can run all night without anyone getting up. Win a pot and you take a button; the last player without one pays everyone who has one.',
     how: [
       'Put out one button for each player in the game — spare dealer buttons, coins, or chips of a colour not in play.',
-      'Win a pot and take a button, if you do not already have one.',
+      'Win a pot outright and take a button, if you do not already have one.',
+      'A chopped pot earns nobody a button. A player who already had one keeps it; a player who shared the pot without one still has none.',
       'When every player but one has a button, that player pays the agreed amount to each of the others.',
       'Everyone hands their button back and the next round starts on the next hand.',
     ],
     agree: [
       'The amount each button collects.',
-      'Whether a chopped pot gives a button to each winner. A winner who already has one just keeps it — nobody holds two.',
       'Whether a player who leaves mid-round with no button pays before they go.',
     ],
     worth: 'Some tables play it the other way up: the amount goes in a pot at the start of each round, and the last player to win a pot takes it. Agree which before the first round.',
