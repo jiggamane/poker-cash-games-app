@@ -137,17 +137,16 @@ export type IconName =
   | 'spadeCard'
   /*
    * THE TOOL TILES' OWN GLYPHS, 9 November (the owner): on Poker tools and
-   * Tonight's tools sheet the card shapes are gone, so a tool is its pip alone
-   * — a percent sign for the calculator, a question mark for the rulings, a
-   * flame for the boosters. The flame was the 🔥 emoji for an hour and is
+   * Tonight's tools sheet the calculator and the boosters are a pip alone — a
+   * percent sign and a flame — while the rulings keep the question card
+   * (`questionCard`, above): the owner tried a bare question mark the same day
+   * and asked for the card back. The flame was the 🔥 emoji for an hour and is
    * drawn now, in the line and the colour of the other two: one tile in colour
    * among greyscale ones read as a different kind of thing (the owner). The
    * card glyphs above stay for the home tile and Tonight's icon.
    */
   /** The calculator's tile: a percent sign. */
   | 'percent'
-  /** The rulings' tile: a question mark. */
-  | 'question'
   /** The boosters' tile: a flame, a smaller one inside it. */
   | 'flame'
   /*
@@ -751,21 +750,6 @@ export function Icon({
           <Circle cx={7.5} cy={7.5} r={2.6} stroke={color} strokeWidth={2} />
           <Circle cx={16.5} cy={16.5} r={2.6} stroke={color} strokeWidth={2} />
           <Path d="M18.5 5.5l-13 13" stroke={color} strokeWidth={2} strokeLinecap="round" />
-        </Svg>
-      );
-    }
-
-    case 'question': {
-      const s = size ?? 21;
-      return (
-        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-          <Path
-            d="M7.6 8a4.4 4.4 0 1 1 6.2 4c-1.1.5-1.8 1.5-1.8 2.7v.8"
-            stroke={color}
-            strokeWidth={2.2}
-            strokeLinecap="round"
-          />
-          <Circle cx={12} cy={19.6} r={1.4} fill={color} />
         </Svg>
       );
     }

@@ -3461,9 +3461,10 @@ at the foot that it is all played in chips, so nothing needs recording.
   tile's icon is a drawn flame (`flame`), in the line and colour of the
   other two — it was the 🔥 emoji for an hour, and the owner turned it down:
   one tile in colour among greyscale ones. The same day the card outlines went from all three tiles on
-  `/tools` and the tools sheet: the calculator is a percent sign (`percent`),
-  the rulings a question mark (`question`). Home's Poker tools tile and
-  Tonight's tools icon still draw the question card.
+  `/tools` and the tools sheet: the calculator is a percent sign (`percent`).
+  The rulings were a bare question mark for an hour and are the question card
+  again, by the owner's call. Home's Poker tools tile and Tonight's tools icon
+  draw the question card too.
 - **The third tile starts a second row** of the two-up grid, half width, the
   other half empty, so no tile narrows below the width the names were measured
   at. Club → Poker tools → Game boosters is the second push, the limit; a
