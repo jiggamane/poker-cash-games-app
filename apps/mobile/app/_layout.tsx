@@ -194,6 +194,9 @@ export default function RootLayout() {
             night. E3 promises the tap; this is what it opens. */}
         <Stack.Screen name="share" options={SHEET} />
         <Stack.Screen name="sign-in" options={SHEET} />
+        <Stack.Screen name="delete-account" options={SHEET} />
+        <Stack.Screen name="your-name" options={SHEET} />
+        <Stack.Screen name="seat-name" options={SHEET} />
         <Stack.Screen name="member" options={SHEET} />
         <Stack.Screen name="hand-over" options={SHEET} />
         <Stack.Screen name="nudge" options={SHEET} />

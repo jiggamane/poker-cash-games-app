@@ -7,9 +7,13 @@
 > disagree the code wins, and B107 says where (it found eight schema changes,
 > not five). The board has not been drawn, so nothing is on screen.
 >
-> **Widened 9 November** to the name step at first sign-in (part B, server
-> half in `0029_names.sql`) and a player renaming their own seat (part C, not
-> built) — one board for the three.
+> **Widened 9 November** to the name step at first sign-in (part B) and a
+> player renaming their own seat (part C) — one board for the three.
+>
+> **Answered the same day:** the board was drawn in this repository,
+> `design/handoff-account-and-names/`, approved by the owner, and built —
+> `/delete-account`, `/your-name`, `/seat-name`, with 0030 underneath.
+> `docs/screens.md` § *Account and names* is where it stands.
 
 **Why this file exists.** Apple refuses an app that creates accounts and cannot
 delete them in-app (guideline 5.1.1 (v)); it is blocker A1 in

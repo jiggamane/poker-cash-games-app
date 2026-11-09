@@ -141,6 +141,9 @@ const CLUB: Record<string, string> = {
   switchClub: 'nothing: which group is on screen',
   loadClubs: 'reads only',
   importRoster: 'nothing: this is the pull writing what the server already has',
+  applySeatName:
+    'nothing: the server already has it — rename_my_seat (R1) or use_admin_name ' +
+    '(R3) accepted the name before this writes it here (0030)',
   reconcileSeats: 'reads only — it asks the server for the badges',
   nightsPlayed: 'reads only',
   playHistory: 'reads only',

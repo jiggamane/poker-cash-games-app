@@ -127,6 +127,13 @@ insert into made select admin_create_promo('full', null, 1, 'friday', null, 'for
 
 select expect_text((select c from made), 'FRIDAY', 'a chosen code is kept, uppercased');
 
+-- 0030: a plan is not enough — a group needs a named admin.
+select expect_rejected(
+  $$insert into book (host_user_id, group_name)
+    values ('ac000000-0000-0000-0000-000000000001', 'The admin''s own')$$,
+  'an account with a plan and no name cannot start a group');
+select set_my_name('The admin');
+
 insert into book (host_user_id, group_name)
 values ('ac000000-0000-0000-0000-000000000001', 'The admin''s own');
 
@@ -164,6 +171,9 @@ select expect_rejected(
 
 -- The email is confirmed: the same user id, no longer anonymous.
 set request.jwt.claims = '{"sub":"ac000000-0000-0000-0000-000000000003","is_anonymous":false}';
+
+-- And names themselves, which the app asks the moment the link lands (N1).
+select set_my_name('The friend');
 
 insert into book (id, host_user_id, group_name)
 values ('ac200000-0000-0000-0000-000000000003',

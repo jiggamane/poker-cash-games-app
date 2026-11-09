@@ -57,6 +57,12 @@ export interface Member {
   invited: boolean;
   /** Off for somebody who does not pay into the piggy bank at all. */
   paysKitty: boolean;
+  /**
+   * Set when the PLAYER named this seat (0030): the name the admin gave it,
+   * which comes back when they leave. Null while the seat carries the admin's
+   * own name. R2 and R3 of `design/handoff-account-and-names/`.
+   */
+  adminName: string | null;
 }
 
 export interface Club {
@@ -217,6 +223,9 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
       // How the table is run (`docs/rulings.md` § 5). One JSON column, tolerant
       // on read: a key this phone has never heard of is dropped.
       ['club', 'table_rules_json TEXT'],
+      // A seat its player renamed (0030): the name the admin gave it, which
+      // comes back when they leave. Null while the seat carries the admin's.
+      ['club_member', 'admin_name TEXT'],
     ] as const) {
       try {
         await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column};`);
@@ -323,6 +332,7 @@ interface MemberRow {
   invited: number;
   pays_kitty: number;
   removed: number;
+  admin_name?: string | null;
 }
 
 /**
@@ -389,6 +399,7 @@ export async function loadClubs(seed?: {
           standing: m.standing,
           invited: m.invited === 1,
           paysKitty: m.pays_kitty === 1,
+          adminName: m.admin_name ?? null,
         })),
     })),
     currentId: state.currentId ?? rows[0]?.id ?? null,
@@ -752,6 +763,20 @@ export async function renameMember(clubId: string, id: PlayerId, name: string): 
   await queueUp(clubId, { id, name: trimmed });
 }
 
+/**
+ * A seat's name, as the server has just accepted it — R1 (the player renamed
+ * their own seat) and R3 (the admin put their own name back). NOT QUEUED: the
+ * server already has it, and on a player's phone there is no queue that could
+ * send it. Every club this phone holds the seat in, and every night still
+ * running, as `renameMember` does.
+ */
+export async function applySeatName(id: PlayerId, name: string, adminName: string | null): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE club_member SET name = ?, admin_name = ? WHERE id = ?`, name, adminName, id);
+  await loadClubs();
+  await renamePlayerInPlay(id, name);
+}
+
 export async function setPaysKitty(clubId: string, id: PlayerId, pays: boolean): Promise<void> {
   const db = await getDb();
   await db.runAsync(
@@ -980,7 +1005,14 @@ export async function importRoster(book: {
     stakesJson: string | null;
     roundingMode: RoundingMode | null;
   };
-  players: ReadonlyArray<RosterPerson & { paysKitty?: boolean; removedAt?: string | null }>;
+  players: ReadonlyArray<
+    RosterPerson & {
+      paysKitty?: boolean;
+      removedAt?: string | null;
+      /** 0030. Undefined where the server could not say (no 0030 there). */
+      adminName?: string | null;
+    }
+  >;
 }): Promise<RosterImport> {
   const db = await getDb();
   const clubs = await db.getAllAsync<{ id: string; name: string; book_id: string | null }>(
@@ -1036,6 +1068,48 @@ export async function importRoster(book: {
       t?.paysKitty === false ? 0 : 1,
       t?.removedAt === undefined || t.removedAt === null ? 0 : 1,
     );
+  }
+
+  /*
+   * THE ONE NAME THAT COMES DOWN (0030). Names travel up and a pull never
+   * renames — except a name the PLAYER chose for their own seat, which the
+   * admin's phone cannot have typed and must not go on drawing the old way.
+   * The server holds the admin's name beside it (`admin_name`) and refuses the
+   * admin's phone writing over the player's choice; this is that choice
+   * arriving here. When `admin_name` comes back null the seat is the admin's
+   * own again, and the name this phone already has is the one to keep.
+   */
+  for (const p of book.players) {
+    if (p.adminName === undefined) continue;
+    const mine = known.find((k) => k.id === p.id);
+    if (mine === undefined) {
+      if (p.adminName !== null) {
+        await db.runAsync(
+          `UPDATE club_member SET admin_name = ? WHERE club_id = ? AND id = ?`,
+          p.adminName,
+          clubId,
+          p.id,
+        );
+      }
+      continue;
+    }
+    if (p.adminName !== null && mine.name !== p.name) {
+      await db.runAsync(
+        `UPDATE club_member SET name = ?, admin_name = ? WHERE club_id = ? AND id = ?`,
+        p.name,
+        p.adminName,
+        clubId,
+        p.id,
+      );
+      await renamePlayerInPlay(p.id, p.name);
+    } else {
+      await db.runAsync(
+        `UPDATE club_member SET admin_name = ? WHERE club_id = ? AND id = ?`,
+        p.adminName,
+        clubId,
+        p.id,
+      );
+    }
   }
 
   // Whether or not anybody was added: the club may have just been made, or

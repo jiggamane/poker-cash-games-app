@@ -21,6 +21,8 @@ import { readBackup, restoreBackup, useNight } from '../src/lib/nightStore';
 import { useClub } from '../src/lib/clubStore';
 import { myPlan, planLine } from '../src/lib/plan';
 import { clearMemberships } from '../src/lib/membershipStore';
+import { myName } from '../src/lib/account';
+import { claimedSeat } from '../src/lib/identity';
 import { handedInOn, useLate } from '../src/lib/handover';
 import { usePending } from '../src/lib/pending';
 
@@ -92,6 +94,34 @@ export default function Settings() {
    */
   const [plan, setPlan] = useState<string | null>(null);
   const userId = session?.user.id ?? null;
+
+  /* THE ACCOUNT'S OWN NAME — N5, `design/handoff-account-and-names/`. Asked for
+     at first sign-in (`your-name.tsx`) and changed from this row. */
+  const [accountName, setAccountName] = useState<string | null>(null);
+  useEffect(() => {
+    if (!signedIn) {
+      setAccountName(null);
+      return;
+    }
+    let live = true;
+    void myName()
+      .then((n) => live && setAccountName(n))
+      .catch(() => live && setAccountName(null));
+    return () => {
+      live = false;
+    };
+  }, [signedIn, userId]);
+
+  /* The seat this phone claimed with a code, if it did — R1: a player renames
+     their own seat from "You". Null on the admin's phone, and on a watcher's. */
+  const [mySeat, setMySeat] = useState<string | null>(null);
+  useEffect(() => {
+    void claimedSeat()
+      .then(setMySeat)
+      .catch(() => setMySeat(null));
+  }, [userId]);
+  const mySeatRow =
+    who.kind === 'anonymous' && mySeat !== null ? club?.members.find((m) => m.id === mySeat) : undefined;
   useEffect(() => {
     if (!signedIn) {
       setPlan(null);
@@ -308,12 +338,21 @@ export default function Settings() {
          * It goes to GR5, which is where the two corrections live: the name
          * field, and *this is me* on a different row.
          */}
-        {adminRow !== undefined && (
+        {mySeatRow !== undefined ? (
+          /* R1: a player's own seat, renamed by them. */
           <FactAction
             label="You"
-            value={adminRow.name}
-            onPress={() => router.push({ pathname: '/member', params: { id: adminRow.id } })}
+            value={mySeatRow.name}
+            onPress={() => router.push({ pathname: '/seat-name', params: { id: mySeatRow.id } })}
           />
+        ) : (
+          adminRow !== undefined && (
+            <FactAction
+              label="You"
+              value={adminRow.name}
+              onPress={() => router.push({ pathname: '/member', params: { id: adminRow.id } })}
+            />
+          )
         )}
         <Action label="Players" onPress={() => router.push('/players')} />
         <Fact
@@ -386,6 +425,10 @@ export default function Settings() {
                 this says whose it is. `who.email` is null only where a server
                 issued an account without one — `unknown` used to be drawn here
                 for every watcher in the app, which is B91. */}
+            {/* N5: first in the account, above the address. */}
+            {accountName !== null && (
+              <FactAction label="Name" value={accountName} onPress={() => router.push('/your-name')} />
+            )}
             {who.kind === 'person' && who.email !== null && (
               <Fact label="Signed in as" value={who.email} />
             )}
@@ -452,6 +495,34 @@ export default function Settings() {
              sentence about one thing rather than a note under a heading that
              has already said something else. This is the way out of it. */
           <Action label="Sign in" onPress={() => router.push('/sign-in')} last />
+        )}
+
+        {/*
+         * S1 — DELETING, in its own group at the foot of the account, apart
+         * from every row that is not destructive and in ordinary type: the red
+         * is the hold's alone (`delete-account.tsx`). Any phone with a session
+         * has an account to delete, a watcher's included, and Apple asks for
+         * all of them; for a watcher it reads as access, never account.
+         */}
+        {configured && !loading && who.kind !== 'nobody' && (
+          <>
+            <View style={styles.after}>
+              <Action
+                label={
+                  who.kind === 'anonymous' && mySeatRow === undefined
+                    ? 'Remove this phone’s access'
+                    : 'Delete account'
+                }
+                onPress={() => router.push('/delete-account')}
+                last
+              />
+            </View>
+            {signedIn && (
+              <Text style={[styles.note, { color: t.muted }]}>
+                Your groups, your seats and what happens to each are shown before anything is deleted.
+              </Text>
+            )}
+          </>
         )}
 
         {/*

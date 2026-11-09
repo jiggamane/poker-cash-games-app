@@ -321,6 +321,7 @@ select take_back_night('1d000000-0000-0000-0000-000000000001');
 
 -- Eva, on Regular, starts a group (a plan is a plan) and opens a night.
 select as_user('1a000000-0000-0000-0000-000000000006');
+select set_my_name('Eva');  -- a group needs a named admin (0030)
 insert into book (id, host_user_id, group_name)
 values ('1b000000-0000-0000-0000-000000000006', '1a000000-0000-0000-0000-000000000006', 'Eva''s');
 insert into session (id, book_id, default_buyin, seat_count, started_at, status)

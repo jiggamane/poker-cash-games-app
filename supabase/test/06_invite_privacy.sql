@@ -101,6 +101,12 @@ select u.id, 'full', 'grant', 'test host'
   from auth.users u
  where u.email is not null and u.invited_at is not null
    and not exists (select 1 from entitlement e where e.user_id = u.id);
+-- And since 0030 a group needs a named admin: every emailed test host has one.
+insert into profile (user_id, name)
+select u.id, 'Test host'
+  from auth.users u
+ where u.email is not null
+on conflict (user_id) do nothing;
   -- takes the seat after a Reset
 
 insert into book (id, host_user_id, group_name) values
@@ -249,10 +255,11 @@ select expect_text(
   'Thursday game', 'and the group it is for');
 
 -- X2b's first line. The host of this fixture never sat down, so there is no
--- player row to name them and the sentence has to survive that.
+-- seat to name them — and since 0029 a host with no seat is named by their
+-- account, which since 0030 every host has. Never a blank.
 select expect_text(
   (select host_name from preview_player_invite('LIVE222222')),
-  null, 'a host with no seat of their own has no name to offer X2b');
+  'Test host', 'a host with no seat of their own is named by their account on X2b');
 
 select expect_true(
   ms_of($$select * from preview_player_invite('LIVE222222')$$) < invite_refusal_floor(),
