@@ -1,0 +1,666 @@
+<title>Poker Club Visual Direction</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700;800&family=Gloock&family=Instrument+Sans:wght@400;500;600;700&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one reading column for the argument, full-bleed rows of phones for the evidence. */
+:root {
+  --bg: #ECEBE7;
+  --panel: #F6F5F2;
+  --fg: #1A1918;
+  --mut: #5E5A54;
+  --line: rgba(26, 25, 24, .13);
+  --tag: #1A1918;
+  --tagfg: #F6F5F2;
+  --shadow: 0 30px 50px -28px rgba(20, 18, 15, .55);
+  --body: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --label: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111110; --panel: #1A1917; --fg: #ECEAE5; --mut: #A29E96;
+    --line: rgba(236, 234, 229, .13); --tag: #ECEAE5; --tagfg: #111110;
+    --shadow: 0 30px 50px -28px rgba(0, 0, 0, .9);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111110; --panel: #1A1917; --fg: #ECEAE5; --mut: #A29E96;
+  --line: rgba(236, 234, 229, .13); --tag: #ECEAE5; --tagfg: #111110;
+  --shadow: 0 30px 50px -28px rgba(0, 0, 0, .9);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16.5px/1.6 var(--body); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+p { margin: 0; max-width: 66ch; }
+a { color: inherit; }
+code { font: 500 .86em var(--label); }
+.label { font: 500 12px/1.4 var(--label); letter-spacing: .04em; color: var(--mut); text-transform: uppercase; }
+
+/* ─── Header ─── */
+header.top { padding-block: 72px 40px; display: grid; gap: 22px; }
+header.top h1 { font-size: clamp(40px, 6.4vw, 76px); line-height: .98; letter-spacing: -.035em; font-weight: 800; max-width: 15ch; }
+header.top .lede { font-size: clamp(18px, 2vw, 21px); line-height: 1.5; color: var(--mut); max-width: 52ch; }
+
+section { padding-block: 56px; border-top: 1px solid var(--line); }
+section > .wrap { display: grid; gap: 28px; }
+section h2 { font-size: clamp(28px, 3.6vw, 40px); line-height: 1.05; letter-spacing: -.028em; font-weight: 750; }
+section h3 { font-size: 19px; letter-spacing: -.012em; font-weight: 700; }
+.prose { display: grid; gap: 14px; }
+.prose strong { font-weight: 650; }
+
+/* ─── The verdict ─── */
+.verdict { background: var(--panel); border-radius: 22px; padding: clamp(22px, 4vw, 40px); display: grid; gap: 16px; border: 1px solid var(--line); }
+.verdict p { font-size: 18.5px; line-height: 1.55; max-width: 64ch; }
+.verdict p.big { font-size: clamp(21px, 2.4vw, 26px); line-height: 1.38; letter-spacing: -.012em; font-weight: 600; max-width: 40ch; }
+
+/* ─── Today ─── */
+.today { display: flex; gap: 28px; overflow-x: auto; padding: 4px 4px 18px; }
+.shot { margin: 0; flex: none; display: grid; gap: 10px; }
+.shot img { width: 230px; display: block; border-radius: 30px; box-shadow: 0 0 0 1px var(--line), var(--shadow); }
+.shot.icon img { width: 120px; border-radius: 27px; }
+.shot figcaption, .ph figcaption { font: 500 12px/1.4 var(--label); color: var(--mut); }
+
+.findings { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 0 36px; }
+.finding { padding-block: 18px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.finding h3 { font-size: 17px; }
+.finding p { color: var(--mut); font-size: 15.5px; line-height: 1.55; }
+.finding .ev { font: 500 12px/1.5 var(--label); color: var(--mut); }
+
+.keep { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+.keep div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; font-size: 15px; line-height: 1.5; }
+.keep b { display: block; font-weight: 650; margin-bottom: 4px; }
+
+/* ─── Channels table ─── */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 15px; }
+th, td { text-align: left; padding: 13px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+thead th { font: 500 12px/1.4 var(--label); letter-spacing: .04em; text-transform: uppercase; color: var(--mut); }
+tbody th { font-weight: 650; white-space: nowrap; }
+td.no { color: var(--mut); }
+
+/* ─── A direction ─── */
+.dir-head { display: grid; gap: 12px; }
+.dir-head .tagline { font-size: clamp(19px, 2.2vw, 23px); line-height: 1.4; color: var(--mut); max-width: 52ch; letter-spacing: -.008em; }
+.dir-head .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tags span { font: 500 11.5px/1 var(--label); letter-spacing: .03em; padding: 7px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--mut); }
+.tags span.rec { background: var(--tag); color: var(--tagfg); border-color: var(--tag); }
+.letter { font: 500 13px/1 var(--label); color: var(--mut); letter-spacing: .06em; }
+
+.phones { --s: .64; display: flex; gap: 26px; overflow-x: auto; padding: 6px 6px 22px; margin-inline: -6px; scroll-snap-type: x proximity; }
+.ph { margin: 0; flex: none; display: grid; gap: 12px; width: calc(390px * var(--s)); scroll-snap-align: start; }
+@media (max-width: 720px) { .phones { --s: .6; } }
+
+.cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 900px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+ul.changes { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+ul.changes li { padding-left: 18px; position: relative; font-size: 15.5px; line-height: 1.55; }
+ul.changes li::before { content: ""; position: absolute; left: 0; top: .72em; width: 7px; height: 1.5px; background: currentColor; opacity: .6; }
+ul.changes b { font-weight: 650; }
+
+.spec { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: grid; gap: 20px; }
+.pal { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px 12px; }
+.chip { display: grid; gap: 1px; font-size: 12.5px; line-height: 1.35; }
+.chip i { display: block; height: 38px; border-radius: 9px; box-shadow: inset 0 0 0 1px var(--line); margin-bottom: 6px; }
+.chip b { font-weight: 650; font-size: 13px; }
+.chip code { font-size: 11.5px; color: var(--mut); }
+.chip span { font: 400 11px/1.3 var(--label); color: var(--mut); }
+.type { display: grid; gap: 12px; }
+.type .row { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: baseline; border-top: 1px solid var(--line); padding-top: 12px; }
+.type .row > span { font: 500 11.5px/1.4 var(--label); color: var(--mut); }
+.type .row > div { min-width: 0; overflow-wrap: anywhere; }
+.specmark { display: inline-flex; --m: var(--mut); --t: var(--fg); --s2: var(--line); --disp: Gloock, Georgia, serif; }
+
+.costs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.costs > div { border-top: 2px solid var(--fg); padding-top: 12px; display: grid; gap: 6px; }
+.costs p { font-size: 15px; color: var(--mut); line-height: 1.55; }
+.strings { font: 400 12.5px/1.6 var(--label); color: var(--mut); }
+
+/* ─── Icons ─── */
+.icons { display: flex; flex-wrap: wrap; gap: 28px; }
+.icons figure { margin: 0; display: grid; gap: 10px; width: 150px; }
+.icons svg, .icons img { width: 120px; height: 120px; border-radius: 27px; display: block; box-shadow: 0 0 0 1px var(--line), var(--shadow); }
+.icons figcaption { font-size: 13.5px; line-height: 1.45; color: var(--mut); }
+.icons figcaption b { color: var(--fg); font-weight: 650; display: block; }
+
+/* ─── Plan ─── */
+.steps { display: grid; gap: 0; counter-reset: s; }
+.step { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 18px; padding-block: 22px; border-top: 1px solid var(--line); }
+.step .n { font: 500 13px/1.9 var(--label); color: var(--mut); }
+.step h3 { margin-bottom: 8px; }
+.step p { font-size: 15.5px; color: var(--mut); }
+.step p + p { margin-top: 8px; }
+
+.rejected { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 0 36px; }
+.rejected div { padding-block: 14px; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.55; color: var(--mut); }
+.rejected b { color: var(--fg); font-weight: 650; display: block; }
+
+footer { padding-block: 40px 80px; border-top: 1px solid var(--line); }
+footer p { font-size: 14px; color: var(--mut); max-width: 80ch; }
+
+.finding, .keep div, .costs > div, .icons figure, .chip, .step > div { align-content: start; }
+.type .row.mid { align-items: center; }
+.b-result-f .sg { font-family: var(--ui); font-weight: 600; font-size: .8em; margin-right: 1px; vertical-align: .08em; }
+
+/* ═══ PHONES — shared ═══════════════════════════════════════════════════ */
+.phone {
+  width: 390px; height: 844px; position: relative; overflow: hidden; border-radius: 54px;
+  transform: scale(var(--s)); transform-origin: 0 0;
+  margin-right: calc(390px * (var(--s) - 1)); margin-bottom: calc(844px * (var(--s) - 1));
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .55), 0 0 0 9px #0c0c0c, 0 0 0 10px rgba(255, 255, 255, .08), 0 50px 80px -30px rgba(0, 0, 0, .6);
+  background: var(--g); color: var(--t); font-family: var(--ui);
+  -webkit-font-smoothing: antialiased; line-height: 1.25;
+}
+.ph { padding: 10px; width: calc(390px * var(--s) + 20px); }
+.sb { height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 8px 34px 0 42px; font: 600 17px/1 -apple-system, "SF Pro Text", Figtree, sans-serif; color: var(--t); position: relative; z-index: 4; }
+.sb-r { display: flex; gap: 7px; align-items: center; }
+.hi { position: absolute; bottom: 9px; left: 50%; width: 140px; height: 5px; margin-left: -70px; border-radius: 3px; background: var(--t); opacity: .9; z-index: 9; }
+.phone .win { color: var(--win); }
+.phone .loss { color: var(--loss); }
+
+/* ═══ A · Sharpened ═════════════════════════════════════════════════════ */
+.phone.a { --ui: -apple-system, "SF Pro Text", "SF Pro Display", Figtree, system-ui, sans-serif; }
+.phone.a.dark {
+  --g: #0E0D0C; --s1: #191816; --s2: #24221F; --t: #F7F5F0; --m: #9A958C; --d: #8A857C;
+  --hl: rgba(247, 240, 228, .09); --hl2: rgba(247, 240, 228, .24);
+  --win: #6FCF97; --loss: #F0705C; --winw: rgba(111, 207, 151, .13); --lossw: rgba(240, 112, 92, .12); --wint: rgba(111, 207, 151, .14);
+  --fill: #F7F5F0; --onfill: #0E0D0C; --btnhl: rgba(255, 255, 255, .7); --top: rgba(255, 250, 240, .07);
+  --anno: #8C8578; --anno2: #6E6A62; --winwS: rgba(111, 207, 151, .24); --losswS: rgba(240, 112, 92, .22);
+}
+.phone.a.light {
+  --g: #FBFAF8; --s1: #F2F0EC; --s2: #E7E4DF; --t: #141311; --m: #6A665F; --d: #77736B;
+  --hl: rgba(20, 19, 17, .09); --hl2: rgba(20, 19, 17, .26);
+  --win: #0A7A3D; --loss: #B03A28; --winw: rgba(10, 122, 61, .11); --lossw: rgba(176, 58, 40, .10); --wint: rgba(10, 122, 61, .12);
+  --fill: #141311; --onfill: #FBFAF8; --btnhl: rgba(255, 255, 255, .14); --top: rgba(255, 255, 255, .9);
+  --anno: #6E6455; --anno2: #8A8172; --winwS: rgba(10, 122, 61, .16); --losswS: rgba(176, 58, 40, .15);
+}
+.a-pad { padding: 18px 24px 0; }
+.a-pad.tight { padding-top: 6px; }
+.a-eyebrow { font-size: 14px; font-weight: 500; color: var(--m); }
+.a-h1 { font-size: 36px; font-weight: 700; letter-spacing: -.035em; line-height: 1.08; margin-top: 4px; }
+.a-h1.s { font-size: 34px; margin-top: 0; }
+.a-start { margin-top: 28px; background: var(--fill); color: var(--onfill); border-radius: 22px; padding: 22px 20px 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: inset 0 1px 0 var(--btnhl), 0 22px 40px -22px rgba(0, 0, 0, .9); }
+.a-start-t { font-size: 23px; font-weight: 700; letter-spacing: -.025em; }
+.a-start-m { font-size: 14px; font-weight: 500; opacity: .6; margin-top: 6px; }
+.a-start-go { display: flex; flex: none; }
+.a-dest { margin-top: 18px; }
+.a-dest-r { display: flex; align-items: center; gap: 16px; height: 68px; border-bottom: 1px solid var(--hl); font-size: 22px; font-weight: 600; letter-spacing: -.025em; }
+.a-dest-r:last-child { border-bottom: 0; }
+.a-dest-i { color: var(--m); display: flex; }
+.a-hdock, .b-hdock, .c-hdock { position: absolute; left: 24px; right: 24px; bottom: 32px; display: flex; gap: 12px; align-items: center; }
+.a-pill, .b-pill, .c-pill { height: 50px; padding: 0 20px 0 16px; border-radius: 25px; background: var(--s1); display: flex; align-items: center; gap: 9px; font-size: 15.5px; font-weight: 600; }
+.a-round, .b-round, .c-round { width: 50px; height: 50px; border-radius: 50%; background: var(--s1); display: grid; place-items: center; }
+.a-round.push, .b-round.push, .c-round.push { margin-left: auto; }
+
+.a-nav, .b-nav { display: flex; align-items: center; gap: 14px; padding: 6px 24px 0; height: 60px; }
+.a-back, .b-back { width: 42px; height: 42px; border-radius: 50%; background: var(--s1); display: grid; place-items: center; flex: none; }
+.a-title { font-size: 34px; font-weight: 700; letter-spacing: -.035em; }
+.a-live, .c-live { margin-left: auto; height: 32px; padding: 0 13px; border-radius: 16px; background: var(--wint); color: var(--win); display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.a-live i, .c-live i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.a-sub, .b-sub { padding: 2px 24px 0 80px; font-size: 14px; color: var(--m); }
+.a-sub b, .b-sub b { color: var(--t); font-weight: 500; }
+.a-hero { display: flex; justify-content: space-between; align-items: flex-end; padding: 30px 24px 20px; }
+.a-lbl { font-size: 13.5px; font-weight: 600; color: var(--m); }
+.a-fig { font-size: 62px; font-weight: 700; letter-spacing: -.045em; line-height: 1; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.a-hero-r { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; font-size: 14px; font-weight: 500; color: var(--m); padding-bottom: 6px; font-variant-numeric: tabular-nums; }
+.a-hero-r .d { color: var(--d); font-weight: 400; }
+.a-sec { padding: 16px 24px 2px; font-size: 14px; font-weight: 600; color: var(--m); }
+.a-sec span { color: var(--d); font-weight: 500; margin-left: 5px; }
+.a-row { position: relative; display: flex; justify-content: space-between; align-items: center; height: 56px; margin: 0 24px; }
+.a-name { font-size: 18px; font-weight: 500; }
+.a-name small { font-size: 13px; color: var(--d); margin-left: 8px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.a-row.out .a-name { color: var(--m); }
+.a-amt { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.a-rule { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--hl); }
+.a-rule i { position: absolute; left: 0; top: -1px; height: 3px; border-radius: 2px; background: var(--t); opacity: .34; }
+.a-rule i.w { background: var(--win); opacity: .75; }
+.a-dock { position: absolute; left: 8px; right: 8px; bottom: 0; padding: 18px 16px 36px; background: var(--s1); border-radius: 30px 30px 46px 46px; box-shadow: inset 0 1px 0 var(--top), 0 -24px 40px -16px rgba(0, 0, 0, .35); }
+.a-dock-h, .b-dock-h, .c-dock-h { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: var(--m); padding: 0 8px 16px; }
+.a-dock-h em, .b-dock-h em, .c-dock-h em { margin-left: auto; font-style: normal; font-weight: 400; font-size: 13px; color: var(--d); }
+.a-dock-b, .b-dock-b, .c-dock-b { display: flex; gap: 12px; }
+.a-btn { flex: 1; height: 64px; border-radius: 18px; background: var(--fill); color: var(--onfill); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 20px; font-weight: 700; letter-spacing: -.01em; box-shadow: inset 0 1px 0 var(--btnhl); }
+.a-btn2, .b-btn2, .c-btn2 { width: 108px; height: 64px; border-radius: 18px; border: 1.5px solid var(--hl2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 14px; font-weight: 600; }
+.a-meta, .b-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 14px; color: var(--m); }
+.a-view, .b-view { height: 34px; padding: 0 12px; border-radius: 10px; background: var(--s1); color: var(--t); font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.a-list { padding: 14px 14px 0; }
+.a-res { position: relative; padding: 11px 12px 11px 10px; }
+.a-wash { position: absolute; right: 0; top: 3px; bottom: 3px; border-radius: 12px; }
+.a-wash.win { background: linear-gradient(to left, var(--winwS), transparent); }
+.a-wash.loss { background: linear-gradient(to left, var(--losswS), transparent); }
+.a-res-1 { position: relative; display: flex; align-items: baseline; gap: 12px; }
+.a-rank { width: 14px; font-size: 14px; color: var(--d); font-variant-numeric: tabular-nums; }
+.a-res .a-name { font-size: 19px; font-weight: 600; flex: 1; }
+.a-res .a-amt { font-size: 21px; font-weight: 700; }
+.a-terms, .b-terms { position: relative; display: flex; flex-wrap: wrap; gap: 4px 13px; margin: 6px 0 0 26px; font-size: 13px; color: var(--anno); font-variant-numeric: tabular-nums; }
+.a-terms span, .b-terms span { display: inline-flex; align-items: center; gap: 4px; }
+.a-terms svg, .b-terms svg { color: var(--anno2); }
+.a-take, .b-take { display: inline-flex; gap: 11px; }
+.a-terms b, .b-terms b { font-weight: 600; color: var(--m); }
+.a-foot, .b-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 44px 24px 36px; background: linear-gradient(to bottom, transparent, var(--g) 42%); z-index: 3; }
+.a-btn3, .b-btn3 { height: 58px; border-radius: 18px; border: 1.5px solid var(--hl2); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 700; background: var(--g); }
+
+/* ═══ B · Card Room ═════════════════════════════════════════════════════ */
+.phone.b { --ui: Figtree, system-ui, sans-serif; --disp: Gloock, "Bodoni Moda", Didot, Georgia, serif; }
+.phone.b.dark {
+  --g: #13110E; --s1: #1D1A16; --s2: #2A2621; --t: #F2EADB; --m: #A89E8D; --d: #958B7A;
+  --hl: rgba(242, 234, 219, .10); --hl2: rgba(242, 234, 219, .26);
+  --win: #7DD3A2; --loss: #F27A66; --wint: rgba(125, 211, 162, .14);
+  --card: #F4ECDD; --card2: #E7DCC6; --ink: #1A1610; --inkm: #6B6255; --cardwin: #0E7340;
+  --anno: #9A8F7C; --anno2: #776E60; --top: rgba(255, 245, 225, .06);
+}
+.phone.b.light {
+  --g: #FAF8F4; --s1: #F1EDE6; --s2: #E6E0D6; --t: #17130E; --m: #6E6558; --d: #7A7164;
+  --hl: rgba(23, 19, 14, .10); --hl2: rgba(23, 19, 14, .28);
+  --win: #0A7A3D; --loss: #B03A28; --wint: rgba(10, 122, 61, .12);
+  --card: #221D16; --card2: #17130E; --ink: #F6F1E7; --inkm: #B5AC9E; --cardwin: #7DD3A2;
+  --anno: #7A6F5E; --anno2: #9A9080; --top: rgba(255, 255, 255, .8);
+}
+.b-pad { padding: 14px 24px 0; }
+.b-pad.tight { padding-top: 4px; }
+.b-eyebrow { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: var(--m); }
+.b-eyebrow svg { color: var(--t); opacity: .8; }
+.b-h1 { font-family: var(--disp); font-weight: 400; font-size: 42px; line-height: 1.02; letter-spacing: -.012em; margin-top: 14px; }
+.b-h1.s { font-size: 36px; margin-top: 2px; }
+.b-card, .b-result { position: relative; border-radius: 18px; background: linear-gradient(180deg, var(--card), var(--card2)); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), 0 26px 44px -22px rgba(0, 0, 0, .9); }
+.b-card::after, .b-result::after { content: ""; position: absolute; inset: 7px; border-radius: 12px; border: 1px solid currentColor; opacity: .17; pointer-events: none; }
+.b-card { margin-top: 26px; padding: 24px 26px 26px; }
+.b-idx { position: absolute; display: flex; color: var(--ink); }
+.b-idx.tl { top: 16px; left: 16px; }
+.b-idx.br { bottom: 16px; right: 16px; transform: rotate(180deg); }
+.b-card-t { font-family: var(--disp); font-size: 31px; line-height: 1.05; margin-top: 18px; }
+.b-card-m { font-size: 14.5px; font-weight: 500; color: var(--inkm); margin-top: 8px; }
+.b-card-go { position: absolute; right: 18px; top: 18px; width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: var(--card); display: grid; place-items: center; }
+.b-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.b-tile { height: 102px; border-radius: 16px; border: 1px solid var(--hl); padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; color: var(--m); }
+.b-tile span { font-size: 19px; font-weight: 650; color: var(--t); letter-spacing: -.015em; }
+.b-pill, .b-round { box-shadow: inset 0 0 0 1px var(--hl); }
+.b-back { box-shadow: inset 0 0 0 1px var(--hl); }
+.b-title { font-family: var(--disp); font-size: 40px; line-height: 1; letter-spacing: -.01em; }
+.b-live { margin-left: auto; height: 32px; padding: 0 12px 0 9px; border-radius: 16px; background: var(--wint); color: var(--win); display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.b-hero { position: relative; margin: 22px 20px 6px; padding: 22px 24px 20px; border-radius: 18px; background: var(--s1); display: flex; justify-content: space-between; align-items: flex-end; box-shadow: inset 0 1px 0 var(--top); }
+.b-hero::after { content: ""; position: absolute; inset: 6px; border-radius: 13px; border: 1px solid var(--hl); pointer-events: none; }
+.b-lbl { font-size: 13.5px; font-weight: 600; color: var(--m); }
+.b-fig { font-family: var(--disp); font-size: 58px; line-height: 1; margin-top: 10px; letter-spacing: -.01em; font-variant-numeric: lining-nums; }
+.b-hero-r { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; font-size: 14px; font-weight: 500; color: var(--m); padding-bottom: 6px; font-variant-numeric: tabular-nums; }
+.b-hero-r .d { color: var(--d); font-weight: 400; }
+.b-sec { display: flex; align-items: center; gap: 12px; padding: 14px 24px 0; font-size: 13.5px; font-weight: 600; color: var(--m); }
+.b-sec i { flex: 1; height: 1px; background: var(--hl); }
+.b-row { display: flex; align-items: center; gap: 14px; height: 58px; margin: 0 24px; border-bottom: 1px solid var(--hl); }
+.b-row:has(+ .b-sec), .b-row:has(+ .b-dock) { border-bottom: 0; }
+.b-tok { position: relative; width: 38px; height: 38px; flex: none; display: grid; place-items: center; color: var(--m); }
+.b-tok svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.b-tok b { font-family: var(--disp); font-weight: 400; font-size: 13.5px; color: var(--t); background: var(--s2); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; letter-spacing: .02em; }
+.b-tok.dim { opacity: .5; }
+.b-tok.sm { width: 32px; height: 32px; }
+.b-tok.sm b { width: 24px; height: 24px; font-size: 11.5px; }
+.b-tok.ink { color: var(--inkm); width: 44px; height: 44px; }
+.b-tok.ink b { background: color-mix(in srgb, var(--ink) 9%, transparent); color: var(--ink); width: 33px; height: 33px; font-size: 15px; }
+.b-name { flex: 1; font-size: 17.5px; font-weight: 600; }
+.b-name small { display: block; font-size: 12.5px; color: var(--d); font-weight: 400; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.b-row.out .b-name { color: var(--m); }
+.b-amt { font-size: 19.5px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.005em; }
+.b-dock { position: absolute; left: 8px; right: 8px; bottom: 0; padding: 18px 16px 36px; background: var(--s1); border-radius: 30px 30px 46px 46px; box-shadow: inset 0 0 0 1px var(--hl), 0 -24px 40px -16px rgba(0, 0, 0, .4); }
+.b-btn { flex: 1; height: 64px; border-radius: 16px; background: linear-gradient(180deg, var(--card), var(--card2)); color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 20px; font-weight: 700; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
+.b-btn2 { border-radius: 16px; }
+.b-meta { margin-top: 10px; }
+.b-view { box-shadow: inset 0 0 0 1px var(--hl); }
+.b-result { margin-top: 18px; padding: 20px 22px 16px; }
+.b-result .b-idx.tl { top: 13px; left: 13px; }
+.b-result .b-idx.br { bottom: 13px; right: 13px; }
+.b-result-1 { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.b-result-n { font-family: var(--disp); font-size: 30px; flex: 1; }
+.b-result-f { font-family: var(--disp); font-size: 36px; color: var(--cardwin); }
+.b-result-2 { display: flex; gap: 18px; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent); font-size: 13px; font-weight: 500; color: var(--inkm); font-variant-numeric: tabular-nums; }
+.b-list { padding: 8px 24px 0; }
+.b-res { padding: 10px 0; border-bottom: 1px solid var(--hl); }
+.b-res-1 { display: flex; align-items: center; gap: 12px; }
+.b-rank { width: 12px; font-family: var(--disp); font-size: 15px; color: var(--d); }
+.b-res .b-amt { font-size: 20px; }
+.b-terms { margin-left: 56px; margin-top: 3px; }
+
+/* ═══ C · Ledger ════════════════════════════════════════════════════════ */
+.phone.c { --ui: "Instrument Sans", system-ui, sans-serif; --mono: "DM Mono", ui-monospace, Menlo, monospace; background: var(--paper); color: var(--ink); }
+.phone.c.light {
+  --paper: #F3F3EF; --sheet: #FFFFFF; --ink: #1B1E28; --t: #1B1E28; --m: #626775; --d: #6C717E; --s1: #FFFFFF;
+  --rule: rgba(27, 30, 40, .10); --rule2: rgba(27, 30, 40, .72); --margin: rgba(27, 30, 40, .17);
+  --win: #0A7A3D; --loss: #B03A28; --wint: rgba(10, 122, 61, .10); --off: #6B5A3A;
+  --fill: #1B1E28; --onfill: #F3F3EF; --g: #F3F3EF;
+}
+.phone.c.dark {
+  --paper: #14161B; --sheet: #1C1F26; --ink: #E9EAE4; --t: #E9EAE4; --m: #9399A6; --d: #8D93A0; --s1: #1C1F26;
+  --rule: rgba(233, 234, 228, .10); --rule2: rgba(233, 234, 228, .62); --margin: rgba(233, 234, 228, .15);
+  --win: #6FCF97; --loss: #F0705C; --wint: rgba(111, 207, 151, .13); --off: #CFC6AF;
+  --fill: #E9EAE4; --onfill: #14161B; --g: #14161B;
+}
+.c-margin { position: absolute; top: 54px; bottom: 0; left: 74px; width: 4px; border-left: 1px solid var(--margin); border-right: 1px solid var(--margin); }
+.c-pad { position: relative; padding: 18px 24px 0 90px; }
+.c-pad.tight { padding-top: 4px; }
+.c-eyebrow { font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-h1 { font-size: 40px; font-weight: 600; letter-spacing: -.032em; line-height: 1.04; margin-top: 8px; }
+.c-h1.s { font-size: 32px; margin-top: 0; }
+.c-start { position: relative; margin: 28px -8px 0 -74px; background: var(--sheet); border-radius: 6px; padding: 20px 20px 22px 74px; box-shadow: 0 0 0 1px var(--rule), 0 16px 30px -18px rgba(27, 30, 40, .4); }
+.c-start-t { font-size: 24px; font-weight: 600; letter-spacing: -.02em; }
+.c-start-m { font-family: var(--mono); font-size: 12.5px; color: var(--m); margin-top: 8px; }
+.c-start-go { position: absolute; left: 22px; top: 22px; color: var(--ink); display: flex; }
+.c-dest { margin-top: 16px; }
+.c-dest-r { display: flex; justify-content: space-between; align-items: center; height: 62px; border-bottom: 1px solid var(--rule); font-size: 22px; font-weight: 550; letter-spacing: -.022em; }
+.c-dest-r svg { color: var(--m); }
+.c-pill, .c-round { background: var(--sheet); box-shadow: 0 0 0 1px var(--rule); }
+.c-nav { position: relative; display: flex; align-items: center; gap: 24px; padding: 6px 24px 0; height: 60px; }
+.c-back { width: 42px; height: 42px; border-radius: 50%; background: var(--sheet); box-shadow: 0 0 0 1px var(--rule); display: grid; place-items: center; flex: none; }
+.c-title { font-size: 36px; font-weight: 600; letter-spacing: -.03em; }
+.c-live { font-family: var(--mono); font-weight: 500; font-size: 13.5px; }
+.c-sub { padding: 2px 24px 0 90px; font-size: 14px; color: var(--m); }
+.c-sub b { color: var(--ink); font-weight: 500; }
+.c-hero { padding: 26px 24px 16px 90px; }
+.c-lbl { font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-fig { font-family: var(--mono); font-size: 56px; font-weight: 500; letter-spacing: -.055em; line-height: 1; margin-top: 8px; }
+.c-hero-r { display: flex; gap: 16px; margin-top: 12px; font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-cols, .c-row, .c-sum, .c-res-1 { display: grid; grid-template-columns: 50px minmax(0, 1fr) auto; column-gap: 16px; padding: 0 24px; align-items: center; }
+.c-cols { padding-top: 14px; padding-bottom: 7px; border-bottom: 1px solid var(--rule2); font-family: var(--mono); font-size: 11.5px; color: var(--m); }
+.c-cols span:nth-child(2) { font-family: var(--ui); font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.c-cols.gap { margin-top: 10px; }
+.c-row { height: 47px; border-bottom: 1px solid var(--rule); }
+.c-t { font-family: var(--mono); font-size: 13px; color: var(--m); font-variant-numeric: tabular-nums; }
+.c-name { font-size: 18px; font-weight: 550; }
+.c-name small { font-family: var(--mono); font-size: 12px; color: var(--m); margin-left: 8px; font-weight: 400; }
+.c-row.out .c-name { color: var(--m); }
+.c-amt { font-family: var(--mono); font-size: 19px; font-weight: 500; text-align: right; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.c-sum { height: 46px; font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-sum .c-amt { color: var(--ink); border-top: 1px solid var(--rule2); padding-top: 9px; min-width: 96px; align-self: start; margin-top: -1px; }
+.c-dbl { display: block; width: 96px; height: 4px; margin: -9px 24px 0 auto; border-top: 1px solid var(--rule2); border-bottom: 1px solid var(--rule2); }
+.c-dock { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; background: var(--sheet); box-shadow: 0 -1px 0 var(--rule), 0 -20px 30px -20px rgba(0, 0, 0, .18); padding: 16px 16px 36px; }
+.c-btn { flex: 1; height: 62px; border-radius: 12px; background: var(--fill); color: var(--onfill); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 20px; font-weight: 650; }
+.c-btn2 { border-radius: 12px; border: 1.5px solid var(--ink); }
+.c-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 8px; font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-view { font-family: var(--ui); height: 34px; padding: 0 12px; border-radius: 8px; background: var(--sheet); box-shadow: 0 0 0 1px var(--rule); color: var(--ink); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.c-list { position: relative; margin-top: 14px; border-top: 1px solid var(--rule2); }
+.c-res { padding: 9px 0 10px; border-bottom: 1px solid var(--rule); }
+.c-res-1 { align-items: baseline; }
+.c-res .c-name { font-size: 18px; font-weight: 600; }
+.c-terms { margin: 4px 24px 0 90px; font-family: var(--mono); font-size: 11.5px; color: var(--m); letter-spacing: -.01em; }
+.c-terms { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.c-terms span { white-space: nowrap; }
+.c-ded { display: grid; grid-template-columns: 1fr auto; padding: 22px 24px 4px 90px; font-weight: 600; font-size: 15px; }
+.c-ded .c-amt { font-size: 15px; color: var(--off); }
+.c-dedr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; padding: 5px 24px 5px 90px; font-size: 14px; align-items: baseline; }
+.c-dedr em { font-style: normal; color: var(--m); font-size: 12.5px; }
+.c-dedr .c-amt { font-size: 14px; color: var(--off); }
+.c-stampw { display: flex; justify-content: flex-end; padding: 16px 34px 0; }
+.c-stamp { transform: rotate(-7deg); border: 2.5px solid var(--ink); border-radius: 9px; padding: 7px 14px 6px; text-align: center; color: var(--ink); opacity: .62; font-family: var(--mono); }
+.c-stamp b { display: block; font-size: 18px; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; margin-right: -.24em; }
+.c-stamp span { display: block; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; margin-top: 4px; border-top: 1.5px solid currentColor; padding-top: 4px; }
+.c-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 24px 36px; background: linear-gradient(to bottom, transparent, var(--paper) 40%); z-index: 3; }
+.c-btn3 { height: 58px; border-radius: 12px; border: 1.5px solid var(--ink); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 650; background: var(--sheet); }
+
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<header class="top wrap">
+  <div class="label">The Poker Club · visual study · 9 November 2026</div>
+  <h1>A face for the Thursday game</h1>
+  <p class="lede">Why the app reads as a utility, three directions that would change that, and the one to take. Every phone below is drawn on the app’s own seeded night, settled by the engine’s rules, so the figures are real to the dollar.</p>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="verdict">
+      <div class="label">The short answer</div>
+      <p class="big">The app is disciplined and almost anonymous. Its rules protect legibility everywhere, and none of them gives it a face.</p>
+      <p>The icon is Expo’s placeholder. Every heading is the same 800-weight system font. The greys have no temperature. The end of the night, the one moment people care about, is drawn exactly like the middle of it.</p>
+      <p>Colour can’t fix this, because colour already has a job: green and red are money and mean nothing else. That rule is the best idea in the design and it should stay. Personality has to come from the other channels: typeface, material, shape and motion.</p>
+      <p><strong>Recommendation: Direction B, Card Room, reached in three steps.</strong> The first step is Direction A’s groundwork, which any direction needs and which ships almost entirely through <code>tokens.ts</code>.</p>
+    </div>
+  </div>
+</section>
+
+<section id="today">
+  <div class="wrap">
+    <div class="label">01 · Today</div>
+    <h2>What it looks like now</h2>
+    <div class="today">
+      <figure class="shot"><img src="{{IMG:current-home.webp}}" alt="Current home screen: a white Start a session card above four grey tiles with icons in circles."><figcaption>Home · built app</figcaption></figure>
+      <figure class="shot"><img src="{{IMG:current-tonight.webp}}" alt="Current Tonight screen: a grey card with $4,500 on the table, a list of five players, and a dock with Rebuy and Bill."><figcaption>Tonight · built app</figcaption></figure>
+      <figure class="shot"><img src="{{IMG:current-settled.webp}}" alt="The settled-night board: ranked players with green and red results and an icon line of deductions under each."><figcaption>Settled night · 9 Sept board</figcaption></figure>
+      <figure class="shot icon"><img src="{{IMG:current-icon.webp}}" alt="The current app icon: Expo's default blue chevron on a blueprint grid."><figcaption>App icon · Expo’s default</figcaption></figure>
+    </div>
+
+    <h3>Eight reasons it reads as a utility</h3>
+    <div class="findings">
+      <div class="finding"><h3>Nobody designed the front door</h3><p>The icon and splash are the Expo template’s. On a home screen the app looks like a developer build, before anyone has opened it.</p><div class="ev">apps/mobile/assets/icon.png</div></div>
+      <div class="finding"><h3>One voice at one volume</h3><p>The type scale has 68 roles and one register. Titles, tile names, card titles and figures are all SF Pro at 800. When everything is heavy, size is the only hierarchy left, which is how system settings look.</p><div class="ev">11 roles at 800 in tokens.ts, 29 more set inline</div></div>
+      <div class="finding"><h3>Greys without temperature</h3><p>#0A0A0B, #16161A, #26262B: neutral, slightly blue, the colours of a phone’s own chrome. A home game happens under warm light, on wood, with paper money.</p><div class="ev">darkTheme.ground / surface / raised</div></div>
+      <div class="finding"><h3>Every container is the same box</h3><p>Tiles, the on-the-table card, the cashed-out row, the dock and the stats card share one fill and one radius family. With no material language, a screen reads as boxes, and the pure-white primary button is the most stock element of all.</p><div class="ev">surface #16161A at radius 14, everywhere</div></div>
+      <div class="finding"><h3>The night has no ending</h3><p>The settled night is the emotional peak: who won, who pays. It is drawn in the same type, on the same ground, as the live list. Nothing marks the night as finished, and nothing is made to be sent to the group chat.</p><div class="ev">/settled, docs/sharing-formats.md</div></div>
+      <div class="finding"><h3>People are only text</h3><p>The group is the product, and players are names in a list. Initials appear only in the sheets for picking people. On Tonight, count up, the settled night and who pays whom, a person is a word.</p><div class="ev">Avatar.tsx: new-night, pick, pass-game, hand-over</div></div>
+      <div class="finding"><h3>Back-office vocabulary</h3><p>Uppercase tracked grey labels on every section (STILL PLAYING · 5, COUNTED · 1), a chevron on every row, a drawer called Table admin. Each one is reasonable. Together they are the look of an internal tool.</p><div class="ev">type.sectionLabel, type.label</div></div>
+      <div class="finding"><h3>Poker is absent</h3><p>Outside the odds calculator, nothing on screen says cards, chips or table. The most recognisable material in the subject’s world is unused, so the app could be splitting a restaurant bill.</p><div class="ev">PlayingCard.tsx renders on /odds only</div></div>
+    </div>
+
+    <h3>What every direction keeps</h3>
+    <div class="keep">
+      <div><b>Colour is money</b>Green won, red lost, bone left the table. Nothing else is coloured. Each direction below obeys this, and two of them had to move a colour to keep obeying it.</div>
+      <div><b>Figures are tabular and big</b>Read at arm’s length across a table, never shrunk to fit. Every figure in every mockup is tabular at today’s sizes or larger.</div>
+      <div><b>Chrome A and Chrome B</b>Pushed screens have a round back button and nothing top-right; sheets have a grabber and a close. The mockups keep both.</div>
+      <div><b>The copy</b>Every string in the mockups is shipped copy, except the few listed under each direction.</div>
+      <div><b>Contrast floors</b>Every text colour proposed here clears 4.5:1 on the surface it sits on. The ratios are printed beside each swatch.</div>
+    </div>
+  </div>
+</section>
+
+<section id="channels">
+  <div class="wrap">
+    <div class="label">02 · The constraint</div>
+    <h2>Where personality can come from</h2>
+    <div class="prose"><p>With colour spoken for, four channels are left. The three directions differ mainly in which of them they lean on.</p></div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Channel</th><th>A · Sharpened</th><th>B · Card Room</th><th>C · Ledger</th></tr></thead>
+        <tbody>
+          <tr><th>Colour</th><td class="no">Money only. Warmer neutrals.</td><td class="no">Money only. Walnut and ivory neutrals.</td><td class="no">Money only. Ink and paper neutrals.</td></tr>
+          <tr><th>Typeface</th><td>System face, two registers instead of one</td><td>An engraved serif for titles and hero figures; Figtree for everything scanned</td><td>A mono for every figure; a grotesk for names</td></tr>
+          <tr><th>Material</th><td>One raised object per screen</td><td>Playing-card stock for the objects you hold</td><td>Ruled paper, a margin, a sheet laid on top</td></tr>
+          <tr><th>Shape</th><td>Rules and washes that measure</td><td>Seat tokens with a chip edge; card corners</td><td>Single and double rules that close a column; a stamp</td></tr>
+          <tr><th>Motion</th><td>Quiet: rows settle in order</td><td>Cards deal in; a token flips on a rebuy</td><td>The stamp lands once, when the night settles</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="a">
+  <div class="wrap">
+    <div class="dir-head">
+      <div class="letter">03 · Direction A</div>
+      <h2>Sharpened</h2>
+      <p class="tagline">The same app, finished. Keep the system face and the structure; give the type two registers, warm the greys, and let the rules and washes measure something.</p>
+      <div class="tags"><span>Risk: low</span><span>Engineering: tokens + 4 components</span><span>No new dependency</span></div>
+    </div>
+    <div class="phones">{{A_PHONES}}</div>
+    <div class="cols">
+      <div class="prose">
+        <h3>What changes</h3>
+        <ul class="changes">
+          <li><b>Two weights carry the hierarchy.</b> 700 for titles and the hero figure, 500 to 600 for everything read in passing. 800 is gone. The screen gets quieter and the one big number gets louder.</li>
+          <li><b>The neutrals warm by a step.</b> #0E0D0C in place of #0A0A0B; the same lightness ladder, the same contrast, a different temperature.</li>
+          <li><b>Section labels go to sentence case.</b> “Still playing 5” with the count a tone quieter, in place of STILL PLAYING · 5.</li>
+          <li><b>The hero figure leaves its box.</b> One object per screen is raised. On Tonight that is the dock, the thing your thumb is on; the figure stands on the ground at 62pt.</li>
+          <li><b>Rules measure.</b> The lit part of the line under each player is their share of the money in play. On the settled night the existing win and loss wash runs to the length of the result. Decoration becomes a chart without adding anything.</li>
+          <li><b>Home becomes four lines.</b> The tile grid’s icon-in-a-circle is the most template-looking element in the app. This reopens the owner’s 25 October tile decision (N6), so it is offered, not assumed.</li>
+        </ul>
+      </div>
+      <div class="spec">
+        <div class="label">Palette · dark</div>
+        {{A_PAL}}
+        <div class="label">Type</div>
+        <div class="type">
+          <div class="row"><span>Display · 700</span><div style="font: 700 40px/1 -apple-system, 'SF Pro Display', Figtree, sans-serif; letter-spacing: -.045em; font-variant-numeric: tabular-nums">$4,500</div></div>
+          <div class="row"><span>Name · 500</span><div style="font: 500 18px/1.3 -apple-system, 'SF Pro Text', Figtree, sans-serif">Petr <span style="float:right; font-weight:600; font-variant-numeric: tabular-nums">$1,500</span></div></div>
+          <div class="row"><span>Label · 600</span><div style="font: 600 14px/1.3 -apple-system, 'SF Pro Text', Figtree, sans-serif; color: var(--mut)">Still playing 5</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="costs">
+      <div><h3>What it costs</h3><p><code>tokens.ts</code>, then Screen, Row, Dock and the home screen. No dependency. <code>check:ui</code> will report every changed weight against the boards until the boards are recut, so it needs a small design cut first.</p></div>
+      <div><h3>The risk</h3><p>Low, and so is the reward. It reads as better made rather than as a different app. A screenshot of it posted in a group chat would still not say The Poker Club.</p></div>
+      <div><h3>New strings</h3><p class="strings">None.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="b">
+  <div class="wrap">
+    <div class="dir-head">
+      <div class="letter">04 · Direction B</div>
+      <h2>Card Room</h2>
+      <p class="tagline">The back room of a club at eleven at night. Walnut dark, card-stock ivory, an engraved serif for the few figures that matter, and playing-card material for the objects you hold.</p>
+      <div class="tags"><span class="rec">Recommended</span><span>Risk: medium</span><span>Engineering: expo-font + tokens + ~10 components</span></div>
+    </div>
+    <div class="phones">{{B_PHONES}}</div>
+    <div class="cols">
+      <div class="prose">
+        <h3>What changes</h3>
+        <ul class="changes">
+          <li><b>A display face with one job.</b> Gloock, a high-contrast serif with the cut of a card index, sets titles and the single hero figure on a screen. Everything a person scans (names, amounts in rows, times) stays in Figtree, tabular, at today’s sizes.</li>
+          <li><b>Walnut and ivory.</b> The ground is warm without being brown, and text is card-stock ivory, which is gentler than white in a dim room and still clears 15:1.</li>
+          <li><b>The things you hold are cards.</b> Start a session, Rebuy and the night’s result are ivory stock with ink on it and a spade in two corners. The app already does this once, with home’s inverted live card; here it becomes the rule.</li>
+          <li><b>Every person gets a seat token.</b> Initials in the serif inside a chip edge, wherever a name appears: Tonight, count up, the settled night, who pays whom. Neutral, never coloured.</li>
+          <li><b>The night ends on a result card.</b> The top line of the settled night, framed so it could be sent to the group chat as it is. It would be the first thing in the app made for someone who wasn’t at the table.</li>
+          <li><b>Two colours move to keep the rule.</b> Bone off-table money sits too close to ivory text, so it becomes brass (#C9AE7E). Amber “pending” would then sit too close to brass, so it becomes a clearer orange (#F09A3E).</li>
+        </ul>
+      </div>
+      <div class="spec">
+        <div class="label">Palette · dark</div>
+        {{B_PAL}}
+        <div class="label">Type</div>
+        <div class="type">
+          <div class="row"><span>Display · Gloock</span><div style="font: 400 40px/1 Gloock, Georgia, serif">Tonight <span style="margin-left:10px">$4,500</span></div></div>
+          <div class="row"><span>Text · Figtree 600</span><div style="font: 600 17.5px/1.3 Figtree, sans-serif">Petr <span style="float:right; font-weight:700; font-variant-numeric: tabular-nums">$1,500</span></div></div>
+          <div class="row mid"><span>Marks</span><div style="display:flex; gap:18px; align-items:center; color: var(--fg)">{{CREST}}<span class="specmark">{{TOKEN}}</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="costs">
+      <div><h3>What it costs</h3><p><code>expo-font</code> (in SDK 58’s manifest, runs in Expo Go) with two OFL faces. This reverses the decision at the head of <code>tokens.ts</code> that no web font ships, and in doing so closes the gap that note names: Android falls back to Roboto today. Figtree is already the handoff’s stand-in face, so the widths <code>ui-check --figtree</code> measures still hold. Every board needs recutting.</p></div>
+      <div><h3>The risk</h3><p>Kitsch. Suits, felt and gold are one step from a casino app. The guard rails: black suits only, and only in card corners; no felt green, which would fight the win colour; no gold; the serif never below 28pt, where its hairlines would shimmer on a dark ground.</p></div>
+      <div><h3>New strings</h3><p class="strings">None. The result card uses the settled night’s meta (“$5,000 in play · 3h 15m · 6 players”) and the top name; it needs a decision on whether it shows only the top line or the top three.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="c">
+  <div class="wrap">
+    <div class="dir-head">
+      <div class="letter">05 · Direction C</div>
+      <h2>Ledger</h2>
+      <p class="tagline">The first handoff’s own sentence: “This app is that piece of paper, done properly.” Ruled paper, ink rather than black, figures in a mono, and the conventions that make a column of money trustworthy.</p>
+      <div class="tags"><span>Risk: medium–high</span><span>Engineering: expo-font + tokens + width re-measure</span><span>Light-first</span></div>
+    </div>
+    <div class="phones">{{C_PHONES}}</div>
+    <div class="cols">
+      <div class="prose">
+        <h3>What changes</h3>
+        <ul class="changes">
+          <li><b>Light leads.</b> Paper is the default and dark is the carbon copy.</li>
+          <li><b>Figures move to DM Mono.</b> A column of money reads like a column in a book, and every digit, comma and dollar sign takes the same cell.</li>
+          <li><b>Times sit in the margin</b>, as dates do in a ledger: when each player sat down, when Dana left.</li>
+          <li><b>Columns close.</b> A single rule above a total and a double rule under it. “5 seated 4,500” adds up the column and agrees with the headline above it, which is the reconciliation the app already does, made visible.</li>
+          <li><b>The settled night is stamped.</b> One mark, once, when the night closes.</li>
+        </ul>
+      </div>
+      <div class="spec">
+        <div class="label">Palette · light</div>
+        {{C_PAL}}
+        <div class="label">Type</div>
+        <div class="type">
+          <div class="row"><span>Figures · DM Mono</span><div style="font: 500 38px/1 'DM Mono', monospace; letter-spacing: -.055em">$4,500</div></div>
+          <div class="row"><span>Names · Instrument</span><div style="font: 550 18px/1.3 'Instrument Sans', sans-serif">Petr <span style="float:right; font: 500 18px 'DM Mono', monospace">1,500</span></div></div>
+          <div class="row"><span>Margin · Mono</span><div style="font: 400 13px/1.3 'DM Mono', monospace; color: var(--mut)">20:07 · 21:12 · 22:03</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="costs">
+      <div><h3>What it costs</h3><p>Mono figures are wider than SF’s tabular figures, and the comma and dollar sign take a full cell each, so every width budget in <code>tokens.ts</code> (the 147pt “$99.9M” that sets <code>moneyMaxFontScale</code>) has to be measured again. Light-first also changes the default theme.</p></div>
+      <div><h3>The risk</h3><p>It reads as accounting software, which is the opposite of what this study was asked for. It is the most faithful to the product’s idea and the least warm. Its best detail, the double rule, travels to any direction.</p></div>
+      <div><h3>New strings</h3><p class="strings">Column heads “sat”, “in”, “left”, “net”; the deduction lines “Andro, Lena fronted” and “Radka holds”; the stamp’s date.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="label">06 · Side by side</div>
+    <h2>How they compare</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th></th><th>A · Sharpened</th><th>B · Card Room</th><th>C · Ledger</th></tr></thead>
+        <tbody>
+          <tr><th>Recognisable in a screenshot</th><td class="no">No</td><td>Yes</td><td>Yes</td></tr>
+          <tr><th>Comfortable at 11pm, dim room</th><td>Yes</td><td>Most of the three</td><td class="no">Light-first; dark is secondary</td></tr>
+          <tr><th>Colour stays money only</th><td>Yes</td><td>Yes, after moving two colours</td><td>Yes</td></tr>
+          <tr><th>Figures at arm’s length</th><td>Unchanged</td><td>Unchanged in rows; hero in serif</td><td class="no">Wider; budgets re-measured</td></tr>
+          <tr><th>Android parity</th><td class="no">Still Roboto</td><td>Fixed: the face ships</td><td>Fixed: the face ships</td></tr>
+          <tr><th>Engineering</th><td>tokens + 4 components</td><td>expo-font, tokens, ~10 components</td><td>expo-font, tokens, widths, default theme</td></tr>
+          <tr><th>Design work</th><td>Recut weights on the boards</td><td>A new handoff across all boards</td><td>A new handoff and new widths</td></tr>
+          <tr><th>Main risk</th><td>Nothing changes enough</td><td>Kitsch, held by guard rails</td><td>Feels like accounting</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="icons">
+  <div class="wrap">
+    <div class="label">07 · The front door</div>
+    <h2>An icon, in each direction</h2>
+    <div class="prose"><p>Whichever direction is taken, this is the cheapest and most visible change in the study. It is one PNG and a line in <code>app.json</code>.</p></div>
+    <div class="icons">
+      <figure><img src="{{IMG:current-icon.webp}}" alt="Current icon"><figcaption><b>Today</b>Expo’s template icon.</figcaption></figure>
+      <figure>{{ICON_A}}<figcaption><b>A</b>A stack of three rules, the last one won.</figcaption></figure>
+      <figure>{{ICON_B}}<figcaption><b>B</b>One card, dealt slightly askew.</figcaption></figure>
+      <figure>{{ICON_C}}<figcaption><b>C</b>$0 over a double rule: the night balances.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="plan">
+  <div class="wrap">
+    <div class="label">08 · Recommendation</div>
+    <h2>Take Card Room, in three steps</h2>
+    <div class="prose">
+      <p>Card Room is the only direction that gives the app a face without spending the colour rule or the night-time comfort to get it. Its risk is taste, and taste can be held with rules, which this project is good at writing. A and C are better as donors: A’s groundwork is step one, and C’s double rule belongs under the settled night’s total in any direction.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">Step 1</div><div><h3>Groundwork, from A</h3><p>A real icon and splash. Two type registers in place of 800 everywhere. Warm neutrals. Sentence-case section labels. One raised object per screen.</p><p>All of it lands in <code>tokens.ts</code> and a handful of shared components. Per CLAUDE.md that makes it an app-wide change: one session, nothing else in flight, and a small board recut first so <code>check:ui</code> has something true to compare against.</p></div></div>
+      <div class="step"><div class="n">Step 2</div><div><h3>The material, from B</h3><p>Bundle Gloock and Figtree through <code>expo-font</code>. Add one display role to the type scale, used by titles and hero figures only. Make Start a session, Rebuy and the result card ivory stock. Give every name a seat token, through the existing <code>Avatar.tsx</code>.</p><p>The boards are the pixel source, so this starts as a handoff request to design and becomes code after the cut, as every screen here has.</p></div></div>
+      <div class="step"><div class="n">Step 3</div><div><h3>The moments</h3><p>Three events get motion and a haptic, and nothing else does: a rebuy lands (the token flips), a stack is counted (the arrival animation that already exists), and the night settles (the result card deals in). <code>expo-haptics</code> is in SDK 58’s manifest and not yet installed.</p><p>Then the result card is the candidate for the share image. <code>docs/sharing-formats.md</code> says that image needs a board before it needs code, and no board draws one yet.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="rejected">
+  <div class="wrap">
+    <div class="label">09 · Left out</div>
+    <h2>Considered and set aside</h2>
+    <div class="rejected">
+      <div><b>A felt-green ground</b>Poker’s most obvious material, and it puts the win colour on green. +$1,620 would stop standing out.</div>
+      <div><b>Red suits</b>Hearts and diamonds are red, and red already means a loss. Card Room uses spades, and only in corners.</div>
+      <div><b>A brand hue</b>A purple, blue or gold for “brand” would be the one colour people learn to ignore, and then they would ignore the next one too. The token file says why in its first paragraph.</div>
+      <div><b>Accounting parentheses</b>(1,230) for a loss is correct in a ledger and unreadable to most people at a table. Ledger keeps the minus sign.</div>
+      <div><b>A colour per player</b>Tempting for seat tokens. It collides with the money colours and fails colour-blind players. Tokens are told apart by initials.</div>
+      <div><b>Glass and blur throughout</b>Lovely over a photo, a contrast hazard over a list of figures. The sheet scrim is the only place blur could earn its keep.</div>
+      <div><b>Vegas</b>Neon, gradients and gold trim. A home game is a kitchen table, and the people at it are friends, not customers.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Drawn from <code>apps/mobile/src/design/tokens.ts</code>, screenshots of the built web export, and the session-views board. Figures are the seeded night (<code>sampleNight.ts</code>) as settled in <code>rev15-night.test.ts</code>: Dana +$1,429, Andro +$526, Lena +$429, Tomáš −$500, Ivo −$780, Petr −$1,230. Contrast ratios are computed against each direction’s ground. Source: <code>design/explorations/visual-direction/</code>; this is an exploration, not a handoff, and supersedes nothing.</p>
+  </div>
+</footer>
