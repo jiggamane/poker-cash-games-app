@@ -126,8 +126,12 @@ export async function loadWatchedNight(sessionId: string): Promise<WatchedNight 
     rows<{ player_id: string; counted_chips: number }>('final_count', (q) =>
       q.select(READS.final_count).eq('session_id', sessionId),
     ),
-    /* The hand-offs, by name. `night_pass` holds account ids; the names are
-       looked up once below (`names_in_night`).
+    /* The hand-offs, by name. Since 0025 each row names the SEAT as well as
+       the account, and the seat is read first, off the roster above — the name
+       the admin typed, which outlives a deleted account. `names_in_night` is
+       asked only for a row with no seat. `*` rather than a column list: the
+       seat columns exist only once 0025 is applied, and naming one a project
+       does not have would refuse the read (B97, below).
 
        OPTIONAL, and on purpose — B97. Every other read here is the night
        itself; this one is a line on the feed. A project that has not run
@@ -136,13 +140,16 @@ export async function loadWatchedNight(sessionId: string): Promise<WatchedNight 
        failure here is an empty list of hand-offs, never a missing night. */
     rows<PassRow>('night_pass', (q) =>
       q
-        .select('id, kind, from_user, to_user, passed_at')
+        .select('*')
         .eq('session_id', sessionId)
         .order('passed_at', { ascending: true }),
     ).catch(() => [] as PassRow[]),
   ]);
 
   const named = await namesFor(sessionId, passes).catch(() => new Map<string, string | null>());
+  const seatName = new Map(players.map((p) => [p.id, p.display_name]));
+  const nameOf = (seat: string | null | undefined, user: string | null): string | null =>
+    (seat ? seatName.get(seat) : undefined) ?? (user ? named.get(user) : undefined) ?? null;
 
   const seated = new Set(seats.map((s) => s.player_id));
 
@@ -154,8 +161,8 @@ export async function loadWatchedNight(sessionId: string): Promise<WatchedNight 
     passes: passes.map((p) => ({
       id: p.id,
       kind: p.kind,
-      fromName: named.get(p.from_user) ?? null,
-      toName: named.get(p.to_user) ?? null,
+      fromName: nameOf(p.from_player_id, p.from_user),
+      toName: nameOf(p.to_player_id, p.to_user),
       at: p.passed_at,
     })),
     playerCount: header.player_count,
@@ -295,8 +302,12 @@ export function useWatchedNight(sessionId: string | null): {
 interface PassRow {
   id: string;
   kind: 'passed' | 'taken_back';
-  from_user: string;
-  to_user: string;
+  /** Null once that person deleted their account (0024); the seat stays. */
+  from_user: string | null;
+  to_user: string | null;
+  /** The seats, since 0025. Absent on a project that has not run it. */
+  from_player_id?: string | null;
+  to_player_id?: string | null;
   passed_at: string;
 }
 
@@ -308,7 +319,14 @@ interface PassRow {
 async function namesFor(sessionId: string, passes: PassRow[]): Promise<Map<string, string | null>> {
   const names = new Map<string, string | null>();
   if (passes.length === 0) return names;
-  const ids = [...new Set(passes.flatMap((p) => [p.from_user, p.to_user]))];
+  const ids = [
+    ...new Set(
+      passes
+        .flatMap((p) => [p.from_player_id ? null : p.from_user, p.to_player_id ? null : p.to_user])
+        .filter((u): u is string => u != null),
+    ),
+  ];
+  if (ids.length === 0) return names;
   const { data, error } = await supabase.rpc('names_in_night', {
     target_session_id: sessionId,
     user_ids: ids,

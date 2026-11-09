@@ -423,8 +423,11 @@ export interface LateChange {
   decidedAt: string | null;
   /** Handed in by this phone — the other end of the same row. */
   fromHere: boolean;
-  /** The account it came from; `readLateSources` names it. */
-  fromUser: string;
+  /**
+   * The account it came from; `readLateSources` names it. Null once that
+   * person deleted their account (0024) — still named, by its seat (0025).
+   */
+  fromUser: string | null;
 }
 
 /**
@@ -477,7 +480,7 @@ export async function readLate(sessionId: string): Promise<LateChange[]> {
     status: r.status as LateChange['status'],
     decidedAt: (r.decided_at as string | null) ?? null,
     fromHere: r.from_user === me,
-    fromUser: r.from_user as string,
+    fromUser: (r.from_user as string | null) ?? null,
   }));
 }
 
@@ -486,8 +489,8 @@ export async function readLate(sessionId: string): Promise<LateChange[]> {
  * titled "From Lena's phone" (state 12b). Resolved on the server because a
  * member cannot read who claimed which seat.
  */
-export async function readLateSources(sessionId: string): Promise<Map<string, string | null>> {
-  const rows = await rpc<Array<{ user_id: string; name: string | null }>>('late_change_sources', {
+export async function readLateSources(sessionId: string): Promise<Map<string | null, string | null>> {
+  const rows = await rpc<Array<{ user_id: string | null; name: string | null }>>('late_change_sources', {
     target_session_id: sessionId,
   });
   return new Map((rows ?? []).map((r) => [r.user_id, r.name]));

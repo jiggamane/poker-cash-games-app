@@ -40,7 +40,7 @@ export default function LateChanges() {
   const sessionId = night?.sessionId ?? null;
 
   const [rows, setRows] = useState<LateChange[] | null>(null);
-  const [sources, setSources] = useState<Map<string, string | null>>(new Map());
+  const [sources, setSources] = useState<Map<string | null, string | null>>(new Map());
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [trouble, setTrouble] = useState<string | null>(null);
@@ -50,7 +50,7 @@ export default function LateChanges() {
     try {
       const [all, from] = await Promise.all([
         readLate(sessionId),
-        readLateSources(sessionId).catch(() => new Map<string, string | null>()),
+        readLateSources(sessionId).catch(() => new Map<string | null, string | null>()),
       ]);
       setRows(all);
       setSources(from);
@@ -83,7 +83,7 @@ export default function LateChanges() {
 
   /* Whose phone: one name, or the fact that there was more than one. */
   const phones = [...new Set((rows ?? []).map((r) => r.fromUser))];
-  const phoneName = (uid: string): string => {
+  const phoneName = (uid: string | null): string => {
     const name = sources.get(uid);
     return name === undefined || name === null ? 'another phone' : `${name}’s phone`;
   };
@@ -248,7 +248,7 @@ const SETTING: Record<string, string> = {
 };
 
 /** "logged on Lena's phone" — and for a count, what was logged. */
-const logged = (r: LateChange, phone: (uid: string) => string): string =>
+const logged = (r: LateChange, phone: (uid: string | null) => string): string =>
   r.kind === 'count.upsert' ? `stack counted on ${phone(r.fromUser)}` : `logged on ${phone(r.fromUser)}`;
 
 /**

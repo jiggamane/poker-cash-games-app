@@ -329,6 +329,23 @@ select expect_eq((select count(*) from player_invite where code = 'DELTEST001'
                     and claimed_by is null and claimed_at is not null), 1,
   'the invite he spent keeps when it was spent');
 
+-- 0025: the name stays as the admin typed it, on the hand-off and on the late
+-- change too — read off the seat, because the account is gone.
+set role authenticated;
+select as_user('71000000-0000-0000-0000-000000000003');
+select expect_text(
+  (night_role('74000000-0000-0000-0000-000000000001') -> 'last' ->> 'to_name'),
+  'Olek', 'the hand-off still says it went to Olek');
+select as_user('71000000-0000-0000-0000-000000000001');
+select expect_text(
+  (select name from late_change_sources('74000000-0000-0000-0000-000000000001') where user_id is null),
+  'Olek', 'his late change is still from Olek''s phone');
+select expect_text(
+  (select to_name from my_passes(interval '30 days')
+    where session_id = '74000000-0000-0000-0000-000000000001'),
+  'Olek', 'and the phone that passed it to him still reads his name');
+reset role;
+
 -- =============================================================================
 -- 5. A host leaves: Hana
 -- =============================================================================
@@ -405,6 +422,15 @@ reset role;
 select expect_text(
   (select coalesce(host_user_id::text, 'no host') from book where id = '72000000-0000-0000-0000-000000000001'),
   'no host', 'it is still nobody''s');
+
+-- Both ends of that hand-off are deleted now, and both are still named.
+set role authenticated;
+select as_user('71000000-0000-0000-0000-000000000003');
+select expect_text(
+  (night_role('74000000-0000-0000-0000-000000000001') -> 'last' ->> 'from_name') || ' → ' ||
+  (night_role('74000000-0000-0000-0000-000000000001') -> 'last' ->> 'to_name'),
+  'Hana → Olek', 'a hand-off between two deleted accounts keeps both names');
+reset role;
 
 -- =============================================================================
 -- 6. A watcher leaves: Wren

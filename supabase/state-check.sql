@@ -12,7 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0024.
+-- Last checked against migrations 0001–0025.
 -- =============================================================================
 
 with c as (
@@ -148,6 +148,10 @@ probe as (
     (exists (select 1 from p where proname = 'delete_my_account')
      and exists (select 1 from pg_constraint where conname = 'book_hostless_is_closed')) as m24,
 
+    -- 0025 a hand-off remembers its seats, so a deleted account keeps its name
+    (exists (select 1 from c where table_name = 'night_pass' and column_name = 'from_player_id')
+     and exists (select 1 from c where table_name = 'night_late_change' and column_name = 'from_player_id')) as m25,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
@@ -196,6 +200,7 @@ select v.n,
     (22, '0022 one set of plan names: Free, Regular, Full', x.m22, 'run supabase/migrations/0022_tier_names.sql'),
     (23, '0023 keep awake: the daily heartbeat',        x.m23, 'run supabase/migrations/0023_keep_awake.sql'),
     (24, '0024 deleting an account',                    x.m24, 'run supabase/migrations/0024_delete_account.sql'),
+    (25, '0025 a deleted account keeps its name on hand-offs', x.m25, 'run supabase/migrations/0025_names_stay.sql'),
     (90, 'all fourteen tables present',                  x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),
