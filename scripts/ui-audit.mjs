@@ -108,6 +108,9 @@ const ROUTES = [
   '/boosters', '/booster',
   // Poker tools as a sheet: what Tonight's one tools icon opens (9 November).
   '/pick-tool',
+  // Account and names (9 November, `design/handoff-account-and-names/`): the
+  // delete-account sheet, the name step, and renaming your own seat.
+  '/delete-account', '/your-name', '/seat-name',
 ];
 
 /*
@@ -1225,7 +1228,7 @@ const SHEET_ROUTES = [
   '/piggy-bank-rules', '/house-rules', '/money-rules', '/rule', '/rounding', '/share',
   '/sign-in', '/member', '/hand-over', '/nudge', '/new-group', '/new-night', '/invite',
   '/end-time', '/pass-game', '/late-changes', '/situation', '/table-rules', '/booster',
-  '/pick-tool',
+  '/pick-tool', '/delete-account', '/your-name', '/seat-name',
 ];
 
 /**
