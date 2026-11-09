@@ -717,14 +717,18 @@ export function Icon({
       const s = size ?? 21;
       return (
         <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-          <Rect x={5} y={2.5} width={14} height={19} rx={2.2} stroke={color} strokeWidth={2} />
-          <Path
-            d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.6v.6"
-            stroke={color}
-            strokeWidth={1.6}
-            strokeLinecap="round"
-          />
-          <Circle cx={12} cy={16.8} r={1} fill={color} />
+          {/* Leans 12° to the right everywhere it is drawn (the owner, 9
+              November) — the angle of the calculator glyph's front card. */}
+          <G transform="rotate(12 12 12)">
+            <Rect x={5} y={2.5} width={14} height={19} rx={2.2} stroke={color} strokeWidth={2} />
+            <Path
+              d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.6v.6"
+              stroke={color}
+              strokeWidth={1.6}
+              strokeLinecap="round"
+            />
+            <Circle cx={12} cy={16.8} r={1} fill={color} />
+          </G>
         </Svg>
       );
     }
