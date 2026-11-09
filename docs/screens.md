@@ -3474,7 +3474,7 @@ under a fifth label, *Choose your version* — a question in bold, and its named
 answers (the owner: *leave both options for players to choose from*). The
 stand-up game: *Pay everyone* or *Lose the stake*, and *Really stand* or *Mark
 it*. The button game: how many buttons a player can hold, when the round ends
-(*Last without one*, *First to three*, *Three in a row*), *Flat* or *Per button*,
+(*Buttons run out* — one fewer than there are players, the owner's group's supply — *First to three*, *Three in a row*, each saying how many buttons it needs), *Flat* or *Per button*,
 and what a chopped pot earns — *Earns no button* is the owner's own group's
 rule. **Not yet seen on a phone.**
 
