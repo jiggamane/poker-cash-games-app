@@ -139,6 +139,47 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B107 — an account cannot be deleted, and the database refuses it if you try
+
+```
+Screen      Settings → Account (no row yet) — and the server under it
+Seen        there is no way to delete an account, in the app or on the server.
+            App Review refuses an app that creates accounts and cannot delete
+            them (5.1.1 (v), `app-store-launch.md` A1). And a raw
+            `delete from auth.users` FAILS at Postgres for anybody who ever
+            hosted a group, issued an invite, signed a shortfall, claimed a
+            seat, redeemed a handover code or recorded a passed night
+Expected    one function deletes the caller and only the caller: their seats
+            become names again, a group nobody else is in goes with them, a
+            group with members is closed and kept with no host, and nothing
+            is refused except while a game is running on the account
+Found       28 September, `design-request-account-deletion.md`; worked
+            against `main` at 0023 on 9 November
+Locked by   db:verify — `supabase/test/16_delete_account.sql` deletes a host,
+            a member and a watcher, each with real holdings, and asserts what
+            is left. The sheet has no board yet, so check:ui cannot see it
+Status      server side fixed in 0024; the sheet is open (no board)
+```
+
+The design doc counted five things in the way. Working it against 0023 found
+**eight**, and the three it missed are the ones that would have shipped a
+function that failed on the first real account:
+
+- `settlement_discrepancy_is_confirmed` says a shortfall has a signer, so
+  changing `discrepancy_confirmed_by` to `set null` alone just moves the
+  failure from the foreign key to the check.
+- `session_writer_guard` refuses *every* change to `writer_user_id` outside a
+  handover — including the `set null` the foreign key does on delete. Anybody
+  who was ever passed a night could not be deleted.
+- `ledger_entry_no_delete` refuses every delete of a ledger row, including the
+  cascade from a group that is deleted with its host. A private group with one
+  buy-in in it could not go.
+
+And one it said was fine: `night_handover.created_by` is `cascade`, so deleting
+a host would have deleted the record of who they handed a night to — and with
+it the redeemer's `is_book_member`, which reads that table. It is `set null`
+now, with the other hand-off columns.
+
 ### B104 — My stats' hours, and every night's length, ignored when the night ended
 
 ```
