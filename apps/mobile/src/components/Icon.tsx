@@ -132,14 +132,18 @@ export type IconName =
   /*
    * THE TOOL TILES' OWN GLYPHS, 9 November (the owner): on Poker tools and
    * Tonight's tools sheet the card shapes are gone, so a tool is its pip alone
-   * — a percent sign for the calculator, a question mark for the rulings.
-   * Boosters is the 🔥 emoji, drawn by `ToolTiles` as text. The card glyphs
-   * above stay for the home tile and Tonight's icon.
+   * — a percent sign for the calculator, a question mark for the rulings, a
+   * flame for the boosters. The flame was the 🔥 emoji for an hour and is
+   * drawn now, in the line and the colour of the other two: one tile in colour
+   * among greyscale ones read as a different kind of thing (the owner). The
+   * card glyphs above stay for the home tile and Tonight's icon.
    */
   /** The calculator's tile: a percent sign. */
   | 'percent'
   /** The rulings' tile: a question mark. */
   | 'question'
+  /** The boosters' tile: a flame, a smaller one inside it. */
+  | 'flame'
   /*
    * THE HOME GRID'S OTHER TWO, from the same canvas (N6, 25 October): the
    * destinations that were text rows now carry a glyph each. Both are new and
@@ -715,6 +719,26 @@ export function Icon({
             strokeLinecap="round"
           />
           <Circle cx={12} cy={19.6} r={1.4} fill={color} />
+        </Svg>
+      );
+    }
+
+    case 'flame': {
+      const s = size ?? 21;
+      return (
+        <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M12 2.8c.7 3.3 6 5.9 6 11.2a6 6 0 0 1-12 0c0-2.6 1.3-4.3 2.8-5.6.3 1.7 1 2.7 2.1 3.2-.4-3.2.1-6.2 1.1-8.8z"
+            stroke={color}
+            strokeWidth={2}
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M12 20.1a2.4 2.4 0 0 1-2.4-2.4c0-1.6 1.3-2.5 2.4-4.1 1.1 1.6 2.4 2.5 2.4 4.1a2.4 2.4 0 0 1-2.4 2.4z"
+            stroke={color}
+            strokeWidth={1.6}
+            strokeLinejoin="round"
+          />
         </Svg>
       );
     }

@@ -3458,8 +3458,9 @@ at the foot that it is all played in chips, so nothing needs recording.
 
 - **No canvas, board or handoff draws any of it.** The layout borrows `/rules`
   (section labels, hairline rows) and `/situation` (a read-only sheet). The
-  tile's icon is the 🔥 emoji (the owner, 9 November), drawn as text in the
-  40 round. The same day the card outlines went from all three tiles on
+  tile's icon is a drawn flame (`flame`), in the line and colour of the
+  other two — it was the 🔥 emoji for an hour, and the owner turned it down:
+  one tile in colour among greyscale ones. The same day the card outlines went from all three tiles on
   `/tools` and the tools sheet: the calculator is a percent sign (`percent`),
   the rulings a question mark (`question`). Home's Poker tools tile and
   Tonight's tools icon still draw the question card.
