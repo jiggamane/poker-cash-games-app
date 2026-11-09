@@ -205,7 +205,7 @@ export const BOOSTERS: readonly Booster[] = [
       'Put out the buttons — spare dealer buttons, coins, or chips of a colour not in play. How many depends on how the round ends, below.',
       'Win a pot outright and take a button.',
       'Play on until the round ends, the way the table chose below, and settle up in chips across the table.',
-      'Everyone hands their buttons back and the next round starts on the next hand.',
+      'Everyone hands their buttons back, and the next round starts on the next hand or once the players agree to run it again.',
     ],
     choices: [
       {
@@ -234,7 +234,7 @@ export const BOOSTERS: readonly Booster[] = [
           },
           {
             name: 'Three in a row',
-            text: 'A player’s buttons go back as soon as somebody else wins a pot, so the only way to three is three straight wins. Whoever gets there collects the amount from every other player. Three buttons are enough: only one player can be on a run at a time.',
+            text: 'A player’s buttons go back as soon as somebody else wins a pot, so the only way to three is three straight wins. Whoever gets there collects the amount from every other player. Needs one per pot won. Three buttons are enough: only one player can be on a run at a time.',
           },
         ],
       },
@@ -243,7 +243,7 @@ export const BOOSTERS: readonly Booster[] = [
         options: [
           {
             name: 'Flat',
-            text: 'The agreed amount, however many buttons they hold.',
+            text: 'The agreed amount.',
           },
           {
             name: 'Per button',
