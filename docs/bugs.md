@@ -1920,9 +1920,12 @@ Seen        "{host} added you as {name}" and "Not {name}? Ask {host}…" are bot
             absent from every real claim, leaving a card with no attribution
 Expected    the host's display name, which the preview is specified to return
 Found        7 Sept, tracing preview_player_invite against the app's writes
-Locked by   nothing yet — a db:verify case asserting host_name is non-null for
-            a book whose host has a player row is the shape of it
-Status      open
+Locked by   db:verify — `17_names.sql`: preview_player_invite names the admin
+            once their seat is bound, and names a seatless admin by account
+Status      fixed in 0029 (9 Nov): `bind_my_seat`, called by the sync for the
+            admin row (`sync.ts`, `bindAdminSeat`); an admin with no seat is
+            named by their account name (`profile`). A group already on the
+            server is bound the next time the admin's phone syncs it
 ```
 
 `preview_player_invite` finds the host's name with
