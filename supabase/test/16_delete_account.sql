@@ -240,6 +240,19 @@ reset role;
 select expect_text(
   (select (has_function_privilege('anon', 'delete_my_account()', 'execute'))::text),
   'false', 'a caller with no account at all cannot reach the delete');
+
+-- B108: closed to the API by name, as Supabase needs — the shim grants every
+-- new function to anon and authenticated, as a real project does.
+select expect_text(
+  (select string_agg(f, ', ' order by f) from unnest(array[
+     'release_seat(uuid)', 'deletion_plan_for(uuid)', 'seat_in_book(uuid,uuid)',
+     'seat_or_account_name(uuid,uuid,uuid)', 'person_stays_unless_gone()']) as f
+    where has_function_privilege('anon', f, 'execute')
+       or has_function_privilege('authenticated', f, 'execute')),
+  null, 'no internal function of 0024 or 0025 is callable through the API');
+select expect_text(
+  (select has_function_privilege('authenticated', 'delete_my_account()', 'execute')::text),
+  'true', 'a signed-in phone, anonymous or not, can delete its own account');
 set role authenticated;
 
 -- =============================================================================

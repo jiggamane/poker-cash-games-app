@@ -62,3 +62,11 @@ begin
   end if;
 end;
 $$;
+
+-- Supabase's default privileges: every function, table and sequence made in
+-- `public` is granted to `anon` and `authenticated` BY NAME. So a migration's
+-- `revoke … from public` does not close a function on a real project — it has
+-- to name the two roles. Without this the local database was more private
+-- than the real one, and B108 (`release_seat` callable by anybody) passed
+-- db:verify on the day it went live.
+alter default privileges in schema public grant execute on functions to anon, authenticated;
