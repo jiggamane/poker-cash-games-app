@@ -14,12 +14,14 @@ import { radius, space, type } from '../src/design/tokens';
  * switched on: the app does not run a booster, it explains one.
  *
  * The order is the order a table needs it in: what it is; how a hand of it
- * goes, numbered, because it happens in that order; what the table has to
+ * goes, numbered, because it happens in that order; where tables play it
+ * different ways, each question with its named answers under *Choose your
+ * version* (9 November), so a group picks one; what the table has to
  * agree before the first one, in a card, because that is the part a host reads
  * out; named variations where there are any; the one thing worth knowing; and,
  * at the foot, why none of it touches the ledger.
  *
- * ⚠ COPY NOT DRAWN — the four labels and the text are UNSURE (`docs/screens.md`).
+ * ⚠ COPY NOT DRAWN — the five labels and the text are UNSURE (`docs/screens.md`).
  */
 export default function BoosterSheet() {
   const t = useTheme();
@@ -42,6 +44,26 @@ export default function BoosterSheet() {
           </View>
         ))}
       </View>
+
+      {b.choices !== undefined && (
+        <View style={styles.block}>
+          <Text style={[styles.label, { color: t.muted }]}>Choose your version</Text>
+          {b.choices.map((c) => (
+            <View key={c.label} style={styles.choice}>
+              <Text style={[styles.choiceLabel, { color: t.text }]}>{c.label}</Text>
+              {c.options.map((o) => (
+                <View key={o.name} style={styles.item}>
+                  <Text style={[styles.marker, { color: t.muted }]}>•</Text>
+                  <Text style={[styles.itemText, { color: t.text }]}>
+                    <Text style={styles.optionName}>{o.name}. </Text>
+                    {o.text}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      )}
 
       <View style={[styles.card, { backgroundColor: t.surface }]}>
         <Text style={[styles.label, { color: t.muted }]}>Agree before you start</Text>
@@ -90,6 +112,9 @@ const styles = StyleSheet.create({
   },
   label: { ...type.sectionLabel },
   item: { flexDirection: 'row', gap: 10 },
+  choice: { gap: 6, paddingTop: 4 },
+  choiceLabel: { fontSize: 15, lineHeight: 22, fontWeight: '700' },
+  optionName: { fontWeight: '700' },
   marker: { fontSize: 15, lineHeight: 22, fontWeight: '700', width: 12, fontVariant: ['tabular-nums'] },
   itemText: { fontSize: 15, lineHeight: 22, flex: 1, minWidth: 0 },
   note: { ...type.meta, lineHeight: 19, paddingHorizontal: space.page, paddingTop: 18, paddingBottom: 8 },

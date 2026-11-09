@@ -3467,13 +3467,18 @@ at the foot that it is all played in chips, so nothing needs recording.
 **⚠ COPY NOT DRAWN, all of it UNSURE:** the tile (*Boosters*, *bomb pots and
 more*), the title *Game boosters*, the meta line *house rules for more action*,
 the section labels *Bigger pots* and *Side games*, the sheet's labels *How it
-works*, *Agree before you start*, *Variations*, *Worth knowing*, the money note,
-and every booster's text. **The Button game has more than one house meaning**;
-it is written as the stand-up game played with markers, so it can run all night,
-with the other way up (the last to win a pot takes a pool) under *Worth
-knowing*. **Not yet seen on a phone.**
+works*, *Choose your version*, *Agree before you start*, *Variations*, *Worth knowing*, the money note,
+and every booster's text. **The stand-up and button games have no one standard
+rulebook**, so since 9 November each carries its common versions side by side
+under a fifth label, *Choose your version* — a question in bold, and its named
+answers (the owner: *leave both options for players to choose from*). The
+stand-up game: *Pay everyone* or *Lose the stake*, and *Really stand* or *Mark
+it*. The button game: how many buttons a player can hold, when the round ends
+(*Last without one*, *First to three*, *Three in a row*), *Flat* or *Per button*,
+and what a chopped pot earns — *Earns no button* is the owner's own group's
+rule. **Not yet seen on a phone.**
 
-**Held by:** `ui-audit.mjs` (`/tools`, `/boosters` and `/booster?id=straddle` on
+**Held by:** `ui-audit.mjs` (`/tools`, `/boosters` and `/booster?id=button-game` on
 the route list, both themes, 393 and 360; `/booster` on the sheet pass across
 the six devices).
 

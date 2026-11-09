@@ -32,9 +32,21 @@ describe('game boosters', () => {
       expect(b.what.length, b.id).toBeGreaterThan(0);
       expect(b.how.length, b.id).toBeGreaterThanOrEqual(2);
       expect(b.agree.length, b.id).toBeGreaterThanOrEqual(1);
-      for (const line of [b.what, ...b.how, ...b.agree, ...(b.variations ?? []), b.worth ?? '.']) {
+      const options = (b.choices ?? []).flatMap((c) => c.options.map((o) => o.text));
+      for (const line of [b.what, ...b.how, ...b.agree, ...(b.variations ?? []), ...options, b.worth ?? '.']) {
         expect(line.trim(), b.id).toBe(line);
         expect(line, b.id).toMatch(/[.!?]$/);
+      }
+    }
+  });
+
+  it('offers at least two named options for every choice', () => {
+    for (const b of BOOSTERS) {
+      for (const c of b.choices ?? []) {
+        expect(c.options.length, `${b.id}: ${c.label}`).toBeGreaterThanOrEqual(2);
+        const names = c.options.map((o) => o.name);
+        expect(new Set(names).size, `${b.id}: ${c.label}`).toBe(names.length);
+        expect(c.label, b.id).not.toMatch(/[.?]$/);
       }
     }
   });
