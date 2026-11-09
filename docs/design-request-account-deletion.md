@@ -259,9 +259,10 @@ says who pays whom, and the nights add up into the group's history.
 
 The person leaves; the record stays. Deleting an account removes the person —
 their email, their sign-in, every link between them and a seat — and never
-removes a figure from a night somebody else played in. The seat keeps the name
-the admin typed for it, on every night and every hand-off, because the person
-never gave us that name and a night only balances with every seat in it.
+removes a figure from a night somebody else played in. The seat stays, under
+the name the admin typed for it — put back, if the player had renamed it
+(part C) — on every night and every hand-off, because a night only balances
+with every seat in it.
 
 This is BUILT. The server already does all of it; the sheet only has to say it.
 
@@ -502,7 +503,7 @@ COPY — placeholders
 
   N1 title:    "Your name"
   N1 line:     "How the people you play with will see you when you run a game."
-  N1 field:    placeholder "Andro"
+  N1 field:    placeholder "Lena"
   N1 action:   "Save"
   N3:          "A name can't be empty." / "Keep it under 40 characters."
   N5 row:      "Name" · {name}
