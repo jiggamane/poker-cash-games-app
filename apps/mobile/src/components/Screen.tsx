@@ -75,7 +75,7 @@ export function Screen({
    * draws it in the meta line's slot, at the meta line's indent, with the meta
    * line's name for `ui-audit.mjs`. `meta` is ignored when it is given;
    * `metaTrailing` is not, since 26 October — Tonight's role line carries the
-   * two poker-tool icons at its right end on every phone (`ToolIcons`), and
+   * poker tools' icon at its right end on every phone (`ToolsButton`), and
    * the row then takes the floor a meta line with a control takes (B68).
    */
   metaNode?: ReactNode;

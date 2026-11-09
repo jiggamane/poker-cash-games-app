@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BOOSTER_SECTIONS, boostersIn, type Booster } from '@poker-club/core';
 import { Icon } from '../src/components/Icon';
@@ -25,10 +25,14 @@ import { space, type } from '../src/design/tokens';
  */
 export default function Boosters() {
   const t = useTheme();
+  /* Where back goes, for the screen reader: Poker tools, or Tonight since the
+     role line's tools icon (9 November) reaches the list through a sheet. */
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const backTo = from === 'tonight' ? 'Tonight' : 'Poker tools';
   const open = (b: Booster) => router.push({ pathname: '/booster', params: { id: b.id } });
 
   return (
-    <Screen title="Game boosters" backTo="Poker tools" meta="house rules for more action">
+    <Screen title="Game boosters" backTo={backTo} meta="house rules for more action">
       {BOOSTER_SECTIONS.map((section) => {
         const rows = boostersIn(section.id);
         return (

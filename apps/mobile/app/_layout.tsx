@@ -182,6 +182,8 @@ export default function RootLayout() {
         <Stack.Screen name="table-rules" options={SHEET} />
         {/* One game booster, described — read, then swipe back to the list. */}
         <Stack.Screen name="booster" options={SHEET} />
+        {/* Poker tools as a chooser, from Tonight's one tools icon: a tile closes it, then pushes the tool. */}
+        <Stack.Screen name="pick-tool" options={SHEET} />
         <Stack.Screen name="rule" options={SHEET} />
         {/* How coarsely the group settles — a money rule, so it ends with a
             Save and is therefore a sheet. Opened from both layers of the

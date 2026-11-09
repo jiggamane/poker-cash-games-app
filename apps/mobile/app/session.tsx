@@ -13,7 +13,7 @@ import { Icon } from '../src/components/Icon';
 import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
 import { NameTag, RebuyBar, TotalTag } from '../src/components/RebuyConfirmation';
 import { Screen } from '../src/components/Screen';
-import { ToolIcons } from '../src/components/ToolIcons';
+import { ToolsButton } from '../src/components/ToolsButton';
 import { moneyColor, useTheme } from '../src/design/useTheme';
 import { cappedFigure, unscaledLabel, radius, space, tabular, type } from '../src/design/tokens';
 import { clockLabel, useElapsed } from '../src/lib/elapsed';
@@ -268,12 +268,13 @@ export default function Session() {
           empty={empty}
         />
       }
-      /* The two poker tools at the right end of the role line — the same
-         spot on the recording phone and a watcher's, by the owner's decision
-         of 25 October ("Poker calculator · ways in"), and NOT a row in the
-         drawer, whose every control records money. They dim with the drawer
-         like the rest of the head. `ToolIcons` has the rest. */
-      metaTrailing={<ToolIcons />}
+      /* The poker tools at the right end of the role line — the same spot on
+         the recording phone and a watcher's, by the owner's decision of 25
+         October ("Poker calculator · ways in"), and NOT a row in the drawer,
+         whose every control records money. One icon since 9 November, opening
+         the three tools as a sheet. It dims with the drawer like the rest of
+         the head. `ToolsButton` has the rest. */
+      metaTrailing={<ToolsButton />}
       scroll={false}
       dimmed={drawer}
       footerPad={false}
