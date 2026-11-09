@@ -1,19 +1,11 @@
 # Prompt: deleting an account — the mechanics, and a board for the sheet
 
-> **9 November — Part 1 is built** as `supabase/migrations/0024_delete_account.sql`
-> (B107), with `supabase/test/16_delete_account.sql`. Three things this file
-> missed are in it: the shortfall's own check, the writer guard, and the
-> append-only trigger each refused the delete as well — B107 has them. The
-> sheet reads `account_deletion_plan()` before the hold and calls
-> `delete_my_account()` on it; both return one jsonb (`running`, `groups` with
-> `deleted`/`closed` each, `seats` with group and host name,
-> `store_subscription`). **Part 2, the board, has not been drawn**, so nothing
-> is on screen and none of the strings below is final.
->
-> **The feed-row string is no longer needed (0025, owner 9 November).** A
-> hand-off and a late change remember the seat as well as the account, so a
-> deleted person reads by the name the admin typed — "passed to Lena at
-> 23:10" stays exactly that. Drop "a former member" from the prompt below.
+> **9 November — Part 1 is built and live** (`0024`–`0026`, B107, B108), and
+> **Part 2 was rewritten the same day** against what the server actually hands
+> the sheet (`account_deletion_plan()`) and Settings as it stands. Part 1 below
+> is the reasoning, kept as written on 28 September; where it and the code
+> disagree the code wins, and B107 says where (it found eight schema changes,
+> not five). The board has not been drawn, so nothing is on screen.
 
 **Why this file exists.** Apple refuses an app that creates accounts and cannot
 delete them in-app (guideline 5.1.1 (v)); it is blocker A1 in
@@ -212,241 +204,287 @@ the same assertion: `is_book_member` is false afterwards.
 
 ## Part 2 — the prompt
 
-Paste the block below into the design tool. It asks for **one sheet, in the
-states the mechanics above produce**, inside the existing system, and it
-deliberately asks for nothing on any other screen.
+**Rewritten 9 November against what is built** — `0024`–`0028` on `main` and
+on the live project, and `apps/mobile/app/settings.tsx` as it stands. The
+28 September version asked for a feed-row string that 0025 made unnecessary,
+described the hold from memory, did not know what the server would actually
+hand the sheet, and missed three states the server can produce (a group closed
+with nobody counted in it, a seat whose group has no host name, an account
+with nothing attached). It is replaced, not amended.
 
-**Keep the copy block in sync with `apps/mobile/app/settings.tsx` when this is
-built.** Nothing below is on screen yet; every string is a placeholder to be
-replaced, not a decision.
+Paste the block below into the design tool. It asks for **one sheet, in the
+states the server produces**, plus the one row that opens it, and nothing on any
+other screen. Every string in it is a placeholder; the board's strings are the
+ones that ship.
 
 ---
 
 ```text
 I need a board for one screen of the poker cash-game ledger app: the sheet a
-person gets when they delete their account, in the states the server can
-produce. It is required by App Review and it does not exist in any form. This
-is a new board rather than a delta.
+person gets when they delete their account, in every state the server can
+produce, and the one Settings row that opens it. App Review requires it and it
+does not exist in any form. This is a new board rather than a delta.
 
-Work inside the existing system — Style Guide v2, rev 18 geometry, the six
-boards, and the Settings screen as it stands. Do not introduce a colour, a
-radius, a type size or a component that is not already in it. If the screen
-seems to need one, tell me instead.
+Work inside the existing system — Style Guide v2, the rev 18 geometry
+(doc 15), the boards, and the Settings screen as it stands. Do not introduce a
+colour, a radius, a type size or a component that is not already in it. If the
+screen seems to need one, tell me instead.
 
 ## THE PRODUCT, IN THREE SENTENCES
 
-One person, the host, records every movement of money in a home poker game.
-Players claim a seat with a code and watch the same list on their own phones;
+One person, the admin, records every movement of money in a home poker game.
+Players claim a seat with a code and follow the same night on their own phones;
 watchers open a share link. When the night ends the app counts the table and
-says who pays whom, and the nights add up into the group's book.
+says who pays whom, and the nights add up into the group's history.
 
 ## THE RULE THIS SHEET HAS TO TELL THE TRUTH ABOUT
 
 The person leaves; the record stays. Deleting an account removes the person —
 their email, their sign-in, every link between them and a seat — and never
-removes a figure from a night that somebody else played in. A settled night is
-the group's record, not the phone-holder's.
+removes a figure from a night somebody else played in. The seat keeps the name
+the admin typed for it, on every night and every hand-off, because the person
+never gave us that name and a night only balances with every seat in it.
 
-So what deleting does depends on who is deleting, and the sheet has to say
-which of these it is before anyone holds the button:
+This is BUILT. The server already does all of it; the sheet only has to say it.
 
-  A WATCHER — a phone that once opened a share link. It does not know it has an
-  account. Deleting removes this phone's access and nothing else. For them the
-  row should not even read as "account".
+## WHAT THE SHEET KNOWS — exactly this, nothing more
 
-  A MEMBER — somebody who claimed a seat with a code. Their seat becomes a name
-  again: the host still sees "Petr" and every night Petr played, and can
-  re-invite the seat. The person's phone loses its nights and stats. They are
-  TOLD this before the hold — their name, as the group's admin added it, and
-  the nights they played stay in the group's history. It is a notice, not a
-  choice: there is no "hide my name" option, and none should be drawn.
+Before the hold, the app asks the server what deleting would do, and gets:
 
-  A HOST — the person who runs one or more groups. For each group:
-    - nobody else ever claimed a seat → the group is deleted outright, every
-      night with it. It was a private ledger and it goes with its owner.
-    - anyone else holds a seat → the group is CLOSED and kept. Every member
-      goes on reading every night they were in, for ever. Nobody can add to it
-      or start a night in it again. It has no host.
-  A host may also hold a seat in somebody else's group, in which case the
-  member rule applies to that as well.
+  running   the night that stops it, if any: its GROUP NAME and when it
+            started. Nothing else about it.
+  groups    every group this person runs, each with its NAME, what happens to
+            it — DELETED or CLOSED — and a number: how many OTHER people hold
+            a claimed seat in it.
+  seats     every seat this person holds in somebody else's group: the seat's
+            name (as that group's admin typed it), the GROUP NAME, and the
+            ADMIN'S NAME — which can be MISSING, when that admin never claimed
+            a seat in their own group.
+  store_subscription   whether a plan came through the App Store or Google
+            Play. Nobody can buy one today, so this is false for everyone at
+            launch — draw it anyway, as the state it will be.
 
-  ANY OF THEM, while a game is running on their account (they are recording
-  tonight, or somebody they passed the game to is) → the server refuses, for
-  now, and names the night. Settle it or take it back first. This is the only
-  refusal and it always ends.
+And from Settings it already knows: whether the person is signed in with an
+email or anonymously (a phone that claimed a seat with a code, or only opened
+a share link), and their Plan row — Free, or Full / Regular with "· founder"
+or "· until {date}".
 
-Deletion is immediate. The confirm is the app's one hold — 1.5 s, the same
-gesture that ends a night — and there is no tap path to it. A founder or a
-paid plan does not survive deletion; signing up again with the same address is
-a new account with nothing on it. An App Store subscription is NOT cancelled by
-deleting — only Apple can stop it — so a host who pays through the App Store
-sees one line saying so and a "Manage subscription" action that opens Apple's
-own subscriptions sheet. Nobody without one sees it.
+If a state needs a fact that is not on this list — how many nights a group
+has, who the other members are by name, how much money is in it — it is not
+available. Draw without it, or tell me what you would need and why.
+
+## WHO CAN BE DELETING — one row, one sheet, four readings
+
+  A HOST — runs one or more groups. For each group:
+    · DELETED: nobody else is in it. Every night, name and figure goes with
+      them. It was a private ledger.
+    · CLOSED: somebody else is in it. It is kept, read-only, with no admin,
+      for ever; everyone in it keeps every night they were in. Nobody can add
+      a night to it again.
+    ⚠ A group can be CLOSED with a count of ZERO: "somebody else" also means a
+      phone still watching one of its nights over a share link, or somebody
+      the game was once passed to whose seat has since been reset. Draw the
+      closed line so it reads true at 0 — do not write "{n} people keep…"
+      where n can be 0.
+  A host may also hold seats in other people's groups; the member reading
+  applies to those as well.
+
+  A MEMBER — holds one or more claimed seats, runs no group. Each seat becomes
+  a name again: that group's admin still sees the name and every night, and
+  can invite them back. They are TOLD, before the hold, that their name as the
+  admin typed it and the nights they played stay in the group's history. A
+  notice, not a choice — no "hide my name" option, and none drawn.
+
+  AN ACCOUNT WITH NOTHING IN IT — signed in with an email, runs no group,
+  holds no seat. Since 9 November this is every friend invited and not yet
+  seated: an invite gives an account on Free and nothing else. The sheet has
+  nothing to list. It still must not read as an error or an empty state.
+
+  A WATCHER — an anonymous phone that only ever opened a share link. It does
+  not know it has an account. For them the row and the sheet say "remove this
+  phone's access", never "account".
+
+  ANY OF THEM, while a game is running on their account (they are recording a
+  night, or somebody they passed it to is, in a group they run) → refused, for
+  now, naming the group. Settle it, or take it back and settle it. This is the
+  only refusal, and it always ends.
+
+Every one of them: their plan ends with the account. A founder or a plan given
+by the owner does not come back by signing up again with the same address —
+that is a new account on Free. Say it once, only when their Plan row is not
+Free. An App Store subscription is NOT cancelled by deleting — only Apple can
+stop it — so when store_subscription is true the sheet says so and offers
+"Manage subscription", which opens Apple's own subscriptions sheet.
+
+Deletion is immediate. There is no undo and no grace period.
 
 ## THE ONE THING OFFERED FIRST
 
-The host's own record leaves with them. Settings already has "Back up", which
-copies the whole book as text to the clipboard. The sheet should offer that
-once, above the destructive action, in a way that a person about to lose their
-record will actually see — not as a footnote under the button. Whether it is
-a row, a line, or the primary in a first stage is your call.
+A host's DELETED groups leave with them, and their phone is wiped after.
+Settings already has "Copy a backup" (section THIS PHONE, directly above
+ACCOUNT): the whole book, as text, on the clipboard. Offer it once, above the
+hold, where a person about to lose their record will actually see it — not as
+a footnote under the button. Only where something will be deleted; a member,
+a watcher and an empty account lose nothing a backup would keep.
+
+## THE HOLD — reuse it, do not redesign it
+
+There is exactly one destructive hold in the app: "End this poker night", in
+the Table admin drawer on Tonight (rev 18 doc 08, states H3 and H3b). Resting:
+no fill, a 1.5px border in the loss red at 55 %, a glyph in red, two lines —
+the label in red over a muted sub-line saying the gesture ("Hold 1.5s · …").
+Holding: the border goes solid red, a left-to-right wipe fills it over 1.5 s,
+the copy swaps to "Keep holding…" / "Release to cancel", and everything else on
+the sheet drops to 40 %. Releasing early reverts with no dialog. Draw the
+delete hold as that row — its label, its sub-line and its glyph are yours to
+choose; its shape, its colour and its timing are not. There is no tap path to
+deleting, anywhere.
 
 ## STATES TO DRAW
 
-  S1  Settings → Account: the row that opens this. One row, last in the
-      section, after "Sign out". Wording differs for a watcher (access, not
-      account). Draw the row in the section as it exists.
+  S1  Settings, the row that opens this. Settings today, top to bottom: the
+      group (name, currency, Your groups), the game (buy-in, Money rules,
+      Rules & rulings, Poker calculator), PLAYERS (You, Players, Invited,
+      I have an invite code), THIS PHONE (Copy a backup, Restore from a
+      backup), ACCOUNT (Where it lives, Signed in as, Plan, Sync now, Fetch my
+      nights, Connection, Share this night / Stop sharing, Sign out). Draw
+      where the row goes, signed in with an email and as a watcher.
 
-  S2  The sheet, HOST, with at least one group that will close and at least one
-      that will be deleted, and the App Store subscription line (draw it on;
-      it is absent for anyone not paying through the App Store). This is the hardest state and the one to design
-      first: it has to list groups by name with what happens to each, offer the
-      backup, and carry the hold. Draw it with two groups; it must hold with
-      one and with four.
-
-  S3  The sheet, MEMBER: one or several seats, each named with its group.
-
-  S4  The sheet, WATCHER: one line and the hold. The smallest version.
-
-  S5  Refused — a game is running. Names the night and the group, one action
-      that goes there, and no hold on the screen.
-
-  S6  Working, then done: the moment after the hold completes, before the app
-      restarts as an empty phone. The server call can take a second or two.
-
-  S7  Failed: no signal, or the server said no for a reason that is not S5.
-      The account still exists and the sheet has to say so.
+  S2  HOST: two groups, one DELETED and one CLOSED, a seat elsewhere, the
+      backup, the plan line, the store line ON, and the hold. The hardest
+      state; design it first. It must hold with one group and with four, with
+      long group names, and with a CLOSED count of 0.
+  S3  MEMBER: one seat, and three seats in three groups — one of them a group
+      whose admin's name is missing.
+  S4  ACCOUNT WITH NOTHING IN IT: email account, Free, no group, no seat.
+  S5  WATCHER: the smallest version. One line and the hold.
+  S6  REFUSED — a game is running. Names the group and when it started; one
+      action that goes to it; no hold on the screen.
+  S7  WORKING, THEN DONE: the second after the hold completes, before the app
+      restarts as a phone with nothing on it.
+  S8  FAILED: no signal, or the server refused for a reason that is not S6.
+      The account still exists, and the sheet says so.
 
 A multi-step flow REPLACES ONE SHEET'S CONTENT and keeps one close; a sheet
-never pushes. If you split S2 into two stages (backup, then the hold), that is
-the mechanism.
+never pushes. If S2 is two stages (backup, then the hold), that is the
+mechanism.
 
 ## HARD CONSTRAINTS — shipped, not up for redesign here
 
 - It is a SHEET, Chrome B: grabber, close in the corner, swipe down. Never a
   round back button, never anything else in the top-right.
-- Sheet geometry is doc 15 §3 exactly: radius 26 26 0 0, grabber 38×5, header
-  padding 12/22 with the title at 32/800 tracking −.03em, close a 30 circle,
-  footer padding 14 20 6 with buttons at 17 vertical padding, radius 8, 17/700.
-  Reserved bottom block 82. A sheet hugs its content; if the body does not fit,
-  the sheet goes full-height and only the body scrolls.
-- The hold is the existing HoldButton: 1.5 s, outline, icon-less, 14 padding,
-  radius 10, 1.5 px outline. Its label and its fill progress are what you can
-  draw; its duration and gesture are not.
-- Type scale as shipped: body 17/500, lede 14.5/400 at 22 line, footnote
-  12.5/400 at 19 line, caps label 11/700 at +1.1 tracking.
-- NO BRAND ACCENT. Green and red mean money won and lost, in this app and
-  nowhere else. Nothing on this sheet is money. The destructive action is the
-  loss colour if anything is, and nothing else on the sheet is coloured.
+- Sheet geometry is doc 15 §3 exactly — copy it from the boards, do not
+  re-derive it. A sheet hugs its content; if the body does not fit it goes
+  full-height and only the body scrolls.
+- The hold is H3/H3b's row, as above.
+- The type scale as shipped. No new sizes.
+- NO BRAND ACCENT. Green and red mean money won and lost, and the red also
+  means "this cannot be undone" on exactly one other control — the hold. Nothing
+  else on this sheet is coloured.
 - Both themes. Light is not white everywhere; white is a surface.
 - 393 × 852 is the reference frame; it must hold at 320 wide and at the
   largest accessibility text size with no group name clipped — group names are
-  typed by hosts and can be long.
+  typed by people and can be long.
 
 ## COPY — every string is a placeholder to be replaced
 
 The house voice is plain, specific, never apologises, and never says "are you
 sure". Several labels in this app were written to defuse an argument at a
-table; the same register applies to somebody leaving.
+table; the same register applies to somebody leaving one.
 
-  S1 row:      "Delete account"                   (host, member)
-               "Remove this phone's access"       (watcher)
+  S1 row:      "Delete account"                     (email, or a claimed seat)
+               "Remove this phone's access"         (watcher)
 
   S2 title:    "Delete your account"
   S2 lede:     "You leave. The record stays."
-  S2 per group, will close:
-               "{Group} · closed and kept. {n} people keep every night they
-               were in. Nobody can add to it."
-  S2 per group, will be deleted:
-               "{Group} · deleted. Nobody else ever had a seat in it, so it
+  S2 closed:   "{Group} · closed and kept. {n} people keep every night they
+               were in. Nobody can add to it."           (n ≥ 1 — and at 0?)
+  S2 deleted:  "{Group} · deleted. Nobody else ever had a seat in it, so it
                goes with you."
-  S2 own seat elsewhere:
-               "Your seat in {Group} becomes a name again."
+  S2 seat:     "Your seat in {Group} becomes a name again."
   S2 plan:     "Your plan ends with the account. Signing up again starts
                from nothing."
-  S2 store subscription (only when paid through the App Store):
-               "Deleting does not stop your App Store subscription. Cancel it
-               there first."
-               action: "Manage subscription"
-  S2 backup:   "Copy a backup first" — the existing action; and one line on
-               what it is: "The whole book, as text, on your clipboard."
+  S2 store:    "Deleting does not stop your App Store subscription. Cancel it
+               there first."   action: "Manage subscription"
+  S2 backup:   "Copy a backup first" — "The whole book, as text, on your
+               clipboard."
   S2 hold:     "Hold to delete"
 
-  S3 title:    "Delete your account"
-  S3 lede:     "Your seat in {Group} becomes a name again. {Host} still sees
+  S3 lede:     "Your seat in {Group} becomes a name again. {Admin} still sees
                every night you played, and can invite you back."
-  S3 record:   "Your name, as {Host} added it, and the nights you played stay
+               (and with {Admin} missing?)
+  S3 record:   "Your name, as {Admin} added it, and the nights you played stay
                in {Group}'s history. They are the group's record of the money
                that changed hands."
   S3 phone:    "This phone loses its nights and stats."
 
-  S4 title:    "Remove this phone's access"
-  S4 line:     "This phone stops seeing the night it was shown. The host can
+  S4:          no placeholder — write it.
+
+  S5 title:    "Remove this phone's access"
+  S5 line:     "This phone stops seeing the night it was shown. The admin can
                share it again."
 
-  S5 title:    "A game is running"
-  S5 line:     "{Group} is recording tonight on your account. Settle it, or
+  S6 title:    "A game is running"
+  S6 line:     "{Group} is recording tonight on your account. Settle it, or
                take it back and settle it, and come back here."
-  S5 action:   "Go to tonight"
+  S6 action:   "Go to tonight"
 
-  S6:          "Deleting…" then "Done. This phone starts over."
-  S7:          "Nothing was deleted. There was no answer from the server."
+  S7:          "Deleting…" then "Done. This phone starts over."
+  S8:          "Nothing was deleted. There was no answer from the server."
                "Nothing was deleted. {reason}"
 
-  Feed row, elsewhere, when a person who passed or received a game has since
-  deleted: the role line currently reads "passed to Lena at 23:10". It needs
-  one form for a name that is gone. Proposed: "passed to a former member at
-  23:10". Flag it if you would rather it read differently; do not leave it
-  unanswered — it is the one string on another screen this produces.
-
-If a state I have not listed needs a string, flag it instead of filling it in.
+If a state needs a string I have not listed, write one and flag it.
 
 ## OPEN QUESTIONS — ANSWER THEM ON THE BOARD
 
-1. Is the backup a row inside S2, or a first stage of the sheet that the hold
-   only appears after? The second is safer and one step longer.
-2. A host with several groups: a list with a line each, or one sentence with
-   the counts? Draw whichever holds at four groups with long names.
-3. Does S1 sit inside the Account section, or in its own section at the very
-   foot of Settings, apart from everything that is not destructive?
+1. Is the backup a row inside S2, or a first stage the hold only appears
+   after? The second is safer and one step longer.
+2. A host with several groups: a line each, or one sentence with the counts?
+   Draw whichever holds at four groups with long names.
+3. Does S1 sit last in ACCOUNT, after Sign out, or in its own section at the
+   very foot of Settings, apart from everything that is not destructive?
+4. The CLOSED line at a count of 0, and the member lede with no admin name —
+   what do they say?
 
 ## WHAT TO HAND BACK
 
-1. A board for S1–S7, at 393 × 852, in the same format as the existing six:
+1. A board for S1–S8 at 393 × 852, in the same format as the existing boards:
    every dimension, weight and colour inline on the element, so it can be
    copied rather than re-derived.
 2. Both themes.
 3. A short note on anything you deliberately departed from in the existing
-   system, and why. It is recorded in docs/screens.md against this screen.
-4. Your answers to the three questions above, and your form of the one
-   feed-row string.
+   system, and why.
+4. Your answers to the four questions above.
 
 ## WHAT I AM NOT ASKING FOR
 
-Handing a group to another person before leaving. It is the better ending and
-it is not built; when it is, S2 gains one row above the hold and nothing else
-here changes. Nothing on any other screen beyond the one feed string. No
-change to the sheet object, the tokens, or the navigation vocabulary — if this
-screen makes you want to change one of those, say so separately.
+Handing a group to another person before leaving — not built; when it is, S2
+gains one row above the hold and nothing else here changes. Anything on any
+other screen: the hand-off line ("passed to Lena at 23:10") keeps the name
+the admin typed after a deletion, so it needs no new string. No change to the
+sheet object, the tokens, or the navigation vocabulary — if this screen makes
+you want one, say so separately.
 ```
 
 ---
 
+
 ## For whoever applies the result
 
 - The board lands in `boards/`; `docs/screens.md` gains a row for the sheet and
-  the S1 row on `/settings`, held against it; the feed string goes in the
-  game-admin section beside the other role-line strings.
-- **The migration and the function come first, with their suite**, before the
-  sheet. Number it after whatever is on `main` that day, and touch nothing but
-  the columns in the table above plus `delete_my_account()` and the shared
-  unclaim used by B57 — B57's fix rides the same migration or the one after,
-  never a third copy of the write.
-- The sheet is one session and one file (`settings.tsx` plus the new sheet
-  route); B57's `member.tsx` change is another session. They do not open the
-  same file.
-- Write the `bugs.md` entry for A1 before building, per `CLAUDE.md`, and name
-  the `db:verify` case and the `check:ui` walk that go red if it regresses.
+  the S1 row on `/settings`, held against it.
+- **The server half is done** — `account_deletion_plan()` before the hold,
+  `delete_my_account()` on it; both return the same jsonb, plus `deleted` and,
+  when refused, `refused: 'game_running'`. On success the app has to sign
+  out, drop its SQLite and open as an empty phone — not built yet. Nothing on the server needs to
+  change for the sheet; if the board needs a fact the plan does not carry,
+  that is a migration first.
+- The sheet is one session and one file set (`settings.tsx` plus the new sheet
+  route). B57's `member.tsx` change is another session, and calls the same
+  `release_seat()` through a function of its own. They do not open the same
+  file.
+- A `check:ui` walk of S1–S8 goes red if it regresses; add it to B107's
+  *Locked by* when it exists.
 - The privacy policy (`app-store-launch.md` Step 4) gets three sentences from
   this file: what deletion removes, that a closed group's figures stay for its
   members, and that store billing records are kept.
