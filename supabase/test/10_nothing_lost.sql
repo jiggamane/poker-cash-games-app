@@ -83,6 +83,12 @@ select u.id, 'full', 'grant', 'test host'
   from auth.users u
  where u.email is not null and u.invited_at is not null
    and not exists (select 1 from entitlement e where e.user_id = u.id);
+-- And since 0030 a group needs a named admin: every emailed test host has one.
+insert into profile (user_id, name)
+select u.id, 'Test host'
+  from auth.users u
+ where u.email is not null
+on conflict (user_id) do nothing;
 
 
 insert into book (id, host_user_id, group_name) values

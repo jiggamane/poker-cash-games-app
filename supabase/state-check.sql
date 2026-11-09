@@ -12,7 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0029.
+-- Last checked against migrations 0001–0030.
 -- =============================================================================
 
 with c as (
@@ -169,6 +169,11 @@ probe as (
     (to_regclass('public.profile') is not null
      and exists (select 1 from p where proname = 'bind_my_seat')) as m29,
 
+    -- 0030 a player names their own seat; a group needs a named admin
+    (exists (select 1 from c where table_name = 'player' and column_name = 'admin_name')
+     and exists (select 1 from pg_policies where tablename = 'book'
+                                            and policyname = 'book_insert_needs_name')) as m30,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
@@ -222,6 +227,7 @@ select v.n,
     (27, '0027 grant_founder closed to the API',       x.m27, 'run supabase/migrations/0027_close_grant_founder.sql'),
     (28, '0028 a dashboard invite is Free',            x.m28, 'run supabase/migrations/0028_invite_is_free.sql'),
     (29, '0029 names: your name, and the admin''s seat', x.m29, 'run supabase/migrations/0029_names.sql'),
+    (30, '0030 your own name on your seat; a named admin', x.m30, 'run supabase/migrations/0030_your_own_name.sql'),
     (90, 'all fourteen tables present',                  x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),
