@@ -210,6 +210,21 @@ useful; this app has no website.
 over the SMTP configured in step 4. After that they use the ordinary sign-in
 screen; the invite is what makes their address known, not a separate way in.
 
+**An invited account is Free** (since 9 November, `0028_invite_is_free.sql`).
+It can claim a seat, watch a night and be passed one; it cannot start a group
+of its own. To give a friend more, in the SQL Editor after they are invited:
+
+```sql
+select admin_grant('friend@example.com', 'pro', null, 'a friend');  -- for ever
+select admin_grant('friend@example.com', 'pro', 365);               -- a year
+select * from entitlement order by created_at desc;                 -- who has what
+select admin_revoke('<entitlement id>', 'why');                     -- take it back
+```
+
+`pro` is the live project's word for Full until `0022_tier_names.sql` is
+applied; after it, write `full` (the default either way, so it can be left
+out).
+
 ---
 
 ## When it says "Invalid API key"

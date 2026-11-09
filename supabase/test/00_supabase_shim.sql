@@ -13,11 +13,10 @@ create schema if not exists auth;
 create table if not exists auth.users (
   id uuid primary key default gen_random_uuid(),
   email text,
-  -- Set by a dashboard invite and by nothing else. 0018 reads it to decide who
-  -- may start a group. DEFAULTED HERE, and only here: every account the tests
-  -- before 11 make is a host of the kind the project really had — invited from
-  -- the dashboard — so they keep writing books as they did. 11_accounts.sql
-  -- passes null explicitly for the people who were not.
+  -- Set by a dashboard invite and by nothing else. DEFAULTED HERE, and only
+  -- here. Until 0028 an invite made a founder, and the suites before 11 leaned
+  -- on that for their hosts' plans; since 0028 an invite is Free, and each of
+  -- those suites gives its invited hosts a plan by hand, keyed on this column.
   invited_at timestamptz default now()
 );
 

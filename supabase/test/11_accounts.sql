@@ -5,7 +5,8 @@
 --
 -- What it holds:
 --   · an account with no plan cannot create a book, whatever the app sends;
---   · everybody already in, and a dashboard invite, is a founder — once;
+--   · everybody already in on the day 0018 ran is a founder — once; a dashboard
+--     invite since 0028 is Free, and a plan is given by hand;
 --   · a promo code spent on an anonymous phone is a plan, and opens a group
 --     only once the account has an email;
 --   · losing the plan stops a NEW group, never an existing one;
@@ -51,7 +52,7 @@ $$;
 -- =============================================================================
 -- Fixtures
 -- =============================================================================
---   ac…01  the admin, invited from the dashboard
+--   ac…01  the admin, invited from the dashboard — Free until upgraded (0028)
 --   ac…02  a stranger with an email who signed up by calling the API directly
 --   ac…03  a friend, anonymous on the phone, who will be given a code
 --   ac…04  a second friend, anonymous
@@ -70,9 +71,17 @@ insert into app_admin (user_id) values ('ac000000-0000-0000-0000-000000000001');
 -- 1. The door
 -- =============================================================================
 
+-- 0028, owner 9 November: an invite makes an account on the default tariff.
 select expect_text(
-  (select source from entitlement where user_id = 'ac000000-0000-0000-0000-000000000001'),
-  'founder', 'a dashboard invite is a founder');
+  (select count(*)::text from entitlement where user_id = 'ac000000-0000-0000-0000-000000000001'),
+  '0', 'a dashboard invite is Free, like any other account');
+
+-- The owner upgrades a friend by hand, from the SQL editor.
+select admin_grant('admin@example.com', 'full', null, 'upgraded by hand');
+select expect_text(
+  (select plan || ' / ' || source from entitlement
+    where user_id = 'ac000000-0000-0000-0000-000000000001' and revoked_at is null),
+  'full / grant', 'and an upgrade by hand is what gives them a plan');
 
 select expect_text(
   (select count(*)::text from entitlement where user_id = 'ac000000-0000-0000-0000-000000000002'),

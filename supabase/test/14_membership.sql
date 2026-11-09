@@ -107,7 +107,7 @@ $$;
 -- =============================================================================
 -- Fixtures
 -- =============================================================================
---   Marek   the host; emailed, so the shim invited him: a founder, Full
+--   Marek   the host; a founder, Full for ever (given by hand since 0028)
 --   Lena    a claimed seat with an email; given Full by hand
 --   Ivo     a claimed seat, anonymous; Regular since 40 days ago, so his
 --           current period began 10 days ago and renews in 20
@@ -127,6 +127,7 @@ insert into auth.users (id, email, invited_at) values
   ('1a000000-0000-0000-0000-000000000009', 'stranger@example.com', null);
 
 insert into entitlement (user_id, plan, source, starts_at, note) values
+  ('1a000000-0000-0000-0000-000000000001', 'full', 'founder', now() - interval '60 days', 'Marek'),
   ('1a000000-0000-0000-0000-000000000002', 'full', 'grant', now() - interval '1 day', 'Lena'),
   ('1a000000-0000-0000-0000-000000000003', 'regular', 'grant', now() - interval '40 days', 'Ivo'),
   ('1a000000-0000-0000-0000-000000000006', 'regular', 'grant', now() - interval '3 days', 'Eva');

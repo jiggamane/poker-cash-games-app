@@ -67,6 +67,15 @@ $$;
 insert into auth.users (id, email) values
   ('87100000-0000-0000-0000-000000000001', 'end-time-host@example.com');
 
+-- Since 0028 a dashboard invite is Free, so the hosts here are given their plan
+-- by hand — as the owner gives a friend theirs. (It used to come with the invite.)
+insert into entitlement (user_id, plan, source, note)
+select u.id, 'full', 'grant', 'test host'
+  from auth.users u
+ where u.email is not null and u.invited_at is not null
+   and not exists (select 1 from entitlement e where e.user_id = u.id);
+
+
 insert into book (id, host_user_id, group_name) values
   ('87200000-0000-0000-0000-000000000001',
    '87100000-0000-0000-0000-000000000001', 'The late finishers');

@@ -132,9 +132,12 @@ insert into share_grant (session_id, user_id)
 values ('fd000000-0000-0000-0000-000000000001', 'fa000000-0000-0000-0000-000000000005');
 
 -- Since 0021 a game goes only to an account that may take it. Marek and Lena
--- are founders (the shim invites every emailed account, so they are Full);
+-- are Full, given by hand (since 0028 an invite no longer comes with a plan);
 -- Ivo, anonymous, is given Regular by hand — his one host night is what the
 -- pass to him below spends. 14_membership.sql holds the rules themselves.
+insert into entitlement (user_id, plan, source, note) values
+  ('fa000000-0000-0000-0000-000000000001', 'full', 'founder', 'Marek'),
+  ('fa000000-0000-0000-0000-000000000002', 'full', 'grant', 'Lena');
 insert into entitlement (user_id, plan, source, note)
 values ('fa000000-0000-0000-0000-000000000003', 'regular', 'grant', 'a test');
 

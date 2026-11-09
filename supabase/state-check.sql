@@ -12,7 +12,7 @@
 -- half-applied file shows up as missing rather than as applied.
 --
 -- Regenerate the file list with:  ls supabase/migrations/
--- Last checked against migrations 0001–0027.
+-- Last checked against migrations 0001–0028.
 -- =============================================================================
 
 with c as (
@@ -162,6 +162,9 @@ probe as (
      and not has_function_privilege('authenticated', 'grant_founder(uuid)', 'execute')
      and not has_function_privilege('anon', 'grant_founder(uuid)', 'execute')) as m27,
 
+    -- 0028 a dashboard invite is Free: the founder trigger is gone
+    not exists (select 1 from pg_trigger where tgname = 'auth_user_dashboard_invite') as m28,
+
     -- not a migration, but the app is broken without them
     (select count(*) from information_schema.tables
       where table_schema = 'public'
@@ -213,6 +216,7 @@ select v.n,
     (25, '0025 a deleted account keeps its name on hand-offs', x.m25, 'run supabase/migrations/0025_names_stay.sql'),
     (26, '0026 internal functions closed to the API',  x.m26, 'run supabase/migrations/0026_close_internal_functions.sql'),
     (27, '0027 grant_founder closed to the API',       x.m27, 'run supabase/migrations/0027_close_grant_founder.sql'),
+    (28, '0028 a dashboard invite is Free',            x.m28, 'run supabase/migrations/0028_invite_is_free.sql'),
     (90, 'all fourteen tables present',                  x.tables_ok,     'a migration above is missing — fix those first'),
     (91, 'row-level security on every public table',  x.rls_ok,        'STOP. Some table is readable by anyone. Do not put real money in this project until it is fixed.'),
     (92, 'JWT hook executable by supabase_auth_admin', x.hook_grant_ok, 'run supabase/migrations/0005_watcher_access.sql'),
