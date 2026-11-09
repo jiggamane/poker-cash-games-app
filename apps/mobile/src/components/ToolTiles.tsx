@@ -17,10 +17,10 @@ import { home, space, type } from '../design/tokens';
  * `index.tsx` on purpose: home's tile also knows about a waiting state and a
  * fresh club.
  *
- * The icons are the pips alone since 9 November — no card outlines — all
- * three drawn in the same line and colour: Boosters' flame was the 🔥 emoji
- * for an hour, and one tile in colour among greyscale ones was the problem
- * (the owner).
+ * The icons, 9 November (the owner): the calculator a bare percent sign and
+ * Boosters a flame, with no card outline; Rulings keeps its question card. All
+ * three in the same line and colour — the flame was the 🔥 emoji for an hour,
+ * and one tile in colour among greyscale ones was the problem.
  *
  * ⚠ COPY NOT DRAWN — the names and sub-lines are the owner's picks recorded in
  * `docs/screens.md` (*Calculator*, *Rulings* on 26 October, *look up a ruling*
@@ -38,7 +38,7 @@ export interface Tool {
 
 export const TOOLS: readonly Tool[] = [
   { path: '/odds', icon: 'percent', name: 'Calculator', sub: 'hand and pot odds' },
-  { path: '/rules', icon: 'question', name: 'Rulings', sub: 'look up a ruling' },
+  { path: '/rules', icon: 'questionCard', name: 'Rulings', sub: 'look up a ruling' },
   { path: '/boosters', icon: 'flame', name: 'Boosters', sub: 'bomb pots and more' },
 ];
 
