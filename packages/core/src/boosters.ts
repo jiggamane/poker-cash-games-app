@@ -202,7 +202,7 @@ export const BOOSTERS: readonly Booster[] = [
     summary: 'Win pots, collect buttons, get paid for them',
     what: 'Win a pot and take a button. When the round ends, the players with buttons are paid by the players without. Buttons are markers, so the game can run all night without anyone getting up.',
     how: [
-      'Put out a supply of buttons — spare dealer buttons, coins, or chips of a colour not in play.',
+      'Put out the buttons — spare dealer buttons, coins, or chips of a colour not in play. How many depends on how the round ends, below.',
       'Win a pot outright and take a button.',
       'Play on until the round ends, the way the table chose below, and settle up in chips across the table.',
       'Everyone hands their buttons back and the next round starts on the next hand.',
@@ -225,16 +225,16 @@ export const BOOSTERS: readonly Booster[] = [
         label: 'When the round ends',
         options: [
           {
-            name: 'Last without one',
-            text: 'When every player but one has a button, that player pays each of the others.',
+            name: 'Buttons run out',
+            text: 'Put out one button fewer than there are players. When the last one is taken, every player without a button pays each player who has one. With one button a player, that leaves exactly one player to pay.',
           },
           {
             name: 'First to three',
-            text: 'When one player reaches three buttons, every player with none pays each player who has one. Needs one per pot won; the table can pick another number.',
+            text: 'When one player reaches three buttons, every player with none pays each player who has one. Needs one per pot won, and two buttons a player plus one more, so they cannot run out first. The table can pick another number.',
           },
           {
             name: 'Three in a row',
-            text: 'A player’s buttons go back as soon as somebody else wins a pot, so the only way to three is three straight wins. Whoever gets there collects the amount from every other player.',
+            text: 'A player’s buttons go back as soon as somebody else wins a pot, so the only way to three is three straight wins. Whoever gets there collects the amount from every other player. Three buttons are enough: only one player can be on a run at a time.',
           },
         ],
       },
