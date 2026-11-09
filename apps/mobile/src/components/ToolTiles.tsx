@@ -17,8 +17,10 @@ import { home, space, type } from '../design/tokens';
  * `index.tsx` on purpose: home's tile also knows about a waiting state and a
  * fresh club.
  *
- * The icons are the pips alone since 9 November — no card outlines — and
- * Boosters is the 🔥 emoji (the owner).
+ * The icons are the pips alone since 9 November — no card outlines — all
+ * three drawn in the same line and colour: Boosters' flame was the 🔥 emoji
+ * for an hour, and one tile in colour among greyscale ones was the problem
+ * (the owner).
  *
  * ⚠ COPY NOT DRAWN — the names and sub-lines are the owner's picks recorded in
  * `docs/screens.md` (*Calculator*, *Rulings* on 26 October, *look up a ruling*
@@ -29,8 +31,7 @@ export type ToolPath = '/odds' | '/rules' | '/boosters';
 
 export interface Tool {
   path: ToolPath;
-  /** A drawn glyph, or an emoji drawn as text — Boosters' 🔥 (the owner, 9 November). */
-  icon: IconName | { emoji: string };
+  icon: IconName;
   name: string;
   sub: string;
 }
@@ -38,7 +39,7 @@ export interface Tool {
 export const TOOLS: readonly Tool[] = [
   { path: '/odds', icon: 'percent', name: 'Calculator', sub: 'hand and pot odds' },
   { path: '/rules', icon: 'question', name: 'Rulings', sub: 'look up a ruling' },
-  { path: '/boosters', icon: { emoji: '🔥' }, name: 'Boosters', sub: 'bomb pots and more' },
+  { path: '/boosters', icon: 'flame', name: 'Boosters', sub: 'bomb pots and more' },
 ];
 
 export function ToolTiles({ onOpen }: { onOpen: (tool: Tool) => void }) {
@@ -71,16 +72,7 @@ function Tile({ tool, onPress }: { tool: Tool; onPress: () => void }) {
       ]}
     >
       <View style={[styles.round, { backgroundColor: t.roundFill }]}>
-        {typeof tool.icon === 'string' ? (
-          <Icon name={tool.icon} color={t.text} />
-        ) : (
-          /* An emoji draws in its own colours; the text colour is set anyway so
-             it is never the default black on a dark tile, which is what
-             ui-audit's contrast pass measures. */
-          <Text style={[styles.emoji, { color: t.text }]} accessible={false}>
-            {tool.icon.emoji}
-          </Text>
-        )}
+        <Icon name={tool.icon} color={t.text} />
       </View>
       <View style={styles.tileText}>
         <Text style={[styles.tileName, { color: t.text }]} numberOfLines={1}>
@@ -117,8 +109,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  /* Sized to sit in the 40 round as the 21-point glyphs do. */
-  emoji: { fontSize: 20, lineHeight: 24, textAlign: 'center' },
   tileText: { gap: 2 },
   tileName: type.tileName,
   tileSub: type.tileSub,
