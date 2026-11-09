@@ -139,6 +139,37 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B108 — a function a migration "revoked from public" is still callable on Supabase
+
+```
+Screen      not a screen — the API, with the app's public key
+Seen        9 November, applying 0024 to the live project: `release_seat` and
+            `deletion_plan_for`, both meant to be internal, were executable by
+            `anon` and `authenticated`. Anybody holding the public key could
+            unclaim any seat in any group, or read any account's groups by id.
+            Closed by 0026 minutes later; nothing had called them
+Expected    a function a migration closes is closed on the real project
+Found       checking grants on the live project after applying 0024
+Locked by   db:verify — the shim now sets Supabase's default privileges, and
+            `16_delete_account.sql` asserts none of 0024/0025's internals is
+            executable by anon or authenticated (red without 0026)
+Status      fixed in 0026 for 0024/0025. OPEN for `grant_founder` (0018) —
+            see below
+```
+
+A Supabase project grants EXECUTE on every new function in `public` to `anon`
+and `authenticated` by name. `revoke … from public` removes neither grant. The
+local test database had no such default, so it was more private than the real
+one and every check passed.
+
+**The same is true of older functions, and one matters.** On the live project
+on 9 November `grant_founder(uuid)` (0018) is executable by `anon` and
+`authenticated`: anybody with the public key can give any account — their own
+anonymous one — a Full plan for ever, which is the gate on starting a group.
+`admin_caller_ok()` is exposed too and only answers a boolean.
+`membership_of` and `spend_host_night` (0021) will be the same the day 0021 is
+applied. Not changed: it is outside the deletion work, and asked about first.
+
 ### B107 — an account cannot be deleted, and the database refuses it if you try
 
 ```
