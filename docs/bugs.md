@@ -153,8 +153,8 @@ Found       checking grants on the live project after applying 0024
 Locked by   db:verify — the shim now sets Supabase's default privileges, and
             `16_delete_account.sql` asserts none of 0024/0025's internals is
             executable by anon or authenticated (red without 0026)
-Status      fixed in 0026 for 0024/0025. OPEN for `grant_founder` (0018) —
-            see below
+Status      fixed in 0026 for 0024/0025, and in 0027 for `grant_founder`
+            (owner, 9 November) — both applied to the live project
 ```
 
 A Supabase project grants EXECUTE on every new function in `public` to `anon`
@@ -168,7 +168,9 @@ on 9 November `grant_founder(uuid)` (0018) is executable by `anon` and
 anonymous one — a Full plan for ever, which is the gate on starting a group.
 `admin_caller_ok()` is exposed too and only answers a boolean.
 `membership_of` and `spend_host_night` (0021) will be the same the day 0021 is
-applied. Not changed: it is outside the deletion work, and asked about first.
+applied — whoever applies 0021 closes those two by name in the same
+session. `grant_founder` is closed by 0027, asked about first and applied the
+same day; `11_accounts.sql` asserts it.
 
 ### B107 — an account cannot be deleted, and the database refuses it if you try
 
