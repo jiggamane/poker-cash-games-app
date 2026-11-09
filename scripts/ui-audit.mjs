@@ -151,10 +151,10 @@ const PARAMS = {
   // The canvas's own hand (board 19): A♥K♥ all in against 2♣2♦, run out Q♥ J♥
   // 3♠ 7♣ K♣. Bare, the route says to deal a hand first and draws nothing.
   '/run-out': '?h=AhKh,2c2d&b=QhJh3s7cKc',
-  // The booster with the most on it — three steps, three to agree and three
-  // variations, the only section the others do not all draw.
+  // The booster with the most on it since 9 November — four steps and four
+  // choices with nine options under *Choose your version*.
   // Bare, the route renders a titled sheet with nothing in it.
-  '/booster': '?id=straddle',
+  '/booster': '?id=button-game',
 };
 
 /** The URL a route is actually opened at. */

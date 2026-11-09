@@ -12,9 +12,11 @@
  * ⚠ COPY NOT DRAWN by any handoff. Written on 9 November 2026 at the owner's
  * request ("list those games and then describe them, so that the players can
  * apply them if they find them suitable"), and every string here is UNSURE
- * until the owner has read it on a phone (`docs/screens.md`). The Button game
- * in particular has more than one house meaning; it is written here as the
- * stand-up game's marker version.
+ * until the owner has read it on a phone (`docs/screens.md`). The stand-up
+ * and button games have no one standard rulebook, so each is written with its
+ * common versions side by side under `choices` — the owner's call of 9
+ * November, *leave both options for players to choose from*. *Earns no
+ * button* on a chopped pot is how the owner's own group plays it.
  *
  * Copy rules, held by `boosters.test.ts`: a summary is one short line, because
  * it sits under the name on a list row; steps are short sentences in the order
@@ -46,10 +48,23 @@ export interface Booster {
   how: string[];
   /** What the table has to settle before the first one. */
   agree: string[];
+  /**
+   * Where tables play the same game different ways and the group has to pick
+   * one: a question, and two or more named answers to it. The sheet draws them
+   * under *Choose your version*. Added 9 November for the stand-up and button
+   * games, at the owner's request to leave every option open.
+   */
+  choices?: BoosterChoice[];
   /** Named versions of the same idea, each as one sentence. */
   variations?: string[];
   /** The one thing a table tends to find out the hard way. */
   worth?: string;
+}
+
+export interface BoosterChoice {
+  /** What the table is deciding, as a short label. */
+  label: string;
+  options: { name: string; text: string }[];
 }
 
 /** Said once at the foot of every booster: why none of this touches the ledger. */
@@ -137,12 +152,40 @@ export const BOOSTERS: readonly Booster[] = [
     id: 'stand-up',
     section: 'side',
     name: 'Stand-up game',
-    summary: 'Win a pot or pay everyone',
-    what: 'Everyone starts the round standing. Win a pot and you sit down. The last player still standing pays every other player an agreed amount.',
+    summary: 'Win a pot or pay up',
+    what: 'Every player starts the round standing. Win a pot and you sit down. The last player still standing loses the round and pays.',
     how: [
-      'Agree the amount, then everyone in the round stands up.',
+      'Agree the amount, and start the round with every player standing.',
       'Play as normal. Win a pot — at showdown or by making everyone fold — and you sit down for the rest of the round.',
-      'When only one player is left standing, they pay the amount to each of the others and the round is over.',
+      'When only one player is left standing, the round is over and that player pays, the way the table chose below.',
+    ],
+    choices: [
+      {
+        label: 'How the last player pays',
+        options: [
+          {
+            name: 'Pay everyone',
+            text: 'The last player standing pays the amount to each of the others. The bigger the table, the bigger the bill.',
+          },
+          {
+            name: 'Lose the stake',
+            text: 'Everyone puts the amount in a pot at the start of the round. The players who sat down share it, so the last player standing loses only their own stake.',
+          },
+        ],
+      },
+      {
+        label: 'Standing up',
+        options: [
+          {
+            name: 'Really stand',
+            text: 'Players stand at the table until they win a pot. It is where the name comes from, and nobody forgets who is still in.',
+          },
+          {
+            name: 'Mark it',
+            text: 'Everyone stays seated, and a player still in the round keeps a chip or a card face up in front of them until they win a pot.',
+          },
+        ],
+      },
     ],
     agree: [
       'The amount — a few big blinds, or a round sum per player.',
@@ -156,20 +199,77 @@ export const BOOSTERS: readonly Booster[] = [
     id: 'button-game',
     section: 'side',
     name: 'Button game',
-    summary: 'Win a pot, take a button — the last without one pays',
-    what: 'The stand-up game played with markers, so it can run all night without anyone getting up. Win a pot and you take a button; the last player without one pays everyone who has one.',
+    summary: 'Win pots, collect buttons, get paid for them',
+    what: 'Win a pot and take a button. When the round ends, the players with buttons are paid by the players without. Buttons are markers, so the game can run all night without anyone getting up.',
     how: [
-      'Put out one button for each player in the game — spare dealer buttons, coins, or chips of a colour not in play.',
-      'Win a pot outright and take a button, if you do not already have one.',
-      'A chopped pot earns nobody a button. A player who already had one keeps it; a player who shared the pot without one still has none.',
-      'When every player but one has a button, that player pays the agreed amount to each of the others.',
-      'Everyone hands their button back and the next round starts on the next hand.',
+      'Put out a supply of buttons — spare dealer buttons, coins, or chips of a colour not in play.',
+      'Win a pot outright and take a button.',
+      'Play on until the round ends, the way the table chose below, and settle up in chips across the table.',
+      'Everyone hands their buttons back and the next round starts on the next hand.',
+    ],
+    choices: [
+      {
+        label: 'How many buttons a player can hold',
+        options: [
+          {
+            name: 'One',
+            text: 'A player who already has a button takes nothing more for winning again.',
+          },
+          {
+            name: 'One per pot won',
+            text: 'Every pot won adds a button, so a player can hold several.',
+          },
+        ],
+      },
+      {
+        label: 'When the round ends',
+        options: [
+          {
+            name: 'Last without one',
+            text: 'When every player but one has a button, that player pays each of the others.',
+          },
+          {
+            name: 'First to three',
+            text: 'When one player reaches three buttons, every player with none pays each player who has one. Needs one per pot won; the table can pick another number.',
+          },
+          {
+            name: 'Three in a row',
+            text: 'A player’s buttons go back as soon as somebody else wins a pot, so the only way to three is three straight wins. Whoever gets there collects the amount from every other player.',
+          },
+        ],
+      },
+      {
+        label: 'What a button holder collects',
+        options: [
+          {
+            name: 'Flat',
+            text: 'The agreed amount, however many buttons they hold.',
+          },
+          {
+            name: 'Per button',
+            text: 'The agreed amount for each button they hold — three buttons collect three times as much.',
+          },
+        ],
+      },
+      {
+        label: 'A chopped pot',
+        options: [
+          {
+            name: 'Earns no button',
+            text: 'A player who already had one keeps it; a player who shared the pot without one still has none.',
+          },
+          {
+            name: 'Earns each winner one',
+            text: 'Every player who shares the pot takes a button.',
+          },
+        ],
+      },
     ],
     agree: [
-      'The amount each button collects.',
-      'Whether a player who leaves mid-round with no button pays before they go.',
+      'The amount — a few big blinds is common.',
+      'Whether a player who leaves mid-round pays what they would owe before they go.',
     ],
-    worth: 'Some tables play it the other way up: the amount goes in a pot at the start of each round, and the last player to win a pot takes it. Agree which before the first round.',
+    worth: 'Paying per button with no limit on how many a player can hold makes a long round expensive for whoever is left without one. Set the amount with that in mind.',
   },
   {
     id: 'seven-deuce',
