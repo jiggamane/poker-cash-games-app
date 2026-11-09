@@ -78,6 +78,13 @@ select expect_text(
   (select count(*)::text from entitlement where user_id = 'ac000000-0000-0000-0000-000000000002'),
   '0', 'a signup nobody invited is not');
 
+-- B108 / 0027: nobody gives themselves that plan through the API. The shim
+-- grants every function to anon and authenticated by name, as Supabase does.
+select expect_text(
+  (has_function_privilege('anon', 'grant_founder(uuid)', 'execute')
+   or has_function_privilege('authenticated', 'grant_founder(uuid)', 'execute'))::text,
+  'false', 'grant_founder is not callable through the API');
+
 set role authenticated;
 set request.jwt.claims = '{"sub":"ac000000-0000-0000-0000-000000000002"}';
 
