@@ -20,11 +20,17 @@
       }
     },
     "production": {
+      "environment": "production",
       "channel": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EAS_PROJECT": "build"
+      }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {}
+    }
   }
 }
