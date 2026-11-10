@@ -1,0 +1,145 @@
+# Build the iPhone app and put it in TestFlight — one button, no Mac.
+#
+# `eas build` makes the .ipa on Expo's macOS builders and `--auto-submit` hands
+# it to App Store Connect, where it appears under TestFlight a few minutes after
+# Apple finishes processing it. docs/testflight.md is the whole procedure,
+# including the ONE thing that cannot happen here: the first time, someone signs
+# in to the Apple Developer account by hand (`eas credentials`), which puts the
+# distribution certificate and an App Store Connect API key on expo.dev. EAS
+# refuses to create a distribution certificate in non-interactive mode, so a
+# workflow can only ever reuse one — never make it.
+#
+# Manual, like expo-go.yml: a new build is a decision, not a side effect of a
+# merge.
+#
+# eas.json cannot say any of this itself: its schema refuses unknown keys, so a
+# "//" comment there fails every eas command.
+name: Put the app in TestFlight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testflight
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      # Settings facts first, in ten seconds, before two minutes of npm ci.
+      - name: Check the settings are there
+        working-directory: .
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          ASC_APP_ID: ${{ vars.ASC_APP_ID }}
+          SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          missing=""
+          if [ -z "$EXPO_TOKEN" ]; then missing="$missing secret:EXPO_TOKEN"; fi
+          if [ -z "$SUPABASE_URL" ]; then missing="$missing secret:EXPO_PUBLIC_SUPABASE_URL"; fi
+          if [ -z "$SUPABASE_KEY" ]; then missing="$missing secret:EXPO_PUBLIC_SUPABASE_ANON_KEY"; fi
+          if [ -z "$ASC_APP_ID" ]; then missing="$missing variable:ASC_APP_ID"; fi
+          if [ -n "$missing" ] || ! printf '%s' "$ASC_APP_ID" | grep -Eq '^[0-9]+$'; then
+            {
+              echo "## Nothing was built"
+              echo
+              echo "Missing or malformed in **Settings → Secrets and variables → Actions**:"
+              echo
+              for m in $missing; do echo "- \`$m\`"; done
+              if [ -n "$ASC_APP_ID" ]; then echo "- \`ASC_APP_ID\` must be digits only (App Store Connect → the app → App Information → Apple ID)"; fi
+              echo
+              echo 'docs/testflight.md says where each one comes from.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::settings missing — see the run summary"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+        working-directory: .
+
+      # The same gate as everything else that reaches a phone.
+      - run: npm run check
+        working-directory: .
+
+      # The builder never sees this runner's environment or .env, only the EAS
+      # environment named by the profile ("production" in eas.json). So the
+      # Supabase keys and the build stamp are written there before every build:
+      # a build without them installs and then refuses every request
+      # (docs/app-store-launch.md B1). Sensitive, not secret — Metro has to read
+      # them to inline them, and the anon key ships in the bundle regardless.
+      - name: Give the builder the Supabase keys and the build stamp
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EAS_PROJECT: build
+          SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          set_var() {
+            npx eas-cli@latest env:set --non-interactive --environment production \
+              --visibility sensitive --name "$1" --value "$2"
+          }
+          set_var EXPO_PUBLIC_SUPABASE_URL "$SUPABASE_URL"
+          set_var EXPO_PUBLIC_SUPABASE_ANON_KEY "$SUPABASE_KEY"
+          for pair in $(node ../../scripts/build-stamp.mjs); do
+            set_var "${pair%%=*}" "${pair#*=}"
+          done
+
+      # ascAppId cannot be an env reference in eas.json (only the ascApiKey*
+      # fields are evaluated), so it is written in here, in the runner's copy.
+      - name: Point the submission at the App Store Connect app
+        env:
+          ASC_APP_ID: ${{ vars.ASC_APP_ID }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const j = JSON.parse(fs.readFileSync("eas.json", "utf8"));
+            j.submit.production.ios.ascAppId = process.env.ASC_APP_ID;
+            fs.writeFileSync("eas.json", JSON.stringify(j, null, 2) + "\n");
+          '
+
+      - name: Build and submit to TestFlight
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EAS_PROJECT: build
+        run: |
+          set -o pipefail
+          npx eas-cli@latest build --platform ios --profile production \
+            --non-interactive --auto-submit --wait \
+            2>&1 | tee "$RUNNER_TEMP/build.log"
+
+      - name: Say what happened
+        if: always()
+        working-directory: .
+        run: |
+          log="$RUNNER_TEMP/build.log"
+          [ -f "$log" ] || exit 0
+          {
+            echo "## TestFlight build"
+            echo
+            if grep -q "MissingCredentialsNonInteractive\|Credentials are not set up\|Distribution Certificate is not" "$log"; then
+              echo '**No iOS credentials on expo.dev yet.** Do the one-time step in'
+              echo 'docs/testflight.md (`npx eas-cli@latest credentials -p ios`), then run this again.'
+              echo
+            fi
+            echo 'When it is green: App Store Connect → the app → **TestFlight**. Apple takes'
+            echo '5–30 minutes to process a build before testers can install it.'
+            echo
+            echo '```'
+            tail -n 80 "$log"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

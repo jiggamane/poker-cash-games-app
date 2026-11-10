@@ -12,7 +12,11 @@
     "scheme": "pokerclub",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.pokerclub.app"
+      "bundleIdentifier": "com.pokerclub.app",
+      "//infoPlist": "The app does no encryption beyond HTTPS, which is exempt. Without this every TestFlight build sits at 'Missing Compliance' until someone answers the question by hand in App Store Connect (docs/app-store-launch.md B5).",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.pokerclub.app",

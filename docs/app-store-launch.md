@@ -80,7 +80,7 @@ its job. The third is what a stranger meets in the first minute.
 | B2 | **`pokerclub://auth-callback` is not on the Supabase redirect allow-list.** The dashboard has only ever been told the `exp://` form. An unlisted redirect falls back silently to the Site URL. | `bugs.md` B88/B66; `auth-test-period.md` step 6. |
 | B3 | **Share and invite links are `pokerclub://…` only.** Someone without the app cannot open one; there is no https fallback and no universal links (`associatedDomains`, AASA). Today watchers without the app are told to paste a token into the GitHub Pages URL by hand. | `shareLink.ts`, `invites.ts`, `somebody-elses-phone.md`. The typed ten-character code is the working fallback for invites; there is none for watching. |
 | B4 | **Splash screen is not configured.** No `splash` key, no `expo-splash-screen` plugin, `splash-icon.png` referenced nowhere — the build gets Expo's default. | `app.json`. |
-| B5 | **Export compliance flag** absent (`ITSAppUsesNonExemptEncryption: false` in `ios.infoPlist`). Not a blocker, but every upload asks the question until it is set. | `app.json`. |
+| B5 | ~~**Export compliance flag** absent~~ **Done 10 November** (`ios.infoPlist`). (`ITSAppUsesNonExemptEncryption: false` in `ios.infoPlist`). Not a blocker, but every upload asks the question until it is set. | `app.json`. |
 | B6 | **`submit.production` is empty** — no `ascAppId`, no Apple team id. | `eas.json`. Filled in once the App Store Connect record exists. |
 | B7 | **The Expo Go SDK pin becomes free.** With a dev client and TestFlight, Expo Go stops being a channel, and the pin in `AGENTS.md`, the `exposdk:` literal and the CLAUDE.md sentence move together. Keep the `expo-go` update branch alive until every friend has moved. | `apps/mobile/AGENTS.md`, `app.config.js`. |
 | B8 | **Two "fixed" sync bugs have never been seen on a phone**: B96 (a member's phone handed the host's controls, writes refused, queue halted) and B91 (a watch link signing in as *unknown* and trying to push the whole book). Both halt the outbox, which is the failure that loses nights. | `bugs.md` 163, 284. |
@@ -141,7 +141,7 @@ Repo:
 
 1. `app.json`: add the `expo-splash-screen` plugin with `splash-icon.png` on the `#0A0A0B` background (B4); `ios.infoPlist.ITSAppUsesNonExemptEncryption: false` (B5). Both in `bundledNativeModules.json` terms per `AGENTS.md`.
 2. Production copy for the "no server" and redirect states (A6): the sentences in `sign-in.tsx` that name `.env` and the dashboard become a user sentence, and `RedirectNote` shows only in development builds.
-3. Add `eas build` and `eas submit` as a manual workflow beside `expo-go.yml`, gated on `npm run check`, reading `EXPO_PUBLIC_SUPABASE_*` from EAS not from repository secrets.
+3. **Done 10 November: `testflight.yml`, procedure in `testflight.md`** (iOS only; it writes the Supabase keys into the EAS `production` environment itself). Was: add `eas build` and `eas submit` as a manual workflow beside `expo-go.yml`, gated on `npm run check`, reading `EXPO_PUBLIC_SUPABASE_*` from EAS not from repository secrets.
 
 Owner:
 
