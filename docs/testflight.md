@@ -28,6 +28,13 @@ new there.
 
 ## 2 · Signing credentials on expo.dev (a computer, once, ~5 minutes)
 
+**Done 12 November** from the owner's Mac: distribution certificate
+`19426AE7…` and App Store profile `Y2W7V5GVMA`, both expiring 12 November 2027,
+and the EAS Submit API key `Y6UPZG3324`, all on team `5N7J83R83X` (an
+individual account). Redo this section when the certificate expires. If the
+Expo login is refused, log in with the email address rather than the
+`decusgames` username.
+
 EAS will not create an Apple distribution certificate without a person signed
 in to Apple, so this one step is interactive. Any computer with Node 22 —
 Windows and Linux are fine:
