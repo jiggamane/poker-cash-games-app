@@ -12,6 +12,10 @@
 # Manual, like expo-go.yml: a new build is a decision, not a side effect of a
 # merge.
 #
+# The App Store Connect app is eas.json's submit.production.ios.ascAppId
+# (6833707714, "Poker cash game app", bundle com.pokercashapp.app). Not a
+# secret — it only names the app; the API key on expo.dev is what grants access.
+#
 # eas.json cannot say any of this itself: its schema refuses unknown keys, so a
 # "//" comment there fails every eas command.
 name: Put the app in TestFlight
@@ -40,7 +44,6 @@ jobs:
         working-directory: .
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          ASC_APP_ID: ${{ vars.ASC_APP_ID }}
           SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
@@ -48,15 +51,13 @@ jobs:
           if [ -z "$EXPO_TOKEN" ]; then missing="$missing secret:EXPO_TOKEN"; fi
           if [ -z "$SUPABASE_URL" ]; then missing="$missing secret:EXPO_PUBLIC_SUPABASE_URL"; fi
           if [ -z "$SUPABASE_KEY" ]; then missing="$missing secret:EXPO_PUBLIC_SUPABASE_ANON_KEY"; fi
-          if [ -z "$ASC_APP_ID" ]; then missing="$missing variable:ASC_APP_ID"; fi
-          if [ -n "$missing" ] || ! printf '%s' "$ASC_APP_ID" | grep -Eq '^[0-9]+$'; then
+          if [ -n "$missing" ]; then
             {
               echo "## Nothing was built"
               echo
               echo "Missing or malformed in **Settings → Secrets and variables → Actions**:"
               echo
               for m in $missing; do echo "- \`$m\`"; done
-              if [ -n "$ASC_APP_ID" ]; then echo "- \`ASC_APP_ID\` must be digits only (App Store Connect → the app → App Information → Apple ID)"; fi
               echo
               echo 'docs/testflight.md says where each one comes from.'
             } >> "$GITHUB_STEP_SUMMARY"
@@ -98,19 +99,6 @@ jobs:
           for pair in $(node ../../scripts/build-stamp.mjs); do
             set_var "${pair%%=*}" "${pair#*=}"
           done
-
-      # ascAppId cannot be an env reference in eas.json (only the ascApiKey*
-      # fields are evaluated), so it is written in here, in the runner's copy.
-      - name: Point the submission at the App Store Connect app
-        env:
-          ASC_APP_ID: ${{ vars.ASC_APP_ID }}
-        run: |
-          node -e '
-            const fs = require("fs");
-            const j = JSON.parse(fs.readFileSync("eas.json", "utf8"));
-            j.submit.production.ios.ascAppId = process.env.ASC_APP_ID;
-            fs.writeFileSync("eas.json", JSON.stringify(j, null, 2) + "\n");
-          '
 
       - name: Build and submit to TestFlight
         env:
