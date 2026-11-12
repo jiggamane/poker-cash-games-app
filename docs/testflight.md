@@ -12,14 +12,15 @@ Steps 1 and 2 happen once; step 3 is every build.
 1. <https://appstoreconnect.apple.com> → **Apps → + → New App**.
    - Platform iOS · Name *The Poker Club* (if taken, pick the fallback —
      `app-store-launch.md` A8) · Language English · Bundle ID
-     **`com.pokerclub.app`** · SKU anything, e.g. `pokerclub`.
+     **`com.pokercashapp.app`** · SKU anything, e.g. `pokerclub`.
    - If the bundle ID is not in the list, register it first at
      <https://developer.apple.com/account/resources/identifiers/add/bundleId>
-     (App IDs → App → explicit `com.pokerclub.app`).
-2. Open the new app → **App Information** → copy **Apple ID** (a number like
-   `6740000000`).
-3. GitHub → this repo → **Settings → Secrets and variables → Actions →
-   Variables → New repository variable**: `ASC_APP_ID` = that number.
+     (App IDs → App → explicit `com.pokercashapp.app`). `com.pokerclub.app` is taken by another developer — Apple refuses it as "not valid".
+
+**Done 12 November**: the app is *Poker cash game app* (the store name; the
+phone still says *The Poker Club*), Apple ID **6833707714**, which is
+`submit.production.ios.ascAppId` in `apps/mobile/eas.json`. A new app record
+means changing that number.
 
 The secrets `EXPO_TOKEN`, `EXPO_PUBLIC_SUPABASE_URL` and
 `EXPO_PUBLIC_SUPABASE_ANON_KEY` are the ones `expo-go.yml` already uses; nothing
