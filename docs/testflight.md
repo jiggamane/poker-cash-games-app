@@ -16,6 +16,7 @@ Steps 1 and 2 happen once; step 3 is every build.
    - If the bundle ID is not in the list, register it first at
      <https://developer.apple.com/account/resources/identifiers/add/bundleId>
      (App IDs → App → explicit `com.pokercashapp.app`). `com.pokerclub.app` is taken by another developer — Apple refuses it as "not valid".
+
 **Done 12 November**: the app is *Poker cash game app* (the store name; the
 phone still says *The Poker Club*), Apple ID **6833707714**, which is
 `submit.production.ios.ascAppId` in `apps/mobile/eas.json`. A new app record
