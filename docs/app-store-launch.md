@@ -23,7 +23,7 @@ at the end of Stage 1, and the App Store is the exit of Stage 3.**
 | Money engine | `packages/core` with the canonical night asserted to the dollar; settled nights frozen and re-derivable (`verification.md`). |
 | Server | One Supabase project, 20 migrations, RLS as the whole security model, watcher access stamped into the JWT, Resend SMTP on `pokercashapp.com`, a daily keep-awake. |
 | Identity | Host by magic link (invite-only), member by ten-character code, watcher by share link. Plans and founders in `0018_accounts.sql`, read by `my_plan()`. |
-| Store identifiers | `com.pokerclub.app` on both platforms, display name *The Poker Club*, scheme `pokerclub`, 1024×1024 RGB icon, Android adaptive icon set. |
+| Store identifiers | iOS `com.pokercashapp.app` (12 November — `com.pokerclub.app` is taken on Apple), Android `com.pokerclub.app`, display name *The Poker Club*, scheme `pokerclub`, 1024×1024 RGB icon, Android adaptive icon set. |
 | Build plumbing | EAS project `938b4629…` on account `decusgames`; `eas.json` with `development`, `preview`, `production` profiles and remote auto-incrementing build numbers; `app.config.js` already switches `runtimeVersion` between Expo Go and a standalone build. |
 | Distribution today | An EAS Update opened in **Expo Go** (`live-test.md`, `expo-go.yml`) and a browser preview on GitHub Pages. |
 
@@ -129,7 +129,7 @@ part-time; the critical path is Apple's paperwork, not the code.
 
 1. **Apply for the D-U-N-S number** if the company has none (free, days to two weeks). Then **enrol in the Apple Developer Program as the company** ($99/yr). Nothing else on the iOS side can begin until this clears.
 2. **Open Google Play Console as the company** ($25). An organisation account skips the 12-tester / 14-day closed-test rule. Android is not the goal here but it costs nothing to start now, and it is the platform a friend can install a build on tomorrow.
-3. **Reserve the name.** In App Store Connect create the app record with bundle id `com.pokerclub.app` and name *The Poker Club*; if the name is taken, decide the fallback now (A8).
+3. **Reserve the name.** In App Store Connect create the app record with bundle id `com.pokercashapp.app` and name *The Poker Club*; if the name is taken, decide the fallback now (A8).
 4. **Answer D1–D8** above. D2 and D3 unblock code work in Step 2.
 
 ### Step 1 — First native build on a phone (repo + owner, week 1)

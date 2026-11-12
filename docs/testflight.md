@@ -12,10 +12,10 @@ Steps 1 and 2 happen once; step 3 is every build.
 1. <https://appstoreconnect.apple.com> → **Apps → + → New App**.
    - Platform iOS · Name *The Poker Club* (if taken, pick the fallback —
      `app-store-launch.md` A8) · Language English · Bundle ID
-     **`com.pokerclub.app`** · SKU anything, e.g. `pokerclub`.
+     **`com.pokercashapp.app`** · SKU anything, e.g. `pokerclub`.
    - If the bundle ID is not in the list, register it first at
      <https://developer.apple.com/account/resources/identifiers/add/bundleId>
-     (App IDs → App → explicit `com.pokerclub.app`).
+     (App IDs → App → explicit `com.pokercashapp.app`). `com.pokerclub.app` is taken by another developer — Apple refuses it as "not valid".
 2. Open the new app → **App Information** → copy **Apple ID** (a number like
    `6740000000`).
 3. GitHub → this repo → **Settings → Secrets and variables → Actions →
