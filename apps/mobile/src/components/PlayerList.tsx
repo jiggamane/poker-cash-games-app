@@ -186,16 +186,8 @@ export function FinishedSlab({
   fits,
   opens,
   accessibilityLabel,
-  brightName = false,
 }: {
   name: string;
-  /**
-   * The name in full text colour rather than muted. E2 Count up only — owner,
-   * 17 November: once everyone is counted the list is all finished rows, and a
-   * column of muted names left nothing on it to read by. The fact and the
-   * figure stay as they are; the group heading still says they are finished.
-   */
-  brightName?: boolean;
   /** Whatever finished them — `counted $960`, `23:15`, `23:15 · out $2,120`. */
   fact: string;
   result: Money;
@@ -212,7 +204,12 @@ export function FinishedSlab({
   const body = (
     <>
       {lead}
-      <Text style={[styles.name, { color: brightName ? t.text : t.muted }]} numberOfLines={1}>
+      {/* THE NAME IS IN FULL TEXT COLOUR, NOT MUTED — owner, 17 November, on
+          E2 Count up and then on Tonight. Once a night is mostly or wholly
+          finished the list is all slabs, and a column of muted names left
+          nothing on it to read by. The group heading and the slab's surface
+          still say these players are finished; the fact stays dim. */}
+      <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
         {name}
       </Text>
       <Text style={[styles.fact, { color: t.dim }]} numberOfLines={1}>

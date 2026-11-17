@@ -377,7 +377,6 @@ export default function CountUp() {
               <Travelling key={p.id} id={p.id} group="counted" rank ruler={ruler}>
                 <FinishedSlab
                   name={p.name}
-                  brightName
                   fact={
                     p.atTable
                       ? `counted ${formatToFit(endedWith(p), ROW_FITS)}`
