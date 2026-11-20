@@ -48,6 +48,7 @@ const STATUS = {
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
   round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
+  round12: { label: 'Round 12', note: 'from your eleventh review', bg: '#FCEBEA', fg: '#8E2A24' },
   round11: { label: 'Round 11', note: 'from your tenth review', bg: '#E6EEF5', fg: '#2B4E70' },
   round10: { label: 'Round 10', note: 'from your ninth review', bg: '#F1ECE4', fg: '#6B4E1F' },
   round9: { label: 'Round 9', note: 'from your eighth review', bg: '#E8F0E3', fg: '#3D6B1F' },
@@ -78,12 +79,16 @@ function cell(key, before = false) {
   </figure>`;
 }
 
-/* Nothing came back needing work after the tenth review: AB was approved. */
-const ROUND = [];
-/* What is left to decide: two approved for Sessions, and a Stand-up game never marked. */
+/*
+ * The owner's note from the eleventh review, 20 November, quoted as written.
+ * The first key is the drawing the note was left on; the rest answer it.
+ */
+const ROUND = [
+  ['Stand-up game', "shopw more options like this. try to show 'boost' instead of arrow in one of options, try diff arrow looks and chips sizes/positions. give me more options", ['standUpA', 'standUpC', 'standUpD', 'standUpE', 'standUpF', 'standUpG', 'standUpH', 'standUpI']],
+];
+/* Still to decide: two are approved for Sessions. */
 const DECIDE = [
   ['Sessions — two are approved, keep one', ['sessionsT', 'sessionsJ']],
-  ['Stand-up game — never marked in any round', ['standUpA', 'standUpB']],
 ];
 const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB'];
 /* One place in the app each, and what is approved for it. */
@@ -91,7 +96,7 @@ const SLOTS = [
   ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT', 'or the book (J): yours to pick'], ['My stats', 'stats'],
   ['Poker tools', 'toolsAB'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
-  ['Stand-up game', null, 'A or B, below'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
+  ['Stand-up game', null, 'in Round 12'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
 const EARLIER = ['toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
@@ -345,14 +350,20 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>The set so far</h2>
-  <p>One drawing per place in the app, from what you’ve approved. Thirteen of fifteen are settled; Sessions and the Stand-up game are the two decisions below.</p>
+  <p>One drawing per place in the app, from what you’ve approved. Thirteen of fifteen are settled. Sessions is a choice between two you approved; the Stand-up game is in Round 12.</p>
   ${setSoFar()}
 </section>
 
 <section class="sec">
-  <h2>Two decisions left</h2>
-  <p>Every other place in the app has an approved drawing. For Sessions both are approved: tap Approve on the one you don’t want, to take it back. For the Stand-up game, approve one, or send it back with a note. Then the set is complete.</p>
-  ${DECIDE.map(([title, keys]) => `<div class="group"><div class="ghead"><h3>${title}</h3></div><div class="grid">${keys.map((k) => cell(k)).join('')}</div></div>`).join('')}
+  <h2>Round 12 — from your eleventh review</h2>
+  <p>One note. A first, then seven more: three marks on A’s layout (a solid arrow, and two ways of saying boost), then four layouts with other chip sizes, positions and arrows.</p>
+  ${roundNow()}
+</section>
+
+<section class="sec">
+  <h2>Still to pick: Sessions</h2>
+  <p>Both are approved. Tap Approve on the one you don’t want, to take it back.</p>
+  ${DECIDE.map(([title, keys]) => `<div class="grid">${keys.map((k) => cell(k)).join('')}</div>`).join('')}
 </section>
 
 <section class="sec">
