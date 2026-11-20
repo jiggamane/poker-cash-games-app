@@ -48,6 +48,7 @@ const STATUS = {
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
   round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
+  round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
   round4: { label: 'Round 4', note: 'from your third review', bg: '#EAF6F0', fg: '#14613E' },
@@ -74,24 +75,24 @@ function cell(key, before = false) {
 }
 
 /*
- * The owner's notes from the fifth review, 20 November, quoted as written.
+ * The owner's notes from the sixth review, 20 November, quoted as written.
  * The first key in each list is the drawing the note was left on; the rest
  * are this round's answers to it.
  */
 const ROUND = [
-  ['Sessions — the calendar', 'leave this and add couple more variants with chips stached  under calendar (choos optimal positioning with calendar)', ['sessionsL', 'sessionsQ', 'sessionsR', 'sessionsS']],
-  ['Poker tools', null, ['toolsM', 'toolsN', 'toolsO']],
+  ['Sessions — the calendar', 'like this. more options, but the date always in center of sheet', ['sessionsS', 'sessionsT', 'sessionsU', 'sessionsV', 'sessionsW']],
+  ['Poker tools', 'like this but put the second chip (with fire) on the edge of the & chip. but make sure chip layouts are exactly as on the variant to the left ', ['toolsO', 'toolsP', 'toolsQ', 'toolsR']],
 ];
 const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'sessionsJ', 'straddleI'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
-  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsJ', 'or the calendar, in Round 6'], ['My stats', 'stats'],
-  ['Poker tools', null, 'in Round 6'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
+  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsJ', 'or the calendar, in Round 7'], ['My stats', 'stats'],
+  ['Poker tools', null, 'in Round 7'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
   ['Stand-up game', null, 'never marked'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...APPROVED, ...EARLIER, ...RETIRED]);
@@ -347,8 +348,8 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 </section>
 
 <section class="sec">
-  <h2>Round 6 — from your fifth review</h2>
-  <p>One note, and four Poker tools sent back without one.</p>
+  <h2>Round 7 — from your sixth review</h2>
+  <p>Two notes. The Poker tools chips are the two from N, drawn the same: the bone % chip and the ink chip with the fire inside.</p>
   ${roundNow()}
 </section>
 
