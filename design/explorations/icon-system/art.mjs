@@ -453,6 +453,132 @@ export const SPOTS = {
   },
 };
 
+/* ── round 2, 20 November: redrawn from the owner's review ─────────────── */
+
+/** Points round a table seen from a little above, back to front. */
+function seats(cx, cy, rx, ry, degs) {
+  return degs
+    .map((d) => ({ x: cx + rx * Math.cos(rad(d)), y: cy + ry * Math.sin(rad(d)) }))
+    .sort((a, b) => a.y - b.y);
+}
+
+/** Stacks of one colour round an arc: the blinds and the straddle, by seat. */
+function blinds(P, o, { cx, cy, rx, ry, degs, counts, r, h, button = false }) {
+  const pts = degs.map((d, i) => ({ x: cx + rx * Math.cos(rad(d)), y: cy + ry * Math.sin(rad(d)), i }));
+  let s = '';
+  for (const pt of [...pts].sort((a, b) => a.y - b.y)) {
+    const n = counts[pt.i];
+    if (n === 0 && button) {
+      s += chip(P, { cx: pt.x, by: pt.y, r: r * 0.9, h: h * 1.1, mat: 'bone', small: true, phase: 6, mark: o.small ? undefined : onFace(text(0, 6.5, 19, P.ink.top, 'D')) });
+      continue;
+    }
+    s += stack(P, { cx: pt.x, by: pt.y, r, h, mats: Array(n).fill('red'), wobble: [0, 0.7, -0.5, 0.6], small: o.small || r < 13 });
+  }
+  return s;
+}
+
+/** A flop of three, upright, as a board on the felt. */
+function board(P, o, { by, w, h, xs, back, suits }) {
+  return xs
+    .map((x, i) =>
+      card(P, { cx: x, by, w, h, back, small: true, suitName: back ? undefined : suits[i], color: suits && (suits[i] === 'heart' || suits[i] === 'diamond') ? 'red' : 'ink' }),
+    )
+    .join('');
+}
+
+Object.assign(SPOTS, {
+  anteA: {
+    name: 'Table ante',
+    variant: 'A · six seats',
+    where: 'Boosters',
+    status: 'round2',
+    draw: (P, o) =>
+      `<ellipse cx="48" cy="66" rx="45" ry="17" fill="${P.shadow}"/>` +
+      seats(48, 61, 33, 33 * K + 1, [30, 90, 150, 210, 270, 330])
+        .map((pt, i) => chip(P, { cx: pt.x, by: pt.y, r: 10, h: 4.5, mat: 'red', small: true, phase: i * 9 }))
+        .join(''),
+  },
+  anteB: {
+    name: 'Table ante',
+    variant: 'B · five seats, bigger',
+    where: 'Boosters',
+    status: 'round2',
+    draw: (P, o) =>
+      `<ellipse cx="48" cy="66" rx="45" ry="17" fill="${P.shadow}"/>` +
+      seats(48, 60, 31, 31 * K + 2, [90, 162, 234, 306, 18])
+        .map((pt, i) => chip(P, { cx: pt.x, by: pt.y, r: 12.5, h: 5, mat: 'red', small: o.small, phase: i * 9 }))
+        .join(''),
+  },
+  straddleA: {
+    name: 'Straddle',
+    variant: 'A · 1, 2, 4 round the table',
+    where: 'Boosters',
+    status: 'round2',
+    draw: (P, o) =>
+      `<ellipse cx="48" cy="71" rx="42" ry="12" fill="${P.shadow}"/>` +
+      blinds(P, o, { cx: 48, cy: 58, rx: 31, ry: 17, degs: [160, 90, 20], counts: [1, 2, 4], r: 12, h: 5.5 }),
+  },
+  straddleB: {
+    name: 'Straddle',
+    variant: 'B · from the button',
+    where: 'Boosters',
+    status: 'round2',
+    draw: (P, o) =>
+      `<ellipse cx="48" cy="71" rx="42" ry="12" fill="${P.shadow}"/>` +
+      blinds(P, o, { cx: 48, cy: 57, rx: 29, ry: 18, degs: [195, 135, 70, 5], counts: [0, 1, 2, 4], r: 10, h: 5, button: true }),
+  },
+  straddleC: {
+    name: 'Straddle',
+    variant: 'C · 1, 2, 4 in a row, big',
+    where: 'Boosters',
+    status: 'round2',
+    draw: (P, o) =>
+      shadow(P, 48, 44, 12, 80) +
+      stack(P, { cx: 19, by: 79, r: 13, h: 6, mats: ['red'], small: true }) +
+      stack(P, { cx: 47, by: 81, r: 13, h: 6, mats: ['red', 'red'], wobble: [0, 0.8], small: true }) +
+      stack(P, { cx: 75, by: 83, r: 13, h: 6, mats: ['red', 'red', 'red', 'red'], wobble: [0, 0.8, -0.6, 0.7], small: o.small }),
+  },
+  straddleD: {
+    name: 'Straddle',
+    variant: 'D · the big blind, doubled',
+    where: 'Boosters',
+    status: 'round2',
+    draw: (P, o) =>
+      shadow(P, 48, 40, 12, 82) +
+      stack(P, { cx: 27, by: 80, r: 16, h: 7, mats: ['red', 'red'], wobble: [0, 1], small: true }) +
+      stack(P, { cx: 68, by: 84, r: 16, h: 7, mats: ['red', 'red', 'red', 'red'], wobble: [0, 1, -0.7, 0.8], small: o.small }),
+  },
+  doubleBoardA: {
+    name: 'Double-board bomb pot',
+    variant: 'A · two bombs, as before',
+    where: 'Boosters',
+    status: 'round2',
+    draw: (P, o) => SPOTS.doubleBoard.draw(P, o),
+  },
+  doubleBoardB: {
+    name: 'Double-board bomb pot',
+    variant: 'B · the bomb over two boards',
+    where: 'Boosters',
+    status: 'round2',
+    draw: (P, o) =>
+      shadow(P, 48, 34, 8) +
+      bomb(P, { cx: 48, cy: 36, r: 13, small: o.small }) +
+      board(P, o, { by: 62, w: 14, h: 19, xs: [34, 49, 64], back: true }) +
+      board(P, o, { by: 85, w: 17, h: 22, xs: [28, 48, 68], back: true }),
+  },
+  doubleBoardC: {
+    name: 'Double-board bomb pot',
+    variant: 'C · the bomb over two boards, face up',
+    where: 'Boosters',
+    status: 'round2',
+    draw: (P, o) =>
+      shadow(P, 48, 34, 8) +
+      bomb(P, { cx: 48, cy: 36, r: 13, small: o.small }) +
+      board(P, o, { by: 62, w: 14, h: 19, xs: [34, 49, 64], suits: ['spade', 'heart', 'club'] }) +
+      board(P, o, { by: 85, w: 17, h: 22, xs: [28, 48, 68], suits: ['diamond', 'spade', 'heart'] }),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
