@@ -607,11 +607,11 @@ function book(P, o, { spade, frame, chipOn = false, shadowed = true }) {
   return s;
 }
 
-function calendar(P, o, { rings = true, date = true }) {
+function calendar(P, o, { rings = true, date = true, dateX = 47 }) {
   let s = `<rect x="22" y="22" width="50" height="58" rx="6" fill="${P.stock}" stroke="${P.stockEdge}" stroke-width=".9"/>`;
   s += `<path d="M22 28a6 6 0 0 1 6-6h38a6 6 0 0 1 6 6v8H22Z" fill="${P.ink.top}"/>`;
   if (rings) s += `<rect x="33" y="17" width="4" height="10" rx="2" fill="${P.red.side}"/><rect x="57" y="17" width="4" height="10" rx="2" fill="${P.red.side}"/>`;
-  if (date) s += o.small ? `<rect x="34" y="48" width="26" height="12" rx="3" fill="${P.ink.inlay}"/>` : text(47, 66, 24, P.ink.top, '20', ' letter-spacing="-1"');
+  if (date) s += o.small ? `<rect x="${dateX - 13}" y="48" width="26" height="12" rx="3" fill="${P.ink.inlay}"/>` : text(dateX, 66, 24, P.ink.top, '20', ' letter-spacing="-1"');
   return s;
 }
 
@@ -959,6 +959,40 @@ Object.assign(SPOTS, {
       shadow(P, 48, 32) +
       card(P, { cx: 38, by: GROUND - 3, w: 36, h: 52, rot: -9, small: o.small, centre: (cx, cy) => text(cx, cy + 10, 28, P.red.side, '?') }) +
       bomb(P, { cx: 63, cy: 69, r: 15, small: o.small }),
+  },
+});
+
+/* ── round 5, 20 November: the owner's fourth review ────────────────────── */
+
+/* The three approved tools as parts: Rulings' card, Calculator's chip, Boosters' chip. */
+const toolCard = (P, o, cx, by, h, rot) => card(P, { cx, by, w: h * 0.7, h, rot, small: o.small, centre: (x, y) => text(x, y + h * 0.19, h * 0.56, P.red.side, '?') });
+const pctChip = (P, cx, by, r) => standingChip(P, { cx, by, r, mat: 'bone', t: r * 0.26, small: true, glyph: (x, y) => `<g transform="translate(${x} ${y}) scale(${f(r / 25)})">${pct(P.ink.top)}</g>` });
+const fireChip = (P, cx, by, r) => standingChip(P, { cx, by, r, mat: 'ink', t: r * 0.24, small: true, glyph: (x, y) => flame(P, { cx: x, by: y + r * 0.42, h: r * 0.93 }) });
+
+Object.assign(SPOTS, {
+  sessionsO: {
+    name: 'Sessions', variant: 'O · the chip on the sheet', where: 'Home · tile', status: 'round5',
+    draw: (P, o) => shadow(P, 48, 30) + calendar(P, o, { dateX: 39 }) + standingChip(P, { cx: 62, by: 78, r: 8.5, mat: 'red', t: 0, small: true }),
+  },
+  sessionsP: {
+    name: 'Sessions', variant: 'P · the chip on the sheet, with depth', where: 'Home · tile', status: 'round5',
+    draw: (P, o) => shadow(P, 48, 30) + calendar(P, o, { dateX: 39 }) + standingChip(P, { cx: 60, by: 78, r: 8.5, mat: 'red', t: 3, small: true }),
+  },
+  toolsI: {
+    name: 'Poker tools', variant: 'I · the chips together in front', where: 'Home · tile', status: 'round5',
+    draw: (P, o) => shadow(P, 48, 34) + toolCard(P, o, 48, 70, 46, 6) + pctChip(P, 37, 89, 15) + fireChip(P, 61, 90, 15),
+  },
+  toolsJ: {
+    name: 'Poker tools', variant: 'J · a diagonal', where: 'Home · tile', status: 'round5',
+    draw: (P, o) => shadow(P, 50, 36) + toolCard(P, o, 30, 72, 46, -8) + pctChip(P, 52, 80, 14) + fireChip(P, 71, 89, 14),
+  },
+  toolsK: {
+    name: 'Poker tools', variant: 'K · the card in front', where: 'Home · tile', status: 'round5',
+    draw: (P, o) => shadow(P, 48, 36) + pctChip(P, 25, 74, 15) + fireChip(P, 69, 74, 15) + toolCard(P, o, 48, 88, 48, 4),
+  },
+  toolsL: {
+    name: 'Poker tools', variant: 'L · in a row', where: 'Home · tile', status: 'round5',
+    draw: (P, o) => shadow(P, 48, 42, 10, 82) + toolCard(P, o, 19, 82, 34, -6) + pctChip(P, 47, 83, 13) + fireChip(P, 75, 83, 13),
   },
 });
 
