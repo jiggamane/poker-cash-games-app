@@ -48,6 +48,7 @@ const STATUS = {
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
   round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
+  round8: { label: 'Round 8', note: 'from your seventh review', bg: '#FFF4D6', fg: '#7A5A00' },
   round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
@@ -75,24 +76,22 @@ function cell(key, before = false) {
 }
 
 /*
- * The owner's notes from the sixth review, 20 November, quoted as written.
- * The first key in each list is the drawing the note was left on; the rest
- * are this round's answers to it.
+ * The owner's note from the seventh review, 20 November, quoted as written.
+ * The first key is the drawing the note was left on; the rest answer it.
  */
 const ROUND = [
-  ['Sessions — the calendar', 'like this. more options, but the date always in center of sheet', ['sessionsS', 'sessionsT', 'sessionsU', 'sessionsV', 'sessionsW']],
-  ['Poker tools', 'like this but put the second chip (with fire) on the edge of the & chip. but make sure chip layouts are exactly as on the variant to the left ', ['toolsO', 'toolsP', 'toolsQ', 'toolsR']],
+  ['Poker tools', 'the chips should be in natural orientation. layed one on the side of the other', ['toolsP', 'toolsS', 'toolsT', 'toolsU']],
 ];
-const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'sessionsJ', 'straddleI'];
+const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'sessionsJ', 'straddleI', 'sessionsT'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
-  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsJ', 'or the calendar, in Round 7'], ['My stats', 'stats'],
-  ['Poker tools', null, 'in Round 7'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
+  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT', 'and the book (J) is approved too: pick one'], ['My stats', 'stats'],
+  ['Poker tools', null, 'in Round 8'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
   ['Stand-up game', null, 'never marked'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...APPROVED, ...EARLIER, ...RETIRED]);
@@ -343,19 +342,19 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>The set so far</h2>
-  <p>One drawing per place in the app, from what you’ve approved. Two places are still open, and Sessions has a book approved with the calendar still in play.</p>
+  <p>One drawing per place in the app, from what you’ve approved. Two places are still open, and Sessions has two approved: the calendar is shown, the leaning book is the other.</p>
   ${setSoFar()}
 </section>
 
 <section class="sec">
-  <h2>Round 7 — from your sixth review</h2>
-  <p>Two notes. The Poker tools chips are the two from N, drawn the same: the bone % chip and the ink chip with the fire inside.</p>
+  <h2>Round 8 — from your seventh review</h2>
+  <p>One note. N’s two chips, lying flat the way chips lie on a table, faces up. Lying flat squashes the % and the fire, so they are smaller at 40 pt than the standing versions.</p>
   ${roundNow()}
 </section>
 
 <section class="sec">
   <h2>Approved</h2>
-  <p>Thirteen so far. Tap Approve again to take one back.</p>
+  <p>Fourteen so far. Tap Approve again to take one back.</p>
   <div class="grid">${APPROVED.map((k) => cell(k)).join('')}</div>
 </section>
 
