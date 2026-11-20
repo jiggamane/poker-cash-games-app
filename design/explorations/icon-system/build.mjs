@@ -48,6 +48,7 @@ const STATUS = {
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
   round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
+  round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
   round4: { label: 'Round 4', note: 'from your third review', bg: '#EAF6F0', fg: '#14613E' },
   round3: { label: 'Round 3', note: 'from your second review', bg: '#E5EEFF', fg: '#1F4BA8' },
@@ -73,27 +74,28 @@ function cell(key, before = false) {
 }
 
 /*
- * The owner's notes from the fourth review, 20 November, quoted as written.
+ * The owner's notes from the fifth review, 20 November, quoted as written.
  * The first key in each list is the drawing the note was left on; the rest
  * are this round's answers to it.
  */
 const ROUND = [
-  ['Sessions — the calendar', 'this but add option where the chip is ON the sheet', ['sessionsL', 'sessionsO', 'sessionsP']],
-  ['Poker tools', 'smth like this but try diff layouts or chips positions', ['toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL']],
+  ['Sessions — the calendar', 'leave this and add couple more variants with chips stached  under calendar (choos optimal positioning with calendar)', ['sessionsL', 'sessionsQ', 'sessionsR', 'sessionsS']],
+  ['Poker tools', null, ['toolsM', 'toolsN', 'toolsO']],
 ];
 const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'sessionsJ', 'straddleI'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
-  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsJ', 'or the calendar, in Round 5'], ['My stats', 'stats'],
-  ['Poker tools', null, 'in Round 5'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
+  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsJ', 'or the calendar, in Round 6'], ['My stats', 'stats'],
+  ['Poker tools', null, 'in Round 6'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
   ['Stand-up game', null, 'never marked'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...APPROVED, ...EARLIER, ...RETIRED]);
+const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
 
 const setSoFar = () => `<div class="slots">${SLOTS.map(([name, key, note]) => `<div class="slot${key ? '' : ' gap'}">
@@ -101,9 +103,9 @@ const setSoFar = () => `<div class="slots">${SLOTS.map(([name, key, note]) => `<
 
 const roundNow = () => ROUND.map(([title, quote, keys]) => `
   <div class="group">
-    <div class="ghead"><h3>${title}</h3><p>first: the one you reviewed · then ${keys.length - 1} new</p></div>
-    <blockquote class="quote">${quote ? `“${quote}”` : 'Both marked Needs work, with no comment. Three new directions.'}</blockquote>
-    <div class="grid">${keys.map((k, i) => cell(k, i === 0)).join('')}</div>
+    <div class="ghead"><h3>${title}</h3><p>${quote ? `first: the one you reviewed · then ${keys.length - 1} new` : `${keys.length} new`}</p></div>
+    <blockquote class="quote">${quote ? `“${quote}”` : title === 'Poker tools' ? 'All four layouts of the three tools came back Needs work, with no comment. So not a fifth layout: three different ideas. The four are under Earlier rounds.' : ''}</blockquote>
+    <div class="grid">${keys.map((k, i) => cell(k, i === 0 && !!quote)).join('')}</div>
     <div class="at40"><span>At 40 pt, the size on a tile or a list row</span>${keys.map((k) => spot(k, 'light', { size: 40 })).join('')}${keys.map((k) => `<i>${spot(k, 'dark', { size: 40 })}</i>`).join('')}</div>
   </div>`).join('');
 
@@ -345,8 +347,8 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 </section>
 
 <section class="sec">
-  <h2>Round 5 — from your fourth review</h2>
-  <p>Two notes. Each set starts with the drawing the note was on, then the new options.</p>
+  <h2>Round 6 — from your fifth review</h2>
+  <p>One note, and four Poker tools sent back without one.</p>
   ${roundNow()}
 </section>
 
@@ -363,9 +365,9 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
     <div class="grid">${UNMARKED.map((k) => cell(k)).join('')}</div>
   </details>
   <details class="more">
-    <summary><h2>Earlier rounds <span>${EARLIER.length}</span></h2></summary>
+    <summary><h2>Earlier rounds <span>${EARLIER_SHOWN.length}</span></h2></summary>
     <p>Drawings you sent back, kept with your notes on them. Each has been answered by a later round.</p>
-    <div class="grid">${EARLIER.map((k) => cell(k)).join('')}</div>
+    <div class="grid">${EARLIER_SHOWN.map((k) => cell(k)).join('')}</div>
   </details>
 </section>
 
