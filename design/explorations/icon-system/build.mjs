@@ -48,14 +48,15 @@ const STATUS = {
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
   round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
+  round3: { label: 'Round 3', note: 'from your second review', bg: '#E5EEFF', fg: '#1F4BA8' },
 };
 
 const pill = (st, pick) =>
   `<span class="pill" style="background:${STATUS[st].bg};color:${STATUS[st].fg}">${STATUS[st].label}${pick ? ' · my pick' : ''}</span>`;
 
-function cell(key) {
+function cell(key, before = false) {
   const s = SPOTS[key];
-  return `<figure class="cell" data-key="${key}">
+  return `<figure class="cell${before ? ' before' : ''}" data-key="${key}">
     <div class="pair">
       <div class="tile light">${spot(key, 'light', { size: 96 })}</div>
       <div class="tile dark">${spot(key, 'dark', { size: 96 })}</div>
@@ -69,19 +70,30 @@ function cell(key) {
   </figure>`;
 }
 
-/* The owner's notes from the review, 20 November, quoted as written. */
-const ROUND2 = [
-  ['Table ante', 'put same chips (color) in 6 (or less) spots around the table', ['anteA', 'anteB']],
-  ['Straddle', 'dont use cards. if you will make a good looking setting with curved positioning of chips 9as on poker tanle) of one chips small blind, 2 chip big blind and 4 chip straddle. and try other options to show that logic (that will be visible in the format/size it will be applied in app)', ['straddleA', 'straddleB', 'straddleC', 'straddleD']],
-  ['Double-board bomb pot', 'the bomb looks good, dont need to change it. but lets also try the options with double board underneath', ['doubleBoardA', 'doubleBoardB', 'doubleBoardC']],
+/*
+ * The owner's notes from the second review, 20 November, quoted as written.
+ * The first key in each list is the drawing that was reviewed; the rest are
+ * this round's answers to the note.
+ */
+const ROUND3 = [
+  ['The group', 'more options, no highlighted names', ['group', 'groupB', 'groupC', 'groupD']],
+  ['Sessions — the book', 'the book idiom is fine. the spade color is not perfect here as its to close to book cover color. give 3 new options', ['sessionsA', 'sessionsC', 'sessionsD', 'sessionsE']],
+  ['Sessions — the calendar', 'i like the esthetic and the cal look. tryputting a chip on the date/sheet, give 3 options', ['sessionsB', 'sessionsF', 'sessionsG', 'sessionsH']],
+  ['Poker tools', null, ['toolsA', 'toolsB', 'toolsC', 'toolsD', 'toolsE']],
+  ['Calculator', 'not bad but add 2 more versions', ['calculator', 'calculatorB', 'calculatorC']],
+  ['Boosters', 'close, dont like how fire lays on the chip, looks unnatural (the meaning of it)', ['boosters', 'boostersB', 'boostersC', 'boostersD']],
+  ['Table ante', 'looks ok, try more options', ['anteB', 'anteC', 'anteD', 'anteE']],
+  ['Straddle', 'put the straddle (4 chips) in focus. try options without or diff versions of flt/table display', ['straddleA', 'straddleE', 'straddleF', 'straddleG', 'straddleH']],
 ];
+const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA'];
+const UNREVIEWED = ['anteA', 'straddleB', 'straddleC', 'straddleD', 'doubleBoardB', 'doubleBoardC', 'standUpA', 'standUpB'];
 
-const roundTwo = () => ROUND2.map(([title, quote, keys]) => `
+const roundThree = () => ROUND3.map(([title, quote, keys]) => `
   <div class="group">
-    <div class="ghead"><h3>${title}</h3></div>
-    <blockquote class="quote">“${quote}”</blockquote>
-    <div class="grid">${keys.map(cell).join('')}</div>
-    <div class="at40"><span>At 40 pt, as on the boosters list</span>${keys.map((k) => spot(k, 'light', { size: 40 })).join('')}${keys.map((k) => `<i>${spot(k, 'dark', { size: 40 })}</i>`).join('')}</div>
+    <div class="ghead"><h3>${title}</h3><p>first: the one you reviewed · then ${keys.length - 1} new</p></div>
+    <blockquote class="quote">${quote ? `“${quote}”` : 'Both marked Needs work, with no comment. Three new directions.'}</blockquote>
+    <div class="grid">${keys.map((k, i) => cell(k, i === 0)).join('')}</div>
+    <div class="at40"><span>At 40 pt, the size on a tile or a list row</span>${keys.map((k) => spot(k, 'light', { size: 40 })).join('')}${keys.map((k) => `<i>${spot(k, 'dark', { size: 40 })}</i>`).join('')}</div>
   </div>`).join('');
 
 const group = (title, note, keys) => `
@@ -200,8 +212,7 @@ const RULES = [
 ];
 
 const OPEN = [
-  ['Three picks.', 'Sessions (A the book · B the date), Poker tools (A two cards and a chip · B the dealer button), Stand-up game (A a chip stood up · B the empty chair). My picks are marked; any of the six can be redrawn again.'],
-  ['The bomb pot and the chip stack are redrawn from your screenshot, not copied.', 'Neither drawing is in the repository. If the ones you liked live somewhere (Figma, a design file, a photo), send them and these two get matched to them — or the system adjusts to them, since they are the reference.'],
+  ['The Stand-up game has no verdict yet.', 'A (a chip stood up) and B (the empty chair) are under Not reviewed yet.'],
   ['Whether spots replace the glyphs on home’s tiles.', 'Today each tile has a line glyph in a grey round (N6, 25 October). The phone mock above shows spots instead; that reopens a decided screen, so it is yours to say.'],
   ['Nothing is in the app yet.', 'When the set is agreed it goes in as one Spot.tsx beside Icon.tsx, ported from art.mjs, and docs/screens.md records where each is used.'],
 ];
@@ -269,6 +280,7 @@ figcaption b{font:700 14px ${font}}.variant{font:600 12.5px ${font};color:${C.in
 .rules>div{background:${C.card};border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;counter-increment:r}
 .rules b{font:700 14px ${font}}.rules b::before{content:counter(r) '  ';color:${C.faint}}
 .open{display:flex;flex-direction:column;gap:10px;max-width:820px}
+.cell.before .pair{opacity:.92}.cell.before figcaption b::after{content:'  · reviewed';font-weight:600;color:${C.faint}}
 .quote{margin:0;max-width:780px;font:500 14px/1.55 ${font};color:${C.ink};background:#FFF8EC;border-radius:12px;padding:10px 14px}
 .at40{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:${C.card};border-radius:14px;padding:10px 14px}
 .at40 span{font:600 12px ${font};color:${C.faint};flex-basis:100%}.at40 i{display:inline-flex;background:${C.darkCard};border-radius:8px;padding:2px}
@@ -307,9 +319,21 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 2 — from your review</h2>
-  <p>Approved in round 1: <b style="color:${C.ink}">Start a session, My stats, Rulings, Button game, 7-2 game</b>. Three came back needing work; here they are again, with your note above each. Not yet reviewed: The group, Sessions, Poker tools, Calculator, Boosters, Bomb pot and the Stand-up game — they are further down, unchanged.</p>
-  ${roundTwo()}
+  <h2>Round 3 — from your second review</h2>
+  <p>Eight came back needing work. Each set starts with the drawing you reviewed, so your note sits next to it, then the new options.</p>
+  ${roundThree()}
+</section>
+
+<section class="sec">
+  <h2>Approved</h2>
+  <p>Done unless you change your mind. Tap Approve again to take it back.</p>
+  <div class="grid">${APPROVED.map((k) => cell(k)).join('')}</div>
+</section>
+
+<section class="sec">
+  <h2>Not reviewed yet</h2>
+  <p>Earlier options nobody has marked. The Stand-up game hasn’t had a verdict in either round.</p>
+  <div class="grid">${UNREVIEWED.map((k) => cell(k)).join('')}</div>
 </section>
 
 <section class="sec">
@@ -331,14 +355,6 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
       <div class="swrow">${swatches('light')}${swatches('dark')}</div>
     </div>
   </div>
-</section>
-
-<section class="sec">
-  <h2>The set</h2>
-  <p>Each drawing on the light tile and on the dark one. <b style="color:${C.ink}">Kept</b> is what you liked, redrawn into the system. <b style="color:${C.ink}">Redrawn</b> are the candidates for the three that weren’t working — two each. <b style="color:${C.ink}">New</b> fills the places the app will need one.</p>
-  ${group('Home', 'the start card and the four tiles', ['session', 'group', 'sessionsA', 'sessionsB', 'stats', 'toolsA', 'toolsB'])}
-  ${group('Poker tools', 'the three tiles', ['calculator', 'rulings', 'boosters'])}
-  ${group('Boosters', 'one per game, at the head of its sheet and on its row · Table ante, Straddle and Double-board are in Round 2 above', ['bombPot', 'standUpA', 'standUpB', 'buttonGame', 'sevenTwo'])}
 </section>
 
 <section class="sec">

@@ -579,6 +579,240 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 3, 20 November: the owner's second review ────────────────────── */
+
+/** A table: a rail and its felt, both ink. Red chips read on it in either theme. */
+function felt(P, cx, cy, rx, ry) {
+  return `<ellipse cx="${f(cx)}" cy="${f(cy + 3)}" rx="${f(rx)}" ry="${f(ry)}" fill="${P.shadow}"/>` +
+    `<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx)}" ry="${f(ry)}" fill="${P.ink.side}"/>` +
+    `<ellipse cx="${f(cx)}" cy="${f(cy - 0.5)}" rx="${f(rx - 4.5)}" ry="${f(ry - 3)}" fill="${P.ink.top}"/>`;
+}
+
+/** Things at points, drawn back to front so nearer ones overlap farther ones. */
+function byDepth(items) {
+  return [...items].sort((a, b) => a.y - b.y).map((it) => it.draw()).join('');
+}
+
+function book(P, o, { spade, frame, chipOn = false }) {
+  const m = P.ink;
+  let s = shadow(P, 50, 27);
+  s += `<path d="M66 18L73 23V85L66 82Z" fill="${P.stock}" stroke="${P.stockEdge}" stroke-width=".8"/>`;
+  if (!o.small) for (let y = 30; y < 80; y += 6) s += `<path d="M67 ${y}L72 ${y + 3}" stroke="${P.stockEdge}" stroke-width=".7"/>`;
+  s += `<rect x="26" y="18" width="42" height="64" rx="3.5" fill="${m.top}"/>`;
+  s += `<rect x="26" y="18" width="6" height="64" rx="2" fill="${m.side}"/>`;
+  if (!o.small && frame) s += `<rect x="36" y="23" width="27" height="54" rx="2" fill="none" stroke="${frame}" stroke-width="1"/>`;
+  if (chipOn) s += standingChip(P, { cx: 49, by: 61, r: 11.5, mat: 'red', t: 0, small: true });
+  else s += suit('spade', 41.5, 38, 16, spade);
+  s += `<path d="M54 80V90L57 87.5 60 90V80Z" fill="${P.red.side}"/>`;
+  return s;
+}
+
+function calendar(P, o, { rings = true, date = true }) {
+  let s = `<rect x="22" y="22" width="50" height="58" rx="6" fill="${P.stock}" stroke="${P.stockEdge}" stroke-width=".9"/>`;
+  s += `<path d="M22 28a6 6 0 0 1 6-6h38a6 6 0 0 1 6 6v8H22Z" fill="${P.ink.top}"/>`;
+  if (rings) s += `<rect x="33" y="17" width="4" height="10" rx="2" fill="${P.red.side}"/><rect x="57" y="17" width="4" height="10" rx="2" fill="${P.red.side}"/>`;
+  if (date) s += o.small ? `<rect x="34" y="48" width="26" height="12" rx="3" fill="${P.ink.inlay}"/>` : text(47, 66, 24, P.ink.top, '20', ' letter-spacing="-1"');
+  return s;
+}
+
+const pct = (stroke) => `<g fill="none" stroke="${stroke}" stroke-width="3.6" stroke-linecap="round"><path d="M8 -10L-8 10"/><circle cx="-7" cy="-7" r="3.4"/><circle cx="7" cy="7" r="3.4"/></g>`;
+
+/** Stack sizes by seat, with the straddle nearest and largest. */
+function straddleSeats(P, o, extra = {}) {
+  const seat = [
+    { x: 23.5, y: 51, n: 1, r: 10, h: 5 },
+    { x: 63, y: 47, n: 2, r: 10.5, h: 5 },
+    { x: 54, y: 76, n: 4, r: 14, h: 6 },
+  ];
+  return byDepth(seat.map((st) => ({
+    y: st.y,
+    draw: () => (extra.own ? shadow(P, st.x, st.r * 1.25, st.r * K * 1.2, st.y) : '') +
+      stack(P, { cx: st.x, by: st.y, r: st.r, h: st.h, mats: Array(st.n).fill('red'), wobble: [0, 0.7, -0.5, 0.6], small: o.small || st.n < 4 }),
+  })));
+}
+
+Object.assign(SPOTS, {
+  groupB: {
+    name: 'The group', variant: 'B · three chips on edge, no names', where: 'Home · tile', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 38) +
+      standingChip(P, { cx: 24, by: GROUND - 5, r: 15, mat: 'red', t: 4, small: o.small }) +
+      standingChip(P, { cx: 68, by: GROUND - 5, r: 15, mat: 'bone', t: 4, small: o.small }) +
+      standingChip(P, { cx: 45, by: GROUND, r: 19, mat: 'ink', t: 5, small: o.small }),
+  },
+  groupC: {
+    name: 'The group', variant: 'C · everyone’s stack', where: 'Home · tile', status: 'round3',
+    draw: (P, o) => {
+      const st = [
+        { x: 21, y: 76, mats: ['ink', 'ink', 'ink'] },
+        { x: 40, y: 84, mats: ['red', 'red'] },
+        { x: 58, y: 83, mats: ['bone', 'bone', 'bone', 'bone'] },
+        { x: 76, y: 75, mats: ['red', 'red', 'red'] },
+      ];
+      return `<ellipse cx="48" cy="82" rx="42" ry="10" fill="${P.shadow}"/>` +
+        byDepth(st.map((t) => ({ y: t.y, draw: () => stack(P, { cx: t.x, by: t.y, r: 10.5, h: 5, mats: t.mats, wobble: [0, 0.6, -0.5, 0.5], small: true }) })));
+    },
+  },
+  groupD: {
+    name: 'The group', variant: 'D · seats round the table', where: 'Home · tile', status: 'round3',
+    draw: (P, o) => {
+      const mats = ['red', 'ink', 'bone', 'red', 'ink'];
+      return `<ellipse cx="48" cy="70" rx="44" ry="15" fill="${P.shadow}"/>` +
+        seats(48, 66, 31, 12, [90, 162, 234, 306, 18])
+          .map((pt, i) => standingChip(P, { cx: pt.x - 1.5, by: pt.y + 4, r: 11, mat: mats[i], t: 3, small: true }))
+          .join('');
+    },
+  },
+  sessionsC: {
+    name: 'Sessions', variant: 'C · the book, red spade', where: 'Home · tile', status: 'round3',
+    draw: (P, o) => book(P, o, { spade: P.red.top, frame: P.ink.inlay }),
+  },
+  sessionsD: {
+    name: 'Sessions', variant: 'D · the book, bone spade', where: 'Home · tile', status: 'round3',
+    draw: (P, o) => book(P, o, { spade: P.bone.top, frame: P.bone.inlay }),
+  },
+  sessionsE: {
+    name: 'Sessions', variant: 'E · the book, a chip on the cover', where: 'Home · tile', status: 'round3',
+    draw: (P, o) => book(P, o, { chipOn: true, frame: P.ink.inlay }),
+  },
+  sessionsF: {
+    name: 'Sessions', variant: 'F · the chip is the date', where: 'Home · tile', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 30) + calendar(P, o, { date: false }) +
+      standingChip(P, { cx: 47, by: 74, r: 15, mat: 'red', t: 0, small: true, glyph: o.small ? undefined : (cx, cy) => text(cx, cy + 4.5, 13, P.red.mark, '20') }),
+  },
+  sessionsG: {
+    name: 'Sessions', variant: 'G · a chip holds the page', where: 'Home · tile', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 30) + calendar(P, o, { rings: false }) +
+      standingChip(P, { cx: 46, by: 39, r: 11, mat: 'red', t: 3, small: true }),
+  },
+  sessionsH: {
+    name: 'Sessions', variant: 'H · chips on the page', where: 'Home · tile', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 30, 10, 87) + calendar(P, o, {}) +
+      stack(P, { cx: 47, by: 88, r: 14, h: 5.5, mats: ['ink', 'red'], wobble: [0, 1], small: o.small }),
+  },
+  toolsC: {
+    name: 'Poker tools', variant: 'C · the chip rack', where: 'Home · tile', status: 'round3',
+    draw: (P, o) => {
+      const m = P.ink;
+      let s = shadow(P, 48, 38, 9, 84);
+      s += `<rect x="14" y="40" width="68" height="36" rx="7" fill="${m.top}"/>`;
+      s += `<rect x="18" y="43" width="60" height="28" rx="4" fill="${m.core}"/>`;
+      ['bone', 'red', 'ink'].forEach((mat, i) => {
+        const mm = P[mat], y = 46 + i * 8.5, x0 = 22, x1 = 74, hh = 8;
+        s += `<rect x="${x0}" y="${y}" width="${x1 - x0}" height="${hh}" rx="${hh / 2}" fill="${mm.side}"/>`;
+        for (let x = x0 + 4; x < x1 - 3; x += 5) s += `<rect x="${x}" y="${y}" width="2.2" height="${hh}" fill="${mm.mark}" opacity="${mat === 'bone' ? 0.85 : 1}"/>`;
+        s += `<ellipse cx="${x0 + 2}" cy="${y + hh / 2}" rx="2.6" ry="${hh / 2}" fill="${mm.top}"/>`;
+      });
+      s += `<path d="M14 68h68v8a7 7 0 0 1-7 7H21a7 7 0 0 1-7-7Z" fill="${m.side}"/>`;
+      return s;
+    },
+  },
+  toolsD: {
+    name: 'Poker tools', variant: 'D · the ruling and the odds', where: 'Home · tile', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 32) +
+      card(P, { cx: 38, by: GROUND - 3, w: 36, h: 52, rot: 12, small: o.small, centre: (cx, cy) => text(cx, cy + 10, 28, P.red.side, '?') }) +
+      standingChip(P, { cx: 62, by: GROUND, r: 18, mat: 'bone', t: 5, small: true, glyph: (cx, cy) => `<g transform="translate(${cx} ${cy}) scale(.72)">${pct(P.ink.top)}</g>` }),
+  },
+  toolsE: {
+    name: 'Poker tools', variant: 'E · the button on a stack', where: 'Home · tile', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 30) +
+      card(P, { cx: 36, by: GROUND - 6, w: 34, h: 48, rot: -10, back: true, small: o.small }) +
+      stack(P, { cx: 56, by: GROUND, r: 19, h: 6.5, mats: ['ink', 'red'], wobble: [0, 1], small: true }) +
+      chip(P, { cx: 57, by: GROUND - 13, r: 15, h: 6, mat: 'bone', small: true, phase: 5, mark: onFace(text(0, 6, 17, P.ink.top, 'D')) }),
+  },
+  calculatorB: {
+    name: 'Calculator', variant: 'B · % on top of a stack', where: 'Poker tools · tile', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 29) +
+      stack(P, { cx: 48, by: GROUND - 1, r: 23, h: 7.5, mats: ['ink', 'red', 'bone'], wobble: [0, 1.2, -0.6], small: true, topMark: onFace(`<g transform="scale(1.6)">${pct(P.ink.top)}</g>`) }),
+  },
+  calculatorC: {
+    name: 'Calculator', variant: 'C · the odds and the pot', where: 'Poker tools · tile', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 36) +
+      stack(P, { cx: 28, by: 76, r: 13, h: 5.5, mats: ['red', 'red', 'red'], wobble: [0, 0.8, -0.5], small: true }) +
+      chip(P, { cx: 41, by: 82, r: 11, h: 4.5, mat: 'red', small: true, phase: 20 }) +
+      standingChip(P, { cx: 61, by: GROUND + 1, r: 21, mat: 'bone', t: 5, small: true, glyph: (cx, cy) => `<g transform="translate(${cx} ${cy}) scale(.82)">${pct(P.ink.top)}</g>` }),
+  },
+  boostersB: {
+    name: 'Boosters', variant: 'B · fire behind the stack', where: 'Poker tools · tile', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 28) +
+      flame(P, { cx: 50, by: GROUND - 16, h: 50 }) +
+      stack(P, { cx: 48, by: GROUND - 1, r: 22, h: 7, mats: ['ink', 'red', 'ink'], wobble: [0, 1, -0.8], small: true }),
+  },
+  boostersC: {
+    name: 'Boosters', variant: 'C · chips thrown up', where: 'Poker tools · tile', status: 'round3',
+    draw: (P, o) => {
+      const fly = (cx, cy, rot, mat) => `<g transform="rotate(${rot} ${cx} ${cy})">${chip(P, { cx, by: cy, r: 11, h: 4.5, mat, small: true, phase: rot })}</g>`;
+      return shadow(P, 46, 26) +
+        stack(P, { cx: 46, by: GROUND - 1, r: 20, h: 7, mats: ['ink', 'red'], wobble: [0, 1], small: true }) +
+        fly(28, 52, -24, 'red') + fly(63, 44, 18, 'ink') + fly(45, 33, -8, 'red');
+    },
+  },
+  boostersD: {
+    name: 'Boosters', variant: 'D · a fire in a ring of chips', where: 'Poker tools · tile', status: 'round3',
+    draw: (P, o) => {
+      const pts = seats(48, 74, 27, 9.5, [90, 150, 210, 270, 330, 30]);
+      const mats = ['red', 'ink'];
+      const chipAt = (pt, i) => chip(P, { cx: pt.x, by: pt.y, r: 8.5, h: 4, mat: mats[i % 2], small: true, phase: i * 11 });
+      const back = pts.filter((pt) => pt.y < 74), front = pts.filter((pt) => pt.y >= 74);
+      return `<ellipse cx="48" cy="77" rx="40" ry="12" fill="${P.shadow}"/>` +
+        back.map(chipAt).join('') + flame(P, { cx: 48, by: 76, h: 50 }) + front.map((pt, i) => chipAt(pt, i + 1)).join('');
+    },
+  },
+  anteC: {
+    name: 'Table ante', variant: 'C · six seats and the pot', where: 'Boosters', status: 'round3',
+    draw: (P, o) =>
+      `<ellipse cx="48" cy="66" rx="45" ry="17" fill="${P.shadow}"/>` +
+      byDepth([
+        ...seats(48, 62, 34, 34 * K + 1, [30, 90, 150, 210, 270, 330]).map((pt, i) => ({ y: pt.y, draw: () => chip(P, { cx: pt.x, by: pt.y, r: 9, h: 4, mat: 'red', small: true, phase: i * 9 }) })),
+        { y: 62, draw: () => stack(P, { cx: 48, by: 62, r: 9, h: 4, mats: ['red', 'red', 'red'], wobble: [0, 0.8, -0.6], small: true }) },
+      ]),
+  },
+  anteD: {
+    name: 'Table ante', variant: 'D · six seats on the felt', where: 'Boosters', status: 'round3',
+    draw: (P, o) =>
+      felt(P, 48, 64, 43, 19) +
+      seats(48, 64, 31, 11, [30, 90, 150, 210, 270, 330])
+        .map((pt, i) => chip(P, { cx: pt.x, by: pt.y, r: 9, h: 4, mat: 'red', small: true, phase: i * 9 }))
+        .join(''),
+  },
+  anteE: {
+    name: 'Table ante', variant: 'E · four seats, close up', where: 'Boosters', status: 'round3',
+    draw: (P, o) =>
+      `<ellipse cx="48" cy="68" rx="45" ry="17" fill="${P.shadow}"/>` +
+      seats(48, 63, 28, 13, [45, 135, 225, 315])
+        .map((pt, i) => chip(P, { cx: pt.x, by: pt.y, r: 14, h: 5.5, mat: 'red', small: o.small, phase: i * 9 }))
+        .join(''),
+  },
+  straddleE: {
+    name: 'Straddle', variant: 'E · the straddle nearest', where: 'Boosters', status: 'round3',
+    draw: (P, o) => `<ellipse cx="46" cy="70" rx="42" ry="15" fill="${P.shadow}"/>` + straddleSeats(P, o),
+  },
+  straddleF: {
+    name: 'Straddle', variant: 'F · no table', where: 'Boosters', status: 'round3',
+    draw: (P, o) => straddleSeats(P, o, { own: true }),
+  },
+  straddleG: {
+    name: 'Straddle', variant: 'G · on the felt', where: 'Boosters', status: 'round3',
+    draw: (P, o) => felt(P, 48, 62, 43, 21) + straddleSeats(P, o),
+  },
+  straddleH: {
+    name: 'Straddle', variant: 'H · the straddle up front, blinds behind', where: 'Boosters', status: 'round3',
+    draw: (P, o) =>
+      shadow(P, 48, 40, 11, 82) +
+      stack(P, { cx: 22, by: 62, r: 9.5, h: 4.5, mats: ['red'], small: true }) +
+      stack(P, { cx: 74, by: 62, r: 9.5, h: 4.5, mats: ['red', 'red'], wobble: [0, 0.6], small: true }) +
+      stack(P, { cx: 48, by: 83, r: 18, h: 7, mats: ['red', 'red', 'red', 'red'], wobble: [0, 1, -0.7, 0.8], small: o.small }),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
