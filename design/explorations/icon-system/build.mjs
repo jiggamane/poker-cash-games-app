@@ -48,6 +48,7 @@ const STATUS = {
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
   round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
+  round4: { label: 'Round 4', note: 'from your third review', bg: '#EAF6F0', fg: '#14613E' },
   round3: { label: 'Round 3', note: 'from your second review', bg: '#E5EEFF', fg: '#1F4BA8' },
 };
 
@@ -71,24 +72,27 @@ function cell(key, before = false) {
 }
 
 /*
- * The owner's notes from the second review, 20 November, quoted as written.
- * The first key in each list is the drawing that was reviewed; the rest are
- * this round's answers to the note.
+ * The owner's notes from the third review, 20 November, quoted as written.
+ * The first key in each list is the drawing the note was left on; the rest
+ * are this round's answers to it.
  */
-const ROUND3 = [
-  ['The group', 'more options, no highlighted names', ['group', 'groupB', 'groupC', 'groupD']],
-  ['Sessions — the book', 'the book idiom is fine. the spade color is not perfect here as its to close to book cover color. give 3 new options', ['sessionsA', 'sessionsC', 'sessionsD', 'sessionsE']],
-  ['Sessions — the calendar', 'i like the esthetic and the cal look. tryputting a chip on the date/sheet, give 3 options', ['sessionsB', 'sessionsF', 'sessionsG', 'sessionsH']],
-  ['Poker tools', null, ['toolsA', 'toolsB', 'toolsC', 'toolsD', 'toolsE']],
-  ['Calculator', 'not bad but add 2 more versions', ['calculator', 'calculatorB', 'calculatorC']],
-  ['Boosters', 'close, dont like how fire lays on the chip, looks unnatural (the meaning of it)', ['boosters', 'boostersB', 'boostersC', 'boostersD']],
-  ['Table ante', 'looks ok, try more options', ['anteB', 'anteC', 'anteD', 'anteE']],
-  ['Straddle', 'put the straddle (4 chips) in focus. try options without or diff versions of flt/table display', ['straddleA', 'straddleE', 'straddleF', 'straddleG', 'straddleH']],
+const ROUND = [
+  ['Table ante', 'this option but use no table', ['anteB', 'anteF', 'anteG']],
+  ['Boosters', 'put the fire inside the chip and turn the chip face up', ['boosters', 'boostersE', 'boostersF']],
+  ['Sessions — the book', 'use these colors, try more orientations for the book', ['sessionsD', 'sessionsI', 'sessionsJ', 'sessionsK']],
+  ['Sessions — the calendar', 'this is fine, try more options tho. put chip at the right bottom corner of the sheet. add another with the same foramt as now but diff chip disply, maybe 3d', ['sessionsF', 'sessionsL', 'sessionsM', 'sessionsN']],
+  ['Straddle', 'make 2 more options with diff orientation of chips around table', ['straddleF', 'straddleI', 'straddleJ']],
+  ['Poker tools', 'try more option slike this', ['toolsD', 'toolsF', 'toolsG', 'toolsH']],
 ];
-const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA'];
-const UNREVIEWED = ['anteA', 'straddleB', 'straddleC', 'straddleD', 'doubleBoardB', 'doubleBoardC', 'standUpA', 'standUpB'];
+const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB'];
+/* Reviewed in an earlier round, needed work, and answered since. */
+const EARLIER = ['group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA'];
+/* The first round's drawings that the second replaced outright. */
+const RETIRED = ['ante', 'straddle', 'doubleBoard'];
+const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...APPROVED, ...EARLIER, ...RETIRED]);
+const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
 
-const roundThree = () => ROUND3.map(([title, quote, keys]) => `
+const roundNow = () => ROUND.map(([title, quote, keys]) => `
   <div class="group">
     <div class="ghead"><h3>${title}</h3><p>first: the one you reviewed · then ${keys.length - 1} new</p></div>
     <blockquote class="quote">${quote ? `“${quote}”` : 'Both marked Needs work, with no comment. Three new directions.'}</blockquote>
@@ -281,6 +285,11 @@ figcaption b{font:700 14px ${font}}.variant{font:600 12.5px ${font};color:${C.in
 .rules b{font:700 14px ${font}}.rules b::before{content:counter(r) '  ';color:${C.faint}}
 .open{display:flex;flex-direction:column;gap:10px;max-width:820px}
 .cell.before .pair{opacity:.92}.cell.before figcaption b::after{content:'  · reviewed';font-weight:600;color:${C.faint}}
+.more{display:flex;flex-direction:column;gap:14px}.more+.more{margin-top:18px}
+.more summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px}.more summary::-webkit-details-marker{display:none}
+.more summary h2{margin:0}.more summary h2::before{content:'▸ ';color:${C.faint}}.more[open] summary h2::before{content:'▾ '}
+.more summary span{font:700 13px ${font};color:${C.mut};background:#ECECF1;border-radius:999px;padding:3px 9px;vertical-align:middle}
+.more>p{margin-top:8px}.more>.grid{margin-top:14px}
 .quote{margin:0;max-width:780px;font:500 14px/1.55 ${font};color:${C.ink};background:#FFF8EC;border-radius:12px;padding:10px 14px}
 .at40{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:${C.card};border-radius:14px;padding:10px 14px}
 .at40 span{font:600 12px ${font};color:${C.faint};flex-basis:100%}.at40 i{display:inline-flex;background:${C.darkCard};border-radius:8px;padding:2px}
@@ -319,21 +328,28 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 3 — from your second review</h2>
-  <p>Eight came back needing work. Each set starts with the drawing you reviewed, so your note sits next to it, then the new options.</p>
-  ${roundThree()}
+  <h2>Round 4 — from your third review</h2>
+  <p>Six notes this time. Each set starts with the drawing the note was on, then the new options.</p>
+  ${roundNow()}
 </section>
 
 <section class="sec">
   <h2>Approved</h2>
-  <p>Done unless you change your mind. Tap Approve again to take it back.</p>
+  <p>Nine so far. Tap Approve again to take one back.</p>
   <div class="grid">${APPROVED.map((k) => cell(k)).join('')}</div>
 </section>
 
 <section class="sec">
-  <h2>Not reviewed yet</h2>
-  <p>Earlier options nobody has marked. The Stand-up game hasn’t had a verdict in either round.</p>
-  <div class="grid">${UNREVIEWED.map((k) => cell(k)).join('')}</div>
+  <details class="more">
+    <summary><h2>Not marked yet <span>${UNMARKED.length}</span></h2></summary>
+    <p>Options from earlier rounds with no verdict, the Stand-up game among them. Approve any you want to keep; the rest are taken as passed over.</p>
+    <div class="grid">${UNMARKED.map((k) => cell(k)).join('')}</div>
+  </details>
+  <details class="more">
+    <summary><h2>Earlier rounds <span>${EARLIER.length}</span></h2></summary>
+    <p>Drawings you sent back, kept with your notes on them. Each has been answered by a later round.</p>
+    <div class="grid">${EARLIER.map((k) => cell(k)).join('')}</div>
+  </details>
 </section>
 
 <section class="sec">

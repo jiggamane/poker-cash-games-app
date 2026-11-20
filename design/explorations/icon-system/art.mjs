@@ -593,9 +593,9 @@ function byDepth(items) {
   return [...items].sort((a, b) => a.y - b.y).map((it) => it.draw()).join('');
 }
 
-function book(P, o, { spade, frame, chipOn = false }) {
+function book(P, o, { spade, frame, chipOn = false, shadowed = true }) {
   const m = P.ink;
-  let s = shadow(P, 50, 27);
+  let s = shadowed ? shadow(P, 50, 27) : '';
   s += `<path d="M66 18L73 23V85L66 82Z" fill="${P.stock}" stroke="${P.stockEdge}" stroke-width=".8"/>`;
   if (!o.small) for (let y = 30; y < 80; y += 6) s += `<path d="M67 ${y}L72 ${y + 3}" stroke="${P.stockEdge}" stroke-width=".7"/>`;
   s += `<rect x="26" y="18" width="42" height="64" rx="3.5" fill="${m.top}"/>`;
@@ -810,6 +810,155 @@ Object.assign(SPOTS, {
       stack(P, { cx: 22, by: 62, r: 9.5, h: 4.5, mats: ['red'], small: true }) +
       stack(P, { cx: 74, by: 62, r: 9.5, h: 4.5, mats: ['red', 'red'], wobble: [0, 0.6], small: true }) +
       stack(P, { cx: 48, by: 83, r: 18, h: 7, mats: ['red', 'red', 'red', 'red'], wobble: [0, 1, -0.7, 0.8], small: o.small }),
+  },
+});
+
+/* ── round 4, 20 November: the owner's third review ─────────────────────── */
+
+/** Stacks at given seats, each with its own shadow: no table. */
+function seatStacks(P, o, list) {
+  return list.map((st) => shadow(P, st.x, st.r * 1.25, st.r * K * 1.2, st.y)).join('') +
+    byDepth(list.map((st) => ({ y: st.y, draw: () => stack(P, { cx: st.x, by: st.y, r: st.r, h: st.h, mats: Array(st.n).fill('red'), wobble: [0, 0.7, -0.5, 0.6], small: o.small || st.n < 4 }) })));
+}
+
+function hull(pts) {
+  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo = [], up = [];
+  for (const q of p) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (const q of p.reverse()) { while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+
+/** The book lying on the table, turned `deg` in the table's plane. */
+function bookFlat(P, o, { deg = 18, cx = 48, cy = 62, w = 46, d = 62, t = 9 }) {
+  const c = Math.cos(rad(deg)), sn = Math.sin(rad(deg));
+  const M = [c, K * sn, -sn, K * c, cx, cy];
+  const at = (x, y, dy = 0) => [M[0] * x + M[2] * y + M[4], M[1] * x + M[3] * y + M[5] + dy];
+  const corners = [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]];
+  const all = corners.flatMap(([x, y]) => [at(x, y), at(x, y, t)]);
+  const poly = (pts) => pts.map((q) => `${f(q[0])} ${f(q[1])}`).join('L');
+  const mat = `matrix(${M.map(f).join(' ')})`;
+  let s = `<ellipse cx="${cx}" cy="${cy + t + 2}" rx="${f(w * 0.75)}" ry="${f(d * K * 0.75)}" fill="${P.shadow}"/>`;
+  s += `<path d="M${poly(hull(all))}Z" fill="${P.stock}" stroke="${P.stockEdge}" stroke-width=".8"/>`;
+  /* The spine is the cover's colour all the way down its edge. */
+  const sp = [at(-w / 2, -d / 2), at(-w / 2, d / 2), at(-w / 2, d / 2, t), at(-w / 2, -d / 2, t)];
+  s += `<path d="M${poly(sp)}Z" fill="${P.ink.side}"/>`;
+  s += `<g transform="${mat}"><rect x="${-w / 2}" y="${-d / 2}" width="${w}" height="${d}" rx="3" fill="${P.ink.top}"/>`;
+  s += `<rect x="${-w / 2}" y="${-d / 2}" width="6" height="${d}" rx="2" fill="${P.ink.side}"/>`;
+  if (!o.small) s += `<rect x="${-w / 2 + 10}" y="${-d / 2 + 5}" width="${w - 15}" height="${d - 10}" rx="2" fill="none" stroke="${P.bone.inlay}" stroke-width="1.2"/>`;
+  s += `<path d="${'M5 0C5 0 0 3.8 0 6.2 0 7.7 1.2 8.7 2.5 8.7 3.4 8.7 4.1 8.3 4.5 7.7L3.9 10H6.1L5.5 7.7C5.9 8.3 6.6 8.7 7.5 8.7 8.8 8.7 10 7.7 10 6.2 10 3.8 5 0 5 0Z'}" transform="translate(-6 -12) scale(2.4)" fill="${P.bone.top}"/></g>`;
+  const rb = at(8, d / 2, t);
+  s += `<path d="M${f(rb[0])} ${f(rb[1] - 1)}v7l3-2.5 3 2.5v-7Z" fill="${P.red.side}"/>`;
+  return s;
+}
+
+Object.assign(SPOTS, {
+  anteF: {
+    name: 'Table ante', variant: 'F · five seats, no table', where: 'Boosters', status: 'round4',
+    draw: (P, o) => {
+      const pts = seats(48, 60, 31, 31 * K + 2, [90, 162, 234, 306, 18]);
+      return pts.map((pt) => shadow(P, pt.x, 15, 6, pt.y + 0.5)).join('') +
+        pts.map((pt, i) => chip(P, { cx: pt.x, by: pt.y, r: 12.5, h: 5, mat: 'red', small: o.small, phase: i * 9 })).join('');
+    },
+  },
+  anteG: {
+    name: 'Table ante', variant: 'G · six seats, no table', where: 'Boosters', status: 'round4',
+    draw: (P, o) => {
+      const pts = seats(48, 61, 33, 33 * K + 2, [30, 90, 150, 210, 270, 330]);
+      return pts.map((pt) => shadow(P, pt.x, 12.5, 5, pt.y + 0.5)).join('') +
+        pts.map((pt, i) => chip(P, { cx: pt.x, by: pt.y, r: 10.5, h: 4.5, mat: 'red', small: true, phase: i * 9 })).join('');
+    },
+  },
+  boostersE: {
+    name: 'Boosters', variant: 'E · the fire in an ink chip', where: 'Poker tools · tile', status: 'round4',
+    draw: (P, o) =>
+      shadow(P, 49, 26) +
+      standingChip(P, { cx: 46, by: GROUND, r: 27, mat: 'ink', t: 6, small: true, glyph: (cx, cy) => flame(P, { cx, by: cy + 11, h: 25 }) }),
+  },
+  boostersF: {
+    name: 'Boosters', variant: 'F · the fire in a bone chip', where: 'Poker tools · tile', status: 'round4',
+    draw: (P, o) =>
+      shadow(P, 49, 26) +
+      standingChip(P, { cx: 46, by: GROUND, r: 27, mat: 'bone', t: 6, small: true, glyph: (cx, cy) => flame(P, { cx, by: cy + 11, h: 25 }) }),
+  },
+  sessionsI: {
+    name: 'Sessions', variant: 'I · the book lying on the table', where: 'Home · tile', status: 'round4',
+    draw: (P, o) => bookFlat(P, o, {}),
+  },
+  sessionsJ: {
+    name: 'Sessions', variant: 'J · the book leaning', where: 'Home · tile', status: 'round4',
+    draw: (P, o) => shadow(P, 54, 27) + `<g transform="rotate(10 50 84)">${book(P, o, { spade: P.bone.top, frame: P.bone.inlay, shadowed: false })}</g>`,
+  },
+  sessionsK: {
+    name: 'Sessions', variant: 'K · the book turned, spine out', where: 'Home · tile', status: 'round4',
+    draw: (P, o) => {
+      const m = P.ink;
+      let s = shadow(P, 50, 28);
+      s += `<path d="M24 22L37 18V84L24 81Z" fill="${m.side}"/>`;
+      s += `<path d="M24 31L37 28V32L24 35ZM24 68L37 69V73L24 72Z" fill="${P.bone.side}"/>`;
+      s += `<path d="M37 18L72 23V80L37 84Z" fill="${m.top}"/>`;
+      if (!o.small) s += `<path d="M42 25L67 28.6V75.5L42 78.6Z" fill="none" stroke="${P.bone.inlay}" stroke-width="1"/>`;
+      s += `<g transform="matrix(1 .14 0 1 0 0)">${suit('spade', 46.5, 31.5, 15, P.bone.top)}</g>`;
+      s += `<path d="M58 80.5V90L61 87.5 64 90V79.8Z" fill="${P.red.side}"/>`;
+      return s;
+    },
+  },
+  sessionsL: {
+    name: 'Sessions', variant: 'L · the chip on the corner', where: 'Home · tile', status: 'round4',
+    draw: (P, o) =>
+      shadow(P, 50, 32) + calendar(P, o, {}) +
+      standingChip(P, { cx: 70, by: 89, r: 13, mat: 'red', t: 0, small: true }),
+  },
+  sessionsM: {
+    name: 'Sessions', variant: 'M · the chip is the date, with depth', where: 'Home · tile', status: 'round4',
+    draw: (P, o) =>
+      shadow(P, 48, 30) + calendar(P, o, { date: false }) +
+      standingChip(P, { cx: 44, by: 75, r: 15, mat: 'red', t: 5, small: true, glyph: o.small ? undefined : (cx, cy) => text(cx, cy + 4.5, 13, P.red.mark, '20') }),
+  },
+  sessionsN: {
+    name: 'Sessions', variant: 'N · the chip is the date, lying', where: 'Home · tile', status: 'round4',
+    draw: (P, o) =>
+      shadow(P, 48, 30) + calendar(P, o, { date: false }) +
+      chip(P, { cx: 47, by: 72, r: 19, h: 7, mat: 'red', small: true, phase: 4, mark: o.small ? undefined : onFace(text(0, 8, 24, P.red.mark, '20', ' letter-spacing="-1"')) }),
+  },
+  straddleI: {
+    name: 'Straddle', variant: 'I · the other way round', where: 'Boosters', status: 'round4',
+    draw: (P, o) => seatStacks(P, o, [
+      { x: 72, y: 51, n: 1, r: 10, h: 5 },
+      { x: 33, y: 47, n: 2, r: 10.5, h: 5 },
+      { x: 42, y: 76, n: 4, r: 14, h: 6 },
+    ]),
+  },
+  straddleJ: {
+    name: 'Straddle', variant: 'J · an arc away from you', where: 'Boosters', status: 'round4',
+    draw: (P, o) => seatStacks(P, o, [
+      { x: 19, y: 70, n: 1, r: 10, h: 5 },
+      { x: 43, y: 56, n: 2, r: 10.5, h: 5 },
+      { x: 71, y: 74, n: 4, r: 14.5, h: 6.2 },
+    ]),
+  },
+  toolsF: {
+    name: 'Poker tools', variant: 'F · the three tools', where: 'Home · tile', status: 'round4',
+    draw: (P, o) =>
+      shadow(P, 49, 36) +
+      card(P, { cx: 50, by: 74, w: 30, h: 44, rot: 10, small: o.small, centre: (cx, cy) => text(cx, cy + 9, 24, P.red.side, '?') }) +
+      standingChip(P, { cx: 26, by: 87, r: 15, mat: 'bone', t: 4, small: true, glyph: (cx, cy) => `<g transform="translate(${cx} ${cy}) scale(.6)">${pct(P.ink.top)}</g>` }) +
+      standingChip(P, { cx: 68, by: 88, r: 15, mat: 'ink', t: 4, small: true, glyph: (cx, cy) => flame(P, { cx, by: cy + 6.5, h: 14 }) }),
+  },
+  toolsG: {
+    name: 'Poker tools', variant: 'G · the ruling and the odds, the other way', where: 'Home · tile', status: 'round4',
+    draw: (P, o) =>
+      shadow(P, 48, 32) +
+      card(P, { cx: 58, by: GROUND - 3, w: 36, h: 52, rot: -12, small: o.small, centre: (cx, cy) => text(cx, cy + 10, 28, P.red.side, '?') }) +
+      standingChip(P, { cx: 32, by: GROUND + 1, r: 18, mat: 'bone', t: 5, small: true, glyph: (cx, cy) => `<g transform="translate(${cx} ${cy}) scale(.72)">${pct(P.ink.top)}</g>` }),
+  },
+  toolsH: {
+    name: 'Poker tools', variant: 'H · the ruling and the bomb', where: 'Home · tile', status: 'round4',
+    draw: (P, o) =>
+      shadow(P, 48, 32) +
+      card(P, { cx: 38, by: GROUND - 3, w: 36, h: 52, rot: -9, small: o.small, centre: (cx, cy) => text(cx, cy + 10, 28, P.red.side, '?') }) +
+      bomb(P, { cx: 63, cy: 69, r: 15, small: o.small }),
   },
 });
 
