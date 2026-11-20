@@ -1165,6 +1165,48 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 10, 20 November: the owner's ninth review ───────────────────── */
+
+/*
+ * One chip slightly on another's edge: it starts flat and touching (as in V),
+ * slides `over` points onto the lower chip, and its near side lifts by the
+ * lower chip's height while its far side stays on the table. So it tilts down
+ * AWAY from the chip it rests on, pivoting on the point where it meets the felt.
+ */
+function onEdge(drawChip, a, r1, r2, dx, front, over, hLow) {
+  const b = touching(a, r1, r2, dx, front);
+  const x = b.x - over, y = b.y - hLow / 2;
+  const deg = Math.asin(Math.min(1, hLow / (2 * r2))) * (180 / Math.PI) * 0.75;
+  return tilt(deg, x + r2, b.y, drawChip(x, y));
+}
+
+Object.assign(SPOTS, {
+  toolsY: {
+    name: 'Poker tools', variant: 'Y · the fire chip just on the % chip’s edge', where: 'Home · tile', status: 'round10',
+    draw: (P, o) => {
+      const a = { x: 43, y: 88 };
+      return shadow(P, 50, 38) + toolCard(P, o, 28, 70, 42, -8) + pctFlat(P, o, a.x, a.y, 18) +
+        onEdge((x, y) => fireFlat(P, o, x, y, 17), a, 18, 17, 28, false, 7, 18 * 0.36);
+    },
+  },
+  toolsZ: {
+    name: 'Poker tools', variant: 'Z · the % chip just on the fire chip’s edge', where: 'Home · tile', status: 'round10',
+    draw: (P, o) => {
+      const a = { x: 43, y: 88 };
+      return shadow(P, 50, 38) + toolCard(P, o, 28, 70, 42, -8) + fireFlat(P, o, a.x, a.y, 18) +
+        onEdge((x, y) => pctFlat(P, o, x, y, 17), a, 18, 17, 28, false, 7, 18 * 0.36);
+    },
+  },
+  toolsAA: {
+    name: 'Poker tools', variant: 'AA · the fire chip on the % chip’s edge, in front', where: 'Home · tile', status: 'round10',
+    draw: (P, o) => {
+      const a = { x: 41, y: 80 };
+      return shadow(P, 50, 38, 11, 86) + toolCard(P, o, 27, 64, 40, -8) + pctFlat(P, o, a.x, a.y, 17) +
+        onEdge((x, y) => fireFlat(P, o, x, y, 17), a, 17, 17, 27, true, 7, 17 * 0.36);
+    },
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
