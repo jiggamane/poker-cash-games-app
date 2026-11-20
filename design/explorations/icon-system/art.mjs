@@ -1053,6 +1053,54 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 7, 20 November: the owner's sixth review ─────────────────────── */
+
+Object.assign(SPOTS, {
+  sessionsT: {
+    name: 'Sessions', variant: 'T · a stack on the corner, date centred', where: 'Home · tile', status: 'round7',
+    draw: (P, o) =>
+      shadow(P, 52, 32) + calendar(P, o, {}) +
+      stack(P, { cx: 70, by: 89, r: 13, h: 5, mats: ['ink', 'red', 'red'], wobble: [0, 0.8, -0.6], small: true }),
+  },
+  sessionsU: {
+    name: 'Sessions', variant: 'U · a taller stack on the corner', where: 'Home · tile', status: 'round7',
+    draw: (P, o) =>
+      shadow(P, 52, 32) + calendar(P, o, {}) +
+      stack(P, { cx: 75, by: 90, r: 11.5, h: 5, mats: ['ink', 'red', 'ink', 'red', 'red'], wobble: [0, 0.8, -0.6, 0.5, -0.4], small: true }),
+  },
+  sessionsV: {
+    name: 'Sessions', variant: 'V · a stack on the other corner', where: 'Home · tile', status: 'round7',
+    draw: (P, o) =>
+      shadow(P, 44, 32) + calendar(P, o, {}) +
+      stack(P, { cx: 24, by: 89, r: 13, h: 5, mats: ['ink', 'red', 'red'], wobble: [0, -0.8, 0.6], small: true }),
+  },
+  sessionsW: {
+    name: 'Sessions', variant: 'W · a stack on each corner', where: 'Home · tile', status: 'round7',
+    draw: (P, o) =>
+      shadow(P, 48, 38) + calendar(P, o, {}) +
+      stack(P, { cx: 24, by: 89, r: 11.5, h: 4.5, mats: ['red', 'red'], wobble: [0, -0.7], small: true }) +
+      stack(P, { cx: 71, by: 90, r: 12, h: 4.5, mats: ['ink', 'red', 'red', 'red'], wobble: [0, 0.8, -0.6, 0.5], small: true }),
+  },
+  toolsP: {
+    name: 'Poker tools', variant: 'P · the fire chip on the % chip’s edge', where: 'Home · tile', status: 'round7',
+    draw: (P, o) =>
+      shadow(P, 48, 34) + toolCard(P, o, 28, 80, 48, -8) + fireChip(P, 74, 73, 13) + pctChip(P, 51, 88, 17),
+  },
+  toolsQ: {
+    name: 'Poker tools', variant: 'Q · the fire chip balanced on top', where: 'Home · tile', status: 'round7',
+    draw: (P, o) =>
+      shadow(P, 48, 32) + toolCard(P, o, 31, 82, 50, -8) + pctChip(P, 62, 88, 16) +
+      `<g transform="rotate(9 64 57)">${fireChip(P, 64, 57.5, 12.5)}</g>`,
+  },
+  toolsR: {
+    name: 'Poker tools', variant: 'R · the fire chip standing on a lying % chip', where: 'Home · tile', status: 'round7',
+    draw: (P, o) =>
+      shadow(P, 48, 32) + toolCard(P, o, 30, 80, 50, -8) +
+      chip(P, { cx: 62, by: 87, r: 18, h: 7, mat: 'bone', small: true, phase: 20, mark: onFace(`<g transform="scale(1.15)">${pct(P.ink.top)}</g>`) }) +
+      fireChip(P, 66, 82, 14),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
