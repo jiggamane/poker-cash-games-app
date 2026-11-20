@@ -48,6 +48,7 @@ const STATUS = {
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
   round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
+  round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
   round4: { label: 'Round 4', note: 'from your third review', bg: '#EAF6F0', fg: '#14613E' },
   round3: { label: 'Round 3', note: 'from your second review', bg: '#E5EEFF', fg: '#1F4BA8' },
 };
@@ -72,25 +73,31 @@ function cell(key, before = false) {
 }
 
 /*
- * The owner's notes from the third review, 20 November, quoted as written.
+ * The owner's notes from the fourth review, 20 November, quoted as written.
  * The first key in each list is the drawing the note was left on; the rest
  * are this round's answers to it.
  */
 const ROUND = [
-  ['Table ante', 'this option but use no table', ['anteB', 'anteF', 'anteG']],
-  ['Boosters', 'put the fire inside the chip and turn the chip face up', ['boosters', 'boostersE', 'boostersF']],
-  ['Sessions — the book', 'use these colors, try more orientations for the book', ['sessionsD', 'sessionsI', 'sessionsJ', 'sessionsK']],
-  ['Sessions — the calendar', 'this is fine, try more options tho. put chip at the right bottom corner of the sheet. add another with the same foramt as now but diff chip disply, maybe 3d', ['sessionsF', 'sessionsL', 'sessionsM', 'sessionsN']],
-  ['Straddle', 'make 2 more options with diff orientation of chips around table', ['straddleF', 'straddleI', 'straddleJ']],
-  ['Poker tools', 'try more option slike this', ['toolsD', 'toolsF', 'toolsG', 'toolsH']],
+  ['Sessions — the calendar', 'this but add option where the chip is ON the sheet', ['sessionsL', 'sessionsO', 'sessionsP']],
+  ['Poker tools', 'smth like this but try diff layouts or chips positions', ['toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL']],
 ];
-const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB'];
+const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'sessionsJ', 'straddleI'];
+/* One place in the app each, and what is approved for it. */
+const SLOTS = [
+  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsJ', 'or the calendar, in Round 5'], ['My stats', 'stats'],
+  ['Poker tools', null, 'in Round 5'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
+  ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
+  ['Stand-up game', null, 'never marked'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
+];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA'];
+const EARLIER = ['group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
+
+const setSoFar = () => `<div class="slots">${SLOTS.map(([name, key, note]) => `<div class="slot${key ? '' : ' gap'}">
+    <div class="slart">${key ? spot(key, 'light', { size: 64 }) : '<span>?</span>'}</div><b>${name}</b>${note ? `<i>${note}</i>` : ''}</div>`).join('')}</div>`;
 
 const roundNow = () => ROUND.map(([title, quote, keys]) => `
   <div class="group">
@@ -285,6 +292,10 @@ figcaption b{font:700 14px ${font}}.variant{font:600 12.5px ${font};color:${C.in
 .rules b{font:700 14px ${font}}.rules b::before{content:counter(r) '  ';color:${C.faint}}
 .open{display:flex;flex-direction:column;gap:10px;max-width:820px}
 .cell.before .pair{opacity:.92}.cell.before figcaption b::after{content:'  · reviewed';font-weight:600;color:${C.faint}}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.slot{background:${C.card};border-radius:14px;padding:10px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.slart{height:64px;display:flex;align-items:center;justify-content:center}.slot b{font:700 13px ${font}}.slot i{font:500 11.5px ${font};font-style:normal;color:${C.faint}}
+.slot.gap{background:transparent;box-shadow:inset 0 0 0 1.5px ${C.line};border-radius:14px}.slot.gap .slart span{width:46px;height:46px;border-radius:50%;border:2px dashed #C9C9D1;display:flex;align-items:center;justify-content:center;font:700 18px ${font};color:#B0B0B8}
 .more{display:flex;flex-direction:column;gap:14px}.more+.more{margin-top:18px}
 .more summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px}.more summary::-webkit-details-marker{display:none}
 .more summary h2{margin:0}.more summary h2::before{content:'▸ ';color:${C.faint}}.more[open] summary h2::before{content:'▾ '}
@@ -328,14 +339,20 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 4 — from your third review</h2>
-  <p>Six notes this time. Each set starts with the drawing the note was on, then the new options.</p>
+  <h2>The set so far</h2>
+  <p>One drawing per place in the app, from what you’ve approved. Two places are still open, and Sessions has a book approved with the calendar still in play.</p>
+  ${setSoFar()}
+</section>
+
+<section class="sec">
+  <h2>Round 5 — from your fourth review</h2>
+  <p>Two notes. Each set starts with the drawing the note was on, then the new options.</p>
   ${roundNow()}
 </section>
 
 <section class="sec">
   <h2>Approved</h2>
-  <p>Nine so far. Tap Approve again to take one back.</p>
+  <p>Thirteen so far. Tap Approve again to take one back.</p>
   <div class="grid">${APPROVED.map((k) => cell(k)).join('')}</div>
 </section>
 
