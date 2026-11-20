@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 
-const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoard', straddle: 'straddle', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
+const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleA', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
 const here = dirname(fileURLToPath(import.meta.url));
 const artifactAt = process.argv.includes('--artifact') ? process.argv[process.argv.indexOf('--artifact') + 1] : null;
@@ -47,6 +47,7 @@ const STATUS = {
   keep: { label: 'Kept', note: 'you liked it', bg: '#E6F4EA', fg: '#1D6B36' },
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
+  round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
 };
 
 const pill = (st, pick) =>
@@ -67,6 +68,21 @@ function cell(key) {
     ${REVIEW ? reviewBlock(key, s.name + (s.variant ? ' ' + s.variant : '')) : ''}
   </figure>`;
 }
+
+/* The owner's notes from the review, 20 November, quoted as written. */
+const ROUND2 = [
+  ['Table ante', 'put same chips (color) in 6 (or less) spots around the table', ['anteA', 'anteB']],
+  ['Straddle', 'dont use cards. if you will make a good looking setting with curved positioning of chips 9as on poker tanle) of one chips small blind, 2 chip big blind and 4 chip straddle. and try other options to show that logic (that will be visible in the format/size it will be applied in app)', ['straddleA', 'straddleB', 'straddleC', 'straddleD']],
+  ['Double-board bomb pot', 'the bomb looks good, dont need to change it. but lets also try the options with double board underneath', ['doubleBoardA', 'doubleBoardB', 'doubleBoardC']],
+];
+
+const roundTwo = () => ROUND2.map(([title, quote, keys]) => `
+  <div class="group">
+    <div class="ghead"><h3>${title}</h3></div>
+    <blockquote class="quote">“${quote}”</blockquote>
+    <div class="grid">${keys.map(cell).join('')}</div>
+    <div class="at40"><span>At 40 pt, as on the boosters list</span>${keys.map((k) => spot(k, 'light', { size: 40 })).join('')}${keys.map((k) => `<i>${spot(k, 'dark', { size: 40 })}</i>`).join('')}</div>
+  </div>`).join('');
 
 const group = (title, note, keys) => `
   <div class="group">
@@ -253,6 +269,9 @@ figcaption b{font:700 14px ${font}}.variant{font:600 12.5px ${font};color:${C.in
 .rules>div{background:${C.card};border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;counter-increment:r}
 .rules b{font:700 14px ${font}}.rules b::before{content:counter(r) '  ';color:${C.faint}}
 .open{display:flex;flex-direction:column;gap:10px;max-width:820px}
+.quote{margin:0;max-width:780px;font:500 14px/1.55 ${font};color:${C.ink};background:#FFF8EC;border-radius:12px;padding:10px 14px}
+.at40{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:${C.card};border-radius:14px;padding:10px 14px}
+.at40 span{font:600 12px ${font};color:${C.faint};flex-basis:100%}.at40 i{display:inline-flex;background:${C.darkCard};border-radius:8px;padding:2px}
 .open>div{border-left:3px solid #F2A23A;padding:4px 0 4px 14px}.open b{font:700 14px ${font};display:block;margin-bottom:2px}
 ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:${C.ink};color:#fff;border-radius:16px;padding:12px 16px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
 .rvbar b{font:800 15px ${font}}.rvbar .cnt{display:flex;gap:8px;flex-wrap:wrap}.rvbar .cnt span{font:700 12px ${font};padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.12)}
@@ -288,6 +307,12 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
+  <h2>Round 2 — from your review</h2>
+  <p>Approved in round 1: <b style="color:${C.ink}">Start a session, My stats, Rulings, Button game, 7-2 game</b>. Three came back needing work; here they are again, with your note above each. Not yet reviewed: The group, Sessions, Poker tools, Calculator, Boosters, Bomb pot and the Stand-up game — they are further down, unchanged.</p>
+  ${roundTwo()}
+</section>
+
+<section class="sec">
   <h2>Two families, and which is which</h2>
   <p>The app already has a line-icon set in <code>Icon.tsx</code>, matched path for path to the boards. It stays. Spots are a second family, for a different job, and the two never stand in for each other.</p>
   <div class="fam">
@@ -313,7 +338,7 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
   <p>Each drawing on the light tile and on the dark one. <b style="color:${C.ink}">Kept</b> is what you liked, redrawn into the system. <b style="color:${C.ink}">Redrawn</b> are the candidates for the three that weren’t working — two each. <b style="color:${C.ink}">New</b> fills the places the app will need one.</p>
   ${group('Home', 'the start card and the four tiles', ['session', 'group', 'sessionsA', 'sessionsB', 'stats', 'toolsA', 'toolsB'])}
   ${group('Poker tools', 'the three tiles', ['calculator', 'rulings', 'boosters'])}
-  ${group('Boosters', 'one per game, at the head of its sheet and on its row', ['bombPot', 'doubleBoard', 'straddle', 'ante', 'standUpA', 'standUpB', 'buttonGame', 'sevenTwo'])}
+  ${group('Boosters', 'one per game, at the head of its sheet and on its row · Table ante, Straddle and Double-board are in Round 2 above', ['bombPot', 'standUpA', 'standUpB', 'buttonGame', 'sevenTwo'])}
 </section>
 
 <section class="sec">
