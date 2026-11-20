@@ -48,6 +48,7 @@ const STATUS = {
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
   round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
+  round11: { label: 'Round 11', note: 'from your tenth review', bg: '#E6EEF5', fg: '#2B4E70' },
   round10: { label: 'Round 10', note: 'from your ninth review', bg: '#F1ECE4', fg: '#6B4E1F' },
   round9: { label: 'Round 9', note: 'from your eighth review', bg: '#E8F0E3', fg: '#3D6B1F' },
   round8: { label: 'Round 8', note: 'from your seventh review', bg: '#FFF4D6', fg: '#7A5A00' },
@@ -78,22 +79,22 @@ function cell(key, before = false) {
 }
 
 /*
- * The owner's note from the ninth review, 20 November, quoted as written.
+ * The owner's note from the tenth review, 20 November, quoted as written.
  * The first key is the drawing the note was left on; the rest answer it.
  */
 const ROUND = [
-  ['Poker tools', "chips not side by side but one slightly on top of anther ('s edge)", ['toolsV', 'toolsY', 'toolsZ', 'toolsAA']],
+  ['Poker tools', "like this. but fix the calc chip laout (the chip's face) and no table needed", ['toolsY', 'toolsAB', 'toolsAC', 'toolsAD']],
 ];
 const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'sessionsJ', 'straddleI', 'sessionsT'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
   ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT', 'and the book (J) is approved too: pick one'], ['My stats', 'stats'],
-  ['Poker tools', null, 'in Round 10'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
+  ['Poker tools', null, 'in Round 11'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
   ['Stand-up game', null, 'never marked'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...APPROVED, ...EARLIER, ...RETIRED]);
@@ -349,8 +350,8 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 </section>
 
 <section class="sec">
-  <h2>Round 10 — from your ninth review</h2>
-  <p>One note. One chip slides a little onto the other: the side resting on it lifts by a chip’s thickness and the far side stays on the table. (T, in Round 8, tilted the other way, which is why it looked wrong.)</p>
+  <h2>Round 11 — from your tenth review</h2>
+  <p>One note. The lying % chip now has the approved Calculator chip’s face: eight rim inserts out to the edge, the % inside the centre ring. The fire chip gets the same treatment. No table: each thing has its own small shadow. AB is the fix itself; AC and AD carry it to Z and AA from last round, for comparison.</p>
   ${roundNow()}
 </section>
 
