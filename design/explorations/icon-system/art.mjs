@@ -1207,6 +1207,64 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 11, 20 November: the owner's tenth review ───────────────────── */
+
+/*
+ * A chip lying face up with the SAME face as the approved standing chips
+ * (Calculator, Boosters): eight rim inserts running out to the edge, each as
+ * wide as the gap, and the mark inside the 0.6 r core. The older lying face
+ * (dashes stopping short of the rim, the mark spilling past the core) is what
+ * the owner asked to fix.
+ */
+function lyingFace(P, o, { cx, by, r, mat, glyph }) {
+  const m = P[mat], h = r * 0.36, yt = by - h;
+  let s = chip(P, { cx, by, r, h, mat, face: false, small: true, phase: 0 });
+  for (let i = 0; i < 8; i++) {
+    const c = rad(22.5 + i * 45);
+    s += faceDash(cx, yt, r, c - rad(11.25), c + rad(11.25), 0.8, 1, m.mark);
+  }
+  s += `<ellipse cx="${f(cx)}" cy="${f(yt)}" rx="${f(r * 0.6)}" ry="${f(r * 0.6 * K)}" fill="${m.core}"${o.small ? '' : ` stroke="${m.inlay}" stroke-width="1"`}/>`;
+  s += `<g transform="translate(${f(cx)} ${f(yt)}) scale(1 ${K})">${glyph(r)}</g>`;
+  return s;
+}
+const pctLying = (P, o, cx, by, r) => lyingFace(P, o, { cx, by, r, mat: 'bone', glyph: (rr) => `<g transform="scale(${f(rr / 24)})">${pct(P.ink.top)}</g>` });
+const fireLying = (P, o, cx, by, r) => lyingFace(P, o, { cx, by, r, mat: 'ink', glyph: (rr) => `<g transform="scale(${f(rr / 24)})">${flame(P, { cx: 0, by: 11, h: 22 })}</g>` });
+
+/** Each thing its own shadow: no table under the group. */
+const ownShadow = (P, x, y, w) => shadow(P, x, w, w * K * 0.9, y);
+
+function restingPair(P, o, { low, high, a, r1, r2, dx, front, card }) {
+  const b = touching(a, r1, r2, dx, front);
+  const x = b.x - 7, y = b.y - (r1 * 0.36) / 2;
+  const deg = Math.asin(Math.min(1, (r1 * 0.36) / (2 * r2))) * (180 / Math.PI) * 0.75;
+  return ownShadow(P, card.x + 2, card.by + 1, card.h * 0.42) + ownShadow(P, a.x, a.y + 0.5, r1 * 1.12) + ownShadow(P, b.x + 1, b.y + 0.5, r2 * 1.1) +
+    toolCard(P, o, card.x, card.by, card.h, -8) + low(a.x, a.y, r1) + tilt(deg, x + r2, b.y, high(x, y, r2));
+}
+
+Object.assign(SPOTS, {
+  toolsAB: {
+    name: 'Poker tools', variant: 'AB · Y with the calculator’s face, no table', where: 'Home · tile', status: 'round11',
+    draw: (P, o) => restingPair(P, o, {
+      low: (x, y, r) => pctLying(P, o, x, y, r), high: (x, y, r) => fireLying(P, o, x, y, r),
+      a: { x: 43, y: 88 }, r1: 18, r2: 17, dx: 28, front: false, card: { x: 28, by: 70, h: 42 },
+    }),
+  },
+  toolsAC: {
+    name: 'Poker tools', variant: 'AC · Z the same way', where: 'Home · tile', status: 'round11',
+    draw: (P, o) => restingPair(P, o, {
+      low: (x, y, r) => fireLying(P, o, x, y, r), high: (x, y, r) => pctLying(P, o, x, y, r),
+      a: { x: 43, y: 88 }, r1: 18, r2: 17, dx: 28, front: false, card: { x: 28, by: 70, h: 42 },
+    }),
+  },
+  toolsAD: {
+    name: 'Poker tools', variant: 'AD · AA the same way', where: 'Home · tile', status: 'round11',
+    draw: (P, o) => restingPair(P, o, {
+      low: (x, y, r) => pctLying(P, o, x, y, r), high: (x, y, r) => fireLying(P, o, x, y, r),
+      a: { x: 41, y: 80 }, r1: 17, r2: 17, dx: 27, front: true, card: { x: 27, by: 64, h: 40 },
+    }),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
