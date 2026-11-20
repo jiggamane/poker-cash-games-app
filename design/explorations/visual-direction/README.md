@@ -45,6 +45,6 @@ shipped copy except those listed under each direction as new.
 
 ## Follow-up
 
-`../screen-headers/` (20 November) redraws the top of the screen, which this
-study kept identical in all three directions: four header treatments on the same
-night, with H2 Rail recommended.
+`../screen-headers/` (20 November) is the header update: only the tops of the
+screens that change, drawn on the current app and on round two's two
+directions.
