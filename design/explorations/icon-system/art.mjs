@@ -1101,6 +1101,34 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 8, 20 November: the owner's seventh review ───────────────────── */
+
+/* N's two chips, lying the way chips lie on a table, faces up. */
+const pctFlat = (P, o, cx, by, r) => chip(P, { cx, by, r, h: r * 0.36, mat: 'bone', small: o.small, phase: 11.25, mark: onFace(`<g transform="scale(${f(r / 19)})">${pct(P.ink.top)}</g>`) });
+const fireFlat = (P, o, cx, by, r) => chip(P, { cx, by, r, h: r * 0.36, mat: 'ink', small: o.small, phase: 11.25, mark: onFace(`<g transform="scale(${f(r / 19)})">${flame(P, { cx: 0, by: 10, h: 20 })}</g>`) });
+const tilt = (deg, x, y, svg) => `<g transform="rotate(${deg} ${x} ${y})">${svg}</g>`;
+
+Object.assign(SPOTS, {
+  toolsS: {
+    name: 'Poker tools', variant: 'S · the chips side by side', where: 'Home · tile', status: 'round8',
+    draw: (P, o) =>
+      shadow(P, 50, 38) + toolCard(P, o, 28, 70, 42, -8) +
+      fireFlat(P, o, 70, 80, 17) + pctFlat(P, o, 44, 88, 18),
+  },
+  toolsT: {
+    name: 'Poker tools', variant: 'T · the fire chip resting on the % chip’s edge', where: 'Home · tile', status: 'round8',
+    draw: (P, o) =>
+      shadow(P, 50, 38) + toolCard(P, o, 28, 70, 42, -8) +
+      pctFlat(P, o, 43, 88, 18) + tilt(-11, 60, 84, fireFlat(P, o, 69, 82, 17)),
+  },
+  toolsU: {
+    name: 'Poker tools', variant: 'U · side by side, the other way', where: 'Home · tile', status: 'round8',
+    draw: (P, o) =>
+      shadow(P, 50, 38) + toolCard(P, o, 28, 70, 42, -8) +
+      pctFlat(P, o, 70, 80, 17) + fireFlat(P, o, 44, 88, 18),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
