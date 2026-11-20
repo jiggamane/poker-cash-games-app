@@ -1265,6 +1265,56 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 12, 20 November: the owner's eleventh review ─────────────────── */
+
+/* Marks for a stood-up chip's face, drawn for a 21-point chip and scaled to it. */
+const UPMARK = {
+  arrow: (c) => `<path d="M0 6V-6M-5 -1.5L0 -6.5L5 -1.5" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`,
+  chunky: (c) => `<path d="M0 -9L8.5 0H3.6V8.5H-3.6V0H-8.5Z" fill="${c}" stroke="${c}" stroke-width="1.2" stroke-linejoin="round"/>`,
+  headed: (c) => `<path d="M0 8.5V-1" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M-6.5 0L0 -8.5L6.5 0Z" fill="${c}" stroke="${c}" stroke-width="1.4" stroke-linejoin="round"/>`,
+  chevron: (c) => `<path d="M-7.5 3.5L0 -4L7.5 3.5" fill="none" stroke="${c}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>`,
+  boost: (c) => `<path d="M-6.5 1.5L0 -5L6.5 1.5M-6.5 8L0 1.5L6.5 8" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>`,
+  bolt: (c) => `<path d="M2.4 -10L-6.5 1.8H-0.6L-2.4 10L6.5 -1.8H0.6Z" fill="${c}" stroke="${c}" stroke-width="1" stroke-linejoin="round"/>`,
+};
+const upMark = (P, kind) => (cx, cy, r) => `<g transform="translate(${f(cx)} ${f(cy)}) scale(${f(r / 21)})">${UPMARK[kind](P.red.mark)}</g>`;
+
+/** Stand-up game A's layout — a short ink stack, one red chip stood up beside it — with a choice of mark. */
+const standUpLayout = (P, o, kind) =>
+  shadow(P, 50, 34) +
+  stack(P, { cx: 34, by: GROUND - 1, r: 15, h: 5.5, mats: ['ink', 'ink'], wobble: [0, 0.8], small: true }) +
+  standingChip(P, { cx: 61, by: GROUND, r: 21, mat: 'red', t: 6, small: o.small, glyph: upMark(P, kind) });
+
+Object.assign(SPOTS, {
+  standUpC: { name: 'Stand-up game', variant: 'C · a solid arrow', where: 'Boosters', status: 'round12', draw: (P, o) => standUpLayout(P, o, 'chunky') },
+  standUpD: { name: 'Stand-up game', variant: 'D · boost, two chevrons', where: 'Boosters', status: 'round12', draw: (P, o) => standUpLayout(P, o, 'boost') },
+  standUpE: { name: 'Stand-up game', variant: 'E · boost, a bolt', where: 'Boosters', status: 'round12', draw: (P, o) => standUpLayout(P, o, 'bolt') },
+  standUpF: {
+    name: 'Stand-up game', variant: 'F · one chevron, the chip bigger', where: 'Boosters', status: 'round12',
+    draw: (P, o) =>
+      shadow(P, 52, 34) +
+      stack(P, { cx: 25, by: GROUND - 2, r: 12, h: 5, mats: ['ink'], small: true }) +
+      standingChip(P, { cx: 58, by: GROUND + 1, r: 26, mat: 'red', t: 7, small: o.small, glyph: upMark(P, 'chevron') }),
+  },
+  standUpG: {
+    name: 'Stand-up game', variant: 'G · stood up on the stack', where: 'Boosters', status: 'round12',
+    draw: (P, o) =>
+      shadow(P, 48, 27) +
+      stack(P, { cx: 47, by: GROUND + 1, r: 21, h: 6.5, mats: ['ink', 'ink', 'ink'], wobble: [0, 0.8, -0.6], small: true }) +
+      standingChip(P, { cx: 46, by: GROUND + 1 - 19.5 + 3.5, r: 18, mat: 'red', t: 5, small: o.small, glyph: upMark(P, 'headed') }),
+  },
+  standUpH: {
+    name: 'Stand-up game', variant: 'H · the chip alone', where: 'Boosters', status: 'round12',
+    draw: (P, o) => shadow(P, 49, 26) + standingChip(P, { cx: 46, by: GROUND + 1, r: 28, mat: 'red', t: 7, small: o.small, glyph: upMark(P, 'headed') }),
+  },
+  standUpI: {
+    name: 'Stand-up game', variant: 'I · the other way round', where: 'Boosters', status: 'round12',
+    draw: (P, o) =>
+      shadow(P, 48, 36) +
+      stack(P, { cx: 69, by: GROUND - 2, r: 14, h: 5.5, mats: ['ink', 'ink', 'ink'], wobble: [0, -0.8, 0.6], small: true }) +
+      standingChip(P, { cx: 35, by: GROUND + 1, r: 22, mat: 'red', t: 6, small: o.small, glyph: upMark(P, 'arrow') }),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
