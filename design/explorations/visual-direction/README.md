@@ -42,3 +42,9 @@ Open `index.html` in a browser. It is self-contained apart from Google Fonts.
 Every figure is the seeded night (`apps/mobile/src/data/sampleNight.ts`) as
 settled in `packages/core/src/rev15-night.test.ts`. Strings in the mockups are
 shipped copy except those listed under each direction as new.
+
+## Follow-up
+
+`../screen-headers/` (20 November) redraws the top of the screen, which this
+study kept identical in all three directions: four header treatments on the same
+night, with H2 Rail recommended.

@@ -1,0 +1,1358 @@
+<title>Poker Club Screen Headers</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700;800&family=Gloock&family=Instrument+Sans:wght@400;500;600;700&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap">
+<style>
+:root {
+  --bg: #ECEBE7; --panel: #F6F5F2; --fg: #1A1918; --mut: #5E5A54;
+  --line: rgba(26, 25, 24, .13); --tag: #1A1918; --tagfg: #F6F5F2;
+  --body: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --label: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111110; --panel: #1A1917; --fg: #ECEAE5; --mut: #A29E96;
+    --line: rgba(236, 234, 229, .13); --tag: #ECEAE5; --tagfg: #111110;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111110; --panel: #1A1917; --fg: #ECEAE5; --mut: #A29E96;
+  --line: rgba(236, 234, 229, .13); --tag: #ECEAE5; --tagfg: #111110;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 16.5px/1.6 var(--body); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2 { text-wrap: balance; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+code { font: 500 .86em var(--label); }
+.label { font: 500 12px/1.4 var(--label); letter-spacing: .04em; color: var(--mut); text-transform: uppercase; }
+header.top { padding-block: 64px 36px; display: grid; gap: 20px; }
+header.top h1 { font-size: clamp(38px, 6vw, 68px); line-height: .98; letter-spacing: -.035em; font-weight: 800; max-width: 16ch; }
+header.top .lede { font-size: clamp(17px, 2vw, 20px); line-height: 1.5; color: var(--mut); max-width: 58ch; }
+section { padding-block: 44px; border-top: 1px solid var(--line); }
+section > .wrap { display: grid; gap: 20px; }
+.head { display: grid; gap: 10px; }
+.head h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.05; letter-spacing: -.028em; font-weight: 750; }
+.head .tagline { font-size: clamp(17px, 2vw, 20px); line-height: 1.45; color: var(--mut); max-width: 60ch; }
+.letter { font: 500 13px/1 var(--label); color: var(--mut); letter-spacing: .06em; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 28px; }
+.notes div { border-top: 1.5px solid var(--fg); padding-top: 10px; font-size: 15px; line-height: 1.55; color: var(--mut); }
+.notes b { display: block; color: var(--fg); font-weight: 650; margin-bottom: 2px; }
+.verdict { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: clamp(22px, 4vw, 36px); display: grid; gap: 14px; }
+.verdict p { font-size: 17.5px; line-height: 1.55; }
+.verdict p.big { font-size: clamp(20px, 2.3vw, 24px); line-height: 1.38; letter-spacing: -.012em; font-weight: 600; max-width: 44ch; }
+.ph figcaption { font: 500 12px/1.4 var(--label); color: var(--mut); }
+.phones { --s: .6; display: flex; gap: 22px; overflow-x: auto; padding: 6px 6px 20px; margin-inline: -6px; scroll-snap-type: x proximity; }
+.ph { margin: 0; flex: none; display: grid; gap: 12px; scroll-snap-align: start; }
+@media (max-width: 720px) { .phones { --s: .56; } }
+footer { padding-block: 36px 72px; border-top: 1px solid var(--line); }
+footer p { font-size: 14px; color: var(--mut); max-width: 84ch; }
+
+/* ═══ PHONES — shared ═══════════════════════════════════════════════════ */
+.phone {
+  width: 390px; height: 844px; position: relative; overflow: hidden; border-radius: 54px;
+  transform: scale(var(--s)); transform-origin: 0 0;
+  margin-right: calc(390px * (var(--s) - 1)); margin-bottom: calc(844px * (var(--s) - 1));
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .55), 0 0 0 9px #0c0c0c, 0 0 0 10px rgba(255, 255, 255, .08), 0 50px 80px -30px rgba(0, 0, 0, .6);
+  background: var(--g); color: var(--t); font-family: var(--ui);
+  -webkit-font-smoothing: antialiased; line-height: 1.25;
+}
+.ph { padding: 10px; width: calc(390px * var(--s) + 20px); }
+.sb { height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 8px 34px 0 42px; font: 600 17px/1 -apple-system, "SF Pro Text", Figtree, sans-serif; color: var(--t); position: relative; z-index: 4; }
+.sb-r { display: flex; gap: 7px; align-items: center; }
+.hi { position: absolute; bottom: 9px; left: 50%; width: 140px; height: 5px; margin-left: -70px; border-radius: 3px; background: var(--t); opacity: .9; z-index: 9; }
+.phone .win { color: var(--win); }
+.phone .loss { color: var(--loss); }
+
+/* ═══ A · Sharpened ═════════════════════════════════════════════════════ */
+.phone.a { --ui: -apple-system, "SF Pro Text", "SF Pro Display", Figtree, system-ui, sans-serif; }
+.phone.a.dark {
+  --g: #0E0D0C; --s1: #191816; --s2: #24221F; --t: #F7F5F0; --m: #9A958C; --d: #8A857C;
+  --hl: rgba(247, 240, 228, .09); --hl2: rgba(247, 240, 228, .24);
+  --win: #6FCF97; --loss: #F0705C; --winw: rgba(111, 207, 151, .13); --lossw: rgba(240, 112, 92, .12); --wint: rgba(111, 207, 151, .14);
+  --fill: #F7F5F0; --onfill: #0E0D0C; --btnhl: rgba(255, 255, 255, .7); --top: rgba(255, 250, 240, .07);
+  --anno: #8C8578; --anno2: #6E6A62; --winwS: rgba(111, 207, 151, .24); --losswS: rgba(240, 112, 92, .22);
+}
+.phone.a.light {
+  --g: #FBFAF8; --s1: #F2F0EC; --s2: #E7E4DF; --t: #141311; --m: #6A665F; --d: #77736B;
+  --hl: rgba(20, 19, 17, .09); --hl2: rgba(20, 19, 17, .26);
+  --win: #0A7A3D; --loss: #B03A28; --winw: rgba(10, 122, 61, .11); --lossw: rgba(176, 58, 40, .10); --wint: rgba(10, 122, 61, .12);
+  --fill: #141311; --onfill: #FBFAF8; --btnhl: rgba(255, 255, 255, .14); --top: rgba(255, 255, 255, .9);
+  --anno: #6E6455; --anno2: #8A8172; --winwS: rgba(10, 122, 61, .16); --losswS: rgba(176, 58, 40, .15);
+}
+.a-pad { padding: 18px 24px 0; }
+.a-pad.tight { padding-top: 6px; }
+.a-eyebrow { font-size: 14px; font-weight: 500; color: var(--m); }
+.a-h1 { font-size: 36px; font-weight: 700; letter-spacing: -.035em; line-height: 1.08; margin-top: 4px; }
+.a-h1.s { font-size: 34px; margin-top: 0; }
+.a-start { margin-top: 28px; background: var(--fill); color: var(--onfill); border-radius: 22px; padding: 22px 20px 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: inset 0 1px 0 var(--btnhl), 0 22px 40px -22px rgba(0, 0, 0, .9); }
+.a-start-t { font-size: 23px; font-weight: 700; letter-spacing: -.025em; }
+.a-start-m { font-size: 14px; font-weight: 500; opacity: .6; margin-top: 6px; }
+.a-start-go { display: flex; flex: none; }
+.a-dest { margin-top: 18px; }
+.a-dest-r { display: flex; align-items: center; gap: 16px; height: 68px; border-bottom: 1px solid var(--hl); font-size: 22px; font-weight: 600; letter-spacing: -.025em; }
+.a-dest-r:last-child { border-bottom: 0; }
+.a-dest-i { color: var(--m); display: flex; }
+.a-hdock, .b-hdock, .c-hdock { position: absolute; left: 24px; right: 24px; bottom: 32px; display: flex; gap: 12px; align-items: center; }
+.a-pill, .b-pill, .c-pill { height: 50px; padding: 0 20px 0 16px; border-radius: 25px; background: var(--s1); display: flex; align-items: center; gap: 9px; font-size: 15.5px; font-weight: 600; }
+.a-round, .b-round, .c-round { width: 50px; height: 50px; border-radius: 50%; background: var(--s1); display: grid; place-items: center; }
+.a-round.push, .b-round.push, .c-round.push { margin-left: auto; }
+
+.a-nav, .b-nav { display: flex; align-items: center; gap: 14px; padding: 6px 24px 0; height: 60px; }
+.a-back, .b-back { width: 42px; height: 42px; border-radius: 50%; background: var(--s1); display: grid; place-items: center; flex: none; }
+.a-title { font-size: 34px; font-weight: 700; letter-spacing: -.035em; }
+.a-live, .c-live { margin-left: auto; height: 32px; padding: 0 13px; border-radius: 16px; background: var(--wint); color: var(--win); display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.a-live i, .c-live i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.a-sub, .b-sub { padding: 2px 24px 0 80px; font-size: 14px; color: var(--m); }
+.a-sub b, .b-sub b { color: var(--t); font-weight: 500; }
+.a-hero { display: flex; justify-content: space-between; align-items: flex-end; padding: 30px 24px 20px; }
+.a-lbl { font-size: 13.5px; font-weight: 600; color: var(--m); }
+.a-fig { font-size: 62px; font-weight: 700; letter-spacing: -.045em; line-height: 1; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.a-hero-r { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; font-size: 14px; font-weight: 500; color: var(--m); padding-bottom: 6px; font-variant-numeric: tabular-nums; }
+.a-hero-r .d { color: var(--d); font-weight: 400; }
+.a-sec { padding: 16px 24px 2px; font-size: 14px; font-weight: 600; color: var(--m); }
+.a-sec span { color: var(--d); font-weight: 500; margin-left: 5px; }
+.a-row { position: relative; display: flex; justify-content: space-between; align-items: center; height: 56px; margin: 0 24px; }
+.a-name { font-size: 18px; font-weight: 500; }
+.a-name small { font-size: 13px; color: var(--d); margin-left: 8px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.a-row.out .a-name { color: var(--m); }
+.a-amt { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.a-rule { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--hl); }
+.a-rule i { position: absolute; left: 0; top: -1px; height: 3px; border-radius: 2px; background: var(--t); opacity: .34; }
+.a-rule i.w { background: var(--win); opacity: .75; }
+.a-dock { position: absolute; left: 8px; right: 8px; bottom: 0; padding: 18px 16px 36px; background: var(--s1); border-radius: 30px 30px 46px 46px; box-shadow: inset 0 1px 0 var(--top), 0 -24px 40px -16px rgba(0, 0, 0, .35); }
+.a-dock-h, .b-dock-h, .c-dock-h { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: var(--m); padding: 0 8px 16px; }
+.a-dock-h em, .b-dock-h em, .c-dock-h em { margin-left: auto; font-style: normal; font-weight: 400; font-size: 13px; color: var(--d); }
+.a-dock-b, .b-dock-b, .c-dock-b { display: flex; gap: 12px; }
+.a-btn { flex: 1; height: 64px; border-radius: 18px; background: var(--fill); color: var(--onfill); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 20px; font-weight: 700; letter-spacing: -.01em; box-shadow: inset 0 1px 0 var(--btnhl); }
+.a-btn2, .b-btn2, .c-btn2 { width: 108px; height: 64px; border-radius: 18px; border: 1.5px solid var(--hl2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 14px; font-weight: 600; }
+.a-meta, .b-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 14px; color: var(--m); }
+.a-view, .b-view { height: 34px; padding: 0 12px; border-radius: 10px; background: var(--s1); color: var(--t); font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.a-list { padding: 14px 14px 0; }
+.a-res { position: relative; padding: 11px 12px 11px 10px; }
+.a-wash { position: absolute; right: 0; top: 3px; bottom: 3px; border-radius: 12px; }
+.a-wash.win { background: linear-gradient(to left, var(--winwS), transparent); }
+.a-wash.loss { background: linear-gradient(to left, var(--losswS), transparent); }
+.a-res-1 { position: relative; display: flex; align-items: baseline; gap: 12px; }
+.a-rank { width: 14px; font-size: 14px; color: var(--d); font-variant-numeric: tabular-nums; }
+.a-res .a-name { font-size: 19px; font-weight: 600; flex: 1; }
+.a-res .a-amt { font-size: 21px; font-weight: 700; }
+.a-terms, .b-terms { position: relative; display: flex; flex-wrap: wrap; gap: 4px 13px; margin: 6px 0 0 26px; font-size: 13px; color: var(--anno); font-variant-numeric: tabular-nums; }
+.a-terms span, .b-terms span { display: inline-flex; align-items: center; gap: 4px; }
+.a-terms svg, .b-terms svg { color: var(--anno2); }
+.a-take, .b-take { display: inline-flex; gap: 11px; }
+.a-terms b, .b-terms b { font-weight: 600; color: var(--m); }
+.a-foot, .b-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 44px 24px 36px; background: linear-gradient(to bottom, transparent, var(--g) 42%); z-index: 3; }
+.a-btn3, .b-btn3 { height: 58px; border-radius: 18px; border: 1.5px solid var(--hl2); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 700; background: var(--g); }
+
+/* ═══ B · Card Room ═════════════════════════════════════════════════════ */
+.phone.b { --ui: Figtree, system-ui, sans-serif; --disp: Gloock, "Bodoni Moda", Didot, Georgia, serif; }
+.phone.b.dark {
+  --g: #13110E; --s1: #1D1A16; --s2: #2A2621; --t: #F2EADB; --m: #A89E8D; --d: #958B7A;
+  --hl: rgba(242, 234, 219, .10); --hl2: rgba(242, 234, 219, .26);
+  --win: #7DD3A2; --loss: #F27A66; --wint: rgba(125, 211, 162, .14);
+  --card: #F4ECDD; --card2: #E7DCC6; --ink: #1A1610; --inkm: #6B6255; --cardwin: #0E7340;
+  --anno: #9A8F7C; --anno2: #776E60; --top: rgba(255, 245, 225, .06);
+}
+.phone.b.light {
+  --g: #FAF8F4; --s1: #F1EDE6; --s2: #E6E0D6; --t: #17130E; --m: #6E6558; --d: #7A7164;
+  --hl: rgba(23, 19, 14, .10); --hl2: rgba(23, 19, 14, .28);
+  --win: #0A7A3D; --loss: #B03A28; --wint: rgba(10, 122, 61, .12);
+  --card: #221D16; --card2: #17130E; --ink: #F6F1E7; --inkm: #B5AC9E; --cardwin: #7DD3A2;
+  --anno: #7A6F5E; --anno2: #9A9080; --top: rgba(255, 255, 255, .8);
+}
+.b-pad { padding: 14px 24px 0; }
+.b-pad.tight { padding-top: 4px; }
+.b-eyebrow { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: var(--m); }
+.b-eyebrow svg { color: var(--t); opacity: .8; }
+.b-h1 { font-family: var(--disp); font-weight: 400; font-size: 42px; line-height: 1.02; letter-spacing: -.012em; margin-top: 14px; }
+.b-h1.s { font-size: 36px; margin-top: 2px; }
+.b-card, .b-result { position: relative; border-radius: 18px; background: linear-gradient(180deg, var(--card), var(--card2)); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), 0 26px 44px -22px rgba(0, 0, 0, .9); }
+.b-card::after, .b-result::after { content: ""; position: absolute; inset: 7px; border-radius: 12px; border: 1px solid currentColor; opacity: .17; pointer-events: none; }
+.b-card { margin-top: 26px; padding: 24px 26px 26px; }
+.b-idx { position: absolute; display: flex; color: var(--ink); }
+.b-idx.tl { top: 16px; left: 16px; }
+.b-idx.br { bottom: 16px; right: 16px; transform: rotate(180deg); }
+.b-card-t { font-family: var(--disp); font-size: 31px; line-height: 1.05; margin-top: 18px; }
+.b-card-m { font-size: 14.5px; font-weight: 500; color: var(--inkm); margin-top: 8px; }
+.b-card-go { position: absolute; right: 18px; top: 18px; width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: var(--card); display: grid; place-items: center; }
+.b-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.b-tile { height: 102px; border-radius: 16px; border: 1px solid var(--hl); padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; color: var(--m); }
+.b-tile span { font-size: 19px; font-weight: 650; color: var(--t); letter-spacing: -.015em; }
+.b-pill, .b-round { box-shadow: inset 0 0 0 1px var(--hl); }
+.b-back { box-shadow: inset 0 0 0 1px var(--hl); }
+.b-title { font-family: var(--disp); font-size: 40px; line-height: 1; letter-spacing: -.01em; }
+.b-live { margin-left: auto; height: 32px; padding: 0 12px 0 9px; border-radius: 16px; background: var(--wint); color: var(--win); display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.b-hero { position: relative; margin: 22px 20px 6px; padding: 22px 24px 20px; border-radius: 18px; background: var(--s1); display: flex; justify-content: space-between; align-items: flex-end; box-shadow: inset 0 1px 0 var(--top); }
+.b-hero::after { content: ""; position: absolute; inset: 6px; border-radius: 13px; border: 1px solid var(--hl); pointer-events: none; }
+.b-lbl { font-size: 13.5px; font-weight: 600; color: var(--m); }
+.b-fig { font-family: var(--disp); font-size: 58px; line-height: 1; margin-top: 10px; letter-spacing: -.01em; font-variant-numeric: lining-nums; }
+.b-hero-r { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; font-size: 14px; font-weight: 500; color: var(--m); padding-bottom: 6px; font-variant-numeric: tabular-nums; }
+.b-hero-r .d { color: var(--d); font-weight: 400; }
+.b-sec { display: flex; align-items: center; gap: 12px; padding: 14px 24px 0; font-size: 13.5px; font-weight: 600; color: var(--m); }
+.b-sec i { flex: 1; height: 1px; background: var(--hl); }
+.b-row { display: flex; align-items: center; gap: 14px; height: 58px; margin: 0 24px; border-bottom: 1px solid var(--hl); }
+.b-row:has(+ .b-sec), .b-row:has(+ .b-dock) { border-bottom: 0; }
+.b-tok { position: relative; width: 38px; height: 38px; flex: none; display: grid; place-items: center; color: var(--m); }
+.b-tok svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.b-tok b { font-family: var(--disp); font-weight: 400; font-size: 13.5px; color: var(--t); background: var(--s2); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; letter-spacing: .02em; }
+.b-tok.dim { opacity: .5; }
+.b-tok.sm { width: 32px; height: 32px; }
+.b-tok.sm b { width: 24px; height: 24px; font-size: 11.5px; }
+.b-tok.ink { color: var(--inkm); width: 44px; height: 44px; }
+.b-tok.ink b { background: color-mix(in srgb, var(--ink) 9%, transparent); color: var(--ink); width: 33px; height: 33px; font-size: 15px; }
+.b-name { flex: 1; font-size: 17.5px; font-weight: 600; }
+.b-name small { display: block; font-size: 12.5px; color: var(--d); font-weight: 400; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.b-row.out .b-name { color: var(--m); }
+.b-amt { font-size: 19.5px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.005em; }
+.b-dock { position: absolute; left: 8px; right: 8px; bottom: 0; padding: 18px 16px 36px; background: var(--s1); border-radius: 30px 30px 46px 46px; box-shadow: inset 0 0 0 1px var(--hl), 0 -24px 40px -16px rgba(0, 0, 0, .4); }
+.b-btn { flex: 1; height: 64px; border-radius: 16px; background: linear-gradient(180deg, var(--card), var(--card2)); color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 20px; font-weight: 700; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
+.b-btn2 { border-radius: 16px; }
+.b-meta { margin-top: 10px; }
+.b-view { box-shadow: inset 0 0 0 1px var(--hl); }
+.b-result { margin-top: 18px; padding: 20px 22px 16px; }
+.b-result .b-idx.tl { top: 13px; left: 13px; }
+.b-result .b-idx.br { bottom: 13px; right: 13px; }
+.b-result-1 { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.b-result-n { font-family: var(--disp); font-size: 30px; flex: 1; }
+.b-result-f { font-family: var(--disp); font-size: 36px; color: var(--cardwin); }
+.b-result-2 { display: flex; gap: 18px; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent); font-size: 13px; font-weight: 500; color: var(--inkm); font-variant-numeric: tabular-nums; }
+.b-list { padding: 8px 24px 0; }
+.b-res { padding: 10px 0; border-bottom: 1px solid var(--hl); }
+.b-res-1 { display: flex; align-items: center; gap: 12px; }
+.b-rank { width: 12px; font-family: var(--disp); font-size: 15px; color: var(--d); }
+.b-res .b-amt { font-size: 20px; }
+.b-terms { margin-left: 56px; margin-top: 3px; }
+
+/* ═══ C · Ledger ════════════════════════════════════════════════════════ */
+.phone.c { --ui: "Instrument Sans", system-ui, sans-serif; --mono: "DM Mono", ui-monospace, Menlo, monospace; background: var(--paper); color: var(--ink); }
+.phone.c.light {
+  --paper: #F3F3EF; --sheet: #FFFFFF; --ink: #1B1E28; --t: #1B1E28; --m: #626775; --d: #6C717E; --s1: #FFFFFF;
+  --rule: rgba(27, 30, 40, .10); --rule2: rgba(27, 30, 40, .72); --margin: rgba(27, 30, 40, .17);
+  --win: #0A7A3D; --loss: #B03A28; --wint: rgba(10, 122, 61, .10); --off: #6B5A3A;
+  --fill: #1B1E28; --onfill: #F3F3EF; --g: #F3F3EF;
+}
+.phone.c.dark {
+  --paper: #14161B; --sheet: #1C1F26; --ink: #E9EAE4; --t: #E9EAE4; --m: #9399A6; --d: #8D93A0; --s1: #1C1F26;
+  --rule: rgba(233, 234, 228, .10); --rule2: rgba(233, 234, 228, .62); --margin: rgba(233, 234, 228, .15);
+  --win: #6FCF97; --loss: #F0705C; --wint: rgba(111, 207, 151, .13); --off: #CFC6AF;
+  --fill: #E9EAE4; --onfill: #14161B; --g: #14161B;
+}
+.c-margin { position: absolute; top: 54px; bottom: 0; left: 74px; width: 4px; border-left: 1px solid var(--margin); border-right: 1px solid var(--margin); }
+.c-pad { position: relative; padding: 18px 24px 0 90px; }
+.c-pad.tight { padding-top: 4px; }
+.c-eyebrow { font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-h1 { font-size: 40px; font-weight: 600; letter-spacing: -.032em; line-height: 1.04; margin-top: 8px; }
+.c-h1.s { font-size: 32px; margin-top: 0; }
+.c-start { position: relative; margin: 28px -8px 0 -74px; background: var(--sheet); border-radius: 6px; padding: 20px 20px 22px 74px; box-shadow: 0 0 0 1px var(--rule), 0 16px 30px -18px rgba(27, 30, 40, .4); }
+.c-start-t { font-size: 24px; font-weight: 600; letter-spacing: -.02em; }
+.c-start-m { font-family: var(--mono); font-size: 12.5px; color: var(--m); margin-top: 8px; }
+.c-start-go { position: absolute; left: 22px; top: 22px; color: var(--ink); display: flex; }
+.c-dest { margin-top: 16px; }
+.c-dest-r { display: flex; justify-content: space-between; align-items: center; height: 62px; border-bottom: 1px solid var(--rule); font-size: 22px; font-weight: 550; letter-spacing: -.022em; }
+.c-dest-r svg { color: var(--m); }
+.c-pill, .c-round { background: var(--sheet); box-shadow: 0 0 0 1px var(--rule); }
+.c-nav { position: relative; display: flex; align-items: center; gap: 24px; padding: 6px 24px 0; height: 60px; }
+.c-back { width: 42px; height: 42px; border-radius: 50%; background: var(--sheet); box-shadow: 0 0 0 1px var(--rule); display: grid; place-items: center; flex: none; }
+.c-title { font-size: 36px; font-weight: 600; letter-spacing: -.03em; }
+.c-live { font-family: var(--mono); font-weight: 500; font-size: 13.5px; }
+.c-sub { padding: 2px 24px 0 90px; font-size: 14px; color: var(--m); }
+.c-sub b { color: var(--ink); font-weight: 500; }
+.c-hero { padding: 26px 24px 16px 90px; }
+.c-lbl { font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-fig { font-family: var(--mono); font-size: 56px; font-weight: 500; letter-spacing: -.055em; line-height: 1; margin-top: 8px; }
+.c-hero-r { display: flex; gap: 16px; margin-top: 12px; font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-cols, .c-row, .c-sum, .c-res-1 { display: grid; grid-template-columns: 50px minmax(0, 1fr) auto; column-gap: 16px; padding: 0 24px; align-items: center; }
+.c-cols { padding-top: 14px; padding-bottom: 7px; border-bottom: 1px solid var(--rule2); font-family: var(--mono); font-size: 11.5px; color: var(--m); }
+.c-cols span:nth-child(2) { font-family: var(--ui); font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.c-cols.gap { margin-top: 10px; }
+.c-row { height: 47px; border-bottom: 1px solid var(--rule); }
+.c-t { font-family: var(--mono); font-size: 13px; color: var(--m); font-variant-numeric: tabular-nums; }
+.c-name { font-size: 18px; font-weight: 550; }
+.c-name small { font-family: var(--mono); font-size: 12px; color: var(--m); margin-left: 8px; font-weight: 400; }
+.c-row.out .c-name { color: var(--m); }
+.c-amt { font-family: var(--mono); font-size: 19px; font-weight: 500; text-align: right; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.c-sum { height: 46px; font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-sum .c-amt { color: var(--ink); border-top: 1px solid var(--rule2); padding-top: 9px; min-width: 96px; align-self: start; margin-top: -1px; }
+.c-dbl { display: block; width: 96px; height: 4px; margin: -9px 24px 0 auto; border-top: 1px solid var(--rule2); border-bottom: 1px solid var(--rule2); }
+.c-dock { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; background: var(--sheet); box-shadow: 0 -1px 0 var(--rule), 0 -20px 30px -20px rgba(0, 0, 0, .18); padding: 16px 16px 36px; }
+.c-btn { flex: 1; height: 62px; border-radius: 12px; background: var(--fill); color: var(--onfill); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 20px; font-weight: 650; }
+.c-btn2 { border-radius: 12px; border: 1.5px solid var(--ink); }
+.c-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 8px; font-family: var(--mono); font-size: 12.5px; color: var(--m); }
+.c-view { font-family: var(--ui); height: 34px; padding: 0 12px; border-radius: 8px; background: var(--sheet); box-shadow: 0 0 0 1px var(--rule); color: var(--ink); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.c-list { position: relative; margin-top: 14px; border-top: 1px solid var(--rule2); }
+.c-res { padding: 9px 0 10px; border-bottom: 1px solid var(--rule); }
+.c-res-1 { align-items: baseline; }
+.c-res .c-name { font-size: 18px; font-weight: 600; }
+.c-terms { margin: 4px 24px 0 90px; font-family: var(--mono); font-size: 11.5px; color: var(--m); letter-spacing: -.01em; }
+.c-terms { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.c-terms span { white-space: nowrap; }
+.c-ded { display: grid; grid-template-columns: 1fr auto; padding: 22px 24px 4px 90px; font-weight: 600; font-size: 15px; }
+.c-ded .c-amt { font-size: 15px; color: var(--off); }
+.c-dedr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; padding: 5px 24px 5px 90px; font-size: 14px; align-items: baseline; }
+.c-dedr em { font-style: normal; color: var(--m); font-size: 12.5px; }
+.c-dedr .c-amt { font-size: 14px; color: var(--off); }
+.c-stampw { display: flex; justify-content: flex-end; padding: 16px 34px 0; }
+.c-stamp { transform: rotate(-7deg); border: 2.5px solid var(--ink); border-radius: 9px; padding: 7px 14px 6px; text-align: center; color: var(--ink); opacity: .62; font-family: var(--mono); }
+.c-stamp b { display: block; font-size: 18px; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; margin-right: -.24em; }
+.c-stamp span { display: block; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; margin-top: 4px; border-top: 1.5px solid currentColor; padding-top: 4px; }
+.c-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 24px 36px; background: linear-gradient(to bottom, transparent, var(--paper) 40%); z-index: 3; }
+.c-btn3 { height: 58px; border-radius: 12px; border: 1.5px solid var(--ink); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 650; background: var(--sheet); }
+
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+
+
+/* ═══ HEADERS ═══════════════════════════════════════════════════════════ */
+.phone { isolation: isolate; }
+
+/* H1 · Lamp ─ a pool of light above the title, grain in it, falling off by row two. */
+.h-lamp { position: absolute; left: 0; right: 0; top: 0; height: 470px; z-index: -1; pointer-events: none;
+  background: radial-gradient(115% 72% at 50% -8%, var(--lamp) 0%, transparent 72%);
+  -webkit-mask: linear-gradient(#000 55%, transparent); mask: linear-gradient(#000 55%, transparent); }
+.h-lamp::after { content: ""; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'160'%20height%3D'160'%3E%3Cfilter%20id%3D'n'%3E%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'.9'%20numOctaves%3D'2'%20stitchTiles%3D'stitch'%2F%3E%3CfeColorMatrix%20values%3D'0%200%200%200%20.5%20%200%200%200%200%20.5%20%200%200%200%200%20.5%20%200%200%200%20.9%200'%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D'160'%20height%3D'160'%20filter%3D'url(%2523n)'%2F%3E%3C%2Fsvg%3E"); opacity: var(--grain); mix-blend-mode: overlay; }
+.phone.a.dark  { --lamp: rgba(255, 244, 226, .13); --grain: .55; }
+.phone.b.dark  { --lamp: rgba(255, 222, 168, .15); --grain: .6; }
+.phone.b.light { --lamp: rgba(222, 196, 150, .30); --grain: .08; }
+.phone.c.light { --lamp: rgba(27, 30, 40, .03); --grain: .06; }
+.h1.c .h-lamp { background:
+  repeating-linear-gradient(to bottom, transparent 0 31px, rgba(27, 30, 40, .05) 31px 32px),
+  linear-gradient(var(--lamp), transparent 80%); }
+
+/* H2 · Rail ─ header and figure on one raised panel that runs under the status bar. */
+.rail { position: relative; margin-top: -54px; padding: 54px 0 4px; border-radius: 0 0 34px 34px;
+  background: radial-gradient(110% 85% at 50% 0%, var(--lamp), transparent 72%), var(--rail); box-shadow: inset 0 -1px 0 var(--railedge), 0 22px 34px -24px rgba(0, 0, 0, .75); }
+.rail::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'160'%20height%3D'160'%3E%3Cfilter%20id%3D'n'%3E%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'.9'%20numOctaves%3D'2'%20stitchTiles%3D'stitch'%2F%3E%3CfeColorMatrix%20values%3D'0%200%200%200%20.5%20%200%200%200%200%20.5%20%200%200%200%200%20.5%20%200%200%200%20.9%200'%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D'160'%20height%3D'160'%20filter%3D'url(%2523n)'%2F%3E%3C%2Fsvg%3E"); opacity: var(--grain); mix-blend-mode: overlay; pointer-events: none; }
+.h2.a.dark .rail  { --rail: linear-gradient(180deg, #23211E, #1C1B19); --railedge: rgba(255, 250, 240, .12); }
+.h2.b.dark .rail  { --rail: linear-gradient(180deg, #332C24, #28231D); --railedge: rgba(242, 234, 219, .16); }
+.h2.b.light .rail { --rail: linear-gradient(180deg, #ECE5D9, #F3EEE6); --railedge: rgba(23, 19, 14, .10); box-shadow: inset 0 -1px 0 var(--railedge), 0 18px 28px -22px rgba(60, 40, 10, .35); }
+/* B's rail is stitched, like the padded rail round a card table. */
+.h2.b .rail::after { content: ""; position: absolute; left: 9px; right: 9px; bottom: 8px; height: 44px; border: 1px dashed var(--hl2); border-top: 0; border-radius: 0 0 27px 27px; opacity: .9; pointer-events: none; }
+.h2.c .rail { border-radius: 0; padding-bottom: 0;
+  background: linear-gradient(to right, transparent 74px, var(--margin) 74px 75px, transparent 75px 78px, var(--margin) 78px 79px, transparent 79px), var(--sheet);
+  box-shadow: 0 1px 0 var(--rule), 0 14px 24px -20px rgba(27, 30, 40, .35); border-bottom: 4px double var(--rule2); }
+.h2.c .rail::before { display: none; }
+.rail .b-hero.bare { background: none; box-shadow: none; margin: 8px 0 0; padding: 18px 24px 30px; }
+.rail .b-hero.bare::after { display: none; }
+.rail .a-hero.bare { padding-bottom: 26px; }
+.rail .c-hero.bare { padding-bottom: 20px; }
+.rail + .a-sec { padding-top: 22px; }
+.rail + .b-sec { padding-top: 22px; }
+.rail + .c-cols { margin-top: 8px; }
+.rail .b-pad { padding-bottom: 30px; }
+.h2 .rail + .b-list { padding-top: 14px; }
+
+/* H3 · Figure first ─ a bar title; the money is the header, on a chip's edge. */
+.fx { position: relative; margin-top: -54px; padding: 54px 0 24px; overflow: hidden; text-align: center;
+  background: radial-gradient(90% 70% at 50% 38%, var(--lamp), transparent 75%); }
+.fx::after { content: ""; position: absolute; left: 24px; right: 24px; bottom: 0; height: 1px; background: linear-gradient(to right, transparent, var(--hl2), transparent); }
+.fx .ring { position: absolute; width: 470px; height: 470px; left: 50%; top: -38px; margin-left: -235px; color: var(--t); opacity: .07; pointer-events: none; }
+.fx .ring.c { display: none; }
+.fx-nav { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 6px 24px 0; height: 60px; }
+.fx-nav > :first-child { justify-self: start; }
+.fx-nav > :last-child { justify-self: end; margin-left: 0; }
+.fx-title { font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
+.b .fx-title { font-family: var(--disp); font-weight: 400; font-size: 21px; }
+.fx .fx-sub { position: relative; padding: 0 24px; text-align: center; }
+.fx-lbl { position: relative; margin-top: 26px; font-size: 13.5px; font-weight: 600; color: var(--m); }
+.c .fx-lbl { font-family: var(--mono); font-weight: 400; font-size: 12.5px; }
+.fx-fig { position: relative; margin-top: 8px; line-height: 1; font-variant-numeric: tabular-nums; }
+.fx-fig.a { font-size: 78px; font-weight: 700; letter-spacing: -.05em; }
+.fx-fig.b { font-family: var(--disp); font-size: 86px; letter-spacing: -.01em; font-variant-numeric: lining-nums; }
+.fx-fig.c { font-family: var(--mono); font-size: 66px; font-weight: 500; letter-spacing: -.055em; display: inline-block; padding-bottom: 10px; border-bottom: 4px double var(--rule2); }
+.fx-meta { position: relative; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 14px; font-size: 14px; font-weight: 500; color: var(--m); font-variant-numeric: tabular-nums; }
+.c .fx-meta { font-family: var(--mono); font-size: 12.5px; font-weight: 400; }
+.fx-meta i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .6; }
+.h3.c .fx { padding-bottom: 18px; }
+.h3.c .fx::after { display: none; }
+.h3 .fx + .a-sec, .h3 .fx + .b-sec { padding-top: 16px; }
+.fx.s .b-result { margin: 22px 20px 0; text-align: left; }
+.fx.s .fx-sub { margin-top: 0; }
+.fx-view { position: relative; display: flex; justify-content: center; margin-top: 14px; }
+.fx-gap { width: 42px; }
+.h3 .fx.s + .b-list { padding-top: 4px; }
+
+/* H4 · Large title ─ controls on a row of their own, the title the full width below. */
+.lt-nav { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 6px 24px 0; height: 56px; }
+.lt-nav > [class$="-live"] { margin-left: 0; }
+.lt-eye { position: relative; display: flex; align-items: center; gap: 9px; padding: 16px 24px 0; font-size: 14px; font-weight: 600; color: var(--m); }
+.lt-eye.b svg { color: var(--t); opacity: .85; }
+.lt-eye.c { font-family: var(--mono); font-weight: 400; font-size: 12.5px; padding-left: 90px; }
+.lt-title { position: relative; padding: 6px 24px 0; line-height: 1.02; }
+.lt-title.a { font-size: 46px; font-weight: 700; letter-spacing: -.04em; }
+.lt-title.b { font-family: var(--disp); font-size: 50px; letter-spacing: -.012em; }
+.lt-title.c { font-size: 44px; font-weight: 600; letter-spacing: -.032em; padding-left: 90px; }
+.phone .lt-sub { padding: 6px 24px 0; }
+.phone.c .lt-sub { padding-left: 90px; }
+.h4 .a-hero { padding-top: 22px; }
+.h4 .b-hero { margin-top: 18px; }
+.h4 .c-hero { padding-top: 20px; }
+.wm { position: absolute; top: 6px; right: -78px; width: 300px; height: 300px; color: var(--t); opacity: .055; transform: rotate(14deg); z-index: -1; pointer-events: none; }
+.wm.a, .wm.c { display: none; }
+.phone.light .wm { opacity: .035; }
+.lt-title.b.s { font-size: 42px; }
+.h4 .lt-pad { padding-top: 8px; }
+.h4 .lt-pad .b-meta { margin-top: 2px; }
+</style>
+
+<header class="top wrap">
+  <div class="label">The Poker Club · visual study, part 2 · 20 November 2026</div>
+  <h1>The top of the screen</h1>
+  <p class="lede">The 9 November study gave each direction a face, but kept one header for all three: a back button, a title and a timer, then a line of grey, on flat ground. The rows below it have character. The header doesn't, and the ground behind it reads as empty space. Four ways to fix that, drawn on the same seeded night. Only the header changes; every row underneath is the study's, unchanged.</p>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="verdict">
+      <div class="label">The short answer</div>
+      <p class="big">Make the header and the figure one object. Today they're two things with a gap between them, and that gap is what reads as empty.</p>
+      <p><strong>Recommendation: H2 Rail, with H1’s lamp and grain on the ground below it.</strong> The rail turns the top third of the screen into a surface, lit and textured, with an edge, so the list visibly sits beneath it. In Card Room the edge is stitched like the padded rail of a card table, the one ornament here a player would recognise. The layout is the same as today’s, so no screen has to be measured again.</p>
+      <p>H3 is the bolder option and worth arguing for: <em>Tonight</em> is never what a host opens the screen to read, and <em>$4,500</em> is. H4 is the safe one. It fixes the cramped title row for good, but it adds height and leaves the ground as empty as before.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head"><span class="letter">TODAY</span><h2>As the study drew it</h2>
+      <p class="tagline">The title row and the role line sit on bare ground. In B the figure gets its own card, which leaves a strip of nothing between the header and that card. A and C have no card, so the header just runs out.</p></div>
+  </div>
+  <div class="wrap"><div class="phones">
+  <figure class="ph">
+    <div class="phone a dark" role="img" aria-label="Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="a-nav"><span class="a-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="a-title">Tonight</span><span class="a-live"><i></i>3h 16m</span></div>
+    <div class="a-sub"><b>You’re recording</b> · started 20:05</div>
+    <div class="a-hero">
+      <div><div class="a-lbl">On the table</div><div class="a-fig">$4,500</div></div>
+      <div class="a-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    <div class="a-sec">Still playing <span>5</span></div>
+    
+      <div class="a-row"><span class="a-name">Petr</span><span class="a-amt">$1,500</span>
+        <i class="a-rule"><i style="width:30%"></i></i></div>
+      <div class="a-row"><span class="a-name">Lena</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Ivo</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Andro</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+      <div class="a-row"><span class="a-name">Tomáš</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+    <div class="a-sec">Cashed out <span>1</span></div>
+    <div class="a-row out"><span class="a-name">Dana <small>23:15 · out 2,120</small></span><span class="a-amt win">+$1,620</span>
+      <i class="a-rule"><i class="w" style="width:42.4%"></i></i></div>
+    <div class="a-dock">
+      <div class="a-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="a-dock-b"><span class="a-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="a-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>A · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark" role="img" aria-label="Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="b-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="b-title">Tonight</span>
+      <span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+    <div class="b-sub"><b>You’re recording</b> · started 20:05</div>
+    <div class="b-hero">
+      <div><div class="b-lbl">On the table</div><div class="b-fig">$4,500</div></div>
+      <div class="b-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b light" role="img" aria-label="Tonight, light">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="b-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="b-title">Tonight</span>
+      <span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+    <div class="b-sub"><b>You’re recording</b> · started 20:05</div>
+    <div class="b-hero">
+      <div><div class="b-lbl">On the table</div><div class="b-fig">$4,500</div></div>
+      <div class="b-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight, light</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone c light" role="img" aria-label="Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="c-margin"></div>
+    <div class="c-nav"><span class="c-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="c-title">Tonight</span><span class="c-live"><i></i>3h 16m</span></div>
+    <div class="c-sub"><b>You’re recording</b> · started 20:05</div>
+    <div class="c-hero">
+      <div><div class="c-lbl">On the table</div><div class="c-fig">$4,500</div></div>
+      <div class="c-hero-r"><span>$5,000 in play</span><span>5 seated · 1 out</span></div>
+    </div>
+    <div class="c-cols"><span>sat</span><span>Still playing</span><span>in</span></div>
+    <div class="c-row"><span class="c-t">20:07</span><span class="c-name">Petr</span><span class="c-amt">1,500</span></div><div class="c-row"><span class="c-t">20:06</span><span class="c-name">Lena</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:11</span><span class="c-name">Ivo</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:09</span><span class="c-name">Andro</span><span class="c-amt">500</span></div><div class="c-row"><span class="c-t">22:34</span><span class="c-name">Tomáš</span><span class="c-amt">500</span></div>
+    <div class="c-sum"><span class="c-t"></span><span>5 seated</span><span class="c-amt">4,500</span></div><i class="c-dbl"></i>
+    <div class="c-cols gap"><span>left</span><span>Cashed out</span><span>net</span></div>
+    <div class="c-row out"><span class="c-t">23:15</span><span class="c-name">Dana <small>out 2,120</small></span><span class="c-amt win">+$1,620</span></div>
+    <div class="c-dock">
+      <div class="c-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="c-dock-b"><span class="c-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="c-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>C · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark" role="img" aria-label="Settled night">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="b-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span></div>
+    <div class="b-pad tight">
+      <div class="b-h1 s">Thu 5 November</div>
+      <div class="b-meta"><span>Settled · 3h 15m · 6 players</span><span class="b-view">Final, detailed <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="b-result">
+        <span class="b-idx tl"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span><span class="b-idx br"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span>
+        <div class="b-result-1">
+  <span class="b-tok ink"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-result-n">Dana</span><span class="b-result-f"><span class="sg">+</span>$1,429</span></div>
+        <div class="b-result-2"><span>$5,000 in play</span><span>3h 15m</span><span>6 players</span></div>
+      </div>
+    </div>
+    <div class="b-list">
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">1</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana</span><span class="b-amt win">+$1,429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$2,120</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$110</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$81</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">2</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt win">+$526</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$960</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$31 <b>+$120 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$23</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">3</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt win">+$429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$1,430</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$29 <b>+$50 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$22</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">4</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt loss">−$500</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$0</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">5</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt loss">−$780</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$220</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">6</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt loss">−$1,230</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$270</span></div>
+      </div>
+    </div>
+    <div class="b-foot"><span class="b-btn3">Who pays whom <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div><div class="hi"></div></div>
+    <figcaption>B · Settled night</figcaption>
+  </figure></div></div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head"><span class="letter">H1</span><h2>Lamp</h2>
+      <p class="tagline">Same layout. The ground gets a light source: a warm pool above the title with grain in it, fading out by the second row. The top of the screen is lit and the list sits in shade, like a lamp hung over a table.</p></div>
+    <div class="notes">
+      <div><b>What it fixes</b>The empty ground. The page now has depth and some material to it, at no cost in layout.</div>
+      <div><b>What it doesn’t</b>The header is still the same three items. It reads as better lighting on the same screen, not a new screen.</div>
+      <div><b>In C</b>Paper has no lamp, so the head of the sheet is printed instead: faint ruled lines with a tint, fading into the page.</div>
+      <div><b>Cost</b>One background image behind <code>Screen.tsx</code>. Grain is a 160-point tile. No new strings.</div>
+    </div>
+  </div>
+  <div class="wrap"><div class="phones">
+  <figure class="ph">
+    <div class="phone a dark h1" role="img" aria-label="A · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div><div class="h-lamp"></div>
+    <div class="a-nav"><span class="a-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="a-title">Tonight</span><span class="a-live"><i></i>3h 16m</span></div>
+    <div class="a-sub "><b>You’re recording</b> · started 20:05</div>
+    <div class="a-hero ">
+      <div><div class="a-lbl">On the table</div><div class="a-fig">$4,500</div></div>
+      <div class="a-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    <div class="a-sec">Still playing <span>5</span></div>
+    
+      <div class="a-row"><span class="a-name">Petr</span><span class="a-amt">$1,500</span>
+        <i class="a-rule"><i style="width:30%"></i></i></div>
+      <div class="a-row"><span class="a-name">Lena</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Ivo</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Andro</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+      <div class="a-row"><span class="a-name">Tomáš</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+    <div class="a-sec">Cashed out <span>1</span></div>
+    <div class="a-row out"><span class="a-name">Dana <small>23:15 · out 2,120</small></span><span class="a-amt win">+$1,620</span>
+      <i class="a-rule"><i class="w" style="width:42.4%"></i></i></div>
+    <div class="a-dock">
+      <div class="a-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="a-dock-b"><span class="a-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="a-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>A · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark h1" role="img" aria-label="B · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div><div class="h-lamp"></div>
+    <div class="b-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="b-title">Tonight</span><span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+    <div class="b-sub "><b>You’re recording</b> · started 20:05</div>
+    <div class="b-hero ">
+      <div><div class="b-lbl">On the table</div><div class="b-fig">$4,500</div></div>
+      <div class="b-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b light h1" role="img" aria-label="B · Tonight, light">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div><div class="h-lamp"></div>
+    <div class="b-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="b-title">Tonight</span><span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+    <div class="b-sub "><b>You’re recording</b> · started 20:05</div>
+    <div class="b-hero ">
+      <div><div class="b-lbl">On the table</div><div class="b-fig">$4,500</div></div>
+      <div class="b-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight, light</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone c light h1" role="img" aria-label="C · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div><div class="h-lamp"></div><div class="c-margin"></div>
+    <div class="c-nav"><span class="c-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="c-title">Tonight</span><span class="c-live"><i></i>3h 16m</span></div>
+    <div class="c-sub "><b>You’re recording</b> · started 20:05</div>
+    <div class="c-hero ">
+      <div><div class="c-lbl">On the table</div><div class="c-fig">$4,500</div></div>
+      <div class="c-hero-r"><span>$5,000 in play</span><span>5 seated · 1 out</span></div>
+    </div>
+    <div class="c-cols"><span>sat</span><span>Still playing</span><span>in</span></div>
+    <div class="c-row"><span class="c-t">20:07</span><span class="c-name">Petr</span><span class="c-amt">1,500</span></div><div class="c-row"><span class="c-t">20:06</span><span class="c-name">Lena</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:11</span><span class="c-name">Ivo</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:09</span><span class="c-name">Andro</span><span class="c-amt">500</span></div><div class="c-row"><span class="c-t">22:34</span><span class="c-name">Tomáš</span><span class="c-amt">500</span></div>
+    <div class="c-sum"><span class="c-t"></span><span>5 seated</span><span class="c-amt">4,500</span></div><i class="c-dbl"></i>
+    <div class="c-cols gap"><span>left</span><span>Cashed out</span><span>net</span></div>
+    <div class="c-row out"><span class="c-t">23:15</span><span class="c-name">Dana <small>out 2,120</small></span><span class="c-amt win">+$1,620</span></div>
+    <div class="c-dock">
+      <div class="c-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="c-dock-b"><span class="c-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="c-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>C · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark h1" role="img" aria-label="B · Settled night">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div><div class="h-lamp"></div>
+    <div class="b-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span></div>
+    <div class="b-pad tight"><div class="b-h1 s">Thu 5 November</div><div class="b-meta"><span>Settled · 3h 15m · 6 players</span><span class="b-view">Final, detailed <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="b-result">
+        <span class="b-idx tl"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span><span class="b-idx br"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span>
+        <div class="b-result-1">
+  <span class="b-tok ink"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-result-n">Dana</span><span class="b-result-f"><span class="sg">+</span>$1,429</span></div>
+        <div class="b-result-2"><span>$5,000 in play</span><span>3h 15m</span><span>6 players</span></div>
+      </div></div>
+    
+    <div class="b-list">
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">1</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana</span><span class="b-amt win">+$1,429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$2,120</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$110</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$81</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">2</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt win">+$526</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$960</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$31 <b>+$120 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$23</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">3</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt win">+$429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$1,430</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$29 <b>+$50 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$22</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">4</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt loss">−$500</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$0</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">5</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt loss">−$780</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$220</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">6</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt loss">−$1,230</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$270</span></div>
+      </div>
+    </div>
+    <div class="b-foot"><span class="b-btn3">Who pays whom <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div><div class="hi"></div></div>
+    <figcaption>B · Settled night</figcaption>
+  </figure></div></div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head"><span class="letter">H2</span><h2>Rail <span class="label" style="vertical-align:middle;margin-left:8px">recommended</span></h2>
+      <p class="tagline">The title, the role line and the figure share one raised panel. It runs up under the status bar and ends in a rounded edge, and the list sits on the ground below it. The figure gives up its own card, so the gap goes too.</p></div>
+    <div class="notes">
+      <div><b>What it fixes</b>Both complaints. The header is now an object rather than a row of text, and there's no strip of empty ground left between the header and the figure.</div>
+      <div><b>In B</b>A stitched seam runs round the rail’s edge, like the padded rail of a card table. Card stock at low alpha, not brass: brass means off-table money in B.</div>
+      <div><b>In C</b>The rail is the head of a ledger page: a white sheet ending in a double rule, with the margin running through it.</div>
+      <div><b>Cost</b>A header slot in <code>Screen.tsx</code> that a screen can put its hero into. Tonight and the settled night use it; plain lists keep a short rail with just the title. Same heights as today. No new strings.</div>
+    </div>
+  </div>
+  <div class="wrap"><div class="phones">
+  <figure class="ph">
+    <div class="phone a dark h2" role="img" aria-label="A · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="rail">
+      <div class="a-nav"><span class="a-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="a-title">Tonight</span><span class="a-live"><i></i>3h 16m</span></div>
+      <div class="a-sub "><b>You’re recording</b> · started 20:05</div>
+    <div class="a-hero bare">
+      <div><div class="a-lbl">On the table</div><div class="a-fig">$4,500</div></div>
+      <div class="a-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    </div>
+    <div class="a-sec">Still playing <span>5</span></div>
+    
+      <div class="a-row"><span class="a-name">Petr</span><span class="a-amt">$1,500</span>
+        <i class="a-rule"><i style="width:30%"></i></i></div>
+      <div class="a-row"><span class="a-name">Lena</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Ivo</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Andro</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+      <div class="a-row"><span class="a-name">Tomáš</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+    <div class="a-sec">Cashed out <span>1</span></div>
+    <div class="a-row out"><span class="a-name">Dana <small>23:15 · out 2,120</small></span><span class="a-amt win">+$1,620</span>
+      <i class="a-rule"><i class="w" style="width:42.4%"></i></i></div>
+    <div class="a-dock">
+      <div class="a-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="a-dock-b"><span class="a-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="a-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>A · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark h2" role="img" aria-label="B · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="rail">
+      <div class="b-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="b-title">Tonight</span><span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+      <div class="b-sub "><b>You’re recording</b> · started 20:05</div>
+    <div class="b-hero bare">
+      <div><div class="b-lbl">On the table</div><div class="b-fig">$4,500</div></div>
+      <div class="b-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b light h2" role="img" aria-label="B · Tonight, light">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="rail">
+      <div class="b-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="b-title">Tonight</span><span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+      <div class="b-sub "><b>You’re recording</b> · started 20:05</div>
+    <div class="b-hero bare">
+      <div><div class="b-lbl">On the table</div><div class="b-fig">$4,500</div></div>
+      <div class="b-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight, light</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone c light h2" role="img" aria-label="C · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div><div class="c-margin"></div>
+    <div class="rail">
+      <div class="c-nav"><span class="c-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="c-title">Tonight</span><span class="c-live"><i></i>3h 16m</span></div>
+      <div class="c-sub "><b>You’re recording</b> · started 20:05</div>
+    <div class="c-hero bare">
+      <div><div class="c-lbl">On the table</div><div class="c-fig">$4,500</div></div>
+      <div class="c-hero-r"><span>$5,000 in play</span><span>5 seated · 1 out</span></div>
+    </div>
+    </div>
+    <div class="c-cols"><span>sat</span><span>Still playing</span><span>in</span></div>
+    <div class="c-row"><span class="c-t">20:07</span><span class="c-name">Petr</span><span class="c-amt">1,500</span></div><div class="c-row"><span class="c-t">20:06</span><span class="c-name">Lena</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:11</span><span class="c-name">Ivo</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:09</span><span class="c-name">Andro</span><span class="c-amt">500</span></div><div class="c-row"><span class="c-t">22:34</span><span class="c-name">Tomáš</span><span class="c-amt">500</span></div>
+    <div class="c-sum"><span class="c-t"></span><span>5 seated</span><span class="c-amt">4,500</span></div><i class="c-dbl"></i>
+    <div class="c-cols gap"><span>left</span><span>Cashed out</span><span>net</span></div>
+    <div class="c-row out"><span class="c-t">23:15</span><span class="c-name">Dana <small>out 2,120</small></span><span class="c-amt win">+$1,620</span></div>
+    <div class="c-dock">
+      <div class="c-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="c-dock-b"><span class="c-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="c-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>C · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark h2" role="img" aria-label="B · Settled night">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="rail">
+      <div class="b-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span></div>
+      <div class="b-pad tight"><div class="b-h1 s">Thu 5 November</div><div class="b-meta"><span>Settled · 3h 15m · 6 players</span><span class="b-view">Final, detailed <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="b-result">
+        <span class="b-idx tl"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span><span class="b-idx br"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span>
+        <div class="b-result-1">
+  <span class="b-tok ink"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-result-n">Dana</span><span class="b-result-f"><span class="sg">+</span>$1,429</span></div>
+        <div class="b-result-2"><span>$5,000 in play</span><span>3h 15m</span><span>6 players</span></div>
+      </div></div>
+    </div>
+    <div class="b-list">
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">1</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana</span><span class="b-amt win">+$1,429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$2,120</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$110</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$81</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">2</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt win">+$526</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$960</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$31 <b>+$120 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$23</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">3</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt win">+$429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$1,430</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$29 <b>+$50 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$22</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">4</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt loss">−$500</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$0</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">5</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt loss">−$780</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$220</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">6</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt loss">−$1,230</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$270</span></div>
+      </div>
+    </div>
+    <div class="b-foot"><span class="b-btn3">Who pays whom <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div><div class="hi"></div></div>
+    <figcaption>B · Settled night</figcaption>
+  </figure></div></div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head"><span class="letter">H3</span><h2>Figure first</h2>
+      <p class="tagline">The title shrinks to a navigation-bar title and the money becomes the header: centred, larger than anything else in the app, set on a chip's edge drawn at header size. It's the same ring as the seat tokens and the live tag.</p></div>
+    <div class="notes">
+      <div><b>What it fixes</b>Hierarchy. Today the largest thing on screen is the word <em>Tonight</em>. Here it's the number the host is checking.</div>
+      <div><b>What it costs</b>The title row’s settled layout (<code>docs/tonight-title-row.md</code>) and the left-aligned grid every other screen shares. A centred hero is a second header style to keep consistent.</div>
+      <div><b>Settled night</b>The date becomes the bar title, and the winner card sits centred on the ring. The meta line and the view control are unchanged.</div>
+      <div><b>Strings</b>None new. The meta line puts the existing “$5,000 in play” and “5 seated · 1 out” on one line, joined by a dot.</div>
+    </div>
+  </div>
+  <div class="wrap"><div class="phones">
+  <figure class="ph">
+    <div class="phone a dark h3" role="img" aria-label="A · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="fx">
+      
+  <svg class="ring a" viewBox="0 0 400 400" aria-hidden="true">
+    <circle cx="200" cy="200" r="190" fill="none" stroke="currentColor" stroke-width="16" stroke-dasharray="44 40"/>
+    <circle cx="200" cy="200" r="160" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="200" cy="200" r="150" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 6"/>
+  </svg>
+      <div class="fx-nav"><span class="a-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="fx-title">Tonight</span><span class="a-live"><i></i>3h 16m</span></div>
+      <div class="a-sub fx-sub"><b>You’re recording</b> · started 20:05</div>
+      <div class="fx-lbl">On the table</div>
+      <div class="fx-fig a">$4,500</div>
+      <div class="fx-meta"><span>$5,000 in play</span><i></i><span>5 seated · 1 out</span></div>
+    </div>
+    <div class="a-sec">Still playing <span>5</span></div>
+    
+      <div class="a-row"><span class="a-name">Petr</span><span class="a-amt">$1,500</span>
+        <i class="a-rule"><i style="width:30%"></i></i></div>
+      <div class="a-row"><span class="a-name">Lena</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Ivo</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Andro</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+      <div class="a-row"><span class="a-name">Tomáš</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+    <div class="a-sec">Cashed out <span>1</span></div>
+    <div class="a-row out"><span class="a-name">Dana <small>23:15 · out 2,120</small></span><span class="a-amt win">+$1,620</span>
+      <i class="a-rule"><i class="w" style="width:42.4%"></i></i></div>
+    <div class="a-dock">
+      <div class="a-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="a-dock-b"><span class="a-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="a-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>A · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark h3" role="img" aria-label="B · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="fx">
+      
+  <svg class="ring b" viewBox="0 0 400 400" aria-hidden="true">
+    <circle cx="200" cy="200" r="190" fill="none" stroke="currentColor" stroke-width="16" stroke-dasharray="44 40"/>
+    <circle cx="200" cy="200" r="160" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="200" cy="200" r="150" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 6"/>
+  </svg>
+      <div class="fx-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="fx-title">Tonight</span><span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+      <div class="b-sub fx-sub"><b>You’re recording</b> · started 20:05</div>
+      <div class="fx-lbl">On the table</div>
+      <div class="fx-fig b">$4,500</div>
+      <div class="fx-meta"><span>$5,000 in play</span><i></i><span>5 seated · 1 out</span></div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b light h3" role="img" aria-label="B · Tonight, light">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="fx">
+      
+  <svg class="ring b" viewBox="0 0 400 400" aria-hidden="true">
+    <circle cx="200" cy="200" r="190" fill="none" stroke="currentColor" stroke-width="16" stroke-dasharray="44 40"/>
+    <circle cx="200" cy="200" r="160" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="200" cy="200" r="150" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 6"/>
+  </svg>
+      <div class="fx-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="fx-title">Tonight</span><span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+      <div class="b-sub fx-sub"><b>You’re recording</b> · started 20:05</div>
+      <div class="fx-lbl">On the table</div>
+      <div class="fx-fig b">$4,500</div>
+      <div class="fx-meta"><span>$5,000 in play</span><i></i><span>5 seated · 1 out</span></div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight, light</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone c light h3" role="img" aria-label="C · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div><div class="c-margin"></div>
+    <div class="fx">
+      
+  <svg class="ring c" viewBox="0 0 400 400" aria-hidden="true">
+    <circle cx="200" cy="200" r="190" fill="none" stroke="currentColor" stroke-width="16" stroke-dasharray="44 40"/>
+    <circle cx="200" cy="200" r="160" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="200" cy="200" r="150" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 6"/>
+  </svg>
+      <div class="fx-nav"><span class="c-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="fx-title">Tonight</span><span class="c-live"><i></i>3h 16m</span></div>
+      <div class="c-sub fx-sub"><b>You’re recording</b> · started 20:05</div>
+      <div class="fx-lbl">On the table</div>
+      <div class="fx-fig c">$4,500</div>
+      <div class="fx-meta"><span>$5,000 in play</span><i></i><span>5 seated · 1 out</span></div>
+    </div>
+    <div class="c-cols"><span>sat</span><span>Still playing</span><span>in</span></div>
+    <div class="c-row"><span class="c-t">20:07</span><span class="c-name">Petr</span><span class="c-amt">1,500</span></div><div class="c-row"><span class="c-t">20:06</span><span class="c-name">Lena</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:11</span><span class="c-name">Ivo</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:09</span><span class="c-name">Andro</span><span class="c-amt">500</span></div><div class="c-row"><span class="c-t">22:34</span><span class="c-name">Tomáš</span><span class="c-amt">500</span></div>
+    <div class="c-sum"><span class="c-t"></span><span>5 seated</span><span class="c-amt">4,500</span></div><i class="c-dbl"></i>
+    <div class="c-cols gap"><span>left</span><span>Cashed out</span><span>net</span></div>
+    <div class="c-row out"><span class="c-t">23:15</span><span class="c-name">Dana <small>out 2,120</small></span><span class="c-amt win">+$1,620</span></div>
+    <div class="c-dock">
+      <div class="c-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="c-dock-b"><span class="c-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="c-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>C · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark h3" role="img" aria-label="B · Settled night">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="fx s">
+      
+  <svg class="ring b" viewBox="0 0 400 400" aria-hidden="true">
+    <circle cx="200" cy="200" r="190" fill="none" stroke="currentColor" stroke-width="16" stroke-dasharray="44 40"/>
+    <circle cx="200" cy="200" r="160" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="200" cy="200" r="150" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 6"/>
+  </svg>
+      <div class="fx-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="fx-title">Thu 5 November</span><span class="fx-gap"></span></div>
+      <div class="fx-sub">Settled · 3h 15m · 6 players</div>
+      
+      <div class="b-result">
+        <span class="b-idx tl"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span><span class="b-idx br"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span>
+        <div class="b-result-1">
+  <span class="b-tok ink"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-result-n">Dana</span><span class="b-result-f"><span class="sg">+</span>$1,429</span></div>
+        <div class="b-result-2"><span>$5,000 in play</span><span>3h 15m</span><span>6 players</span></div>
+      </div>
+      <div class="fx-view"><span class="b-view">Final, detailed <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
+    </div>
+    <div class="b-list">
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">1</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana</span><span class="b-amt win">+$1,429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$2,120</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$110</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$81</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">2</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt win">+$526</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$960</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$31 <b>+$120 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$23</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">3</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt win">+$429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$1,430</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$29 <b>+$50 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$22</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">4</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt loss">−$500</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$0</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">5</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt loss">−$780</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$220</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">6</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt loss">−$1,230</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$270</span></div>
+      </div>
+    </div>
+    <div class="b-foot"><span class="b-btn3">Who pays whom <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div><div class="hi"></div></div>
+    <figcaption>B · Settled night</figcaption>
+  </figure></div></div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head"><span class="letter">H4</span><h2>Large title</h2>
+      <p class="tagline">The back button and the timer get a row of their own. The title takes the full width below them, under the group's crest and name. In B the crest appears again as a watermark, cropped off the top-right corner.</p></div>
+    <div class="notes">
+      <div><b>What it fixes</b>The cramped title row. <code>docs/tonight-title-row.md</code> found that a full-width title is the one layout that fits at 375 points and at large text sizes.</div>
+      <div><b>What it doesn’t</b>The empty ground. The watermark helps a little in B. In A and C the header is just taller.</div>
+      <div><b>Cost</b>About 40 points of header, which is most of one player row on Tonight.</div>
+      <div><b>Strings</b>⚠ The eyebrow shows the group name (<em>The Thursday game</em>) on Tonight. That's data rather than new copy, but no board puts it on this screen. Flagged, not decided.</div>
+    </div>
+  </div>
+  <div class="wrap"><div class="phones">
+  <figure class="ph">
+    <div class="phone a dark h4" role="img" aria-label="A · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="wm a"><svg viewBox="0 0 24 24" width="300" height="300" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></div>
+    <div class="lt-nav"><span class="a-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="a-live"><i></i>3h 16m</span></div>
+    <div class="lt-eye a"><span>The Thursday game</span></div>
+    <div class="lt-title a ">Tonight</div><div class="a-sub lt-sub"><b>You’re recording</b> · started 20:05</div>
+    <div class="a-hero ">
+      <div><div class="a-lbl">On the table</div><div class="a-fig">$4,500</div></div>
+      <div class="a-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    <div class="a-sec">Still playing <span>5</span></div>
+    
+      <div class="a-row"><span class="a-name">Petr</span><span class="a-amt">$1,500</span>
+        <i class="a-rule"><i style="width:30%"></i></i></div>
+      <div class="a-row"><span class="a-name">Lena</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Ivo</span><span class="a-amt">$1,000</span>
+        <i class="a-rule"><i style="width:20%"></i></i></div>
+      <div class="a-row"><span class="a-name">Andro</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+      <div class="a-row"><span class="a-name">Tomáš</span><span class="a-amt">$500</span>
+        <i class="a-rule"><i style="width:10%"></i></i></div>
+    <div class="a-sec">Cashed out <span>1</span></div>
+    <div class="a-row out"><span class="a-name">Dana <small>23:15 · out 2,120</small></span><span class="a-amt win">+$1,620</span>
+      <i class="a-rule"><i class="w" style="width:42.4%"></i></i></div>
+    <div class="a-dock">
+      <div class="a-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="a-dock-b"><span class="a-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="a-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>A · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark h4" role="img" aria-label="B · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="wm b"><svg viewBox="0 0 24 24" width="300" height="300" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></div>
+    <div class="lt-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+    <div class="lt-eye b">
+  <svg viewBox="0 0 40 40" width="20" height="20" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="20" cy="20" r="15.5" fill="none" stroke="currentColor" stroke-width=".8" stroke-dasharray="1.6 2"/><g transform="translate(11.5 11) scale(.71)"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></g></svg><span>The Thursday game</span></div>
+    <div class="lt-title b ">Tonight</div><div class="b-sub lt-sub"><b>You’re recording</b> · started 20:05</div>
+    <div class="b-hero ">
+      <div><div class="b-lbl">On the table</div><div class="b-fig">$4,500</div></div>
+      <div class="b-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b light h4" role="img" aria-label="B · Tonight, light">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="wm b"><svg viewBox="0 0 24 24" width="300" height="300" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></div>
+    <div class="lt-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="b-live"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.4 1.8"/><circle cx="8" cy="8" r="2.6" fill="currentColor"/></svg>3h 16m</span></div>
+    <div class="lt-eye b">
+  <svg viewBox="0 0 40 40" width="20" height="20" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="20" cy="20" r="15.5" fill="none" stroke="currentColor" stroke-width=".8" stroke-dasharray="1.6 2"/><g transform="translate(11.5 11) scale(.71)"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></g></svg><span>The Thursday game</span></div>
+    <div class="lt-title b ">Tonight</div><div class="b-sub lt-sub"><b>You’re recording</b> · started 20:05</div>
+    <div class="b-hero ">
+      <div><div class="b-lbl">On the table</div><div class="b-fig">$4,500</div></div>
+      <div class="b-hero-r"><span>$5,000 in play</span><span class="d">5 seated · 1 out</span></div>
+    </div>
+    <div class="b-sec"><span>Still playing · 5</span><i></i></div>
+    <div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt">$1,500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt">$1,000</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt">$500</span></div><div class="b-row">
+  <span class="b-tok "><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt">$500</span></div>
+    <div class="b-sec"><span>Cashed out · 1</span><i></i></div>
+    <div class="b-row out">
+  <span class="b-tok dim"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana<small>23:15 · out 2,120</small></span><span class="b-amt win">+$1,620</span></div>
+    <div class="b-dock">
+      <div class="b-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="b-dock-b"><span class="b-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="b-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>B · Tonight, light</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone c light h4" role="img" aria-label="C · Tonight">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div><div class="c-margin"></div>
+    <div class="wm c"></div>
+    <div class="lt-nav"><span class="c-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span><span class="c-live"><i></i>3h 16m</span></div>
+    <div class="lt-eye c"><span>The Thursday game</span></div>
+    <div class="lt-title c ">Tonight</div><div class="c-sub lt-sub"><b>You’re recording</b> · started 20:05</div>
+    <div class="c-hero ">
+      <div><div class="c-lbl">On the table</div><div class="c-fig">$4,500</div></div>
+      <div class="c-hero-r"><span>$5,000 in play</span><span>5 seated · 1 out</span></div>
+    </div>
+    <div class="c-cols"><span>sat</span><span>Still playing</span><span>in</span></div>
+    <div class="c-row"><span class="c-t">20:07</span><span class="c-name">Petr</span><span class="c-amt">1,500</span></div><div class="c-row"><span class="c-t">20:06</span><span class="c-name">Lena</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:11</span><span class="c-name">Ivo</span><span class="c-amt">1,000</span></div><div class="c-row"><span class="c-t">20:09</span><span class="c-name">Andro</span><span class="c-amt">500</span></div><div class="c-row"><span class="c-t">22:34</span><span class="c-name">Tomáš</span><span class="c-amt">500</span></div>
+    <div class="c-sum"><span class="c-t"></span><span>5 seated</span><span class="c-amt">4,500</span></div><i class="c-dbl"></i>
+    <div class="c-cols gap"><span>left</span><span>Cashed out</span><span>net</span></div>
+    <div class="c-row out"><span class="c-t">23:15</span><span class="c-name">Dana <small>out 2,120</small></span><span class="c-amt win">+$1,620</span></div>
+    <div class="c-dock">
+      <div class="c-dock-h"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span>Table admin</span><em>seat · cash out · end</em></div>
+      <div class="c-dock-b"><span class="c-btn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Rebuy</span><span class="c-btn2"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-1.2-.8-1.2.8-2.4-1.6L6 20.5z"/><path d="M9 8.5h6M9 12h6"/></svg>Bill</span></div>
+    </div><div class="hi"></div></div>
+    <figcaption>C · Tonight</figcaption>
+  </figure>
+  <figure class="ph">
+    <div class="phone b dark h4" role="img" aria-label="B · Settled night">
+  <div class="sb"><span class="sb-t">23:21</span><span class="sb-r">
+    <svg width="18" height="11" viewBox="0 0 18 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx=".8"/><rect x="5" y="5" width="3" height="6" rx=".8"/><rect x="10" y="2.5" width="3" height="8.5" rx=".8"/><rect x="15" y="0" width="3" height="11" rx=".8"/></g></svg>
+    <svg width="27" height="12" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="24.6" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".45"/></svg>
+  </span></div>
+    <div class="wm b"><svg viewBox="0 0 24 24" width="300" height="300" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></div>
+    <div class="lt-nav"><span class="b-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5 7.5 12l7 7"/></svg></span></div>
+    <div class="lt-eye b">
+  <svg viewBox="0 0 40 40" width="20" height="20" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="20" cy="20" r="15.5" fill="none" stroke="currentColor" stroke-width=".8" stroke-dasharray="1.6 2"/><g transform="translate(11.5 11) scale(.71)"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></g></svg><span>The Thursday game</span></div>
+    <div class="lt-title b s">Thu 5 November</div>
+    <div class="b-pad tight lt-pad"><div class="b-meta"><span>Settled · 3h 15m · 6 players</span><span class="b-view">Final, detailed <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="b-result">
+        <span class="b-idx tl"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span><span class="b-idx br"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2.2c-2.1 3.1-7.6 6.6-7.6 10.5 0 2.6 2 4.4 4.2 4.4 1.3 0 2.4-.6 3-1.4-.3 2.5-1.2 4.1-2.9 5.6v.5h6.6v-.5c-1.7-1.5-2.6-3.1-2.9-5.6.6.8 1.7 1.4 3 1.4 2.2 0 4.2-1.8 4.2-4.4 0-3.9-5.5-7.4-7.6-10.5z"/></svg></span>
+        <div class="b-result-1">
+  <span class="b-tok ink"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-result-n">Dana</span><span class="b-result-f"><span class="sg">+</span>$1,429</span></div>
+        <div class="b-result-2"><span>$5,000 in play</span><span>3h 15m</span><span>6 players</span></div>
+      </div></div>
+    <div class="b-list">
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">1</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>DN</b></span><span class="b-name">Dana</span><span class="b-amt win">+$1,429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$2,120</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$110</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$81</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">2</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>AR</b></span><span class="b-name">Andro</span><span class="b-amt win">+$526</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$960</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$31 <b>+$120 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$23</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">3</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>LN</b></span><span class="b-name">Lena</span><span class="b-amt win">+$429</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$1,430</span><span class="b-take"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5v6.5a2 2 0 0 0 4 0V3.5M9 12v8.5M16.5 20.5V3.5c-2 1-3 3.3-3 6v3.5h3"/></svg>−$29 <b>+$50 back</b></span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9.2 14.8l5.6-5.6"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>−$22</span></span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">4</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>TM</b></span><span class="b-name">Tomáš</span><span class="b-amt loss">−$500</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$0</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">5</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>IV</b></span><span class="b-name">Ivo</span><span class="b-amt loss">−$780</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,000</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$220</span></div>
+      </div>
+      <div class="b-res">
+        <div class="b-res-1"><span class="b-rank">6</span>
+  <span class="b-tok sm"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4.2 3.95"/></svg><b>PR</b></span><span class="b-name">Petr</span><span class="b-amt loss">−$1,230</span></div>
+        <div class="b-terms"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M6 20h12"/></svg>−$1,500</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9.5l5-5 5 5M6 20h12"/></svg>+$270</span></div>
+      </div>
+    </div>
+    <div class="b-foot"><span class="b-btn3">Who pays whom <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div><div class="hi"></div></div>
+    <figcaption>B · Settled night</figcaption>
+  </figure></div></div>
+</section>
+
+<footer>
+  <div class="wrap"><p>An exploration. It isn't a handoff and doesn't supersede any board, cut or <code>tokens.ts</code>. Generated by <code>design/explorations/screen-headers/build.mjs</code>, which takes the night, the glyphs, the phone frame and every style below the header from <code>../visual-direction</code>, so the bodies of these phones match the 9 November study exactly. The figures are the seeded night, settled under the rev-15 rules.</p></div>
+</footer>
