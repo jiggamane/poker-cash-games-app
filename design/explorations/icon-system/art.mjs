@@ -1129,6 +1129,42 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 9, 20 November: the owner's eighth review ────────────────────── */
+
+/*
+ * Both chips flat on the table and touching: their centres sit exactly one
+ * radius-sum apart in the table's plane, so a depth gap on screen is that
+ * distance foreshortened by K, and neither chip floats or sinks into the other.
+ */
+function touching(a, r1, r2, dx, front) {
+  const depth = Math.sqrt(Math.max(0, (r1 + r2) ** 2 - dx * dx));
+  return { x: a.x + dx, y: a.y + (front ? 1 : -1) * depth * K };
+}
+
+Object.assign(SPOTS, {
+  toolsV: {
+    name: 'Poker tools', variant: 'V · the fire chip on the table, behind', where: 'Home · tile', status: 'round9',
+    draw: (P, o) => {
+      const a = { x: 43, y: 88 }, b = touching(a, 18, 17, 28, false);
+      return shadow(P, 50, 38) + toolCard(P, o, 28, 70, 42, -8) + fireFlat(P, o, b.x, b.y, 17) + pctFlat(P, o, a.x, a.y, 18);
+    },
+  },
+  toolsW: {
+    name: 'Poker tools', variant: 'W · the fire chip on the table, alongside', where: 'Home · tile', status: 'round9',
+    draw: (P, o) => {
+      const a = { x: 43, y: 86 }, b = touching(a, 17, 16, 31, false);
+      return shadow(P, 50, 38) + toolCard(P, o, 28, 68, 42, -8) + fireFlat(P, o, b.x, b.y, 16) + pctFlat(P, o, a.x, a.y, 17);
+    },
+  },
+  toolsX: {
+    name: 'Poker tools', variant: 'X · the fire chip on the table, in front', where: 'Home · tile', status: 'round9',
+    draw: (P, o) => {
+      const a = { x: 42, y: 81 }, b = touching(a, 17, 17, 26, true);
+      return shadow(P, 50, 38, 11, 85) + toolCard(P, o, 27, 66, 40, -8) + pctFlat(P, o, a.x, a.y, 17) + fireFlat(P, o, b.x, b.y, 17);
+    },
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
