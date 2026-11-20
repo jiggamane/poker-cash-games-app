@@ -78,26 +78,26 @@ function cell(key, before = false) {
   </figure>`;
 }
 
-/*
- * The owner's note from the tenth review, 20 November, quoted as written.
- * The first key is the drawing the note was left on; the rest answer it.
- */
-const ROUND = [
-  ['Poker tools', "like this. but fix the calc chip laout (the chip's face) and no table needed", ['toolsY', 'toolsAB', 'toolsAC', 'toolsAD']],
+/* Nothing came back needing work after the tenth review: AB was approved. */
+const ROUND = [];
+/* What is left to decide: two approved for Sessions, and a Stand-up game never marked. */
+const DECIDE = [
+  ['Sessions — two are approved, keep one', ['sessionsT', 'sessionsJ']],
+  ['Stand-up game — never marked in any round', ['standUpA', 'standUpB']],
 ];
-const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'sessionsJ', 'straddleI', 'sessionsT'];
+const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
-  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT', 'and the book (J) is approved too: pick one'], ['My stats', 'stats'],
-  ['Poker tools', null, 'in Round 11'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
+  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT', 'or the book (J): yours to pick'], ['My stats', 'stats'],
+  ['Poker tools', 'toolsAB'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
-  ['Stand-up game', null, 'never marked'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
+  ['Stand-up game', null, 'A or B, below'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...APPROVED, ...EARLIER, ...RETIRED]);
+const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
 
@@ -345,19 +345,19 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>The set so far</h2>
-  <p>One drawing per place in the app, from what you’ve approved. Two places are still open, and Sessions has two approved: the calendar is shown, the leaning book is the other.</p>
+  <p>One drawing per place in the app, from what you’ve approved. Thirteen of fifteen are settled; Sessions and the Stand-up game are the two decisions below.</p>
   ${setSoFar()}
 </section>
 
 <section class="sec">
-  <h2>Round 11 — from your tenth review</h2>
-  <p>One note. The lying % chip now has the approved Calculator chip’s face: eight rim inserts out to the edge, the % inside the centre ring. The fire chip gets the same treatment. No table: each thing has its own small shadow. AB is the fix itself; AC and AD carry it to Z and AA from last round, for comparison.</p>
-  ${roundNow()}
+  <h2>Two decisions left</h2>
+  <p>Every other place in the app has an approved drawing. For Sessions both are approved: tap Approve on the one you don’t want, to take it back. For the Stand-up game, approve one, or send it back with a note. Then the set is complete.</p>
+  ${DECIDE.map(([title, keys]) => `<div class="group"><div class="ghead"><h3>${title}</h3></div><div class="grid">${keys.map((k) => cell(k)).join('')}</div></div>`).join('')}
 </section>
 
 <section class="sec">
   <h2>Approved</h2>
-  <p>Fourteen so far. Tap Approve again to take one back.</p>
+  <p>The settled ones. Tap Approve again to take one back.</p>
   <div class="grid">${APPROVED.map((k) => cell(k)).join('')}</div>
 </section>
 
