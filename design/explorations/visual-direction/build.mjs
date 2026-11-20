@@ -328,11 +328,5 @@ const html = fs.readFileSync(path.join(HERE, 'page.html'), 'utf8')
   .replace('{{CREST}}', crest(56))
   .replace(/\{\{IMG:([a-z-]+\.webp)\}\}/g, (_, f) => img(f));
 
-/* Imported by ../screen-headers/build.mjs for the night, the glyphs and the
-   phones; it writes this page only when run directly. */
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  fs.writeFileSync(path.join(HERE, 'index.html'), html);
-  console.log(`wrote index.html (${(html.length / 1024).toFixed(0)} KB)`);
-}
-
-export { LIVE, CASHED, FINAL, MAX_NET, IN_PLAY, MINUS, n0, $, $s, tone, G, spade, token, crest, phone, termsIcons, termsWords, A, B, C };
+fs.writeFileSync(path.join(HERE, 'index.html'), html);
+console.log(`wrote index.html (${(html.length / 1024).toFixed(0)} KB)`);
