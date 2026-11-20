@@ -1315,6 +1315,25 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 13, 20 November: the owner's twelfth review ──────────────────── */
+
+Object.assign(SPOTS, {
+  standUpJ: {
+    name: 'Stand-up game', variant: 'J · E’s bolt, stood up on the stack', where: 'Boosters', status: 'round13',
+    draw: (P, o) =>
+      shadow(P, 48, 27) +
+      stack(P, { cx: 47, by: GROUND + 1, r: 21, h: 6.5, mats: ['ink', 'ink', 'ink'], wobble: [0, 0.8, -0.6], small: true }) +
+      standingChip(P, { cx: 46, by: GROUND + 1 - 19.5 + 3.5, r: 18, mat: 'red', t: 5, small: o.small, glyph: upMark(P, 'bolt') }),
+  },
+  standUpK: {
+    name: 'Stand-up game', variant: 'K · E’s bolt, the other way round', where: 'Boosters', status: 'round13',
+    draw: (P, o) =>
+      shadow(P, 48, 36) +
+      stack(P, { cx: 69, by: GROUND - 2, r: 14, h: 5.5, mats: ['ink', 'ink', 'ink'], wobble: [0, -0.8, 0.6], small: true }) +
+      standingChip(P, { cx: 35, by: GROUND + 1, r: 22, mat: 'red', t: 6, small: o.small, glyph: upMark(P, 'bolt') }),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
