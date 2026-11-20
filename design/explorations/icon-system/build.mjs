@@ -1,0 +1,307 @@
+/**
+ * Builds `Icon System.html` — the working board for the app's illustrations.
+ *
+ *   node design/explorations/icon-system/build.mjs
+ *
+ * Every drawing on the board comes from `art.mjs`; nothing is pasted in. Change
+ * a primitive there and every spot that uses it changes with it, which is the
+ * point of drawing them this way.
+ */
+import { writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
+import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
+
+const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoard', straddle: 'straddle', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
+
+const here = dirname(fileURLToPath(import.meta.url));
+
+/* ── the board's own look: the handoff boards' greys and type ─────────── */
+const C = {
+  page: '#F6F6F8', ink: '#0B0B0F', mut: '#6C6C70', faint: '#8E8E93', line: '#E4E4E8',
+  card: '#FFFFFF', darkCard: '#1A1C22', darkPage: '#0E0F12', darkText: '#F2F2F5', darkMut: '#9A9AA2',
+};
+const font = `-apple-system,'SF Pro Text','Figtree',sans-serif`;
+
+const STATUS = {
+  keep: { label: 'Kept', note: 'you liked it', bg: '#E6F4EA', fg: '#1D6B36' },
+  redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
+  new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
+};
+
+const pill = (st, pick) =>
+  `<span class="pill" style="background:${STATUS[st].bg};color:${STATUS[st].fg}">${STATUS[st].label}${pick ? ' · my pick' : ''}</span>`;
+
+function cell(key) {
+  const s = SPOTS[key];
+  return `<figure class="cell">
+    <div class="pair">
+      <div class="tile light">${spot(key, 'light', { size: 96 })}</div>
+      <div class="tile dark">${spot(key, 'dark', { size: 96 })}</div>
+    </div>
+    <figcaption>
+      <b>${s.name}</b>${s.variant ? `<span class="variant">${s.variant}</span>` : ''}
+      <span class="where">${s.where}</span>
+      ${pill(s.status, s.pick)}
+    </figcaption>
+  </figure>`;
+}
+
+const group = (title, note, keys) => `
+  <div class="group">
+    <div class="ghead"><h3>${title}</h3><p>${note}</p></div>
+    <div class="grid">${keys.map(cell).join('')}</div>
+  </div>`;
+
+/* ── anatomy: the reference stack, large, with its parts named ─────────── */
+function anatomy() {
+  const P = PALETTES.light;
+  const art = `<svg viewBox="0 0 96 96" width="300" height="300">${shadow(P, 48, 31)}${stack(P, { cx: 48, by: 83, r: 25, h: 8, mats: ['ink', 'red', 'ink', 'red', 'ink'], wobble: [0, 1.6, -0.6, 1.2, -1.4] })}</svg>`;
+  const labels = [
+    ['Top face', 'only the top chip shows one', 6],
+    ['Inlay ring', 'a lighter line at 0.6 r', 22],
+    ['Rim dashes', 'eight, lined up with the inserts', 38],
+    ['Edge inserts', 'eight round the edge, each as wide as the gap', 56],
+    ['Seam', 'a dark hairline where two chips meet', 74],
+    ['Ground shadow', 'one soft ellipse, never a drop shadow', 91],
+  ];
+  return `<div class="anatomy">
+    <div class="anart">${art}</div>
+    <ol class="anlist">${labels.map(([a, b, y]) => `<li style="top:${y}%"><b>${a}</b><span>${b}</span></li>`).join('')}</ol>
+  </div>`;
+}
+
+function projection() {
+  const rx = 60, ry = rx * K;
+  return `<svg viewBox="0 0 200 150" width="260" height="195" font-family="${font}">
+    <line x1="10" y1="120" x2="190" y2="120" stroke="${C.line}" stroke-width="1.5"/>
+    <text x="190" y="138" text-anchor="end" font-size="10" fill="${C.faint}">ground · y 84 of 96</text>
+    <ellipse cx="100" cy="74" rx="${rx}" ry="${ry}" fill="none" stroke="${C.ink}" stroke-width="1.5"/>
+    <line x1="100" y1="74" x2="160" y2="74" stroke="${C.faint}" stroke-dasharray="3 3"/>
+    <line x1="100" y1="74" x2="100" y2="${74 + ry}" stroke="${C.faint}" stroke-dasharray="3 3"/>
+    <text x="130" y="68" text-anchor="middle" font-size="11" fill="${C.mut}">r</text>
+    <text x="108" y="88" font-size="11" fill="${C.mut}">0.34 r</text>
+    <g transform="translate(26 24)"><circle r="9" fill="#F2A23A" opacity=".9"/><path d="M12 8l22 16" stroke="${C.faint}" stroke-width="1.2" marker-end="url(#ah)"/></g>
+    <defs><marker id="ah" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L6 3 0 6Z" fill="${C.faint}"/></marker></defs>
+    <text x="40" y="20" font-size="10" fill="${C.faint}">light, upper left</text>
+  </svg>`;
+}
+
+function swatches(theme) {
+  const P = PALETTES[theme];
+  const rows = [
+    ['Ink', P.ink.top, P.ink.side, 'chips, the bomb, the book'],
+    ['Felt red', P.red.top, P.red.side, 'chips, hearts, diamonds, the ribbon'],
+    ['Bone', P.bone.top, P.bone.side, 'inserts, buttons, card stock'],
+    ['Fire', P.fire, P.fireOuter, 'only ever a flame or a spark'],
+  ];
+  return `<div class="sw ${theme}">
+    <span class="swt">${theme === 'light' ? 'Light' : 'Dark'}</span>
+    ${rows.map(([n, a, b, u]) => `<div class="swr"><i style="background:linear-gradient(90deg,${a} 50%,${b} 50%)"></i><div><b>${n}</b><code>${a} · ${b}</code><span>${u}</span></div></div>`).join('')}
+  </div>`;
+}
+
+/* ── the glyph family, for contrast: copied from Icon.tsx ───────────────── */
+const glyph = (inner) => `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="${C.ink}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+const GLYPHS = [
+  glyph('<path d="M5 12h13M12.5 6l6 6-6 6" stroke-width="2"/>'),
+  glyph('<circle cx="12" cy="12" r="8.5" stroke-width="1.9"/><path d="M12 7.5V12l3 2" stroke-width="1.9"/>'),
+  glyph('<path d="M4.5 12.5l5 5 10-11" stroke-width="2.2"/>'),
+  glyph('<path d="M5 3.5h14v17l-2.3-1.5-2.4 1.5-2.3-1.5-2.4 1.5L7.3 19 5 20.5z" stroke-width="1.8"/><path d="M8.5 8.5h7M8.5 12.5h7" stroke-width="1.8"/>'),
+  glyph('<circle cx="7.5" cy="7.5" r="2.6" stroke-width="2"/><circle cx="16.5" cy="16.5" r="2.6" stroke-width="2"/><path d="M18.5 5.5l-13 13" stroke-width="2"/>'),
+  glyph('<rect x="3.5" y="5" width="17" height="15" rx="2.5" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke-width="2"/>'),
+];
+
+/* ── in place ──────────────────────────────────────────────────────────── */
+function startCard(theme) {
+  const d = theme === 'dark';
+  return `<div class="phone ${theme}">
+    <div class="start" style="background:${d ? C.darkCard : C.card}">
+      <div>
+        <div class="st" style="color:${d ? C.darkText : C.ink}">Start a session <span>&rarr;</span></div>
+        <div class="sm" style="color:${d ? C.darkMut : C.mut}">$500 buy-in · same rules as last time</div>
+      </div>
+      ${spot('session', theme, { size: 92 })}
+    </div>
+    <div class="tiles">
+      ${[['group', 'The group'], ['sessionsA', 'Sessions'], ['stats', 'My stats'], ['toolsA', 'Poker tools']]
+        .map(([k, n]) => `<div class="htile" style="background:${d ? C.darkCard : C.card}">${spot(k, theme, { size: 52 })}<b style="color:${d ? C.darkText : C.ink}">${n}</b></div>`)
+        .join('')}
+    </div>
+  </div>`;
+}
+
+function boostersList(theme) {
+  const d = theme === 'dark';
+  /* The summaries are the app's own, from packages/core/src/boosters.ts. */
+  const rows = BOOSTERS.filter((b) => ROW_SPOT[b.id]).map((b) => [ROW_SPOT[b.id], b.name, b.summary]);
+  return `<div class="phone ${theme}"><div class="list" style="background:${d ? C.darkCard : C.card}">
+    ${rows
+      .map(([k, n, s], i) => `<div class="lrow" style="border-color:${d ? '#2A2C33' : C.line};${i === rows.length - 1 ? 'border:0' : ''}">${spot(k, theme, { size: 40 })}<div><b style="color:${d ? C.darkText : C.ink}">${n}</b><span style="color:${d ? C.darkMut : C.mut}">${s}</span></div></div>`)
+      .join('')}
+  </div></div>`;
+}
+
+function sizes() {
+  const keys = ['session', 'toolsA', 'standUpA', 'sessionsA'];
+  const ss = [96, 64, 44, 32];
+  return `<table class="sizes"><tr><th></th>${ss.map((s) => `<th>${s} pt${s <= 44 ? '<br><span>small rule</span>' : ''}</th>`).join('')}</tr>
+    ${keys.map((k) => `<tr><td>${SPOTS[k].name}</td>${ss.map((s) => `<td>${spot(k, 'light', { size: s })}</td>`).join('')}</tr>`).join('')}
+  </table>`;
+}
+
+const RULES = [
+  ['Only things that sit on a poker table.', 'Chips, cards, the dealer button, a bomb, the book. No people, no hands, no abstract shapes. If it couldn’t be put down on the felt, it isn’t a spot.'],
+  ['One projection.', 'Seen from a little above: a circle lying flat is an ellipse 0.34 as tall as it is wide. Things that stand up (cards, the book, a chip on its edge) are drawn face-on. Everything stands on one ground line with one soft shadow under it.'],
+  ['Three materials, and fire.', 'Ink, felt red, bone. Card stock is bone. Amber appears only as a flame or a spark, so the two places it shows — Boosters and the bomb — read as the exciting ones.'],
+  ['No outlines.', 'An edge is where two materials meet. The only strokes are the seam between chips, the inlay ring, and a card’s hairline edge so it holds on white.'],
+  ['The inserts are the signature.', 'Every chip has eight, each exactly as wide as the gap between them, and they follow the edge’s curve. That stripe is what makes something read as ours at 32 pt.'],
+  ['Flat fills, light from the upper left.', 'The side of a chip is darker than its face; that is the only shading. No gradients — it keeps the drawings portable to react-native-svg as they are.'],
+  ['Below 44 pt, drop the fine detail.', 'The rim dashes, the inlay ring, letters and card indices go. The silhouette, the inserts and the colours stay.'],
+  ['Dark mode moves one colour.', 'Ink lifts from #232837 to #363D52 so a black chip separates from a dark card. Red, bone and fire do not move; the shadow deepens.'],
+  ['Spots name places and games; glyphs do everything else.', 'A spot sits on a card or a tile that opens somewhere. Inside a row, a bar, a button or beside a figure, it is a line glyph from Icon.tsx — never a spot, and never a spot shrunk down to glyph size.'],
+];
+
+const OPEN = [
+  ['Three picks.', 'Sessions (A the book · B the date), Poker tools (A two cards and a chip · B the dealer button), Stand-up game (A a chip stood up · B the empty chair). My picks are marked; any of the six can be redrawn again.'],
+  ['The bomb pot and the chip stack are redrawn from your screenshot, not copied.', 'Neither drawing is in the repository. If the ones you liked live somewhere (Figma, a design file, a photo), send them and these two get matched to them — or the system adjusts to them, since they are the reference.'],
+  ['Whether spots replace the glyphs on home’s tiles.', 'Today each tile has a line glyph in a grey round (N6, 25 October). The phone mock above shows spots instead; that reopens a decided screen, so it is yours to say.'],
+  ['Nothing is in the app yet.', 'When the set is agreed it goes in as one Spot.tsx beside Icon.tsx, ported from art.mjs, and docs/screens.md records where each is used.'],
+];
+
+const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Icon System</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+body{margin:0;background:${C.page};font-family:${font};color:${C.ink}}
+.proj{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.board{display:flex;flex-direction:column;gap:56px;padding:48px 48px 64px;max-width:1240px;box-sizing:border-box}
+.eyebrow{font:700 11px/1 ${font};letter-spacing:.14em;text-transform:uppercase;color:${C.faint}}
+h1{margin:10px 0 10px;font:800 32px/1.1 ${font};letter-spacing:-.025em}
+h2{margin:0 0 6px;font:800 22px/1.2 ${font};letter-spacing:-.02em}
+h3{margin:0;font:700 15px/1.3 ${font}}
+p{margin:0;font:400 14px/1.6 ${font};color:${C.mut};text-wrap:pretty}
+.lede{max-width:780px}
+.sec>p{max-width:780px;margin-bottom:22px}
+.fam{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fam>div{background:${C.card};border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.fam .row svg{max-width:100%}.fam .row{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
+.mat{display:grid;grid-template-columns:auto 1fr;gap:16px}
+.box{background:${C.card};border-radius:20px;padding:22px}
+.anatomy{position:relative;display:flex;gap:8px;align-items:center}
+.anlist{position:relative;list-style:none;margin:0;padding:0;width:270px;height:300px}
+.anlist li{position:absolute;left:0;transform:translateY(-50%);display:flex;flex-direction:column;gap:1px;padding-left:14px;border-left:2px solid ${C.line}}
+.anlist b{font:700 13px ${font}}.anlist span{font:400 12px/1.35 ${font};color:${C.mut}}
+.matr{display:flex;flex-direction:column;gap:16px}
+.swrow{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sw{border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.sw.light{background:#FFFFFF;box-shadow:inset 0 0 0 1px ${C.line}}.sw.dark{background:${C.darkCard};color:${C.darkText}}
+.swt{font:700 11px ${font};letter-spacing:.12em;text-transform:uppercase;opacity:.6}
+.swr{display:flex;gap:10px;align-items:center}.swr i{width:44px;height:30px;border-radius:8px;flex:none;box-shadow:inset 0 0 0 1px rgba(127,127,127,.25)}
+.swr div{display:flex;flex-direction:column;gap:1px}.swr b{font:700 13px ${font}}.swr code{font:500 11px ui-monospace,Menlo,monospace;opacity:.65}.swr span{font:400 11.5px ${font};opacity:.7}
+.group{display:flex;flex-direction:column;gap:14px;margin-bottom:34px}
+.ghead{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(222px,1fr));gap:14px}
+.cell{margin:0;background:${C.card};border-radius:18px;padding:10px 10px 14px;display:flex;flex-direction:column;gap:10px}
+.pair{display:flex;gap:6px}.tile{flex:1;display:flex;justify-content:center;align-items:center;border-radius:12px;padding:6px 0}
+.tile.light{background:#F4F4F6}.tile.dark{background:${C.darkCard}}
+figcaption{display:flex;flex-direction:column;gap:3px;padding:0 4px}
+figcaption b{font:700 14px ${font}}.variant{font:600 12.5px ${font};color:${C.ink}}.where{font:400 12px ${font};color:${C.faint}}
+.pill{align-self:flex-start;margin-top:5px;font:700 11px ${font};padding:4px 8px;border-radius:999px}
+.sizes{border-collapse:separate;border-spacing:0;background:${C.card};border-radius:20px;padding:12px 18px}
+.sizes th{font:700 12px ${font};color:${C.mut};padding:8px 18px;text-align:center}.sizes th span{font-weight:500;color:${C.faint}}
+.sizes td{padding:6px 18px;text-align:center;vertical-align:middle}.sizes td:first-child{text-align:left;font:600 13px ${font};padding-left:4px}
+.places{display:flex;gap:18px;flex-wrap:wrap}
+.phone{width:360px;border-radius:30px;padding:18px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px}
+.phone.light{background:#EEEEF2}.phone.dark{background:${C.darkPage}}
+.start{border-radius:24px;padding:20px 18px 18px 22px;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.st{white-space:nowrap;font:800 22px/1.1 ${font};letter-spacing:-.02em}.st span{font-weight:500;margin-left:4px}
+.sm{font:400 15px/1.35 ${font};margin-top:8px;max-width:190px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.htile{border-radius:16px;padding:12px 14px 14px;height:108px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between}
+.htile svg{margin:-6px 0 0 -8px}.htile b{font:700 16px ${font};letter-spacing:-.01em}
+.list{border-radius:20px;padding:4px 14px}
+.lrow{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid}
+.lrow div{display:flex;flex-direction:column;gap:2px}.lrow b{font:600 15px ${font}}.lrow span{font:400 12.5px/1.35 ${font}}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:12px;counter-reset:r}
+.rules>div{background:${C.card};border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;counter-increment:r}
+.rules b{font:700 14px ${font}}.rules b::before{content:counter(r) '  ';color:${C.faint}}
+.open{display:flex;flex-direction:column;gap:10px;max-width:820px}
+.open>div{border-left:3px solid #F2A23A;padding:4px 0 4px 14px}.open b{font:700 14px ${font};display:block;margin-bottom:2px}
+@media (max-width:760px){.board{padding:28px 16px}.fam,.mat,.rules,.swrow{grid-template-columns:1fr}.anatomy{flex-direction:column}.anlist{height:auto;display:flex;flex-direction:column;gap:10px}.anlist li{position:static;transform:none}.phone{width:100%}.sizes{display:block;overflow-x:auto}}
+</style>
+</head>
+<body>
+<main class="board">
+
+<header>
+  <span class="eyebrow">Exploration · 20 November 2026 · not a handoff</span>
+  <h1>One way of drawing the app’s pictures</h1>
+  <p class="lede">The chip stack on the start card is the reference: chunky, flat, three materials, seen from a little above, standing on a soft shadow. This board turns it into a system — the rules it follows, its parts and colours, and every illustration the app needs redrawn to match, including new candidates for the three that weren’t working: <b style="color:${C.ink}">Sessions</b>, <b style="color:${C.ink}">Poker tools</b> and the <b style="color:${C.ink}">Stand-up game</b>.</p>
+</header>
+
+<section class="sec">
+  <h2>Two families, and which is which</h2>
+  <p>The app already has a line-icon set in <code>Icon.tsx</code>, matched path for path to the boards. It stays. Spots are a second family, for a different job, and the two never stand in for each other.</p>
+  <div class="fam">
+    <div><h3>Glyphs — actions and labels</h3><div class="row">${GLYPHS.join('')}</div><p>One colour, a 1.7–2.3 stroke, 15–21 pt. In rows, bars, buttons, beside a figure. Unchanged.</p></div>
+    <div><h3>Spots — places and games</h3><div class="row">${['session', 'bombPot', 'sessionsA', 'toolsA', 'standUpA'].map((k) => spot(k, 'light', { size: 56 })).join('')}</div><p>Full colour, 32–96 pt. On a card or tile that opens a place, at the head of a game’s description, in an empty state.</p></div>
+  </div>
+</section>
+
+<section class="sec">
+  <h2>The material</h2>
+  <p>Everything is assembled from the same few parts in <code>art.mjs</code> — a chip, a stack, a chip on its edge, a card, a bomb, a flame — so a new drawing inherits the projection and the colours instead of guessing them.</p>
+  <div class="mat">
+    <div class="box">${anatomy()}</div>
+    <div class="matr">
+      <div class="box proj">${projection()}<p style="max-width:220px">Every spot is drawn on a 96 × 96 box with the ground at 84, and shown through an 88 × 88 window from (4, 12). Flat things are ellipses at 0.34; standing things are face-on. The light is always upper left, which is why a chip’s side is the darker colour.</p></div>
+      <div class="swrow">${swatches('light')}${swatches('dark')}</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <h2>The set</h2>
+  <p>Each drawing on the light tile and on the dark one. <b style="color:${C.ink}">Kept</b> is what you liked, redrawn into the system. <b style="color:${C.ink}">Redrawn</b> are the candidates for the three that weren’t working — two each. <b style="color:${C.ink}">New</b> fills the places the app will need one.</p>
+  ${group('Home', 'the start card and the four tiles', ['session', 'group', 'sessionsA', 'sessionsB', 'stats', 'toolsA', 'toolsB'])}
+  ${group('Poker tools', 'the three tiles', ['calculator', 'rulings', 'boosters'])}
+  ${group('Boosters', 'one per game, at the head of its sheet and on its row', ['bombPot', 'doubleBoard', 'straddle', 'ante', 'standUpA', 'standUpB', 'buttonGame', 'sevenTwo'])}
+</section>
+
+<section class="sec">
+  <h2>Sizes</h2>
+  <p>Four sizes and no others. At 44 and below the fine detail goes — dashes, inlay, letters, card indices — and the silhouette and inserts carry it.</p>
+  ${sizes()}
+</section>
+
+<section class="sec">
+  <h2>In place</h2>
+  <p>Home with the start card and the four tiles carrying spots, and a boosters list with one beside each game. Light and dark.</p>
+  <div class="places">${startCard('light')}${startCard('dark')}${boostersList('light')}${boostersList('dark')}</div>
+</section>
+
+<section class="sec">
+  <h2>The rules</h2>
+  <p>Short enough to hold in your head while drawing the next one.</p>
+  <div class="rules">${RULES.map(([a, b]) => `<div><b>${a}</b><p>${b}</p></div>`).join('')}</div>
+</section>
+
+<section class="sec">
+  <h2>Open</h2>
+  <div class="open">${OPEN.map(([a, b]) => `<div><b>${a}</b><p>${b}</p></div>`).join('')}</div>
+</section>
+
+</main>
+</body>
+</html>
+`;
+
+writeFileSync(join(here, 'Icon System.html'), html);
+console.log('wrote Icon System.html', (html.length / 1024).toFixed(0) + ' KB');
