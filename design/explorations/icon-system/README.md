@@ -29,6 +29,11 @@ Open `Icon System.html` in a browser. Self-contained apart from Google Fonts.
 
 - `art.mjs` — the primitives (chip, stack, standing chip, card, bomb, flame)
   and every spot as a composition of them. The system lives here.
-- `build.mjs` — writes `Icon System.html` from `art.mjs`; the boosters list
+- `review.js` — the Approve / Needs work buttons and comment boxes on the
+  published copy (https://claude.ai/artifact/EQeYt7hcvCcgj8RcuqLJya). Verdicts
+  are saved to that artifact's database, collection `reviews`, one document per
+  spot key plus `general`: `{ status: 'approved' | 'changes' | '', comment }`.
+- `build.mjs` — writes `Icon System.html` from `art.mjs` (`--artifact <path>`
+  also writes the published copy, with the review controls); the boosters list
   reads its names and summaries from `packages/core/src/boosters.ts`.
   `node design/explorations/icon-system/build.mjs`

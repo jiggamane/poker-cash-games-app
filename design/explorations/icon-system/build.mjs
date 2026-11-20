@@ -2,12 +2,18 @@
  * Builds `Icon System.html` — the working board for the app's illustrations.
  *
  *   node design/explorations/icon-system/build.mjs
+ *   node design/explorations/icon-system/build.mjs --artifact <path>
+ *
+ * `--artifact` also writes the published version: the same board with an
+ * Approve / Needs work pair and a comment box under every drawing, saved to the
+ * artifact's `db` (collection `reviews`, one document per spot key, plus
+ * `general`), so the verdicts can be read back from the store.
  *
  * Every drawing on the board comes from `art.mjs`; nothing is pasted in. Change
  * a primitive there and every spot that uses it changes with it, which is the
  * point of drawing them this way.
  */
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
@@ -16,6 +22,19 @@ import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoard', straddle: 'straddle', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
 const here = dirname(fileURLToPath(import.meta.url));
+const artifactAt = process.argv.includes('--artifact') ? process.argv[process.argv.indexOf('--artifact') + 1] : null;
+let REVIEW = false;
+const REVIEW_JS = () => `<script>\n${readFileSync(join(here, 'review.js'), 'utf8')}</script>`;
+
+const reviewBlock = (key, label) => `<div class="rv" data-key="${key}">
+      <div class="rvb">
+        <button type="button" class="rvbtn ok" data-v="approved" aria-pressed="false" disabled>Approve</button>
+        <button type="button" class="rvbtn no" data-v="changes" aria-pressed="false" disabled>Needs work</button>
+      </div>
+      <label class="sr" for="c-${key}">Comment on ${label}</label>
+      <textarea id="c-${key}" rows="2" placeholder="Comment (optional)" disabled></textarea>
+      <span class="rvs" aria-live="polite"></span>
+    </div>`;
 
 /* ── the board's own look: the handoff boards' greys and type ─────────── */
 const C = {
@@ -35,7 +54,7 @@ const pill = (st, pick) =>
 
 function cell(key) {
   const s = SPOTS[key];
-  return `<figure class="cell">
+  return `<figure class="cell" data-key="${key}">
     <div class="pair">
       <div class="tile light">${spot(key, 'light', { size: 96 })}</div>
       <div class="tile dark">${spot(key, 'dark', { size: 96 })}</div>
@@ -45,6 +64,7 @@ function cell(key) {
       <span class="where">${s.where}</span>
       ${pill(s.status, s.pick)}
     </figcaption>
+    ${REVIEW ? reviewBlock(key, s.name + (s.variant ? ' ' + s.variant : '')) : ''}
   </figure>`;
 }
 
@@ -170,18 +190,18 @@ const OPEN = [
   ['Nothing is in the app yet.', 'When the set is agreed it goes in as one Spot.tsx beside Icon.tsx, ported from art.mjs, and docs/screens.md records where each is used.'],
 ];
 
-const html = `<!DOCTYPE html>
+const page = () => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Icon System</title>
+<title>Poker Club Icon System</title>${REVIEW ? '\n<meta name="claude:viewport-fit-sides" content="cover">' : ''}
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{color-scheme:light}
 body{margin:0;background:${C.page};font-family:${font};color:${C.ink}}
 .proj{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
-.board{display:flex;flex-direction:column;gap:56px;padding:48px 48px 64px;max-width:1240px;box-sizing:border-box}
+.board{display:flex;flex-direction:column;gap:56px;padding-block:48px 64px;padding-left:max(48px,env(safe-area-inset-left,0px));padding-right:max(48px,env(safe-area-inset-right,0px));max-width:1240px;box-sizing:border-box}
 .eyebrow{font:700 11px/1 ${font};letter-spacing:.14em;text-transform:uppercase;color:${C.faint}}
 h1{margin:10px 0 10px;font:800 32px/1.1 ${font};letter-spacing:-.025em}
 h2{margin:0 0 6px;font:800 22px/1.2 ${font};letter-spacing:-.02em}
@@ -234,7 +254,26 @@ figcaption b{font:700 14px ${font}}.variant{font:600 12.5px ${font};color:${C.in
 .rules b{font:700 14px ${font}}.rules b::before{content:counter(r) '  ';color:${C.faint}}
 .open{display:flex;flex-direction:column;gap:10px;max-width:820px}
 .open>div{border-left:3px solid #F2A23A;padding:4px 0 4px 14px}.open b{font:700 14px ${font};display:block;margin-bottom:2px}
-@media (max-width:760px){.board{padding:28px 16px}.fam,.mat,.rules,.swrow{grid-template-columns:1fr}.anatomy{flex-direction:column}.anlist{height:auto;display:flex;flex-direction:column;gap:10px}.anlist li{position:static;transform:none}.phone{width:100%}.sizes{display:block;overflow-x:auto}}
+${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:${C.ink};color:#fff;border-radius:16px;padding:12px 16px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.rvbar b{font:800 15px ${font}}.rvbar .cnt{display:flex;gap:8px;flex-wrap:wrap}.rvbar .cnt span{font:700 12px ${font};padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.12)}
+.rvbar .cnt .a{background:#1D6B36}.rvbar .cnt .c{background:#A3282E}
+.rvnote{font:500 12.5px ${font};color:#FFD889;flex-basis:100%}
+.rv{display:flex;flex-direction:column;gap:6px;padding:10px 4px 0;border-top:1px solid ${C.line}}
+.rvb{display:flex;gap:6px}
+.rvbtn{flex:1;font:700 12.5px ${font};padding:8px 6px;border-radius:10px;border:1.5px solid ${C.line};background:#fff;color:${C.ink};cursor:pointer}
+.rvbtn:disabled{cursor:default;opacity:.45}
+.rvbtn:focus-visible,.rv textarea:focus-visible,.gen textarea:focus-visible{outline:2px solid #2B6CDF;outline-offset:2px}
+.rvbtn.ok[aria-pressed="true"]{background:#1D6B36;border-color:#1D6B36;color:#fff}
+.rvbtn.no[aria-pressed="true"]{background:#A3282E;border-color:#A3282E;color:#fff}
+.rv textarea,.gen textarea{font:400 13px/1.4 ${font};color:${C.ink};border:1.5px solid ${C.line};border-radius:10px;padding:7px 9px;resize:vertical;background:#FAFAFB;box-sizing:border-box;width:100%}
+.rvs{font:500 11.5px ${font};color:${C.faint};min-height:14px}
+.rvs.err{color:#A3282E}
+.cell.is-approved{box-shadow:inset 0 0 0 2px #1D6B36}.cell.is-changes{box-shadow:inset 0 0 0 2px #A3282E}
+.gen{background:${C.card};border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;max-width:820px}
+.gen b{font:700 14px ${font}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+` : ''}
+@media (max-width:760px){.board{padding-block:28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}.fam,.mat,.rules,.swrow{grid-template-columns:1fr}.anatomy{flex-direction:column}.anlist{height:auto;display:flex;flex-direction:column;gap:10px}.anlist li{position:static;transform:none}.phone{width:100%}.sizes{display:block;overflow-x:auto}}
 </style>
 </head>
 <body>
@@ -243,8 +282,10 @@ figcaption b{font:700 14px ${font}}.variant{font:600 12.5px ${font};color:${C.in
 <header>
   <span class="eyebrow">Exploration · 20 November 2026 · not a handoff</span>
   <h1>One way of drawing the app’s pictures</h1>
-  <p class="lede">The chip stack on the start card is the reference: chunky, flat, three materials, seen from a little above, standing on a soft shadow. This board turns it into a system — the rules it follows, its parts and colours, and every illustration the app needs redrawn to match, including new candidates for the three that weren’t working: <b style="color:${C.ink}">Sessions</b>, <b style="color:${C.ink}">Poker tools</b> and the <b style="color:${C.ink}">Stand-up game</b>.</p>
+  <p class="lede">The chip stack on the start card is the reference: chunky, flat, three materials, seen from a little above, standing on a soft shadow. This board turns it into a system — the rules it follows, its parts and colours, and every illustration the app needs redrawn to match, including new candidates for the three that weren’t working: <b style="color:${C.ink}">Sessions</b>, <b style="color:${C.ink}">Poker tools</b> and the <b style="color:${C.ink}">Stand-up game</b>.</p>${REVIEW ? `
+  <p class="lede" style="margin-top:10px">Under every drawing in <b style="color:${C.ink}">The set</b>: tap <b style="color:${C.ink}">Approve</b> or <b style="color:${C.ink}">Needs work</b>, and say what to change in the box. Everything saves as you go, and Claude reads it from here.</p>` : ''}
 </header>
+${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
   <h2>Two families, and which is which</h2>
@@ -296,12 +337,26 @@ figcaption b{font:700 14px ${font}}.variant{font:600 12.5px ${font};color:${C.in
 <section class="sec">
   <h2>Open</h2>
   <div class="open">${OPEN.map(([a, b]) => `<div><b>${a}</b><p>${b}</p></div>`).join('')}</div>
+  ${REVIEW ? `<div class="gen cell" data-key="general" style="margin-top:18px"><b>Anything else</b><p>The rules, the colours, the sizes, the mockups — anything that isn’t one drawing.</p>${reviewBlock('general', 'the board as a whole').replace('<div class="rvb">', '<div class="rvb" hidden>')}</div>` : ''}
 </section>
 
 </main>
+${REVIEW ? REVIEW_JS() : ''}
 </body>
 </html>
 `;
 
+const html = page();
 writeFileSync(join(here, 'Icon System.html'), html);
 console.log('wrote Icon System.html', (html.length / 1024).toFixed(0) + ' KB');
+
+if (artifactAt) {
+  REVIEW = true;
+  /* The publish wraps the page in its own document, so the wrapper goes. */
+  const out = page()
+    .replace(/^<!DOCTYPE html>\s*<html[^>]*>\s*<head>\s*<meta charset="utf-8">\s*<meta name="viewport"[^>]*>\s*/, '')
+    .replace('</head>\n<body>\n', '')
+    .replace('</body>\n</html>\n', '');
+  writeFileSync(artifactAt, out);
+  console.log('wrote', artifactAt, (out.length / 1024).toFixed(0) + ' KB');
+}
