@@ -1535,6 +1535,59 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 22, 21 November: one card face for every card ─────────────────── */
+
+/*
+ * The owner, on Rulings D: "use this card face for each of the variants where
+ * we show cards (regardless if they are face up or down - make all cards in
+ * this group appear only in this way)". So there is one card: bone stock, a red
+ * inner frame, and its mark inside — the ruling's ?, or the ace's spade. No
+ * plain faces, no backs. Insets scale with the card, set at D's 42-wide card.
+ */
+function framedCard(P, o, { cx, by, w, h, rot, mark = 'q' }) {
+  const k = w / 42;
+  return card(P, {
+    cx, by, w, h, rot, small: o.small,
+    centre: (x, y) =>
+      `<rect x="${f(x - w / 2 + 5 * k)}" y="${f(y - h / 2 + 5 * k)}" width="${f(w - 10 * k)}" height="${f(h - 10 * k)}" rx="${f(2.5 * k)}" fill="${P.red.side}"/>` +
+      `<rect x="${f(x - w / 2 + 8 * k)}" y="${f(y - h / 2 + 8 * k)}" width="${f(w - 16 * k)}" height="${f(h - 16 * k)}" rx="${f(2 * k)}" fill="${P.stock}"/>` +
+      (mark === 'q' ? text(x, y + h * 0.167, f(h * 0.5), P.red.side, '?') : suit('spade', x - w * 0.19, y - w * 0.2, w * 0.38, P.ink.top)),
+  });
+}
+const framedPair = (P, o, marks) =>
+  framedCard(P, o, { cx: 34, by: 74, w: 29, h: 42, rot: -11, mark: marks[0] }) +
+  framedCard(P, o, { cx: 49, by: 74, w: 29, h: 42, rot: 10, mark: marks[1] });
+
+Object.assign(SPOTS, {
+  toolsAL: {
+    name: 'Poker tools', variant: 'AL · AI with the framed cards', where: 'Home · tile', status: 'round22',
+    draw: (P, o) => ownShadow(P, 42, 76, 22) + framedPair(P, o, ['spade', 'q']) + facingPair(P, 47, 67, 89, 13),
+  },
+  toolsAM: {
+    name: 'Poker tools', variant: 'AM · AJ with the framed card', where: 'Home · tile', status: 'round22',
+    draw: (P, o) =>
+      ownShadow(P, 38, 78, 17) + framedCard(P, o, { cx: 37, by: 78, w: 31, h: 44, rot: -8 }) + facingPair(P, 50, 70, 89, 14),
+  },
+  toolsAN: {
+    name: 'Poker tools', variant: 'AN · AK with the framed cards (two rulings)', where: 'Home · tile', status: 'round22',
+    draw: (P, o) => ownShadow(P, 42, 76, 22) + framedPair(P, o, ['q', 'q']) + facingPair(P, 47, 67, 89, 13),
+  },
+  rulingsE: {
+    name: 'Rulings', variant: 'E · B with the framed cards', where: 'Poker tools · tile', status: 'round22',
+    draw: (P, o) =>
+      ownShadow(P, 48, GROUND - 1, 24) +
+      framedCard(P, o, { cx: 38, by: GROUND - 2, w: 38, h: 54, rot: -12 }) +
+      framedCard(P, o, { cx: 54, by: GROUND - 2, w: 40, h: 57, rot: 11 }),
+  },
+  rulingsF: {
+    name: 'Rulings', variant: 'F · C with the framed card', where: 'Poker tools · tile', status: 'round22',
+    draw: (P, o) =>
+      ownShadow(P, 44, GROUND - 1, 20) + ownShadow(P, 66, GROUND - 1, 15) +
+      framedCard(P, o, { cx: 42, by: GROUND - 3, w: 40, h: 57, rot: 10 }) +
+      stack(P, { cx: 66, by: GROUND - 1, r: 13, h: 5, mats: ['red', 'red', 'ink'], wobble: [0, 0.8, -0.6], small: true }),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
