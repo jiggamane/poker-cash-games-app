@@ -42,7 +42,9 @@ export const FD_CSS = `
 .fd .fdtiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .fd .fdtile{position:relative;border-radius:var(--p-r);padding:10px 14px 14px;min-height:128px;display:flex;flex-direction:column;justify-content:space-between;background:#fff;box-shadow:var(--card-sh);overflow:hidden}
 .fd .fdtile .art{margin:-6px 0 0 -10px;width:64px;height:64px}
-.fd .fdtile .tn{font:700 16.5px/1.1 var(--p-head);letter-spacing:-.01em}
+.fd .fdtile .tn{font:700 19px/1.1 var(--p-head);letter-spacing:-.01em}
+.fd .fdtile{justify-content:flex-start}
+.fd .fdtile>div{position:relative;z-index:1}
 .fd .fdtile .tx{font-size:11.5px;color:var(--p-muted);margin-top:3px}
 .fd .fdtile .extra{position:absolute;right:12px;top:14px}
 .fd .spark{width:64px;height:30px}
@@ -103,7 +105,7 @@ export function freshDeckScreens(PICK) {
   const menu = `<div class="scr">${SB}<div class="pad fdmenu">
     <div class="fdeyebrow">Your group</div><h1>The Thursday game</h1>
     <div class="cta">${art(PICK.session, 84, true)}<div><div class="t">Start a session</div><div class="s">$500 buy-in · same rules as last time</div></div></div>
-    <div class="fdtiles">${tiles.map(([k, n, x], i) => `<div class="fdtile">${art(k, 64)}<div><div class="tn">${n}</div>${x}</div></div>`).join('')}</div></div>
+    <div class="fdtiles">${tiles.map(([k, n, x]) => `<div class="fdtile">${anchored(k, 68, -6, -6)}<div><div class="tn">${n}</div>${x}</div></div>`).join('')}</div></div>
     <div class="menubar"><span class="fdpill">${icon('gear')}Settings</span><span class="rb">${icon('userplus')}</span><span class="rb">${icon('sun')}</span></div></div>`;
 
   const tools = `<div class="scr">${SB}<div class="pad">
@@ -113,7 +115,7 @@ export function freshDeckScreens(PICK) {
       [PICK.calculator, 'Calculator', 'hand and pot odds'],
       [PICK.rulings, 'Rulings', 'look up a ruling'],
       [PICK.boosters, 'Boosters', 'bomb pots and more'],
-    ].map(([k, n, x]) => `<div class="fdtile">${art(k, 64)}<div><div class="tn">${n}</div><div class="tx">${x}</div></div></div>`).join('')}</div></div></div>`;
+    ].map(([k, n, x]) => `<div class="fdtile">${anchored(k, 56, -8, -8)}<div><div class="tn">${n}</div><div class="tx">${x}</div></div></div>`).join('')}</div></div></div>`;
 
   const sections = [
     ['Side games', suit.club, ['stand-up', 'button-game', 'seven-deuce']],
@@ -142,8 +144,8 @@ export function freshDeckScreens(PICK) {
     </div></div>`;
 
   return `<div class="fd fd-strip">${[
-    ['Main menu', menu, 'The start button carries the chip stack; the four tiles carry their spots in place of the icon box. My stats drops the style page’s sparkline: the drawing is already a chart.'],
-    ['Poker tools', tools, 'Not drawn on the style page: laid out like its menu tiles, with the app’s names and sub-lines.'],
+    ['Main menu', menu, 'The start button carries the chip stack. Each tile: the name on top at 19, the drawing in the bottom-right corner, placed by its outline (4d, chosen 21 November). My stats drops the style page’s sparkline: the drawing is already a chart.'],
+    ['Poker tools', tools, 'Not drawn on the style page: the menu’s tiles (4d, name at 19) with the app’s sub-lines under each name. A single chip or card fills its outline more than a group does, so these three sit a size smaller to carry the same weight as the menu’s.'],
     ['Game boosters', boosters, 'One spot per game at the head of its row. No chevrons, as Fresh Deck has it.'],
     ['A booster’s sheet', sheet, 'The game’s spot heads its description. The same seven drawings, larger.'],
   ].map(([cap, html, note]) => `<figure><div class="fdphone">${html}</div><figcaption>${cap}<br><span style="font-weight:400">${note}</span></figcaption></figure>`).join('')}</div>`;

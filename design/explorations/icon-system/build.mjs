@@ -383,20 +383,22 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 19 — name on top, the drawing placed by its outline</h2>
-  <p>Two notes. Only placements with the name on top are left, as you asked. Each drawing is now sized and placed by its measured outline rather than the square it is drawn in, so all four tiles carry the same weight and the same crop.</p>
+  <h2>The screens they land on, in Fresh Deck</h2>
+  <p>Updated 21 November with the tile layout you picked: the name on top at 19, the drawing in the bottom-right corner placed by its outline (4d). Drawn on the locked Fresh Deck direction from your style page: its layout, type, colours and copy, with the approved drawings in place of its placeholder icons. The drawings keep their approved shapes; their ink and red are Fresh Deck’s. Results and Tonight carry none: a spot names a place or a game, and those screens are rows and figures.</p>
+  ${freshDeckScreens(PICK)}
+</section>
+
+<section class="sec">
+  <details class="more">
+  <summary><h2>Round 19 — name on top, the drawing placed by its outline <span>decided</span></h2></summary>
+  <p>Chosen 21 November: <b style="color:${C.ink}">4d, the name at 19</b>, now on the screens above. 19 is one step under the start button’s 21 and well over the 13 of the small lines, so the tiles read as the next level down without competing with it.</p>
   ${ROUND19.map(([title, quote, was, opts]) => {
     const before = ROUND18.flatMap((g) => g[3]).map((o) => variantOption(o, PICK)).find((o) => o.key === was);
     return `<div class="group"><div class="ghead"><h3>${title}</h3><p>first: the one you reviewed · then ${opts.length} new</p></div>
       <blockquote class="quote">“${quote}”</blockquote>
       <div class="optgrid">${[before, ...opts.map((o) => anchoredOption(o, PICK))].map(optCell).join('')}</div></div>`;
   }).join('')}
-</section>
-
-<section class="sec">
-  <h2>The screens they land on, in Fresh Deck</h2>
-  <p>Drawn on the locked Fresh Deck direction from your style page (round two): its layout, type, colours and copy, with the approved drawings in place of its placeholder icons. The drawings keep their approved shapes; their ink and red are Fresh Deck’s. Results and Tonight carry none: a spot names a place or a game, and those screens are rows and figures.</p>
-  ${freshDeckScreens(PICK)}
+  </details>
 </section>
 
 <section class="sec">
