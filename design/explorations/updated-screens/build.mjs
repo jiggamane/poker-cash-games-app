@@ -1,7 +1,7 @@
 /**
  * The updated screens, 21 November 2026: one page of every app screen the
  * style rounds and the icon review touched, drawn only with what the owner
- * approved, and with both options side by side where nothing was approved.
+ * approved, the header included.
  *
  *   node design/explorations/updated-screens/build.mjs [--artifact <path>]
  *
@@ -14,19 +14,19 @@
  *                          published round-two style page (claude.ai artifact
  *                          8V2pTt3a9mNXwrdMZ8TJ3F) as it stood when the owner
  *                          locked the direction. It was never in the repo.
- *   ../screen-headers/     Rail and Lamp, the two header options, on Fresh
- *                          Deck. No verdict on either.
+ *   ../screen-headers/     where the header was chosen: version N of titles.html
+ *                          on the Rail. Its rules are `railN` in fresh-deck.mjs.
  *
- * The two older pages are rendered with Playwright and their phones lifted
- * out whole, each set into a shadow root with its own page's stylesheet, so
- * three stylesheets that all say `.scr` and `.hdr` cannot reach each other.
+ * The style page is rendered with Playwright and its two phones lifted out
+ * whole into a shadow root with that page's own stylesheet, so two stylesheets
+ * that both say `.scr` and `.hdr` cannot reach each other.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { PICK } from '../icon-system/picks.mjs';
-import { FD_CSS, FD_FONTS, freshDeckScreens, freshDeckSheets } from '../icon-system/fresh-deck.mjs';
+import { FD_CSS, FD_FONTS, freshDeckScreens, freshDeckSheets, railN } from '../icon-system/fresh-deck.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -42,19 +42,17 @@ const lift = () => ({
 
 await page.goto(pathToFileURL(join(here, 'sources/style-round-two.html')).href);
 const two = await page.evaluate(`(${lift})()`);
+/* The approved header (N on the Rail): move each screen's head onto one panel. What counts as the head is the header page's own split. */
+await page.evaluate(() => {
+  for (const pad of document.querySelectorAll('#d2 .phone .scr > .pad')) {
+    const head = [...pad.children].filter((c) => c.matches('.hdr, .role, .hero, .meta-l, .sub'));
+    if (!head.length || !pad.querySelector('.hdr')) continue;
+    const rail = document.createElement('div'); rail.className = 'railp';
+    pad.insertBefore(rail, head[0]); head.forEach((c) => rail.appendChild(c));
+  }
+});
 two.phones = await page.evaluate(() => [...document.querySelectorAll('#d2 .strip figure')].map((f) => [f.querySelector('figcaption').textContent, f.querySelector('.phone').outerHTML]));
 
-await page.goto(pathToFileURL(join(here, '../screen-headers/index.html')).href);
-await page.click('.seg[data-k="base"] button[data-v="d2"]');
-const head = await page.evaluate(`(${lift})()`);
-head.modes = {};
-for (const mode of ['rail', 'lamp']) {
-  await page.click(`.seg[data-k="mode"] button[data-v="${mode}"]`);
-  head.modes[mode] = await page.evaluate(() => ({
-    screens: [...document.querySelectorAll('#strip .pair')].map((p) => [p.querySelector('h2').textContent, p.querySelectorAll('figure')[1].firstElementChild.outerHTML]),
-    notes: [...document.querySelectorAll('#notes div')].map((d) => d.lastChild.textContent),
-  }));
-}
 await browser.close();
 
 /* A page's stylesheet, made to work inside a shadow root. */
@@ -70,26 +68,9 @@ const STRIP = `.us-strip{display:flex;gap:22px;overflow-x:auto;padding:6px 2px 1
 
 const [night, , , results] = two.phones;
 const styleScreens = shadow(two, `<div class="us-strip names-only">${[[...night, 'Tonight'], [...results, 'Post-game results']]
-  .map(([, html, cap]) => `<figure>${html}<figcaption>${cap}</figcaption></figure>`).join('')}</div>`, STRIP);
+  .map(([, html, cap]) => `<figure>${html}<figcaption>${cap}</figcaption></figure>`).join('')}</div>`, STRIP + railN('.d-d2'));
 
-const headers = shadow(head, `<div class="us-strip">${head.modes.rail.screens.map(([name, rail], i) => `
-  <div class="us-pair"><h3>${name}</h3><div class="us-two">
-    <figure>${rail}<figcaption><b>Rail</b></figcaption></figure>
-    <figure>${head.modes.lamp.screens[i][1]}<figcaption><b>Lamp</b></figcaption></figure>
-  </div></div>`).join('')}</div>`, STRIP + `
-.us-pair{flex:none;display:grid;gap:10px}
-.us-pair h3{font:700 15px/1.2 'Inter',system-ui,sans-serif;margin:0;padding-left:4px;color:var(--us-fg);letter-spacing:0}
-.us-two{display:flex;gap:12px}
-/* The header page was drawn before three of the approvals. Bring what shows under the head into line with them:
-   no chevrons, the ink start button, and no line icons on the tiles (their drawings are on the full screens above). */
-.chev,.cta .go,.tico{display:none!important}
-.k-d2 .cta{background:#141A2A!important;color:#fff!important}
-.k-d2 .tile{justify-content:flex-start}`);
-
-const headerNotes = head.modes.rail.screens.map(([name], i) =>
-  `<tr><th scope="row">${name}</th><td>${head.modes.rail.notes[i]}</td><td>${head.modes.lamp.notes[i]}</td></tr>`).join('');
-
-const fonts = [...new Set([`<link rel="stylesheet" href="${FD_FONTS}">`, ...[readFileSync(join(here, 'sources/style-round-two.html'), 'utf8'), readFileSync(join(here, '../screen-headers/index.html'), 'utf8')]
+const fonts = [...new Set([`<link rel="stylesheet" href="${FD_FONTS}">`, ...[readFileSync(join(here, 'sources/style-round-two.html'), 'utf8')]
   .flatMap((t) => t.match(/<link rel="stylesheet"[^>]+fonts\.googleapis\.com[^>]+>/g) ?? [])])].join('\n');
 
 const html = `<title>Poker Club Updated Screens</title>
@@ -122,21 +103,22 @@ body{background:var(--us-bg);color:var(--us-fg);font:400 15px/1.55 var(--us-body
 .us-notes thead th,.us-notes tbody th{color:var(--us-fg);font-weight:600;white-space:nowrap}
 .us .fd-strip figcaption{color:var(--us-muted)}
 ${FD_CSS}
+${railN('.fd')}
 </style>
 <main class="us">
 <header>
   <span class="us-eyebrow">The Poker Club · 20–21 November 2026 · design only</span>
   <h1>The updated screens</h1>
-  <p>Every screen the style rounds and the icon review touched, drawn with what you approved. Where nothing was approved, both options are shown. None of this is in the app yet.</p>
+  <p>Every screen the style rounds and the icon review touched, drawn with what you approved, now with the approved header on all of them. None of this is in the app yet.</p>
   <div class="us-status">
     <div><h3>Approved</h3><ul>
       <li><b>Fresh Deck</b> as the look: card stock and ink on a light table, players by name only.</li>
       <li><b>Fifteen drawings</b>, one for each place and game.</li>
       <li><b>Menu tiles</b>: the name on top, the drawing in the bottom-right corner.</li>
       <li><b>Nothing points</b>: no chevrons on rows, and <i>Start a session</i> is a solid ink button.</li>
+      <li><b>The header</b>: the Rail, with the title small and bold on the left beside a bare grey chevron (version N).</li>
     </ul></div>
     <div><h3>Still open</h3><ul>
-      <li><b>The header</b>: Rail or Lamp. Neither has a verdict.</li>
       <li><b>Tonight and Post-game results</b> were not part of the icon review. Their small icons (tools, kitchen, piggy bank) are the style round’s own.</li>
       <li><b>“calculator, rulings, boosters”</b> under Poker tools on the menu is new wording, not yet confirmed.</li>
     </ul></div>
@@ -145,28 +127,22 @@ ${FD_CSS}
 
 <section class="us-sec">
   <div><span class="us-tag ok">Approved</span><h2>Main menu, Poker tools, Game boosters</h2>
-  <p>The three screens the drawings land on. Poker tools carries the two framed cards, the Straddle is the mirrored curve and the Button game is the star button on its stack, as approved today.</p></div>
-  <div class="us-scroll">${freshDeckScreens(PICK, { withSheet: false })}</div>
+  <p>The three screens the drawings land on, each with its head on the rail. On the menu the start button sits across the rail’s edge.</p></div>
+  <div class="us-scroll">${freshDeckScreens(PICK, { withSheet: false, rail: true })}</div>
 </section>
 
 <section class="us-sec">
   <div><span class="us-tag ok">Approved</span><h2>The seven booster sheets</h2>
-  <p>Each game’s drawing heads its description, larger. The words are the app’s own.</p></div>
-  <div class="us-scroll">${freshDeckSheets(PICK, [...BOOSTERS.filter((b) => b.section === 'side'), ...BOOSTERS.filter((b) => b.section === 'pots')].map((b) => b.id))}</div>
+  <p>Each game’s drawing heads its description, larger. A sheet keeps its own grabber and close; the header change is only on the screen behind it.</p></div>
+  <div class="us-scroll">${freshDeckSheets(PICK, [...BOOSTERS.filter((b) => b.section === 'side'), ...BOOSTERS.filter((b) => b.section === 'pots')].map((b) => b.id), { rail: true })}</div>
 </section>
 
 <section class="us-sec">
-  <div><span class="us-tag ok">Approved look</span><h2>Tonight and Post-game results</h2>
-  <p>Fresh Deck as the style round left it: names only, no chevrons, the thin bar under <i>On the table</i>, losses in slate. The header on both is today’s; the options for it follow.</p></div>
+  <div><span class="us-tag ok">Approved</span><h2>Tonight and Post-game results</h2>
+  <p>Fresh Deck as the style round left it, with the new header. On Tonight the title row, the role line and the <i>On the table</i> figure share the rail, and the figure loses its own card. On the results the date, the time span and the view control share it.</p></div>
   <div class="us-scroll">${styleScreens}</div>
 </section>
 
-<section class="us-sec">
-  <div><span class="us-tag open">No verdict · two options</span><h2>The header</h2>
-  <p>Only the top of each screen changes; everything under the fade stays. <b>Rail</b> turns the head into one raised panel. <b>Lamp</b> moves nothing and lights the ground behind the title. These are crops: the rows and tiles under each head are simplified, and the full screens are above.</p></div>
-  <div class="us-scroll">${headers}</div>
-  <div class="us-scroll"><table class="us-notes"><thead><tr><th scope="col">Screen</th><th scope="col">Rail</th><th scope="col">Lamp</th></tr></thead><tbody>${headerNotes}</tbody></table></div>
-</section>
 </main>
 <script>
 /* Where the page arrives through innerHTML, a declarative shadow root is left as a template: attach it by hand. */

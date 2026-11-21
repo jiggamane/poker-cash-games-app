@@ -16,22 +16,19 @@ claude.ai artifact TuSGpPtXL4grbNYq3RW59i (the owner's, private).
 - **Approved look:** Tonight and Post-game results in Fresh Deck, lifted from
   the round-two style page (`sources/style-round-two.html`, a copy of the
   published artifact 8V2pTt3a9mNXwrdMZ8TJ3F, which was never in the repo).
-- **No verdict:** the header, Rail and Lamp side by side on Fresh Deck, lifted
-  from `../screen-headers/`.
+- **The header, approved 21 November:** version N of
+  `../screen-headers/titles.html` on the Rail, on every screen here (`railN` in
+  `../icon-system/fresh-deck.mjs`). Sheets keep their own chrome.
 
 ## Open (owner)
 
-1. Rail or Lamp.
-2. Tonight and Post-game results were not in the icon review: their small
+1. Tonight and Post-game results were not in the icon review: their small
    icons (tools, kitchen, piggy bank) are the style round's own.
-3. *calculator, rulings, boosters* under Poker tools on the menu is new copy.
+2. *calculator, rulings, boosters* under Poker tools on the menu is new copy.
 
 ## How it is built
 
 `node design/explorations/updated-screens/build.mjs` (needs Playwright). It
 draws nothing itself: the icon board's own functions make the first two
-sections, and the two older pages are rendered and their phones set into
-shadow roots with their own stylesheets. The header crops get three overrides
-so that what shows under each head matches the later approvals (no chevrons,
-the ink start button, no line icons on the tiles); the override is in
-`build.mjs` with the reason.
+sections, and the style page is rendered and its two phones set into a
+shadow root with its own stylesheet, after their heads are moved onto the rail.
