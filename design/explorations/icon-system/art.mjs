@@ -1423,6 +1423,63 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 20, 21 November: the Poker tools drawing reworked ───────────── */
+
+/** AB's two chips — the % chip flat, the fire chip resting on its edge — with nothing else. */
+function chipPair(P, o, a, r1, r2, dx) {
+  const b = touching(a, r1, r2, dx, false);
+  const x = b.x - 7, y = b.y - (r1 * 0.36) / 2;
+  const deg = Math.asin(Math.min(1, (r1 * 0.36) / (2 * r2))) * (180 / Math.PI) * 0.75;
+  return {
+    shadows: ownShadow(P, a.x, a.y + 0.5, r1 * 1.12) + ownShadow(P, b.x + 1, b.y + 0.5, r2 * 1.1),
+    chips: pctLying(P, o, a.x, a.y, r1) + tilt(deg, x + r2, b.y, fireLying(P, o, x, y, r2)),
+  };
+}
+const qCentre = (h) => (cx, cy) => text(cx, cy + h * 0.19, h * 0.56, P_RED_Q, '?');
+let P_RED_Q = '#B3343A';
+
+Object.assign(SPOTS, {
+  toolsAE: {
+    name: 'Poker tools', variant: 'AE · the card closer to the chips', where: 'Home · tile', status: 'round20',
+    draw: (P, o) => {
+      P_RED_Q = P.red.side;
+      const pair = chipPair(P, o, { x: 48, y: 88 }, 18, 17, 25);
+      return ownShadow(P, 38, 79, 17) + pair.shadows +
+        card(P, { cx: 36, by: 78, w: 31, h: 44, rot: -8, small: o.small, centre: qCentre(44) }) + pair.chips;
+    },
+  },
+  toolsAF: {
+    name: 'Poker tools', variant: 'AF · two cards, as on the 7-2 game', where: 'Home · tile', status: 'round20',
+    draw: (P, o) => {
+      P_RED_Q = P.red.side;
+      const pair = chipPair(P, o, { x: 50, y: 89 }, 17, 16, 24);
+      return ownShadow(P, 44, 77, 24) + pair.shadows +
+        card(P, { cx: 34, by: 74, w: 29, h: 42, rot: -11, rank: 'A', suitName: 'spade', color: 'ink', small: o.small }) +
+        card(P, { cx: 49, by: 74, w: 29, h: 42, rot: 10, small: o.small, centre: qCentre(42) }) + pair.chips;
+    },
+  },
+  toolsAG: {
+    name: 'Poker tools', variant: 'AG · two cards, the chips beside them', where: 'Home · tile', status: 'round20',
+    draw: (P, o) => {
+      P_RED_Q = P.red.side;
+      const pair = chipPair(P, o, { x: 57, y: 87 }, 16, 15, 21);
+      return ownShadow(P, 34, 81, 22) + pair.shadows +
+        card(P, { cx: 26, by: 80, w: 28, h: 40, rot: -11, rank: 'A', suitName: 'spade', color: 'ink', small: o.small }) +
+        card(P, { cx: 40, by: 80, w: 28, h: 40, rot: 10, small: o.small, centre: qCentre(40) }) + pair.chips;
+    },
+  },
+  toolsAH: {
+    name: 'Poker tools', variant: 'AH · two cards, both rulings', where: 'Home · tile', status: 'round20',
+    draw: (P, o) => {
+      P_RED_Q = P.red.side;
+      const pair = chipPair(P, o, { x: 50, y: 89 }, 17, 16, 24);
+      return ownShadow(P, 44, 77, 24) + pair.shadows +
+        card(P, { cx: 34, by: 74, w: 29, h: 42, rot: -11, back: true, small: o.small }) +
+        card(P, { cx: 49, by: 74, w: 29, h: 42, rot: 10, small: o.small, centre: qCentre(42) }) + pair.chips;
+    },
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
