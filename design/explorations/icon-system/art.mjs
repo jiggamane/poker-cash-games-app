@@ -46,6 +46,25 @@ export const PALETTES = {
   },
 };
 
+/*
+ * Fresh Deck (the owner's locked direction, 20 November): the same drawings in
+ * that UI's ink (#141A2A) and red (#C8283A), with bone left alone. `freshDeckOnInk`
+ * is for a spot that sits on Fresh Deck's solid ink button, where an ink chip
+ * has to lift off the ground the way it does in the dark palette.
+ */
+PALETTES.freshDeck = {
+  ...PALETTES.light,
+  ink: { side: '#141A2A', top: '#1D2437', inlay: '#4F5870', core: '#151B2B', mark: '#EEEAE1' },
+  red: { side: '#B0202F', top: '#C8283A', inlay: '#E98A93', core: '#B82232', mark: '#F4EFE6' },
+  shadow: 'rgba(20,26,42,.14)',
+};
+PALETTES.freshDeckOnInk = {
+  ...PALETTES.dark,
+  ink: { side: '#323A50', top: '#3C4560', inlay: '#6E7894', core: '#303850', mark: '#EEEAE1' },
+  red: { side: '#B0202F', top: '#C8283A', inlay: '#E98A93', core: '#B82232', mark: '#F4EFE6' },
+  shadow: 'rgba(0,0,0,.4)',
+};
+
 const f = (n) => +n.toFixed(2);
 const rad = (d) => (d * Math.PI) / 180;
 

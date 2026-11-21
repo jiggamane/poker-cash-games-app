@@ -25,7 +25,19 @@ Open `Icon System.html` in a browser. Self-contained apart from Google Fonts.
    not in the repository. Send them and these two get matched to them.
 3. Whether spots replace the glyph rounds on home's tiles (N6, 25 October).
 
+## Where it ended, 21 November
+
+Sixteen rounds of review on the published board. All fifteen places have an
+approved drawing (`PICK` in `build.mjs`); Sessions is calendar T. The board
+opens on the screens they land on, drawn in **Fresh Deck**, the owner's locked
+direction from the round-two style page (claude.ai artifact
+8V2pTt3a9mNXwrdMZ8TJ3F), with the drawings in that UI's ink and red
+(`PALETTES.freshDeck`). Nothing is in the app yet.
+
 ## Files
+
+- `fresh-deck.mjs` — the four affected screens (Main menu, Poker tools, Game
+  boosters, a booster's sheet) in Fresh Deck, scoped under `.fd`.
 
 - `art.mjs` — the primitives (chip, stack, standing chip, card, bomb, flame)
   and every spot as a composition of them. The system lives here.
