@@ -1480,6 +1480,61 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 21, 21 November: chips facing front; a fuller Rulings card ───── */
+
+const twoCards = (P, o, back) =>
+  card(P, { cx: 34, by: 74, w: 29, h: 42, rot: -11, back, rank: back ? undefined : 'A', suitName: back ? undefined : 'spade', color: 'ink', small: o.small }) +
+  card(P, { cx: 49, by: 74, w: 29, h: 42, rot: 10, small: o.small, centre: (cx, cy) => text(cx, cy + 8, 23.5, P.red.side, '?') });
+/** N's two chips standing face to the front, overlapping like coins set down together. */
+const facingPair = (P, x1, x2, by, r) =>
+  shadow(P, (x1 + x2) / 2 + 2, r * 1.9, r * 0.42, by) + pctChip(P, x1, by, r) + fireChip(P, x2, by + 1, r);
+
+Object.assign(SPOTS, {
+  toolsAI: {
+    name: 'Poker tools', variant: 'AI · two cards, the chips facing front', where: 'Home · tile', status: 'round21',
+    draw: (P, o) => ownShadow(P, 42, 76, 22) + twoCards(P, o, false) + facingPair(P, 47, 67, 89, 13),
+  },
+  toolsAJ: {
+    name: 'Poker tools', variant: 'AJ · one card, the chips facing front', where: 'Home · tile', status: 'round21',
+    draw: (P, o) =>
+      ownShadow(P, 38, 78, 17) +
+      card(P, { cx: 37, by: 78, w: 31, h: 44, rot: -8, small: o.small, centre: (cx, cy) => text(cx, cy + 8.4, 24.6, P.red.side, '?') }) +
+      facingPair(P, 50, 70, 89, 14),
+  },
+  toolsAK: {
+    name: 'Poker tools', variant: 'AK · a card back and the ruling, the chips facing front', where: 'Home · tile', status: 'round21',
+    draw: (P, o) => ownShadow(P, 42, 76, 22) + twoCards(P, o, true) + facingPair(P, 47, 67, 89, 13),
+  },
+  rulingsB: {
+    name: 'Rulings', variant: 'B · the ruling over a card back', where: 'Poker tools · tile', status: 'round21',
+    draw: (P, o) =>
+      ownShadow(P, 48, GROUND - 1, 24) +
+      card(P, { cx: 38, by: GROUND - 2, w: 38, h: 54, rot: -12, back: true, small: o.small }) +
+      card(P, { cx: 54, by: GROUND - 2, w: 40, h: 57, rot: 11, small: o.small, centre: (cx, cy) => text(cx, cy + 11, 32, P.red.side, '?') }),
+  },
+  rulingsC: {
+    name: 'Rulings', variant: 'C · the ruling with chips at its foot', where: 'Poker tools · tile', status: 'round21',
+    draw: (P, o) =>
+      ownShadow(P, 44, GROUND - 1, 20) + ownShadow(P, 66, GROUND - 1, 15) +
+      card(P, { cx: 42, by: GROUND - 3, w: 40, h: 57, rot: 10, small: o.small, centre: (cx, cy) => text(cx, cy + 11, 32, P.red.side, '?') }) +
+      stack(P, { cx: 66, by: GROUND - 1, r: 13, h: 5, mats: ['red', 'red', 'ink'], wobble: [0, 0.8, -0.6], small: true }),
+  },
+  rulingsD: {
+    name: 'Rulings', variant: 'D · a framed card face', where: 'Poker tools · tile', status: 'round21',
+    draw: (P, o) => {
+      const w = 42, h = 60;
+      return ownShadow(P, 50, GROUND - 1, 21) +
+        card(P, {
+          cx: 47, by: GROUND - 2, w, h, rot: 12, small: o.small,
+          centre: (cx, cy) =>
+            `<rect x="${cx - w / 2 + 5}" y="${cy - h / 2 + 5}" width="${w - 10}" height="${h - 10}" rx="2.5" fill="${P.red.side}"/>` +
+            `<rect x="${cx - w / 2 + 8}" y="${cy - h / 2 + 8}" width="${w - 16}" height="${h - 16}" rx="2" fill="${P.stock}"/>` +
+            text(cx, cy + 10, 30, P.red.side, '?'),
+        });
+    },
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
