@@ -154,6 +154,8 @@ export const OPT_CSS = `
 .fd .mini{background:var(--p-bg);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .fd .mini .fdtiles{margin-top:0}
 .fd .mini .fdtile{min-height:118px}
+.fd .mini .fdtile .tn{font-size:var(--tn,16.5px);line-height:1.1}
+.fd .mini .fdtile>div{position:relative;z-index:1}
 .fd .mini .fdtile>.art{width:auto;height:auto;line-height:0}
 .fd .mini .fdtile>.art svg{display:block}
 .fd .shape{display:grid;place-items:center;flex:none;overflow:visible}
@@ -196,8 +198,8 @@ function shaped(key, shape, size) {
   return `<span class="shape ${shape}">${art(key, size)}</span>`;
 }
 
-function homeTiles(PICK, shape, size, cls = '') {
-  return `<div class="fdtiles ${cls}">${HOME(PICK).map(([k, n]) => `<div class="fdtile">${shaped(k, shape, size)}<div><div class="tn">${n}</div></div></div>`).join('')}</div>`;
+function homeTiles(PICK, shape, size, cls = '', tn) {
+  return `<div class="fdtiles ${cls}"${tn ? ` style="--tn:${tn}px"` : ''}>${HOME(PICK).map(([k, n]) => `<div class="fdtile">${shaped(k, shape, size)}<div><div class="tn">${n}</div></div></div>`).join('')}</div>`;
 }
 
 function rows(PICK, shape, size) {
@@ -235,4 +237,11 @@ export function positionOptions(PICK) {
     key, title, note,
     html: `<div class="fd"><div class="mini ${cls}">${homeTiles(PICK, 'none', size)}</div></div>`,
   }));
+}
+
+/* ── round 18: the same placements, larger, and title sizes ─────────────── */
+
+/** One home-tile variant: a placement class, a drawing size, a shape, a title size. */
+export function variantOption({ key, title, note, cls = '', size, shape = 'none', tn }, PICK) {
+  return { key, title, note, html: `<div class="fd"><div class="mini ${cls}">${homeTiles(PICK, shape, size, '', tn)}</div></div>` };
 }
