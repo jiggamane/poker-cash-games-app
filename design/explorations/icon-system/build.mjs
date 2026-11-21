@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
-import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption } from './fresh-deck.mjs';
+import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption, sizingTable, RHO } from './fresh-deck.mjs';
 
 const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleA', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
@@ -61,6 +61,7 @@ const STATUS = {
   round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
+  round24: { label: 'Round 24', note: 'cards closer, chips tipped', bg: '#EEE9F7', fg: '#4B3A86' },
   round23: { label: 'Round 23', note: 'chips on the table; the Button game', bg: '#E9F1EC', fg: '#2A5E40' },
   round22: { label: 'Round 22', note: 'one card face', bg: '#FBE9EA', fg: '#9A2530' },
   round21: { label: 'Round 21', note: 'chips facing front; Rulings fuller', bg: '#F3ECE2', fg: '#7A4A12' },
@@ -93,20 +94,20 @@ const ROUND = [];
 /* Nothing left to decide: Sessions is calendar T (owner, 21 November). */
 const DECIDE = [];
 /* The approved drawing for each place, by the app's own names. */
-const PICK = { session: 'session', group: 'groupB', sessions: 'sessionsT', stats: 'stats', tools: 'toolsAB', calculator: 'calculator', rulings: 'rulings', boosters: 'boostersE', 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleI', 'table-ante': 'anteF', 'stand-up': 'standUpR', 'button-game': 'buttonGame', 'seven-deuce': 'sevenTwo' };
-const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB', 'standUpR', 'sessionsT'];
+const PICK = { session: 'session', group: 'groupB', sessions: 'sessionsT', stats: 'stats', tools: 'toolsAB', calculator: 'calculator', rulings: 'rulings', boosters: 'boostersE', 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleI', 'table-ante': 'anteF', 'stand-up': 'standUpR', 'button-game': 'buttonC', 'seven-deuce': 'sevenTwo' };
+const APPROVED = ['session', 'stats', 'rulings', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB', 'standUpR', 'sessionsT', 'buttonC'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
   ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT'], ['My stats', 'stats'],
   ['Poker tools', 'toolsAB'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
-  ['Stand-up game', 'standUpR'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
+  ['Stand-up game', 'standUpR'], ['Button game', 'buttonC'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonC', 'buttonD', 'buttonE'];
+const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -345,6 +346,7 @@ figcaption b{font:700 14px ${font}}.variant{font:600 12.5px ${font};color:${C.in
 .slot{background:${C.card};border-radius:14px;padding:10px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
 .slart{height:64px;display:flex;align-items:center;justify-content:center}.slot b{font:700 13px ${font}}.slot i{font:500 11.5px ${font};font-style:normal;color:${C.faint}}
 .slot.gap{background:transparent;box-shadow:inset 0 0 0 1.5px ${C.line};border-radius:14px}.slot.gap .slart span{width:46px;height:46px;border-radius:50%;border:2px dashed #C9C9D1;display:flex;align-items:center;justify-content:center;font:700 18px ${font};color:#B0B0B8}
+.sizing{border-collapse:collapse;background:#fff;border-radius:14px;font:500 13px ${font};color:${C.ink};overflow:hidden}.sizing th{font:700 11px ${font};letter-spacing:.08em;text-transform:uppercase;color:${C.faint};text-align:left;padding:10px 14px}.sizing td{padding:6px 14px;border-top:1px solid ${C.line};vertical-align:middle}.sizing td:nth-child(3),.sizing td:nth-child(4){font-variant-numeric:tabular-nums}
 .more{display:flex;flex-direction:column;gap:14px}.more+.more{margin-top:18px}
 .more summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px}.more summary::-webkit-details-marker{display:none}
 .more summary h2{margin:0}.more summary h2::before{content:'▸ ';color:${C.faint}}.more[open] summary h2::before{content:'▾ '}
@@ -388,7 +390,18 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 23 — chips on the table, two rulings, and the Button game</h2>
+  <h2>Round 24 — the cards closer, the chips tipped toward you</h2>
+  <p>From your note on AP: “need to place cards a bit closer to chips. and turn chips a little bit so that the face value is better visible”. The chips still lie on the table, but tip toward you so their faces read rounder; their edges are drawn thinner to match. Button game C is approved and is on the screens below.</p>
+  <div class="optgrid">${[
+    ['toolsAQ', 'AQ · cards closer, chips tipped toward you', 'The cards moved in over the chips, each chip tipped and turned a few degrees.'],
+    ['toolsAR', 'AR · as AQ, tipped further', 'The faces rounder still: the % and the fire read at a glance.'],
+    ['toolsAS', 'AS · the chips over the cards’ feet', 'As AQ, the chips nearer, overlapping the bottom of the cards.'],
+  ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n))).join('')}</div>
+</section>
+
+<section class="sec">
+  <details class="more">
+  <summary><h2>Round 23 — chips on the table, two rulings, and the Button game <span>earlier</span></h2></summary>
   <p>Two notes, and one request in chat. On AN: “this way to show cards. try alt chips position (put on table) too”. On Rulings F: “try this with 2 cards”. And the Button game: too little as it stands; try the star chip on its edge so its face is fully visible.</p>
   <div class="group"><div class="ghead"><h3>Poker tools</h3><p>AN’s framed cards; the chips on the table</p></div>
     <div class="optgrid">${[
@@ -398,14 +411,14 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
   <div class="group"><div class="ghead"><h3>Rulings, on the Poker tools screen</h3></div>
     <div class="optgrid">${[
       ['rulingsG', 'G · F with two cards', 'Two framed rulings fanned, the chip stack at their foot.'],
-    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', T: 48, c: -10 }))).join('')}</div></div>
+    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', level: 'tools', c: -10 }))).join('')}</div></div>
   <div class="group"><div class="ghead"><h3>Button game</h3><p>in its Game boosters row, and at the head of its sheet</p></div>
     <div class="optgrid">${[
       ['buttonB', 'B · the star button on its edge', 'One bone button standing up, the star facing you: as big as the row allows.'],
-      ['buttonC', 'C · on its edge, beside the buttons won', 'The star button standing in front of a short stack, the same chips the game is played with.'],
       ['buttonD', 'D · on its edge, on top of the buttons won', 'The star button standing on the stack, like the Stand-up game’s J.'],
       ['buttonE', 'E · three buttons on their edges', 'Three star buttons standing together: collecting them is the game.'],
     ].map(([k, t, n]) => optCell(boosterOption(k, t, n))).join('')}</div></div>
+  </details>
 </section>
 
 <section class="sec">
@@ -423,7 +436,7 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
       ['rulingsD', 'D · a framed card face', 'Where the note was left.'],
       ['rulingsE', 'E · B with the framed cards', 'Two framed rulings fanned, the back one replacing B’s card back.'],
       ['rulingsF', 'F · C with the framed card', 'The framed ruling with the chip stack at its foot.'],
-    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', T: 48, c: -10 }))).join('')}</div></div>
+    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', level: 'tools', c: -10 }))).join('')}</div></div>
   </details>
 </section>
 
@@ -442,7 +455,7 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
       ['rulings', 'Now · the card alone', 'Approved in round 1. White card on a white tile: the emptiness you saw. (For comparison.)'],
       ['rulingsB', 'B · the ruling over a card back', 'A red card back behind it, so the tile carries a block of colour.'],
       ['rulingsC', 'C · the ruling with chips at its foot', 'A short stack beside the card: the same chips as the other two tiles.'],
-    ].map(([k, t, n]) => { const o = toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', T: 48, c: -10 }); return k === 'rulings' ? `<figure class="opt" style="margin:0">${o.html}<figcaption><b>${t}</b><span>${n}</span></figcaption></figure>` : optCell(o); }).join('')}</div></div>
+    ].map(([k, t, n]) => { const o = toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', level: 'tools', c: -10 }); return k === 'rulings' ? `<figure class="opt" style="margin:0">${o.html}<figcaption><b>${t}</b><span>${n}</span></figcaption></figure>` : optCell(o); }).join('')}</div></div>
   </details>
 </section>
 
@@ -477,6 +490,12 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
       <div class="optgrid">${[before, ...opts.map((o) => anchoredOption(o, PICK))].map(optCell).join('')}</div></div>`;
   }).join('')}
   </details>
+</section>
+
+<section class="sec">
+  <h2>How a drawing’s size is picked</h2>
+  <p>By how much it paints, not by its box. A lone chip fills most of its square; three chips with gaps between them fill much less, so at one box size the lone chip looks heavier. Each drawing is scaled so the area it paints is a fixed share of its tile: the side of that painted area is <b style="color:${C.ink}">${RHO.home} of the tile’s side on Home</b>, where the tiles are the places you go, and <b style="color:${C.ink}">${RHO.tools} on Poker tools</b>, one level down, where they are tools on a page you are already on. Your corrections on Home (the group and the calendar a little smaller) fall out of the rule on their own; and it is what brings Poker tools down.</p>
+  <div class="fd" style="overflow-x:auto;max-width:100%">${sizingTable(PICK)}</div>
 </section>
 
 <section class="sec">
