@@ -36,6 +36,9 @@ direction from the round-two style page (claude.ai artifact
 
 ## Files
 
+- `measure.mjs` → `bboxes.json` — each drawing's measured outline, so a
+  placement can size and anchor the object instead of its square box. Re-run
+  it (needs Playwright) after changing a drawing.
 - `fresh-deck.mjs` — the four affected screens (Main menu, Poker tools, Game
   boosters, a booster's sheet) in Fresh Deck, scoped under `.fd`.
 
