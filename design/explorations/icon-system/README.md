@@ -28,7 +28,8 @@ Open `Icon System.html` in a browser. Self-contained apart from Google Fonts.
 ## Where it ended, 21 November
 
 Sixteen rounds of review on the published board. All fifteen places have an
-approved drawing (`PICK` in `build.mjs`); Sessions is calendar T. The board
+approved drawing (`PICK` in `build.mjs`); Sessions is calendar T, and the Button
+game is D (the owner approved C, then moved the approval to D). The board
 opens on the screens they land on, drawn in **Fresh Deck**, the owner's locked
 direction from the round-two style page (claude.ai artifact
 8V2pTt3a9mNXwrdMZ8TJ3F), with the drawings in that UI's ink and red
