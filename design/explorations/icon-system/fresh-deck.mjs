@@ -94,6 +94,13 @@ const SB = `<div class="sb"><span>9:41</span><svg viewBox="0 0 62 11" aria-hidde
 const art = (key, size, onInk = false, pal) =>
   `<span class="art">${spot(key, pal ?? (onInk ? 'freshDeckOnInk' : 'freshDeck'), { size })}</span>`;
 
+/*
+ * The menu tiles' drawing weight, per drawing. The group and the calendar read
+ * larger than the stacks at the same outline area (the owner, 21 November:
+ * "a bit smaller"), so they sit at 60 against the others' 68.
+ */
+const MENU_T = { groupB: 60, sessionsT: 60 };
+
 export function freshDeckScreens(PICK) {
   const spark = `<svg class="spark" viewBox="0 0 64 30" aria-hidden="true"><polyline points="2,22 12,18 22,24 32,12 42,15 52,6 62,9" fill="none" stroke="#141A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="62" cy="9" r="2.6" fill="#141A2A"/></svg>`;
   const tiles = [
@@ -105,7 +112,7 @@ export function freshDeckScreens(PICK) {
   const menu = `<div class="scr">${SB}<div class="pad fdmenu">
     <div class="fdeyebrow">Your group</div><h1>The Thursday game</h1>
     <div class="cta">${art(PICK.session, 84, true)}<div><div class="t">Start a session</div><div class="s">$500 buy-in · same rules as last time</div></div></div>
-    <div class="fdtiles">${tiles.map(([k, n, x]) => `<div class="fdtile">${anchored(k, 68, -6, -6)}<div><div class="tn">${n}</div>${x}</div></div>`).join('')}</div></div>
+    <div class="fdtiles">${tiles.map(([k, n, x]) => `<div class="fdtile">${anchored(k, MENU_T[k] ?? 68, -6, -6)}<div><div class="tn">${n}</div>${x}</div></div>`).join('')}</div></div>
     <div class="menubar"><span class="fdpill">${icon('gear')}Settings</span><span class="rb">${icon('userplus')}</span><span class="rb">${icon('sun')}</span></div></div>`;
 
   const tools = `<div class="scr">${SB}<div class="pad">
