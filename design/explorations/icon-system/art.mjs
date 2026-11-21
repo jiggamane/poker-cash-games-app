@@ -65,6 +65,10 @@ PALETTES.freshDeckOnInk = {
   shadow: 'rgba(0,0,0,.4)',
 };
 
+/* Fresh Deck with no ground shadow, and with the shadow made a solid floor. */
+PALETTES.freshDeckFlat = { ...PALETTES.freshDeck, shadow: 'rgba(0,0,0,0)' };
+PALETTES.freshDeckFloor = { ...PALETTES.freshDeck, shadow: '#E3E7EE' };
+
 const f = (n) => +n.toFixed(2);
 const rad = (d) => (d * Math.PI) / 180;
 
