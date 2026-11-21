@@ -297,3 +297,13 @@ export function toolsTileOption(key, title, note, { name = 'Poker tools', sub = 
     html: `<div class="fd"><div class="mini pos-anch" style="max-width:200px"><div class="fdtiles" style="grid-template-columns:1fr;--tn:19px"><div class="fdtile" style="min-height:128px">${anchored(key, T, c, c)}<div><div class="tn">${name}</div><div class="tx">${sub}</div></div></div></div></div></div>`,
   };
 }
+
+/* ── round 23: a booster's drawing, in its list row and at its sheet's head ─ */
+export function boosterOption(key, title, note, id = 'button-game') {
+  const b = Object.fromEntries(BOOSTERS.map((x) => [x.id, x]))[id];
+  return {
+    key, title, note,
+    html: `<div class="fd"><div class="mini"><div class="blist"><div class="brow">${art(key, 46)}<div class="bt"><div class="bn">${b.name}</div><div class="bs">${b.summary}</div></div></div></div>
+      <div style="background:#fff;border-radius:14px;padding:6px 10px;line-height:0">${art(key, 96)}</div></div></div>`,
+  };
+}

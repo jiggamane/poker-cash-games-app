@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
-import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption } from './fresh-deck.mjs';
+import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption } from './fresh-deck.mjs';
 
 const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleA', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
@@ -61,6 +61,7 @@ const STATUS = {
   round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
+  round23: { label: 'Round 23', note: 'chips on the table; the Button game', bg: '#E9F1EC', fg: '#2A5E40' },
   round22: { label: 'Round 22', note: 'one card face', bg: '#FBE9EA', fg: '#9A2530' },
   round21: { label: 'Round 21', note: 'chips facing front; Rulings fuller', bg: '#F3ECE2', fg: '#7A4A12' },
   round20: { label: 'Round 20', note: 'Poker tools reworked', bg: '#E7EEF9', fg: '#24477E' },
@@ -105,7 +106,7 @@ const SLOTS = [
 const EARLIER = ['sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF'];
+const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonC', 'buttonD', 'buttonE'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -387,7 +388,29 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 22 — one card face for every card</h2>
+  <h2>Round 23 — chips on the table, two rulings, and the Button game</h2>
+  <p>Two notes, and one request in chat. On AN: “this way to show cards. try alt chips position (put on table) too”. On Rulings F: “try this with 2 cards”. And the Button game: too little as it stands; try the star chip on its edge so its face is fully visible.</p>
+  <div class="group"><div class="ghead"><h3>Poker tools</h3><p>AN’s framed cards; the chips on the table</p></div>
+    <div class="optgrid">${[
+      ['toolsAO', 'AO · the chips on the table, one resting on the other', 'AB’s pair: the % chip flat, the fire chip resting on its edge.'],
+      ['toolsAP', 'AP · the chips flat, side by side', 'Both chips lying face up on the table, touching.'],
+    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n))).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>Rulings, on the Poker tools screen</h3></div>
+    <div class="optgrid">${[
+      ['rulingsG', 'G · F with two cards', 'Two framed rulings fanned, the chip stack at their foot.'],
+    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', T: 48, c: -10 }))).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>Button game</h3><p>in its Game boosters row, and at the head of its sheet</p></div>
+    <div class="optgrid">${[
+      ['buttonB', 'B · the star button on its edge', 'One bone button standing up, the star facing you: as big as the row allows.'],
+      ['buttonC', 'C · on its edge, beside the buttons won', 'The star button standing in front of a short stack, the same chips the game is played with.'],
+      ['buttonD', 'D · on its edge, on top of the buttons won', 'The star button standing on the stack, like the Stand-up game’s J.'],
+      ['buttonE', 'E · three buttons on their edges', 'Three star buttons standing together: collecting them is the game.'],
+    ].map(([k, t, n]) => optCell(boosterOption(k, t, n))).join('')}</div></div>
+</section>
+
+<section class="sec">
+  <details class="more">
+  <summary><h2>Round 22 — one card face for every card <span>earlier</span></h2></summary>
   <p>From your note on Rulings D: “use this card face for each of the variants where we show cards (regardless if they are face up or down - make all cards in this group appear only in this way)”. Every card in the round-21 options is now D’s: bone, a red inner frame, its mark inside. The ace keeps its spade; the card backs become rulings.</p>
   <div class="group"><div class="ghead"><h3>Poker tools</h3><p>round 21’s three, with the framed cards</p></div>
     <div class="optgrid">${[
@@ -401,6 +424,7 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
       ['rulingsE', 'E · B with the framed cards', 'Two framed rulings fanned, the back one replacing B’s card back.'],
       ['rulingsF', 'F · C with the framed card', 'The framed ruling with the chip stack at its foot.'],
     ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', T: 48, c: -10 }))).join('')}</div></div>
+  </details>
 </section>
 
 <section class="sec">
