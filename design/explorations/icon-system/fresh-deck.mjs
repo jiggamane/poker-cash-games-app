@@ -118,7 +118,7 @@ const TILE = { w: 133, h: 128 };
 export const inkSide = (level) => RHO[level] * Math.sqrt(TILE.w * TILE.h);
 export const sizeFor = (key, level) => inkSide(level) / Math.sqrt(INK[key]);
 
-export function freshDeckScreens(PICK) {
+export function freshDeckScreens(PICK, { withSheet = true } = {}) {
   const spark = `<svg class="spark" viewBox="0 0 64 30" aria-hidden="true"><polyline points="2,22 12,18 22,24 32,12 42,15 52,6 62,9" fill="none" stroke="#141A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="62" cy="9" r="2.6" fill="#141A2A"/></svg>`;
   const tiles = [
     /*
@@ -181,7 +181,27 @@ export function freshDeckScreens(PICK) {
     ['Poker tools', tools, 'Not drawn on the style page: the menu’s tiles (4d, name at 19) with the app’s sub-lines under each name. Drawings sized by the ink rule at one level down (0.27), so they sit a step under Home’s.'],
     ['Game boosters', boosters, 'One spot per game at the head of its row. No chevrons, as Fresh Deck has it.'],
     ['A booster’s sheet', sheet, 'The game’s spot heads its description. The same seven drawings, larger.'],
-  ].map(([cap, html, note]) => `<figure><div class="fdphone">${html}</div><figcaption>${cap}<br><span style="font-weight:400">${note}</span></figcaption></figure>`).join('')}</div>`;
+  ].slice(0, withSheet ? 4 : 3).map(([cap, html, note]) => `<figure><div class="fdphone">${html}</div><figcaption>${cap}<br><span style="font-weight:400">${note}</span></figcaption></figure>`).join('')}</div>`;
+}
+
+/** A sheet per booster, each headed by its approved drawing: the phones for `../updated-screens/`. */
+export function freshDeckSheets(PICK, ids) {
+  const byId = Object.fromEntries(BOOSTERS.map((b) => [b.id, b]));
+  const SECTION = { side: 'Side games', pots: 'Bigger pots' };
+  return `<div class="fd fd-strip">${ids.map((id) => {
+    const b = byId[id];
+    return `<figure><div class="fdphone"><div class="scr">${SB}<div class="pad" style="opacity:.5">
+    <div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div></div>
+    <div class="dim"></div>
+    <div class="sheet"><div class="grab"></div>
+      <div class="shd"><h2>${b.name}</h2><span class="x">${icon('close')}</span></div>
+      <div class="ssub">${SECTION[b.section]}</div>
+      ${art(PICK[id], 96)}
+      <p class="what">${b.what}</p>
+      <div class="lbl">How it works</div>
+      <ol>${b.how.map((h) => `<li>${h}</li>`).join('')}</ol>
+    </div></div></div><figcaption>${b.name}</figcaption></figure>`;
+  }).join('')}</div>`;
 }
 
 /* ── round 17: shapes under the icons, and where they sit in a tile ─────── */
