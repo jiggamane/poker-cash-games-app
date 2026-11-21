@@ -62,6 +62,7 @@ const STATUS = {
   round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
+  round27: { label: 'Round 27', note: 'the app’s other icons', bg: '#E6EEF9', fg: '#1F4E8C' },
   round26: { label: 'Round 26', note: 'the straddle’s seats the other way', bg: '#FDEBEC', fg: '#A3282E' },
   round25: { label: 'Round 25', note: 'the approved tile, two framed cards', bg: '#E8F3EC', fg: '#1D6B36' },
   round24: { label: 'Round 24', note: 'cards closer, chips tipped', bg: '#EEE9F7', fg: '#4B3A86' },
@@ -109,7 +110,8 @@ const SLOTS = [
 const EARLIER = ['toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const ROUND20 = ['straddleM', 'straddleN', 'straddleO', 'straddleP', 'straddleQ', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
+const UI27 = ['uiBill', 'uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite'];
+const ROUND20 = [...UI27, 'straddleM', 'straddleN', 'straddleO', 'straddleP', 'straddleQ', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -378,6 +380,21 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 ` : ''}
 @media (max-width:760px){.board{padding-block:28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}.fam,.mat,.rules,.swrow{grid-template-columns:1fr}.anatomy{flex-direction:column}.anlist{height:auto;display:flex;flex-direction:column;gap:10px}.anlist li{position:static;transform:none}.phone{width:100%}.sizes{display:block;overflow-x:auto}}
+.fd.inplace{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.fd.inplace figure{margin:0;background:#FFFFFF;border-radius:18px;padding:10px 10px 14px;display:flex;flex-direction:column;gap:10px;max-width:320px}
+.fd.inplace figcaption b{font:700 14px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F}.fd.inplace figcaption span{font:400 12.5px/1.45 -apple-system,'SF Pro Text','Figtree',sans-serif;color:#6C6C70}
+.fd.inplace .mini{max-width:100%;color:var(--p-text);font:400 14px/1.35 var(--p-body)}
+.fd.inplace svg{flex:none;display:block}
+.fd .ip-role{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--p-muted);padding:0 2px}.fd .ip-role b{color:var(--p-text);font-weight:600}
+.fd .ip-dock{display:flex;gap:10px}.fd .ip-pri{flex:1;display:grid;place-items:center;height:52px;border-radius:14px;background:#141A2A;color:#fff;font:700 17px var(--p-head)}
+.fd .ip-sec{width:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;height:52px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1.5px #D5D9E0;font:700 12px var(--p-body)}
+.fd .ip-io{display:flex;align-items:center;gap:3px;white-space:nowrap}.fd .ip-io svg{margin-left:4px}.fd .ip-io svg:first-child{margin-left:0}
+.fd .ip-r{display:flex;flex-direction:column;align-items:flex-end;gap:3px}.fd .ip-r b{font:700 16px var(--p-head);color:#0E7A45}
+.fd .ip-terms{display:flex;align-items:center;gap:3px;font-size:11.5px;color:var(--p-muted);background:var(--p-raised);border-radius:7px;padding:2px 6px;white-space:nowrap}
+.fd .ip-ded{display:grid;gap:6px;padding:0 4px}.fd .ip-dl{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}.fd .ip-dl b{margin-left:auto;font:700 13px var(--p-head)}
+.fd .ip-mute svg{filter:grayscale(1) contrast(.75) opacity(.7)}
+.fd .ip-bar{display:flex;gap:10px;align-items:center}.fd .ip-pill{display:flex;align-items:center;gap:8px;height:44px;padding:0 18px 0 12px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.12);font-weight:700;font-size:15px}
+.fd .ip-bar .rb{width:44px;height:44px}
 </style>
 </head>
 <body>
@@ -390,6 +407,36 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
   <p class="lede" style="margin-top:10px">Under every drawing in <b style="color:${C.ink}">The set</b>: tap <b style="color:${C.ink}">Approve</b> or <b style="color:${C.ink}">Needs work</b>, and say what to change in the box. Everything saves as you go, and Claude reads it from here.</p>` : ''}
 </header>
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
+
+<section class="sec">
+  <h2>Round 27 — the app’s other icons</h2>
+  <p>The app draws 47 small icons besides the fifteen you approved. This round sorts all of them and redraws the first twelve in the same hand: the ones that are <b style="color:${C.ink}">objects</b> and sit on Tonight, its Table admin drawer, the results and the menu bar. Approve or comment on each, as before.</p>
+  <div class="group"><div class="ghead"><h3>Twelve new drawings</h3><p>one option each, to start</p></div>
+    <div class="grid">${UI27.map((k) => cell(k)).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>In place, at the size the app uses</h3><p>Fresh Deck, at about the size each sits at in the app</p></div>
+    <div class="fd inplace">
+      <figure><div class="mini" style="width:300px">
+        <div class="ip-role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#EEF0F3;box-shadow:none">${spot(PICK.rulings, 'freshDeck', { size: 32 })}</span></div>
+        <div class="blist">${[['uiSeat', 'Seat a player'], ['uiCashOut', 'Cash out a player'], ['uiRules', 'Money rules'], ['uiPass', 'Pass the game']].map(([k, n]) => `<div class="brow" style="padding:9px 0">${spot(k, 'freshDeck', { size: 38 })}<div class="bt"><div class="bn">${n}</div></div></div>`).join('')}</div>
+        <div class="ip-dock"><span class="ip-pri">+ Rebuy</span><span class="ip-sec">${spot('uiBill', 'freshDeck', { size: 30 })}Bill</span></div>
+      </div><figcaption><b>Tonight</b><span>The tools button (the approved Rulings card), the Table admin drawer, and Bill.</span></figcaption></figure>
+      ${[['', 'Results, in colour', 'Chips in and out beside the figures, and the two deductions.'], [' ip-mute', 'Results, in one grey', 'The same drawings held to one muted tone. On 20 November you asked for the icons on this screen not to be colourful.']].map(([cls, cap, note]) => `
+      <figure><div class="mini${cls}" style="width:300px">
+        <div class="blist">${[['Dana', '+$1,429', '−110', '−81'], ['Andro', '+$526', '−31 +120', '−23']].map(([n, net, a, b]) => `<div class="brow" style="padding:9px 0"><div class="bt"><div class="bn">${n}</div><div class="bs ip-io">${spot('uiChipsIn', 'freshDeck', { size: 18 })}500 ${spot('uiChipsOut', 'freshDeck', { size: 18 })}2,120</div></div><div class="ip-r"><b>${net}</b><span class="ip-terms">${spot('uiKitchen', 'freshDeck', { size: 20 })}${a} ${spot('uiPiggy', 'freshDeck', { size: 20 })}${b}</span></div></div>`).join('')}</div>
+        <div class="ip-ded"><div class="ip-dl">${spot('uiKitchen', 'freshDeck', { size: 28 })}<span>Kitchen &amp; drinks</span><b>$170</b></div><div class="ip-dl">${spot('uiPiggy', 'freshDeck', { size: 28 })}<span>Group piggy bank</span><b>$126</b></div></div>
+      </div><figcaption><b>${cap}</b><span>${note}</span></figcaption></figure>`).join('')}
+      <figure><div class="mini" style="width:300px">
+        <div class="ip-bar"><span class="ip-pill">${spot('uiSettings', 'freshDeck', { size: 32 })}Settings</span><span class="rb">${spot('uiInvite', 'freshDeck', { size: 34 })}</span><span class="rb">${spot('uiClock', 'freshDeck', { size: 32 })}</span></div>
+      </div><figcaption><b>Menu bar, and the log’s clock</b><span>Settings and Invite on the main menu’s bar. The clock stamps entries in the log.</span></figcaption></figure>
+    </div></div>
+  <div class="group"><div class="ghead"><h3>All 47, sorted</h3></div>
+    <div class="open">
+      <div><b>Already has an approved drawing (6)</b>The tools button and its question card (Rulings), the calendar (Sessions), the bars (My stats), the two people (The group), the flame (Boosters), the percent (Calculator).</div>
+      <div><b>Drawn in this round (12)</b>Bill, Kitchen &amp; drinks, piggy bank, chips in, chips out, seat a player, cash out, money rules, pass the game, the clock, settings, invite.</div>
+      <div><b>Objects not drawn yet (15)</b>Sun and moon (theme), home, house-rules info, pencil, restart, trash, phone off, clipboard, copy, message, share, QR code, calculator, the spade card. Next round, once this hand is right.</div>
+      <div><b>Controls, which I’d leave as line glyphs (10)</b>Back, the three chevrons, the arrow, close, plus, check, backspace, and the drinks glass, which no screen uses. They point or confirm; they are not things.</div>
+    </div></div>
+</section>
 
 <section class="sec">
   <h2>Round 26 — the Straddle, its seats the other way round</h2>

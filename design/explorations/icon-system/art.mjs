@@ -1742,3 +1742,95 @@ Object.assign(SPOTS, {
     draw: seats3([72.5, 78], [52, 78], [27.5, 78]),
   },
 });
+
+/* ── round 27, 21 November: the app's other icons, in the same hand ──────
+ *
+ * The line glyphs in `Icon.tsx` that are OBJECTS (a bill, a piggy bank, a
+ * rule book) and sit on the screens the owner pointed at: Tonight, its dock
+ * and drawer, the results, the menu bar. Controls (chevrons, back, close,
+ * plus, check) are not objects and stay line glyphs. Each is drawn from the
+ * system's own parts: chips, card stock, ink, felt red.
+ */
+
+const person = (c) => (cx, cy, r) =>
+  `<g transform="translate(${f(cx)} ${f(cy)}) scale(${f(r / 24)})"><circle cx="0" cy="-5.5" r="4.6" fill="${c}"/><path d="M-9 9.5C-9 3.5 -5 0.6 0 0.6S9 3.5 9 9.5Z" fill="${c}"/></g>`;
+const faceArrow = (P, colour, down) => (cx, cy, r) =>
+  `<g transform="translate(${f(cx)} ${f(cy)}) scale(${f(r / 21)})${down ? ' rotate(180)' : ''}">${UPMARK.headed(colour)}</g>`;
+
+Object.assign(SPOTS, {
+  uiBill: {
+    name: 'Bill', variant: 'the bill', where: 'Tonight · dock', status: 'round27',
+    draw: (P) => shadow(P, 48, 20) + `<g transform="rotate(-6 48 84)">
+      <path d="M30 27a3 3 0 0 1 3-3H63a3 3 0 0 1 3 3V83l-4.5-4-4.5 4-4.5-4-4.5 4-4.5-4-4.5 4-4.5-4-4.5 4Z" fill="${P.stock}" stroke="${P.stockEdge}" stroke-width=".9"/>
+      <rect x="36" y="33" width="24" height="3.6" rx="1.8" fill="${P.ink.top}"/><rect x="36" y="41" width="17" height="3.6" rx="1.8" fill="${P.ink.inlay}"/>
+      <rect x="36" y="49" width="21" height="3.6" rx="1.8" fill="${P.ink.inlay}"/>
+      <rect x="36" y="61" width="9" height="4.4" rx="2.2" fill="${P.ink.top}"/><rect x="48" y="61" width="12" height="4.4" rx="2.2" fill="${P.red.top}"/></g>`,
+  },
+  uiKitchen: {
+    name: 'Kitchen & drinks', variant: 'a place setting', where: 'Results · deductions', status: 'round27',
+    draw: (P) => shadow(P, 48, 34, 9, 80) +
+      `<ellipse cx="48" cy="74" rx="24" ry="8.2" fill="${P.bone.side}"/><ellipse cx="48" cy="71" rx="24" ry="8.2" fill="${P.bone.top}"/>
+      <ellipse cx="48" cy="71" rx="14.5" ry="4.9" fill="${P.bone.core}" stroke="${P.bone.inlay}" stroke-width="1"/>
+      <rect x="11.5" y="46" width="4.6" height="35" rx="2.3" fill="${P.red.top}"/>
+      <path d="M8 26h3.2v13h1.2V26h3.2v13h1.2V26H20v15a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4Z" fill="${P.ink.top}"/>
+      <rect x="79.5" y="50" width="4.6" height="31" rx="2.3" fill="${P.red.top}"/>
+      <path d="M79.5 51V28c5 2 7.5 7 7.5 13v10Z" fill="${P.ink.top}"/>`,
+  },
+  uiPiggy: {
+    name: 'Group piggy bank', variant: 'a chip going in', where: 'Results · deductions', status: 'round27',
+    draw: (P) => shadow(P, 47, 27) +
+      standingChip(P, { cx: 43, by: 48, r: 11, mat: 'bone', t: 3, small: true }) +
+      `<rect x="31" y="70" width="8" height="13" rx="2.5" fill="${P.red.side}"/><rect x="55" y="70" width="8" height="13" rx="2.5" fill="${P.red.side}"/>
+      <path d="M21 56q-7 -1 -5 -8" fill="none" stroke="${P.red.side}" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M55 43L60 30L68 44Z" fill="${P.red.side}"/>
+      <ellipse cx="47" cy="58" rx="27" ry="19.5" fill="${P.red.top}"/>
+      <rect x="35" y="40.6" width="17" height="2.8" rx="1.4" fill="${P.red.side}"/>
+      <ellipse cx="75" cy="61" rx="6" ry="7.6" fill="${P.red.side}"/><circle cx="75.6" cy="58.6" r="1.1" fill="${P.red.inlay}"/><circle cx="75.6" cy="63.4" r="1.1" fill="${P.red.inlay}"/>
+      <circle cx="63" cy="52" r="2.1" fill="${P.ink.top}"/>`,
+  },
+  uiChipsIn: {
+    name: 'Chips in', variant: 'a chip, the arrow down', where: 'Results · a player’s row', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'red', t: 6, small: true, glyph: faceArrow(P, P.red.mark, true) }),
+  },
+  uiChipsOut: {
+    name: 'Chips out', variant: 'a chip, the arrow up', where: 'Results · a player’s row', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'bone', t: 6, small: true, glyph: faceArrow(P, P.ink.top, false) }),
+  },
+  uiSeat: {
+    name: 'Seat a player', variant: 'a player’s chip', where: 'Tonight · Table admin', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'ink', t: 6, small: true, glyph: person(P.ink.mark) }),
+  },
+  uiCashOut: {
+    name: 'Cash out a player', variant: 'chips against a slip', where: 'Tonight · Table admin', status: 'round27',
+    draw: (P, o) => shadow(P, 50, 32) +
+      card(P, { cx: 58, by: GROUND - 3, w: 36, h: 50, rot: 9, small: true, centre: (cx, cy) => text(cx, cy + 9, 26, P.ink.top, '$') }) +
+      stack(P, { cx: 33, by: GROUND, r: 17, h: 6.5, mats: ['red', 'red', 'red'], wobble: [0, 0.8, -0.6], small: true }),
+  },
+  uiPass: {
+    name: 'Pass the game', variant: 'the dealer button', where: 'Tonight · Table admin', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'bone', t: 6, small: true, glyph: (cx, cy, r) => text(cx, cy + r * 0.27, f(r * 0.78), P.ink.top, 'D') }),
+  },
+  uiRules: {
+    name: 'Money rules', variant: 'the rule book', where: 'Tonight · Table admin', status: 'round27',
+    draw: (P) => shadow(P, 50, 30) +
+      `<g transform="rotate(-5 46 84)"><rect x="25" y="24" width="45" height="59" rx="4" fill="${P.ink.top}"/><rect x="25" y="24" width="8" height="59" rx="3" fill="${P.ink.side}"/>
+      <rect x="39" y="34" width="24" height="17" rx="2.5" fill="${P.bone.top}"/><rect x="43" y="39" width="16" height="2.8" rx="1.4" fill="${P.ink.top}"/><rect x="43" y="44.4" width="10" height="2.8" rx="1.4" fill="${P.ink.inlay}"/></g>` +
+      chip(P, { cx: 70, by: GROUND + 2, r: 13, h: 5, mat: 'red', small: true }),
+  },
+  uiClock: {
+    name: 'The log', variant: 'a clock face', where: 'Tonight · the log', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'bone', t: 6, small: true, glyph: (cx, cy, r) =>
+      `<path d="M${f(cx)} ${f(cy)}V${f(cy - r * 0.42)}M${f(cx)} ${f(cy)}L${f(cx + r * 0.3)} ${f(cy + r * 0.17)}" fill="none" stroke="${P.ink.top}" stroke-width="${f(r * 0.13)}" stroke-linecap="round"/><circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.08)}" fill="${P.red.top}"/>` }),
+  },
+  uiSettings: {
+    name: 'Settings', variant: 'a chip as a cog', where: 'Main menu · bar', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'ink', t: 6, small: true, glyph: (cx, cy, r) =>
+      `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.36)}" fill="${P.bone.top}"/><circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.15)}" fill="${P.ink.side}"/>` }),
+  },
+  uiInvite: {
+    name: 'Invite', variant: 'a sealed envelope', where: 'Main menu · bar', status: 'round27',
+    draw: (P) => shadow(P, 48, 34, 8) + `<g transform="rotate(-5 48 84)"><rect x="17" y="38" width="62" height="44" rx="4" fill="${P.stock}" stroke="${P.stockEdge}" stroke-width=".9"/>
+      <path d="M18 40.5L48 62L78 40.5" fill="${P.bone.top}" stroke="${P.stockEdge}" stroke-width="1.1" stroke-linejoin="round"/>
+      <circle cx="48" cy="61" r="8" fill="${P.red.top}"/>${suit('heart', 44, 57.4, 8, P.red.mark)}</g>`,
+  },
+});
