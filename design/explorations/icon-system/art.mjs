@@ -1276,7 +1276,7 @@ const UPMARK = {
   boost: (c) => `<path d="M-6.5 1.5L0 -5L6.5 1.5M-6.5 8L0 1.5L6.5 8" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>`,
   bolt: (c) => `<path d="M2.4 -10L-6.5 1.8H-0.6L-2.4 10L6.5 -1.8H0.6Z" fill="${c}" stroke="${c}" stroke-width="1" stroke-linejoin="round"/>`,
 };
-const upMark = (P, kind) => (cx, cy, r) => `<g transform="translate(${f(cx)} ${f(cy)}) scale(${f(r / 21)})">${UPMARK[kind](P.red.mark)}</g>`;
+const upMark = (P, kind, colour = P.red.mark) => (cx, cy, r) => `<g transform="translate(${f(cx)} ${f(cy)}) scale(${f(r / 21)})">${UPMARK[kind](colour)}</g>`;
 
 /** Stand-up game A's layout — a short ink stack, one red chip stood up beside it — with a choice of mark. */
 const standUpLayout = (P, o, kind) =>
@@ -1331,6 +1331,31 @@ Object.assign(SPOTS, {
       shadow(P, 48, 36) +
       stack(P, { cx: 69, by: GROUND - 2, r: 14, h: 5.5, mats: ['ink', 'ink', 'ink'], wobble: [0, -0.8, 0.6], small: true }) +
       standingChip(P, { cx: 35, by: GROUND + 1, r: 22, mat: 'red', t: 6, small: o.small, glyph: upMark(P, 'bolt') }),
+  },
+});
+
+/* ── round 14, 21 November: the owner's thirteenth review ──────────────── */
+
+const onStack = (P, o, chipMat, stackMat, mark) =>
+  shadow(P, 48, 27) +
+  stack(P, { cx: 47, by: GROUND + 1, r: 21, h: 6.5, mats: [stackMat, stackMat, stackMat], wobble: [0, 0.8, -0.6], small: true }) +
+  standingChip(P, { cx: 46, by: GROUND + 1 - 19.5 + 3.5, r: 18, mat: chipMat, t: 5, small: o.small, glyph: mark });
+
+Object.assign(SPOTS, {
+  standUpL: {
+    name: 'Stand-up game', variant: 'L · red stack, the dark chip on top', where: 'Boosters', status: 'round14',
+    draw: (P, o) => onStack(P, o, 'ink', 'red', upMark(P, 'bolt')),
+  },
+  standUpM: {
+    name: 'Stand-up game', variant: 'M · as L, the bolt in red', where: 'Boosters', status: 'round14',
+    draw: (P, o) => onStack(P, o, 'ink', 'red', upMark(P, 'bolt', P.red.top)),
+  },
+  standUpN: {
+    name: 'Stand-up game', variant: 'N · K’s layout, the same swap', where: 'Boosters', status: 'round14',
+    draw: (P, o) =>
+      shadow(P, 48, 36) +
+      stack(P, { cx: 69, by: GROUND - 2, r: 14, h: 5.5, mats: ['red', 'red', 'red'], wobble: [0, -0.8, 0.6], small: true }) +
+      standingChip(P, { cx: 35, by: GROUND + 1, r: 22, mat: 'ink', t: 6, small: o.small, glyph: upMark(P, 'bolt') }),
   },
 });
 
