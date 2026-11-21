@@ -105,12 +105,15 @@ export function freshDeckScreens(PICK) {
   const spark = `<svg class="spark" viewBox="0 0 64 30" aria-hidden="true"><polyline points="2,22 12,18 22,24 32,12 42,15 52,6 62,9" fill="none" stroke="#141A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="62" cy="9" r="2.6" fill="#141A2A"/></svg>`;
   const tiles = [
     /*
-     * The group's and My stats' lines are the app's own, word for word, from
-     * before home dropped its sub-lines on 27 October. Poker tools' old line
+     * The group's line is the players screen's own meta line ("{n} on the
+     * roster", app/players.tsx) for the seeded night's six — shorter, at the
+     * owner's word, and a fact like Sessions' date. My stats' line is the
+     * app's own, word for word, from before home dropped its sub-lines on
+     * 27 October. Poker tools' old line
      * ("poker calculator, rules & rulings") predates Boosters, so this one is
      * the three tool names as the app writes them — ⚠ NEW COPY, unconfirmed.
      */
-    [PICK.group, 'The group', '<div class="tx">players, money rules, the piggy bank</div>'],
+    [PICK.group, 'The group', '<div class="tx">6 on the roster</div>'],
     [PICK.sessions, 'Sessions', '<div class="tx">Fri 20 Nov</div>'],
     [PICK.stats, 'My stats', '<div class="tx">across every group you play in</div>'],
     [PICK.tools, 'Poker tools', '<div class="tx">calculator, rulings, boosters</div>'],
