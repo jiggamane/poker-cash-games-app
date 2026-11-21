@@ -18,6 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
+import { FD_CSS, FD_FONTS, freshDeckScreens } from './fresh-deck.mjs';
 
 const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleA', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
@@ -85,20 +86,20 @@ function cell(key, before = false) {
 
 /* Nothing came back after the fifteenth review: R was approved. */
 const ROUND = [];
-/* Still to decide: two are approved for Sessions. */
-const DECIDE = [
-  ['Sessions — two are approved, keep one', ['sessionsT', 'sessionsJ']],
-];
-const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB', 'standUpR'];
+/* Nothing left to decide: Sessions is calendar T (owner, 21 November). */
+const DECIDE = [];
+/* The approved drawing for each place, by the app's own names. */
+const PICK = { session: 'session', group: 'groupB', sessions: 'sessionsT', stats: 'stats', tools: 'toolsAB', calculator: 'calculator', rulings: 'rulings', boosters: 'boostersE', 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleI', 'table-ante': 'anteF', 'stand-up': 'standUpR', 'button-game': 'buttonGame', 'seven-deuce': 'sevenTwo' };
+const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB', 'standUpR', 'sessionsT'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
-  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT', 'or the book (J): yours to pick'], ['My stats', 'stats'],
+  ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT'], ['My stats', 'stats'],
   ['Poker tools', 'toolsAB'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
   ['Stand-up game', 'standUpR'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
@@ -244,8 +245,10 @@ const page = () => `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Poker Club Icon System</title>${REVIEW ? '\n<meta name="claude:viewport-fit-sides" content="cover">' : ''}
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="${FD_FONTS}" rel="stylesheet">
 <style>
 :root{color-scheme:light}
+${FD_CSS}
 body{margin:0;background:${C.page};font-family:${font};color:${C.ink}}
 .proj{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 .board{display:flex;flex-direction:column;gap:56px;padding-block:48px 64px;padding-left:max(48px,env(safe-area-inset-left,0px));padding-right:max(48px,env(safe-area-inset-right,0px));max-width:1240px;box-sizing:border-box}
@@ -348,15 +351,15 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>The set so far</h2>
-  <p>One drawing per place in the app, from what you’ve approved. Every place has an approved drawing. Sessions has two, the calendar and the leaning book, and keeps one.</p>
-  ${setSoFar()}
+  <h2>The screens they land on, in Fresh Deck</h2>
+  <p>Drawn on the locked Fresh Deck direction from your style page (round two): its layout, type, colours and copy, with the approved drawings in place of its placeholder icons. The drawings keep their approved shapes; their ink and red are Fresh Deck’s. Results and Tonight carry none: a spot names a place or a game, and those screens are rows and figures.</p>
+  ${freshDeckScreens(PICK)}
 </section>
 
 <section class="sec">
-  <h2>Still to pick: Sessions</h2>
-  <p>Both are approved. Tap Approve on the one you don’t want, to take it back.</p>
-  ${DECIDE.map(([title, keys]) => `<div class="grid">${keys.map((k) => cell(k)).join('')}</div>`).join('')}
+  <h2>The set so far</h2>
+  <p>One drawing per place in the app, from what you’ve approved. All fifteen are settled.</p>
+  ${setSoFar()}
 </section>
 
 <section class="sec">
@@ -403,12 +406,6 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
   <h2>Sizes</h2>
   <p>Four sizes and no others. At 44 and below the fine detail goes — dashes, inlay, letters, card indices — and the silhouette and inserts carry it.</p>
   ${sizes()}
-</section>
-
-<section class="sec">
-  <h2>In place</h2>
-  <p>Home with the start card and the four tiles carrying spots, and a boosters list with one beside each game. Light and dark.</p>
-  <div class="places">${startCard('light')}${startCard('dark')}${boostersList('light')}${boostersList('dark')}</div>
 </section>
 
 <section class="sec">
