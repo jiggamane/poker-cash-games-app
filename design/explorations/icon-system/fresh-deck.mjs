@@ -122,7 +122,7 @@ export function freshDeckScreens(PICK) {
       [PICK.calculator, 'Calculator', 'hand and pot odds'],
       [PICK.rulings, 'Rulings', 'look up a ruling'],
       [PICK.boosters, 'Boosters', 'bomb pots and more'],
-    ].map(([k, n, x]) => `<div class="fdtile">${anchored(k, 56, -8, -8)}<div><div class="tn">${n}</div><div class="tx">${x}</div></div></div>`).join('')}</div></div></div>`;
+    ].map(([k, n, x]) => `<div class="fdtile">${anchored(k, 48, -10, -10)}<div><div class="tn">${n}</div><div class="tx">${x}</div></div></div>`).join('')}</div></div></div>`;
 
   const sections = [
     ['Side games', suit.club, ['stand-up', 'button-game', 'seven-deuce']],
@@ -152,7 +152,7 @@ export function freshDeckScreens(PICK) {
 
   return `<div class="fd fd-strip">${[
     ['Main menu', menu, 'The start button carries the chip stack. Each tile: the name on top at 19, the drawing in the bottom-right corner, placed by its outline (4d, chosen 21 November). My stats drops the style page’s sparkline: the drawing is already a chart.'],
-    ['Poker tools', tools, 'Not drawn on the style page: the menu’s tiles (4d, name at 19) with the app’s sub-lines under each name. A single chip or card fills its outline more than a group does, so these three sit a size smaller to carry the same weight as the menu’s.'],
+    ['Poker tools', tools, 'Not drawn on the style page: the menu’s tiles (4d, name at 19) with the app’s sub-lines under each name. A single chip or card fills its outline more than a group does, so these three sit smaller (48, at the owner’s word 21 November) to carry the same weight as the menu’s.'],
     ['Game boosters', boosters, 'One spot per game at the head of its row. No chevrons, as Fresh Deck has it.'],
     ['A booster’s sheet', sheet, 'The game’s spot heads its description. The same seven drawings, larger.'],
   ].map(([cap, html, note]) => `<figure><div class="fdphone">${html}</div><figcaption>${cap}<br><span style="font-weight:400">${note}</span></figcaption></figure>`).join('')}</div>`;
