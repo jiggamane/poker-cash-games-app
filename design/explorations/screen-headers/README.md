@@ -42,3 +42,21 @@ corner stays empty apart from Tonight's live tag. Sheets aren't touched.
 3. In code it would be a header slot in `Screen.tsx` that the screen's head
    renders into, plus home's own header. That's app-wide, so per `CLAUDE.md` it
    runs alone, with no other session in flight.
+
+## Titles and back buttons, 21 November
+
+`titles.html` (a page fragment: open it in a browser as it is). The owner on
+the two options: not bad, but the title styles and the back buttons need to
+change too. Six versions on Fresh Deck, each changing both together, with a
+Rail / Lamp switch since that choice is still open:
+
+- **A** a large title on its own line under a bare back arrow
+- **B** a bare chevron and a semibold title
+- **C** a small centred title, the round button kept
+- **D** the round button in ink, a heavier title
+- **E** a square key, a smaller title
+- **F** a tab on the screen's edge
+
+It copies the phone, Fresh Deck, Rail and Lamp styles from `index.html` and
+adds only the `.v-*` rules. Under each head it is already in line with the
+later approvals (no chevrons, the ink start button). No verdict yet.
