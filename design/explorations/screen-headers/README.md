@@ -75,3 +75,8 @@ in capitals like the section labels; a step stronger). **O**, **P**, **Q** are
 other ideas altogether: an ink head, the whole screen as one card with the
 title as its tab, and a poster title. O and P are their own answer to Rail or
 Lamp, so the switch does not change them. No verdict yet.
+
+**Decided, 21 November: N on the Rail.** The title at 20 and bold on the left,
+beside a bare grey chevron, on the raised panel. `../updated-screens/` shows it
+on every screen. In code it is still the app-wide header slot in `Screen.tsx`
+named under Open above, so it runs alone.
