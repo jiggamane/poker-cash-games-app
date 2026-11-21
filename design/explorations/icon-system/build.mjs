@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
-import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption } from './fresh-deck.mjs';
+import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption } from './fresh-deck.mjs';
 
 const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleA', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
@@ -61,6 +61,7 @@ const STATUS = {
   round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
+  round20: { label: 'Round 20', note: 'Poker tools reworked', bg: '#E7EEF9', fg: '#24477E' },
   round4: { label: 'Round 4', note: 'from your third review', bg: '#EAF6F0', fg: '#14613E' },
   round3: { label: 'Round 3', note: 'from your second review', bg: '#E5EEFF', fg: '#1F4BA8' },
 };
@@ -102,7 +103,8 @@ const SLOTS = [
 const EARLIER = ['sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
+const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH'];
+const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
 
@@ -381,6 +383,18 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
   <p class="lede" style="margin-top:10px">Under every drawing in <b style="color:${C.ink}">The set</b>: tap <b style="color:${C.ink}">Approve</b> or <b style="color:${C.ink}">Needs work</b>, and say what to change in the box. Everything saves as you go, and Claude reads it from here.</p>` : ''}
 </header>
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
+
+<section class="sec">
+  <h2>Round 20 — the Poker tools drawing, reworked</h2>
+  <p>From your comment on the menu: “need to rework this icon. try putting card closer to chips, try 2 cards (position them like on 7-2 game ison)”. Each is shown in the menu’s tile at its real size. The chips are AB’s, unchanged.</p>
+  <div class="optgrid">${[
+    ['toolsAB', 'Now · AB', 'The card well behind and left of the chips. (Shown for comparison; approve or comment on it in Approved below.)'],
+    ['toolsAE', 'AE · the card closer to the chips', 'One Rulings card, moved in so its foot sits behind the % chip.'],
+    ['toolsAF', 'AF · two cards, as on the 7-2 game', 'An ace and the Rulings card, fanned the way 7-2’s are, the chips in front of them.'],
+    ['toolsAG', 'AG · two cards, the chips beside them', 'The same pair smaller and to the left, the chips to their right, less overlap.'],
+    ['toolsAH', 'AH · a card back and the ruling', 'As AF, the ace swapped for a card face down, so the only face is the ruling.'],
+  ].map(([k, t, n]) => { const o = toolsTileOption(k, t, n); return k === 'toolsAB' ? `<figure class="opt" style="margin:0">${o.html}<figcaption><b>${t}</b><span>${n}</span></figcaption></figure>` : optCell(o); }).join('')}</div>
+</section>
 
 <section class="sec">
   <h2>The screens they land on, in Fresh Deck</h2>

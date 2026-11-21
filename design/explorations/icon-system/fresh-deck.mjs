@@ -289,3 +289,11 @@ export function anchoredOption({ key, title, note, T, cx, cy, tn }, PICK) {
   const tiles = HOME(PICK).map(([k, n]) => `<div class="fdtile">${anchored(k, T, cx, cy)}<div><div class="tn">${n}</div></div></div>`).join('');
   return { key, title, note, html: `<div class="fd"><div class="mini pos-anch"><div class="fdtiles"${tn ? ` style="--tn:${tn}px"` : ''}>${tiles}</div></div></div>` };
 }
+
+/* ── round 20: a Poker tools drawing, shown in the menu's tile at 4d ────── */
+export function toolsTileOption(key, title, note) {
+  return {
+    key, title, note,
+    html: `<div class="fd"><div class="mini pos-anch" style="max-width:200px"><div class="fdtiles" style="grid-template-columns:1fr;--tn:19px"><div class="fdtile" style="min-height:128px">${anchored(key, 68, -6, -6)}<div><div class="tn">Poker tools</div><div class="tx">calculator, rulings, boosters</div></div></div></div></div></div>`,
+  };
+}
