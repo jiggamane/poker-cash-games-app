@@ -61,6 +61,7 @@ const STATUS = {
   round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
+  round25: { label: 'Round 25', note: 'the approved tile, two framed cards', bg: '#E8F3EC', fg: '#1D6B36' },
   round24: { label: 'Round 24', note: 'cards closer, chips tipped', bg: '#EEE9F7', fg: '#4B3A86' },
   round23: { label: 'Round 23', note: 'chips on the table; the Button game', bg: '#E9F1EC', fg: '#2A5E40' },
   round22: { label: 'Round 22', note: 'one card face', bg: '#FBE9EA', fg: '#9A2530' },
@@ -107,7 +108,7 @@ const SLOTS = [
 const EARLIER = ['straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
+const ROUND20 = ['toolsAT', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -390,8 +391,16 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
+  <h2>Round 25 — the approved tile with the new cards</h2>
+  <p>From your comment on the Poker tools tile on the main menu: “lets try changing only the card layout (acc to the updated option above)”. AB’s chips exactly as approved; its single card replaced by round 24’s two framed cards, moved in over the chips. AB stays on the screens until you approve this one.</p>
+  <div class="optgrid">${[
+    ['toolsAT', 'AT · AB’s chips, the two framed cards', 'The % chip flat and the fire chip resting on it, as on AB; the two framed rulings behind them.'],
+  ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n))).join('')}</div>
+</section>
+
+<section class="sec">
   <h2>Round 24 — the cards closer, the chips tipped toward you</h2>
-  <p>From your note on AP: “need to place cards a bit closer to chips. and turn chips a little bit so that the face value is better visible”. The chips still lie on the table, but tip toward you so their faces read rounder; their edges are drawn thinner to match. Button game C is approved and is on the screens below.</p>
+  <p>From your note on AP: “need to place cards a bit closer to chips. and turn chips a little bit so that the face value is better visible”. The chips still lie on the table, but tip toward you so their faces read rounder; their edges are drawn thinner to match. Button game D is on the screens below.</p>
   <div class="optgrid">${[
     ['toolsAQ', 'AQ · cards closer, chips tipped toward you', 'The cards moved in over the chips, each chip tipped and turned a few degrees.'],
     ['toolsAR', 'AR · as AQ, tipped further', 'The faces rounder still: the % and the fire read at a glance.'],

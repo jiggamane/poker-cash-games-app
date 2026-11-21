@@ -1695,3 +1695,15 @@ export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
 }
+
+/* ── round 25, 21 November: the approved tile, with round 24's cards ── */
+
+Object.assign(SPOTS, {
+  toolsAT: {
+    name: 'Poker tools', variant: 'AT · AB’s chips, the two framed cards', where: 'Home · tile', status: 'round25',
+    draw: (P, o) => {
+      const pair = chipPair(P, o, { x: 43, y: 88 }, 18, 17, 28);
+      return ownShadow(P, 40, 79, 22) + pair.shadows + framedPairAt(P, o, 32, 78) + pair.chips;
+    },
+  },
+});
