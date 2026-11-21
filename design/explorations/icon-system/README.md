@@ -32,7 +32,9 @@ approved drawing (`PICK` in `build.mjs`); Sessions is calendar T, and the Button
 game is D (the owner approved C, then moved the approval to D). The Straddle is
 L: I mirrored, the same curve with the seats the other way round, asked for in
 chat on 21 November (K, a first reading of that, is passed over). Round 26 also
-shows it on a straight line (N to Q), not yet reviewed. The board
+shows it on a straight line (N to Q); the owner approved L and passed those
+over. Poker tools is AT: AB's chips with round 24's two framed cards, approved
+the same day. The board
 opens on the screens they land on, drawn in **Fresh Deck**, the owner's locked
 direction from the round-two style page (claude.ai artifact
 8V2pTt3a9mNXwrdMZ8TJ3F), with the drawings in that UI's ink and red
