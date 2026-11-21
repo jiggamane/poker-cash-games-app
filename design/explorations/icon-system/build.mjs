@@ -94,17 +94,17 @@ const ROUND = [];
 /* Nothing left to decide: Sessions is calendar T (owner, 21 November). */
 const DECIDE = [];
 /* The approved drawing for each place, by the app's own names. */
-const PICK = { session: 'session', group: 'groupB', sessions: 'sessionsT', stats: 'stats', tools: 'toolsAB', calculator: 'calculator', rulings: 'rulings', boosters: 'boostersE', 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleI', 'table-ante': 'anteF', 'stand-up': 'standUpR', 'button-game': 'buttonD', 'seven-deuce': 'sevenTwo' };
-const APPROVED = ['session', 'stats', 'rulings', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB', 'standUpR', 'sessionsT', 'buttonD'];
+const PICK = { session: 'session', group: 'groupB', sessions: 'sessionsT', stats: 'stats', tools: 'toolsAB', calculator: 'calculator', rulings: 'rulings', boosters: 'boostersE', 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleK', 'table-ante': 'anteF', 'stand-up': 'standUpR', 'button-game': 'buttonD', 'seven-deuce': 'sevenTwo' };
+const APPROVED = ['session', 'stats', 'rulings', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleK', 'toolsAB', 'standUpR', 'sessionsT', 'buttonD'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
   ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT'], ['My stats', 'stats'],
   ['Poker tools', 'toolsAB'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
-  ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
+  ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleK'], ['Table ante', 'anteF'],
   ['Stand-up game', 'standUpR'], ['Button game', 'buttonD'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];

@@ -29,7 +29,9 @@ Open `Icon System.html` in a browser. Self-contained apart from Google Fonts.
 
 Sixteen rounds of review on the published board. All fifteen places have an
 approved drawing (`PICK` in `build.mjs`); Sessions is calendar T, and the Button
-game is D (the owner approved C, then moved the approval to D). The board
+game is D (the owner approved C, then moved the approval to D). The Straddle is
+K: I with the stacks in seat order to the right — straddle, big blind, small
+blind — asked for in chat on 21 November. The board
 opens on the screens they land on, drawn in **Fresh Deck**, the owner's locked
 direction from the round-two style page (claude.ai artifact
 8V2pTt3a9mNXwrdMZ8TJ3F), with the drawings in that UI's ink and red

@@ -953,6 +953,14 @@ Object.assign(SPOTS, {
       { x: 42, y: 76, n: 4, r: 14, h: 6 },
     ]),
   },
+  straddleK: {
+    name: 'Straddle', variant: 'K · I, in seat order to the right', where: 'Boosters', status: 'round4',
+    draw: (P, o) => seatStacks(P, o, [
+      { x: 79, y: 50, n: 1, r: 10, h: 5 },
+      { x: 53, y: 60, n: 2, r: 10.5, h: 5 },
+      { x: 26, y: 76, n: 4, r: 14, h: 6 },
+    ]),
+  },
   straddleJ: {
     name: 'Straddle', variant: 'J · an arc away from you', where: 'Boosters', status: 'round4',
     draw: (P, o) => seatStacks(P, o, [
