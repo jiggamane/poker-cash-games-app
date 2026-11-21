@@ -65,3 +65,16 @@ earlier still and predates the header.
   also writes the published copy, with the review controls); the boosters list
   reads its names and summaries from `packages/core/src/boosters.ts`.
   `node design/explorations/icon-system/build.mjs`
+
+## Round 27, 21 November: the app's other icons
+
+The owner: there are more icons in the app than the fifteen reviewed; find
+them, apply the style, review. `Icon.tsx` has 47. Sorted on the board: 6
+already have an approved drawing, 12 are drawn in this round (`ui*` in
+`art.mjs`: the objects on Tonight, its drawer, the results and the menu bar),
+15 objects are not drawn yet, and 10 controls (chevrons, back, close, plus,
+check) are proposed to stay line glyphs. **This revisits the rule at the top
+of this file** that glyphs stay as they are; it is the owner's call, and
+nothing is in the app. On the results the drawings are shown both in colour
+and in one grey, since on 20 November the owner asked for that screen's icons
+not to be colourful. No verdicts yet.
