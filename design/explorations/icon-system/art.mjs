@@ -1588,6 +1588,61 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 23, 21 November: chips on the table; two rulings; the Button game ─ */
+
+/** The Button game's star, centred on the origin, 18 across. */
+const STAR = 'M0 -9L2.6 -3 9 -2.6 4.2 1.6 5.6 8 0 4.6 -5.6 8 -4.2 1.6 -9 -2.6 -2.6 -3Z';
+/** A bone button standing on its edge, the star facing out. */
+const starChip = (P, cx, by, r, t = r * 0.26) =>
+  standingChip(P, { cx, by, r, mat: 'bone', t, small: true, glyph: (x, y) => `<path d="${STAR}" transform="translate(${f(x)} ${f(y)}) scale(${f(r / 17)})" fill="${P.red.side}"/>` });
+const buttonStack = (P, cx, by, r, n) =>
+  stack(P, { cx, by, r, h: r * 0.34, mats: Array(n).fill('bone'), wobble: [0, 0.9, -0.7, 0.6], small: true });
+
+Object.assign(SPOTS, {
+  toolsAO: {
+    name: 'Poker tools', variant: 'AO · AN’s cards, the chips on the table', where: 'Home · tile', status: 'round23',
+    draw: (P, o) => {
+      const pair = chipPair(P, o, { x: 50, y: 89 }, 17, 16, 24);
+      return ownShadow(P, 42, 76, 22) + pair.shadows + framedPair(P, o, ['q', 'q']) + pair.chips;
+    },
+  },
+  toolsAP: {
+    name: 'Poker tools', variant: 'AP · AN’s cards, the chips flat side by side', where: 'Home · tile', status: 'round23',
+    draw: (P, o) => {
+      const a = { x: 47, y: 89 }, b = touching(a, 15, 15, 27, false);
+      return ownShadow(P, 42, 76, 22) + ownShadow(P, a.x, a.y + 0.5, 17) + ownShadow(P, b.x, b.y + 0.5, 17) +
+        framedPair(P, o, ['q', 'q']) + fireLying(P, o, b.x, b.y, 15) + pctLying(P, o, a.x, a.y, 15);
+    },
+  },
+  rulingsG: {
+    name: 'Rulings', variant: 'G · F with two cards', where: 'Poker tools · tile', status: 'round23',
+    draw: (P, o) =>
+      ownShadow(P, 42, GROUND - 1, 22) + ownShadow(P, 69, GROUND - 1, 14) +
+      framedCard(P, o, { cx: 33, by: GROUND - 3, w: 36, h: 51, rot: -11 }) +
+      framedCard(P, o, { cx: 48, by: GROUND - 3, w: 36, h: 51, rot: 10 }) +
+      stack(P, { cx: 69, by: GROUND - 1, r: 12, h: 4.6, mats: ['red', 'red', 'ink'], wobble: [0, 0.8, -0.6], small: true }),
+  },
+  buttonB: {
+    name: 'Button game', variant: 'B · the star button on its edge', where: 'Boosters', status: 'round23',
+    draw: (P, o) => shadow(P, 50, 27) + starChip(P, 46, GROUND + 1, 28, 7),
+  },
+  buttonC: {
+    name: 'Button game', variant: 'C · on its edge, beside the buttons won', where: 'Boosters', status: 'round23',
+    draw: (P, o) =>
+      ownShadow(P, 68, GROUND - 4.5, 21) + shadow(P, 38, 18, 3.6, GROUND + 2) +
+      buttonStack(P, 66, GROUND - 5, 18, 3) + starChip(P, 36, GROUND + 2, 22),
+  },
+  buttonD: {
+    name: 'Button game', variant: 'D · on its edge, on top of the buttons won', where: 'Boosters', status: 'round23',
+    draw: (P, o) => shadow(P, 48, 27) + buttonStack(P, 47, GROUND + 1, 21, 3) + starChip(P, 46, GROUND + 1 - 21 * 0.34 * 3 + 3.5, 18),
+  },
+  buttonE: {
+    name: 'Button game', variant: 'E · three buttons on their edges', where: 'Boosters', status: 'round23',
+    draw: (P, o) =>
+      shadow(P, 48, 38) + starChip(P, 26, GROUND - 5, 15) + starChip(P, 70, GROUND - 5, 15) + starChip(P, 46, GROUND + 1, 20),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
