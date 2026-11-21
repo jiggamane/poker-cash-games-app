@@ -1707,3 +1707,38 @@ Object.assign(SPOTS, {
     },
   },
 });
+
+/* ── round 26, 21 November: the Straddle, its seats the other way round ── */
+
+const seats3 = (sb, bb, st, big = 14) => (P, o) => seatStacks(P, o, [
+  { x: sb[0], y: sb[1], n: 1, r: 10, h: 5 },
+  { x: bb[0], y: bb[1], n: 2, r: 10.5, h: 5 },
+  { x: st[0], y: st[1], n: 4, r: big, h: 6 },
+]);
+
+Object.assign(SPOTS, {
+  straddleL: {
+    name: 'Straddle', variant: 'L · I mirrored: the same curve, the other direction', where: 'Boosters', status: 'round26',
+    draw: seats3([24, 51], [63, 47], [54, 76]),
+  },
+  straddleM: {
+    name: 'Straddle', variant: 'M · a curve, reading left to right', where: 'Boosters', status: 'round26',
+    draw: seats3([78, 58], [51, 49], [27, 77]),
+  },
+  straddleN: {
+    name: 'Straddle', variant: 'N · a level row', where: 'Boosters', status: 'round26',
+    draw: seats3([79, 78], [54, 78], [24, 78]),
+  },
+  straddleO: {
+    name: 'Straddle', variant: 'O · a line running away to the right', where: 'Boosters', status: 'round26',
+    draw: seats3([79, 59], [54, 68.5], [25, 79.5]),
+  },
+  straddleP: {
+    name: 'Straddle', variant: 'P · a steep line, the stacks overlapping', where: 'Boosters', status: 'round26',
+    draw: seats3([70, 47], [53, 62], [32, 80.5]),
+  },
+  straddleQ: {
+    name: 'Straddle', variant: 'Q · a level row, touching', where: 'Boosters', status: 'round26',
+    draw: seats3([72.5, 78], [52, 78], [27.5, 78]),
+  },
+});
