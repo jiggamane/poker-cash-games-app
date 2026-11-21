@@ -45,7 +45,7 @@ export const FD_CSS = `
 .fd .fdtile .tn{font:700 19px/1.1 var(--p-head);letter-spacing:-.01em}
 .fd .fdtile{justify-content:flex-start}
 .fd .fdtile>div{position:relative;z-index:1}
-.fd .fdtile .tx{font-size:11.5px;color:var(--p-muted);margin-top:3px}
+.fd .fdtile .tx{font-size:11.5px;line-height:1.35;color:var(--p-muted);margin-top:3px;max-width:118px}
 .fd .fdtile .extra{position:absolute;right:12px;top:14px}
 .fd .spark{width:64px;height:30px}
 .fd .menubar{position:absolute;left:18px;right:18px;bottom:22px;display:flex;gap:10px;align-items:center}
@@ -104,10 +104,16 @@ const MENU_T = { groupB: 60, sessionsT: 60 };
 export function freshDeckScreens(PICK) {
   const spark = `<svg class="spark" viewBox="0 0 64 30" aria-hidden="true"><polyline points="2,22 12,18 22,24 32,12 42,15 52,6 62,9" fill="none" stroke="#141A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="62" cy="9" r="2.6" fill="#141A2A"/></svg>`;
   const tiles = [
-    [PICK.group, 'The group', ''],
+    /*
+     * The group's and My stats' lines are the app's own, word for word, from
+     * before home dropped its sub-lines on 27 October. Poker tools' old line
+     * ("poker calculator, rules & rulings") predates Boosters, so this one is
+     * the three tool names as the app writes them — ⚠ NEW COPY, unconfirmed.
+     */
+    [PICK.group, 'The group', '<div class="tx">players, money rules, the piggy bank</div>'],
     [PICK.sessions, 'Sessions', '<div class="tx">Fri 20 Nov</div>'],
-    [PICK.stats, 'My stats', ''],
-    [PICK.tools, 'Poker tools', ''],
+    [PICK.stats, 'My stats', '<div class="tx">across every group you play in</div>'],
+    [PICK.tools, 'Poker tools', '<div class="tx">calculator, rulings, boosters</div>'],
   ];
   const menu = `<div class="scr">${SB}<div class="pad fdmenu">
     <div class="fdeyebrow">Your group</div><h1>The Thursday game</h1>
