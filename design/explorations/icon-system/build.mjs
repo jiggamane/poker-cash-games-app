@@ -48,6 +48,7 @@ const STATUS = {
   redraw: { label: 'Redrawn', note: 'candidate', bg: '#FBEAEA', fg: '#A3282E' },
   new: { label: 'New', note: 'in the system', bg: '#ECECF1', fg: '#45474F' },
   round2: { label: 'Round 2', note: 'from your review', bg: '#FFF1DB', fg: '#8A4B00' },
+  round16: { label: 'Round 16', note: 'from your fifteenth review', bg: '#EDEAF6', fg: '#4A3C8A' },
   round15: { label: 'Round 15', note: 'from your fourteenth review', bg: '#E9F3EE', fg: '#2C6148' },
   round14: { label: 'Round 14', note: 'from your thirteenth review', bg: '#F6EAE0', fg: '#86431A' },
   round13: { label: 'Round 13', note: 'from your twelfth review', bg: '#EEF0F8', fg: '#3A4789' },
@@ -83,11 +84,11 @@ function cell(key, before = false) {
 }
 
 /*
- * The owner's note from the fourteenth review, 21 November, quoted as written.
+ * The owner's note from the fifteenth review, 21 November, quoted as written.
  * The first key is the drawing the note was left on; the rest answer it.
  */
 const ROUND = [
-  ['Stand-up game', 'this option but it looks unnatural that the red chips are so much smaller', ['standUpN', 'standUpO', 'standUpP', 'standUpQ']],
+  ['Stand-up game', 'no table, rest is good', ['standUpQ', 'standUpR']],
 ];
 /* Still to decide: two are approved for Sessions. */
 const DECIDE = [
@@ -99,10 +100,10 @@ const SLOTS = [
   ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT', 'or the book (J): yours to pick'], ['My stats', 'stats'],
   ['Poker tools', 'toolsAB'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
-  ['Stand-up game', null, 'in Round 15'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
+  ['Stand-up game', null, 'in Round 16'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
@@ -353,13 +354,13 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>The set so far</h2>
-  <p>One drawing per place in the app, from what you’ve approved. Thirteen of fifteen are settled. Sessions is a choice between two you approved; the Stand-up game is in Round 15.</p>
+  <p>One drawing per place in the app, from what you’ve approved. Thirteen of fifteen are settled. Sessions is a choice between two you approved; the Stand-up game is in Round 16.</p>
   ${setSoFar()}
 </section>
 
 <section class="sec">
-  <h2>Round 15 — from your fourteenth review</h2>
-  <p>One note. Every chip one size, as real chips are: the same layout as N (O), a taller stack of smaller chips (P), and the two closer together (Q).</p>
+  <h2>Round 16 — from your fifteenth review</h2>
+  <p>One note. R is Q with no table: the stack and the stood-up chip each cast their own shadow, as on Table ante F and Poker tools AB.</p>
   ${roundNow()}
 </section>
 

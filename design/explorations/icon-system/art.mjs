@@ -1386,6 +1386,20 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 16, 21 November: the owner's fifteenth review ─────────────────── */
+
+Object.assign(SPOTS, {
+  standUpR: {
+    name: 'Stand-up game', variant: 'R · Q with no table', where: 'Boosters', status: 'round16',
+    draw: (P, o) => {
+      const r = 19;
+      return ownShadow(P, 64, GROUND - 4.5, r * 1.15) + shadow(P, 39, r * 0.8, 3.6, GROUND + 2) +
+        stack(P, { cx: 64, by: GROUND - 5, r, h: r * 0.36, mats: ['red', 'red', 'red'], wobble: [0, -0.8, 0.6], small: true }) +
+        standingChip(P, { cx: 36, by: GROUND + 2, r, mat: 'ink', t: r * 0.27, small: o.small, glyph: upMark(P, 'bolt') });
+    },
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
