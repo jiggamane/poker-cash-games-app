@@ -212,6 +212,48 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--f-body);-webk
 .v-k .hdr{padding-top:2px}.v-k .hdr h1{font:600 28px/1.05 'Libre Franklin',system-ui,sans-serif;letter-spacing:-.025em;text-align:center}
 .v-k .sub{text-align:center;margin-top:5px}.v-k .role,.v-k .meta-l{margin-top:10px}
 .v-k .eyebrow,.v-k .mh1{text-align:center}.v-k .mh1{font-weight:600}
+
+/* ═══ Round three ═══ after the owner picked I. L, M, N stay close to it; O, P, Q are other ideas altogether. */
+.v-l .bk,.v-m .bk,.v-n .bk,.v-o .bk,.v-p .bk{width:18px;height:32px;margin-left:-5px}
+.v-l .bk .ic,.v-m .bk .ic,.v-n .bk .ic,.v-o .bk .ic,.v-p .bk .ic{width:20px;height:20px}
+.v-l .hdr,.v-m .hdr,.v-n .hdr{gap:9px}
+.v-l{--ind:22px}.v-l .hdr h1{font:600 15px/1.1 'Libre Franklin',system-ui,sans-serif;letter-spacing:0;color:var(--p-muted)}
+.v-l .sub{margin-top:0}.v-l .mh1{font-weight:600;font-size:22px;letter-spacing:-.015em}
+.v-m{--ind:22px}.v-m .hdr h1{font:700 11.5px/1.1 Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.v-m .sub{margin-top:0}.v-m .mh1{font:700 13px/1.2 Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;margin-top:6px}
+.v-n{--ind:22px}.v-n .bk{color:var(--p-muted)}.v-n .hdr h1{font:700 20px/1.1 'Libre Franklin',system-ui,sans-serif;letter-spacing:-.015em}
+.v-n .mh1{font-size:24px;letter-spacing:-.02em}
+/* O: the head in ink */
+.v-o{--ind:22px}
+.v-o .railp{background:#141A2A;box-shadow:0 14px 24px -18px rgba(20,26,42,.6);color:#fff}
+.v-o .railp::before{display:none}
+.v-o .sb{color:#fff}
+.v-o .railp .hdr{gap:9px}.v-o .railp .hdr h1{font:700 20px/1.1 'Libre Franklin',system-ui,sans-serif;letter-spacing:-.015em;color:#fff}
+.v-o .railp .bk,.v-o .railp .mh1,.v-o .railp .big,.v-o .railp .role b{color:#fff}
+.v-o .railp .sub,.v-o .railp .role,.v-o .railp .meta-l,.v-o .railp .lbl,.v-o .railp .side,.v-o .railp .eyebrow{color:#A9B0BF}
+.k-d2.v-o .railp .rb{background:rgba(255,255,255,.12);box-shadow:none;color:#fff}
+.v-o .railp .live{color:#7BE0AC;background:rgba(123,224,172,.16)}
+.k-d2.v-o .railp .stackbar i{background:#fff}.k-d2.v-o .railp .stackbar i:nth-child(even){background:rgba(255,255,255,.45)}
+.v-o .railp.home{padding-bottom:20px}.k-d2.v-o .railp.home + .pad .cta{margin-top:14px;box-shadow:none}
+/* P: one card, with the title as its tab */
+.v-p{--ind:0px}
+.v-p .hdr{align-items:flex-end;gap:8px;padding-top:14px}
+.v-p .hdr h1{flex:none;background:#fff;padding:9px 14px 8px;border-radius:12px 12px 0 0;font:700 18px/1.1 'Libre Franklin',system-ui,sans-serif;letter-spacing:-.01em;box-shadow:0 -1px 1.5px rgba(20,26,42,.06)}
+.v-p .hdr .live{margin-left:auto;margin-bottom:6px}
+.v-p .eyebrow + .hdr{padding-top:6px}
+.v-p .tabcard{position:relative;background:#fff;border-radius:13px;min-height:420px;padding:12px 12px 0;box-shadow:0 8px 20px -12px rgba(20,26,42,.22)}
+.v-p .eyebrow + .hdr + .tabcard{border-top-left-radius:0}
+.v-p .tabcard .hero,.v-p .tabcard .rows{background:none;box-shadow:none;padding-left:0;padding-right:0}
+.v-p .tabcard .hero{margin-top:8px;padding-bottom:4px}
+.v-p .tabcard .cta{margin-top:2px}
+.k-d2.v-p .tabcard .tile{background:#EEF0F3;box-shadow:none}
+/* Q: the poster */
+.v-q{--ind:0px}
+.v-q .toprow{display:flex;align-items:center;justify-content:space-between;height:32px;margin-top:14px}
+.v-q .bk{width:22px;height:28px;margin-left:-6px}.v-q .bk .ic{width:23px;height:23px}
+.v-q .hdr{padding-top:8px}.v-q .hdr h1{font:800 40px/.96 'Libre Franklin',system-ui,sans-serif;letter-spacing:-.045em}
+.v-q .mh1{font-weight:800;font-size:38px;line-height:.96;letter-spacing:-.045em;margin-top:6px}
+.v-q .sub{margin-top:8px}.v-q .role,.v-q .meta-l{margin-top:10px}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></symbol>
@@ -226,7 +268,7 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--f-body);-webk
 <div class="wrap">
   <span class="eyebrow0">The Poker Club · 21 November 2026 · design only</span>
   <h1>Header titles and back buttons</h1>
-  <p class="lede">Versions of the head of a screen, on Fresh Deck. Each one changes two things together: <b>how the title is set</b> and <b>what the back control is</b>. Round two is first; round one, with the header as it stood, follows.</p>
+  <p class="lede">Versions of the head of a screen, on Fresh Deck. Each one changes two things together: <b>how the title is set</b> and <b>what the back control is</b>. The newest round is first; the earlier ones follow.</p>
   <p class="lede">Rail and Lamp are still both open, so the switch shows every version on either. No words change, and the top-right corner stays empty apart from Tonight’s live tag.</p>
   <div class="toolbar"><span class="tl" id="tl-mode">Header</span>
     <div class="seg" role="group" aria-labelledby="tl-mode">
@@ -244,47 +286,60 @@ const LIVE = `<span class="live"><i></i>3h 16m</span>`;
 /* The title row of a pushed screen, per version. `right` is Tonight's live tag or nothing. */
 function titleRow(v, title, right = '') {
   const back = v === 'now' ? `<span class="rb">${ic('back')}</span>` : `<span class="bk">${ic(v === 'a' ? 'left' : 'back')}</span>`;
+  if (v === 'q') return `<div class="toprow">${back}${right}</div><div class="hdr"><h1>${title}</h1></div>`;
   if (v === 'g' || v === 'k') return `<div class="toprow">${back}${right}</div><div class="hdr"><h1>${title}</h1></div>`;
   if (v === 'h') return `<div class="hdr">${back}<h1>${title}</h1>${right || '<span></span>'}</div>`;
   if (v === 'a') return `<div class="toprow">${back}${right}</div><div class="hdr"><h1>${title}</h1></div>`;
   if (v === 'c') return `<div class="hdr"><span class="rb">${ic('back')}</span><h1>${title}</h1>${right || '<span></span>'}</div>`;
   return `<div class="hdr">${back}<h1>${title}</h1>${right}</div>`;
 }
-const SCREENS = {
-  tonight: { name: 'Tonight',
-    head: (v) => `${v === 'j'
-      ? `<div class="toprow"><span class="bk">${ic('back')}</span><span><b>You’re recording</b> · started 14:07</span></div><div class="hdr"><h1>Tonight</h1>${LIVE}<span class="rb">${ic('tools', 's')}</span></div>`
-      : `${titleRow(v, 'Tonight', LIVE)}
-      <div class="role"><span><b>You’re recording</b> · started 14:07</span><span class="rb">${ic('tools', 's')}</span></div>`}
-      <div class="hero"><div class="hero-top"><div><div class="lbl">On the table</div><div class="big num">$4,500</div></div>
+const HERO = `<div class="hero"><div class="hero-top"><div><div class="lbl">On the table</div><div class="big num">$4,500</div></div>
         <div class="side num">$5,000 in play<br>5 seated · 1 out</div></div>
-        <div class="stackbar">${PLAYING.map(([, a]) => `<i style="flex:${a}"></i>`).join('')}</div></div>`,
+        <div class="stackbar">${PLAYING.map(([, a]) => `<i style="flex:${a}"></i>`).join('')}</div></div>`;
+const TOOLS = `<span class="rb">${ic('tools', 's')}</span>`;
+const DD = `<span class="dd">Final, detailed ${ic('down', 'xs')}</span>`;
+const jTop = (line) => `<div class="toprow"><span class="bk">${ic('back')}</span><span>${line}</span></div>`;
+/* Each screen: its title row, what else its head holds (`rest`), and the body under it. J alone rearranges the head. */
+const SCREENS = {
+  tonight: { name: 'Tonight', title: 'Tonight', right: LIVE,
+    j: () => `${jTop('<b>You’re recording</b> · started 14:07')}<div class="hdr"><h1>Tonight</h1>${LIVE}${TOOLS}</div>${HERO}`,
+    rest: () => `<div class="role"><span><b>You’re recording</b> · started 14:07</span>${TOOLS}</div>${HERO}`,
     body: () => `<div class="seclbl">Still playing · 5</div>
       <div class="rows">${PLAYING.map(([n, a]) => `<div class="prow"><span class="nm">${n}</span><span class="amt num">$${a.toLocaleString('en-US')}</span></div>`).join('')}</div>` },
-  boosters: { name: 'Game boosters',
-    head: (v) => v === 'j'
-      ? `<div class="toprow"><span class="bk">${ic('back')}</span><span>house rules for more action</span></div><div class="hdr"><h1>Game boosters</h1></div>`
-      : `${titleRow(v, 'Game boosters')}<div class="sub">house rules for more action</div>`,
+  boosters: { name: 'Game boosters', title: 'Game boosters',
+    j: () => `${jTop('house rules for more action')}<div class="hdr"><h1>Game boosters</h1></div>`,
+    rest: () => `<div class="sub">house rules for more action</div>`,
     body: () => `<div class="seclbl">Side games</div>
       <div class="rows">${[['Stand-up game', 'Win a pot or pay up'], ['Button game', 'Win pots, collect buttons, get paid for them'], ['7-2 game', 'Win with seven-deuce, collect from everyone'], ['Bomb pot', 'Everyone antes, straight to the flop']]
         .map(([n, s]) => `<div class="brow"><div class="bt"><div class="bn">${n}</div><div class="bs">${s}</div></div></div>`).join('')}</div>` },
-  results: { name: 'Post-game results',
-    head: (v) => v === 'j'
-      ? `<div class="toprow"><span class="bk">${ic('back')}</span><span class="num">14:07 → 17:23</span></div><div class="hdr"><h1>Fri 20 Nov</h1><span class="dd">Final, detailed ${ic('down', 'xs')}</span></div>`
-      : `${titleRow(v, 'Fri 20 Nov')}
-      <div class="meta-l"><span class="num">14:07 → 17:23</span><span class="dd">Final, detailed ${ic('down', 'xs')}</span></div>`,
+  results: { name: 'Post-game results', title: 'Fri 20 Nov',
+    j: () => `${jTop('<span class="num">14:07 → 17:23</span>')}<div class="hdr"><h1>Fri 20 Nov</h1>${DD}</div>`,
+    rest: () => `<div class="meta-l"><span class="num">14:07 → 17:23</span>${DD}</div>`,
     body: () => `<div class="rows rcard">${[['Dana', '+$1,429', '+1,620'], ['Andro', '+$526', '+460'], ['Lena', '+$429', '+430'], ['Tomáš', '−$500', '−500'], ['Ivo', '−$780', '−780']]
         .map(([n, net, g]) => `<div class="rrow"><div><div class="rn">${n}</div><div class="rg num">${g}</div></div><span class="rnet num ${net[0] === '+' ? 'win' : ''}" ${net[0] === '+' ? '' : 'style="color:#4E5768"'}>${net}</span></div>`).join('')}</div>` },
   home: { name: 'Main menu · no back button',
-    head: () => `<div class="eyebrow">Your group</div><div class="mh1">The Thursday game</div>`,
     body: () => `<div class="cta"><div><div class="t">Start a session</div><div class="s">$500 buy-in · same rules as last time</div></div></div>
       <div class="tiles"><div class="tile"><span class="tn">The group</span></div><div class="tile"><span class="tn">Sessions</span></div></div>` },
 };
+const HOME_HEAD = `<div class="eyebrow">Your group</div><div class="mh1">The Thursday game</div>`;
+const head = (id, v) => id === 'home' ? HOME_HEAD : v === 'j' ? SCREENS[id].j() : titleRow(v, SCREENS[id].title, SCREENS[id].right) + SCREENS[id].rest();
 function screen(id, v, mode) {
-  const s = SCREENS[id], cls = `scr k-d2 v-${v} m-${mode}`;
-  if (mode === 'lamp') return `<div class="phone"><div class="${cls}"><div class="lampf"></div>${SB}<div class="pad">${s.head(v)}${s.body()}</div></div></div>`;
-  return `<div class="phone"><div class="${cls}">${SB}<div class="railp ${id === 'home' ? 'home' : ''}"><div class="pad">${s.head(v)}</div></div><div class="pad">${s.body()}</div></div></div>`;
+  const s = SCREENS[id], rail = mode === 'rail' || v === 'o', cls = `scr k-d2 v-${v} m-${rail ? 'rail' : 'lamp'}`;
+  /* P: the whole screen is one card, and the title is the tab on it. Neither rail nor lamp. */
+  if (v === 'p') return `<div class="phone"><div class="scr k-d2 v-p">${SB}<div class="pad">${id === 'home'
+    ? `<div class="eyebrow">Your group</div><div class="hdr"><h1>The Thursday game</h1></div>`
+    : titleRow(v, s.title, s.right)}<div class="tabcard">${id === 'home' ? '' : s.rest()}${s.body()}</div></div></div></div>`;
+  if (!rail) return `<div class="phone"><div class="${cls}"><div class="lampf"></div>${SB}<div class="pad">${head(id, v)}${s.body()}</div></div></div>`;
+  return `<div class="phone"><div class="${cls}">${SB}<div class="railp ${id === 'home' ? 'home' : ''}"><div class="pad">${head(id, v)}</div></div><div class="pad">${s.body()}</div></div></div>`;
 }
+const ROUND3 = [
+  ['l', 'L', 'I, quieter: the title as a caption', '<b>Like I.</b> The title drops to 15 and goes grey, so it reads as a caption for the screen and nothing more. The chevron stays in ink, since it is the control.'],
+  ['m', 'M', 'I, as a label in capitals', '<b>Like I.</b> The title is set the way the section labels already are (<i>STILL PLAYING</i>, <i>SIDE GAMES</i>): small capitals, spaced out. One style for every label on the screen.'],
+  ['n', 'N', 'I, a step stronger', '<b>Like I.</b> The title goes up to 20 and bold, and the chevron goes grey: still small and on the left, but it holds its own against the figures.'],
+  ['o', 'O', 'an ink head', '<b>Different.</b> The head is a solid ink panel with the title in white, the same ink as Start a session. It is a third answer to Rail or Lamp, so the switch does not change it. On the menu the start button sits under the panel, not across its edge.'],
+  ['p', 'P', 'the screen is a card, the title is its tab', '<b>Different.</b> Everything on the screen sits on one sheet of card stock, and the title is the tab sticking up from it, like a divider in a card box. No rail and no lamp; the switch does not change it.'],
+  ['q', 'Q', 'a poster title', '<b>Different, and the opposite of I.</b> The title at 40, extra bold, tight, on its own lines under a bare chevron. The head is the tallest of all.'],
+];
 const ROUND2 = [
   ['g', 'G', 'A’s large title, in B’s lighter weight', '<b>Title:</b> 30, semibold, on its own line, everything under it flush left. <b>Back:</b> a bare chevron on the row above. A and B put together.'],
   ['h', 'H', 'C’s small centred title, with no button', '<b>Title:</b> 17, semibold, centred. <b>Back:</b> B’s bare chevron in place of the round button, so nothing in the head has a shape of its own. The quietest of all.'],
@@ -308,6 +363,8 @@ function render() {
       <div class="strip">${Object.keys(SCREENS).map((id) => `<figure>${screen(id, v, state.mode)}<figcaption>${SCREENS[id].name}</figcaption></figure>`).join('')}</div>
     </section>`;
   document.getElementById('vers').innerHTML =
+    `<section class="ver grp"><h2>Round three</h2><p>Six more, after you picked <b>I</b> (shown first, for comparison). L, M and N stay close to it. O, P and Q go somewhere else entirely.</p></section>` +
+    [ROUND2[2], ...ROUND3].map(row).join('') +
     `<section class="ver grp"><h2>Round two</h2><p>Five more, from your pick of A, B and C. What those three share is carried through all of them: <b>no button shape</b> around the back control, and a title that is either <b>large on its own line</b> or <b>small</b>. G and H combine the three; I, J and K are new approaches.</p></section>` +
     ROUND2.map(row).join('') +
     `<section class="ver grp"><h2>Round one</h2><p>The header as it stood, and the first six. A, B and C are the ones you found interesting.</p></section>` +

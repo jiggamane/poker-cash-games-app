@@ -67,3 +67,11 @@ control: **G** (A's large title in B's weight), **H** (C's small centred title
 with a bare chevron), **I** (a small title on the left, the content leads),
 **J** (every screen built like the menu: its line above, its name under it),
 **K** (a centred title on its own line). No verdict yet.
+
+**Round three, the same day.** The owner picked **I** (a small title on the
+left, the content leads), with Rail or Lamp still open. Six more at the top:
+**L**, **M**, **N** stay close to I (the title as a grey caption; as a label
+in capitals like the section labels; a step stronger). **O**, **P**, **Q** are
+other ideas altogether: an ink head, the whole screen as one card with the
+title as its tab, and a poster title. O and P are their own answer to Rail or
+Lamp, so the switch does not change them. No verdict yet.
