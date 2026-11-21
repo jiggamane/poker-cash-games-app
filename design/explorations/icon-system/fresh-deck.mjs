@@ -88,8 +88,8 @@ const suit = {
 const SB = `<div class="sb"><span>9:41</span><svg viewBox="0 0 62 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1"/><rect x="36" y=".5" width="22" height="10" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="38" y="2.5" width="16" height="6" rx="1.5"/><rect x="59" y="3.5" width="2" height="4" rx="1" opacity=".45"/></g></svg></div>`;
 
 /** A spot in Fresh Deck colours, sized by its box. */
-const art = (key, size, onInk = false) =>
-  `<span class="art">${spot(key, onInk ? 'freshDeckOnInk' : 'freshDeck', { size })}</span>`;
+const art = (key, size, onInk = false, pal) =>
+  `<span class="art">${spot(key, pal ?? (onInk ? 'freshDeckOnInk' : 'freshDeck'), { size })}</span>`;
 
 export function freshDeckScreens(PICK) {
   const spark = `<svg class="spark" viewBox="0 0 64 30" aria-hidden="true"><polyline points="2,22 12,18 22,24 32,12 42,15 52,6 62,9" fill="none" stroke="#141A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="62" cy="9" r="2.6" fill="#141A2A"/></svg>`;
@@ -146,4 +146,93 @@ export function freshDeckScreens(PICK) {
     ['Game boosters', boosters, 'One spot per game at the head of its row. No chevrons, as Fresh Deck has it.'],
     ['A booster’s sheet', sheet, 'The game’s spot heads its description. The same seven drawings, larger.'],
   ].map(([cap, html, note]) => `<figure><div class="fdphone">${html}</div><figcaption>${cap}<br><span style="font-weight:400">${note}</span></figcaption></figure>`).join('')}</div>`;
+}
+
+/* ── round 17: shapes under the icons, and where they sit in a tile ─────── */
+
+export const OPT_CSS = `
+.fd .mini{background:var(--p-bg);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.fd .mini .fdtiles{margin-top:0}
+.fd .mini .fdtile{min-height:118px}
+.fd .mini .fdtile>.art{width:auto;height:auto;line-height:0}
+.fd .mini .fdtile>.art svg{display:block}
+.fd .shape{display:grid;place-items:center;flex:none;overflow:visible}
+.fd .shape svg{display:block}
+.fd .shape.sh-box{width:64px;height:64px;border-radius:16px;background:var(--p-raised)}
+.fd .shape.sh-circle{width:64px;height:64px;border-radius:50%;background:var(--p-raised)}
+.fd .shape.sh-stage{width:64px;height:64px;border-radius:16px;background:var(--p-raised);position:relative;overflow:hidden!important}
+.fd .shape.sh-stage::before{content:"";position:absolute;left:-6px;right:-6px;bottom:-14px;height:30px;border-radius:50%;background:#E3E7EE}
+.fd .shape.sh-stage .art{position:relative}
+.fd .shape.sh-ring{width:64px;height:64px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--p-line)}
+.fd .shape .art{margin:0!important;width:auto!important;height:auto!important}
+.fd .fdtile>.shape{margin:-2px 0 0 -4px}
+.fd .brow .shape.sh-box,.fd .brow .shape.sh-circle,.fd .brow .shape.sh-ring{width:44px;height:44px;border-radius:12px}
+.fd .brow .shape.sh-circle,.fd .brow .shape.sh-ring{border-radius:50%}
+.fd .brow .shape.sh-stage{width:46px;height:46px;border-radius:12px}
+.fd .brow .shape.sh-stage::before{bottom:-12px;height:24px}
+/* positions */
+.fd .pos-tr .fdtile>.art{position:absolute;right:2px;top:0;margin:0}
+.fd .pos-tr .fdtile{justify-content:flex-end}
+.fd .pos-br .fdtile>.art{position:absolute;right:-18px;bottom:-12px;margin:0}
+.fd .pos-br .fdtile{justify-content:flex-start}
+.fd .pos-brin .fdtile>.art{position:absolute;right:2px;bottom:0;margin:0}
+.fd .pos-brin .fdtile{justify-content:flex-start}
+.fd .pos-c .fdtile{align-items:center;text-align:center}
+.fd .pos-c .fdtile>.art{margin:-2px 0 0}
+.fd .pos-row .fdtiles{grid-template-columns:1fr}
+.fd .pos-row .fdtile{min-height:68px;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding:6px 14px 6px 8px}
+.fd .pos-row .fdtile>.art{margin:0}
+.fd .pos-top .fdtile{padding-top:0}
+.fd .pos-top .fdtile>.art{margin:-8px 0 0 -12px}
+`;
+
+const HOME = (PICK) => [[PICK.group, 'The group'], [PICK.sessions, 'Sessions'], [PICK.stats, 'My stats'], [PICK.tools, 'Poker tools']];
+
+/** The icon inside an optional shape. `size` is the drawing's size; a shape is a fixed box around it. */
+function shaped(key, shape, size) {
+  if (shape === 'none') return art(key, size);
+  if (shape === 'flat') return art(key, size, false, 'freshDeckFlat');
+  if (shape === 'floor') return art(key, size, false, 'freshDeckFloor');
+  return `<span class="shape ${shape}">${art(key, size)}</span>`;
+}
+
+function homeTiles(PICK, shape, size, cls = '') {
+  return `<div class="fdtiles ${cls}">${HOME(PICK).map(([k, n]) => `<div class="fdtile">${shaped(k, shape, size)}<div><div class="tn">${n}</div></div></div>`).join('')}</div>`;
+}
+
+function rows(PICK, shape, size) {
+  const R = [[PICK['stand-up'], 'Stand-up game', 'Win a pot or pay up'], [PICK['bomb-pot'], 'Bomb pot', 'Everyone antes, straight to the flop']];
+  return `<div class="blist">${R.map(([k, n, x]) => `<div class="brow">${shaped(k, shape, size)}<div class="bt"><div class="bn">${n}</div><div class="bs">${x}</div></div></div>`).join('')}</div>`;
+}
+
+export function shapeOptions(PICK) {
+  const S = [
+    ['shapeNone', 'A · no shape, ground shadow', 'What the screens above have: the drawing and its own soft shadow, nothing behind it.', 'none', 64, 46],
+    ['shapeBox', 'B · Fresh Deck’s rounded box', 'The style page’s icon box brought back, with the drawing inside it. Its shadow stays.', 'sh-box', 58, 48],
+    ['shapeCircle', 'C · a round', 'The shipped app’s 40 round, grown to 64. Reads as a token or a coin.', 'sh-circle', 58, 48],
+    ['shapeStage', 'D · a stage', 'The box with a floor: a lighter ellipse at its foot that the object stands on, so the shadow has somewhere to land.', 'sh-stage', 58, 48],
+    ['shapeRing', 'E · an outline round', 'A hairline circle instead of a fill: the shape is there, but it adds no grey.', 'sh-ring', 58, 48],
+    ['shapeFloor', 'F · a solid floor', 'No box: the drawing’s own shadow turned into a flat grey floor under it.', 'floor', 64, 46],
+    ['shapeFlat', 'G · nothing at all', 'No shape and no shadow: the object alone on the white.', 'flat', 64, 46],
+  ];
+  return S.map(([key, title, note, shape, tileSize, rowSize]) => ({
+    key, title, note,
+    html: `<div class="fd"><div class="mini">${homeTiles(PICK, shape, tileSize)}</div></div>`,
+  }));
+}
+
+export function positionOptions(PICK) {
+  const P = [
+    ['posTL', '1 · top left, name at the foot', 'Where it sits now.', '', 64],
+    ['posTop', '2 · top left, bigger and tucked into the corner', 'The same corner, the drawing larger and pulled up to the edge so it leads the tile.', 'pos-top', 76],
+    ['posTR', '3 · top right, name at the foot', 'Icon and name on opposite corners: the name keeps the left edge the eye reads from.', 'pos-tr', 64],
+    ['posBRin', '4 · name on top, icon bottom right', 'Name first, the drawing standing in the bottom corner like an object on the tile.', 'pos-brin', 72],
+    ['posBR', '5 · name on top, icon bleeding off the corner', 'Larger and cropped by the tile’s edge, so the tile reads as a window onto the table.', 'pos-br', 96],
+    ['posC', '6 · centred over the name', 'Symmetrical, like an app icon with its label. Calmest, least like a list.', 'pos-c', 70],
+    ['posRow', '7 · beside the name, one per row', 'The tiles become wide rows: the drawing left, the name beside it. Home reads as a menu, not a grid.', 'pos-row', 56],
+  ];
+  return P.map(([key, title, note, cls, size]) => ({
+    key, title, note,
+    html: `<div class="fd"><div class="mini ${cls}">${homeTiles(PICK, 'none', size)}</div></div>`,
+  }));
 }

@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
-import { FD_CSS, FD_FONTS, freshDeckScreens } from './fresh-deck.mjs';
+import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions } from './fresh-deck.mjs';
 
 const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleA', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
@@ -108,6 +108,8 @@ const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
 
 const setSoFar = () => `<div class="slots">${SLOTS.map(([name, key, note]) => `<div class="slot${key ? '' : ' gap'}">
     <div class="slart">${key ? spot(key, 'light', { size: 64 }) : '<span>?</span>'}</div><b>${name}</b>${note ? `<i>${note}</i>` : ''}</div>`).join('')}</div>`;
+
+const optCell = ({ key, title, note, html }) => `<figure class="cell opt" data-key="${key}">${html}<figcaption><b>${title}</b><span>${note}</span></figcaption>${REVIEW ? reviewBlock(key, title) : ''}</figure>`;
 
 const roundNow = () => ROUND.map(([title, quote, keys]) => `
   <div class="group">
@@ -248,7 +250,10 @@ const page = () => `<!DOCTYPE html>
 <link href="${FD_FONTS}" rel="stylesheet">
 <style>
 :root{color-scheme:light}
-${FD_CSS}
+${FD_CSS}${OPT_CSS}
+.opt{margin:0;background:${C.card};border-radius:18px;padding:10px 10px 14px;display:flex;flex-direction:column;gap:10px}
+.optgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.opt figcaption b{font:700 14px ${font}}.opt figcaption span{font:400 12.5px/1.45 ${font};color:${C.mut}}
 body{margin:0;background:${C.page};font-family:${font};color:${C.ink}}
 .proj{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 .board{display:flex;flex-direction:column;gap:56px;padding-block:48px 64px;padding-left:max(48px,env(safe-area-inset-left,0px));padding-right:max(48px,env(safe-area-inset-right,0px));max-width:1240px;box-sizing:border-box}
@@ -349,6 +354,15 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
   <p class="lede" style="margin-top:10px">Under every drawing in <b style="color:${C.ink}">The set</b>: tap <b style="color:${C.ink}">Approve</b> or <b style="color:${C.ink}">Needs work</b>, and say what to change in the box. Everything saves as you go, and Claude reads it from here.</p>` : ''}
 </header>
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
+
+<section class="sec">
+  <h2>Round 17 — shapes under the icons, and where they sit</h2>
+  <p>Shown on Home’s four tiles, in Fresh Deck. The Game boosters list stays as it is (you liked it): drawing on the left, nothing behind it. Approve the shape and the position you want, or comment; they combine.</p>
+  <div class="group"><div class="ghead"><h3>The shape or shade under the icon</h3><p>seven options</p></div>
+    <div class="optgrid">${shapeOptions(PICK).map(optCell).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>Where the icon sits in the tile</h3><p>seven options, all drawn with no shape so the placement is what you compare</p></div>
+    <div class="optgrid">${positionOptions(PICK).map(optCell).join('')}</div></div>
+</section>
 
 <section class="sec">
   <h2>The screens they land on, in Fresh Deck</h2>
