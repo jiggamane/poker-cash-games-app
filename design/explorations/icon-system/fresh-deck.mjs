@@ -35,10 +35,10 @@ export const FD_CSS = `
 .fd .fdsub{color:var(--p-muted);font-size:13px;margin:4px 0 0 48px}
 .fd .fdeyebrow{color:var(--p-muted);font-size:13px;margin:22px 0 4px}
 .fd .fdmenu h1{font:700 31px/1.02 var(--p-head);letter-spacing:-.025em;margin:0 0 18px;white-space:nowrap}
-.fd .cta{position:relative;border-radius:var(--p-r);padding:20px 18px;display:flex;align-items:center;gap:12px;overflow:hidden;min-height:104px;background:#141A2A;color:#fff;box-shadow:0 1px 2px rgba(20,26,42,.25),0 12px 24px -12px rgba(20,26,42,.55)}
+.fd .cta{position:relative;border-radius:var(--p-r);padding:13px 18px;display:flex;align-items:center;gap:12px;overflow:hidden;min-height:84px;background:#141A2A;color:#fff;box-shadow:0 1px 2px rgba(20,26,42,.25),0 12px 24px -12px rgba(20,26,42,.55)}
 .fd .cta .t{font:700 21px/1.1 var(--p-head);white-space:nowrap}
 .fd .cta .s{font-size:13px;margin-top:6px;color:rgba(255,255,255,.72);padding-right:76px}
-.fd .cta .art{position:absolute;right:4px;bottom:2px;width:84px;height:84px}
+.fd .cta .art{position:absolute;right:6px;bottom:0;width:76px;height:76px}
 .fd .fdtiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .fd .fdtile{position:relative;border-radius:var(--p-r);padding:10px 14px 14px;min-height:128px;display:flex;flex-direction:column;justify-content:space-between;background:#fff;box-shadow:var(--card-sh);overflow:hidden}
 .fd .fdtile .art{margin:-6px 0 0 -10px;width:64px;height:64px}
@@ -120,7 +120,7 @@ export function freshDeckScreens(PICK) {
   ];
   const menu = `<div class="scr">${SB}<div class="pad fdmenu">
     <div class="fdeyebrow">Your group</div><h1>The Thursday game</h1>
-    <div class="cta">${art(PICK.session, 84, true)}<div><div class="t">Start a session</div><div class="s">$500 buy-in · same rules as last time</div></div></div>
+    <div class="cta">${art(PICK.session, 76, true)}<div><div class="t">Start a session</div><div class="s">$500 buy-in · same rules as last time</div></div></div>
     <div class="fdtiles">${tiles.map(([k, n, x]) => `<div class="fdtile">${anchored(k, MENU_T[k] ?? 68, -6, -6)}<div><div class="tn">${n}</div>${x}</div></div>`).join('')}</div></div>
     <div class="menubar"><span class="fdpill">${icon('gear')}Settings</span><span class="rb">${icon('userplus')}</span><span class="rb">${icon('sun')}</span></div></div>`;
 
