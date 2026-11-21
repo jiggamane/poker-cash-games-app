@@ -12,6 +12,7 @@
  */
 import { spot } from './art.mjs';
 import BB from './bboxes.json' with { type: 'json' };
+import INK from './ink.json' with { type: 'json' };
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 
 export const FD_FONTS =
@@ -95,11 +96,27 @@ const art = (key, size, onInk = false, pal) =>
   `<span class="art">${spot(key, pal ?? (onInk ? 'freshDeckOnInk' : 'freshDeck'), { size })}</span>`;
 
 /*
- * The menu tiles' drawing weight, per drawing. The group and the calendar read
- * larger than the stacks at the same outline area (the owner, 21 November:
- * "a bit smaller"), so they sit at 60 against the others' 68.
+ * HOW A DRAWING'S SIZE IS PICKED (21 November). Not by its square, and not by
+ * its outline: by its INK, the area it actually paints (ink.json, measured
+ * with the shadow left out). A single chip paints most of its outline; a group
+ * of chips with gaps paints much less; so at one outline size the chip looks
+ * heavier. Each drawing is scaled so the area it paints equals a fixed share
+ * of its tile:
+ *
+ *   ink side = rho x sqrt(tile area)    (ink side: the side of a square with
+ *                                         the painted area)
+ *   drawing size = ink side / sqrt(ink share of its own window)
+ *
+ * rho is the level of the screen: 0.35 on Home, where the tiles are the
+ * places you go, and 0.27 one level down, on Poker tools, where the tiles are
+ * tools on a page you are already on. The rule reproduces the owner's hand
+ * corrections on Home (the group and the calendar a little smaller than the
+ * stacks) without naming them, and it is why Poker tools came down.
  */
-const MENU_T = { groupB: 60, sessionsT: 60 };
+export const RHO = { home: 0.35, tools: 0.27 };
+const TILE = { w: 133, h: 128 };
+export const inkSide = (level) => RHO[level] * Math.sqrt(TILE.w * TILE.h);
+export const sizeFor = (key, level) => inkSide(level) / Math.sqrt(INK[key]);
 
 export function freshDeckScreens(PICK) {
   const spark = `<svg class="spark" viewBox="0 0 64 30" aria-hidden="true"><polyline points="2,22 12,18 22,24 32,12 42,15 52,6 62,9" fill="none" stroke="#141A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="62" cy="9" r="2.6" fill="#141A2A"/></svg>`;
@@ -121,7 +138,7 @@ export function freshDeckScreens(PICK) {
   const menu = `<div class="scr">${SB}<div class="pad fdmenu">
     <div class="fdeyebrow">Your group</div><h1>The Thursday game</h1>
     <div class="cta">${art(PICK.session, 76, true)}<div><div class="t">Start a session</div><div class="s">$500 buy-in · same rules as last time</div></div></div>
-    <div class="fdtiles">${tiles.map(([k, n, x]) => `<div class="fdtile">${anchored(k, MENU_T[k] ?? 68, -6, -6)}<div><div class="tn">${n}</div>${x}</div></div>`).join('')}</div></div>
+    <div class="fdtiles">${tiles.map(([k, n, x]) => `<div class="fdtile">${anchoredAt(k, sizeFor(k, 'home'), -6, -6)}<div><div class="tn">${n}</div>${x}</div></div>`).join('')}</div></div>
     <div class="menubar"><span class="fdpill">${icon('gear')}Settings</span><span class="rb">${icon('userplus')}</span><span class="rb">${icon('sun')}</span></div></div>`;
 
   const tools = `<div class="scr">${SB}<div class="pad">
@@ -131,7 +148,7 @@ export function freshDeckScreens(PICK) {
       [PICK.calculator, 'Calculator', 'hand and pot odds'],
       [PICK.rulings, 'Rulings', 'look up a ruling'],
       [PICK.boosters, 'Boosters', 'bomb pots and more'],
-    ].map(([k, n, x]) => `<div class="fdtile">${anchored(k, 48, -10, -10)}<div><div class="tn">${n}</div><div class="tx">${x}</div></div></div>`).join('')}</div></div></div>`;
+    ].map(([k, n, x]) => `<div class="fdtile">${anchoredAt(k, sizeFor(k, 'tools'), -10, -10)}<div><div class="tn">${n}</div><div class="tx">${x}</div></div></div>`).join('')}</div></div></div>`;
 
   const sections = [
     ['Side games', suit.club, ['stand-up', 'button-game', 'seven-deuce']],
@@ -160,8 +177,8 @@ export function freshDeckScreens(PICK) {
     </div></div>`;
 
   return `<div class="fd fd-strip">${[
-    ['Main menu', menu, 'The start button carries the chip stack. Each tile: the name on top at 19, the drawing in the bottom-right corner, placed by its outline (4d, chosen 21 November). My stats drops the style page’s sparkline: the drawing is already a chart.'],
-    ['Poker tools', tools, 'Not drawn on the style page: the menu’s tiles (4d, name at 19) with the app’s sub-lines under each name. A single chip or card fills its outline more than a group does, so these three sit smaller (48, at the owner’s word 21 November) to carry the same weight as the menu’s.'],
+    ['Main menu', menu, 'The start button carries the chip stack. Each tile: the name on top at 19, the drawing in the bottom-right corner, placed by its outline and sized by its ink (Home level, 0.35). My stats drops the style page’s sparkline: the drawing is already a chart.'],
+    ['Poker tools', tools, 'Not drawn on the style page: the menu’s tiles (4d, name at 19) with the app’s sub-lines under each name. Drawings sized by the ink rule at one level down (0.27), so they sit a step under Home’s.'],
     ['Game boosters', boosters, 'One spot per game at the head of its row. No chevrons, as Fresh Deck has it.'],
     ['A booster’s sheet', sheet, 'The game’s spot heads its description. The same seven drawings, larger.'],
   ].map(([cap, html, note]) => `<figure><div class="fdphone">${html}</div><figcaption>${cap}<br><span style="font-weight:400">${note}</span></figcaption></figure>`).join('')}</div>`;
@@ -277,8 +294,12 @@ export function variantOption({ key, title, note, cls = '', size, shape = 'none'
  * bottom edges (negative: inset from them). Same weight, same crop, all four.
  */
 function anchored(key, T, cx, cy) {
+  const [, , w, h] = BB[key];
+  return anchoredAt(key, (88 * T) / Math.sqrt(w * h), cx, cy);
+}
+/** A drawing at size S, its measured outline run cx/cy past the tile's right and bottom edges. */
+function anchoredAt(key, S, cx, cy) {
   const [x, y, w, h] = BB[key];
-  const S = (88 * T) / Math.sqrt(w * h);
   const k = S / 88;
   const right = -cx + (x - 4) * k + w * k - S;
   const bottom = -cy + (y - 12) * k + h * k - S;
@@ -291,10 +312,10 @@ export function anchoredOption({ key, title, note, T, cx, cy, tn }, PICK) {
 }
 
 /* ── round 20: a Poker tools drawing, shown in the menu's tile at 4d ────── */
-export function toolsTileOption(key, title, note, { name = 'Poker tools', sub = 'calculator, rulings, boosters', T = 68, c = -6 } = {}) {
+export function toolsTileOption(key, title, note, { name = 'Poker tools', sub = 'calculator, rulings, boosters', level = 'home', c = -6 } = {}) {
   return {
     key, title, note,
-    html: `<div class="fd"><div class="mini pos-anch" style="max-width:200px"><div class="fdtiles" style="grid-template-columns:1fr;--tn:19px"><div class="fdtile" style="min-height:128px">${anchored(key, T, c, c)}<div><div class="tn">${name}</div><div class="tx">${sub}</div></div></div></div></div></div>`,
+    html: `<div class="fd"><div class="mini pos-anch" style="max-width:200px"><div class="fdtiles" style="grid-template-columns:1fr;--tn:19px"><div class="fdtile" style="min-height:128px">${anchoredAt(key, sizeFor(key, level), c, c)}<div><div class="tn">${name}</div><div class="tx">${sub}</div></div></div></div></div></div>`,
   };
 }
 
@@ -306,4 +327,15 @@ export function boosterOption(key, title, note, id = 'button-game') {
     html: `<div class="fd"><div class="mini"><div class="blist"><div class="brow">${art(key, 46)}<div class="bt"><div class="bn">${b.name}</div><div class="bs">${b.summary}</div></div></div></div>
       <div style="background:#fff;border-radius:14px;padding:6px 10px;line-height:0">${art(key, 96)}</div></div></div>`,
   };
+}
+
+/** The sizing rule as a table: each drawing on a tile, its ink share, and the size the rule gives it. */
+export function sizingTable(PICK) {
+  const rows = [
+    [PICK.group, 'The group', 'home'], [PICK.sessions, 'Sessions', 'home'], [PICK.stats, 'My stats', 'home'], [PICK.tools, 'Poker tools', 'home'],
+    [PICK.calculator, 'Calculator', 'tools'], [PICK.rulings, 'Rulings', 'tools'], [PICK.boosters, 'Boosters', 'tools'],
+  ];
+  return `<table class="sizing"><tr><th>Tile</th><th>Screen</th><th>Paints of its square</th><th>Size given</th><th></th></tr>${rows
+    .map(([k, n, lv]) => `<tr><td>${n}</td><td>${lv === 'home' ? 'Home · 0.35' : 'Poker tools · 0.27'}</td><td>${Math.round(INK[k] * 100)}%</td><td>${Math.round(sizeFor(k, lv))} pt</td><td>${spot(k, 'freshDeck', { size: 44 })}</td></tr>`)
+    .join('')}</table>`;
 }

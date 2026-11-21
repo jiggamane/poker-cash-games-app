@@ -39,6 +39,10 @@ direction from the round-two style page (claude.ai artifact
 - `measure.mjs` → `bboxes.json` — each drawing's measured outline, so a
   placement can size and anchor the object instead of its square box. Re-run
   it (needs Playwright) after changing a drawing.
+- `ink.mjs` → `ink.json` — how much of its square each drawing paints
+  (shadow left out). The size rule in `fresh-deck.mjs` (`sizeFor`) holds the
+  painted area at a share of the tile: 0.35 of its side on Home, 0.27 on
+  Poker tools. Re-run after changing a drawing.
 - `fresh-deck.mjs` — the four affected screens (Main menu, Poker tools, Game
   boosters, a booster's sheet) in Fresh Deck, scoped under `.fd`.
 

@@ -1239,8 +1239,8 @@ Object.assign(SPOTS, {
  * (dashes stopping short of the rim, the mark spilling past the core) is what
  * the owner asked to fix.
  */
-function lyingFace(P, o, { cx, by, r, mat, glyph }) {
-  const m = P[mat], h = r * 0.36, yt = by - h;
+function lyingFace(P, o, { cx, by, r, mat, glyph, h: hh }) {
+  const m = P[mat], h = hh ?? r * 0.36, yt = by - h;
   let s = chip(P, { cx, by, r, h, mat, face: false, small: true, phase: 0 });
   for (let i = 0; i < 8; i++) {
     const c = rad(22.5 + i * 45);
@@ -1640,6 +1640,46 @@ Object.assign(SPOTS, {
     name: 'Button game', variant: 'E · three buttons on their edges', where: 'Boosters', status: 'round23',
     draw: (P, o) =>
       shadow(P, 48, 38) + starChip(P, 26, GROUND - 5, 15) + starChip(P, 70, GROUND - 5, 15) + starChip(P, 46, GROUND + 1, 20),
+  },
+});
+
+/* ── round 24, 21 November: the cards closer, the chips tipped toward you ── */
+
+/*
+ * A chip lying on the table but tipped toward the viewer, so its face reads
+ * rounder than the table's 0.34 allows: drawn flat, then stretched upward by
+ * `s` about the point where it meets the felt. Its edge is drawn thinner by
+ * the same factor so it does not grow fat. `rot` turns it a few degrees.
+ */
+function tipped(P, o, kind, cx, by, r, s, rot) {
+  const glyph = kind === 'pct'
+    ? (rr) => `<g transform="scale(${f(rr / 24)})">${pct(P.ink.top)}</g>`
+    : (rr) => `<g transform="scale(${f(rr / 24)})">${flame(P, { cx: 0, by: 11, h: 22 })}</g>`;
+  const face = lyingFace(P, o, { cx, by, r, mat: kind === 'pct' ? 'bone' : 'ink', glyph, h: (r * 0.36) / s });
+  return `<g transform="translate(${f(cx)} ${f(by)}) rotate(${rot}) scale(1 ${s}) translate(${f(-cx)} ${f(-by)})">${face}</g>`;
+}
+const framedPairAt = (P, o, x, by, marks = ['q', 'q']) =>
+  framedCard(P, o, { cx: x, by, w: 29, h: 42, rot: -11, mark: marks[0] }) +
+  framedCard(P, o, { cx: x + 15, by, w: 29, h: 42, rot: 10, mark: marks[1] });
+
+Object.assign(SPOTS, {
+  toolsAQ: {
+    name: 'Poker tools', variant: 'AQ · cards closer, chips tipped toward you', where: 'Home · tile', status: 'round24',
+    draw: (P, o) =>
+      ownShadow(P, 46, 80, 22) + ownShadow(P, 45, 90.5, 16) + ownShadow(P, 71, 87.5, 16) +
+      framedPairAt(P, o, 38, 80) + tipped(P, o, 'fire', 71, 87, 14, 1.5, 4) + tipped(P, o, 'pct', 45, 90, 14, 1.5, -4),
+  },
+  toolsAR: {
+    name: 'Poker tools', variant: 'AR · as AQ, tipped further', where: 'Home · tile', status: 'round24',
+    draw: (P, o) =>
+      ownShadow(P, 46, 80, 22) + ownShadow(P, 45, 90.5, 16) + ownShadow(P, 71, 87.5, 16) +
+      framedPairAt(P, o, 38, 80) + tipped(P, o, 'fire', 71, 87, 14, 1.85, 5) + tipped(P, o, 'pct', 45, 90, 14, 1.85, -5),
+  },
+  toolsAS: {
+    name: 'Poker tools', variant: 'AS · the chips over the cards’ feet', where: 'Home · tile', status: 'round24',
+    draw: (P, o) =>
+      ownShadow(P, 48, 82, 22) + ownShadow(P, 43, 89.5, 16) + ownShadow(P, 67, 87.5, 16) +
+      framedPairAt(P, o, 41, 82) + tipped(P, o, 'fire', 67, 87, 14, 1.5, 4) + tipped(P, o, 'pct', 43, 89, 14, 1.5, -4),
   },
 });
 
