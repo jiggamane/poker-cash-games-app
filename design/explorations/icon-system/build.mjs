@@ -83,27 +83,22 @@ function cell(key, before = false) {
   </figure>`;
 }
 
-/*
- * The owner's note from the fifteenth review, 21 November, quoted as written.
- * The first key is the drawing the note was left on; the rest answer it.
- */
-const ROUND = [
-  ['Stand-up game', 'no table, rest is good', ['standUpQ', 'standUpR']],
-];
+/* Nothing came back after the fifteenth review: R was approved. */
+const ROUND = [];
 /* Still to decide: two are approved for Sessions. */
 const DECIDE = [
   ['Sessions — two are approved, keep one', ['sessionsT', 'sessionsJ']],
 ];
-const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB'];
+const APPROVED = ['session', 'stats', 'rulings', 'buttonGame', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB', 'standUpR'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
   ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT', 'or the book (J): yours to pick'], ['My stats', 'stats'],
   ['Poker tools', 'toolsAB'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
-  ['Stand-up game', null, 'in Round 16'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
+  ['Stand-up game', 'standUpR'], ['Button game', 'buttonGame'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const shownAbove = new Set([...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
@@ -354,14 +349,8 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>The set so far</h2>
-  <p>One drawing per place in the app, from what you’ve approved. Thirteen of fifteen are settled. Sessions is a choice between two you approved; the Stand-up game is in Round 16.</p>
+  <p>One drawing per place in the app, from what you’ve approved. Every place has an approved drawing. Sessions has two, the calendar and the leaning book, and keeps one.</p>
   ${setSoFar()}
-</section>
-
-<section class="sec">
-  <h2>Round 16 — from your fifteenth review</h2>
-  <p>One note. R is Q with no table: the stack and the stood-up chip each cast their own shadow, as on Table ante F and Poker tools AB.</p>
-  ${roundNow()}
 </section>
 
 <section class="sec">
