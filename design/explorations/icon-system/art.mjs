@@ -1359,6 +1359,33 @@ Object.assign(SPOTS, {
   },
 });
 
+/* ── round 15, 21 November: the owner's fourteenth review ───────────────── */
+
+/*
+ * N with every chip the same size, because real chips are. The stack sits a
+ * little behind the stood-up chip, so the two overlap the way they would on
+ * the felt rather than standing in a row.
+ */
+const sameSize = (P, o, { r, n, sx, sy, cx, cy }) =>
+  shadow(P, 50, 38) +
+  stack(P, { cx: sx, by: sy, r, h: r * 0.36, mats: Array(n).fill('red'), wobble: [0, -0.8, 0.6, -0.5], small: true }) +
+  standingChip(P, { cx, by: cy, r, mat: 'ink', t: r * 0.27, small: o.small, glyph: upMark(P, 'bolt') });
+
+Object.assign(SPOTS, {
+  standUpO: {
+    name: 'Stand-up game', variant: 'O · N with the chips one size', where: 'Boosters', status: 'round15',
+    draw: (P, o) => sameSize(P, o, { r: 19, n: 3, sx: 68, sy: GROUND - 3, cx: 32, cy: GROUND + 1 }),
+  },
+  standUpP: {
+    name: 'Stand-up game', variant: 'P · one size, a taller stack', where: 'Boosters', status: 'round15',
+    draw: (P, o) => sameSize(P, o, { r: 17, n: 4, sx: 68, sy: GROUND - 3, cx: 32, cy: GROUND + 1 }),
+  },
+  standUpQ: {
+    name: 'Stand-up game', variant: 'Q · one size, closer together', where: 'Boosters', status: 'round15',
+    draw: (P, o) => sameSize(P, o, { r: 19, n: 3, sx: 64, sy: GROUND - 5, cx: 36, cy: GROUND + 2 }),
+  },
+});
+
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
