@@ -17,6 +17,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
+import { PICK } from './picks.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption, sizingTable, RHO } from './fresh-deck.mjs';
 
@@ -96,7 +97,6 @@ const ROUND = [];
 /* Nothing left to decide: Sessions is calendar T (owner, 21 November). */
 const DECIDE = [];
 /* The approved drawing for each place, by the app's own names. */
-const PICK = { session: 'session', group: 'groupB', sessions: 'sessionsT', stats: 'stats', tools: 'toolsAT', calculator: 'calculator', rulings: 'rulings', boosters: 'boostersE', 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleL', 'table-ante': 'anteF', 'stand-up': 'standUpR', 'button-game': 'buttonD', 'seven-deuce': 'sevenTwo' };
 const APPROVED = ['session', 'stats', 'rulings', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleL', 'toolsAT', 'standUpR', 'sessionsT', 'buttonD'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
