@@ -11,6 +11,7 @@
  * Everything is scoped under `.fd` so it cannot touch the board around it.
  */
 import { spot } from './art.mjs';
+import BB from './bboxes.json' with { type: 'json' };
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 
 export const FD_FONTS =
@@ -181,6 +182,7 @@ export const OPT_CSS = `
 .fd .pos-brin .fdtile{justify-content:flex-start}
 .fd .pos-c .fdtile{align-items:center;text-align:center}
 .fd .pos-c .fdtile>.art{margin:-2px 0 0}
+.fd .pos-anch .fdtile{justify-content:flex-start}
 .fd .pos-row .fdtiles{grid-template-columns:1fr}
 .fd .pos-row .fdtile{min-height:68px;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;padding:6px 14px 6px 8px}
 .fd .pos-row .fdtile>.art{margin:0}
@@ -244,4 +246,28 @@ export function positionOptions(PICK) {
 /** One home-tile variant: a placement class, a drawing size, a shape, a title size. */
 export function variantOption({ key, title, note, cls = '', size, shape = 'none', tn }, PICK) {
   return { key, title, note, html: `<div class="fd"><div class="mini ${cls}">${homeTiles(PICK, shape, size, '', tn)}</div></div>` };
+}
+
+/* ── round 19: placed by the drawing's outline, not its square ──────────── */
+
+/*
+ * Each drawing has a different footprint in its 96 box — the group is wide
+ * and low, the calendar tall, the tools spread out — so one size and one
+ * offset put them at different weights and crops. This sizes each so its
+ * measured outline (bboxes.json) has the same area, `T` points on a side, and
+ * places it so that outline runs `cx`/`cy` points past the tile's right and
+ * bottom edges (negative: inset from them). Same weight, same crop, all four.
+ */
+function anchored(key, T, cx, cy) {
+  const [x, y, w, h] = BB[key];
+  const S = (88 * T) / Math.sqrt(w * h);
+  const k = S / 88;
+  const right = -cx + (x - 4) * k + w * k - S;
+  const bottom = -cy + (y - 12) * k + h * k - S;
+  return `<span class="art" style="position:absolute;right:${right.toFixed(1)}px;bottom:${bottom.toFixed(1)}px;margin:0;width:auto;height:auto;line-height:0">${spot(key, 'freshDeck', { size: Math.round(S) })}</span>`;
+}
+
+export function anchoredOption({ key, title, note, T, cx, cy, tn }, PICK) {
+  const tiles = HOME(PICK).map(([k, n]) => `<div class="fdtile">${anchored(k, T, cx, cy)}<div><div class="tn">${n}</div></div></div>`).join('');
+  return { key, title, note, html: `<div class="fd"><div class="mini pos-anch"><div class="fdtiles"${tn ? ` style="--tn:${tn}px"` : ''}>${tiles}</div></div></div>` };
 }

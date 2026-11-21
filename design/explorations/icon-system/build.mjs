@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
-import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption } from './fresh-deck.mjs';
+import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption } from './fresh-deck.mjs';
 
 const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleA', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
@@ -110,29 +110,31 @@ const setSoFar = () => `<div class="slots">${SLOTS.map(([name, key, note]) => `<
     <div class="slart">${key ? spot(key, 'light', { size: 64 }) : '<span>?</span>'}</div><b>${name}</b>${note ? `<i>${note}</i>` : ''}</div>`).join('')}</div>`;
 
 /*
- * Round 18: the owner's notes on the round-17 options, 21 November, quoted as
- * written. Each group opens with the option the note was left on.
+ * Round 18's options, kept so round 19 can open each group with the one the
+ * note was left on.
  */
 const ROUND18 = [
-  ['Icon bleeding off the corner', 'try with larger icons', 'posBR', [
-    { key: 'posBR2', title: '5b · bleeding off the corner, larger', note: 'The drawing at 116: about half the tile, still cropped by its edge.', cls: 'pos-br', size: 116 },
-    { key: 'posBR3', title: '5c · bleeding off the corner, largest', note: 'At 136 the drawing fills the lower tile and the name sits over the white above it.', cls: 'pos-br', size: 136 },
+  ['', '', 'posBR', [{ key: 'posBR2', title: '5b · bleeding off the corner, larger', note: 'The drawing at 116: about half the tile, still cropped by its edge.', cls: 'pos-br', size: 116 }]],
+  ['', '', 'posBRin', [{ key: 'posBRin2', title: '4b · bottom right, a bit larger', note: 'The drawing at 84, still whole inside the tile.', cls: 'pos-brin', size: 84 }]],
+];
+/*
+ * Round 19: the owner's notes on round 18, 21 November, quoted as written.
+ * "dont need to leave options with titles on bottom": only name-on-top
+ * placements remain on the board.
+ */
+const ROUND19 = [
+  ['Icon bleeding off the corner', 'find best positioning for chips on all 4', 'posBR2', [
+    { key: 'bleedA', title: '5d · placed by outline, same crop on all four', note: 'Each drawing sized to the same visual weight and run 10 past the right edge and 8 past the bottom.', T: 86, cx: 10, cy: 8 },
+    { key: 'bleedB', title: '5e · placed by outline, larger, more crop', note: 'The same, bigger: 16 past the right, 12 past the bottom.', T: 98, cx: 16, cy: 12 },
+    { key: 'bleedC', title: '5f · placed by outline, just touching the corner', note: 'Large, but each drawing only kisses the edges, so nothing is cut off.', T: 90, cx: 2, cy: 2 },
   ]],
-  ['Icon in the bottom right', 'try with a bit larger icons', 'posBRin', [
-    { key: 'posBRin2', title: '4b · bottom right, a bit larger', note: 'The drawing at 84, still whole inside the tile.', cls: 'pos-brin', size: 84 },
-    { key: 'posBRin3', title: '4c · bottom right, larger again', note: 'At 92, the most the corner holds before it starts to crop.', cls: 'pos-brin', size: 92 },
-  ]],
-  ['Icon top right', 'try with larger icons and titles', 'posTR', [
-    { key: 'posTR2', title: '3b · top right, larger, title 19', note: 'Drawing at 78, the name up from 16.5 to 19.', cls: 'pos-tr', size: 78, tn: 19 },
-    { key: 'posTR3', title: '3c · top right, largest, title 21', note: 'Drawing at 88, the name at 21.', cls: 'pos-tr', size: 88, tn: 21 },
-  ]],
-  ['No shape, no shadow', 'try with larger icons,, try diff title sizes', 'shapeFlat', [
-    { key: 'flat2', title: 'G2 · larger, title as now (16.5)', note: 'The drawing at 78 with no shadow; the name unchanged.', shape: 'flat', size: 78 },
-    { key: 'flat3', title: 'G3 · larger, title 19', note: 'The same drawing, the name a step up.', shape: 'flat', size: 78, tn: 19 },
-    { key: 'flat4', title: 'G4 · largest, title 22', note: 'The drawing at 88, the name at 22: the tile reads as a poster.', cls: 'pos-top', shape: 'flat', size: 88, tn: 22 },
+  ['Icon in the bottom right', 'adjust the title size', 'posBRin2', [
+    { key: 'inA', title: '4d · name at 19', note: 'The name up from 16.5 to 19. Drawings placed by outline, 6 in from the corner.', T: 68, cx: -6, cy: -6, tn: 19 },
+    { key: 'inB', title: '4e · name at 21', note: 'The name at 21, the drawings as 4d.', T: 68, cx: -6, cy: -6, tn: 21 },
+    { key: 'inC', title: '4f · name at 23', note: 'The name at 23, the largest that keeps “Poker tools” on one line.', T: 68, cx: -6, cy: -6, tn: 23 },
   ]],
 ];
-const reviewed18 = new Set(ROUND18.map((g) => g[2]));
+
 
 const optCell = ({ key, title, note, html }) => `<figure class="cell opt" data-key="${key}">${html}<figcaption><b>${title}</b><span>${note}</span></figcaption>${REVIEW ? reviewBlock(key, title) : ''}</figure>`;
 
@@ -381,22 +383,14 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 18 — larger icons, and title sizes</h2>
-  <p>Four notes, all on Home’s tiles in Fresh Deck. Each group starts with the round-17 option the note was on, then the new sizes.</p>
-  ${ROUND18.map(([title, quote, was, opts]) => {
-    const before = [...shapeOptions(PICK), ...positionOptions(PICK)].find((o) => o.key === was);
+  <h2>Round 19 — name on top, the drawing placed by its outline</h2>
+  <p>Two notes. Only placements with the name on top are left, as you asked. Each drawing is now sized and placed by its measured outline rather than the square it is drawn in, so all four tiles carry the same weight and the same crop.</p>
+  ${ROUND19.map(([title, quote, was, opts]) => {
+    const before = ROUND18.flatMap((g) => g[3]).map((o) => variantOption(o, PICK)).find((o) => o.key === was);
     return `<div class="group"><div class="ghead"><h3>${title}</h3><p>first: the one you reviewed · then ${opts.length} new</p></div>
       <blockquote class="quote">“${quote}”</blockquote>
-      <div class="optgrid">${[before, ...opts.map((o) => variantOption(o, PICK))].map(optCell).join('')}</div></div>`;
+      <div class="optgrid">${[before, ...opts.map((o) => anchoredOption(o, PICK))].map(optCell).join('')}</div></div>`;
   }).join('')}
-</section>
-
-<section class="sec">
-  <details class="more">
-    <summary><h2>Round 17, the other options <span>10</span></h2></summary>
-    <p>The shapes and placements you didn’t comment on. Approve any to keep it in play.</p>
-    <div class="optgrid">${[...shapeOptions(PICK), ...positionOptions(PICK)].filter((o) => !reviewed18.has(o.key)).map(optCell).join('')}</div>
-  </details>
 </section>
 
 <section class="sec">
