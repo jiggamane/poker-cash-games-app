@@ -60,3 +60,10 @@ Rail / Lamp switch since that choice is still open:
 It copies the phone, Fresh Deck, Rail and Lamp styles from `index.html` and
 adds only the `.v-*` rules. Under each head it is already in line with the
 later approvals (no chevrons, the ink start button). No verdict yet.
+
+**Round two, the same day.** The owner found A, B and C interesting. Five
+more at the top of `titles.html`, all with no button shape round the back
+control: **G** (A's large title in B's weight), **H** (C's small centred title
+with a bare chevron), **I** (a small title on the left, the content leads),
+**J** (every screen built like the menu: its line above, its name under it),
+**K** (a centred title on its own line). No verdict yet.
