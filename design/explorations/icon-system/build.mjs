@@ -61,6 +61,7 @@ const STATUS = {
   round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
+  round22: { label: 'Round 22', note: 'one card face', bg: '#FBE9EA', fg: '#9A2530' },
   round21: { label: 'Round 21', note: 'chips facing front; Rulings fuller', bg: '#F3ECE2', fg: '#7A4A12' },
   round20: { label: 'Round 20', note: 'Poker tools reworked', bg: '#E7EEF9', fg: '#24477E' },
   round4: { label: 'Round 4', note: 'from your third review', bg: '#EAF6F0', fg: '#14613E' },
@@ -104,7 +105,7 @@ const SLOTS = [
 const EARLIER = ['sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD'];
+const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -386,7 +387,25 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 21 — the chips facing front, and a fuller Rulings card</h2>
+  <h2>Round 22 — one card face for every card</h2>
+  <p>From your note on Rulings D: “use this card face for each of the variants where we show cards (regardless if they are face up or down - make all cards in this group appear only in this way)”. Every card in the round-21 options is now D’s: bone, a red inner frame, its mark inside. The ace keeps its spade; the card backs become rulings.</p>
+  <div class="group"><div class="ghead"><h3>Poker tools</h3><p>round 21’s three, with the framed cards</p></div>
+    <div class="optgrid">${[
+      ['toolsAL', 'AL · AI with the framed cards', 'The ace (its spade in the frame) and the ruling, the chips standing in front.'],
+      ['toolsAM', 'AM · AJ with the framed card', 'One framed ruling, the chips standing in front.'],
+      ['toolsAN', 'AN · AK with the framed cards', 'The card back is now a second ruling: two framed ?s, the chips in front.'],
+    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n))).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>Rulings, on the Poker tools screen</h3><p>first: the one the note was on</p></div>
+    <div class="optgrid">${[
+      ['rulingsD', 'D · a framed card face', 'Where the note was left.'],
+      ['rulingsE', 'E · B with the framed cards', 'Two framed rulings fanned, the back one replacing B’s card back.'],
+      ['rulingsF', 'F · C with the framed card', 'The framed ruling with the chip stack at its foot.'],
+    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', T: 48, c: -10 }))).join('')}</div></div>
+</section>
+
+<section class="sec">
+  <details class="more">
+  <summary><h2>Round 21 — the chips facing front, and a fuller Rulings card <span>earlier</span></h2></summary>
   <p>Two comments. On the menu’s Poker tools: “also try positioning chips face to (like cards) front”. On the Poker tools screen’s Rulings: “lets try more poptions for this one, looks too empty/white when applied”.</p>
   <div class="group"><div class="ghead"><h3>Poker tools, the chips standing face to the front</h3><p>the cards from round 20, the chips as on N</p></div>
     <div class="optgrid">${[
@@ -399,12 +418,13 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
       ['rulings', 'Now · the card alone', 'Approved in round 1. White card on a white tile: the emptiness you saw. (For comparison.)'],
       ['rulingsB', 'B · the ruling over a card back', 'A red card back behind it, so the tile carries a block of colour.'],
       ['rulingsC', 'C · the ruling with chips at its foot', 'A short stack beside the card: the same chips as the other two tiles.'],
-      ['rulingsD', 'D · a framed card face', 'The card face gets a red inner frame, like a court card’s border.'],
     ].map(([k, t, n]) => { const o = toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', T: 48, c: -10 }); return k === 'rulings' ? `<figure class="opt" style="margin:0">${o.html}<figcaption><b>${t}</b><span>${n}</span></figcaption></figure>` : optCell(o); }).join('')}</div></div>
+  </details>
 </section>
 
 <section class="sec">
-  <h2>Round 20 — the Poker tools drawing, reworked</h2>
+  <details class="more">
+  <summary><h2>Round 20 — the Poker tools drawing, reworked <span>earlier</span></h2></summary>
   <p>From your comment on the menu: “need to rework this icon. try putting card closer to chips, try 2 cards (position them like on 7-2 game ison)”. Each is shown in the menu’s tile at its real size. The chips are AB’s, unchanged.</p>
   <div class="optgrid">${[
     ['toolsAB', 'Now · AB', 'The card well behind and left of the chips. (Shown for comparison; approve or comment on it in Approved below.)'],
@@ -413,6 +433,7 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
     ['toolsAG', 'AG · two cards, the chips beside them', 'The same pair smaller and to the left, the chips to their right, less overlap.'],
     ['toolsAH', 'AH · a card back and the ruling', 'As AF, the ace swapped for a card face down, so the only face is the ruling.'],
   ].map(([k, t, n]) => { const o = toolsTileOption(k, t, n); return k === 'toolsAB' ? `<figure class="opt" style="margin:0">${o.html}<figcaption><b>${t}</b><span>${n}</span></figcaption></figure>` : optCell(o); }).join('')}</div>
+  </details>
 </section>
 
 <section class="sec">
