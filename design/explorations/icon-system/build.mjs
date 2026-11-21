@@ -61,6 +61,7 @@ const STATUS = {
   round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
+  round21: { label: 'Round 21', note: 'chips facing front; Rulings fuller', bg: '#F3ECE2', fg: '#7A4A12' },
   round20: { label: 'Round 20', note: 'Poker tools reworked', bg: '#E7EEF9', fg: '#24477E' },
   round4: { label: 'Round 4', note: 'from your third review', bg: '#EAF6F0', fg: '#14613E' },
   round3: { label: 'Round 3', note: 'from your second review', bg: '#E5EEFF', fg: '#1F4BA8' },
@@ -103,7 +104,7 @@ const SLOTS = [
 const EARLIER = ['sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH'];
+const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -383,6 +384,24 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
   <p class="lede" style="margin-top:10px">Under every drawing in <b style="color:${C.ink}">The set</b>: tap <b style="color:${C.ink}">Approve</b> or <b style="color:${C.ink}">Needs work</b>, and say what to change in the box. Everything saves as you go, and Claude reads it from here.</p>` : ''}
 </header>
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
+
+<section class="sec">
+  <h2>Round 21 — the chips facing front, and a fuller Rulings card</h2>
+  <p>Two comments. On the menu’s Poker tools: “also try positioning chips face to (like cards) front”. On the Poker tools screen’s Rulings: “lets try more poptions for this one, looks too empty/white when applied”.</p>
+  <div class="group"><div class="ghead"><h3>Poker tools, the chips standing face to the front</h3><p>the cards from round 20, the chips as on N</p></div>
+    <div class="optgrid">${[
+      ['toolsAI', 'AI · two cards, the chips facing front', 'AF’s ace and ruling, the % chip and the fire chip standing up in front of them, faces out.'],
+      ['toolsAJ', 'AJ · one card, the chips facing front', 'AE’s single card, the same two chips standing in front of it.'],
+      ['toolsAK', 'AK · a card back and the ruling, the chips facing front', 'AH’s pair, the chips standing.'],
+    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n))).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>Rulings, on the Poker tools screen</h3><p>shown in its tile at that screen’s size</p></div>
+    <div class="optgrid">${[
+      ['rulings', 'Now · the card alone', 'Approved in round 1. White card on a white tile: the emptiness you saw. (For comparison.)'],
+      ['rulingsB', 'B · the ruling over a card back', 'A red card back behind it, so the tile carries a block of colour.'],
+      ['rulingsC', 'C · the ruling with chips at its foot', 'A short stack beside the card: the same chips as the other two tiles.'],
+      ['rulingsD', 'D · a framed card face', 'The card face gets a red inner frame, like a court card’s border.'],
+    ].map(([k, t, n]) => { const o = toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', T: 48, c: -10 }); return k === 'rulings' ? `<figure class="opt" style="margin:0">${o.html}<figcaption><b>${t}</b><span>${n}</span></figcaption></figure>` : optCell(o); }).join('')}</div></div>
+</section>
 
 <section class="sec">
   <h2>Round 20 — the Poker tools drawing, reworked</h2>
