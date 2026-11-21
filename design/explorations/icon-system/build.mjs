@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
 import { PICK } from './picks.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
-import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption, sizingTable, RHO } from './fresh-deck.mjs';
+import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, railN, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption, sizingTable, RHO } from './fresh-deck.mjs';
 
 const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleA', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
@@ -285,7 +285,7 @@ const page = () => `<!DOCTYPE html>
 <link href="${FD_FONTS}" rel="stylesheet">
 <style>
 :root{color-scheme:light}
-${FD_CSS}${OPT_CSS}
+${FD_CSS}${railN('.fd')}${OPT_CSS}
 .opt{margin:0;background:${C.card};border-radius:18px;padding:10px 10px 14px;display:flex;flex-direction:column;gap:10px}
 .optgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
 .opt figcaption b{font:700 14px ${font}}.opt figcaption span{font:400 12.5px/1.45 ${font};color:${C.mut}}
@@ -502,8 +502,8 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>The screens they land on, in Fresh Deck</h2>
-  <p>Updated 21 November with the tile layout you picked: the name on top at 19, the drawing in the bottom-right corner placed by its outline (4d). Drawn on the locked Fresh Deck direction from your style page: its layout, type, colours and copy, with the approved drawings in place of its placeholder icons. The drawings keep their approved shapes; their ink and red are Fresh Deck’s. Results and Tonight carry none: a spot names a place or a game, and those screens are rows and figures.</p>
-  ${freshDeckScreens(PICK)}
+  <p>Now under the header you approved: the rail, with the title small and bold beside a grey chevron. Updated 21 November with the tile layout you picked: the name on top at 19, the drawing in the bottom-right corner placed by its outline (4d). Drawn on the locked Fresh Deck direction from your style page: its layout, type, colours and copy, with the approved drawings in place of its placeholder icons. The drawings keep their approved shapes; their ink and red are Fresh Deck’s. Results and Tonight carry none: a spot names a place or a game, and those screens are rows and figures.</p>
+  ${freshDeckScreens(PICK, { rail: true })}
 </section>
 
 <section class="sec">

@@ -194,7 +194,7 @@ export function freshDeckScreens(PICK, { withSheet = true, rail = false } = {}) 
 
   const b = byId['stand-up'];
   const sheet = `<div class="scr">${SB}<div class="pad" style="opacity:.5">
-    <div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div></div>
+    ${R(`<div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div>`)}</div>
     <div class="dim"></div>
     <div class="sheet"><div class="grab"></div>
       <div class="shd"><h2>${b.name}</h2><span class="x">${icon('close')}</span></div>

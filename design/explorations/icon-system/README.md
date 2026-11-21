@@ -38,7 +38,10 @@ the same day. The board
 opens on the screens they land on, drawn in **Fresh Deck**, the owner's locked
 direction from the round-two style page (claude.ai artifact
 8V2pTt3a9mNXwrdMZ8TJ3F), with the drawings in that UI's ink and red
-(`PALETTES.freshDeck`). Nothing is in the app yet.
+(`PALETTES.freshDeck`), and since 21 November under the approved header:
+version N of `../screen-headers/titles.html` on the Rail (`railN` in
+`fresh-deck.mjs`). Nothing is in the app yet. `fresh-deck-screens.png` is an
+earlier still and predates the header.
 
 ## Files
 
