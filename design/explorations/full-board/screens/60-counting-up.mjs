@@ -52,21 +52,22 @@ const keypad00 = `<div class="kp">${['1', '2', '3', '4', '5', '6', '7', '8', '9'
 const dedTop = { title: 'Deductions', trailing: '2 of 3' };
 
 const after = (name, amount, working = '') =>
-  `<div class="row" style="min-height:40px"><span class="n">${name}${working ? `<small>${working}</small>` : ''}</span><span class="a ${amount.startsWith('+') ? 'win' : 'loss'}">${amount}</span></div>`;
+  `<div class="row" style="min-height:40px"><span class="n">${name}${working ? `<small class="wrap">${working}</small>` : ''}</span><span class="a ${amount.startsWith('+') ? 'win' : 'loss'}">${amount}</span></div>`;
 
 /** Provisional, so it is outlined with a dash and not lifted: the one group on the screen that is not yet a fact. */
 const preview = `<div style="border:1.5px dashed var(--outline);border-radius:14px;padding:12px 12px 10px">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px"><span class="lbl" style="margin:0">Everyone after deductions</span>${pill('PREVIEW')}</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px"><span class="lbl" style="margin:0;letter-spacing:.07em;white-space:nowrap">Everyone after deductions</span>${pill('PREVIEW')}</div>
   ${after('Dana', '+$1,429', 'game +1,620 · food −110 · piggy −81')}${after('Andro', '+$526', 'game +460 · food +89 · piggy −23')}${after('Lena', '+$429', 'game +430 · food +21 · piggy −22')}
   ${after('Tomáš', '−$500')}${after('Ivo', '−$780')}${after('Petr', '−$1,230')}
   <p class="note" style="margin-top:8px">Provisional until you settle. Tap any figure below to change it.</p></div>`;
 
 const blockHead = (name, total) => `<div class="split" style="padding:12px 0 4px"><b style="font:700 16px/1.2 var(--head)">${name}</b><b class="num" style="font-size:16.5px">${total}</b></div>`;
 const share = (name, amount) =>
-  `<div class="row" style="min-height:36px;padding:6px 0"><span class="n" style="font-weight:500;font-size:14.5px">${name}</span><span class="a" style="font-size:15px">${amount}</span><span class="muted">${ico('pencil', 14)}</span></div>`;
+  `<div class="row" style="min-height:32px;padding:4px 0"><span class="n" style="font-weight:500;font-size:14.5px">${name}</span><span class="a" style="font-size:15px">${amount}</span><span class="muted">${ico('pencil', 14)}</span></div>`;
 const worked = (name, working, amount) =>
   `<div style="display:flex;align-items:baseline;gap:8px;padding:3px 0;font-size:14px"><span style="font-weight:500">${name}</span><span class="muted" style="flex:1;font-size:12.5px">${working}</span><b class="num">${amount}</b></div>`;
-const spend = (time, name, who_, amount) => row({ lead: `<span class="muted num" style="font-size:12px">${time}</span>`, name, meta: who_, amount });
+const spend = (time, name, who_, amount) =>
+  `<div class="row" style="padding:5px 0"><span class="muted num" style="flex:none;width:36px;font-size:12px">${time}</span><span class="n">${name}<small>${who_}</small></span><span class="a">${amount}</span></div>`;
 
 export const section = { title: 'Ending the night: count and deductions', blurb: 'Steps 1 and 2 of the three that close a night: every stack is counted until the money adds up, then the group’s rules take their shares before anyone is told who pays whom.' };
 
@@ -84,7 +85,7 @@ export default [
       bar: bar('Next', { blocked: true }) }) },
 
   { id: 'count-up-empty', route: '/count-up', name: 'Count up · nothing counted yet', nav: 'push',
-    allowOverflow: true, note: 'As it opens from End this poker night: only the player who cashed out is in. The list scrolls; Dana’s row under Counted · 1 is just below the fold.',
+    note: 'As it opens from End this poker night: only the player who cashed out is in.',
     html: push({ ...countTop, extra: block({ gap: '−$2,880', pct: '42%', shares: [2120, 2880], accounted: '1 counted, 5 still to count', amount: '$2,120' }),
       body: [termsCard,
         label('Still to count · 5'), card([waiting('Andro', '$500'), waiting('Lena', '$1,000'), waiting('Tomáš', '$500'), waiting('Ivo', '$1,000'), waiting('Petr', '$1,500')]),
@@ -139,7 +140,7 @@ export default [
           `<div style="padding-bottom:10px">${worked('Dana', '5% of 1,620', '$81')}${worked('Andro', '5% of 460', '$23')}${worked('Lena', '5% of 430', '$22')}</div>`]),
         label('The bill', { right: '$170', quiet: true }),
         card([spend('15:21', 'Pizza', 'Andro fronted it', '$120'), spend('15:53', 'Drinks', 'Lena fronted it', '$50')]),
-        `<div class="chip dash" style="height:44px;border-radius:14px;justify-content:flex-start">${ico('plus', 16)}Add a spend</div>`,
+        `<div class="chip dash" style="height:40px;border-radius:14px;justify-content:flex-start">${ico('plus', 16)}Add a spend</div>`,
         button('Change a rule and look again'),
       ],
       bar: bar('See who pays whom') }) },

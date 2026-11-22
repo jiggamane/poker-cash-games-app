@@ -61,7 +61,7 @@ export default [
         ]),
         label('Deductions', { right: '$296', quiet: true }),
         `<div style="display:grid;gap:6px;font-size:12.5px;margin:0 2px">
-          <div style="display:flex;gap:8px;align-items:center"><span class="muted">${ico('food', 15)}</span><span>Kitchen &amp; drinks</span><span class="muted" style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lena and Andro paid</span><b class="num">$170</b></div>
+          <div style="display:flex;gap:8px;align-items:center"><span class="muted">${ico('food', 15)}</span><span>Kitchen &amp; drinks</span><span class="muted" style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lena and Andro fronted</span><b class="num">$170</b></div>
           <div style="display:flex;gap:8px;align-items:center"><span class="muted">${ico('piggy', 15)}</span><span>Group piggy bank</span><span class="muted" style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">held by the group</span><b class="num">$126</b></div></div>`,
       ],
       bar: bar('Who pays whom') }) },
