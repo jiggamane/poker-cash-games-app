@@ -127,6 +127,8 @@ const art = (key, size, onInk = false, pal) =>
  * The ladder, 22 November: each level down paints 0.77 of the one above.
  * Home 0.35, Poker tools 0.27, the Game boosters rows 0.208; a booster's sheet
  * is that game's own page, so its drawing paints what Home's tiles do (0.35).
+ * The owner, 22 November: the rows a little larger, all alike. Rows 0.23 (+10%)
+ * and the slot 56 wide (from 52), so the capped Table ante grows with the rest.
  *
  * Optical size, 22 November. Equal ink still let the Bomb pot read larger than
  * the Stand-up game in the boosters list, by two things ink ignores: a pale
@@ -138,7 +140,7 @@ const art = (key, size, onInk = false, pal) =>
  * wider than the slot, so a wide drawing (the Table ante) gives up a little
  * weight rather than run into its name.
  */
-export const RHO = { home: 0.35, tools: 0.27, rows: 0.208, sheet: 0.35 };
+export const RHO = { home: 0.35, tools: 0.27, rows: 0.23, sheet: 0.35 };
 const TILE = { w: 133, h: 128 };
 export const inkSide = (level) => RHO[level] * Math.sqrt(TILE.w * TILE.h);
 /* The optical share replaces the bare ink share; CAL keeps the fifteen picks'
@@ -235,7 +237,7 @@ export function freshDeckScreens(PICK, { withSheet = true, rail = false } = {}) 
     ${R(`<div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div>
     <div class="fdsub">house rules for more action</div>`)}
     ${sections.map(([label, mark, ids]) => `<div class="seclbl">${mark}${label}</div><div class="blist">${ids
-      .map((id) => `<div class="brow">${artSlot(PICK[id], 'rows', 52, 46)}<div class="bt"><div class="bn">${byId[id].name}</div><div class="bs">${byId[id].summary}</div></div></div>`)
+      .map((id) => `<div class="brow">${artSlot(PICK[id], 'rows', 56, 48)}<div class="bt"><div class="bn">${byId[id].name}</div><div class="bs">${byId[id].summary}</div></div></div>`)
       .join('')}</div>`).join('')}
   </div></div>`;
 
