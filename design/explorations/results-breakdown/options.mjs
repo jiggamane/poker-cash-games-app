@@ -53,6 +53,8 @@ const name = (n) => `<div class="rb-nm">${n}</div>`;
 const OPTIONS = [
   ['now', 'Now', 'the formula split in two', 'Chips in and out under the name on the left; the deductions in a grey chip under the result on the right. The eye has to cross the row to read one sum.',
     R.map(([n, i, o, , k, p, v]) => row('', name(n) + `<div class="rb-f">${chips(i, o)}</div>`, net(v) + (k ? `<span class="rb-pill">${kitchen(k)}${piggy(p)}</span>` : ''))).join('')],
+  ['now2', 'Now, one shape', 'the formula split in two, every term in the same grey shape', 'As Now, with chips in and out set in the same grey shape the kitchen and the piggy bank sit in (the owner, 22 November): one kind of object for every term, left and right.',
+    R.map(([n, i, o, , k, p, v]) => row('', name(n) + `<div class="rb-f"><span class="rb-pill">${chips(i, o)}</span></div>`, net(v) + (k ? `<span class="rb-pill">${kitchen(k)}${piggy(p)}</span>` : ''))).join('')],
   ['a', 'A', 'the whole formula on the left', 'What you asked for. Everything that makes the result sits under the name, in the order it happens: chips in, chips out, kitchen, piggy bank. The result stands alone on the right. At phone width a player with every term runs to a second line; B and E are two ways round that.',
     R.map(([n, i, o, , k, p, v]) => row('mid', name(n) + `<div class="rb-f">${chips(i, o)}${kitchen(k)}${piggy(p)}</div>`, net(v))).join('')],
   ['b', 'B', 'on the left, with the game’s result in place of in and out', 'Shorter: the two chip figures become one, what the player won or lost at the table. Three terms at most, and every row has room. Chips in and out stay on the On table view.',

@@ -1,0 +1,701 @@
+<div class="us-shadow"><template shadowrootmode="open"><style>
+/* Layout: round two of the review page — two bands, each a short "what changed" brief, a players toggle, and four phones.
+   Page chrome stays neutral; the phones carry the look. */
+:host{
+  --bg:#F3F3F1; --fg:#17171A; --muted:#5E5E66; --line:#DCDCD8; --panel:#FFFFFF; --chip:#EAEAE6; --on:#17171A; --onfg:#FFFFFF;
+  --f-head:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-body:'Hanken Grotesk',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:host:not([data-theme="light"]){
+  --bg:#0E0E10; --fg:#EDEDEF; --muted:#9A9AA3; --line:#26262B; --panel:#17171A; --chip:#202024; --on:#EDEDEF; --onfg:#111113; color-scheme:dark}}
+:host[data-theme="dark"]{--bg:#0E0E10; --fg:#EDEDEF; --muted:#9A9AA3; --line:#26262B; --panel:#17171A; --chip:#202024; --on:#EDEDEF; --onfg:#111113; color-scheme:dark}
+*{box-sizing:border-box}:host{background:var(--bg);color:var(--fg);font:400 16px/1.55 var(--f-body);margin:0}
+a{color:inherit}
+.wrap{max-width:1440px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px}
+header.top h1{font:800 clamp(32px,5vw,52px)/1.02 var(--f-head);letter-spacing:-.03em;margin:0 0 14px;text-wrap:balance}
+header.top p{max-width:70ch;margin:0 0 10px;color:var(--muted)}
+header.top p strong{color:var(--fg);font-weight:600}
+section.dir{border-top:1px solid var(--line);margin-top:44px;padding-top:34px;scroll-margin-top:16px}
+.brief{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:24px 48px;align-items:start;margin-bottom:22px}
+@media (max-width:860px){.brief{grid-template-columns:minmax(0,1fr)}}
+.brief .k{font:600 12px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.brief h2{font:800 clamp(28px,3.4vw,38px)/1.05 var(--f-head);letter-spacing:-.025em;margin:0 0 10px}
+.brief .idea{font-size:18px;margin:0 0 16px;max-width:46ch}
+.sw{display:flex;flex-wrap:wrap;gap:6px}
+.sw span{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--chip);padding:4px 10px 4px 4px;border-radius:999px}
+.sw span i{width:18px;height:18px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(127,127,127,.25)}
+.changes h3{font:700 14px/1.2 var(--f-body);margin:0 0 8px}
+.changes ul{margin:0;padding-left:18px;color:var(--muted);font-size:14.5px;display:grid;gap:5px}
+.changes li strong{color:var(--fg);font-weight:600}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 0 14px}
+.toolbar .tl{font-size:13px;font-weight:600;color:var(--muted)}
+.seg{display:inline-flex;background:var(--chip);border-radius:999px;padding:3px}
+.seg button{font:600 13px/1 var(--f-body);color:var(--fg);background:transparent;border:0;border-radius:999px;padding:8px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--on);color:var(--onfg)}
+.seg button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.toolbar .hint{font-size:13px;color:var(--muted)}
+.strip{display:flex;gap:22px;overflow-x:auto;padding:6px 2px 18px;scroll-snap-type:x mandatory}
+.strip figure{margin:0;flex:none;scroll-snap-align:start;display:flex;flex-direction:column;gap:10px}
+.strip figcaption{font:600 13px/1 var(--f-body);color:var(--muted);padding-left:6px}
+footer{margin-top:52px;border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:14px;max-width:80ch}
+
+/* ───────── Phone shell (shared by every direction) ───────── */
+.phone{width:330px;height:760px;border-radius:46px;padding:9px;background:#050506;box-shadow:0 0 0 1px #2a2a2e inset,0 24px 50px -24px rgba(0,0,0,.6);flex:none}
+.scr{position:relative;height:100%;border-radius:37px;overflow:hidden;background:var(--p-bg);color:var(--p-text);font:400 14px/1.35 var(--p-body);-webkit-font-smoothing:antialiased}
+.scr *{box-sizing:border-box}
+.scr button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:default}
+.sb{display:flex;justify-content:space-between;align-items:center;height:42px;padding:8px 28px 0;font:600 13px/1 var(--p-body)}
+.sb svg{height:11px;width:auto}
+.pad{padding:4px 18px 0}
+.ic{width:20px;height:20px;flex:none;display:block}
+.ic.s{width:16px;height:16px}.ic.xs{width:13px;height:13px}
+.num{font-family:var(--p-num);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.win{color:var(--p-win)}.loss{color:var(--p-loss)}
+.rb{width:36px;height:36px;border-radius:50%;display:grid!important;place-items:center;background:var(--p-raised);flex:none}
+.hdr{display:flex;align-items:center;gap:12px}
+.hdr h1{margin:0;flex:1;font:var(--p-h1);letter-spacing:var(--p-h1ls,-.02em);font-stretch:var(--p-h1st,100%);text-transform:var(--p-h1tt,none)}
+.sub{color:var(--p-muted);font-size:13px;margin:4px 0 0 48px}
+.chev{color:var(--p-muted)}
+
+/* Tonight */
+.live{display:inline-flex;align-items:center;gap:7px;font:700 13px/1 var(--p-num);padding:8px 12px;border-radius:999px;color:var(--p-win);background:color-mix(in srgb,var(--p-win) 14%,transparent)}
+.live i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,currentColor 60%,transparent)}50%{box-shadow:0 0 0 5px transparent}}
+@media (prefers-reduced-motion:reduce){.live i{animation:none}}
+.role{display:flex;align-items:center;justify-content:space-between;margin:6px 0 14px 48px;font-size:13px;color:var(--p-muted)}
+.role b{color:var(--p-text);font-weight:600}
+.role .rb{width:34px;height:34px}
+.hero{padding:14px 16px;border-radius:var(--p-r);background:var(--p-surface);position:relative}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.lbl{font-size:12.5px;color:var(--p-muted);font-weight:500}
+.big{font:var(--p-big);letter-spacing:-.03em;margin-top:4px}
+.side{text-align:right;color:var(--p-muted);font-size:12px;line-height:1.5;white-space:nowrap}
+.stackbar{display:flex;gap:3px;height:8px;margin-top:12px}
+.stackbar i{display:block;border-radius:3px;background:var(--pc)}
+.seclbl{display:flex;align-items:center;gap:8px;font:700 11px/1 var(--p-body);letter-spacing:.12em;text-transform:uppercase;color:var(--p-muted);margin:14px 0 6px 2px}
+.rows{display:flex;flex-direction:column}
+.prow{display:flex;align-items:center;gap:11px;height:42px;border-bottom:1px solid var(--p-line)}
+.prow:last-child{border-bottom:0}
+.prow .nm{flex:1;font-weight:600;font-size:15.5px;min-width:0}
+.prow .amt{font-weight:700;font-size:16.5px}
+.prow .meta{color:var(--p-muted);font-size:12px;font-weight:400;margin-left:6px}
+.outrow{display:flex;align-items:center;gap:11px;height:52px;padding:0 12px;border-radius:12px;background:var(--p-surface)}
+.outrow .nm{flex:1;min-width:0;font-weight:600;font-size:15.5px;display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.outrow .meta{color:var(--p-muted);font-size:12px;font-weight:400}
+.outrow .amt{font-weight:800;font-size:16.5px}
+.dock{position:absolute;left:8px;right:8px;bottom:8px;border-radius:24px 24px 30px 30px;background:var(--p-dock,var(--p-surface));padding:12px 12px 14px}
+.dock-h{display:flex;align-items:center;gap:8px;padding:2px 6px 12px;font-size:14px}
+.dock-h b{font-weight:600;flex:1;color:var(--p-muted)}
+.dock-h span{font-size:12px;color:var(--p-muted)}
+.dock-b{display:flex;gap:10px}
+.btn-pri{flex:1;height:54px;border-radius:16px;display:flex!important;align-items:center;justify-content:center;gap:8px;font-weight:800!important;font-size:18px!important;background:var(--p-pri);color:var(--p-onpri)!important}
+.btn-sec{width:94px;height:54px;border-radius:16px;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-weight:700!important;font-size:13px!important;box-shadow:inset 0 0 0 2px var(--p-outline)}
+
+/* Avatars: one hook, styled per direction */
+.av{width:32px;height:32px;border-radius:50%;flex:none;display:grid;place-items:center;font:700 13px/1 var(--p-body);position:relative}
+.av .su{display:none}
+
+/* Main menu */
+.menu .eyebrow{color:var(--p-muted);font-size:13px;margin:22px 0 4px}
+.menu h1{font:var(--p-h1);font-size:var(--p-menu-h1,32px);letter-spacing:var(--p-h1ls,-.02em);font-stretch:var(--p-h1st,100%);text-transform:var(--p-h1tt,none);margin:0 0 18px;line-height:1.02}
+.cta{position:relative;border-radius:var(--p-r);padding:20px 18px;display:flex;align-items:center;gap:12px;overflow:hidden;min-height:104px}
+.cta .t{font:800 21px/1.1 var(--p-body);letter-spacing:-.01em}
+.cta .s{font-size:13px;margin-top:6px;opacity:.75}
+.cta .go{margin-left:auto;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;position:relative;z-index:1}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.tile{position:relative;border-radius:var(--p-r);padding:14px;min-height:128px;display:flex;flex-direction:column;justify-content:space-between;background:var(--p-surface);overflow:hidden}
+.tile .tn{font:800 17px/1.15 var(--p-body);letter-spacing:-.01em}
+.tile .tx{font-size:11.5px;color:var(--p-muted);margin-top:3px}
+.tico{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--p-raised)}
+.tile .extra{position:absolute;right:12px;top:14px}
+.avstack{display:flex;padding-left:7px}.avstack .av{width:22px;height:22px;font-size:9px;margin-left:-7px;box-shadow:0 0 0 2px var(--p-surface)}
+.spark{width:64px;height:30px}
+.menubar{position:absolute;left:18px;right:18px;bottom:22px;display:flex;gap:10px;align-items:center}
+.menubar .pill{display:flex!important;align-items:center;gap:9px;height:44px;padding:0 18px;border-radius:999px;background:var(--p-raised);font-weight:700!important;font-size:15px!important}
+.menubar .rb{width:44px;height:44px}
+.menubar .rb:last-child{margin-left:auto}
+
+/* Boosters */
+.blist{display:flex;flex-direction:column}
+.brow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--p-line)}
+.blist .brow:last-child{border-bottom:0}
+.bico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--p-raised)}
+.brow .bt{flex:1;min-width:0}
+.brow .bn{font-weight:700;font-size:15px}
+.brow .bs{font-size:12px;color:var(--p-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Results */
+.meta-l{white-space:nowrap;gap:8px;display:flex;justify-content:space-between;align-items:center;margin:8px 0 10px 48px;font-size:13px;color:var(--p-muted)}
+.dd{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:10px;background:var(--p-raised);color:var(--p-text);font-weight:600;font-size:12.5px}
+.rrow{display:grid;grid-template-columns:22px 32px minmax(0,1fr) auto;column-gap:10px;align-items:center;padding:7px 0}
+.rk{font:600 12px/1 var(--p-num);color:var(--p-muted);text-align:center}
+.rn{font-weight:600;font-size:15px}
+.rg{font-size:11.5px;color:var(--p-muted)}
+.rr{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.rnet{font-weight:800;font-size:16.5px}
+.terms{display:inline-flex;align-items:center;gap:5px;font:500 11px/1 var(--p-num);color:var(--p-muted);padding:4px 7px;border-radius:7px;background:var(--p-raised)}
+.terms .ic{width:11px;height:11px}
+.bar{height:3px;border-radius:2px;margin-top:4px;background:var(--p-line);position:relative;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;border-radius:2px}
+.ded{margin-top:8px;padding-top:10px;border-top:1px solid var(--p-line)}
+.ded .h{display:flex;justify-content:space-between;font:700 11px/1 var(--p-body);letter-spacing:.12em;text-transform:uppercase;color:var(--p-muted);margin-bottom:8px}
+.ded .h b{letter-spacing:0;font:700 13px/1 var(--p-num);color:var(--p-text)}
+.dl{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:3px 0}
+.dl .w{color:var(--p-muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ended{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:10px 2px;border-top:1px solid var(--p-line);border-bottom:1px solid var(--p-line);font-weight:700;font-size:14px}
+.ended span{color:var(--p-muted);font-weight:500;display:flex;align-items:center;gap:4px}
+.foot{position:absolute;left:16px;right:16px;bottom:18px}
+.foot .btn-pri{width:100%}
+
+
+/* ───────── Round two additions ───────── */
+.ri{width:28px;height:28px;flex:none;display:block}
+.ri.s{width:18px;height:18px}.ri.xs{width:15px;height:15px}
+.av.photo{overflow:hidden;background:#555}
+.av.photo svg{width:100%;height:100%;display:block}
+.av.photo::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(120% 90% at 30% 15%,rgba(255,255,255,.16),transparent 55%),linear-gradient(transparent 55%,rgba(0,0,0,.2));box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
+.av.mono{background:var(--p-raised);color:var(--p-muted);font:600 13px/1 var(--p-body)}
+.names-only .av,.names-only .avstack{display:none!important}
+.rrow{grid-template-columns:32px minmax(0,1fr) auto}
+.names-only .rrow{grid-template-columns:minmax(0,1fr) auto}
+.names-only .prow,.names-only .outrow{gap:8px}
+.tico{width:44px;height:44px;border-radius:12px}
+.bico{width:44px;height:44px}
+.dock-b .btn-sec .ri{width:22px;height:22px}
+.role .rb .ri{width:20px;height:20px}
+
+.outrow .nm{flex-direction:column;align-items:flex-start;gap:2px;line-height:1.15}
+.outrow .meta{font-size:11.5px}
+.role{white-space:nowrap;font-size:12.5px}
+/* Deduction icons on the results stay one quiet tone: the muted text colour, details cut out in the ground behind them */
+.terms .ri{--i-body:var(--p-muted);--i-pig:var(--p-muted);--i-acc:var(--p-muted);--i-ink:var(--p-raised)}
+.dl .ri{--i-body:var(--p-muted);--i-pig:var(--p-muted);--i-acc:var(--p-muted);--i-ink:var(--p-bg)}
+.dl .ri,.d-d2 .dl .ri{opacity:1}
+
+/* Start button: a 3D chip stack on the right, the arrow beside the title */
+.cta .stack3d{position:absolute;right:10px;bottom:9px;width:60px;height:74px}
+.cta .go{display:none}
+.cta .t{white-space:nowrap}
+.cta .s{padding-right:70px}
+.cta .t .ic{display:inline-block;vertical-align:-2px;margin-left:6px;width:18px;height:18px}
+/* ═════════ B2 · CHIP RACK, quieter ═════════ */
+.d-b2{--p-bg:#101216;--p-surface:#191C22;--p-raised:#23272F;--p-line:rgba(255,255,255,.065);--p-text:#EDEFF3;--p-muted:#989EAB;
+  --p-win:#52C788;--p-loss:#EE6A5F;--p-pri:#D3A24C;--p-onpri:#16120A;--p-outline:#353A45;
+  --p-display:'Bricolage Grotesque',system-ui,sans-serif;--p-body:'Plus Jakarta Sans',system-ui,sans-serif;--p-num:'Plus Jakarta Sans',system-ui,sans-serif;
+  --p-h1:700 30px/1 'Bricolage Grotesque',system-ui,sans-serif;--p-h1ls:-.025em;--p-big:700 42px/1 'Bricolage Grotesque',system-ui,sans-serif;--p-r:18px;--p-dock:#191C22;
+  --i-body:#C5CBD5;--i-mid:#6E7684;--i-dark:#3A404B;--i-metal:#98A1AF;--i-fuse:#C5CBD5;--i-acc:#D3A24C;--i-acc-d:#94702F;--i-acc2:#5E6B82;--i-acc2-d:#414B5D;
+  --i-paper:#EEF0F3;--i-cardline:transparent;--i-ink:#1A1D24;--i-red:#C2473E;--i-edge:#8A92A0;--i-pig:#C9A19C;--i-gap:#23272F;--i-btn:#E8B84F;--i-btn-edge:#9C7428}
+.d-b2 .stackbar{height:6px;gap:3px}.d-b2 .stackbar i{background:#3B414D;border-radius:3px}
+.d-b2 .stackbar i:first-child{background:#59606E}
+.d-b2 .seclbl b{font:700 10.5px/1 var(--p-body);letter-spacing:0;color:var(--p-text);background:var(--p-raised);padding:4px 7px;border-radius:999px}
+.d-b2 .rows,.d-b2 .blist,.d-b2 .rcard{background:var(--p-surface);border-radius:16px;padding:0 12px}
+.d-b2 .rcard{padding:2px 12px}
+.d-b2 .rrow{border-bottom:1px solid var(--p-line);padding:8px 0}.d-b2 .rrow:last-child{border-bottom:0}
+.d-b2 .outrow{background:color-mix(in srgb,var(--p-win) 8%,var(--p-surface))}
+.d-b2 .btn-sec{box-shadow:none;background:var(--p-raised)}
+.d-b2 .dock{box-shadow:0 -1px 0 rgba(255,255,255,.06)}
+.d-b2 .cta{background:linear-gradient(180deg,#D9AA55,#C9963F);color:#16120A}
+.d-b2 .cta .go{background:#16120A;color:#D9AA55}
+.d-b2 .tico{background:var(--p-raised)}
+.d-b2 .bico{background:var(--p-raised);border-radius:12px}
+.d-b2 .bar{height:3px;background:var(--p-raised)}
+.d-b2 .dd{background:var(--p-raised)}
+.d-b2 .avstack .av{box-shadow:0 0 0 2px var(--p-surface)}
+
+/* ═════════ D2 · FRESH DECK, quieter ═════════ */
+.d-d2{--p-bg:#EEF0F3;--p-surface:#FFFFFF;--p-raised:#F1F3F6;--p-line:#E4E7EC;--p-text:#141A2A;--p-muted:#596171;--p-red:#C8283A;
+  --p-win:#0E7A45;--p-loss:#4E5768;--p-pri:#141A2A;--p-onpri:#FFFFFF;--p-outline:#141A2A;
+  --p-display:'Libre Franklin',system-ui,sans-serif;--p-body:'Inter',system-ui,sans-serif;--p-num:'Libre Franklin',system-ui,sans-serif;
+  --p-h1:700 28px/1.05 'Libre Franklin',system-ui,sans-serif;--p-h1ls:-.025em;--p-big:700 40px/1 'Libre Franklin',system-ui,sans-serif;--p-r:14px;--p-dock:#FFFFFF;
+  --p-acc:#141A2A;--p-acc-d:#000000;--p-chip:#C8283A;--p-chip-d:#8C1B28;
+  --i-body:#141A2A;--i-mid:#8B93A3;--i-dark:#141A2A;--i-metal:#8B93A3;--i-fuse:#141A2A;--i-acc:var(--p-acc);--i-acc-d:var(--p-acc-d);--i-acc2:#141A2A;--i-acc2-d:#000000;
+  --i-chip:var(--p-chip);--i-chip-d:var(--p-chip-d);--i-band:var(--p-acc);
+  --i-paper:#FFFFFF;--i-cardline:#C5CAD4;--i-ink:#141A2A;--i-red:#C8283A;--i-edge:#A3AAB7;--i-pig:#C9CED8;--i-gap:#F1F3F6}
+/* Fresh Deck, locked 20 November. Red belongs to the chips (the start button's stack, the straddle and ante icons)
+   and to hearts and diamonds on real cards. Everything else that was red is ink, losses are slate, and nothing points. */
+.d-d2 :is(.prow,.outrow,.brow)>.chev,.d-d2 .cta .t .ic{display:none}
+/* Start a session is a solid ink button */
+.d-d2 .menu .cta{background:#141A2A;color:#fff;box-shadow:0 1px 2px rgba(20,26,42,.25),0 12px 24px -12px rgba(20,26,42,.55)}
+.d-d2 .hero,.d-d2 .tile,.d-d2 .outrow,.d-d2 .rows,.d-d2 .blist,.d-d2 .rcard,.d-d2 .cta{background:#fff;box-shadow:0 1px 1.5px rgba(20,26,42,.07),0 8px 20px -12px rgba(20,26,42,.22)}
+.d-d2 .rows,.d-d2 .blist{border-radius:var(--p-r);padding:0 12px}
+.d-d2 .rcard{border-radius:var(--p-r);padding:2px 12px}
+.d-d2 .rrow{border-bottom:1px solid var(--p-line);padding:8px 0}.d-d2 .rrow:last-child{border-bottom:0}
+.d-d2 .rb{background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.12)}
+/* The bar on Tonight: one segment per seated player, sized by money in. Ink alternates with a mid slate only to part neighbours. */
+.d-d2 .stackbar{height:3px;gap:3px}.d-d2 .stackbar i{background:#141A2A;border-radius:1.5px}
+.d-d2 .stackbar i:nth-child(even){background:#5A6272}
+.d-d2 .seclbl{color:var(--p-text)}
+.d-d2 .seclbl .ic{color:var(--p-acc)}
+.d-d2 .live{background:rgba(14,122,69,.1)}
+.d-d2 .dock{box-shadow:0 -1px 0 var(--p-line),0 -10px 30px -16px rgba(20,26,42,.3)}
+.d-d2 .btn-sec{color:var(--p-text);box-shadow:inset 0 0 0 1.5px #C5CAD4}
+.d-d2 .btn-pri{font-family:'Libre Franklin',sans-serif!important;font-weight:700!important}
+.d-d2 .menu h1{font-size:31px}
+.d-d2 .cta .t{font:700 21px/1.1 'Libre Franklin',sans-serif}
+.d-d2 .cta .s{color:rgba(255,255,255,.72);opacity:1}
+.d-d2 .cta .go{background:var(--p-text);color:#fff}
+.d-d2 .idx{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;font:700 15px/1 'Libre Franklin',sans-serif;color:var(--p-text)}
+.d-d2 .idx .ic{width:12px;height:12px}
+.d-d2 .idx.tl{left:13px;top:13px}.d-d2 .idx.br{right:13px;bottom:13px;transform:rotate(180deg)}
+.d-d2 .tile .tn{font:700 16.5px/1.1 'Libre Franklin',sans-serif}
+.d-d2 .tico{background:var(--p-raised);border-radius:10px}
+.d-d2 .bico{background:var(--p-raised);border-radius:10px}
+.d-d2 .brow .bn{font:600 15px/1.2 'Libre Franklin',sans-serif}
+.d-d2 .menubar .pill,.d-d2 .menubar .rb{background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.12)}
+.d-d2 .terms{background:var(--p-raised)}
+.d-d2 .dd{background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.12)}
+.d-d2 .ded{border-top:0;margin-top:12px}
+.d-d2 .dl .ri{opacity:.95}
+.d-d2 .bar{display:none}
+.d-d2 .avstack .av{box-shadow:0 0 0 2px #fff}
+.d-d2 .hdr h1,.d-d2 .menu h1{font-family:'Libre Franklin',sans-serif}
+
+:host{display:block;background:none!important;color:inherit}
+.tbstrip{display:flex;gap:22px;overflow-x:auto;padding:6px 2px 18px}
+.tbstrip figure{margin:0;flex:none;display:flex;flex-direction:column;gap:10px}
+.tbstrip figcaption{font:500 13px/1.3 'Inter',system-ui,sans-serif;color:#596171;padding-left:6px}.tbstrip figcaption b{color:#141A2A}
+
+.d-d2 .sb{position:relative;z-index:2}
+.d-d2 .railp{position:relative;z-index:1;margin:-46px -18px 16px;padding:46px 18px 16px;border-radius:0 0 30px 30px;
+  background:radial-gradient(110% 80% at 50% 0%,rgba(20,26,42,.04),transparent 72%),#fff;
+  box-shadow:inset 0 -1px 0 #E4E7EC,0 14px 24px -20px rgba(20,26,42,.28)}
+.d-d2 .railp .hdr{gap:10px;min-height:36px}
+.d-d2 .railp .hdr .rb{width:18px;height:36px;margin-left:-5px;background:none;box-shadow:none;border-radius:0;color:var(--p-muted)}
+.d-d2 .railp .hdr .rb svg{width:22px;height:22px}
+.d-d2 .railp .hdr h1{font:700 22px/1.1 'Libre Franklin',system-ui,sans-serif;letter-spacing:-.015em}
+.d-d2 .railp .sub,.d-d2 .railp .fdsub,.d-d2 .railp .role,.d-d2 .railp .meta-l{margin-left:23px;margin-bottom:0}
+.d-d2 .railp .fdsub,.d-d2 .railp .sub{margin-top:0}
+.d-d2 .railp .role .rb{background:var(--p-bg);box-shadow:none}
+.d-d2 .railp .hero{background:none;box-shadow:none;border-radius:0;padding:14px 2px 2px;margin-top:4px}
+.d-d2 .railp.home{padding-bottom:62px;margin-bottom:0}
+.d-d2 .railp.home h1{font:700 26px/1.04 'Libre Franklin',system-ui,sans-serif;letter-spacing:-.02em;margin:0}
+.d-d2 .railp.home + .cta{margin-top:-48px;z-index:2}
+
+.appico{display:inline-flex;flex:none;line-height:0}.terms .appico,.dl .appico{color:var(--p-muted)}.terms .appico{vertical-align:-2px;margin-right:2px}
+</style><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"></path></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2 .7 3.2 2.5 3.5 5.2"></path></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"></path></symbol>
+    <symbol id="i-tools" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="3" width="13" height="18" rx="2.5" transform="rotate(10 12 12)"></rect><path d="M10.3 9.6a1.9 1.9 0 1 1 2.6 1.8c-.6.3-.9.7-.9 1.3M11.9 15.8v.1"></path></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></symbol>
+    <symbol id="i-userplus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="3.5"></circle><path d="M3.5 20c.6-3.6 3.2-5.5 6.5-5.5 1.4 0 2.6.3 3.6.9M18 14v6M15 17h6"></path></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"></path><path d="M9 8h6M9 12h6M9 16h3"></path></symbol>
+    <symbol id="i-fork" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2.2 1.3-3.3 3.8-3.3 7.2V13H17"></path></symbol>
+    <symbol id="i-piggy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11c0-3.3 3.1-5.5 7-5.5 1.6 0 3 .3 4.2.9L19 5v3.2c.8.7 1.3 1.6 1.5 2.6H22v3.4h-1.7c-.5 1.1-1.3 2-2.3 2.6V20h-3v-2.4c-.6.1-1.3.2-2 .2s-1.4-.1-2-.2V20H8v-3.3C6.2 15.6 5 13.5 5 11zM5 10.5H3.5"></path></symbol>
+    <symbol id="i-bomb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="14" r="6.5"></circle><path d="M15.2 9.3l2-2M17.6 6.6c.4-1.5 1.5-2.6 3-2.6M7.8 12.2a3 3 0 0 1 2.4-2.1"></path></symbol>
+    <symbol id="i-boards" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="4.6" height="6.6" rx="1"></rect><rect x="9.7" y="4" width="4.6" height="6.6" rx="1"></rect><rect x="16.4" y="4" width="4.6" height="6.6" rx="1"></rect><rect x="3" y="13.4" width="4.6" height="6.6" rx="1"></rect><rect x="9.7" y="13.4" width="4.6" height="6.6" rx="1"></rect><rect x="16.4" y="13.4" width="4.6" height="6.6" rx="1"></rect></symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.5" rx="7" ry="2.8"></ellipse><path d="M5 6.5v4.2c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6.5M5 10.7v4.2c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8v-4.2"></path></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4.3"></circle><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"></path></symbol>
+    <symbol id="i-stand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.8" r="2.3"></circle><path d="M12 8.5v6.5M7.5 11.5l4.5-3 4.5 3M9.3 21l2.7-6 2.7 6"></path></symbol>
+    <symbol id="i-dbtn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M9.6 8h2.1a4 4 0 0 1 0 8H9.6z"></path></symbol>
+    <symbol id="i-72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="2.8" y="5" width="10" height="14" rx="1.8" transform="rotate(-9 7.8 12)"></rect><rect x="11.2" y="5" width="10" height="14" rx="1.8" transform="rotate(9 16.2 12)"></rect><text x="7.6" y="15.2" text-anchor="middle" font-size="8" font-weight="800" font-family="Archivo,system-ui,sans-serif" fill="currentColor" stroke="none" transform="rotate(-9 7.8 12)">7</text><text x="16.2" y="15.2" text-anchor="middle" font-size="8" font-weight="800" font-family="Archivo,system-ui,sans-serif" fill="currentColor" stroke="none" transform="rotate(9 16.2 12)">2</text></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7C19.5 15.9 12 20.5 12 20.5z"></path></symbol>
+    <symbol id="i-diamond" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l6.8 9.5L12 21.5 5.2 12z"></path></symbol>
+    <symbol id="i-spade" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5s-7.8 5.6-7.8 10.6a4 4 0 0 0 6.6 3.1L9.3 21.5h5.4l-1.5-5.3a4 4 0 0 0 6.6-3.1C19.8 8.1 12 2.5 12 2.5z"></path></symbol>
+    <symbol id="i-club" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.3" r="3.7"></circle><circle cx="7.2" cy="13.2" r="3.7"></circle><circle cx="16.8" cy="13.2" r="3.7"></circle><path d="M12 11.5l-2.2 10h4.4z"></path></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 8l4.3 3.7L12 5l4.2 6.7L20.5 8 19 18H5z"></path></symbol>
+    <!-- Realistic icons: filled objects, coloured per direction through --i-* custom properties. -->
+    <symbol id="r-bomb" viewBox="0 0 32 32">
+      <circle cx="14" cy="19" r="9" fill="var(--i-dark)"></circle>
+      <rect x="18" y="8.6" width="5" height="4.4" rx="1" fill="var(--i-metal)" transform="rotate(45 20.5 10.8)"></rect>
+      <path d="M22.4 8.4c.9-2.6 2.8-3.9 5-3.6" fill="none" stroke="var(--i-fuse)" stroke-width="1.5" stroke-linecap="round"></path>
+      <path d="M28 1.4l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8z" fill="var(--i-acc)"></path>
+      <path d="M8.6 16.2a6.4 6.4 0 0 1 3.9-3.6" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.8" stroke-linecap="round"></path>
+    </symbol>
+    <symbol id="r-dealer" viewBox="0 0 32 32">
+      <path d="M2.5 14.5v4.6c0 4.4 6 8 13.5 8s13.5-3.6 13.5-8v-4.6z" fill="var(--i-btn-edge, var(--i-edge))"></path>
+      <path d="M2.5 17.2c0 4.4 6 8 13.5 8s13.5-3.6 13.5-8" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="1"></path>
+      <ellipse cx="16" cy="14.5" rx="13.5" ry="8" fill="var(--i-btn, var(--i-paper))" stroke="var(--i-cardline)" stroke-width=".8"></ellipse>
+      <ellipse cx="16" cy="14.5" rx="11" ry="6.2" fill="none" stroke="var(--i-ink)" stroke-opacity=".28" stroke-width=".7"></ellipse>
+      <text x="16" y="16.3" text-anchor="middle" textLength="15.5" lengthAdjust="spacingAndGlyphs" font-family="Arial,Helvetica,sans-serif" font-size="5" font-weight="700" fill="var(--i-ink)">DEALER</text>
+    </symbol>
+    <symbol id="r-72" viewBox="0 0 32 32">
+      <g transform="rotate(-11 11 17)"><rect x="3.5" y="6" width="14" height="20" rx="2.2" fill="var(--i-paper)" stroke="var(--i-cardline)" stroke-width=".8"></rect><text x="5.4" y="12.8" font-family="Georgia,serif" font-size="6.8" font-weight="700" fill="var(--i-red)">7</text><path d="M10.5 15l2.6 3.6-2.6 3.6-2.6-3.6z" fill="var(--i-red)"></path></g>
+      <g transform="rotate(9 21 17)"><rect x="14.5" y="6" width="14" height="20" rx="2.2" fill="var(--i-paper)" stroke="var(--i-cardline)" stroke-width=".8"></rect><text x="16.4" y="12.8" font-family="Georgia,serif" font-size="6.8" font-weight="700" fill="var(--i-ink)">2</text><g fill="var(--i-ink)"><circle cx="21.5" cy="16.4" r="1.5"></circle><circle cx="20" cy="18.8" r="1.5"></circle><circle cx="23" cy="18.8" r="1.5"></circle><path d="M21.5 18l-.9 3.4h1.8z"></path></g></g>
+    </symbol>
+    <symbol id="r-boards" viewBox="0 0 32 32">
+      <g stroke="var(--i-cardline)" stroke-width=".7" fill="var(--i-paper)"><rect x="2.5" y="2.5" width="8" height="11" rx="1.3"></rect><rect x="12" y="2.5" width="8" height="11" rx="1.3"></rect><rect x="21.5" y="2.5" width="8" height="11" rx="1.3"></rect><rect x="2.5" y="15" width="8" height="11" rx="1.3"></rect><rect x="12" y="15" width="8" height="11" rx="1.3"></rect><rect x="21.5" y="15" width="8" height="11" rx="1.3"></rect></g>
+      <path d="M6.5 5.6l1.7 2.4-1.7 2.4-1.7-2.4z" fill="var(--i-red)"></path><path d="M16 5.8s-2 1.45-2 2.8a1 1 0 0 0 1.55.83l-.33 1.27h1.56l-.33-1.27a1 1 0 0 0 1.55-.83c0-1.35-2-2.8-2-2.8z" fill="var(--i-ink)"></path><path d="M25.5 10.0s-2.1-1.3-2.1-2.8a1.05 1.05 0 0 1 2.1-.55 1.05 1.05 0 0 1 2.1.55c0 1.5-2.1 2.8-2.1 2.8z" fill="var(--i-red)"></path><g fill="var(--i-ink)"><circle cx="6.5" cy="19.4" r="1.05"></circle><circle cx="5.4" cy="21.05" r="1.05"></circle><circle cx="7.6" cy="21.05" r="1.05"></circle><path d="M6.5 20.7l-.65 2.2h1.3z"></path></g><path d="M16 18.1l1.7 2.4-1.7 2.4-1.7-2.4z" fill="var(--i-red)"></path><path d="M25.5 18.3s-2 1.45-2 2.8a1 1 0 0 0 1.55.83l-.33 1.27h1.56l-.33-1.27a1 1 0 0 0 1.55-.83c0-1.35-2-2.8-2-2.8z" fill="var(--i-ink)"></path>
+      <circle cx="14" cy="19" r="9" fill="var(--i-dark)" stroke="var(--i-gap)" stroke-width="1.6"></circle>
+      <rect x="18" y="8.6" width="5" height="4.4" rx="1" fill="var(--i-metal)" stroke="var(--i-gap)" stroke-width="1" transform="rotate(45 20.5 10.8)"></rect>
+      <path d="M22.4 8.4c.9-2.6 2.8-3.9 5-3.6" fill="none" stroke="var(--i-gap)" stroke-width="3" stroke-linecap="round"></path>
+      <path d="M22.4 8.4c.9-2.6 2.8-3.9 5-3.6" fill="none" stroke="var(--i-fuse)" stroke-width="1.5" stroke-linecap="round"></path>
+      <path d="M28 1.4l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8z" fill="var(--i-acc)" stroke="var(--i-gap)" stroke-width=".6"></path>
+      <path d="M8.6 16.2a6.4 6.4 0 0 1 3.9-3.6" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.8" stroke-linecap="round"></path>
+    </symbol>
+    <symbol id="r-stack" viewBox="0 0 32 32">
+      <path d="M5 21v4c0 2 4.9 3.6 11 3.6s11-1.6 11-3.6v-4z" fill="var(--i-acc2-d)"></path>
+      <path d="M5 23.2c0 2 4.9 3.6 11 3.6s11-1.6 11-3.6" fill="none" stroke="var(--i-paper)" stroke-width="1.6" stroke-dasharray="2.4 3.2"></path>
+      <ellipse cx="16" cy="21" rx="11" ry="3.6" fill="var(--i-acc2)"></ellipse>
+      <path d="M5 15.5v4c0 2 4.9 3.6 11 3.6s11-1.6 11-3.6v-4z" fill="var(--i-chip-d,var(--i-acc-d))"></path>
+      <path d="M5 17.7c0 2 4.9 3.6 11 3.6s11-1.6 11-3.6" fill="none" stroke="var(--i-paper)" stroke-width="1.6" stroke-dasharray="2.4 3.2"></path>
+      <ellipse cx="16" cy="15.5" rx="11" ry="3.6" fill="var(--i-chip,var(--i-acc))"></ellipse>
+      <path d="M5 10v4c0 2 4.9 3.6 11 3.6s11-1.6 11-3.6v-4z" fill="var(--i-chip-d,var(--i-acc-d))"></path>
+      <path d="M5 12.2c0 2 4.9 3.6 11 3.6s11-1.6 11-3.6" fill="none" stroke="var(--i-paper)" stroke-width="1.6" stroke-dasharray="2.4 3.2"></path>
+      <ellipse cx="16" cy="10" rx="11" ry="3.6" fill="var(--i-chip,var(--i-acc))"></ellipse>
+      <ellipse cx="16" cy="10" rx="7" ry="2.2" fill="none" stroke="var(--i-paper)" stroke-opacity=".55" stroke-width=".8"></ellipse>
+    </symbol>
+    <symbol id="r-chip" viewBox="0 0 32 32">
+      <circle cx="16" cy="17.2" r="12" fill="var(--i-chip-d,var(--i-acc-d))"></circle>
+      <circle cx="16" cy="15.8" r="12" fill="var(--i-chip,var(--i-acc))"></circle>
+      <circle cx="16" cy="15.8" r="10.4" fill="none" stroke="var(--i-paper)" stroke-width="3.2" stroke-dasharray="4.08 4.08"></circle>
+      <circle cx="16" cy="15.8" r="6.4" fill="none" stroke="var(--i-paper)" stroke-opacity=".6" stroke-width=".9"></circle>
+    </symbol>
+    <symbol id="r-stand" viewBox="0 0 32 32">
+      <path d="M20.5 6.5h2.6v10.4h6.4v2.6h-1V28h-2.4v-8.5h-3V28h-2.6z" fill="var(--i-mid)"></path>
+      <circle cx="10.5" cy="6.4" r="3.2" fill="var(--i-body)"></circle>
+      <path d="M7.6 11h5.8c1.4 0 2.6 1.2 2.6 2.6V20h-2.1v8h-2.6v-6.6h-.6V28H8.1v-8H6v-6.4C6 12.2 6.8 11 7.6 11z" fill="var(--i-body)"></path>
+    </symbol>
+    <symbol id="r-group" viewBox="0 0 32 32">
+      <circle cx="21.6" cy="10" r="4.3" fill="var(--i-mid)"></circle><path d="M13.6 26c.4-5.6 3.6-8.6 8-8.6s7.6 3 8 8.6z" fill="var(--i-mid)"></path>
+      <circle cx="12" cy="11.6" r="5" fill="var(--i-body)"></circle><path d="M2.5 28.5c.5-6.6 4.4-10 9.5-10s9 3.4 9.5 10z" fill="var(--i-body)"></path>
+    </symbol>
+    <symbol id="r-cal" viewBox="0 0 32 32">
+      <rect x="4" y="6" width="24" height="22" rx="3" fill="var(--i-paper)" stroke="var(--i-cardline)" stroke-width=".8"></rect>
+      <path d="M4 9a3 3 0 0 1 3-3h18a3 3 0 0 1 3 3v3.6H4z" fill="var(--i-band,var(--i-red))"></path>
+      <rect x="9" y="3.5" width="2.2" height="5.6" rx="1.1" fill="var(--i-mid)"></rect><rect x="20.8" y="3.5" width="2.2" height="5.6" rx="1.1" fill="var(--i-mid)"></rect>
+      <text x="16" y="24.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="10.5" font-weight="700" fill="var(--i-ink)">20</text>
+    </symbol>
+    <symbol id="r-stats" viewBox="0 0 32 32">
+      <rect x="4" y="17" width="6" height="10" rx="1.2" fill="var(--i-mid)"></rect>
+      <rect x="13" y="7" width="6" height="20" rx="1.2" fill="var(--i-acc)"></rect>
+      <rect x="22" y="12.5" width="6" height="14.5" rx="1.2" fill="var(--i-body)"></rect>
+      <rect x="2.5" y="27.6" width="27" height="1.7" rx=".85" fill="var(--i-mid)"></rect>
+    </symbol>
+    <symbol id="r-tools" viewBox="0 0 32 32">
+      <g transform="rotate(-10 12 16)"><rect x="5" y="5" width="15" height="21" rx="2.3" fill="var(--i-paper)" stroke="var(--i-cardline)" stroke-width=".8" opacity=".55"></rect></g>
+      <g transform="rotate(8 18 16)"><rect x="10.5" y="4.5" width="15" height="21.5" rx="2.3" fill="var(--i-paper)" stroke="var(--i-cardline)" stroke-width=".8"></rect><text x="18" y="20.4" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="var(--i-band,var(--i-red))">?</text></g>
+    </symbol>
+    <symbol id="r-receipt" viewBox="0 0 32 32">
+      <path d="M7 3.5h18v25l-3-2-3 2-3-2-3 2-3-2-3 2z" fill="var(--i-paper)" stroke="var(--i-cardline)" stroke-width=".8"></path>
+      <g fill="var(--i-ink)" fill-opacity=".55"><rect x="10" y="8.5" width="12" height="1.6" rx=".8"></rect><rect x="10" y="12.5" width="8" height="1.6" rx=".8"></rect><rect x="10" y="16.5" width="10" height="1.6" rx=".8"></rect></g>
+      <rect x="10" y="21" width="12" height="1.9" rx=".9" fill="var(--i-ink)"></rect>
+    </symbol>
+    <symbol id="r-cutlery" viewBox="0 0 32 32">
+      <path d="M8 4v7.6a2.8 2.8 0 0 0 2 2.7V28h2.6V14.3a2.8 2.8 0 0 0 2-2.7V4h-1.5v6.6h-1V4h-1.6v6.6h-1V4z" fill="var(--i-body)"></path>
+      <path d="M21.5 4c3.2 1.6 4.8 5.2 4.8 9.8V17h-2V28h-2.8z" fill="var(--i-body)"></path>
+    </symbol>
+    <symbol id="r-piggy" viewBox="0 0 32 32">
+      <circle cx="15.5" cy="6" r="3.2" fill="var(--i-acc)"></circle>
+      <rect x="9" y="22" width="3.2" height="6" rx="1.2" fill="var(--i-pig)"></rect><rect x="18.5" y="22" width="3.2" height="6" rx="1.2" fill="var(--i-pig)"></rect>
+      <ellipse cx="15.5" cy="18" rx="11" ry="7.6" fill="var(--i-pig)"></ellipse>
+      <path d="M9.6 12.4l1.4-4.6 4 3.4z" fill="var(--i-pig)"></path>
+      <rect x="25" y="15.2" width="4.2" height="5.4" rx="1.8" fill="var(--i-pig)"></rect>
+      <circle cx="21.3" cy="15.6" r="1" fill="var(--i-ink)"></circle>
+      <rect x="13" y="11.2" width="5.2" height="1.3" rx=".65" fill="var(--i-ink)" fill-opacity=".45"></rect>
+    </symbol>
+</defs></defs></svg><div class="tbstrip names-only"><figure><div class="tbwrap d-d2" style="display:contents"><div class="phone d-d2"><div class="scr"><div class="sb"><span>9:41</span><svg viewBox="0 0 62 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"></rect><rect x="5" y="5" width="3" height="6" rx="1"></rect><rect x="10" y="2.5" width="3" height="8.5" rx="1"></rect><rect x="15" y="0" width="3" height="11" rx="1"></rect><rect x="36" y=".5" width="22" height="10" rx="3" fill="none" stroke="currentColor" opacity=".45"></rect><rect x="38" y="2.5" width="16" height="6" rx="1.5"></rect><rect x="59" y="3.5" width="2" height="4" rx="1" opacity=".45"></rect></g></svg></div><div class="pad">
+   <div class="railp"><div class="hdr"><span class="rb"><svg class="ic " aria-hidden="true"><use href="#i-back"></use></svg></span><h1>Tonight</h1><span class="live"><i></i>3h 16m</span></div><div class="role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#EEF0F3;box-shadow:none"><span class="appico" style="color:#141A2A"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"><g transform="rotate(12 12 12)"><rect x="5" y="2.5" width="14" height="19" rx="2.2" stroke="currentColor" stroke-width="2"></rect><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.6v.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="12" cy="16.8" r="1" fill="currentColor"></circle></g></svg></span></span></div><div class="hero"><div class="hero-top"><div><div class="lbl">On the table</div><div class="big num">$4,500</div></div>
+     <div class="side num">$5,000 in play<br>5 seated · 1 out</div></div><div class="stackbar"><i style="flex:1500"></i><i style="flex:1000"></i><i style="flex:1000"></i><i style="flex:500"></i><i style="flex:500"></i></div></div></div>
+   
+   
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-spade"></use></svg>Still playing · 5</div>
+   <div class="rows"><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#777D8A"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#5A3A3A"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E5BEA5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E5BEA5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#BDB7AE"></path>
+   <g fill="none" stroke="#1d1d1f" stroke-width=".9"><circle cx="16.9" cy="17.5" r="2.5"></circle><circle cx="23.1" cy="17.5" r="2.5"></circle><path d="M19.4 17.3h1.2"></path></g></svg></span><span class="nm">Petr</span><span class="amt num">$1,500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#946F70"></rect><path d="M10.8 16.5a9.2 9.6 0 0 1 18.4 0v9h-18.4z" fill="#D4B276"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#3B5876"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#EFCDB5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#EFCDB5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12 15.6C12.2 10.4 15.6 7.3 20 7.3s7.8 3.1 8 8.3z" fill="#D4B276"></path>
+   </svg></span><span class="nm">Lena</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#5D7D71"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#C4A36D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#A6725A"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#A6725A"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <circle cx="13.2" cy="13.4" r="3.3" fill="#231A16"></circle><circle cx="16.4" cy="10.4" r="3.6" fill="#231A16"></circle><circle cx="20.3" cy="9.4" r="3.8" fill="#231A16"></circle><circle cx="24.2" cy="10.5" r="3.6" fill="#231A16"></circle><circle cx="27" cy="13.6" r="3.1" fill="#231A16"></circle>
+   </svg></span><span class="nm">Ivo</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#8B7B66"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#ECEAE5"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#C68B69"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#C68B69"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   <path d="M12.7 18.5c.3 6 3.5 8.9 7.3 8.9s7-2.9 7.3-8.9c-1.3 1.9-2.7 3.1-4.1 3.1h-6.4c-1.4 0-2.8-1.2-4.1-3.1z" fill="#1F1B19"></path>
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#1F1B19"></path>
+   </svg></span><span class="nm">Andro</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av mono">T</span><span class="nm">Tomáš</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div></div>
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-heart"></use></svg>Cashed out · 1</div>
+   <div class="outrow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#6E8098"></rect><path d="M10.6 17a9.4 10 0 0 1 18.8 0v16h-18.8z" fill="#3A2A22"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#2C323D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E3B89C"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E3B89C"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.2 17C12 10.8 15.6 7.3 20 7.3S28 10.8 27.8 17c-2.8-1.2-5.4-3.4-6.6-5.6-1.6 2.6-5.2 4.8-9 5.6z" fill="#3A2A22"></path>
+   </svg></span><span class="nm">Dana<span class="meta num">17:17 · out 2,120</span></span><span class="amt num win">+$1,620</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div>
+  </div>
+  <div class="dock"><div class="dock-h"><svg class="ic s" aria-hidden="true"><use href="#i-up"></use></svg><b>Table admin</b><span>seat · cash out · end</span></div>
+   <div class="dock-b"><span class="btn-pri"><svg class="ic " aria-hidden="true"><use href="#i-plus"></use></svg>Rebuy</span><span class="btn-sec"><span class="appico"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 3.5h14v17l-2.3-1.5-2.4 1.5-2.3-1.5-2.4 1.5L7.3 19 5 20.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M8.5 8.5h7M8.5 12.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg></span>Bill</span></div></div></div></div></div><figcaption><b>A · grey fill</b></figcaption></figure><figure><div class="tbwrap d-d2" style="display:contents"><div class="phone d-d2"><div class="scr"><div class="sb"><span>9:41</span><svg viewBox="0 0 62 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"></rect><rect x="5" y="5" width="3" height="6" rx="1"></rect><rect x="10" y="2.5" width="3" height="8.5" rx="1"></rect><rect x="15" y="0" width="3" height="11" rx="1"></rect><rect x="36" y=".5" width="22" height="10" rx="3" fill="none" stroke="currentColor" opacity=".45"></rect><rect x="38" y="2.5" width="16" height="6" rx="1.5"></rect><rect x="59" y="3.5" width="2" height="4" rx="1" opacity=".45"></rect></g></svg></div><div class="pad">
+   <div class="railp"><div class="hdr"><span class="rb"><svg class="ic " aria-hidden="true"><use href="#i-back"></use></svg></span><h1>Tonight</h1><span class="live"><i></i>3h 16m</span></div><div class="role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#fff;box-shadow:inset 0 0 0 1.5px #E4E7EC"><span class="appico" style="color:#141A2A"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"><g transform="rotate(12 12 12)"><rect x="5" y="2.5" width="14" height="19" rx="2.2" stroke="currentColor" stroke-width="2"></rect><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.6v.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="12" cy="16.8" r="1" fill="currentColor"></circle></g></svg></span></span></div><div class="hero"><div class="hero-top"><div><div class="lbl">On the table</div><div class="big num">$4,500</div></div>
+     <div class="side num">$5,000 in play<br>5 seated · 1 out</div></div><div class="stackbar"><i style="flex:1500"></i><i style="flex:1000"></i><i style="flex:1000"></i><i style="flex:500"></i><i style="flex:500"></i></div></div></div>
+   
+   
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-spade"></use></svg>Still playing · 5</div>
+   <div class="rows"><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#777D8A"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#5A3A3A"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E5BEA5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E5BEA5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#BDB7AE"></path>
+   <g fill="none" stroke="#1d1d1f" stroke-width=".9"><circle cx="16.9" cy="17.5" r="2.5"></circle><circle cx="23.1" cy="17.5" r="2.5"></circle><path d="M19.4 17.3h1.2"></path></g></svg></span><span class="nm">Petr</span><span class="amt num">$1,500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#946F70"></rect><path d="M10.8 16.5a9.2 9.6 0 0 1 18.4 0v9h-18.4z" fill="#D4B276"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#3B5876"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#EFCDB5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#EFCDB5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12 15.6C12.2 10.4 15.6 7.3 20 7.3s7.8 3.1 8 8.3z" fill="#D4B276"></path>
+   </svg></span><span class="nm">Lena</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#5D7D71"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#C4A36D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#A6725A"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#A6725A"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <circle cx="13.2" cy="13.4" r="3.3" fill="#231A16"></circle><circle cx="16.4" cy="10.4" r="3.6" fill="#231A16"></circle><circle cx="20.3" cy="9.4" r="3.8" fill="#231A16"></circle><circle cx="24.2" cy="10.5" r="3.6" fill="#231A16"></circle><circle cx="27" cy="13.6" r="3.1" fill="#231A16"></circle>
+   </svg></span><span class="nm">Ivo</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#8B7B66"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#ECEAE5"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#C68B69"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#C68B69"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   <path d="M12.7 18.5c.3 6 3.5 8.9 7.3 8.9s7-2.9 7.3-8.9c-1.3 1.9-2.7 3.1-4.1 3.1h-6.4c-1.4 0-2.8-1.2-4.1-3.1z" fill="#1F1B19"></path>
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#1F1B19"></path>
+   </svg></span><span class="nm">Andro</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av mono">T</span><span class="nm">Tomáš</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div></div>
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-heart"></use></svg>Cashed out · 1</div>
+   <div class="outrow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#6E8098"></rect><path d="M10.6 17a9.4 10 0 0 1 18.8 0v16h-18.8z" fill="#3A2A22"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#2C323D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E3B89C"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E3B89C"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.2 17C12 10.8 15.6 7.3 20 7.3S28 10.8 27.8 17c-2.8-1.2-5.4-3.4-6.6-5.6-1.6 2.6-5.2 4.8-9 5.6z" fill="#3A2A22"></path>
+   </svg></span><span class="nm">Dana<span class="meta num">17:17 · out 2,120</span></span><span class="amt num win">+$1,620</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div>
+  </div>
+  <div class="dock"><div class="dock-h"><svg class="ic s" aria-hidden="true"><use href="#i-up"></use></svg><b>Table admin</b><span>seat · cash out · end</span></div>
+   <div class="dock-b"><span class="btn-pri"><svg class="ic " aria-hidden="true"><use href="#i-plus"></use></svg>Rebuy</span><span class="btn-sec"><span class="appico"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 3.5h14v17l-2.3-1.5-2.4 1.5-2.3-1.5-2.4 1.5L7.3 19 5 20.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M8.5 8.5h7M8.5 12.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg></span>Bill</span></div></div></div></div></div><figcaption><b>B · a hairline ring</b> · my pick in round 30</figcaption></figure><figure><div class="tbwrap d-d2" style="display:contents"><div class="phone d-d2"><div class="scr"><div class="sb"><span>9:41</span><svg viewBox="0 0 62 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"></rect><rect x="5" y="5" width="3" height="6" rx="1"></rect><rect x="10" y="2.5" width="3" height="8.5" rx="1"></rect><rect x="15" y="0" width="3" height="11" rx="1"></rect><rect x="36" y=".5" width="22" height="10" rx="3" fill="none" stroke="currentColor" opacity=".45"></rect><rect x="38" y="2.5" width="16" height="6" rx="1.5"></rect><rect x="59" y="3.5" width="2" height="4" rx="1" opacity=".45"></rect></g></svg></div><div class="pad">
+   <div class="railp"><div class="hdr"><span class="rb"><svg class="ic " aria-hidden="true"><use href="#i-back"></use></svg></span><h1>Tonight</h1><span class="live"><i></i>3h 16m</span></div><div class="role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.14),0 4px 10px -4px rgba(20,26,42,.22)"><span class="appico" style="color:#141A2A"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"><g transform="rotate(12 12 12)"><rect x="5" y="2.5" width="14" height="19" rx="2.2" stroke="currentColor" stroke-width="2"></rect><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.6v.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="12" cy="16.8" r="1" fill="currentColor"></circle></g></svg></span></span></div><div class="hero"><div class="hero-top"><div><div class="lbl">On the table</div><div class="big num">$4,500</div></div>
+     <div class="side num">$5,000 in play<br>5 seated · 1 out</div></div><div class="stackbar"><i style="flex:1500"></i><i style="flex:1000"></i><i style="flex:1000"></i><i style="flex:500"></i><i style="flex:500"></i></div></div></div>
+   
+   
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-spade"></use></svg>Still playing · 5</div>
+   <div class="rows"><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#777D8A"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#5A3A3A"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E5BEA5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E5BEA5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#BDB7AE"></path>
+   <g fill="none" stroke="#1d1d1f" stroke-width=".9"><circle cx="16.9" cy="17.5" r="2.5"></circle><circle cx="23.1" cy="17.5" r="2.5"></circle><path d="M19.4 17.3h1.2"></path></g></svg></span><span class="nm">Petr</span><span class="amt num">$1,500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#946F70"></rect><path d="M10.8 16.5a9.2 9.6 0 0 1 18.4 0v9h-18.4z" fill="#D4B276"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#3B5876"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#EFCDB5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#EFCDB5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12 15.6C12.2 10.4 15.6 7.3 20 7.3s7.8 3.1 8 8.3z" fill="#D4B276"></path>
+   </svg></span><span class="nm">Lena</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#5D7D71"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#C4A36D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#A6725A"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#A6725A"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <circle cx="13.2" cy="13.4" r="3.3" fill="#231A16"></circle><circle cx="16.4" cy="10.4" r="3.6" fill="#231A16"></circle><circle cx="20.3" cy="9.4" r="3.8" fill="#231A16"></circle><circle cx="24.2" cy="10.5" r="3.6" fill="#231A16"></circle><circle cx="27" cy="13.6" r="3.1" fill="#231A16"></circle>
+   </svg></span><span class="nm">Ivo</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#8B7B66"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#ECEAE5"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#C68B69"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#C68B69"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   <path d="M12.7 18.5c.3 6 3.5 8.9 7.3 8.9s7-2.9 7.3-8.9c-1.3 1.9-2.7 3.1-4.1 3.1h-6.4c-1.4 0-2.8-1.2-4.1-3.1z" fill="#1F1B19"></path>
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#1F1B19"></path>
+   </svg></span><span class="nm">Andro</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av mono">T</span><span class="nm">Tomáš</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div></div>
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-heart"></use></svg>Cashed out · 1</div>
+   <div class="outrow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#6E8098"></rect><path d="M10.6 17a9.4 10 0 0 1 18.8 0v16h-18.8z" fill="#3A2A22"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#2C323D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E3B89C"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E3B89C"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.2 17C12 10.8 15.6 7.3 20 7.3S28 10.8 27.8 17c-2.8-1.2-5.4-3.4-6.6-5.6-1.6 2.6-5.2 4.8-9 5.6z" fill="#3A2A22"></path>
+   </svg></span><span class="nm">Dana<span class="meta num">17:17 · out 2,120</span></span><span class="amt num win">+$1,620</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div>
+  </div>
+  <div class="dock"><div class="dock-h"><svg class="ic s" aria-hidden="true"><use href="#i-up"></use></svg><b>Table admin</b><span>seat · cash out · end</span></div>
+   <div class="dock-b"><span class="btn-pri"><svg class="ic " aria-hidden="true"><use href="#i-plus"></use></svg>Rebuy</span><span class="btn-sec"><span class="appico"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 3.5h14v17l-2.3-1.5-2.4 1.5-2.3-1.5-2.4 1.5L7.3 19 5 20.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M8.5 8.5h7M8.5 12.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg></span>Bill</span></div></div></div></div></div><figcaption><b>C · white, raised</b></figcaption></figure><figure><div class="tbwrap d-d2" style="display:contents"><div class="phone d-d2"><div class="scr"><div class="sb"><span>9:41</span><svg viewBox="0 0 62 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"></rect><rect x="5" y="5" width="3" height="6" rx="1"></rect><rect x="10" y="2.5" width="3" height="8.5" rx="1"></rect><rect x="15" y="0" width="3" height="11" rx="1"></rect><rect x="36" y=".5" width="22" height="10" rx="3" fill="none" stroke="currentColor" opacity=".45"></rect><rect x="38" y="2.5" width="16" height="6" rx="1.5"></rect><rect x="59" y="3.5" width="2" height="4" rx="1" opacity=".45"></rect></g></svg></div><div class="pad">
+   <div class="railp"><div class="hdr"><span class="rb"><svg class="ic " aria-hidden="true"><use href="#i-back"></use></svg></span><h1>Tonight</h1><span class="live"><i></i>3h 16m</span></div><div class="role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#141A2A;box-shadow:none"><span class="appico" style="color:#FFFFFF"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"><g transform="rotate(12 12 12)"><rect x="5" y="2.5" width="14" height="19" rx="2.2" stroke="currentColor" stroke-width="2"></rect><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.6v.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="12" cy="16.8" r="1" fill="currentColor"></circle></g></svg></span></span></div><div class="hero"><div class="hero-top"><div><div class="lbl">On the table</div><div class="big num">$4,500</div></div>
+     <div class="side num">$5,000 in play<br>5 seated · 1 out</div></div><div class="stackbar"><i style="flex:1500"></i><i style="flex:1000"></i><i style="flex:1000"></i><i style="flex:500"></i><i style="flex:500"></i></div></div></div>
+   
+   
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-spade"></use></svg>Still playing · 5</div>
+   <div class="rows"><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#777D8A"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#5A3A3A"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E5BEA5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E5BEA5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#BDB7AE"></path>
+   <g fill="none" stroke="#1d1d1f" stroke-width=".9"><circle cx="16.9" cy="17.5" r="2.5"></circle><circle cx="23.1" cy="17.5" r="2.5"></circle><path d="M19.4 17.3h1.2"></path></g></svg></span><span class="nm">Petr</span><span class="amt num">$1,500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#946F70"></rect><path d="M10.8 16.5a9.2 9.6 0 0 1 18.4 0v9h-18.4z" fill="#D4B276"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#3B5876"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#EFCDB5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#EFCDB5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12 15.6C12.2 10.4 15.6 7.3 20 7.3s7.8 3.1 8 8.3z" fill="#D4B276"></path>
+   </svg></span><span class="nm">Lena</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#5D7D71"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#C4A36D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#A6725A"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#A6725A"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <circle cx="13.2" cy="13.4" r="3.3" fill="#231A16"></circle><circle cx="16.4" cy="10.4" r="3.6" fill="#231A16"></circle><circle cx="20.3" cy="9.4" r="3.8" fill="#231A16"></circle><circle cx="24.2" cy="10.5" r="3.6" fill="#231A16"></circle><circle cx="27" cy="13.6" r="3.1" fill="#231A16"></circle>
+   </svg></span><span class="nm">Ivo</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#8B7B66"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#ECEAE5"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#C68B69"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#C68B69"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   <path d="M12.7 18.5c.3 6 3.5 8.9 7.3 8.9s7-2.9 7.3-8.9c-1.3 1.9-2.7 3.1-4.1 3.1h-6.4c-1.4 0-2.8-1.2-4.1-3.1z" fill="#1F1B19"></path>
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#1F1B19"></path>
+   </svg></span><span class="nm">Andro</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av mono">T</span><span class="nm">Tomáš</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div></div>
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-heart"></use></svg>Cashed out · 1</div>
+   <div class="outrow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#6E8098"></rect><path d="M10.6 17a9.4 10 0 0 1 18.8 0v16h-18.8z" fill="#3A2A22"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#2C323D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E3B89C"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E3B89C"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.2 17C12 10.8 15.6 7.3 20 7.3S28 10.8 27.8 17c-2.8-1.2-5.4-3.4-6.6-5.6-1.6 2.6-5.2 4.8-9 5.6z" fill="#3A2A22"></path>
+   </svg></span><span class="nm">Dana<span class="meta num">17:17 · out 2,120</span></span><span class="amt num win">+$1,620</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div>
+  </div>
+  <div class="dock"><div class="dock-h"><svg class="ic s" aria-hidden="true"><use href="#i-up"></use></svg><b>Table admin</b><span>seat · cash out · end</span></div>
+   <div class="dock-b"><span class="btn-pri"><svg class="ic " aria-hidden="true"><use href="#i-plus"></use></svg>Rebuy</span><span class="btn-sec"><span class="appico"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 3.5h14v17l-2.3-1.5-2.4 1.5-2.3-1.5-2.4 1.5L7.3 19 5 20.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M8.5 8.5h7M8.5 12.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg></span>Bill</span></div></div></div></div></div><figcaption><b>D · ink</b> · you leaned to this one</figcaption></figure><figure><div class="tbwrap d-d2" style="display:contents"><div class="phone d-d2"><div class="scr"><div class="sb"><span>9:41</span><svg viewBox="0 0 62 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"></rect><rect x="5" y="5" width="3" height="6" rx="1"></rect><rect x="10" y="2.5" width="3" height="8.5" rx="1"></rect><rect x="15" y="0" width="3" height="11" rx="1"></rect><rect x="36" y=".5" width="22" height="10" rx="3" fill="none" stroke="currentColor" opacity=".45"></rect><rect x="38" y="2.5" width="16" height="6" rx="1.5"></rect><rect x="59" y="3.5" width="2" height="4" rx="1" opacity=".45"></rect></g></svg></div><div class="pad">
+   <div class="railp"><div class="hdr"><span class="rb"><svg class="ic " aria-hidden="true"><use href="#i-back"></use></svg></span><h1>Tonight</h1><span class="live"><i></i>3h 16m</span></div><div class="role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:rgba(20,26,42,.06);box-shadow:none"><span class="appico" style="color:#141A2A"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"><g transform="rotate(12 12 12)"><rect x="5" y="2.5" width="14" height="19" rx="2.2" stroke="currentColor" stroke-width="2"></rect><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.6v.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="12" cy="16.8" r="1" fill="currentColor"></circle></g></svg></span></span></div><div class="hero"><div class="hero-top"><div><div class="lbl">On the table</div><div class="big num">$4,500</div></div>
+     <div class="side num">$5,000 in play<br>5 seated · 1 out</div></div><div class="stackbar"><i style="flex:1500"></i><i style="flex:1000"></i><i style="flex:1000"></i><i style="flex:500"></i><i style="flex:500"></i></div></div></div>
+   
+   
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-spade"></use></svg>Still playing · 5</div>
+   <div class="rows"><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#777D8A"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#5A3A3A"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E5BEA5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E5BEA5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#BDB7AE"></path>
+   <g fill="none" stroke="#1d1d1f" stroke-width=".9"><circle cx="16.9" cy="17.5" r="2.5"></circle><circle cx="23.1" cy="17.5" r="2.5"></circle><path d="M19.4 17.3h1.2"></path></g></svg></span><span class="nm">Petr</span><span class="amt num">$1,500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#946F70"></rect><path d="M10.8 16.5a9.2 9.6 0 0 1 18.4 0v9h-18.4z" fill="#D4B276"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#3B5876"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#EFCDB5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#EFCDB5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12 15.6C12.2 10.4 15.6 7.3 20 7.3s7.8 3.1 8 8.3z" fill="#D4B276"></path>
+   </svg></span><span class="nm">Lena</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#5D7D71"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#C4A36D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#A6725A"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#A6725A"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <circle cx="13.2" cy="13.4" r="3.3" fill="#231A16"></circle><circle cx="16.4" cy="10.4" r="3.6" fill="#231A16"></circle><circle cx="20.3" cy="9.4" r="3.8" fill="#231A16"></circle><circle cx="24.2" cy="10.5" r="3.6" fill="#231A16"></circle><circle cx="27" cy="13.6" r="3.1" fill="#231A16"></circle>
+   </svg></span><span class="nm">Ivo</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#8B7B66"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#ECEAE5"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#C68B69"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#C68B69"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   <path d="M12.7 18.5c.3 6 3.5 8.9 7.3 8.9s7-2.9 7.3-8.9c-1.3 1.9-2.7 3.1-4.1 3.1h-6.4c-1.4 0-2.8-1.2-4.1-3.1z" fill="#1F1B19"></path>
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#1F1B19"></path>
+   </svg></span><span class="nm">Andro</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av mono">T</span><span class="nm">Tomáš</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div></div>
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-heart"></use></svg>Cashed out · 1</div>
+   <div class="outrow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#6E8098"></rect><path d="M10.6 17a9.4 10 0 0 1 18.8 0v16h-18.8z" fill="#3A2A22"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#2C323D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E3B89C"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E3B89C"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.2 17C12 10.8 15.6 7.3 20 7.3S28 10.8 27.8 17c-2.8-1.2-5.4-3.4-6.6-5.6-1.6 2.6-5.2 4.8-9 5.6z" fill="#3A2A22"></path>
+   </svg></span><span class="nm">Dana<span class="meta num">17:17 · out 2,120</span></span><span class="amt num win">+$1,620</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div>
+  </div>
+  <div class="dock"><div class="dock-h"><svg class="ic s" aria-hidden="true"><use href="#i-up"></use></svg><b>Table admin</b><span>seat · cash out · end</span></div>
+   <div class="dock-b"><span class="btn-pri"><svg class="ic " aria-hidden="true"><use href="#i-plus"></use></svg>Rebuy</span><span class="btn-sec"><span class="appico"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 3.5h14v17l-2.3-1.5-2.4 1.5-2.3-1.5-2.4 1.5L7.3 19 5 20.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M8.5 8.5h7M8.5 12.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg></span>Bill</span></div></div></div></div></div><figcaption><b>E · a faint ink tint</b></figcaption></figure><figure><div class="tbwrap d-d2" style="display:contents"><div class="phone d-d2"><div class="scr"><div class="sb"><span>9:41</span><svg viewBox="0 0 62 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"></rect><rect x="5" y="5" width="3" height="6" rx="1"></rect><rect x="10" y="2.5" width="3" height="8.5" rx="1"></rect><rect x="15" y="0" width="3" height="11" rx="1"></rect><rect x="36" y=".5" width="22" height="10" rx="3" fill="none" stroke="currentColor" opacity=".45"></rect><rect x="38" y="2.5" width="16" height="6" rx="1.5"></rect><rect x="59" y="3.5" width="2" height="4" rx="1" opacity=".45"></rect></g></svg></div><div class="pad">
+   <div class="railp"><div class="hdr"><span class="rb"><svg class="ic " aria-hidden="true"><use href="#i-back"></use></svg></span><h1>Tonight</h1><span class="live"><i></i>3h 16m</span></div><div class="role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:none;box-shadow:none"><span class="appico" style="color:#141A2A"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"><g transform="rotate(12 12 12)"><rect x="5" y="2.5" width="14" height="19" rx="2.2" stroke="currentColor" stroke-width="2"></rect><path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1 .9-1 1.6v.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="12" cy="16.8" r="1" fill="currentColor"></circle></g></svg></span></span></div><div class="hero"><div class="hero-top"><div><div class="lbl">On the table</div><div class="big num">$4,500</div></div>
+     <div class="side num">$5,000 in play<br>5 seated · 1 out</div></div><div class="stackbar"><i style="flex:1500"></i><i style="flex:1000"></i><i style="flex:1000"></i><i style="flex:500"></i><i style="flex:500"></i></div></div></div>
+   
+   
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-spade"></use></svg>Still playing · 5</div>
+   <div class="rows"><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#777D8A"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#5A3A3A"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E5BEA5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E5BEA5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E5BEA5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#BDB7AE"></path>
+   <g fill="none" stroke="#1d1d1f" stroke-width=".9"><circle cx="16.9" cy="17.5" r="2.5"></circle><circle cx="23.1" cy="17.5" r="2.5"></circle><path d="M19.4 17.3h1.2"></path></g></svg></span><span class="nm">Petr</span><span class="amt num">$1,500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#946F70"></rect><path d="M10.8 16.5a9.2 9.6 0 0 1 18.4 0v9h-18.4z" fill="#D4B276"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#3B5876"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#EFCDB5"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#EFCDB5"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#EFCDB5"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12 15.6C12.2 10.4 15.6 7.3 20 7.3s7.8 3.1 8 8.3z" fill="#D4B276"></path>
+   </svg></span><span class="nm">Lena</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#5D7D71"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#C4A36D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#A6725A"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#A6725A"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#A6725A"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <circle cx="13.2" cy="13.4" r="3.3" fill="#231A16"></circle><circle cx="16.4" cy="10.4" r="3.6" fill="#231A16"></circle><circle cx="20.3" cy="9.4" r="3.8" fill="#231A16"></circle><circle cx="24.2" cy="10.5" r="3.6" fill="#231A16"></circle><circle cx="27" cy="13.6" r="3.1" fill="#231A16"></circle>
+   </svg></span><span class="nm">Ivo</span><span class="amt num">$1,000</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#8B7B66"></rect>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#ECEAE5"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#C68B69"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#C68B69"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#C68B69"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   <path d="M12.7 18.5c.3 6 3.5 8.9 7.3 8.9s7-2.9 7.3-8.9c-1.3 1.9-2.7 3.1-4.1 3.1h-6.4c-1.4 0-2.8-1.2-4.1-3.1z" fill="#1F1B19"></path>
+   <path d="M12.4 16C12.2 10.5 15.6 7.4 20 7.4s7.8 3.1 7.6 8.6c-1.2-2.8-4-4.2-7.6-4.2s-6.4 1.4-7.6 4.2z" fill="#1F1B19"></path>
+   </svg></span><span class="nm">Andro</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div><div class="prow"><span class="av mono">T</span><span class="nm">Tomáš</span><span class="amt num">$500</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div></div>
+   <div class="seclbl"><svg class="ic xs" aria-hidden="true"><use href="#i-heart"></use></svg>Cashed out · 1</div>
+   <div class="outrow"><span class="av photo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#6E8098"></rect><path d="M10.6 17a9.4 10 0 0 1 18.8 0v16h-18.8z" fill="#3A2A22"></path>
+   <path d="M3 42c1-9 7.5-12.5 17-12.5S36 33 37 42z" fill="#2C323D"></path>
+   <path d="M16.6 22h6.8v7c0 1.6-1.6 2.6-3.4 2.6s-3.4-1-3.4-2.6z" fill="#E3B89C"></path><path d="M16.6 24.5c2.2 1.2 4.6 1.2 6.8 0V22h-6.8z" fill="#000" opacity=".14"></path>
+   <ellipse cx="12.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse><ellipse cx="27.5" cy="17.8" rx="1.4" ry="2" fill="#E3B89C"></ellipse>
+   <ellipse cx="20" cy="17" rx="7.6" ry="9" fill="#E3B89C"></ellipse>
+   <g fill="#1b1714" opacity=".55"><ellipse cx="17.2" cy="17.6" rx=".75" ry=".6"></ellipse><ellipse cx="22.8" cy="17.6" rx=".75" ry=".6"></ellipse></g>
+   
+   <path d="M12.2 17C12 10.8 15.6 7.3 20 7.3S28 10.8 27.8 17c-2.8-1.2-5.4-3.4-6.6-5.6-1.6 2.6-5.2 4.8-9 5.6z" fill="#3A2A22"></path>
+   </svg></span><span class="nm">Dana<span class="meta num">17:17 · out 2,120</span></span><span class="amt num win">+$1,620</span><svg class="ic s chev" aria-hidden="true"><use href="#i-chev"></use></svg></div>
+  </div>
+  <div class="dock"><div class="dock-h"><svg class="ic s" aria-hidden="true"><use href="#i-up"></use></svg><b>Table admin</b><span>seat · cash out · end</span></div>
+   <div class="dock-b"><span class="btn-pri"><svg class="ic " aria-hidden="true"><use href="#i-plus"></use></svg>Rebuy</span><span class="btn-sec"><span class="appico"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 3.5h14v17l-2.3-1.5-2.4 1.5-2.3-1.5-2.4 1.5L7.3 19 5 20.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M8.5 8.5h7M8.5 12.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg></span>Bill</span></div></div></div></div></div><figcaption><b>F · no round</b></figcaption></figure></div></template></div>

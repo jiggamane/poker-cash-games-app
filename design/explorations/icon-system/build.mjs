@@ -13,7 +13,7 @@
  * a primitive there and every spot that uses it changes with it, which is the
  * point of drawing them this way.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow, mark } from './art.mjs';
@@ -444,6 +444,16 @@ ${RB_CSS}
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
+  <h2>Round 31 — the tools button on the whole of Tonight, and the results in one shape</h2>
+  <p class="quote">On D, the ink round: “i guess this one but show on the full app screen this and other options”. On the results breakdown’s Now: “try the same thing but with the same shape (background) for the cash in and out as for the piggy and food money”.</p>
+  <div class="group"><div class="ghead"><h3>Tonight’s tools button, on the full screen</h3><p>the round-two Tonight on the approved rail, once per option; approve one under round 30 below</p></div>
+    <p>Seen whole, the round sits on the rail beside the role line, above the table’s figure and the dock’s ink Rebuy button. D echoes Rebuy: two ink objects, one at each end of the screen. That is a reason for it (they read as the screen’s two actions) and against it (Rebuy is the one that records money).</p>
+    ${existsSync(join(here, 'tonight-buttons.html')) ? readFileSync(join(here, 'tonight-buttons.html'), 'utf8') : ''}</div>
+  <div class="group"><div class="ghead"><h3>The results breakdown, every term in one shape</h3><p>Now, and Now with chips in and out in the same grey shape</p></div>
+    <div class="optgrid rb">${RB_OPTIONS.filter((o) => o.key === 'now2').map((o) => optCell({ key: `rb-${o.key}`, title: `${o.letter} · ${o.title}`, note: o.note, html: o.html })).join('')}</div></div>
+</section>
+
+<section class="sec">
   <h2>Round 30 — Tonight’s tools button, more options</h2>
   <p class="quote">“lets try more options and pick the best”</p>
   <p>Every option keeps the app’s button as it is built: one round, 40 across, the question card at 21, no label (you chose icon-only on 9 November so the role line keeps its room). Only the round changes. <b style="color:${C.ink}">My pick is B, the hairline ring.</b> The rail you approved is white with a hairline along its foot; a ring in that same hairline keeps the round visible as something to tap without putting a grey block on the white. A reads as a hole in the rail, C floats, D shouts louder than the title, E is A by another name, and F stops looking like a button.</p>
@@ -722,6 +732,8 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 </section>
 
 </main>
+<script>/* Where the page arrives through innerHTML, a declarative shadow root stays a template: attach it by hand. */
+document.querySelectorAll('template[shadowrootmode]').forEach((t) => { const r = t.parentNode.attachShadow({ mode: 'open' }); r.appendChild(t.content); t.remove(); });</script>
 ${REVIEW ? REVIEW_JS() : ''}
 </body>
 </html>
