@@ -70,8 +70,8 @@ const moneyCard = card([
 const rulesFootnote = note('These belong to tonight. They are copied from the app default and changing one here changes this game only — the group keeps its own.');
 
 const kinds = ['A share of the win', 'A sum for the table', 'So much each', 'Each, by the hour', 'Out of each buy-in', 'The table, by the hour'];
-const chipRow = (items, on, { small = false } = {}) =>
-  `<div class="chips" style="gap:6px">${items.map((t, i) => `<span class="chip${i === on ? ' on' : ''}" style="${small ? 'height:36px;padding:0 12px;font-size:13.5px' : ''}">${t}</span>`).join('')}</div>`;
+const chipRow = (items, on, { small = false, tight = false } = {}) =>
+  `<div class="chips" style="gap:6px${tight ? ';display:grid;grid-template-columns:1fr 1fr' : ''}">${items.map((t, i) => `<span class="chip${i === on ? ' on' : ''}" style="${tight ? 'height:34px;padding:0 4px;font-size:11.5px;justify-content:center' : small ? 'height:34px;padding:0 10px;font-size:12.5px' : ''}">${t}</span>`).join('')}</div>`;
 const howMuch = (n) => `<div style="display:flex;align-items:baseline;gap:8px;margin:0 2px"><span class="fig">${n}</span><span class="muted" style="font:700 19px/1 var(--head)">% of the win</span></div>`;
 
 export const section = { title: 'Opening a game', blurb: 'New session is one sheet: the game in a line, the seating as its body, and every step behind it (game details, a rule, the currency, someone new, the membership gate) replacing its content.' };
@@ -109,8 +109,8 @@ export default [
       ],
       bar: bar('Done', { line: '$1,800 on the table' }) }) },
 
-  { id: 'new-night-second', route: '/new-night', name: 'New session · a second table', nav: 'sheet',
-    note: 'A second table is named before it opens. Until the name is good the bar is blocked and reads Name this table.',
+  { id: 'new-night-second', route: '/new-night', name: 'New session · a second table', nav: 'sheet', allowOverflow: true,
+    note: 'A second table is named before it opens. Until the name is good the bar is blocked and reads Name this table. The sheet scrolls: the rest of the group runs on under the bar.',
     html: sheet({ behind: BEHIND, title: 'New session', sub: GROUP, tall: true,
       body: [
         `<div>${field('This table', 'Kitchen table', { placeholder: true })}<div class="muted" style="font-size:12px;margin:6px 2px 0">Tonight is already open</div></div>`,
@@ -131,7 +131,7 @@ export default [
       body: [
         label('Money rules', { quiet: true }),
         card([
-          row({ name: 'Kitchen &amp; drinks', meta: '$0 spent so far · winners, by size of win · paid back to whoever bought it', trail: toggle(true) }),
+          row({ name: 'Kitchen &amp; drinks', meta: '$0 spent so far · winners, by size of win · paid back to whoever bought it', wrapMeta: true, trail: toggle(true) }),
           row({ name: 'Group piggy bank', meta: '5% of win · split by winners · Radka collects', trail: toggle(true) }),
           row({ name: 'Add a rule', lead: ico('plus', 16) }),
         ]),
@@ -152,13 +152,13 @@ export default [
 
   { id: 'new-night-rule', route: '/new-night', name: 'A rule · Group piggy bank', nav: 'sheet',
     note: 'The rule editor, titled with the rule’s own name. Its top: what it is called, how much, and its ceiling.',
-    flags: ['The app’s presets end in a fourth box for typing your own figure (it shows 5 here, and — under Never more than). Drawn as outlined boxes; they have no label in the app.'],
+    flags: ['The app’s presets end in a fourth box for typing your own figure (it shows 5 here, and — under Never more than). Drawn as an outlined chip; it has no label in the app.'],
     html: sheet({ behind: BEHIND, title: 'Group piggy bank', tall: true, stepBack: true,
       body: [
         field('Called', 'Group piggy bank'),
         label('How much', { quiet: true }),
         howMuch('5'),
-        chipRow(kinds, 0, { small: true }),
+        chipRow(kinds, 0, { tight: true }),
         chipRow(['5%', '10%', '15%', '5'], 0, { small: true }),
         label('Never more than', { quiet: true }),
         chipRow(['No ceiling', '$50', '$100', '<span class="dimt">—</span>'], 0, { small: true }),
@@ -204,7 +204,7 @@ export default [
         field('Called', 'What the group calls it', { placeholder: true, focus: true }),
         label('How much', { quiet: true }),
         howMuch('10'),
-        chipRow(kinds, 0, { small: true }),
+        chipRow(kinds, 0, { tight: true }),
         chipRow(['5%', '10%', '15%', '<span class="dimt">—</span>'], 1, { small: true }),
         label('Never more than', { quiet: true }),
         chipRow(['No ceiling', '$50', '$100', '<span class="dimt">—</span>'], 0, { small: true }),
@@ -215,7 +215,7 @@ export default [
     note: 'Behind the Currency row of Game details. Picking a row writes the group and returns, so Done is only the way out. The list runs on under the bar (156 currencies).',
     html: sheet({ behind: BEHIND, title: 'Currency', tall: true, stepBack: true,
       body: [
-        `<div class="fi ph" style="font-size:14px">Code, symbol or name — USD, €, koruna</div>`,
+        `<div class="fi ph" style="font-size:12.5px;white-space:nowrap">Code, symbol or name — USD, €, koruna</div>`,
         note('The group keeps one book, so this is the money every night in it is counted in — past ones included. It renames the column; no figure is converted.'),
         label('Common', { quiet: true }),
         card([
@@ -234,8 +234,8 @@ export default [
       bar: bar('Done') }) },
 
   { id: 'new-night-players', route: '/new-night', name: 'Add players', nav: 'sheet',
-    note: 'Behind Someone new: search the roster, or type a name that is not on it. The app’s filled Add pills are outlined here; the bar is the only filled thing.',
-    html: sheet({ behind: BEHIND, title: titled('Add players', '3 seated'), tall: true, stepBack: true,
+    note: 'Behind Someone new: search the roster, or type a name that is not on it. The app’s filled Add pills are outlined here; the bar is the only filled thing. The app also sets 3 seated beside the title; the bar already says it, so it is left off here.',
+    html: sheet({ behind: BEHIND, title: 'Add players', tall: true, stepBack: true,
       body: [
         field('', 'Search by name', { placeholder: true }),
         label('Most recent first', { quiet: true }),
@@ -243,8 +243,8 @@ export default [
           ['Andro', 'played 22 November · host', '500'], ['Dana', 'played 22 November · 1 night', '500'], ['Ivo', 'played 22 November · 1 night', null],
           ['Lena', 'played 22 November · 1 night', '800'], ['Petr', 'played 22 November · 1 night', null], ['Radka', 'played 22 November · 1 night', null],
           ['Tomáš', 'played 22 November · 1 night', null],
-        ].map(([name, meta, amount]) => row({ name, meta, trail: amount ? `<span class="win">${ico('check', 16)}</span><span class="fi" style="min-height:34px;width:70px;padding:0 10px;justify-content:flex-end;flex:none"><span class="num" style="font-weight:700">${amount}</span></span>` : addPill() }))),
-        `<div style="display:flex;gap:8px;align-items:center"><div class="fi ph" style="flex:1;box-shadow:none;border:1.5px dashed var(--outline);font-size:14.5px">New player — type a name</div>${addPill(true).replace('border-radius:999px', 'border-radius:12px;height:48px')}</div>`,
+        ].map(([name, meta, amount]) => row({ name, meta, trail: amount ? `<span class="win">${ico('check', 14)}</span><span class="fi" style="min-height:34px;width:50px;padding:0 6px;font-size:14px;justify-content:flex-end;flex:none"><span class="num" style="font-weight:700">${amount}</span></span>` : addPill() })), { style: 'padding:0 8px 0 10px' }),
+        `<div style="display:flex;gap:8px;align-items:center"><div class="fi ph" style="flex:1;box-shadow:none;border:1.5px dashed var(--outline);font-size:13.5px;min-height:44px;white-space:nowrap">New player — type a name</div>${addPill(true).replace('border-radius:999px', 'border-radius:12px;height:44px')}</div>`,
       ],
       bar: bar('Done · 3 seated') }) },
 
@@ -276,8 +276,8 @@ export default [
       ],
       bar: bar('Choose Full to open tonight', { blocked: true }) }) },
 
-  { id: 'new-night-host-night', route: '/new-night', name: 'New session · spends a host night', nav: 'sheet',
-    note: 'A Regular with the host night still free: one note block on top of New session as it is. See Full opens the gate.',
+  { id: 'new-night-host-night', route: '/new-night', name: 'New session · spends a host night', nav: 'sheet', allowOverflow: true,
+    note: 'A Regular with the host night still free: one note block on top of New session as it is. See Full opens the gate. The sheet scrolls: the rest of the group runs on under the bar.',
     flags: ['The month and the date are computed by the app; examples here. Not reachable in the app today, so drawn from source.'],
     html: sheet({ behind: BEHIND, title: 'New session', sub: GROUP, tall: true,
       body: [

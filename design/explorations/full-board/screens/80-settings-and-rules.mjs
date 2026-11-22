@@ -29,13 +29,14 @@ const spend = (time, name, who, amount) =>
   `<div class="row"><span class="num muted" style="flex:none;width:38px;font-size:12px;font-weight:600">${time}</span><span class="n">${name}<small>${who}</small></span><span class="a">${amount}</span></div>`;
 
 /** The editor's big figure with its unit said in full beside it. */
-const rate = (figure, unit) => `<div style="display:flex;align-items:baseline;gap:8px"><span class="fig">${figure}</span><span class="muted" style="font:700 19px/1 var(--head)">${unit}</span></div>`;
+const rate = (figure, unit) => `<div style="display:flex;align-items:baseline;gap:8px"><span class="fig" style="font-size:32px">${figure}</span><span class="muted" style="font:700 19px/1 var(--head)">${unit}</span></div>`;
 
 /** The kit's chips, one size down, where a sheet carries a long set of them. */
 const smallChips = (items) => chips(items).replace(/class="chip(?!s)/g, 'style="height:36px;padding:0 12px;font-size:13.5px" class="chip');
 
-const kinds = (on) => smallChips(['A share of the win', 'A sum for the table', 'So much each', 'Each, by the hour', 'Out of each buy-in', 'The table, by the hour']
-  .map((text, i) => ({ text, on: i === on })));
+/** The six kinds of charge, two to a line: six do not fit a segmented control, and loose pills wrap raggedly at this width. */
+const kinds = (on) => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${['A share of the win', 'A sum for the table', 'So much each', 'Each, by the hour', 'Out of each buy-in', 'The table, by the hour']
+  .map((text, i) => `<span class="chip${i === on ? ' on' : ''}" style="height:34px;padding:0 4px;justify-content:center;border-radius:12px;font-size:12.5px">${text}</span>`).join('')}</div>`;
 
 const people = ['Dana', 'Andro', 'Lena', 'Tomáš', 'Ivo', 'Petr'];
 const ceilingNote = note('The half of a charge nobody states on its own — "five percent" is agreed as "five percent, fifty at most". A figure you type against one name at settle-up still stands whatever this says.');
@@ -140,14 +141,14 @@ export default [
     html: sheet({ behind: 'Tonight', tall: true, title: 'Group piggy bank',
       body: [
         label('Called', { quiet: true }),
-        field('', 'Group piggy bank'),
+        field('', 'Group piggy bank').replace('class="fi"', 'class="fi" style="min-height:42px"'),
         label('How much', { quiet: true }),
         rate('$5', 'an hour each'),
         kinds(3),
-        presets([{ text: '$5', on: true }, '$10', '$20', { text: '5', typed: true }]),
+        presets([{ text: '$5', on: true }, '$10', '$20', { text: '5', typed: true }]).replace(/flex:1;/g, 'flex:1;height:36px;'),
         label('Charged by', { quiet: true }),
         seg(['The half hour', 'The hour'], 1),
-        seg(['Every hour begun', 'To the nearest', 'To the minute'], 0).replace(/<span class="/g, '<span style="font-size:12px;padding-left:2px;padding-right:2px" class="'),
+        seg(['Every hour begun', 'To the nearest', 'To the minute'], 0).replace(/<span class="/g, '<span style="font-size:11.5px;padding-left:0;padding-right:0" class="'),
         note('Nobody is asked to clock in: somebody who arrives buys in, and somebody going home cashes out, so the app already knows how long each person sat.'),
       ],
       bar: bar('Add this rule') }) },
@@ -244,7 +245,7 @@ export default [
         card(row({ name: 'The Thursday game', meta: 'Deleted, with every night in it. Nobody else ever had a seat.', wrapMeta: true })),
         card(row({ lead: ico('clipboard', 20), name: 'Copy a backup first', meta: 'The whole book, as text, on your clipboard', wrapMeta: true })),
       ],
-      bar: bar('Delete account', { icon: 'trash', sub: 'Hold 1.5s · deletes now, no undo' }) }) },
+      bar: bar(`<span style="display:inline-flex;align-items:center;gap:8px">${ico('trash', 18)}Delete account</span>`, { sub: 'Hold 1.5s · deletes now, no undo' }) }) },
 
   { id: 'delete-account-running', route: '/delete-account', name: 'Delete your account · a game is running', nav: 'sheet',
     flags: ['Not reachable in the reference build. The words are the app’s; the start time is the seeded night’s.'],

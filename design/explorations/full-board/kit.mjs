@@ -121,8 +121,8 @@ export const CSS = `
 .fb .tog::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff}
 .fb .tog.on{background:var(--pri)}.fb .tog.on::after{left:21px;background:var(--onpri)}
 .fb .kp{display:grid;grid-template-columns:repeat(3,1fr);margin:0 -18px;border-top:1px solid var(--line)}
-.fb .kp span{height:50px;display:grid;place-items:center;font:600 22px/1 var(--head);color:var(--text);border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
-.fb .kp span:nth-child(3n){border-right:0}
+.fb .kp>span{height:50px;display:grid;place-items:center;font:600 22px/1 var(--head);color:var(--text);border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+.fb .kp>span:nth-child(3n){border-right:0}
 .fb .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fb .tile{position:relative;border-radius:14px;padding:10px 14px 14px;min-height:128px;background:var(--card);box-shadow:var(--lift);overflow:hidden}
 .fb .tile>div{position:relative;z-index:1}
@@ -326,7 +326,7 @@ export const chips = (items) => `<div class="chips">${items.map((i) => (typeof i
 export const seg = (items, on = 0) => `<div class="seg">${items.map((t, i) => `<span class="${i === on ? 'on' : ''}">${t}</span>`).join('')}</div>`;
 export const toggle = (on = false) => `<span class="tog${on ? ' on' : ''}"></span>`;
 /** The amount keypad. */
-export const keypad = () => `<div class="kp">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0'].map((k) => `<span>${k}</span>`).join('')}<span>${ico('backspace', 22)}</span></div>`;
+export const keypad = ({ zeros = true } = {}) => `<div class="kp">${['1', '2', '3', '4', '5', '6', '7', '8', '9', zeros ? '00' : '', '0'].map((k) => `<span>${k}</span>`).join('')}<span>${ico('backspace', 22)}</span></div>`;
 /** Three figures in a line: [[figure, caption], ...]. */
 export const stat3 = (items) => `<div class="stat3">${items.map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join('')}</div>`;
 export const fig = (text, { small = false, tone = '' } = {}) => `<div class="fig${small ? ' s' : ''} ${tone}">${text}</div>`;

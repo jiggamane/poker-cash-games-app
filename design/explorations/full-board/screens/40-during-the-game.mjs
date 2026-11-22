@@ -28,8 +28,8 @@ const summary = (items, tail = '') =>
 
 /** One line of a player's night: the time, what it was, what has happened to it since, the amount. */
 const mark = (text) => `<span style="margin-left:7px;padding:3px 7px;border-radius:999px;background:var(--raised);color:var(--muted);font:700 9.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;vertical-align:2px">${text}</span>`;
-const entry = (time, title, sub, amount, { struck = false, pill: p = '' } = {}) =>
-  `<div class="row"><span class="num muted" style="flex:none;width:40px;font-size:12.5px;font-weight:600">${time}</span><span class="n"><span${struck ? ' class="muted" style="text-decoration:line-through"' : ''}>${title}</span>${p ? mark(p) : ''}<small>${sub}</small></span><span class="a${struck ? ' muted' : ''}">${amount}</span></div>`;
+const entry = (time, title, sub, amount, { struck = false, pill: p = '', wrap = false } = {}) =>
+  `<div class="row"><span class="num muted" style="flex:none;width:40px;font-size:12.5px;font-weight:600">${time}</span><span class="n"><span${struck ? ' class="muted" style="text-decoration:line-through"' : ''}>${title}</span>${p ? mark(p) : ''}<small${wrap ? ' class="wrap"' : ''}>${sub}</small></span><span class="a${struck ? ' muted' : ''}">${amount}</span></div>`;
 
 /** The figure being typed. */
 const typed = (text, { tone = '', under = '' } = {}) =>
@@ -44,12 +44,12 @@ const presets = (items) =>
 const stamped = (time) => `<div style="display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:500;margin:0 2px"><span class="muted">${ico('clock', 17)}</span>Stamped ${time}</div>`;
 
 /** The app's keypad, which has a 00 where the kit's has a blank. */
-const keys = () => `<div class="kp" style="margin-bottom:-18px">${['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((k) => `<span>${k}</span>`).join('')}<span class="muted">00</span><span>0</span><span>${ico('backspace', 22)}</span></div>`;
+const keys = () => `<div class="kp" style="margin-bottom:-18px">${['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((k) => `<span>${k}</span>`).join('')}<span class="muted">00</span><span>0</span><span>${ico('backspace', 22).replace('class="ico"', 'class="ico" style="height:auto;border:0;display:inline-flex"')}</span></div>`;
 
 /** A result line inside a card: words left, a signed figure right. */
 const result = (words, figure, tone) => card(`<div class="split" style="align-items:center"><b style="font-size:14.5px;font-weight:600">${words}</b><b class="num ${tone}" style="font:700 19px/1 var(--head)">${figure}</b></div>`, { pad: true });
 
-const pair = (a, b) => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${a}${b}</div>`;
+const pair = (a, b) => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${[a, b].map((x) => x.replace('class="btn2"', 'class="btn2" style="font-size:14px;letter-spacing:-.01em"')).join('')}</div>`;
 
 /** The entry being corrected, stated once at the top of both steps. */
 const entryHead = card(`<div style="font:700 10.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">15:14 · as logged</div><div class="h2" style="margin-top:7px;font-size:21px">Petr · rebuy · $500</div>`, { pad: true });
@@ -76,6 +76,8 @@ export default [
   /* ── /player ── */
   { id: 'player', route: '/player', name: 'Player card · seated', nav: 'sheet',
     note: 'Rebuy $500 is the card’s one primary, so it is the bar. Other amount and Cash out stay in the sheet as the outlined pair, directly above it.',
+    flags: ['Rebuy $500 writes to the ledger on one tap (Undo lives on Tonight for two seconds). As a full-width bar at the bottom edge it is a much larger target than the app’s button: confirm that is wanted, with Cash out a thumb-width above it.',
+      'The settled-night version of this card (badge “counted”, the “After deductions” block, a Close-only footer) is not drawn here; it is reached from the settled night.'],
     html: sheet({ behind: 'Tonight', title: titled('Petr', 'seated'), sub: 'since 14:09',
       body: [
         summary([stat('In for', '$1.5k'), stat('Counted', '<span class="dimt">—</span>', { align: 'center' })], 'Net is known once chips are counted'),
@@ -91,13 +93,14 @@ export default [
       body: [
         summary([stat('In for', '$500'), stat('Counted', '$2.1k', { align: 'center' }), stat('Night', '+$1.6k', { tone: 'win', align: 'right' })]),
         label('Entries', { quiet: true }),
-        card([entry('14:43', 'Buy-in', 'first buy-in', '$500'), entry('17:17', 'Cashed out', 'stack counted · seat closed', '$2,120')]),
+        card([entry('14:43', 'Buy-in', 'first buy-in', '$500'), entry('17:17', 'Cashed out', 'stack counted · seat closed', '$2,120', { wrap: true })]),
         note('Their result is set. Bills and the piggy bank still come off it at settle-up.'),
         pair(button('Correct an entry'), button('Back to table')),
       ] }) },
 
   { id: 'player-corrected', route: '/player', name: 'Player card · a corrected entry', nav: 'sheet',
     note: 'The ledger is append-only and the list says so: the replaced line stays, struck through, and the correction is its own row.',
+    flags: ['Not the seeded night: this is the seed after correcting Petr’s first rebuy from $500 to $300 in the running app. $1.3k and $300 are read off that capture.'],
     html: sheet({ behind: 'Tonight', title: titled('Petr', 'seated'), sub: 'since 14:09',
       body: [
         summary([stat('In for', '$1.3k'), stat('Counted', '<span class="dimt">—</span>', { align: 'center' })], 'Net is known once chips are counted'),
@@ -149,6 +152,7 @@ export default [
   /* ── /seat ── */
   { id: 'seat', route: '/seat', name: 'New player', nav: 'sheet',
     note: 'The bar carries the name and the amount, so the host reads the whole write before making it.',
+    flags: ['“Marek” is a sample name typed into the field for the drawing; it is not in the seed. “Their name” (the empty state) is the app’s placeholder.'],
     html: sheet({ behind: 'Tonight', title: 'New player', sub: seatSub,
       body: seatBody('Marek'),
       bar: bar('Seat Marek · $500') }) },
@@ -166,13 +170,15 @@ export default [
   /* ── /entry ── */
   { id: 'entry', route: '/entry', name: 'One entry', nav: 'sheet',
     note: 'A choice, not a confirm: nothing here is the primary, so there is no bar. Close stays as the app has it, outlined.',
+    flags: ['With no chevrons, “writes a correction” and “writes a reversal” sit under their labels rather than at the right of the row (the two did not fit one line at this width).',
+      'Close duplicates the sheet’s own close button now that it is not a full-width footer. Keep it, or drop it?'],
     html: sheet({ behind: 'Tonight', title: 'One entry',
       body: [
         entryHead,
         note('The ledger is append-only. A correction does not erase this line — it writes a reversal underneath it, and both stay visible to everyone.'),
         card([
-          row({ name: 'Change the amount', value: 'writes a correction' }),
-          row({ name: '<span class="red">Void this entry</span>', value: 'writes a reversal' }),
+          row({ name: 'Change the amount', meta: 'writes a correction' }),
+          row({ name: '<span class="red">Void this entry</span>', meta: 'writes a reversal' }),
         ]),
         button('Close'),
       ] }) },
