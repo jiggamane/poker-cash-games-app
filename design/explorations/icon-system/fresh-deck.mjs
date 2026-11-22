@@ -118,7 +118,36 @@ const TILE = { w: 133, h: 128 };
 export const inkSide = (level) => RHO[level] * Math.sqrt(TILE.w * TILE.h);
 export const sizeFor = (key, level) => inkSide(level) / Math.sqrt(INK[key]);
 
-export function freshDeckScreens(PICK) {
+/**
+ * The header the owner approved on 21 November: version N of
+ * `../screen-headers/titles.html` on the Rail. The head of a screen is one
+ * raised panel running up under the status bar; the title is small, bold and on
+ * the left beside a bare grey chevron, and on Tonight the figure sits on the
+ * panel without a card of its own. Sizes are that page's 300-point crop scaled
+ * to these 330-point phones. `S` is the scope: `.fd` here, and the round-two
+ * style page's `.d-d2` where `../updated-screens/` applies it to that page's
+ * Tonight and results.
+ */
+export const railN = (S) => `
+${S} .sb{position:relative;z-index:2}
+${S} .railp{position:relative;z-index:1;margin:-46px -18px 16px;padding:46px 18px 16px;border-radius:0 0 30px 30px;
+  background:radial-gradient(110% 80% at 50% 0%,rgba(20,26,42,.04),transparent 72%),#fff;
+  box-shadow:inset 0 -1px 0 #E4E7EC,0 14px 24px -20px rgba(20,26,42,.28)}
+${S} .railp .hdr{gap:10px;min-height:36px}
+${S} .railp .hdr .rb{width:18px;height:36px;margin-left:-5px;background:none;box-shadow:none;border-radius:0;color:var(--p-muted)}
+${S} .railp .hdr .rb svg{width:22px;height:22px}
+${S} .railp .hdr h1{font:700 22px/1.1 'Libre Franklin',system-ui,sans-serif;letter-spacing:-.015em}
+${S} .railp .sub,${S} .railp .fdsub,${S} .railp .role,${S} .railp .meta-l{margin-left:23px;margin-bottom:0}
+${S} .railp .fdsub,${S} .railp .sub{margin-top:0}
+${S} .railp .role .rb{background:var(--p-bg);box-shadow:none}
+${S} .railp .hero{background:none;box-shadow:none;border-radius:0;padding:14px 2px 2px;margin-top:4px}
+${S} .railp.home{padding-bottom:62px;margin-bottom:0}
+${S} .railp.home h1{font:700 26px/1.04 'Libre Franklin',system-ui,sans-serif;letter-spacing:-.02em;margin:0}
+${S} .railp.home + .cta{margin-top:-48px;z-index:2}
+`;
+
+export function freshDeckScreens(PICK, { withSheet = true, rail = false } = {}) {
+  const R = (html, cls = '') => (rail ? `<div class="railp ${cls}">${html}</div>` : html);
   const spark = `<svg class="spark" viewBox="0 0 64 30" aria-hidden="true"><polyline points="2,22 12,18 22,24 32,12 42,15 52,6 62,9" fill="none" stroke="#141A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="62" cy="9" r="2.6" fill="#141A2A"/></svg>`;
   const tiles = [
     /*
@@ -136,14 +165,14 @@ export function freshDeckScreens(PICK) {
     [PICK.tools, 'Poker tools', '<div class="tx">calculator, rulings, boosters</div>'],
   ];
   const menu = `<div class="scr">${SB}<div class="pad fdmenu">
-    <div class="fdeyebrow">Your group</div><h1>The Thursday game</h1>
+    ${R('<div class="fdeyebrow">Your group</div><h1>The Thursday game</h1>', 'home')}
     <div class="cta">${art(PICK.session, 76, true)}<div><div class="t">Start a session</div><div class="s">$500 buy-in · same rules as last time</div></div></div>
     <div class="fdtiles">${tiles.map(([k, n, x]) => `<div class="fdtile">${anchoredAt(k, sizeFor(k, 'home'), -6, -6)}<div><div class="tn">${n}</div>${x}</div></div>`).join('')}</div></div>
     <div class="menubar"><span class="fdpill">${icon('gear')}Settings</span><span class="rb">${icon('userplus')}</span><span class="rb">${icon('sun')}</span></div></div>`;
 
   const tools = `<div class="scr">${SB}<div class="pad">
-    <div class="hdr"><span class="rb">${icon('back')}</span><h1>Poker tools</h1></div>
-    <div class="fdsub">nothing here touches the ledger</div>
+    ${R(`<div class="hdr"><span class="rb">${icon('back')}</span><h1>Poker tools</h1></div>
+    <div class="fdsub">nothing here touches the ledger</div>`)}
     <div class="fdtiles" style="margin-top:16px">${[
       [PICK.calculator, 'Calculator', 'hand and pot odds'],
       [PICK.rulings, 'Rulings', 'look up a ruling'],
@@ -156,8 +185,8 @@ export function freshDeckScreens(PICK) {
   ];
   const byId = Object.fromEntries(BOOSTERS.map((b) => [b.id, b]));
   const boosters = `<div class="scr">${SB}<div class="pad">
-    <div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div>
-    <div class="fdsub">house rules for more action</div>
+    ${R(`<div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div>
+    <div class="fdsub">house rules for more action</div>`)}
     ${sections.map(([label, mark, ids]) => `<div class="seclbl">${mark}${label}</div><div class="blist">${ids
       .map((id) => `<div class="brow">${art(PICK[id], 46)}<div class="bt"><div class="bn">${byId[id].name}</div><div class="bs">${byId[id].summary}</div></div></div>`)
       .join('')}</div>`).join('')}
@@ -165,7 +194,7 @@ export function freshDeckScreens(PICK) {
 
   const b = byId['stand-up'];
   const sheet = `<div class="scr">${SB}<div class="pad" style="opacity:.5">
-    <div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div></div>
+    ${R(`<div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div>`)}</div>
     <div class="dim"></div>
     <div class="sheet"><div class="grab"></div>
       <div class="shd"><h2>${b.name}</h2><span class="x">${icon('close')}</span></div>
@@ -181,7 +210,27 @@ export function freshDeckScreens(PICK) {
     ['Poker tools', tools, 'Not drawn on the style page: the menu’s tiles (4d, name at 19) with the app’s sub-lines under each name. Drawings sized by the ink rule at one level down (0.27), so they sit a step under Home’s.'],
     ['Game boosters', boosters, 'One spot per game at the head of its row. No chevrons, as Fresh Deck has it.'],
     ['A booster’s sheet', sheet, 'The game’s spot heads its description. The same seven drawings, larger.'],
-  ].map(([cap, html, note]) => `<figure><div class="fdphone">${html}</div><figcaption>${cap}<br><span style="font-weight:400">${note}</span></figcaption></figure>`).join('')}</div>`;
+  ].slice(0, withSheet ? 4 : 3).map(([cap, html, note]) => `<figure><div class="fdphone">${html}</div><figcaption>${cap}<br><span style="font-weight:400">${note}</span></figcaption></figure>`).join('')}</div>`;
+}
+
+/** A sheet per booster, each headed by its approved drawing: the phones for `../updated-screens/`. */
+export function freshDeckSheets(PICK, ids, { rail = false } = {}) {
+  const byId = Object.fromEntries(BOOSTERS.map((b) => [b.id, b]));
+  const SECTION = { side: 'Side games', pots: 'Bigger pots' };
+  return `<div class="fd fd-strip">${ids.map((id) => {
+    const b = byId[id];
+    return `<figure><div class="fdphone"><div class="scr">${SB}<div class="pad" style="opacity:.5">
+    ${rail ? '<div class="railp">' : ''}<div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div>${rail ? '<div class="fdsub">house rules for more action</div></div>' : ''}</div>
+    <div class="dim"></div>
+    <div class="sheet"><div class="grab"></div>
+      <div class="shd"><h2>${b.name}</h2><span class="x">${icon('close')}</span></div>
+      <div class="ssub">${SECTION[b.section]}</div>
+      ${art(PICK[id], 96)}
+      <p class="what">${b.what}</p>
+      <div class="lbl">How it works</div>
+      <ol>${b.how.map((h) => `<li>${h}</li>`).join('')}</ol>
+    </div></div></div><figcaption>${b.name}</figcaption></figure>`;
+  }).join('')}</div>`;
 }
 
 /* ── round 17: shapes under the icons, and where they sit in a tile ─────── */

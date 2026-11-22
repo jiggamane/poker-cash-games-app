@@ -28,11 +28,20 @@ Open `Icon System.html` in a browser. Self-contained apart from Google Fonts.
 ## Where it ended, 21 November
 
 Sixteen rounds of review on the published board. All fifteen places have an
-approved drawing (`PICK` in `build.mjs`); Sessions is calendar T. The board
+approved drawing (`PICK` in `build.mjs`); Sessions is calendar T, and the Button
+game is D (the owner approved C, then moved the approval to D). The Straddle is
+L: I mirrored, the same curve with the seats the other way round, asked for in
+chat on 21 November (K, a first reading of that, is passed over). Round 26 also
+shows it on a straight line (N to Q); the owner approved L and passed those
+over. Poker tools is AT: AB's chips with round 24's two framed cards, approved
+the same day. The board
 opens on the screens they land on, drawn in **Fresh Deck**, the owner's locked
 direction from the round-two style page (claude.ai artifact
 8V2pTt3a9mNXwrdMZ8TJ3F), with the drawings in that UI's ink and red
-(`PALETTES.freshDeck`). Nothing is in the app yet.
+(`PALETTES.freshDeck`), and since 21 November under the approved header:
+version N of `../screen-headers/titles.html` on the Rail (`railN` in
+`fresh-deck.mjs`). Nothing is in the app yet. `fresh-deck-screens.png` is an
+earlier still and predates the header.
 
 ## Files
 
@@ -56,3 +65,67 @@ direction from the round-two style page (claude.ai artifact
   also writes the published copy, with the review controls); the boosters list
   reads its names and summaries from `packages/core/src/boosters.ts`.
   `node design/explorations/icon-system/build.mjs`
+
+## Round 27, 21 November: the app's other icons
+
+The owner: there are more icons in the app than the fifteen reviewed; find
+them, apply the style, review. `Icon.tsx` has 47. Sorted on the board: 6
+already have an approved drawing, 12 are drawn in this round (`ui*` in
+`art.mjs`: the objects on Tonight, its drawer, the results and the menu bar),
+15 objects are not drawn yet, and 10 controls (chevrons, back, close, plus,
+check) are proposed to stay line glyphs. **This revisits the rule at the top
+of this file** that glyphs stay as they are; it is the owner's call, and
+nothing is in the app. On the results the drawings are shown both in colour
+and in one grey, since on 20 November the owner asked for that screen's icons
+not to be colourful. No verdicts yet.
+
+**22 November.** The owner on the results row: no coloured icons here; simpler
+curves and shapes, fewer details, still well designed. The four results icons
+are now `MARK` in `art.mjs`: solid one-tone marks on a 24 grid, not spots. The
+coloured four are under the earlier rounds. So there are three families now:
+spots (places and games), marks (small, beside text), and the line glyphs.
+
+The same day, two more comments (the drawer rows: *make them minimalistic*;
+the menu bar: *these should be more simple*): the other eight, and the tools
+button, are marks too. The detailed `ui*` drawings are under the earlier
+rounds. So small icons beside a label are marks; spots are for tiles, rows of
+games and sheets.
+
+The piggy-bank mark was sent back the same day (*the way the hole looks feels
+wrong and check the piggy shapes*): redrawn from plain parts as B (a coin
+above, no hole), C (a slot following the back) and D (the pig alone). B is the
+one shown in place until the owner picks.
+
+**The app's own icons are on the board** (owner, 22 November: check the
+current in-app icons and put them on the board first). `app-icons.mjs` renders
+the real `Icon.tsx` (43 names, not 47 as round 27 first said) to
+`app-icons.json`; the board shows all 43 as the app draws them, and each
+in-place mock twice: today, and proposed. Re-run it when `Icon.tsx` changes.
+
+**Decided, 22 November: the app's icons stay.** The owner, once they were on
+the board: *the current in app icons feel good; if any changes are needed just
+see how (if) they should adapt to the new elements and UI.* So `Icon.tsx` is
+not redrawn, which is also the rule at the top of this file. The marks and the
+`ui*` drawings are withdrawn (earlier rounds). What adapts is use, not shape:
+colour (Fresh Deck's ink and grey), back without its round button, no row
+chevrons or start arrow, and six glyphs replaced by spots on tiles only. The
+updated-screens page now draws Tonight and the results with the app's icons.
+
+**Round 29, 22 November.** With the app's icons kept, the owner asked for more
+sets of the Table admin drawer's four (and a plus to the left of the seat
+icon), within the same simple line approach. `drawer-sets.mjs` has four:
+today's with the plus, A (objects), B (seats and chips), C (in, out, across).
+No verdict yet; nothing changes in `Icon.tsx` until there is one.
+
+**Decided the same day: today's four, with the plus** on Seat a player. A, B, C
+are passed over. The board now opens on what is left to review: the Rulings
+drawing (G has no verdict; the plain card is still the pick), the results
+breakdown page, the near-twin of the new seat icon and `invite`, and the menu's
+*calculator, rulings, boosters* line.
+
+**Rulings G approved, 22 November** (two framed rulings and a chip stack); it is
+`PICK.rulings` and on the screens. The board opens on *To confirm*: the results
+breakdown layouts (review keys `rb-now`, `rb-a` … `rb-g`, from
+`../results-breakdown/options.mjs`), `confirm-seat-invite`,
+`confirm-tools-line` and `confirm-tools-button`, each with the same approve /
+needs-work controls as a drawing.

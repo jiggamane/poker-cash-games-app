@@ -953,6 +953,14 @@ Object.assign(SPOTS, {
       { x: 42, y: 76, n: 4, r: 14, h: 6 },
     ]),
   },
+  straddleK: {
+    name: 'Straddle', variant: 'K · I, in seat order to the right', where: 'Boosters', status: 'round4',
+    draw: (P, o) => seatStacks(P, o, [
+      { x: 79, y: 50, n: 1, r: 10, h: 5 },
+      { x: 53, y: 60, n: 2, r: 10.5, h: 5 },
+      { x: 26, y: 76, n: 4, r: 14, h: 6 },
+    ]),
+  },
   straddleJ: {
     name: 'Straddle', variant: 'J · an arc away from you', where: 'Boosters', status: 'round4',
     draw: (P, o) => seatStacks(P, o, [
@@ -1710,3 +1718,222 @@ export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;
 }
+
+/* ── round 25, 21 November: the approved tile, with round 24's cards ── */
+
+Object.assign(SPOTS, {
+  toolsAT: {
+    name: 'Poker tools', variant: 'AT · AB’s chips, the two framed cards', where: 'Home · tile', status: 'round25',
+    draw: (P, o) => {
+      const pair = chipPair(P, o, { x: 43, y: 88 }, 18, 17, 28);
+      return ownShadow(P, 40, 79, 22) + pair.shadows + framedPairAt(P, o, 32, 78) + pair.chips;
+    },
+  },
+});
+
+/* ── round 26, 21 November: the Straddle, its seats the other way round ── */
+
+const seats3 = (sb, bb, st, big = 14) => (P, o) => seatStacks(P, o, [
+  { x: sb[0], y: sb[1], n: 1, r: 10, h: 5 },
+  { x: bb[0], y: bb[1], n: 2, r: 10.5, h: 5 },
+  { x: st[0], y: st[1], n: 4, r: big, h: 6 },
+]);
+
+Object.assign(SPOTS, {
+  straddleL: {
+    name: 'Straddle', variant: 'L · I mirrored: the same curve, the other direction', where: 'Boosters', status: 'round26',
+    draw: seats3([24, 51], [63, 47], [54, 76]),
+  },
+  straddleM: {
+    name: 'Straddle', variant: 'M · a curve, reading left to right', where: 'Boosters', status: 'round26',
+    draw: seats3([78, 58], [51, 49], [27, 77]),
+  },
+  straddleN: {
+    name: 'Straddle', variant: 'N · a level row', where: 'Boosters', status: 'round26',
+    draw: seats3([79, 78], [54, 78], [24, 78]),
+  },
+  straddleO: {
+    name: 'Straddle', variant: 'O · a line running away to the right', where: 'Boosters', status: 'round26',
+    draw: seats3([79, 59], [54, 68.5], [25, 79.5]),
+  },
+  straddleP: {
+    name: 'Straddle', variant: 'P · a steep line, the stacks overlapping', where: 'Boosters', status: 'round26',
+    draw: seats3([70, 47], [53, 62], [32, 80.5]),
+  },
+  straddleQ: {
+    name: 'Straddle', variant: 'Q · a level row, touching', where: 'Boosters', status: 'round26',
+    draw: seats3([72.5, 78], [52, 78], [27.5, 78]),
+  },
+});
+
+/* ── round 27, 21 November: the app's other icons, in the same hand ──────
+ *
+ * The line glyphs in `Icon.tsx` that are OBJECTS (a bill, a piggy bank, a
+ * rule book) and sit on the screens the owner pointed at: Tonight, its dock
+ * and drawer, the results, the menu bar. Controls (chevrons, back, close,
+ * plus, check) are not objects and stay line glyphs. Each is drawn from the
+ * system's own parts: chips, card stock, ink, felt red.
+ */
+
+const person = (c) => (cx, cy, r) =>
+  `<g transform="translate(${f(cx)} ${f(cy)}) scale(${f(r / 24)})"><circle cx="0" cy="-5.5" r="4.6" fill="${c}"/><path d="M-9 9.5C-9 3.5 -5 0.6 0 0.6S9 3.5 9 9.5Z" fill="${c}"/></g>`;
+const faceArrow = (P, colour, down) => (cx, cy, r) =>
+  `<g transform="translate(${f(cx)} ${f(cy)}) scale(${f(r / 21)})${down ? ' rotate(180)' : ''}">${UPMARK.headed(colour)}</g>`;
+
+Object.assign(SPOTS, {
+  uiBill: {
+    name: 'Bill', variant: 'the bill', where: 'Tonight · dock', status: 'round27',
+    draw: (P) => shadow(P, 48, 20) + `<g transform="rotate(-6 48 84)">
+      <path d="M30 27a3 3 0 0 1 3-3H63a3 3 0 0 1 3 3V83l-4.5-4-4.5 4-4.5-4-4.5 4-4.5-4-4.5 4-4.5-4-4.5 4Z" fill="${P.stock}" stroke="${P.stockEdge}" stroke-width=".9"/>
+      <rect x="36" y="33" width="24" height="3.6" rx="1.8" fill="${P.ink.top}"/><rect x="36" y="41" width="17" height="3.6" rx="1.8" fill="${P.ink.inlay}"/>
+      <rect x="36" y="49" width="21" height="3.6" rx="1.8" fill="${P.ink.inlay}"/>
+      <rect x="36" y="61" width="9" height="4.4" rx="2.2" fill="${P.ink.top}"/><rect x="48" y="61" width="12" height="4.4" rx="2.2" fill="${P.red.top}"/></g>`,
+  },
+  uiKitchen: {
+    name: 'Kitchen & drinks', variant: 'a place setting', where: 'Results · deductions', status: 'round27',
+    draw: (P) => shadow(P, 48, 34, 9, 80) +
+      `<ellipse cx="48" cy="74" rx="24" ry="8.2" fill="${P.bone.side}"/><ellipse cx="48" cy="71" rx="24" ry="8.2" fill="${P.bone.top}"/>
+      <ellipse cx="48" cy="71" rx="14.5" ry="4.9" fill="${P.bone.core}" stroke="${P.bone.inlay}" stroke-width="1"/>
+      <rect x="11.5" y="46" width="4.6" height="35" rx="2.3" fill="${P.red.top}"/>
+      <path d="M8 26h3.2v13h1.2V26h3.2v13h1.2V26H20v15a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4Z" fill="${P.ink.top}"/>
+      <rect x="79.5" y="50" width="4.6" height="31" rx="2.3" fill="${P.red.top}"/>
+      <path d="M79.5 51V28c5 2 7.5 7 7.5 13v10Z" fill="${P.ink.top}"/>`,
+  },
+  uiPiggy: {
+    name: 'Group piggy bank', variant: 'a chip going in', where: 'Results · deductions', status: 'round27',
+    draw: (P) => shadow(P, 47, 27) +
+      standingChip(P, { cx: 43, by: 48, r: 11, mat: 'bone', t: 3, small: true }) +
+      `<rect x="31" y="70" width="8" height="13" rx="2.5" fill="${P.red.side}"/><rect x="55" y="70" width="8" height="13" rx="2.5" fill="${P.red.side}"/>
+      <path d="M21 56q-7 -1 -5 -8" fill="none" stroke="${P.red.side}" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M55 43L60 30L68 44Z" fill="${P.red.side}"/>
+      <ellipse cx="47" cy="58" rx="27" ry="19.5" fill="${P.red.top}"/>
+      <rect x="35" y="40.6" width="17" height="2.8" rx="1.4" fill="${P.red.side}"/>
+      <ellipse cx="75" cy="61" rx="6" ry="7.6" fill="${P.red.side}"/><circle cx="75.6" cy="58.6" r="1.1" fill="${P.red.inlay}"/><circle cx="75.6" cy="63.4" r="1.1" fill="${P.red.inlay}"/>
+      <circle cx="63" cy="52" r="2.1" fill="${P.ink.top}"/>`,
+  },
+  uiChipsIn: {
+    name: 'Chips in', variant: 'a chip, the arrow down', where: 'Results · a player’s row', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'red', t: 6, small: true, glyph: faceArrow(P, P.red.mark, true) }),
+  },
+  uiChipsOut: {
+    name: 'Chips out', variant: 'a chip, the arrow up', where: 'Results · a player’s row', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'bone', t: 6, small: true, glyph: faceArrow(P, P.ink.top, false) }),
+  },
+  uiSeat: {
+    name: 'Seat a player', variant: 'a player’s chip', where: 'Tonight · Table admin', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'ink', t: 6, small: true, glyph: person(P.ink.mark) }),
+  },
+  uiCashOut: {
+    name: 'Cash out a player', variant: 'chips against a slip', where: 'Tonight · Table admin', status: 'round27',
+    draw: (P, o) => shadow(P, 50, 32) +
+      card(P, { cx: 58, by: GROUND - 3, w: 36, h: 50, rot: 9, small: true, centre: (cx, cy) => text(cx, cy + 9, 26, P.ink.top, '$') }) +
+      stack(P, { cx: 33, by: GROUND, r: 17, h: 6.5, mats: ['red', 'red', 'red'], wobble: [0, 0.8, -0.6], small: true }),
+  },
+  uiPass: {
+    name: 'Pass the game', variant: 'the dealer button', where: 'Tonight · Table admin', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'bone', t: 6, small: true, glyph: (cx, cy, r) => text(cx, cy + r * 0.27, f(r * 0.78), P.ink.top, 'D') }),
+  },
+  uiRules: {
+    name: 'Money rules', variant: 'the rule book', where: 'Tonight · Table admin', status: 'round27',
+    draw: (P) => shadow(P, 50, 30) +
+      `<g transform="rotate(-5 46 84)"><rect x="25" y="24" width="45" height="59" rx="4" fill="${P.ink.top}"/><rect x="25" y="24" width="8" height="59" rx="3" fill="${P.ink.side}"/>
+      <rect x="39" y="34" width="24" height="17" rx="2.5" fill="${P.bone.top}"/><rect x="43" y="39" width="16" height="2.8" rx="1.4" fill="${P.ink.top}"/><rect x="43" y="44.4" width="10" height="2.8" rx="1.4" fill="${P.ink.inlay}"/></g>` +
+      chip(P, { cx: 70, by: GROUND + 2, r: 13, h: 5, mat: 'red', small: true }),
+  },
+  uiClock: {
+    name: 'The log', variant: 'a clock face', where: 'Tonight · the log', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'bone', t: 6, small: true, glyph: (cx, cy, r) =>
+      `<path d="M${f(cx)} ${f(cy)}V${f(cy - r * 0.42)}M${f(cx)} ${f(cy)}L${f(cx + r * 0.3)} ${f(cy + r * 0.17)}" fill="none" stroke="${P.ink.top}" stroke-width="${f(r * 0.13)}" stroke-linecap="round"/><circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.08)}" fill="${P.red.top}"/>` }),
+  },
+  uiSettings: {
+    name: 'Settings', variant: 'a chip as a cog', where: 'Main menu · bar', status: 'round27',
+    draw: (P) => shadow(P, 48, 25) + standingChip(P, { cx: 45, by: GROUND, r: 27, mat: 'ink', t: 6, small: true, glyph: (cx, cy, r) =>
+      `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.36)}" fill="${P.bone.top}"/><circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r * 0.15)}" fill="${P.ink.side}"/>` }),
+  },
+  uiInvite: {
+    name: 'Invite', variant: 'a sealed envelope', where: 'Main menu · bar', status: 'round27',
+    draw: (P) => shadow(P, 48, 34, 8) + `<g transform="rotate(-5 48 84)"><rect x="17" y="38" width="62" height="44" rx="4" fill="${P.stock}" stroke="${P.stockEdge}" stroke-width=".9"/>
+      <path d="M18 40.5L48 62L78 40.5" fill="${P.bone.top}" stroke="${P.stockEdge}" stroke-width="1.1" stroke-linejoin="round"/>
+      <circle cx="48" cy="61" r="8" fill="${P.red.top}"/>${suit('heart', 44, 57.4, 8, P.red.mark)}</g>`,
+  },
+});
+
+/* ── round 28, 22 November: the results' icons, simple and in one tone ───
+ *
+ * The owner on the results row: no coloured icons here; simpler curves and
+ * shapes, fewer details, still well designed. So these four are not spots.
+ * They are solid marks in one grey, drawn on a 24 grid for 13 to 20 points,
+ * with at most one cut-out each. The pair reads by fill: chips in is a solid
+ * chip, chips out is an open one.
+ */
+const MARK = {
+  chipsIn: `<path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20ZM10.5 6.5h3v6h3.3L12 17.6L7.2 12.5h3.3Z"/>`,
+  chipsOut: `<path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20ZM12 4.4a7.6 7.6 0 1 1 0 15.2a7.6 7.6 0 0 1 0-15.2Z"/><path d="M12 6.4L16.8 11.5h-3.3v6h-3v-6H7.2Z"/>`,
+  kitchen: `<path d="M5 2.5a1 1 0 0 1 1 1V8h1V3.5a1 1 0 0 1 2 0V8h1V3.5a1 1 0 0 1 2 0V9a3.5 3.5 0 0 1-2.2 3.25V20.3a1.3 1.3 0 0 1-2.6 0V12.25A3.5 3.5 0 0 1 4 9V3.5a1 1 0 0 1 1-1Z"/><path d="M16 2.5c2.4 1 4 3.9 4 7.3V13h-1.4v7.3a1.3 1.3 0 0 1-2.6 0Z"/>`,
+  piggy: `<path fill-rule="evenodd" d="M10.5 5.5c1.7 0 3.2.5 4.5 1.3L17.6 5l-.3 3.3c.7.8 1.2 1.7 1.5 2.7H21a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2.2a7.6 7.6 0 0 1-1.8 2.6V20a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-.7c-1 .2-2 .2-3 0V20a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-2.4A7.2 7.2 0 0 1 3.6 13a1.6 1.6 0 0 1-1.6-1.6V10.8a.8.8 0 0 1 1.6 0v.4a7 7 0 0 1 6.9-5.7ZM8.5 8.4h4a.7.7 0 0 1 0 1.4h-4a.7.7 0 0 1 0-1.4Z"/><circle cx="16" cy="11.6" r="1" fill="none"/>`,
+};
+/* The piggy bank again, 22 November: "the way the hole looks feels wrong and check the piggy shapes". The first
+   pig was one freehand outline with a flat pill cut into it. These are built from plain parts instead: an oval
+   body, a square snout, a rounded ear, two feet, a curl of tail, an eye. What differs is how the money shows. */
+const pig = (bodyCuts, extra = '') =>
+  `<path d="M2.2 10.2c-.9 1.5.2 3.300 1.900 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M13.4 8.300L15.3 4.800a.7.7 0 0 1 1.200-.1L18.600 8.300Z"/>
+  <rect x="6.2" y="16.5" width="3.4" height="5" rx="1.2"/><rect x="13.2" y="16.5" width="3.4" height="5" rx="1.2"/>
+  <rect x="17.5" y="10.800" width="4.5" height="5" rx="1.5"/>
+  <path fill-rule="evenodd" d="M3.2 13.2a8.300 6.300 0 1 0 16.600 0a8.300 6.300 0 1 0-16.600 0ZM14.900 11.300a1 1 0 1 0 2 0a1 1 0 1 0-2 0Z${bodyCuts}"/>${extra}`;
+Object.assign(MARK, {
+  /* B: no hole at all. A coin sits just above the back, on its way in. */
+  piggyB: pig('', `<circle cx="9.800" cy="3.500" r="2.300"/>`),
+  /* C: a short slot that follows the curve of the back, near the top. */
+  piggyC: pig('M8.500 9.600c1.900-.7 4.100-.7 6 0l.55-1.450c-2.300-.85-4.800-.85-7.100 0Z'),
+  /* D: nothing but the pig. */
+  piggyD: pig(''),
+});
+/* The second eight, the same day: the owner on the drawer rows and the menu bar — "we don't need that much
+   details in the icons, make them minimalistic", "these should be more simple". Same rules as the four above. */
+const gear = (() => {
+  const pt = (r, a) => `${f(12 + r * Math.cos(a))} ${f(12 + r * Math.sin(a))}`;
+  let d = '';
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4;
+    d += `${i ? 'L' : 'M'}${pt(7.3, a - 0.27)}L${pt(10, a - 0.16)}L${pt(10, a + 0.16)}L${pt(7.3, a + 0.27)}`;
+  }
+  return `<path fill-rule="evenodd" d="${d}ZM12 8.6a3.4 3.4 0 1 0 0 6.8a3.4 3.4 0 0 0 0-6.8Z"/>`;
+})();
+Object.assign(MARK, {
+  seat: `<circle cx="12" cy="7.4" r="4.4"/><path d="M3.5 21c0-4.9 3.6-8 8.5-8s8.5 3.1 8.5 8a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1Z"/>`,
+  cashOut: `<path fill-rule="evenodd" d="M4.5 5.5h15A2.5 2.5 0 0 1 22 8v8a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 16V8a2.5 2.5 0 0 1 2.5-2.5ZM12 8.8a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 0 0 0-6.4Z"/>`,
+  rules: `<path fill-rule="evenodd" d="M7 2h10.5A2.5 2.5 0 0 1 20 4.5v15a2.5 2.5 0 0 1-2.5 2.5H7a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3ZM7.2 4.2v15.6h1.5V4.2ZM11.5 6.5v1.8h5.5V6.5ZM11.5 10.2v1.8h3.5v-1.8Z"/>`,
+  pass: `<path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20ZM8.6 6.8h3.6a5.2 5.2 0 0 1 0 10.4H8.6ZM11 9.1v5.8h1.2a2.9 2.9 0 0 0 0-5.8Z"/>`,
+  clock: `<path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20ZM12 4.4a7.6 7.6 0 1 1 0 15.2a7.6 7.6 0 0 1 0-15.2Z"/><path d="M12 6.6a1.1 1.1 0 0 1 1.1 1.1v3.85l2.6 1.5a1.1 1.1 0 0 1-1.1 1.9l-3.15-1.82A1.1 1.1 0 0 1 10.9 12.2V7.7A1.1 1.1 0 0 1 12 6.6Z"/>`,
+  settings: gear,
+  invite: `<path fill-rule="evenodd" d="M4.5 4.5h15A2.5 2.5 0 0 1 22 7v10a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 17V7a2.5 2.5 0 0 1 2.5-2.5ZM5.2 7.3L4.1 8.9L12 14.6L19.9 8.9L18.8 7.3L12 12.2Z"/>`,
+  bill: `<path fill-rule="evenodd" d="M6.5 2h11A1.5 1.5 0 0 1 19 3.5V22l-2.33-1.7L14.33 22L12 20.3L9.67 22L7.33 20.3L5 22V3.5A1.5 1.5 0 0 1 6.5 2ZM8 6.4v1.8h8V6.4ZM8 10.2v1.8h8v-1.8ZM8 14v1.8h4.5V14Z"/>`,
+  tools: `<g transform="rotate(8 12 12)"><path fill-rule="evenodd" d="M7.5 2h9A2.5 2.5 0 0 1 19 4.5v15a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 19.5v-15A2.5 2.5 0 0 1 7.5 2ZM12 6.3c-2 0-3.3 1.3-3.3 3h2c0-.7.5-1.2 1.3-1.2s1.3.5 1.3 1.1c0 .6-.3.9-1 1.4c-.9.6-1.4 1.300-1.4 2.6v.3h2v-.2c0-.6.2-.9.9-1.400c1-.7 1.600-1.500 1.600-2.800c0-1.700-1.400-2.800-3.400-2.800ZM12 15a1.25 1.25 0 1 0 0 2.5a1.25 1.25 0 0 0 0-2.5Z"/></g>`,
+});
+/** A simple mark at a size, in one colour: for a line of text, not for a tile. */
+export const mark = (key, size, color) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${color}" style="color:${color}" aria-hidden="true">${MARK[key]}</svg>`;
+const asSpot = (key) => (P) => `<g transform="translate(15 23) scale(2.75)" fill="${P.ink.inlay}" style="color:${P.ink.inlay}">${MARK[key]}</g>`;
+const m28 = (key, name, variant, where) => ({ name, variant: `simple · ${variant}`, where, status: 'round28', draw: asSpot(key) });
+
+Object.assign(SPOTS, {
+  markPiggyB: m28('piggyB', 'Group piggy bank', 'B · a coin above, no hole', 'Results · rows and deductions'),
+  markPiggyC: m28('piggyC', 'Group piggy bank', 'C · a slot that follows the back', 'Results · rows and deductions'),
+  markPiggyD: m28('piggyD', 'Group piggy bank', 'D · the pig alone', 'Results · rows and deductions'),
+  markSeat: m28('seat', 'Seat a player', 'a player', 'Tonight · Table admin'),
+  markCashOut: m28('cashOut', 'Cash out a player', 'a banknote', 'Tonight · Table admin'),
+  markRules: m28('rules', 'Money rules', 'the rule book', 'Tonight · Table admin'),
+  markPass: m28('pass', 'Pass the game', 'the dealer button', 'Tonight · Table admin'),
+  markBill: m28('bill', 'Bill', 'a receipt', 'Tonight · dock'),
+  markTools: m28('tools', 'Poker tools', 'the question card', 'Tonight · role line'),
+  markClock: m28('clock', 'The log', 'a clock', 'Tonight · the log'),
+  markSettings: m28('settings', 'Settings', 'a cog', 'Main menu · bar'),
+  markInvite: m28('invite', 'Invite', 'an envelope', 'Main menu · bar'),
+});
+
+Object.assign(SPOTS, {
+  markChipsIn: { name: 'Chips in', variant: 'simple · a solid chip, the arrow in', where: 'Results · a player’s row', status: 'round28', draw: asSpot('chipsIn') },
+  markChipsOut: { name: 'Chips out', variant: 'simple · an open chip, the arrow out', where: 'Results · a player’s row', status: 'round28', draw: asSpot('chipsOut') },
+  markKitchen: { name: 'Kitchen & drinks', variant: 'simple · fork and knife', where: 'Results · rows and deductions', status: 'round28', draw: asSpot('kitchen') },
+  markPiggy: { name: 'Group piggy bank', variant: 'simple · the pig, one slot', where: 'Results · rows and deductions', status: 'round28', draw: asSpot('piggy') },
+});

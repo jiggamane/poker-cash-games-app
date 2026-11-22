@@ -16,9 +16,13 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SPOTS, PALETTES, K, spot, stack, shadow } from './art.mjs';
+import { SPOTS, PALETTES, K, spot, stack, shadow, mark } from './art.mjs';
+import { PICK } from './picks.mjs';
+import APP from './app-icons.json' with { type: 'json' };
+import { DRAWER_SETS, DRAWER_ROWS } from './drawer-sets.mjs';
+import { RB_CSS, RB_OPTIONS } from '../results-breakdown/options.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
-import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption, sizingTable, RHO } from './fresh-deck.mjs';
+import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, railN, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption, sizingTable, RHO } from './fresh-deck.mjs';
 
 const ROW_SPOT = { 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleA', 'stand-up': 'standUpA', 'seven-deuce': 'sevenTwo' };
 
@@ -61,7 +65,10 @@ const STATUS = {
   round7: { label: 'Round 7', note: 'from your sixth review', bg: '#E3F4F8', fg: '#0F5F73' },
   round6: { label: 'Round 6', note: 'from your fifth review', bg: '#FDE8F1', fg: '#A1275F' },
   round5: { label: 'Round 5', note: 'from your fourth review', bg: '#F3E8FF', fg: '#6B2FB3' },
-  round25: { label: 'Round 25', note: 'AB with the new cards', bg: '#E8F3F1', fg: '#215A52' },
+  round28: { label: 'Round 28', note: 'the results, simple and one tone', bg: '#ECEEF1', fg: '#3D4556' },
+  round27: { label: 'Round 27', note: 'the app’s other icons', bg: '#E6EEF9', fg: '#1F4E8C' },
+  round26: { label: 'Round 26', note: 'the straddle’s seats the other way', bg: '#FDEBEC', fg: '#A3282E' },
+  round25: { label: 'Round 25', note: 'the approved tile, two framed cards', bg: '#E8F3EC', fg: '#1D6B36' },
   round24: { label: 'Round 24', note: 'cards closer, chips tipped', bg: '#EEE9F7', fg: '#4B3A86' },
   round23: { label: 'Round 23', note: 'chips on the table; the Button game', bg: '#E9F1EC', fg: '#2A5E40' },
   round22: { label: 'Round 22', note: 'one card face', bg: '#FBE9EA', fg: '#9A2530' },
@@ -95,20 +102,23 @@ const ROUND = [];
 /* Nothing left to decide: Sessions is calendar T (owner, 21 November). */
 const DECIDE = [];
 /* The approved drawing for each place, by the app's own names. */
-const PICK = { session: 'session', group: 'groupB', sessions: 'sessionsT', stats: 'stats', tools: 'toolsAB', calculator: 'calculator', rulings: 'rulings', boosters: 'boostersE', 'bomb-pot': 'bombPot', 'double-board': 'doubleBoardA', straddle: 'straddleI', 'table-ante': 'anteF', 'stand-up': 'standUpR', 'button-game': 'buttonD', 'seven-deuce': 'sevenTwo' };
-const APPROVED = ['session', 'stats', 'rulings', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleI', 'toolsAB', 'standUpR', 'sessionsT', 'buttonD'];
+const APPROVED = ['session', 'stats', 'rulingsG', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleL', 'toolsAT', 'standUpR', 'sessionsT', 'buttonD'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
   ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT'], ['My stats', 'stats'],
-  ['Poker tools', 'toolsAB'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
-  ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleI'], ['Table ante', 'anteF'],
+  ['Poker tools', 'toolsAT'], ['Calculator', 'calculator'], ['Rulings', 'rulingsG'], ['Boosters', 'boostersE'],
+  ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleL'], ['Table ante', 'anteF'],
   ['Stand-up game', 'standUpR'], ['Button game', 'buttonD'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['rulings', 'rulingsF', 'markChipsIn', 'markChipsOut', 'markKitchen', 'markPiggyB', 'markPiggyC', 'markPiggyD', 'markPiggy', 'markSeat', 'markCashOut', 'markRules', 'markPass', 'markBill', 'markTools', 'markClock', 'markSettings', 'markInvite', 'uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite', 'uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const ROUND20 = ['toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonC', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS', 'toolsAT', 'toolsAU', 'toolsAV'];
+const MARKS28 = ['markChipsIn', 'markChipsOut', 'markKitchen'];
+const PIGS = ['markPiggyB', 'markPiggyC', 'markPiggyD'];
+const UI27 = ['uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite'];
+const MARKS28B = ['markSeat', 'markCashOut', 'markRules', 'markPass', 'markBill', 'markTools', 'markClock', 'markSettings', 'markInvite'];
+const ROUND20 = ['straddleM', 'straddleN', 'straddleO', 'straddleP', 'straddleQ', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -284,7 +294,7 @@ const page = () => `<!DOCTYPE html>
 <link href="${FD_FONTS}" rel="stylesheet">
 <style>
 :root{color-scheme:light}
-${FD_CSS}${OPT_CSS}
+${FD_CSS}${railN('.fd')}${OPT_CSS}
 .opt{margin:0;background:${C.card};border-radius:18px;padding:10px 10px 14px;display:flex;flex-direction:column;gap:10px}
 .optgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
 .opt figcaption b{font:700 14px ${font}}.opt figcaption span{font:400 12.5px/1.45 ${font};color:${C.mut}}
@@ -377,6 +387,30 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 ` : ''}
 @media (max-width:760px){.board{padding-block:28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}.fam,.mat,.rules,.swrow{grid-template-columns:1fr}.anatomy{flex-direction:column}.anlist{height:auto;display:flex;flex-direction:column;gap:10px}.anlist li{position:static;transform:none}.phone{width:100%}.sizes{display:block;overflow-x:auto}}
+.fd.inplace{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.fd.inplace figure{margin:0;background:#FFFFFF;border-radius:18px;padding:10px 10px 14px;display:flex;flex-direction:column;gap:10px;max-width:320px}
+.fd.inplace figcaption b{font:700 14px -apple-system,'SF Pro Text','Figtree',sans-serif;color:#0B0B0F}.fd.inplace figcaption span{font:400 12.5px/1.45 -apple-system,'SF Pro Text','Figtree',sans-serif;color:#6C6C70}
+.fd.inplace .mini{max-width:100%;color:var(--p-text);font:400 14px/1.35 var(--p-body)}
+.fd.inplace svg{flex:none;display:block}
+.fd .ip-role{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--p-muted);padding:0 2px}.fd .ip-role b{color:var(--p-text);font-weight:600}
+.fd .ip-dock{display:flex;gap:10px}.fd .ip-pri{flex:1;display:grid;place-items:center;height:52px;border-radius:14px;background:#141A2A;color:#fff;font:700 17px var(--p-head)}
+.fd .ip-sec{width:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;height:52px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1.5px #D5D9E0;font:700 12px var(--p-body)}
+.fd .ip-io{display:flex;align-items:center;gap:3px;white-space:nowrap}.fd .ip-io svg{margin-left:4px}.fd .ip-io svg:first-child{margin-left:0}
+.fd .ip-r{display:flex;flex-direction:column;align-items:flex-end;gap:3px}.fd .ip-r b{font:700 16px var(--p-head);color:#0E7A45}
+.fd .ip-terms{display:flex;align-items:center;gap:3px;font-size:11.5px;color:var(--p-muted);background:var(--p-raised);border-radius:7px;padding:2px 6px;white-space:nowrap}
+.fd .ip-ded{display:grid;gap:6px;padding:0 4px}.fd .ip-dl{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}.fd .ip-dl b{margin-left:auto;font:700 13px var(--p-head)}
+.fd .ip-mute svg{filter:grayscale(1) contrast(.75) opacity(.7)}
+.fd .ip-bar{display:flex;gap:10px;align-items:center}.fd .ip-pill{display:flex;align-items:center;gap:8px;height:44px;padding:0 18px 0 16px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.12);font-weight:700;font-size:15px}
+.fd .ip-bar .rb{width:44px;height:44px}
+.ip-app{display:inline-flex;flex:none;line-height:0}.ip-app[style*="--s"] svg{width:var(--s);height:var(--s)}
+.appset-h{margin:14px 0 6px;font:700 12px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8E8E93}
+.appset{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.appic{background:#fff;border-radius:12px;padding:10px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.appic-art{display:flex;align-items:center;justify-content:center;gap:14px;height:44px}
+.appic code{font:500 11px ui-monospace,Menlo,monospace;color:#6C6C70}
+.fd .dset{display:flex;justify-content:space-around;align-items:center;background:#fff;border-radius:14px;padding:14px 8px}
+${RB_CSS}
+.optgrid.rb{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}.optgrid.rb .rb-scr{margin:0 auto}
 </style>
 </head>
 <body>
@@ -391,20 +425,106 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 25 — AB, with only its cards changed</h2>
-  <p>From your comment on the menu’s Poker tools: “lets try changing only the card layout (acc to the updated option above)”. AB’s chips exactly as approved, the % chip flat and the fire chip resting on its edge; the card replaced by round 24’s framed cards, moved in close. Button game D is approved (you swapped it from C) and is on the screens below.</p>
-  <div class="optgrid">${[
-    ['toolsAB', 'Now · AB', 'For comparison: the plain card, well behind.'],
-    ['toolsAT', 'AT · two framed rulings', 'Round 24’s pair, closer in behind AB’s chips.'],
-    ['toolsAU', 'AU · the framed ace and ruling', 'The same, the back card an ace.'],
-    ['toolsAV', 'AV · one framed ruling, closer', 'A single framed card, moved in to AB’s chips.'],
-  ].map(([k, t, n]) => { const o = toolsTileOption(k, t, n); return k === 'toolsAB' ? `<figure class="opt" style="margin:0">${o.html}<figcaption><b>${t}</b><span>${n}</span></figcaption></figure>` : optCell(o); }).join('')}</div>
+  <h2>To confirm</h2>
+  <p>You approved Rulings G; it is on the screens now, in place of the plain card. Four decisions are left, each with Approve and Needs work as on the drawings. Approve the one you want; use Needs work with a note for anything close but not right.</p>
+  <div class="group"><div class="ghead"><h3>1 · The results breakdown</h3><p>approve one layout</p></div>
+    <p>How a player’s result is made up, on the settled night’s list. A is the whole formula on the left, as you asked; it runs to a second line for a player with every term. B and E are the two that keep that idea and fit on a phone.</p>
+    <div class="optgrid rb">${RB_OPTIONS.map((o) => optCell({ key: `rb-${o.key}`, title: `${o.letter} · ${o.title}`, note: o.note, html: o.html })).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>2 · Seat a player beside Invite</h3><p>approve to keep both as they are</p></div>
+    <div class="optgrid">${optCell({ key: 'confirm-seat-invite', title: 'Keep both: plus on the left to seat, plus on the right to invite', note: 'The seat icon you approved and the app’s Invite icon are mirror images. They never share a screen: one is in Tonight’s drawer, the other on the main menu’s bar. Needs work if you want one of them changed, and say which.',
+      html: `<div class="fd"><div class="mini" style="width:300px"><div class="blist"><div class="brow" style="padding:13px 2px;gap:12px"><span class="ip-app" style="color:#141A2A;--s:20px">${DRAWER_SETS[0].icons.seat}</span><div class="bt"><div class="bn">Seat a player</div><div class="bs">Tonight · Table admin</div></div></div></div>
+        <div class="ip-bar"><span class="ip-pill"><span class="ip-app" style="color:#141A2A;--s:20px">${APP.settings}</span>Settings</span><span class="rb"><span class="ip-app" style="color:#141A2A;--s:20px">${APP.invite}</span></span><span style="font-size:12px;color:#596171">Main menu · Invite</span></div></div></div>` })}</div></div>
+  <div class="group"><div class="ghead"><h3>3 · The line under Poker tools on the menu</h3><p>approve the wording, or send a replacement</p></div>
+    <div class="optgrid">${optCell({ ...toolsTileOption(PICK.tools, 'x', 'x'), key: 'confirm-tools-line', title: '“calculator, rulings, boosters”', note: 'New wording. The app’s old line, “poker calculator, rules & rulings”, was written before Boosters existed. Needs work with the line you want instead.' })}</div></div>
+  <div class="group"><div class="ghead"><h3>4 · Tonight’s tools button on the new header</h3><p>approve the grey fill</p></div>
+    <div class="optgrid">${optCell({ key: 'confirm-tools-button', title: 'A grey button on the white rail', note: 'The button was white. On the rail you approved, a white button disappears, so I gave it the screen’s grey. This was my change, not one you asked for.',
+      html: `<div class="fd"><div class="mini" style="width:300px;background:#fff"><div class="ip-role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#EEF0F3;box-shadow:none"><span class="ip-app" style="color:#141A2A;--s:19px">${APP.questionCard}</span></span></div></div></div>` })}</div></div>
 </section>
 
 <section class="sec">
-  <details class="more">
-  <summary><h2>Round 24 — the cards closer, the chips tipped toward you <span>earlier</span></h2></summary>
-  <p>From your note on AP: “need to place cards a bit closer to chips. and turn chips a little bit so that the face value is better visible”. The chips still lie on the table, but tip toward you so their faces read rounder; their edges are drawn thinner to match. </p>
+  <h2>Round 29 — the Table admin drawer: today’s, with the plus</h2>
+  <p class="quote">“can have + to its left” · “can make an iteration on all of these 4 icons - stay within that simple concept/approach but provide more options (sets)”</p>
+  <p><b style="color:${C.ink}">Decided:</b> “this feels right”, on <i>Today, with the plus</i>. The drawer keeps the app’s four icons and Seat a player gains a plus on its left. Sets A, B and C are passed over; they stay here for the record.</p>
+  <div class="fd inplace">${[...DRAWER_SETS.slice(0, 1).map((d) => ({ ...d, name: 'Approved · today, with the plus' })), { key: 'today', name: 'Before', note: 'As the app draws them now.', icons: {} }, ...DRAWER_SETS.slice(1)].map((set) => `
+    <figure><div class="mini" style="width:300px">
+      <div class="dset">${DRAWER_ROWS.map(([k, app]) => `<span class="ip-app" style="color:#141A2A;--s:40px">${set.icons[k] ?? APP[app]}</span>`).join('')}</div>
+      <div class="blist">${DRAWER_ROWS.map(([k, app, label]) => `<div class="brow" style="padding:13px 2px;gap:12px"><span class="ip-app" style="color:#141A2A;--s:20px">${set.icons[k] ?? APP[app]}</span><div class="bt"><div class="bn">${label}</div></div></div>`).join('')}</div>
+    </div><figcaption><b>${set.name}</b><span>${set.note}</span></figcaption></figure>`).join('')}
+  </div>
+</section>
+
+<section class="sec">
+  <h2>Round 27 — the app’s other icons: they stay</h2>
+  <p class="quote">“the current in app icons feel good. if any changes are needed just see how (if) they shoudl adapt to the new elements and UI that we introduced in app”</p>
+  <p>So the app’s 43 line icons are kept as they are drawn today, and nothing is redrawn. The simple solid versions and the detailed drawings I proposed are withdrawn; they are under the earlier rounds. Below: the same icons on the new UI, the few places where the new UI changes how one is used, and the full set.</p>
+  <div class="group"><div class="ghead"><h3>What adapts, and it is not the drawings</h3></div>
+    <div class="open">
+      <div><b>Colour only.</b>Every icon takes Fresh Deck’s ink beside a label and its grey beside small text (the results’ terms and deductions), which is the one muted tone you asked for there. No shape or weight changes.</div>
+      <div><b>Back loses its round button.</b>The header you approved has a bare grey chevron. The app’s back icon is already that chevron; it only drops the white circle behind it.</div>
+      <div><b>Row chevrons and the start arrow are no longer drawn.</b>Fresh Deck has nothing pointing: the chevron at the end of a row and the arrow on Start a session go. The icons stay in the set for the places that still need them (the dropdown, the dock’s disclosure, “same night”).</div>
+      <div><b>Six icons give way to a drawing on tiles only.</b>Calendar, bars, the two people, the flame, the percent and the question card are replaced by the approved drawings on the menu and Poker tools tiles. Anywhere else they appear small (the tools button on Tonight, a player count on a row) they stay as line icons.</div>
+    </div></div>
+  <div class="group"><div class="ghead"><h3>In place, on the new UI</h3><p>the app’s own icons, in Fresh Deck’s ink and grey</p></div>
+    <div class="fd inplace">${[['app', 'kept']].map(([set, tag]) => {
+      /* One icon by the app's name for it: today's glyph, rendered from Icon.tsx itself, or the simple mark proposed in its place. */
+      const NEW = { questionCard: 'tools', person: 'seat', cashOut: 'cashOut', rules: 'rules', pass: 'pass', receipt: 'bill', chipsIn: 'chipsIn', chipsOut: 'chipsOut', food: 'kitchen', piggy: 'piggyB', settings: 'settings', invite: 'invite', clock: 'clock' };
+      const ico = (name, size, colour = '#141A2A') => set === 'new' ? mark(NEW[name], size, colour) : `<span class="ip-app" style="color:${colour};--s:${size}px">${APP[name]}</span>`;
+      return `
+      <figure><div class="mini" style="width:300px">
+        <div class="ip-role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#fff">${ico('questionCard', 19)}</span></div>
+        <div class="blist">${[['person', 'Seat a player'], ['cashOut', 'Cash out a player'], ['rules', 'Money rules'], ['pass', 'Pass the game']].map(([k, n]) => `<div class="brow" style="padding:13px 2px;gap:12px">${k === 'person' && set === 'app' ? `<span class="ip-app" style="color:#141A2A;--s:20px">${DRAWER_SETS[0].icons.seat}</span>` : ico(k, 20)}<div class="bt"><div class="bn">${n}</div></div></div>`).join('')}</div>
+        <div class="ip-dock"><span class="ip-pri">+ Rebuy</span><span class="ip-sec">${ico('receipt', 19)}Bill</span></div>
+      </div><figcaption><b>Tonight · ${tag}</b><span>The tools button, the Table admin drawer, and Bill.</span></figcaption></figure>
+      <figure><div class="mini" style="width:300px">
+        <div class="blist">${[['Dana', '+$1,429', '−110', '−81'], ['Andro', '+$526', '−31 +120', '−23']].map(([n, net, a, b]) => `<div class="brow" style="padding:9px 0"><div class="bt"><div class="bn">${n}</div><div class="bs ip-io">${ico('chipsIn', 13, '#596171')}500 ${ico('chipsOut', 13, '#596171')}2,120</div></div><div class="ip-r"><b>${net}</b><span class="ip-terms">${ico('food', 13, '#596171')}${a} ${ico('piggy', 14, '#596171')}${b}</span></div></div>`).join('')}</div>
+        <div class="ip-ded"><div class="ip-dl">${ico('food', 18, '#596171')}<span>Kitchen &amp; drinks</span><b>$170</b></div><div class="ip-dl">${ico('piggy', 18, '#596171')}<span>Group piggy bank</span><b>$126</b></div></div>
+      </div><figcaption><b>Results · ${tag}</b><span>Chips in and out beside the figures, and the two deductions.</span></figcaption></figure>
+      <figure><div class="mini" style="width:300px">
+        <div class="ip-bar"><span class="ip-pill">${ico('settings', 20)}Settings</span><span class="rb">${ico('invite', 20)}</span><span class="rb">${ico('clock', 20)}</span></div>
+      </div><figcaption><b>Menu bar and the log’s clock · ${tag}</b><span>Settings and Invite on the main menu’s bar; the clock stamps entries in the log.</span></figcaption></figure>
+      <div style="flex-basis:100%;height:0"></div>`; }).join('')}
+    </div></div>
+  <div class="group"><div class="ghead"><h3>Every icon in the app today</h3><p>all 43, as the app draws them, at the size each defaults to and at 40 points</p></div>
+    <p>Rendered from the app’s own icon file, not redrawn, so each is exactly what is on the phone. They are line icons in one colour.</p>
+    ${[
+      ['Tonight, its drawer and dock', ['questionCard', 'person', 'cashOut', 'rules', 'pass', 'receipt', 'clock']],
+      ['Results', ['chipsIn', 'chipsOut', 'food', 'piggy', 'drinks']],
+      ['Main menu', ['settings', 'invite', 'sun', 'moon', 'people', 'calendar', 'bars', 'home']],
+      ['Poker tools', ['calculator', 'spadeCard', 'percent', 'flame', 'restart']],
+      ['Account, invite and the rest', ['info', 'pencil', 'copy', 'clipboard', 'message', 'share', 'qr', 'trash', 'phoneOff']],
+      ['Controls', ['back', 'chevron', 'chevronUp', 'chevronDown', 'arrow', 'close', 'plus', 'check', 'backspace']],
+    ].map(([label, names]) => `<h4 class="appset-h">${label}</h4><div class="appset">${names.map((n) => `<div class="appic"><div class="appic-art"><span class="ip-app" style="color:#141A2A">${APP[n]}</span><span class="ip-app" style="color:#141A2A;--s:40px">${APP[n]}</span></div><code>${n}</code></div>`).join('')}</div>`).join('')}
+  </div>
+</section>
+
+<section class="sec">
+  <h2>Round 26 — the Straddle, its seats the other way round</h2>
+  <p>From chat: keep the curve of the seats as it was and change only the direction; and show the same view with the chips on a straight line. L is the earlier approved drawing mirrored; you approved it, and it is on the screens below. M is a second reading of the same note. N to Q put the three stacks on a line.</p>
+  <div class="group"><div class="ghead"><h3>The curve</h3><p>one chip the small blind, two the big blind, four the straddle</p></div>
+    <div class="optgrid">${[
+      ['straddleL', 'L · the approved drawing, mirrored', 'The same curve round the table; the big blind now sits to the straddle’s right, the small blind to the big blind’s right.'],
+      ['straddleM', 'M · a curve, reading left to right', 'The straddle in front on the left, the blinds curving away to the right.'],
+    ].map(([k, t, n]) => optCell(boosterOption(k, t, n, 'straddle'))).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>On a straight line</h3><p>the same view; straddle, big blind, small blind</p></div>
+    <div class="optgrid">${[
+      ['straddleN', 'N · a level row', 'Side by side on one line across.'],
+      ['straddleQ', 'Q · a level row, touching', 'As N, the stacks closed up.'],
+      ['straddleO', 'O · a line running away to the right', 'The straddle nearest, the blinds further off.'],
+      ['straddleP', 'P · a steep line, overlapping', 'The same line, steeper: each stack partly behind the one in front.'],
+    ].map(([k, t, n]) => optCell(boosterOption(k, t, n, 'straddle'))).join('')}</div></div>
+</section>
+
+<section class="sec">
+  <h2>Round 25 — the approved tile with the new cards</h2>
+  <p>From your comment on the Poker tools tile on the main menu: “lets try changing only the card layout (acc to the updated option above)”. AB’s chips exactly as approved; its single card replaced by round 24’s two framed cards, moved in over the chips. Approved, and on the screens below.</p>
+  <div class="optgrid">${[
+    ['toolsAT', 'AT · AB’s chips, the two framed cards', 'The % chip flat and the fire chip resting on it, as on AB; the two framed rulings behind them.'],
+  ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n))).join('')}</div>
+</section>
+
+<section class="sec">
+  <h2>Round 24 — the cards closer, the chips tipped toward you</h2>
+  <p>From your note on AP: “need to place cards a bit closer to chips. and turn chips a little bit so that the face value is better visible”. The chips still lie on the table, but tip toward you so their faces read rounder; their edges are drawn thinner to match. Button game D is on the screens below.</p>
   <div class="optgrid">${[
     ['toolsAQ', 'AQ · cards closer, chips tipped toward you', 'The cards moved in over the chips, each chip tipped and turned a few degrees.'],
     ['toolsAR', 'AR · as AQ, tipped further', 'The faces rounder still: the % and the fire read at a glance.'],
@@ -489,8 +609,8 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>The screens they land on, in Fresh Deck</h2>
-  <p>Updated 21 November with the tile layout you picked: the name on top at 19, the drawing in the bottom-right corner placed by its outline (4d). Drawn on the locked Fresh Deck direction from your style page: its layout, type, colours and copy, with the approved drawings in place of its placeholder icons. The drawings keep their approved shapes; their ink and red are Fresh Deck’s. Results and Tonight carry none: a spot names a place or a game, and those screens are rows and figures.</p>
-  ${freshDeckScreens(PICK)}
+  <p>Now under the header you approved: the rail, with the title small and bold beside a grey chevron. Updated 21 November with the tile layout you picked: the name on top at 19, the drawing in the bottom-right corner placed by its outline (4d). Drawn on the locked Fresh Deck direction from your style page: its layout, type, colours and copy, with the approved drawings in place of its placeholder icons. The drawings keep their approved shapes; their ink and red are Fresh Deck’s. Results and Tonight carry none: a spot names a place or a game, and those screens are rows and figures.</p>
+  ${freshDeckScreens(PICK, { rail: true })}
 </section>
 
 <section class="sec">
