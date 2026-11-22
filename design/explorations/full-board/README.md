@@ -247,3 +247,17 @@ a hidden screen gives nothing away. New feature and new words.
 - **Signing you in**: the turning chip is replaced by the chip stack from
   Start a session (owner's comment): its five chips drop onto the pile one
   after another, the stack holds, lifts away, and the round starts again.
+
+## Review, round seven (22 November)
+
+- **Signing you in**: the stack is always whole; each chip shakes a little up
+  and down on its own, a beat after the one below, the top moving most.
+- **Rule editors**: Remove moves into the bar beside Save (New session's rule
+  steps and /rule's existing rule). The quiet red line is gone.
+- **A second table needs no name**: it opens like the first; the line says
+  tonight is already open. Flagged: the app requires the name today.
+- **Your groups, empty**: four explainer concepts at the top of the board
+  (`05-this-round.mjs`): three steps, a walkthrough, the end of the night
+  shown, two ways in. All draft copy except the app's line and New group.
+- Approved: the square QR, the seated New session with the lifted chips,
+  New session, and New session with a buy-in open.
