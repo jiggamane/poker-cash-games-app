@@ -70,10 +70,65 @@ const doors = push({ title: 'Your groups',
   ],
   bar: bar('New group') });
 
-export const section = { title: 'This round: Your groups, empty, as an explainer',
-  blurb: 'Four concepts for the first screen a new person sees with no group yet. Each keeps the app’s own line and New group on the bar; everything else is draft copy for this round. Approve one, or say which parts to combine.' };
+
+/*
+ * Your groups, without a picture per group and without the currency (owner, 22 November: "no need to
+ * select, or have randomly selected, an icon for each group… show several options for this list").
+ * Four ways to tell groups apart using only what a group already has: its name, its players, its
+ * standing and whether a night is running. Same three groups in each.
+ */
+const GROUPS = [
+  { name: 'The Thursday game', players: 6, who: ['Andro', 'Dana', 'Lena', 'Ivo', 'Petr', 'Tomáš'], standing: 'admin', live: true, current: true },
+  { name: 'Friday deep stack', players: 9, who: ['Marek', 'Jana', 'Ondra', 'Eva', 'Pavel', 'Klára', 'Filip', 'Zuzana', 'Andro'], standing: 'member' },
+  { name: 'Office game', players: 4, who: ['Andro', 'Tereza', 'Martin', 'Lucie'], standing: 'name only' },
+];
+const caps = (t, onInk = false) => `<span style="font:700 10px/1 var(--body);letter-spacing:.09em;text-transform:uppercase;padding:4px 7px;border-radius:999px;${onInk ? 'background:rgba(255,255,255,.16);color:inherit' : 'background:var(--raised);color:var(--muted)'};white-space:nowrap">${t}</span>`;
+const liveLine = '<span class="win" style="display:inline-flex;align-items:center;gap:6px"><i style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></i>a night is running</span>';
+const lineOf = (g) => (g.live ? liveLine : `${g.players} players`);
+const GFLAGS = ['“Friday deep stack” and “Office game” and their players are sample groups: the seeded phone belongs to one group only.', 'Drawn without the currency, the owner’s call; the app shows it on this row today.'];
+const groupsScreen = (body) => push({ title: 'Your groups', sub: '3 groups', body, bar: bar('New group') });
+
+/* A — plain rows: one card, a row per group; the current one carries a tick. */
+const gA = groupsScreen([card(GROUPS.map((g) => `<div class="row" style="min-height:62px">
+  <span class="n" style="font:700 17px/1.2 var(--head)">${g.name}<small>${lineOf(g)}</small></span>
+  ${caps(g.standing)}<span style="width:20px;display:grid;place-items:center;flex:none">${g.current ? ico('check', 18) : ''}</span></div>`))]);
+
+/* B — a monogram made from the name: two letters, no choosing, nothing random. */
+const initials = (n) => n.replace(/^The /, '').split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+const gB = groupsScreen(GROUPS.map((g) => `<div class="card" style="display:flex;align-items:center;gap:12px;padding:12px">
+  <span style="width:48px;height:48px;border-radius:14px;flex:none;display:grid;place-items:center;font:800 18px/1 var(--head);letter-spacing:-.02em;${g.current ? 'background:var(--pri);color:var(--onpri)' : 'box-shadow:inset 0 0 0 1.5px var(--outline);color:var(--text)'}">${initials(g.name)}</span>
+  <div style="flex:1;min-width:0"><div style="font:700 17px/1.15 var(--head)">${g.name}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted);margin-top:5px"><span>${lineOf(g)}</span>${caps(g.standing)}</div></div></div>`));
+
+/* C — the people: the first names at the table say which group it is faster than any picture. */
+const who = (g) => `${g.who.slice(0, 3).join(', ')}${g.who.length > 3 ? ` and ${g.who.length - 3} more` : ''}`;
+const gC = groupsScreen(GROUPS.map((g) => `<div class="card pad" style="display:grid;gap:6px;${g.current ? 'box-shadow:var(--lift),inset 0 0 0 2px var(--text)' : ''}">
+  <div style="display:flex;align-items:center;gap:8px"><b style="flex:1;min-width:0;font:700 17px/1.15 var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.name}</b>${caps(g.standing)}</div>
+  <div style="font-size:13px;color:var(--text)">${who(g)}</div>
+  ${g.live ? `<div style="font-size:12.5px">${liveLine}</div>` : ''}</div>`));
+
+/* D — the name as the headline: the group you are in is the ink card, the others white. */
+const gD = groupsScreen(GROUPS.map((g) => `<div class="card" style="padding:14px 16px;display:grid;gap:8px;${g.current ? 'background:var(--pri);color:var(--onpri)' : ''}">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${caps(g.standing, g.current)}${g.live ? `<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;${g.current ? '' : 'color:var(--win)'}" class="${g.current ? 'live-pri' : ''}"><i style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></i>a night is running</span>` : `<span style="font-size:12px;opacity:.6">${g.players} players</span>`}</div>
+  <div style="font:800 22px/1.1 var(--head);letter-spacing:-.02em">${g.name}</div></div>`));
+
+const LIVE_PRI = `<style>.fb .live-pri{color:#7BE3AE}.dark .fb .live-pri{color:#0E7A45}</style>`;
+const GROUP_OPTIONS = [
+  { id: 'groups-plain', route: '/groups', name: 'Your groups A · plain rows', nav: 'push',
+    note: 'One card, a row per group: the name, how many play or that a night is running, your standing, and a tick on the group you are in. The quietest; the list reads like Tonight’s.', flags: GFLAGS, html: gA },
+  { id: 'groups-monogram', route: '/groups', name: 'Your groups B · a monogram from the name', nav: 'push',
+    note: 'Two letters from the group’s own name (TG, FD, OG) stand where the picture was: nothing to choose, nothing random. The group you are in has the ink square.',
+    flags: [...GFLAGS, 'Two groups whose names start with the same letters would share a monogram; the name beside it still tells them apart.'], html: gB },
+  { id: 'groups-people', route: '/groups', name: 'Your groups C · who plays there', nav: 'push',
+    note: 'Under each name, the first names at that table. People know a game by who is in it, so this tells groups apart faster than a picture. The group you are in is edged in ink.', flags: GFLAGS, html: gC },
+  { id: 'groups-headline', route: '/groups', name: 'Your groups D · the name as the headline', nav: 'push',
+    note: 'Each group a card with its name large and its standing above it. The group you are in is the ink card, so it reads at once as the one that is open.', flags: GFLAGS, html: LIVE_PRI + gD },
+];
+
+export const section = { title: 'This round: Your groups, full and empty',
+  blurb: 'Your groups without a picture per group and without the currency, four ways; then four explainer concepts for the empty screen a new person sees. Approve one of each, or say which parts to combine.' };
 
 export default [
+  ...GROUP_OPTIONS,
   { id: 'empty-steps', route: '/groups', name: 'Explainer A · three steps', nav: 'push',
     note: 'What a group is for, in the order you will do it: make it, bring your players, run the night. A drawing per step from the approved set. Reads in one glance; nothing to swipe.',
     flags: [DRAFT], html: steps },
