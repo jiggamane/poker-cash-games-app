@@ -319,3 +319,8 @@ a hidden screen gives nothing away. New feature and new words.
   session stack, then Sessions; New group on the bar of every page and "I
   have an invite code" under the dots; the last page is D's two ways in. The
   other concepts and `screens/05-this-round.mjs` are gone. Draft copy, flagged.
+
+- **Signing you in** (owner: "shouldn't stack up so evenly and one by one"): the
+  riffle is one rush of about a fifth of a second, chips land tipped and out
+  of line by up to four points, and the squaring leaves each chip a touch off
+  line and level, different every round, carried into the next.

@@ -76,6 +76,9 @@ const stackWait = (px = 168) => {
       const from = orders[k].indexOf(c), to = orders[k + 1].indexOf(c);
       const top = from >= 3, ht = top ? from - 3 : from, dir = top ? -1 : 1;     /* the top half goes left, as in the GIF */
       const j = (n) => (rand(k * 31 + c * 7 + n) - 0.5);                 /* -0.5 … 0.5, per round, chip and step */
+      /* What a squared stack still keeps: each chip a touch off line and off level, different every round. */
+      const slop = (round) => (round < 0 ? { x: 0, rot: 0 } : { x: (rand(round * 31 + c * 7 + 40) - 0.5) * 2.2, rot: (rand(round * 31 + c * 7 + 41) - 0.5) * 3 });
+      const was = slop(k === 0 ? rounds - 1 : k - 1), now = slop(k);
       const sx = dir * dx;
       const tilt = 10 + j(1) * 2.5;                                      /* degrees each stack tips up at the seam */
       /*
@@ -87,10 +90,10 @@ const stackWait = (px = 168) => {
       const rx = bx * Math.cos(th) + by * Math.sin(th), ry = -bx * Math.sin(th) + by * Math.cos(th);
       const leanX = sx + dir * (bx - rx), leanY = ry;                      /* the foot is r outside the stack centre; the right stack mirrors the left */
       const peakRot = dir * tilt;                                         /* left turns back (inner edge up), right turns forward */
-      const off = j(2) * 1.6;                                            /* how far out of line it lands */
+      const off = j(2) * 4.2;                                            /* how far out of line it lands: a riffle is not neat */
       /* 0: the stack as it stands, squared */
-      put(R(0), T(0, -from * h, 0, from), EASE.hold);
-      put(R(0.05 + j(3) * 0.02), T(0, -from * h, 0, from), top ? EASE.lift : EASE.hold);
+      put(R(0), T(was.x, -from * h, was.rot, from), EASE.hold);
+      put(R(0.05 + j(3) * 0.02), T(was.x, -from * h, was.rot, from), top ? EASE.lift : EASE.hold);
       /* 1: the top half is slid off sideways along the felt, so the halves sit apart; then pushed back together */
       const apart = T(sx * 1.45, -ht * h, 0, ht);
       if (top) {
@@ -105,17 +108,24 @@ const stackWait = (px = 168) => {
       put(R(0.35), T(sx, -ht * h, 0, ht), EASE.lift);                 /* pushed together until they touch */
       /* 2: thumbs press the seam up: both columns lean in */
       put(R(0.42), T(leanX, leanY, peakRot, ht), EASE.hold);
-      /* 3: the chips fall in from the bottom, one side then the other, a little unevenly */
-      const go = 0.45 + to * 0.04 + j(5) * 0.015;
+      /*
+       * 3: the chips fall in together, not one by one (owner, 22 November: "they shouldn't stack up so
+       * evenly and one by one"). The whole riffle is a single burst of about a fifth of a second: each
+       * side lets go in a rush, bottom chips a hair before top ones, and when they land they land
+       * where they land, tipped and out of line, some by a lot.
+       */
+      const go = 0.455 + ht * 0.012 + Math.abs(j(5)) * 0.05 + (top ? 0.008 : 0);
       put(R(go), T(leanX, leanY, peakRot, ht), EASE.fall);
-      put(R(go + 0.04), T(off * 0.5 + dir * 0.8, -to * h + 0.8, peakRot * 0.2, to), EASE.settle);
-      put(R(go + 0.075), T(off, -to * h, 0, to), EASE.hold);
+      put(R(go + 0.035), T(off * 0.7 + dir * 1.4, -to * h + 1, peakRot * 0.35 + j(7) * 5, to), EASE.settle);
+      put(R(go + 0.06), T(off, -to * h, j(8) * 6, to), EASE.hold);
       /* 4: the hand squares the stack: pushed true from the sides, a last small rock */
-      put(R(0.76 + j(6) * 0.015), T(off, -to * h, 0, to), EASE.slide);
-      put(R(0.82), T(-off * 0.25, -to * h, 0, to), EASE.settle);
-      put(R(0.88), T(0, -to * h, 0, to), EASE.hold);
+      /* 4: squared, roughly: pushed in from the sides once, rocked, and left a touch uneven */
+      put(R(0.7 + j(6) * 0.02), T(off, -to * h, j(8) * 6, to), EASE.slide);
+      put(R(0.79), T(-off * 0.2 + now.x * 0.5, -to * h, now.rot * 0.6, to), EASE.settle);
+      put(R(0.87), T(now.x, -to * h, now.rot, to), EASE.hold);
     }
-    put(1, T(0, -orders[rounds].indexOf(c) * h, 0, orders[rounds].indexOf(c)));
+    { const last = { x: (rand((rounds - 1) * 31 + c * 7 + 40) - 0.5) * 2.2, rot: (rand((rounds - 1) * 31 + c * 7 + 41) - 0.5) * 3 };
+      put(1, T(last.x, -orders[rounds].indexOf(c) * h, last.rot, orders[rounds].indexOf(c))); }
     frames.sort((a, b) => a[0] - b[0]);
     const kf = `@keyframes fb-rf${c}{${frames.map(([pct, t, e]) => `${pct.toFixed(3)}%{${css(t)};animation-timing-function:${e}}`).join('')}}`;
     const origin = `${((cx - vb[0]) * sc).toFixed(1)}px ${((GROUND - 1 - vb[1]) * sc).toFixed(1)}px`;
@@ -257,7 +267,7 @@ export default [
       bar: bar('Send myself another') }) },
 
   { id: 'auth-callback-wait', route: '/auth-callback', name: 'Signing you in', nav: 'root',
-    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: an invisible hand riffles the chips as in the owner’s GIF: the top half slid off sideways, the halves pushed back together, peaked at the seam so the chips fall into one stack, then squared; the colours mix from round to round. Three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
+    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: an invisible hand riffles the chips as in the owner’s GIF: the top half slid off sideways, the halves pushed back together, peaked at the seam so the chips fall in a single rush, landing tipped and out of line, then squared roughly, never quite true; the colours mix from round to round. Three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
     flags: ['The stack, its motion and the three dots are new: the app shows the two words and nothing else. Motion stops for anyone who has reduced motion turned on.'],
     html: `<div class="fb"><div class="scr" style="justify-content:center;align-items:center;text-align:center;color:#fff">
       <div style="position:absolute;top:0;left:0;right:0;padding:0 18px">${pushRaw({ topHtml: '', body: '' }).match(/<div class="sb">.*?<\/svg><\/div>/)[0]}</div>

@@ -14,7 +14,7 @@
 export const BUILT = '2026-11-22T22:00:00Z';
 
 export const ADDRESSED = {
-  'auth-callback-wait': ['Timed against your GIF: the top half slid off sideways along the felt, the halves pushed back together until they touch, peaked at the seam so the chips fall into one stack, then squared. 2.35 seconds a round, like the GIF.', '2026-11-22T22:40:00Z'],
+  'auth-callback-wait': ['No longer even or one by one: the chips fall in a single rush of about a fifth of a second, land tipped and out of line, and the squaring leaves each a touch uneven, differently every round.', '2026-11-22T22:55:00Z'],
   'groups-empty': ['The walkthrough you picked (B), all four pages: the group’s chips first, as you asked, and the create or invite choice from D folded in, with the invite code on every page and the two doors on the last.', '2026-11-22T22:50:00Z'],
   'new-night-rule-rest': ['Remove moved into the bar beside Save rule, on every rule editor that edits an existing rule.', '2026-11-22T22:00:00Z'],
   'new-night-second': ['No name for a second table: it opens like the first, the bar live, a line saying tonight is already open.', '2026-11-22T22:00:00Z'],
