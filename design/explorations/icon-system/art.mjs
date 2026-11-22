@@ -1849,6 +1849,23 @@ const MARK = {
   kitchen: `<path d="M5 2.5a1 1 0 0 1 1 1V8h1V3.5a1 1 0 0 1 2 0V8h1V3.5a1 1 0 0 1 2 0V9a3.5 3.5 0 0 1-2.2 3.25V20.3a1.3 1.3 0 0 1-2.6 0V12.25A3.5 3.5 0 0 1 4 9V3.5a1 1 0 0 1 1-1Z"/><path d="M16 2.5c2.4 1 4 3.9 4 7.3V13h-1.4v7.3a1.3 1.3 0 0 1-2.6 0Z"/>`,
   piggy: `<path fill-rule="evenodd" d="M10.5 5.5c1.7 0 3.2.5 4.5 1.3L17.6 5l-.3 3.3c.7.8 1.2 1.7 1.5 2.7H21a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2.2a7.6 7.6 0 0 1-1.8 2.6V20a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-.7c-1 .2-2 .2-3 0V20a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-2.4A7.2 7.2 0 0 1 3.6 13a1.6 1.6 0 0 1-1.6-1.6V10.8a.8.8 0 0 1 1.6 0v.4a7 7 0 0 1 6.9-5.7ZM8.5 8.4h4a.7.7 0 0 1 0 1.4h-4a.7.7 0 0 1 0-1.4Z"/><circle cx="16" cy="11.6" r="1" fill="none"/>`,
 };
+/* The piggy bank again, 22 November: "the way the hole looks feels wrong and check the piggy shapes". The first
+   pig was one freehand outline with a flat pill cut into it. These are built from plain parts instead: an oval
+   body, a square snout, a rounded ear, two feet, a curl of tail, an eye. What differs is how the money shows. */
+const pig = (bodyCuts, extra = '') =>
+  `<path d="M2.2 10.2c-.9 1.5.2 3.300 1.900 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M13.4 8.300L15.3 4.800a.7.7 0 0 1 1.200-.1L18.600 8.300Z"/>
+  <rect x="6.2" y="16.5" width="3.4" height="5" rx="1.2"/><rect x="13.2" y="16.5" width="3.4" height="5" rx="1.2"/>
+  <rect x="17.5" y="10.800" width="4.5" height="5" rx="1.5"/>
+  <path fill-rule="evenodd" d="M3.2 13.2a8.300 6.300 0 1 0 16.600 0a8.300 6.300 0 1 0-16.600 0ZM14.900 11.300a1 1 0 1 0 2 0a1 1 0 1 0-2 0Z${bodyCuts}"/>${extra}`;
+Object.assign(MARK, {
+  /* B: no hole at all. A coin sits just above the back, on its way in. */
+  piggyB: pig('', `<circle cx="9.800" cy="3.500" r="2.300"/>`),
+  /* C: a short slot that follows the curve of the back, near the top. */
+  piggyC: pig('M8.500 9.600c1.900-.7 4.100-.7 6 0l.55-1.450c-2.300-.85-4.800-.85-7.100 0Z'),
+  /* D: nothing but the pig. */
+  piggyD: pig(''),
+});
 /* The second eight, the same day: the owner on the drawer rows and the menu bar — "we don't need that much
    details in the icons, make them minimalistic", "these should be more simple". Same rules as the four above. */
 const gear = (() => {
@@ -1872,11 +1889,14 @@ Object.assign(MARK, {
   tools: `<g transform="rotate(8 12 12)"><path fill-rule="evenodd" d="M7.5 2h9A2.5 2.5 0 0 1 19 4.5v15a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 19.5v-15A2.5 2.5 0 0 1 7.5 2ZM12 6.3c-2 0-3.3 1.3-3.3 3h2c0-.7.5-1.2 1.3-1.2s1.3.5 1.3 1.1c0 .6-.3.9-1 1.4c-.9.6-1.4 1.300-1.4 2.6v.3h2v-.2c0-.6.2-.9.9-1.400c1-.7 1.600-1.500 1.600-2.800c0-1.700-1.400-2.800-3.400-2.800ZM12 15a1.25 1.25 0 1 0 0 2.5a1.25 1.25 0 0 0 0-2.5Z"/></g>`,
 });
 /** A simple mark at a size, in one colour: for a line of text, not for a tile. */
-export const mark = (key, size, color) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${color}" aria-hidden="true">${MARK[key]}</svg>`;
-const asSpot = (key) => (P) => `<g transform="translate(15 23) scale(2.75)" fill="${P.ink.inlay}">${MARK[key]}</g>`;
+export const mark = (key, size, color) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${color}" style="color:${color}" aria-hidden="true">${MARK[key]}</svg>`;
+const asSpot = (key) => (P) => `<g transform="translate(15 23) scale(2.75)" fill="${P.ink.inlay}" style="color:${P.ink.inlay}">${MARK[key]}</g>`;
 const m28 = (key, name, variant, where) => ({ name, variant: `simple · ${variant}`, where, status: 'round28', draw: asSpot(key) });
 
 Object.assign(SPOTS, {
+  markPiggyB: m28('piggyB', 'Group piggy bank', 'B · a coin above, no hole', 'Results · rows and deductions'),
+  markPiggyC: m28('piggyC', 'Group piggy bank', 'C · a slot that follows the back', 'Results · rows and deductions'),
+  markPiggyD: m28('piggyD', 'Group piggy bank', 'D · the pig alone', 'Results · rows and deductions'),
   markSeat: m28('seat', 'Seat a player', 'a player', 'Tonight · Table admin'),
   markCashOut: m28('cashOut', 'Cash out a player', 'a banknote', 'Tonight · Table admin'),
   markRules: m28('rules', 'Money rules', 'the rule book', 'Tonight · Table admin'),

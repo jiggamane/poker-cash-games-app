@@ -90,3 +90,8 @@ the menu bar: *these should be more simple*): the other eight, and the tools
 button, are marks too. The detailed `ui*` drawings are under the earlier
 rounds. So small icons beside a label are marks; spots are for tiles, rows of
 games and sheets.
+
+The piggy-bank mark was sent back the same day (*the way the hole looks feels
+wrong and check the piggy shapes*): redrawn from plain parts as B (a coin
+above, no hole), C (a slot following the back) and D (the pig alone). B is the
+one shown in place until the owner picks.
