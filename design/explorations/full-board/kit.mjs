@@ -40,6 +40,8 @@ export const CSS = `
 .fb *{box-sizing:border-box}
 .fb .scr{position:relative;height:100%;border-radius:37px;overflow:hidden;background:var(--top);color:var(--text);font:400 14px/1.35 var(--body);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
 .fb .num{font-family:var(--head);font-variant-numeric:tabular-nums}
+/* Every money figure is set in the figure face, whatever the text around it (owner, 22 November): moneyFont in build.mjs wraps each one in .m. Size and weight come from the line it sits in. */
+.fb .m{font-family:var(--head);font-variant-numeric:tabular-nums;letter-spacing:-.005em}
 .fb .win{color:var(--win)}.fb .loss{color:var(--loss)}.fb .muted{color:var(--muted)}.fb .dimt{color:var(--dim)}.fb .red{color:var(--red)}
 .fb .ico{display:inline-flex;flex:none;line-height:0}.fb .ico svg{display:block}
 
