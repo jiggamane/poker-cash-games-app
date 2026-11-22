@@ -36,6 +36,11 @@ four approved screens (Main menu, Tonight, Game boosters, Post-game results):
    good. can we compare diff 'intensity' of shades?"* — read as the strength of
    the cards' shadow. Four steps, L1 whisper to L4 deep; L2 is A3 as reviewed.
    `SHADES` in `build.mjs`. The dark and footer groups have no verdict yet.
+7. **Approved, 22 November: L2** — ink top, white sheet, white cards on the
+   soft shadow (`LIFT`). The page now shows that as decided, with two things
+   open: the dark version (raised cards, one option) and the footer (F0 as it
+   stands, F1–F3 the ink bar), both redrawn on the approved body. A1, A2, the
+   other shadow strengths and the two other dark bodies are off the page.
 
 Each option is the same phones with a few colour rules laid over them
 (`themeCSS` in `build.mjs`), in its own shadow root.
