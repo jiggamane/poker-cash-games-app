@@ -324,3 +324,8 @@ a hidden screen gives nothing away. New feature and new words.
   riffle is one rush of about a fifth of a second, chips land tipped and out
   of line by up to four points, and the squaring leaves each chip a touch off
   line and level, different every round, carried into the next.
+
+- **Walkthrough, last page**: the "Start a group" card is gone, so New group is
+  only on the bar, as on the pages before. The invite code is the page, drawn
+  two ways: open (the two boxes and Check the code) and semi-open (one field
+  that opens into them).
