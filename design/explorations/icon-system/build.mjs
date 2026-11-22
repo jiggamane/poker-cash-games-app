@@ -153,6 +153,25 @@ const ROUND19 = [
 ];
 
 
+/*
+ * Tonight's tools button on the white rail, round 30. The app's button is a
+ * 40-point round with the question card at 21 (ToolsButton.tsx), icon-only by
+ * the owner's choice of 9 November so the role line keeps its room; only the
+ * round's treatment changes between these.
+ */
+const TB = [
+  ['tb-grey', 'A · grey fill', 'The screen’s grey (#EEF0F3) inside the round: what was proposed, kept for comparison.', 'background:#EEF0F3', '#141A2A'],
+  ['tb-ring', 'B · a hairline ring', 'White like the rail, with the rail’s own hairline (#E4E7EC) around it: the round is there, and no grey block sits on the clean white.', 'background:#fff;box-shadow:inset 0 0 0 1.5px #E4E7EC', '#141A2A'],
+  ['tb-raised', 'C · white, raised', 'White with Fresh Deck’s soft shadow, like the back button on the grey screens.', 'background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.14),0 4px 10px -4px rgba(20,26,42,.22)', '#141A2A'],
+  ['tb-ink', 'D · ink', 'A solid ink round, the glyph in white. The strongest: it reads as the one button on the header.', 'background:#141A2A', '#FFFFFF'],
+  ['tb-tint', 'E · a faint ink tint', 'Ink at 6%: a shade darker than A, so it reads on the rail’s white and on its faint top gradient alike.', 'background:rgba(20,26,42,.06)', '#141A2A'],
+  ['tb-bare', 'F · no round', 'The glyph alone at 22, like the rail’s bare back chevron. Least chrome; the tap area stays 40.', 'background:none', '#141A2A'],
+];
+const tbMock = (style, ink) => `<div class="fd"><div class="mini" style="width:300px;background:#fff;padding:14px 14px 16px;border-radius:0 0 26px 26px;box-shadow:inset 0 -1px 0 #E4E7EC,0 14px 24px -20px rgba(20,26,42,.28)">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="color:#596171;line-height:0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span><b style="font:700 22px/1.1 'Libre Franklin',system-ui,sans-serif;color:#141A2A;letter-spacing:-.015em">Tonight</b></div>
+  <div class="ip-role" style="margin-left:30px"><span><b>You’re recording</b> · started 14:07</span><span style="width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;${style}"><span class="ip-app" style="color:${ink};--s:21px">${APP.questionCard}</span></span></div>
+</div></div>`;
+
 const optCell = ({ key, title, note, html }) => `<figure class="cell opt" data-key="${key}">${html}<figcaption><b>${title}</b><span>${note}</span></figcaption>${REVIEW ? reviewBlock(key, title) : ''}</figure>`;
 
 const roundNow = () => ROUND.map(([title, quote, keys]) => `
@@ -423,6 +442,13 @@ ${RB_CSS}
   <p class="lede" style="margin-top:10px">Under every drawing in <b style="color:${C.ink}">The set</b>: tap <b style="color:${C.ink}">Approve</b> or <b style="color:${C.ink}">Needs work</b>, and say what to change in the box. Everything saves as you go, and Claude reads it from here.</p>` : ''}
 </header>
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
+
+<section class="sec">
+  <h2>Round 30 — Tonight’s tools button, more options</h2>
+  <p class="quote">“lets try more options and pick the best”</p>
+  <p>Every option keeps the app’s button as it is built: one round, 40 across, the question card at 21, no label (you chose icon-only on 9 November so the role line keeps its room). Only the round changes. <b style="color:${C.ink}">My pick is B, the hairline ring.</b> The rail you approved is white with a hairline along its foot; a ring in that same hairline keeps the round visible as something to tap without putting a grey block on the white. A reads as a hole in the rail, C floats, D shouts louder than the title, E is A by another name, and F stops looking like a button.</p>
+  <div class="optgrid">${TB.map(([key, title, note, style, ink]) => optCell({ key, title: key === 'tb-ring' ? title + ' · my pick' : title, note, html: tbMock(style, ink) })).join('')}</div>
+</section>
 
 <section class="sec">
   <h2>To confirm</h2>
