@@ -336,3 +336,8 @@ a hidden screen gives nothing away. New feature and new words.
   resting slop; `will-change: transform` on each layer. Sampled every 16 ms
   over the loop: biggest change of step 15.8 px → 1.0 px, fastest step
   17.0 px → 5.3 px, biggest turn jolt 3.7° → 0.3°.
+
+- **Walkthrough, both ways in equal** (owner): the bar is two halves on every
+  page, New group and I have a code; on the last page the right half is Check
+  the code, faint until six characters are in. The joining card shows the
+  group's three chips.

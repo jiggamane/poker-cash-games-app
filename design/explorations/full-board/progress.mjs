@@ -15,6 +15,8 @@ export const BUILT = '2026-11-22T22:00:00Z';
 
 export const ADDRESSED = {
   'auth-callback-wait': ['Smooth: every move eased in and out with no stops mid-move and no small twitches; the push and the peak are one motion; the chips flow down in a short overlapping wave. Measured at 60 frames a second, the biggest jolt went from 16 pixels to under 1.', '2026-11-22T23:15:00Z'],
+  'groups-empty-2': ['New group and I have a code are now two equal halves of the bar on every page; on the last page the right half is Check the code. The joining card carries the group’s three chips.', '2026-11-22T23:25:00Z'],
+  'groups-empty-4b': ['The joining card’s drawing is the group’s three chips.', '2026-11-22T23:25:00Z'],
   'groups-empty-4': ['One New group, on the bar only; the invite code is the page, as an open form (boxes and Check the code) or semi-open (one field that opens).', '2026-11-22T23:05:00Z'],
   'groups-empty': ['The walkthrough you picked (B), all four pages: the group’s chips first, as you asked, and the create or invite choice from D folded in, with the invite code on every page and the two doors on the last.', '2026-11-22T22:50:00Z'],
   'new-night-rule-rest': ['Remove moved into the bar beside Save rule, on every rule editor that edits an existing rule.', '2026-11-22T22:00:00Z'],
@@ -30,7 +32,7 @@ export const ADDRESSED = {
 };
 
 /* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
-export const SHOW = { 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-4': ['groups-empty-4', 'groups-empty-4b'] };
+export const SHOW = { 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-4': ['groups-empty-4', 'groups-empty-4b'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4', 'groups-empty-4b'] };
 
 export const DECIDED = [
   ['Home’s footer', 'as drawn: the ink bar with its three controls'],
@@ -47,6 +49,8 @@ export const DECIDED = [
 /** The db as read at build: id → [status, comment, updatedAt]. Only screens with a verdict. */
 export const SNAPSHOT = {
   'auth-callback-wait': ['changes', 'the motion is generally right but it should look natural', '2026-11-22T22:01:00Z'],
+  'groups-empty-2': ['changes', 'invite code should be not less important than creating the group option', '2026-11-22T22:15:45Z'],
+  'groups-empty-4b': ['changes', 'group icon is the 3 chips one', '2026-11-22T22:16:53Z'],
   'groups-empty-4': ['changes', 'two conflicting buttons for new group; keep consistent with the ux, but the invite code option can be larger and have an open form or semi-open', '2026-11-22T22:14:30Z'],
   'groups-empty': ['changes', 'concept B: good, show the other screens, use the group chips icon for the first; combine the create / invite logic from concept D into it', '2026-11-22T22:10:36Z'],
   'new-night': ['approved', '', '2026-11-22T21:37:00Z'],
