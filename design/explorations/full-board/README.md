@@ -311,3 +311,11 @@ a hidden screen gives nothing away. New feature and new words.
   half slides off sideways to the left along the felt, the halves sit apart,
   are pushed back together until they touch, peak and riffle, and the stack is
   squared. 2.35 s a round; the split is a slide, not a lift.
+
+## Round eleven (22 November)
+
+- **Your groups, empty: the walkthrough (B)**, four pages on its own screen
+  (`groups-empty`, `-2`, `-3`, `-4`): the group's chips first, then the
+  session stack, then Sessions; New group on the bar of every page and "I
+  have an invite code" under the dots; the last page is D's two ways in. The
+  other concepts and `screens/05-this-round.mjs` are gone. Draft copy, flagged.
