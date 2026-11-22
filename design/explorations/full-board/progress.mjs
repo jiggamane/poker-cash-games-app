@@ -14,7 +14,7 @@
 export const BUILT = '2026-11-22T22:00:00Z';
 
 export const ADDRESSED = {
-  'auth-callback-wait': ['Matched to your frames from the video: the two stacks stand touching, tip up on their outer feet so they peak at the seam, and the chips drop into one stack right where they meet; the top half is moved over low and close; the stack is squared at the end.', '2026-11-22T22:30:00Z'],
+  'auth-callback-wait': ['Timed against your GIF: the top half slid off sideways along the felt, the halves pushed back together until they touch, peaked at the seam so the chips fall into one stack, then squared. 2.35 seconds a round, like the GIF.', '2026-11-22T22:40:00Z'],
   'groups-empty': ['Four explainer concepts at the top of the board: three steps, a walkthrough, the end of the night shown, two ways in.', '2026-11-22T22:00:00Z'],
   'new-night-rule-rest': ['Remove moved into the bar beside Save rule, on every rule editor that edits an existing rule.', '2026-11-22T22:00:00Z'],
   'new-night-second': ['No name for a second table: it opens like the first, the bar live, a line saying tonight is already open.', '2026-11-22T22:00:00Z'],

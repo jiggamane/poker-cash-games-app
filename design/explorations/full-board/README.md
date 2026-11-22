@@ -306,3 +306,8 @@ a hidden screen gives nothing away. New feature and new words.
   stacks stand touching (dx = r), tip about ten degrees on their outer feet so
   they peak at the seam, and the chips drop into one stack where they meet; the
   top half is moved over low and close.
+
+- **Signing you in**, timed against the owner's GIF (29 frames, 2.3 s): the top
+  half slides off sideways to the left along the felt, the halves sit apart,
+  are pushed back together until they touch, peak and riffle, and the stack is
+  squared. 2.35 s a round; the split is a slide, not a lift.
