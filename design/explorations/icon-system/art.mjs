@@ -1834,3 +1834,28 @@ Object.assign(SPOTS, {
       <circle cx="48" cy="61" r="8" fill="${P.red.top}"/>${suit('heart', 44, 57.4, 8, P.red.mark)}</g>`,
   },
 });
+
+/* ── round 28, 22 November: the results' icons, simple and in one tone ───
+ *
+ * The owner on the results row: no coloured icons here; simpler curves and
+ * shapes, fewer details, still well designed. So these four are not spots.
+ * They are solid marks in one grey, drawn on a 24 grid for 13 to 20 points,
+ * with at most one cut-out each. The pair reads by fill: chips in is a solid
+ * chip, chips out is an open one.
+ */
+const MARK = {
+  chipsIn: `<path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20ZM10.5 6.5h3v6h3.3L12 17.6L7.2 12.5h3.3Z"/>`,
+  chipsOut: `<path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20ZM12 4.4a7.6 7.6 0 1 1 0 15.2a7.6 7.6 0 0 1 0-15.2Z"/><path d="M12 6.4L16.8 11.5h-3.3v6h-3v-6H7.2Z"/>`,
+  kitchen: `<path d="M5 2.5a1 1 0 0 1 1 1V8h1V3.5a1 1 0 0 1 2 0V8h1V3.5a1 1 0 0 1 2 0V9a3.5 3.5 0 0 1-2.2 3.25V20.3a1.3 1.3 0 0 1-2.6 0V12.25A3.5 3.5 0 0 1 4 9V3.5a1 1 0 0 1 1-1Z"/><path d="M16 2.5c2.4 1 4 3.9 4 7.3V13h-1.4v7.3a1.3 1.3 0 0 1-2.6 0Z"/>`,
+  piggy: `<path fill-rule="evenodd" d="M10.5 5.5c1.7 0 3.2.5 4.5 1.3L17.6 5l-.3 3.3c.7.8 1.2 1.7 1.5 2.7H21a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2.2a7.6 7.6 0 0 1-1.8 2.6V20a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-.7c-1 .2-2 .2-3 0V20a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-2.4A7.2 7.2 0 0 1 3.6 13a1.6 1.6 0 0 1-1.6-1.6V10.8a.8.8 0 0 1 1.6 0v.4a7 7 0 0 1 6.9-5.7ZM8.5 8.4h4a.7.7 0 0 1 0 1.4h-4a.7.7 0 0 1 0-1.4Z"/><circle cx="16" cy="11.6" r="1" fill="none"/>`,
+};
+/** A simple mark at a size, in one colour: for a line of text, not for a tile. */
+export const mark = (key, size, color) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${color}" aria-hidden="true">${MARK[key]}</svg>`;
+const asSpot = (key) => (P) => `<g transform="translate(15 23) scale(2.75)" fill="${P.ink.inlay}">${MARK[key]}</g>`;
+
+Object.assign(SPOTS, {
+  markChipsIn: { name: 'Chips in', variant: 'simple · a solid chip, the arrow in', where: 'Results · a player’s row', status: 'round28', draw: asSpot('chipsIn') },
+  markChipsOut: { name: 'Chips out', variant: 'simple · an open chip, the arrow out', where: 'Results · a player’s row', status: 'round28', draw: asSpot('chipsOut') },
+  markKitchen: { name: 'Kitchen & drinks', variant: 'simple · fork and knife', where: 'Results · rows and deductions', status: 'round28', draw: asSpot('kitchen') },
+  markPiggy: { name: 'Group piggy bank', variant: 'simple · the pig, one slot', where: 'Results · rows and deductions', status: 'round28', draw: asSpot('piggy') },
+});
