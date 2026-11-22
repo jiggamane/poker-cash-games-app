@@ -14,12 +14,24 @@ four approved screens (Main menu, Tonight, Game boosters, Post-game results):
    palette and the primary buttons turn light.
 3. **When a list scrolls** — the rail scrolls away, slims to a bar, or stays.
 
-4. **Outside the system** (added later the same day, shown first on the page) —
-   the three groups above keep one layout and move its colours; these five
-   change what the header, the ground and the footer *are*: A ink top with a
-   white sheet, B felt, C paper (no panels, no cards, an ink bar at the foot),
-   D frosted bars over a coloured ground, E the header band's colour says the
-   state (green live, ink settled). `BEYOND` in `build.mjs`.
+4. **Outside the system** (same day) — five approaches that changed what the
+   header, the ground and the footer *are*. The owner reviewed them
+   (collection `reviews`, keys `beyond-*`):
+   - Ink top, white sheet: **headers liked**; the grey fills under the content
+     are not; wants a dark theme.
+   - Felt: hidden. Frosted bars: too playful for live players.
+   - Paper: the ink bar at the foot is worth exploring on more screens; the
+     rule under the title is not liked.
+   - The header says the state: no green — stereotypical casino, old-fashioned.
+5. **Round two** (shown first on the page), built from those notes: the ink
+   header on everything, then *Under the content* (A1 plain rows, A2 outlined
+   cards, A3 lifted cards), the same three in the dark, and *The ink bar at
+   the foot* (F1 square, F2 rounded like the sheet, F3 the bar is the button)
+   on six screens. Count up and Settle up are sketches for the footer only:
+   titles, step labels and button words are the app's, the bodies are not
+   (the Settle up transfers are illustrative, not the engine's).
+   `UNDER`, `UNDER_DARK`, `FOOT` in `build.mjs`. The five from 4 are no longer
+   on the page.
 
 Each option is the same phones with a few colour rules laid over them
 (`themeCSS` in `build.mjs`), in its own shadow root.

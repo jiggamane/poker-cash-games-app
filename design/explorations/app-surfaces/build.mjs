@@ -54,6 +54,28 @@ const style = await page.evaluate((APP) => {
     css: [...document.querySelectorAll('style')].map((s) => s.textContent).filter((t) => !t.startsWith(':root{color-scheme:light;box-sizing')).join('\n'),
     sprite: [...document.querySelectorAll('svg')].filter((s) => s.querySelector('symbol')).map((s) => s.outerHTML).join(''),
     tonight: phones[0], results: phones[3],
+    ...(() => {
+      /* Two more screens that end in one action, for the footer study: Tonight's phone with the app's own titles, step labels and footer words. Bodies simplified. */
+      const make = (title, step, foot, edit) => {
+        const p = document.querySelectorAll('#d2 .strip figure .phone')[0].cloneNode(true);
+        p.querySelector('.railp h1').textContent = title;
+        p.querySelectorAll('.railp .role, .railp .hero').forEach((n) => n.remove());
+        const live = p.querySelector('.railp .live'); live.className = 'stepn'; live.textContent = step;
+        const f = document.createElement('div'); f.className = 'foot'; f.innerHTML = `<span class="btn-pri">${foot}</span>`;
+        p.querySelector('.dock').replaceWith(f);
+        edit(p); return p.outerHTML;
+      };
+      const relabel = (lbl, text) => { [...lbl.childNodes].filter((n) => n.nodeType === 3 || n.tagName !== 'svg').forEach((n) => n.remove()); lbl.append(text); };
+      return {
+        countUp: make('Count up', '1 of 3', 'Next', (p) => { const l = p.querySelectorAll('.seclbl'); relabel(l[0], 'Still to count · 5'); relabel(l[1], 'Counted · 1'); }),
+        settleUp: make('Settle up', '3 of 3', 'Close the session', (p) => {
+          p.querySelectorAll('.seclbl, .outrow').forEach((n) => n.remove());
+          const rows = p.querySelectorAll('.rows .prow');
+          [['Petr → Dana', '$1,230'], ['Ivo → Andro', '$526'], ['Tomáš → Lena', '$374'], ['Ivo → Dana', '$199'], ['Ivo → Lena', '$55']].forEach(([n, a], i) => { rows[i].querySelector('.nm').textContent = n; rows[i].querySelector('.amt').textContent = a; });
+          p.querySelector('.rows').style.marginTop = '16px';
+        }),
+      };
+    })(),
   };
 }, APP);
 
@@ -139,66 +161,76 @@ ${sel} .railp .dd{background:rgba(255,255,255,.14)!important;box-shadow:none!imp
 ${sel} .railp .role .rb.tools-d{background:#fff!important}${sel} .railp .role .rb.tools-d .appico{color:${INK}!important}`;
 const bareRail = `.railp{background:none!important;box-shadow:none!important;border-radius:0!important}`;
 
-const BEYOND = [
-  { key: 'beyond-sheet', name: 'A · Ink top, white sheet', note: 'The header is not a panel: it is the top of an ink screen, in white type, and Tonight’s pot sits on it. Everything else is one white sheet that rises over it. Cards are flat grey on the sheet. The footer is not a floating dock: it is the foot of the sheet, behind a hairline.',
-    t: { ...L, ground: '#FFFFFF', card: '#F3F4F7', raised: '#E9EBF0', cardShadow: 'none', rail: INK, railShadow: 'none' },
-    css: `${onBand()}
+/*
+ * Round two, after the owner's review of the first five (22 November):
+ *   A ink top, white sheet  — headers liked; the grey card fills are not; wants a dark theme.
+ *   B felt                  — hidden.
+ *   C paper                 — the ink bar at the foot is worth exploring, on more screens; the rule under the title is not liked.
+ *   D frosted bars          — too playful for live players.
+ *   E state colour          — no green: stereotypical casino.
+ * So: A's header on everything, three answers to what sits under the content,
+ * the same in dark, and the ink foot bar three ways on six screens.
+ */
+const sheetTop = (sheet = '#fff') => `${onBand()}
 .railp{border-radius:0!important;padding-bottom:42px!important;margin-bottom:0!important}
-.railp::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:27px;background:#fff;border-radius:26px 26px 0 0}
+.railp::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:27px;background:${sheet};border-radius:26px 26px 0 0}
 .railp.home{padding-bottom:50px!important}.railp.home + .cta{margin-top:-12px!important}
-.dock{left:0!important;right:0!important;bottom:0!important;border-radius:0!important;background:#fff!important;box-shadow:inset 0 1px 0 #E4E7EC!important;padding:10px 18px 24px!important}
-.foot{left:0!important;right:0!important;bottom:0!important;padding:12px 18px 24px;background:#fff;box-shadow:inset 0 1px 0 #E4E7EC}
-.menubar{left:0!important;right:0!important;bottom:0!important;padding:12px 18px 24px;background:#fff;box-shadow:inset 0 1px 0 #E4E7EC}
-.menubar .rb,.menubar .fdpill,.menubar .pill{background:#F3F4F7!important}` },
+.railp .hdr .stepn{font:600 13px/1 'Inter',system-ui,sans-serif;color:rgba(255,255,255,.72)}`;
+const footOnSheet = (sheet, line, pill) => `
+.dock{left:0!important;right:0!important;bottom:0!important;border-radius:0!important;background:${sheet}!important;box-shadow:inset 0 1px 0 ${line}!important;padding:10px 18px 24px!important}
+.foot,.menubar{left:0!important;right:0!important;bottom:0!important;padding:12px 18px 24px;background:${sheet};box-shadow:inset 0 1px 0 ${line}}
+.menubar .rb,.menubar .fdpill,.menubar .pill{background:${pill}!important;box-shadow:none!important}`;
+/* What sits under the content, three ways. `line` is the hairline, `lift` the shadow for the lifted cards. */
+const BODY = {
+  rows: (line) => `.blist,.rows,.outrow,.rcard{padding-left:0!important;padding-right:0!important;border-radius:0!important;background:none!important;box-shadow:inset 0 -1px 0 ${line}!important}
+.fdtile{background:none!important;box-shadow:inset 0 0 0 1.5px ${line}!important}`,
+  outline: (line) => `.blist,.rows,.outrow,.rcard,.fdtile{box-shadow:inset 0 0 0 1.5px ${line}!important}`,
+  lift: (line, lift) => `.blist,.rows,.outrow,.rcard,.fdtile{box-shadow:${lift}!important}`,
+};
+const LSHEET = { ...L, ground: '#FFFFFF', card: '#FFFFFF', raised: '#F1F3F6', cardShadow: 'none', rail: INK, railShadow: 'none' };
+const lightSheet = (body) => sheetTop() + footOnSheet('#fff', '#E4E7EC', '#F1F3F6') + body;
+const LIFT = '0 0 0 1px rgba(20,26,42,.05),0 2px 4px rgba(20,26,42,.06),0 14px 28px -14px rgba(20,26,42,.3)';
 
-  { key: 'beyond-felt', name: 'B · Felt', note: 'The ground is the table: a deep green, lit from the top. No header panel at all; the title and the pot sit straight on the felt in white. Cards stay white, like cards. The footer is an ink bar floating on the felt, with the primary button turned white.',
-    t: { ...L, ground: '#0E5239', groundImage: 'radial-gradient(130% 62% at 50% 0%,#1E7F59 0,#0F5A3E 58%,#0A4530 100%)', card: '#FFFFFF', cardShadow: '0 1px 2px rgba(0,0,0,.25),0 10px 22px -12px rgba(0,0,0,.5)', rail: 'none', railShadow: 'none' },
-    css: `${onBand()}${bareRail}
-.railp{margin-bottom:4px!important}
-.seclbl,.seclbl *{color:#fff!important}.seclbl{opacity:.92}
-.ded,.ded *,.ended,.ended *{color:#fff!important}.ded .appico{color:rgba(255,255,255,.8)!important}.ded{border-color:rgba(255,255,255,.2)!important}
-.dock{background:${INK}!important;box-shadow:0 12px 26px -10px rgba(0,0,0,.6)!important;border-radius:26px!important;left:10px!important;right:10px!important;bottom:12px!important}
+const UNDER = [
+  { key: 'sheet-rows', name: 'A1 · Nothing under it: plain rows', note: 'No fill of any kind behind the content. Lists are rows on the white sheet, parted by hairlines; section labels do the grouping. Home’s tiles keep an outline so they still read as four things to tap.',
+    t: LSHEET, css: lightSheet(BODY.rows('#E4E7EC')) },
+  { key: 'sheet-outline', name: 'A2 · Outlined cards', note: 'The groups stay as cards, drawn with a hairline outline and no fill: white on white. Grouping is as clear as before; nothing is grey.',
+    t: LSHEET, css: lightSheet(BODY.outline('#DDE1E7')) },
+  { key: 'sheet-lift', name: 'A3 · Lifted cards', note: 'White cards on the white sheet, held off it by a soft shadow alone. The most depth of the three; the sheet stays pure white.',
+    t: LSHEET, css: lightSheet(BODY.lift('', LIFT)) },
+];
+
+const DSHEET = { ...D, ground: '#171C27', card: '#171C27', raised: '#242B3A', line: 'rgba(255,255,255,.09)', cardShadow: 'none', rail: '#0A0D14', railShadow: 'none', cta: '#ECEEF2', ctaText: '#141A2A', ctaSub: 'rgba(20,26,42,.68)' };
+const darkSheet = (body) => sheetTop('#171C27') + footOnSheet('#171C27', 'rgba(255,255,255,.09)', '#242B3A') + `.railp .role .rb.tools-d{background:#ECEEF2!important}.menubar svg,.menubar .fdpill{color:#ECEEF2!important}` + body;
+const UNDER_DARK = [
+  { key: 'sheet-dark-rows', name: 'Dark · plain rows', note: 'The top goes to near-black and the sheet becomes the ink (#171C27), so the header still reads as a separate, darker place. Rows on hairlines, as A1. Primary buttons turn light.',
+    t: DSHEET, css: darkSheet(BODY.rows('rgba(255,255,255,.1)')) },
+  { key: 'sheet-dark-outline', name: 'Dark · outlined cards', note: 'The same dark sheet with A2’s outlined cards.',
+    t: DSHEET, css: darkSheet(BODY.outline('rgba(255,255,255,.13)')) },
+  { key: 'sheet-dark-raised', name: 'Dark · raised cards', note: 'Shadows do not show in the dark, so A3’s lift becomes a card one step lighter than the sheet.',
+    t: { ...DSHEET, card: '#212836', raised: '#2C3445' }, css: darkSheet('') },
+];
+
+/* The ink bar at the foot (from C), under A's header and A1's rows. */
+const inkFoot = `
+.dock,.foot,.menubar{left:0!important;right:0!important;bottom:0!important;background:${INK}!important;box-shadow:none!important}
+.dock{border-radius:0!important;padding:12px 18px 26px!important}.foot{padding:10px 18px 24px}.menubar{padding:12px 18px 24px}
 .dock-h,.dock-h *{color:rgba(255,255,255,.75)!important}
-.dock .btn-pri{background:#fff!important;color:${INK}!important}.dock .btn-pri *{color:${INK}!important}
+.dock .btn-pri,.foot .btn-pri{background:#fff!important;color:${INK}!important}.dock .btn-pri *{color:${INK}!important}
 .dock .btn-sec{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)!important;color:#fff!important}.dock .btn-sec *{color:#fff!important}
-.foot .btn-pri{background:#fff!important;color:${INK}!important;box-shadow:0 12px 26px -10px rgba(0,0,0,.6)}
-.fd .cta{box-shadow:0 12px 26px -10px rgba(0,0,0,.65)!important}
-.menubar .rb,.menubar .fdpill,.menubar .pill{background:rgba(255,255,255,.14)!important;box-shadow:none!important;color:#fff!important}.menubar svg{color:#fff!important}` },
-
-  { key: 'beyond-paper', name: 'C · Paper', note: 'No panels and no cards anywhere. A white page: the title large over one ink rule, lists as plain rows between hairlines, section labels doing the grouping. The footer is the only solid thing on the screen: an ink bar across the bottom edge.',
-    t: { ...L, ground: '#FFFFFF', card: 'transparent', cardShadow: 'none', rail: 'none', railShadow: 'none' },
-    css: `${bareRail}
-.railp{box-shadow:inset 0 -2px 0 ${INK}!important;margin-left:0!important;margin-right:0!important;padding-left:0!important;padding-right:0!important;padding-bottom:14px!important}
-.railp .hdr h1{font-size:27px!important;letter-spacing:-.025em!important}.railp.home h1{font-size:30px!important}
-.railp.home{padding-bottom:16px!important;margin-bottom:14px!important}.railp.home + .cta{margin-top:0!important}
-.blist,.rows,.outrow,.rcard{padding-left:0!important;padding-right:0!important;border-radius:0!important}
-.rows,.blist,.rcard,.outrow{box-shadow:inset 0 1px 0 #E4E7EC,inset 0 -1px 0 #E4E7EC!important}
-.fdtile{box-shadow:inset 0 0 0 1.5px #DDE1E7!important}
-.railp .role .rb{background:#F1F3F6}
-.railp .dd{box-shadow:inset 0 0 0 1.5px #DDE1E7!important}
-.dock{left:0!important;right:0!important;bottom:0!important;border-radius:0!important;background:${INK}!important;box-shadow:none!important;padding:12px 18px 26px!important}
-.dock-h,.dock-h *{color:rgba(255,255,255,.75)!important}
-.dock .btn-pri{background:#fff!important;color:${INK}!important}.dock .btn-pri *{color:${INK}!important}
-.dock .btn-sec{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)!important;color:#fff!important}.dock .btn-sec *{color:#fff!important}
-.foot{left:0!important;right:0!important;bottom:0!important;background:${INK};padding:8px 18px 22px}
-.menubar{left:0!important;right:0!important;bottom:0!important;padding:12px 18px 24px;background:${INK}}
-.menubar .rb,.menubar .fdpill,.menubar .pill{background:rgba(255,255,255,.12)!important;box-shadow:none!important;color:#fff!important}.menubar svg{color:#fff!important}` },
-
-  { key: 'beyond-glass', name: 'D · Frosted bars', note: 'The ground carries colour: a slow drift from cool blue to a warm blush. The header and the footer are frosted glass bars, square to the screen edges, and the list passes under both. Cards are a soft white that lets the ground through.',
-    t: { ...L, ground: '#EEF0F3', groundImage: 'radial-gradient(90% 46% at 8% 4%,#C9DBF6 0,transparent 70%),radial-gradient(80% 42% at 100% 58%,#F6D9D2 0,transparent 72%),radial-gradient(90% 40% at 10% 100%,#D5E6DC 0,transparent 70%),#EEF1F5', card: 'rgba(255,255,255,.72)', cardShadow: 'inset 0 0 0 1px rgba(255,255,255,.7),0 8px 22px -14px rgba(20,26,42,.3)', rail: 'rgba(255,255,255,.5)', railShadow: 'inset 0 -1px 0 rgba(255,255,255,.8),0 1px 0 rgba(20,26,42,.06)' },
-    css: `.scr{clip-path:inset(0 round 37px)}
-.railp{border-radius:0!important;-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5)}
-.dock{left:0!important;right:0!important;bottom:0!important;border-radius:0!important;background:rgba(255,255,255,.55)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 -1px 0 rgba(20,26,42,.06)!important;padding:10px 18px 24px!important;-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5)}
-.foot,.menubar{left:0!important;right:0!important;bottom:0!important;padding:12px 18px 24px;background:rgba(255,255,255,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 -1px 0 rgba(20,26,42,.06);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5)}
-.railp .role .rb:not(.tools-d){background:rgba(255,255,255,.7)}` },
-
-  { key: 'beyond-state', name: 'E · The header says the state', note: 'The header is a full band of colour, and the colour means something: green while a game is live, ink once it is settled, white on the menus where nothing is happening. The primary button in the footer takes the band’s colour, so top and bottom of the screen agree about where you are.',
-    t: { ...L, ground: '#EEF0F3', card: '#FFFFFF', cardShadow: '0 1px 1.5px rgba(20,26,42,.07),0 8px 20px -12px rgba(20,26,42,.22)', rail: '#FFFFFF', railShadow: 'inset 0 -1px 0 #E4E7EC' },
-    css: `.railp{border-radius:0!important}
-${onBand('figure:nth-child(2)')}${onBand('figure:nth-child(4)')}
-figure:nth-child(2) .railp{background:linear-gradient(180deg,#0C6B3D,#0E7A45)!important;box-shadow:none!important}
-figure:nth-child(2) .btn-pri{background:#0E7A45!important}
-figure:nth-child(4) .railp{background:${INK}!important;box-shadow:none!important}` },
+.menubar .rb,.menubar .fdpill,.menubar .pill{background:rgba(255,255,255,.12)!important;box-shadow:none!important;color:#fff!important}.menubar svg{color:#fff!important}`;
+const footBase = sheetTop() + BODY.rows('#E4E7EC');
+const FOOT = [
+  { key: 'foot-square', name: 'F1 · A square ink bar', note: 'As you saw it on Paper: the footer is a solid ink bar across the bottom edge, with the primary action as a white button on it. Ink at the top, ink at the foot, the white sheet between.',
+    t: LSHEET, css: footBase + inkFoot },
+  { key: 'foot-round', name: 'F2 · The bar rises like the sheet', note: 'The same bar with its top corners rounded to the sheet’s own radius, so the foot answers the header: the white sheet is held between two ink ends.',
+    t: LSHEET, css: footBase + inkFoot + `.dock,.foot,.menubar{border-radius:26px 26px 0 0!important}.dock{padding-top:14px!important}.foot,.menubar{padding-top:14px}` },
+  { key: 'foot-label', name: 'F3 · The bar is the button', note: 'No button inside the bar: the bar itself is the action, with its words set straight on the ink. Tonight splits it in two, Rebuy and Bill, parted by a hairline. The biggest target of the three; the least like a button.',
+    t: LSHEET, css: footBase + inkFoot + `
+.foot{padding:0 0 12px}.foot .btn-pri{background:none!important;color:#fff!important;height:62px;border-radius:0}
+.dock{padding:8px 0 12px!important}.dock-h{padding:2px 22px 6px!important}.dock-b{gap:0!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
+.dock .btn-pri{background:none!important;color:#fff!important;border-radius:0;height:60px}.dock .btn-pri *{color:#fff!important}
+.dock .btn-sec{box-shadow:inset 1px 0 0 rgba(255,255,255,.14)!important;border-radius:0;height:60px;width:104px}` },
 ];
 
 /* What the rail does once a long list scrolls: Game boosters, scrolled two rows down. */
@@ -230,6 +262,8 @@ const shadowStrip = (inner, extra = '') =>
 
 const four = (fd) =>
   phoneFig(fd[0], 'Main menu', true) + phoneFig(style.tonight, 'Tonight', false) + phoneFig(fd[2], 'Game boosters', true) + phoneFig(style.results, 'Post-game results', false);
+
+const six = (fd) => four(fd) + phoneFig(style.countUp, 'Count up (sketch)', false) + phoneFig(style.settleUp, 'Settle up (sketch)', false);
 
 let REVIEW = false;
 const reviewBlock = (key, label) => `<div class="rv" data-key="${key}">
@@ -287,7 +321,8 @@ section{margin-top:44px;display:flex;flex-direction:column;gap:14px}
 <header>
   <span class="eyebrow">Exploration · 22 November 2026 · not a handoff</span>
   <h1>Headers and backgrounds, across the app</h1>
-  <p>The header is decided: <b>N on the Rail</b>, the title at 20 and bold beside a bare grey chevron on a raised panel. What is left is what sits behind it on every screen: the ground, the cards, the rail’s own colour, all of it again in the dark theme, and what the rail does when a list scrolls. Each option is the same four approved screens with only those things changed. Approve one in each group, or say what to change.</p>
+  <p><b>Round two is at the top</b>: it follows your notes on the five approaches outside the system, and the three older groups are unchanged below it.</p>
+  <p style="margin-top:8px">The header is decided: <b>N on the Rail</b>, the title at 20 and bold beside a bare grey chevron on a raised panel. What is left is what sits behind it on every screen: the ground, the cards, the rail’s own colour, all of it again in the dark theme, and what the rail does when a list scrolls. Each option is the same four approved screens with only those things changed. Approve one in each group, or say what to change.</p>
   <div class="decided">
     <div><b>Kept on every option</b>Fresh Deck’s type and ink, the approved drawings, the 4d tiles, the ink tools button, every word.</div>
     <div><b>Sheets</b>Keep their own chrome (grabber, close, swipe down). They take the card colour of whichever theme you pick.</div>
@@ -297,9 +332,21 @@ section{margin-top:44px;display:flex;flex-direction:column;gap:14px}
 </header>
 
 <section>
-  <h2>Outside the system: five other approaches</h2>
-  <p>Groups 1 to 3 below keep one layout (a white rail, cards on a ground, a floating dock) and only move its colours. These five change the structure instead: what the header is, what the ground is, and what the footer is. Same four screens, same words. Approve any you want taken further, or say which parts to combine.</p>
-  ${BEYOND.map((o) => option(o, shadowStrip(four(fdLight), themeCSS(o.t) + o.css))).join('')}
+  <h2>Round two · Under the content</h2>
+  <p>You liked the header of <b>Ink top, white sheet</b> and not the grey fills under the content. The header is kept as it was; these are three other ways to hold the content on the sheet, none of them grey. Approve one.</p>
+  ${UNDER.map((o) => option(o, shadowStrip(four(fdLight), themeCSS(o.t) + o.css))).join('')}
+</section>
+
+<section>
+  <h2>Round two · The same, in the dark</h2>
+  <p>The ink top cannot stay the darkest thing on a dark screen unless the sheet is lighter than it, so the top goes to near-black and the sheet takes the ink. One per body above. Approve one.</p>
+  ${UNDER_DARK.map((o) => option(o, shadowStrip(four(fdDark), themeCSS(o.t) + o.css))).join('')}
+</section>
+
+<section>
+  <h2>Round two · The ink bar at the foot</h2>
+  <p>Paper’s footer, taken further, without the rule under the title. It is shown under the ink header with plain rows (A1), on six screens: the four from before, plus <b>Count up</b> and <b>Settle up</b>, which each end in one action. Those two are sketches for the footer only: their titles, step labels and button words are the app’s, their bodies are simplified. Approve one, or none to keep the footer on the sheet.</p>
+  ${FOOT.map((o) => option(o, shadowStrip(six(fdLight), themeCSS(o.t) + o.css))).join('')}
 </section>
 
 <section>
