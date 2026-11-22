@@ -200,6 +200,21 @@ const UNDER = [
     t: LSHEET, css: lightSheet(BODY.lift('', LIFT)) },
 ];
 
+/*
+ * Round three: the owner on A3 (22 November) — "this one looks pretty good.
+ * can we compare diff 'intensity' of shades?" Read as the strength of the
+ * cards' shadow. Four steps on the same white sheet; L2 is A3 as reviewed.
+ */
+const SHADES = [
+  ['lift-1', 'L1 · Whisper', 'Barely there: a faint edge and a short, light shadow. The cards read as cards only just; the flattest of the four.',
+    '0 0 0 1px rgba(20,26,42,.045),0 1px 2px rgba(20,26,42,.05),0 6px 14px -10px rgba(20,26,42,.16)'],
+  ['lift-2', 'L2 · Soft (A3 as you saw it)', 'The one you reviewed: a faint edge, a soft shadow that falls a little way below the card.', LIFT],
+  ['lift-3', 'L3 · Firm', 'A clearer drop: the cards plainly sit above the sheet and their lower edge is easy to find.',
+    '0 0 0 1px rgba(20,26,42,.06),0 2px 5px rgba(20,26,42,.09),0 18px 30px -14px rgba(20,26,42,.42)'],
+  ['lift-4', 'L4 · Deep', 'The strongest: a long, dark shadow. The cards float well off the sheet; the most depth, and the most weight on a busy list.',
+    '0 0 0 1px rgba(20,26,42,.07),0 3px 7px rgba(20,26,42,.12),0 24px 36px -14px rgba(20,26,42,.58)'],
+].map(([key, name, note, sh]) => ({ key, name, note, t: LSHEET, css: lightSheet(BODY.lift('', sh)) }));
+
 const DSHEET = { ...D, ground: '#171C27', card: '#171C27', raised: '#242B3A', line: 'rgba(255,255,255,.09)', cardShadow: 'none', rail: '#0A0D14', railShadow: 'none', cta: '#ECEEF2', ctaText: '#141A2A', ctaSub: 'rgba(20,26,42,.68)' };
 const darkSheet = (body) => sheetTop('#171C27') + footOnSheet('#171C27', 'rgba(255,255,255,.09)', '#242B3A') + `.railp .role .rb.tools-d{background:#ECEEF2!important}.menubar svg,.menubar .fdpill{color:#ECEEF2!important}` + body;
 const UNDER_DARK = [
@@ -321,7 +336,7 @@ section{margin-top:44px;display:flex;flex-direction:column;gap:14px}
 <header>
   <span class="eyebrow">Exploration · 22 November 2026 · not a handoff</span>
   <h1>Headers and backgrounds, across the app</h1>
-  <p><b>Round two is at the top</b>: it follows your notes on the five approaches outside the system, and the three older groups are unchanged below it.</p>
+  <p><b>Round three is at the top</b>: the shadow strengths you asked to compare on the lifted cards. Round two follows it, and the three older groups are unchanged below.</p>
   <p style="margin-top:8px">The header is decided: <b>N on the Rail</b>, the title at 20 and bold beside a bare grey chevron on a raised panel. What is left is what sits behind it on every screen: the ground, the cards, the rail’s own colour, all of it again in the dark theme, and what the rail does when a list scrolls. Each option is the same four approved screens with only those things changed. Approve one in each group, or say what to change.</p>
   <div class="decided">
     <div><b>Kept on every option</b>Fresh Deck’s type and ink, the approved drawings, the 4d tiles, the ink tools button, every word.</div>
@@ -330,6 +345,12 @@ section{margin-top:44px;display:flex;flex-direction:column;gap:14px}
   </div>
   ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA">0 approved</span><span id="cC">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 </header>
+
+<section>
+  <h2>Round three · How strong the lift is</h2>
+  <p>You said the lifted cards (A3) look pretty good and asked to compare intensities. I read that as the strength of the shadow under the cards: four steps, lightest first, nothing else changed. L2 is the one you reviewed. Approve one. The dark and footer groups from round two are still below, waiting for your verdicts.</p>
+  ${SHADES.map((o) => option(o, shadowStrip(four(fdLight), themeCSS(o.t) + o.css))).join('')}
+</section>
 
 <section>
   <h2>Round two · Under the content</h2>

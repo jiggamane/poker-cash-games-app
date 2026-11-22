@@ -32,6 +32,10 @@ four approved screens (Main menu, Tonight, Game boosters, Post-game results):
    (the Settle up transfers are illustrative, not the engine's).
    `UNDER`, `UNDER_DARK`, `FOOT` in `build.mjs`. The five from 4 are no longer
    on the page.
+6. **Round three** (shown first): the owner on A3 — *"this one looks pretty
+   good. can we compare diff 'intensity' of shades?"* — read as the strength of
+   the cards' shadow. Four steps, L1 whisper to L4 deep; L2 is A3 as reviewed.
+   `SHADES` in `build.mjs`. The dark and footer groups have no verdict yet.
 
 Each option is the same phones with a few colour rules laid over them
 (`themeCSS` in `build.mjs`), in its own shadow root.
