@@ -122,3 +122,10 @@ are passed over. The board now opens on what is left to review: the Rulings
 drawing (G has no verdict; the plain card is still the pick), the results
 breakdown page, the near-twin of the new seat icon and `invite`, and the menu's
 *calculator, rulings, boosters* line.
+
+**Rulings G approved, 22 November** (two framed rulings and a chip stack); it is
+`PICK.rulings` and on the screens. The board opens on *To confirm*: the results
+breakdown layouts (review keys `rb-now`, `rb-a` … `rb-g`, from
+`../results-breakdown/options.mjs`), `confirm-seat-invite`,
+`confirm-tools-line` and `confirm-tools-button`, each with the same approve /
+needs-work controls as a drawing.
