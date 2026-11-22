@@ -161,6 +161,7 @@ export const CSS = `
 .fb .scrim{position:absolute;inset:0;background:var(--scrim);z-index:4}
 .fb .modal{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--sheet);border-radius:24px 24px 0 0;display:flex;flex-direction:column;overflow:hidden;max-height:calc(100% - 58px)}
 .fb .modal.tall{top:58px}
+.fb .scr:has(.modal.tall) .top .hdr,.fb .scr:has(.modal.tall) .top .tsub{visibility:hidden}
 .fb .modal .grab{width:38px;height:5px;border-radius:3px;background:var(--grab);margin:8px auto 12px;flex:none}
 .fb .modal .shd{display:flex;align-items:flex-start;gap:10px;padding:0 20px;flex:none}
 .fb .modal .shd h2{margin:0;flex:1;font:700 24px/1.1 var(--head);letter-spacing:-.02em;color:var(--text)}

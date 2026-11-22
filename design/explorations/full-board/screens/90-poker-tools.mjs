@@ -138,7 +138,7 @@ export default [
         label('Pot odds', { quiet: true }),
         card([potHead, `<div style="margin-top:4px;border-bottom:1px solid var(--line)">${potRow('Pot', '$400', true)}</div>`, potRow('To call', '$0')], { pad: true }),
         '<div class="grow"></div>',
-        `<div class="kp">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0'].map((k) => `<span${k === '00' ? ' class="dimt"' : ''} style="height:36px">${k}</span>`).join('')}<span style="height:36px">${ico('backspace', 22)}</span></div>`,
+        `<div class="kp">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0'].map((k) => `<span${k === '00' ? ' class="dimt"' : ''} style="height:36px">${k}</span>`).join('')}<span style="height:36px">${ico('backspace', 22).replace('class="ico"', 'class="ico" style="height:auto;border:0"')}</span></div>`,
       ],
       bar: bar('Done') }) },
 
