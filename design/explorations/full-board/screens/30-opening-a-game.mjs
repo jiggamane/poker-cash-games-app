@@ -64,6 +64,14 @@ const planCard = (name, price, per, body, { tag = '', ink = false, dim = false }
     <div style="font-size:13px;line-height:1.4;opacity:.75">${body}</div></div>`;
 const gateHero = `<div style="display:flex;align-items:center;gap:14px;margin:-4px 0 2px"><span style="flex:none">${art('session', 84)}</span><p class="lead-p" style="font-size:14.5px">Running a game takes a paid membership. Watching, and your place in the group, stay free.</p></div>`;
 
+
+/*
+ * A rule's save and its removal share the bar (owner, 22 November: "move it to the save button").
+ * Save is the wide half; Remove is the narrow end with the trash, its word in the same red the drawer
+ * uses for ending a night, and a removal still asks before it happens, as the app's does.
+ */
+const saveRemove = (save) => `<div class="bar"><div class="acts"><div class="act"><span>${save}</span></div><div class="act sec" style="color:#FF9AA2">${ico('trash', 20)}<span>Remove</span></div></div></div>`;
+
 /* ── the steps ────────────────────────────────────────────────────────── */
 
 const seatedBody = [
@@ -124,14 +132,15 @@ export default [
       ],
       bar: bar('Done', { line: '$1,800 on the table' }) }) },
 
-  { id: 'new-night-second', route: '/new-night', name: 'New session · a second table', nav: 'sheet', allowOverflow: true,
-    note: 'A second table is named before it opens. Until the name is good the bar is blocked and reads Name this table. The sheet scrolls: the rest of the group runs on under the bar.',
+  { id: 'new-night-second', route: '/new-night', name: 'New session · a second table', nav: 'sheet',
+    note: 'Owner, 22 November: “we don’t need names for each session”. A second table opens like the first, with no name to type and nothing blocking the bar; a line says another is already open tonight.',
+    flags: ['The app asks for a table name when a night is already open and blocks Open the table until it has one (“Name this table”); dropping it is a change to new-night.tsx, and two tables on one night then tell apart by their players and start times only.'],
     html: sheet({ behind: BEHIND, title: 'New session', sub: GROUP, tall: true,
       body: [
-        `<div>${field('This table', 'Kitchen table', { placeholder: true })}<div class="muted" style="font-size:12px;margin:6px 2px 0">Tonight is already open</div></div>`,
+        `<div class="muted" style="font-size:12.5px;display:flex;align-items:center;gap:6px;margin:-2px 2px 0"><i style="width:7px;height:7px;border-radius:50%;background:var(--win);display:block"></i>Tonight is already open</div>`,
         ...seatedBody,
       ],
-      bar: bar('Name this table', { blocked: true, line: '$1,800 on the table' }) }) },
+      bar: bar('Open the table · 3 seated', { line: '$1,800 on the table' }) }) },
 
   { id: 'new-night-details', route: '/new-night', name: 'Game details', nav: 'sheet',
     note: 'Behind Change. Currency is the one row that opens a list; it carries no chevron here (nothing points).',
@@ -179,10 +188,11 @@ export default [
         chipRow(['No ceiling', '$50', '$100', '<span class="dimt">—</span>'], 0, { small: true }),
         note('The half of a charge nobody states on its own — "five percent" is agreed as "five percent, fifty at most". A figure you type against one name at settle-up still stands whatever this says.'),
       ],
-      bar: bar('Save rule') }) },
+      bar: saveRemove('Save rule') }) },
 
   { id: 'new-night-rule-rest', route: '/new-night', name: 'A rule · who pays, who holds it', nav: 'sheet',
-    note: 'The same step, scrolled. Remove this rule leaves the footer for the content, quiet and red; a new rule does not have it.',
+    note: 'The same step, scrolled. Remove sits in the bar beside Save rule, the owner’s call; a new rule has only Save.',
+    flags: ['“Remove” on the bar is short for the app’s “Remove this rule”, to fit the narrow end.'],
     html: sheet({ behind: BEHIND, title: 'Group piggy bank', tall: true, stepBack: true,
       body: [
         label('Charged to', { quiet: true }),
@@ -193,9 +203,8 @@ export default [
         label('Collected by', { quiet: true }),
         chipRow(['Dana', 'Andro', 'Lena', 'Tomáš', 'Ivo', 'Petr', 'Radka'], 6, { small: true }),
         note('Whoever physically holds this money. They need not be playing — a treasurer who never sits down is exactly this. Leave it unset and it is held by the group.'),
-        quiet('Remove this rule', { red: true }),
       ],
-      bar: bar('Save rule') }) },
+      bar: saveRemove('Save rule') }) },
 
   { id: 'new-night-rule-bill', route: '/new-night', name: 'A rule · Kitchen & drinks', nav: 'sheet',
     note: 'A bill has no amount to type, so its editor is short: who is charged and how it is split.',
@@ -208,9 +217,8 @@ export default [
         card([row({ name: 'The winners', lead: radio(true) }), row({ name: 'Everyone at the table', lead: radio(false) })]),
         label('Split', { quiet: true }),
         seg(['Evenly', 'By win size', 'By hand'], 1),
-        quiet('Remove this rule', { red: true }),
       ],
-      bar: bar('Save rule') }) },
+      bar: saveRemove('Save rule') }) },
 
   { id: 'new-night-rule-blocked', route: '/new-night', name: 'A rule · not ready to save', nav: 'sheet',
     note: 'A rule that cannot be saved says why on the bar itself, blocked: Give it a name, Set an amount, Say how often, Set a ceiling. With no name the sheet is titled New rule.',

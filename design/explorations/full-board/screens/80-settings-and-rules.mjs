@@ -9,6 +9,14 @@
  */
 import { push, sheet, bar, label, card, row, note, para, pill, button, quiet, field, chips, seg, toggle, ico } from '../kit.mjs';
 
+
+/*
+ * A rule's save and its removal share the bar (owner, 22 November: "move it to the save button").
+ * Save is the wide half; Remove is the narrow end with the trash, its word in the same red the drawer
+ * uses for ending a night, and a removal still asks before it happens, as the app's does.
+ */
+const saveRemove = (save) => `<div class="bar"><div class="acts"><div class="act"><span>${save}</span></div><div class="act sec" style="color:#FF9AA2">${ico('trash', 20)}<span>Remove</span></div></div></div>`;
+
 /* ── inline parts ─────────────────────────────────────────────────────── */
 
 /** A radio row: a ring, filled when chosen, with the option's words and a caption under them. */
@@ -168,7 +176,7 @@ export default [
       bar: bar('Add this rule') }) },
 
   { id: 'rule-edit', route: '/rule', name: 'Rule editor · a rule that exists', nav: 'sheet',
-    note: 'Scrolled to the end. Save is the bar; Remove this rule leaves the footer and becomes the quiet red line at the end of the content.',
+    note: 'Scrolled to the end. Save and Remove share the bar, as in New session’s rule editor (owner, 22 November).',
     flags: ['The app blocks the primary with its reason as the label: Give it a name, Set an amount, Say how often, Set a ceiling, “$N still to allocate”, “$N too much allocated”. Not drawn; on the bar it would be those words, faint.'],
     html: sheet({ behind: 'Tonight', tall: true, title: 'Group piggy bank',
       body: [
@@ -179,9 +187,8 @@ export default [
         label('Collected by', { quiet: true }),
         smallChips([...people, { text: 'Radka', on: true }]),
         collectorNote,
-        quiet('Remove this rule', { red: true }),
       ],
-      bar: bar('Save') }) },
+      bar: saveRemove('Save') }) },
 
   { id: 'bill-rules', route: '/bill-rules', name: 'Bill rules', nav: 'sheet',
     note: 'Opens blocked: Save the rule wakes only when a different split is picked.',

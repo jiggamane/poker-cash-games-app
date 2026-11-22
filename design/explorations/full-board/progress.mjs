@@ -11,10 +11,13 @@
  *
  * `DECIDED` are options the owner chose between; their cells are gone from the board.
  */
-export const BUILT = '2026-11-22T21:45:00Z';
+export const BUILT = '2026-11-22T22:00:00Z';
 
 export const ADDRESSED = {
-  'auth-callback-wait': ['Designed: the whole screen is ink; the chip stack from Start a session builds chip by chip, holds, lifts away and starts again; three dots pulse.', '2026-11-22T21:40:00Z'],
+  'auth-callback-wait': ['The stack is always whole now; each chip shakes a little up and down, one a beat after the other, the top moving most.', '2026-11-22T22:00:00Z'],
+  'groups-empty': ['Four explainer concepts at the top of the board: three steps, a walkthrough, the end of the night shown, two ways in.', '2026-11-22T22:00:00Z'],
+  'new-night-rule-rest': ['Remove moved into the bar beside Save rule, on every rule editor that edits an existing rule.', '2026-11-22T22:00:00Z'],
+  'new-night-second': ['No name for a second table: it opens like the first, the bar live, a line saying tonight is already open.', '2026-11-22T22:00:00Z'],
   groups: ['Designed: a card per group with its drawing, name, line and standing; the current group edged in ink.', '2026-11-22T21:29:00Z'],
   invite: ['The code is six characters with a dash after three: K7M-4XP. Flagged: a server and security decision.', '2026-11-22T21:29:00Z'],
   'invite-qr': ['The square QR you picked, now real: it scans to the invite’s link.', '2026-11-22T21:45:00Z'],
@@ -37,7 +40,12 @@ export const DECIDED = [
 
 /** The db as read at build: id → [status, comment, updatedAt]. Only screens with a verdict. */
 export const SNAPSHOT = {
-  'auth-callback-wait': ['changes', 'lets design this and use some running animation', '2026-11-22T17:39:42Z'],
+  'auth-callback-wait': ['changes', 'my idea was for the stack to rather be always fully visible and chips laid one on top of another but they are naturally shaking vertically', '2026-11-22T21:42:00Z'],
+  'groups-empty': ['changes', 'this should be an explainer screen showing the (usually new) user the features and the way to start a group, lets research several visual concepts', '2026-11-22T21:36:21Z'],
+  'new-night': ['approved', '', '2026-11-22T21:37:00Z'],
+  'new-night-amount': ['approved', '', '2026-11-22T21:37:09Z'],
+  'new-night-rule-rest': ['changes', 'change the remove rule ui, move it to the save button', '2026-11-22T21:38:53Z'],
+  'new-night-second': ['changes', 'we dont need names for each session', '2026-11-22T21:38:09Z'],
   bill: ['approved', '', '2026-11-22T17:49:10Z'],
   'bill-empty': ['approved', '', '2026-11-22T17:49:17Z'],
   booster: ['approved', '', '2026-11-22T17:51:41Z'],
@@ -48,13 +56,13 @@ export const SNAPSHOT = {
   groups: ['changes', 'this needs to be designed', '2026-11-22T17:40:19Z'],
   home: ['approved', '', '2026-11-22T17:36:11Z'],
   invite: ['changes', 'make the code 6 figure with a - after 3 symbols', '2026-11-22T17:37:30Z'],
-  'invite-qr': ['changes', 'lets try some themed qr code types if available. if not then the square one', '2026-11-22T17:37:51Z'],
+  'invite-qr': ['approved', '', '2026-11-22T21:36:44Z'],
   'log-cashout': ['approved', '', '2026-11-22T17:47:14Z'],
   'log-cashout-over': ['approved', '', '2026-11-22T17:47:19Z'],
   'log-rebuy': ['approved', '', '2026-11-22T17:46:58Z'],
   'new-night-currency': ['approved', '', '2026-11-22T17:43:56Z'],
   'new-night-gate': ['changes', 'lets work on the design. this screen should be more inviting', '2026-11-22T17:44:56Z'],
-  'new-night-seated': ['changes', 'maybe we should make the names’ shapes with slight shadow or smth else to help fit on the new ui', '2026-11-22T17:36:58Z'],
+  'new-night-seated': ['approved', '', '2026-11-22T21:37:05Z'],
   pick: ['changes', '', '2026-11-22T17:38:21Z'],
   'pick-tool': ['approved', '', '2026-11-22T17:48:11Z'],
   player: ['approved', '', '2026-11-22T17:45:09Z'],

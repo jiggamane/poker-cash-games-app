@@ -19,33 +19,28 @@ const capsPill = (text) => `<span class="pill" style="text-transform:uppercase;l
 const eyebrow = (text, centre = false) => `<div class="lbl q" style="margin:0;${centre ? 'justify-content:center' : ''}">${text}</div>`;
 /** A standalone screen: no back, no close. The title is the top. */
 /*
- * Signing you in, with the chip stack from Start a session (owner, 22 November: "substitute for the
- * stack of chips that we use on the start session button and make the motion with it"). The same five
- * chips, ink and red, drawn one at a time from the approved drawing's own parts (art.mjs: chip,
- * shadow), and dropped onto the pile one after another; the full stack holds, lifts away, and the
- * count starts again. 2.8 seconds a round. Reduced motion shows the finished stack, still.
+ * Signing you in, with the chip stack from Start a session (owner, 22 November). The stack is always
+ * whole; each of its five chips shakes a little on its own, up and down, a beat after the one below,
+ * the way a pile settles in a hand. The higher a chip, the more it moves (1 to 3 points), so the top
+ * carries the motion and the base stays planted. Reduced motion holds it still.
  */
 const STACK = { cx: 48, r: 25, h: 8, mats: ['ink', 'red', 'ink', 'red', 'ink'], wobble: [0, 1.6, -0.6, 1.2, -1.4] };
-const CYCLE = 2.8;
 const stackWait = (px = 132) => {
   const P = PALETTES.freshDeckOnInk;
   const chips = STACK.mats.map((mat, i) => {
-    const land = 6 + i * 13;               /* % of the round at which chip i lands */
-    const start = land - 9;
-    const kf = `@keyframes fb-drop${i}{0%,${start}%{transform:translateY(-34px);opacity:0}${start + 3}%{opacity:1}${land}%{transform:translateY(0);opacity:1}${land + 3}%{transform:translateY(-1.6px)}${land + 6}%,84%{transform:translateY(0);opacity:1}94%,100%{transform:translateY(-10px);opacity:0}}`;
+    const a = (0.35 + i * 0.25).toFixed(2);        /* viewBox units: about 1 to 3 points at 132 */
+    const kf = `@keyframes fb-shake${i}{0%,100%{transform:translateY(0)}30%{transform:translateY(-${a}px)}55%{transform:translateY(${(a * 0.35).toFixed(2)}px)}75%{transform:translateY(-${(a * 0.5).toFixed(2)}px)}}`;
     const g = chip(P, { cx: STACK.cx + STACK.wobble[i], by: GROUND - 1 - i * STACK.h, r: STACK.r, h: STACK.h, mat, face: true, seam: i > 0, phase: (i * 17) % 45 });
-    return { kf, g: `<g class="drop" style="animation-name:fb-drop${i}">${g}</g>` };
+    return { kf, g: `<g class="shake" style="animation-name:fb-shake${i};animation-delay:${(i * 0.09).toFixed(2)}s">${g}</g>` };
   });
   return `<style>
 ${chips.map((c) => c.kf).join('\n')}
-@keyframes fb-shade{0%,4%{opacity:.25}60%,84%{opacity:1}100%{opacity:.25}}
 @keyframes fb-dots{0%,20%{opacity:.25}40%{opacity:1}100%{opacity:.25}}
-.fb .drop{animation-duration:${CYCLE}s;animation-timing-function:cubic-bezier(.3,.7,.4,1);animation-iteration-count:infinite;transform-box:fill-box}
-.fb .shade{animation:fb-shade ${CYCLE}s ease-in-out infinite}
+.fb .shake{animation-duration:.95s;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
 .fb .dots i{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;margin:0 3px;animation:fb-dots 1.2s infinite}
 .fb .dots i:nth-child(2){animation-delay:.2s}.fb .dots i:nth-child(3){animation-delay:.4s}
-@media (prefers-reduced-motion:reduce){.fb .drop,.fb .shade,.fb .dots i{animation:none}}
-</style><svg viewBox="4 12 88 88" width="${px}" height="${px}" aria-hidden="true" style="overflow:visible"><g class="shade">${shadow(P, 48, 31)}</g>${chips.map((c) => c.g).join('')}</svg>`;
+@media (prefers-reduced-motion:reduce){.fb .shake,.fb .dots i{animation:none}}
+</style><svg viewBox="4 12 88 88" width="${px}" height="${px}" aria-hidden="true" style="overflow:visible">${shadow(P, 48, 31)}${chips.map((c) => c.g).join('')}</svg>`;
 };
 /** One group on Your groups: its drawing, name, line and standing. `current` edges it in ink. */
 const groupCard = (name, line, standing, place, current = false) => `<div class="card" style="padding:12px 14px 12px 8px;display:flex;align-items:center;gap:10px;${current ? 'box-shadow:var(--lift),inset 0 0 0 2px var(--text)' : ''}">
@@ -130,7 +125,7 @@ export default [
       bar: bar('Send myself another') }) },
 
   { id: 'auth-callback-wait', route: '/auth-callback', name: 'Signing you in', nav: 'root',
-    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: the five chips drop onto the pile one after another, the stack holds, lifts away, and it starts again; three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
+    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: the stack is always whole and each chip shakes a little up and down, one a beat after the other, the top moving most; three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
     flags: ['The stack, its motion and the three dots are new: the app shows the two words and nothing else. Motion stops for anyone who has reduced motion turned on.'],
     html: `<div class="fb"><div class="scr" style="justify-content:center;align-items:center;text-align:center;color:#fff">
       <div style="position:absolute;top:0;left:0;right:0;padding:0 18px">${pushRaw({ topHtml: '', body: '' }).match(/<div class="sb">.*?<\/svg><\/div>/)[0]}</div>
