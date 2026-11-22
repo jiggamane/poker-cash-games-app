@@ -14,11 +14,11 @@
 export const BUILT = '2026-11-22T22:00:00Z';
 
 export const ADDRESSED = {
-  'auth-callback-wait': ['Rebuilt as a player’s riffle: the top half lifted beside the rest, both stacks leaning in, the chips falling together from the bottom, the stack squared; a true repeated shuffle, so the colours mix round to round.', '2026-11-22T22:10:00Z'],
+  'auth-callback-wait': ['Made to move like a hand: lifts ease out and falls ease in, each stack leans as a column about its foot, the stacks close as the chips fall, chips land a little out of line and are squared true, and no two rounds are timed alike.', '2026-11-22T22:20:00Z'],
   'groups-empty': ['Four explainer concepts at the top of the board: three steps, a walkthrough, the end of the night shown, two ways in.', '2026-11-22T22:00:00Z'],
   'new-night-rule-rest': ['Remove moved into the bar beside Save rule, on every rule editor that edits an existing rule.', '2026-11-22T22:00:00Z'],
   'new-night-second': ['No name for a second table: it opens like the first, the bar live, a line saying tonight is already open.', '2026-11-22T22:00:00Z'],
-  groups: ['Four versions without a picture or the currency at the top: plain rows, a monogram from the name, who plays there, the name as the headline.', '2026-11-22T22:10:00Z'],
+  groups: ['Your pick, D, applied: the name as the headline, standing above it, the group you are in as the ink card. No picture, no currency.', '2026-11-22T22:20:00Z'],
   invite: ['The code is six characters with a dash after three: K7M-4XP. Flagged: a server and security decision.', '2026-11-22T21:29:00Z'],
   'invite-qr': ['The square QR you picked, now real: it scans to the invite’s link.', '2026-11-22T21:45:00Z'],
   'new-night-gate': ['Redesigned to invite: the drawing and the reason first, then three plan cards with the price large.', '2026-11-22T21:29:00Z'],
@@ -36,11 +36,12 @@ export const DECIDED = [
   ['QR codes', 'square'],
   ['Name chips', 'C: lifted like the cards, the add in an ink circle'],
   ['Hidden money', 'dots, behind an eye at the first section label'],
+  ['Your groups', 'the name as the headline, no picture, no currency'],
 ];
 
 /** The db as read at build: id → [status, comment, updatedAt]. Only screens with a verdict. */
 export const SNAPSHOT = {
-  'auth-callback-wait': ['changes', 'the chip shuffle should look as natural as possible, as if a person would have shuffled it', '2026-11-22T21:52:13Z'],
+  'auth-callback-wait': ['changes', 'the motion is generally right but it should look natural', '2026-11-22T22:01:00Z'],
   'groups-empty': ['changes', 'this should be an explainer screen showing the (usually new) user the features and the way to start a group, lets research several visual concepts', '2026-11-22T21:36:21Z'],
   'new-night': ['approved', '', '2026-11-22T21:37:00Z'],
   'new-night-amount': ['approved', '', '2026-11-22T21:37:09Z'],
@@ -53,7 +54,7 @@ export const SNAPSHOT = {
   'entry-amount': ['approved', '', '2026-11-22T17:47:39Z'],
   'entry-amount-blocked': ['approved', '', '2026-11-22T17:47:49Z'],
   general: ['changes', 'the key problem that i find in term of style is that the shades below the content areas conflict with the ‘still’ data with no such background. maybe using a bit less shade at the bottom of such areas would help', '2026-11-22T17:31:28Z'],
-  groups: ['changes', 'lets rework this so that there is no need to select (or have it randomly selected) icon for each group. show several options for this list. and no need for currency display', '2026-11-22T21:49:37Z'],
+  groups: ['changes', '‘groups headline’ is a good option', '2026-11-22T22:02:04Z'],
   home: ['approved', '', '2026-11-22T17:36:11Z'],
   invite: ['changes', 'make the code 6 figure with a - after 3 symbols', '2026-11-22T17:37:30Z'],
   'invite-qr': ['approved', '', '2026-11-22T21:36:44Z'],

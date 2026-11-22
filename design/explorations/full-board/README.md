@@ -291,3 +291,13 @@ a hidden screen gives nothing away. New feature and new words.
 - **Your groups**, four options without a picture or the currency
   (`groups-plain`, `groups-monogram`, `groups-people`, `groups-headline`).
 - Approved: Who's playing?, both player cards (cashed out and corrected).
+
+## Round ten (22 November)
+
+- **Your groups: D, the name as the headline** (owner's pick), on its screen;
+  the other three options are off the board.
+- **Signing you in**, made to read as a hand: eased lifts and gravity falls
+  with a small landing dip; each stack leans as a column about its outer foot;
+  the stacks close as the chips fall; chips land a little out of line and the
+  squaring pushes them true; timing varies by round and chip (seeded, so the
+  board does not change between builds).
