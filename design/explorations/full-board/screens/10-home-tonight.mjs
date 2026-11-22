@@ -4,11 +4,20 @@
  */
 import { push, pushRaw, sheet, bar, barSplit, barMenu, drawerRow, label, card, row, note, terms, chips, ico, art, tile, topPill, topButton, topDropdown, topHero } from '../kit.mjs';
 
+/*
+ * Hiding the money on the sheet (owner, 22 November): an eye with Hide / Show at the right of the first
+ * section label hides every figure on the white sheet; the pot on the ink stays. Hidden figures are dots,
+ * the owner's pick of five; never the real figure blurred, so a screenshot gives nothing away.
+ */
+const EYE = (open) => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>${open ? '' : '<path d="M4 20L20 4"/>'}</svg>`;
+const hideCtl = (hidden) => `<span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;letter-spacing:0;text-transform:none;font:600 12.5px/1 var(--body);color:var(--muted)">${EYE(!hidden)}${hidden ? 'Show' : 'Hide'}</span>`;
+const dots = (n = 4) => `<span style="display:inline-flex;gap:4px;align-items:center;height:18px;color:var(--muted)">${'<i style="width:6px;height:6px;border-radius:50%;background:currentColor;display:block"></i>'.repeat(n)}</span>`;
+
 const playing = [['Petr', '$1,500'], ['Lena', '$1,000'], ['Ivo', '$1,000'], ['Andro', '$500'], ['Tomáš', '$500']];
 const tonightTop = { title: 'Tonight', trailing: topPill('3h 16m'), sub: '<b>You’re recording</b> · started 14:07', subRight: topButton('questionCard'),
   extra: topHero({ label: 'On the table', big: '$4,500', side: '$5,000 in play<br>5 seated · 1 out', shares: [1500, 1000, 1000, 500, 500] }) };
 const tonightBody = [
-  label('Still playing · 5'),
+  `<div class="lbl">Still playing · 5${hideCtl(false)}</div>`,
   card(playing.map(([name, amount]) => row({ name, amount }))),
   label('Cashed out · 1'),
   card(row({ name: 'Dana', meta: '17:17 · out 2,120', amount: '+$1,620', tone: 'win' })),
@@ -29,6 +38,18 @@ export default [
 
   { id: 'session', route: '/session', name: 'Tonight', nav: 'push',
     html: push({ ...tonightTop, body: tonightBody,
+      bar: barSplit('Rebuy', { label: 'Bill', icon: 'receipt' }, { primaryIcon: 'plus', disc: { label: 'Table admin', hint: 'seat · cash out · end' } }) }) },
+
+  { id: 'session-hidden', route: '/session', name: 'Tonight · money hidden', nav: 'push',
+    note: 'The same screen with Hide on: every figure on the sheet is dots, Dana’s count included. The pot on the ink stays. A choice on this phone, kept until Show.',
+    flags: ['“Hide” and “Show” are new words, and hiding is a new feature.', 'Open: is the choice remembered across nights, and does it reach the settled night and My stats?'],
+    html: push({ ...tonightTop,
+      body: [
+        `<div class="lbl">Still playing · 5${hideCtl(true)}</div>`,
+        card(playing.map(([name]) => row({ name, trail: dots() }))),
+        label('Cashed out · 1'),
+        card(row({ name: 'Dana', meta: `17:17 · out <span style="display:inline-block;vertical-align:middle;transform:scale(.7);transform-origin:left center">${dots()}</span>`, trail: dots() })),
+      ],
       bar: barSplit('Rebuy', { label: 'Bill', icon: 'receipt' }, { primaryIcon: 'plus', disc: { label: 'Table admin', hint: 'seat · cash out · end' } }) }) },
 
   { id: 'session-admin', route: '/session', name: 'Tonight · Table admin open', nav: 'push',

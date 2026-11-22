@@ -231,3 +231,15 @@ the white sheet, the pot on the ink stays. Five placeholders in
 `05-this-round.mjs` (`hide-*`): dots, a soft bar, the dollar kept with stars,
 three chips, a card back. None is the real figure blurred, so a screenshot of
 a hidden screen gives nothing away. New feature and new words.
+
+## Review, round six (22 November) — three picks, and a progress panel
+
+- **QR: square**, now a real code on the invite's QR sheet (`qr.mjs`).
+- **Name chips: C** — lifted like the cards, squarer, the add in an ink
+  circle. Applied in the kit to every chip on the board, not only names.
+- **Hidden money: dots**, on Tonight (`session-hidden`), behind the eye.
+- `screens/05-this-round.mjs` is gone: every option on the board is decided.
+- **Where review stands** sits at the top of the board (`progress.mjs`):
+  counts, what changed since each Needs-work note, what is waiting on Claude,
+  what is not reviewed by section, and every choice made along the way. It
+  renders from a snapshot at build and then live from the db.

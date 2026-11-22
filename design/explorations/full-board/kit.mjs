@@ -113,9 +113,12 @@ export const CSS = `
 .fb .fi.ph{color:var(--dim);font-weight:400}.fb .fi.focus{box-shadow:inset 0 0 0 2px var(--text)}
 .fb .fi .sfx{color:var(--muted);font-weight:500;font-size:13.5px}
 .fb .chips{display:flex;flex-wrap:wrap;gap:8px}
-.fb .chip{height:40px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;font:600 14.5px/1 var(--body);color:var(--text);box-shadow:inset 0 0 0 1.5px var(--outline);white-space:nowrap}
+/* Chips: lifted like the cards (owner, 22 November, option C): white on the soft shadow, squarer, and an add in an ink circle. Dark: one step lighter, no shadow. */
+.fb .chip{height:40px;padding:0 12px 0 14px;border-radius:12px;display:inline-flex;align-items:center;gap:6px;font:600 14.5px/1 var(--body);color:var(--text);background:var(--card);box-shadow:0 0 0 1px rgba(20,26,42,.06),0 1px 2px rgba(20,26,42,.08),0 5px 10px -7px rgba(20,26,42,.3);white-space:nowrap}
+.dark .fb .chip{box-shadow:none}
+.fb .chip>.muted:last-child{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--pri);color:var(--onpri)}
 .fb .chip.on{background:var(--pri);color:var(--onpri);box-shadow:none}
-.fb .chip.dash{box-shadow:none;border:1.5px dashed var(--outline)}
+.fb .chip.dash{box-shadow:none;background:none;border:1.5px dashed var(--outline)}
 .fb .seg{display:flex;background:var(--raised);border-radius:12px;padding:3px}
 .fb .seg span{flex:1;text-align:center;font:600 13.5px/1 var(--body);padding:10px 6px;border-radius:9px;color:var(--muted);white-space:nowrap}
 .fb .seg span.on{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(20,26,42,.14)}
