@@ -78,3 +78,9 @@ of this file** that glyphs stay as they are; it is the owner's call, and
 nothing is in the app. On the results the drawings are shown both in colour
 and in one grey, since on 20 November the owner asked for that screen's icons
 not to be colourful. No verdicts yet.
+
+**22 November.** The owner on the results row: no coloured icons here; simpler
+curves and shapes, fewer details, still well designed. The four results icons
+are now `MARK` in `art.mjs`: solid one-tone marks on a 24 grid, not spots. The
+coloured four are under the earlier rounds. So there are three families now:
+spots (places and games), marks (small, beside text), and the line glyphs.
