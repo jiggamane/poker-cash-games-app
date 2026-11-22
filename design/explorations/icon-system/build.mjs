@@ -108,12 +108,13 @@ const SLOTS = [
   ['Stand-up game', 'standUpR'], ['Button game', 'buttonD'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite', 'uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const MARKS28 = ['markChipsIn', 'markChipsOut', 'markKitchen', 'markPiggy'];
 const UI27 = ['uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite'];
-const ROUND20 = [...MARKS28, ...UI27, 'straddleM', 'straddleN', 'straddleO', 'straddleP', 'straddleQ', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
+const MARKS28B = ['markSeat', 'markCashOut', 'markRules', 'markPass', 'markBill', 'markTools', 'markClock', 'markSettings', 'markInvite'];
+const ROUND20 = [...MARKS28, ...MARKS28B, 'straddleM', 'straddleN', 'straddleO', 'straddleP', 'straddleQ', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -395,7 +396,7 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 .fd .ip-terms{display:flex;align-items:center;gap:3px;font-size:11.5px;color:var(--p-muted);background:var(--p-raised);border-radius:7px;padding:2px 6px;white-space:nowrap}
 .fd .ip-ded{display:grid;gap:6px;padding:0 4px}.fd .ip-dl{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}.fd .ip-dl b{margin-left:auto;font:700 13px var(--p-head)}
 .fd .ip-mute svg{filter:grayscale(1) contrast(.75) opacity(.7)}
-.fd .ip-bar{display:flex;gap:10px;align-items:center}.fd .ip-pill{display:flex;align-items:center;gap:8px;height:44px;padding:0 18px 0 12px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.12);font-weight:700;font-size:15px}
+.fd .ip-bar{display:flex;gap:10px;align-items:center}.fd .ip-pill{display:flex;align-items:center;gap:8px;height:44px;padding:0 18px 0 16px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.12);font-weight:700;font-size:15px}
 .fd .ip-bar .rb{width:44px;height:44px}
 </style>
 </head>
@@ -412,33 +413,35 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>Round 27 — the app’s other icons</h2>
-  <p>The app draws 47 small icons besides the fifteen you approved. This round sorts all of them and redraws the first twelve: eight <b style="color:${C.ink}">objects</b> in the same hand, on Tonight, its Table admin drawer and the menu bar, and four simple one-tone marks for the results. Approve or comment on each, as before.</p>
+  <p>The app draws 47 small icons besides the fifteen you approved. This round sorts all of them and redraws the first thirteen as simple one-tone marks: on Tonight, its Table admin drawer, the results and the menu bar. Approve or comment on each, as before.</p>
   <div class="group"><div class="ghead"><h3>The results: simple, one tone</h3><p>22 November, from your comment on the results row</p></div>
     <p class="quote">“we dont need colored icons here, these should be more simple (in terms of curves and shapes, fewer details but still well designed)”</p>
     <p>Four solid marks in one grey, in place of the coloured drawings on this screen. Each is one shape with at most one cut-out, drawn to read at 13 points. Chips in is a solid chip and chips out is an open one, so the pair differs by more than the arrow.</p>
     <div class="grid">${MARKS28.map((k) => cell(k)).join('')}</div></div>
-  <div class="group"><div class="ghead"><h3>Eight new drawings</h3><p>one option each, to start</p></div>
-    <div class="grid">${UI27.map((k) => cell(k)).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>Tonight’s drawer and dock, and the menu bar: simple too</h3><p>22 November, from your two comments</p></div>
+    <p class="quote">“for these we don't need that much details in the icons, make them minimalistic” · “these should be more simple”</p>
+    <p>The same treatment as the results: nine solid marks, one shape each, in the ink of the label beside them. They replace the eight detailed drawings from yesterday, which are under the earlier rounds. The tools button gets one as well, so every small icon on Tonight is of one kind; the full Rulings drawing stays on its tile.</p>
+    <div class="grid">${MARKS28B.map((k) => cell(k)).join('')}</div></div>
   <div class="group"><div class="ghead"><h3>In place, at the size the app uses</h3><p>Fresh Deck, at about the size each sits at in the app</p></div>
     <div class="fd inplace">
       <figure><div class="mini" style="width:300px">
-        <div class="ip-role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#EEF0F3;box-shadow:none">${spot(PICK.rulings, 'freshDeck', { size: 32 })}</span></div>
-        <div class="blist">${[['uiSeat', 'Seat a player'], ['uiCashOut', 'Cash out a player'], ['uiRules', 'Money rules'], ['uiPass', 'Pass the game']].map(([k, n]) => `<div class="brow" style="padding:9px 0">${spot(k, 'freshDeck', { size: 38 })}<div class="bt"><div class="bn">${n}</div></div></div>`).join('')}</div>
-        <div class="ip-dock"><span class="ip-pri">+ Rebuy</span><span class="ip-sec">${spot('uiBill', 'freshDeck', { size: 30 })}Bill</span></div>
-      </div><figcaption><b>Tonight</b><span>The tools button (the approved Rulings card), the Table admin drawer, and Bill.</span></figcaption></figure>
+        <div class="ip-role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#fff">${mark('tools', 19, '#141A2A')}</span></div>
+        <div class="blist">${[['seat', 'Seat a player'], ['cashOut', 'Cash out a player'], ['rules', 'Money rules'], ['pass', 'Pass the game']].map(([k, n]) => `<div class="brow" style="padding:13px 2px;gap:12px">${mark(k, 20, '#141A2A')}<div class="bt"><div class="bn">${n}</div></div></div>`).join('')}</div>
+        <div class="ip-dock"><span class="ip-pri">+ Rebuy</span><span class="ip-sec">${mark('bill', 19, '#141A2A')}Bill</span></div>
+      </div><figcaption><b>Tonight</b><span>The tools button, the Table admin drawer, and Bill, at 19 to 20 points.</span></figcaption></figure>
       <figure><div class="mini" style="width:300px">
         <div class="blist">${[['Dana', '+$1,429', '−110', '−81'], ['Andro', '+$526', '−31 +120', '−23']].map(([n, net, a, b]) => `<div class="brow" style="padding:9px 0"><div class="bt"><div class="bn">${n}</div><div class="bs ip-io">${mark('chipsIn', 13, '#596171')}500 ${mark('chipsOut', 13, '#596171')}2,120</div></div><div class="ip-r"><b>${net}</b><span class="ip-terms">${mark('kitchen', 13, '#596171')}${a} ${mark('piggy', 14, '#596171')}${b}</span></div></div>`).join('')}</div>
         <div class="ip-ded"><div class="ip-dl">${mark('kitchen', 18, '#596171')}<span>Kitchen &amp; drinks</span><b>$170</b></div><div class="ip-dl">${mark('piggy', 18, '#596171')}<span>Group piggy bank</span><b>$126</b></div></div>
       </div><figcaption><b>Results</b><span>The four simple marks, in the grey of the text beside them, at 13 and 18 points.</span></figcaption></figure>
       <figure><div class="mini" style="width:300px">
-        <div class="ip-bar"><span class="ip-pill">${spot('uiSettings', 'freshDeck', { size: 32 })}Settings</span><span class="rb">${spot('uiInvite', 'freshDeck', { size: 34 })}</span><span class="rb">${spot('uiClock', 'freshDeck', { size: 32 })}</span></div>
+        <div class="ip-bar"><span class="ip-pill">${mark('settings', 20, '#141A2A')}Settings</span><span class="rb">${mark('invite', 20, '#141A2A')}</span><span class="rb">${mark('clock', 20, '#141A2A')}</span></div>
       </div><figcaption><b>Menu bar, and the log’s clock</b><span>Settings and Invite on the main menu’s bar. The clock stamps entries in the log.</span></figcaption></figure>
     </div></div>
   <div class="group"><div class="ghead"><h3>All 47, sorted</h3></div>
     <div class="open">
       <div><b>Already has an approved drawing (6)</b>The tools button and its question card (Rulings), the calendar (Sessions), the bars (My stats), the two people (The group), the flame (Boosters), the percent (Calculator).</div>
-      <div><b>Drawn in this round (12)</b>As drawings: Bill, seat a player, cash out, money rules, pass the game, the clock, settings, invite. As simple marks, for the results: chips in, chips out, Kitchen &amp; drinks, piggy bank.</div>
-      <div><b>Objects not drawn yet (15)</b>Sun and moon (theme), home, house-rules info, pencil, restart, trash, phone off, clipboard, copy, message, share, QR code, calculator, the spade card. Next round, once this hand is right.</div>
+      <div><b>Drawn in this round, as simple marks (12, and the tools button)</b>Bill, seat a player, cash out, money rules, pass the game, the clock, settings, invite, chips in, chips out, Kitchen &amp; drinks, piggy bank.</div>
+      <div><b>Objects not drawn yet (15)</b>Sun and moon (theme), home, house-rules info, pencil, restart, trash, phone off, clipboard, copy, message, share, QR code, calculator, the spade card. Next round, as simple marks too, once these are right.</div>
       <div><b>Controls, which I’d leave as line glyphs (10)</b>Back, the three chevrons, the arrow, close, plus, check, backspace, and the drinks glass, which no screen uses. They point or confirm; they are not things.</div>
     </div></div>
 </section>

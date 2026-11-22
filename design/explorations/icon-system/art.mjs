@@ -1849,9 +1849,44 @@ const MARK = {
   kitchen: `<path d="M5 2.5a1 1 0 0 1 1 1V8h1V3.5a1 1 0 0 1 2 0V8h1V3.5a1 1 0 0 1 2 0V9a3.5 3.5 0 0 1-2.2 3.25V20.3a1.3 1.3 0 0 1-2.6 0V12.25A3.5 3.5 0 0 1 4 9V3.5a1 1 0 0 1 1-1Z"/><path d="M16 2.5c2.4 1 4 3.9 4 7.3V13h-1.4v7.3a1.3 1.3 0 0 1-2.6 0Z"/>`,
   piggy: `<path fill-rule="evenodd" d="M10.5 5.5c1.7 0 3.2.5 4.5 1.3L17.6 5l-.3 3.3c.7.8 1.2 1.7 1.5 2.7H21a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2.2a7.6 7.6 0 0 1-1.8 2.6V20a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-.7c-1 .2-2 .2-3 0V20a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-2.4A7.2 7.2 0 0 1 3.6 13a1.6 1.6 0 0 1-1.6-1.6V10.8a.8.8 0 0 1 1.6 0v.4a7 7 0 0 1 6.9-5.7ZM8.5 8.4h4a.7.7 0 0 1 0 1.4h-4a.7.7 0 0 1 0-1.4Z"/><circle cx="16" cy="11.6" r="1" fill="none"/>`,
 };
+/* The second eight, the same day: the owner on the drawer rows and the menu bar — "we don't need that much
+   details in the icons, make them minimalistic", "these should be more simple". Same rules as the four above. */
+const gear = (() => {
+  const pt = (r, a) => `${f(12 + r * Math.cos(a))} ${f(12 + r * Math.sin(a))}`;
+  let d = '';
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4;
+    d += `${i ? 'L' : 'M'}${pt(7.3, a - 0.27)}L${pt(10, a - 0.16)}L${pt(10, a + 0.16)}L${pt(7.3, a + 0.27)}`;
+  }
+  return `<path fill-rule="evenodd" d="${d}ZM12 8.6a3.4 3.4 0 1 0 0 6.8a3.4 3.4 0 0 0 0-6.8Z"/>`;
+})();
+Object.assign(MARK, {
+  seat: `<circle cx="12" cy="7.4" r="4.4"/><path d="M3.5 21c0-4.9 3.6-8 8.5-8s8.5 3.1 8.5 8a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1Z"/>`,
+  cashOut: `<path fill-rule="evenodd" d="M4.5 5.5h15A2.5 2.5 0 0 1 22 8v8a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 16V8a2.5 2.5 0 0 1 2.5-2.5ZM12 8.8a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 0 0 0-6.4Z"/>`,
+  rules: `<path fill-rule="evenodd" d="M7 2h10.5A2.5 2.5 0 0 1 20 4.5v15a2.5 2.5 0 0 1-2.5 2.5H7a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3ZM7.2 4.2v15.6h1.5V4.2ZM11.5 6.5v1.8h5.5V6.5ZM11.5 10.2v1.8h3.5v-1.8Z"/>`,
+  pass: `<path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20ZM8.6 6.8h3.6a5.2 5.2 0 0 1 0 10.4H8.6ZM11 9.1v5.8h1.2a2.9 2.9 0 0 0 0-5.8Z"/>`,
+  clock: `<path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20ZM12 4.4a7.6 7.6 0 1 1 0 15.2a7.6 7.6 0 0 1 0-15.2Z"/><path d="M12 6.6a1.1 1.1 0 0 1 1.1 1.1v3.85l2.6 1.5a1.1 1.1 0 0 1-1.1 1.9l-3.15-1.82A1.1 1.1 0 0 1 10.9 12.2V7.7A1.1 1.1 0 0 1 12 6.6Z"/>`,
+  settings: gear,
+  invite: `<path fill-rule="evenodd" d="M4.5 4.5h15A2.5 2.5 0 0 1 22 7v10a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 17V7a2.5 2.5 0 0 1 2.5-2.5ZM5.2 7.3L4.1 8.9L12 14.6L19.9 8.9L18.8 7.3L12 12.2Z"/>`,
+  bill: `<path fill-rule="evenodd" d="M6.5 2h11A1.5 1.5 0 0 1 19 3.5V22l-2.33-1.7L14.33 22L12 20.3L9.67 22L7.33 20.3L5 22V3.5A1.5 1.5 0 0 1 6.5 2ZM8 6.4v1.8h8V6.4ZM8 10.2v1.8h8v-1.8ZM8 14v1.8h4.5V14Z"/>`,
+  tools: `<g transform="rotate(8 12 12)"><path fill-rule="evenodd" d="M7.5 2h9A2.5 2.5 0 0 1 19 4.5v15a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 19.5v-15A2.5 2.5 0 0 1 7.5 2ZM12 6.3c-2 0-3.3 1.3-3.3 3h2c0-.7.5-1.2 1.3-1.2s1.3.5 1.3 1.1c0 .6-.3.9-1 1.4c-.9.6-1.4 1.300-1.4 2.6v.3h2v-.2c0-.6.2-.9.9-1.400c1-.7 1.600-1.500 1.600-2.800c0-1.700-1.400-2.800-3.400-2.800ZM12 15a1.25 1.25 0 1 0 0 2.5a1.25 1.25 0 0 0 0-2.5Z"/></g>`,
+});
 /** A simple mark at a size, in one colour: for a line of text, not for a tile. */
 export const mark = (key, size, color) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${color}" aria-hidden="true">${MARK[key]}</svg>`;
 const asSpot = (key) => (P) => `<g transform="translate(15 23) scale(2.75)" fill="${P.ink.inlay}">${MARK[key]}</g>`;
+const m28 = (key, name, variant, where) => ({ name, variant: `simple · ${variant}`, where, status: 'round28', draw: asSpot(key) });
+
+Object.assign(SPOTS, {
+  markSeat: m28('seat', 'Seat a player', 'a player', 'Tonight · Table admin'),
+  markCashOut: m28('cashOut', 'Cash out a player', 'a banknote', 'Tonight · Table admin'),
+  markRules: m28('rules', 'Money rules', 'the rule book', 'Tonight · Table admin'),
+  markPass: m28('pass', 'Pass the game', 'the dealer button', 'Tonight · Table admin'),
+  markBill: m28('bill', 'Bill', 'a receipt', 'Tonight · dock'),
+  markTools: m28('tools', 'Poker tools', 'the question card', 'Tonight · role line'),
+  markClock: m28('clock', 'The log', 'a clock', 'Tonight · the log'),
+  markSettings: m28('settings', 'Settings', 'a cog', 'Main menu · bar'),
+  markInvite: m28('invite', 'Invite', 'an envelope', 'Main menu · bar'),
+});
 
 Object.assign(SPOTS, {
   markChipsIn: { name: 'Chips in', variant: 'simple · a solid chip, the arrow in', where: 'Results · a player’s row', status: 'round28', draw: asSpot('chipsIn') },

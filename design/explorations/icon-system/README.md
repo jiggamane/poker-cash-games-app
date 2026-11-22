@@ -84,3 +84,9 @@ curves and shapes, fewer details, still well designed. The four results icons
 are now `MARK` in `art.mjs`: solid one-tone marks on a 24 grid, not spots. The
 coloured four are under the earlier rounds. So there are three families now:
 spots (places and games), marks (small, beside text), and the line glyphs.
+
+The same day, two more comments (the drawer rows: *make them minimalistic*;
+the menu bar: *these should be more simple*): the other eight, and the tools
+button, are marks too. The detailed `ui*` drawings are under the earlier
+rounds. So small icons beside a label are marks; spots are for tiles, rows of
+games and sheets.
