@@ -31,21 +31,10 @@ const TYPE = [
   ['f', 'Heavy', 'Libre Franklin extra-bold at 19, set tight. The strongest of the six.', 'font:800 19px/1 var(--head);letter-spacing:-.02em'],
 ];
 
-export const section = { title: 'This round: Home’s footer, and the type on the bar',
-  blurb: 'From your notes on the first cut. Home’s footer five ways, since it holds three controls rather than one action; then the words on the bar in six sizes and faces, each shown on the settled night and on Tonight. Approve one of each.' };
+export const section = { title: 'This round: the type on the bar',
+  blurb: 'Still open from your notes: the words on the bar in six sizes and faces, each shown on the settled night and on Tonight. Approve one. Home’s footer is settled: you approved it as drawn, the ink bar with its three controls, so the four alternatives are off the board.' };
 
 export default [
-  { id: 'home-foot-bar', route: '/', name: 'Home footer A · as drawn', nav: 'root', note: 'For comparison: the ink bar, holding the three controls as round shapes.', html: by.home },
-  { id: 'home-foot-pills', route: '/', name: 'Home footer B · pills on the sheet', nav: 'root', note: 'No bar. The three controls are outlined pills at the foot of the white sheet, as the menu had them before the bar.',
-    html: homeWith(pillRow('box-shadow:inset 0 0 0 1.5px var(--outline)')) },
-  { id: 'home-foot-line', route: '/', name: 'Home footer C · a footer on the sheet', nav: 'root', note: 'The same controls on a quiet footer: a hairline across the sheet, soft grey pills under it.',
-    html: homeWith(pillRow('background:var(--raised)', 'box-shadow:inset 0 1px 0 var(--line)')) },
-  { id: 'home-foot-top', route: '/', name: 'Home footer D · no footer, controls in the header', nav: 'root', note: 'The three controls move to the top right of the ink, where a settings gear usually lives. The sheet runs to the bottom edge.',
-    html: homeWith('', { top: `<div style="position:absolute;right:18px;top:50px;display:flex;gap:6px;color:#fff">${['settings', 'invite'].map((n) => `<span style="width:36px;height:36px;display:grid;place-items:center">${ico(n, 21)}</span>`).join('')}<span style="width:36px;height:36px;display:grid;place-items:center">${theme}</span></div>` }) },
-  { id: 'home-foot-tabs', route: '/', name: 'Home footer E · three labelled items', nav: 'root', note: 'A regular bar: each control an icon over its word, a third of the width each.',
-    flags: ['“Theme” is a new word: the app’s theme button has no visible label today (only “Switch to the dark theme” for screen readers). “Invite a player” is the app’s own label for that button.'],
-    html: homeWith(`<div class="bar"><div class="acts">${tab(ico('settings', 20), 'Settings')}${tab(ico('invite', 20), 'Invite a player')}${tab(theme, 'Theme')}</div></div>`) },
-
   ...TYPE.map(([k, name, note, css]) => ({ id: `bar-type-${k}`, route: '/settled', name: `Bar type ${k.toUpperCase()} · ${name}`, nav: 'push', wide: true, note,
     html: `<style>.bt-${k} .fb .bar .act:not(.sec){${css}}</style><div class="bt-${k}" style="display:flex;gap:18px;flex-wrap:wrap;justify-content:center">${by.settled}${by.session}</div>` })),
 ];
