@@ -261,3 +261,14 @@ a hidden screen gives nothing away. New feature and new words.
   shown, two ways in. All draft copy except the app's line and New group.
 - Approved: the square QR, the seated New session with the lifted chips,
   New session, and New session with a buy-in open.
+
+## Round eight (22 November)
+
+- **Every money figure in one face.** `moneyFont` in `build.mjs` sets each
+  currency amount, signed amount and grouped number in Libre Franklin (`.m` in
+  the kit), whatever line it sits in; times, dates and percentages are left
+  alone. An audit of the rendered board found 275 figures in Inter on 96
+  screens before, none after.
+- **Updated since your last look**, at the top of the board: a copy of every
+  screen changed after a Needs-work note, with what changed, until it is
+  approved or noted again (live from the db). The originals stay in place.

@@ -44,6 +44,26 @@ const withBehind = (phone) => {
   return back ? phone.slice(0, phone.indexOf('<div class="scr">') + 17) + back + phone.slice(at) : phone;
 };
 for (const s of all) s.html = s.html.split('<div class="fb">').map((part, i) => (i === 0 ? part : withBehind('<div class="fb">' + part).slice(16))).join('<div class="fb">');
+
+/*
+ * Every money figure in one face (owner, 22 November: "check for all numbers (money values) to use the
+ * same new font"). A figure is a currency amount ($500, +$1,620, $9.99, $2.1k), a signed amount
+ * (−110, +460, +1,620) or a grouped number (2,120). Times, dates and percentages are left alone.
+ * Only text between tags is touched, and nothing inside <style>, <script> or an <svg>.
+ */
+const MONEY = /[+\-−]?\$\d[\d,]*(?:\.\d+)?k?|[+\-−]\d{1,3}(?:,\d{3})+|[+\-−]\d{2,}(?![\d:])|\b\d{1,3}(?:,\d{3})+\b/g;
+function moneyFont(html) {
+  let skip = 0;
+  return html.split(/(<[^>]+>)/).map((part) => {
+    if (part.startsWith('<')) {
+      const t = part.match(/^<\/?\s*([a-zA-Z]+)/)?.[1]?.toLowerCase();
+      if (t === 'style' || t === 'script' || t === 'svg') skip += part.startsWith('</') ? -1 : part.endsWith('/>') ? 0 : 1;
+      return part;
+    }
+    return skip > 0 ? part : part.replace(MONEY, (m) => `<span class="m">${m}</span>`);
+  }).join('');
+}
+for (const s of all) s.html = moneyFont(s.html);
 const dup = all.map((s) => s.id).filter((id, i, a) => a.indexOf(id) !== i);
 if (dup.length) throw new Error(`duplicate screen ids: ${[...new Set(dup)].join(', ')}`);
 const routes = new Set(all.map((s) => s.route));
@@ -62,7 +82,7 @@ const reviewBlock = (key, labelText, rows = 2) => `<div class="rv" data-key="${k
       <span class="rvs" aria-live="polite"></span>
     </div>`;
 
-const cell = (s) => `<figure class="cell scr-cell${s.wide ? ' wide' : ''}" data-key="${s.id}" id="s-${s.id}">
+const cell = (s, copy = '') => `<figure class="cell scr-cell${s.wide ? ' wide' : ''}${copy ? ' upd' : ''}" data-key="${s.id}" id="${copy ? 'u' : 's'}-${s.id}"${copy ? ` data-upd="${s.id}"` : ''}>${copy ? `<div class="upd-what"><b>What changed</b>${esc(copy)}</div>` : ''}
   <div class="pg-ph">${s.html}</div>
   <figcaption><b>${esc(s.name)}</b><span class="pg-meta"><code>${esc(s.route)}</code> · ${NAV[s.nav] ?? s.nav}</span>${
     s.note ? `<span class="pg-nt">${esc(s.note)}</span>` : ''}${
@@ -70,6 +90,7 @@ const cell = (s) => `<figure class="cell scr-cell${s.wide ? ' wide' : ''}" data-
   ${REVIEW ? reviewBlock(s.id, s.name) : ''}</figure>`;
 
 const PDATA = { screens: sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, x.name, i])), sections: sections.map((x) => x.title), addressed: ADDRESSED, decided: DECIDED };
+const needsLook = (id, v) => { const x = v[id]; const fix = ADDRESSED[id]; return !!fix && (!x || x[0] !== 'approved') && !(x && x[0] === 'changes' && x[2] > fix[1]); };
 const flagged = all.filter((s) => (s.flags ?? []).length);
 
 const page = () => `<title>Poker Club Full Board</title>
@@ -140,6 +161,10 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 .pp-ids{display:block;font-size:12.5px;margin-top:3px}.pp-ids a{font-weight:500;color:var(--muted)}
 .pp-dec{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}.pp-dec b{color:var(--fg)}
 .pp-live{font:500 12px var(--body);color:var(--muted)}
+.upd-what{font-size:12.5px;line-height:1.4;color:var(--fg);background:var(--panel);border-radius:10px;padding:8px 10px;box-shadow:inset 3px 0 0 var(--accent)}
+.upd-what b{display:block;font:700 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.pg-none{font-style:italic}
+.upd[hidden],.pg-none[hidden]{display:none!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 ${CSS}
 </style>
@@ -158,10 +183,16 @@ ${CSS}
   </div>
   <div class="pg-strip" role="group" aria-label="Board controls">
     <div class="pg-mode" role="group" aria-label="Phone theme"><button type="button" id="m-light" aria-pressed="true">Light</button><button type="button" id="m-dark" aria-pressed="false">Dark</button></div>
-    <nav aria-label="Sections"><a href="#sec-progress">Where review stands</a>${sections.map((s, i) => `<a href="#sec-${i}">${esc(s.title)}</a>`).join('')}${flagged.length ? `<a href="#sec-open">Open questions</a>` : ''}</nav>
+    <nav aria-label="Sections"><a href="#sec-updates">Updated for you</a><a href="#sec-progress">Where review stands</a>${sections.map((s, i) => `<a href="#sec-${i}">${esc(s.title)}</a>`).join('')}${flagged.length ? `<a href="#sec-open">Open questions</a>` : ''}</nav>
     ${REVIEW ? `<div class="cnt" role="status"><span id="cA">0 approved</span><span id="cC">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span>` : ''}
   </div>
 </header>
+
+<section id="sec-updates"><h2>Updated since your last look</h2>
+  <p>Every screen I changed after your note, gathered here so nothing is missed. Each also stays in its place below. Approve it here or there, or note it again; it leaves this section either way. <b>Also everywhere:</b> every money figure on the board is now set in the figure face, Libre Franklin, whatever line it sits in (949 figures, none left in the text face).</p>
+  <div class="pg-grid" id="upd-grid">${all.filter((x) => ADDRESSED[x.id]).map((x) => cell(x, ADDRESSED[x.id][0]).replace('<figure ', needsLook(x.id, SNAPSHOT) ? '<figure ' : '<figure hidden ')).join('')}</div>
+  <p id="upd-none" class="pg-none" hidden>Nothing waiting: every change has a verdict.</p>
+</section>
 
 <section id="sec-progress"><h2>Where review stands</h2><div class="pg-progress"><div id="pp-body">${renderProgress(PDATA, SNAPSHOT)}</div><span class="pp-live" id="pp-live">As of the last build. ${REVIEW ? 'Updates as you review.' : ''}</span></div></section>
 
@@ -170,7 +201,7 @@ ${REVIEW ? `<section><figure class="cell pg-general" data-key="general"><figcapt
 ${sections.map((s, i) => `<section id="sec-${i}">
   <h2>${esc(s.title)}</h2>
   <p>${esc(s.blurb ?? '')}</p>
-  <div class="pg-grid">${s.screens.map(cell).join('')}</div>
+  <div class="pg-grid">${s.screens.map((x) => cell(x)).join('')}</div>
 </section>`).join('\n')}
 
 ${flagged.length ? `<section id="sec-open">
@@ -206,6 +237,13 @@ ${REVIEW ? `<script>
         else V[ch.doc.id] = [x.status || '', x.comment || '', x.updatedAt || ''];
       }
       body.innerHTML = render(D, V);
+      let shown = 0;
+      document.querySelectorAll('[data-upd]').forEach((el) => {
+        const id = el.dataset.upd, x = V[id], fix = D.addressed[id];
+        const show = !!fix && (!x || x[0] !== 'approved') && !(x && x[0] === 'changes' && x[2] > fix[1]);
+        el.hidden = !show; if (show) shown++;
+      });
+      document.getElementById('upd-none').hidden = shown > 0;
       live.textContent = 'Live: updates as you review.';
     }, () => { live.textContent = 'Live updates stopped. Reload the page to reconnect.'; });
   })();
