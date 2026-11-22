@@ -118,6 +118,89 @@ const DARK = [
     t: { ...D, ground: '#0E121A', card: '#161B25', raised: '#222838', line: 'rgba(255,255,255,.06)', cardShadow: 'none', rail: '#252C3C', railShadow: 'inset 0 -1px 0 rgba(255,255,255,.08),0 16px 26px -18px rgba(0,0,0,.6)', cta: '#ECEEF2', ctaText: '#141A2A', ctaSub: 'rgba(20,26,42,.68)' } },
 ];
 
+/*
+ * Outside the system. Sections 1 to 3 keep the layout (a white rail, cards on a
+ * ground, a floating dock) and move its colours. These change the structure:
+ * what the header is, what the ground is, what the footer is. Still the same
+ * four phones and the same words; each is themeCSS plus a few structural rules.
+ */
+const L = { text: '#141A2A', muted: '#596171', win: '#0E7A45', loss: '#4E5768', line: '#E4E7EC', raised: '#F1F3F6' };
+const INK = '#141A2A';
+/* A header set on a dark or coloured band: its own text palette, the pills and the tools button turned over. */
+const onBand = (sel = '') => `
+${sel} .sb{color:#fff!important}${sel} .sb svg{color:#fff;fill:#fff}
+${sel} .railp{--p-text:#fff;--p-muted:rgba(255,255,255,.72);--p-line:rgba(255,255,255,.16);color:#fff}
+${sel} .railp h1,${sel} .railp .hero *{color:#fff}
+${sel} .railp .fdeyebrow,${sel} .railp .fdsub,${sel} .railp .role,${sel} .railp .meta-l,${sel} .railp .hdr .rb,${sel} .railp .hero .lbl,${sel} .railp .hero-r,${sel} .railp .hero-r *{color:rgba(255,255,255,.72)!important}
+${sel} .railp .role b{color:#fff!important}
+${sel} .railp .stackbar i{background:#fff!important}${sel} .railp .stackbar i:nth-child(even){background:rgba(255,255,255,.45)!important}
+${sel} .railp .live{background:rgba(255,255,255,.16)!important;color:#fff!important}${sel} .railp .live *{color:#fff!important}${sel} .railp .live i,${sel} .railp .live::before{background:#7BE3AE!important}
+${sel} .railp .dd{background:rgba(255,255,255,.14)!important;box-shadow:none!important;color:#fff!important}${sel} .railp .dd *{color:#fff!important}
+${sel} .railp .role .rb.tools-d{background:#fff!important}${sel} .railp .role .rb.tools-d .appico{color:${INK}!important}`;
+const bareRail = `.railp{background:none!important;box-shadow:none!important;border-radius:0!important}`;
+
+const BEYOND = [
+  { key: 'beyond-sheet', name: 'A · Ink top, white sheet', note: 'The header is not a panel: it is the top of an ink screen, in white type, and Tonight’s pot sits on it. Everything else is one white sheet that rises over it. Cards are flat grey on the sheet. The footer is not a floating dock: it is the foot of the sheet, behind a hairline.',
+    t: { ...L, ground: '#FFFFFF', card: '#F3F4F7', raised: '#E9EBF0', cardShadow: 'none', rail: INK, railShadow: 'none' },
+    css: `${onBand()}
+.railp{border-radius:0!important;padding-bottom:42px!important;margin-bottom:0!important}
+.railp::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:27px;background:#fff;border-radius:26px 26px 0 0}
+.railp.home{padding-bottom:50px!important}.railp.home + .cta{margin-top:-12px!important}
+.dock{left:0!important;right:0!important;bottom:0!important;border-radius:0!important;background:#fff!important;box-shadow:inset 0 1px 0 #E4E7EC!important;padding:10px 18px 24px!important}
+.foot{left:0!important;right:0!important;bottom:0!important;padding:12px 18px 24px;background:#fff;box-shadow:inset 0 1px 0 #E4E7EC}
+.menubar{left:0!important;right:0!important;bottom:0!important;padding:12px 18px 24px;background:#fff;box-shadow:inset 0 1px 0 #E4E7EC}
+.menubar .rb,.menubar .fdpill,.menubar .pill{background:#F3F4F7!important}` },
+
+  { key: 'beyond-felt', name: 'B · Felt', note: 'The ground is the table: a deep green, lit from the top. No header panel at all; the title and the pot sit straight on the felt in white. Cards stay white, like cards. The footer is an ink bar floating on the felt, with the primary button turned white.',
+    t: { ...L, ground: '#0E5239', groundImage: 'radial-gradient(130% 62% at 50% 0%,#1E7F59 0,#0F5A3E 58%,#0A4530 100%)', card: '#FFFFFF', cardShadow: '0 1px 2px rgba(0,0,0,.25),0 10px 22px -12px rgba(0,0,0,.5)', rail: 'none', railShadow: 'none' },
+    css: `${onBand()}${bareRail}
+.railp{margin-bottom:4px!important}
+.seclbl,.seclbl *{color:#fff!important}.seclbl{opacity:.92}
+.ded,.ded *,.ended,.ended *{color:#fff!important}.ded .appico{color:rgba(255,255,255,.8)!important}.ded{border-color:rgba(255,255,255,.2)!important}
+.dock{background:${INK}!important;box-shadow:0 12px 26px -10px rgba(0,0,0,.6)!important;border-radius:26px!important;left:10px!important;right:10px!important;bottom:12px!important}
+.dock-h,.dock-h *{color:rgba(255,255,255,.75)!important}
+.dock .btn-pri{background:#fff!important;color:${INK}!important}.dock .btn-pri *{color:${INK}!important}
+.dock .btn-sec{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)!important;color:#fff!important}.dock .btn-sec *{color:#fff!important}
+.foot .btn-pri{background:#fff!important;color:${INK}!important;box-shadow:0 12px 26px -10px rgba(0,0,0,.6)}
+.fd .cta{box-shadow:0 12px 26px -10px rgba(0,0,0,.65)!important}
+.menubar .rb,.menubar .fdpill,.menubar .pill{background:rgba(255,255,255,.14)!important;box-shadow:none!important;color:#fff!important}.menubar svg{color:#fff!important}` },
+
+  { key: 'beyond-paper', name: 'C · Paper', note: 'No panels and no cards anywhere. A white page: the title large over one ink rule, lists as plain rows between hairlines, section labels doing the grouping. The footer is the only solid thing on the screen: an ink bar across the bottom edge.',
+    t: { ...L, ground: '#FFFFFF', card: 'transparent', cardShadow: 'none', rail: 'none', railShadow: 'none' },
+    css: `${bareRail}
+.railp{box-shadow:inset 0 -2px 0 ${INK}!important;margin-left:0!important;margin-right:0!important;padding-left:0!important;padding-right:0!important;padding-bottom:14px!important}
+.railp .hdr h1{font-size:27px!important;letter-spacing:-.025em!important}.railp.home h1{font-size:30px!important}
+.railp.home{padding-bottom:16px!important;margin-bottom:14px!important}.railp.home + .cta{margin-top:0!important}
+.blist,.rows,.outrow,.rcard{padding-left:0!important;padding-right:0!important;border-radius:0!important}
+.rows,.blist,.rcard,.outrow{box-shadow:inset 0 1px 0 #E4E7EC,inset 0 -1px 0 #E4E7EC!important}
+.fdtile{box-shadow:inset 0 0 0 1.5px #DDE1E7!important}
+.railp .role .rb{background:#F1F3F6}
+.railp .dd{box-shadow:inset 0 0 0 1.5px #DDE1E7!important}
+.dock{left:0!important;right:0!important;bottom:0!important;border-radius:0!important;background:${INK}!important;box-shadow:none!important;padding:12px 18px 26px!important}
+.dock-h,.dock-h *{color:rgba(255,255,255,.75)!important}
+.dock .btn-pri{background:#fff!important;color:${INK}!important}.dock .btn-pri *{color:${INK}!important}
+.dock .btn-sec{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)!important;color:#fff!important}.dock .btn-sec *{color:#fff!important}
+.foot{left:0!important;right:0!important;bottom:0!important;background:${INK};padding:8px 18px 22px}
+.menubar{left:0!important;right:0!important;bottom:0!important;padding:12px 18px 24px;background:${INK}}
+.menubar .rb,.menubar .fdpill,.menubar .pill{background:rgba(255,255,255,.12)!important;box-shadow:none!important;color:#fff!important}.menubar svg{color:#fff!important}` },
+
+  { key: 'beyond-glass', name: 'D · Frosted bars', note: 'The ground carries colour: a slow drift from cool blue to a warm blush. The header and the footer are frosted glass bars, square to the screen edges, and the list passes under both. Cards are a soft white that lets the ground through.',
+    t: { ...L, ground: '#EEF0F3', groundImage: 'radial-gradient(90% 46% at 8% 4%,#C9DBF6 0,transparent 70%),radial-gradient(80% 42% at 100% 58%,#F6D9D2 0,transparent 72%),radial-gradient(90% 40% at 10% 100%,#D5E6DC 0,transparent 70%),#EEF1F5', card: 'rgba(255,255,255,.72)', cardShadow: 'inset 0 0 0 1px rgba(255,255,255,.7),0 8px 22px -14px rgba(20,26,42,.3)', rail: 'rgba(255,255,255,.5)', railShadow: 'inset 0 -1px 0 rgba(255,255,255,.8),0 1px 0 rgba(20,26,42,.06)' },
+    css: `.scr{clip-path:inset(0 round 37px)}
+.railp{border-radius:0!important;-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5)}
+.dock{left:0!important;right:0!important;bottom:0!important;border-radius:0!important;background:rgba(255,255,255,.55)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 -1px 0 rgba(20,26,42,.06)!important;padding:10px 18px 24px!important;-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5)}
+.foot,.menubar{left:0!important;right:0!important;bottom:0!important;padding:12px 18px 24px;background:rgba(255,255,255,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 -1px 0 rgba(20,26,42,.06);-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5)}
+.railp .role .rb:not(.tools-d){background:rgba(255,255,255,.7)}` },
+
+  { key: 'beyond-state', name: 'E · The header says the state', note: 'The header is a full band of colour, and the colour means something: green while a game is live, ink once it is settled, white on the menus where nothing is happening. The primary button in the footer takes the band’s colour, so top and bottom of the screen agree about where you are.',
+    t: { ...L, ground: '#EEF0F3', card: '#FFFFFF', cardShadow: '0 1px 1.5px rgba(20,26,42,.07),0 8px 20px -12px rgba(20,26,42,.22)', rail: '#FFFFFF', railShadow: 'inset 0 -1px 0 #E4E7EC' },
+    css: `.railp{border-radius:0!important}
+${onBand('figure:nth-child(2)')}${onBand('figure:nth-child(4)')}
+figure:nth-child(2) .railp{background:linear-gradient(180deg,#0C6B3D,#0E7A45)!important;box-shadow:none!important}
+figure:nth-child(2) .btn-pri{background:#0E7A45!important}
+figure:nth-child(4) .railp{background:${INK}!important;box-shadow:none!important}` },
+];
+
 /* What the rail does once a long list scrolls: Game boosters, scrolled two rows down. */
 const SCROLL = [
   { key: 'scroll-away', name: 'A · it scrolls away', note: 'The rail is part of the page and goes up with it; the list has the whole screen. The title is gone until you scroll back.',
@@ -212,6 +295,12 @@ section{margin-top:44px;display:flex;flex-direction:column;gap:14px}
   </div>
   ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA">0 approved</span><span id="cC">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 </header>
+
+<section>
+  <h2>Outside the system: five other approaches</h2>
+  <p>Groups 1 to 3 below keep one layout (a white rail, cards on a ground, a floating dock) and only move its colours. These five change the structure instead: what the header is, what the ground is, and what the footer is. Same four screens, same words. Approve any you want taken further, or say which parts to combine.</p>
+  ${BEYOND.map((o) => option(o, shadowStrip(four(fdLight), themeCSS(o.t) + o.css))).join('')}
+</section>
 
 <section>
   <h2>1 · Light: the ground, the cards, the rail</h2>
