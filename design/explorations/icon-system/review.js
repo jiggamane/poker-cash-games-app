@@ -5,11 +5,12 @@
  * status being 'approved', 'changes' or ''.
  */
 (() => {
-  const KEYS = [...document.querySelectorAll('figure.cell[data-key]')].map((e) => e.dataset.key);
+  /* A drawing can appear twice (in its round and under Approved): count it once, update every copy. */
+  const KEYS = [...new Set([...document.querySelectorAll('figure.cell[data-key]')].map((e) => e.dataset.key))];
   const state = {};
   const busy = {};
   const timers = {};
-  const blockFor = (k) => document.querySelector('.rv[data-key="' + k + '"]');
+  const blocksFor = (k) => [...document.querySelectorAll('.rv[data-key="' + k + '"]')];
   const note = document.getElementById('rvnote');
   const setNote = (t) => { note.textContent = t; note.hidden = !t; };
   const controls = () => document.querySelectorAll('.rv button, .rv textarea');
@@ -29,9 +30,8 @@
   }
 
   function renderKey(k) {
-    const el = blockFor(k);
-    if (!el) return;
     const s = state[k] || {};
+    for (const el of blocksFor(k)) {
     el.querySelectorAll('.rvbtn').forEach((b) => b.setAttribute('aria-pressed', String(s.status === b.dataset.v)));
     const ta = el.querySelector('textarea');
     if (document.activeElement !== ta) ta.value = s.comment || '';
@@ -40,14 +40,15 @@
       cell.classList.toggle('is-approved', s.status === 'approved');
       cell.classList.toggle('is-changes', s.status === 'changes');
     }
+    }
   }
 
   function say(k, text, err) {
-    const el = blockFor(k);
-    if (!el) return;
-    const out = el.querySelector('.rvs');
-    out.textContent = text;
-    out.classList.toggle('err', !!err);
+    for (const el of blocksFor(k)) {
+      const out = el.querySelector('.rvs');
+      out.textContent = text;
+      out.classList.toggle('err', !!err);
+    }
   }
 
   function lock(message) {
@@ -91,6 +92,7 @@
       const ta = el.querySelector('textarea');
       ta.addEventListener('input', () => {
         (state[k] = state[k] || { status: '', comment: '' }).comment = ta.value;
+        blocksFor(k).forEach((b) => { const t2 = b.querySelector('textarea'); if (t2 !== ta) t2.value = ta.value; });
         clearTimeout(timers[k]);
         say(k, '');
         timers[k] = setTimeout(() => { delete timers[k]; save(k); }, 800);
