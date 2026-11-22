@@ -224,3 +224,10 @@ Options at the top (`screens/05-this-round.mjs`):
   like the cards, lifted with a round ink add, a soft fill. Who's playing? was
   marked Needs work with no comment; the chips are the likely reason, so it is
   shown with each option.
+
+**Hiding the money** (owner's comment on Tonight, same day): an eye with
+"Hide" / "Show" at the right of the first section label hides every figure on
+the white sheet, the pot on the ink stays. Five placeholders in
+`05-this-round.mjs` (`hide-*`): dots, a soft bar, the dollar kept with stars,
+three chips, a card back. None is the real figure blurred, so a screenshot of
+a hidden screen gives nothing away. New feature and new words.
