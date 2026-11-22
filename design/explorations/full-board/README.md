@@ -341,3 +341,14 @@ a hidden screen gives nothing away. New feature and new words.
   page, New group and I have a code; on the last page the right half is Check
   the code, faint until six characters are in. The joining card shows the
   group's three chips.
+
+## Round twelve (22 November)
+
+- Approved: Signing you in (the smooth riffle), Your groups, the empty-groups
+  walkthrough, Invite a player, Remove in the rule bar.
+- **Walkthrough, last page**: Scan the QR code under the code boxes, and a QR
+  button beside the field on the semi-open page. Flagged: the app has no
+  scanner today.
+- **A second table** is named for you from the day: "Friday, table 2", beside
+  "Friday, table 1 is open". Draft words; whether the name can be changed is
+  open.

@@ -183,6 +183,8 @@ const walkLastOpen = () => push({ title: 'Your groups',
       <div class="card pad" style="display:grid;gap:12px">
         ${walkCodeHead}
         <div style="display:flex;gap:10px;align-items:center">${codeBox('', true)}<span class="num muted" style="font-size:24px;font-weight:700">–</span>${codeBox('')}</div>
+        <div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px"><i style="flex:1;height:1px;background:var(--line)"></i>or<i style="flex:1;height:1px;background:var(--line)"></i></div>
+        ${`<div class="btn2" style="height:44px">${ico('qr', 18)}Scan the QR code</div>`}
       </div>
       <p class="note" style="font-size:13px;text-align:center">No groups yet. A group needs only a name to exist.</p>
       ${wdots(3)}
@@ -195,7 +197,7 @@ const walkLastSemi = () => push({ title: 'Your groups',
       ${wh('How do you want to start?', 22)}
       <div class="card pad" style="display:grid;gap:12px">
         ${walkCodeHead}
-        <div class="fi ph" style="justify-content:flex-start;gap:10px">${ico('qr', 18)}<span style="white-space:nowrap;font-size:14.5px">Six characters, from the invite</span></div>
+        <div style="display:flex;gap:8px"><div class="fi ph" style="flex:1;justify-content:flex-start;gap:10px"><span style="white-space:nowrap;font-size:14.5px">Six characters</span></div><div class="btn2" style="width:52px;height:48px;flex:none" aria-label="Scan the QR code">${ico('qr', 20)}</div></div>
       </div>
       <p class="note" style="font-size:13px;text-align:center">No groups yet. A group needs only a name to exist.</p>
       ${wdots(3)}
@@ -335,11 +337,12 @@ export default [
     note: 'What stays after the night: Sessions’ calendar.', flags: [WALK_DRAFT],
     html: walkPage('sessions', 'Every night, kept', 'Each night is saved with its results, so the group’s history and everyone’s stats are always there.', 2) },
   { id: 'groups-empty-4', route: '/groups', name: 'Your groups · none yet · 4 of 4 · code open', nav: 'push',
-    note: 'The same two halves as every page; on this one the right half is the form’s own action, Check the code, faint until six characters are in. The joining card carries the group’s three chips.',
-    flags: [WALK_DRAFT, '“Check the code” is the app’s own (the typed claim); “or start your own below” and “Six characters, from the invite” are draft.'],
+    note: 'The same two halves as every page; on this one the right half is the form’s own action, Check the code, faint until six characters are in. Under the boxes, the other way to bring a code in: scan the QR on the inviter’s phone. The joining card carries the group’s three chips.',
+    flags: [WALK_DRAFT, '“Check the code” is the app’s own (the typed claim). “Scan the QR code” is draft, and scanning needs the camera: the app has a QR to show (the invite) but no scanner today.'],
     html: walkLastOpen() },
   { id: 'groups-empty-4b', route: '/groups', name: 'Your groups · none yet · 4 of 4 · code semi-open', nav: 'push',
-    note: 'The same page with the form half open: one field that opens into the two boxes when tapped, and I have a code on the bar does the same. Calmer; one tap more.',
+    note: 'The same page with the form half open: one field that opens into the two boxes when tapped, and a QR button beside it that opens the camera. Calmer; one tap more.',
+    flags: [WALK_DRAFT, 'Scanning needs the camera: the app has a QR to show (the invite) but no scanner today.'],
     flags: [WALK_DRAFT],
     html: walkLastSemi() },
 
