@@ -14,7 +14,7 @@
 export const BUILT = '2026-11-22T21:45:00Z';
 
 export const ADDRESSED = {
-  'auth-callback-wait': ['Designed: the whole screen is ink, a red chip turns and bobs over its shadow, three dots pulse.', '2026-11-22T21:29:00Z'],
+  'auth-callback-wait': ['Designed: the whole screen is ink; the chip stack from Start a session builds chip by chip, holds, lifts away and starts again; three dots pulse.', '2026-11-22T21:40:00Z'],
   groups: ['Designed: a card per group with its drawing, name, line and standing; the current group edged in ink.', '2026-11-22T21:29:00Z'],
   invite: ['The code is six characters with a dash after three: K7M-4XP. Flagged: a server and security decision.', '2026-11-22T21:29:00Z'],
   'invite-qr': ['The square QR you picked, now real: it scans to the invite’s link.', '2026-11-22T21:45:00Z'],

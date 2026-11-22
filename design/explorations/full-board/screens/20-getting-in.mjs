@@ -9,6 +9,7 @@
 import { push, pushRaw, sheet, bar, label, card, row, note, para, pill, button, quiet, field, chips, ico } from '../kit.mjs';
 import { slotArt } from '../kit.mjs';
 import { qrSvg, inviteLink } from '../qr.mjs';
+import { chip, shadow, PALETTES, GROUND } from '../../icon-system/art.mjs';
 
 /* Parts the kit does not have, built from tokens. Listed in the report. */
 
@@ -17,26 +18,35 @@ const capsPill = (text) => `<span class="pill" style="text-transform:uppercase;l
 /** A caps eyebrow inside the content (the app's `type.label`), optionally centred. */
 const eyebrow = (text, centre = false) => `<div class="lbl q" style="margin:0;${centre ? 'justify-content:center' : ''}">${text}</div>`;
 /** A standalone screen: no back, no close. The title is the top. */
-const CHIP_SPIN = `<style>
-@keyframes fb-spin{to{transform:rotate(360deg)}}
-@keyframes fb-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-@keyframes fb-shadow{0%,100%{transform:scaleX(1);opacity:.55}50%{transform:scaleX(.82);opacity:.35}}
+/*
+ * Signing you in, with the chip stack from Start a session (owner, 22 November: "substitute for the
+ * stack of chips that we use on the start session button and make the motion with it"). The same five
+ * chips, ink and red, drawn one at a time from the approved drawing's own parts (art.mjs: chip,
+ * shadow), and dropped onto the pile one after another; the full stack holds, lifts away, and the
+ * count starts again. 2.8 seconds a round. Reduced motion shows the finished stack, still.
+ */
+const STACK = { cx: 48, r: 25, h: 8, mats: ['ink', 'red', 'ink', 'red', 'ink'], wobble: [0, 1.6, -0.6, 1.2, -1.4] };
+const CYCLE = 2.8;
+const stackWait = (px = 132) => {
+  const P = PALETTES.freshDeckOnInk;
+  const chips = STACK.mats.map((mat, i) => {
+    const land = 6 + i * 13;               /* % of the round at which chip i lands */
+    const start = land - 9;
+    const kf = `@keyframes fb-drop${i}{0%,${start}%{transform:translateY(-34px);opacity:0}${start + 3}%{opacity:1}${land}%{transform:translateY(0);opacity:1}${land + 3}%{transform:translateY(-1.6px)}${land + 6}%,84%{transform:translateY(0);opacity:1}94%,100%{transform:translateY(-10px);opacity:0}}`;
+    const g = chip(P, { cx: STACK.cx + STACK.wobble[i], by: GROUND - 1 - i * STACK.h, r: STACK.r, h: STACK.h, mat, face: true, seam: i > 0, phase: (i * 17) % 45 });
+    return { kf, g: `<g class="drop" style="animation-name:fb-drop${i}">${g}</g>` };
+  });
+  return `<style>
+${chips.map((c) => c.kf).join('\n')}
+@keyframes fb-shade{0%,4%{opacity:.25}60%,84%{opacity:1}100%{opacity:.25}}
 @keyframes fb-dots{0%,20%{opacity:.25}40%{opacity:1}100%{opacity:.25}}
-.fb .spin-wrap{animation:fb-bob 1.6s ease-in-out infinite}
-.fb .spin-chip{animation:fb-spin 2.4s linear infinite;transform-origin:50% 50%}
-.fb .spin-sh{animation:fb-shadow 1.6s ease-in-out infinite}
+.fb .drop{animation-duration:${CYCLE}s;animation-timing-function:cubic-bezier(.3,.7,.4,1);animation-iteration-count:infinite;transform-box:fill-box}
+.fb .shade{animation:fb-shade ${CYCLE}s ease-in-out infinite}
 .fb .dots i{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;margin:0 3px;animation:fb-dots 1.2s infinite}
 .fb .dots i:nth-child(2){animation-delay:.2s}.fb .dots i:nth-child(3){animation-delay:.4s}
-@media (prefers-reduced-motion:reduce){.fb .spin-wrap,.fb .spin-chip,.fb .spin-sh,.fb .dots i{animation:none}}
-</style>`;
-/** A poker chip seen from above: red belongs to chips. Its edge stripes make the turn readable. */
-const chipSvg = (size = 112) => `<svg class="spin-chip" width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">
-  <circle cx="50" cy="50" r="47" fill="var(--red)"/>
-  ${Array.from({ length: 8 }, (_, i) => `<rect x="44" y="3" width="12" height="15" rx="2" fill="#fff" transform="rotate(${i * 45} 50 50)"/>`).join('')}
-  <circle cx="50" cy="50" r="33" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4" opacity=".7"/>
-  <circle cx="50" cy="50" r="27" fill="#fff"/>
-  <path d="M50 35s-11 8-11 14.5a5.7 5.7 0 0 0 9.3 4.3L46.8 62h6.4l-1.5-8.2a5.7 5.7 0 0 0 9.3-4.3C61 43 50 35 50 35z" fill="#141A2A"/>
-</svg>`;
+@media (prefers-reduced-motion:reduce){.fb .drop,.fb .shade,.fb .dots i{animation:none}}
+</style><svg viewBox="4 12 88 88" width="${px}" height="${px}" aria-hidden="true" style="overflow:visible"><g class="shade">${shadow(P, 48, 31)}</g>${chips.map((c) => c.g).join('')}</svg>`;
+};
 /** One group on Your groups: its drawing, name, line and standing. `current` edges it in ink. */
 const groupCard = (name, line, standing, place, current = false) => `<div class="card" style="padding:12px 14px 12px 8px;display:flex;align-items:center;gap:10px;${current ? 'box-shadow:var(--lift),inset 0 0 0 2px var(--text)' : ''}">
   ${slotArt(place, 'rows', 60, 52)}
@@ -120,14 +130,13 @@ export default [
       bar: bar('Send myself another') }) },
 
   { id: 'auth-callback-wait', route: '/auth-callback', name: 'Signing you in', nav: 'root',
-    note: 'Owner, 22 November: design it, with motion. The whole screen is the ink, because there is nothing on it to read but the wait: a chip turns and bobs over its shadow, and three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
-    flags: ['The chip, its spin and the three dots are new: the app shows the two words and nothing else. Motion stops for anyone who has reduced motion turned on.'],
-    html: `<div class="fb"><div class="scr" style="justify-content:center;align-items:center;text-align:center;color:#fff">${CHIP_SPIN}
+    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: the five chips drop onto the pile one after another, the stack holds, lifts away, and it starts again; three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
+    flags: ['The stack, its motion and the three dots are new: the app shows the two words and nothing else. Motion stops for anyone who has reduced motion turned on.'],
+    html: `<div class="fb"><div class="scr" style="justify-content:center;align-items:center;text-align:center;color:#fff">
       <div style="position:absolute;top:0;left:0;right:0;padding:0 18px">${pushRaw({ topHtml: '', body: '' }).match(/<div class="sb">.*?<\/svg><\/div>/)[0]}</div>
-      <div style="display:grid;justify-items:center;gap:0;margin-top:-40px">
-        <div class="spin-wrap">${chipSvg(112)}</div>
-        <div class="spin-sh" style="width:84px;height:10px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);margin-top:14px"></div>
-        <h1 style="font:700 24px/1.15 var(--head);letter-spacing:-.015em;margin:34px 0 8px;color:#fff">Signing you in</h1>
+      <div style="display:grid;justify-items:center;margin-top:-40px">
+        ${stackWait(132)}
+        <h1 style="font:700 24px/1.15 var(--head);letter-spacing:-.015em;margin:26px 0 8px;color:#fff">Signing you in</h1>
         <div style="font-size:15px;color:rgba(255,255,255,.72)">One moment.</div>
         <div class="dots" style="margin-top:18px;color:rgba(255,255,255,.72)"><i></i><i></i><i></i></div>
       </div></div></div>` },
