@@ -282,6 +282,8 @@ const four = (fd) =>
 
 const six = (fd) => four(fd) + phoneFig(style.countUp, 'Count up (sketch)', false) + phoneFig(style.settleUp, 'Settle up (sketch)', false);
 
+const DRAISED = UNDER_DARK.find((o) => o.key === 'sheet-dark-raised');
+
 let REVIEW = false;
 const reviewBlock = (key, label) => `<div class="rv" data-key="${key}">
       <div class="rvb">
@@ -338,7 +340,7 @@ section{margin-top:44px;display:flex;flex-direction:column;gap:14px}
 <header>
   <span class="eyebrow">Exploration · 22 November 2026 · not a handoff</span>
   <h1>Headers and backgrounds, across the app</h1>
-  <p><b>Decided so far:</b> ink top, white sheet, lifted cards with the soft shadow. <b>Still open:</b> the dark theme and the footer, next below. The three older groups are unchanged at the bottom.</p>
+  <p><b>Decided so far:</b> ink top, white sheet, lifted cards with the soft shadow, and its dark version. <b>Still open:</b> the footer. The three older groups are unchanged at the bottom.</p>
   <p style="margin-top:8px">The header is decided: <b>N on the Rail</b>, the title at 20 and bold beside a bare grey chevron on a raised panel. What is left is what sits behind it on every screen: the ground, the cards, the rail’s own colour, all of it again in the dark theme, and what the rail does when a list scrolls. Each option is the same four approved screens with only those things changed. Approve one in each group, or say what to change.</p>
   <div class="decided">
     <div><b>Kept on every option</b>Fresh Deck’s type and ink, the approved drawings, the 4d tiles, the ink tools button, every word.</div>
@@ -350,19 +352,19 @@ section{margin-top:44px;display:flex;flex-direction:column;gap:14px}
 
 <section>
   <h2>Decided · Ink top, white sheet, lifted cards</h2>
-  <p>Approved 22 November: the header in white type on an ink top, the content on one white sheet, and white cards held off it by the soft shadow (L2). The other bodies and shadow strengths are off the page. Two things are still open below: this look in the dark, and the footer.</p>
+  <p>Approved 22 November: the header in white type on an ink top, the content on one white sheet, and white cards held off it by the soft shadow (L2). The other bodies and shadow strengths are off the page. One thing is still open below: the footer.</p>
   ${shadowStrip(four(fdLight), themeCSS(LSHEET) + lightSheet(BODY.lift('', LIFT)))}
 </section>
 
 <section>
-  <h2>Open · The same, in the dark</h2>
-  <p>A shadow does not show on a dark screen, so the lift becomes a card one step lighter than the sheet. The top goes to near-black and the sheet takes the ink, so the header is still the darker place. Approve it, or say what to change.</p>
-  ${UNDER_DARK.filter((o) => o.key === 'sheet-dark-raised').map((o) => option(o, shadowStrip(four(fdDark), themeCSS(o.t) + o.css))).join('')}
+  <h2>Decided · The same, in the dark</h2>
+  <p>Approved 22 November: the top near-black, the sheet in ink, and the cards one step lighter than the sheet in place of the shadow. Primary buttons turn light.</p>
+  ${shadowStrip(four(fdDark), themeCSS(DRAISED.t) + DRAISED.css)}
 </section>
 
 <section>
   <h2>Open · The footer</h2>
-  <p>Paper’s ink bar, taken further, now on the approved lifted cards. F0 is the footer as it stands, for comparison. Six screens: the four from before, plus <b>Count up</b> and <b>Settle up</b>, which each end in one action. Those two are sketches for the footer only: their titles, step labels and button words are the app’s, their bodies are simplified. Approve one.</p>
+  <p>Paper’s ink bar, taken further, now on the approved lifted cards. F0 is the footer as it stands, for comparison. Six screens: the four from before, plus <b>Count up</b> and <b>Settle up</b>, which each end in one action. Those two are sketches for the footer only: their titles, step labels and button words are the app’s, their bodies are simplified. Approve one; the dark footer will follow whichever you pick.</p>
   ${FOOT.map((o) => option(o, shadowStrip(six(fdLight), themeCSS(o.t) + o.css))).join('')}
 </section>
 

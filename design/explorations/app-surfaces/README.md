@@ -41,6 +41,8 @@ four approved screens (Main menu, Tonight, Game boosters, Post-game results):
    open: the dark version (raised cards, one option) and the footer (F0 as it
    stands, F1–F3 the ink bar), both redrawn on the approved body. A1, A2, the
    other shadow strengths and the two other dark bodies are off the page.
+8. **Approved, 22 November: the dark version** (`sheet-dark-raised`): top
+   near-black, sheet ink, cards one step lighter. Only the footer is open.
 
 Each option is the same phones with a few colour rules laid over them
 (`themeCSS` in `build.mjs`), in its own shadow root.
