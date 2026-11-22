@@ -31,9 +31,11 @@ const spend = (time, name, who, amount) =>
 /** The editor's big figure with its unit said in full beside it. */
 const rate = (figure, unit) => `<div style="display:flex;align-items:baseline;gap:8px"><span class="fig">${figure}</span><span class="muted" style="font:700 19px/1 var(--head)">${unit}</span></div>`;
 
-const kinds = (on) => chips(['A share of the win', 'A sum for the table', 'So much each', 'Each, by the hour', 'Out of each buy-in', 'The table, by the hour']
-  .map((text, i) => ({ text, on: i === on })))
-  .replace(/class="chip/g, 'style="height:36px;padding:0 12px;font-size:13.5px" class="chip');
+/** The kit's chips, one size down, where a sheet carries a long set of them. */
+const smallChips = (items) => chips(items).replace(/class="chip(?!s)/g, 'style="height:36px;padding:0 12px;font-size:13.5px" class="chip');
+
+const kinds = (on) => smallChips(['A share of the win', 'A sum for the table', 'So much each', 'Each, by the hour', 'Out of each buy-in', 'The table, by the hour']
+  .map((text, i) => ({ text, on: i === on })));
 
 const people = ['Dana', 'Andro', 'Lena', 'Tomáš', 'Ivo', 'Petr'];
 const ceilingNote = note('The half of a charge nobody states on its own — "five percent" is agreed as "five percent, fifty at most". A figure you type against one name at settle-up still stands whatever this says.');
@@ -105,13 +107,13 @@ export default [
       body: [
         label('Group defaults', { quiet: true }),
         card([
-          row({ name: 'Kitchen &amp; drinks', meta: '$170 · winners, by size of win · the bill' }),
-          row({ name: 'Group piggy bank', meta: '5% off each win · winners, evenly · the piggy bank' }),
-          row({ name: 'Host fee', meta: 'not set — a night opens with nothing selected', dim: true }),
+          row({ name: 'Kitchen &amp; drinks', meta: '$170 · winners, by size of win · the bill', wrapMeta: true }),
+          row({ name: 'Group piggy bank', meta: '5% off each win · winners, evenly · the piggy bank', wrapMeta: true }),
+          row({ name: 'Host fee', meta: 'not set — a night opens with nothing selected', wrapMeta: true, dim: true }),
         ]),
         quiet('Add a rule', { icon: 'plus' }),
         ...rounding,
-        button('Use tonight’s rules as the club default'),
+        button('Use tonight’s rules as the club default').replace('class="btn2"', 'class="btn2" style="font-size:13.5px"'),
         card(`<div class="h2" style="font-size:16px;margin-bottom:6px">Group default, not law</div>${note('A night copies these when it opens and can override any of them from the house rules. Changing them here never touches a night already running, or a night already settled.')}`, { pad: true }),
       ] }) },
 
@@ -123,7 +125,7 @@ export default [
         label('Tonight’s rules', { quiet: true }),
         card([
           row({ name: 'Kitchen &amp; drinks', meta: '$170 spent so far · winners, by size of win · paid back to whoever bought it', wrapMeta: true, trail: toggle(true) }),
-          row({ name: 'Group piggy bank', meta: '5% of win · split by winners · Radka collects', trail: toggle(true) }),
+          row({ name: 'Group piggy bank', meta: '5% of win · split by winners · Radka collects', wrapMeta: true, trail: toggle(true) }),
         ]),
         quiet('Add a rule', { icon: 'plus' }),
         label('The bill', { right: '$170', quiet: true }),
@@ -137,7 +139,8 @@ export default [
     note: 'The tallest state, a fee charged by the hour. The app stacks this sheet on the Money rules sheet.',
     html: sheet({ behind: 'Tonight', tall: true, title: 'Group piggy bank',
       body: [
-        field('Called', 'Group piggy bank'),
+        label('Called', { quiet: true }),
+        field('', 'Group piggy bank'),
         label('How much', { quiet: true }),
         rate('$5', 'an hour each'),
         kinds(3),
@@ -145,20 +148,20 @@ export default [
         label('Charged by', { quiet: true }),
         seg(['The half hour', 'The hour'], 1),
         seg(['Every hour begun', 'To the nearest', 'To the minute'], 0).replace(/<span class="/g, '<span style="font-size:12px;padding-left:2px;padding-right:2px" class="'),
+        note('Nobody is asked to clock in: somebody who arrives buys in, and somebody going home cashes out, so the app already knows how long each person sat.'),
       ],
       bar: bar('Add this rule') }) },
 
   { id: 'rule-more', route: '/rule', name: 'Rule editor · the rest', nav: 'sheet',
     html: sheet({ behind: 'Tonight', tall: true, title: 'Group piggy bank',
       body: [
-        note('Nobody is asked to clock in: somebody who arrives buys in, and somebody going home cashes out, so the app already knows how long each person sat.'),
         label('Never more than', { quiet: true }),
         presets([{ text: 'No ceiling', on: true }, '$50', '$100', { text: '—', typed: true }]).replace('flex:1;min-width:0;padding:0', 'flex:1.6;min-width:0;padding:0'),
         ceilingNote,
         label('Charged to', { quiet: true }),
         card([radio(true, 'The winners'), radio(false, 'Everyone at the table')]),
         label('Collected by', { quiet: true }),
-        chips([...people, 'Radka']),
+        smallChips([...people, 'Radka']),
         collectorNote,
       ],
       bar: bar('Add this rule') }) },
@@ -173,7 +176,7 @@ export default [
         label('Charged to', { quiet: true }),
         card([radio(true, 'Winners, off their net win'), radio(false, 'Everyone at the table', 'A percentage of a loss is not a thing', { dead: true })]),
         label('Collected by', { quiet: true }),
-        chips([...people, { text: 'Radka', on: true }]),
+        smallChips([...people, { text: 'Radka', on: true }]),
         collectorNote,
         quiet('Remove this rule', { red: true }),
       ],

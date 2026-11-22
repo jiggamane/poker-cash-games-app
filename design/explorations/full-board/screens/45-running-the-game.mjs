@@ -19,14 +19,16 @@ const radio = (on = false, off = false) =>
 const rowChip = (text) => `<span class="chip" style="height:32px;padding:0 12px;font-size:13px;flex:none">${text}</span>`;
 /** An outlined state tag (WAITING ON LENA, ADDED, LEFT OUT). The app draws the pending ones amber; the kit has no amber token. */
 const tag = (text, { strong = false } = {}) =>
-  `<span style="flex:none;align-self:flex-start;display:inline-block;font:700 10.5px/1 var(--body);letter-spacing:.1em;padding:4px 7px;border-radius:7px;white-space:nowrap;color:${strong ? 'var(--text)' : 'var(--muted)'};box-shadow:inset 0 0 0 1px ${strong ? 'var(--text)' : 'var(--outline)'}">${text}</span>`;
+  `<span style="flex:none;align-self:flex-start;justify-self:start;display:inline-block;font:700 10.5px/1 var(--body);letter-spacing:.1em;padding:4px 7px;border-radius:7px;white-space:nowrap;color:${strong ? 'var(--text)' : 'var(--muted)'};box-shadow:inset 0 0 0 1px ${strong ? 'var(--text)' : 'var(--outline)'}">${text}</span>`;
 /** The read-only band: where a dock would be, the screen ends in a statement. Pinned to the foot of the sheet. */
-const band = (inner) =>
-  `<div class="grow"></div><div style="margin:0 -18px;padding:14px 20px 22px;border-top:1px solid var(--line);display:grid;gap:8px">${inner}</div>`;
+const band = (inner, { spacer = true } = {}) =>
+  `${spacer ? '<div class="grow"></div>' : ''}<div style="margin:0 -18px;padding:14px 20px 22px;border-top:1px solid var(--line);display:grid;gap:8px">${inner}</div>`;
+/** The table as the scrolling list it is in the app: it clips under whatever is pinned below it. */
+const scroller = (items) => `<div class="grow" style="overflow:hidden;display:flex;flex-direction:column;gap:12px;margin:-4px -18px 0;padding:4px 18px 0">${items.join('')}</div>`;
 /** A timed row: time · words (+ a small line) · figure · whatever ends it. */
-const timed = (time, what, { sub = '', amount = '', end = '', dim = false } = {}) =>
-  `<div class="row"><span class="num muted" style="flex:none;width:40px;font-size:12.5px;font-weight:600">${time}</span><span class="n"${dim ? ' style="color:var(--muted)"' : ''}>${what}${sub ? `<small>${sub}</small>` : ''}</span>${
-    amount ? `<span class="a"${dim ? ' style="color:var(--muted)"' : ''}>${amount}</span>` : ''}${end}</div>`;
+const timed = (time, what, { sub = '', amount = '', under = '', end = '', dim = false } = {}) =>
+  `<div class="row"><span class="num muted" style="flex:none;width:40px;font-size:12.5px;font-weight:600">${time}</span><span class="n"${dim ? ' style="color:var(--muted)"' : ''}>${what}${sub ? `<small class="wrap">${sub}</small>` : ''}</span>${
+    amount || under ? `<span class="a"${dim ? ' style="color:var(--muted)"' : ''}>${amount}${under ? `<small>${under}</small>` : ''}</span>` : ''}${end}</div>`;
 /** A feed line on /watch: lighter than a row, no rules between. */
 const feed = (time, what, amount = '', mine = false) =>
   `<div style="display:flex;align-items:center;gap:10px;min-height:32px"><span class="num muted" style="flex:none;width:40px;font-size:12.5px;font-weight:600">${time}</span><span style="flex:1;min-width:0;font-size:14.5px;font-weight:${mine ? 600 : 500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis"${mine ? '' : ' class="muted"'}>${what}</span>${
@@ -53,7 +55,7 @@ const settledRows = card([
 
 /* ── the pass sheet's people ──────────────────────────────────────────── */
 
-const person = (name, meta, trail) => row({ name, meta, trail });
+const person = (name, meta, trail) => row({ name, meta, trail, wrapMeta: true });
 const passSub = 'They record from the moment you pass it. You keep watching, and can take it back.';
 
 export const section = { title: 'Running the game', blurb: 'Who records the night: passing it to a person, what every other phone reads on Tonight, watching by link, and reviewing what another phone recorded.' };
@@ -78,7 +80,7 @@ export default [
       body: [...table, band(note('Read-only. Only Lena can write to the ledger.'))] }) },
 
   { id: 'session-passed', route: '/session', name: 'Tonight · passed, waiting on Lena', nav: 'push',
-    note: 'The phone that passed the game away. Its one action is the hold that takes the game back, so that hold is the bar.',
+    note: 'The phone that passed the game away. Its one action is the hold that takes the game back, so that hold is the bar. The table scrolls under the pinned waiting line, as in the app.',
     flags: [
       'Third extra state of /session (the brief asked for two): drawn because taking the game back is the only bar in this section that is a hold.',
       'The pass time 16:40 is illustrative; the seeded night was never passed.',
@@ -86,8 +88,8 @@ export default [
       'Open question: a hold as the whole bar. The hold line sits under the words as on End this poker night, but nothing else marks it as press-and-keep-pressing.',
       'Not drawn: after Lena’s phone opens the game the pill goes and the line reads “Lena is recording. Every entry they make shows here as they make it.” Same layout, same bar.',
     ],
-    html: push({ title: 'Tonight', trailing: topPill('3h 16m'), sub: '<b>Watching</b> · passed to Lena at 16:40', subRight: topButton('questionCard'), extra: hero,
-      body: [...table, band(`${tag('WAITING ON LENA', { strong: true })}${note('The game is Lena’s. It opens on their phone the next time they look at the app. Until then nothing new is recorded.')}`)],
+    html: push({ title: 'Tonight', trailing: topPill('3h 16m'), sub: '<span style="white-space:nowrap"><b>Watching</b> · passed to Lena at 16:40</span>', subRight: topButton('questionCard'), extra: hero,
+      body: [scroller(table), band(`${tag('WAITING ON LENA', { strong: true })}${note('The game is Lena’s. It opens on their phone the next time they look at the app. Until then nothing new is recorded.')}`, { spacer: false })],
       bar: bar('Take the game back', { sub: 'Hold 1.5s · this phone records again' }) }) },
 
   { id: 'pass-game', route: '/pass-game', name: 'Pass the game', nav: 'sheet',
@@ -215,6 +217,7 @@ export default [
     flags: [
       'The app’s title here is the long date, “Friday 20 Nov”; Post-game results on the board reads “Fri 20 Nov”.',
       'The read-only line names Andro, the seeded night’s recorder.',
+      'At this width the app’s meta line (“3h 16m · 6 players · settled”) and the view control do not fit on one line together, so the meta wraps.',
     ],
     html: push({ title: 'Friday 20 Nov', sub: '3h 16m · 6 players · settled', subRight: topDropdown('Final, detailed'),
       body: [
@@ -249,8 +252,8 @@ export default [
         ]),
         label('Decided · 2', { quiet: true }),
         card([
-          timed('16:44', 'Tomáš rebought', { sub: 'added 16:55', amount: '$500', end: tag('ADDED'), dim: true }),
-          timed('16:46', 'Lena paid for pizza', { sub: 'left out 16:55', amount: '$40', end: tag('LEFT OUT', { strong: true }), dim: true }),
+          timed('16:44', 'Tomáš rebought', { sub: 'added 16:55', amount: '$500', under: tag('ADDED'), dim: true }),
+          timed('16:46', 'Lena paid for pizza', { sub: 'left out 16:55', amount: '$40', under: tag('LEFT OUT', { strong: true }), dim: true }),
         ]),
       ],
       bar: bar('Add 1 to the night') }) },

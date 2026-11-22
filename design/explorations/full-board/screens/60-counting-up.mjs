@@ -56,8 +56,8 @@ const after = (name, amount, working = '') =>
 
 /** Provisional, so it is outlined with a dash and not lifted: the one group on the screen that is not yet a fact. */
 const preview = `<div style="border:1.5px dashed var(--outline);border-radius:14px;padding:12px 12px 10px">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px"><span class="lbl" style="margin:0;letter-spacing:.07em;white-space:nowrap">Everyone after deductions</span>${pill('PREVIEW')}</div>
-  ${after('Dana', '+$1,429', 'game +1,620 · food −110 · piggy −81')}${after('Andro', '+$526', 'game +460 · food +89 · piggy −23')}${after('Lena', '+$429', 'game +430 · food +21 · piggy −22')}
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px"><span class="lbl" style="margin:0;font-size:10px;letter-spacing:.05em;white-space:nowrap">Everyone after deductions</span>${pill('PREVIEW')}</div>
+  ${after('Dana', '+$1,429', 'game&nbsp;+1,620 · food&nbsp;−110 · piggy&nbsp;−81')}${after('Andro', '+$526', 'game&nbsp;+460 · food&nbsp;+89 · piggy&nbsp;−23')}${after('Lena', '+$429', 'game&nbsp;+430 · food&nbsp;+21 · piggy&nbsp;−22')}
   ${after('Tomáš', '−$500')}${after('Ivo', '−$780')}${after('Petr', '−$1,230')}
   <p class="note" style="margin-top:8px">Provisional until you settle. Tap any figure below to change it.</p></div>`;
 
