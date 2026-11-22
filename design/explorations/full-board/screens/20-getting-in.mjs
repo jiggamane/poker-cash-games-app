@@ -34,53 +34,74 @@ const eyebrow = (text, centre = false) => `<div class="lbl q" style="margin:0;${
  * Each chip is its own layer so the stacking order can change between rounds. 2.6 seconds a round;
  * reduced motion shows the stack, still.
  */
-const RIFFLE = { cx: 48, r: 21, h: 7, dx: 22.5, round: 2.6, rounds: 4, vb: [-6, 22, 108, 78] };
-const JITTER = [0, 0.012, 0.005, 0.017, 0.009, 0.021];   /* a hand is not a metronome */
+const RIFFLE = { cx: 48, r: 21, h: 7, dx: 22, round: 2.7, rounds: 4, vb: [-6, 18, 108, 82] };
+/*
+ * What makes it read as a hand rather than a machine (owner, 22 November: "generally right, but it
+ * should look natural"):
+ *   - every move has weight: a lift eases out, a fall eases in like gravity, a slide eases both ways,
+ *     and a chip that lands dips a fraction and comes back;
+ *   - the two stacks lean as columns, not as loose chips: each tips about its outer foot, so the
+ *     higher a chip, the further it leans toward the seam, and the seam side rises;
+ *   - the stacks close toward each other as the chips fall, so the riffle happens where they touch;
+ *   - the chips land a little out of line, and the squaring pushes them true;
+ *   - nothing is evenly timed: each round, each chip, its own small offset.
+ */
+const rand = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };  /* fixed, so the board does not change between builds */
+const EASE = { lift: 'cubic-bezier(.2,.7,.35,1)', fall: 'cubic-bezier(.55,0,.85,.4)', slide: 'cubic-bezier(.45,.05,.3,1)', settle: 'cubic-bezier(.3,.6,.4,1)', hold: 'linear' };
 const stackWait = (px = 168) => {
   const P = PALETTES.freshDeckOnInk;
   const { cx, r, h, dx, round, rounds, vb } = RIFFLE;
   const sc = px / vb[2], H = (px * vb[3]) / vb[2];
   const mats = ['ink', 'ink', 'ink', 'red', 'red', 'red'];          /* chip identities */
-  /* The merged order before each round: start three ink under three red, then out-shuffle. */
-  const orders = [[0, 1, 2, 3, 4, 5]];
-  for (let k = 0; k < rounds; k++) {
-    const m = orders[k];
-    orders.push([m[0], m[3], m[1], m[4], m[2], m[5]]);
-  }
-  const at = (c) => orders.map((o) => o.indexOf(c));                  /* chip c's index before each round */
+  const orders = [[0, 1, 2, 3, 4, 5]];                                 /* three ink under three red, then out-shuffles */
+  for (let k = 0; k < rounds; k++) { const m = orders[k]; orders.push([m[0], m[3], m[1], m[4], m[2], m[5]]); }
   const T = (x, y, rot = 0, z = 0) => ({ x, y, rot, z });
-  const css = (t) => `transform:translate(${(t.x * sc).toFixed(1)}px,${(t.y * sc).toFixed(1)}px) rotate(${t.rot}deg);z-index:${t.z}`;
+  const css = (t) => `transform:translate(${(t.x * sc).toFixed(2)}px,${(t.y * sc).toFixed(2)}px) rotate(${t.rot.toFixed(2)}deg);z-index:${t.z}`;
   const layers = mats.map((mat, c) => {
-    const idx = at(c);
     const frames = [];
-    const put = (f, t) => frames.push([Math.min(100, f * 100), t]);
+    const put = (f, t, ease = EASE.slide) => frames.push([Math.min(100, f * 100), t, ease]);
     for (let k = 0; k < rounds; k++) {
-      const base = k / rounds, R = (f) => base + f / rounds;
-      const from = idx[k], to = idx[k + 1];
-      const top = from >= 3, height = top ? from - 3 : from;
-      const sx = top ? dx : -dx, lean = top ? -5 : 5;
-      const merged = T(0, -from * h, 0, from);
-      const split = T(sx, -height * h, 0, height);
-      put(R(0), merged);
-      put(R(0.06), merged);
-      if (top) {                                                       /* 1. lifted off and set beside */
-        put(R(0.15), T(sx * 0.5, -from * h - 9, 0, 10 + height));
-        put(R(0.26), T(sx, -height * h - 1.5, 0, 10 + height));
-      } else put(R(0.26), split);
-      put(R(0.3), split);
-      put(R(0.38), T(sx * 0.96, -height * h - 1.2 - height * 0.5, lean, height));  /* 2. lean in, seam rises */
-      const fall = 0.42 + to * 0.045 + JITTER[c];                      /* 3. in from the bottom, one side then the other */
-      put(R(fall - 0.02), T(sx * 0.9, -height * h - 1.6 - height * 0.5, lean, height));
-      put(R(fall + 0.05), T(sx * 0.18, -to * h - 1.2, lean * 0.3, to));
-      put(R(fall + 0.09), T(0, -to * h + 0.3, 0, to));
-      put(R(0.72), T(0, -to * h, 0, to));
-      put(R(0.76), T(1.4 - to * 0.12, -to * h, 0, to));                /* 4. squared: a nudge each way */
-      put(R(0.8), T(-0.9 + to * 0.08, -to * h, 0, to));
-      put(R(0.85), T(0, -to * h, 0, to));
+      const R = (f) => (k + f) / rounds;
+      const from = orders[k].indexOf(c), to = orders[k + 1].indexOf(c);
+      const top = from >= 3, ht = top ? from - 3 : from, dir = top ? 1 : -1;
+      const j = (n) => (rand(k * 31 + c * 7 + n) - 0.5);                 /* -0.5 … 0.5, per round, chip and step */
+      const sx = dir * dx;
+      const tilt = 6 + j(1) * 1.5;                                       /* degrees each stack leans in */
+      /* A column leaning about its outer foot: higher chips swing toward the seam and the seam lifts. */
+      const leanX = sx - dir * ht * h * Math.sin((tilt * Math.PI) / 180) - dir * 1.2;
+      const leanY = -ht * h * Math.cos((tilt * Math.PI) / 180) - 1.8;
+      const off = j(2) * 1.6;                                            /* how far out of line it lands */
+      /* 0: the stack as it stands, squared */
+      put(R(0), T(0, -from * h, 0, from), EASE.hold);
+      put(R(0.05 + j(3) * 0.02), T(0, -from * h, 0, from), top ? EASE.lift : EASE.hold);
+      /* 1: the top half is picked up, carried over with a slight tip, set down beside */
+      if (top) {
+        put(R(0.13), T(sx * 0.35, -from * h - 10, dir * 4, 20 + ht), EASE.slide);
+        put(R(0.22), T(sx * 0.92, -ht * h - 3.5, dir * 2, 20 + ht), EASE.fall);
+        put(R(0.255), T(sx, -ht * h + 0.4, 0, ht), EASE.settle);
+        put(R(0.28), T(sx, -ht * h, 0, ht), EASE.hold);
+      } else {
+        put(R(0.2), T(0, -from * h, 0, from), EASE.slide);
+        put(R(0.28), T(sx, -ht * h, 0, ht), EASE.hold);             /* the hand slides the rest over a touch */
+      }
+      put(R(0.33 + j(4) * 0.02), T(sx, -ht * h, 0, ht), EASE.lift);
+      /* 2: thumbs press the seam up: both columns lean in */
+      put(R(0.41), T(leanX, leanY, dir * -tilt, ht), EASE.hold);
+      /* 3: the chips fall in from the bottom, one side then the other, a little unevenly */
+      const go = 0.44 + to * 0.042 + j(5) * 0.018;
+      put(R(go), T(leanX, leanY, dir * -tilt, ht), EASE.fall);
+      put(R(go + 0.045), T(off * 0.6 + dir * 1.2, -to * h + 0.9, dir * -tilt * 0.25, to), EASE.settle);
+      put(R(go + 0.075), T(off, -to * h, 0, to), EASE.hold);
+      /* 4: the hand squares the stack: pushed true from the sides, a last small rock */
+      put(R(0.76 + j(6) * 0.015), T(off, -to * h, 0, to), EASE.slide);
+      put(R(0.82), T(-off * 0.25, -to * h, 0, to), EASE.settle);
+      put(R(0.88), T(0, -to * h, 0, to), EASE.hold);
     }
-    put(1, T(0, -idx[rounds] * h, 0, idx[rounds]));
-    const kf = `@keyframes fb-rf${c}{${frames.map(([pct, t]) => `${pct.toFixed(2)}%{${css(t)}}`).join('')}}`;
-    const svg = `<svg viewBox="${vb.join(' ')}" width="${px}" height="${H.toFixed(1)}" style="position:absolute;left:0;top:0;overflow:visible;animation:fb-rf${c} ${round * rounds}s linear infinite;transform-origin:${((cx - vb[0]) * sc).toFixed(1)}px ${((GROUND - 1 - vb[1]) * sc).toFixed(1)}px;${css(T(0, -idx[0] * h, 0, idx[0]))}">${chip(P, { cx, by: GROUND - 1, r, h, mat, face: true, seam: true, phase: (c * 17) % 45 })}</svg>`;
+    put(1, T(0, -orders[rounds].indexOf(c) * h, 0, orders[rounds].indexOf(c)));
+    frames.sort((a, b) => a[0] - b[0]);
+    const kf = `@keyframes fb-rf${c}{${frames.map(([pct, t, e]) => `${pct.toFixed(3)}%{${css(t)};animation-timing-function:${e}}`).join('')}}`;
+    const origin = `${((cx - vb[0]) * sc).toFixed(1)}px ${((GROUND - 1 - vb[1]) * sc).toFixed(1)}px`;
+    const svg = `<svg viewBox="${vb.join(' ')}" width="${px}" height="${H.toFixed(1)}" style="position:absolute;left:0;top:0;overflow:visible;animation:fb-rf${c} ${(round * rounds).toFixed(1)}s infinite;transform-origin:${origin};${css(T(0, -orders[0].indexOf(c) * h, 0, orders[0].indexOf(c)))}">${chip(P, { cx, by: GROUND - 1, r, h, mat, face: true, seam: true, phase: (c * 17) % 45 })}</svg>`;
     return { kf, svg };
   });
   return `<style>
@@ -91,7 +112,11 @@ ${layers.map((l) => l.kf).join('\n')}
 @media (prefers-reduced-motion:reduce){.fb .riffle svg,.fb .dots i{animation:none!important}}
 </style><div class="riffle" style="position:relative;width:${px}px;height:${H.toFixed(1)}px"><svg viewBox="${vb.join(' ')}" width="${px}" height="${H.toFixed(1)}" style="position:absolute;left:0;top:0;overflow:visible">${shadow(P, 48, 50)}</svg>${layers.map((l) => l.svg).join('')}</div>`;
 };
-/** One group on Your groups: its drawing, name, line and standing. `current` edges it in ink. */
+/** One group on Your groups: standing above, the name as the headline; the current group is the ink card. */
+const headlineGroup = (name, standing, line, current = false, live = false) => `<div class="card" style="padding:14px 16px;display:grid;gap:8px;${current ? 'background:var(--pri);color:var(--onpri)' : ''}">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font:700 10px/1 var(--body);letter-spacing:.09em;text-transform:uppercase;padding:4px 7px;border-radius:999px;${current ? 'background:rgba(127,127,127,.22);color:inherit' : 'background:var(--raised);color:var(--muted)'};white-space:nowrap">${standing}</span>${live ? `<span class="${current ? 'live-pri' : 'win'}" style="display:inline-flex;align-items:center;gap:6px;font-size:12px"><i style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></i>a night is running</span>` : `<span style="font-size:12px;opacity:.6">${line}</span>`}</div>
+  <div style="font:800 22px/1.1 var(--head);letter-spacing:-.02em">${name}</div></div>`;
+/** One group on Your groups (earlier, with a drawing): its drawing, name, line and standing. `current` edges it in ink. */
 const groupCard = (name, line, standing, place, current = false) => `<div class="card" style="padding:12px 14px 12px 8px;display:flex;align-items:center;gap:10px;${current ? 'box-shadow:var(--lift),inset 0 0 0 2px var(--text)' : ''}">
   ${slotArt(place, 'rows', 60, 52)}
   <div style="flex:1;min-width:0"><div style="font:700 18px/1.15 var(--head);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
@@ -207,13 +232,13 @@ export default [
 
   /* ── /groups ──────────────────────────────────────────────────────── */
   { id: 'groups', route: '/groups', name: 'Your groups', nav: 'push',
-    note: 'Owner, 22 November: design it. Each group is its own card, because tapping one swaps the whole app to it: the group’s drawing, its name at title size, the line under it, and your standing in the corner, since that is what changes when you switch. The group a night is running in says so with the live dot. The group you are in now is the first card, edged in ink.',
-    flags: ['Superseded: four versions without a picture per group and without the currency are at the top of the board, under This round.', '“Friday deep stack” and “Office game” are sample groups: the seeded phone belongs to one group only.'],
-    html: push({ title: 'Your groups', sub: '3 groups',
+    note: 'The owner’s pick of four (22 November): each group a card with its name large and your standing above it; no picture and no currency. The group you are in is the ink card; the others say how many play there, and a group with a night running says so instead.',
+    flags: ['“Friday deep stack” and “Office game” are sample groups: the seeded phone belongs to one group only.', 'The app shows the currency on this row today; dropping it is the owner’s call.'],
+    html: `<style>.fb .live-pri{color:#7BE3AE}.dark .fb .live-pri{color:#0E7A45}</style>` + push({ title: 'Your groups', sub: '3 groups',
       body: [
-        groupCard('The Thursday game', `<span class="win" style="display:inline-flex;align-items:center;gap:6px"><i style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></i>a night is running</span>`, 'admin', 'group', true),
-        groupCard('Friday deep stack', '9 players · EUR', 'member', 'stats'),
-        groupCard('Office game', '4 players · USD', 'name only', 'sessions'),
+        headlineGroup('The Thursday game', 'admin', '', true, true),
+        headlineGroup('Friday deep stack', 'member', '9 players'),
+        headlineGroup('Office game', 'name only', '4 players'),
       ],
       bar: bar('New group') }) },
 

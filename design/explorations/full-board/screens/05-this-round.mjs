@@ -124,11 +124,10 @@ const GROUP_OPTIONS = [
     note: 'Each group a card with its name large and its standing above it. The group you are in is the ink card, so it reads at once as the one that is open.', flags: GFLAGS, html: LIVE_PRI + gD },
 ];
 
-export const section = { title: 'This round: Your groups, full and empty',
-  blurb: 'Your groups without a picture per group and without the currency, four ways; then four explainer concepts for the empty screen a new person sees. Approve one of each, or say which parts to combine.' };
+export const section = { title: 'This round: Your groups, empty, as an explainer',
+  blurb: 'Four concepts for the first screen a new person sees with no group yet. Each keeps the app’s own line and New group on the bar; everything else is draft copy. Approve one, or say which parts to combine. (Your groups with groups in it is decided: the name as the headline, now on its screen below.)' };
 
 export default [
-  ...GROUP_OPTIONS,
   { id: 'empty-steps', route: '/groups', name: 'Explainer A · three steps', nav: 'push',
     note: 'What a group is for, in the order you will do it: make it, bring your players, run the night. A drawing per step from the approved set. Reads in one glance; nothing to swipe.',
     flags: [DRAFT], html: steps },
