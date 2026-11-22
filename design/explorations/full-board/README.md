@@ -191,3 +191,36 @@ and stay as they are.
 - With both decided, `screens/05-this-round.mjs` is gone from the board; its
   options are in git history (commit before this one). Every screen now shows
   only the approved look. The remaining screens await their verdicts.
+
+## Review, round five (22 November)
+
+Applied on their screens:
+- **Signing you in** (`auth-callback-wait`): designed, with motion. The whole
+  screen is ink: a red chip turns and bobs over its shadow, three dots pulse
+  under the words. Reduced motion stops it. New: the app shows two words.
+- **Your groups** (`groups`): designed. A card per group with its drawing,
+  name, line and standing; the current group edged in ink. Sample groups.
+- **Invite code**: six characters with a dash after three (`K7M-4XP`) on the
+  invite, the QR sheet, the reset and the typed claim (two boxes of three).
+  ⚠ The server issues ten (`new_invite_code`, 0007); 30^6 ≈ 729 million
+  against 30^10 ≈ 590 trillion is the margin 0009's anti-enumeration rests on.
+  A server change and a security decision, not a screen change.
+- **Game details**: "Stakes" reads **Blinds** (owner's comment). New copy.
+- **Open a game** (the membership gate, both states): redesigned to invite.
+  The start-a-session drawing and the reason first, then three plan cards with
+  the price large; Full is the ink card.
+- **Player card** (`player-out` and the other two): figures written in full,
+  never abbreviated, all three stepping down together to the size the longest
+  fits (26 → floor 18). In the app: `adjustsFontSizeToFit`, one size per row.
+- Every phone in a cell now has the real screen behind its sheet, so the
+  option cells show no grey blank either.
+
+Options at the top (`screens/05-this-round.mjs`):
+- **QR, four styles**: square, dots with round eyes, rounded modules with the
+  club's chip at the centre (needs error correction H), and on a playing card.
+  All four are real (`qrcode`, the app's encoder, over `pokerclub://claim?c=…`)
+  and were read back off the rendered board by jsQR in both themes.
+- **Name chips, four ways** on New session and Who's playing: as drawn, lifted
+  like the cards, lifted with a round ink add, a soft fill. Who's playing? was
+  marked Needs work with no comment; the chips are the likely reason, so it is
+  shown with each option.
