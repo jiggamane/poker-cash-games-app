@@ -7,7 +7,7 @@
  * ink top with the title and nothing else on it.
  */
 import { push, pushRaw, sheet, bar, label, card, row, note, para, pill, button, quiet, field, chips, ico } from '../kit.mjs';
-import { slotArt } from '../kit.mjs';
+import { slotArt, art } from '../kit.mjs';
 import { qrSvg, inviteLink } from '../qr.mjs';
 import { chip, shadow, PALETTES, GROUND } from '../../icon-system/art.mjs';
 
@@ -139,6 +139,46 @@ const groupCard = (name, line, standing, place, current = false) => `<div class=
   ${slotArt(place, 'rows', 60, 52)}
   <div style="flex:1;min-width:0"><div style="font:700 18px/1.15 var(--head);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px"><span style="font-size:12.5px;color:var(--muted);white-space:nowrap">${line}</span>${capsPill(standing)}</div></div></div>`;
+
+/*
+ * Your groups, empty: the walkthrough (owner, 22 November: concept B, "show the other screens, use
+ * the group chips for the first", and "combine the create / invite logic into it" from concept D).
+ * Four pages swiped through, one idea and one large drawing each. Every page carries the two ways in:
+ * New group on the bar, and "I have an invite code" under the page dots for the many who arrive
+ * because somebody added them. The last page is the choice itself, the two doors as cards.
+ * Everything but the app's own line, New group and "I have an invite code" is DRAFT COPY.
+ */
+const WALK_DRAFT = 'Draft copy, written for the walkthrough: everything but “No groups yet. A group needs only a name to exist.”, “New group” and “I have an invite code” (the app’s own, from Settings).';
+const wh = (t, size = 24) => `<div style="font:800 ${size}px/1.12 var(--head);letter-spacing:-.02em;text-wrap:balance">${t}</div>`;
+const wp = (t) => `<p class="note" style="font-size:13.5px;max-width:250px;margin:0 auto">${t}</p>`;
+const wdots = (on, n = 4) => `<div style="display:flex;gap:6px;justify-content:center">${Array.from({ length: n }, (_, i) => `<i style="width:${i === on ? 18 : 6}px;height:6px;border-radius:3px;background:var(--${i === on ? 'text' : 'line'});display:block"></i>`).join('')}</div>`;
+const codeLink = `<div class="btnq" style="margin-top:-4px">${ico('qr', 16)}I have an invite code</div>`;
+const walkPage = (place, title, body, on) => push({ title: 'Your groups',
+  body: [
+    `<div style="flex:1;display:grid;place-items:center;align-content:center;gap:18px;text-align:center;padding:0 6px">
+      ${art(place, 150)}
+      ${wh(title)}
+      ${wp(body)}
+      ${wdots(on)}
+    </div>`,
+    codeLink,
+  ],
+  bar: bar('New group') });
+const walkDoor = (place, title, body, ink) => `<div class="card" style="display:flex;align-items:center;gap:12px;padding:14px 14px 14px 8px;${ink ? 'background:var(--pri);color:var(--onpri)' : ''}">
+  <span style="flex:none">${art(place, 70, { onInk: ink })}</span>
+  <div style="flex:1;min-width:0"><b style="font:700 18px/1.15 var(--head)">${title}</b><div style="font-size:12.5px;line-height:1.4;opacity:.72;margin-top:4px">${body}</div></div></div>`;
+const walkLast = push({ title: 'Your groups',
+  body: [
+    `<div style="flex:1;display:grid;align-content:center;gap:12px">
+      ${wh('How do you want to start?', 22)}
+      ${walkDoor('group', 'Start a group', 'You run the game: name it, add your players, open the first night.', true)}
+      ${walkDoor('rulings', 'I have an invite code', 'Somebody added you to their table. Type the code from their invite.', false)}
+      <p class="note" style="font-size:13px">No groups yet. A group needs only a name to exist.</p>
+      ${wdots(3)}
+    </div>`,
+  ],
+  bar: bar('New group') });
+
 const standalone = ({ title, body, bar: foot }) => pushRaw({ topHtml: `<h1 class="home" style="margin-top:22px">${title}</h1>`, body, bar: foot });
 /** X2a's hairline: a 2px track with a 38% segment. No spinner. */
 const track = () => `<div style="height:2px;border-radius:1px;background:var(--line);overflow:hidden"><div style="width:38%;height:2px;background:var(--text)"></div></div>`;
@@ -260,10 +300,20 @@ export default [
       ],
       bar: bar('New group') }) },
 
-  { id: 'groups-empty', route: '/groups', name: 'Your groups · none yet', nav: 'push',
-    html: push({ title: 'Your groups',
-      body: [note('No groups yet. A group needs only a name to exist.')],
-      bar: bar('New group') }) },
+  { id: 'groups-empty', route: '/groups', name: 'Your groups · none yet · 1 of 4', nav: 'push',
+    note: 'The walkthrough you picked (B), page one: the group’s chips, as you asked. Swiped through; New group on the bar on every page, and the invite code under the dots for whoever was added by somebody else.',
+    flags: [WALK_DRAFT],
+    html: walkPage('group', 'Your game, in one place', 'A group is your table: its players, its buy-in and its rules. Start one and every night you play is kept in it.', 0) },
+  { id: 'groups-empty-2', route: '/groups', name: 'Your groups · none yet · 2 of 4', nav: 'push',
+    note: 'The night itself: the Start a session stack.', flags: [WALK_DRAFT],
+    html: walkPage('session', 'Every buy-in, logged', 'Record each buy-in and rebuy as it happens. At the end of the night, the app counts it up and settles who pays whom.', 1) },
+  { id: 'groups-empty-3', route: '/groups', name: 'Your groups · none yet · 3 of 4', nav: 'push',
+    note: 'What stays after the night: Sessions’ calendar.', flags: [WALK_DRAFT],
+    html: walkPage('sessions', 'Every night, kept', 'Each night is saved with its results, so the group’s history and everyone’s stats are always there.', 2) },
+  { id: 'groups-empty-4', route: '/groups', name: 'Your groups · none yet · 4 of 4', nav: 'push',
+    note: 'The last page is the choice, D’s two ways in folded into the walkthrough: start a group (the ink card), or join with a code. New group stays on the bar.',
+    flags: [WALK_DRAFT, '“I have an invite code” here opens /claim, as the Settings row of the same name does.'],
+    html: walkLast },
 
   /* ── /new-group ───────────────────────────────────────────────────── */
   { id: 'new-group', route: '/new-group', name: 'New group · name and currency', nav: 'sheet',
