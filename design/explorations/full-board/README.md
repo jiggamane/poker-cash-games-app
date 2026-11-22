@@ -329,3 +329,10 @@ a hidden screen gives nothing away. New feature and new words.
   only on the bar, as on the pages before. The invite code is the page, drawn
   two ways: open (the two boxes and Check the code) and semi-open (one field
   that opens into them).
+
+- **Signing you in, smooth** (owner): one eased-in-and-out move per phase, no
+  mid-move stops, no landing dip or rocking; push and peak are one motion; the
+  chips flow down in a short overlapping wave; one push squares it; smaller
+  resting slop; `will-change: transform` on each layer. Sampled every 16 ms
+  over the loop: biggest change of step 15.8 px → 1.0 px, fastest step
+  17.0 px → 5.3 px, biggest turn jolt 3.7° → 0.3°.
