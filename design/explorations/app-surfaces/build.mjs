@@ -226,7 +226,7 @@ const UNDER_DARK = [
     t: { ...DSHEET, card: '#212836', raised: '#2C3445' }, css: darkSheet('') },
 ];
 
-/* The ink bar at the foot (from C), under A's header and A1's rows. */
+/* The ink bar at the foot (from C), under the approved header and the approved lifted cards (L2). F0 is the footer as approved screens have it now. */
 const inkFoot = `
 .dock,.foot,.menubar{left:0!important;right:0!important;bottom:0!important;background:${INK}!important;box-shadow:none!important}
 .dock{border-radius:0!important;padding:12px 18px 26px!important}.foot{padding:10px 18px 24px}.menubar{padding:12px 18px 24px}
@@ -234,8 +234,10 @@ const inkFoot = `
 .dock .btn-pri,.foot .btn-pri{background:#fff!important;color:${INK}!important}.dock .btn-pri *{color:${INK}!important}
 .dock .btn-sec{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)!important;color:#fff!important}.dock .btn-sec *{color:#fff!important}
 .menubar .rb,.menubar .fdpill,.menubar .pill{background:rgba(255,255,255,.12)!important;box-shadow:none!important;color:#fff!important}.menubar svg{color:#fff!important}`;
-const footBase = sheetTop() + BODY.rows('#E4E7EC');
+const footBase = sheetTop() + BODY.lift('', LIFT);
 const FOOT = [
+  { key: 'foot-sheet', name: 'F0 · On the sheet (what the approved screens have)', note: 'For comparison: the footer is the foot of the white sheet, behind a hairline, with the ink button on it. Approve this to leave the footer alone.',
+    t: LSHEET, css: lightSheet(BODY.lift('', LIFT)) },
   { key: 'foot-square', name: 'F1 · A square ink bar', note: 'As you saw it on Paper: the footer is a solid ink bar across the bottom edge, with the primary action as a white button on it. Ink at the top, ink at the foot, the white sheet between.',
     t: LSHEET, css: footBase + inkFoot },
   { key: 'foot-round', name: 'F2 · The bar rises like the sheet', note: 'The same bar with its top corners rounded to the sheet’s own radius, so the foot answers the header: the white sheet is held between two ink ends.',
@@ -336,7 +338,7 @@ section{margin-top:44px;display:flex;flex-direction:column;gap:14px}
 <header>
   <span class="eyebrow">Exploration · 22 November 2026 · not a handoff</span>
   <h1>Headers and backgrounds, across the app</h1>
-  <p><b>Round three is at the top</b>: the shadow strengths you asked to compare on the lifted cards. Round two follows it, and the three older groups are unchanged below.</p>
+  <p><b>Decided so far:</b> ink top, white sheet, lifted cards with the soft shadow. <b>Still open:</b> the dark theme and the footer, next below. The three older groups are unchanged at the bottom.</p>
   <p style="margin-top:8px">The header is decided: <b>N on the Rail</b>, the title at 20 and bold beside a bare grey chevron on a raised panel. What is left is what sits behind it on every screen: the ground, the cards, the rail’s own colour, all of it again in the dark theme, and what the rail does when a list scrolls. Each option is the same four approved screens with only those things changed. Approve one in each group, or say what to change.</p>
   <div class="decided">
     <div><b>Kept on every option</b>Fresh Deck’s type and ink, the approved drawings, the 4d tiles, the ink tools button, every word.</div>
@@ -347,26 +349,20 @@ section{margin-top:44px;display:flex;flex-direction:column;gap:14px}
 </header>
 
 <section>
-  <h2>Round three · How strong the lift is</h2>
-  <p>You said the lifted cards (A3) look pretty good and asked to compare intensities. I read that as the strength of the shadow under the cards: four steps, lightest first, nothing else changed. L2 is the one you reviewed. Approve one. The dark and footer groups from round two are still below, waiting for your verdicts.</p>
-  ${SHADES.map((o) => option(o, shadowStrip(four(fdLight), themeCSS(o.t) + o.css))).join('')}
+  <h2>Decided · Ink top, white sheet, lifted cards</h2>
+  <p>Approved 22 November: the header in white type on an ink top, the content on one white sheet, and white cards held off it by the soft shadow (L2). The other bodies and shadow strengths are off the page. Two things are still open below: this look in the dark, and the footer.</p>
+  ${shadowStrip(four(fdLight), themeCSS(LSHEET) + lightSheet(BODY.lift('', LIFT)))}
 </section>
 
 <section>
-  <h2>Round two · Under the content</h2>
-  <p>You liked the header of <b>Ink top, white sheet</b> and not the grey fills under the content. The header is kept as it was; these are three other ways to hold the content on the sheet, none of them grey. Approve one.</p>
-  ${UNDER.map((o) => option(o, shadowStrip(four(fdLight), themeCSS(o.t) + o.css))).join('')}
+  <h2>Open · The same, in the dark</h2>
+  <p>A shadow does not show on a dark screen, so the lift becomes a card one step lighter than the sheet. The top goes to near-black and the sheet takes the ink, so the header is still the darker place. Approve it, or say what to change.</p>
+  ${UNDER_DARK.filter((o) => o.key === 'sheet-dark-raised').map((o) => option(o, shadowStrip(four(fdDark), themeCSS(o.t) + o.css))).join('')}
 </section>
 
 <section>
-  <h2>Round two · The same, in the dark</h2>
-  <p>The ink top cannot stay the darkest thing on a dark screen unless the sheet is lighter than it, so the top goes to near-black and the sheet takes the ink. One per body above. Approve one.</p>
-  ${UNDER_DARK.map((o) => option(o, shadowStrip(four(fdDark), themeCSS(o.t) + o.css))).join('')}
-</section>
-
-<section>
-  <h2>Round two · The ink bar at the foot</h2>
-  <p>Paper’s footer, taken further, without the rule under the title. It is shown under the ink header with plain rows (A1), on six screens: the four from before, plus <b>Count up</b> and <b>Settle up</b>, which each end in one action. Those two are sketches for the footer only: their titles, step labels and button words are the app’s, their bodies are simplified. Approve one, or none to keep the footer on the sheet.</p>
+  <h2>Open · The footer</h2>
+  <p>Paper’s ink bar, taken further, now on the approved lifted cards. F0 is the footer as it stands, for comparison. Six screens: the four from before, plus <b>Count up</b> and <b>Settle up</b>, which each end in one action. Those two are sketches for the footer only: their titles, step labels and button words are the app’s, their bodies are simplified. Approve one.</p>
   ${FOOT.map((o) => option(o, shadowStrip(six(fdLight), themeCSS(o.t) + o.css))).join('')}
 </section>
 
