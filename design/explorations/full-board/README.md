@@ -147,3 +147,18 @@ Kit parts the helpers built inline and the kit should own before this becomes
 code: a caps badge beside a sheet title, the preset row, the radio row, a row
 with a leading time, the transfer row, the playing card, a small in-row
 outlined action, the dashed "creates something" button, and a hold bar.
+
+## Review, round one (22 November, the first five screens)
+
+- **Tonight, and Tonight with Table admin open: approved**, with the line under
+  the title dropped 8 points (`.tsub` in the kit).
+- **Home: "try a more regular footer, several options."** Five in
+  `screens/05-this-round.mjs`: as drawn, pills on the sheet, a footer on the
+  sheet behind a hairline, the controls in the header with no footer, three
+  labelled items. E needs the word "Theme", which the app does not have.
+- **Who's playing?: "what's the grey area above?"** It was the screen behind
+  the sheet, drawn as a title over a blank and dimmed. `build.mjs` now puts
+  the real screen behind every sheet whose parent is on the board.
+- **Settled night: "good, but explore the footer further in terms of the
+  fonts/sizes."** Six settings of the words on the bar, each on the settled
+  night and on Tonight (`bar-type-a` … `f`).

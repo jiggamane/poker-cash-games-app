@@ -25,6 +25,22 @@ for (const f of files) {
   sections.push({ file: f, ...(m.section ?? { title: f, blurb: '' }), screens: m.default });
 }
 const all = sections.flatMap((s) => s.screens);
+
+/*
+ * Behind every sheet is the screen it came from. The kit draws only that
+ * screen's title; here the real screen is put behind the scrim wherever the
+ * board has one with that title, so a sheet is not floating over a blank.
+ */
+const titleOf = (html) => (html.match(/<h1[^>]*>(.*?)<\/h1>/) ?? [])[1];
+const innerOf = (html) => html.slice(html.indexOf('<div class="scr">') + 17, html.lastIndexOf('</div></div>'));
+const behind = new Map();
+for (const s of all) if (s.nav !== 'sheet' && !s.wide && !behind.has(titleOf(s.html))) behind.set(titleOf(s.html), innerOf(s.html));
+for (const s of all) {
+  const at = s.html.indexOf('<div class="scrim">');
+  if (s.nav !== 'sheet' || at < 0) continue;
+  const back = behind.get(titleOf(s.html));
+  if (back) s.html = s.html.slice(0, s.html.indexOf('<div class="scr">') + 17) + back + s.html.slice(at);
+}
 const dup = all.map((s) => s.id).filter((id, i, a) => a.indexOf(id) !== i);
 if (dup.length) throw new Error(`duplicate screen ids: ${[...new Set(dup)].join(', ')}`);
 const routes = new Set(all.map((s) => s.route));
@@ -43,7 +59,7 @@ const reviewBlock = (key, labelText, rows = 2) => `<div class="rv" data-key="${k
       <span class="rvs" aria-live="polite"></span>
     </div>`;
 
-const cell = (s) => `<figure class="cell scr-cell" data-key="${s.id}" id="s-${s.id}">
+const cell = (s) => `<figure class="cell scr-cell${s.wide ? ' wide' : ''}" data-key="${s.id}" id="s-${s.id}">
   <div class="pg-ph">${s.html}</div>
   <figcaption><b>${esc(s.name)}</b><span class="pg-meta"><code>${esc(s.route)}</code> · ${NAV[s.nav] ?? s.nav}</span>${
     s.note ? `<span class="pg-nt">${esc(s.note)}</span>` : ''}${
@@ -83,6 +99,8 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 .pg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:22px 18px;justify-items:center}
 .scr-cell{margin:0;width:330px;max-width:100%;display:flex;flex-direction:column;gap:10px;scroll-margin-top:120px;border-radius:20px;padding:0}
 .scr-cell .pg-ph{line-height:0}
+.scr-cell.wide{width:678px;grid-column:span 2}
+@media (max-width:760px){.scr-cell.wide{width:330px;grid-column:auto}}
 .scr-cell figcaption{display:flex;flex-direction:column;gap:4px;padding:0 6px}
 .scr-cell figcaption b{font:700 15px var(--head)}
 .scr-cell .pg-meta{font-size:12.5px;color:var(--muted)}.scr-cell code{font:500 12px ui-monospace,Menlo,monospace}
@@ -116,7 +134,7 @@ ${CSS}
     <div><b>The header</b>The top of an ink screen, in white type. A back chevron and the title; a step or a status at the right. Tonight keeps its pot up there.</div>
     <div><b>The sheet and the cards</b>One white sheet rises over the ink. Groups are white cards on one soft shadow. Nothing grey sits under content; inputs are outlined.</div>
     <div><b>The bar is the button</b>A screen’s one primary action is the ink bar at the bottom, words straight on it. Faint when it is not available yet. Other actions stay in the content, outlined or as quiet text.</div>
-    <div><b>Sheets</b>Keep their grabber and close. A sheet that ends in Save or Add ends in the same bar.</div>
+    <div><b>Sheets</b>Keep their grabber and close. A sheet that ends in Save or Add ends in the same bar. Behind each one is the screen it opened from, dimmed.</div>
     <div><b>Kept from Fresh Deck</b>Names only, nothing points, red belongs to chips and to hearts and diamonds, no green fills.</div>
     <div><b>Not yet seen on a phone</b>These are 330-point mock phones. Use the switch below to see every one of them dark.</div>
   </div>
