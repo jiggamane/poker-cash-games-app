@@ -18,6 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow, mark } from './art.mjs';
 import { PICK } from './picks.mjs';
+import APP from './app-icons.json' with { type: 'json' };
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, railN, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption, sizingTable, RHO } from './fresh-deck.mjs';
 
@@ -399,6 +400,12 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 .fd .ip-mute svg{filter:grayscale(1) contrast(.75) opacity(.7)}
 .fd .ip-bar{display:flex;gap:10px;align-items:center}.fd .ip-pill{display:flex;align-items:center;gap:8px;height:44px;padding:0 18px 0 16px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(20,26,42,.12);font-weight:700;font-size:15px}
 .fd .ip-bar .rb{width:44px;height:44px}
+.ip-app{display:inline-flex;flex:none;line-height:0}.ip-app[style*="--s"] svg{width:var(--s);height:var(--s)}
+.appset-h{margin:14px 0 6px;font:700 12px -apple-system,'SF Pro Text','Figtree',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8E8E93}
+.appset{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.appic{background:#fff;border-radius:12px;padding:10px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.appic-art{display:flex;align-items:center;justify-content:center;gap:14px;height:44px}
+.appic code{font:500 11px ui-monospace,Menlo,monospace;color:#6C6C70}
 </style>
 </head>
 <body>
@@ -414,7 +421,7 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>Round 27 — the app’s other icons</h2>
-  <p>The app draws 47 small icons besides the fifteen you approved. This round sorts all of them and redraws the first thirteen as simple one-tone marks: on Tonight, its Table admin drawer, the results and the menu bar. Approve or comment on each, as before.</p>
+  <p>The app draws 43 small icons. All of them are now on the board as the app draws them today, with the proposed replacement beside each where there is one. This round sorts all of them and redraws the first thirteen as simple one-tone marks: on Tonight, its Table admin drawer, the results and the menu bar. Approve or comment on each, as before.</p>
   <div class="group"><div class="ghead"><h3>The results: simple, one tone</h3><p>22 November, from your comment on the results row</p></div>
     <p class="quote">“we dont need colored icons here, these should be more simple (in terms of curves and shapes, fewer details but still well designed)”</p>
     <p>Solid marks in one grey, in place of the coloured drawings on this screen. Each is one shape with at most one cut-out, drawn to read at 13 points. Chips in is a solid chip and chips out is an open one, so the pair differs by more than the arrow.</p>
@@ -427,22 +434,38 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
     <p class="quote">“for these we don't need that much details in the icons, make them minimalistic” · “these should be more simple”</p>
     <p>The same treatment as the results: nine solid marks, one shape each, in the ink of the label beside them. They replace the eight detailed drawings from yesterday, which are under the earlier rounds. The tools button gets one as well, so every small icon on Tonight is of one kind; the full Rulings drawing stays on its tile.</p>
     <div class="grid">${MARKS28B.map((k) => cell(k)).join('')}</div></div>
-  <div class="group"><div class="ghead"><h3>In place, at the size the app uses</h3><p>Fresh Deck, at about the size each sits at in the app</p></div>
-    <div class="fd inplace">
+  <div class="group"><div class="ghead"><h3>In place: today, and proposed</h3><p>top row, the app’s own icons; bottom row, the simple marks</p></div>
+    <div class="fd inplace">${[['app', 'today, in the app'], ['new', 'proposed']].map(([set, tag]) => {
+      /* One icon by the app's name for it: today's glyph, rendered from Icon.tsx itself, or the simple mark proposed in its place. */
+      const NEW = { questionCard: 'tools', person: 'seat', cashOut: 'cashOut', rules: 'rules', pass: 'pass', receipt: 'bill', chipsIn: 'chipsIn', chipsOut: 'chipsOut', food: 'kitchen', piggy: 'piggyB', settings: 'settings', invite: 'invite', clock: 'clock' };
+      const ico = (name, size, colour = '#141A2A') => set === 'new' ? mark(NEW[name], size, colour) : `<span class="ip-app" style="color:${colour};--s:${size}px">${APP[name]}</span>`;
+      return `
       <figure><div class="mini" style="width:300px">
-        <div class="ip-role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#fff">${mark('tools', 19, '#141A2A')}</span></div>
-        <div class="blist">${[['seat', 'Seat a player'], ['cashOut', 'Cash out a player'], ['rules', 'Money rules'], ['pass', 'Pass the game']].map(([k, n]) => `<div class="brow" style="padding:13px 2px;gap:12px">${mark(k, 20, '#141A2A')}<div class="bt"><div class="bn">${n}</div></div></div>`).join('')}</div>
-        <div class="ip-dock"><span class="ip-pri">+ Rebuy</span><span class="ip-sec">${mark('bill', 19, '#141A2A')}Bill</span></div>
-      </div><figcaption><b>Tonight</b><span>The tools button, the Table admin drawer, and Bill, at 19 to 20 points.</span></figcaption></figure>
+        <div class="ip-role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#fff">${ico('questionCard', 19)}</span></div>
+        <div class="blist">${[['person', 'Seat a player'], ['cashOut', 'Cash out a player'], ['rules', 'Money rules'], ['pass', 'Pass the game']].map(([k, n]) => `<div class="brow" style="padding:13px 2px;gap:12px">${ico(k, 20)}<div class="bt"><div class="bn">${n}</div></div></div>`).join('')}</div>
+        <div class="ip-dock"><span class="ip-pri">+ Rebuy</span><span class="ip-sec">${ico('receipt', 19)}Bill</span></div>
+      </div><figcaption><b>Tonight · ${tag}</b><span>The tools button, the Table admin drawer, and Bill.</span></figcaption></figure>
       <figure><div class="mini" style="width:300px">
-        <div class="blist">${[['Dana', '+$1,429', '−110', '−81'], ['Andro', '+$526', '−31 +120', '−23']].map(([n, net, a, b]) => `<div class="brow" style="padding:9px 0"><div class="bt"><div class="bn">${n}</div><div class="bs ip-io">${mark('chipsIn', 13, '#596171')}500 ${mark('chipsOut', 13, '#596171')}2,120</div></div><div class="ip-r"><b>${net}</b><span class="ip-terms">${mark('kitchen', 13, '#596171')}${a} ${mark('piggyB', 14, '#596171')}${b}</span></div></div>`).join('')}</div>
-        <div class="ip-ded"><div class="ip-dl">${mark('kitchen', 18, '#596171')}<span>Kitchen &amp; drinks</span><b>$170</b></div><div class="ip-dl">${mark('piggyB', 18, '#596171')}<span>Group piggy bank</span><b>$126</b></div></div>
-      </div><figcaption><b>Results</b><span>The four simple marks, in the grey of the text beside them, at 13 and 18 points.</span></figcaption></figure>
+        <div class="blist">${[['Dana', '+$1,429', '−110', '−81'], ['Andro', '+$526', '−31 +120', '−23']].map(([n, net, a, b]) => `<div class="brow" style="padding:9px 0"><div class="bt"><div class="bn">${n}</div><div class="bs ip-io">${ico('chipsIn', 13, '#596171')}500 ${ico('chipsOut', 13, '#596171')}2,120</div></div><div class="ip-r"><b>${net}</b><span class="ip-terms">${ico('food', 13, '#596171')}${a} ${ico('piggy', 14, '#596171')}${b}</span></div></div>`).join('')}</div>
+        <div class="ip-ded"><div class="ip-dl">${ico('food', 18, '#596171')}<span>Kitchen &amp; drinks</span><b>$170</b></div><div class="ip-dl">${ico('piggy', 18, '#596171')}<span>Group piggy bank</span><b>$126</b></div></div>
+      </div><figcaption><b>Results · ${tag}</b><span>Chips in and out beside the figures, and the two deductions.</span></figcaption></figure>
       <figure><div class="mini" style="width:300px">
-        <div class="ip-bar"><span class="ip-pill">${mark('settings', 20, '#141A2A')}Settings</span><span class="rb">${mark('invite', 20, '#141A2A')}</span><span class="rb">${mark('clock', 20, '#141A2A')}</span></div>
-      </div><figcaption><b>Menu bar, and the log’s clock</b><span>Settings and Invite on the main menu’s bar. The clock stamps entries in the log.</span></figcaption></figure>
+        <div class="ip-bar"><span class="ip-pill">${ico('settings', 20)}Settings</span><span class="rb">${ico('invite', 20)}</span><span class="rb">${ico('clock', 20)}</span></div>
+      </div><figcaption><b>Menu bar and the log’s clock · ${tag}</b><span>Settings and Invite on the main menu’s bar; the clock stamps entries in the log.</span></figcaption></figure>
+      <div style="flex-basis:100%;height:0"></div>`; }).join('')}
     </div></div>
-  <div class="group"><div class="ghead"><h3>All 47, sorted</h3></div>
+  <div class="group"><div class="ghead"><h3>Every icon in the app today</h3><p>all 43, as the app draws them, at the size each defaults to and at 40 points</p></div>
+    <p>Rendered from the app’s own icon file, not redrawn, so each is exactly what is on the phone. They are line icons in one colour.</p>
+    ${[
+      ['Tonight, its drawer and dock', ['questionCard', 'person', 'cashOut', 'rules', 'pass', 'receipt', 'clock']],
+      ['Results', ['chipsIn', 'chipsOut', 'food', 'piggy', 'drinks']],
+      ['Main menu', ['settings', 'invite', 'sun', 'moon', 'people', 'calendar', 'bars', 'home']],
+      ['Poker tools', ['calculator', 'spadeCard', 'percent', 'flame', 'restart']],
+      ['Account, invite and the rest', ['info', 'pencil', 'copy', 'clipboard', 'message', 'share', 'qr', 'trash', 'phoneOff']],
+      ['Controls', ['back', 'chevron', 'chevronUp', 'chevronDown', 'arrow', 'close', 'plus', 'check', 'backspace']],
+    ].map(([label, names]) => `<h4 class="appset-h">${label}</h4><div class="appset">${names.map((n) => `<div class="appic"><div class="appic-art"><span class="ip-app" style="color:#141A2A">${APP[n]}</span><span class="ip-app" style="color:#141A2A;--s:40px">${APP[n]}</span></div><code>${n}</code></div>`).join('')}</div>`).join('')}
+  </div>
+  <div class="group"><div class="ghead"><h3>All 43, sorted</h3></div>
     <div class="open">
       <div><b>Already has an approved drawing (6)</b>The tools button and its question card (Rulings), the calendar (Sessions), the bars (My stats), the two people (The group), the flame (Boosters), the percent (Calculator).</div>
       <div><b>Drawn in this round, as simple marks (12, and the tools button)</b>Bill, seat a player, cash out, money rules, pass the game, the clock, settings, invite, chips in, chips out, Kitchen &amp; drinks, piggy bank.</div>
