@@ -132,12 +132,12 @@ export default [
       ],
       bar: bar('Done', { line: '$1,800 on the table' }) }) },
 
-  { id: 'new-night-second', route: '/new-night', name: 'New session · a second table', nav: 'sheet',
-    note: 'Owner, 22 November: “we don’t need names for each session”. A second table opens like the first, with no name to type and nothing blocking the bar; a line says another is already open tonight.',
-    flags: ['The app asks for a table name when a night is already open and blocks Open the table until it has one (“Name this table”); dropping it is a change to new-night.tsx, and two tables on one night then tell apart by their players and start times only.'],
+  { id: 'new-night-second', route: '/new-night', name: 'New session · a second table', nav: 'sheet', allowOverflow: true,
+    note: 'Owner, 22 November: no name to type, and the name made from the day of the week. The table is called for you, “Friday, table 2”, beside the one already open; nothing blocks the bar. The first table of a night is simply “Friday”. The sheet scrolls: the rest of the group runs on under the bar.',
+    flags: ['The app asks for a table name when a night is already open and blocks Open the table until it has one (“Name this table”); naming it from the day is a change to new-night.tsx.', '“Friday, table 2” and “Friday, table 1 is open” are draft; the day is the night’s own (the board’s night is Friday 20 November).', 'Open: can the automatic name be changed, or is it fixed?'],
     html: sheet({ behind: BEHIND, title: 'New session', sub: GROUP, tall: true,
       body: [
-        `<div class="muted" style="font-size:12.5px;display:flex;align-items:center;gap:6px;margin:-2px 2px 0"><i style="width:7px;height:7px;border-radius:50%;background:var(--win);display:block"></i>Tonight is already open</div>`,
+        `<div class="card pad" style="padding:10px 12px"><div style="font:700 10.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">This table</div><div style="font:700 17px/1.2 var(--head);margin-top:5px;white-space:nowrap">Friday, table 2</div><div class="muted" style="font-size:12px;display:flex;align-items:center;gap:6px;margin-top:4px"><i style="width:7px;height:7px;border-radius:50%;background:var(--win);display:block"></i>Friday, table 1 is open</div></div>`,
         ...seatedBody,
       ],
       bar: bar('Open the table · 3 seated', { line: '$1,800 on the table' }) }) },
