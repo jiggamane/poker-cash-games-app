@@ -445,6 +445,7 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
 
 <section class="sec">
   <h2>Round 31 — the tools button on the whole of Tonight, and the results in one shape</h2>
+  <p><b style="color:${C.ink}">Decided 22 November:</b> the tools button is <b style="color:${C.ink}">D, the ink round</b>; the results breakdown is <b style="color:${C.ink}">Now</b>, as it was. You approved the original Now, not “Now, one shape” below; if the one-shape version is the one you meant, approve that instead and it replaces Now.</p>
   <p class="quote">On D, the ink round: “i guess this one but show on the full app screen this and other options”. On the results breakdown’s Now: “try the same thing but with the same shape (background) for the cash in and out as for the piggy and food money”.</p>
   <div class="group"><div class="ghead"><h3>Tonight’s tools button, on the full screen</h3><p>the round-two Tonight on the approved rail, once per option; approve one under round 30 below</p></div>
     <p>Seen whole, the round sits on the rail beside the role line, above the table’s figure and the dock’s ink Rebuy button. D echoes Rebuy: two ink objects, one at each end of the screen. That is a reason for it (they read as the screen’s two actions) and against it (Rebuy is the one that records money).</p>
