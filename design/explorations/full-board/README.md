@@ -243,3 +243,7 @@ a hidden screen gives nothing away. New feature and new words.
   counts, what changed since each Needs-work note, what is waiting on Claude,
   what is not reviewed by section, and every choice made along the way. It
   renders from a snapshot at build and then live from the db.
+
+- **Signing you in**: the turning chip is replaced by the chip stack from
+  Start a session (owner's comment): its five chips drop onto the pile one
+  after another, the stack holds, lifts away, and the round starts again.
