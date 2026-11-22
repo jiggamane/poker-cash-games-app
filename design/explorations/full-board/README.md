@@ -272,3 +272,8 @@ a hidden screen gives nothing away. New feature and new words.
 - **Updated since your last look**, at the top of the board: a copy of every
   screen changed after a Needs-work note, with what changed, until it is
   approved or noted again (live from the db). The originals stay in place.
+
+- **Signing you in**, again (owner: "played with, with an invisible hand, like a
+  poker player"): the riffle. Two stacks of three, ink and red, pressed
+  together so the chips fall in one from each side into one alternating stack;
+  it holds, splits again, repeats. 3.4 seconds a round; still under reduced motion.

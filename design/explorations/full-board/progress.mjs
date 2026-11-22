@@ -14,7 +14,7 @@
 export const BUILT = '2026-11-22T22:00:00Z';
 
 export const ADDRESSED = {
-  'auth-callback-wait': ['The stack is always whole now; each chip shakes a little up and down, one a beat after the other, the top moving most.', '2026-11-22T22:00:00Z'],
+  'auth-callback-wait': ['An invisible hand riffles the chips: an ink stack and a red stack pressed together into one alternating stack, held, split again. 3.4 seconds a round.', '2026-11-22T21:55:00Z'],
   'groups-empty': ['Four explainer concepts at the top of the board: three steps, a walkthrough, the end of the night shown, two ways in.', '2026-11-22T22:00:00Z'],
   'new-night-rule-rest': ['Remove moved into the bar beside Save rule, on every rule editor that edits an existing rule.', '2026-11-22T22:00:00Z'],
   'new-night-second': ['No name for a second table: it opens like the first, the bar live, a line saying tonight is already open.', '2026-11-22T22:00:00Z'],
@@ -40,7 +40,7 @@ export const DECIDED = [
 
 /** The db as read at build: id → [status, comment, updatedAt]. Only screens with a verdict. */
 export const SNAPSHOT = {
-  'auth-callback-wait': ['changes', 'my idea was for the stack to rather be always fully visible and chips laid one on top of another but they are naturally shaking vertically', '2026-11-22T21:42:00Z'],
+  'auth-callback-wait': ['changes', 'they should be played with (with invisible hand) like a poker player would play with his chips on the table', '2026-11-22T21:48:49Z'],
   'groups-empty': ['changes', 'this should be an explainer screen showing the (usually new) user the features and the way to start a group, lets research several visual concepts', '2026-11-22T21:36:21Z'],
   'new-night': ['approved', '', '2026-11-22T21:37:00Z'],
   'new-night-amount': ['approved', '', '2026-11-22T21:37:09Z'],
