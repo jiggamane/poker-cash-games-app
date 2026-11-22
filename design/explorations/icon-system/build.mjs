@@ -20,6 +20,7 @@ import { SPOTS, PALETTES, K, spot, stack, shadow, mark } from './art.mjs';
 import { PICK } from './picks.mjs';
 import APP from './app-icons.json' with { type: 'json' };
 import { DRAWER_SETS, DRAWER_ROWS } from './drawer-sets.mjs';
+import { RB_CSS, RB_OPTIONS } from '../results-breakdown/options.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, railN, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption, sizingTable, RHO } from './fresh-deck.mjs';
 
@@ -101,16 +102,16 @@ const ROUND = [];
 /* Nothing left to decide: Sessions is calendar T (owner, 21 November). */
 const DECIDE = [];
 /* The approved drawing for each place, by the app's own names. */
-const APPROVED = ['session', 'stats', 'rulings', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleL', 'toolsAT', 'standUpR', 'sessionsT', 'buttonD'];
+const APPROVED = ['session', 'stats', 'rulingsG', 'sevenTwo', 'bombPot', 'doubleBoardA', 'calculator', 'groupB', 'anteF', 'boostersE', 'straddleL', 'toolsAT', 'standUpR', 'sessionsT', 'buttonD'];
 /* One place in the app each, and what is approved for it. */
 const SLOTS = [
   ['Start a session', 'session'], ['The group', 'groupB'], ['Sessions', 'sessionsT'], ['My stats', 'stats'],
-  ['Poker tools', 'toolsAT'], ['Calculator', 'calculator'], ['Rulings', 'rulings'], ['Boosters', 'boostersE'],
+  ['Poker tools', 'toolsAT'], ['Calculator', 'calculator'], ['Rulings', 'rulingsG'], ['Boosters', 'boostersE'],
   ['Bomb pot', 'bombPot'], ['Double-board', 'doubleBoardA'], ['Straddle', 'straddleL'], ['Table ante', 'anteF'],
   ['Stand-up game', 'standUpR'], ['Button game', 'buttonD'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['markChipsIn', 'markChipsOut', 'markKitchen', 'markPiggyB', 'markPiggyC', 'markPiggyD', 'markPiggy', 'markSeat', 'markCashOut', 'markRules', 'markPass', 'markBill', 'markTools', 'markClock', 'markSettings', 'markInvite', 'uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite', 'uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['rulings', 'rulingsF', 'markChipsIn', 'markChipsOut', 'markKitchen', 'markPiggyB', 'markPiggyC', 'markPiggyD', 'markPiggy', 'markSeat', 'markCashOut', 'markRules', 'markPass', 'markBill', 'markTools', 'markClock', 'markSettings', 'markInvite', 'uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite', 'uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const MARKS28 = ['markChipsIn', 'markChipsOut', 'markKitchen'];
@@ -408,6 +409,8 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 .appic-art{display:flex;align-items:center;justify-content:center;gap:14px;height:44px}
 .appic code{font:500 11px ui-monospace,Menlo,monospace;color:#6C6C70}
 .fd .dset{display:flex;justify-content:space-around;align-items:center;background:#fff;border-radius:14px;padding:14px 8px}
+${RB_CSS}
+.optgrid.rb{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}.optgrid.rb .rb-scr{margin:0 auto}
 </style>
 </head>
 <body>
@@ -422,22 +425,20 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>What is left to review</h2>
-  <p>Everything else on this board has a verdict. Four things do not.</p>
-  <div class="group"><div class="ghead"><h3>1 · The Rulings drawing</h3><p>the only drawing still open</p></div>
-    <p>You said the Rulings tile looked too empty and white once applied, asked for the framed card face on every card in this group, and on F asked to “try this with 2 cards”. G is that, and it has had no verdict. The screens still show the plain card you approved first. Approve one of these and it goes on the screens.</p>
-    <div class="optgrid">${[
-      ['rulings', 'Now · the plain card', 'The first approval, and what the screens show today.'],
-      ['rulingsD', 'D · the framed card', 'The card face you asked to use everywhere, alone.'],
-      ['rulingsF', 'F · the framed card and a chip stack', 'D with a short stack at its foot.'],
-      ['rulingsG', 'G · F with two cards', 'Two framed rulings fanned, the chip stack at their foot. Not yet reviewed.'],
-    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', level: 'tools', c: -10 }))).join('')}</div></div>
-  <div class="group"><div class="ghead"><h3>2 · Three smaller things</h3></div>
-    <div class="open">
-      <div><b>The results breakdown.</b>Eight layouts are on their own page (Poker Club Results Breakdown): the whole formula on the left, as you asked, and seven others. No pick yet.</div>
-      <div><b>Seat a player and Invite are now near twins.</b>The seat icon you just approved is a person with a plus on the left. The app’s Invite icon is a person with a plus on the right. They never share a screen (one is in Tonight’s drawer, one on the menu bar), so it may be fine; say if you want one of them changed.${`<span style="display:inline-flex;gap:14px;vertical-align:middle;margin-left:10px;color:#141A2A"><span class="ip-app" style="--s:26px">${DRAWER_SETS[0].icons.seat}</span><span class="ip-app" style="--s:26px">${APP.invite}</span></span>`}</div>
-      <div><b>One line of wording.</b>“calculator, rulings, boosters” under Poker tools on the main menu is new, because the app’s old line predates Boosters. It needs your yes or a replacement.</div>
-    </div></div>
+  <h2>To confirm</h2>
+  <p>You approved Rulings G; it is on the screens now, in place of the plain card. Four decisions are left, each with Approve and Needs work as on the drawings. Approve the one you want; use Needs work with a note for anything close but not right.</p>
+  <div class="group"><div class="ghead"><h3>1 · The results breakdown</h3><p>approve one layout</p></div>
+    <p>How a player’s result is made up, on the settled night’s list. A is the whole formula on the left, as you asked; it runs to a second line for a player with every term. B and E are the two that keep that idea and fit on a phone.</p>
+    <div class="optgrid rb">${RB_OPTIONS.map((o) => optCell({ key: `rb-${o.key}`, title: `${o.letter} · ${o.title}`, note: o.note, html: o.html })).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>2 · Seat a player beside Invite</h3><p>approve to keep both as they are</p></div>
+    <div class="optgrid">${optCell({ key: 'confirm-seat-invite', title: 'Keep both: plus on the left to seat, plus on the right to invite', note: 'The seat icon you approved and the app’s Invite icon are mirror images. They never share a screen: one is in Tonight’s drawer, the other on the main menu’s bar. Needs work if you want one of them changed, and say which.',
+      html: `<div class="fd"><div class="mini" style="width:300px"><div class="blist"><div class="brow" style="padding:13px 2px;gap:12px"><span class="ip-app" style="color:#141A2A;--s:20px">${DRAWER_SETS[0].icons.seat}</span><div class="bt"><div class="bn">Seat a player</div><div class="bs">Tonight · Table admin</div></div></div></div>
+        <div class="ip-bar"><span class="ip-pill"><span class="ip-app" style="color:#141A2A;--s:20px">${APP.settings}</span>Settings</span><span class="rb"><span class="ip-app" style="color:#141A2A;--s:20px">${APP.invite}</span></span><span style="font-size:12px;color:#596171">Main menu · Invite</span></div></div></div>` })}</div></div>
+  <div class="group"><div class="ghead"><h3>3 · The line under Poker tools on the menu</h3><p>approve the wording, or send a replacement</p></div>
+    <div class="optgrid">${optCell({ ...toolsTileOption(PICK.tools, 'x', 'x'), key: 'confirm-tools-line', title: '“calculator, rulings, boosters”', note: 'New wording. The app’s old line, “poker calculator, rules & rulings”, was written before Boosters existed. Needs work with the line you want instead.' })}</div></div>
+  <div class="group"><div class="ghead"><h3>4 · Tonight’s tools button on the new header</h3><p>approve the grey fill</p></div>
+    <div class="optgrid">${optCell({ key: 'confirm-tools-button', title: 'A grey button on the white rail', note: 'The button was white. On the rail you approved, a white button disappears, so I gave it the screen’s grey. This was my change, not one you asked for.',
+      html: `<div class="fd"><div class="mini" style="width:300px;background:#fff"><div class="ip-role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#EEF0F3;box-shadow:none"><span class="ip-app" style="color:#141A2A;--s:19px">${APP.questionCard}</span></span></div></div></div>` })}</div></div>
 </section>
 
 <section class="sec">
