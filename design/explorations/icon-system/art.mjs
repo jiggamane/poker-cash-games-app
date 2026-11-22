@@ -1691,29 +1691,6 @@ Object.assign(SPOTS, {
   },
 });
 
-/* ── round 25, 21 November: AB's chips, round 24's card layout ──────────── */
-
-/* The approved AB, with only its card changed: its chips exactly as they were. */
-const abChips = (P, o) => chipPair(P, o, { x: 43, y: 88 }, 18, 17, 28);
-
-Object.assign(SPOTS, {
-  toolsAT: {
-    name: 'Poker tools', variant: 'AT · AB, with the two framed rulings', where: 'Home · tile', status: 'round25',
-    draw: (P, o) => { const c = abChips(P, o); return ownShadow(P, 36, 79, 20) + c.shadows + framedPairAt(P, o, 27, 79) + c.chips; },
-  },
-  toolsAU: {
-    name: 'Poker tools', variant: 'AU · AB, with the framed ace and ruling', where: 'Home · tile', status: 'round25',
-    draw: (P, o) => { const c = abChips(P, o); return ownShadow(P, 36, 79, 20) + c.shadows + framedPairAt(P, o, 27, 79, ['spade', 'q']) + c.chips; },
-  },
-  toolsAV: {
-    name: 'Poker tools', variant: 'AV · AB, with one framed ruling, closer', where: 'Home · tile', status: 'round25',
-    draw: (P, o) => {
-      const c = abChips(P, o);
-      return ownShadow(P, 32, 80, 16) + c.shadows + framedCard(P, o, { cx: 31, by: 80, w: 31, h: 44, rot: -8 }) + c.chips;
-    },
-  },
-});
-
 export function spot(key, theme = 'light', { size = 96, small = size <= 44 } = {}) {
   const P = PALETTES[theme];
   return `<svg viewBox="4 12 88 88" width="${size}" height="${size}" aria-hidden="true">${SPOTS[key].draw(P, { small })}</svg>`;

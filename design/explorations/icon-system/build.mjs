@@ -530,7 +530,6 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
     ['toolsAR', 'AR · as AQ, tipped further', 'The faces rounder still: the % and the fire read at a glance.'],
     ['toolsAS', 'AS · the chips over the cards’ feet', 'As AQ, the chips nearer, overlapping the bottom of the cards.'],
   ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n))).join('')}</div>
-  </details>
 </section>
 
 <section class="sec">
@@ -549,7 +548,7 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
   <div class="group"><div class="ghead"><h3>Button game</h3><p>in its Game boosters row, and at the head of its sheet</p></div>
     <div class="optgrid">${[
       ['buttonB', 'B · the star button on its edge', 'One bone button standing up, the star facing you: as big as the row allows.'],
-      ['buttonC', 'C · on its edge, beside the buttons won', 'The star button standing in front of a short stack, the same chips the game is played with.'],
+      ['buttonD', 'D · on its edge, on top of the buttons won', 'The star button standing on the stack, like the Stand-up game’s J.'],
       ['buttonE', 'E · three buttons on their edges', 'Three star buttons standing together: collecting them is the game.'],
     ].map(([k, t, n]) => optCell(boosterOption(k, t, n))).join('')}</div></div>
   </details>
