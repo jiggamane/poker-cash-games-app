@@ -101,3 +101,12 @@ current in-app icons and put them on the board first). `app-icons.mjs` renders
 the real `Icon.tsx` (43 names, not 47 as round 27 first said) to
 `app-icons.json`; the board shows all 43 as the app draws them, and each
 in-place mock twice: today, and proposed. Re-run it when `Icon.tsx` changes.
+
+**Decided, 22 November: the app's icons stay.** The owner, once they were on
+the board: *the current in app icons feel good; if any changes are needed just
+see how (if) they should adapt to the new elements and UI.* So `Icon.tsx` is
+not redrawn, which is also the rule at the top of this file. The marks and the
+`ui*` drawings are withdrawn (earlier rounds). What adapts is use, not shape:
+colour (Fresh Deck's ink and grey), back without its round button, no row
+chevrons or start arrow, and six glyphs replaced by spots on tiles only. The
+updated-screens page now draws Tonight and the results with the app's icons.

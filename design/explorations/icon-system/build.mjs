@@ -109,14 +109,14 @@ const SLOTS = [
   ['Stand-up game', 'standUpR'], ['Button game', 'buttonD'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['markPiggy', 'uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite', 'uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['markChipsIn', 'markChipsOut', 'markKitchen', 'markPiggyB', 'markPiggyC', 'markPiggyD', 'markPiggy', 'markSeat', 'markCashOut', 'markRules', 'markPass', 'markBill', 'markTools', 'markClock', 'markSettings', 'markInvite', 'uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite', 'uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
 const MARKS28 = ['markChipsIn', 'markChipsOut', 'markKitchen'];
 const PIGS = ['markPiggyB', 'markPiggyC', 'markPiggyD'];
 const UI27 = ['uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite'];
 const MARKS28B = ['markSeat', 'markCashOut', 'markRules', 'markPass', 'markBill', 'markTools', 'markClock', 'markSettings', 'markInvite'];
-const ROUND20 = [...MARKS28, ...PIGS, ...MARKS28B, 'straddleM', 'straddleN', 'straddleO', 'straddleP', 'straddleQ', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
+const ROUND20 = ['straddleM', 'straddleN', 'straddleO', 'straddleP', 'straddleQ', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -420,22 +420,18 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 27 — the app’s other icons</h2>
-  <p>The app draws 43 small icons. All of them are now on the board as the app draws them today, with the proposed replacement beside each where there is one. This round sorts all of them and redraws the first thirteen as simple one-tone marks: on Tonight, its Table admin drawer, the results and the menu bar. Approve or comment on each, as before.</p>
-  <div class="group"><div class="ghead"><h3>The results: simple, one tone</h3><p>22 November, from your comment on the results row</p></div>
-    <p class="quote">“we dont need colored icons here, these should be more simple (in terms of curves and shapes, fewer details but still well designed)”</p>
-    <p>Solid marks in one grey, in place of the coloured drawings on this screen. Each is one shape with at most one cut-out, drawn to read at 13 points. Chips in is a solid chip and chips out is an open one, so the pair differs by more than the arrow.</p>
-    <div class="grid">${MARKS28.map((k) => cell(k)).join('')}</div>
-    <p class="quote">On the piggy bank: “reiterate. the way the hole looks feels wrong and check the piggy shapes”</p>
-    <p>The pig is redrawn from plain parts: an oval body, a square snout, a rounded ear, two feet, a curl of tail and an eye. Three ways to show the money, since the flat hole was the fault. B is the one shown in place below.</p>
-    <div class="grid">${PIGS.map((k) => cell(k)).join('')}</div>
-    <div class="at40"><span>At 14 and 18 points, in the text’s grey: B, C, D</span>${['piggyB', 'piggyC', 'piggyD'].map((k) => `<span style="flex-basis:auto;display:inline-flex;gap:8px;align-items:center">${mark(k, 14, '#596171')}${mark(k, 18, '#596171')}</span>`).join('')}</div></div>
-  <div class="group"><div class="ghead"><h3>Tonight’s drawer and dock, and the menu bar: simple too</h3><p>22 November, from your two comments</p></div>
-    <p class="quote">“for these we don't need that much details in the icons, make them minimalistic” · “these should be more simple”</p>
-    <p>The same treatment as the results: nine solid marks, one shape each, in the ink of the label beside them. They replace the eight detailed drawings from yesterday, which are under the earlier rounds. The tools button gets one as well, so every small icon on Tonight is of one kind; the full Rulings drawing stays on its tile.</p>
-    <div class="grid">${MARKS28B.map((k) => cell(k)).join('')}</div></div>
-  <div class="group"><div class="ghead"><h3>In place: today, and proposed</h3><p>top row, the app’s own icons; bottom row, the simple marks</p></div>
-    <div class="fd inplace">${[['app', 'today, in the app'], ['new', 'proposed']].map(([set, tag]) => {
+  <h2>Round 27 — the app’s other icons: they stay</h2>
+  <p class="quote">“the current in app icons feel good. if any changes are needed just see how (if) they shoudl adapt to the new elements and UI that we introduced in app”</p>
+  <p>So the app’s 43 line icons are kept as they are drawn today, and nothing is redrawn. The simple solid versions and the detailed drawings I proposed are withdrawn; they are under the earlier rounds. Below: the same icons on the new UI, the few places where the new UI changes how one is used, and the full set.</p>
+  <div class="group"><div class="ghead"><h3>What adapts, and it is not the drawings</h3></div>
+    <div class="open">
+      <div><b>Colour only.</b>Every icon takes Fresh Deck’s ink beside a label and its grey beside small text (the results’ terms and deductions), which is the one muted tone you asked for there. No shape or weight changes.</div>
+      <div><b>Back loses its round button.</b>The header you approved has a bare grey chevron. The app’s back icon is already that chevron; it only drops the white circle behind it.</div>
+      <div><b>Row chevrons and the start arrow are no longer drawn.</b>Fresh Deck has nothing pointing: the chevron at the end of a row and the arrow on Start a session go. The icons stay in the set for the places that still need them (the dropdown, the dock’s disclosure, “same night”).</div>
+      <div><b>Six icons give way to a drawing on tiles only.</b>Calendar, bars, the two people, the flame, the percent and the question card are replaced by the approved drawings on the menu and Poker tools tiles. Anywhere else they appear small (the tools button on Tonight, a player count on a row) they stay as line icons.</div>
+    </div></div>
+  <div class="group"><div class="ghead"><h3>In place, on the new UI</h3><p>the app’s own icons, in Fresh Deck’s ink and grey</p></div>
+    <div class="fd inplace">${[['app', 'kept']].map(([set, tag]) => {
       /* One icon by the app's name for it: today's glyph, rendered from Icon.tsx itself, or the simple mark proposed in its place. */
       const NEW = { questionCard: 'tools', person: 'seat', cashOut: 'cashOut', rules: 'rules', pass: 'pass', receipt: 'bill', chipsIn: 'chipsIn', chipsOut: 'chipsOut', food: 'kitchen', piggy: 'piggyB', settings: 'settings', invite: 'invite', clock: 'clock' };
       const ico = (name, size, colour = '#141A2A') => set === 'new' ? mark(NEW[name], size, colour) : `<span class="ip-app" style="color:${colour};--s:${size}px">${APP[name]}</span>`;
@@ -465,13 +461,6 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
       ['Controls', ['back', 'chevron', 'chevronUp', 'chevronDown', 'arrow', 'close', 'plus', 'check', 'backspace']],
     ].map(([label, names]) => `<h4 class="appset-h">${label}</h4><div class="appset">${names.map((n) => `<div class="appic"><div class="appic-art"><span class="ip-app" style="color:#141A2A">${APP[n]}</span><span class="ip-app" style="color:#141A2A;--s:40px">${APP[n]}</span></div><code>${n}</code></div>`).join('')}</div>`).join('')}
   </div>
-  <div class="group"><div class="ghead"><h3>All 43, sorted</h3></div>
-    <div class="open">
-      <div><b>Already has an approved drawing (6)</b>The tools button and its question card (Rulings), the calendar (Sessions), the bars (My stats), the two people (The group), the flame (Boosters), the percent (Calculator).</div>
-      <div><b>Drawn in this round, as simple marks (12, and the tools button)</b>Bill, seat a player, cash out, money rules, pass the game, the clock, settings, invite, chips in, chips out, Kitchen &amp; drinks, piggy bank.</div>
-      <div><b>Objects not drawn yet (15)</b>Sun and moon (theme), home, house-rules info, pencil, restart, trash, phone off, clipboard, copy, message, share, QR code, calculator, the spade card. Next round, as simple marks too, once these are right.</div>
-      <div><b>Controls, which I’d leave as line glyphs (10)</b>Back, the three chevrons, the arrow, close, plus, check, backspace, and the drinks glass, which no screen uses. They point or confirm; they are not things.</div>
-    </div></div>
 </section>
 
 <section class="sec">

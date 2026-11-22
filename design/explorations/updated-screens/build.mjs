@@ -28,6 +28,7 @@ import { createRequire } from 'node:module';
 import { PICK } from '../icon-system/picks.mjs';
 import { FD_CSS, FD_FONTS, freshDeckScreens, freshDeckSheets, railN } from '../icon-system/fresh-deck.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
+import APP from '../icon-system/app-icons.json' with { type: 'json' };
 
 const here = dirname(fileURLToPath(import.meta.url));
 const { chromium } = createRequire(import.meta.url)('playwright');
@@ -51,6 +52,20 @@ await page.evaluate(() => {
     pad.insertBefore(rail, head[0]); head.forEach((c) => rail.appendChild(c));
   }
 });
+/* The owner, 22 November: the app's own icons feel good and stay. The style page drew its own small ones
+   (tools, receipt, cutlery, piggy bank); put the app's glyphs, from Icon.tsx, in their place at the same size. */
+await page.evaluate((APP) => {
+  const MAP = { tools: 'questionCard', receipt: 'receipt', cutlery: 'food', piggy: 'piggy' };
+  for (const svg of document.querySelectorAll('#d2 .phone svg.ri')) {
+    const name = MAP[svg.querySelector('use')?.getAttribute('href')?.replace('#r-', '')];
+    if (!name) continue;
+    const size = Math.round(parseFloat(getComputedStyle(svg).width) * 0.86);
+    const span = document.createElement('span');
+    span.className = 'appico'; span.innerHTML = APP[name];
+    span.firstElementChild.setAttribute('width', size); span.firstElementChild.setAttribute('height', size);
+    svg.replaceWith(span);
+  }
+}, APP);
 two.phones = await page.evaluate(() => [...document.querySelectorAll('#d2 .strip figure')].map((f) => [f.querySelector('figcaption').textContent, f.querySelector('.phone').outerHTML]));
 
 await browser.close();
@@ -68,7 +83,8 @@ const STRIP = `.us-strip{display:flex;gap:22px;overflow-x:auto;padding:6px 2px 1
 
 const [night, , , results] = two.phones;
 const styleScreens = shadow(two, `<div class="us-strip names-only">${[[...night, 'Tonight'], [...results, 'Post-game results']]
-  .map(([, html, cap]) => `<figure>${html}<figcaption>${cap}</figcaption></figure>`).join('')}</div>`, STRIP + railN('.d-d2'));
+  .map(([, html, cap]) => `<figure>${html}<figcaption>${cap}</figcaption></figure>`).join('')}</div>`, STRIP + railN('.d-d2') + `
+.appico{display:inline-flex;flex:none;line-height:0}.terms .appico,.dl .appico{color:var(--p-muted)}.terms .appico{vertical-align:-2px;margin-right:2px}`);
 
 const fonts = [...new Set([`<link rel="stylesheet" href="${FD_FONTS}">`, ...[readFileSync(join(here, 'sources/style-round-two.html'), 'utf8')]
   .flatMap((t) => t.match(/<link rel="stylesheet"[^>]+fonts\.googleapis\.com[^>]+>/g) ?? [])])].join('\n');
@@ -116,10 +132,10 @@ ${railN('.fd')}
       <li><b>Fifteen drawings</b>, one for each place and game.</li>
       <li><b>Menu tiles</b>: the name on top, the drawing in the bottom-right corner.</li>
       <li><b>Nothing points</b>: no chevrons on rows, and <i>Start a session</i> is a solid ink button.</li>
+      <li><b>The small icons</b>: the app’s own line icons stay as they are, in Fresh Deck’s ink and grey.</li>
       <li><b>The header</b>: the Rail, with the title small and bold on the left beside a bare grey chevron (version N).</li>
     </ul></div>
     <div><h3>Still open</h3><ul>
-      <li><b>Tonight and Post-game results</b> were not part of the icon review. Their small icons (tools, kitchen, piggy bank) are the style round’s own.</li>
       <li><b>“calculator, rulings, boosters”</b> under Poker tools on the menu is new wording, not yet confirmed.</li>
     </ul></div>
   </div>
@@ -139,7 +155,7 @@ ${railN('.fd')}
 
 <section class="us-sec">
   <div><span class="us-tag ok">Approved</span><h2>Tonight and Post-game results</h2>
-  <p>Fresh Deck as the style round left it, with the new header. On Tonight the title row, the role line and the <i>On the table</i> figure share the rail, and the figure loses its own card. On the results the date, the time span and the view control share it.</p></div>
+  <p>Fresh Deck as the style round left it, with the new header. On Tonight the title row, the role line and the <i>On the table</i> figure share the rail, and the figure loses its own card. On the results the date, the time span and the view control share it. The small icons (tools, Bill, kitchen, piggy bank) are the app’s own.</p></div>
   <div class="us-scroll">${styleScreens}</div>
 </section>
 

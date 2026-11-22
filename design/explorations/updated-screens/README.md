@@ -20,11 +20,12 @@ claude.ai artifact TuSGpPtXL4grbNYq3RW59i (the owner's, private).
   `../screen-headers/titles.html` on the Rail, on every screen here (`railN` in
   `../icon-system/fresh-deck.mjs`). Sheets keep their own chrome.
 
+The small icons on Tonight and the results are the app's own, from
+`../icon-system/app-icons.json`: the owner kept them on 22 November.
+
 ## Open (owner)
 
-1. Tonight and Post-game results were not in the icon review: their small
-   icons (tools, kitchen, piggy bank) are the style round's own.
-2. *calculator, rulings, boosters* under Poker tools on the menu is new copy.
+1. *calculator, rulings, boosters* under Poker tools on the menu is new copy.
 
 ## How it is built
 
