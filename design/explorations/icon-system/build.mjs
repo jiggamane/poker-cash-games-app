@@ -422,10 +422,29 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
 
 <section class="sec">
-  <h2>Round 29 — the Table admin drawer: more sets</h2>
+  <h2>What is left to review</h2>
+  <p>Everything else on this board has a verdict. Four things do not.</p>
+  <div class="group"><div class="ghead"><h3>1 · The Rulings drawing</h3><p>the only drawing still open</p></div>
+    <p>You said the Rulings tile looked too empty and white once applied, asked for the framed card face on every card in this group, and on F asked to “try this with 2 cards”. G is that, and it has had no verdict. The screens still show the plain card you approved first. Approve one of these and it goes on the screens.</p>
+    <div class="optgrid">${[
+      ['rulings', 'Now · the plain card', 'The first approval, and what the screens show today.'],
+      ['rulingsD', 'D · the framed card', 'The card face you asked to use everywhere, alone.'],
+      ['rulingsF', 'F · the framed card and a chip stack', 'D with a short stack at its foot.'],
+      ['rulingsG', 'G · F with two cards', 'Two framed rulings fanned, the chip stack at their foot. Not yet reviewed.'],
+    ].map(([k, t, n]) => optCell(toolsTileOption(k, t, n, { name: 'Rulings', sub: 'look up a ruling', level: 'tools', c: -10 }))).join('')}</div></div>
+  <div class="group"><div class="ghead"><h3>2 · Three smaller things</h3></div>
+    <div class="open">
+      <div><b>The results breakdown.</b>Eight layouts are on their own page (Poker Club Results Breakdown): the whole formula on the left, as you asked, and seven others. No pick yet.</div>
+      <div><b>Seat a player and Invite are now near twins.</b>The seat icon you just approved is a person with a plus on the left. The app’s Invite icon is a person with a plus on the right. They never share a screen (one is in Tonight’s drawer, one on the menu bar), so it may be fine; say if you want one of them changed.${`<span style="display:inline-flex;gap:14px;vertical-align:middle;margin-left:10px;color:#141A2A"><span class="ip-app" style="--s:26px">${DRAWER_SETS[0].icons.seat}</span><span class="ip-app" style="--s:26px">${APP.invite}</span></span>`}</div>
+      <div><b>One line of wording.</b>“calculator, rulings, boosters” under Poker tools on the main menu is new, because the app’s old line predates Boosters. It needs your yes or a replacement.</div>
+    </div></div>
+</section>
+
+<section class="sec">
+  <h2>Round 29 — the Table admin drawer: today’s, with the plus</h2>
   <p class="quote">“can have + to its left” · “can make an iteration on all of these 4 icons - stay within that simple concept/approach but provide more options (sets)”</p>
-  <p>Four more sets for the drawer’s four rows, all in the app’s own hand: line icons on the same grid, one stroke, one colour, nothing filled. The first row is today’s, for comparison. Each set shares one idea, so the four read as a family. Comment on a set, or on a single icon if you want to mix.</p>
-  <div class="fd inplace">${[{ key: 'today', name: 'Today', note: 'As the app draws them now.', icons: {} }, ...DRAWER_SETS].map((set) => `
+  <p><b style="color:${C.ink}">Decided:</b> “this feels right”, on <i>Today, with the plus</i>. The drawer keeps the app’s four icons and Seat a player gains a plus on its left. Sets A, B and C are passed over; they stay here for the record.</p>
+  <div class="fd inplace">${[...DRAWER_SETS.slice(0, 1).map((d) => ({ ...d, name: 'Approved · today, with the plus' })), { key: 'today', name: 'Before', note: 'As the app draws them now.', icons: {} }, ...DRAWER_SETS.slice(1)].map((set) => `
     <figure><div class="mini" style="width:300px">
       <div class="dset">${DRAWER_ROWS.map(([k, app]) => `<span class="ip-app" style="color:#141A2A;--s:40px">${set.icons[k] ?? APP[app]}</span>`).join('')}</div>
       <div class="blist">${DRAWER_ROWS.map(([k, app, label]) => `<div class="brow" style="padding:13px 2px;gap:12px"><span class="ip-app" style="color:#141A2A;--s:20px">${set.icons[k] ?? APP[app]}</span><div class="bt"><div class="bn">${label}</div></div></div>`).join('')}</div>
@@ -452,7 +471,7 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
       return `
       <figure><div class="mini" style="width:300px">
         <div class="ip-role"><span><b>You’re recording</b> · started 14:07</span><span class="rb" style="background:#fff">${ico('questionCard', 19)}</span></div>
-        <div class="blist">${[['person', 'Seat a player'], ['cashOut', 'Cash out a player'], ['rules', 'Money rules'], ['pass', 'Pass the game']].map(([k, n]) => `<div class="brow" style="padding:13px 2px;gap:12px">${ico(k, 20)}<div class="bt"><div class="bn">${n}</div></div></div>`).join('')}</div>
+        <div class="blist">${[['person', 'Seat a player'], ['cashOut', 'Cash out a player'], ['rules', 'Money rules'], ['pass', 'Pass the game']].map(([k, n]) => `<div class="brow" style="padding:13px 2px;gap:12px">${k === 'person' && set === 'app' ? `<span class="ip-app" style="color:#141A2A;--s:20px">${DRAWER_SETS[0].icons.seat}</span>` : ico(k, 20)}<div class="bt"><div class="bn">${n}</div></div></div>`).join('')}</div>
         <div class="ip-dock"><span class="ip-pri">+ Rebuy</span><span class="ip-sec">${ico('receipt', 19)}Bill</span></div>
       </div><figcaption><b>Tonight · ${tag}</b><span>The tools button, the Table admin drawer, and Bill.</span></figcaption></figure>
       <figure><div class="mini" style="width:300px">
