@@ -6,6 +6,7 @@
  * Words are the app's, read from the source and from the running app with Dana,
  * Andro and Lena seated and Lena's buy-in typed up to 800.
  */
+import { art } from '../kit.mjs';
 import { sheet, bar, label, card, row, note, para, pill, button, quiet, field, seg, toggle, ico } from '../kit.mjs';
 
 const BEHIND = 'The Thursday game';
@@ -49,6 +50,20 @@ const addPill = (dead = false) => `<span class="btn2${dead ? ' dead' : ''}" styl
 const plan = (name, price, body, { tag = '', mine = false } = {}) =>
   `<div class="row" style="align-items:center;padding:12px 0"><span class="n${mine ? ' muted' : ''}" style="font-size:16px"><span style="display:flex;align-items:center;gap:8px">${name}${tag ? `<span style="font:700 10px/1 var(--body);letter-spacing:.1em;color:var(--muted);padding:3px 6px;border-radius:7px;box-shadow:inset 0 0 0 1px var(--outline)">${tag}</span>` : ''}<span class="num" style="margin-left:auto;font-size:14.5px">${price}</span></span><small class="wrap" style="line-height:1.4;margin-top:4px">${body}</small></span>${radio(false)}</div>`;
 
+
+/*
+ * The gate, made inviting (owner, 22 November: "this screen should be more inviting").
+ * It opens on the drawing a host sees on Start a session, then the plans as three cards rather than
+ * rows on a form: the price large, what it buys under it. Full is the ink card, because it is the one
+ * that opens tonight with no limit; your own plan is marked and set back.
+ */
+const planCard = (name, price, per, body, { tag = '', ink = false, dim = false } = {}) =>
+  `<div class="card pad" style="display:grid;gap:6px;${ink ? 'background:var(--pri);color:var(--onpri);box-shadow:var(--lift)' : ''}${dim ? 'opacity:.62' : ''}">
+    <div style="display:flex;align-items:center;gap:8px"><b style="font:700 17px/1 var(--head)">${name}</b>${tag ? `<span style="font:700 10px/1 var(--body);letter-spacing:.1em;padding:4px 7px;border-radius:7px;box-shadow:inset 0 0 0 1px ${ink ? 'currentColor' : 'var(--outline)'};opacity:.8">${tag}</span>` : ''}
+      <span style="margin-left:auto;display:flex;align-items:baseline;gap:3px"><span class="num" style="font:800 24px/1 var(--head);letter-spacing:-.02em">${price}</span>${per ? `<span style="font-size:12px;opacity:.7">${per}</span>` : ''}</span></div>
+    <div style="font-size:13px;line-height:1.4;opacity:.75">${body}</div></div>`;
+const gateHero = `<div style="display:flex;align-items:center;gap:14px;margin:-4px 0 2px"><span style="flex:none">${art('session', 84)}</span><p class="lead-p" style="font-size:14.5px">Running a game takes a paid membership. Watching, and your place in the group, stay free.</p></div>`;
+
 /* ── the steps ────────────────────────────────────────────────────────── */
 
 const seatedBody = [
@@ -60,7 +75,7 @@ const seatedBody = [
 ];
 
 const moneyCard = card([
-  row({ name: 'Stakes', trail: `${moneyBox('5')}<span class="muted">/</span>${moneyBox('5')}` }),
+  row({ name: 'Blinds', trail: `${moneyBox('5')}<span class="muted">/</span>${moneyBox('5')}` }),
   block(blockLabel('Straddle') + seg(['No', 'Optional', 'Mandatory'], 0)),
   row({ name: 'Standard buy-in', meta: 'what each seat is filled with', trail: moneyBox('500') }),
   row({ name: 'Currency', meta: 'the group’s book', value: '<b style="color:var(--text)">USD</b>' }),
@@ -249,28 +264,26 @@ export default [
       bar: bar('Done · 3 seated') }) },
 
   { id: 'new-night-gate', route: '/new-night', name: 'Open a game · no membership', nav: 'sheet',
-    note: 'The membership gate stands in New session’s slot for a Free member. Buying a plan is not built, so the bar is blocked and stays blocked; Not now is the way out.',
-    flags: ['Not reachable in the app today (every phone reads as Full), so drawn from source, not from a capture.', 'The handoff marks INCLUDED / YOURS and the plan wording among its UNSURE strings.'],
-    html: sheet({ behind: BEHIND, title: 'Open a game', sub: 'Running a game takes a paid membership. Watching, and your place in the group, stay free.',
+    note: 'Redesigned to invite (owner, 22 November): the start-a-session drawing and the reason first, then three plan cards with the price large. Full is the ink card. Buying a plan is not built, so the bar stays blocked; Not now is the way out.',
+    flags: ['Not reachable in the app today (every phone reads as Full), so drawn from source, not from a capture.', 'The handoff marks INCLUDED / YOURS and the plan wording among its UNSURE strings.', 'Full drawn as the ink card is a design choice: it leans the sheet toward one plan. Say if all three should be equal.'],
+    html: sheet({ behind: BEHIND, title: 'Open a game', tall: true,
       body: [
-        card([
-          plan('Free', '$0', 'Tonight, and the last three games.', { tag: 'INCLUDED', mine: true }),
-          plan('Regular', '$2.49 / mo', 'Every night in the book, the ones you missed included, and one night as host each month.'),
-          plan('Full', '$9.99 / mo', 'Everything in Regular, and you run games as often as you like.'),
-        ]),
-        button('Not now'),
+        gateHero,
+        planCard('Free', '$0', '', 'Tonight, and the last three games.', { tag: 'INCLUDED', dim: true }),
+        planCard('Regular', '$2.49', '/ mo', 'Every night in the book, the ones you missed included, and one night as host each month.'),
+        planCard('Full', '$9.99', '/ mo', 'Everything in Regular, and you run games as often as you like.', { ink: true }),
+        `<div class="btnq">Not now</div>`,
       ],
       bar: bar('Choose a plan to open a game', { blocked: true }) }) },
 
   { id: 'new-night-gate-used', route: '/new-night', name: 'Open a game · host night used', nav: 'sheet',
-    note: 'A Regular who has spent this month’s host night. Free is left off the list; waiting is the secondary.',
+    note: 'A Regular who has spent this month’s host night, in the same inviting layout. Free is left off; waiting is the secondary.',
     flags: ['The month and the date (November, 1 December) are computed by the app from today and the renewal date; these are examples, not captured.', 'Not reachable in the app today, so drawn from source. “Wait for …” and YOURS are UNSURE in the handoff.'],
-    html: sheet({ behind: BEHIND, title: 'Open a game', sub: 'You’ve used your host night for November. It comes back on 1 December.',
+    html: sheet({ behind: BEHIND, title: 'Open a game', tall: true,
       body: [
-        card([
-          plan('Regular', '$2.49 / mo', 'Every night in the book, the ones you missed included, and one night as host each month.', { tag: 'YOURS', mine: true }),
-          plan('Full', '$9.99 / mo', 'Everything in Regular, and you run games as often as you like.'),
-        ]),
+        gateHero.replace('Running a game takes a paid membership. Watching, and your place in the group, stay free.', 'You’ve used your host night for November. It comes back on 1 December.'),
+        planCard('Regular', '$2.49', '/ mo', 'Every night in the book, the ones you missed included, and one night as host each month.', { tag: 'YOURS', dim: true }),
+        planCard('Full', '$9.99', '/ mo', 'Everything in Regular, and you run games as often as you like.', { ink: true }),
         note('You can still watch any game and see its money live.'),
         button('Wait for 1 December'),
       ],

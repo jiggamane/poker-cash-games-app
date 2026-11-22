@@ -35,12 +35,14 @@ const titleOf = (html) => (html.match(/<h1[^>]*>(.*?)<\/h1>/) ?? [])[1];
 const innerOf = (html) => html.slice(html.indexOf('<div class="scr">') + 17, html.lastIndexOf('</div></div>'));
 const behind = new Map();
 for (const s of all) if (s.nav !== 'sheet' && !s.wide && !behind.has(titleOf(s.html))) behind.set(titleOf(s.html), innerOf(s.html));
-for (const s of all) {
-  const at = s.html.indexOf('<div class="scrim">');
-  if (s.nav !== 'sheet' || at < 0) continue;
-  const back = behind.get(titleOf(s.html));
-  if (back) s.html = s.html.slice(0, s.html.indexOf('<div class="scr">') + 17) + back + s.html.slice(at);
-}
+/* Every phone in a cell, not only the first: an option cell can hold two sheets side by side. */
+const withBehind = (phone) => {
+  const at = phone.indexOf('<div class="scrim">');
+  if (at < 0) return phone;
+  const back = behind.get(titleOf(phone));
+  return back ? phone.slice(0, phone.indexOf('<div class="scr">') + 17) + back + phone.slice(at) : phone;
+};
+for (const s of all) s.html = s.html.split('<div class="fb">').map((part, i) => (i === 0 ? part : withBehind('<div class="fb">' + part).slice(16))).join('<div class="fb">');
 const dup = all.map((s) => s.id).filter((id, i, a) => a.indexOf(id) !== i);
 if (dup.length) throw new Error(`duplicate screen ids: ${[...new Set(dup)].join(', ')}`);
 const routes = new Set(all.map((s) => s.route));

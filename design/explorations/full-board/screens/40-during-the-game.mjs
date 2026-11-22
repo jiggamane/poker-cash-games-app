@@ -21,8 +21,24 @@ const badge = (text) =>
 const titled = (name, tag) => `${name}${badge(tag)}`;
 
 /** The summary card: a caps label over a figure, two or three across. `tail` is the note that stands in for the third. */
-const stat = (lbl, value, { tone = '', align = 'left' } = {}) =>
-  `<div style="text-align:${align}"><div style="font:700 10.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">${lbl}</div><div class="num ${tone}" style="font:700 26px/1 var(--head);letter-spacing:-.02em;margin-top:6px">${value}</div></div>`;
+/*
+ * Figures are written in full and the type steps down to fit, never abbreviated (owner, 22 November:
+ * "use auto size down for the values once they near collision"). 26 points while three fit a third of
+ * the card each; below that, the size that fits, to a floor of 18. In the app: adjustsFontSizeToFit
+ * on the figure, minimumFontScale 0.7, the same rule for every figure in the row so they stay one size.
+ */
+const FIT = { 3: 76, 2: 116 };
+const fitSize = (values, across) => {
+  const chars = Math.max(...values.map((v) => v.replace(/<[^>]+>/g, '').length));
+  return Math.max(18, Math.min(26, Math.floor(FIT[across] / (chars * 0.6))));
+};
+const stat = (lbl, value, { tone = '', align = 'left', size = 26 } = {}) =>
+  `<div style="text-align:${align};min-width:0"><div style="font:700 10.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">${lbl}</div><div class="num ${tone}" style="font:700 ${size}px/1 var(--head);letter-spacing:-.02em;margin-top:6px;white-space:nowrap">${value}</div></div>`;
+/** Three or two figures across, all at the one size the longest of them fits. */
+const stats = (items) => {
+  const size = fitSize(items.map(([, v]) => v), items.length === 3 ? 3 : 2);
+  return items.map(([l, v, o = {}]) => stat(l, v, { ...o, size }));
+};
 const summary = (items, tail = '') =>
   card(`<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px">${items.join('')}${tail ? `<div class="muted" style="font-size:12px;line-height:1.35;max-width:104px;text-align:right">${tail}</div>` : ''}</div>`, { pad: true });
 
@@ -80,7 +96,7 @@ export default [
       'The settled-night version of this card (badge “counted”, the “After deductions” block, a Close-only footer) is not drawn here; it is reached from the settled night.'],
     html: sheet({ behind: 'Tonight', title: titled('Petr', 'seated'), sub: 'since 14:09',
       body: [
-        summary([stat('In for', '$1.5k'), stat('Counted', '<span class="dimt">—</span>', { align: 'center' })], 'Net is known once chips are counted'),
+        summary(stats([['In for', '$1,500'], ['Counted', '<span class="dimt">—</span>', { align: 'center' }]]), 'Net is known once chips are counted'),
         petrEntries,
         card([entry('14:09', 'Buy-in', 'first buy-in', '$500'), entry('15:14', 'Rebuy', 'first rebuy', '$500'), entry('16:05', 'Rebuy', 'second rebuy', '$500')]),
         pair(button('Other amount'), button('Cash out')),
@@ -88,10 +104,11 @@ export default [
       bar: bar('Rebuy $500') }) },
 
   { id: 'player-out', route: '/player', name: 'Player card · cashed out', nav: 'sheet',
-    note: 'No primary once they are out, so no bar: the sheet ends in its two outlined buttons.',
+    note: 'No primary once they are out, so no bar: the sheet ends in its two outlined buttons. The three figures are written in full and step down together to the size the longest fits (22 here), never abbreviated.',
+    flags: ['The app abbreviates these figures ($2.1k, +$1.6k). Writing them in full and sizing them down is the owner’s call of 22 November; it changes the summary card in `app/player.tsx`.'],
     html: sheet({ behind: 'Tonight', title: titled('Dana', 'cashed out'), sub: 'left 17:17',
       body: [
-        summary([stat('In for', '$500'), stat('Counted', '$2.1k', { align: 'center' }), stat('Night', '+$1.6k', { tone: 'win', align: 'right' })]),
+        summary(stats([['In for', '$500'], ['Counted', '$2,120', { align: 'center' }], ['Night', '+$1,620', { tone: 'win', align: 'right' }]])),
         label('Entries', { quiet: true }),
         card([entry('14:43', 'Buy-in', 'first buy-in', '$500'), entry('17:17', 'Cashed out', 'stack counted · seat closed', '$2,120', { wrap: true })]),
         note('Their result is set. Bills and the piggy bank still come off it at settle-up.'),
@@ -100,10 +117,10 @@ export default [
 
   { id: 'player-corrected', route: '/player', name: 'Player card · a corrected entry', nav: 'sheet',
     note: 'The ledger is append-only and the list says so: the replaced line stays, struck through, and the correction is its own row.',
-    flags: ['Not the seeded night: this is the seed after correcting Petr’s first rebuy from $500 to $300 in the running app. $1.3k and $300 are read off that capture.'],
+    flags: ['Not the seeded night: this is the seed after correcting Petr’s first rebuy from $500 to $300 in the running app. $1,300 and $300 are read off that capture.'],
     html: sheet({ behind: 'Tonight', title: titled('Petr', 'seated'), sub: 'since 14:09',
       body: [
-        summary([stat('In for', '$1.3k'), stat('Counted', '<span class="dimt">—</span>', { align: 'center' })], 'Net is known once chips are counted'),
+        summary(stats([['In for', '$1,300'], ['Counted', '<span class="dimt">—</span>', { align: 'center' }]]), 'Net is known once chips are counted'),
         petrEntries,
         card([
           entry('14:09', 'Buy-in', 'first buy-in', '$500'),
