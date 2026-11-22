@@ -19,38 +19,77 @@ const capsPill = (text) => `<span class="pill" style="text-transform:uppercase;l
 const eyebrow = (text, centre = false) => `<div class="lbl q" style="margin:0;${centre ? 'justify-content:center' : ''}">${text}</div>`;
 /** A standalone screen: no back, no close. The title is the top. */
 /*
- * Signing you in: the chips played with, the way a player plays with a stack at the table (owner,
- * 22 November: "they should be played with, with an invisible hand, like a poker player would play
- * with his chips"). The trick is the riffle: the stack sits split in two, the halves are pressed
- * together and the chips fall in, one from each side in turn, into a single stack; it holds, splits
- * again, and the hand riffles once more. The chips are the Start a session drawing's own parts
- * (art.mjs), ink and red alternating as they do there. 3.4 seconds a round; reduced motion shows the
- * one stack, still.
+ * Signing you in: a chip riffle, as a player does it at the table (owner, 22 November: "as natural as
+ * possible, as if a person had shuffled it"). Modelled on the real move, since the video the owner
+ * linked could not be opened from here:
+ *
+ *   1. The hand lifts the top half of the stack and sets it beside the rest, the two stacks touching.
+ *   2. Thumbs press the near edges up: both stacks lean in a few degrees and rise at the seam.
+ *   3. The chips fall in from the bottom, one from each side in turn, not quite evenly timed.
+ *   4. The hand squares the new stack: a short side-to-side nudge and it settles.
+ *
+ * It is a true repeated shuffle, so the colours move from round to round the way real chips would:
+ * three ink over three red splits into one stack of each colour, which riffle to alternate, and so
+ * on; after four rounds the stack is back where it began (a perfect out-shuffle of six has order 4).
+ * Each chip is its own layer so the stacking order can change between rounds. 2.6 seconds a round;
+ * reduced motion shows the stack, still.
  */
-const RIFFLE = { cx: 48, r: 21, h: 7, dx: 25, cycle: 3.4, mats: ['ink', 'red', 'ink', 'red', 'ink', 'red'] };
+const RIFFLE = { cx: 48, r: 21, h: 7, dx: 22.5, round: 2.6, rounds: 4, vb: [-6, 22, 108, 78] };
+const JITTER = [0, 0.012, 0.005, 0.017, 0.009, 0.021];   /* a hand is not a metronome */
 const stackWait = (px = 168) => {
   const P = PALETTES.freshDeckOnInk;
-  const { cx, r, h, dx, cycle, mats } = RIFFLE;
-  const pc = (n) => `${n.toFixed(1)}%`;
-  const chips = mats.map((mat, k) => {
-    const left = k % 2 === 0, j = Math.floor(k / 2);
-    /* Split: left chips are 0, 2, 4 and right 1, 3, 5, each stack three high. Merged: index k. */
-    const sx = left ? -dx : dx, sy = (k - j) * h;
-    const inA = 14 + k * 3.2, inB = inA + 9;            /* riffle in, bottom chip first */
-    const outA = 62 + (5 - k) * 2.6, outB = outA + 10;  /* split out, top chip first */
-    const split = `transform:translate(${sx}px,${sy}px)`, merged = 'transform:translate(0,0)';
-    const kf = `@keyframes fb-rif${k}{0%,${pc(inA)}{${split}}${pc(inA + 4.5)}{transform:translate(${(sx * 0.35).toFixed(1)}px,${(sy * 0.4 - 2.2).toFixed(1)}px)}${pc(inB)},${pc(outA)}{${merged}}${pc(outA + 5)}{transform:translate(${(sx * 0.6).toFixed(1)}px,${(sy * 0.5 - 2.5).toFixed(1)}px)}${pc(outB)},100%{${split}}}`;
-    const g = chip(P, { cx, by: GROUND - 1 - k * h, r, h, mat, face: true, seam: k > 0, phase: (k * 17) % 45 });
-    return { kf, g: `<g class="rif" style="animation-name:fb-rif${k}">${g}</g>` };
+  const { cx, r, h, dx, round, rounds, vb } = RIFFLE;
+  const sc = px / vb[2], H = (px * vb[3]) / vb[2];
+  const mats = ['ink', 'ink', 'ink', 'red', 'red', 'red'];          /* chip identities */
+  /* The merged order before each round: start three ink under three red, then out-shuffle. */
+  const orders = [[0, 1, 2, 3, 4, 5]];
+  for (let k = 0; k < rounds; k++) {
+    const m = orders[k];
+    orders.push([m[0], m[3], m[1], m[4], m[2], m[5]]);
+  }
+  const at = (c) => orders.map((o) => o.indexOf(c));                  /* chip c's index before each round */
+  const T = (x, y, rot = 0, z = 0) => ({ x, y, rot, z });
+  const css = (t) => `transform:translate(${(t.x * sc).toFixed(1)}px,${(t.y * sc).toFixed(1)}px) rotate(${t.rot}deg);z-index:${t.z}`;
+  const layers = mats.map((mat, c) => {
+    const idx = at(c);
+    const frames = [];
+    const put = (f, t) => frames.push([Math.min(100, f * 100), t]);
+    for (let k = 0; k < rounds; k++) {
+      const base = k / rounds, R = (f) => base + f / rounds;
+      const from = idx[k], to = idx[k + 1];
+      const top = from >= 3, height = top ? from - 3 : from;
+      const sx = top ? dx : -dx, lean = top ? -5 : 5;
+      const merged = T(0, -from * h, 0, from);
+      const split = T(sx, -height * h, 0, height);
+      put(R(0), merged);
+      put(R(0.06), merged);
+      if (top) {                                                       /* 1. lifted off and set beside */
+        put(R(0.15), T(sx * 0.5, -from * h - 9, 0, 10 + height));
+        put(R(0.26), T(sx, -height * h - 1.5, 0, 10 + height));
+      } else put(R(0.26), split);
+      put(R(0.3), split);
+      put(R(0.38), T(sx * 0.96, -height * h - 1.2 - height * 0.5, lean, height));  /* 2. lean in, seam rises */
+      const fall = 0.42 + to * 0.045 + JITTER[c];                      /* 3. in from the bottom, one side then the other */
+      put(R(fall - 0.02), T(sx * 0.9, -height * h - 1.6 - height * 0.5, lean, height));
+      put(R(fall + 0.05), T(sx * 0.18, -to * h - 1.2, lean * 0.3, to));
+      put(R(fall + 0.09), T(0, -to * h + 0.3, 0, to));
+      put(R(0.72), T(0, -to * h, 0, to));
+      put(R(0.76), T(1.4 - to * 0.12, -to * h, 0, to));                /* 4. squared: a nudge each way */
+      put(R(0.8), T(-0.9 + to * 0.08, -to * h, 0, to));
+      put(R(0.85), T(0, -to * h, 0, to));
+    }
+    put(1, T(0, -idx[rounds] * h, 0, idx[rounds]));
+    const kf = `@keyframes fb-rf${c}{${frames.map(([pct, t]) => `${pct.toFixed(2)}%{${css(t)}}`).join('')}}`;
+    const svg = `<svg viewBox="${vb.join(' ')}" width="${px}" height="${H.toFixed(1)}" style="position:absolute;left:0;top:0;overflow:visible;animation:fb-rf${c} ${round * rounds}s linear infinite;transform-origin:${((cx - vb[0]) * sc).toFixed(1)}px ${((GROUND - 1 - vb[1]) * sc).toFixed(1)}px;${css(T(0, -idx[0] * h, 0, idx[0]))}">${chip(P, { cx, by: GROUND - 1, r, h, mat, face: true, seam: true, phase: (c * 17) % 45 })}</svg>`;
+    return { kf, svg };
   });
   return `<style>
-${chips.map((c) => c.kf).join('\n')}
+${layers.map((l) => l.kf).join('\n')}
 @keyframes fb-dots{0%,20%{opacity:.25}40%{opacity:1}100%{opacity:.25}}
-.fb .rif{animation-duration:${cycle}s;animation-timing-function:cubic-bezier(.45,.05,.3,1);animation-iteration-count:infinite}
 .fb .dots i{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;margin:0 3px;animation:fb-dots 1.2s infinite}
 .fb .dots i:nth-child(2){animation-delay:.2s}.fb .dots i:nth-child(3){animation-delay:.4s}
-@media (prefers-reduced-motion:reduce){.fb .rif,.fb .dots i{animation:none}}
-</style><svg viewBox="-6 22 108 78" width="${px}" height="${(px * 78) / 108}" aria-hidden="true" style="overflow:visible">${shadow(P, 48, 52)}${chips.map((c) => c.g).join('')}</svg>`;
+@media (prefers-reduced-motion:reduce){.fb .riffle svg,.fb .dots i{animation:none!important}}
+</style><div class="riffle" style="position:relative;width:${px}px;height:${H.toFixed(1)}px"><svg viewBox="${vb.join(' ')}" width="${px}" height="${H.toFixed(1)}" style="position:absolute;left:0;top:0;overflow:visible">${shadow(P, 48, 50)}</svg>${layers.map((l) => l.svg).join('')}</div>`;
 };
 /** One group on Your groups: its drawing, name, line and standing. `current` edges it in ink. */
 const groupCard = (name, line, standing, place, current = false) => `<div class="card" style="padding:12px 14px 12px 8px;display:flex;align-items:center;gap:10px;${current ? 'box-shadow:var(--lift),inset 0 0 0 2px var(--text)' : ''}">
@@ -135,7 +174,7 @@ export default [
       bar: bar('Send myself another') }) },
 
   { id: 'auth-callback-wait', route: '/auth-callback', name: 'Signing you in', nav: 'root',
-    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: an invisible hand riffles the chips, the stack split in two, pressed together so the chips fall in one from each side, held, split again; three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
+    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: an invisible hand riffles the chips as a player does, lifting the top half beside the rest, leaning both in so the chips fall together from the bottom, then squaring the stack; the colours mix from round to round. Three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
     flags: ['The stack, its motion and the three dots are new: the app shows the two words and nothing else. Motion stops for anyone who has reduced motion turned on.'],
     html: `<div class="fb"><div class="scr" style="justify-content:center;align-items:center;text-align:center;color:#fff">
       <div style="position:absolute;top:0;left:0;right:0;padding:0 18px">${pushRaw({ topHtml: '', body: '' }).match(/<div class="sb">.*?<\/svg><\/div>/)[0]}</div>
@@ -169,7 +208,7 @@ export default [
   /* ── /groups ──────────────────────────────────────────────────────── */
   { id: 'groups', route: '/groups', name: 'Your groups', nav: 'push',
     note: 'Owner, 22 November: design it. Each group is its own card, because tapping one swaps the whole app to it: the group’s drawing, its name at title size, the line under it, and your standing in the corner, since that is what changes when you switch. The group a night is running in says so with the live dot. The group you are in now is the first card, edged in ink.',
-    flags: ['“Friday deep stack” and “Office game”, their sizes and currencies, are sample groups: the seeded phone belongs to one group only.', 'The ink edge on the current group is new: the app marks it for screen readers only.'],
+    flags: ['Superseded: four versions without a picture per group and without the currency are at the top of the board, under This round.', '“Friday deep stack” and “Office game” are sample groups: the seeded phone belongs to one group only.'],
     html: push({ title: 'Your groups', sub: '3 groups',
       body: [
         groupCard('The Thursday game', `<span class="win" style="display:inline-flex;align-items:center;gap:6px"><i style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></i>a night is running</span>`, 'admin', 'group', true),

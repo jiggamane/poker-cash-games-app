@@ -277,3 +277,17 @@ a hidden screen gives nothing away. New feature and new words.
   poker player"): the riffle. Two stacks of three, ink and red, pressed
   together so the chips fall in one from each side into one alternating stack;
   it holds, splits again, repeats. 3.4 seconds a round; still under reduced motion.
+
+## Round nine (22 November)
+
+- **Signing you in**, rebuilt as a player's riffle (owner: "as natural as
+  possible, as if a person shuffled it"; the video linked could not be opened
+  from here, YouTube served a bot check). The top half is lifted and set
+  beside the rest, both stacks lean in, the chips fall together from the
+  bottom not quite evenly, and the stack is squared with a nudge. A true
+  repeated shuffle: colours mix round to round, back to the start after four
+  (an out-shuffle of six has order 4). Each chip its own layer so the stacking
+  order can change. 2.6 s a round.
+- **Your groups**, four options without a picture or the currency
+  (`groups-plain`, `groups-monogram`, `groups-people`, `groups-headline`).
+- Approved: Who's playing?, both player cards (cashed out and corrected).

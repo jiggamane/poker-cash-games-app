@@ -14,11 +14,11 @@
 export const BUILT = '2026-11-22T22:00:00Z';
 
 export const ADDRESSED = {
-  'auth-callback-wait': ['An invisible hand riffles the chips: an ink stack and a red stack pressed together into one alternating stack, held, split again. 3.4 seconds a round.', '2026-11-22T21:55:00Z'],
+  'auth-callback-wait': ['Rebuilt as a player’s riffle: the top half lifted beside the rest, both stacks leaning in, the chips falling together from the bottom, the stack squared; a true repeated shuffle, so the colours mix round to round.', '2026-11-22T22:10:00Z'],
   'groups-empty': ['Four explainer concepts at the top of the board: three steps, a walkthrough, the end of the night shown, two ways in.', '2026-11-22T22:00:00Z'],
   'new-night-rule-rest': ['Remove moved into the bar beside Save rule, on every rule editor that edits an existing rule.', '2026-11-22T22:00:00Z'],
   'new-night-second': ['No name for a second table: it opens like the first, the bar live, a line saying tonight is already open.', '2026-11-22T22:00:00Z'],
-  groups: ['Designed: a card per group with its drawing, name, line and standing; the current group edged in ink.', '2026-11-22T21:29:00Z'],
+  groups: ['Four versions without a picture or the currency at the top: plain rows, a monogram from the name, who plays there, the name as the headline.', '2026-11-22T22:10:00Z'],
   invite: ['The code is six characters with a dash after three: K7M-4XP. Flagged: a server and security decision.', '2026-11-22T21:29:00Z'],
   'invite-qr': ['The square QR you picked, now real: it scans to the invite’s link.', '2026-11-22T21:45:00Z'],
   'new-night-gate': ['Redesigned to invite: the drawing and the reason first, then three plan cards with the price large.', '2026-11-22T21:29:00Z'],
@@ -40,7 +40,7 @@ export const DECIDED = [
 
 /** The db as read at build: id → [status, comment, updatedAt]. Only screens with a verdict. */
 export const SNAPSHOT = {
-  'auth-callback-wait': ['changes', 'they should be played with (with invisible hand) like a poker player would play with his chips on the table', '2026-11-22T21:48:49Z'],
+  'auth-callback-wait': ['changes', 'the chip shuffle should look as natural as possible, as if a person would have shuffled it', '2026-11-22T21:52:13Z'],
   'groups-empty': ['changes', 'this should be an explainer screen showing the (usually new) user the features and the way to start a group, lets research several visual concepts', '2026-11-22T21:36:21Z'],
   'new-night': ['approved', '', '2026-11-22T21:37:00Z'],
   'new-night-amount': ['approved', '', '2026-11-22T21:37:09Z'],
@@ -53,7 +53,7 @@ export const SNAPSHOT = {
   'entry-amount': ['approved', '', '2026-11-22T17:47:39Z'],
   'entry-amount-blocked': ['approved', '', '2026-11-22T17:47:49Z'],
   general: ['changes', 'the key problem that i find in term of style is that the shades below the content areas conflict with the ‘still’ data with no such background. maybe using a bit less shade at the bottom of such areas would help', '2026-11-22T17:31:28Z'],
-  groups: ['changes', 'this needs to be designed', '2026-11-22T17:40:19Z'],
+  groups: ['changes', 'lets rework this so that there is no need to select (or have it randomly selected) icon for each group. show several options for this list. and no need for currency display', '2026-11-22T21:49:37Z'],
   home: ['approved', '', '2026-11-22T17:36:11Z'],
   invite: ['changes', 'make the code 6 figure with a - after 3 symbols', '2026-11-22T17:37:30Z'],
   'invite-qr': ['approved', '', '2026-11-22T21:36:44Z'],
@@ -63,10 +63,11 @@ export const SNAPSHOT = {
   'new-night-currency': ['approved', '', '2026-11-22T17:43:56Z'],
   'new-night-gate': ['changes', 'lets work on the design. this screen should be more inviting', '2026-11-22T17:44:56Z'],
   'new-night-seated': ['approved', '', '2026-11-22T21:37:05Z'],
-  pick: ['changes', '', '2026-11-22T17:38:21Z'],
+  pick: ['approved', '', '2026-11-22T21:49:47Z'],
   'pick-tool': ['approved', '', '2026-11-22T17:48:11Z'],
   player: ['approved', '', '2026-11-22T17:45:09Z'],
-  'player-out': ['changes', 'all good but use auto size down for the values once they near collision', '2026-11-22T17:46:39Z'],
+  'player-out': ['approved', '', '2026-11-22T21:42:48Z'],
+  'player-corrected': ['approved', '', '2026-11-22T21:43:14Z'],
   session: ['approved', '', '2026-11-22T17:11:48Z'],
   'session-admin': ['approved', '', '2026-11-22T17:11:53Z'],
   settled: ['approved', '', '2026-11-22T17:38:30Z'],
