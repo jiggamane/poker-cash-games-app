@@ -134,9 +134,11 @@ ${railN('.fd')}
       <li><b>Nothing points</b>: no chevrons on rows, and <i>Start a session</i> is a solid ink button.</li>
       <li><b>The small icons</b>: the app’s own line icons stay as they are, in Fresh Deck’s ink and grey.</li>
       <li><b>The header</b>: the Rail, with the title small and bold on the left beside a bare grey chevron (version N).</li>
+      <li><b>“calculator, rulings, boosters”</b> under Poker tools on the menu, confirmed 22 November.</li>
+      <li><b>Icon sizes</b>: each drawing sized by how much it paints, one step down per level. Home 0.35, Poker tools 0.27, the Game boosters rows 0.208; a booster’s sheet paints what Home does (22 November).</li>
     </ul></div>
     <div><h3>Still open</h3><ul>
-      <li><b>“calculator, rulings, boosters”</b> under Poker tools on the menu is new wording, not yet confirmed.</li>
+      <li><b>The surfaces</b> behind every screen, in light and dark, and the rail on scroll: on the surfaces page.</li>
     </ul></div>
   </div>
 </header>

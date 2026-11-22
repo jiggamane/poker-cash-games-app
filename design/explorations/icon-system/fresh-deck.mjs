@@ -56,7 +56,7 @@ export const FD_CSS = `
 .fd .blist{background:#fff;border-radius:var(--p-r);padding:0 12px;box-shadow:var(--card-sh)}
 .fd .brow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--p-line)}
 .fd .brow:last-child{border-bottom:0}
-.fd .brow .art{width:46px;height:46px;flex:none;margin-left:-4px}
+.fd .brow .art{width:46px;height:46px;flex:none;margin-left:-4px}.fd .brow .art.slot{margin-left:-6px}
 .fd .brow .bt{flex:1;min-width:0}
 .fd .brow .bn{font:600 15px/1.2 var(--p-head)}
 .fd .brow .bs{font-size:12px;color:var(--p-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -67,7 +67,7 @@ export const FD_CSS = `
 .fd .shd h2{margin:0;flex:1;font:700 26px/1.08 var(--p-head);letter-spacing:-.02em}
 .fd .shd .x{width:32px;height:32px;border-radius:50%;background:var(--p-raised);display:grid;place-items:center;flex:none}
 .fd .ssub{color:var(--p-muted);font-size:13px;margin:4px 0 0}
-.fd .sheet .art{width:96px;height:96px;margin:6px 0 2px -10px}
+.fd .sheet .art{width:96px;height:96px;margin:6px 0 2px -10px}.fd .sheet .art.slot{margin:0}
 .fd .what{font:400 16px/1.45 var(--p-body);color:var(--p-text);margin:0 0 14px}
 .fd .lbl{font:700 11px/1 var(--p-body);letter-spacing:.12em;text-transform:uppercase;color:var(--p-muted);margin:0 0 8px}
 .fd ol{margin:0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:n}
@@ -121,11 +121,33 @@ const art = (key, size, onInk = false, pal) =>
  * tools on a page you are already on. The rule reproduces the owner's hand
  * corrections on Home (the group and the calendar a little smaller than the
  * stacks) without naming them, and it is why Poker tools came down.
+ *
+ * The ladder, 22 November: each level down paints 0.77 of the one above.
+ * Home 0.35, Poker tools 0.27, the Game boosters rows 0.208; a booster's sheet
+ * is that game's own page, so its drawing paints what Home's tiles do (0.35).
+ * In a row the drawing is centred on its slot by its outline and never drawn
+ * wider than the slot, so a wide drawing (the Table ante) gives up a little
+ * weight rather than run into its name.
  */
-export const RHO = { home: 0.35, tools: 0.27 };
+export const RHO = { home: 0.35, tools: 0.27, rows: 0.208, sheet: 0.35 };
 const TILE = { w: 133, h: 128 };
 export const inkSide = (level) => RHO[level] * Math.sqrt(TILE.w * TILE.h);
 export const sizeFor = (key, level) => inkSide(level) / Math.sqrt(INK[key]);
+
+/*
+ * A drawing sized by the ink rule and set in a fixed slot: centred on it by
+ * its measured outline, or (align: 'left') with its outline's left edge on
+ * the slot's. Capped so the outline is never wider than the slot.
+ */
+function artSlot(key, level, slotW, slotH, align = 'centre') {
+  const [x, y, w, h] = BB[key];
+  let S = sizeFor(key, level);
+  S = Math.min(S, (slotW * 88) / w);
+  const k = S / 88;
+  const left = align === 'left' ? -(x - 4) * k : slotW / 2 - (x - 4 + w / 2) * k;
+  const top = slotH / 2 - (y - 12 + h / 2) * k;
+  return `<span class="art slot" style="position:relative;display:block;flex:none;width:${slotW}px;height:${slotH}px;margin:0"><span style="position:absolute;left:${left.toFixed(1)}px;top:${top.toFixed(1)}px;line-height:0">${spot(key, SPOT_PAL.base, { size: Math.round(S) })}</span></span>`;
+}
 
 /**
  * The header the owner approved on 21 November: version N of
@@ -197,7 +219,7 @@ export function freshDeckScreens(PICK, { withSheet = true, rail = false } = {}) 
     ${R(`<div class="hdr"><span class="rb">${icon('back')}</span><h1>Game boosters</h1></div>
     <div class="fdsub">house rules for more action</div>`)}
     ${sections.map(([label, mark, ids]) => `<div class="seclbl">${mark}${label}</div><div class="blist">${ids
-      .map((id) => `<div class="brow">${art(PICK[id], 46)}<div class="bt"><div class="bn">${byId[id].name}</div><div class="bs">${byId[id].summary}</div></div></div>`)
+      .map((id) => `<div class="brow">${artSlot(PICK[id], 'rows', 52, 46)}<div class="bt"><div class="bn">${byId[id].name}</div><div class="bs">${byId[id].summary}</div></div></div>`)
       .join('')}</div>`).join('')}
   </div></div>`;
 
@@ -208,7 +230,7 @@ export function freshDeckScreens(PICK, { withSheet = true, rail = false } = {}) 
     <div class="sheet"><div class="grab"></div>
       <div class="shd"><h2>${b.name}</h2><span class="x">${icon('close')}</span></div>
       <div class="ssub">Side games</div>
-      ${art(PICK['stand-up'], 96)}
+      <div style="margin:10px 0 8px">${artSlot(PICK['stand-up'], 'sheet', 150, 84, 'left')}</div>
       <p class="what">${b.what}</p>
       <div class="lbl">How it works</div>
       <ol>${b.how.map((h) => `<li>${h}</li>`).join('')}</ol>
@@ -234,7 +256,7 @@ export function freshDeckSheets(PICK, ids, { rail = false } = {}) {
     <div class="sheet"><div class="grab"></div>
       <div class="shd"><h2>${b.name}</h2><span class="x">${icon('close')}</span></div>
       <div class="ssub">${SECTION[b.section]}</div>
-      ${art(PICK[id], 96)}
+      <div style="margin:10px 0 8px">${artSlot(PICK[id], 'sheet', 150, 84, 'left')}</div>
       <p class="what">${b.what}</p>
       <div class="lbl">How it works</div>
       <ol>${b.how.map((h) => `<li>${h}</li>`).join('')}</ol>
