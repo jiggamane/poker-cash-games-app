@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { SPOTS, PALETTES, K, spot, stack, shadow, mark } from './art.mjs';
 import { PICK } from './picks.mjs';
 import APP from './app-icons.json' with { type: 'json' };
+import { DRAWER_SETS, DRAWER_ROWS } from './drawer-sets.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 import { FD_CSS, FD_FONTS, OPT_CSS, freshDeckScreens, railN, positionOptions, shapeOptions, variantOption, anchoredOption, toolsTileOption, boosterOption, sizingTable, RHO } from './fresh-deck.mjs';
 
@@ -406,6 +407,7 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
 .appic{background:#fff;border-radius:12px;padding:10px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:6px}
 .appic-art{display:flex;align-items:center;justify-content:center;gap:14px;height:44px}
 .appic code{font:500 11px ui-monospace,Menlo,monospace;color:#6C6C70}
+.fd .dset{display:flex;justify-content:space-around;align-items:center;background:#fff;border-radius:14px;padding:14px 8px}
 </style>
 </head>
 <body>
@@ -418,6 +420,18 @@ ${REVIEW ? `.rvbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;di
   <p class="lede" style="margin-top:10px">Under every drawing in <b style="color:${C.ink}">The set</b>: tap <b style="color:${C.ink}">Approve</b> or <b style="color:${C.ink}">Needs work</b>, and say what to change in the box. Everything saves as you go, and Claude reads it from here.</p>` : ''}
 </header>
 ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span id="cA" class="a">0 approved</span><span id="cC" class="c">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span></div>` : ''}
+
+<section class="sec">
+  <h2>Round 29 — the Table admin drawer: more sets</h2>
+  <p class="quote">“can have + to its left” · “can make an iteration on all of these 4 icons - stay within that simple concept/approach but provide more options (sets)”</p>
+  <p>Four more sets for the drawer’s four rows, all in the app’s own hand: line icons on the same grid, one stroke, one colour, nothing filled. The first row is today’s, for comparison. Each set shares one idea, so the four read as a family. Comment on a set, or on a single icon if you want to mix.</p>
+  <div class="fd inplace">${[{ key: 'today', name: 'Today', note: 'As the app draws them now.', icons: {} }, ...DRAWER_SETS].map((set) => `
+    <figure><div class="mini" style="width:300px">
+      <div class="dset">${DRAWER_ROWS.map(([k, app]) => `<span class="ip-app" style="color:#141A2A;--s:40px">${set.icons[k] ?? APP[app]}</span>`).join('')}</div>
+      <div class="blist">${DRAWER_ROWS.map(([k, app, label]) => `<div class="brow" style="padding:13px 2px;gap:12px"><span class="ip-app" style="color:#141A2A;--s:20px">${set.icons[k] ?? APP[app]}</span><div class="bt"><div class="bn">${label}</div></div></div>`).join('')}</div>
+    </div><figcaption><b>${set.name}</b><span>${set.note}</span></figcaption></figure>`).join('')}
+  </div>
+</section>
 
 <section class="sec">
   <h2>Round 27 — the app’s other icons: they stay</h2>

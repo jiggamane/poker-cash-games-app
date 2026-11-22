@@ -110,3 +110,9 @@ not redrawn, which is also the rule at the top of this file. The marks and the
 colour (Fresh Deck's ink and grey), back without its round button, no row
 chevrons or start arrow, and six glyphs replaced by spots on tiles only. The
 updated-screens page now draws Tonight and the results with the app's icons.
+
+**Round 29, 22 November.** With the app's icons kept, the owner asked for more
+sets of the Table admin drawer's four (and a plus to the left of the seat
+icon), within the same simple line approach. `drawer-sets.mjs` has four:
+today's with the plus, A (objects), B (seats and chips), C (in, out, across).
+No verdict yet; nothing changes in `Icon.tsx` until there is one.
