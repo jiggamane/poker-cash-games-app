@@ -178,3 +178,7 @@ would help."* `--lift` in the kit keeps L2's edge and contact shadow and
 shortens the fall under the card (14px/28px blur at .30 → 7px/14px at .20),
 so it stops before flat content that follows a card. `lift-shorter` on the
 board shows before and after on the settled night.
+
+The owner, the same day: the note was about the light theme only; **the dark
+cards (one step lighter than the sheet, no shadow) are good in this respect**
+and stay as they are.
