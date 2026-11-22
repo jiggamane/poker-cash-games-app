@@ -17,7 +17,7 @@ const tonightBody = [
 export const section = { title: 'Home, Tonight and the settled night', blurb: 'The three places the approved look was reviewed on, redrawn with the kit, plus Tonight’s drawer open and the sheet behind Rebuy.' };
 
 export default [
-  { id: 'home', route: '/', name: 'Main menu', nav: 'root', note: 'Footer approved as drawn on 22 November, after four alternatives.',
+  { id: 'home', route: '/', name: 'Main menu', nav: 'root', note: 'Footer approved as drawn on 22 November, after four alternatives; the type on every bar approved as drawn the same day.',
     html: pushRaw({
       topHtml: `<div class="eyebrow">Your group</div><h1 class="home">The Thursday game</h1>`,
       body: [

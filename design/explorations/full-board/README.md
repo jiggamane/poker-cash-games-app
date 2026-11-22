@@ -182,3 +182,12 @@ board shows before and after on the settled night.
 The owner, the same day: the note was about the light theme only; **the dark
 cards (one step lighter than the sheet, no shadow) are good in this respect**
 and stay as they are.
+
+## Review, round four (22 November)
+
+- **The shorter card shadow: approved** (`lift-shorter`).
+- **The bar's type: A approved, as drawn** — Libre Franklin bold, 18 points,
+  on a 62-point bar.
+- With both decided, `screens/05-this-round.mjs` is gone from the board; its
+  options are in git history (commit before this one). Every screen now shows
+  only the approved look. The remaining screens await their verdicts.
