@@ -219,10 +219,7 @@ export function card(P, { cx, by = GROUND, w = 34, h = 48, rot = 0, rank, suitNa
       s += `<text x="${f(x + 4.2)}" y="${f(y + 10.5)}" font-family="Figtree,-apple-system,sans-serif" font-weight="800" font-size="9.5" fill="${c}">${rank}</text>`;
       if (suitName) s += suit(suitName, x + 4.2, y + 13, 6, c);
     }
-    /* Small, the corner index is too fine to read, so the rank moves to the
-       middle at a size that survives: a 7-2 card is its rank, not its suit. */
-    if (rank && small) s += `<text x="${f(cx)}" y="${f(y + h / 2 + w * 0.26)}" text-anchor="middle" font-family="Figtree,-apple-system,sans-serif" font-weight="800" font-size="${f(w * 0.72)}" fill="${c}">${rank}</text>`;
-    else if (centre) s += centre(cx, y + h / 2, c);
+    if (centre) s += centre(cx, y + h / 2, c);
     else if (suitName) s += suit(suitName, cx - w * 0.22, y + h / 2 - w * 0.2, w * 0.44, c);
   }
   return s + '</g>';

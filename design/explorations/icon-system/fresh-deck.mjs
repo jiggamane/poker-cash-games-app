@@ -139,6 +139,9 @@ export const sizeFor = (key, level) => inkSide(level) / Math.sqrt(INK[key]);
  * its measured outline, or (align: 'left') with its outline's left edge on
  * the slot's. Capped so the outline is never wider than the slot.
  */
+/* Always the full drawing, never the simplified small one: a row and the sheet
+   it opens show the same picture at two sizes (the owner, 22 November, on the
+   7-2 cards losing their ranks in the row). */
 function artSlot(key, level, slotW, slotH, align = 'centre') {
   const [x, y, w, h] = BB[key];
   let S = sizeFor(key, level);
@@ -146,7 +149,7 @@ function artSlot(key, level, slotW, slotH, align = 'centre') {
   const k = S / 88;
   const left = align === 'left' ? -(x - 4) * k : slotW / 2 - (x - 4 + w / 2) * k;
   const top = slotH / 2 - (y - 12 + h / 2) * k;
-  return `<span class="art slot" style="position:relative;display:block;flex:none;width:${slotW}px;height:${slotH}px;margin:0"><span style="position:absolute;left:${left.toFixed(1)}px;top:${top.toFixed(1)}px;line-height:0">${spot(key, SPOT_PAL.base, { size: Math.round(S) })}</span></span>`;
+  return `<span class="art slot" style="position:relative;display:block;flex:none;width:${slotW}px;height:${slotH}px;margin:0"><span style="position:absolute;left:${left.toFixed(1)}px;top:${top.toFixed(1)}px;line-height:0">${spot(key, SPOT_PAL.base, { size: Math.round(S), small: false })}</span></span>`;
 }
 
 /**
