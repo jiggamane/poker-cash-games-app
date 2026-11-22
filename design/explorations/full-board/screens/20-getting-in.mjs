@@ -34,7 +34,7 @@ const eyebrow = (text, centre = false) => `<div class="lbl q" style="margin:0;${
  * Each chip is its own layer so the stacking order can change between rounds. 2.6 seconds a round;
  * reduced motion shows the stack, still.
  */
-const RIFFLE = { cx: 48, r: 21, h: 7, dx: 22, round: 2.7, rounds: 4, vb: [-6, 18, 108, 82] };
+const RIFFLE = { cx: 48, r: 21, h: 7, dx: 21, round: 2.7, rounds: 4, vb: [-6, 18, 108, 82] };
 /*
  * What makes it read as a hand rather than a machine (owner, 22 November: "generally right, but it
  * should look natural"):
@@ -45,6 +45,12 @@ const RIFFLE = { cx: 48, r: 21, h: 7, dx: 22, round: 2.7, rounds: 4, vb: [-6, 18
  *   - the stacks close toward each other as the chips fall, so the riffle happens where they touch;
  *   - the chips land a little out of line, and the squaring pushes them true;
  *   - nothing is evenly timed: each round, each chip, its own small offset.
+ *
+ * Then held against the owner's frames from the video (22 November). What they show, and what this
+ * now does: the two stacks never leave each other, they stand touching (dx = r); the fingers press
+ * the seam up, so each stack tips on its OUTER foot and the two make a peak where they meet, about
+ * ten degrees each; the chips drop into one stack right there, a short fall, not a slide across; and
+ * the top half is moved over low and close, not lifted high.
  */
 const rand = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };  /* fixed, so the board does not change between builds */
 const EASE = { lift: 'cubic-bezier(.2,.7,.35,1)', fall: 'cubic-bezier(.55,0,.85,.4)', slide: 'cubic-bezier(.45,.05,.3,1)', settle: 'cubic-bezier(.3,.6,.4,1)', hold: 'linear' };
@@ -66,18 +72,24 @@ const stackWait = (px = 168) => {
       const top = from >= 3, ht = top ? from - 3 : from, dir = top ? 1 : -1;
       const j = (n) => (rand(k * 31 + c * 7 + n) - 0.5);                 /* -0.5 … 0.5, per round, chip and step */
       const sx = dir * dx;
-      const tilt = 6 + j(1) * 1.5;                                       /* degrees each stack leans in */
-      /* A column leaning about its outer foot: higher chips swing toward the seam and the seam lifts. */
-      const leanX = sx - dir * ht * h * Math.sin((tilt * Math.PI) / 180) - dir * 1.2;
-      const leanY = -ht * h * Math.cos((tilt * Math.PI) / 180) - 1.8;
+      const tilt = 10 + j(1) * 2.5;                                      /* degrees each stack tips up at the seam */
+      /*
+       * The stack tips on its outer foot, so its inner edge rises and the two make a peak at the seam.
+       * Rotating the chip's base point (r in from the foot, ht chips up) about that foot gives where it
+       * moves to; the chip itself turns by the same angle about its own base.
+       */
+      const th = (tilt * Math.PI) / 180, bx = r, by = -ht * h;
+      const rx = bx * Math.cos(th) + by * Math.sin(th), ry = -bx * Math.sin(th) + by * Math.cos(th);
+      const leanX = sx + dir * (bx - rx), leanY = ry;                      /* the foot is r outside the stack centre; the right stack mirrors the left */
+      const peakRot = dir * tilt;                                         /* left turns back (inner edge up), right turns forward */
       const off = j(2) * 1.6;                                            /* how far out of line it lands */
       /* 0: the stack as it stands, squared */
       put(R(0), T(0, -from * h, 0, from), EASE.hold);
       put(R(0.05 + j(3) * 0.02), T(0, -from * h, 0, from), top ? EASE.lift : EASE.hold);
       /* 1: the top half is picked up, carried over with a slight tip, set down beside */
       if (top) {
-        put(R(0.13), T(sx * 0.35, -from * h - 10, dir * 4, 20 + ht), EASE.slide);
-        put(R(0.22), T(sx * 0.92, -ht * h - 3.5, dir * 2, 20 + ht), EASE.fall);
+        put(R(0.13), T(sx * 0.45, -from * h - 3.5, dir * 2.5, 20 + ht), EASE.slide);
+        put(R(0.22), T(sx * 0.96, -ht * h - 2, dir * 1, 20 + ht), EASE.fall);
         put(R(0.255), T(sx, -ht * h + 0.4, 0, ht), EASE.settle);
         put(R(0.28), T(sx, -ht * h, 0, ht), EASE.hold);
       } else {
@@ -86,11 +98,11 @@ const stackWait = (px = 168) => {
       }
       put(R(0.33 + j(4) * 0.02), T(sx, -ht * h, 0, ht), EASE.lift);
       /* 2: thumbs press the seam up: both columns lean in */
-      put(R(0.41), T(leanX, leanY, dir * -tilt, ht), EASE.hold);
+      put(R(0.41), T(leanX, leanY, peakRot, ht), EASE.hold);
       /* 3: the chips fall in from the bottom, one side then the other, a little unevenly */
       const go = 0.44 + to * 0.042 + j(5) * 0.018;
-      put(R(go), T(leanX, leanY, dir * -tilt, ht), EASE.fall);
-      put(R(go + 0.045), T(off * 0.6 + dir * 1.2, -to * h + 0.9, dir * -tilt * 0.25, to), EASE.settle);
+      put(R(go), T(leanX, leanY, peakRot, ht), EASE.fall);
+      put(R(go + 0.04), T(off * 0.5 + dir * 0.8, -to * h + 0.8, peakRot * 0.2, to), EASE.settle);
       put(R(go + 0.075), T(off, -to * h, 0, to), EASE.hold);
       /* 4: the hand squares the stack: pushed true from the sides, a last small rock */
       put(R(0.76 + j(6) * 0.015), T(off, -to * h, 0, to), EASE.slide);
