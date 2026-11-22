@@ -6,7 +6,7 @@
  * link lands on them cold, so they have no back and no close. Here that is an
  * ink top with the title and nothing else on it.
  */
-import { push, pushRaw, sheet, bar, label, card, row, note, para, pill, button, quiet, field, chips, ico } from '../kit.mjs';
+import { push, pushRaw, sheet, bar, barHalves, label, card, row, note, para, pill, button, quiet, field, chips, ico } from '../kit.mjs';
 import { slotArt, art } from '../kit.mjs';
 import { qrSvg, inviteLink } from '../qr.mjs';
 import { chip, shadow, PALETTES, GROUND } from '../../icon-system/art.mjs';
@@ -144,11 +144,16 @@ const groupCard = (name, line, standing, place, current = false) => `<div class=
  * because somebody added them. The last page is the choice itself, the two doors as cards.
  * Everything but the app's own line, New group and "I have an invite code" is DRAFT COPY.
  */
-const WALK_DRAFT = 'Draft copy, written for the walkthrough: everything but “No groups yet. A group needs only a name to exist.”, “New group” and “I have an invite code” (the app’s own, from Settings).';
+const WALK_DRAFT = 'Draft copy, written for the walkthrough: everything but “No groups yet. A group needs only a name to exist.”, “New group”, “Check the code” and “I have an invite code” (the app’s own). “I have a code” on the bar is the app’s phrase shortened to fit half the bar.';
 const wh = (t, size = 24) => `<div style="font:800 ${size}px/1.12 var(--head);letter-spacing:-.02em;text-wrap:balance">${t}</div>`;
 const wp = (t) => `<p class="note" style="font-size:13.5px;max-width:250px;margin:0 auto">${t}</p>`;
 const wdots = (on, n = 4) => `<div style="display:flex;gap:6px;justify-content:center">${Array.from({ length: n }, (_, i) => `<i style="width:${i === on ? 18 : 6}px;height:6px;border-radius:3px;background:var(--${i === on ? 'text' : 'line'});display:block"></i>`).join('')}</div>`;
-const codeLink = `<div class="btnq" style="margin-top:-4px">${ico('qr', 16)}I have an invite code</div>`;
+/*
+ * The two ways in carry equal weight (owner, 22 November: "the invite code should be no less important
+ * than creating the group"): the bar is two halves on every page, New group and I have a code, the same
+ * size and the same ink. On the last page the right half is the code form's own action.
+ */
+const twoWays = (right = 'I have a code', dead = false) => barHalves(`<span style="display:inline-flex;align-items:center;gap:7px;font-size:16px">${ico('plus', 17)}New group</span>`, `<span style="display:inline-flex;align-items:center;gap:7px;font-size:16px;${dead ? 'opacity:.38' : ''}">${ico('qr', 17)}${right}</span>`);
 const walkPage = (place, title, body, on) => push({ title: 'Your groups',
   body: [
     `<div style="flex:1;display:grid;place-items:center;align-content:center;gap:18px;text-align:center;padding:0 6px">
@@ -157,9 +162,8 @@ const walkPage = (place, title, body, on) => push({ title: 'Your groups',
       ${wp(body)}
       ${wdots(on)}
     </div>`,
-    codeLink,
   ],
-  bar: bar('New group') });
+  bar: twoWays() });
 const walkDoor = (place, title, body, ink) => `<div class="card" style="display:flex;align-items:center;gap:12px;padding:14px 14px 14px 8px;${ink ? 'background:var(--pri);color:var(--onpri)' : ''}">
   <span style="flex:none">${art(place, 70, { onInk: ink })}</span>
   <div style="flex:1;min-width:0"><b style="font:700 18px/1.15 var(--head)">${title}</b><div style="font-size:12.5px;line-height:1.4;opacity:.72;margin-top:4px">${body}</div></div></div>`;
@@ -170,7 +174,7 @@ const walkDoor = (place, title, body, ink) => `<div class="card" style="display:
  * page's body: OPEN, the two boxes of three right there with Check the code; or SEMI-OPEN, one field
  * that reads like a form and opens into the boxes when tapped. "or start your own" points at the bar.
  */
-const walkCodeHead = `<div style="display:flex;align-items:center;gap:12px"><span style="flex:none">${art('rulings', 58)}</span><div style="flex:1;min-width:0"><b style="font:700 18px/1.15 var(--head)">I have an invite code</b><div style="font-size:12.5px;line-height:1.4;color:var(--muted);margin-top:4px">Somebody added you to their table. Type the code from their invite.</div></div></div>`;
+const walkCodeHead = `<div style="display:flex;align-items:center;gap:12px"><span style="flex:none">${art('group', 62)}</span><div style="flex:1;min-width:0"><b style="font:700 18px/1.15 var(--head)">I have an invite code</b><div style="font-size:12.5px;line-height:1.4;color:var(--muted);margin-top:4px">Somebody added you to their table. Type the code from their invite.</div></div></div>`;
 const walkOr = `<div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px"><i style="flex:1;height:1px;background:var(--line)"></i>or start your own below<i style="flex:1;height:1px;background:var(--line)"></i></div>`;
 const walkLastOpen = () => push({ title: 'Your groups',
   body: [
@@ -179,14 +183,12 @@ const walkLastOpen = () => push({ title: 'Your groups',
       <div class="card pad" style="display:grid;gap:12px">
         ${walkCodeHead}
         <div style="display:flex;gap:10px;align-items:center">${codeBox('', true)}<span class="num muted" style="font-size:24px;font-weight:700">–</span>${codeBox('')}</div>
-        ${button('Check the code', { dead: true })}
       </div>
-      ${walkOr}
       <p class="note" style="font-size:13px;text-align:center">No groups yet. A group needs only a name to exist.</p>
       ${wdots(3)}
     </div>`,
   ],
-  bar: bar('New group') });
+  bar: twoWays('Check the code', true) });
 const walkLastSemi = () => push({ title: 'Your groups',
   body: [
     `<div style="flex:1;display:grid;align-content:center;gap:14px">
@@ -195,12 +197,11 @@ const walkLastSemi = () => push({ title: 'Your groups',
         ${walkCodeHead}
         <div class="fi ph" style="justify-content:flex-start;gap:10px">${ico('qr', 18)}<span style="white-space:nowrap;font-size:14.5px">Six characters, from the invite</span></div>
       </div>
-      ${walkOr}
       <p class="note" style="font-size:13px;text-align:center">No groups yet. A group needs only a name to exist.</p>
       ${wdots(3)}
     </div>`,
   ],
-  bar: bar('New group') });
+  bar: twoWays() });
 
 const standalone = ({ title, body, bar: foot }) => pushRaw({ topHtml: `<h1 class="home" style="margin-top:22px">${title}</h1>`, body, bar: foot });
 /** X2a's hairline: a 2px track with a 38% segment. No spinner. */
@@ -324,7 +325,7 @@ export default [
       bar: bar('New group') }) },
 
   { id: 'groups-empty', route: '/groups', name: 'Your groups · none yet · 1 of 4', nav: 'push',
-    note: 'The walkthrough you picked (B), page one: the group’s chips, as you asked. Swiped through; New group on the bar on every page, and the invite code under the dots for whoever was added by somebody else.',
+    note: 'The walkthrough you picked (B), page one: the group’s chips, as you asked. Swiped through. The bar is two equal halves on every page, New group and I have a code: joining is as important as starting.',
     flags: [WALK_DRAFT],
     html: walkPage('group', 'Your game, in one place', 'A group is your table: its players, its buy-in and its rules. Start one and every night you play is kept in it.', 0) },
   { id: 'groups-empty-2', route: '/groups', name: 'Your groups · none yet · 2 of 4', nav: 'push',
@@ -334,11 +335,11 @@ export default [
     note: 'What stays after the night: Sessions’ calendar.', flags: [WALK_DRAFT],
     html: walkPage('sessions', 'Every night, kept', 'Each night is saved with its results, so the group’s history and everyone’s stats are always there.', 2) },
   { id: 'groups-empty-4', route: '/groups', name: 'Your groups · none yet · 4 of 4 · code open', nav: 'push',
-    note: 'One New group, on the bar, as on every page before; the second button is gone. The invite code is the page: the two boxes of three right there, Check the code under them, live once six are in. A line points at the bar for starting your own.',
+    note: 'The same two halves as every page; on this one the right half is the form’s own action, Check the code, faint until six characters are in. The joining card carries the group’s three chips.',
     flags: [WALK_DRAFT, '“Check the code” is the app’s own (the typed claim); “or start your own below” and “Six characters, from the invite” are draft.'],
     html: walkLastOpen() },
   { id: 'groups-empty-4b', route: '/groups', name: 'Your groups · none yet · 4 of 4 · code semi-open', nav: 'push',
-    note: 'The same page with the form half open: one field that reads like a form, which opens into the two boxes and Check the code when tapped. Calmer; one tap more.',
+    note: 'The same page with the form half open: one field that opens into the two boxes when tapped, and I have a code on the bar does the same. Calmer; one tap more.',
     flags: [WALK_DRAFT],
     html: walkLastSemi() },
 
