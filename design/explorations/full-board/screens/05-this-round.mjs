@@ -79,10 +79,51 @@ const chipPair = (k) => `<style>.ch-${k} ${CHIP[k].replace(/\n/g, ` .ch-${k} `).
 const scoped = (k) => CHIP[k].split('\n').map((line) => line.startsWith('.dark') ? line.replace('.dark .fb', `.dark .ch-${k} .fb`) : `.ch-${k} ${line}`).join('\n');
 const chipOption = (k) => `<style>${scoped(k)}</style><div class="ch-${k}" style="display:flex;gap:18px;flex-wrap:wrap;justify-content:center">${byO['new-night-seated']}${byT['pick']}</div>`;
 
-export const section = { title: 'This round: QR codes and name chips',
-  blurb: 'Options for two of your notes; the others are applied on their screens below. Every QR here is real and scans to the invite’s link. Approve one of each.' };
+
+/*
+ * Hide the money on the sheet (owner, 22 November, on Tonight: "let's add a hide option: whatever
+ * financial data is on the white sheet can be hidden, and let's work on different placeholders").
+ * The control is an eye at the right of the first section label, the same place on every screen with
+ * money on its sheet. The pot on the ink stays: it is the table's, not a person's. Each placeholder
+ * keeps roughly the figure's width, so nothing jumps when it is shown again, and none of them is the
+ * real figure blurred: a screenshot of a hidden screen gives nothing away.
+ */
+const EYE = (open) => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>${open ? '' : '<path d="M4 20L20 4"/>'}</svg>`;
+const hideCtl = (hidden) => `<span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;letter-spacing:0;text-transform:none;font:600 12.5px/1 var(--body);color:var(--muted)">${EYE(!hidden)}${hidden ? 'Show' : 'Hide'}</span>`;
+const PH = {
+  dots: (w) => `<span style="display:inline-flex;gap:4px;align-items:center;height:18px">${'<i style="width:6px;height:6px;border-radius:50%;background:currentColor;display:block"></i>'.repeat(Math.max(3, Math.min(5, w - 1)))}</span>`,
+  bar: (w) => `<span style="display:inline-block;width:${w * 9 + 6}px;height:12px;border-radius:6px;background:var(--line);vertical-align:middle"></span>`,
+  stars: (w) => `<span class="num" style="letter-spacing:.06em">$${'✱'.repeat(Math.max(2, w - 2))}</span>`,
+  chip: () => `<span style="display:inline-flex;gap:3px;vertical-align:middle">${[0, 1, 2].map(() => `<svg width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="var(--text)"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="var(--card)" stroke-width="2.2" stroke-dasharray="3.2 3.4"/><circle cx="12" cy="12" r="5.6" fill="var(--card)"/></svg>`).join('')}</span>`,
+  back: (w) => `<span style="display:inline-block;width:${w * 9 + 10}px;height:18px;border-radius:5px;vertical-align:middle;background:repeating-linear-gradient(45deg,var(--text) 0 1.6px,transparent 1.6px 5px),repeating-linear-gradient(-45deg,var(--text) 0 1.6px,transparent 1.6px 5px);box-shadow:inset 0 0 0 2px var(--card),inset 0 0 0 3px var(--text);opacity:.85"></span>`,
+};
+const tonightHidden = (kind) => {
+  const h = byT.session;
+  const at = h.indexOf('class="body"');
+  const head = h.slice(0, at);
+  let body = h.slice(at);
+  body = body.replace('<div class="lbl">Still playing · 5</div>', `<div class="lbl">Still playing · 5${hideCtl(!!kind)}</div>`);
+  if (kind) {
+    body = body.replace(/<span class="a( \w*)?">([^<]+)<\/span>/g, (m, tone, fig) => `<span class="a" style="color:var(--muted)">${PH[kind](fig.replace(/[^0-9]/g, '').length)}</span>`);
+    body = body.replace('17:17 · out 2,120', `17:17 · out <span style="display:inline-block;vertical-align:middle;transform:scale(.7);transform-origin:left center">${PH[kind](4)}</span>`);
+  }
+  return head + body;
+};
+
+export const section = { title: 'This round: hiding the money, QR codes and name chips',
+  blurb: 'Options for three of your notes; the others are applied on their screens below. Hiding: the eye at the right of the first section label hides every figure on the white sheet, while the pot on the ink stays; five placeholders follow. Every QR here is real and scans to the invite’s link. Approve one of each.' };
 
 export default [
+  { id: 'hide-control', route: '/session', name: 'Hide · the control, money showing', nav: 'push',
+    note: 'An eye and the word Hide at the right of the first section label. It hides every figure on the white sheet, on every screen that has money on its sheet, and stays hidden until shown: a choice on this phone, not a setting for the table.',
+    flags: ['“Hide” and “Show” are new words, and hiding is a new feature: the app has neither.', 'Whether the choice is remembered across nights, and whether it reaches the settled night and My stats, is a product decision.'],
+    html: tonightHidden('') },
+  { id: 'hide-dots', route: '/session', name: 'Hide A · dots', nav: 'push', note: 'Dots in place of each figure, the way a phone hides a passcode. Familiar; reads as hidden at once.', html: tonightHidden('dots') },
+  { id: 'hide-bar', route: '/session', name: 'Hide B · a soft bar', nav: 'push', note: 'A rounded bar about the width of the figure, in the hairline’s grey: a loading skeleton. The quietest; the list reads as a list of names.', html: tonightHidden('bar') },
+  { id: 'hide-stars', route: '/session', name: 'Hide C · the dollar kept', nav: 'push', note: 'The currency sign stays and the digits become stars. Says it is money without saying how much.', html: tonightHidden('stars') },
+  { id: 'hide-chips', route: '/session', name: 'Hide D · chips', nav: 'push', note: 'Three small chips stand in for every figure: the table’s own mark for money, the same for everyone so it says nothing about size.', html: tonightHidden('chip') },
+  { id: 'hide-back', route: '/session', name: 'Hide E · a card back', nav: 'push', note: 'A small playing-card back, cross-hatched in ink, about the width of the figure: the amount is face down.', html: tonightHidden('back') },
+
   { id: 'qr-square', route: '/invite', name: 'QR A · square', nav: 'sheet', note: 'The plain square code, as the app draws it today (error correction M).', html: qrSheet(qrSvg(M, { px: 188 })) },
   { id: 'qr-dots', route: '/invite', name: 'QR B · dots, round eyes', nav: 'sheet', note: 'Every module a dot, the three corner eyes rounded. Softer, still plain ink on white.', html: qrSheet(qrSvg(M, { style: 'dots', eye: 'round', px: 188 })) },
   { id: 'qr-chip', route: '/invite', name: 'QR C · the club’s chip at the centre', nav: 'sheet',
