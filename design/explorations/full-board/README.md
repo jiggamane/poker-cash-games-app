@@ -169,3 +169,12 @@ outlined action, the dashed "creates something" button, and a hold bar.
   controls. The four alternatives are off the board (their code stays in
   `screens/05-this-round.mjs` as `homeWith` and `pillRow`, unused).
 - The bar's type (`bar-type-a` … `f`) has no verdict yet.
+
+## Review, round three (22 November) — the look as a whole
+
+*"the shades below the content areas conflict with the 'still' data with no
+such background. maybe using a bit less shade at the bottom of such areas
+would help."* `--lift` in the kit keeps L2's edge and contact shadow and
+shortens the fall under the card (14px/28px blur at .30 → 7px/14px at .20),
+so it stops before flat content that follows a card. `lift-shorter` on the
+board shows before and after on the settled night.

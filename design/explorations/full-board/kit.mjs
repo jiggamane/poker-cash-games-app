@@ -4,7 +4,8 @@
  *
  *   - the header is the top of an ink screen, in white type;
  *   - the content is one white sheet that rises over it;
- *   - groups are white cards held off the sheet by one soft shadow (L2);
+ *   - groups are white cards held off the sheet by one soft shadow: L2 as approved, with its
+ *     downward fall shortened on 22 November so it stops short of flat content under a card;
  *   - the footer is the action: an ink bar across the bottom edge with its
  *     words set straight on it (F3). No button inside it.
  *   - dark: the top near-black, the sheet ink, cards one step lighter.
@@ -29,7 +30,7 @@ export const FONTS =
 export const CSS = `
 .fb{--top:#141A2A;--sheet:#FFFFFF;--card:#FFFFFF;--text:#141A2A;--muted:#596171;--dim:#9AA2B1;--line:#E4E7EC;--raised:#F1F3F6;
   --win:#0E7A45;--loss:#4E5768;--red:#C8283A;--bar:#141A2A;--pri:#141A2A;--onpri:#FFFFFF;--outline:#C5CAD4;
-  --lift:0 0 0 1px rgba(20,26,42,.05),0 2px 4px rgba(20,26,42,.06),0 14px 28px -14px rgba(20,26,42,.3);
+  --lift:0 0 0 1px rgba(20,26,42,.06),0 1px 3px rgba(20,26,42,.07),0 7px 14px -11px rgba(20,26,42,.2);
   --scrim:rgba(20,26,42,.42);--grab:#D5D9E0;
   --head:'Libre Franklin',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif}
 .dark .fb{--top:#0A0D14;--sheet:#171C27;--card:#212836;--text:#ECEEF2;--muted:#9AA2B1;--dim:#6B7384;--line:rgba(255,255,255,.09);--raised:#2C3445;
