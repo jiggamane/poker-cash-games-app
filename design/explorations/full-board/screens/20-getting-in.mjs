@@ -8,6 +8,7 @@
  */
 import { push, pushRaw, sheet, bar, label, card, row, note, para, pill, button, quiet, field, chips, ico } from '../kit.mjs';
 import { slotArt } from '../kit.mjs';
+import { qrSvg, inviteLink } from '../qr.mjs';
 
 /* Parts the kit does not have, built from tokens. Listed in the report. */
 
@@ -277,10 +278,10 @@ export default [
 
   { id: 'invite-qr', route: '/invite', name: 'Scan to join', nav: 'sheet',
     note: 'Same sheet, content replaced. The app’s text button "Back to the invite" is the back circle’s job here, and is kept as words too.',
-    flags: ['The QR here is a placeholder; four real, scannable styles are at the top of the board under This round.'],
+    flags: ['Square, as you chose on 22 November. A real code: it scans to the invite’s link, pokerclub://claim?c=K7M-4XP.'],
     html: sheet({ behind: 'Players', title: 'Scan to join', sub: 'Ivo · The Thursday game', stepBack: true,
       body: [
-        `<div style="display:grid;place-items:center;height:176px;color:var(--text)"><span style="transform:scale(8)">${ico('qr', 20)}</span></div>`,
+        `<div style="display:grid;place-items:center">${qrSvg(inviteLink(CODE))}</div>`,
         `<div class="num" style="font-weight:700;font-size:17px;letter-spacing:.05em;text-align:center">${CODE}</div>`,
         `<p class="note" style="text-align:center">If the camera will not read it, the code can be typed.</p>`,
         quiet('Back to the invite'),

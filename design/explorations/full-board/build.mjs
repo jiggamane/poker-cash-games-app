@@ -14,6 +14,7 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CSS, FONTS } from './kit.mjs';
+import { SNAPSHOT, ADDRESSED, DECIDED, renderProgress } from './progress.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const artifactAt = process.argv.includes('--artifact') ? process.argv[process.argv.indexOf('--artifact') + 1] : null;
@@ -68,6 +69,7 @@ const cell = (s) => `<figure class="cell scr-cell${s.wide ? ' wide' : ''}" data-
     (s.flags ?? []).map((f) => `<span class="pg-flag">${esc(f)}</span>`).join('')}</figcaption>
   ${REVIEW ? reviewBlock(s.id, s.name) : ''}</figure>`;
 
+const PDATA = { screens: sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, x.name, i])), sections: sections.map((x) => x.title), addressed: ADDRESSED, decided: DECIDED };
 const flagged = all.filter((s) => (s.flags ?? []).length);
 
 const page = () => `<title>Poker Club Full Board</title>
@@ -124,6 +126,20 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 .pg-open{margin:0;padding:0;list-style:none;display:grid;gap:8px;max-width:900px}
 .pg-open li{background:var(--panel);border-radius:12px;padding:10px 14px;font-size:13.5px;color:var(--muted)}
 .pg-open a{color:var(--fg);font-weight:700;text-decoration:none}.pg-open a:hover{text-decoration:underline}
+.pg-progress{background:var(--panel);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px;max-width:1100px}
+#pp-body{display:flex;flex-direction:column;gap:18px}
+.pp-row{display:flex;flex-wrap:wrap;gap:8px}
+.pp{font:600 13px var(--body);padding:7px 12px;border-radius:999px;background:var(--bg);color:var(--muted)}.pp b{font:800 15px var(--head);color:var(--fg);margin-right:2px}
+.pp.ok b{color:var(--ok)}.pp.re b{color:var(--accent)}.pp.wt b{color:var(--warn)}
+.pp-block h3{font:700 14px var(--head);margin:0 0 6px}
+.pp-block ul{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.pp-block li{font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline}
+.pp-block a{color:var(--fg);font-weight:700;text-decoration:none}.pp-block a:hover{text-decoration:underline}
+.pp-q{font-style:italic}.pp-a{flex-basis:100%;color:var(--fg);opacity:.8}
+.pp-secs li{display:block}.pp-n{font:700 12px var(--body);background:var(--bg);border-radius:999px;padding:2px 8px;margin-left:4px}
+.pp-ids{display:block;font-size:12.5px;margin-top:3px}.pp-ids a{font-weight:500;color:var(--muted)}
+.pp-dec{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}.pp-dec b{color:var(--fg)}
+.pp-live{font:500 12px var(--body);color:var(--muted)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 ${CSS}
 </style>
@@ -142,10 +158,12 @@ ${CSS}
   </div>
   <div class="pg-strip" role="group" aria-label="Board controls">
     <div class="pg-mode" role="group" aria-label="Phone theme"><button type="button" id="m-light" aria-pressed="true">Light</button><button type="button" id="m-dark" aria-pressed="false">Dark</button></div>
-    <nav aria-label="Sections">${sections.map((s, i) => `<a href="#sec-${i}">${esc(s.title)}</a>`).join('')}${flagged.length ? `<a href="#sec-open">Open questions</a>` : ''}</nav>
+    <nav aria-label="Sections"><a href="#sec-progress">Where review stands</a>${sections.map((s, i) => `<a href="#sec-${i}">${esc(s.title)}</a>`).join('')}${flagged.length ? `<a href="#sec-open">Open questions</a>` : ''}</nav>
     ${REVIEW ? `<div class="cnt" role="status"><span id="cA">0 approved</span><span id="cC">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span>` : ''}
   </div>
 </header>
+
+<section id="sec-progress"><h2>Where review stands</h2><div class="pg-progress"><div id="pp-body">${renderProgress(PDATA, SNAPSHOT)}</div><span class="pp-live" id="pp-live">As of the last build. ${REVIEW ? 'Updates as you review.' : ''}</span></div></section>
 
 ${REVIEW ? `<section><figure class="cell pg-general" data-key="general"><figcaption><b>The look as a whole</b><span>Approve here if the system is right and only single screens need work, or leave a note that applies to all of them.</span></figcaption>${reviewBlock('general', 'the look as a whole', 3)}</figure></section>` : ''}
 
@@ -172,6 +190,27 @@ ${flagged.length ? `<section id="sec-open">
   if (saved === 'dark') set(true);
 })();
 </script>
+${REVIEW ? `<script>
+(() => {
+  const D = ${JSON.stringify(PDATA)};
+  const V = ${JSON.stringify(SNAPSHOT)};
+  const render = ${renderProgress.toString()};
+  const body = document.getElementById('pp-body'), live = document.getElementById('pp-live');
+  (async () => {
+    let db = null; try { db = await window.claude?.use?.('db'); } catch (e) {}
+    if (!db) return;
+    db.collection('reviews').onSnapshot((snap) => {
+      for (const ch of snap.docChanges()) {
+        const x = ch.doc.data() || {};
+        if (ch.type === 'removed') delete V[ch.doc.id];
+        else V[ch.doc.id] = [x.status || '', x.comment || '', x.updatedAt || ''];
+      }
+      body.innerHTML = render(D, V);
+      live.textContent = 'Live: updates as you review.';
+    }, () => { live.textContent = 'Live updates stopped. Reload the page to reconnect.'; });
+  })();
+})();
+</script>` : ''}
 ${REVIEW ? `<script>\n${readFileSync(join(here, '../icon-system/review.js'), 'utf8')}</script>` : ''}`;
 
 const html = page();
