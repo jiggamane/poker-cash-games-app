@@ -92,8 +92,17 @@ const suit = {
 const SB = `<div class="sb"><span>9:41</span><svg viewBox="0 0 62 11" aria-hidden="true"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1"/><rect x="36" y=".5" width="22" height="10" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="38" y="2.5" width="16" height="6" rx="1.5"/><rect x="59" y="3.5" width="2" height="4" rx="1" opacity=".45"/></g></svg></div>`;
 
 /** A spot in Fresh Deck colours, sized by its box. */
+/*
+ * Which palette the drawings take: Fresh Deck's light one by default. A page
+ * drawing these screens in a dark theme sets it to the dark one, and names the
+ * palette for the start button separately, since that button can be ink on a
+ * light screen or light on a dark one.
+ */
+let SPOT_PAL = { base: 'freshDeck', cta: 'freshDeckOnInk' };
+export const setSpotPalette = (p) => { SPOT_PAL = { ...SPOT_PAL, ...p }; };
+
 const art = (key, size, onInk = false, pal) =>
-  `<span class="art">${spot(key, pal ?? (onInk ? 'freshDeckOnInk' : 'freshDeck'), { size })}</span>`;
+  `<span class="art">${spot(key, pal ?? (onInk ? SPOT_PAL.cta : SPOT_PAL.base), { size })}</span>`;
 
 /*
  * HOW A DRAWING'S SIZE IS PICKED (21 November). Not by its square, and not by
@@ -352,7 +361,7 @@ function anchoredAt(key, S, cx, cy) {
   const k = S / 88;
   const right = -cx + (x - 4) * k + w * k - S;
   const bottom = -cy + (y - 12) * k + h * k - S;
-  return `<span class="art" style="position:absolute;right:${right.toFixed(1)}px;bottom:${bottom.toFixed(1)}px;margin:0;width:auto;height:auto;line-height:0">${spot(key, 'freshDeck', { size: Math.round(S) })}</span>`;
+  return `<span class="art" style="position:absolute;right:${right.toFixed(1)}px;bottom:${bottom.toFixed(1)}px;margin:0;width:auto;height:auto;line-height:0">${spot(key, SPOT_PAL.base, { size: Math.round(S) })}</span>`;
 }
 
 export function anchoredOption({ key, title, note, T, cx, cy, tn }, PICK) {
