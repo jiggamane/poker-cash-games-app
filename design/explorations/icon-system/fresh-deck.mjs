@@ -13,6 +13,8 @@
 import { spot } from './art.mjs';
 import BB from './bboxes.json' with { type: 'json' };
 import INK from './ink.json' with { type: 'json' };
+import OPT from './optical.json' with { type: 'json' };
+import { PICK as APPROVED_PICK } from './picks.mjs';
 import { BOOSTERS } from '../../../packages/core/src/boosters.ts';
 
 export const FD_FONTS =
@@ -125,6 +127,13 @@ const art = (key, size, onInk = false, pal) =>
  * The ladder, 22 November: each level down paints 0.77 of the one above.
  * Home 0.35, Poker tools 0.27, the Game boosters rows 0.208; a booster's sheet
  * is that game's own page, so its drawing paints what Home's tiles do (0.35).
+ *
+ * Optical size, 22 November. Equal ink still let the Bomb pot read larger than
+ * the Stand-up game in the boosters list, by two things ink ignores: a pale
+ * pixel weighs less than a dark one (the near-white 7-2 cards against the
+ * near-black bomb), and a tall compact outline reads larger than a flat wide
+ * one at the same paint. So the share held constant is now the geometric mean
+ * of the tone-weighted ink and the outline (optical.json, from ink.mjs).
  * In a row the drawing is centred on its slot by its outline and never drawn
  * wider than the slot, so a wide drawing (the Table ante) gives up a little
  * weight rather than run into its name.
@@ -132,7 +141,11 @@ const art = (key, size, onInk = false, pal) =>
 export const RHO = { home: 0.35, tools: 0.27, rows: 0.208, sheet: 0.35 };
 const TILE = { w: 133, h: 128 };
 export const inkSide = (level) => RHO[level] * Math.sqrt(TILE.w * TILE.h);
-export const sizeFor = (key, level) => inkSide(level) / Math.sqrt(INK[key]);
+/* The optical share replaces the bare ink share; CAL keeps the fifteen picks'
+   average size where the ink rule put it, so the levels above still hold. */
+const PICKED = Object.values(APPROVED_PICK);
+const CAL = Math.exp(PICKED.reduce((s, k) => s + Math.log(Math.sqrt(OPT[k] / INK[k])), 0) / PICKED.length);
+export const sizeFor = (key, level) => (inkSide(level) * CAL) / Math.sqrt(OPT[key]);
 
 /*
  * A drawing sized by the ink rule and set in a fixed slot: centred on it by
@@ -240,8 +253,8 @@ export function freshDeckScreens(PICK, { withSheet = true, rail = false } = {}) 
     </div></div>`;
 
   return `<div class="fd fd-strip">${[
-    ['Main menu', menu, 'The start button carries the chip stack. Each tile: the name on top at 19, the drawing in the bottom-right corner, placed by its outline and sized by its ink (Home level, 0.35). My stats drops the style page’s sparkline: the drawing is already a chart.'],
-    ['Poker tools', tools, 'Not drawn on the style page: the menu’s tiles (4d, name at 19) with the app’s sub-lines under each name. Drawings sized by the ink rule at one level down (0.27), so they sit a step under Home’s.'],
+    ['Main menu', menu, 'The start button carries the chip stack. Each tile: the name on top at 19, the drawing in the bottom-right corner, placed by its outline and sized by its optical weight, ink and outline together (Home level, 0.35). My stats drops the style page’s sparkline: the drawing is already a chart.'],
+    ['Poker tools', tools, 'Not drawn on the style page: the menu’s tiles (4d, name at 19) with the app’s sub-lines under each name. Drawings sized by the same rule at one level down (0.27), so they sit a step under Home’s.'],
     ['Game boosters', boosters, 'One spot per game at the head of its row. No chevrons, as Fresh Deck has it.'],
     ['A booster’s sheet', sheet, 'The game’s spot heads its description. The same seven drawings, larger.'],
   ].slice(0, withSheet ? 4 : 3).map(([cap, html, note]) => `<figure><div class="fdphone">${html}</div><figcaption>${cap}<br><span style="font-weight:400">${note}</span></figcaption></figure>`).join('')}</div>`;
