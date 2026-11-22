@@ -95,3 +95,9 @@ The piggy-bank mark was sent back the same day (*the way the hole looks feels
 wrong and check the piggy shapes*): redrawn from plain parts as B (a coin
 above, no hole), C (a slot following the back) and D (the pig alone). B is the
 one shown in place until the owner picks.
+
+**The app's own icons are on the board** (owner, 22 November: check the
+current in-app icons and put them on the board first). `app-icons.mjs` renders
+the real `Icon.tsx` (43 names, not 47 as round 27 first said) to
+`app-icons.json`; the board shows all 43 as the app draws them, and each
+in-place mock twice: today, and proposed. Re-run it when `Icon.tsx` changes.
