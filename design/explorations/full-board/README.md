@@ -301,3 +301,8 @@ a hidden screen gives nothing away. New feature and new words.
   the stacks close as the chips fall; chips land a little out of line and the
   squaring pushes them true; timing varies by round and chip (seeded, so the
   board does not change between builds).
+
+- **Signing you in**, matched to the owner's five frames from the video: the
+  stacks stand touching (dx = r), tip about ten degrees on their outer feet so
+  they peak at the seam, and the chips drop into one stack where they meet; the
+  top half is moved over low and close.
