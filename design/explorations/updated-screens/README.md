@@ -25,7 +25,9 @@ The small icons on Tonight and the results are the app's own, from
 
 ## Open (owner)
 
-1. *calculator, rulings, boosters* under Poker tools on the menu is new copy.
+1. ~~*calculator, rulings, boosters* is new copy~~ — confirmed 22 November.
+2. The surfaces (ground, cards, rail; light and dark; the rail on scroll):
+   `../app-surfaces/`.
 
 ## How it is built
 
