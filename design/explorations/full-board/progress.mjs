@@ -28,6 +28,9 @@ export const ADDRESSED = {
   general: ['The card shadow’s fall shortened, which you approved on its own.', '2026-11-22T17:35:00Z'],
 };
 
+/* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
+export const SHOW = { 'groups-empty': ['empty-steps', 'empty-tour', 'empty-outcome', 'empty-doors'] };
+
 export const DECIDED = [
   ['Home’s footer', 'as drawn: the ink bar with its three controls'],
   ['The words on the bar', 'as drawn: Libre Franklin bold, 18 points'],

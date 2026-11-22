@@ -14,7 +14,7 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CSS, FONTS } from './kit.mjs';
-import { SNAPSHOT, ADDRESSED, DECIDED, renderProgress } from './progress.mjs';
+import { SNAPSHOT, ADDRESSED, DECIDED, SHOW, renderProgress } from './progress.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const artifactAt = process.argv.includes('--artifact') ? process.argv[process.argv.indexOf('--artifact') + 1] : null;
@@ -89,7 +89,7 @@ const cell = (s, copy = '') => `<figure class="cell scr-cell${s.wide ? ' wide' :
     (s.flags ?? []).map((f) => `<span class="pg-flag">${esc(f)}</span>`).join('')}</figcaption>
   ${REVIEW ? reviewBlock(s.id, s.name) : ''}</figure>`;
 
-const PDATA = { screens: sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, x.name, i])), sections: sections.map((x) => x.title), addressed: ADDRESSED, decided: DECIDED };
+const PDATA = { show: SHOW, screens: sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, x.name, i])), sections: sections.map((x) => x.title), addressed: ADDRESSED, decided: DECIDED };
 const needsLook = (id, v) => { const x = v[id]; const fix = ADDRESSED[id]; return !!fix && (!x || x[0] !== 'approved') && !(x && x[0] === 'changes' && x[2] > fix[1]); };
 const flagged = all.filter((s) => (s.flags ?? []).length);
 
@@ -190,7 +190,7 @@ ${CSS}
 
 <section id="sec-updates"><h2>Updated since your last look</h2>
   <p>Every screen I changed after your note, gathered here so nothing is missed. Each also stays in its place below. Approve it here or there, or note it again; it leaves this section either way. <b>Also everywhere:</b> every money figure on the board is now set in the figure face, Libre Franklin, whatever line it sits in (949 figures, none left in the text face).</p>
-  <div class="pg-grid" id="upd-grid">${all.filter((x) => ADDRESSED[x.id]).map((x) => cell(x, ADDRESSED[x.id][0]).replace('<figure ', needsLook(x.id, SNAPSHOT) ? '<figure ' : '<figure hidden ')).join('')}</div>
+  <div class="pg-grid" id="upd-grid">${all.filter((x) => ADDRESSED[x.id]).map((x) => (SHOW[x.id] ? SHOW[x.id].map((id, n) => all.find((y) => y.id === id)).filter(Boolean).map((y, n) => cell(y, n === 0 ? ADDRESSED[x.id][0] : `For “${x.name}”: concept ${n + 1} of ${SHOW[x.id].length}.`).replace(`data-upd="${y.id}"`, `data-upd="${x.id}"`)) : [cell(x, ADDRESSED[x.id][0])]).map((h) => h.replace('<figure ', needsLook(x.id, SNAPSHOT) ? '<figure ' : '<figure hidden ')).join('')).join('')}</div>
   <p id="upd-none" class="pg-none" hidden>Nothing waiting: every change has a verdict.</p>
 </section>
 
@@ -240,7 +240,8 @@ ${REVIEW ? `<script>
       let shown = 0;
       document.querySelectorAll('[data-upd]').forEach((el) => {
         const id = el.dataset.upd, x = V[id], fix = D.addressed[id];
-        const show = !!fix && (!x || x[0] !== 'approved') && !(x && x[0] === 'changes' && x[2] > fix[1]);
+        const picked = (D.show[id] || []).some((c) => (V[c] || [])[0] === 'approved');
+        const show = !picked && !!fix && (!x || x[0] !== 'approved') && !(x && x[0] === 'changes' && x[2] > fix[1]);
         el.hidden = !show; if (show) shown++;
       });
       document.getElementById('upd-none').hidden = shown > 0;
