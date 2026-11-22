@@ -162,3 +162,10 @@ outlined action, the dashed "creates something" button, and a hold bar.
 - **Settled night: "good, but explore the footer further in terms of the
   fonts/sizes."** Six settings of the words on the bar, each on the settled
   night and on Tonight (`bar-type-a` … `f`).
+
+## Review, round two (22 November)
+
+- **Home's footer: A approved, as drawn** — the ink bar with its three
+  controls. The four alternatives are off the board (their code stays in
+  `screens/05-this-round.mjs` as `homeWith` and `pillRow`, unused).
+- The bar's type (`bar-type-a` … `f`) has no verdict yet.
