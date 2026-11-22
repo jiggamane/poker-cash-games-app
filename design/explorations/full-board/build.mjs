@@ -62,12 +62,12 @@ const page = () => `<title>Poker Club Full Board</title>
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#10131A;--panel:#191D27;--fg:#ECEEF2;--muted:#A0A7B4;--line:#2A303C;--ok:#5CCB93;--warn:#F08A82;--accent:#7FA8F5;--flag:#F2CD7A;--flagbg:#3A2F12;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#10131A;--panel:#191D27;--fg:#ECEEF2;--muted:#A0A7B4;--line:#2A303C;--ok:#5CCB93;--warn:#F08A82;--accent:#7FA8F5;--flag:#F2CD7A;--flagbg:#3A2F12;color-scheme:dark}
 body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:0}
-.wrap{max-width:1500px;margin:0 auto;padding-block:36px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.pg-wrap{max-width:1500px;margin:0 auto;padding-block:36px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .pg-eyebrow{font:600 12px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.wrap>header>h1{font:800 clamp(28px,4vw,40px)/1.05 var(--head);letter-spacing:-.025em;margin:10px 0 12px;text-wrap:balance}
-.wrap>section>h2{font:800 24px/1.15 var(--head);letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
-.wrap>header>p,.wrap>section>p{margin:0;max-width:74ch;color:var(--muted)}.wrap>header>p b{color:var(--fg)}
-.wrap>section{margin-top:48px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:120px}
+.pg-wrap>header>h1{font:800 clamp(28px,4vw,40px)/1.05 var(--head);letter-spacing:-.025em;margin:10px 0 12px;text-wrap:balance}
+.pg-wrap>section>h2{font:800 24px/1.15 var(--head);letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
+.pg-wrap>header>p,.pg-wrap>section>p{margin:0;max-width:74ch;color:var(--muted)}.pg-wrap>header>p b{color:var(--fg)}
+.pg-wrap>section{margin-top:48px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:120px}
 .pg-rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:16px}
 .pg-rules div{background:var(--panel);border-radius:12px;padding:12px 14px;font-size:13.5px;color:var(--muted)}.pg-rules b{display:block;color:var(--fg);font-size:14px;margin-bottom:2px}
 .pg-strip{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--fg);color:var(--bg);border-radius:14px;padding:10px 14px;margin-top:18px}
@@ -107,7 +107,7 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 ${CSS}
 </style>
-<main class="wrap" id="board">
+<main class="pg-wrap" id="board">
 <header>
   <span class="pg-eyebrow">Design board · 22 November 2026 · not a handoff, nothing here is in the app</span>
   <h1>The whole app, in the approved look</h1>
@@ -146,6 +146,8 @@ ${flagged.length ? `<section id="sec-open">
   const board = document.getElementById('board'), L = document.getElementById('m-light'), D = document.getElementById('m-dark');
   const set = (dark) => { board.classList.toggle('dark', dark); L.setAttribute('aria-pressed', String(!dark)); D.setAttribute('aria-pressed', String(dark)); try { localStorage.setItem('fb-mode', dark ? 'dark' : 'light'); } catch (e) {} };
   L.addEventListener('click', () => set(false)); D.addEventListener('click', () => set(true));
+  /* A sheet tall enough to reach the title of the screen behind it hides that title, so it is never half-cropped. */
+  document.querySelectorAll('.fb .modal').forEach((m) => { if (m.offsetTop < 84) m.closest('.scr').classList.add('cover'); });
   let saved = null; try { saved = localStorage.getItem('fb-mode'); } catch (e) {}
   if (saved === 'dark') set(true);
 })();

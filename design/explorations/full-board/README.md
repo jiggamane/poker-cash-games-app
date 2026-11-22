@@ -112,3 +112,38 @@ node design/explorations/full-board/preview.mjs design/explorations/full-board/s
 ```
 
 Then look at the PNG, in both themes.
+
+## State, 22 November
+
+143 phones over all 52 routes, in eleven sections; nothing clipped except the
+seven entries that set `allowOverflow` on purpose (a scrolled list, a drawer).
+Published for review as the claude.ai artifact T4823abaFtRW3qkyQdUV97 (private to the owner); verdicts
+are in its db, collection `reviews`, one document per screen id plus `general`.
+
+**No app code has changed.** The owner approves here first.
+
+The open questions the redraw could not settle are on the board under each
+screen and gathered at its foot. The ones that recur across sections:
+
+- **Amber.** The app marks "Not set", "Waiting on …", "Too close" and
+  break-even in amber. The look has no amber, so they are drawn muted.
+- **Red.** Destructive actions keep an ink bar (delete account) or are quiet
+  red text in the content; the calculator's Underdog / Beaten take the grey
+  loss tone. The app uses red for all of these.
+- **A read-only screen has no bar** (/watch, a watcher's Tonight): the sheet
+  runs to the bottom edge with the read-only line at its foot.
+- **A hold on the bar** (Take the game back, Delete account) is marked only by
+  its "Hold 1.5s" line; how it fills is not drawn.
+- **Steps inside a sheet** carry a back circle the app does not have today.
+- **Rows that open something** lost their chevrons with everything else, so a
+  few (Currency, Covered by, Ended) no longer say they can be tapped.
+- **Dark footer.** The bar in dark is the near-black of the top; it was never
+  reviewed on its own.
+- **Sample data.** Screens the seeded night cannot reach (a passed game,
+  membership gates, a signed-in account, a second night for the chart) are
+  drawn from source with illustrative names and dates, each flagged.
+
+Kit parts the helpers built inline and the kit should own before this becomes
+code: a caps badge beside a sheet title, the preset row, the radio row, a row
+with a leading time, the transfer row, the playing card, a small in-row
+outlined action, the dashed "creates something" button, and a hold bar.
