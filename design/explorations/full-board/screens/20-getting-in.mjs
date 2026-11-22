@@ -19,28 +19,38 @@ const capsPill = (text) => `<span class="pill" style="text-transform:uppercase;l
 const eyebrow = (text, centre = false) => `<div class="lbl q" style="margin:0;${centre ? 'justify-content:center' : ''}">${text}</div>`;
 /** A standalone screen: no back, no close. The title is the top. */
 /*
- * Signing you in, with the chip stack from Start a session (owner, 22 November). The stack is always
- * whole; each of its five chips shakes a little on its own, up and down, a beat after the one below,
- * the way a pile settles in a hand. The higher a chip, the more it moves (1 to 3 points), so the top
- * carries the motion and the base stays planted. Reduced motion holds it still.
+ * Signing you in: the chips played with, the way a player plays with a stack at the table (owner,
+ * 22 November: "they should be played with, with an invisible hand, like a poker player would play
+ * with his chips"). The trick is the riffle: the stack sits split in two, the halves are pressed
+ * together and the chips fall in, one from each side in turn, into a single stack; it holds, splits
+ * again, and the hand riffles once more. The chips are the Start a session drawing's own parts
+ * (art.mjs), ink and red alternating as they do there. 3.4 seconds a round; reduced motion shows the
+ * one stack, still.
  */
-const STACK = { cx: 48, r: 25, h: 8, mats: ['ink', 'red', 'ink', 'red', 'ink'], wobble: [0, 1.6, -0.6, 1.2, -1.4] };
-const stackWait = (px = 132) => {
+const RIFFLE = { cx: 48, r: 21, h: 7, dx: 25, cycle: 3.4, mats: ['ink', 'red', 'ink', 'red', 'ink', 'red'] };
+const stackWait = (px = 168) => {
   const P = PALETTES.freshDeckOnInk;
-  const chips = STACK.mats.map((mat, i) => {
-    const a = (0.35 + i * 0.25).toFixed(2);        /* viewBox units: about 1 to 3 points at 132 */
-    const kf = `@keyframes fb-shake${i}{0%,100%{transform:translateY(0)}30%{transform:translateY(-${a}px)}55%{transform:translateY(${(a * 0.35).toFixed(2)}px)}75%{transform:translateY(-${(a * 0.5).toFixed(2)}px)}}`;
-    const g = chip(P, { cx: STACK.cx + STACK.wobble[i], by: GROUND - 1 - i * STACK.h, r: STACK.r, h: STACK.h, mat, face: true, seam: i > 0, phase: (i * 17) % 45 });
-    return { kf, g: `<g class="shake" style="animation-name:fb-shake${i};animation-delay:${(i * 0.09).toFixed(2)}s">${g}</g>` };
+  const { cx, r, h, dx, cycle, mats } = RIFFLE;
+  const pc = (n) => `${n.toFixed(1)}%`;
+  const chips = mats.map((mat, k) => {
+    const left = k % 2 === 0, j = Math.floor(k / 2);
+    /* Split: left chips are 0, 2, 4 and right 1, 3, 5, each stack three high. Merged: index k. */
+    const sx = left ? -dx : dx, sy = (k - j) * h;
+    const inA = 14 + k * 3.2, inB = inA + 9;            /* riffle in, bottom chip first */
+    const outA = 62 + (5 - k) * 2.6, outB = outA + 10;  /* split out, top chip first */
+    const split = `transform:translate(${sx}px,${sy}px)`, merged = 'transform:translate(0,0)';
+    const kf = `@keyframes fb-rif${k}{0%,${pc(inA)}{${split}}${pc(inA + 4.5)}{transform:translate(${(sx * 0.35).toFixed(1)}px,${(sy * 0.4 - 2.2).toFixed(1)}px)}${pc(inB)},${pc(outA)}{${merged}}${pc(outA + 5)}{transform:translate(${(sx * 0.6).toFixed(1)}px,${(sy * 0.5 - 2.5).toFixed(1)}px)}${pc(outB)},100%{${split}}}`;
+    const g = chip(P, { cx, by: GROUND - 1 - k * h, r, h, mat, face: true, seam: k > 0, phase: (k * 17) % 45 });
+    return { kf, g: `<g class="rif" style="animation-name:fb-rif${k}">${g}</g>` };
   });
   return `<style>
 ${chips.map((c) => c.kf).join('\n')}
 @keyframes fb-dots{0%,20%{opacity:.25}40%{opacity:1}100%{opacity:.25}}
-.fb .shake{animation-duration:.95s;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.fb .rif{animation-duration:${cycle}s;animation-timing-function:cubic-bezier(.45,.05,.3,1);animation-iteration-count:infinite}
 .fb .dots i{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;margin:0 3px;animation:fb-dots 1.2s infinite}
 .fb .dots i:nth-child(2){animation-delay:.2s}.fb .dots i:nth-child(3){animation-delay:.4s}
-@media (prefers-reduced-motion:reduce){.fb .shake,.fb .dots i{animation:none}}
-</style><svg viewBox="4 12 88 88" width="${px}" height="${px}" aria-hidden="true" style="overflow:visible">${shadow(P, 48, 31)}${chips.map((c) => c.g).join('')}</svg>`;
+@media (prefers-reduced-motion:reduce){.fb .rif,.fb .dots i{animation:none}}
+</style><svg viewBox="-6 22 108 78" width="${px}" height="${(px * 78) / 108}" aria-hidden="true" style="overflow:visible">${shadow(P, 48, 52)}${chips.map((c) => c.g).join('')}</svg>`;
 };
 /** One group on Your groups: its drawing, name, line and standing. `current` edges it in ink. */
 const groupCard = (name, line, standing, place, current = false) => `<div class="card" style="padding:12px 14px 12px 8px;display:flex;align-items:center;gap:10px;${current ? 'box-shadow:var(--lift),inset 0 0 0 2px var(--text)' : ''}">
@@ -125,12 +135,12 @@ export default [
       bar: bar('Send myself another') }) },
 
   { id: 'auth-callback-wait', route: '/auth-callback', name: 'Signing you in', nav: 'root',
-    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: the stack is always whole and each chip shakes a little up and down, one a beat after the other, the top moving most; three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
+    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: an invisible hand riffles the chips, the stack split in two, pressed together so the chips fall in one from each side, held, split again; three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
     flags: ['The stack, its motion and the three dots are new: the app shows the two words and nothing else. Motion stops for anyone who has reduced motion turned on.'],
     html: `<div class="fb"><div class="scr" style="justify-content:center;align-items:center;text-align:center;color:#fff">
       <div style="position:absolute;top:0;left:0;right:0;padding:0 18px">${pushRaw({ topHtml: '', body: '' }).match(/<div class="sb">.*?<\/svg><\/div>/)[0]}</div>
       <div style="display:grid;justify-items:center;margin-top:-40px">
-        ${stackWait(132)}
+        ${stackWait(168)}
         <h1 style="font:700 24px/1.15 var(--head);letter-spacing:-.015em;margin:26px 0 8px;color:#fff">Signing you in</h1>
         <div style="font-size:15px;color:rgba(255,255,255,.72)">One moment.</div>
         <div class="dots" style="margin-top:18px;color:rgba(255,255,255,.72)"><i></i><i></i><i></i></div>
