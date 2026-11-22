@@ -14,7 +14,7 @@
 export const BUILT = '2026-11-22T22:00:00Z';
 
 export const ADDRESSED = {
-  'auth-callback-wait': ['No longer even or one by one: the chips fall in a single rush of about a fifth of a second, land tipped and out of line, and the squaring leaves each a touch uneven, differently every round.', '2026-11-22T22:55:00Z'],
+  'auth-callback-wait': ['Smooth: every move eased in and out with no stops mid-move and no small twitches; the push and the peak are one motion; the chips flow down in a short overlapping wave. Measured at 60 frames a second, the biggest jolt went from 16 pixels to under 1.', '2026-11-22T23:15:00Z'],
   'groups-empty-4': ['One New group, on the bar only; the invite code is the page, as an open form (boxes and Check the code) or semi-open (one field that opens).', '2026-11-22T23:05:00Z'],
   'groups-empty': ['The walkthrough you picked (B), all four pages: the group’s chips first, as you asked, and the create or invite choice from D folded in, with the invite code on every page and the two doors on the last.', '2026-11-22T22:50:00Z'],
   'new-night-rule-rest': ['Remove moved into the bar beside Save rule, on every rule editor that edits an existing rule.', '2026-11-22T22:00:00Z'],

@@ -58,7 +58,7 @@ const RIFFLE = { cx: 48, r: 21, h: 7, dx: 21, round: 2.35, rounds: 4, vb: [-14, 
  * 2.35 seconds, and the split is a slide with no lift.
  */
 const rand = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };  /* fixed, so the board does not change between builds */
-const EASE = { lift: 'cubic-bezier(.2,.7,.35,1)', fall: 'cubic-bezier(.55,0,.85,.4)', slide: 'cubic-bezier(.45,.05,.3,1)', settle: 'cubic-bezier(.3,.6,.4,1)', hold: 'linear' };
+const EASE = { move: 'cubic-bezier(.42,0,.58,1)', drop: 'cubic-bezier(.5,0,.45,1)', hold: 'linear' };   /* smooth in and out: no move begins or ends with a jolt */
 const stackWait = (px = 168) => {
   const P = PALETTES.freshDeckOnInk;
   const { cx, r, h, dx, round, rounds, vb } = RIFFLE;
@@ -70,14 +70,14 @@ const stackWait = (px = 168) => {
   const css = (t) => `transform:translate(${(t.x * sc).toFixed(2)}px,${(t.y * sc).toFixed(2)}px) rotate(${t.rot.toFixed(2)}deg);z-index:${t.z}`;
   const layers = mats.map((mat, c) => {
     const frames = [];
-    const put = (f, t, ease = EASE.slide) => frames.push([Math.min(100, f * 100), t, ease]);
+    const put = (f, t, ease = EASE.move) => frames.push([Math.min(100, f * 100), t, ease]);
     for (let k = 0; k < rounds; k++) {
       const R = (f) => (k + f) / rounds;
       const from = orders[k].indexOf(c), to = orders[k + 1].indexOf(c);
       const top = from >= 3, ht = top ? from - 3 : from, dir = top ? -1 : 1;     /* the top half goes left, as in the GIF */
       const j = (n) => (rand(k * 31 + c * 7 + n) - 0.5);                 /* -0.5 … 0.5, per round, chip and step */
       /* What a squared stack still keeps: each chip a touch off line and off level, different every round. */
-      const slop = (round) => (round < 0 ? { x: 0, rot: 0 } : { x: (rand(round * 31 + c * 7 + 40) - 0.5) * 2.2, rot: (rand(round * 31 + c * 7 + 41) - 0.5) * 3 });
+      const slop = (round) => (round < 0 ? { x: 0, rot: 0 } : { x: (rand(round * 31 + c * 7 + 40) - 0.5) * 1.8, rot: (rand(round * 31 + c * 7 + 41) - 0.5) * 2 });
       const was = slop(k === 0 ? rounds - 1 : k - 1), now = slop(k);
       const sx = dir * dx;
       const tilt = 10 + j(1) * 2.5;                                      /* degrees each stack tips up at the seam */
@@ -90,46 +90,32 @@ const stackWait = (px = 168) => {
       const rx = bx * Math.cos(th) + by * Math.sin(th), ry = -bx * Math.sin(th) + by * Math.cos(th);
       const leanX = sx + dir * (bx - rx), leanY = ry;                      /* the foot is r outside the stack centre; the right stack mirrors the left */
       const peakRot = dir * tilt;                                         /* left turns back (inner edge up), right turns forward */
-      const off = j(2) * 4.2;                                            /* how far out of line it lands: a riffle is not neat */
-      /* 0: the stack as it stands, squared */
-      put(R(0), T(was.x, -from * h, was.rot, from), EASE.hold);
-      put(R(0.05 + j(3) * 0.02), T(was.x, -from * h, was.rot, from), top ? EASE.lift : EASE.hold);
-      /* 1: the top half is slid off sideways along the felt, so the halves sit apart; then pushed back together */
-      const apart = T(sx * 1.45, -ht * h, 0, ht);
-      if (top) {
-        put(R(0.1), T(sx * 0.5, -((ht + from) / 2) * h - 1.2, dir * 3, 20 + ht), EASE.slide);
-        put(R(0.19), T(sx * 1.38, -ht * h - 1, dir * 1.2, 20 + ht), EASE.settle);
-        put(R(0.23), apart, EASE.hold);
-      } else {
-        put(R(0.1), T(sx * 0.15, -from * h, 0, from), EASE.slide);   /* the rest gives a little the other way */
-        put(R(0.21), apart, EASE.hold);
-      }
-      put(R(0.27 + j(4) * 0.015), apart, EASE.slide);
-      put(R(0.35), T(sx, -ht * h, 0, ht), EASE.lift);                 /* pushed together until they touch */
-      /* 2: thumbs press the seam up: both columns lean in */
-      put(R(0.42), T(leanX, leanY, peakRot, ht), EASE.hold);
       /*
-       * 3: the chips fall in together, not one by one (owner, 22 November: "they shouldn't stack up so
-       * evenly and one by one"). The whole riffle is a single burst of about a fifth of a second: each
-       * side lets go in a rush, bottom chips a hair before top ones, and when they land they land
-       * where they land, tipped and out of line, some by a lot.
+       * Smooth (owner, 22 November: "make the motion smooth"). One continuous gesture per phase, each
+       * eased in and out, with no stops in the middle of a move and no small corrective twitches:
+       *   rest → the halves slide apart → slide back and tip up into the peak in one motion →
+       *   the chips flow down into one stack in a short overlapping wave → one push squares it → rest.
        */
-      const go = 0.455 + ht * 0.012 + Math.abs(j(5)) * 0.05 + (top ? 0.008 : 0);
-      put(R(go), T(leanX, leanY, peakRot, ht), EASE.fall);
-      put(R(go + 0.035), T(off * 0.7 + dir * 1.4, -to * h + 1, peakRot * 0.35 + j(7) * 5, to), EASE.settle);
-      put(R(go + 0.06), T(off, -to * h, j(8) * 6, to), EASE.hold);
-      /* 4: the hand squares the stack: pushed true from the sides, a last small rock */
-      /* 4: squared, roughly: pushed in from the sides once, rocked, and left a touch uneven */
-      put(R(0.7 + j(6) * 0.02), T(off, -to * h, j(8) * 6, to), EASE.slide);
-      put(R(0.79), T(-off * 0.2 + now.x * 0.5, -to * h, now.rot * 0.6, to), EASE.settle);
-      put(R(0.87), T(now.x, -to * h, now.rot, to), EASE.hold);
+      const off = j(2) * 3;                                              /* how far out of line it lands */
+      const landRot = j(8) * 2.5;
+      const apart = T(sx * 1.45, -ht * h, 0, ht);
+      put(R(0), T(was.x, -from * h, was.rot, from), EASE.hold);
+      put(R(0.06), T(was.x, -from * h, was.rot, from), EASE.move);      /* the hand takes the stack */
+      put(R(0.24), apart, EASE.hold);                                     /* the top half slid off sideways, the rest eased the other way */
+      put(R(0.29 + j(4) * 0.01), apart, EASE.move);
+      put(R(0.44), T(leanX, leanY, peakRot, ht), EASE.hold);              /* pushed together and tipped up into the peak, one motion */
+      const go = 0.46 + ht * 0.02 + Math.abs(j(5)) * 0.03 + (top ? 0.01 : 0);
+      put(R(go), T(leanX, leanY, peakRot, ht), EASE.drop);
+      put(R(go + 0.11), T(off, -to * h, landRot, to), EASE.hold);        /* flows down into the stack, a little out of line */
+      put(R(0.72), T(off, -to * h, landRot, to), EASE.move);
+      put(R(0.86), T(now.x, -to * h, now.rot, to), EASE.hold);           /* one push from the sides squares it, never quite true */
     }
-    { const last = { x: (rand((rounds - 1) * 31 + c * 7 + 40) - 0.5) * 2.2, rot: (rand((rounds - 1) * 31 + c * 7 + 41) - 0.5) * 3 };
+    { const last = { x: (rand((rounds - 1) * 31 + c * 7 + 40) - 0.5) * 1.8, rot: (rand((rounds - 1) * 31 + c * 7 + 41) - 0.5) * 2 };
       put(1, T(last.x, -orders[rounds].indexOf(c) * h, last.rot, orders[rounds].indexOf(c))); }
     frames.sort((a, b) => a[0] - b[0]);
     const kf = `@keyframes fb-rf${c}{${frames.map(([pct, t, e]) => `${pct.toFixed(3)}%{${css(t)};animation-timing-function:${e}}`).join('')}}`;
     const origin = `${((cx - vb[0]) * sc).toFixed(1)}px ${((GROUND - 1 - vb[1]) * sc).toFixed(1)}px`;
-    const svg = `<svg viewBox="${vb.join(' ')}" width="${px}" height="${H.toFixed(1)}" style="position:absolute;left:0;top:0;overflow:visible;animation:fb-rf${c} ${(round * rounds).toFixed(1)}s infinite;transform-origin:${origin};${css(T(0, -orders[0].indexOf(c) * h, 0, orders[0].indexOf(c)))}">${chip(P, { cx, by: GROUND - 1, r, h, mat, face: true, seam: true, phase: (c * 17) % 45 })}</svg>`;
+    const svg = `<svg viewBox="${vb.join(' ')}" width="${px}" height="${H.toFixed(1)}" style="position:absolute;left:0;top:0;overflow:visible;will-change:transform;animation:fb-rf${c} ${(round * rounds).toFixed(1)}s infinite;transform-origin:${origin};${css(T(0, -orders[0].indexOf(c) * h, 0, orders[0].indexOf(c)))}">${chip(P, { cx, by: GROUND - 1, r, h, mat, face: true, seam: true, phase: (c * 17) % 45 })}</svg>`;
     return { kf, svg };
   });
   return `<style>
@@ -294,7 +280,7 @@ export default [
       bar: bar('Send myself another') }) },
 
   { id: 'auth-callback-wait', route: '/auth-callback', name: 'Signing you in', nav: 'root',
-    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: an invisible hand riffles the chips as in the owner’s GIF: the top half slid off sideways, the halves pushed back together, peaked at the seam so the chips fall in a single rush, landing tipped and out of line, then squared roughly, never quite true; the colours mix from round to round. Three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
+    note: 'Owner, 22 November: design it, with motion, using the chip stack from Start a session. The whole screen is the ink: an invisible hand riffles the chips as in the owner’s GIF: the top half slid off sideways, the halves pushed back together, peaked at the seam so the chips flow down into one stack in a short overlapping wave, landing a little out of line, then squared with one push, never quite true; every move eased in and out, with no jolts; the colours mix from round to round. Three dots pulse under the words. No bar: nothing to do. "Signed in" / "Taking you back to the club." is the same frame for the moment after, the chip at rest.',
     flags: ['The stack, its motion and the three dots are new: the app shows the two words and nothing else. Motion stops for anyone who has reduced motion turned on.'],
     html: `<div class="fb"><div class="scr" style="justify-content:center;align-items:center;text-align:center;color:#fff">
       <div style="position:absolute;top:0;left:0;right:0;padding:0 18px">${pushRaw({ topHtml: '', body: '' }).match(/<div class="sb">.*?<\/svg><\/div>/)[0]}</div>
