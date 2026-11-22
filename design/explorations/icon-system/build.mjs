@@ -108,13 +108,14 @@ const SLOTS = [
   ['Stand-up game', 'standUpR'], ['Button game', 'buttonD'], ['7-2 game', 'sevenTwo'],
 ];
 /* Reviewed in an earlier round, needed work, and answered since. */
-const EARLIER = ['uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite', 'uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
+const EARLIER = ['markPiggy', 'uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite', 'uiKitchen', 'uiPiggy', 'uiChipsIn', 'uiChipsOut', 'toolsAB', 'straddleK', 'straddleI', 'buttonC', 'buttonGame', 'sessionsJ', 'standUpQ', 'standUpN', 'standUpJ', 'standUpE', 'standUpG', 'standUpI', 'standUpA', 'toolsY', 'toolsV', 'toolsT', 'toolsP', 'sessionsS', 'toolsO', 'sessionsL', 'toolsF', 'toolsI', 'toolsJ', 'toolsK', 'toolsL', 'sessionsO', 'sessionsP', 'group', 'sessionsA', 'sessionsB', 'toolsA', 'toolsB', 'straddleA', 'anteB', 'boosters', 'sessionsD', 'sessionsF', 'straddleF', 'toolsD'];
 /* The first round's drawings that the second replaced outright. */
 const RETIRED = ['ante', 'straddle', 'doubleBoard'];
-const MARKS28 = ['markChipsIn', 'markChipsOut', 'markKitchen', 'markPiggy'];
+const MARKS28 = ['markChipsIn', 'markChipsOut', 'markKitchen'];
+const PIGS = ['markPiggyB', 'markPiggyC', 'markPiggyD'];
 const UI27 = ['uiBill', 'uiSeat', 'uiCashOut', 'uiRules', 'uiPass', 'uiClock', 'uiSettings', 'uiInvite'];
 const MARKS28B = ['markSeat', 'markCashOut', 'markRules', 'markPass', 'markBill', 'markTools', 'markClock', 'markSettings', 'markInvite'];
-const ROUND20 = [...MARKS28, ...MARKS28B, 'straddleM', 'straddleN', 'straddleO', 'straddleP', 'straddleQ', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
+const ROUND20 = [...MARKS28, ...PIGS, ...MARKS28B, 'straddleM', 'straddleN', 'straddleO', 'straddleP', 'straddleQ', 'toolsAE', 'toolsAF', 'toolsAG', 'toolsAH', 'toolsAI', 'toolsAJ', 'toolsAK', 'rulingsB', 'rulingsC', 'rulingsD', 'toolsAL', 'toolsAM', 'toolsAN', 'rulingsE', 'rulingsF', 'toolsAO', 'toolsAP', 'rulingsG', 'buttonB', 'buttonD', 'buttonE', 'toolsAQ', 'toolsAR', 'toolsAS'];
 const shownAbove = new Set([...ROUND20, ...ROUND.flatMap((g) => g[2]), ...DECIDE.flatMap((g) => g[1]), ...APPROVED, ...EARLIER, ...RETIRED]);
 const EARLIER_SHOWN = EARLIER.filter((k) => !ROUND.some((g) => g[2].includes(k)));
 const UNMARKED = Object.keys(SPOTS).filter((k) => !shownAbove.has(k));
@@ -416,8 +417,12 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
   <p>The app draws 47 small icons besides the fifteen you approved. This round sorts all of them and redraws the first thirteen as simple one-tone marks: on Tonight, its Table admin drawer, the results and the menu bar. Approve or comment on each, as before.</p>
   <div class="group"><div class="ghead"><h3>The results: simple, one tone</h3><p>22 November, from your comment on the results row</p></div>
     <p class="quote">“we dont need colored icons here, these should be more simple (in terms of curves and shapes, fewer details but still well designed)”</p>
-    <p>Four solid marks in one grey, in place of the coloured drawings on this screen. Each is one shape with at most one cut-out, drawn to read at 13 points. Chips in is a solid chip and chips out is an open one, so the pair differs by more than the arrow.</p>
-    <div class="grid">${MARKS28.map((k) => cell(k)).join('')}</div></div>
+    <p>Solid marks in one grey, in place of the coloured drawings on this screen. Each is one shape with at most one cut-out, drawn to read at 13 points. Chips in is a solid chip and chips out is an open one, so the pair differs by more than the arrow.</p>
+    <div class="grid">${MARKS28.map((k) => cell(k)).join('')}</div>
+    <p class="quote">On the piggy bank: “reiterate. the way the hole looks feels wrong and check the piggy shapes”</p>
+    <p>The pig is redrawn from plain parts: an oval body, a square snout, a rounded ear, two feet, a curl of tail and an eye. Three ways to show the money, since the flat hole was the fault. B is the one shown in place below.</p>
+    <div class="grid">${PIGS.map((k) => cell(k)).join('')}</div>
+    <div class="at40"><span>At 14 and 18 points, in the text’s grey: B, C, D</span>${['piggyB', 'piggyC', 'piggyD'].map((k) => `<span style="flex-basis:auto;display:inline-flex;gap:8px;align-items:center">${mark(k, 14, '#596171')}${mark(k, 18, '#596171')}</span>`).join('')}</div></div>
   <div class="group"><div class="ghead"><h3>Tonight’s drawer and dock, and the menu bar: simple too</h3><p>22 November, from your two comments</p></div>
     <p class="quote">“for these we don't need that much details in the icons, make them minimalistic” · “these should be more simple”</p>
     <p>The same treatment as the results: nine solid marks, one shape each, in the ink of the label beside them. They replace the eight detailed drawings from yesterday, which are under the earlier rounds. The tools button gets one as well, so every small icon on Tonight is of one kind; the full Rulings drawing stays on its tile.</p>
@@ -430,8 +435,8 @@ ${REVIEW ? `<div class="rvbar" role="status"><b>Review</b><div class="cnt"><span
         <div class="ip-dock"><span class="ip-pri">+ Rebuy</span><span class="ip-sec">${mark('bill', 19, '#141A2A')}Bill</span></div>
       </div><figcaption><b>Tonight</b><span>The tools button, the Table admin drawer, and Bill, at 19 to 20 points.</span></figcaption></figure>
       <figure><div class="mini" style="width:300px">
-        <div class="blist">${[['Dana', '+$1,429', '−110', '−81'], ['Andro', '+$526', '−31 +120', '−23']].map(([n, net, a, b]) => `<div class="brow" style="padding:9px 0"><div class="bt"><div class="bn">${n}</div><div class="bs ip-io">${mark('chipsIn', 13, '#596171')}500 ${mark('chipsOut', 13, '#596171')}2,120</div></div><div class="ip-r"><b>${net}</b><span class="ip-terms">${mark('kitchen', 13, '#596171')}${a} ${mark('piggy', 14, '#596171')}${b}</span></div></div>`).join('')}</div>
-        <div class="ip-ded"><div class="ip-dl">${mark('kitchen', 18, '#596171')}<span>Kitchen &amp; drinks</span><b>$170</b></div><div class="ip-dl">${mark('piggy', 18, '#596171')}<span>Group piggy bank</span><b>$126</b></div></div>
+        <div class="blist">${[['Dana', '+$1,429', '−110', '−81'], ['Andro', '+$526', '−31 +120', '−23']].map(([n, net, a, b]) => `<div class="brow" style="padding:9px 0"><div class="bt"><div class="bn">${n}</div><div class="bs ip-io">${mark('chipsIn', 13, '#596171')}500 ${mark('chipsOut', 13, '#596171')}2,120</div></div><div class="ip-r"><b>${net}</b><span class="ip-terms">${mark('kitchen', 13, '#596171')}${a} ${mark('piggyB', 14, '#596171')}${b}</span></div></div>`).join('')}</div>
+        <div class="ip-ded"><div class="ip-dl">${mark('kitchen', 18, '#596171')}<span>Kitchen &amp; drinks</span><b>$170</b></div><div class="ip-dl">${mark('piggyB', 18, '#596171')}<span>Group piggy bank</span><b>$126</b></div></div>
       </div><figcaption><b>Results</b><span>The four simple marks, in the grey of the text beside them, at 13 and 18 points.</span></figcaption></figure>
       <figure><div class="mini" style="width:300px">
         <div class="ip-bar"><span class="ip-pill">${mark('settings', 20, '#141A2A')}Settings</span><span class="rb">${mark('invite', 20, '#141A2A')}</span><span class="rb">${mark('clock', 20, '#141A2A')}</span></div>
