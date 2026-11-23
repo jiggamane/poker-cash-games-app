@@ -424,3 +424,5 @@ a hidden screen gives nothing away. New feature and new words.
   E a richer blue, F the sheet's blue with the action as a light pill.
 
 - **Dark footer C on ten more screens** (owner): every kind of bar, forced dark, at the top of the board (`dark-c-*`).
+
+- **Content colour in the dark** (`dark-sheet-a` … `f`): six sheet colours, cards a step lighter, footer C following the sheet.

@@ -52,10 +52,26 @@ const MORE = [
   ['payments', 'Who pays whom', 'Mark all as paid.'],
   ['delete-account', 'Delete your account', 'A hold on the bar, with its line under the words.'],
 ];
-export const section = { title: 'This round: the footer in the dark',
-  blurb: 'Dark theme only. First, option C (the sheet’s blue with a soft shadow above) on ten more screens covering every kind of bar, as you asked; then the six options as you saw them.' };
+/*
+ * The content area's colour in the dark (owner, 23 November: "now let's try different options for the
+ * content zone background"). Every option keeps footer C, the bar in the sheet's own colour with a soft
+ * shadow above, so the bar follows whatever the sheet becomes. The cards stay one step lighter than
+ * their sheet, and the top stays darker than it, so the three layers keep their order.
+ */
+const SHEETS = [
+  ['a', 'A · as drawn, ink blue', 'The sheet #171C27, cards #212836: a cool blue-grey, the top near-black above it.', '#0A0D14', '#171C27', '#212836', '#2C3445'],
+  ['b', 'B · deeper navy', 'A darker, bluer sheet (#121726), cards #1C2231: the screen reads darker overall and the cards stand out more.', '#070A11', '#121726', '#1C2231', '#272E3F'],
+  ['c', 'C · neutral charcoal', 'Most of the blue taken out (#1A1C21, cards #24272E): a grey closer to the app’s old near-black, so the red and green carry more of the colour.', '#0B0C0F', '#1A1C21', '#24272E', '#2F333B'],
+  ['d', 'D · richer blue', 'More blue in it (#182238, cards #22304A): the sheet is clearly a colour, not a dark grey, and the top stays near-black for contrast.', '#0A0E1A', '#182238', '#22304A', '#2D3C59'],
+  ['e', 'E · lighter slate', 'A step lighter (#1E2533, cards #29313F): softer, less contrast with the white words, more like a dim room than night.', '#0C1018', '#1E2533', '#29313F', '#353E4F'],
+  ['f', 'F · sheet as deep as the top', 'The sheet nearly as dark as the top (#0F131B, cards #1A2030): one dark ground, the cards doing all the separating; the sheet’s rounded edge is barely seen.', '#06080D', '#0F131B', '#1A2030', '#252C3D'],
+];
+const sheetCss = (top, sheet, card, raised) => `.fb{--top:${top};--sheet:${sheet};--card:${card};--raised:${raised};--bar:${sheet}}\n.fb .bar{box-shadow:0 -12px 24px -10px rgba(0,0,0,.65)}`;
+export const section = { title: 'This round: the content’s colour in the dark, and the footer',
+  blurb: 'Dark theme only. First, six colours for the content area, each with footer C following it; then footer C on ten screens and the six footer options from before.' };
 
 export default [
+  ...SHEETS.map(([k, name, note, top, sheet, card, raised]) => ({ id: `dark-sheet-${k}`, route: '/session', name: `Dark content ${name}`, nav: 'push', wide: true, note, html: pair('s' + k, sheetCss(top, sheet, card, raised)) })),
   ...MORE.map(([id, name, note], i) => ({ id: `dark-c-${id}`, route: ALL[id].route, name: `Dark footer C · ${name}`, nav: ALL[id].nav, note, html: darkC(id, i) })),
   ...OPTIONS.map(([k, name, note, css]) => ({ id: `dark-foot-${k}`, route: '/session', name: `Dark footer ${name}`, nav: 'push', wide: true, note, html: pair(k, css) })),
 ];
