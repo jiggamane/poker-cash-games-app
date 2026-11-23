@@ -28,21 +28,21 @@ const figureCard = ({ eyebrow, net, tone = '', meta, won, lost, avg, avgTone = '
     `<div class="split" style="align-items:flex-start"><span class="muted" style="font:700 11px/1.2 var(--body);letter-spacing:.12em;text-transform:uppercase">${eyebrow}</span><span style="display:flex;gap:12px">${tab('Month', true)}${tab('Year')}${tab('All time')}</span></div>`,
     `<div class="split" style="margin-top:10px"><span class="fig ${tone}" style="font-size:34px">${net}</span><span class="muted num" style="font-size:12px;white-space:nowrap">${meta}</span></div>`,
     `<div class="hr" style="margin:12px 0"></div>`,
-    `<div class="split" style="align-items:flex-end"><div>${cap('Won / lost')}<b class="num" style="font-size:18px"><span class="win">${won} W</span><span class="muted"> · </span><span class="loss">${lost} L</span></b></div>
+    `<div class="split" style="align-items:flex-end"><div>${cap('Won / lost')}<b class="num" style="font-size:18px"><span class="win">${won} W</span><span class="muted"> · </span><span class="red">${lost} L</span></b></div>
       <div style="text-align:right">${cap('Avg / night')}<b class="num ${avgTone}" style="font-size:18px">${avg}</b></div></div>`,
   ], { pad: true, style: 'padding:16px' });
 };
 
 /**
  * The result-per-night graph. cols: [dateLabel, height in px (+ above the line, − below, 0 = break-even)].
- * Up to eight columns, left-aligned at a fixed width. Wins are ink, losses the loss tone: no green fill.
+ * Up to eight columns, left-aligned at a fixed width. Wins are ink, losses red (owner, 23 November): no green fill.
  */
 const chart = (caption, cols) => {
   const W = 266, CW = W / 8, BAND = 38, BW = 15;
   const marks = cols.map(([lbl, h], i) => {
     const cx = i * CW + CW / 2, x = (cx - BW / 2).toFixed(1);
     const b = h > 0 ? `<rect x="${x}" y="${BAND - h}" width="${BW}" height="${h}" rx="3" style="fill:var(--text)"/>`
-      : h < 0 ? `<rect x="${x}" y="${BAND + 1}" width="${BW}" height="${-h}" rx="3" style="fill:var(--loss)"/>`
+      : h < 0 ? `<rect x="${x}" y="${BAND + 1}" width="${BW}" height="${-h}" rx="3" style="fill:var(--red)"/>`
       : `<rect x="${x}" y="${BAND - 2}" width="${BW}" height="2" rx="1" style="fill:var(--muted)"/><rect x="${x}" y="${BAND + 1}" width="${BW}" height="2" rx="1" style="fill:var(--muted)"/><text x="${cx}" y="${BAND - 6}" text-anchor="middle" style="fill:var(--muted);font:700 11px var(--head)">$0</text>`;
     return `${b}<text x="${cx}" y="${BAND * 2 + 15}" text-anchor="middle" style="fill:var(--muted);font:500 9.5px var(--body)">${lbl}</text>`;
   }).join('');
@@ -89,7 +89,7 @@ export default [
       body: [note('No nights yet. One appears here the moment it is settled.')] }) },
 
   { id: 'stats', route: '/stats', name: 'My stats', nav: 'push',
-    note: 'A place, so no bar. The figure card loses its green wash (no green fills) and is a lifted card like the others; win bars are ink, loss bars the loss tone.',
+    note: 'A place, so no bar. The figure card loses its green wash (no green fills) and is a lifted card like the others; win bars are ink, loss bars red.',
     flags: [SEEDED, 'Not captured, written the way the app formats them for that one night: “1 game · 3 h”, “1 W · 0 L”, “+$526” average, “Last 1 night”, “20 Nov”.',
       'The app tints the figure card with the win colour whatever the figure is. The approved look has no green fills, so the tint is gone: confirm.'],
     html: push({ title: 'My stats', trailing: scopeLabel('All groups'),
@@ -112,7 +112,7 @@ export default [
         nights([
           { date: 'Sat 15 Aug', net: '+$540', tone: 'win', group: 'The poker club', players: 7, time: '4h 20m' },
           { date: 'Wed 12 Aug', net: '+$180', tone: 'win', group: 'Office game', players: 5, time: '3h 00m' },
-          { date: 'Fri 8 Aug', net: '−$60', tone: 'loss', group: 'The poker club', players: 8, time: '5h 10m' },
+          { date: 'Fri 8 Aug', net: '−$60', tone: 'red', group: 'The poker club', players: 8, time: '5h 10m' },
           { date: 'Tue 5 Aug', net: '+$40', tone: 'win', group: 'Office game', players: 6, time: '2h 45m' },
         ]),
       ] }) },
