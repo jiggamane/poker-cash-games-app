@@ -389,3 +389,5 @@ a hidden screen gives nothing away. New feature and new words.
   matches the walkthrough's last page, with Scan the QR code.
 - Approved: walkthrough pages 2 and 3, Reset the code, Game details (both),
   Open a game, the second session.
+
+- **Hide control**, settled and approved as drawn: at the right of the label row, the eye just left of its word. The split alternative is off the board.
