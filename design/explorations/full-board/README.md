@@ -413,3 +413,5 @@ a hidden screen gives nothing away. New feature and new words.
   once under the title; Add seats the player prefilled at it, the row glows a
   moment; tapping the figure selects it for retyping; a different amount says
   how far off the standard ("$500 above the standard", the app's words).
+
+- **Add players, keypad only on a tap** (owner): adding sets the standard buy-in and opens nothing; the keypad appears only when the figure is tapped.
