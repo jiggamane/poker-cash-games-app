@@ -368,3 +368,14 @@ a hidden screen gives nothing away. New feature and new words.
 
 - **Hide control**: just the eye (owner), open while the money shows and struck
   through while hidden; "Hide amounts" / "Show amounts" for screen readers only.
+
+## Board order (23 November, owner)
+
+1. **Updated in the last round**, always first: every screen changed at or
+   after `LATEST` in `progress.mjs` (move it forward each round), shown
+   whatever its verdict.
+2. Where review stands, and the look as a whole.
+3. **To review**: every screen not yet approved, by section, in the app's
+   order.
+4. **Approved**: the rest, by section. A screen moves between the two live as
+   verdicts change, never while a comment box has the focus.

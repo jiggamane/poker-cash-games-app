@@ -14,7 +14,7 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CSS, FONTS } from './kit.mjs';
-import { SNAPSHOT, ADDRESSED, DECIDED, SHOW, renderProgress } from './progress.mjs';
+import { SNAPSHOT, ADDRESSED, DECIDED, SHOW, LATEST, renderProgress } from './progress.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const artifactAt = process.argv.includes('--artifact') ? process.argv[process.argv.indexOf('--artifact') + 1] : null;
@@ -82,14 +82,17 @@ const reviewBlock = (key, labelText, rows = 2) => `<div class="rv" data-key="${k
       <span class="rvs" aria-live="polite"></span>
     </div>`;
 
-const cell = (s, copy = '') => `<figure class="cell scr-cell${s.wide ? ' wide' : ''}${copy ? ' upd' : ''}" data-key="${s.id}" id="${copy ? 'u' : 's'}-${s.id}"${copy ? ` data-upd="${s.id}"` : ''}>${copy ? `<div class="upd-what"><b>What changed</b>${esc(copy)}</div>` : ''}
+const ORDER = new Map(all.map((x, i) => [x.id, i]));
+const cell = (s, copy = '') => `<figure class="cell scr-cell${s.wide ? ' wide' : ''}${copy ? ' upd' : ''}" data-key="${s.id}" data-order="${ORDER.get(s.id)}" id="${copy ? 'u' : 's'}-${s.id}"${copy ? ` data-upd="${s.id}"` : ''}>${copy ? `<div class="upd-what"><b>What changed</b>${esc(copy)}</div>` : ''}
   <div class="pg-ph">${s.html}</div>
   <figcaption><b>${esc(s.name)}</b><span class="pg-meta"><code>${esc(s.route)}</code> · ${NAV[s.nav] ?? s.nav}</span>${
     s.note ? `<span class="pg-nt">${esc(s.note)}</span>` : ''}${
     (s.flags ?? []).map((f) => `<span class="pg-flag">${esc(f)}</span>`).join('')}</figcaption>
   ${REVIEW ? reviewBlock(s.id, s.name) : ''}</figure>`;
 
-const PDATA = { show: SHOW, screens: sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, x.name, i])), sections: sections.map((x) => x.title), addressed: ADDRESSED, decided: DECIDED };
+const isApproved = (id, v) => (v[id] || [])[0] === 'approved';
+const SECOF = Object.fromEntries(sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, i])));
+const PDATA = { secOf: SECOF, show: SHOW, screens: sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, x.name, i])), sections: sections.map((x) => x.title), addressed: ADDRESSED, decided: DECIDED };
 const needsLook = (id, v) => { const x = v[id]; const fix = ADDRESSED[id]; const picked = (SHOW[id] || []).some((c) => (v[c] || [])[0] === 'approved'); return !!fix && !picked && (!x || x[0] !== 'approved'); };
 const flagged = all.filter((s) => (s.flags ?? []).length);
 
@@ -164,6 +167,11 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 .upd-what{font-size:12.5px;line-height:1.4;color:var(--fg);background:var(--panel);border-radius:10px;padding:8px 10px;box-shadow:inset 3px 0 0 var(--accent)}
 .upd-what b{display:block;font:700 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
 .pg-none{font-style:italic}
+.pg-zone{display:flex;flex-direction:column}
+.pg-zone-h{font:800 30px/1.1 var(--head);letter-spacing:-.025em;margin:56px 0 4px;padding-top:18px;border-top:2px solid var(--fg)}
+.pg-zone-p{margin:0;max-width:74ch;color:var(--muted)}
+.pg-sec:not(:has(figure:not([hidden])))> *{display:none}.pg-sec:not(:has(figure:not([hidden]))){margin:0}
+#zone-ok .pg-sec h2{font-size:19px}
 .upd-noted{font:600 12px var(--body);color:var(--warn);padding:0 6px}
 .upd[hidden],.pg-none[hidden]{display:none!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -184,26 +192,33 @@ ${CSS}
   </div>
   <div class="pg-strip" role="group" aria-label="Board controls">
     <div class="pg-mode" role="group" aria-label="Phone theme"><button type="button" id="m-light" aria-pressed="true">Light</button><button type="button" id="m-dark" aria-pressed="false">Dark</button></div>
-    <nav aria-label="Sections"><a href="#sec-updates">Updated for you</a><a href="#sec-progress">Where review stands</a>${sections.map((s, i) => `<a href="#sec-${i}">${esc(s.title)}</a>`).join('')}${flagged.length ? `<a href="#sec-open">Open questions</a>` : ''}</nav>
+    <nav aria-label="Sections"><a href="#sec-updates">Last round</a><a href="#sec-progress">Where review stands</a><a href="#zone-review"><b>To review</b></a>${sections.map((s, i) => `<a href="#sec-${i}">${esc(s.title)}</a>`).join('')}<a href="#zone-ok"><b>Approved</b></a>${flagged.length ? `<a href="#sec-open">Open questions</a>` : ''}</nav>
     ${REVIEW ? `<div class="cnt" role="status"><span id="cA">0 approved</span><span id="cC">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span>` : ''}
   </div>
 </header>
 
-<section id="sec-updates"><h2>Updated since your last look</h2>
-  <p>Every screen I changed after your note, gathered here so nothing is missed. Each also stays in its place below. Approve it here or there and it leaves this section; a new note keeps it here, marked, until I have changed it again. Nothing moves while you are typing. <b>Also everywhere:</b> every money figure on the board is now set in the figure face, Libre Franklin, whatever line it sits in (949 figures, none left in the text face).</p>
-  <div class="pg-grid" id="upd-grid">${all.filter((x) => ADDRESSED[x.id]).map((x) => (SHOW[x.id] ? SHOW[x.id].map((id, n) => all.find((y) => y.id === id)).filter(Boolean).map((y, n) => cell(y, n === 0 ? ADDRESSED[x.id][0] : `For “${x.name}”: concept ${n + 1} of ${SHOW[x.id].length}.`).replace(`data-upd="${y.id}"`, `data-upd="${x.id}"`)) : [cell(x, ADDRESSED[x.id][0])]).map((h) => h.replace('<figure ', needsLook(x.id, SNAPSHOT) ? '<figure ' : '<figure hidden ')).join('')).join('')}</div>
-  <p id="upd-none" class="pg-none" hidden>Nothing waiting: every change has a verdict.</p>
+<section id="sec-updates"><h2>Updated in the last round</h2>
+  <p>The screens I changed in the last round, always first. They stay here until the next round replaces them, whatever their verdict; each is also in its place below.</p>
+  <div class="pg-grid" id="upd-grid">${all.filter((x) => ADDRESSED[x.id] && ADDRESSED[x.id][1] >= LATEST).map((x) => (SHOW[x.id] ? SHOW[x.id].map((id) => all.find((y) => y.id === id)).filter(Boolean).map((y, n) => cell(y, n === 0 ? ADDRESSED[x.id][0] : `For “${x.name}”: ${n + 1} of ${SHOW[x.id].length}.`).replace(`data-upd="${y.id}"`, `data-upd="${x.id}"`)) : [cell(x, ADDRESSED[x.id][0])]).join('')).join('')}</div>
 </section>
 
 <section id="sec-progress"><h2>Where review stands</h2><div class="pg-progress"><div id="pp-body">${renderProgress(PDATA, SNAPSHOT)}</div><span class="pp-live" id="pp-live">As of the last build. ${REVIEW ? 'Updates as you review.' : ''}</span></div></section>
 
 ${REVIEW ? `<section><figure class="cell pg-general" data-key="general"><figcaption><b>The look as a whole</b><span>Approve here if the system is right and only single screens need work, or leave a note that applies to all of them.</span></figcaption>${reviewBlock('general', 'the look as a whole', 3)}</figure></section>` : ''}
 
-${sections.map((s, i) => `<section id="sec-${i}">
+<div class="pg-zone" id="zone-review"><h2 class="pg-zone-h">To review</h2><p class="pg-zone-p">Every screen without your approval, in the app’s order. A screen you approve moves down to Approved once you are not typing.</p>
+${sections.map((s, i) => `<section id="sec-${i}" class="pg-sec">
   <h2>${esc(s.title)}</h2>
   <p>${esc(s.blurb ?? '')}</p>
-  <div class="pg-grid">${s.screens.map((x) => cell(x)).join('')}</div>
+  <div class="pg-grid" data-zone="review" data-sec="${i}">${s.screens.filter((x) => !isApproved(x.id, SNAPSHOT)).map((x) => cell(x)).join('')}</div>
 </section>`).join('\n')}
+</div>
+<div class="pg-zone" id="zone-ok"><h2 class="pg-zone-h">Approved</h2><p class="pg-zone-p">Screens you have approved, by section.</p>
+${sections.map((s, i) => `<section id="sec-ok-${i}" class="pg-sec">
+  <h2>${esc(s.title)}</h2>
+  <div class="pg-grid" data-zone="ok" data-sec="${i}">${s.screens.filter((x) => isApproved(x.id, SNAPSHOT)).map((x) => cell(x)).join('')}</div>
+</section>`).join('\n')}
+</div>
 
 ${flagged.length ? `<section id="sec-open">
   <h2>Open questions</h2>
@@ -246,20 +261,23 @@ ${REVIEW ? `<script>
       if (typing()) { pending = true; return; }
       pending = false;
       body.innerHTML = render(D, V);
-      let shown = 0;
       document.querySelectorAll('[data-upd]').forEach((el) => {
         const id = el.dataset.upd, x = V[id] || [], fix = D.addressed[id];
-        const picked = (D.show[id] || []).some((c) => (V[c] || [])[0] === 'approved') || x[0] === 'approved';
-        const working = el.contains(document.activeElement);
-        const hide = !working && (!fix || picked);
-        el.hidden = hide;
         const noted = x[0] === 'changes' && fix && x[2] > fix[1];
         let tag = el.querySelector('.upd-noted');
         if (noted && !tag) { tag = document.createElement('div'); tag.className = 'upd-noted'; tag.textContent = 'Your note is with Claude'; el.querySelector('.upd-what')?.after(tag); }
         if (!noted && tag) tag.remove();
-        if (!hide) shown++;
       });
-      document.getElementById('upd-none').hidden = shown > 0;
+      /* Move each original screen to the zone its verdict puts it in, back into its place in the app's order. */
+      document.querySelectorAll('figure.scr-cell:not(.upd)').forEach((el) => {
+        if (el.contains(document.activeElement)) return;
+        const ok = (V[el.dataset.key] || [])[0] === 'approved';
+        const grid = document.querySelector('.pg-grid[data-zone="' + (ok ? 'ok' : 'review') + '"][data-sec="' + D.secOf[el.dataset.key] + '"]');
+        if (!grid || el.parentElement === grid) return;
+        const n = +el.dataset.order;
+        const after = [...grid.children].find((c) => +c.dataset.order > n);
+        grid.insertBefore(el, after || null);
+      });
       live.textContent = 'Live: updates as you review.';
     };
     document.addEventListener('focusout', () => setTimeout(() => { if (pending) apply(); }, 0));
