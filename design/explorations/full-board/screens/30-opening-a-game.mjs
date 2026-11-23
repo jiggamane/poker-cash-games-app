@@ -57,10 +57,11 @@ const plan = (name, price, body, { tag = '', mine = false } = {}) =>
  * rows on a form: the price large, what it buys under it. Full is the ink card, because it is the one
  * that opens tonight with no limit; your own plan is marked and set back.
  */
+/* chosen: the ink card is the plan picked, with its tick; the bar names it and is live. */
 const planCard = (name, price, per, body, { tag = '', ink = false, dim = false } = {}) =>
   `<div class="card pad" style="display:grid;gap:6px;${ink ? 'background:var(--pri);color:var(--onpri);box-shadow:var(--lift)' : ''}${dim ? 'opacity:.62' : ''}">
-    <div style="display:flex;align-items:center;gap:8px"><b style="font:700 17px/1 var(--head)">${name}</b>${tag ? `<span style="font:700 10px/1 var(--body);letter-spacing:.1em;padding:4px 7px;border-radius:7px;box-shadow:inset 0 0 0 1px ${ink ? 'currentColor' : 'var(--outline)'};opacity:.8">${tag}</span>` : ''}
-      <span style="margin-left:auto;display:flex;align-items:baseline;gap:3px"><span class="num" style="font:800 24px/1 var(--head);letter-spacing:-.02em">${price}</span>${per ? `<span style="font-size:12px;opacity:.7">${per}</span>` : ''}</span></div>
+    <div style="display:flex;align-items:center;gap:8px">${ink ? `<span style="width:20px;height:20px;border-radius:50%;background:var(--onpri);color:var(--pri);display:grid;place-items:center;flex:none">${ico('check', 13)}</span>` : `<span style="width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--outline);flex:none;${dim ? 'opacity:.5' : ''}"></span>`}<b style="font:700 17px/1 var(--head)">${name}</b>${tag ? `<span style="font:700 10px/1 var(--body);letter-spacing:.1em;padding:4px 7px;border-radius:7px;box-shadow:inset 0 0 0 1px ${ink ? 'currentColor' : 'var(--outline)'};opacity:.8">${tag}</span>` : ''}
+      <span style="margin-left:auto;display:flex;align-items:baseline;gap:3px;white-space:nowrap"><span class="num" style="font:800 24px/1 var(--head);letter-spacing:-.02em">${price}</span>${per ? `<span style="font-size:12px;opacity:.7">${per}</span>` : ''}</span></div>
     <div style="font-size:13px;line-height:1.4;opacity:.75">${body}</div></div>`;
 const gateHero = `<div style="display:flex;align-items:center;gap:14px;margin:-4px 0 2px"><span style="flex:none">${art('session', 84)}</span><p class="lead-p" style="font-size:14.5px">Running a game takes a paid membership. Watching, and your place in the group, stay free.</p></div>`;
 
@@ -133,11 +134,11 @@ export default [
       bar: bar('Done', { line: '$1,800 on the table' }) }) },
 
   { id: 'new-night-second', route: '/new-night', name: 'New session · a second table', nav: 'sheet', allowOverflow: true,
-    note: 'Owner, 22 November: no name to type, and the name made from the day of the week. The table is called for you, “Friday, table 2”, beside the one already open; nothing blocks the bar. The first table of a night is simply “Friday”. The sheet scrolls: the rest of the group runs on under the bar.',
-    flags: ['The app asks for a table name when a night is already open and blocks Open the table until it has one (“Name this table”); naming it from the day is a change to new-night.tsx.', '“Friday, table 2” and “Friday, table 1 is open” are draft; the day is the night’s own (the board’s night is Friday 20 November).', 'Open: can the automatic name be changed, or is it fixed?'],
+    note: 'Owner, 23 November: a session is named for its day, “Friday session”; another the same day adds a number, “Friday session 2”, then 3 and so on. Nothing to type; nothing blocks the bar. The sheet scrolls: the rest of the group runs on under the bar.',
+    flags: ['The app asks for a table name when a night is already open and blocks Open the table until it has one (“Name this table”); naming it from the day is a change to new-night.tsx.', '“Friday session 2” and “Friday session is open” follow the owner’s rule; the day is the night’s own (the board’s night is Friday 20 November).', 'Open: can the automatic name be changed, or is it fixed?'],
     html: sheet({ behind: BEHIND, title: 'New session', sub: GROUP, tall: true,
       body: [
-        `<div class="card pad" style="padding:10px 12px"><div style="font:700 10.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">This table</div><div style="font:700 17px/1.2 var(--head);margin-top:5px;white-space:nowrap">Friday, table 2</div><div class="muted" style="font-size:12px;display:flex;align-items:center;gap:6px;margin-top:4px"><i style="width:7px;height:7px;border-radius:50%;background:var(--win);display:block"></i>Friday, table 1 is open</div></div>`,
+        `<div class="card pad" style="padding:10px 12px"><div style="font:700 10.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">This table</div><div style="font:700 17px/1.2 var(--head);margin-top:5px;white-space:nowrap">Friday session 2</div><div class="muted" style="font-size:12px;display:flex;align-items:center;gap:6px;margin-top:4px"><i style="width:7px;height:7px;border-radius:50%;background:var(--win);display:block"></i>Friday session is open</div></div>`,
         ...seatedBody,
       ],
       bar: bar('Open the table · 3 seated', { line: '$1,800 on the table' }) }) },
@@ -272,30 +273,28 @@ export default [
       bar: bar('Done · 3 seated') }) },
 
   { id: 'new-night-gate', route: '/new-night', name: 'Open a game · no membership', nav: 'sheet',
-    note: 'Redesigned to invite (owner, 22 November): the start-a-session drawing and the reason first, then three plan cards with the price large. Full is the ink card. Buying a plan is not built, so the bar stays blocked; Not now is the way out.',
-    flags: ['Not reachable in the app today (every phone reads as Full), so drawn from source, not from a capture.', 'The handoff marks INCLUDED / YOURS and the plan wording among its UNSURE strings.', 'Full drawn as the ink card is a design choice: it leans the sheet toward one plan. Say if all three should be equal.'],
+    note: 'Owner, 23 November: a chosen plan should not leave the bar looking dead, and Not now repeats the close. The ink card is the plan chosen, with its tick (Full, preselected as the one that opens tonight); tapping another card moves the tick. The bar names the choice and is live. Not now is gone: the X closes the sheet.',
+    flags: ['Not reachable in the app today (every phone reads as Full), so drawn from source, not from a capture.', '“Get Full · $9.99 a month” is draft: buying a plan is not built in the app, whose blocked bar reads “Choose a plan to open a game”.', 'Preselecting Full is a design choice; say if nothing should be chosen until a card is tapped.'],
     html: sheet({ behind: BEHIND, title: 'Open a game', tall: true,
       body: [
         gateHero,
         planCard('Free', '$0', '', 'Tonight, and the last three games.', { tag: 'INCLUDED', dim: true }),
         planCard('Regular', '$2.49', '/ mo', 'Every night in the book, the ones you missed included, and one night as host each month.'),
         planCard('Full', '$9.99', '/ mo', 'Everything in Regular, and you run games as often as you like.', { ink: true }),
-        `<div class="btnq">Not now</div>`,
       ],
-      bar: bar('Choose a plan to open a game', { blocked: true }) }) },
+      bar: bar('Get Full · $9.99 a month') }) },
 
   { id: 'new-night-gate-used', route: '/new-night', name: 'Open a game · host night used', nav: 'sheet',
-    note: 'A Regular who has spent this month’s host night, in the same inviting layout. Free is left off; waiting is the secondary.',
-    flags: ['The month and the date (November, 1 December) are computed by the app from today and the renewal date; these are examples, not captured.', 'Not reachable in the app today, so drawn from source. “Wait for …” and YOURS are UNSURE in the handoff.'],
+    note: 'A Regular who has spent this month’s host night, in the same layout: Full chosen and the bar live; waiting is what the close does, so its button is gone.',
+    flags: ['The month and the date (November, 1 December) are computed by the app from today and the renewal date; these are examples, not captured.', 'Not reachable in the app today, so drawn from source. “Get Full · $9.99 a month” is draft.'],
     html: sheet({ behind: BEHIND, title: 'Open a game', tall: true,
       body: [
         gateHero.replace('Running a game takes a paid membership. Watching, and your place in the group, stay free.', 'You’ve used your host night for November. It comes back on 1 December.'),
         planCard('Regular', '$2.49', '/ mo', 'Every night in the book, the ones you missed included, and one night as host each month.', { tag: 'YOURS', dim: true }),
         planCard('Full', '$9.99', '/ mo', 'Everything in Regular, and you run games as often as you like.', { ink: true }),
         note('You can still watch any game and see its money live.'),
-        button('Wait for 1 December'),
       ],
-      bar: bar('Choose Full to open tonight', { blocked: true }) }) },
+      bar: bar('Get Full · $9.99 a month') }) },
 
   { id: 'new-night-host-night', route: '/new-night', name: 'New session · spends a host night', nav: 'sheet', allowOverflow: true,
     note: 'A Regular with the host night still free: one note block on top of New session as it is. See Full opens the gate. The sheet scrolls: the rest of the group runs on under the bar.',

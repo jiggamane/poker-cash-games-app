@@ -90,7 +90,7 @@ const cell = (s, copy = '') => `<figure class="cell scr-cell${s.wide ? ' wide' :
   ${REVIEW ? reviewBlock(s.id, s.name) : ''}</figure>`;
 
 const PDATA = { show: SHOW, screens: sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, x.name, i])), sections: sections.map((x) => x.title), addressed: ADDRESSED, decided: DECIDED };
-const needsLook = (id, v) => { const x = v[id]; const fix = ADDRESSED[id]; return !!fix && (!x || x[0] !== 'approved') && !(x && x[0] === 'changes' && x[2] > fix[1]); };
+const needsLook = (id, v) => { const x = v[id]; const fix = ADDRESSED[id]; const picked = (SHOW[id] || []).some((c) => (v[c] || [])[0] === 'approved'); return !!fix && !picked && (!x || x[0] !== 'approved'); };
 const flagged = all.filter((s) => (s.flags ?? []).length);
 
 const page = () => `<title>Poker Club Full Board</title>
@@ -164,6 +164,7 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 .upd-what{font-size:12.5px;line-height:1.4;color:var(--fg);background:var(--panel);border-radius:10px;padding:8px 10px;box-shadow:inset 3px 0 0 var(--accent)}
 .upd-what b{display:block;font:700 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
 .pg-none{font-style:italic}
+.upd-noted{font:600 12px var(--body);color:var(--warn);padding:0 6px}
 .upd[hidden],.pg-none[hidden]{display:none!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 ${CSS}
@@ -189,7 +190,7 @@ ${CSS}
 </header>
 
 <section id="sec-updates"><h2>Updated since your last look</h2>
-  <p>Every screen I changed after your note, gathered here so nothing is missed. Each also stays in its place below. Approve it here or there, or note it again; it leaves this section either way. <b>Also everywhere:</b> every money figure on the board is now set in the figure face, Libre Franklin, whatever line it sits in (949 figures, none left in the text face).</p>
+  <p>Every screen I changed after your note, gathered here so nothing is missed. Each also stays in its place below. Approve it here or there and it leaves this section; a new note keeps it here, marked, until I have changed it again. Nothing moves while you are typing. <b>Also everywhere:</b> every money figure on the board is now set in the figure face, Libre Franklin, whatever line it sits in (949 figures, none left in the text face).</p>
   <div class="pg-grid" id="upd-grid">${all.filter((x) => ADDRESSED[x.id]).map((x) => (SHOW[x.id] ? SHOW[x.id].map((id, n) => all.find((y) => y.id === id)).filter(Boolean).map((y, n) => cell(y, n === 0 ? ADDRESSED[x.id][0] : `For “${x.name}”: concept ${n + 1} of ${SHOW[x.id].length}.`).replace(`data-upd="${y.id}"`, `data-upd="${x.id}"`)) : [cell(x, ADDRESSED[x.id][0])]).map((h) => h.replace('<figure ', needsLook(x.id, SNAPSHOT) ? '<figure ' : '<figure hidden ')).join('')).join('')}</div>
   <p id="upd-none" class="pg-none" hidden>Nothing waiting: every change has a verdict.</p>
 </section>
@@ -230,22 +231,45 @@ ${REVIEW ? `<script>
   (async () => {
     let db = null; try { db = await window.claude?.use?.('db'); } catch (e) {}
     if (!db) return;
+    /*
+     * Nothing moves under the reviewer's hands (owner, 23 November: a card jumped from "to review"
+     * as soon as a comment began, before it was finished). So:
+     *   - a card in "Updated since your last look" leaves ONLY when it is approved; a note, however
+     *     new, keeps it where it is, marked "Your note is with Claude";
+     *   - nothing is re-laid out while a comment box has the focus: the panel and the cards wait,
+     *     and catch up when the typing stops (the box loses focus);
+     *   - a card the reviewer is working in never hides, even if approved from another window.
+     */
+    const typing = () => document.activeElement && document.activeElement.tagName === 'TEXTAREA';
+    let pending = false;
+    const apply = () => {
+      if (typing()) { pending = true; return; }
+      pending = false;
+      body.innerHTML = render(D, V);
+      let shown = 0;
+      document.querySelectorAll('[data-upd]').forEach((el) => {
+        const id = el.dataset.upd, x = V[id] || [], fix = D.addressed[id];
+        const picked = (D.show[id] || []).some((c) => (V[c] || [])[0] === 'approved') || x[0] === 'approved';
+        const working = el.contains(document.activeElement);
+        const hide = !working && (!fix || picked);
+        el.hidden = hide;
+        const noted = x[0] === 'changes' && fix && x[2] > fix[1];
+        let tag = el.querySelector('.upd-noted');
+        if (noted && !tag) { tag = document.createElement('div'); tag.className = 'upd-noted'; tag.textContent = 'Your note is with Claude'; el.querySelector('.upd-what')?.after(tag); }
+        if (!noted && tag) tag.remove();
+        if (!hide) shown++;
+      });
+      document.getElementById('upd-none').hidden = shown > 0;
+      live.textContent = 'Live: updates as you review.';
+    };
+    document.addEventListener('focusout', () => setTimeout(() => { if (pending) apply(); }, 0));
     db.collection('reviews').onSnapshot((snap) => {
       for (const ch of snap.docChanges()) {
         const x = ch.doc.data() || {};
         if (ch.type === 'removed') delete V[ch.doc.id];
         else V[ch.doc.id] = [x.status || '', x.comment || '', x.updatedAt || ''];
       }
-      body.innerHTML = render(D, V);
-      let shown = 0;
-      document.querySelectorAll('[data-upd]').forEach((el) => {
-        const id = el.dataset.upd, x = V[id], fix = D.addressed[id];
-        const picked = (D.show[id] || []).some((c) => (V[c] || [])[0] === 'approved');
-        const show = !picked && !!fix && (!x || x[0] !== 'approved') && !(x && x[0] === 'changes' && x[2] > fix[1]);
-        el.hidden = !show; if (show) shown++;
-      });
-      document.getElementById('upd-none').hidden = shown > 0;
-      live.textContent = 'Live: updates as you review.';
+      apply();
     }, () => { live.textContent = 'Live updates stopped. Reload the page to reconnect.'; });
   })();
 })();
