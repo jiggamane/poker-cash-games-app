@@ -417,3 +417,8 @@ a hidden screen gives nothing away. New feature and new words.
 - **Add players, keypad only on a tap** (owner): adding sets the standard buy-in and opens nothing; the keypad appears only when the figure is tapped.
 
 - **Add players, one line per player** (owner): no tick and no line under the name. The figure carries the difference: muted at the standard, full ink when changed.
+
+- **The footer in the dark** (`screens/06-dark-footer.mjs`), six options on
+  Tonight and the settled night: A near-black (as drawn), B the sheet's blue
+  with a hairline, C with a soft shadow, D a step lighter (the cards' blue),
+  E a richer blue, F the sheet's blue with the action as a light pill.
