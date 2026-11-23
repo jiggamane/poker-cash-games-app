@@ -391,3 +391,10 @@ a hidden screen gives nothing away. New feature and new words.
   Open a game, the second session.
 
 - **Hide control**, settled and approved as drawn: at the right of the label row, the eye just left of its word. The split alternative is off the board.
+
+## Round fifteen (23 November)
+
+- **Open a game** (both): the plan's tag moved to the start of its description,
+  so the name and the price never collide ("$2.49 / mo" against YOURS).
+- **Add players**: four versions of the buy-in entry and the Add control, at
+  the top of the board (`players-add-a` … `d`).

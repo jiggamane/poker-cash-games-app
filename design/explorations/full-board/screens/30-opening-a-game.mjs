@@ -57,12 +57,12 @@ const plan = (name, price, body, { tag = '', mine = false } = {}) =>
  * rows on a form: the price large, what it buys under it. Full is the ink card, because it is the one
  * that opens tonight with no limit; your own plan is marked and set back.
  */
-/* chosen: the ink card is the plan picked, with its tick; the bar names it and is live. */
+/* chosen: the ink card is the plan picked, with its tick; the bar names it and is live. The tag (INCLUDED, YOURS) sits at the start of the description, so the name and the price never meet (owner, 23 November). */
 const planCard = (name, price, per, body, { tag = '', ink = false, dim = false } = {}) =>
   `<div class="card pad" style="display:grid;gap:6px;${ink ? 'background:var(--pri);color:var(--onpri);box-shadow:var(--lift)' : ''}${dim ? 'opacity:.62' : ''}">
-    <div style="display:flex;align-items:center;gap:8px">${ink ? `<span style="width:20px;height:20px;border-radius:50%;background:var(--onpri);color:var(--pri);display:grid;place-items:center;flex:none">${ico('check', 13)}</span>` : `<span style="width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--outline);flex:none;${dim ? 'opacity:.5' : ''}"></span>`}<b style="font:700 17px/1 var(--head)">${name}</b>${tag ? `<span style="font:700 10px/1 var(--body);letter-spacing:.1em;padding:4px 7px;border-radius:7px;box-shadow:inset 0 0 0 1px ${ink ? 'currentColor' : 'var(--outline)'};opacity:.8">${tag}</span>` : ''}
+    <div style="display:flex;align-items:center;gap:8px">${ink ? `<span style="width:20px;height:20px;border-radius:50%;background:var(--onpri);color:var(--pri);display:grid;place-items:center;flex:none">${ico('check', 13)}</span>` : `<span style="width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--outline);flex:none;${dim ? 'opacity:.5' : ''}"></span>`}<b style="font:700 17px/1 var(--head);white-space:nowrap">${name}</b>
       <span style="margin-left:auto;display:flex;align-items:baseline;gap:3px;white-space:nowrap"><span class="num" style="font:800 24px/1 var(--head);letter-spacing:-.02em">${price}</span>${per ? `<span style="font-size:12px;opacity:.7">${per}</span>` : ''}</span></div>
-    <div style="font-size:13px;line-height:1.4;opacity:.75">${body}</div></div>`;
+    <div style="font-size:13px;line-height:1.4;opacity:.75">${tag ? `<span style="display:inline-block;vertical-align:1px;margin-right:6px;font:700 9.5px/1 var(--body);letter-spacing:.1em;padding:3px 6px;border-radius:6px;box-shadow:inset 0 0 0 1px ${ink ? 'currentColor' : 'var(--outline)'}">${tag}</span>` : ''}${body}</div></div>`;
 const gateHero = `<div style="display:flex;align-items:center;gap:14px;margin:-4px 0 2px"><span style="flex:none">${art('session', 84)}</span><p class="lead-p" style="font-size:14.5px">Running a game takes a paid membership. Watching, and your place in the group, stay free.</p></div>`;
 
 
@@ -257,7 +257,7 @@ export default [
       ],
       bar: bar('Done') }) },
 
-  { id: 'new-night-players', route: '/new-night', name: 'Add players', nav: 'sheet',
+  { id: 'new-night-players', route: '/new-night', name: 'Add players', nav: 'sheet', flags: ['Four versions of the buy-in and the Add are at the top of the board, under This round.'],
     note: 'Behind Someone new: search the roster, or type a name that is not on it. The app’s filled Add pills are outlined here; the bar is the only filled thing. The app also sets 3 seated beside the title; the bar already says it, so it is left off here.',
     html: sheet({ behind: BEHIND, title: 'Add players', tall: true, stepBack: true,
       body: [
