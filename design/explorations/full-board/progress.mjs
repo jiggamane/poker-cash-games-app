@@ -13,11 +13,9 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-23T15:00:00Z';
+export const LATEST = '2026-11-23T15:30:00Z';
 
 export const ADDRESSED = {
-  'dark-sheet-a': ['Six colours for the content area in the dark, each with footer C following it: as drawn, deeper navy, neutral charcoal, richer blue, lighter slate, and a sheet as deep as the top.', '2026-11-23T15:05:00Z'],
-  'dark-foot-c': ['Option C on ten more screens, every kind of bar: Tonight with the drawer open, Home, New session, a rebuy, a blocked bar, the walkthrough’s two halves, Count up, Settle up, Who pays whom, Delete your account.', '2026-11-23T14:55:00Z'],
   'new-group-players': ['The bar reads Create the group, without the group’s name.', '2026-11-23T13:50:00Z'],
   'new-night-players': ['One line per player: the tick and the line under each name are gone. A buy-in at the standard sits muted; a changed one is full ink. Every frame redrawn.', '2026-11-23T14:25:00Z'],
   'new-night-gate-used': ['Nine new screens for changing a plan from Settings: your plan on Regular, moving up, on Full, moving down, moving to Free, a change waiting, on Free, Home after a plan ran out, and a founder’s plan.', '2026-11-23T13:50:00Z'],
@@ -43,9 +41,10 @@ export const ADDRESSED = {
 };
 
 /* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
-export const SHOW = { 'dark-sheet-a': ['dark-sheet-a', 'dark-sheet-b', 'dark-sheet-c', 'dark-sheet-d', 'dark-sheet-e', 'dark-sheet-f'], 'dark-foot-c': ['dark-c-session-admin', 'dark-c-home', 'dark-c-new-night-seated', 'dark-c-log-rebuy', 'dark-c-seat-empty', 'dark-c-groups-empty', 'dark-c-count-up-off', 'dark-c-settle-up', 'dark-c-payments', 'dark-c-delete-account'], 'new-night-players': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-amount', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-amount', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
+export const SHOW = { 'new-night-players': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-amount', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-amount', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
 
 export const DECIDED = [
+  ['The dark theme’s colours', 'the ink-blue sheet as drawn, and the footer in the same blue with a soft shadow above, on every screen'],
   ['Home’s footer', 'as drawn: the ink bar with its three controls'],
   ['The words on the bar', 'as drawn: Libre Franklin bold, 18 points'],
   ['The card shadow', 'the shorter fall'],
