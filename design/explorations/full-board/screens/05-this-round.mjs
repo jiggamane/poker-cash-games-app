@@ -3,7 +3,10 @@
  * the value entry area and an 'add' button"). Same sheet, same people, same words; only the buy-in
  * entry on an added row, the Add control on the others, and the new-player line change.
  */
-import { sheet, bar, label, card, row, field, ico } from '../kit.mjs';
+import { sheet, bar, label, card, row, field, ico, note, button, quiet } from '../kit.mjs';
+import { eyebrow, shareRow, codeHero } from './20-getting-in.mjs';
+import { qrSvg, inviteLink } from '../qr.mjs';
+const MCODE = 'R4D-9WT';
 
 const PEOPLE = [
   ['Andro', 'played 22 November · host', '500'], ['Dana', 'played 22 November · 1 night', '500'], ['Ivo', 'played 22 November · 1 night', null],
@@ -114,4 +117,34 @@ export default [
   { id: 'c-nomatch', route: '/new-night', name: 'Add players C · nobody by that name', nav: 'sheet', note: 'No match: the app’s line points at the field below, and the name typed in the search carries down into it, its Add live.', flags: ['Carrying the searched name into the new-player field is new; the app leaves that field empty.'], html: sheetC([], [`<p class="note">Nobody called “Marek” — type the name below to add them.</p>`, typedNew('Marek')], 'Done · 3 seated', 'Marek', true) },
   { id: 'c-new', route: '/new-night', name: 'Add players C · a new name typed', nav: 'sheet', note: 'A name typed in the new-player line: its Add turns ink. Adding seats them at the standard buy-in, which then shows as a figure like the others.', html: sheetC(ALL().slice(0, 4), [typedNew('Marek')]) },
   { id: 'c-taken', route: '/new-night', name: 'Add players C · that name is here', nav: 'sheet', note: 'A name already at the table: Add stays grey and the app’s line says why.', html: sheetC(ALL().slice(0, 4), [typedNew('Lena', false), `<p class="note">Lena is already here</p>`]) },
+
+  /*
+   * The invitation (owner, 23 November: "more states here, to include the invitation mechanic"). A name
+   * typed new is a seat with no account behind it. Once added, the sheet offers to invite them, in the
+   * same sheet; the invite is the app's own Invite a player, content replaced, so its code, its four ways
+   * to send and its QR are the ones the Players screen already has. Inviting is never required to play.
+   */
+  { id: 'c-new-added', route: '/new-night', name: 'Add players C · a new player added, the invite offered', nav: 'sheet',
+    note: 'Marek is in at the standard, his row glowing like any added player. Under the list, one card offers the invite: what it gives them, and Invite as the same lifted chip as Add. Skipping it costs nothing; the card stays until the sheet closes.',
+    flags: ['New words, draft: “Marek is new to the group” and the line under it. The app seats a new name with no invite offered.'],
+    html: sheetC([...ALL().slice(0, 4).map((x) => x), glow(seat('Marek', '', 500))], [`<div style="display:flex;align-items:center;gap:12px;padding:12px 8px 12px 14px;border-radius:12px;${lift}"><div style="flex:1;min-width:0"><b style="font:600 14.5px/1.2 var(--body)">Marek is new to the group</b><div class="muted" style="font-size:12.5px;line-height:1.35;margin-top:3px">Invite them and the night, with their money, shows on their phone.</div></div><span style="display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 6px 0 12px;border-radius:10px;font:600 13.5px/1 var(--body);${lift.replace('background:var(--card)', 'background:var(--sheet)')};flex:none">Invite${inkPlus(22)}</span></div>`], 'Done · 4 seated') },
+  { id: 'c-invite', route: '/new-night', name: 'Add players C · inviting Marek', nav: 'sheet',
+    note: 'Invite replaces the Add players sheet’s content, one close as always: Marek’s own code, Copy, Message, Share and the QR code, as on Invite a player. The back circle returns to the code; the bar returns to the list.',
+    flags: ['The parts are Invite a player’s; “Invite Marek” as the title and “Back to the players” are new, draft. Reset the code stays on the Players screen, not here.'],
+    html: sheet({ behind: 'The Thursday game', title: 'Invite Marek', sub: 'The Thursday game', tall: true, stepBack: true,
+      body: [eyebrow('Marek’s code'), codeHero(MCODE).replace('font-size:31px;letter-spacing:.05em', 'font-size:40px;letter-spacing:.08em'),
+        note('One person, one code — it only ever attaches to Marek. It works for a month.'),
+        shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share'], ['qr', 'QR code']])],
+      bar: bar('Back to the players') }) },
+  { id: 'c-invite-qr', route: '/new-night', name: 'Add players C · Marek scans the code', nav: 'sheet',
+    note: 'At the table the quickest way: QR code turns the sheet to the code; Marek scans it with the phone’s camera and claims the seat. A real code: it scans to pokerclub://claim?c=R4D-9WT.',
+    html: sheet({ behind: 'The Thursday game', title: 'Scan to join', sub: 'Marek · The Thursday game', tall: true, stepBack: true,
+      body: [`<div style="display:grid;place-items:center;margin-top:8px">${qrSvg(inviteLink(MCODE))}</div>`,
+        `<div class="num" style="font-weight:700;font-size:17px;letter-spacing:.05em;text-align:center">${MCODE}</div>`,
+        `<p class="note" style="text-align:center">If the camera will not read it, the code can be typed.</p>`],
+      bar: bar('Back to the players') }) },
+  { id: 'c-invited', route: '/new-night', name: 'Add players C · back to the list, Marek invited', nav: 'sheet',
+    note: 'Back on the list the offer is gone and Marek’s row carries a small Invited tag after his name until he claims the seat; then it is an ordinary row.',
+    flags: ['“Invited” as a tag is new.'],
+    html: sheetC([...ALL().slice(0, 4), seat('Marek <span style="font:700 10px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border-radius:999px;background:var(--raised);color:var(--muted);vertical-align:2px;margin-left:6px">Invited</span>', '', 500)], [C.fresh], 'Done · 4 seated') },
 ];

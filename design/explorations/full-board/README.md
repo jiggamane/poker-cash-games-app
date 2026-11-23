@@ -434,3 +434,5 @@ a hidden screen gives nothing away. New feature and new words.
 - **Header gradient** (`hg-*`, owner's Rail reference): the ink top lit from above, on four screens, light and dark.
 
 - **Header gradient dropped** (owner): the four `hg-*` screens removed; the top stays flat ink.
+
+- **Round of 23 November, evening**: Add players gets the invitation (`c-new-added`, `c-invite`, `c-invite-qr`, `c-invited`); plans: games left to host on Regular (+ `plan-regular-used`), Downgrade for smaller plans, Get, Keep Full as a filled button, ticks in green discs, `plan-friend`; stats losses red.

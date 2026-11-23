@@ -16,7 +16,7 @@ import { chip, shadow, PALETTES, GROUND } from '../../icon-system/art.mjs';
 /** The app's `Pill` sets its word in caps (ADMIN, OFFLINE). */
 const capsPill = (text) => `<span class="pill" style="text-transform:uppercase;letter-spacing:.09em;font-size:10px;color:var(--muted);vertical-align:middle">${text}</span>`;
 /** A caps eyebrow inside the content (the app's `type.label`), optionally centred. */
-const eyebrow = (text, centre = false) => `<div class="lbl q" style="margin:0;${centre ? 'justify-content:center' : ''}">${text}</div>`;
+export const eyebrow = (text, centre = false) => `<div class="lbl q" style="margin:0;${centre ? 'justify-content:center' : ''}">${text}</div>`;
 /** A standalone screen: no back, no close. The title is the top. */
 /*
  * Signing you in: a chip riffle, as a player does it at the table (owner, 22 November: "as natural as
@@ -209,10 +209,10 @@ const standalone = ({ title, body, bar: foot }) => pushRaw({ topHtml: `<h1 class
 /** X2a's hairline: a 2px track with a 38% segment. No spinner. */
 const track = () => `<div style="height:2px;border-radius:1px;background:var(--line);overflow:hidden"><div style="width:38%;height:2px;background:var(--text)"></div></div>`;
 /** Four share controls in a line: icon over word. `dead` when there is no code to send. */
-const shareRow = (items, dead = false) => `<div style="display:flex;gap:8px">${items.map(([icon, text]) =>
+export const shareRow = (items, dead = false) => `<div style="display:flex;gap:8px">${items.map(([icon, text]) =>
   `<div style="flex:1;display:grid;justify-items:center;gap:6px;padding:11px 0;border-radius:12px;box-shadow:inset 0 0 0 1.5px var(--${dead ? 'line' : 'outline'});color:var(--${dead ? 'dim' : 'text'});font:600 11.5px/1 var(--body)">${ico(icon, 18)}${text}</div>`).join('')}</div>`;
 /** The invite code as the hero: six characters, a dash after the third (owner, 22 November). */
-const codeHero = (text, { muted = false } = {}) => `<div class="num" style="font-weight:800;font-size:31px;letter-spacing:.05em;text-align:center;padding:4px 0;color:var(--${muted ? 'muted' : 'text'})">${text}</div>`;
+export const codeHero = (text, { muted = false } = {}) => `<div class="num" style="font-weight:800;font-size:31px;letter-spacing:.05em;text-align:center;padding:4px 0;color:var(--${muted ? 'muted' : 'text'})">${text}</div>`;
 /** One of the two five-character boxes on "Type your invite code". */
 const codeBox = (text, focus = false) => `<div class="fi${focus ? ' focus' : ''}" style="flex:1;height:62px;justify-content:center;font:700 24px/1 var(--head);letter-spacing:.14em">${text}</div>`;
 /** A bulleted statement: one 5px dot, never an icon. */
