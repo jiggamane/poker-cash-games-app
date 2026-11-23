@@ -16,7 +16,6 @@ export const BUILT = '2026-11-23T12:40:00Z';
 export const LATEST = '2026-11-23T12:45:00Z';
 
 export const ADDRESSED = {
-  'session-eye-split': ['The eye at the left of the label row and the word at its right end, the other way to read your note; the Tonight screen already has the eye left of the word, together at the right.', '2026-11-23T12:50:00Z'],
   session: ['The icon shows what a tap does, with its word back: the struck eye and Hide while the money shows.', '2026-11-23T12:40:00Z'],
   'session-hidden': ['The open eye and Show while the money is hidden.', '2026-11-23T12:40:00Z'],
   'claim-typing': ['Still needed: it is how someone already in a group joins another (Settings) and where a dead invite sends you. Now the same form as the walkthrough’s last page, with Scan the QR code.', '2026-11-23T12:40:00Z'],
