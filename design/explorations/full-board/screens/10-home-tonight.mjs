@@ -12,6 +12,8 @@ import { push, pushRaw, sheet, bar, barSplit, barMenu, drawerRow, label, card, r
 const EYE = (open) => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>${open ? '' : '<path d="M4 20L20 4"/>'}</svg>`;
 /* The control shows what a tap will do (owner, 23 November): while the money shows, the struck eye and Hide; while it is hidden, the open eye and Show. */
 const hideCtl = (hidden) => `<span role="button" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;letter-spacing:0;text-transform:none;font:600 12.5px/1 var(--body);color:var(--muted)">${EYE(hidden)}${hidden ? 'Show' : 'Hide'}</span>`;
+/* The other reading of the owner's note (23 November, "text on the right, icon on the left"): the eye at the left of the label row, the word at its right end. */
+const splitLabel = (hidden) => `<div class="lbl"><span role="button" aria-label="${hidden ? 'Show amounts' : 'Hide amounts'}" style="display:inline-flex;color:var(--muted);margin-right:2px">${EYE(hidden)}</span>Still playing · 5<span style="margin-left:auto;letter-spacing:0;text-transform:none;font:600 12.5px/1 var(--body);color:var(--muted)">${hidden ? 'Show' : 'Hide'}</span></div>`;
 const dots = (n = 4) => `<span style="display:inline-flex;gap:4px;align-items:center;height:18px;color:var(--muted)">${'<i style="width:6px;height:6px;border-radius:50%;background:currentColor;display:block"></i>'.repeat(n)}</span>`;
 
 const playing = [['Petr', '$1,500'], ['Lena', '$1,000'], ['Ivo', '$1,000'], ['Andro', '$500'], ['Tomáš', '$500']];
@@ -39,6 +41,11 @@ export default [
 
   { id: 'session', route: '/session', name: 'Tonight', nav: 'push',
     html: push({ ...tonightTop, body: tonightBody,
+      bar: barSplit('Rebuy', { label: 'Bill', icon: 'receipt' }, { primaryIcon: 'plus', disc: { label: 'Table admin', hint: 'seat · cash out · end' } }) }) },
+
+  { id: 'session-eye-split', route: '/session', name: 'Tonight · hide, eye left and word right', nav: 'push',
+    note: 'A second reading of your note: the eye moves to the left of the section label, the word stays at the right end of the row; either one is the tap. The screen above already has the eye left of the word, at the right; say which you meant.',
+    html: push({ ...tonightTop, body: [splitLabel(false), ...tonightBody.slice(1)],
       bar: barSplit('Rebuy', { label: 'Bill', icon: 'receipt' }, { primaryIcon: 'plus', disc: { label: 'Table admin', hint: 'seat · cash out · end' } }) }) },
 
   { id: 'session-hidden', route: '/session', name: 'Tonight · money hidden', nav: 'push',
