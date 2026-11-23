@@ -34,7 +34,7 @@ export const CSS = `
   --scrim:rgba(20,26,42,.42);--grab:#D5D9E0;
   --head:'Libre Franklin',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif}
 .dark .fb{--top:#0A0D14;--sheet:#171C27;--card:#212836;--text:#ECEEF2;--muted:#9AA2B1;--dim:#6B7384;--line:rgba(255,255,255,.09);--raised:#2C3445;
-  --win:#5CCB93;--loss:#A3ABBA;--red:#F0606E;--bar:#0A0D14;--pri:#ECEEF2;--onpri:#141A2A;--outline:rgba(255,255,255,.22);
+  --win:#5CCB93;--loss:#A3ABBA;--red:#F0606E;--bar:#171C27;--pri:#ECEEF2;--onpri:#141A2A;--outline:rgba(255,255,255,.22);
   --lift:none;--scrim:rgba(0,0,0,.6);--grab:#3A4354}
 .fb{width:330px;height:760px;border-radius:46px;padding:9px;background:#050506;box-shadow:0 0 0 1px #2a2a2e inset,0 24px 50px -24px rgba(0,0,0,.6);flex:none;box-sizing:border-box}
 .fb *{box-sizing:border-box}
@@ -145,6 +145,7 @@ export const CSS = `
 
 /* The bar: the footer is the action. Words straight on the ink; the whole bar is the target. */
 .fb .bar{flex:none;background:var(--bar);color:#fff;padding-bottom:12px;position:relative;z-index:3}
+.dark .fb .bar{box-shadow:0 -12px 24px -10px rgba(0,0,0,.65)}
 .fb .bar .act{height:62px;display:flex;align-items:center;justify-content:center;gap:8px;font:700 18px/1 var(--head);color:#fff;flex:1;min-width:0;padding:0 14px;white-space:nowrap}
 .fb .bar .act small{display:block;font:500 12px/1 var(--body);color:rgba(255,255,255,.62);margin-top:5px}
 .fb .bar .act.col{flex-direction:column;gap:0}
