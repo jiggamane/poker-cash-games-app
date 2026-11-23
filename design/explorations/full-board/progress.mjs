@@ -13,9 +13,10 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-23T22:35:00Z';
+export const LATEST = '2026-11-23T22:37:00Z';
 
 export const ADDRESSED = {
+  'count-up-empty': ['“Accounted for” is gone from the second line of the header on every Count up state; the line now starts with the count itself.', '2026-11-23T22:38:00Z'],
   'rounding-settle': ['The second sentence (“Nothing rewrites a count…”) is gone.', '2026-11-23T22:36:00Z'],
   'c-nomatch': ['The invitation: a new name added is offered an invite in the same sheet, the invite itself, its QR, and the row tagged Invited after.', '2026-11-23T22:45:00Z'],
   'plan-regular': ['Regular says how many games are left to host, not that one is free; a second frame for when it has been used. Smaller plans say Downgrade.', '2026-11-23T22:45:00Z'],
@@ -50,7 +51,7 @@ export const ADDRESSED = {
 };
 
 /* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
-export const SHOW = { 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
+export const SHOW = { 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
 
 export const DECIDED = [
   ['The dark theme’s colours', 'the ink-blue sheet as drawn, and the footer in the same blue with a soft shadow above, on every screen'],
