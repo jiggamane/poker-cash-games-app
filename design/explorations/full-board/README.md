@@ -432,3 +432,5 @@ a hidden screen gives nothing away. New feature and new words.
 - **Unused screens removed** (owner): the old Add players in Opening a game (replaced by the one-line version) and `c-amount` (the same state as `c-std-3`).
 
 - **Header gradient** (`hg-*`, owner's Rail reference): the ink top lit from above, on four screens, light and dark.
+
+- **Header gradient dropped** (owner): the four `hg-*` screens removed; the top stays flat ink.
