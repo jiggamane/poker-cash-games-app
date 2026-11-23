@@ -51,12 +51,25 @@ const playersSheet = (o) => sheet({ behind: 'The Thursday game', title: 'Add pla
   ],
   bar: bar('Done · 3 seated') });
 
-export const section = { title: 'This round: Add players, the buy-in and the Add',
-  blurb: 'Four ways to draw the buy-in on a player you have added, the Add on the others, and the new-player line. Same sheet and words in each. Approve one.' };
+const C = OPTIONS.c;
+const kp = `<div class="kp" style="margin:0 -20px">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0'].map((k) => `<span>${k}</span>`).join('')}<span>${ico('backspace', 22)}</span></div>`;
+const sheetC = (rows, extra = [], barText = 'Done · 3 seated', search = 'Search by name', searching = false) => sheet({ behind: 'The Thursday game', title: 'Add players', tall: true, stepBack: true,
+  body: [field('', search, { placeholder: !searching, focus: searching }), ...(rows.length ? [label('Most recent first', { quiet: true }), card(rows, { style: 'padding:0 8px 0 10px' })] : []), ...extra],
+  bar: bar(barText) });
+const caret = (h = 15) => `<span style="display:inline-block;width:1.5px;height:${h}px;background:var(--text);vertical-align:-2px;margin-left:1px"></span>`;
+const r = (name, meta, v, { editing = false } = {}) => row({ name, meta, trail: v ? (editing ? `<span class="num" style="font:700 16.5px/1.1 var(--head);padding:2px 6px;border-radius:6px;box-shadow:inset 0 0 0 2px var(--text);flex:none">$${v}${caret()}</span>${tick}` : C.added(v)) : C.add() });
+const ALL = () => PEOPLE.map(([n, m, v]) => r(n, m, v));
+const typedNew = (name, ok = true) => `<div style="display:flex;align-items:center;gap:10px;min-height:48px;padding:0 8px 0 14px;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 2px var(--text)"><span style="flex:1;font:600 15px/1 var(--body);white-space:nowrap">${name}${caret(16)}</span><span style="display:inline-flex;align-items:center;gap:6px;font:600 13.5px/1 var(--body);${ok ? '' : 'color:var(--dim)'}">Add${ok ? inkPlus(22) : inkPlus(22).replace('background:var(--pri)', 'background:var(--outline)')}</span></div>`;
+
+export const section = { title: 'This round: Add players, version C in every state',
+  blurb: 'The version you picked to see further: the buy-in written like a seat’s, Add as a small lifted chip. Every state the sheet has: at rest, a buy-in being typed, searching, a search with no match, a new name typed, and a name already at the table. Words are the app’s.' };
 
 export default [
-  { id: 'players-add-a', route: '/new-night', name: 'Add players A · as drawn', nav: 'sheet', note: 'For comparison: an outlined box with the figure, an outlined Add pill, a dashed field.', html: playersSheet(OPTIONS.a) },
-  { id: 'players-add-b', route: '/new-night', name: 'Add players B · in the chips’ language', nav: 'sheet', note: 'The buy-in in a soft pill with its $ and the tick inside it; Add is the ink round plus the name chips already use; the new-player field ends in the same plus, grey until a name is typed.', html: playersSheet(OPTIONS.b) },
-  { id: 'players-add-c', route: '/new-night', name: 'Add players C · like the seats', nav: 'sheet', note: 'The buy-in written as New session writes a seat: the figure large with a dashed underline, tap to type. Add is a small lifted chip with its plus; the new-player line is a lifted card with the same chip, grey until a name is typed.', html: playersSheet(OPTIONS.c) },
-  { id: 'players-add-d', route: '/new-night', name: 'Add players D · the row is the control', nav: 'sheet', note: 'No Add buttons: a round tick at the left of every row, filled for the people in, and tapping a row adds or removes them. Only the added rows carry an outlined money box. The new player types into a field with its own Add inside it.', flags: ['Tapping a row to add someone means tapping it again removes them; the app has Add only.'], html: playersSheet(OPTIONS.d) },
+  { id: 'c-rest', route: '/new-night', name: 'Add players C · at rest', nav: 'sheet', note: 'Three added with their buy-ins; the rest each with Add; the new-player line grey until a name is typed.', html: sheetC(ALL(), [C.fresh]) },
+  { id: 'c-amount', route: '/new-night', name: 'Add players C · typing a buy-in', nav: 'sheet', note: 'Tapping a figure opens it in place, ringed, with the keypad under the list; the bar becomes Done with the total on its line, as on New session.', flags: ['The total is the three buy-ins on the board ($1,800); typing Lena’s changes it live.'],
+    html: sheet({ behind: 'The Thursday game', title: 'Add players', tall: true, stepBack: true, body: [card(PEOPLE.slice(0, 4).map(([n, m, v]) => r(n, m, v, { editing: n === 'Lena' })), { style: 'padding:0 8px 0 10px' }), kp], bar: bar('Done', { line: '$1,800 on the table' }) }) },
+  { id: 'c-search', route: '/new-night', name: 'Add players C · searching', nav: 'sheet', note: 'Typing narrows the roster as you go; a match keeps its Add or its figure.', html: sheetC([r('Petr', 'played 22 November · 1 night', null)], [C.fresh], 'Done · 3 seated', 'Pe', true) },
+  { id: 'c-nomatch', route: '/new-night', name: 'Add players C · nobody by that name', nav: 'sheet', note: 'No match: the app’s line points at the field below, and the name typed in the search carries down into it, its Add live.', flags: ['Carrying the searched name into the new-player field is new; the app leaves that field empty.'], html: sheetC([], [`<p class="note">Nobody called “Marek” — type the name below to add them.</p>`, typedNew('Marek')], 'Done · 3 seated', 'Marek', true) },
+  { id: 'c-new', route: '/new-night', name: 'Add players C · a new name typed', nav: 'sheet', note: 'A name typed in the new-player line: its Add turns ink. Adding seats them at the standard buy-in, which then shows as a figure like the others.', html: sheetC(ALL().slice(0, 4), [typedNew('Marek')]) },
+  { id: 'c-taken', route: '/new-night', name: 'Add players C · that name is here', nav: 'sheet', note: 'A name already at the table: Add stays grey and the app’s line says why.', html: sheetC(ALL().slice(0, 4), [typedNew('Lena', false), `<p class="note">Lena is already here</p>`]) },
 ];

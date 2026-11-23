@@ -398,3 +398,13 @@ a hidden screen gives nothing away. New feature and new words.
   so the name and the price never collide ("$2.49 / mo" against YOURS).
 - **Add players**: four versions of the buy-in entry and the Add control, at
   the top of the board (`players-add-a` … `d`).
+
+## Round sixteen (23 November)
+
+- **New group, last step**: the bar reads "Create the group".
+- **Add players, version C in every state** (`05-this-round.mjs`, `c-*`): at
+  rest, typing a buy-in, searching, no match, a new name, a name already here.
+- **Your plan** (`screens/85-your-plan.mjs`), nine new screens for changing a
+  plan from Settings: Regular, move up, on Full, move down, move to Free, a
+  change waiting, on Free, Home after a plan ran out, a founder's plan. All
+  draft words; payment is the store's.

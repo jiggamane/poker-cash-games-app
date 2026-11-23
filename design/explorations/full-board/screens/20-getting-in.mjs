@@ -375,7 +375,7 @@ export default [
         note('A new group starts empty. Players you know are not carried over, and neither are their results elsewhere. Buy-ins default to $500.'),
         button('Add players later'),
       ],
-      bar: bar('Create The Thursday game') }) },
+      bar: bar('Create the group') }) },
 
   /* ── /claim ───────────────────────────────────────────────────────── */
   { id: 'claim', route: '/claim', name: 'Claim your place', nav: 'root',
