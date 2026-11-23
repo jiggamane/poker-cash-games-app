@@ -61,10 +61,48 @@ const r = (name, meta, v, { editing = false } = {}) => row({ name, meta, trail: 
 const ALL = () => PEOPLE.map(([n, m, v]) => r(n, m, v));
 const typedNew = (name, ok = true) => `<div style="display:flex;align-items:center;gap:10px;min-height:48px;padding:0 8px 0 14px;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 2px var(--text)"><span style="flex:1;font:600 15px/1 var(--body);white-space:nowrap">${name}${caret(16)}</span><span style="display:inline-flex;align-items:center;gap:6px;font:600 13.5px/1 var(--body);${ok ? '' : 'color:var(--dim)'}">Add${ok ? inkPlus(22) : inkPlus(22).replace('background:var(--pri)', 'background:var(--outline)')}</span></div>`;
 
-export const section = { title: 'This round: Add players, version C in every state',
+
+/*
+ * The standard buy-in (owner, 23 November: "there is a default buy-in, editable, and the default should
+ * appear prefilled once the player is added"). The sheet says the standard once, under its title. Add
+ * seats the player at it at once: the figure appears where Add was, prefilled, and the row glows for a
+ * moment so the eye finds it. The figure stays tappable; a different amount says how far it is from
+ * the standard, in the app's own words ("$300 above the standard").
+ */
+const STD = 500;
+const stdSheet = (rows, extra = [], barText, barLine = '') => sheet({ behind: 'The Thursday game', title: 'Add players', sub: `Each player starts at the standard buy-in, $${STD}. Tap a figure to change it.`, tall: true, stepBack: true,
+  body: [field('', 'Search by name', { placeholder: true }), label('Most recent first', { quiet: true }), card(rows, { style: 'padding:0 8px 0 10px' }), ...extra],
+  bar: bar(barText, barLine ? { line: barLine } : {}) });
+const glow = (html) => html.replace('<div class="row', '<div style="margin:0 -10px;padding:0 10px;border-radius:10px;background:color-mix(in srgb,var(--win) 9%,transparent);box-shadow:inset 3px 0 0 var(--win)"><div class="row').replace(/<\/div>$/, '</div></div>');
+const above = (v) => (v > STD ? `$${(v - STD).toLocaleString('en-US')} above the standard` : v < STD ? `$${(STD - v).toLocaleString('en-US')} below the standard` : '');
+const seat = (name, meta, v, opts = {}) => {
+  const html = r(name, v && v !== STD ? above(v) : meta, v ? v.toLocaleString('en-US') : v, opts);
+  /* Opened for typing, the prefilled figure is selected, so the first digit replaces it. */
+  return opts.editing ? html.replace(/(\$[\d,]+)(<span style="display:inline-block;width:1.5px)/, '<span style="background:color-mix(in srgb,var(--text) 18%,transparent);border-radius:3px;padding:0 2px">$1</span>$2') : html;
+};
+const BASE = [['Andro', 'played 22 November · host', 500], ['Dana', 'played 22 November · 1 night', 500], ['Lena', 'played 22 November · 1 night', 800]];
+const ROWS = (ivo, opts = {}) => [
+  seat(...BASE[0]), seat(...BASE[1]),
+  ivo === null ? r('Ivo', 'played 22 November · 1 night', null) : (opts.glow ? glow(seat('Ivo', 'played 22 November · 1 night', ivo, opts)) : seat('Ivo', 'played 22 November · 1 night', ivo, opts)),
+  seat(...BASE[2]),
+  r('Petr', 'played 22 November · 1 night', null),
+];
+
+export const section = { title: 'This round: Add players, version C in every state, and the standard buy-in',
   blurb: 'The version you picked to see further: the buy-in written like a seat’s, Add as a small lifted chip. Every state the sheet has: at rest, a buy-in being typed, searching, a search with no match, a new name typed, and a name already at the table. Words are the app’s.' };
 
 export default [
+  { id: 'c-std-1', route: '/new-night', name: 'Add players C · the standard, before Add', nav: 'sheet', note: 'The sheet says the standard buy-in once, under its title. Ivo has not been added yet.',
+    flags: ['The line under the title is draft; “Standard buy-in” is the app’s own name for it (Game details).'],
+    html: stdSheet(ROWS(null), [], 'Done · 3 seated', '$1,800 on the table') },
+  { id: 'c-std-2', route: '/new-night', name: 'Add players C · added, at the standard', nav: 'sheet', note: 'One tap on Add: Ivo is seated at $500, prefilled where Add was. The row glows for a moment so the eye finds it; the bar counts four and the total moves on.',
+    flags: ['The glow is new: it fades after about a second. The total is the board’s own sum of the four figures.'],
+    html: stdSheet(ROWS(500, { glow: true }), [], 'Done · 4 seated', '$2,300 on the table') },
+  { id: 'c-std-3', route: '/new-night', name: 'Add players C · changing the prefilled buy-in', nav: 'sheet', note: 'Tapping the prefilled figure opens it ringed, with the keypad: the $500 is selected, so the first digit replaces it.', allowOverflow: true,
+    html: sheet({ behind: 'The Thursday game', title: 'Add players', sub: `Each player starts at the standard buy-in, $${STD}. Tap a figure to change it.`, tall: true, stepBack: true,
+      body: [card([seat(...BASE[0]), seat(...BASE[1]), seat('Ivo', 'played 22 November · 1 night', 500, { editing: true }), seat(...BASE[2])], { style: 'padding:0 8px 0 10px' }), kp], bar: bar('Done', { line: '$2,300 on the table' }) }) },
+  { id: 'c-std-4', route: '/new-night', name: 'Add players C · a buy-in off the standard', nav: 'sheet', note: 'Typed to $1,000: the line under Ivo says by how much, in the app’s words, as Lena’s already does. A figure at the standard says nothing.',
+    html: stdSheet(ROWS(1000), [], 'Done · 4 seated', '$2,800 on the table') },
   { id: 'c-rest', route: '/new-night', name: 'Add players C · at rest', nav: 'sheet', note: 'Three added with their buy-ins; the rest each with Add; the new-player line grey until a name is typed.', html: sheetC(ALL(), [C.fresh]) },
   { id: 'c-amount', route: '/new-night', name: 'Add players C · typing a buy-in', nav: 'sheet', note: 'Tapping a figure opens it in place, ringed, with the keypad under the list; the bar becomes Done with the total on its line, as on New session.', flags: ['The total is the three buy-ins on the board ($1,800); typing Lena’s changes it live.'],
     html: sheet({ behind: 'The Thursday game', title: 'Add players', tall: true, stepBack: true, body: [card(PEOPLE.slice(0, 4).map(([n, m, v]) => r(n, m, v, { editing: n === 'Lena' })), { style: 'padding:0 8px 0 10px' }), kp], bar: bar('Done', { line: '$1,800 on the table' }) }) },
