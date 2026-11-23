@@ -45,7 +45,7 @@ const blockLine = (icon, name, what, figure) =>
 const block = (lines) => `<div style="display:grid;gap:6px;font-size:12px;margin:0 2px">${lines.join('')}</div>`;
 const deductionsBlock = [
   label('Deductions', { right: '$296', quiet: true }),
-  block([blockLine('food', 'Kitchen &amp; drinks', 'Lena and Andro fronted', '$170'), blockLine('piggy', 'Group piggy bank', 'held by the group', '$126')]),
+  block([blockLine('food', 'Kitchen &amp; drinks', 'Lena, Andro', '$170'), blockLine('piggy', 'Group piggy bank', 'held by the group', '$126')]),
 ];
 const ended = card(row({ name: 'Ended · 17:23', value: 'same night' }));
 const settledTop = { title: 'Fri 20 Nov', sub: '14:07 → 17:23' };
@@ -88,7 +88,7 @@ export default [
       bar: `<div class="bar"><div class="acts"><div class="act dead"><span>Settle the night</span></div><div class="act sec">${ico('pencil', 20)}<span>Fix</span></div></div></div>` }) },
 
   { id: 'settled-grouped', route: '/settled', name: 'Post-game results · Final, grouped', nav: 'push',
-    flags: ['The app reads “Lena and Andro fronted”; the Final, detailed entry in 10-home-tonight.mjs has “Lena and Andro paid”. One of the two is wrong, and the app says fronted.', 'The app’s “Ended · 17:23 / same night” row (it opens the end-time sheet) is drawn here and is missing from the Final, detailed entry. With no chevrons, nothing marks it as the one row on this screen that can be changed.', 'In the app this screen’s footer button is outlined on purpose (a record being read, not a step). The bar makes it the action, following the Final, detailed entry.'],
+    flags: ['The fronters are written “Lena, Andro” (owner, 23 November: a shorter format); the app reads “Lena and Andro fronted”.', 'The app’s “Ended · 17:23 / same night” row (it opens the end-time sheet) is drawn here and is missing from the Final, detailed entry. With no chevrons, nothing marks it as the one row on this screen that can be changed.', 'In the app this screen’s footer button is outlined on purpose (a record being read, not a step). The bar makes it the action, following the Final, detailed entry.'],
     html: push({ ...settledTop, subRight: dd('Final, grouped'),
       body: [groupedRows, ...deductionsBlock, ended],
       bar: bar('Who pays whom') }) },
