@@ -257,21 +257,6 @@ export default [
       ],
       bar: bar('Done') }) },
 
-  { id: 'new-night-players', route: '/new-night', name: 'Add players', nav: 'sheet', flags: ['Four versions of the buy-in and the Add are at the top of the board, under This round.'],
-    note: 'Behind Someone new: search the roster, or type a name that is not on it. The app’s filled Add pills are outlined here; the bar is the only filled thing. The app also sets 3 seated beside the title; the bar already says it, so it is left off here.',
-    html: sheet({ behind: BEHIND, title: 'Add players', tall: true, stepBack: true,
-      body: [
-        field('', 'Search by name', { placeholder: true }),
-        label('Most recent first', { quiet: true }),
-        card([
-          ['Andro', 'played 22 November · host', '500'], ['Dana', 'played 22 November · 1 night', '500'], ['Ivo', 'played 22 November · 1 night', null],
-          ['Lena', 'played 22 November · 1 night', '800'], ['Petr', 'played 22 November · 1 night', null], ['Radka', 'played 22 November · 1 night', null],
-          ['Tomáš', 'played 22 November · 1 night', null],
-        ].map(([name, meta, amount]) => row({ name, meta, trail: amount ? `<span class="win">${ico('check', 14)}</span><span class="fi" style="min-height:34px;width:50px;padding:0 6px;font-size:14px;justify-content:flex-end;flex:none"><span class="num" style="font-weight:700">${amount}</span></span>` : addPill() })), { style: 'padding:0 8px 0 10px' }),
-        `<div style="display:flex;gap:8px;align-items:center"><div class="fi ph" style="flex:1;box-shadow:none;border:1.5px dashed var(--outline);font-size:13.5px;min-height:44px;white-space:nowrap">New player — type a name</div>${addPill(true).replace('border-radius:999px', 'border-radius:12px;height:44px')}</div>`,
-      ],
-      bar: bar('Done · 3 seated') }) },
-
   { id: 'new-night-gate', route: '/new-night', name: 'Open a game · no membership', nav: 'sheet',
     note: 'Owner, 23 November: a chosen plan should not leave the bar looking dead, and Not now repeats the close. The ink card is the plan chosen, with its tick (Full, preselected as the one that opens tonight); tapping another card moves the tick. The bar names the choice and is live. Not now is gone: the X closes the sheet.',
     flags: ['Not reachable in the app today (every phone reads as Full), so drawn from source, not from a capture.', '“Get Full · $9.99 a month” is draft: buying a plan is not built in the app, whose blocked bar reads “Choose a plan to open a game”.', 'Preselecting Full is a design choice; say if nothing should be chosen until a card is tapped.'],

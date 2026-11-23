@@ -428,3 +428,5 @@ a hidden screen gives nothing away. New feature and new words.
 - **Content colour in the dark** (`dark-sheet-a` … `f`): six sheet colours, cards a step lighter, footer C following the sheet.
 
 - **Dark theme settled** (owner approved `dark-sheet-a`): the footer is the sheet's blue (#171C27) with a soft shadow above, across every screen; the options file is retired.
+
+- **Unused screens removed** (owner): the old Add players in Opening a game (replaced by the one-line version) and `c-amount` (the same state as `c-std-3`).
