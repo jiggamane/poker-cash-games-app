@@ -19,7 +19,7 @@ const sum = (caption, amount) =>
 
 const block = ({ gap, pct, shares, accounted, amount }) =>
   `<div class="thero" style="padding-top:8px"><div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px"><div class="big" style="margin-top:0">${gap}</div><b class="num" style="font-size:15px;padding-bottom:3px">${pct}</b></div>
-   <div class="tbar" style="height:5px;margin-bottom:10px">${shares.map((s) => `<i style="flex:${s}"></i>`).join('')}</div>${sum('In play · 6 players', '$5,000')}${sum(`Accounted for · ${accounted}`, amount)}</div>`;
+   <div class="tbar" style="height:5px;margin-bottom:10px">${shares.map((s) => `<i style="flex:${s}"></i>`).join('')}</div>${sum('In play · 6 players', '$5,000')}${sum(`${accounted[0].toUpperCase()}${accounted.slice(1)}`, amount)}</div>`;
 
 /** The one line the block keeps once the night balances. */
 const balancedLine = `<div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:0 2px">${ico('check', 18)}<b style="font:700 20px/1 var(--head);flex:1">Balanced</b><b class="num" style="font-size:18px">$5,000</b><span style="font-size:12.5px;opacity:.72">in play</span></div>`;
