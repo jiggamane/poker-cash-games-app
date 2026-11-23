@@ -10,8 +10,8 @@ import { push, pushRaw, sheet, bar, barSplit, barMenu, drawerRow, label, card, r
  * the owner's pick of five; never the real figure blurred, so a screenshot gives nothing away.
  */
 const EYE = (open) => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>${open ? '' : '<path d="M4 20L20 4"/>'}</svg>`;
-/* Just the eye (owner, 23 November): open while the money shows, struck through while it is hidden. The words go to screen readers only. */
-const hideCtl = (hidden) => `<span role="button" aria-label="${hidden ? 'Show amounts' : 'Hide amounts'}" style="margin-left:auto;width:32px;height:24px;margin-right:-6px;display:inline-grid;place-items:center;color:var(--muted)">${EYE(!hidden).replace('width="17" height="17"', 'width="19" height="19"')}</span>`;
+/* The control shows what a tap will do (owner, 23 November): while the money shows, the struck eye and Hide; while it is hidden, the open eye and Show. */
+const hideCtl = (hidden) => `<span role="button" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;letter-spacing:0;text-transform:none;font:600 12.5px/1 var(--body);color:var(--muted)">${EYE(hidden)}${hidden ? 'Show' : 'Hide'}</span>`;
 const dots = (n = 4) => `<span style="display:inline-flex;gap:4px;align-items:center;height:18px;color:var(--muted)">${'<i style="width:6px;height:6px;border-radius:50%;background:currentColor;display:block"></i>'.repeat(n)}</span>`;
 
 const playing = [['Petr', '$1,500'], ['Lena', '$1,000'], ['Ivo', '$1,000'], ['Andro', '$500'], ['Tomáš', '$500']];
@@ -43,7 +43,7 @@ export default [
 
   { id: 'session-hidden', route: '/session', name: 'Tonight · money hidden', nav: 'push',
     note: 'The same screen with Hide on: every figure on the sheet is dots, Dana’s count included. The pot on the ink stays. A choice on this phone, kept until Show.',
-    flags: ['Hiding is a new feature. The control is the eye alone; “Hide amounts” / “Show amounts” are its screen-reader labels, draft.', 'Open: is the choice remembered across nights, and does it reach the settled night and My stats?'],
+    flags: ['Hiding is a new feature; “Hide” and “Show” are new words. The icon shows the action, not the state.', 'Open: is the choice remembered across nights, and does it reach the settled night and My stats?'],
     html: push({ ...tonightTop,
       body: [
         `<div class="lbl">Still playing · 5${hideCtl(true)}</div>`,

@@ -395,13 +395,15 @@ export default [
       bar: bar('Claim your place') }) },
 
   { id: 'claim-typing', route: '/claim', name: 'Type your invite code', nav: 'root',
-    note: 'Opened from Settings → "I have an invite code", or from the dead invite. Two boxes of three, the dash printed between them so nobody types it. Blocked until all six are in.',
-    flags: ['"K7M" is a sample code, half typed.', '“Six characters, from the invite.” is new copy: the app says “Ten characters, from the invite.”', CODEFLAG],
+    note: 'Still needed (owner asked, 23 November): the walkthrough covers someone with no group yet, but this is how a person already in a group joins another (Settings → “I have an invite code”) and where a dead invite link sends you (“Type a code instead”). It now matches the walkthrough’s last page: the two boxes of three, Scan the QR code under them, Check the code on the bar, blocked until all six are in.',
+    flags: ['"K7M" is a sample code, half typed.', '“Six characters, from the invite.” is new copy: the app says “Ten characters, from the invite.”', '“Scan the QR code” is draft, and needs a camera scanner the app does not have.', CODEFLAG],
     html: standalone({ title: 'Type your invite code',
       body: [
         note('Six characters, from the invite.'),
         `<div style="display:flex;gap:10px;align-items:center">${codeBox('K7M')}<span class="num muted" style="font-size:24px;font-weight:700">–</span>${codeBox('', true)}</div>`,
         note('Letters and numbers. No I, O, 0 or 1 — they are not in the alphabet a code is drawn from.'),
+        `<div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px"><i style="flex:1;height:1px;background:var(--line)"></i>or<i style="flex:1;height:1px;background:var(--line)"></i></div>`,
+        `<div class="btn2" style="height:44px">${ico('qr', 18)}Scan the QR code</div>`,
       ],
       bar: bar('Check the code', { blocked: true }) }) },
 

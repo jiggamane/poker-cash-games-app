@@ -379,3 +379,13 @@ a hidden screen gives nothing away. New feature and new words.
    order.
 4. **Approved**: the rest, by section. A screen moves between the two live as
    verdicts change, never while a comment box has the focus.
+
+## Round fourteen (23 November)
+
+- **Hide control**: the icon shows the action, with its word back: the struck
+  eye and Hide while the money shows, the open eye and Show while it is hidden.
+- **Type your invite code** is still needed (an existing member joining a
+  second group comes from Settings; a dead invite sends you here). It now
+  matches the walkthrough's last page, with Scan the QR code.
+- Approved: walkthrough pages 2 and 3, Reset the code, Game details (both),
+  Open a game, the second session.
