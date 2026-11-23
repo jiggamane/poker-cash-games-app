@@ -440,3 +440,5 @@ a hidden screen gives nothing away. New feature and new words.
 - **Rounding from Settle up**: the line under the steps drops “Nothing rewrites a count — what was counted is kept underneath.” (owner; the app still has it).
 
 - **Count up header**: “Accounted for ·” dropped; the second line reads “1 counted, 5 still to count” (owner).
+
+- **Fronters on the settled night**: “Lena and Andro fronted” → “Lena, Andro” (owner).
