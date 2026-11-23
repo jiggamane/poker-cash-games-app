@@ -29,7 +29,7 @@ const OPTIONS = {
   },
   /* C — the seat's figure: the buy-in written large with a dashed underline, as on New session’s seats; Add as a lifted chip with its plus. */
   c: {
-    added: (v) => `<span class="num" style="font:700 16.5px/1.1 var(--head);padding-bottom:2px;border-bottom:1.5px dashed var(--outline);flex:none">$${v}</span>${tick}`,
+    added: (v) => `<span class="num" style="font:700 16.5px/1.1 var(--head);padding-bottom:2px;border-bottom:1.5px dashed var(--outline);flex:none;${String(v).replace(/,/g, '') === '500' ? 'color:var(--muted)' : ''}">$${v}</span>`,
     add: () => `<span style="display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 6px 0 12px;border-radius:10px;font:600 13.5px/1 var(--body);${lift};flex:none">Add${inkPlus(22)}</span>`,
     fresh: `<div style="display:flex;align-items:center;gap:10px;min-height:48px;padding:0 8px 0 14px;border-radius:12px;${lift}"><span class="muted" style="flex:1;font-size:13.5px;white-space:nowrap">New player — type a name</span><span style="display:inline-flex;align-items:center;gap:6px;font:600 13.5px/1 var(--body);color:var(--dim)">Add${inkPlus(22).replace('background:var(--pri)', 'background:var(--outline)')}</span></div>`,
   },
@@ -57,7 +57,13 @@ const sheetC = (rows, extra = [], barText = 'Done · 3 seated', search = 'Search
   body: [field('', search, { placeholder: !searching, focus: searching }), ...(rows.length ? [label('Most recent first', { quiet: true }), card(rows, { style: 'padding:0 8px 0 10px' })] : []), ...extra],
   bar: bar(barText) });
 const caret = (h = 15) => `<span style="display:inline-block;width:1.5px;height:${h}px;background:var(--text);vertical-align:-2px;margin-left:1px"></span>`;
-const r = (name, meta, v, { editing = false } = {}) => row({ name, meta, trail: v ? (editing ? `<span class="num" style="font:700 16.5px/1.1 var(--head);padding:2px 6px;border-radius:6px;box-shadow:inset 0 0 0 2px var(--text);flex:none">$${v}${caret()}</span>${tick}` : C.added(v)) : C.add() });
+/*
+ * One line per player (owner, 23 November): the name and its buy-in, nothing under the name, no tick.
+ * Nobody approves a buy-in, so nothing marks one as done. What the lost line said, the figure now says:
+ * at the standard it sits quiet, in the muted ink; changed, it is full ink, so a different amount stands
+ * out without a sentence.
+ */
+const r = (name, meta, v, { editing = false } = {}) => row({ name, trail: v ? (editing ? `<span class="num" style="font:700 16.5px/1.1 var(--head);padding:2px 6px;border-radius:6px;box-shadow:inset 0 0 0 2px var(--text);flex:none">$${v}${caret()}</span>` : C.added(v)) : C.add() }).replace('class="row"', 'class="row" style="min-height:52px"');
 const ALL = () => PEOPLE.map(([n, m, v]) => r(n, m, v));
 const typedNew = (name, ok = true) => `<div style="display:flex;align-items:center;gap:10px;min-height:48px;padding:0 8px 0 14px;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 2px var(--text)"><span style="flex:1;font:600 15px/1 var(--body);white-space:nowrap">${name}${caret(16)}</span><span style="display:inline-flex;align-items:center;gap:6px;font:600 13.5px/1 var(--body);${ok ? '' : 'color:var(--dim)'}">Add${ok ? inkPlus(22) : inkPlus(22).replace('background:var(--pri)', 'background:var(--outline)')}</span></div>`;
 
@@ -88,7 +94,7 @@ const ROWS = (ivo, opts = {}) => [
   r('Petr', 'played 22 November · 1 night', null),
 ];
 
-export const section = { title: 'This round: Add players, version C in every state, and the standard buy-in',
+export const section = { title: 'This round: Add players, one line per player',
   blurb: 'The version you picked to see further: the buy-in written like a seat’s, Add as a small lifted chip. Every state the sheet has: at rest, a buy-in being typed, searching, a search with no match, a new name typed, and a name already at the table. Words are the app’s.' };
 
 export default [
@@ -101,7 +107,7 @@ export default [
   { id: 'c-std-3', route: '/new-night', name: 'Add players C · only if the figure is tapped: the keypad', nav: 'sheet', note: 'The keypad appears only when the admin taps the figure itself (the dashed underline says it can be tapped); adding a player never opens it. The $500 opens ringed and selected, so the first digit replaces it; Done closes the keypad and keeps the list.', allowOverflow: true,
     html: sheet({ behind: 'The Thursday game', title: 'Add players', sub: `Each player starts at the standard buy-in, $${STD}. Tap a figure to change it.`, tall: true, stepBack: true,
       body: [card([seat(...BASE[0]), seat(...BASE[1]), seat('Ivo', 'played 22 November · 1 night', 500, { editing: true }).replace('<span class="num" style="font:700 16.5px/1.1 var(--head);padding:2px 6px;border-radius:6px;box-shadow:inset 0 0 0 2px var(--text);flex:none">', '<span class="num" style="position:relative;font:700 16.5px/1.1 var(--head);padding:2px 6px;border-radius:6px;box-shadow:inset 0 0 0 2px var(--text);flex:none"><i style="position:absolute;right:-8px;bottom:-10px;width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--text) 16%,transparent);box-shadow:0 0 0 5px color-mix(in srgb,var(--text) 7%,transparent)"></i>'), seat(...BASE[2])], { style: 'padding:0 8px 0 10px' }), kp], bar: bar('Done', { line: '$2,300 on the table' }) }) },
-  { id: 'c-std-4', route: '/new-night', name: 'Add players C · a buy-in off the standard', nav: 'sheet', note: 'Typed to $1,000: the line under Ivo says by how much, in the app’s words, as Lena’s already does. A figure at the standard says nothing.',
+  { id: 'c-std-4', route: '/new-night', name: 'Add players C · a buy-in off the standard', nav: 'sheet', note: 'Typed to $1,000: the figure turns full ink, as Lena’s $800 is, while the ones at the standard stay quiet. No line under the name says by how much any more.',
     html: stdSheet(ROWS(1000), [], 'Done · 4 seated', '$2,800 on the table') },
   { id: 'c-rest', route: '/new-night', name: 'Add players C · at rest', nav: 'sheet', note: 'Three added with their buy-ins; the rest each with Add; the new-player line grey until a name is typed.', html: sheetC(ALL(), [C.fresh]) },
   { id: 'c-amount', route: '/new-night', name: 'Add players C · typing a buy-in', nav: 'sheet', note: 'Only a tap on a figure opens it: ringed, with the keypad under the list; the bar becomes Done with the total on its line, as on New session. Adding a player never opens the keypad.', flags: ['The total is the three buy-ins on the board ($1,800); typing Lena’s changes it live.'],

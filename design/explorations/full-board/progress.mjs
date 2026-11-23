@@ -13,11 +13,11 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-23T14:10:00Z';
+export const LATEST = '2026-11-23T14:20:00Z';
 
 export const ADDRESSED = {
   'new-group-players': ['The bar reads Create the group, without the group’s name.', '2026-11-23T13:50:00Z'],
-  'new-night-players': ['The keypad only on a tap on the figure: Add sets the standard with no keypad; the keypad frame now shows the tap that opened it, and every frame says so.', '2026-11-23T14:15:00Z'],
+  'new-night-players': ['One line per player: the tick and the line under each name are gone. A buy-in at the standard sits muted; a changed one is full ink. Every frame redrawn.', '2026-11-23T14:25:00Z'],
   'new-night-gate-used': ['Nine new screens for changing a plan from Settings: your plan on Regular, moving up, on Full, moving down, moving to Free, a change waiting, on Free, Home after a plan ran out, and a founder’s plan.', '2026-11-23T13:50:00Z'],
   'new-night-gate': ['The same fix to the tags, for the three plans.', '2026-11-23T13:40:00Z'],
   session: ['The icon shows what a tap does, with its word back: the struck eye and Hide while the money shows.', '2026-11-23T12:40:00Z'],
