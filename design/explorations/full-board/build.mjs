@@ -35,7 +35,7 @@ const all = sections.flatMap((s) => s.screens);
 const titleOf = (html) => (html.match(/<h1[^>]*>(.*?)<\/h1>/) ?? [])[1];
 const innerOf = (html) => html.slice(html.indexOf('<div class="scr">') + 17, html.lastIndexOf('</div></div>'));
 const behind = new Map();
-for (const s of all) if (s.nav !== 'sheet' && !s.wide && !behind.has(titleOf(s.html))) behind.set(titleOf(s.html), innerOf(s.html));
+for (const s of all) if (s.nav !== 'sheet' && !s.wide && s.html.startsWith('<div class="fb">') && !behind.has(titleOf(s.html))) behind.set(titleOf(s.html), innerOf(s.html));
 /* Every phone in a cell, not only the first: an option cell can hold two sheets side by side. */
 const withBehind = (phone) => {
   const at = phone.indexOf('<div class="scrim">');
