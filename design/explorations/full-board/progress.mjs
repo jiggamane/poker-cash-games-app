@@ -13,9 +13,10 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-23T22:40:00Z';
+export const LATEST = '2026-11-23T22:35:00Z';
 
 export const ADDRESSED = {
+  'rounding-settle': ['The second sentence (“Nothing rewrites a count…”) is gone.', '2026-11-23T22:36:00Z'],
   'c-nomatch': ['The invitation: a new name added is offered an invite in the same sheet, the invite itself, its QR, and the row tagged Invited after.', '2026-11-23T22:45:00Z'],
   'plan-regular': ['Regular says how many games are left to host, not that one is free; a second frame for when it has been used. Smaller plans say Downgrade.', '2026-11-23T22:45:00Z'],
   'plan-upgrade': ['The ticks are white in a green disc, so they read on the ink card, on white and in the dark.', '2026-11-23T22:45:00Z'],

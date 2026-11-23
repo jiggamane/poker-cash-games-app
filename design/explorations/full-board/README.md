@@ -436,3 +436,5 @@ a hidden screen gives nothing away. New feature and new words.
 - **Header gradient dropped** (owner): the four `hg-*` screens removed; the top stays flat ink.
 
 - **Round of 23 November, evening**: Add players gets the invitation (`c-new-added`, `c-invite`, `c-invite-qr`, `c-invited`); plans: games left to host on Regular (+ `plan-regular-used`), Downgrade for smaller plans, Get, Keep Full as a filled button, ticks in green discs, `plan-friend`; stats losses red.
+
+- **Rounding from Settle up**: the line under the steps drops “Nothing rewrites a count — what was counted is kept underneath.” (owner; the app still has it).

@@ -47,7 +47,7 @@ const choice = (name, meta, on = false) => row({ name, meta, wrapMeta: true, tra
 const BILL_SUB = 'food, drinks and whatever else the night bought';
 const SHARE_BODY = 'The rest is shared out again by the rule — but only between the people whose share has not been set by hand. Anyone already set stays exactly where they were.';
 const ROUNDING_BODY = 'Set it here and it governs the whole night: every position lands on the step, and the transfers follow. Nothing rewrites a count — what was counted is kept underneath. Changeable until the night is closed.';
-const ROUNDING_AT_SETTLE = 'Changing the step here recomputes the transfers on screen. Nothing rewrites a count — what was counted is kept underneath. Changeable until the night is closed.';
+const ROUNDING_AT_SETTLE = 'Changing the step here recomputes the transfers on screen. Changeable until the night is closed.';
 
 const onTheBill = (figure, right, { empty = false } = {}) =>
   card(`<div style="display:flex;align-items:flex-end;gap:12px"><div><div class="muted" style="font-size:12.5px;font-weight:500;margin-bottom:6px">On the bill</div><div class="fig${empty ? ' muted' : ''}">${figure}</div></div><div style="margin-left:auto;text-align:right;font-size:12.5px;line-height:1.5">${right}</div></div>`, { pad: true });
