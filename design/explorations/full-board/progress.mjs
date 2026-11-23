@@ -11,12 +11,15 @@
  *
  * `DECIDED` are options the owner chose between; their cells are gone from the board.
  */
-export const BUILT = '2026-11-22T22:00:00Z';
+export const BUILT = '2026-11-23T11:40:00Z';
+/* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
+export const LATEST = '2026-11-23T11:00:00Z';
 
 export const ADDRESSED = {
+  session: ['The hide control is just the eye: open while the money shows, struck through while it is hidden.', '2026-11-23T11:35:00Z'],
+  'session-hidden': ['The same eye, struck through, on the hidden state.', '2026-11-23T11:35:00Z'],
   'auth-callback-wait': ['Smooth: every move eased in and out with no stops mid-move and no small twitches; the push and the peak are one motion; the chips flow down in a short overlapping wave. Measured at 60 frames a second, the biggest jolt went from 16 pixels to under 1.', '2026-11-22T23:15:00Z'],
   'groups-empty-2': ['New group and I have a code are now two equal halves of the bar on every page; on the last page the right half is Check the code. The joining card carries the group’s three chips.', '2026-11-22T23:25:00Z'],
-  'groups-empty-4b': ['Removed: it did double the code entry. The open page, which you approved, is the last page.', '2026-11-23T11:20:00Z'],
   'groups-empty-4': ['Scan the QR code added under the code boxes (and as a QR button beside the field on the semi-open page).', '2026-11-22T23:35:00Z'],
   'groups-empty-4-old': ['One New group, on the bar only; the invite code is the page, as an open form (boxes and Check the code) or semi-open (one field that opens).', '2026-11-22T23:05:00Z'],
   'groups-empty': ['The walkthrough you picked (B), all four pages: the group’s chips first, as you asked, and the create or invite choice from D folded in, with the invite code on every page and the two doors on the last.', '2026-11-22T22:50:00Z'],
