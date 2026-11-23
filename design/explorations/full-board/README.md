@@ -365,3 +365,6 @@ a hidden screen gives nothing away. New feature and new words.
 - **Sessions are named by day**: "Friday session", then "Friday session 2".
 - **Walkthrough**: the semi-open last page is removed (it doubled the code
   entry); the approved open page stays.
+
+- **Hide control**: just the eye (owner), open while the money shows and struck
+  through while hidden; "Hide amounts" / "Show amounts" for screen readers only.
