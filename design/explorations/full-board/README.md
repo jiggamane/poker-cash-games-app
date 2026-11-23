@@ -415,3 +415,5 @@ a hidden screen gives nothing away. New feature and new words.
   how far off the standard ("$500 above the standard", the app's words).
 
 - **Add players, keypad only on a tap** (owner): adding sets the standard buy-in and opens nothing; the keypad appears only when the figure is tapped.
+
+- **Add players, one line per player** (owner): no tick and no line under the name. The figure carries the difference: muted at the standard, full ink when changed.
