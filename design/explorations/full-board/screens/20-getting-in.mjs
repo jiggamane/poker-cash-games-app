@@ -340,12 +340,6 @@ export default [
     note: 'The same two halves as every page; on this one the right half is the form’s own action, Check the code, faint until six characters are in. Under the boxes, the other way to bring a code in: scan the QR on the inviter’s phone. The joining card carries the group’s three chips.',
     flags: [WALK_DRAFT, '“Check the code” is the app’s own (the typed claim). “Scan the QR code” is draft, and scanning needs the camera: the app has a QR to show (the invite) but no scanner today.'],
     html: walkLastOpen() },
-  { id: 'groups-empty-4b', route: '/groups', name: 'Your groups · none yet · 4 of 4 · code semi-open', nav: 'push',
-    note: 'The same page with the form half open: one field that opens into the two boxes when tapped, and a QR button beside it that opens the camera. Calmer; one tap more.',
-    flags: [WALK_DRAFT, 'Scanning needs the camera: the app has a QR to show (the invite) but no scanner today.'],
-    flags: [WALK_DRAFT],
-    html: walkLastSemi() },
-
   /* ── /new-group ───────────────────────────────────────────────────── */
   { id: 'new-group', route: '/new-group', name: 'New group · name and currency', nav: 'sheet',
     note: 'Blocked until the group has a name. The currency box is a search; the four chips are its empty state.',

@@ -352,3 +352,16 @@ a hidden screen gives nothing away. New feature and new words.
 - **A second table** is named for you from the day: "Friday, table 2", beside
   "Friday, table 1 is open". Draft words; whether the name can be changed is
   open.
+
+## Round thirteen (23 November)
+
+- **The board no longer moves under the reviewer.** A card in "Updated since
+  your last look" leaves only when approved; a new note keeps it, marked
+  "Your note is with Claude". Nothing re-lays out while a comment box has the
+  focus; the panel and cards catch up when it loses focus.
+- **Open a game**: the chosen plan carries a tick and the bar is live with its
+  name (draft "Get Full · $9.99 a month"); Not now and Wait for … are gone,
+  the close does both.
+- **Sessions are named by day**: "Friday session", then "Friday session 2".
+- **Walkthrough**: the semi-open last page is removed (it doubled the code
+  entry); the approved open page stays.
