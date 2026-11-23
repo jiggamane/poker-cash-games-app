@@ -13,11 +13,11 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-23T13:35:00Z';
+export const LATEST = '2026-11-23T14:00:00Z';
 
 export const ADDRESSED = {
   'new-group-players': ['The bar reads Create the group, without the group’s name.', '2026-11-23T13:50:00Z'],
-  'new-night-players': ['Version C in every state: at rest, typing a buy-in, searching, nobody by that name, a new name typed, a name already here.', '2026-11-23T13:50:00Z'],
+  'new-night-players': ['The standard buy-in: Add seats the player prefilled at $500, the row glows a moment, the figure stays tappable, and a different amount says how far off the standard it is. Then version C in every state.', '2026-11-23T14:05:00Z'],
   'new-night-gate-used': ['Nine new screens for changing a plan from Settings: your plan on Regular, moving up, on Full, moving down, moving to Free, a change waiting, on Free, Home after a plan ran out, and a founder’s plan.', '2026-11-23T13:50:00Z'],
   'new-night-gate': ['The same fix to the tags, for the three plans.', '2026-11-23T13:40:00Z'],
   session: ['The icon shows what a tap does, with its word back: the struck eye and Hide while the money shows.', '2026-11-23T12:40:00Z'],
@@ -41,7 +41,7 @@ export const ADDRESSED = {
 };
 
 /* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
-export const SHOW = { 'new-night-players': ['c-rest', 'c-amount', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-amount', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
+export const SHOW = { 'new-night-players': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-amount', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-amount', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
 
 export const DECIDED = [
   ['Home’s footer', 'as drawn: the ink bar with its three controls'],

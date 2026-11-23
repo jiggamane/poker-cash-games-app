@@ -408,3 +408,8 @@ a hidden screen gives nothing away. New feature and new words.
   plan from Settings: Regular, move up, on Full, move down, move to Free, a
   change waiting, on Free, Home after a plan ran out, a founder's plan. All
   draft words; payment is the store's.
+
+- **Add players, the standard buy-in** (`c-std-1` … `4`): the standard is said
+  once under the title; Add seats the player prefilled at it, the row glows a
+  moment; tapping the figure selects it for retyping; a different amount says
+  how far off the standard ("$500 above the standard", the app's words).
