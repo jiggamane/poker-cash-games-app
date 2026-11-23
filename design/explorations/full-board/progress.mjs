@@ -11,13 +11,14 @@
  *
  * `DECIDED` are options the owner chose between; their cells are gone from the board.
  */
-export const BUILT = '2026-11-23T11:40:00Z';
+export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-23T11:00:00Z';
+export const LATEST = '2026-11-23T12:30:00Z';
 
 export const ADDRESSED = {
-  session: ['The hide control is just the eye: open while the money shows, struck through while it is hidden.', '2026-11-23T11:35:00Z'],
-  'session-hidden': ['The same eye, struck through, on the hidden state.', '2026-11-23T11:35:00Z'],
+  session: ['The icon shows what a tap does, with its word back: the struck eye and Hide while the money shows.', '2026-11-23T12:40:00Z'],
+  'session-hidden': ['The open eye and Show while the money is hidden.', '2026-11-23T12:40:00Z'],
+  'claim-typing': ['Still needed: it is how someone already in a group joins another (Settings) and where a dead invite sends you. Now the same form as the walkthrough’s last page, with Scan the QR code.', '2026-11-23T12:40:00Z'],
   'auth-callback-wait': ['Smooth: every move eased in and out with no stops mid-move and no small twitches; the push and the peak are one motion; the chips flow down in a short overlapping wave. Measured at 60 frames a second, the biggest jolt went from 16 pixels to under 1.', '2026-11-22T23:15:00Z'],
   'groups-empty-2': ['New group and I have a code are now two equal halves of the bar on every page; on the last page the right half is Check the code. The joining card carries the group’s three chips.', '2026-11-22T23:25:00Z'],
   'groups-empty-4': ['Scan the QR code added under the code boxes (and as a QR button beside the field on the semi-open page).', '2026-11-22T23:35:00Z'],
