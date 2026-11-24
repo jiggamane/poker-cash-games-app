@@ -6,10 +6,10 @@ import {
   Easing,
   Pressable,
   StyleSheet,
-  Text,
   View,
   type LayoutChangeEvent,
 } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   balanceCheck,
   resolveLedger,
@@ -543,7 +543,7 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
       accessibilityLabel={balanced && shut.collapsed ? `Balanced, ${formatToFit(balance.boughtIn, BLOCK_FITS)} in play` : undefined}
       accessibilityHint={balanced ? 'Double tap to show the comparison.' : undefined}
       onPress={balanced ? shut.toggle : undefined}
-      style={[styles.block, { backgroundColor: t.surface, borderColor: c.edge }]}
+      style={[styles.block, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: c.edge }]}
     >
       {shut.collapsed ? (
         /*

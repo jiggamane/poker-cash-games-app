@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { type Money } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
@@ -451,7 +452,7 @@ const count = (n: number): string =>
 function CardSkeleton() {
   const t = useTheme();
   return (
-    <View style={[styles.card, { backgroundColor: t.surface }]}>
+    <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift }]}>
       <Skeleton width={124} height={11} />
       <Skeleton width={104} height={21} />
       <Skeleton width="66%" height={13} />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
-import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import * as Clipboard from 'expo-clipboard';
 import { Sheet } from '../src/components/Sheet';
 import { Button } from '../src/components/Button';
@@ -113,7 +114,7 @@ export default function DeleteAccount() {
         <View style={styles.body}>
           <Text style={[styles.lede, text]}>{state.at === 'working' ? 'Deleting…' : 'Done. This phone starts over.'}</Text>
           {state.at === 'working' ? (
-            <View style={[styles.track, { backgroundColor: t.surface }]} />
+            <View style={[styles.track, { backgroundColor: t.surface, boxShadow: t.lift }]} />
           ) : null}
           {/* ⚠ UNSURE on the board, both. */}
           <Text style={[styles.foot, muted]}>
@@ -228,7 +229,7 @@ export default function DeleteAccount() {
             <Pressable
               accessibilityRole="button"
               onPress={() => void copyBackup()}
-              style={({ pressed }) => [styles.backup, { backgroundColor: t.surface, opacity: pressed ? 0.6 : 1 }]}
+              style={({ pressed }) => [styles.backup, { backgroundColor: t.surface, boxShadow: t.lift, opacity: pressed ? 0.6 : 1 }]}
             >
               <Icon name="clipboard" color={t.text} />
               <View style={styles.backupText}>

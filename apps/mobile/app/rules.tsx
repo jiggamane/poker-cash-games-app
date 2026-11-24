@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, Share, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../src/components/Text';
 import {
   AREAS,
   RULES_EDITION,
@@ -69,7 +70,7 @@ export default function Rules() {
           autoCorrect={false}
           returnKeyType="search"
           accessibilityLabel="Search the rules"
-          style={[styles.search, { color: t.text, backgroundColor: t.surface }]}
+          style={[styles.search, { color: t.text, backgroundColor: t.surface, boxShadow: t.lift }]}
         />
       </View>
 

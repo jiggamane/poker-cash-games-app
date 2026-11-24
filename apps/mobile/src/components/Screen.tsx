@@ -1,10 +1,12 @@
 import type { ComponentRef, ReactNode, RefObject } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
 import { useMoneySymbol } from '../lib/money';
-import { chrome, space, type } from '../design/tokens';
+import { chrome, look, space, type } from '../design/tokens';
+import { Bar, type BarAction } from './Bar';
 import { Icon } from './Icon';
 import { Pill } from './Pill';
 
@@ -35,6 +37,8 @@ export function Screen({
   lede,
   children,
   footer,
+  bar,
+  barLine,
   footerPad = true,
   scroll = true,
   headScroll = 'none',
@@ -107,6 +111,15 @@ export function Screen({
   children: ReactNode;
   /** Pinned below the scroll area, where the one primary action lives. */
   footer?: ReactNode;
+  /**
+   * THE ONE PRIMARY ACTION, as the bar at the bottom edge (F3, the full
+   * board). One action, or two of equal weight. `footer` still holds what is
+   * not the primary — an outlined secondary, a quiet line — on the sheet above
+   * the bar; a screen with a `bar` never puts a filled button in `footer`.
+   */
+  bar?: BarAction[];
+  /** A quiet line inside the bar, above its words. */
+  barLine?: string;
   /** Off when the footer carries its own margins — the dock does. */
   footerPad?: boolean;
   /** Off when the screen manages its own scrolling — a list with a dock. */
@@ -153,7 +166,7 @@ export function Screen({
      two lines. */
   useMoneySymbol();
 
-  const badgeNode = typeof badge === 'string' ? <Pill label={badge} /> : badge;
+  const badgeNode = typeof badge === 'string' ? <Pill label={badge} onTop /> : badge;
 
   const titleRow = (
     <View style={styles.titleRow}>
@@ -163,12 +176,11 @@ export function Screen({
           accessibilityLabel={`Back to ${backTo}`}
           onPress={() => router.back()}
           hitSlop={10}
-          style={({ pressed }) => [
-            styles.back,
-            { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 },
-          ]}
+          style={({ pressed }) => [styles.back, { opacity: pressed ? 0.6 : 1 }]}
         >
-          <Icon name="back" color={t.text} />
+          <View style={styles.flip}>
+            <Icon name="chevron" color={t.onTopMuted} />
+          </View>
         </Pressable>
       )}
       {/* The frames draw a title on one line because their back chevron sits
@@ -178,7 +190,7 @@ export function Screen({
       {/* Named so `scripts/ui-audit.mjs` can tell a screen's own title from a
           big figure inside its body, and hold the rule that a screen never
           scrolls as a whole. */}
-      <Text nativeID="screen-title" style={[styles.title, { color: t.text }]} numberOfLines={2}>
+      <Text nativeID="screen-title" style={[styles.title, { color: t.onTop }]} numberOfLines={2}>
         {title}
       </Text>
 
@@ -209,7 +221,7 @@ export function Screen({
       {metaNode === undefined && meta !== undefined && metaTrailing === undefined && (
         <Text
           nativeID="screen-meta"
-          style={[styles.meta, { color: t.muted }]}
+          style={[styles.meta, { color: t.onTopMuted }, backTo === undefined && styles.noIndent]}
           numberOfLines={1}
         >
           {meta}
@@ -220,7 +232,7 @@ export function Screen({
         <View style={styles.metaRow}>
           <Text
             nativeID="screen-meta"
-            style={[styles.metaShared, { color: t.muted }]}
+            style={[styles.metaShared, { color: t.onTopMuted }]}
             numberOfLines={1}
           >
             {meta}
@@ -229,86 +241,109 @@ export function Screen({
         </View>
       )}
 
-      {lede !== undefined && <Text style={[styles.lede, { color: t.muted }]}>{lede}</Text>}
+      {lede !== undefined && <Text style={[styles.lede, { color: t.onTopMuted }]}>{lede}</Text>}
     </>
   );
 
-  // Nothing moves without a scroller to move in: `scroll={false}` screens roll
-  // their own and keep the whole head.
-  const moving = scroll ? headScroll : 'none';
+  const insets = useSafeAreaInsets();
+  /*
+   * THE HEAD STAYS ON THE INK, whatever `headScroll` asks (the full board).
+   * The title is white on the ink top; carried into the scroller it would be
+   * white on the white sheet. `headScroll` is kept so the screens that asked
+   * for it still say so, and `ui-audit.mjs` holds them to the pinned head.
+   */
+  void headScroll;
+  const hasBar = bar !== undefined && bar.length > 0;
+  const bottomClear = hasBar || footer !== undefined ? 0 : insets.bottom;
 
   return (
-    <SafeAreaView
+    <View
       // `scripts/ui-frames.mjs` measures the screen's ground here. Without it
       // the tool reads the page's own body colour, which belongs to the
       // browser and not to the design.
       nativeID="app-root"
-      style={[styles.screen, { backgroundColor: t.ground }]}
-      edges={['top', 'bottom']}
+      style={[styles.screen, { backgroundColor: t.top, paddingTop: insets.top }]}
     >
       {/*
-       * WHAT STAYS PUT, AND WHAT THE BODY TAKES WITH IT.
-       *
-       * The head used to sit inside the scroll view on every screen, so a long
-       * body scrolled its own title off the top: the one thing telling a
-       * person where they are left first, and the back button with it. That is
-       * why `headScroll` defaults to `none` and why doc 15 § 5 check 1 is
-       * written the way it is — a screen does not scroll as a whole by
-       * accident, and a screen that has not asked to still cannot.
-       *
-       * A screen may now ask. `meta` keeps the title row and lets the line
-       * under it go; `all` sends the head down with the body, and is for a
-       * screen that is one long list. Both are per screen and deliberate, and
-       * `ui-audit.mjs` holds the list — a screen off it that scrolls its title
-       * is still the bug this comment was written about.
+       * THE INK TOP AND THE SHEET THAT RISES OVER IT. The title row and the
+       * line under it sit on the ink in white; the body is one sheet in the
+       * ground colour, 26 points into the ink with round corners, and only it
+       * scrolls — a screen never scrolls its own title away.
        *
        * `flexShrink` bounds the scroller. A ScrollView is as tall as its
        * content unless something says otherwise, and in a column with a pinned
        * footer that means a long screen pushes its own primary action off the
-       * bottom of the phone — with nothing left to scroll, because the view is
-       * exactly as tall as what is in it. Sheets had the same bug and it is
-       * the same fix; see `Sheet`.
+       * bottom of the phone. Sheets had the same bug and it is the same fix.
        */}
       <View style={[styles.fixed, dimmed && styles.dimmed]}>
-        {moving !== 'all' && titleRow}
-        {moving === 'none' && sub}
-        {scroll ? (
-          <ScrollView
-            ref={scrollRef}
-            onScroll={onScrollY === undefined ? undefined : (e) => onScrollY(e.nativeEvent.contentOffset.y)}
-            scrollEventThrottle={16}
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
-            style={styles.body}
-          >
-            {moving === 'all' && titleRow}
-            {moving !== 'none' && sub}
-            {children}
-          </ScrollView>
-        ) : (
-          children
-        )}
+        {/* BOX-NONE: the top is raised over the sheet so a menu hung from the
+            title row or the meta line draws over the body, and its last 26
+            points of padding sit over the sheet's first 26. Without this they
+            caught every tap there — the odds calculator's Board label went
+            dead (ui-odds, 24 November). Only the rows inside it take a touch. */}
+        <View style={styles.top} pointerEvents="box-none">
+          {titleRow}
+          {sub}
+        </View>
+        <View style={[styles.sheet, { backgroundColor: t.ground }]}>
+          {scroll ? (
+            <ScrollView
+              ref={scrollRef}
+              onScroll={onScrollY === undefined ? undefined : (e) => onScrollY(e.nativeEvent.contentOffset.y)}
+              scrollEventThrottle={16}
+              contentContainerStyle={[styles.content, { paddingBottom: 24 + bottomClear }]}
+              showsVerticalScrollIndicator={false}
+              style={styles.body}
+            >
+              {children}
+            </ScrollView>
+          ) : (
+            <View style={[styles.body, { paddingBottom: bottomClear }]}>{children}</View>
+          )}
+        </View>
       </View>
 
-      {footer !== undefined && <View style={footerPad ? styles.footer : undefined}>{footer}</View>}
-    </SafeAreaView>
+      {footer !== undefined && (
+        <View
+          style={[
+            footerPad ? styles.footer : undefined,
+            { backgroundColor: t.ground },
+            !hasBar && footerPad && { paddingBottom: 6 + insets.bottom },
+          ]}
+        >
+          {footer}
+        </View>
+      )}
+      {hasBar && <Bar actions={bar} line={barLine} />}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   fixed: { flex: 1 },
+  top: { paddingHorizontal: look.topPadH, paddingTop: look.topPadTop, paddingBottom: look.topPadBottom, zIndex: 20 },
+  sheet: {
+    flex: 1,
+    marginTop: -look.sheetOverlap,
+    borderTopLeftRadius: look.sheetRadius,
+    borderTopRightRadius: look.sheetRadius,
+    overflow: 'hidden',
+    paddingTop: 6,
+  },
+  flip: { transform: [{ scaleX: -1 }] },
+  noIndent: { paddingLeft: 0 },
   // A pushed screen fills the phone, so its scroll area takes what is left
   // after the footer and the footer stays at the foot. (A sheet does the
   // opposite — it shrinks to its content; see `Sheet`.)
   body: { flexGrow: 1, flexShrink: 1 },
-  content: { paddingBottom: 24 },
+  content: {},
   dimmed: { opacity: chrome.behindDrawer },
 
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: chrome.titleGap,
+    gap: 10,
     /*
      * ABOVE THE BODY, for the same reason `metaRow` below is and it took
      * longer to find here. The one screen that fills `trailing` puts a
@@ -324,27 +359,22 @@ const styles = StyleSheet.create({
      * the things this row hangs OUTSIDE itself.
      */
     zIndex: 20,
-    paddingTop: chrome.titlePadTop,
-    paddingHorizontal: chrome.titlePadH,
-    // The floor under a title. Every screen's first element adds its own
-    // margin on top of this; none of them can land on the title by omitting
-    // one, which is exactly what had happened.
-    paddingBottom: chrome.titlePadBottom,
+    minHeight: look.titleRowMin,
   },
+  /* A bare chevron in the ink's quieter white, 18 wide, pulled 5 into the margin (the kit's `.bk`). */
   back: {
-    width: chrome.back,
-    height: chrome.back,
-    borderRadius: chrome.back / 2,
+    width: look.backWidth,
+    height: look.titleRowMin,
+    marginLeft: -5,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { ...type.title, flexShrink: 1 },
+  title: { ...type.lookTitle, flexShrink: 1 },
   trailing: { marginLeft: 'auto' },
   meta: {
-    ...type.pushMeta,
-    paddingTop: chrome.metaPadTop,
-    paddingRight: chrome.titlePadH,
-    paddingLeft: chrome.metaIndent,
+    ...type.lookMeta,
+    paddingTop: look.metaGap,
+    paddingLeft: look.metaIndent,
     /* NOT A SHRINKING CHILD OF THE COLUMN. On the web a Text shrinks by
        default, and this one sits above a scroller that is allowed to: a body
        taller than the phone took a third of this line's height and the
@@ -355,9 +385,8 @@ const styles = StyleSheet.create({
   metaNode: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: chrome.metaPadTop,
-    paddingRight: chrome.titlePadH,
-    paddingLeft: chrome.metaIndent,
+    paddingTop: look.metaGap,
+    paddingLeft: look.metaIndent,
   },
   /* The same line with something on the end of it. The padding moves to the
      row so the control sits at the page's edge and the text keeps its indent. */
@@ -386,20 +415,18 @@ const styles = StyleSheet.create({
      * which is the worst of both.
      */
     zIndex: 20,
-    paddingTop: chrome.metaPadTop,
-    paddingRight: chrome.titlePadH,
-    paddingLeft: chrome.metaIndent,
+    paddingTop: look.metaGap,
+    paddingLeft: look.metaIndent,
     /* AND A FLOOR, which `styles.meta` above deliberately has not got. The
        control is 34 points tall where the text is 16, so what the first row of
        the body meets is the button's edge rather than a baseline with air
        under it. B68. */
-    paddingBottom: chrome.metaPadBottom,
   },
-  metaShared: { ...type.pushMeta, flexShrink: 1 },
+  metaShared: { ...type.lookMeta, flexShrink: 1 },
   /* The element form of `metaShared`: it takes what the control leaves and
      its own text shrinks inside it, which is what `minWidth: 0` is for. */
   metaNodeShared: { flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 },
-  lede: { ...type.lede, marginTop: 8, marginHorizontal: space.page, flexShrink: 0 },
+  lede: { ...type.lede, marginTop: 8, flexShrink: 0 },
 
   // Every board draws the footer `14px 20px 0` with `gap: 10` — E2b, E4, E5,
   // L1, N5, N7, GR4. The 16 and the 12 here were neither, and a two-pixel
@@ -413,7 +440,7 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: space.card,
     paddingTop: 14,
-    paddingBottom: 6,
+    paddingBottom: 14,
     gap: 10,
   },
 });

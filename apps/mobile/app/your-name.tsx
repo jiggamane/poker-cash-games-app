@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { Button } from '../src/components/Button';
+import { StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../src/components/Text';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { radius, type } from '../src/design/tokens';
+import { look } from '../src/design/tokens';
 import { supabase } from '../src/lib/supabase';
 import { clearMemberships } from '../src/lib/membershipStore';
 import { myName, nameRefusal, setMyName } from '../src/lib/account';
@@ -29,6 +29,7 @@ export default function YourName() {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => {
     void myName()
@@ -67,7 +68,9 @@ export default function YourName() {
     <Sheet
       title="Your name"
       onClose={close}
-      footer={<Button label={saving ? 'Saving…' : 'Save'} onPress={() => void save()} disabled={empty || saving} />}
+      /* THE FULL BOARD (`your-name`, `your-name-edit`, approved): Save is the
+         bar, faint until a name is typed; the field is outlined, not filled. */
+      bar={[{ label: saving ? 'Saving…' : 'Save', onPress: () => void save(), disabled: empty || saving }]}
     >
       <View style={styles.body}>
         <Text style={[styles.lede, { color: t.text }]}>
@@ -80,7 +83,9 @@ export default function YourName() {
             setRefusal(null);
           }}
           placeholder="Lena"
-          placeholderTextColor={t.muted}
+          placeholderTextColor={t.dim}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           autoCapitalize="words"
           autoFocus={required}
           maxLength={60}
@@ -88,7 +93,11 @@ export default function YourName() {
           onSubmitEditing={() => {
             if (!empty && !saving) void save();
           }}
-          style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.hairline }]}
+          style={[
+            styles.input,
+            { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: focused ? t.text : t.outline },
+            focused && styles.focused,
+          ]}
         />
         {refusal !== null && <Text style={[styles.refusal, { color: t.text }]}>{refusal}</Text>}
         {/* ⚠ UNSURE on the board. Only while the account has no name. */}
@@ -103,15 +112,19 @@ export default function YourName() {
 }
 
 const styles = StyleSheet.create({
-  body: { gap: 16 },
-  lede: { fontSize: 16, fontWeight: '400', lineHeight: 24 },
+  body: { gap: 14, paddingHorizontal: 20, paddingTop: 6 },
+  lede: { fontSize: 15, fontWeight: '400', lineHeight: 21.75 },
+  /* The kit's `.fi`: 48 tall, 12 corners, a 1.5 outline that turns to a 2 in the text colour on focus. */
   input: {
-    ...type.body,
-    borderWidth: 1,
-    borderRadius: radius.pressable,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
+    minHeight: 48,
+    fontSize: 16,
+    fontWeight: '600',
+    borderWidth: 1.5,
+    borderRadius: look.fieldRadius,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
+  focused: { borderWidth: 2, paddingHorizontal: 13.5 },
   refusal: { fontSize: 13, fontWeight: '500', lineHeight: 18.9 },
-  foot: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
+  foot: { fontSize: 13, fontWeight: '400', lineHeight: 18.85 },
 });

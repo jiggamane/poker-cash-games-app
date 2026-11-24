@@ -1,4 +1,5 @@
-import { StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
+import { StyleSheet, View, type KeyboardTypeOptions } from 'react-native';
+import { Text, TextInput } from './Text';
 import { useTheme } from '../design/useTheme';
 import { radius, type } from '../design/tokens';
 
@@ -48,7 +49,7 @@ export function Field({
           styles.input,
           {
             color: t.text,
-            backgroundColor: t.surface,
+            backgroundColor: t.surface, boxShadow: t.lift,
             borderColor: set ? t.hairline : t.dashed,
             borderStyle: set ? 'solid' : 'dashed',
           },

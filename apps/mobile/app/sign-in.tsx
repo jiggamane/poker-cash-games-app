@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { Button } from '../src/components/Button';
 import { Field } from '../src/components/Field';
 import { Sheet } from '../src/components/Sheet';

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { roundingLabel, type MoneyRule } from '@poker-club/core';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
@@ -142,7 +143,7 @@ export default function BillRules() {
         </Text>
       </Pressable>
 
-      <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.block, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <Text style={[styles.blockTitle, { color: t.text }]}>When it is charged</Text>
         <Text style={[styles.blockBody, { color: t.muted }]}>
           At settle-up, against the counted table — never during the game. Changing the rule

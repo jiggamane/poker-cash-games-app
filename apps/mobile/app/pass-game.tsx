@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { router } from 'expo-router';
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { Avatar } from '../src/components/Avatar';
 import { Button } from '../src/components/Button';
 import { RoundTick } from '../src/components/RoundTick';
@@ -209,7 +210,7 @@ export default function PassGame() {
               Nobody in the group can take it tonight. That’s their membership, not anything you
               set.
             </Text>
-            <View style={[styles.explainer, { backgroundColor: t.surface }]}>
+            <View style={[styles.explainer, { backgroundColor: t.surface, boxShadow: t.lift }]}>
               <Text style={[styles.explainerText, { color: t.text }]}>
                 A game can go to anyone on Full, or on Regular with their host night still free.
                 Each person picks their own.

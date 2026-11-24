@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   balanceCheck,
   checkReconciliation,
@@ -440,7 +441,7 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
               },
             ]}
           >
-            <View style={[styles.avatar, { backgroundColor: t.surface }]}>
+            <View style={[styles.avatar, { backgroundColor: t.raised }]}>
               <Text style={[styles.initial, { color: t.muted }]}>
                 {s.name.slice(0, 1).toUpperCase()}
               </Text>

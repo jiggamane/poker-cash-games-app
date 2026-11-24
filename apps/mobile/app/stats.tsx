@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { type Money } from '@poker-club/core';
 import { formatSigned, formatSignedToFit } from '../src/lib/money';
 import { Dropdown, MENU_DIM, type DropdownItem } from '../src/components/Dropdown';

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   chargeCeiling,
   manualChargeOf,
@@ -230,7 +231,7 @@ export default function Share() {
 
       {/* WHAT ELSE MOVES. The reason this sheet is safe to use, and the first
           thing a host will look for after typing a figure. */}
-      <View style={[styles.blockPlain, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.blockPlain, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <Text style={[styles.blockTitle, { color: t.text }]}>
           {total === null
             ? 'Nobody else moves'

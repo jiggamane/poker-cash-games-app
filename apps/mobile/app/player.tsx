@@ -3,11 +3,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import {
   Pressable,
   StyleSheet,
-  Text,
   View,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   nightScore,
   resolveLedger,
@@ -387,7 +387,7 @@ export default function PlayerCard() {
         )
       }
     >
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         {/*
          * EVERY FIGURE ON THIS CARD IS MARKED — the owner's call of
          * 20 September, and the exception to the working rule in `money.ts`.

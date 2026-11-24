@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../src/components/Text';
 import type { TextInputInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
@@ -278,7 +279,7 @@ function Ready({
         </Text>
       )}
 
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <Text style={[styles.cardName, { color: t.text }]}>{preview.playerName}</Text>
         <View style={[styles.cardRule, { backgroundColor: t.hairline }]} />
         <Text style={[styles.cardGroup, { color: t.text }]}>{preview.groupName}</Text>
@@ -354,7 +355,7 @@ function Typing({
 
       <View style={styles.fields}>
         <TextInput
-          style={[styles.field, { backgroundColor: t.surface, borderColor: t.hairline, color: t.text }]}
+          style={[styles.field, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline, color: t.text }]}
           value={first}
           onChangeText={(v) => {
             const next = clean(v).slice(0, 5) + rest;
@@ -369,7 +370,7 @@ function Typing({
         />
         <TextInput
           ref={second}
-          style={[styles.field, { backgroundColor: t.surface, borderColor: t.text, color: t.text }]}
+          style={[styles.field, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.text, color: t.text }]}
           value={rest}
           onChangeText={(v) => setCode(first + clean(v).slice(0, 5))}
           autoCapitalize="characters"

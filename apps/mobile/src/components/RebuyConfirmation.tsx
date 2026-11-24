@@ -5,9 +5,9 @@ import {
   Easing,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
+import { Text } from './Text';
 import type { PlayerId } from '@poker-club/core';
 import { formatSignedToFit, formatToFit } from '../lib/money';
 import { voidEntry } from '../lib/nightStore';

@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { money, resolveLedger, type Money } from '@poker-club/core';
 import { formatMoney, formatSigned, formatToFit } from '../src/lib/money';
-import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Keypad } from '../src/components/Keypad';
 import { PRESET_FITS, Preset } from '../src/components/Preset';
 import { Sheet } from '../src/components/Sheet';
+import { Card } from '../src/components/Card';
 import { announceRebuy } from '../src/components/rebuyAnnouncement';
 import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, radius, space, type } from '../src/design/tokens';
+import { cappedFigure } from '../src/design/tokens';
 import {
   buyIn,
   cashOut,
@@ -267,14 +268,10 @@ export default function Log() {
       title={name}
       badge={tag}
       sub={under}
-      footer={
-        <Button
-          label={commitLabel}
-          variant="primary"
-          disabled={!valid || busy}
-          onPress={commit}
-        />
-      }
+      /* THE FULL BOARD (`log-rebuy`, `log-cashout`, `log-cashout-over`,
+         `count-up-entry`, approved): the bar names the act, faint until the
+         amount can be written. The pad runs to the bar. */
+      bar={[{ label: commitLabel, disabled: !valid || busy, onPress: () => void commit() }]}
     >
       <View style={styles.amountRow}>
         {/* The board's 68, stepped down once the figure is longer than the
@@ -302,12 +299,14 @@ export default function Log() {
            loss wash, and the figure beside the label is already signed and
            already coloured — see NightResult, which is where E6 states the
            rule: the green and the red sit only on the figures. */
-        <View style={[styles.result, { backgroundColor: t.surface }]}>
-          <Text style={[styles.resultLabel, { color: t.text }]}>{name}’s night</Text>
-          <Text style={[styles.resultFigure, { color: moneyColor(t, nightSoFar) }]}>
-            {formatSigned(nightSoFar)}
-          </Text>
-        </View>
+        <Card pad style={styles.result}>
+          <View style={styles.resultRow}>
+            <Text style={[styles.resultLabel, { color: t.text }]}>{name}’s night</Text>
+            <Text style={[styles.resultFigure, { color: moneyColor(t, nightSoFar) }]}>
+              {formatSigned(nightSoFar)}
+            </Text>
+          </View>
+        </Card>
       ) : (
         <View style={styles.presets}>
           {/*
@@ -336,8 +335,8 @@ export default function Log() {
         </View>
       )}
 
-      <View style={[styles.stamp, { borderColor: t.hairline }]}>
-        <Icon name="clock" color={t.muted} />
+      <View style={styles.stamp}>
+        <Icon name="clock" color={t.muted} size={17} />
         <Text style={[styles.stampText, { color: t.text }]}>Stamped {stamped}</Text>
       </View>
 
@@ -347,40 +346,17 @@ export default function Log() {
 }
 
 const styles = StyleSheet.create({
-  tag: { borderRadius: 6, paddingVertical: 6, paddingHorizontal: 10 },
-  tagText: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1 },
+  amountRow: { alignItems: 'center', paddingTop: 6, paddingBottom: 14, gap: 8 },
+  overTable: { fontSize: 12.5, fontWeight: '500', lineHeight: 17.5, paddingHorizontal: 36, textAlign: 'center' },
+  amount: { fontFamily: 'head', fontSize: 68, fontWeight: '800', letterSpacing: -3.06, fontVariant: ['tabular-nums'] },
 
-  amountRow: { alignItems: 'center', paddingTop: 14, paddingBottom: 16, gap: 8 },
-  overTable: { fontSize: 13, fontWeight: '500', paddingHorizontal: 30, textAlign: 'center' },
-  amount: { fontSize: 68, fontWeight: '800', letterSpacing: -3.4, fontVariant: ['tabular-nums'] },
+  presets: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingBottom: 14 },
 
-  // The board: `display:flex; gap:8px; padding:0 20px 16px`. The chip itself is
-  // `src/components/Preset.tsx`, which is where its own geometry lives.
-  presets: { flexDirection: 'row', gap: 8, paddingHorizontal: space.card, paddingBottom: 16 },
+  result: { marginHorizontal: 20, marginBottom: 14 },
+  resultRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  resultLabel: { fontSize: 14.5, fontWeight: '600' },
+  resultFigure: { fontFamily: 'head', fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
-  result: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: space.card,
-    marginBottom: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: radius.pressable,
-  },
-  resultLabel: { fontSize: 15, fontWeight: '600' },
-  resultFigure: { fontSize: 20, fontWeight: '800', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
-
-  stamp: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: space.card,
-    marginBottom: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 2,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  stampText: { fontSize: 16, fontWeight: '500' },
+  stamp: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 22, marginBottom: 14 },
+  stampText: { fontSize: 14.5, fontWeight: '500' },
 });

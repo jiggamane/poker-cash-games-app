@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { resolveLedger } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
-import { Avatar } from '../src/components/Avatar';
+import { Card, CardRow, Chip, SectionLabel } from '../src/components/Card';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, type } from '../src/design/tokens';
 import { depthOf, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
@@ -60,36 +60,26 @@ export default function Pick() {
       }
       sentence
     >
-      <View style={styles.list}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>
-          {cashingOut ? 'At the table' : 'At the table · rebuy'}
-        </Text>
+      {/* THE FULL BOARD (`pick`, approved 22 November): the seated players
+          as one card of rows (names only, no avatars, no chevrons), the rest
+          of the group as lifted chips with the dashed New player. */}
+      <View style={styles.body}>
+        <SectionLabel text={cashingOut ? 'At the table' : 'At the table · rebuy'} quiet />
 
-        {rows.map((p, i) => (
-          <Pressable
-            key={p.id}
-            accessibilityRole="button"
-            onPress={() => go(p.id, cashingOut ? 'cashout' : 'rebuy')}
-            style={({ pressed }) => [
-              styles.row,
-              {
-                borderBottomColor: t.hairline,
-                borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                opacity: pressed ? 0.6 : 1,
-              },
-            ]}
-          >
-            <Avatar name={p.name} />
-            <View style={styles.rowText}>
-              <Text style={[styles.name, { color: t.text }]}>{p.name}</Text>
-              <Text style={[styles.detail, { color: t.muted }]}>{depthOf(ledger, p.id)}</Text>
-            </View>
-            <Text style={[styles.figure, { color: t.muted }]}>
-              {formatMoney(p.boughtIn)}
-            </Text>
-            <Icon name="chevron" color={t.muted} />
-          </Pressable>
-        ))}
+        {rows.length > 0 && (
+          <Card>
+            {rows.map((p, i) => (
+              <CardRow
+                key={p.id}
+                last={i === rows.length - 1}
+                onPress={() => go(p.id, cashingOut ? 'cashout' : 'rebuy')}
+                name={p.name}
+                meta={depthOf(ledger, p.id)}
+                amount={formatMoney(p.boughtIn)}
+              />
+            ))}
+          </Card>
+        )}
 
         {rows.length === 0 && (
           <Text style={[styles.empty, { color: t.muted }]}>
@@ -101,37 +91,12 @@ export default function Pick() {
 
         {!cashingOut && (
           <>
-            <Text style={[styles.sectionLabel, styles.sectionAfter, { color: t.muted }]}>
-              Not at the table · buy in
-            </Text>
-
+            <SectionLabel text="Not at the table · buy in" quiet />
             <View style={styles.chips}>
               {notSeated.map((p) => (
-                <Pressable
-                  key={p.id}
-                  accessibilityRole="button"
-                  onPress={() => go(p.id, p.played ? 'rebuy' : 'buyin')}
-                  style={({ pressed }) => [
-                    styles.chip,
-                    { backgroundColor: t.surface, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
-                  ]}
-                >
-                  <Text style={[styles.chipLabel, { color: t.text }]}>{p.name}</Text>
-                </Pressable>
+                <Chip key={p.id} label={p.name} onPress={() => go(p.id, p.played ? 'rebuy' : 'buyin')} />
               ))}
-
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => router.push('/seat')}
-                style={({ pressed }) => [
-                  styles.chip,
-                  styles.dashed,
-                  { borderColor: t.dashed, opacity: pressed ? 0.6 : 1 },
-                ]}
-              >
-                <Icon name="plus" color={t.text} />
-                <Text style={[styles.chipLabel, { color: t.text }]}>New player</Text>
-              </Pressable>
+              <Chip label="New player" dashed onPress={() => router.push('/seat')} lead={<Icon name="plus" color={t.text} size={16} />} />
             </View>
           </>
         )}
@@ -141,27 +106,7 @@ export default function Pick() {
 }
 
 const styles = StyleSheet.create({
-  list: { marginHorizontal: space.page },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  sectionAfter: { paddingTop: 14 },
-
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 4 },
-  rowText: { gap: 2, flexShrink: 1 },
-  name: type.rowName,
-  detail: type.detail,
-  figure: { fontSize: 16, fontWeight: '600', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
-  empty: { ...type.footnote, paddingHorizontal: 4, paddingVertical: 8 },
-
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 2, paddingHorizontal: 4 },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    borderRadius: radius.pressable,
-    borderWidth: 1,
-  },
-  dashed: { borderWidth: 1.5, borderStyle: 'dashed', backgroundColor: 'transparent', gap: 7 },
-  chipLabel: { fontSize: 15, fontWeight: '600' },
+  body: { paddingHorizontal: 20, paddingTop: 2, paddingBottom: 6, gap: 12 },
+  empty: { fontSize: 13, lineHeight: 19, paddingHorizontal: 2 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

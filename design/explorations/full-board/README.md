@@ -442,3 +442,20 @@ a hidden screen gives nothing away. New feature and new words.
 - **Count up header**: “Accounted for ·” dropped; the second line reads “1 counted, 5 still to count” (owner).
 
 - **Fronters on the settled night**: “Lena and Andro fronted” → “Lena, Andro” (owner).
+
+## Building it (24 November)
+
+The board is being written into the app, in parts, fewest open questions first:
+`plan.mjs` is the order and what each part waits on, drawn on the board as
+**Building it**, near the top. Each built screen sits beside its drawing, the
+right-hand phone the app's web build photographed by `scripts/ui-look.mjs`
+(`built/<id>-light|dark.webp`), with its own review key `built-<id>`.
+`shoot.mjs` photographs drawn phones off `index.html`; `export-art.mjs` writes
+the approved drawings into the app (`apps/mobile/src/art/spots.ts`).
+
+- **Part 0, the look underneath** — built: palette, the two faces, the ink top
+  and sheet, the modal, the bar, cards, rows, chips, keypad, the drawings.
+- **Part 1, approved with nothing open** — built: the bill, Game boosters, a
+  booster, Who's playing?, How much?, Your name.
+- **Part 2, approved with one small question each** — next; the questions are
+  listed in the plan so they can be answered before the code.

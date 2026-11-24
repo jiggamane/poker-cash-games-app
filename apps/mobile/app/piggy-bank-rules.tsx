@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { resolveLedger, type MoneyRule, type PlayerId } from '@poker-club/core';
 import { rateLabel } from '../src/lib/money';
 import { Button } from '../src/components/Button';
@@ -109,7 +110,7 @@ export default function PiggyBankRules() {
         />
       }
     >
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <View style={styles.cardLeft}>
           <Text style={[styles.label, { color: t.muted }]}>Charged on every win</Text>
           <Text style={[styles.figure, { color: t.text }]}>{rate(rule)}</Text>

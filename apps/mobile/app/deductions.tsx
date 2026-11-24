@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   isPerPersonKind,
   manualChargeOf,
@@ -303,7 +304,12 @@ export default function Deductions() {
                 {p.name}
               </Text>
               {terms.length > 1 && (
-                <Text style={[styles.rowFormula, { color: t.muted }]} numberOfLines={2}>
+                /* CAPPED LIKE THE NET BESIDE IT (24 November). The working is
+                   figures, and in Libre Franklin the net beside it is about a
+                   tenth wider than it was: at a millions table and 120% text,
+                   `game −251k · food +50` went to two lines (ui-journeys). The
+                   cap holds it at 1.1, as every figure in a fixed box is held. */
+                <Text style={[styles.rowFormula, { color: t.muted }]} numberOfLines={2} {...cappedFigure}>
                   {/* THE TERMS ARE UNMARKED — the rule of 19 September, in
                       `money.ts`: this line IS the working, and the figure it
                       comes to is the net beside it, which keeps the mark. A
@@ -531,7 +537,7 @@ function Block({
   );
 
   return (
-    <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+    <View style={[styles.block, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
       {editable ? (
         <Pressable
           accessibilityRole="button"

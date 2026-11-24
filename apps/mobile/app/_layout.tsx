@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import { FONT_FILES } from '../src/design/fonts';
 import * as Linking from 'expo-linking';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
@@ -37,6 +39,14 @@ const SHEET = {
 } as const;
 export default function RootLayout() {
   const t = useTheme();
+  /*
+   * The two faces (`src/design/fonts.ts`). Nothing is drawn until they are in:
+   * a first frame in the platform's face that then jumps to Libre Franklin is
+   * every figure on the screen changing width under the reader. They are local
+   * files, so this is one frame, not a network wait; an error draws anyway, in
+   * the platform's face, rather than a blank phone.
+   */
+  const [fontsIn, fontError] = useFonts(FONT_FILES);
 
   /*
    * The queue, kept moving — see `backupPump.ts`. At the root for the reason
@@ -115,9 +125,12 @@ export default function RootLayout() {
     });
   }, [url]);
 
+  if (!fontsIn && fontError === null) return null;
+
   return (
     <SafeAreaProvider>
-      <StatusBar style={t.name === 'dark' ? 'light' : 'dark'} />
+      {/* Light type over the ink top in both themes: every screen starts on it. */}
+      <StatusBar style="light" />
       <Stack
         screenOptions={{
           headerShown: false,

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { LayoutAnimation, Platform, Pressable, StyleSheet, Text, UIManager, View } from 'react-native';
+import { LayoutAnimation, Platform, Pressable, StyleSheet, UIManager, View } from 'react-native';
+import { Text } from './Text';
 import {
   formulaWord,
   type Money,
@@ -587,7 +588,7 @@ export function ScoreTabs({
   ];
 
   return (
-    <View style={[styles.track, { backgroundColor: t.surface }]}>
+    <View style={[styles.track, { backgroundColor: t.surface, boxShadow: t.lift }]}>
       {options.map((o) => {
         const on = o.value === mode;
         return (

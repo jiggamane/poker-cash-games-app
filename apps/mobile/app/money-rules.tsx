@@ -7,7 +7,8 @@ import { SpendList } from '../src/components/SpendList';
 import { RuleList } from '../src/components/RuleList';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Text } from '../src/components/Text';
 import { space, type } from '../src/design/tokens';
 import { nameOf, settlementOf, spendsOf, toggleRule, useNight } from '../src/lib/nightStore';
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import type { Money } from '@poker-club/core';
 import { formatSignedToFit } from '../lib/money';
 import { Icon } from './Icon';
@@ -108,7 +109,7 @@ export function ActiveRow({
     <>
       {lead}
       {avatar !== undefined && (
-        <View style={[styles.avatar, { backgroundColor: t.surface }]}>
+        <View style={[styles.avatar, { backgroundColor: t.raised }]}>
           <Text style={[styles.initial, { color: t.muted }]}>{avatar}</Text>
         </View>
       )}
@@ -229,7 +230,7 @@ export function FinishedSlab({
   );
 
   if (opens === undefined) {
-    return <View style={[styles.slab, { backgroundColor: t.surface }]}>{body}</View>;
+    return <View style={[styles.slab, { backgroundColor: t.surface, boxShadow: t.lift }]}>{body}</View>;
   }
 
   return (
@@ -240,7 +241,7 @@ export function FinishedSlab({
       style={({ pressed }) => [
         styles.slab,
         styles.slabOpens,
-        { backgroundColor: t.surface, opacity: pressed ? 0.6 : 1 },
+        { backgroundColor: t.surface, boxShadow: t.lift, opacity: pressed ? 0.6 : 1 },
       ]}
     >
       {body}

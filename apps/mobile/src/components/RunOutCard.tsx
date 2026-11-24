@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import { Text } from './Text';
 import {
   BOARD_CARDS,
   RANKS,
@@ -217,7 +218,7 @@ export function RunOutCard({
 
       {/* THE FOOT: how it ended, or what is still to come. */}
       {foot !== null && (
-        <View nativeID="run-out-foot" style={[styles.foot, { backgroundColor: t.surface }]}>
+        <View nativeID="run-out-foot" style={[styles.foot, { backgroundColor: t.surface, boxShadow: t.lift }]}>
           <Text nativeID="run-out-foot-title" style={[styles.footTitle, { color: t.text }]}>
             {foot.title}
           </Text>

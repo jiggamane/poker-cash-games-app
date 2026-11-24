@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { resolveLedger, settle, type Money, type PlayerId } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
 import { NightResult } from '../src/components/NightResult';
@@ -288,7 +289,7 @@ function LiveSeat({ night, mine }: { night: WatchedNight; mine: { id: string; na
   ).length;
 
   return (
-    <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+    <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
       <Text style={[styles.cardEyebrow, { color: t.muted }]}>YOUR SEAT</Text>
       <Text style={[styles.seatName, { color: t.text }]}>You, {mine.name}</Text>
       <Text style={[styles.seatLine, { color: t.text }]}>

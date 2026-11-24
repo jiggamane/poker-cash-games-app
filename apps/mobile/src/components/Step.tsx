@@ -1,4 +1,5 @@
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
 
 /**
@@ -11,7 +12,8 @@ import { useTheme } from '../design/useTheme';
  */
 export function Step({ label }: { label: string }) {
   const t = useTheme();
-  return <Text style={[styles.step, { color: t.muted }]}>{label}</Text>;
+  /* Always on the ink top, at the title's right (the kit's `.trail`). */
+  return <Text style={[styles.step, { color: t.onTopMuted }]}>{label}</Text>;
 }
 
 const styles = StyleSheet.create({

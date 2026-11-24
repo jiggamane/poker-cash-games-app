@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../src/components/Text';
 import { money } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
 import { Button } from '../src/components/Button';
@@ -92,7 +93,7 @@ export default function NewGroup() {
               placeholder="The Thursday game"
               placeholderTextColor={t.muted}
               autoCapitalize="words"
-              style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.hairline }]}
+              style={[styles.input, { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}
             />
           </Field>
 
@@ -112,7 +113,7 @@ export default function NewGroup() {
               // to a digits-only keyboard.
               testID="amount"
               keyboardType="number-pad"
-              style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.hairline }]}
+              style={[styles.input, { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}
             />
           </Field>
 
@@ -139,7 +140,7 @@ export default function NewGroup() {
               placeholderTextColor={t.muted}
               autoCapitalize="words"
               returnKeyType="done"
-              style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.hairline }]}
+              style={[styles.input, { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}
             />
           </Field>
 

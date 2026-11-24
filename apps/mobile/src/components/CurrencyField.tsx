@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from './Text';
 import { useTheme } from '../design/useTheme';
 import { radius, space, type } from '../design/tokens';
 import {
@@ -72,12 +73,12 @@ export function CurrencyField({
         }}
         style={[
           styles.input,
-          { color: t.text, backgroundColor: t.surface, borderColor: t.hairline },
+          { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline },
         ]}
       />
 
       {searching ? (
-        <View style={[styles.list, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+        <View style={[styles.list, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
           {matches.map((c, i) => (
             <Pressable
               key={c.code}

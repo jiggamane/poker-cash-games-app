@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
 import { block, space, type } from '../design/tokens';
 import type { Membership, Tier } from '../lib/membership';
@@ -126,7 +127,7 @@ export function PlanNote({
   const month = new Date().toLocaleDateString('en-GB', { month: 'long' });
   const back = renewsOn === null ? '—' : renewsOn.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
   return (
-    <View style={[styles.note, { backgroundColor: t.surface }]}>
+    <View style={[styles.note, { backgroundColor: t.surface, boxShadow: t.lift }]}>
       <Text style={[styles.noteText, { color: t.text }]}>
         {`This game uses your host night for ${month}. The next one comes back on ${back}.`}
       </Text>

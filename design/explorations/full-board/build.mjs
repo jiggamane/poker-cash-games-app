@@ -15,6 +15,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CSS, FONTS } from './kit.mjs';
 import { SNAPSHOT, ADDRESSED, DECIDED, SHOW, LATEST, renderProgress } from './progress.mjs';
+import { PARTS, ACROSS, PLAN_DATE } from './plan.mjs';
+import { existsSync } from 'node:fs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const artifactAt = process.argv.includes('--artifact') ? process.argv[process.argv.indexOf('--artifact') + 1] : null;
@@ -96,6 +98,34 @@ const PDATA = { secOf: SECOF, show: SHOW, screens: sections.flatMap((sec, i) => 
 const needsLook = (id, v) => { const x = v[id]; const fix = ADDRESSED[id]; const picked = (SHOW[id] || []).some((c) => (v[c] || [])[0] === 'approved'); return !!fix && !picked && (!x || x[0] !== 'approved'); };
 const flagged = all.filter((s) => (s.flags ?? []).length);
 
+/*
+ * The build plan (plan.mjs): each part, its state, and for a built part every screen as a pair —
+ * the drawing, and the app's own screen photographed off the web export (`built/<id>-light|dark.webp`,
+ * `scripts/ui-look.mjs`) — with its own review key, `built-<id>`.
+ */
+const img = (id, th) => {
+  const f = join(here, 'built', `${id}-${th}.webp`);
+  return existsSync(f) ? `<img class="bt-${th[0]}" alt="${th === 'light' ? 'Light' : 'Dark'}: the app as built" width="312" height="676" src="data:image/webp;base64,${readFileSync(f).toString('base64')}">` : '';
+};
+const STATE = { built: ['Built', 'ok'], next: ['Next', 're'], waiting: ['Waiting', 'nr'] };
+const planPair = (id) => {
+  const s = all.find((x) => x.id === id);
+  return `<figure class="cell bt-pair" data-key="built-${id}" id="b-${id}">
+    <div class="bt-two"><div><span class="bt-cap">Drawn</span><div class="pg-ph">${s.html}</div></div><div><span class="bt-cap">Built</span><div class="bt-shot">${img(id, 'light')}${img(id, 'dark')}</div></div></div>
+    <figcaption><b>${esc(s.name)}</b><span class="pg-meta"><code>${esc(s.route)}</code> · ${NAV[s.nav] ?? s.nav}</span></figcaption>
+    ${REVIEW ? reviewBlock(`built-${id}`, `${s.name}, as built`) : ''}</figure>`;
+};
+const planSection = () => `<section id="sec-plan"><h2>Building it</h2>
+  <p>The new look is being written into the app in parts, in this order: what has the fewest open questions goes first. A built screen is shown beside its drawing — the right-hand phone is the app itself, photographed at 393 × 852 off its web build — and has its own Approve / Needs work. Plan as of ${esc(PLAN_DATE)}.</p>
+  <ol class="bt-parts">${PARTS.map((p, i) => `<li class="bt-part"><div class="bt-h"><span class="pp ${STATE[p.state][1]}"><b>${i}</b> ${STATE[p.state][0]}</span><h3>${esc(p.title)}</h3></div><p>${esc(p.what)}</p>
+    ${p.items ? `<ul class="bt-list">${p.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${p.notes ? `<ul class="bt-notes">${p.notes.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${p.rows ? `<table class="bt-rows"><tbody>${p.rows.map(([n, r, q]) => `<tr><th>${esc(n)}</th><td><code>${esc(r)}</code></td><td>${esc(q || '—')}</td></tr>`).join('')}</tbody></table>` : ''}
+    ${p.built ? `<div class="pg-grid bt-grid">${p.built.map(planPair).join('')}</div>` : ''}</li>`).join('')}</ol>
+  <h3 class="bt-across">Across parts — to settle before the parts that wait on them</h3>
+  <ul class="pg-open">${ACROSS.map(([k, t]) => `<li><b>${esc(k)}</b> — ${esc(t)}</li>`).join('')}</ul>
+</section>`;
+
 const page = () => `<title>Poker Club Full Board</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="${FONTS}">
@@ -175,6 +205,23 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 .upd-noted{font:600 12px var(--body);color:var(--warn);padding:0 6px}
 .upd[hidden],.pg-none[hidden]{display:none!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.bt-parts{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.bt-part{background:var(--panel);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.bt-part>p{margin:0;color:var(--muted);font-size:14px;max-width:80ch}
+.bt-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.bt-h h3{font:800 19px/1.2 var(--head);margin:0}
+.bt-list,.bt-notes{margin:0;padding-left:20px;font-size:13.5px;display:grid;gap:3px}.bt-notes{color:var(--muted)}
+.bt-rows{border-collapse:collapse;font-size:13.5px;width:100%;max-width:1000px}
+.bt-rows th{text-align:left;font-weight:700;padding:6px 12px 6px 0;vertical-align:top;width:30%}
+.bt-rows td{padding:6px 12px 6px 0;color:var(--muted);vertical-align:top;border-top:1px solid var(--line)}.bt-rows th{border-top:1px solid var(--line)}
+.bt-rows td:nth-child(2){width:22%}
+.bt-grid{display:flex;flex-wrap:wrap;gap:28px 36px;margin-top:8px;justify-items:start}
+.bt-pair{width:678px;max-width:100%;margin:0;display:flex;flex-direction:column;gap:10px}
+.bt-two{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}.bt-two>div{display:flex;flex-direction:column;gap:6px}
+.bt-cap{font:700 11px var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-left:6px}
+.bt-shot{width:330px;max-width:100%;line-height:0;padding:9px;border-radius:46px;background:#050506;box-shadow:0 0 0 1px #2a2a2e inset,0 24px 50px -24px rgba(0,0,0,.6);box-sizing:border-box}
+.bt-shot img{width:312px;max-width:100%;height:auto;border-radius:37px}
+.bt-shot .bt-d{display:none}#board.dark .bt-shot .bt-d{display:block}#board.dark .bt-shot .bt-l{display:none}
+.bt-across{font:700 16px var(--head);margin:10px 0 0}
 ${CSS}
 </style>
 <main class="pg-wrap" id="board">
@@ -192,7 +239,7 @@ ${CSS}
   </div>
   <div class="pg-strip" role="group" aria-label="Board controls">
     <div class="pg-mode" role="group" aria-label="Phone theme"><button type="button" id="m-light" aria-pressed="true">Light</button><button type="button" id="m-dark" aria-pressed="false">Dark</button></div>
-    <nav aria-label="Sections"><a href="#sec-updates">Last round</a><a href="#sec-progress">Where review stands</a><a href="#zone-review"><b>To review</b></a>${sections.map((s, i) => `<a href="#sec-${i}">${esc(s.title)}</a>`).join('')}<a href="#zone-ok"><b>Approved</b></a>${flagged.length ? `<a href="#sec-open">Open questions</a>` : ''}</nav>
+    <nav aria-label="Sections"><a href="#sec-updates">Last round</a><a href="#sec-progress">Where review stands</a><a href="#sec-plan"><b>Building it</b></a><a href="#zone-review"><b>To review</b></a>${sections.map((s, i) => `<a href="#sec-${i}">${esc(s.title)}</a>`).join('')}<a href="#zone-ok"><b>Approved</b></a>${flagged.length ? `<a href="#sec-open">Open questions</a>` : ''}</nav>
     ${REVIEW ? `<div class="cnt" role="status"><span id="cA">0 approved</span><span id="cC">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span>` : ''}
   </div>
 </header>
@@ -201,6 +248,8 @@ ${CSS}
   <p>The screens I changed in the last round, always first. They stay here until the next round replaces them, whatever their verdict; each is also in its place below.</p>
   <div class="pg-grid" id="upd-grid">${all.filter((x) => ADDRESSED[x.id] && ADDRESSED[x.id][1] >= LATEST).map((x) => (SHOW[x.id] ? SHOW[x.id].map((id) => all.find((y) => y.id === id)).filter(Boolean).map((y, n) => cell(y, n === 0 ? ADDRESSED[x.id][0] : `For “${x.name}”: ${n + 1} of ${SHOW[x.id].length}.`).replace(`data-upd="${y.id}"`, `data-upd="${x.id}"`)) : [cell(x, ADDRESSED[x.id][0])]).join('')).join('')}</div>
 </section>
+
+${planSection()}
 
 <section id="sec-progress"><h2>Where review stands</h2><div class="pg-progress"><div id="pp-body">${renderProgress(PDATA, SNAPSHOT)}</div><span class="pp-live" id="pp-live">As of the last build. ${REVIEW ? 'Updates as you review.' : ''}</span></div></section>
 

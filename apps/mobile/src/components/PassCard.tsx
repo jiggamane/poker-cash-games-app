@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
 import { radius } from '../design/tokens';
 import { clockLabel } from '../lib/elapsed';
@@ -90,7 +91,7 @@ export function PassCard({ notice, on }: { notice: Notice; on: 'tonight' | 'home
       onPress={() => void open()}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: t.surface, borderColor: t.drawerEdge, opacity: pressed ? 0.85 : 1 },
+        { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.drawerEdge, opacity: pressed ? 0.85 : 1 },
       ]}
     >
       <Icon name="pass" color={t.text} size={19} />

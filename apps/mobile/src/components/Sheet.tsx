@@ -8,16 +8,17 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
+import { Text } from './Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
 import { useMoneySymbol } from '../lib/money';
 import { useKeyboardInset, useKeyboardUp } from '../lib/keyboard';
-import { chrome, space, type } from '../design/tokens';
+import { chrome, look, space, type } from '../design/tokens';
+import { Bar, type BarAction } from './Bar';
 import { Icon } from './Icon';
 import { Pill } from './Pill';
 
@@ -44,6 +45,9 @@ export function Sheet({
   sentence = false,
   children,
   footer,
+  bar,
+  barLine,
+  onBack,
   onClose,
 }: {
   title: string;
@@ -61,6 +65,14 @@ export function Sheet({
   children: ReactNode;
   /** Where the one primary action lives. */
   footer?: ReactNode;
+  /** The one primary action, as the bar at the sheet's foot (the full board). See `Screen`. */
+  bar?: BarAction[];
+  barLine?: string;
+  /**
+   * A later step of a flow inside this one sheet: a back circle left of the
+   * title. One close, always — the back steps within the sheet, never out of it.
+   */
+  onBack?: () => void;
   /** Defaults to going back. Pass one when the sheet is a step in a flow. */
   onClose?: () => void;
 }) {
@@ -108,6 +120,7 @@ export function Sheet({
   /* Web only, and 0 everywhere else: see `useKeyboardInset`. */
   const covered = useKeyboardInset();
   const close = onClose ?? (() => router.back());
+  const hasBar = bar !== undefined && bar.length > 0;
 
   /*
    * The drag lives on the header — grabber, title, sub-line — and not on the
@@ -158,6 +171,19 @@ export function Sheet({
               </View>
 
               <View style={[styles.titleRow, sub === undefined && styles.titleRowAlone]}>
+                {onBack !== undefined && (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Back"
+                    onPress={onBack}
+                    hitSlop={12}
+                    style={({ pressed }) => [styles.close, styles.stepBack, { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 }]}
+                  >
+                    <View style={styles.flip}>
+                      <Icon name="chevron" color={t.text} />
+                    </View>
+                  </Pressable>
+                )}
                 <Text
                   nativeID="sheet-title"
                   style={[styles.title, { color: t.text }]}
@@ -215,7 +241,7 @@ export function Sheet({
                 styles.content,
                 // With no footer, the last row is what clears the home
                 // indicator; with one, the footer does it below.
-                footer === undefined && { paddingBottom: 20 + insets.bottom },
+                footer === undefined && !hasBar && { paddingBottom: 20 + insets.bottom },
               ]}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
@@ -242,12 +268,15 @@ export function Sheet({
                 nativeID="sheet-footer"
                 style={[
                   styles.footer,
-                  { paddingBottom: keyboardUp || covered > 0 ? 6 : insets.bottom > 0 ? 28 : 6 },
+                  hasBar
+                    ? { paddingBottom: 14 }
+                    : { paddingBottom: keyboardUp || covered > 0 ? 6 : insets.bottom > 0 ? 28 : 6 },
                 ]}
               >
                 {footer}
               </View>
             )}
+            {hasBar && <Bar actions={bar} line={barLine} />}
           </View>
         </KeyboardAvoidingView>
       </Animated.View>
@@ -276,14 +305,15 @@ const styles = StyleSheet.create({
   // behind the island, and the grabber and the title went under it.
   panel: {
     flexShrink: 1,
-    borderTopLeftRadius: chrome.sheetRadius,
-    borderTopRightRadius: chrome.sheetRadius,
-    borderTopWidth: 1,
+    borderTopLeftRadius: look.modalRadius,
+    borderTopRightRadius: look.modalRadius,
+    borderTopWidth: 0,
+    overflow: 'hidden',
   },
   // doc 15 § 4.7 · a short phone gives up the peek and every sheet fills to
   // the cap. Growing as well as shrinking is the whole difference.
   panelFull: { flexGrow: 1 },
-  grabberRow: { alignItems: 'center', paddingTop: 9, paddingBottom: 2 },
+  grabberRow: { alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
   grabber: {
     width: chrome.grabberWidth,
     height: chrome.grabberHeight,
@@ -295,27 +325,29 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: chrome.sheetTitleGap,
-    paddingTop: chrome.sheetTitlePadTop,
-    paddingHorizontal: chrome.sheetTitlePadH,
-    paddingBottom: 8,
+    gap: 10,
+    paddingTop: 8,
+    paddingHorizontal: look.modalTitlePadH,
+    paddingBottom: 6,
   },
   titleRowAlone: { paddingBottom: 14 },
-  title: { ...type.sheetTitle, flexShrink: 1 },
+  title: { ...type.lookSheetTitle, flexShrink: 1 },
+  flip: { transform: [{ scaleX: -1 }] },
+  stepBack: { marginLeft: 0 },
   // 600 13px, pushed right — the meta takes the free space so the close sits
   // beside it rather than both of them fighting for the same auto margin.
   meta: { fontSize: 13, fontWeight: '600', marginLeft: 'auto' },
   close: {
     marginLeft: 'auto',
-    width: chrome.close,
-    height: chrome.close,
-    borderRadius: chrome.close / 2,
+    width: look.close,
+    height: look.close,
+    borderRadius: look.close / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeAfterMeta: { marginLeft: 0 },
-  sub: { ...type.sheetSub, paddingBottom: 14, paddingHorizontal: chrome.sheetTitlePadH },
-  sentence: { ...type.sheetSentence, paddingBottom: 14, paddingHorizontal: chrome.sheetTitlePadH },
+  sub: { ...type.lookSheetSub, paddingBottom: 14, paddingHorizontal: look.modalTitlePadH },
+  sentence: { ...type.lookSheetSub, paddingBottom: 14, paddingHorizontal: look.modalTitlePadH },
 
   // Bounded, so it yields to the footer instead of pushing it off the phone.
   // `flexGrow: 0` is what react-native-web needs to agree with the phone:

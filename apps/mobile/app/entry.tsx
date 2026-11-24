@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { money, resolveLedger } from '@poker-club/core';
 import { formatMoney, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
@@ -107,7 +108,7 @@ export default function EntryPage() {
         )
       }
     >
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <Text style={[styles.label, { color: t.muted }]}>
           {clock(night.occurredAt[entry.id])} · {entry.voided ? 'voided' : entry.corrected ? 'corrected since' : 'as logged'}
         </Text>

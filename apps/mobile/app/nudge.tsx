@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Share, StyleSheet, Text, View } from 'react-native';
+import { Share, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { settle, type Money, type PlayerId } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
 import { Button } from '../src/components/Button';
@@ -127,7 +128,7 @@ export default function Nudge() {
     >
       {people.length > 0 && (
         <>
-          <View style={[styles.sample, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+          <View style={[styles.sample, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
             <Text style={[styles.sectionLabel, { color: t.muted }]}>What they get</Text>
             <Text style={[styles.message, { color: t.text }]}>
               {personalMessage(people[0]![1])}

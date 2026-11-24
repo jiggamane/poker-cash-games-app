@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import type { MoneyRule } from '@poker-club/core';
 import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';
@@ -61,7 +62,7 @@ export function RuleList({
       <View
         style={[
           styles.list,
-          boxed && [styles.box, { backgroundColor: t.surface, borderColor: t.hairline }],
+          boxed && [styles.box, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }],
         ]}
       >
         {rules.map((rule, i) => (

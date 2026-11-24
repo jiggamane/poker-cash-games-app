@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
-import { radius } from '../design/tokens';
 
 /*
  * WHERE A PRESET RUNS OUT OF ROOM.
@@ -68,7 +68,8 @@ export function Preset({
       onPress={onPress}
       style={({ pressed }) => [
         styles.preset,
-        { backgroundColor: on ? t.text : t.surface, opacity: pressed ? 0.7 : 1 },
+        on ? { backgroundColor: t.text } : { borderWidth: 1.5, borderColor: t.outline },
+        { opacity: pressed ? 0.7 : 1 },
       ]}
     >
       <Text numberOfLines={1} style={[styles.presetValue, { color: on ? t.onFill : t.text }]}>
@@ -80,7 +81,7 @@ export function Preset({
           styles.presetCaption,
           // On the fill the caption is the ink at 60%, which is what the board
           // draws: present, and quieter than the figure it belongs to.
-          { color: on ? t.onFill : t.muted, opacity: on ? 0.6 : 1 },
+          { color: on ? t.onFill : t.text, opacity: 0.7 },
         ]}
       >
         {caption}
@@ -89,32 +90,31 @@ export function Preset({
   );
 }
 
+/* THE FULL BOARD: 52 tall, 12 corners, the chosen one filled with ink and the
+   others outlined, the figure in the title face (the kit's preset row). */
 const styles = StyleSheet.create({
-  // The board: each chip `flex:1; column; align-items:center; gap:3px;
-  // padding:11px 0; radius:8`. No horizontal padding on the chip — the two
-  // lines are centred by their own width, and a third of a sheet has no 24
-  // points a side to spare. The 6 kept here only holds a wide label off the
-  // rounded corner.
   preset: {
     flex: 1,
+    height: 52,
     alignItems: 'center',
-    gap: 3,
-    paddingVertical: 11,
+    justifyContent: 'center',
+    gap: 4,
     paddingHorizontal: 6,
-    borderRadius: radius.pressable,
+    borderRadius: 12,
   },
   presetValue: {
     alignSelf: 'stretch',
     textAlign: 'center',
-    fontSize: 16,
+    fontFamily: 'head',
+    fontSize: 15,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   presetCaption: {
     alignSelf: 'stretch',
     textAlign: 'center',
-    fontSize: 9,
+    fontSize: 9.5,
     fontWeight: '700',
-    letterSpacing: 0.72,
+    letterSpacing: 0.95,
   },
 });

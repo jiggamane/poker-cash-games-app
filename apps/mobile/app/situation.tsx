@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   AREAS,
   RULES_EDITION,
@@ -76,7 +77,7 @@ export default function SituationSheet() {
       </View>
 
       {binds.length > 0 && (
-        <View style={[styles.card, { backgroundColor: t.surface }]}>
+        <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift }]}>
           <Text style={[styles.cardLabel, { color: t.muted }]}>Your group</Text>
           {binds.map((key) => {
             const value = tableRuleValue(key, club.tableRules, symbol);

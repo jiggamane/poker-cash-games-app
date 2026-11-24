@@ -504,7 +504,17 @@ const KEYPAD = ['/log', '/spend', '/share', '/end-time'];
  * a screen that was given it on purpose says so here, in the place somebody
  * resolving a conflict in `Screen.tsx` will look.
  */
-const HEAD_SCROLLS = {
+/*
+ * ⚠ EMPTY SINCE 24 NOVEMBER. The full board puts every title on the ink top in
+ * white; carried into the scroller it would be white on the white sheet, so
+ * `Screen` pins the head on every screen and ignores `headScroll`. The four
+ * entries below are the arguments that were made for scrolling it, kept as a
+ * record (`HEAD_SCROLLS_BEFORE`), and every screen is now held to the pinned
+ * head. A screen that wants its head back in the scroller has to come with a
+ * design for a white title on the sheet.
+ */
+const HEAD_SCROLLS = {};
+const HEAD_SCROLLS_BEFORE = {
   // 30 Aug. My stats is read for a while — a month can be a dozen nights — and
   // the club name is part of what is being read.
   '/stats': 'meta',
@@ -608,6 +618,17 @@ const ROOM = `
     // rule is about a CARD that repeats the panel under it, so only inset
     // blocks count.
     if (r.width >= window.innerWidth - 1 && r.height >= window.innerHeight - 1) continue;
+    // THE FULL BOARD (approved 22 November) puts white cards on the white
+    // sheet on purpose: what separates them is the card's own soft shadow
+    // (L2), or, for a field, its outline — "nothing grey under content,
+    // inputs are outlined". A block that carries either is not invisible, so
+    // it is not this fault. One with neither still is.
+    const cs = getComputedStyle(el);
+    // A shadow counts only if it can be seen: the dark theme's lift is a
+    // transparent one, applied everywhere so a card need not ask which theme.
+    const shadows = (cs.boxShadow || 'none') === 'none' ? [] : cs.boxShadow.split(/,(?![^(]*[)])/);
+    if (shadows.some((x) => !x.includes('rgba(0, 0, 0, 0)'))) continue;
+    if (parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== 'none' && (rgb(cs.borderTopColor)?.a ?? 0) > 0.05) continue;
     const under = painted(el.parentElement);
     if (under === null) continue;
     if (hex(own) === hex(under.c)) {

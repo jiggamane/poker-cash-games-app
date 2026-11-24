@@ -5,10 +5,9 @@ import {
   Easing,
   Pressable,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
+import { Text, TextInput } from '../src/components/Text';
 import {
   money,
   roundingClause,
@@ -747,7 +746,7 @@ function Summary({
 }) {
   const t = useTheme();
   return (
-    <View style={[styles.summary, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+    <View style={[styles.summary, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
       <View style={styles.summaryText}>
         <Text style={[styles.summaryTerms, { color: t.text }]}>{terms}</Text>
         <Text style={[styles.summaryDeductions, { color: t.muted }]}>{deductions}</Text>
@@ -824,7 +823,7 @@ function Seat({
     <View
       style={[
         styles.seat,
-        { backgroundColor: t.surface },
+        { backgroundColor: t.surface, boxShadow: t.lift },
         editing
           ? { borderColor: t.text, borderWidth: 1.5 }
           : { borderColor: t.quietOutline, borderWidth: 1 },
@@ -919,7 +918,7 @@ function FreeChip({ name, onPress }: { name: string; onPress: () => void }) {
       onPress={onPress}
       style={({ pressed }) => [
         styles.free,
-        { backgroundColor: t.surface, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+        { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
       ]}
     >
       <View style={[styles.freeMonogram, { backgroundColor: t.raised }]}>
@@ -1096,7 +1095,7 @@ function Details({
       <View style={styles.section}>
         <Text style={[styles.sectionLabel, { color: t.muted }]}>The money</Text>
 
-        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+        <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
           <View style={styles.cardRow}>
             <View style={styles.cardText}>
               <Text style={[styles.cardLabel, { color: t.text }]}>Stakes</Text>
@@ -1410,7 +1409,7 @@ function Players({
 
   return (
     <>
-      <View style={[styles.search, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.search, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <TextInput
           value={search}
           onChangeText={onSearch}
@@ -1461,7 +1460,7 @@ function Players({
                     keyboardType="number-pad"
                     style={[
                       styles.amount,
-                      { color: t.text, backgroundColor: t.surface, borderColor: t.hairline },
+                      { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline },
                     ]}
                   />
                 </>
@@ -1504,7 +1503,7 @@ function Players({
             styles.addField,
             {
               color: t.text,
-              backgroundColor: t.surface,
+              backgroundColor: t.surface, boxShadow: t.lift,
               borderColor: typed === '' ? t.dashed : t.hairline,
               borderStyle: typed === '' ? 'dashed' : 'solid',
             },
@@ -1675,7 +1674,7 @@ function Currencies({
 
   return (
     <>
-      <View style={[styles.search, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.search, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <TextInput
           value={query}
           onChangeText={onQuery}

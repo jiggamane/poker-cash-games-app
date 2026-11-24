@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Text } from './Text';
 import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';
 import { radius } from '../design/tokens';
@@ -79,7 +80,7 @@ export function Dropdown<T extends string>({
 
   if (only) {
     return (
-      <View testID={testID} style={[styles.anchor, styles.button, { backgroundColor: t.surface }]}>
+      <View testID={testID} style={[styles.anchor, styles.button, { backgroundColor: t.surface, boxShadow: t.lift }]}>
         <Text style={[styles.label, { color: t.offTable }]} numberOfLines={1}>
           {active.label}
         </Text>

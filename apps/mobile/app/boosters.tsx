@@ -1,10 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { BOOSTER_SECTIONS, boostersIn, type Booster } from '@poker-club/core';
-import { Icon } from '../src/components/Icon';
+import { Card, CardRow, SectionLabel } from '../src/components/Card';
+import { Pip } from '../src/components/PlayingCard';
+import { Spot } from '../src/components/Spot';
+import type { SpotPlace } from '../src/art/spots';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
-import { space, type } from '../src/design/tokens';
 
 /**
  * Game boosters — the list. The third tile on Poker tools, added 9 November
@@ -31,57 +33,47 @@ export default function Boosters() {
   const backTo = from === 'tonight' ? 'Tonight' : 'Poker tools';
   const open = (b: Booster) => router.push({ pathname: '/booster', params: { id: b.id } });
 
+  /*
+   * THE FULL BOARD (`boosters`, approved 22 November): a card per section
+   * under its label, the section marked by a pip — clubs in the text colour
+   * for side games, diamonds in red for bigger pots — and each row led by its
+   * approved drawing. No chevrons; the whole row opens the booster.
+   */
   return (
     <Screen title="Game boosters" backTo={backTo} meta="house rules for more action">
-      {BOOSTER_SECTIONS.map((section) => {
-        const rows = boostersIn(section.id);
-        return (
-          <View key={section.id} style={styles.list}>
-            <Text style={[styles.sectionLabel, { color: t.muted }]}>{section.label}</Text>
-            {rows.map((b, i) => (
-              <Pressable
-                key={b.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${b.name}, ${b.summary}`}
-                onPress={() => open(b)}
-                style={({ pressed }) => [
-                  styles.row,
-                  {
-                    borderBottomColor: t.hairline,
-                    borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                    opacity: pressed ? 0.6 : 1,
-                  },
-                ]}
-              >
-                <View style={styles.rowText}>
-                  <Text style={[styles.name, { color: t.text }]} numberOfLines={2}>
-                    {b.name}
-                  </Text>
-                  <Text style={[styles.summary, { color: t.muted }]} numberOfLines={2}>
-                    {b.summary}
-                  </Text>
-                </View>
-                <Icon name="chevron" color={t.muted} />
-              </Pressable>
-            ))}
-          </View>
-        );
-      })}
+      <View style={styles.body}>
+        {BOOSTER_SECTIONS.map((section) => {
+          const rows = boostersIn(section.id);
+          return (
+            <View key={section.id} style={styles.section}>
+              <SectionLabel
+                text={section.label}
+                lead={<Pip suit={section.id === 'side' ? 0 : 1} size={13} color={section.id === 'side' ? t.text : t.red} />}
+              />
+              <Card style={styles.card}>
+                {rows.map((b, i) => (
+                  <CardRow
+                    key={b.id}
+                    last={i === rows.length - 1}
+                    accessibilityLabel={`${b.name}, ${b.summary}`}
+                    onPress={() => open(b)}
+                    lead={<Spot place={b.id as SpotPlace} level="rows" width={56} height={48} />}
+                    name={b.name}
+                    meta={b.summary}
+                    wrapMeta
+                  />
+                ))}
+              </Card>
+            </View>
+          );
+        })}
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  list: { marginHorizontal: space.page },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingTop: 14, paddingBottom: 6 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 13,
-    paddingHorizontal: 4,
-  },
-  rowText: { flex: 1, minWidth: 0, gap: 3 },
-  name: type.rowName,
-  summary: { ...type.meta, fontSize: 14, lineHeight: 19 },
+  body: { paddingHorizontal: 18, paddingTop: 12, gap: 12 },
+  section: { gap: 12 },
+  card: { paddingLeft: 6 },
 });

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
+import { PanResponder, Pressable, ScrollView, StyleSheet, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   BOARD_CARDS,
   HOLE_CARDS,
@@ -735,7 +736,7 @@ export default function OddsCalculator() {
           const hasControl = hasOuts || settled !== null;
           const open = hasControl && outsOpen.has(seat);
           return (
-            <View key={seat} nativeID={`seat-${seat + 1}`} style={[styles.seatCard, { backgroundColor: t.surface }]}>
+            <View key={seat} nativeID={`seat-${seat + 1}`} style={[styles.seatCard, { backgroundColor: t.surface, boxShadow: t.lift }]}>
               <View style={styles.seatRow}>
                 <View style={styles.pair}>
                   {hand.map((c, i) => (
