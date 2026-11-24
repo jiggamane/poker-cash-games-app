@@ -71,8 +71,8 @@ export const chart = (caption, cols) => {
          (owner, 24 November: "the graph should also use red for losses"). */
       : h < 0 ? bar(h, 'var(--red)')
       /* Break-even: one grey pill as wide as a bar, centred on the line — one piece, not the two marks the
-         owner called a hamburger, and as wide as the others (owner, 24 November). */
-      : `<rect x="${x}" y="${BAND + 0.5 - 3}" width="${BW}" height="6" rx="3" style="fill:var(--muted)"/>`;
+         owner called a hamburger, and as wide as the others and thin, 3 tall (owner, 24 November). */
+      : `<rect x="${x}" y="${BAND + 0.5 - 1.5}" width="${BW}" height="3" rx="1.5" style="fill:var(--muted)"/>`;
     return `${b}<text x="${cx}" y="${BAND * 2 + 15}" text-anchor="middle" style="fill:var(--muted);font:500 9.5px var(--body)">${lbl}</text>`;
   }).join('');
   return card([

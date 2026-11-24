@@ -13,13 +13,13 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-24T14:14:00Z';
+export const LATEST = '2026-11-24T14:16:00Z';
 
 export const ADDRESSED = {
   'seat-name-changed': ['The line at the foot is gone, here, on the unchanged sheet, and in the app.', '2026-11-24T11:20:00Z'],
   'pass-game-nobody': ['“on the Full plan, or on the Regular plan”, here and in the app.', '2026-11-24T10:58:00Z'],
   'plan-regular-used': ['Full is the offer now, not a row: the ink card Open a game draws, with a headline that answers the screen’s news (“Host again tonight, not on 1 Dec”), and Upgrade to Full is the bar. Free stays a quiet row. The same on Your plan · Regular.', '2026-11-24T10:50:00Z'],
-  'stats-book': ['Every bar stands on the line, no gap: square where it meets it, rounded at its free end. Wins green, losses red, every bar at least 8 tall so a small loss still reads as a red bar; the break-even night is one grey pill as wide as a bar, centred on the line; “6 games · 25 h” back to its first style.', '2026-11-24T14:14:30Z'],
+  'stats-book': ['Every bar stands on the line, no gap: square where it meets it, rounded at its free end. Wins green, losses red, every bar at least 8 tall so a small loss still reads as a red bar; the break-even night is one thin grey pill, 3 points tall and as wide as a bar, centred on the line; “6 games · 25 h” back to its first style.', '2026-11-24T14:17:00Z'],
   'settled-grouped': ['The fronters under Kitchen & drinks are written “Lena, Andro”; the two titles are unchanged. Same on every settled view.', '2026-11-23T22:40:00Z'],
   'count-up-empty': ['“Accounted for” is gone from the second line of the header on every Count up state; the line now starts with the count itself.', '2026-11-23T22:38:00Z'],
   'rounding-settle': ['The second sentence (“Nothing rewrites a count…”) is gone.', '2026-11-23T22:36:00Z'],
