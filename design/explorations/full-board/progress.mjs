@@ -13,17 +13,18 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-24T10:45:00Z';
+export const LATEST = '2026-11-24T11:20:00Z';
 
 export const ADDRESSED = {
+  'seat-name-changed': ['The line at the foot is gone, here, on the unchanged sheet, and in the app.', '2026-11-24T11:20:00Z'],
   'pass-game-nobody': ['“on the Full plan, or on the Regular plan”, here and in the app.', '2026-11-24T10:58:00Z'],
   'plan-regular-used': ['Full is the offer now, not a row: the ink card Open a game draws, with a headline that answers the screen’s news (“Host again tonight, not on 1 Dec”), and Upgrade to Full is the bar. Free stays a quiet row. The same on Your plan · Regular.', '2026-11-24T10:50:00Z'],
-  'stats-book': ['The win bars are green. The break-even night is two flat marks with no $0 over it. Three options for “6 games · 25 h” at the top of the board: the counts as figures, each after its icon, or two pills. Losses were already red (bars, 2 L, −$60).', '2026-11-24T10:50:00Z'],
+  'stats-book': ['Wins green, losses red, every bar at least 8 tall so a small loss still reads as a red bar; the break-even night is one grey bead on the line, not the two marks; “6 games · 25 h” back to its first style.', '2026-11-24T11:20:00Z'],
   'settled-grouped': ['The fronters under Kitchen & drinks are written “Lena, Andro”; the two titles are unchanged. Same on every settled view.', '2026-11-23T22:40:00Z'],
   'count-up-empty': ['“Accounted for” is gone from the second line of the header on every Count up state; the line now starts with the count itself.', '2026-11-23T22:38:00Z'],
   'rounding-settle': ['The second sentence (“Nothing rewrites a count…”) is gone.', '2026-11-23T22:36:00Z'],
   'c-nomatch': ['The invitation: a new name added is offered an invite in the same sheet, the invite itself, its QR, and the row tagged Invited after.', '2026-11-23T22:45:00Z'],
-  'plan-regular': ['Regular says how many games are left to host, not that one is free. Since 24 November Full is the ink card under it and Upgrade is the bar, as on the used state.', '2026-11-24T10:50:00Z'],
+  'plan-regular': ['No games-left card here, and Full is a plain card with what it adds (no ink); Upgrade stays the bar. The used state keeps the ink card.', '2026-11-24T11:20:00Z'],
   'plan-upgrade': ['The ticks are white in a green disc, so they read on the ink card, on white and in the dark.', '2026-11-23T22:45:00Z'],
   'plan-upgraded': ['Regular and Free say Downgrade.', '2026-11-23T22:45:00Z'],
   'plan-free': ['Choose is now Get.', '2026-11-23T22:45:00Z'],
@@ -54,9 +55,10 @@ export const ADDRESSED = {
 };
 
 /* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
-export const SHOW = { 'plan-regular-used': ['plan-regular-used', 'plan-regular'], 'stats-book': ['stats-book', 'stats-meta-a', 'stats-meta-b', 'stats-meta-c'], 'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
+export const SHOW = {   'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
 
 export const DECIDED = [
+  ['My stats, games and hours', 'as first drawn: one muted line beside the result'],
   ['The dark theme’s colours', 'the ink-blue sheet as drawn, and the footer in the same blue with a soft shadow above, on every screen'],
   ['Home’s footer', 'as drawn: the ink bar with its three controls'],
   ['The words on the bar', 'as drawn: Libre Franklin bold, 18 points'],

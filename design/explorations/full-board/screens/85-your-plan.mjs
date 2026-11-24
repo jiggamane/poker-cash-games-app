@@ -35,8 +35,9 @@ const hostNight = (used) => `<div class="card pad" style="display:flex;align-ite
  * its name and price large, what it adds over Regular as ticks, a headline that answers the screen's
  * own news; and the upgrade is the bar. Free stays a quiet row under it.
  */
-const offer = (headline, adds) => `<div class="card pad" style="display:grid;gap:10px;background:var(--pri);color:var(--onpri);box-shadow:0 1px 2px rgba(20,26,42,.25),0 12px 24px -12px rgba(20,26,42,.55)">
-  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px"><b style="font:800 24px/1 var(--head);letter-spacing:-.02em">Full</b>${price('$9.99').replace('color:var(--muted)', 'opacity:.7')}</div>
+/* `quiet`: the same offer as a plain card (owner, 24 November, on Regular with a game still left: "lets not put so much accent on the full"). */
+const offer = (headline, adds, { quiet = false } = {}) => `<div class="card pad" style="display:grid;gap:10px;${quiet ? '' : 'background:var(--pri);color:var(--onpri);box-shadow:0 1px 2px rgba(20,26,42,.25),0 12px 24px -12px rgba(20,26,42,.55)'}">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px"><b style="font:800 ${quiet ? 20 : 24}px/1 var(--head);letter-spacing:-.02em">Full</b>${quiet ? price('$9.99') : price('$9.99').replace('color:var(--muted)', 'opacity:.7')}</div>
   <div style="font:700 15px/1.3 var(--head)">${headline}</div>
   <div style="display:grid;gap:7px">${adds.map((t) => has(t)).join('')}</div></div>`;
 const FULL_ADDS = ['Run games as often as you like', 'Pass a game to anyone, or take one'];
@@ -47,12 +48,12 @@ export const section = { title: 'Your plan',
 
 export default [
   { id: 'plan-regular', route: '/plan', name: 'Your plan · Regular', nav: 'push',
-    note: 'Settings → Plan opens this. The plan you are on is the card at the top, with what it includes; on Regular, how many games are left to host sits under it (owner: say what is left, not that it is free). Full is the offer, as an ink card, and Upgrade is the bar (owner, 24 November, on the used state: the other plans should draw attention); Free stays a quiet row. The screen scrolls: Free and the store line are under the bar.',
+    note: 'Settings → Plan opens this. The plan you are on is the card at the top, with what it includes; no games-left card here (owner, 24 November: "no need to show games left here"). Full is a plain card with what it adds, not the ink one ("lets not put so much accent on the full"), and Upgrade is the bar; Free stays a quiet row. The used state keeps the ink card, because there the news is that nothing is left. The screen scrolls: Free and the store line are under the bar.',
     allowOverflow: true,
     flags: [DRAFT, 'A new route; the app’s Settings row shows the plan but opens nothing.'],
     html: push({ title: 'Your plan', sub: 'Andro · The Thursday game',
-      body: [current('Regular', price('$2.49'), 'renews 1 Dec', REGULAR, ink('your plan')), hostNight(false), label('Other plans', { quiet: true }),
-        offer('Host as often as the table wants', FULL_ADDS), card([other('Free', '', 'Watch, and the last three games', 'Downgrade')]), store],
+      body: [current('Regular', price('$2.49'), 'renews 1 Dec', REGULAR, ink('your plan')), label('Other plans', { quiet: true }),
+        offer('Host as often as the table wants', FULL_ADDS, { quiet: true }), card([other('Free', '', 'Watch, and the last three games', 'Downgrade')]), store],
       bar: bar('Upgrade to Full · $9.99 a month') }) },
 
   { id: 'plan-regular-used', route: '/plan', name: 'Your plan · Regular, the game hosted', nav: 'push',
