@@ -276,7 +276,12 @@ export function Screen({
        * bottom of the phone. Sheets had the same bug and it is the same fix.
        */}
       <View style={[styles.fixed, dimmed && styles.dimmed]}>
-        <View style={styles.top}>
+        {/* BOX-NONE: the top is raised over the sheet so a menu hung from the
+            title row or the meta line draws over the body, and its last 26
+            points of padding sit over the sheet's first 26. Without this they
+            caught every tap there — the odds calculator's Board label went
+            dead (ui-odds, 24 November). Only the rows inside it take a touch. */}
+        <View style={styles.top} pointerEvents="box-none">
           {titleRow}
           {sub}
         </View>
