@@ -148,7 +148,7 @@ export default function ClubMoneyRules() {
         </Pressable>
       )}
 
-      <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.block, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <Text style={[styles.blockTitle, { color: t.text }]}>Group default, not law</Text>
         <Text style={[styles.blockBody, { color: t.muted }]}>
           A night copies these when it opens and can override any of them from the house rules.

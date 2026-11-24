@@ -49,7 +49,7 @@ export function Field({
           styles.input,
           {
             color: t.text,
-            backgroundColor: t.surface,
+            backgroundColor: t.surface, boxShadow: t.lift,
             borderColor: set ? t.hairline : t.dashed,
             borderStyle: set ? 'solid' : 'dashed',
           },

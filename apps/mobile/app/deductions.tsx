@@ -537,7 +537,7 @@ function Block({
   );
 
   return (
-    <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+    <View style={[styles.block, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
       {editable ? (
         <Pressable
           accessibilityRole="button"

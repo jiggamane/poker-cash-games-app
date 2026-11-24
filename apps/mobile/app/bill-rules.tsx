@@ -143,7 +143,7 @@ export default function BillRules() {
         </Text>
       </Pressable>
 
-      <View style={[styles.block, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.block, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <Text style={[styles.blockTitle, { color: t.text }]}>When it is charged</Text>
         <Text style={[styles.blockBody, { color: t.muted }]}>
           At settle-up, against the counted table — never during the game. Changing the rule

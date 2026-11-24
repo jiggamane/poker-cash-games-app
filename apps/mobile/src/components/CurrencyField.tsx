@@ -73,12 +73,12 @@ export function CurrencyField({
         }}
         style={[
           styles.input,
-          { color: t.text, backgroundColor: t.surface, borderColor: t.hairline },
+          { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline },
         ]}
       />
 
       {searching ? (
-        <View style={[styles.list, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+        <View style={[styles.list, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
           {matches.map((c, i) => (
             <Pressable
               key={c.code}

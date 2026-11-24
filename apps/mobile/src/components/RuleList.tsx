@@ -62,7 +62,7 @@ export function RuleList({
       <View
         style={[
           styles.list,
-          boxed && [styles.box, { backgroundColor: t.surface, borderColor: t.hairline }],
+          boxed && [styles.box, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }],
         ]}
       >
         {rules.map((rule, i) => (

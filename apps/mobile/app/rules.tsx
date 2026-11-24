@@ -70,7 +70,7 @@ export default function Rules() {
           autoCorrect={false}
           returnKeyType="search"
           accessibilityLabel="Search the rules"
-          style={[styles.search, { color: t.text, backgroundColor: t.surface }]}
+          style={[styles.search, { color: t.text, backgroundColor: t.surface, boxShadow: t.lift }]}
         />
       </View>
 

@@ -108,7 +108,7 @@ export default function EntryPage() {
         )
       }
     >
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <Text style={[styles.label, { color: t.muted }]}>
           {clock(night.occurredAt[entry.id])} · {entry.voided ? 'voided' : entry.corrected ? 'corrected since' : 'as logged'}
         </Text>

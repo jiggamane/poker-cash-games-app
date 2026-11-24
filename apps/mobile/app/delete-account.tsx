@@ -114,7 +114,7 @@ export default function DeleteAccount() {
         <View style={styles.body}>
           <Text style={[styles.lede, text]}>{state.at === 'working' ? 'Deleting…' : 'Done. This phone starts over.'}</Text>
           {state.at === 'working' ? (
-            <View style={[styles.track, { backgroundColor: t.surface }]} />
+            <View style={[styles.track, { backgroundColor: t.surface, boxShadow: t.lift }]} />
           ) : null}
           {/* ⚠ UNSURE on the board, both. */}
           <Text style={[styles.foot, muted]}>
@@ -229,7 +229,7 @@ export default function DeleteAccount() {
             <Pressable
               accessibilityRole="button"
               onPress={() => void copyBackup()}
-              style={({ pressed }) => [styles.backup, { backgroundColor: t.surface, opacity: pressed ? 0.6 : 1 }]}
+              style={({ pressed }) => [styles.backup, { backgroundColor: t.surface, boxShadow: t.lift, opacity: pressed ? 0.6 : 1 }]}
             >
               <Icon name="clipboard" color={t.text} />
               <View style={styles.backupText}>

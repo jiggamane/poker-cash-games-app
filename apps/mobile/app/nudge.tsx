@@ -128,7 +128,7 @@ export default function Nudge() {
     >
       {people.length > 0 && (
         <>
-          <View style={[styles.sample, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+          <View style={[styles.sample, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
             <Text style={[styles.sectionLabel, { color: t.muted }]}>What they get</Text>
             <Text style={[styles.message, { color: t.text }]}>
               {personalMessage(people[0]![1])}

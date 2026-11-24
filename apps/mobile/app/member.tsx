@@ -97,7 +97,7 @@ export default function MemberSheet() {
           autoCapitalize="words"
           style={[
             styles.input,
-            { color: t.text, backgroundColor: t.surface, borderColor: t.hairline },
+            { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline },
           ]}
         />
       </View>

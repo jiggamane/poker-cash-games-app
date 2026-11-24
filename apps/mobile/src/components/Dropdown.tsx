@@ -80,7 +80,7 @@ export function Dropdown<T extends string>({
 
   if (only) {
     return (
-      <View testID={testID} style={[styles.anchor, styles.button, { backgroundColor: t.surface }]}>
+      <View testID={testID} style={[styles.anchor, styles.button, { backgroundColor: t.surface, boxShadow: t.lift }]}>
         <Text style={[styles.label, { color: t.offTable }]} numberOfLines={1}>
           {active.label}
         </Text>

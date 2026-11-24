@@ -76,7 +76,7 @@ export default function HouseRules() {
               onPress={() => opens !== undefined && router.push(opens)}
               style={({ pressed }) => [
                 styles.card,
-                { backgroundColor: t.surface, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+                { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
               ]}
             >
               <View style={styles.cardTop}>

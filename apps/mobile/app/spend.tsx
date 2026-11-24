@@ -298,7 +298,7 @@ export default function SpendScreen() {
                 styles.input,
                 {
                   color: t.text,
-                  backgroundColor: t.surface,
+                  backgroundColor: t.surface, boxShadow: t.lift,
                   borderColor: note.trim() === '' ? t.dashed : t.hairline,
                   borderStyle: note.trim() === '' ? 'dashed' : 'solid',
                 },
@@ -319,7 +319,7 @@ export default function SpendScreen() {
                 styles.input,
                 styles.picker,
                 {
-                  backgroundColor: t.surface,
+                  backgroundColor: t.surface, boxShadow: t.lift,
                   borderColor: cover.kind === 'unpaid' ? t.dashed : t.hairline,
                   borderStyle: cover.kind === 'unpaid' ? 'dashed' : 'solid',
                   opacity: pressed ? 0.6 : 1,
@@ -412,7 +412,7 @@ export default function SpendScreen() {
                       styles.shareInput,
                       {
                         color: t.text,
-                        backgroundColor: t.surface,
+                        backgroundColor: t.surface, boxShadow: t.lift,
                         borderColor: sharesAddUp ? t.hairline : t.danger,
                       },
                     ]}

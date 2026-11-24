@@ -210,7 +210,7 @@ export default function PassGame() {
               Nobody in the group can take it tonight. That’s their membership, not anything you
               set.
             </Text>
-            <View style={[styles.explainer, { backgroundColor: t.surface }]}>
+            <View style={[styles.explainer, { backgroundColor: t.surface, boxShadow: t.lift }]}>
               <Text style={[styles.explainerText, { color: t.text }]}>
                 A game can go to anyone on Full, or on Regular with their host night still free.
                 Each person picks their own.

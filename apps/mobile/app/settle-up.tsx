@@ -441,7 +441,7 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
               },
             ]}
           >
-            <View style={[styles.avatar, { backgroundColor: t.surface }]}>
+            <View style={[styles.avatar, { backgroundColor: t.raised }]}>
               <Text style={[styles.initial, { color: t.muted }]}>
                 {s.name.slice(0, 1).toUpperCase()}
               </Text>

@@ -588,7 +588,7 @@ export function ScoreTabs({
   ];
 
   return (
-    <View style={[styles.track, { backgroundColor: t.surface }]}>
+    <View style={[styles.track, { backgroundColor: t.surface, boxShadow: t.lift }]}>
       {options.map((o) => {
         const on = o.value === mode;
         return (

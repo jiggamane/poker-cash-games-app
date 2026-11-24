@@ -624,7 +624,10 @@ const ROOM = `
     // inputs are outlined". A block that carries either is not invisible, so
     // it is not this fault. One with neither still is.
     const cs = getComputedStyle(el);
-    if (cs.boxShadow && cs.boxShadow !== 'none') continue;
+    // A shadow counts only if it can be seen: the dark theme's lift is a
+    // transparent one, applied everywhere so a card need not ask which theme.
+    const shadows = (cs.boxShadow || 'none') === 'none' ? [] : cs.boxShadow.split(/,(?![^(]*[)])/);
+    if (shadows.some((x) => !x.includes('rgba(0, 0, 0, 0)'))) continue;
     if (parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== 'none' && (rgb(cs.borderTopColor)?.a ?? 0) > 0.05) continue;
     const under = painted(el.parentElement);
     if (under === null) continue;

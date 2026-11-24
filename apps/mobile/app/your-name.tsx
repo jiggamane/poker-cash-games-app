@@ -95,7 +95,7 @@ export default function YourName() {
           }}
           style={[
             styles.input,
-            { color: t.text, backgroundColor: t.surface, borderColor: focused ? t.text : t.outline },
+            { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: focused ? t.text : t.outline },
             focused && styles.focused,
           ]}
         />

@@ -25,8 +25,7 @@ export function Card({
       style={[
         styles.card,
         pad ? styles.pad : styles.rows,
-        { backgroundColor: t.surface },
-        t.lift !== 'none' && { boxShadow: t.lift },
+        { backgroundColor: t.surface, boxShadow: t.lift },
         style,
       ]}
     >
@@ -160,7 +159,7 @@ export function Chip({
           ? { borderWidth: 1.5, borderStyle: 'dashed', borderColor: t.outline }
           : on
             ? { backgroundColor: t.text }
-            : [{ backgroundColor: t.surface }, t.chipLift !== 'none' && { boxShadow: t.chipLift }],
+            : { backgroundColor: t.surface, boxShadow: t.chipLift },
         pressed && { opacity: 0.6 },
       ]}
     >

@@ -77,7 +77,7 @@ export default function SituationSheet() {
       </View>
 
       {binds.length > 0 && (
-        <View style={[styles.card, { backgroundColor: t.surface }]}>
+        <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift }]}>
           <Text style={[styles.cardLabel, { color: t.muted }]}>Your group</Text>
           {binds.map((key) => {
             const value = tableRuleValue(key, club.tableRules, symbol);

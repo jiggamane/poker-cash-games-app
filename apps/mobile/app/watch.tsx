@@ -289,7 +289,7 @@ function LiveSeat({ night, mine }: { night: WatchedNight; mine: { id: string; na
   ).length;
 
   return (
-    <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+    <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
       <Text style={[styles.cardEyebrow, { color: t.muted }]}>YOUR SEAT</Text>
       <Text style={[styles.seatName, { color: t.text }]}>You, {mine.name}</Text>
       <Text style={[styles.seatLine, { color: t.text }]}>

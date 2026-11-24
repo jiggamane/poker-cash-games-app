@@ -217,7 +217,7 @@ export function RuleFields({
   return (
     <>
       <Section label="Called">
-        <View style={[styles.input, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+        <View style={[styles.input, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
           <TextInput
             value={rule.name}
             onChangeText={(name) => onChange({ name })}
@@ -261,7 +261,7 @@ export function RuleFields({
                       styles.chip,
                       on
                         ? { backgroundColor: t.text, borderColor: t.text }
-                        : { backgroundColor: t.surface, borderColor: t.hairline },
+                        : { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline },
                     ]}
                   >
                     <Text style={[styles.chipLabel, { color: on ? t.onFill : t.text }]}>
@@ -438,7 +438,7 @@ export function RuleFields({
                 <View key={p.id} style={[styles.shareRow, { borderBottomColor: t.hairline }]}>
                   <Text style={[styles.shareName, { color: t.text }]}>{p.name}</Text>
                   <View
-                    style={[styles.shareBox, { borderColor: t.hairline, backgroundColor: t.surface }]}
+                    style={[styles.shareBox, { borderColor: t.hairline, backgroundColor: t.surface, boxShadow: t.lift }]}
                   >
                     <TextInput
                       value={String(shares.find((c) => c.playerId === p.id)?.amount ?? 0)}
@@ -497,7 +497,7 @@ export function RuleFields({
                     styles.chip,
                     on
                       ? { backgroundColor: t.text, borderColor: t.text }
-                      : { backgroundColor: t.surface, borderColor: t.hairline },
+                      : { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline },
                   ]}
                 >
                   <Text style={[styles.chipLabel, { color: on ? t.onFill : t.text }]}>{p.name}</Text>
@@ -581,7 +581,7 @@ function Radio({
       onPress={onPress}
       style={[
         styles.radioRow,
-        on ? { backgroundColor: t.surface, borderColor: t.text } : { borderColor: t.hairline },
+        on ? { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.text } : { borderColor: t.hairline },
         disabled && { opacity: 0.4 },
       ]}
     >

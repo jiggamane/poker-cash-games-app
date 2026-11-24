@@ -452,7 +452,7 @@ const count = (n: number): string =>
 function CardSkeleton() {
   const t = useTheme();
   return (
-    <View style={[styles.card, { backgroundColor: t.surface }]}>
+    <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift }]}>
       <Skeleton width={124} height={11} />
       <Skeleton width={104} height={21} />
       <Skeleton width="66%" height={13} />

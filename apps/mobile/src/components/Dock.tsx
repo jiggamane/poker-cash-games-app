@@ -125,7 +125,7 @@ export function Dock({
       style={[
         styles.panel,
         {
-          backgroundColor: t.surface,
+          backgroundColor: t.surface, boxShadow: t.lift,
           borderColor: open ? t.drawerEdge : t.hairline,
           gap: open ? 12 : 14,
         },

@@ -465,7 +465,7 @@ export default function Session() {
         <View
           style={[
             styles.card,
-            { backgroundColor: t.surface, borderColor: t.hairline },
+            { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline },
             empty && styles.cardEmpty,
           ]}
         >

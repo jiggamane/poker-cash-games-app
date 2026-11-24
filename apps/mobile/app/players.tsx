@@ -173,7 +173,7 @@ export default function Roster() {
     >
       {/* The two-way segmented filter under the title: a tab track, radius
           10 with 3 of padding, each segment radius 7. */}
-      <View style={[styles.track, { backgroundColor: t.surface }]}>
+      <View style={[styles.track, { backgroundColor: t.raised }]}>
         <Segment label="Everyone" on={view === 'everyone'} onPress={() => setView('everyone')} />
         <Segment label="Who can run a game" on={view === 'runners'} onPress={() => setView('runners')} />
       </View>
@@ -192,7 +192,7 @@ export default function Roster() {
               styles.input,
               {
                 color: t.text,
-                backgroundColor: t.surface,
+                backgroundColor: t.surface, boxShadow: t.lift,
                 borderColor: trimmed === '' ? t.dashed : t.hairline,
                 borderStyle: trimmed === '' ? 'dashed' : 'solid',
               },
@@ -285,7 +285,7 @@ function PersonRow({
   const shown = mine ? `You, ${m.name}` : m.name;
   const body = (
     <>
-      <View style={[styles.avatar, { backgroundColor: t.surface }]}>
+      <View style={[styles.avatar, { backgroundColor: t.raised }]}>
         <Text style={[styles.initial, { color: t.text }]}>{shown.slice(0, 1).toUpperCase()}</Text>
       </View>
       <View style={styles.rowText}>

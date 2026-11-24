@@ -162,7 +162,7 @@ export default function Seat() {
     >
       <View style={styles.field}>
         <Text style={[styles.fieldLabel, { color: t.muted }]}>Name</Text>
-        <View style={[styles.input, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+        <View style={[styles.input, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
           <TextInput
             autoFocus
             value={name}
@@ -213,7 +213,7 @@ export default function Seat() {
                 onPress={() => void seatFromBench(p)}
                 style={({ pressed }) => [
                   styles.chip,
-                  { backgroundColor: t.surface, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
+                  { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
                 ]}
               >
                 <Text style={[styles.chipLabel, { color: t.text }]}>{p.name}</Text>
@@ -225,7 +225,7 @@ export default function Seat() {
 
       <View style={[styles.stake, { borderColor: t.hairline }]}>
         <Text style={[styles.stakeLabel, { color: t.text }]}>First buy-in</Text>
-        <View style={[styles.stakeField, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+        <View style={[styles.stakeField, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
           {/* The group's own, not a dollar sign. It is the one place in this
               app where the symbol stands alone rather than in front of a
               figure, which is exactly how it stayed a dollar for so long. */}

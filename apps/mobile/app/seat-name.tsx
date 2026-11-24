@@ -74,7 +74,7 @@ export default function SeatName() {
           onSubmitEditing={() => {
             if (!unchanged && !saving) void save();
           }}
-          style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.hairline }]}
+          style={[styles.input, { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}
         />
         {refusal !== null && <Text style={[styles.refusal, { color: t.text }]}>{refusal}</Text>}
         {/* ⚠ UNSURE on the board. */}

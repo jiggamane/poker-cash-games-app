@@ -80,7 +80,7 @@ export function PotOddsCard({
           accessibilityRole="button"
           accessibilityLabel="Pot odds, closed"
           onPress={onToggle}
-          style={({ pressed }) => [styles.card, styles.closed, { backgroundColor: t.surface, opacity: pressed ? 0.6 : 1 }]}
+          style={({ pressed }) => [styles.card, styles.closed, { backgroundColor: t.surface, boxShadow: t.lift, opacity: pressed ? 0.6 : 1 }]}
         >
           <View style={styles.closedText}>
             <Text style={[styles.title, { color: t.text }]}>Pot odds</Text>
@@ -91,7 +91,7 @@ export function PotOddsCard({
           </View>
         </Pressable>
       ) : (
-        <View style={[styles.card, styles.openCard, { backgroundColor: t.surface }]}>
+        <View style={[styles.card, styles.openCard, { backgroundColor: t.surface, boxShadow: t.lift }]}>
           {/* The same label that opened it closes it: the card's own title row. */}
           <Pressable
             accessibilityRole="button"

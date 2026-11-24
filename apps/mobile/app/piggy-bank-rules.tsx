@@ -110,7 +110,7 @@ export default function PiggyBankRules() {
         />
       }
     >
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+      <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
         <View style={styles.cardLeft}>
           <Text style={[styles.label, { color: t.muted }]}>Charged on every win</Text>
           <Text style={[styles.figure, { color: t.text }]}>{rate(rule)}</Text>

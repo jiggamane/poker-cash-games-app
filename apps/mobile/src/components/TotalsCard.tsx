@@ -39,7 +39,7 @@ export function TotalsCard({
   const t = useTheme();
 
   return (
-    <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
+    <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
       <View style={styles.left}>
         <Text style={[styles.eyebrow, { color: t.muted }]} numberOfLines={1} {...unscaledLabel}>
           {eyebrow}

@@ -280,7 +280,7 @@ export interface Theme {
   barRule: string;
   /** What lifts the bar off the sheet: nothing in the light (the ink does it), a soft shadow above it in the dark. */
   barShadow: string;
-  /** The card's shadow (L2, the shorter fall). 'none' in the dark: a card is one step lighter instead. */
+  /** The card's shadow (L2, the shorter fall). Empty in the dark (a transparent shadow, so it can always be applied): a card is one step lighter instead. */
   lift: string;
   /** The same, smaller, for a chip (option C). */
   chipLift: string;
@@ -356,8 +356,8 @@ export const darkTheme: Theme = {
   onBarDead: 'rgba(255,255,255,0.38)',
   barRule: 'rgba(255,255,255,0.14)',
   barShadow: '0px -12px 24px -10px rgba(0,0,0,0.65)',
-  lift: 'none',
-  chipLift: 'none',
+  lift: '0px 0px 0px 0px rgba(0,0,0,0)',
+  chipLift: '0px 0px 0px 0px rgba(0,0,0,0)',
   red: '#F0606E',
 };
 

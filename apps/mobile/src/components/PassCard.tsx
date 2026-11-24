@@ -91,7 +91,7 @@ export function PassCard({ notice, on }: { notice: Notice; on: 'tonight' | 'home
       onPress={() => void open()}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: t.surface, borderColor: t.drawerEdge, opacity: pressed ? 0.85 : 1 },
+        { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.drawerEdge, opacity: pressed ? 0.85 : 1 },
       ]}
     >
       <Icon name="pass" color={t.text} size={19} />

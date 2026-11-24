@@ -736,7 +736,7 @@ export default function OddsCalculator() {
           const hasControl = hasOuts || settled !== null;
           const open = hasControl && outsOpen.has(seat);
           return (
-            <View key={seat} nativeID={`seat-${seat + 1}`} style={[styles.seatCard, { backgroundColor: t.surface }]}>
+            <View key={seat} nativeID={`seat-${seat + 1}`} style={[styles.seatCard, { backgroundColor: t.surface, boxShadow: t.lift }]}>
               <View style={styles.seatRow}>
                 <View style={styles.pair}>
                   {hand.map((c, i) => (
