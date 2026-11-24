@@ -95,19 +95,16 @@ export default [
         card([row({ name: 'You', value: 'Andro' }), row({ name: 'Players' }), row({ name: 'Invited', value: '0 waiting' }), row({ name: 'I have an invite code' })]),
       ] }) },
 
-  { id: 'settings-more', route: '/settings', name: 'Settings · the rest', nav: 'push',
-    flags: ['Drawn as this build shows it: no server, so Account is one fact and its note. Signed in, the app adds Name, Signed in as, Plan, Sync now, Fetch my nights, Connection, Share this night, Stop sharing, Sign out and Delete account to that card; those rows are not drawn.'],
+  { id: 'settings-more', route: '/settings', name: 'Settings · account', nav: 'push', allowOverflow: true,
+    note: 'Signed in, as a user sees it: the account card with the app’s own rows, the phone’s backups, and the way out. The address is a sample.',
     html: push({ title: 'Settings', sub: 'The Thursday game · you are admin',
       body: [
+        label('Account', { quiet: true }),
+        card([row({ name: 'Name', value: 'Andro' }), row({ name: 'Signed in as', value: 'andro@mail.com' }), row({ name: 'Plan', value: 'Regular' }), row({ name: 'Sync now' }), row({ name: 'Fetch my nights' }), row({ name: 'Connection' }), row({ name: 'Share this night' }), row({ name: 'Sign out' })]),
         label('This phone', { quiet: true }),
         card([row({ name: 'Copy a backup' }), row({ name: 'Restore from a backup' })]),
-        label('Account', { quiet: true }),
-        card(row({ name: 'Where it lives', value: 'Saved on this phone' })),
-        note('No server is configured for this build, so nothing leaves the phone.'),
         label('The exits', { quiet: true }),
-        card(row({ name: 'Hand over admin' })),
-        note('Leaving and deleting a club are not built. Both wait on decisions the group has not taken: whether somebody can leave with money outstanding, and what happens to nights other people played in.'),
-        `<p class="note dimt" style="text-align:center;font-size:12px;margin-top:6px">build 096c10c · 22 Nov, 16:49</p>`,
+        card([row({ name: 'Hand over admin' }), row({ name: '<span class="red">Delete your account</span>' })]),
       ] }) },
 
   { id: 'club-rules', route: '/club-rules', name: 'Money rules · group defaults', nav: 'push',
@@ -161,20 +158,6 @@ export default [
       ],
       bar: bar('Add this rule') }) },
 
-  { id: 'rule-more', route: '/rule', name: 'Rule editor · the rest', nav: 'sheet',
-    html: sheet({ behind: 'Tonight', tall: true, title: 'Group piggy bank',
-      body: [
-        label('Never more than', { quiet: true }),
-        presets([{ text: 'No ceiling', on: true }, '$50', '$100', { text: '—', typed: true }]).replace('flex:1;min-width:0;padding:0', 'flex:1.6;min-width:0;padding:0'),
-        ceilingNote,
-        label('Charged to', { quiet: true }),
-        card([radio(true, 'The winners'), radio(false, 'Everyone at the table')]),
-        label('Collected by', { quiet: true }),
-        smallChips([...people, 'Radka']),
-        collectorNote,
-      ],
-      bar: bar('Add this rule') }) },
-
   { id: 'rule-edit', route: '/rule', name: 'Rule editor · a rule that exists', nav: 'sheet',
     note: 'Scrolled to the end. Save and Remove share the bar, as in New session’s rule editor (owner, 22 November).',
     flags: ['The app blocks the primary with its reason as the label: Give it a name, Set an amount, Say how often, Set a ceiling, “$N still to allocate”, “$N too much allocated”. Not drawn; on the bar it would be those words, faint.'],
@@ -198,27 +181,6 @@ export default [
   { id: 'bill-rules-changed', route: '/bill-rules', name: 'Bill rules · a different split picked', nav: 'sheet',
     html: sheet({ behind: 'Tonight', title: `Bill rules${badge('admin only')}`, sub: 'what happens to the bill when the night is counted',
       body: billBody(1), bar: bar('Save the rule') }) },
-
-  { id: 'piggy-bank-rules', route: '/piggy-bank-rules', name: 'The piggy bank', nav: 'sheet',
-    note: 'Opens blocked, like Bill rules. The switch is ink when on: no green fills.',
-    html: sheet({ behind: 'Tonight', tall: true, title: `The piggy bank${badge('admin only')}`,
-      body: piggyBody(), bar: bar('Save for tonight', { blocked: true }) }) },
-
-  { id: 'piggy-bank-rules-changed', route: '/piggy-bank-rules', name: 'The piggy bank · someone sitting out', nav: 'sheet',
-    html: sheet({ behind: 'Tonight', tall: true, title: `The piggy bank${badge('admin only')}`,
-      body: piggyBody(['Tomáš']), bar: bar('Save for tonight') }) },
-
-  { id: 'house-rules', route: '/house-rules', name: 'Bill & piggy bank', nav: 'sheet',
-    note: 'A reading sheet with two ways on and nothing to confirm, so no bar; both stay outlined in the content.',
-    flags: ['The app draws The bill as a dashed add box and Edit tonight’s rules as a small outlined button. Both are drawn as the kit’s outlined button; say if The bill should keep its dashes.'],
-    html: sheet({ behind: 'Tonight', title: 'Bill &amp; piggy bank', sub: 'The group’s usual rules, carried from last night. They apply at settle-up, never during play.',
-      body: [
-        card(`<div class="split"><b style="font-size:15.5px">Kitchen &amp; drinks</b><b class="num">—</b></div>${note('split between the winners, by the size of the win · $170 spent so far · paid back to whoever bought it')}`, { pad: true }),
-        card(`<div class="split"><b style="font-size:15.5px">Group piggy bank · 5%</b><b class="num">—</b></div>${note('off each win · splits between the winners · held by Radka')}`, { pad: true }),
-        button('The bill', { icon: 'plus' }),
-        button('Edit tonight’s rules'),
-        note('Editing changes tonight only. A night is settled with the rules it opened with, so nights already closed keep the rules they were closed under.'),
-      ] }) },
 
   { id: 'table-rules', route: '/table-rules', name: 'Table rules', nav: 'sheet',
     allowOverflow: true,

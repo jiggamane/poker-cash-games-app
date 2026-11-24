@@ -56,9 +56,9 @@ const playersSheet = (o) => sheet({ behind: 'The Thursday game', title: 'Add pla
 
 const C = OPTIONS.c;
 const kp = `<div class="kp" style="margin:0 -20px">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0'].map((k) => `<span>${k}</span>`).join('')}<span>${ico('backspace', 22)}</span></div>`;
-const sheetC = (rows, extra = [], barText = 'Done · 3 seated', search = 'Search by name', searching = false) => sheet({ behind: 'The Thursday game', title: 'Add players', tall: true, stepBack: true,
+const sheetC = (rows, extra = [], barText = 'Done · 3 seated', search = 'Search by name', searching = false) => sheet({ behind: 'The Thursday game', title: 'Add players', sub: 'Each player starts at the standard buy-in, $500. Tap a figure to change it.', tall: true, stepBack: true,
   body: [field('', search, { placeholder: !searching, focus: searching }), ...(rows.length ? [label('Most recent first', { quiet: true }), card(rows, { style: 'padding:0 8px 0 10px' })] : []), ...extra],
-  bar: bar(barText) });
+  bar: bar(barText, { line: barText.includes('4') ? '$2,300 on the table' : '$1,800 on the table' }) });
 const caret = (h = 15) => `<span style="display:inline-block;width:1.5px;height:${h}px;background:var(--text);vertical-align:-2px;margin-left:1px"></span>`;
 /*
  * One line per player (owner, 23 November): the name and its buy-in, nothing under the name, no tick.
@@ -103,7 +103,7 @@ export const section = { title: 'This round: Add players, one line per player',
 export default [
   { id: 'c-std-1', route: '/new-night', name: 'Add players C · the standard, before Add', nav: 'sheet', note: 'The sheet says the standard buy-in once, under its title. Ivo has not been added yet.',
     flags: ['The line under the title is draft; “Standard buy-in” is the app’s own name for it (Game details).'],
-    html: stdSheet(ROWS(null), [], 'Done · 3 seated', '$1,800 on the table') },
+    html: stdSheet(ROWS(null), [C.fresh], 'Done · 3 seated', '$1,800 on the table') },
   { id: 'c-std-2', route: '/new-night', name: 'Add players C · added: the standard is set, no keypad', nav: 'sheet', note: 'One tap on Add and Ivo is in at $500, prefilled where Add was. Nothing opens: no keypad, no field to fill. The row glows for a moment so the eye finds it; the bar counts four and the total moves on. Adding the next player is the next tap.',
     flags: ['The glow is new: it fades after about a second. The total is the board’s own sum of the four figures.'],
     html: stdSheet(ROWS(500, { glow: true }), [], 'Done · 4 seated', '$2,300 on the table') },
@@ -112,7 +112,6 @@ export default [
       body: [card([seat(...BASE[0]), seat(...BASE[1]), seat('Ivo', 'played 22 November · 1 night', 500, { editing: true }).replace('<span class="num" style="font:700 16.5px/1.1 var(--head);padding:2px 6px;border-radius:6px;box-shadow:inset 0 0 0 2px var(--text);flex:none">', '<span class="num" style="position:relative;font:700 16.5px/1.1 var(--head);padding:2px 6px;border-radius:6px;box-shadow:inset 0 0 0 2px var(--text);flex:none"><i style="position:absolute;right:-8px;bottom:-10px;width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--text) 16%,transparent);box-shadow:0 0 0 5px color-mix(in srgb,var(--text) 7%,transparent)"></i>'), seat(...BASE[2])], { style: 'padding:0 8px 0 10px' }), kp], bar: bar('Done', { line: '$2,300 on the table' }) }) },
   { id: 'c-std-4', route: '/new-night', name: 'Add players C · a buy-in off the standard', nav: 'sheet', note: 'Typed to $1,000: the figure turns full ink, as Lena’s $800 is, while the ones at the standard stay quiet. No line under the name says by how much any more.',
     html: stdSheet(ROWS(1000), [], 'Done · 4 seated', '$2,800 on the table') },
-  { id: 'c-rest', route: '/new-night', name: 'Add players C · at rest', nav: 'sheet', note: 'Three added with their buy-ins; the rest each with Add; the new-player line grey until a name is typed.', html: sheetC(ALL(), [C.fresh]) },
   { id: 'c-search', route: '/new-night', name: 'Add players C · searching', nav: 'sheet', note: 'Typing narrows the roster as you go; a match keeps its Add or its figure.', html: sheetC([r('Petr', 'played 22 November · 1 night', null)], [C.fresh], 'Done · 3 seated', 'Pe', true) },
   { id: 'c-nomatch', route: '/new-night', name: 'Add players C · nobody by that name', nav: 'sheet', note: 'No match: the app’s line points at the field below, and the name typed in the search carries down into it, its Add live.', flags: ['Carrying the searched name into the new-player field is new; the app leaves that field empty.'], html: sheetC([], [`<p class="note">Nobody called “Marek” — type the name below to add them.</p>`, typedNew('Marek')], 'Done · 3 seated', 'Marek', true) },
   { id: 'c-new', route: '/new-night', name: 'Add players C · a new name typed', nav: 'sheet', note: 'A name typed in the new-player line: its Add turns ink. Adding seats them at the standard buy-in, which then shows as a figure like the others.', html: sheetC(ALL().slice(0, 4), [typedNew('Marek')]) },
@@ -124,7 +123,7 @@ export default [
    * same sheet; the invite is the app's own Invite a player, content replaced, so its code, its four ways
    * to send and its QR are the ones the Players screen already has. Inviting is never required to play.
    */
-  { id: 'c-new-added', route: '/new-night', name: 'Add players C · a new player added, the invite offered', nav: 'sheet',
+  { id: 'c-new-added', route: '/new-night', name: 'Add players C · a new player added, the invite offered', nav: 'sheet', allowOverflow: true,
     note: 'Marek is in at the standard, his row glowing like any added player. Under the list, one card offers the invite: what it gives them, and Invite as the same lifted chip as Add. Skipping it costs nothing; the card stays until the sheet closes.',
     flags: ['New words, draft: “Marek is new to the group” and the line under it. The app seats a new name with no invite offered.'],
     html: sheetC([...ALL().slice(0, 4).map((x) => x), glow(seat('Marek', '', 500))], [`<div style="display:flex;align-items:center;gap:12px;padding:12px 8px 12px 14px;border-radius:12px;${lift}"><div style="flex:1;min-width:0"><b style="font:600 14.5px/1.2 var(--body)">Marek is new to the group</b><div class="muted" style="font-size:12.5px;line-height:1.35;margin-top:3px">Invite them and the night, with their money, shows on their phone.</div></div><span style="display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 6px 0 12px;border-radius:10px;font:600 13.5px/1 var(--body);${lift.replace('background:var(--card)', 'background:var(--sheet)')};flex:none">Invite${inkPlus(22)}</span></div>`], 'Done · 4 seated') },

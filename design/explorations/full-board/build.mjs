@@ -243,6 +243,7 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 #zone-ok .pg-sec h2{font-size:19px}
 .upd-noted{font:600 12px var(--body);color:var(--warn);padding:0 6px}
 .upd[hidden],.pg-none[hidden]{display:none!important}
+.nd-t{border-collapse:collapse;font-size:13.5px;width:100%;max-width:820px}.nd-t th{text-align:left;font-weight:700;padding:6px 10px 6px 0;border-bottom:1px solid var(--line)}.nd-t td{padding:6px 10px 6px 0;border-bottom:1px solid var(--line);color:var(--muted)}.nd-t a{color:var(--fg);font-weight:700;text-decoration:none}.pt-dec a{color:var(--fg);font-weight:700;text-decoration:none}
 .pg-why>summary{cursor:pointer;font:600 12.5px var(--body);color:var(--muted);list-style:none}.pg-why>summary::before{content:"+ "}.pg-why[open]>summary::before{content:"− "}
 .pt-head{display:flex;flex-direction:column;gap:12px;background:var(--panel);border-radius:16px;padding:16px;margin-bottom:6px}
 .pt-stat{display:flex;gap:8px;flex-wrap:wrap}
@@ -287,11 +288,11 @@ ${CSS}
 <main class="pg-wrap" id="board">
 <header>
   <span class="pg-eyebrow">Design board · the review</span>
-  <h1>What is left to review</h1>
-  <p>Only the screens still waiting for your approval are open here, with the live count in the strip below. Approve one, or say what to change on it. Approved screens, the build plan and what was decided are folded away at the foot of the page.</p>
+  <h1>The working board</h1>
+  <p>The app by its parts, each opened by its journeys. Approve a phone or say what to change; decisions and states still to draw are listed per part. The clean set of every screen is the design board.</p>
   <div class="pg-strip" role="group" aria-label="Board controls">
     <div class="pg-mode" role="group" aria-label="Phone theme"><button type="button" id="m-light" aria-pressed="true">Light</button><button type="button" id="m-dark" aria-pressed="false">Dark</button></div>
-    <nav aria-label="Sections"><a href="#sec-updates">Last round</a><a href="#sec-progress">Where review stands</a><a href="#zone-review"><b>To review</b></a>${sections.map((s, i) => s.screens.some((x) => !isApproved(x.id, SNAPSHOT)) ? `<a href="#sec-${i}">${esc(s.title)}</a>` : '').join('')}${openFlags.length ? `<a href="#sec-open">Open questions</a>` : ''}<a href="#sec-folded">Folded away</a></nav>
+    <nav aria-label="Sections"><a href="#sec-updates">Last round</a><a href="#sec-needs"><b>What needs you</b></a><a href="#sec-progress">Where review stands</a><a href="#zone-review"><b>To review</b></a>${sections.map((s, i) => s.screens.some((x) => !isApproved(x.id, SNAPSHOT)) ? `<a href="#sec-${i}">${esc(s.title)}</a>` : '').join('')}<a href="#sec-folded">Folded away</a></nav>
     ${REVIEW ? `<div class="cnt" role="status"><span id="cA">0 approved</span><span id="cC">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span>` : ''}
   </div>
 </header>
@@ -301,6 +302,11 @@ ${CSS}
   <div class="pg-grid" id="upd-grid">${all.filter((x) => ADDRESSED[x.id] && ADDRESSED[x.id][1] >= LATEST).map((x) => (SHOW[x.id] ? SHOW[x.id].map((id) => all.find((y) => y.id === id)).filter(Boolean).map((y, n) => cell(y, n === 0 ? ADDRESSED[x.id][0] : `For “${x.name}”: ${n + 1} of ${SHOW[x.id].length}.`).replace(`data-upd="${y.id}"`, `data-upd="${x.id}"`)) : [cell(x, ADDRESSED[x.id][0])]).join('')).join('')}</div>
 </section>
 
+
+<section id="sec-needs"><h2>What needs you</h2><div class="pg-progress">
+  <div class="pp-block"><h3>To decide · ${APP_PARTS.flatMap((p) => p.decisions ?? []).length}</h3><ul class="pt-dec">${sections.flatMap((x, i) => (x.part.decisions ?? []).map((d) => `<li><a href="#sec-${i}">${esc(x.title)}</a> · ${esc(d)}</li>`)).join('')}</ul></div>
+  <div class="pp-block"><h3>By part</h3><table class="nd-t"><thead><tr><th>Part</th><th>Approved</th><th>To review</th><th>To draw</th><th>To decide</th></tr></thead><tbody>${sections.map((x, i) => { const ok = x.screens.filter((y) => isApproved(y.id, SNAPSHOT)).length; const m = x.part.missing ?? []; const pr = (k) => m.filter((y) => y.priority === k).length; return `<tr><td><a href="#sec-${i}">${esc(x.title)}</a></td><td>${ok} of ${x.screens.length}</td><td>${x.screens.length - ok}</td><td>${m.length ? `${m.length}${pr('P1') ? ` · <b class="pri P1">${pr('P1')} P1</b>` : ''}` : '—'}</td><td>${(x.part.decisions ?? []).length || '—'}</td></tr>`; }).join('')}</tbody></table></div>
+</div></section>
 
 <section id="sec-progress"><h2>Where review stands</h2><div class="pg-progress"><div id="pp-body">${renderProgress(PDATA, SNAPSHOT)}</div><span class="pp-live" id="pp-live">As of the last build. ${REVIEW ? 'Updates as you review.' : ''}</span></div></section>
 
@@ -323,11 +329,7 @@ ${sections.map((s, i) => `<section id="sec-ok-${i}" class="pg-sec">
 <details class="pg-fold"><summary>Building it: the approved screens going into the app</summary>${planSection()}</details>
 <details class="pg-fold"><summary>Decided along the way</summary><ul class="pg-open">${DECIDED.map(([k, t]) => `<li><b style="color:var(--fg)">${esc(k)}</b> ${esc(t)}</li>`).join('')}</ul></details>
 
-${openFlags.length ? `<section id="sec-open">
-  <h2>Open questions</h2>
-  <p>Only for screens still to review: places where a redraw decided something the app or the handoffs do not say, or a word not yet in the app. Each links to its screen.</p>
-  <ul class="pg-open">${openFlags.flatMap((s) => s.flags.map((f) => `<li><a href="#s-${s.id}">${esc(s.name)}</a> — ${esc(f)}</li>`)).join('')}</ul>
-</section>` : ''}
+
 </main>
 <script>
 (() => {
