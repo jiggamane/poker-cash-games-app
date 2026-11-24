@@ -77,10 +77,8 @@ export default function SeatName() {
           style={[styles.input, { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}
         />
         {refusal !== null && <Text style={[styles.refusal, { color: t.text }]}>{refusal}</Text>}
-        {/* ⚠ UNSURE on the board. */}
-        <Text style={[styles.foot, { color: t.muted }]}>
-          {`If you delete your account, the seat goes back to ${theirs}.`}
-        </Text>
+        {/* The line "If you delete your account, the seat goes back to …" was here, UNSURE on
+            its board; the owner took it off on 24 November (the full board, seat-name-changed). */}
       </View>
     </Sheet>
   );
@@ -97,5 +95,4 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   refusal: { fontSize: 13, fontWeight: '500', lineHeight: 18.9 },
-  foot: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
 });

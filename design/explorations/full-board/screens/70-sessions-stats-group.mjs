@@ -59,9 +59,13 @@ export const chart = (caption, cols) => {
   const W = 266, CW = W / 8, BAND = 38, BW = 15;
   const marks = cols.map(([lbl, h], i) => {
     const cx = i * CW + CW / 2, x = (cx - BW / 2).toFixed(1);
-    const b = h > 0 ? `<rect x="${x}" y="${BAND - h}" width="${BW}" height="${h}" rx="3" style="fill:var(--win)"/>`
-      : h < 0 ? `<rect x="${x}" y="${BAND + 1}" width="${BW}" height="${-h}" rx="3" style="fill:var(--red)"/>`
-      : `<rect x="${x}" y="${BAND - 2}" width="${BW}" height="2" rx="1" style="fill:var(--muted)"/><rect x="${x}" y="${BAND + 1}" width="${BW}" height="2" rx="1" style="fill:var(--muted)"/>`;
+    const b = h > 0 ? `<rect x="${x}" y="${BAND - Math.max(8, h)}" width="${BW}" height="${Math.max(8, h)}" rx="3" style="fill:var(--win)"/>`
+      /* A loss is a red bar at least 8 tall, so a small one still reads as a bar and as red, not as a dash
+         (owner, 24 November: "the graph should also use red for losses"). */
+      : h < 0 ? `<rect x="${x}" y="${BAND + 1}" width="${BW}" height="${Math.max(8, -h)}" rx="3" style="fill:var(--red)"/>`
+      /* Break-even: one grey bead sitting on the line, nothing above or below it (owner: "dont like when it
+         looks like a hamburger"). */
+      : `<circle cx="${cx}" cy="${BAND + 0.5}" r="3.5" style="fill:var(--muted)"/>`;
     return `${b}<text x="${cx}" y="${BAND * 2 + 15}" text-anchor="middle" style="fill:var(--muted);font:500 9.5px var(--body)">${lbl}</text>`;
   }).join('');
   return card([
@@ -133,7 +137,7 @@ export default [
       ] }) },
 
   { id: 'stats-book', route: '/stats', name: 'My stats · a fuller book', nav: 'push',
-    note: 'The same screen with eight nights behind it, to judge the chart: wins above the line in green, losses below in red, and the break-even night as two flat marks on the line with no figure over it (owner, 24 November). Options for the games-and-hours line are at the top of the board.',
+    note: 'The same screen with eight nights behind it, to judge the chart: wins above the line in green, losses below in red, and the break-even night as one grey bead on the line (owner, 24 November). Every bar is at least 8 tall, so a small loss still reads red. The games-and-hours line keeps its first style: the owner passed over the three options.',
     flags: ['Every figure and name here is the design handoff’s sample (design/handoff-sessions-stats, frame 2a), not the seeded night. The sample disagrees with itself about 5 Aug: $0 in the chart, +$40 in the list.',
       'The app draws the break-even night in yellow. The kit has no yellow token, so it is drawn muted: decide its colour.'],
     html: statsBookHtml() },

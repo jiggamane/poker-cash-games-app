@@ -237,7 +237,6 @@ export default [
       body: [
         para('Everyone in The Thursday game sees this. Andro added you as Lena.'),
         field('', 'Lena', { focus: true }),
-        note('If you delete your account, the seat goes back to Lena.'),
       ],
       bar: bar('Save', { blocked: true }) }) },
 
@@ -247,7 +246,6 @@ export default [
       body: [
         para('Everyone in The Thursday game sees this. Andro added you as Lena.'),
         field('', 'Lenka', { focus: true }),
-        note('If you delete your account, the seat goes back to Lena.'),
       ],
       bar: bar('Save') }) },
 ];
