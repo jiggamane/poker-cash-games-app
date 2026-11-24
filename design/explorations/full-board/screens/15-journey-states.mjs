@@ -6,7 +6,7 @@
  * and the store's waiting and failed states; and the confirm before removing someone from the group.
  * Words the app already has are the app's; every other line is marked draft in its flags.
  */
-import { sheet, bar, card, row, note, quiet, ico, label } from '../kit.mjs';
+import { sheet, bar, card, row, note, quiet, ico, label, art, topButton } from '../kit.mjs';
 import home from './10-home-tonight.mjs';
 import running from './45-running-the-game.mjs';
 import addPlayers from './05-this-round.mjs';
@@ -24,6 +24,17 @@ const plus = `<span style="width:28px;height:28px;border-radius:50%;background:v
 const afterBody = (html, inner) => html.replace('<div class="body">', `<div class="body">${inner}`);
 const beforeBar = (html, inner) => { const i = html.lastIndexOf('<div class="bar'); return html.slice(0, i) + inner + html.slice(i); };
 const passCard = (title, sub) => `<div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:14px;box-shadow:var(--lift),inset 3px 0 0 #0E7A45"><span style="flex:none;width:30px;height:30px;border-radius:50%;background:#0E7A45;color:#fff;display:grid;place-items:center">${ico('pass', 16)}</span><div><b style="display:block;font:700 15.5px/1.25 var(--head)">${title}</b><span class="muted" style="font-size:13px;line-height:1.4">${sub}</span></div></div>`;
+
+
+/* The round button on Tonight's top opens Poker tools (owner, 24 November: “let's update this icon”). Four options for what it shows. */
+const TB = topButton('questionCard');
+const withButton = (inner) => { if (!H.session.includes(TB)) throw new Error('no top button'); return H.session.replace(TB, `<span class="tbtn">${inner}</span>`); };
+const ICON_OPTIONS = [
+  ['a', 'A · the spade card', 'A playing card with a spade: the deck, read as “poker things”.', ico('spadeCard', 18)],
+  ['b', 'B · the calculator', 'The calculator, the tool used most at the table.', ico('calculator', 18)],
+  ['c', 'C · the percent', 'Odds as a sign: what the calculator gives.', ico('percent', 18)],
+  ['d', 'D · the Poker tools drawing', 'The same drawing as the Poker tools tile on Home, small: the two places read as one.', `<span style="display:block;width:26px;height:26px;line-height:0">${art('tools', 26, { onInk: true })}</span>`],
+];
 
 const DRAFT = (what) => `New words, draft: ${what}.`;
 
@@ -87,4 +98,5 @@ export default [
     html: sheet({ behind: 'Players', title: 'Remove Dana from the group?', stepBack: true,
       body: [note('Removing somebody keeps every night they played. The ledger keeps what they already played, and anything unsettled stays on the night it came from.'), quiet('Remove Dana', { red: true })],
       bar: bar('Keep Dana') }) },
+  ...ICON_OPTIONS.map(([k, name, note, inner]) => ({ id: `session-icon-${k}`, route: '/session', name: `Tonight · the tools button · ${name}`, nav: 'push', note, html: withButton(inner) })),
 ];

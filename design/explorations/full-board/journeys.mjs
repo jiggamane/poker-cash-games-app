@@ -61,7 +61,7 @@ export const PARTS = [
 
   { key: 'during', title: 'During the night', files: ['40-during-the-game.mjs'],
     journeys: [{ name: 'Recording the money', steps: [
-      { label: 'Tonight', ids: ['session', 'session-hidden'] },
+      { label: 'Tonight', ids: ['session', 'session-hidden', 'session-icon-a', 'session-icon-b', 'session-icon-c', 'session-icon-d'] },
       { label: 'The Table admin drawer', ids: ['session-admin'] },
       { label: 'A rebuy or a buy-in', ids: ['pick', 'log-rebuy', 'session-rebuy-undo'] },
       { label: 'A player’s card', ids: ['player', 'player-out', 'player-corrected'] },
