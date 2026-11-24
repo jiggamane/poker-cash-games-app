@@ -4,7 +4,7 @@
  * entry on an added row, the Add control on the others, and the new-player line change.
  */
 import { sheet, bar, label, card, row, field, ico, note, button, quiet } from '../kit.mjs';
-import { eyebrow, shareRow, codeHero } from './20-getting-in.mjs';
+import { eyebrow, shareRow, codeHero, qrWide } from './20-getting-in.mjs';
 import { qrSvg, inviteLink } from '../qr.mjs';
 const MCODE = 'R4D-9WT';
 
@@ -133,7 +133,7 @@ export default [
     html: sheet({ behind: 'The Thursday game', title: 'Invite Marek', sub: 'The Thursday game', tall: true, stepBack: true,
       body: [eyebrow('Marek’s code'), codeHero(MCODE).replace('font-size:31px;letter-spacing:.05em', 'font-size:40px;letter-spacing:.08em'),
         note('One person, one code — it only ever attaches to Marek. It works for a month.'),
-        shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share'], ['qr', 'QR code']])],
+        shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share']]), qrWide],
       bar: bar('Back to the players') }) },
   { id: 'c-invite-qr', route: '/new-night', name: 'Add players C · Marek scans the code', nav: 'sheet',
     note: 'At the table the quickest way: QR code turns the sheet to the code; Marek scans it with the phone’s camera and claims the seat. A real code: it scans to pokerclub://claim?c=R4D-9WT.',

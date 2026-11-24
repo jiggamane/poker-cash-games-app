@@ -29,11 +29,11 @@ const passCard = (title, sub) => `<div class="card" style="display:flex;gap:12px
 /* The round button on Tonight's top opens Poker tools (owner, 24 November: “let's update this icon”). Four options for what it shows. */
 const TB = topButton('questionCard');
 const withButton = (inner) => { if (!H.session.includes(TB)) throw new Error('no top button'); return H.session.replace(TB, `<span class="tbtn">${inner}</span>`); };
-const CARDS = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4.5" width="9" height="12.5" rx="2" transform="rotate(-12 7.5 10.75)" fill="#fff" opacity=".55"/><rect x="7.5" y="3" width="9" height="12.5" rx="2" transform="rotate(10 12 9.25)" fill="#fff"/><circle cx="12" cy="9.3" r="2" fill="#E5484D"/></svg>`;
-const CARD_CHIP = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="2.5" width="9.5" height="13" rx="2" fill="#fff"/><circle cx="7.75" cy="9" r="1.9" fill="#E5484D"/><circle cx="14" cy="14" r="4.2" fill="#E5484D"/><circle cx="14" cy="14" r="2" fill="none" stroke="#fff" stroke-width="1.2" stroke-dasharray="1.4 1.2"/></svg>`;
+const QCARD = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><g transform="rotate(12 10 10)"><rect x="4.5" y="2" width="11" height="16" rx="2.2" fill="#fff"/><text x="10" y="13.6" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="10" fill="#141A2A">?</text></g></svg>`;
+const QCHIP = `<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="#E5484D"/>${[0, 60, 120, 180, 240, 300].map((a) => `<rect x="9.6" y="1" width="2.8" height="3.6" rx=".6" fill="#fff" transform="rotate(${a} 11 11)"/>`).join('')}<circle cx="11" cy="11" r="5.6" fill="#fff"/><text x="11" y="14.6" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="9.5" fill="#141A2A">?</text></svg>`;
 const ICON_OPTIONS = [
-  ['e', 'D simpler · two cards', 'D’s idea in two flat shapes: two white cards fanned, one red pip. No outline, no shading.', CARDS],
-  ['f', 'D simpler · a card and a chip', 'D’s idea as a white card with a red pip and one red chip at its corner: the deck and the money, nothing else.', CARD_CHIP],
+  ['g', 'the question card, new style', 'Today’s shape and size, the question card, redrawn the new way: one flat white card, tilted, the question mark in ink. No outline.', QCARD],
+  ['h', 'a chip with a question mark', 'A chip as the icon book draws them, red with its six white edge marks, a question mark in its white centre.', QCHIP],
 ];
 
 const DRAFT = (what) => `New words, draft: ${what}.`;
