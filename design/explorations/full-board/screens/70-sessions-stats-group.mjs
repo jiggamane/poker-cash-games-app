@@ -21,12 +21,29 @@ const night = ({ date, net, tone, group = '', players, time }) =>
 const nights = (list) => card(list.map(night), { style: 'padding:4px 12px' });
 
 /** The figure card: the stretch, the period tabs, the net, and the two stat pairs. */
-const figureCard = ({ eyebrow, net, tone = '', meta, won, lost, avg, avgTone = '' }) => {
+/*
+ * The games-and-hours line beside the net. 'plain' is the muted line as first drawn; the owner, 24
+ * November: "try smth different for '6 games, 25h' in terms of font color/style". Three options:
+ *   'figures'  the counts in the figure face and the text colour, the words muted
+ *   'icons'    each count after its icon, in the text colour, as the night rows below write them
+ *   'pills'    the two facts as raised pills
+ */
+export const META_STYLES = ['figures', 'icons', 'pills'];
+const metaLine = (meta, style) => {
+  const [games, hours] = meta.split(' · ');
+  const split = (t) => t.replace(/^(\S+)\s*(.*)$/, (_, n, w) => `<b class="num" style="font:700 15px/1 var(--head);color:var(--text)">${n}</b>${w ? ` <span class="muted">${w}</span>` : ''}`);
+  if (style === 'figures') return `<span style="font-size:12.5px;white-space:nowrap">${split(games)}<span class="muted"> · </span>${split(hours.replace(/^(\d+)\s*h$/, '$1 h'))}</span>`;
+  if (style === 'icons') return `<span style="display:flex;gap:10px;font:600 12.5px/1 var(--body);color:var(--text);white-space:nowrap"><span style="display:inline-flex;gap:4px;align-items:center">${ico('calendar', 14)}${games}</span><span style="display:inline-flex;gap:4px;align-items:center">${ico('clock', 14)}${hours}</span></span>`;
+  if (style === 'pills') return `<span style="display:flex;gap:6px">${[games, hours].map((t) => `<span style="font:600 12px/1 var(--body);padding:6px 9px;border-radius:999px;background:var(--raised);color:var(--text);white-space:nowrap">${t}</span>`).join('')}</span>`;
+  return `<span class="muted num" style="font-size:12px;white-space:nowrap">${meta}</span>`;
+};
+
+export const figureCard = ({ eyebrow, net, tone = '', meta, won, lost, avg, avgTone = '', metaStyle = 'plain' }) => {
   const tab = (t, on) => `<span style="font-size:11.5px;padding-bottom:3px;${on ? 'font-weight:700;color:var(--text);box-shadow:inset 0 -1.5px 0 var(--text)' : 'font-weight:500;color:var(--muted)'}">${t}</span>`;
   const cap = (t) => `<div class="muted" style="font:700 10px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">${t}</div>`;
   return card([
     `<div class="split" style="align-items:flex-start"><span class="muted" style="font:700 11px/1.2 var(--body);letter-spacing:.12em;text-transform:uppercase">${eyebrow}</span><span style="display:flex;gap:12px">${tab('Month', true)}${tab('Year')}${tab('All time')}</span></div>`,
-    `<div class="split" style="margin-top:10px"><span class="fig ${tone}" style="font-size:34px">${net}</span><span class="muted num" style="font-size:12px;white-space:nowrap">${meta}</span></div>`,
+    `<div class="split" style="margin-top:10px"><span class="fig ${tone}" style="font-size:34px">${net}</span>${metaLine(meta, metaStyle)}</div>`,
     `<div class="hr" style="margin:12px 0"></div>`,
     `<div class="split" style="align-items:flex-end"><div>${cap('Won / lost')}<b class="num" style="font-size:18px"><span class="win">${won} W</span><span class="muted"> · </span><span class="red">${lost} L</span></b></div>
       <div style="text-align:right">${cap('Avg / night')}<b class="num ${avgTone}" style="font-size:18px">${avg}</b></div></div>`,
@@ -37,13 +54,13 @@ const figureCard = ({ eyebrow, net, tone = '', meta, won, lost, avg, avgTone = '
  * The result-per-night graph. cols: [dateLabel, height in px (+ above the line, − below, 0 = break-even)].
  * Up to eight columns, left-aligned at a fixed width. Wins are ink, losses red (owner, 23 November): no green fill.
  */
-const chart = (caption, cols) => {
+export const chart = (caption, cols) => {
   const W = 266, CW = W / 8, BAND = 38, BW = 15;
   const marks = cols.map(([lbl, h], i) => {
     const cx = i * CW + CW / 2, x = (cx - BW / 2).toFixed(1);
     const b = h > 0 ? `<rect x="${x}" y="${BAND - h}" width="${BW}" height="${h}" rx="3" style="fill:var(--text)"/>`
       : h < 0 ? `<rect x="${x}" y="${BAND + 1}" width="${BW}" height="${-h}" rx="3" style="fill:var(--red)"/>`
-      : `<rect x="${x}" y="${BAND - 2}" width="${BW}" height="2" rx="1" style="fill:var(--muted)"/><rect x="${x}" y="${BAND + 1}" width="${BW}" height="2" rx="1" style="fill:var(--muted)"/><text x="${cx}" y="${BAND - 6}" text-anchor="middle" style="fill:var(--muted);font:700 11px var(--head)">$0</text>`;
+      : `<rect x="${x}" y="${BAND - 2}" width="${BW}" height="2" rx="1" style="fill:var(--muted)"/><rect x="${x}" y="${BAND + 1}" width="${BW}" height="2" rx="1" style="fill:var(--muted)"/>`;
     return `${b}<text x="${cx}" y="${BAND * 2 + 15}" text-anchor="middle" style="fill:var(--muted);font:500 9.5px var(--body)">${lbl}</text>`;
   }).join('');
   return card([
@@ -75,6 +92,20 @@ const memberNote = note('Removing somebody keeps every night they played. The le
 const memberSheet = (nameField, foot) => sheet({ behind: 'Players', title: 'Dana',
   body: [label('Name', { quiet: true }), nameField, memberRows, memberNote, quiet('Remove from the group', { red: true })], bar: foot });
 
+export const statsBookHtml = (metaStyle = 'plain') =>
+  push({ title: 'My stats', trailing: topDropdown('All groups'),
+      body: [
+        figureCard({ eyebrow: 'August', net: '+$610', tone: 'win', meta: '6 games · 25 h', won: 4, lost: 2, avg: '+$102', avgTone: 'win', metaStyle }),
+        chart('Last 8 nights', [['12 Jul', -15], ['19 Jul', 8], ['26 Jul', -6], ['1 Aug', 22], ['5 Aug', 0], ['8 Aug', -4], ['12 Aug', 13], ['15 Aug', 38]]),
+        lastGames,
+        nights([
+          { date: 'Sat 15 Aug', net: '+$540', tone: 'win', group: 'The poker club', players: 7, time: '4h 20m' },
+          { date: 'Wed 12 Aug', net: '+$180', tone: 'win', group: 'Office game', players: 5, time: '3h 00m' },
+          { date: 'Fri 8 Aug', net: '−$60', tone: 'red', group: 'The poker club', players: 8, time: '5h 10m' },
+          { date: 'Tue 5 Aug', net: '+$40', tone: 'win', group: 'Office game', players: 6, time: '2h 45m' },
+        ]),
+      ] });
+
 export const section = { title: 'Sessions, stats and the group', blurb: 'Home’s first three tiles: the list of nights, where a player stands over a stretch, and the roster with one member’s sheet.' };
 
 export default [
@@ -101,21 +132,10 @@ export default [
       ] }) },
 
   { id: 'stats-book', route: '/stats', name: 'My stats · a fuller book', nav: 'push',
-    note: 'The same screen with eight nights behind it, to judge the chart: wins above the line, losses below, and the break-even night that labels itself.',
+    note: 'The same screen with eight nights behind it, to judge the chart: wins above the line in ink, losses below in red, and the break-even night as two flat marks on the line with no figure over it (owner, 24 November). Options for the games-and-hours line are at the top of the board.',
     flags: ['Every figure and name here is the design handoff’s sample (design/handoff-sessions-stats, frame 2a), not the seeded night. The sample disagrees with itself about 5 Aug: $0 in the chart, +$40 in the list.',
       'The app draws the break-even night in yellow. The kit has no yellow token, so it is drawn muted: decide its colour.'],
-    html: push({ title: 'My stats', trailing: topDropdown('All groups'),
-      body: [
-        figureCard({ eyebrow: 'August', net: '+$610', tone: 'win', meta: '6 games · 25 h', won: 4, lost: 2, avg: '+$102', avgTone: 'win' }),
-        chart('Last 8 nights', [['12 Jul', -15], ['19 Jul', 8], ['26 Jul', -6], ['1 Aug', 22], ['5 Aug', 0], ['8 Aug', -4], ['12 Aug', 13], ['15 Aug', 38]]),
-        lastGames,
-        nights([
-          { date: 'Sat 15 Aug', net: '+$540', tone: 'win', group: 'The poker club', players: 7, time: '4h 20m' },
-          { date: 'Wed 12 Aug', net: '+$180', tone: 'win', group: 'Office game', players: 5, time: '3h 00m' },
-          { date: 'Fri 8 Aug', net: '−$60', tone: 'red', group: 'The poker club', players: 8, time: '5h 10m' },
-          { date: 'Tue 5 Aug', net: '+$40', tone: 'win', group: 'Office game', players: 6, time: '2h 45m' },
-        ]),
-      ] }) },
+    html: statsBookHtml() },
 
   { id: 'stats-empty', route: '/stats', name: 'My stats · no nights yet', nav: 'push',
     note: 'What the seeded app shows today: the graph is not drawn until there is a night to plot.',
