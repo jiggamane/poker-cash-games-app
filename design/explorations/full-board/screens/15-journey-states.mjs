@@ -29,11 +29,11 @@ const passCard = (title, sub) => `<div class="card" style="display:flex;gap:12px
 /* The round button on Tonight's top opens Poker tools (owner, 24 November: “let's update this icon”). Four options for what it shows. */
 const TB = topButton('questionCard');
 const withButton = (inner) => { if (!H.session.includes(TB)) throw new Error('no top button'); return H.session.replace(TB, `<span class="tbtn">${inner}</span>`); };
+const CARDS = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4.5" width="9" height="12.5" rx="2" transform="rotate(-12 7.5 10.75)" fill="#fff" opacity=".55"/><rect x="7.5" y="3" width="9" height="12.5" rx="2" transform="rotate(10 12 9.25)" fill="#fff"/><circle cx="12" cy="9.3" r="2" fill="#E5484D"/></svg>`;
+const CARD_CHIP = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="2.5" width="9.5" height="13" rx="2" fill="#fff"/><circle cx="7.75" cy="9" r="1.9" fill="#E5484D"/><circle cx="14" cy="14" r="4.2" fill="#E5484D"/><circle cx="14" cy="14" r="2" fill="none" stroke="#fff" stroke-width="1.2" stroke-dasharray="1.4 1.2"/></svg>`;
 const ICON_OPTIONS = [
-  ['a', 'A · the spade card', 'A playing card with a spade: the deck, read as “poker things”.', ico('spadeCard', 18)],
-  ['b', 'B · the calculator', 'The calculator, the tool used most at the table.', ico('calculator', 18)],
-  ['c', 'C · the percent', 'Odds as a sign: what the calculator gives.', ico('percent', 18)],
-  ['d', 'D · the Poker tools drawing', 'The same drawing as the Poker tools tile on Home, small: the two places read as one.', `<span style="display:block;width:26px;height:26px;line-height:0">${art('tools', 26, { onInk: true })}</span>`],
+  ['e', 'D simpler · two cards', 'D’s idea in two flat shapes: two white cards fanned, one red pip. No outline, no shading.', CARDS],
+  ['f', 'D simpler · a card and a chip', 'D’s idea as a white card with a red pip and one red chip at its corner: the deck and the money, nothing else.', CARD_CHIP],
 ];
 
 const DRAFT = (what) => `New words, draft: ${what}.`;
@@ -47,8 +47,8 @@ export default [
       .replace(/(<div class="tx">)6 on the roster/, '$1just you so far').replace(/(<div class="tx">)Fri 20 Nov/, '$1none yet') },
 
   { id: 'home-live', route: '/', name: 'Home · a night is running', nav: 'root',
-    note: 'While a night runs, the start card is the live table: tapping it opens Tonight. A second table stays one tap away. The app’s LiveCard and StartAnother.',
-    html: swapCta(H.home, ink(`${liveDot}The Thursday game`, '5 at the table · the ledger is open') + lifted('Start another', 'a second table, same rules', plus)) },
+    note: 'While a night runs, the start card is the live table: tapping it opens Tonight. No second table is offered (owner, 24 November). The app’s LiveCard; its StartAnother is dropped.',
+    html: swapCta(H.home, ink(`${liveDot}The Thursday game`, '5 at the table · the ledger is open') ) },
 
   { id: 'home-unsettled', route: '/', name: 'Home · counting, not settled', nav: 'root',
     note: 'The night has ended but the count is not finished: the card says how far it got and goes straight back to Count up. The app’s UnsettledCard.',
@@ -68,9 +68,9 @@ export default [
     html: afterBody(H['session-watching'], passCard('Lena took the game back', 'You’re watching now. Nothing you recorded is lost.')) },
 
   { id: 'session-rebuy-undo', route: '/session', name: 'Tonight · a rebuy written, with Undo', nav: 'push',
-    note: 'Just after a rebuy is logged: a strip above the bar confirms it, with Undo for two seconds, and Petr’s row is washed for a moment. The app’s RebuyConfirmation.',
+    note: 'Just after a rebuy is logged: a strip above the bar confirms it, with Undo in a soft red (#FF8A95, the red that reads on ink) for two seconds — seen, but not louder than the line, and Petr’s row is washed for a moment. The app’s RebuyConfirmation.',
     html: beforeBar(H.session.replace('<div class="row"><span class="n">Petr</span>', '<div class="row" style="margin:0 -12px;padding:8px 12px;background:color-mix(in srgb,var(--win) 10%,transparent)"><span class="n">Petr</span>'),
-      `<div style="position:absolute;left:14px;right:14px;bottom:150px;z-index:4;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--pri);color:var(--onpri);box-shadow:0 10px 24px -10px rgba(0,0,0,.5)"><span style="color:#7BE3AE">${ico('check', 17)}</span><span style="flex:1;font:600 14px/1.2 var(--body)">Rebuy $500 added to Petr</span><b style="font:700 14px/1 var(--head)">Undo</b></div>`) },
+      `<div style="position:absolute;left:14px;right:14px;bottom:150px;z-index:4;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--pri);color:var(--onpri);box-shadow:0 10px 24px -10px rgba(0,0,0,.5)"><span style="color:#7BE3AE">${ico('check', 17)}</span><span style="flex:1;font:600 14px/1.2 var(--body)">Rebuy $500 added to Petr</span><b style="font:700 14.5px/1 var(--head);color:#FF8A95">Undo</b></div>`) },
 
   { id: 'c-std-remove', route: '/new-night', name: 'Add players · taking a player back out', nav: 'sheet', allowOverflow: true,
     note: 'How an added player is taken off the night before it opens: tapping their figure opens the keypad, and under the list sits a red quiet Remove. Nothing else on the sheet changes.',

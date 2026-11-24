@@ -27,7 +27,7 @@ export const PARTS = [
       { step: 'Or join with a link or a code', state: 'Where a claim lands', shows: 'Home as a member, with the live card if a night is running.', priority: 'P2' },
       { step: 'Or join with a link or a code', state: 'The camera scanner, and the camera refused', shows: 'A viewfinder sheet; refused, “The camera is off for this app. Type the code instead.” (draft)', why: 'Only if scanning is kept: the app has no scanner.', priority: 'P2' },
     ],
-    decisions: ['Invite codes: six characters (asked for on six phones; a server change) or the ten the server issues today?', 'QR scanning: build a camera scanner with its permission flow, or drop “Scan the QR code” from the walkthrough and Type your invite code?', 'No currency: is a points-only group a server and formatting change for this build, or later?', 'The setup note under Sign in and Check your email (“Redirects to … This must appear in Supabase…”): the app shows it on purpose to diagnose a failed link. Keep it, or drop it as nothing a player can act on?'] },
+    decisions: ['Invite codes: six characters (asked for on six phones; a server change) or the ten the server issues today?', 'QR scanning: build a camera scanner with its permission flow, or drop “Scan the QR code” from the walkthrough and Type your invite code?', 'No currency: is a points-only group a server and formatting change for this build, or later?', 'The setup note under Sign in (“Redirects to … This must appear in Supabase…”) is off the board with the other long lines. The app shows it on purpose to diagnose a failed link: drop it from the app too?'] },
 
   { key: 'home', title: 'Home', files: ['10-home-tonight.mjs'],
     journeys: [{ name: 'Coming back to the app', steps: [
@@ -61,7 +61,7 @@ export const PARTS = [
 
   { key: 'during', title: 'During the night', files: ['40-during-the-game.mjs'],
     journeys: [{ name: 'Recording the money', steps: [
-      { label: 'Tonight', ids: ['session', 'session-hidden', 'session-icon-a', 'session-icon-b', 'session-icon-c', 'session-icon-d'] },
+      { label: 'Tonight', ids: ['session', 'session-hidden', 'session-icon-e', 'session-icon-f'] },
       { label: 'The Table admin drawer', ids: ['session-admin'] },
       { label: 'A rebuy or a buy-in', ids: ['pick', 'log-rebuy', 'session-rebuy-undo'] },
       { label: 'A player’s card', ids: ['player', 'player-out', 'player-corrected'] },
