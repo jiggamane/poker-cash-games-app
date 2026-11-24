@@ -137,7 +137,7 @@ export default [
     html: sheet({ behind: 'Tonight', title: 'Pass the game', tall: true,
       body: [
         para('Nobody in the group can take it tonight. That’s their membership, not anything you set.'),
-        card(`<p class="note" style="color:var(--text)">A game can go to anyone on Full, or on Regular with their host night still free. Each person picks their own.</p>`, { pad: true }),
+        card(`<p class="note" style="color:var(--text)">A game can go to anyone on the Full plan, or on the Regular plan with their host night still free. Each person picks their own.</p>`, { pad: true }),
         label('Can’t take it tonight · 6', { quiet: true }),
         card([
           person('Lena', 'Regular · host night used · back on 1 Dec', rowChip('Ask')),
