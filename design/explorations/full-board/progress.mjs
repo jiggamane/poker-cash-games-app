@@ -20,7 +20,7 @@ export const ADDRESSED = {
   'deductions': ['In the new look: a lifted card under its label, Preview a quiet tag, each winner’s game, food and piggy as icons and figures.', '2026-11-24T17:15:00Z'],
   'new-group-players': ['The bar reads Start the group.', '2026-11-24T17:15:00Z'],
   'new-group': ['USD, EUR, GBP and CAD as the four defaults, Every currency opening the Currency sheet (which now lists the same four first), and a version with no currency picked.', '2026-11-24T17:15:00Z'],
-  'session-empty': ['The middle redrawn: the chip stack, the line, and Add players as a lifted button into the Add players sheet.', '2026-11-24T17:15:00Z'],
+  'session-empty': ['The small print is gone: the chip stack, “Nobody has bought in yet” in the title face at 26, and a larger Add players button.', '2026-11-24T17:15:30Z'],
   'share-set': ['Presets lifted like the chips, the chosen one ink; Put Lena back on the split a lifted row with what it comes to. The same presets on A share.', '2026-11-24T17:15:00Z'],
   'watch': ['The night so far: time, words and sum on one baseline.', '2026-11-24T17:15:00Z'],
   'seat-name-changed': ['The line at the foot is gone, here, on the unchanged sheet, and in the app.', '2026-11-24T11:20:00Z'],
