@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
+import { cappedFigure } from '../design/tokens';
 import { z } from '../design/scale';
 
 /*
@@ -73,7 +74,10 @@ export function Preset({
         { opacity: pressed ? 0.7 : 1 },
       ]}
     >
-      <Text numberOfLines={1} style={[styles.presetValue, { color: on ? t.onFill : t.text }]}>
+      {/* A figure in a box the board fixed, so capped like every other one: at 360, in CHF and
+          120% text, "CHF500" was 88 in an 83-point preset once the type took the board's scale
+          (ui-currency, 24 November). */}
+      <Text {...cappedFigure} numberOfLines={1} style={[styles.presetValue, { color: on ? t.onFill : t.text }]}>
         {label}
       </Text>
       <Text
