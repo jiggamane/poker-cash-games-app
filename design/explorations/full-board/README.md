@@ -468,3 +468,5 @@ the approved drawings into the app (`apps/mobile/src/art/spots.ts`).
   words. Both screens now scroll under the bar.
 - **My stats**: the break-even night has no $0 over it. Three options for
   "6 games · 25 h" (`screens/04-this-round-stats.mjs`, `stats-meta-a`…`c`).
+
+- **Board shows only what is left** (owner, 24 November): approved screens, Building it and Decided along the way fold away at the foot; the 22 November brief and the rules panel are gone; open questions list only screens still to review.

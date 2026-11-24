@@ -97,6 +97,7 @@ const SECOF = Object.fromEntries(sections.flatMap((sec, i) => sec.screens.map((x
 const PDATA = { secOf: SECOF, show: SHOW, screens: sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, x.name, i])), sections: sections.map((x) => x.title), addressed: ADDRESSED, decided: DECIDED };
 const needsLook = (id, v) => { const x = v[id]; const fix = ADDRESSED[id]; const picked = (SHOW[id] || []).some((c) => (v[c] || [])[0] === 'approved'); return !!fix && !picked && (!x || x[0] !== 'approved'); };
 const flagged = all.filter((s) => (s.flags ?? []).length);
+const openFlags = flagged.filter((x) => !isApproved(x.id, SNAPSHOT));
 
 /*
  * The build plan (plan.mjs): each part, its state, and for a built part every screen as a pair —
@@ -204,6 +205,11 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 #zone-ok .pg-sec h2{font-size:19px}
 .upd-noted{font:600 12px var(--body);color:var(--warn);padding:0 6px}
 .upd[hidden],.pg-none[hidden]{display:none!important}
+.pg-fold{margin-top:14px;background:var(--panel);border-radius:14px;padding:12px 16px}
+.pg-fold>summary{cursor:pointer;font:700 16px var(--head)}
+.pg-fold[open]>summary{margin-bottom:10px}
+.pg-fold .pg-zone-p{margin-bottom:6px}
+#sec-folded{margin-top:56px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .bt-parts{list-style:none;margin:0;padding:0;display:grid;gap:14px}
 .bt-part{background:var(--panel);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px}
@@ -226,20 +232,12 @@ ${CSS}
 </style>
 <main class="pg-wrap" id="board">
 <header>
-  <span class="pg-eyebrow">Design board · 22 November 2026 · not a handoff, nothing here is in the app</span>
-  <h1>The whole app, in the approved look</h1>
-  <p>Every route of the app, redrawn with what you approved today: the <b>ink top</b>, the <b>white sheet</b>, <b>lifted cards</b>, their <b>dark version</b>, and the footer where <b>the bar is the button</b>. ${all.length} phones cover ${routes.size} routes. The words, the figures and the order of things on each screen are the app’s; only the chrome and the surfaces changed. Approve a screen, or say what to change on it. Code changes wait for your approval here.</p>
-  <div class="pg-rules">
-    <div><b>The header</b>The top of an ink screen, in white type. A back chevron and the title; a step or a status at the right. Tonight keeps its pot up there.</div>
-    <div><b>The sheet and the cards</b>One white sheet rises over the ink. Groups are white cards on one soft shadow. Nothing grey sits under content; inputs are outlined.</div>
-    <div><b>The bar is the button</b>A screen’s one primary action is the ink bar at the bottom, words straight on it. Faint when it is not available yet. Other actions stay in the content, outlined or as quiet text.</div>
-    <div><b>Sheets</b>Keep their grabber and close. A sheet that ends in Save or Add ends in the same bar. Behind each one is the screen it opened from, dimmed.</div>
-    <div><b>Kept from Fresh Deck</b>Names only, nothing points, red belongs to chips and to hearts and diamonds, no green fills.</div>
-    <div><b>Not yet seen on a phone</b>These are 330-point mock phones. Use the switch below to see every one of them dark.</div>
-  </div>
+  <span class="pg-eyebrow">Design board · the review</span>
+  <h1>What is left to review</h1>
+  <p>Only the screens still waiting for your approval are open here, with the live count in the strip below. Approve one, or say what to change on it. Approved screens, the build plan and what was decided are folded away at the foot of the page.</p>
   <div class="pg-strip" role="group" aria-label="Board controls">
     <div class="pg-mode" role="group" aria-label="Phone theme"><button type="button" id="m-light" aria-pressed="true">Light</button><button type="button" id="m-dark" aria-pressed="false">Dark</button></div>
-    <nav aria-label="Sections"><a href="#sec-updates">Last round</a><a href="#sec-progress">Where review stands</a><a href="#sec-plan"><b>Building it</b></a><a href="#zone-review"><b>To review</b></a>${sections.map((s, i) => `<a href="#sec-${i}">${esc(s.title)}</a>`).join('')}<a href="#zone-ok"><b>Approved</b></a>${flagged.length ? `<a href="#sec-open">Open questions</a>` : ''}</nav>
+    <nav aria-label="Sections"><a href="#sec-updates">Last round</a><a href="#sec-progress">Where review stands</a><a href="#zone-review"><b>To review</b></a>${sections.map((s, i) => s.screens.some((x) => !isApproved(x.id, SNAPSHOT)) ? `<a href="#sec-${i}">${esc(s.title)}</a>` : '').join('')}${openFlags.length ? `<a href="#sec-open">Open questions</a>` : ''}<a href="#sec-folded">Folded away</a></nav>
     ${REVIEW ? `<div class="cnt" role="status"><span id="cA">0 approved</span><span id="cC">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span>` : ''}
   </div>
 </header>
@@ -249,7 +247,6 @@ ${CSS}
   <div class="pg-grid" id="upd-grid">${all.filter((x) => ADDRESSED[x.id] && ADDRESSED[x.id][1] >= LATEST).map((x) => (SHOW[x.id] ? SHOW[x.id].map((id) => all.find((y) => y.id === id)).filter(Boolean).map((y, n) => cell(y, n === 0 ? ADDRESSED[x.id][0] : `For “${x.name}”: ${n + 1} of ${SHOW[x.id].length}.`).replace(`data-upd="${y.id}"`, `data-upd="${x.id}"`)) : [cell(x, ADDRESSED[x.id][0])]).join('')).join('')}</div>
 </section>
 
-${planSection()}
 
 <section id="sec-progress"><h2>Where review stands</h2><div class="pg-progress"><div id="pp-body">${renderProgress(PDATA, SNAPSHOT)}</div><span class="pp-live" id="pp-live">As of the last build. ${REVIEW ? 'Updates as you review.' : ''}</span></div></section>
 
@@ -262,17 +259,20 @@ ${sections.map((s, i) => `<section id="sec-${i}" class="pg-sec">
   <div class="pg-grid" data-zone="review" data-sec="${i}">${s.screens.filter((x) => !isApproved(x.id, SNAPSHOT)).map((x) => cell(x)).join('')}</div>
 </section>`).join('\n')}
 </div>
-<div class="pg-zone" id="zone-ok"><h2 class="pg-zone-h">Approved</h2><p class="pg-zone-p">Screens you have approved, by section.</p>
+<section id="sec-folded"><h2>Folded away</h2><p>Kept on the board, closed. Open one to look.</p></section>
+<details class="pg-fold"><summary>Approved screens</summary><div class="pg-zone" id="zone-ok"><p class="pg-zone-p">Screens you have approved, by section. A screen you approve lands here.</p>
 ${sections.map((s, i) => `<section id="sec-ok-${i}" class="pg-sec">
   <h2>${esc(s.title)}</h2>
   <div class="pg-grid" data-zone="ok" data-sec="${i}">${s.screens.filter((x) => isApproved(x.id, SNAPSHOT)).map((x) => cell(x)).join('')}</div>
 </section>`).join('\n')}
-</div>
+</div></details>
+<details class="pg-fold"><summary>Building it: the approved screens going into the app</summary>${planSection()}</details>
+<details class="pg-fold"><summary>Decided along the way</summary><ul class="pg-open">${DECIDED.map(([k, t]) => `<li><b style="color:var(--fg)">${esc(k)}</b> ${esc(t)}</li>`).join('')}</ul></details>
 
-${flagged.length ? `<section id="sec-open">
+${openFlags.length ? `<section id="sec-open">
   <h2>Open questions</h2>
-  <p>Places where a redraw had to decide something the app or the handoffs do not say, or where a word on the board is not yet in the app. Each links to its screen.</p>
-  <ul class="pg-open">${flagged.flatMap((s) => s.flags.map((f) => `<li><a href="#s-${s.id}">${esc(s.name)}</a> — ${esc(f)}</li>`)).join('')}</ul>
+  <p>Only for screens still to review: places where a redraw decided something the app or the handoffs do not say, or a word not yet in the app. Each links to its screen.</p>
+  <ul class="pg-open">${openFlags.flatMap((s) => s.flags.map((f) => `<li><a href="#s-${s.id}">${esc(s.name)}</a> — ${esc(f)}</li>`)).join('')}</ul>
 </section>` : ''}
 </main>
 <script>
