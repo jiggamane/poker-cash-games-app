@@ -442,14 +442,14 @@ export default [
       'Open question: should one of the four (Share?) be the bar? The app gives none of them primary weight.',
       'Not drawn: the claimed seat. Same frame with a "Claimed" pill after the title, the code muted, the four controls dead, and "Ivo claimed this. It cannot be used again."',
     ],
-    html: sheet({ behind: 'Players', title: 'Invite a player', sub: 'Ivo',
+    html: sheet({ behind: 'Players', title: 'Invite Ivo', sub: 'The Thursday game',
       body: [
         eyebrow('Ivo’s code'),
         codeHero(CODE).replace('font-size:31px;letter-spacing:.05em','font-size:40px;letter-spacing:.08em'),
         note('One person, one code — it only ever attaches to Ivo. It works for a month.'),
         shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share']]),
         qrWide,
-        button('Reset the code'),
+        quiet('Reset the code'),
         `<div style="height:6px"></div>`,
       ] }) },
 
@@ -484,7 +484,7 @@ export default [
 
   { id: 'invite-blocked', route: '/invite', name: 'Invite a player · no code', nav: 'sheet',
     note: 'Signed out: the reason is the app’s own, the controls are present but dead so the host sees what will be there once signed in.',
-        html: sheet({ behind: 'Players', title: `Invite a player ${capsPill('Signed out')}`, sub: 'Ivo',
+        html: sheet({ behind: 'Players', title: `Invite Ivo ${capsPill('Signed out')}`, sub: 'The Thursday game',
       body: [
         `<div style="border:1.5px dashed var(--outline);border-radius:14px;padding:18px;display:grid;gap:8px;justify-items:center;text-align:center">${eyebrow('No code yet', true)}${note('A code is made on the server, so you have to be signed in to make one.')}</div>`,
         shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share']], true),
