@@ -87,7 +87,7 @@ const spend = (time, name, who_, amount) =>
 export const section = { title: 'Ending the night: count and deductions', blurb: 'Steps 1 and 2 of the three that close a night: every stack is counted until the money adds up, then the group’s rules take their shares before anyone is told who pays whom.' };
 
 export default [
-  { id: 'count-up', route: '/count-up', name: 'Count up', nav: 'push',
+  { id: 'count-up', route: '/count-up', name: 'Count up', nav: 'push', allowOverflow: true,
     note: 'The gap, its bar and the two sums sit on the ink top, where Tonight keeps the pot; the bar under the gap is the pot’s own share bar read as progress. Next is the bar and stays faint until every stack is in.',
     flags: [
       'On the ink the block is white in every state. The app turns it to the loss colour when every stack is in and the money is off, and to the win colour when it balances; the kit has no win or loss tone that reads on the ink in the light theme. Decide: white only (as drawn), or add on-ink tones to the kit.',
@@ -99,7 +99,7 @@ export default [
         label('Counted · 3'), card([dana, andro, lena])],
       bar: bar('Next', { blocked: true }) }) },
 
-  { id: 'count-up-empty', route: '/count-up', name: 'Count up · nothing counted yet', nav: 'push',
+  { id: 'count-up-empty', route: '/count-up', name: 'Count up · nothing counted yet', nav: 'push', allowOverflow: true,
     note: 'As it opens from End this poker night: only the player who cashed out is in.',
     html: push({ ...countTop, extra: block({ gap: '−$2,880', pct: '42%', shares: [2120, 2880], accounted: '1 counted, 5 still to count', amount: '$2,120' }),
       body: [termsCard,
@@ -119,7 +119,7 @@ export default [
       ],
       bar: bar('Save Andro’s count') }) },
 
-  { id: 'count-up-off', route: '/count-up', name: 'Count up · every stack in, $20 short', nav: 'push',
+  { id: 'count-up-off', route: '/count-up', name: 'Count up · every stack in, $20 short', nav: 'push', allowOverflow: true,
     note: 'Out of balance does not block: the gate is the count, so Next is live and leads to It doesn’t add up, where the $20 is named.',
     html: push({ ...countTop, extra: block({ gap: '−$20', pct: '99%', shares: [4980, 20], accounted: '6 counted', amount: '$4,980' }),
       body: [termsCard,
