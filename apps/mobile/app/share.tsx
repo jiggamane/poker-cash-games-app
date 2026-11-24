@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   chargeCeiling,
   manualChargeOf,

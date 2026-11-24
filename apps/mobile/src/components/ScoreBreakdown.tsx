@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { LayoutAnimation, Platform, Pressable, StyleSheet, Text, UIManager, View } from 'react-native';
+import { LayoutAnimation, Platform, Pressable, StyleSheet, UIManager, View } from 'react-native';
+import { Text } from './Text';
 import {
   formulaWord,
   type Money,

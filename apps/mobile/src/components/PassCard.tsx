@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
 import { radius } from '../design/tokens';
 import { clockLabel } from '../lib/elapsed';

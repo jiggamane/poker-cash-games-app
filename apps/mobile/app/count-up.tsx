@@ -6,10 +6,10 @@ import {
   Easing,
   Pressable,
   StyleSheet,
-  Text,
   View,
   type LayoutChangeEvent,
 } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   balanceCheck,
   resolveLedger,

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Text, TextInput } from '../src/components/Text';
 import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';

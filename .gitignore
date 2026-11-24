@@ -44,3 +44,4 @@ apps/mobile/.web/
 
 # Assembled site
 _site/
+apps/mobile/.web-look/

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { type Money } from '@poker-club/core';
 import { formatSigned } from '../lib/money';
 import { largestResult, plotBar } from '../lib/nightsChart';

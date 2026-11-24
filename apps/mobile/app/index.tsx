@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { type Money } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';

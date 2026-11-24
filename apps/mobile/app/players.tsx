@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { router, useFocusEffect } from 'expo-router';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../src/components/Text';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Pill } from '../src/components/Pill';

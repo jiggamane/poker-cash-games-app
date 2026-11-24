@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   isPerPersonKind,
   manualChargeOf,

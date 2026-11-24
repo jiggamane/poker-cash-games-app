@@ -1,5 +1,6 @@
 import type { ComponentRef, Ref } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { money, potOdds, formatHundredths, type SeatOdds } from '@poker-club/core';
 import { Icon } from './Icon';
 import { cappedFigure, radius, type } from '../design/tokens';

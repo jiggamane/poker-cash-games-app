@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { Path, Svg } from 'react-native-svg';
 import { RANKS, type Card } from '@poker-club/core';
 

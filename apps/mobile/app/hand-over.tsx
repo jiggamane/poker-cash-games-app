@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import type { PlayerId } from '@poker-club/core';
 import { Avatar } from '../src/components/Avatar';
 import { Button } from '../src/components/Button';

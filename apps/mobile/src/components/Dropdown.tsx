@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Text } from './Text';
 import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';
 import { radius } from '../design/tokens';

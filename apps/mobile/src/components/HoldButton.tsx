@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
 import { control, radius, type } from '../design/tokens';
 import { Icon, type IconName } from './Icon';

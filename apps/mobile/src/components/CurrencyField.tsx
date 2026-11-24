@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from './Text';
 import { useTheme } from '../design/useTheme';
 import { radius, space, type } from '../design/tokens';
 import {

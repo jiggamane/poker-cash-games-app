@@ -1,15 +1,16 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { resolveLedger, type Money, type MoneyRule } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
 import { Button } from '../src/components/Button';
+import { Card, CardRow, SectionLabel } from '../src/components/Card';
 import { Icon } from '../src/components/Icon';
 import { Pill } from '../src/components/Pill';
 import { Sheet } from '../src/components/Sheet';
 import { frontedSentence } from '../src/components/SpendList';
 import { useTheme } from '../src/design/useTheme';
-import { block, radius, space, type } from '../src/design/tokens';
 import { nameOf, spendsOf, useNight, type Spend } from '../src/lib/nightStore';
 
 /**
@@ -35,100 +36,79 @@ export default function Bill() {
   const empty = spends.length === 0;
   const rule = night.rules.find((r) => r.destination === 'bill' && r.active);
 
+  /*
+   * THE FULL BOARD (`bill`, `bill-empty`, both approved 22 November): Add a
+   * spend is the bar; Bill rules, the second button under it, stays in the
+   * content as the outlined secondary. The figure, the spends and the split
+   * are three cards on the sheet, and the spends carry no chevrons.
+   */
   return (
     <Sheet
       title="The bill"
       sub="food, drinks and whatever else the night bought"
-      footer={
-        <>
-          <Button
-            label="Add a spend"
-            variant="primary"
-            onPress={() => router.push('/spend')}
-          />
-          <Button
-            label="Bill rules"
-            variant="secondary"
-            onPress={() => router.push('/bill-rules')}
-          />
-        </>
-      }
+      bar={[{ label: 'Add a spend', onPress: () => router.push('/spend') }]}
     >
-      <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-        <View style={styles.cardLeft}>
-          <Text style={[styles.label, { color: t.muted }]}>On the bill</Text>
-          <Text style={[styles.figure, { color: empty ? t.muted : t.text }]}>
-            {formatMoney(total)}
-          </Text>
-        </View>
-        <View style={styles.cardRight}>
-          {empty ? (
-            <Text style={[styles.spendCount, { color: t.dim }]}>nothing added yet</Text>
-          ) : (
-            <>
-              <Text style={[styles.rule, { color: t.muted }]}>{splitPhrase(rule)}</Text>
-              <Text style={[styles.spendCount, { color: t.dim }]}>
-                {spends.length} {spends.length === 1 ? 'spend' : 'spends'}
+      <View style={styles.body}>
+        <Card pad>
+          <View style={styles.onBill}>
+            <View>
+              <Text style={[styles.label, { color: t.muted }]}>On the bill</Text>
+              <Text style={[styles.figure, { color: empty ? t.muted : t.text }]}>{formatMoney(total)}</Text>
+            </View>
+            <View style={styles.cardRight}>
+              {empty ? (
+                <Text style={[styles.rightLine, { color: t.dim }]}>nothing added yet</Text>
+              ) : (
+                <>
+                  <Text style={[styles.rightLine, styles.rule, { color: t.muted }]}>{splitPhrase(rule)}</Text>
+                  <Text style={[styles.rightLine, { color: t.dim }]}>
+                    {spends.length} {spends.length === 1 ? 'spend' : 'spends'}
+                  </Text>
+                </>
+              )}
+            </View>
+          </View>
+        </Card>
+
+        {empty ? (
+          <View style={styles.blank}>
+            <Icon name="receipt" color={t.dim} size={34} />
+            <Text style={[styles.blankTitle, { color: t.text }]}>Nothing on the bill yet</Text>
+            <Text style={[styles.blankBody, { color: t.muted }]}>
+              Add what the night spends as it is spent. Who pays it back is worked out at
+              settle-up, never now.
+            </Text>
+          </View>
+        ) : (
+          <>
+            <SectionLabel text="Spends" quiet />
+            <Card>
+              {spends.map((s, i) => (
+                <CardRow
+                  key={s.id}
+                  last={i === spends.length - 1}
+                  onPress={() => router.push({ pathname: '/spend', params: { id: s.id } })}
+                  lead={<Text style={[styles.time, { color: t.muted }]}>{s.at}</Text>}
+                  /* An empty note is valid: the row is then the amount alone. */
+                  name={s.note === '' ? formatMoney(s.amount) : s.note}
+                  meta={fronted(s, night)}
+                  trail={s.coveredBy === 'unpaid' ? <Pill label="unpaid" tone="amber" /> : undefined}
+                  amount={formatMoney(s.amount)}
+                />
+              ))}
+            </Card>
+            <Card pad>
+              <Text style={[styles.splitTitle, { color: t.text }]}>How it will be split</Text>
+              <Text style={[styles.splitBody, { color: t.muted }]}>
+                {splitSentence(rule)} Nothing is worked out until settle-up, and whoever fronted a
+                spend is repaid exactly what they fronted — and still pays their own share.
               </Text>
-            </>
-          )}
-        </View>
+            </Card>
+          </>
+        )}
+
+        <Button label="Bill rules" variant="secondary" onPress={() => router.push('/bill-rules')} />
       </View>
-
-      {empty ? (
-        <View style={styles.blank}>
-          <Icon name="receipt" color={t.dim} size={34} />
-          <Text style={[styles.blankTitle, { color: t.text }]}>Nothing on the bill yet</Text>
-          <Text style={[styles.blankBody, { color: t.muted }]}>
-            Add what the night spends as it is spent. Who pays it back is worked out at
-            settle-up, never now.
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.list}>
-          <Text style={[styles.sectionLabel, { color: t.muted }]}>Spends</Text>
-
-          {spends.map((s, i) => (
-            <Pressable
-              key={s.id}
-              accessibilityRole="button"
-              onPress={() => router.push({ pathname: '/spend', params: { id: s.id } })}
-              style={({ pressed }) => [
-                styles.row,
-                {
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth: i === spends.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                  opacity: pressed ? 0.6 : 1,
-                },
-              ]}
-            >
-              <Text style={[styles.time, { color: t.muted }]}>{s.at}</Text>
-              <View style={styles.rowText}>
-                <Text style={[styles.note, { color: t.text }]} numberOfLines={1}>
-                  {/* An empty note is valid: the row is then the amount alone. */}
-                  {s.note === '' ? formatMoney(s.amount) : s.note}
-                </Text>
-                <Text style={[styles.fronted, { color: t.muted }]} numberOfLines={1}>
-                  {fronted(s, night)}
-                </Text>
-              </View>
-              {s.coveredBy === 'unpaid' && <Pill label="unpaid" tone="amber" />}
-              <Text style={[styles.amount, { color: t.text }]}>{formatMoney(s.amount)}</Text>
-              <Icon name="chevron" color={t.muted} />
-            </Pressable>
-          ))}
-        </View>
-      )}
-
-      {!empty && (
-        <View style={[styles.split, { backgroundColor: t.surface, borderColor: t.hairline }]}>
-          <Text style={[styles.splitTitle, { color: t.text }]}>How it will be split</Text>
-          <Text style={[styles.splitBody, { color: t.muted }]}>
-            {splitSentence(rule)} Nothing is worked out until settle-up, and whoever fronted a
-            spend is repaid exactly what they fronted — and still pays their own share.
-          </Text>
-        </View>
-      )}
     </Sheet>
   );
 }
@@ -163,49 +143,17 @@ const fronted = (spend: Spend, night: NonNullable<ReturnType<typeof useNight>>):
   frontedSentence(spend, (id) => nameOf(night, id));
 
 const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 12,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderRadius: radius.card,
-  },
-  cardLeft: { gap: 8 },
-  label: type.tableLabel,
-  figure: type.tableFigure,
-  cardRight: { marginLeft: 'auto', alignItems: 'flex-end', gap: 3 },
-  rule: type.tableTotal,
-  spendCount: type.tableSeats,
-
-  // The list sits at 22 while the card above it sits at 20 — the 2px step is
-  // drawn, deliberate and visible, and this list had been at 20 with it.
-  list: { marginHorizontal: space.page },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  // A spend is a transfer-height row on L1, not a feed-height one: 15, not 13.
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
-  time: { ...type.time, minWidth: 44, flexShrink: 0 }, // B99: grows with the text
-  rowText: { gap: 2, flexShrink: 1 },
-  note: type.entryType,
-  fronted: type.entryProvenance,
-  amount: { ...type.entryAmount, marginLeft: 'auto' },
-
-  split: {
-    marginTop: 14,
-    marginHorizontal: space.card,
-    paddingVertical: block.padV,
-    paddingHorizontal: block.padH,
-    borderWidth: 1,
-    borderRadius: block.radius,
-    gap: block.gap,
-  },
-  splitTitle: type.blockTitle,
-  splitBody: type.blockBody,
-
-  blank: { alignItems: 'center', gap: 14, paddingVertical: 40, paddingHorizontal: space.page },
-  blankTitle: { fontSize: 19, fontWeight: '700' },
-  blankBody: { fontSize: 14, fontWeight: '400', lineHeight: 21, textAlign: 'center', maxWidth: 260 },
+  body: { paddingHorizontal: 20, paddingTop: 2, gap: 12 },
+  onBill: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
+  label: { fontSize: 12.5, fontWeight: '500', marginBottom: 6 },
+  figure: { fontFamily: 'head', fontSize: 38, fontWeight: '700', letterSpacing: -1.14, lineHeight: 40, fontVariant: ['tabular-nums'] },
+  cardRight: { marginLeft: 'auto', alignItems: 'flex-end' },
+  rightLine: { fontSize: 12.5, lineHeight: 18.75, textAlign: 'right' },
+  rule: { fontWeight: '600' },
+  time: { width: 38, fontSize: 12.5, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  splitTitle: { fontFamily: 'head', fontSize: 15, fontWeight: '700', lineHeight: 18, marginBottom: 5 },
+  splitBody: { fontSize: 12.5, lineHeight: 17.5 },
+  blank: { alignItems: 'center', gap: 12, paddingTop: 26, paddingBottom: 22, paddingHorizontal: 14 },
+  blankTitle: { fontFamily: 'head', fontSize: 19, fontWeight: '700' },
+  blankBody: { fontSize: 14, fontWeight: '400', lineHeight: 19, textAlign: 'center', maxWidth: 250 },
 });

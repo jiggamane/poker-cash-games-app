@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { router, useFocusEffect } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Text } from '../src/components/Text';
 import { resolveLedger, resultBeforeDeductions, type Money } from '@poker-club/core';
 import {
   formatMoney,
@@ -707,8 +708,8 @@ function RoleLine({
   const t = useTheme();
   if (recording) {
     return (
-      <Text style={[styles.role, styles.roleLine, { color: t.muted }]} numberOfLines={1}>
-        <Text style={[styles.roleLead, { color: t.text }]}>You’re recording</Text>
+      <Text style={[styles.role, styles.roleLine, { color: t.onTopMuted }]} numberOfLines={1}>
+        <Text style={[styles.roleLead, { color: t.onTop }]}>You’re recording</Text>
         {` · ${empty ? 'opened' : 'started'} ${clockLabel(startedAt)}`}
       </Text>
     );
@@ -717,24 +718,24 @@ function RoleLine({
   if (away && role?.last?.kind === 'passed') {
     return (
       <View style={styles.roleRow}>
-        <Text style={[styles.roleLead, { color: t.text }]}>Watching</Text>
-        <Text style={[styles.role, { color: t.muted }]}> · passed to </Text>
-        <Text style={[styles.roleName, { color: t.muted }]} numberOfLines={1}>
+        <Text style={[styles.roleLead, { color: t.onTop }]}>Watching</Text>
+        <Text style={[styles.role, { color: t.onTopMuted }]}> · passed to </Text>
+        <Text style={[styles.roleName, { color: t.onTopMuted }]} numberOfLines={1}>
           {role.last.toName ?? 'them'}
         </Text>
-        <Text style={[styles.role, { color: t.muted }]}>{` at ${clockLabel(role.last.at)}`}</Text>
+        <Text style={[styles.role, { color: t.onTopMuted }]}>{` at ${clockLabel(role.last.at)}`}</Text>
       </View>
     );
   }
   /* Anyone else: a claimed player, the phone a game was taken back from (20b). */
   return (
     <View style={styles.roleRow}>
-      <Text style={[styles.roleLead, { color: t.text }]}>Watching</Text>
-      <Text style={[styles.role, { color: t.muted }]}> · </Text>
-      <Text style={[styles.roleName, { color: t.muted }]} numberOfLines={1}>
+      <Text style={[styles.roleLead, { color: t.onTop }]}>Watching</Text>
+      <Text style={[styles.role, { color: t.onTopMuted }]}> · </Text>
+      <Text style={[styles.roleName, { color: t.onTopMuted }]} numberOfLines={1}>
         {recorder ?? 'Another phone'}
       </Text>
-      <Text style={[styles.role, { color: t.muted }]}> is recording</Text>
+      <Text style={[styles.role, { color: t.onTopMuted }]}> is recording</Text>
     </View>
   );
 }
@@ -777,9 +778,10 @@ function LiveTag({ startedAt, empty }: { startedAt: string; empty: boolean }) {
   // night was live.
   const running = useElapsed(startedAt);
   return (
-    <View style={[styles.tag, { backgroundColor: t.winTint }]}>
-      <View style={[styles.dot, { backgroundColor: t.win }]} />
-      <Text style={[styles.tagText, { color: t.win }]}>
+    /* On the ink: white on the ink's own fill, the dot the live green (the kit's `tpill`). */
+    <View style={[styles.tag, { backgroundColor: t.onTopFill }]}>
+      <View style={[styles.dot, { backgroundColor: t.liveDot }]} />
+      <Text style={[styles.tagText, { color: t.onTop }]}>
         {empty ? 'just opened' : running}
       </Text>
     </View>

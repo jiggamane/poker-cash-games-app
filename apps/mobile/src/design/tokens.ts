@@ -253,24 +253,57 @@ export interface Theme {
   breakEven: string;
   /** The tapped column's slice of the chart baseline, and only that slice. */
   baselineTapped: string;
+  /*
+   * THE FULL BOARD'S LOOK, approved 22–23 November 2026
+   * (`design/explorations/full-board/`, `kit.mjs` is the source of every value
+   * below). The header is the top of an ink screen in white type; the content
+   * is one sheet (`ground`) that rises over it with round corners; groups are
+   * cards (`surface`) held off the sheet by `lift`; the footer is the action,
+   * an ink bar with its words straight on it.
+   */
+  /** The ink the top of every screen is, in both themes. */
+  top: string;
+  /** Type on the ink: the title, and the quieter line under it. */
+  onTop: string;
+  onTopMuted: string;
+  /** A pill or a dropdown sitting on the ink. */
+  onTopFill: string;
+  /** The dot of the live tag on the ink. */
+  liveDot: string;
+  /** The footer bar, and the words on it. `onBarMuted` is a blocked action and the bar's small lines. */
+  bar: string;
+  onBar: string;
+  onBarMuted: string;
+  /** The words of a blocked action on the bar. */
+  onBarDead: string;
+  /** The hairline between two actions on the bar, and above its line. */
+  barRule: string;
+  /** What lifts the bar off the sheet: nothing in the light (the ink does it), a soft shadow above it in the dark. */
+  barShadow: string;
+  /** The card's shadow (L2, the shorter fall). 'none' in the dark: a card is one step lighter instead. */
+  lift: string;
+  /** The same, smaller, for a chip (option C). */
+  chipLift: string;
+  /** Red for chips, hearts and diamonds, and a destructive word. */
+  red: string;
 }
 
 export const darkTheme: Theme = {
   name: 'dark',
-  ground: '#0A0A0B',
-  surface: '#16161A',
-  raised: '#26262B',
-  text: '#FFFFFF',
-  muted: '#8B8D93',
-  hairline: 'rgba(255,255,255,0.11)',
-  outline: 'rgba(255,255,255,0.55)',
+  ground: '#171C27',
+  surface: '#212836',
+  raised: '#2C3445',
+  text: '#ECEEF2',
+  muted: '#9AA2B1',
+  hairline: 'rgba(255,255,255,0.09)',
+  outline: 'rgba(255,255,255,0.22)',
   quietOutline: 'rgba(255,255,255,0.28)',
   dashed: 'rgba(255,255,255,0.26)',
-  win: '#6FCF97',
-  loss: '#F0705C',
-  winWash: 'rgba(111,207,151,0.13)',
-  lossWash: 'rgba(240,112,92,0.12)',
-  winTint: 'rgba(111,207,151,0.14)',
+  win: '#5CCB93',
+  loss: '#A3ABBA',
+  winWash: 'rgba(92,203,147,0.13)',
+  lossWash: 'rgba(163,171,186,0.12)',
+  winTint: 'rgba(92,203,147,0.14)',
   offTable: '#D9D3C4',
   offTableWash: 'rgba(217,211,196,0.09)',
   offTableTint: 'rgba(217,211,196,0.13)',
@@ -278,15 +311,15 @@ export const darkTheme: Theme = {
   onFillWin: '#0E8A4F',
   dangerWash: 'rgba(240,112,92,0.12)',
   dangerEdge: 'rgba(240,112,92,0.35)',
-  onFill: '#0C0D0F',
-  keyline: '#0A0A0B',
-  danger: '#F0705C',
+  onFill: '#141A2A',
+  keyline: '#ECEEF2',
+  danger: '#F0606E',
   dim: '#7F8187',
-  roundFill: 'rgba(255,255,255,0.09)',
-  sheet: '#101013',
-  sheetEdge: 'rgba(255,255,255,0.12)',
-  grabber: 'rgba(255,255,255,0.22)',
-  scrim: 'rgba(12,13,15,0.94)',
+  roundFill: '#2C3445',
+  sheet: '#171C27',
+  sheetEdge: 'rgba(255,255,255,0)',
+  grabber: '#3A4354',
+  scrim: 'rgba(0,0,0,0.6)',
   amber: '#E8B455',
   disabled: '#5C5E64',
   dockFill: 'rgba(255,255,255,0.08)',
@@ -311,25 +344,39 @@ export const darkTheme: Theme = {
   breakEven: '#E8B84B',
   baselineTapped: 'rgba(255,255,255,0.28)',
   previewRule: 'rgba(255,255,255,0.13)',
+  top: '#0A0D14',
+  onTop: '#FFFFFF',
+  onTopMuted: 'rgba(255,255,255,0.72)',
+  onTopFill: 'rgba(255,255,255,0.16)',
+  liveDot: '#7BE3AE',
+  bar: '#171C27',
+  onBar: '#FFFFFF',
+  onBarMuted: 'rgba(255,255,255,0.62)',
+  onBarDead: 'rgba(255,255,255,0.38)',
+  barRule: 'rgba(255,255,255,0.14)',
+  barShadow: '0px -12px 24px -10px rgba(0,0,0,0.65)',
+  lift: 'none',
+  chipLift: 'none',
+  red: '#F0606E',
 };
 
 export const lightTheme: Theme = {
   name: 'light',
   ground: '#FFFFFF',
-  surface: '#F4F4F6',
-  raised: '#E8E8ED',
-  text: '#0C0D0F',
-  muted: '#6B6F76',
-  hairline: 'rgba(12,13,15,0.1)',
-  outline: '#0C0D0F',
+  surface: '#FFFFFF',
+  raised: '#F1F3F6',
+  text: '#141A2A',
+  muted: '#596171',
+  hairline: '#E4E7EC',
+  outline: '#C5CAD4',
   quietOutline: 'rgba(12,13,15,0.24)',
   dashed: 'rgba(12,13,15,0.3)',
-  win: '#0A7A3D',
+  win: '#0E7A45',
   // #B03A28 on every bright board. The token doc says #C0341B; the board wins.
-  loss: '#B03A28',
-  winWash: 'rgba(10,122,61,0.13)',
-  lossWash: 'rgba(176,58,40,0.12)',
-  winTint: 'rgba(10,122,61,0.12)',
+  loss: '#4E5768',
+  winWash: 'rgba(14,122,69,0.13)',
+  lossWash: 'rgba(78,87,104,0.10)',
+  winTint: 'rgba(14,122,69,0.12)',
   // Bone does NOT fall back to ink, whatever the token doc says: the bright
   // boards draw off-table money in a warm brown, on a wash of the same hue.
   // That was the fix for two deduction rows merging into one beige rectangle —
@@ -346,14 +393,14 @@ export const lightTheme: Theme = {
   dangerWash: 'rgba(176,58,40,0.12)',
   dangerEdge: 'rgba(176,58,40,0.35)',
   onFill: '#FFFFFF',
-  keyline: '#FFFFFF',
-  danger: '#B03A28',
+  keyline: '#141A2A',
+  danger: '#C8283A',
   dim: '#6A6E75',
-  roundFill: 'rgba(12,13,15,0.06)',
+  roundFill: '#F1F3F6',
   sheet: '#FFFFFF',
-  sheetEdge: 'rgba(12,13,15,0.1)',
-  grabber: 'rgba(12,13,15,0.18)',
-  scrim: 'rgba(244,244,246,0.94)',
+  sheetEdge: 'rgba(20,26,42,0)',
+  grabber: '#D5D9E0',
+  scrim: 'rgba(20,26,42,0.42)',
   amber: '#7A5410',
   disabled: '#A2A6AD',
   dockFill: 'rgba(12,13,15,0.06)',
@@ -388,6 +435,20 @@ export const lightTheme: Theme = {
   breakEven: '#9A7714',
   baselineTapped: 'rgba(12,13,15,0.28)',
   previewRule: 'rgba(12,13,15,0.13)',
+  top: '#141A2A',
+  onTop: '#FFFFFF',
+  onTopMuted: 'rgba(255,255,255,0.72)',
+  onTopFill: 'rgba(255,255,255,0.16)',
+  liveDot: '#7BE3AE',
+  bar: '#141A2A',
+  onBar: '#FFFFFF',
+  onBarMuted: 'rgba(255,255,255,0.62)',
+  onBarDead: 'rgba(255,255,255,0.38)',
+  barRule: 'rgba(255,255,255,0.14)',
+  barShadow: 'none',
+  lift: '0px 0px 0px 1px rgba(20,26,42,0.06), 0px 1px 3px 0px rgba(20,26,42,0.07), 0px 7px 14px -11px rgba(20,26,42,0.2)',
+  chipLift: '0px 0px 0px 1px rgba(20,26,42,0.06), 0px 1px 2px 0px rgba(20,26,42,0.08), 0px 5px 10px -7px rgba(20,26,42,0.3)',
+  red: '#C8283A',
 };
 
 /**
@@ -470,6 +531,23 @@ export const unscaledLabel = {
  * and 12 in the doc. See docs/ui-guide.md.
  */
 export const type = {
+  /** The full board's pushed title, white on the ink: 700 22/1.1, -.015em. */
+  lookTitle: { fontFamily: 'head', fontSize: 22, fontWeight: '700', lineHeight: 24.2, letterSpacing: -0.33 },
+  /** The line under it: 13, the ink's quieter white. */
+  lookMeta: { fontSize: 13, fontWeight: '400', lineHeight: 18 },
+  /** A modal sheet's title: 700 24/1.1, -.02em. */
+  lookSheetTitle: { fontFamily: 'head', fontSize: 24, fontWeight: '700', lineHeight: 26.4, letterSpacing: -0.48 },
+  /** The line under a sheet's title. */
+  lookSheetSub: { fontSize: 13, fontWeight: '400', lineHeight: 18.2 },
+  /** The bar's words: Libre Franklin bold 18 (owner, 22 November: "A, as drawn"). */
+  lookBar: { fontFamily: 'head', fontSize: 18, fontWeight: '700', lineHeight: 22 },
+  /** The small line under the bar's words, and the bar's own line above them. */
+  lookBarSub: { fontSize: 12, fontWeight: '500', lineHeight: 14 },
+  /** The named secondary at the right of a split bar: 700 13. */
+  lookBarSecondary: { fontFamily: 'head', fontSize: 13, fontWeight: '700', lineHeight: 16 },
+  /** A section label: 700 11, tracked .12em, upper case. */
+  lookLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.32, lineHeight: 13 },
+
   /** A settled result. The one 64px figure, on the last screen of a night. */
   display: { fontSize: 64, fontWeight: '800', letterSpacing: -2.5, ...tabular },
   /** The figure inside a surface card — "On the table". 800 48/1, -.04em. */
@@ -800,6 +878,37 @@ export const home = {
  * person unsure which gesture takes them back, so these numbers are the whole
  * signal and are kept together rather than inlined per screen.
  */
+/**
+ * THE FULL BOARD'S FRAME, in points (`design/explorations/full-board/kit.mjs`).
+ *
+ * A pushed screen: the ink top (18 at the sides, a bare back chevron, the
+ * title 700 22/1.1, the line under it 8 below and 23 in), and the sheet rising
+ * 26 into the ink's last 42 with 26-point corners. A modal sheet: 24-point
+ * corners, a 38 × 5 grabber, the title 700 24, a 32 round close. The bar: one
+ * 62-point row of words, 18 bold, with the home indicator's inset under it.
+ */
+export const look = {
+  topPadH: 18,
+  topPadTop: 6,
+  topPadBottom: 42,
+  backWidth: 18,
+  titleRowMin: 36,
+  metaGap: 8,
+  metaIndent: 23,
+  sheetOverlap: 26,
+  sheetRadius: 26,
+  modalRadius: 24,
+  modalGap: 58,
+  modalTitlePadH: 20,
+  close: 32,
+  barHeight: 62,
+  barSecondaryWidth: 104,
+  barFloor: 12,
+  cardRadius: 14,
+  chipRadius: 12,
+  fieldRadius: 12,
+} as const;
+
 export const chrome = {
   /** Title row: 26 / 20 / 0, centred, gap 12. */
   titlePadTop: 26,

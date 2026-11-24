@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { resolveLedger, type MoneyRule, type PlayerId } from '@poker-club/core';
 import { rateLabel } from '../src/lib/money';
 import { Button } from '../src/components/Button';

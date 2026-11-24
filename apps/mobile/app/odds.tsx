@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
+import { PanResponder, Pressable, ScrollView, StyleSheet, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   BOARD_CARDS,
   HOLE_CARDS,

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Text } from '../src/components/Text';
 import { useLocalSearchParams } from 'expo-router';
 import { RunOutEnumeration, oddsProblem, type RunOutProgress } from '@poker-club/core';
 import { RunOutCard } from '../src/components/RunOutCard';

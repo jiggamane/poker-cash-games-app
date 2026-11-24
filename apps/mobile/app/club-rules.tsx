@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { isPerPersonKind, type MoneyRule } from '@poker-club/core';
 import { formatMoney, rateLabel } from '../src/lib/money';
 import { Icon } from '../src/components/Icon';

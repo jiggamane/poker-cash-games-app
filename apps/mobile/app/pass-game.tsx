@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { router } from 'expo-router';
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { Avatar } from '../src/components/Avatar';
 import { Button } from '../src/components/Button';
 import { RoundTick } from '../src/components/RoundTick';

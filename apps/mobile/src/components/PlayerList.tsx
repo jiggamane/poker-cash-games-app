@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import type { Money } from '@poker-club/core';
 import { formatSignedToFit } from '../lib/money';
 import { Icon } from './Icon';

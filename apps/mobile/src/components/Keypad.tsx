@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
-import { radius } from '../design/tokens';
 import { Icon } from './Icon';
 
 /**
@@ -34,7 +34,7 @@ export function Keypad({
 }) {
   const t = useTheme();
 
-  const key = (label: string, filled: boolean) => (
+  const key = (label: string, filled: boolean, end = false) => (
     <Pressable
       key={label}
       accessibilityRole="button"
@@ -43,8 +43,8 @@ export function Keypad({
       style={({ pressed }) => [
         styles.key,
         compact && styles.compact,
-        filled && { backgroundColor: t.surface },
-        { opacity: pressed ? 0.6 : 1 },
+        end && styles.last,
+        { borderColor: t.hairline, backgroundColor: pressed ? t.raised : 'transparent' },
       ]}
     >
       <Text style={[styles.digit, { color: filled ? t.text : t.muted }]}>{label}</Text>
@@ -52,15 +52,22 @@ export function Keypad({
   );
 
   return (
-    <View style={styles.pad}>
-      {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => key(d, true))}
+    /* THE FULL BOARD: a grid of hairlines across the sheet's width, no fills,
+       the figures in the title face (the kit's `keypad()`). */
+    <View style={[styles.pad, { borderTopColor: t.hairline }]}>
+      {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d, i) => key(d, true, i % 3 === 2))}
       {key('00', false)}
       {key('0', true)}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Delete"
         onPress={onBackspace}
-        style={({ pressed }) => [styles.key, compact && styles.compact, styles.delete, { opacity: pressed ? 0.6 : 1 }]}
+        style={({ pressed }) => [
+          styles.key,
+          compact && styles.compact,
+          styles.last,
+          { borderColor: t.hairline, backgroundColor: pressed ? t.raised : 'transparent' },
+        ]}
       >
         <Icon name="backspace" color={t.muted} />
       </Pressable>
@@ -69,22 +76,17 @@ export function Keypad({
 }
 
 const styles = StyleSheet.create({
-  pad: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingHorizontal: 16,
-  },
-  // Three to a row, with the gaps taken out of the width.
+  pad: { flexDirection: 'row', flexWrap: 'wrap', borderTopWidth: 1 },
   key: {
-    width: '31.5%',
-    flexGrow: 1,
+    width: '33.3333%',
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: radius.pressable,
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
   },
-  compact: { paddingVertical: 7 },
-  delete: { backgroundColor: 'transparent' },
-  digit: { fontSize: 25, fontWeight: '500' },
+  /* The third key of every row stops the grid at the sheet's edge. */
+  last: { borderRightWidth: 0 },
+  compact: { height: 44 },
+  digit: { fontFamily: 'head', fontSize: 22, fontWeight: '600' },
 });

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import { Dropdown, MENU_DIM, type DropdownItem } from '../src/components/Dropdown';
 import { GameRow } from '../src/components/GameRow';
 import { Screen } from '../src/components/Screen';

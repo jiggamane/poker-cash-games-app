@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, type ViewStyle } from 'react-native';
+import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
-import { control, radius, type } from '../design/tokens';
+import { control, look, radius, type } from '../design/tokens';
 
 export type ButtonVariant =
   /** The one loud button. At most ONE per screen. */
@@ -62,7 +63,8 @@ export function Button({
 
   const base: ViewStyle = {
     height: variant === 'preset' ? control.presetHeight : control.height,
-    borderRadius: radius.pressable,
+    /* The full board: 14 on a button (the kit's `.btn2`), 12 on a preset like a chip. */
+    borderRadius: variant === 'preset' || variant === 'chip' ? look.chipRadius : look.cardRadius,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
@@ -87,13 +89,13 @@ export function Button({
     case 'primary':
       // NO KEYLINE, deliberately — see the note above.
       box = blocked
-        ? { backgroundColor: t.surface, borderWidth: 2, borderColor: t.ground }
+        ? { backgroundColor: t.raised }
         : { backgroundColor: t.text };
       color = blocked ? t.muted : t.onFill;
       break;
 
     case 'secondary':
-      box = { borderWidth: control.outlineWidth, borderColor: t.outline };
+      box = { borderWidth: 1.5, borderColor: t.outline };
       color = t.text;
       break;
 
@@ -125,7 +127,7 @@ export function Button({
       break;
 
     case 'blocked':
-      box = { backgroundColor: t.surface, borderWidth: 2, borderColor: t.ground };
+      box = { backgroundColor: t.raised };
       color = t.muted;
       break;
   }
@@ -149,5 +151,5 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  label: { ...type.body, fontWeight: '700' },
+  label: { ...type.body, fontFamily: 'head', fontSize: 15.5, fontWeight: '700' },
 });

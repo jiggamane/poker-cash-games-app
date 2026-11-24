@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import type { MoneyRule } from '@poker-club/core';
 import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../src/components/Text';
 import { money, resolveLedger, type Money, type PlayerId } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
 import { Button } from '../src/components/Button';

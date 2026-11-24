@@ -1,4 +1,5 @@
-import { StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
+import { StyleSheet, View, type KeyboardTypeOptions } from 'react-native';
+import { Text, TextInput } from './Text';
 import { useTheme } from '../design/useTheme';
 import { radius, type } from '../design/tokens';
 

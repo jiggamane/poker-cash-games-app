@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { type Money } from '@poker-club/core';
 import { formatMoney, formatSigned } from '../lib/money';
 import { moneyColor, useTheme } from '../design/useTheme';

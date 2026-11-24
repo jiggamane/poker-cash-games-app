@@ -3,11 +3,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import {
   Pressable,
   StyleSheet,
-  Text,
   View,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { Text } from '../src/components/Text';
 import {
   nightScore,
   resolveLedger,

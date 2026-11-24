@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
-import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Text';
 import * as Clipboard from 'expo-clipboard';
 import { Sheet } from '../src/components/Sheet';
 import { Button } from '../src/components/Button';
