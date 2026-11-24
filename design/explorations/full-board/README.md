@@ -476,3 +476,12 @@ the approved drawings into the app (`apps/mobile/src/art/spots.ts`).
 - **Balanced, round two** (owner): D green pill, E full green bar, F green card; Count up's player rows in the settled night's two lines with an icon.
 
 - **Balanced decided** (owner approved A): the green word with its tick; options B–F removed.
+
+## Two boards, 24 November
+
+The board is now two pages built from one map of the app, `journeys.mjs` (each part, its user journeys in order, the states still to draw, and what the owner has to decide), drawn up from a UX review recorded in `ux-review.md`.
+
+- **The design** (`node build.mjs --gallery <path>`): every phone by part of the app, in journey order, its name only. No notes, no review.
+- **The working board** (`--artifact <path>`, the reviewed page): "What needs you" (every decision, and per part what is approved, to review and to draw), then each part opened by its journeys — steps with their phones, approved ones ticked, missing states marked To draw — its decisions, states to draw by priority, and open questions, then its phones to review. Notes fold behind Why.
+
+From the review: twelve missing P1 states drawn (`screens/15-journey-states.mjs`); the Add players states redrawn on the standard frame; Settings and the blocked invite drawn as a signed-in user sees them; `c-rest`, `house-rules`, `piggy-bank-rules(-changed)` and `rule-more` removed. Every phone must sit in a journey step or a part's file, or the build stops.

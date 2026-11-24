@@ -493,11 +493,10 @@ export default [
       ] }) },
 
   { id: 'invite-blocked', route: '/invite', name: 'Invite a player · no code', nav: 'sheet',
-    note: 'Offline, signed out, or a player the server has not met. The controls are present but dead, so the host sees what will be available.',
-    flags: ['Signed out, the reason reads "A code is made on the server, so you have to be signed in to make one." The app shows three dead controls here (no QR code) against four on the live sheet.'],
-    html: sheet({ behind: 'Players', title: `Invite a player ${capsPill('Offline')}`, sub: 'Ivo',
+    note: 'Signed out: the reason is the app’s own, the controls are present but dead so the host sees what will be there once signed in.',
+        html: sheet({ behind: 'Players', title: `Invite a player ${capsPill('Signed out')}`, sub: 'Ivo',
       body: [
-        `<div style="border:1.5px dashed var(--outline);border-radius:14px;padding:18px;display:grid;gap:8px;justify-items:center;text-align:center">${eyebrow('No code yet', true)}${note('This build has no server, so there is nothing to make a code on.')}</div>`,
+        `<div style="border:1.5px dashed var(--outline);border-radius:14px;padding:18px;display:grid;gap:8px;justify-items:center;text-align:center">${eyebrow('No code yet', true)}${note('A code is made on the server, so you have to be signed in to make one.')}</div>`,
         shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share']], true),
         note('Adding by name still works offline — it is the invite that cannot.'),
         button('Try again'),

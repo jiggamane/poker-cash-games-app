@@ -20,12 +20,31 @@ import { existsSync } from 'node:fs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const artifactAt = process.argv.includes('--artifact') ? process.argv[process.argv.indexOf('--artifact') + 1] : null;
+const galleryAt = process.argv.includes('--gallery') ? process.argv[process.argv.indexOf('--gallery') + 1] : null;
 
 const files = readdirSync(join(here, 'screens')).filter((f) => f.endsWith('.mjs')).sort();
 const sections = [];
 for (const f of files) {
   const m = await import(pathToFileURL(join(here, 'screens', f)).href);
   sections.push({ file: f, ...(m.section ?? { title: f, blurb: '' }), screens: m.default });
+}
+const fileOf = Object.fromEntries(sections.flatMap((s) => s.screens.map((x) => [x.id, s.file])));
+const { PARTS: APP_PARTS } = await import(pathToFileURL(join(here, 'journeys.mjs')).href);
+{
+  const byId = Object.fromEntries(sections.flatMap((s) => s.screens.map((x) => [x.id, x])));
+  const used = new Set();
+  const grouped = APP_PARTS.map((part) => {
+    const ids = [...part.journeys.flatMap((j) => j.steps.flatMap((st) => st.ids)), ...(part.extra ?? [])].filter((id) => byId[id] && !used.has(id) && used.add(id));
+    return { part, title: part.title, blurb: part.blurb, screens: ids.map((id) => byId[id]) };
+  });
+  const left = sections.flatMap((s) => s.screens).filter((x) => !used.has(x.id));
+  for (const x of left) {
+    const g = grouped.find((g) => g.part.files.includes(fileOf[x.id]));
+    if (!g) throw new Error(`screen ${x.id} (${fileOf[x.id]}) belongs to no part in journeys.mjs`);
+    g.screens.push(x);
+  }
+  sections.length = 0;
+  sections.push(...grouped);
 }
 const all = sections.flatMap((s) => s.screens);
 
@@ -88,11 +107,30 @@ const ORDER = new Map(all.map((x, i) => [x.id, i]));
 const cell = (s, copy = '') => `<figure class="cell scr-cell${s.wide ? ' wide' : ''}${copy ? ' upd' : ''}" data-key="${s.id}" data-order="${ORDER.get(s.id)}" id="${copy ? 'u' : 's'}-${s.id}"${copy ? ` data-upd="${s.id}"` : ''}>${copy ? `<div class="upd-what"><b>What changed</b>${esc(copy)}</div>` : ''}
   <div class="pg-ph">${s.html}</div>
   <figcaption><b>${esc(s.name)}</b><span class="pg-meta"><code>${esc(s.route)}</code> · ${NAV[s.nav] ?? s.nav}</span>${
-    s.note ? `<span class="pg-nt">${esc(s.note)}</span>` : ''}${
+    s.note ? `<details class="pg-why"><summary>Why</summary><span class="pg-nt">${esc(s.note)}</span></details>` : ''}${
     (s.flags ?? []).map((f) => `<span class="pg-flag">${esc(f)}</span>`).join('')}</figcaption>
   ${REVIEW ? reviewBlock(s.id, s.name) : ''}</figure>`;
 
 const isApproved = (id, v) => (v[id] || [])[0] === 'approved';
+/*
+ * The working board's head for each part of the app: the journey as numbered steps (each step's phones
+ * linked, an approved one ticked), the states no phone draws yet, and the questions still open on this
+ * part's unapproved phones. Built from journeys.mjs; the counts are as of the build.
+ */
+const PRI = { P1: 'Must have', P2: 'Should have', P3: 'Nice to have' };
+function partHead(sec, i) {
+  const p = sec.part;
+  const n = sec.screens.length, ok = sec.screens.filter((x) => isApproved(x.id, SNAPSHOT)).length;
+  const name = Object.fromEntries(all.map((x) => [x.id, x.name]));
+  const chip = (id) => `<a class="jr-id${isApproved(id, SNAPSHOT) ? ' ok' : ''}" href="#s-${id}">${esc((name[id] || id).replace(/^.*? · /, ''))}</a>`;
+  const journeys = p.journeys.map((j) => `<div class="jr"><h3>${esc(j.name)}</h3><ol>${j.steps.map((st) => `<li><b>${esc(st.label)}</b>${st.ids.length ? `<span class="jr-ids">${st.ids.filter((id) => name[id]).map(chip).join('')}</span>` : ''}${(p.missing ?? []).filter((m) => m.step === st.label).map((m) => `<span class="jr-miss">To draw · ${esc(m.state)}</span>`).join('')}</li>`).join('')}</ol></div>`).join('');
+  const missing = (p.missing ?? []).length ? `<div class="pt-block"><h3>States to draw · ${p.missing.length}</h3><ul class="pt-miss">${p.missing.map((m) => `<li><span class="pri ${m.priority}">${m.priority}</span><b>${esc(m.state)}</b><span>${esc(m.shows)}</span>${m.why ? `<em>${esc(m.why)}</em>` : ''}</li>`).join('')}</ul></div>` : '';
+  const qs = sec.screens.filter((x) => !isApproved(x.id, SNAPSHOT)).flatMap((x) => (x.flags ?? []).map((f) => [x, f]));
+  const questions = qs.length ? `<details class="pt-block pt-q"><summary><h3>Open questions · ${qs.length}</h3></summary><ul>${qs.map(([x, f]) => `<li><a href="#s-${x.id}">${esc(x.name)}</a> ${esc(f)}</li>`).join('')}</ul></details>` : '';
+  const decide = (p.decisions ?? []).length ? `<div class="pt-block"><h3>To decide</h3><ul class="pt-dec">${p.decisions.map((d) => `<li>${esc(d)}</li>`).join('')}</ul></div>` : '';
+  return `<div class="pt-head"><div class="pt-stat"><span class="pp ok"><b>${ok}</b> of ${n} approved</span><span class="pp nr"><b>${n - ok}</b> to review</span>${(p.missing ?? []).length ? `<span class="pp wt"><b>${p.missing.length}</b> to draw</span>` : ''}</div>${journeys}${decide}${missing}${questions}</div>`;
+}
+
 const SECOF = Object.fromEntries(sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, i])));
 const PDATA = { secOf: SECOF, show: SHOW, screens: sections.flatMap((sec, i) => sec.screens.map((x) => [x.id, x.name, i])), sections: sections.map((x) => x.title), addressed: ADDRESSED, decided: DECIDED };
 const needsLook = (id, v) => { const x = v[id]; const fix = ADDRESSED[id]; const picked = (SHOW[id] || []).some((c) => (v[c] || [])[0] === 'approved'); return !!fix && !picked && (!x || x[0] !== 'approved'); };
@@ -205,6 +243,23 @@ body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--body);margin:
 #zone-ok .pg-sec h2{font-size:19px}
 .upd-noted{font:600 12px var(--body);color:var(--warn);padding:0 6px}
 .upd[hidden],.pg-none[hidden]{display:none!important}
+.nd-t{border-collapse:collapse;font-size:13.5px;width:100%;max-width:820px}.nd-t th{text-align:left;font-weight:700;padding:6px 10px 6px 0;border-bottom:1px solid var(--line)}.nd-t td{padding:6px 10px 6px 0;border-bottom:1px solid var(--line);color:var(--muted)}.nd-t a{color:var(--fg);font-weight:700;text-decoration:none}.pt-dec a{color:var(--fg);font-weight:700;text-decoration:none}
+.pg-why>summary{cursor:pointer;font:600 12.5px var(--body);color:var(--muted);list-style:none}.pg-why>summary::before{content:"+ "}.pg-why[open]>summary::before{content:"− "}
+.pt-head{display:flex;flex-direction:column;gap:12px;background:var(--panel);border-radius:16px;padding:16px;margin-bottom:6px}
+.pt-stat{display:flex;gap:8px;flex-wrap:wrap}
+.jr h3,.pt-block h3{font:700 14px var(--head);margin:0 0 8px;display:inline}
+.jr ol{margin:6px 0 0;padding-left:22px;display:grid;gap:6px;font-size:13.5px}
+.jr li b{font-weight:600;margin-right:8px}
+.jr-ids{display:inline-flex;flex-wrap:wrap;gap:4px 6px;vertical-align:middle}
+.jr-id{font:600 12px var(--body);padding:3px 8px;border-radius:999px;background:var(--bg);color:var(--fg);text-decoration:none;white-space:nowrap}.jr-id.ok{color:var(--ok)}.jr-id.ok::before{content:"✓ "}
+.jr-id:hover{text-decoration:underline}
+.jr-miss{display:inline-block;margin-left:6px;font:700 11.5px var(--body);padding:3px 8px;border-radius:999px;border:1.5px dashed var(--warn);color:var(--warn)}
+.pt-miss,.pt-dec,.pt-q ul{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:8px;font-size:13.5px}
+.pt-miss li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:baseline}.pt-miss li>span:not(.pri),.pt-miss li>em{grid-column:2;color:var(--muted)}.pt-miss li>em{font-style:normal;font-size:12.5px}
+.pri{font:800 11px var(--body);padding:2px 7px;border-radius:6px;background:var(--bg)}.pri.P1{color:var(--warn)}.pri.P2{color:var(--accent)}.pri.P3{color:var(--muted)}
+.pt-dec li{padding-left:22px;position:relative}.pt-dec li::before{content:"☐";position:absolute;left:0;color:var(--muted)}
+.pt-q>summary{cursor:pointer;list-style:none}.pt-q li{color:var(--muted)}.pt-q a{color:var(--fg);font-weight:700;text-decoration:none;margin-right:6px}
+
 .pg-fold{margin-top:14px;background:var(--panel);border-radius:14px;padding:12px 16px}
 .pg-fold>summary{cursor:pointer;font:700 16px var(--head)}
 .pg-fold[open]>summary{margin-bottom:10px}
@@ -233,11 +288,11 @@ ${CSS}
 <main class="pg-wrap" id="board">
 <header>
   <span class="pg-eyebrow">Design board · the review</span>
-  <h1>What is left to review</h1>
-  <p>Only the screens still waiting for your approval are open here, with the live count in the strip below. Approve one, or say what to change on it. Approved screens, the build plan and what was decided are folded away at the foot of the page.</p>
+  <h1>The working board</h1>
+  <p>The app by its parts, each opened by its journeys. Approve a phone or say what to change; decisions and states still to draw are listed per part. The clean set of every screen is the design board.</p>
   <div class="pg-strip" role="group" aria-label="Board controls">
     <div class="pg-mode" role="group" aria-label="Phone theme"><button type="button" id="m-light" aria-pressed="true">Light</button><button type="button" id="m-dark" aria-pressed="false">Dark</button></div>
-    <nav aria-label="Sections"><a href="#sec-updates">Last round</a><a href="#sec-progress">Where review stands</a><a href="#zone-review"><b>To review</b></a>${sections.map((s, i) => s.screens.some((x) => !isApproved(x.id, SNAPSHOT)) ? `<a href="#sec-${i}">${esc(s.title)}</a>` : '').join('')}${openFlags.length ? `<a href="#sec-open">Open questions</a>` : ''}<a href="#sec-folded">Folded away</a></nav>
+    <nav aria-label="Sections"><a href="#sec-updates">Last round</a><a href="#sec-needs"><b>What needs you</b></a><a href="#sec-progress">Where review stands</a><a href="#zone-review"><b>To review</b></a>${sections.map((s, i) => s.screens.some((x) => !isApproved(x.id, SNAPSHOT)) ? `<a href="#sec-${i}">${esc(s.title)}</a>` : '').join('')}<a href="#sec-folded">Folded away</a></nav>
     ${REVIEW ? `<div class="cnt" role="status"><span id="cA">0 approved</span><span id="cC">0 need work</span><span id="cO">to review</span></div><span id="rvnote" class="rvnote" hidden></span>` : ''}
   </div>
 </header>
@@ -248,6 +303,11 @@ ${CSS}
 </section>
 
 
+<section id="sec-needs"><h2>What needs you</h2><div class="pg-progress">
+  <div class="pp-block"><h3>To decide · ${APP_PARTS.flatMap((p) => p.decisions ?? []).length}</h3><ul class="pt-dec">${sections.flatMap((x, i) => (x.part.decisions ?? []).map((d) => `<li><a href="#sec-${i}">${esc(x.title)}</a> · ${esc(d)}</li>`)).join('')}</ul></div>
+  <div class="pp-block"><h3>By part</h3><table class="nd-t"><thead><tr><th>Part</th><th>Approved</th><th>To review</th><th>To draw</th><th>To decide</th></tr></thead><tbody>${sections.map((x, i) => { const ok = x.screens.filter((y) => isApproved(y.id, SNAPSHOT)).length; const m = x.part.missing ?? []; const pr = (k) => m.filter((y) => y.priority === k).length; return `<tr><td><a href="#sec-${i}">${esc(x.title)}</a></td><td>${ok} of ${x.screens.length}</td><td>${x.screens.length - ok}</td><td>${m.length ? `${m.length}${pr('P1') ? ` · <b class="pri P1">${pr('P1')} P1</b>` : ''}` : '—'}</td><td>${(x.part.decisions ?? []).length || '—'}</td></tr>`; }).join('')}</tbody></table></div>
+</div></section>
+
 <section id="sec-progress"><h2>Where review stands</h2><div class="pg-progress"><div id="pp-body">${renderProgress(PDATA, SNAPSHOT)}</div><span class="pp-live" id="pp-live">As of the last build. ${REVIEW ? 'Updates as you review.' : ''}</span></div></section>
 
 ${REVIEW ? `<section><figure class="cell pg-general" data-key="general"><figcaption><b>The look as a whole</b><span>Approve here if the system is right and only single screens need work, or leave a note that applies to all of them.</span></figcaption>${reviewBlock('general', 'the look as a whole', 3)}</figure></section>` : ''}
@@ -255,7 +315,7 @@ ${REVIEW ? `<section><figure class="cell pg-general" data-key="general"><figcapt
 <div class="pg-zone" id="zone-review"><h2 class="pg-zone-h">To review</h2><p class="pg-zone-p">Every screen without your approval, in the app’s order. A screen you approve moves down to Approved once you are not typing.</p>
 ${sections.map((s, i) => `<section id="sec-${i}" class="pg-sec">
   <h2>${esc(s.title)}</h2>
-  <p>${esc(s.blurb ?? '')}</p>
+  ${partHead(s, i)}
   <div class="pg-grid" data-zone="review" data-sec="${i}">${s.screens.filter((x) => !isApproved(x.id, SNAPSHOT)).map((x) => cell(x)).join('')}</div>
 </section>`).join('\n')}
 </div>
@@ -269,11 +329,7 @@ ${sections.map((s, i) => `<section id="sec-ok-${i}" class="pg-sec">
 <details class="pg-fold"><summary>Building it: the approved screens going into the app</summary>${planSection()}</details>
 <details class="pg-fold"><summary>Decided along the way</summary><ul class="pg-open">${DECIDED.map(([k, t]) => `<li><b style="color:var(--fg)">${esc(k)}</b> ${esc(t)}</li>`).join('')}</ul></details>
 
-${openFlags.length ? `<section id="sec-open">
-  <h2>Open questions</h2>
-  <p>Only for screens still to review: places where a redraw decided something the app or the handoffs do not say, or a word not yet in the app. Each links to its screen.</p>
-  <ul class="pg-open">${openFlags.flatMap((s) => s.flags.map((f) => `<li><a href="#s-${s.id}">${esc(s.name)}</a> — ${esc(f)}</li>`)).join('')}</ul>
-</section>` : ''}
+
 </main>
 <script>
 (() => {
@@ -351,4 +407,44 @@ if (artifactAt) {
   const out = page();
   writeFileSync(artifactAt, out);
   console.log('wrote', artifactAt, (out.length / 1024).toFixed(0) + ' KB');
+}
+
+if (galleryAt) {
+  const gcell = (x) => `<figure class="g-cell${x.wide ? ' wide' : ''}" id="g-${x.id}"><div class="g-ph">${x.html}</div><figcaption>${esc(x.name)}</figcaption></figure>`;
+  const g = `<title>Poker Club Design</title>
+<link rel="stylesheet" href="${FONTS}">
+<style>
+:root{--bg:#F4F5F7;--fg:#141A2A;--muted:#596171;--line:#DDE1E7;--head:'Libre Franklin',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#10131A;--fg:#ECEEF2;--muted:#A0A7B4;--line:#2A303C;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10131A;--fg:#ECEEF2;--muted:#A0A7B4;--line:#2A303C;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:400 15px/1.5 var(--body);margin:0}
+.g-wrap{max-width:1500px;margin:0 auto;padding:32px max(16px,env(safe-area-inset-left,0px)) 64px}
+.g-wrap>header h1{font:800 clamp(28px,4vw,40px)/1.05 var(--head);letter-spacing:-.025em;margin:0 0 6px}
+.g-wrap>header p{margin:0;color:var(--muted)}
+.g-strip{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--fg);color:var(--bg);border-radius:14px;padding:10px 14px;margin-top:16px}
+.g-strip nav{display:flex;gap:4px 12px;flex-wrap:wrap}.g-strip a{font:600 12.5px var(--body);color:inherit;opacity:.85;text-decoration:none}.g-strip a:hover{opacity:1;text-decoration:underline}
+.g-mode{display:inline-flex;background:rgba(127,127,127,.28);border-radius:999px;padding:3px}.g-mode button{font:700 12.5px var(--body);color:inherit;background:none;border:0;border-radius:999px;padding:6px 12px;cursor:pointer}.g-mode button[aria-pressed="true"]{background:var(--bg);color:var(--fg)}
+.g-wrap>section{margin-top:44px;scroll-margin-top:80px}.g-wrap>section>h2{font:800 24px/1.15 var(--head);margin:0 0 4px}.g-wrap>section>p{margin:0 0 14px;color:var(--muted)}
+.g-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:24px 18px;justify-items:center}
+.g-cell{margin:0;width:330px;max-width:100%;display:flex;flex-direction:column;gap:8px}.g-cell.wide{width:678px;grid-column:span 2}@media (max-width:760px){.g-cell.wide{width:330px;grid-column:auto}}
+.g-ph{line-height:0}.g-cell figcaption{font:600 13.5px var(--head);padding:0 8px;color:var(--fg)}
+${CSS}
+</style>
+<main class="g-wrap" id="board">
+<header><h1>The Poker Club · the design</h1><p>Every screen of the app in the approved look, by part of the app and in the order a person meets them. ${all.length} phones. Use the switch for dark.</p>
+<div class="g-strip"><div class="g-mode" role="group" aria-label="Phone theme"><button type="button" id="m-light" aria-pressed="true">Light</button><button type="button" id="m-dark" aria-pressed="false">Dark</button></div><nav aria-label="Parts">${sections.map((x, i) => `<a href="#g-sec-${i}">${esc(x.title)}</a>`).join('')}</nav></div></header>
+${sections.map((x, i) => `<section id="g-sec-${i}"><h2>${esc(x.title)}</h2>${x.part.galleryBlurb ? `<p>${esc(x.part.galleryBlurb)}</p>` : ''}<div class="g-grid">${x.screens.map(gcell).join('')}</div></section>`).join('\n')}
+</main>
+<script>
+(() => {
+  const board = document.getElementById('board'), L = document.getElementById('m-light'), D = document.getElementById('m-dark');
+  const set = (dark) => { board.classList.toggle('dark', dark); L.setAttribute('aria-pressed', String(!dark)); D.setAttribute('aria-pressed', String(dark)); try { localStorage.setItem('fb-mode', dark ? 'dark' : 'light'); } catch (e) {} };
+  L.addEventListener('click', () => set(false)); D.addEventListener('click', () => set(true));
+  document.querySelectorAll('.fb .modal').forEach((m) => { if (m.offsetTop < 84) m.closest('.scr').classList.add('cover'); });
+  let saved = null; try { saved = localStorage.getItem('fb-mode'); } catch (e) {}
+  if (saved === 'dark') set(true);
+})();
+</script>`;
+  writeFileSync(galleryAt, g);
+  console.log('wrote', galleryAt, (g.length / 1024).toFixed(0) + ' KB');
 }
