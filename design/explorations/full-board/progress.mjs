@@ -13,11 +13,11 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-24T17:20:00Z';
+export const LATEST = '2026-11-24T17:30:00Z';
 
 export const ADDRESSED = {
   'session': ['The round help button on the ink top is translucent like the time pill, the icon white, instead of a white disc: on every screen that has it.', '2026-11-24T17:22:30Z'],
-  'count-up-balanced': ['Three more styles for Balanced (D a green pill, E a full green bar, F a green card) beside A–C; the player list in the settled night’s two lines, the fact and its icon under each name, on every Count up screen.', '2026-11-24T17:21:00Z'],
+  'count-up-balanced': ['Balanced is A, the green word with the tick in a green disc, as you approved; the other five options are off the board. The player rows stay in two lines.', '2026-11-24T17:30:30Z'],
   'deductions': ['In the new look: a lifted card under its label, Preview a quiet tag, each winner’s game, food and piggy as icons and figures.', '2026-11-24T17:15:00Z'],
   'new-group-players': ['The bar reads Start the group.', '2026-11-24T17:15:00Z'],
   'new-group': ['No currency is a choice beside USD, EUR, GBP and CAD (figures as plain numbers), on its own frame and in the Currency sheet; Every currency is a full-size chip.', '2026-11-24T17:16:00Z'],
@@ -38,7 +38,6 @@ export const ADDRESSED = {
   'plan-free': ['Choose is now Get.', '2026-11-23T22:45:00Z'],
   'plan-pending': ['Keep Full is a filled button inside the card, with a line on what keeping it means.', '2026-11-23T22:45:00Z'],
   'plan-founder': ['A friend’s plan next to the founder’s: one personal Full, for life.', '2026-11-23T22:45:00Z'],
-  'new-group-players': ['The bar reads Create the group, without the group’s name.', '2026-11-23T13:50:00Z'],
   'c-std-1': ['One line per player: the tick and the line under each name are gone. A buy-in at the standard sits muted; a changed one is full ink. Every frame redrawn.', '2026-11-23T14:25:00Z'],
   'new-night-gate-used': ['Nine new screens for changing a plan from Settings: your plan on Regular, moving up, on Full, moving down, moving to Free, a change waiting, on Free, Home after a plan ran out, and a founder’s plan.', '2026-11-23T13:50:00Z'],
   'new-night-gate': ['The same fix to the tags, for the three plans.', '2026-11-23T13:40:00Z'],
@@ -63,9 +62,10 @@ export const ADDRESSED = {
 };
 
 /* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
-export const SHOW = { 'session': ['session-empty', 'session', 'watch'], 'count-up-balanced': ['count-up-balanced', 'count-up-balanced-a', 'count-up-balanced-b', 'count-up-balanced-c', 'count-up-balanced-d', 'count-up-balanced-e', 'count-up-balanced-f', 'count-up'], 'new-group': ['new-group', 'new-group-nocur', 'new-night-currency'], 'share-set': ['share-set', 'share'],   'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
+export const SHOW = { 'session': ['session-empty', 'session', 'watch'], 'count-up-balanced': ['count-up-balanced', 'count-up'], 'new-group': ['new-group', 'new-group-nocur', 'new-night-currency'], 'share-set': ['share-set', 'share'],   'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
 
 export const DECIDED = [
+  ['Balanced on Count up', 'A: the word in green, the tick in a green disc, the sum in white'],
   ['My stats, games and hours', 'as first drawn: one muted line beside the result'],
   ['The dark theme’s colours', 'the ink-blue sheet as drawn, and the footer in the same blue with a soft shadow above, on every screen'],
   ['Home’s footer', 'as drawn: the ink bar with its three controls'],
