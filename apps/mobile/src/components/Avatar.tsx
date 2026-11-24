@@ -12,7 +12,7 @@ import { useTheme } from '../design/useTheme';
 export function Avatar({ name }: { name: string }) {
   const t = useTheme();
   return (
-    <View style={[styles.circle, { backgroundColor: t.surface }]}>
+    <View style={[styles.circle, { backgroundColor: t.raised }]}>
       <Text style={[styles.letter, { color: t.muted }]}>
         {[...name.trim()][0]?.toUpperCase() ?? '?'}
       </Text>

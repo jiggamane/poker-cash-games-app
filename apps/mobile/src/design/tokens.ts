@@ -314,7 +314,8 @@ export const darkTheme: Theme = {
   onFill: '#141A2A',
   keyline: '#ECEEF2',
   danger: '#F0606E',
-  dim: '#7F8187',
+  // The kit's hue, lifted until it clears 4.5:1 on the dark card (#212836): its own #6B7384 is 3.1.
+  dim: '#878F9E',
   roundFill: '#2C3445',
   sheet: '#171C27',
   sheetEdge: 'rgba(255,255,255,0)',
