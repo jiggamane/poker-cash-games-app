@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { SPOTS, type SpotLevel, type SpotPlace } from '../art/spots';
 import { useTheme } from '../design/useTheme';
+import { LOOK_SCALE } from '../design/scale';
 
 /**
  * One of the approved drawings (`src/art/spots.ts`, generated from the icon
@@ -30,9 +31,12 @@ export function Spot({
   onInk?: boolean;
 }) {
   const t = useTheme();
+  /* The slot and the drawing are kit sizes: blown up to this phone like every other (`design/scale.ts`). */
+  width *= LOOK_SCALE;
+  height *= LOOK_SCALE;
   const art = SPOTS[place];
   const [x, y, w, h] = art.box;
-  const S = Math.min(art.size[level], (width * 88) / w);
+  const S = Math.min(art.size[level] * LOOK_SCALE, (width * 88) / w);
   const k = S / 88;
   const left = align === 'left' ? -(x - 4) * k : width / 2 - (x - 4 + w / 2) * k;
   const top = height / 2 - (y - 12 + h / 2) * k;

@@ -7,6 +7,7 @@ import { Spot } from '../src/components/Spot';
 import type { SpotPlace } from '../src/art/spots';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
+import { z } from '../src/design/scale';
 
 /**
  * Game boosters — the list. The third tile on Poker tools, added 9 November
@@ -73,7 +74,7 @@ export default function Boosters() {
 }
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: 18, paddingTop: 12, gap: 12 },
-  section: { gap: 12 },
-  card: { paddingLeft: 6 },
+  body: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
+  section: { gap: z(12) },
+  card: { paddingLeft: z(6) },
 });

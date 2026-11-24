@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text, TextInput } from '../src/components/Text';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { look } from '../src/design/tokens';
+import { L, z } from '../src/design/scale';
 import { supabase } from '../src/lib/supabase';
 import { clearMemberships } from '../src/lib/membershipStore';
 import { myName, nameRefusal, setMyName } from '../src/lib/account';
@@ -112,19 +112,19 @@ export default function YourName() {
 }
 
 const styles = StyleSheet.create({
-  body: { gap: 14, paddingHorizontal: 20, paddingTop: 6 },
-  lede: { fontSize: 15, fontWeight: '400', lineHeight: 21.75 },
+  body: { gap: z(14), paddingHorizontal: z(20), paddingTop: z(6) },
+  lede: { fontSize: z(15), fontWeight: '400', lineHeight: z(21.75) },
   /* The kit's `.fi`: 48 tall, 12 corners, a 1.5 outline that turns to a 2 in the text colour on focus. */
   input: {
-    minHeight: 48,
-    fontSize: 16,
+    minHeight: z(48),
+    fontSize: z(16),
     fontWeight: '600',
     borderWidth: 1.5,
-    borderRadius: look.fieldRadius,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: L.fieldRadius,
+    paddingHorizontal: z(14),
+    paddingVertical: z(12),
   },
-  focused: { borderWidth: 2, paddingHorizontal: 13.5 },
-  refusal: { fontSize: 13, fontWeight: '500', lineHeight: 18.9 },
-  foot: { fontSize: 13, fontWeight: '400', lineHeight: 18.85 },
+  focused: { borderWidth: 2, paddingHorizontal: z(13.5) },
+  refusal: { fontSize: z(13), fontWeight: '500', lineHeight: z(18.9) },
+  foot: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
 });

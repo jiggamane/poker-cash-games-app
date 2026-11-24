@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '../design/useTheme';
-import { look, type } from '../design/tokens';
+import { L, T, z } from '../design/scale';
+import { type } from '../design/tokens';
 import { Text } from './Text';
 
 /**
@@ -44,7 +45,7 @@ export function SectionLabel({ text, right, quiet = false, lead }: { text: strin
   return (
     <View style={styles.label}>
       {lead}
-      <Text style={[type.lookLabel, { color: quiet ? t.muted : t.text }]}>{text.toUpperCase()}</Text>
+      <Text style={[T.lookLabel, { color: quiet ? t.muted : t.text }]}>{text.toUpperCase()}</Text>
       {right !== undefined && <Text style={[styles.right, { color: t.text }]}>{right}</Text>}
     </View>
   );
@@ -173,17 +174,17 @@ export function Chip({
 }
 
 const styles = StyleSheet.create({
-  chip: { height: 40, paddingLeft: 14, paddingRight: 12, borderRadius: look.chipRadius, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  chipLabel: { fontSize: 14.5, fontWeight: '600' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44, paddingVertical: 8 },
+  chip: { height: z(40), paddingLeft: z(14), paddingRight: z(12), borderRadius: L.chipRadius, flexDirection: 'row', alignItems: 'center', gap: z(6) },
+  chipLabel: { fontSize: z(14.5), fontWeight: '600' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: z(10), minHeight: z(44), paddingVertical: z(8) },
   words: { flex: 1, minWidth: 0 },
-  name: { fontSize: 15.5, fontWeight: '600', lineHeight: 18.6 },
-  meta: { fontSize: 12, fontWeight: '400', lineHeight: 15, marginTop: 2 },
-  value: { fontSize: 13.5, fontWeight: '400', textAlign: 'right', flexShrink: 0, maxWidth: '56%' },
-  amount: { fontFamily: 'head', fontSize: 16.5, fontWeight: '700', lineHeight: 18.2, fontVariant: ['tabular-nums'], textAlign: 'right', flexShrink: 0 },
-  card: { borderRadius: look.cardRadius },
-  rows: { paddingHorizontal: 12 },
-  pad: { padding: 12 },
-  label: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 2, marginTop: 4, marginBottom: -4 },
-  right: { marginLeft: 'auto', fontFamily: 'head', fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  name: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6) },
+  meta: { fontSize: z(12), fontWeight: '400', lineHeight: z(15), marginTop: z(2) },
+  value: { fontSize: z(13.5), fontWeight: '400', textAlign: 'right', flexShrink: 0, maxWidth: '56%' },
+  amount: { fontFamily: 'head', fontSize: z(16.5), fontWeight: '700', lineHeight: z(18.2), fontVariant: ['tabular-nums'], textAlign: 'right', flexShrink: 0 },
+  card: { borderRadius: L.cardRadius },
+  rows: { paddingHorizontal: z(12) },
+  pad: { padding: z(12) },
+  label: { flexDirection: 'row', alignItems: 'center', gap: z(8), marginHorizontal: z(2), marginTop: z(4), marginBottom: z(-4) },
+  right: { marginLeft: 'auto', fontFamily: 'head', fontSize: z(13), fontWeight: '700', fontVariant: ['tabular-nums'] },
 });

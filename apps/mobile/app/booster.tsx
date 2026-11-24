@@ -7,6 +7,7 @@ import { Card, SectionLabel } from '../src/components/Card';
 import { Spot } from '../src/components/Spot';
 import type { SpotPlace } from '../src/art/spots';
 import { useTheme } from '../src/design/useTheme';
+import { z } from '../src/design/scale';
 
 /**
  * One game booster, described — read at the table before the group decides
@@ -109,15 +110,15 @@ export default function BoosterSheet() {
 }
 
 const styles = StyleSheet.create({
-  art: { paddingHorizontal: 20, paddingTop: 6 },
-  what: { fontSize: 15, lineHeight: 21.75, paddingHorizontal: 20, paddingTop: 12 },
-  block: { paddingHorizontal: 20, paddingTop: 16, gap: 8 },
-  card: { marginHorizontal: 20, marginTop: 16, gap: 8 },
-  item: { flexDirection: 'row', gap: 6 },
-  choice: { gap: 6, paddingTop: 4 },
-  choiceLabel: { fontFamily: 'head', fontSize: 15, lineHeight: 21, fontWeight: '700' },
+  art: { paddingHorizontal: z(20), paddingTop: z(6) },
+  what: { fontSize: z(15), lineHeight: z(21.75), paddingHorizontal: z(20), paddingTop: z(12) },
+  block: { paddingHorizontal: z(20), paddingTop: z(16), gap: z(8) },
+  card: { marginHorizontal: z(20), marginTop: z(16), gap: z(8) },
+  item: { flexDirection: 'row', gap: z(6) },
+  choice: { gap: z(6), paddingTop: z(4) },
+  choiceLabel: { fontFamily: 'head', fontSize: z(15), lineHeight: z(21), fontWeight: '700' },
   optionName: { fontWeight: '700' },
-  marker: { fontSize: 14, lineHeight: 19.6, fontWeight: '600', width: 18, fontVariant: ['tabular-nums'] },
-  itemText: { fontSize: 14, lineHeight: 19.6, flex: 1, minWidth: 0 },
-  note: { fontSize: 13, lineHeight: 18.85, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
+  marker: { fontSize: z(14), lineHeight: z(19.6), fontWeight: '600', width: z(18), fontVariant: ['tabular-nums'] },
+  itemText: { fontSize: z(14), lineHeight: z(19.6), flex: 1, minWidth: 0 },
+  note: { fontSize: z(13), lineHeight: z(18.85), paddingHorizontal: z(20), paddingTop: z(16), paddingBottom: z(8) },
 });

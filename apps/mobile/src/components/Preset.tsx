@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
+import { z } from '../design/scale';
 
 /*
  * WHERE A PRESET RUNS OUT OF ROOM.
@@ -95,26 +96,26 @@ export function Preset({
 const styles = StyleSheet.create({
   preset: {
     flex: 1,
-    height: 52,
+    height: z(52),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    paddingHorizontal: 6,
-    borderRadius: 12,
+    gap: z(4),
+    paddingHorizontal: z(6),
+    borderRadius: z(12),
   },
   presetValue: {
     alignSelf: 'stretch',
     textAlign: 'center',
     fontFamily: 'head',
-    fontSize: 15,
+    fontSize: z(15),
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   presetCaption: {
     alignSelf: 'stretch',
     textAlign: 'center',
-    fontSize: 9.5,
+    fontSize: z(9.5),
     fontWeight: '700',
-    letterSpacing: 0.95,
+    letterSpacing: z(0.95),
   },
 });

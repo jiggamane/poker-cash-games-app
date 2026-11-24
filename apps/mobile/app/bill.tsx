@@ -11,6 +11,7 @@ import { Pill } from '../src/components/Pill';
 import { Sheet } from '../src/components/Sheet';
 import { frontedSentence } from '../src/components/SpendList';
 import { useTheme } from '../src/design/useTheme';
+import { z } from '../src/design/scale';
 import { nameOf, spendsOf, useNight, type Spend } from '../src/lib/nightStore';
 
 /**
@@ -72,7 +73,7 @@ export default function Bill() {
 
         {empty ? (
           <View style={styles.blank}>
-            <Icon name="receipt" color={t.dim} size={34} />
+            <Icon name="receipt" color={t.dim} size={z(34)} />
             <Text style={[styles.blankTitle, { color: t.text }]}>Nothing on the bill yet</Text>
             <Text style={[styles.blankBody, { color: t.muted }]}>
               Add what the night spends as it is spent. Who pays it back is worked out at
@@ -143,17 +144,17 @@ const fronted = (spend: Spend, night: NonNullable<ReturnType<typeof useNight>>):
   frontedSentence(spend, (id) => nameOf(night, id));
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: 20, paddingTop: 2, gap: 12 },
-  onBill: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
-  label: { fontSize: 12.5, fontWeight: '500', marginBottom: 6 },
-  figure: { fontFamily: 'head', fontSize: 38, fontWeight: '700', letterSpacing: -1.14, lineHeight: 40, fontVariant: ['tabular-nums'] },
+  body: { paddingHorizontal: z(20), paddingTop: z(2), gap: z(12) },
+  onBill: { flexDirection: 'row', alignItems: 'flex-end', gap: z(12) },
+  label: { fontSize: z(12.5), fontWeight: '500', marginBottom: z(6) },
+  figure: { fontFamily: 'head', fontSize: z(38), fontWeight: '700', letterSpacing: z(-1.14), lineHeight: z(40), fontVariant: ['tabular-nums'] },
   cardRight: { marginLeft: 'auto', alignItems: 'flex-end' },
-  rightLine: { fontSize: 12.5, lineHeight: 18.75, textAlign: 'right' },
+  rightLine: { fontSize: z(12.5), lineHeight: z(18.75), textAlign: 'right' },
   rule: { fontWeight: '600' },
-  time: { width: 38, fontSize: 12.5, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  splitTitle: { fontFamily: 'head', fontSize: 15, fontWeight: '700', lineHeight: 18, marginBottom: 5 },
-  splitBody: { fontSize: 12.5, lineHeight: 17.5 },
-  blank: { alignItems: 'center', gap: 12, paddingTop: 26, paddingBottom: 22, paddingHorizontal: 14 },
-  blankTitle: { fontFamily: 'head', fontSize: 19, fontWeight: '700' },
-  blankBody: { fontSize: 14, fontWeight: '400', lineHeight: 19, textAlign: 'center', maxWidth: 250 },
+  time: { width: z(38), fontSize: z(12.5), fontWeight: '600', fontVariant: ['tabular-nums'] },
+  splitTitle: { fontFamily: 'head', fontSize: z(15), fontWeight: '700', lineHeight: z(18), marginBottom: z(5) },
+  splitBody: { fontSize: z(12.5), lineHeight: z(17.5) },
+  blank: { alignItems: 'center', gap: z(12), paddingTop: z(26), paddingBottom: z(22), paddingHorizontal: z(14) },
+  blankTitle: { fontFamily: 'head', fontSize: z(19), fontWeight: '700' },
+  blankBody: { fontSize: z(14), fontWeight: '400', lineHeight: z(19), textAlign: 'center', maxWidth: 250 },
 });
