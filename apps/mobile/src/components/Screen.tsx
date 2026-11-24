@@ -4,8 +4,9 @@ import { Text } from './Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
+import { L, T, z } from '../design/scale';
 import { useMoneySymbol } from '../lib/money';
-import { chrome, look, space, type } from '../design/tokens';
+import { chrome, space, type } from '../design/tokens';
 import { Bar, type BarAction } from './Bar';
 import { Icon } from './Icon';
 import { Pill } from './Pill';
@@ -322,17 +323,17 @@ export function Screen({
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   fixed: { flex: 1 },
-  top: { paddingHorizontal: look.topPadH, paddingTop: look.topPadTop, paddingBottom: look.topPadBottom, zIndex: 20 },
+  top: { paddingHorizontal: L.topPadH, paddingTop: L.topPadTop, paddingBottom: L.topPadBottom, zIndex: 20 },
   sheet: {
     flex: 1,
-    marginTop: -look.sheetOverlap,
-    borderTopLeftRadius: look.sheetRadius,
-    borderTopRightRadius: look.sheetRadius,
+    marginTop: -L.sheetOverlap,
+    borderTopLeftRadius: L.sheetRadius,
+    borderTopRightRadius: L.sheetRadius,
     overflow: 'hidden',
-    paddingTop: 6,
+    paddingTop: z(6),
   },
   flip: { transform: [{ scaleX: -1 }] },
-  noIndent: { paddingLeft: 0 },
+  noIndent: { paddingLeft: z(0) },
   // A pushed screen fills the phone, so its scroll area takes what is left
   // after the footer and the footer stays at the foot. (A sheet does the
   // opposite — it shrinks to its content; see `Sheet`.)
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: z(10),
     /*
      * ABOVE THE BODY, for the same reason `metaRow` below is and it took
      * longer to find here. The one screen that fills `trailing` puts a
@@ -359,22 +360,22 @@ const styles = StyleSheet.create({
      * the things this row hangs OUTSIDE itself.
      */
     zIndex: 20,
-    minHeight: look.titleRowMin,
+    minHeight: L.titleRowMin,
   },
   /* A bare chevron in the ink's quieter white, 18 wide, pulled 5 into the margin (the kit's `.bk`). */
   back: {
-    width: look.backWidth,
-    height: look.titleRowMin,
-    marginLeft: -5,
+    width: L.backWidth,
+    height: L.titleRowMin,
+    marginLeft: z(-5),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { ...type.lookTitle, flexShrink: 1 },
+  title: { ...T.lookTitle, flexShrink: 1 },
   trailing: { marginLeft: 'auto' },
   meta: {
-    ...type.lookMeta,
-    paddingTop: look.metaGap,
-    paddingLeft: look.metaIndent,
+    ...T.lookMeta,
+    paddingTop: L.metaGap,
+    paddingLeft: L.metaIndent,
     /* NOT A SHRINKING CHILD OF THE COLUMN. On the web a Text shrinks by
        default, and this one sits above a scroller that is allowed to: a body
        taller than the phone took a third of this line's height and the
@@ -385,8 +386,8 @@ const styles = StyleSheet.create({
   metaNode: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: look.metaGap,
-    paddingLeft: look.metaIndent,
+    paddingTop: L.metaGap,
+    paddingLeft: L.metaIndent,
   },
   /* The same line with something on the end of it. The padding moves to the
      row so the control sits at the page's edge and the text keeps its indent. */
@@ -406,7 +407,7 @@ const styles = StyleSheet.create({
      * dimension here that can be spent, and it buys the line back. Do not
      * raise it to match the title row: nothing competes for width up there.
      */
-    gap: 8,
+    gap: z(8),
     /*
      * ABOVE THE BODY, because the one control that uses this line opens a menu
      * that hangs below it and the list is a LATER SIBLING. Later siblings paint
@@ -415,18 +416,18 @@ const styles = StyleSheet.create({
      * which is the worst of both.
      */
     zIndex: 20,
-    paddingTop: look.metaGap,
-    paddingLeft: look.metaIndent,
+    paddingTop: L.metaGap,
+    paddingLeft: L.metaIndent,
     /* AND A FLOOR, which `styles.meta` above deliberately has not got. The
        control is 34 points tall where the text is 16, so what the first row of
        the body meets is the button's edge rather than a baseline with air
        under it. B68. */
   },
-  metaShared: { ...type.lookMeta, flexShrink: 1 },
+  metaShared: { ...T.lookMeta, flexShrink: 1 },
   /* The element form of `metaShared`: it takes what the control leaves and
      its own text shrinks inside it, which is what `minWidth: 0` is for. */
   metaNodeShared: { flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 },
-  lede: { ...type.lede, marginTop: 8, flexShrink: 0 },
+  lede: { ...type.lede, marginTop: z(8), flexShrink: 0 },
 
   // Every board draws the footer `14px 20px 0` with `gap: 10` — E2b, E4, E5,
   // L1, N5, N7, GR4. The 16 and the 12 here were neither, and a two-pixel
@@ -439,8 +440,8 @@ const styles = StyleSheet.create({
   // the inset does the rest.
   footer: {
     paddingHorizontal: space.card,
-    paddingTop: 14,
-    paddingBottom: 14,
-    gap: 10,
+    paddingTop: z(14),
+    paddingBottom: z(14),
+    gap: z(10),
   },
 });

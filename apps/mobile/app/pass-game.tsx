@@ -212,7 +212,9 @@ export default function PassGame() {
             </Text>
             <View style={[styles.explainer, { backgroundColor: t.surface, boxShadow: t.lift }]}>
               <Text style={[styles.explainerText, { color: t.text }]}>
-                A game can go to anyone on Full, or on Regular with their host night still free.
+                {/* "the … plan" (owner, 24 November, on the board: "add 'plan'"). */}
+                A game can go to anyone on the Full plan, or on the Regular plan with their host night
+                still free.
                 Each person picks their own.
               </Text>
             </View>

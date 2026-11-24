@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
+import { z } from '../design/scale';
 import { Icon } from './Icon';
 
 /**
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
   pad: { flexDirection: 'row', flexWrap: 'wrap', borderTopWidth: 1 },
   key: {
     width: '33.3333%',
-    height: 50,
+    height: z(50),
     alignItems: 'center',
     justifyContent: 'center',
     borderBottomWidth: 1,
@@ -87,6 +88,6 @@ const styles = StyleSheet.create({
   },
   /* The third key of every row stops the grid at the sheet's edge. */
   last: { borderRightWidth: 0 },
-  compact: { height: 44 },
-  digit: { fontFamily: 'head', fontSize: 22, fontWeight: '600' },
+  compact: { height: z(44) },
+  digit: { fontFamily: 'head', fontSize: z(22), fontWeight: '600' },
 });

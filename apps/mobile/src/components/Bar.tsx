@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../design/useTheme';
-import { look, type } from '../design/tokens';
+import { L, T, z } from '../design/scale';
+import { type } from '../design/tokens';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
@@ -42,7 +43,7 @@ export function Bar({ actions, line, above }: { actions: BarAction[]; line?: str
       nativeID="screen-bar"
       style={[
         styles.bar,
-        { backgroundColor: t.bar, paddingBottom: Math.max(insets.bottom, look.barFloor) },
+        { backgroundColor: t.bar, paddingBottom: Math.max(insets.bottom, L.barFloor) },
         t.barShadow !== 'none' && { boxShadow: t.barShadow },
       ]}
     >
@@ -71,12 +72,12 @@ export function Bar({ actions, line, above }: { actions: BarAction[]; line?: str
             <View style={styles.words}>
               <Text
                 numberOfLines={1}
-                style={[type.lookBar, { color: a.disabled ? t.onBarDead : t.onBar }]}
+                style={[T.lookBar, { color: a.disabled ? t.onBarDead : t.onBar }]}
               >
                 {a.label}
               </Text>
               {a.sub !== undefined && (
-                <Text numberOfLines={1} style={[type.lookBarSub, styles.sub, { color: t.onBarMuted }]}>
+                <Text numberOfLines={1} style={[T.lookBarSub, styles.sub, { color: t.onBarMuted }]}>
                   {a.sub}
                 </Text>
               )}
@@ -90,19 +91,19 @@ export function Bar({ actions, line, above }: { actions: BarAction[]; line?: str
 
 const styles = StyleSheet.create({
   bar: { flexShrink: 0, zIndex: 3 },
-  line: { ...type.lookBarSub, fontSize: 12.5, textAlign: 'center', paddingVertical: 9, paddingHorizontal: 22 },
+  line: { ...T.lookBarSub, fontSize: z(12.5), textAlign: 'center', paddingVertical: z(9), paddingHorizontal: z(22) },
   acts: { flexDirection: 'row' },
   act: {
     flex: 1,
     minWidth: 0,
-    height: look.barHeight,
+    height: L.barHeight,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
+    gap: z(8),
+    paddingHorizontal: z(14),
   },
   words: { alignItems: 'center', minWidth: 0, flexShrink: 1 },
-  sub: { marginTop: 5 },
+  sub: { marginTop: z(5) },
   pressed: { opacity: 0.7 },
 });

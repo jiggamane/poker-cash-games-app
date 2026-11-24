@@ -15,9 +15,10 @@ import { Text } from './Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../design/useTheme';
+import { L, T, z } from '../design/scale';
 import { useMoneySymbol } from '../lib/money';
 import { useKeyboardInset, useKeyboardUp } from '../lib/keyboard';
-import { chrome, look, space, type } from '../design/tokens';
+import { chrome, space, type } from '../design/tokens';
 import { Bar, type BarAction } from './Bar';
 import { Icon } from './Icon';
 import { Pill } from './Pill';
@@ -269,7 +270,7 @@ export function Sheet({
                 style={[
                   styles.footer,
                   hasBar
-                    ? { paddingBottom: 14 }
+                    ? { paddingBottom: z(14) }
                     : { paddingBottom: keyboardUp || covered > 0 ? 6 : insets.bottom > 0 ? 28 : 6 },
                 ]}
               >
@@ -305,19 +306,19 @@ const styles = StyleSheet.create({
   // behind the island, and the grabber and the title went under it.
   panel: {
     flexShrink: 1,
-    borderTopLeftRadius: look.modalRadius,
-    borderTopRightRadius: look.modalRadius,
+    borderTopLeftRadius: L.modalRadius,
+    borderTopRightRadius: L.modalRadius,
     borderTopWidth: 0,
     overflow: 'hidden',
   },
   // doc 15 § 4.7 · a short phone gives up the peek and every sheet fills to
   // the cap. Growing as well as shrinking is the whole difference.
   panelFull: { flexGrow: 1 },
-  grabberRow: { alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
+  grabberRow: { alignItems: 'center', paddingTop: z(8), paddingBottom: z(4) },
   grabber: {
     width: chrome.grabberWidth,
     height: chrome.grabberHeight,
-    borderRadius: 3,
+    borderRadius: z(3),
   },
 
   // doc 15 § 3: header 12 / 22, then 8 under it when a subhead follows and 14
@@ -325,29 +326,29 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingTop: 8,
-    paddingHorizontal: look.modalTitlePadH,
-    paddingBottom: 6,
+    gap: z(10),
+    paddingTop: z(8),
+    paddingHorizontal: L.modalTitlePadH,
+    paddingBottom: z(6),
   },
-  titleRowAlone: { paddingBottom: 14 },
-  title: { ...type.lookSheetTitle, flexShrink: 1 },
+  titleRowAlone: { paddingBottom: z(14) },
+  title: { ...T.lookSheetTitle, flexShrink: 1 },
   flip: { transform: [{ scaleX: -1 }] },
-  stepBack: { marginLeft: 0 },
+  stepBack: { marginLeft: z(0) },
   // 600 13px, pushed right — the meta takes the free space so the close sits
   // beside it rather than both of them fighting for the same auto margin.
-  meta: { fontSize: 13, fontWeight: '600', marginLeft: 'auto' },
+  meta: { fontSize: z(13), fontWeight: '600', marginLeft: 'auto' },
   close: {
     marginLeft: 'auto',
-    width: look.close,
-    height: look.close,
-    borderRadius: look.close / 2,
+    width: L.close,
+    height: L.close,
+    borderRadius: L.close / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeAfterMeta: { marginLeft: 0 },
-  sub: { ...type.lookSheetSub, paddingBottom: 14, paddingHorizontal: look.modalTitlePadH },
-  sentence: { ...type.lookSheetSub, paddingBottom: 14, paddingHorizontal: look.modalTitlePadH },
+  closeAfterMeta: { marginLeft: z(0) },
+  sub: { ...T.lookSheetSub, paddingBottom: z(14), paddingHorizontal: L.modalTitlePadH },
+  sentence: { ...T.lookSheetSub, paddingBottom: z(14), paddingHorizontal: L.modalTitlePadH },
 
   // Bounded, so it yields to the footer instead of pushing it off the phone.
   // `flexGrow: 0` is what react-native-web needs to agree with the phone:
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
   // action to the bottom of the panel on the web and leave `ui-check`
   // screenshotting a layout no phone draws.
   body: { flexGrow: 0, flexShrink: 1 },
-  content: { paddingBottom: 20 },
+  content: { paddingBottom: z(20) },
   // 14 / 20 / 0 and gap 10, the same footer the pushed screens draw — the two
   // chromes differ at the top of a screen and nowhere else.
   // The panel now paints all the way to the bottom edge of the phone — the
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
   // with no home indicator.
   footer: {
     paddingHorizontal: space.card,
-    paddingTop: 14,
-    gap: 10,
+    paddingTop: z(14),
+    gap: z(10),
   },
 });

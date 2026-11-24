@@ -8,6 +8,7 @@ import { Card, CardRow, Chip, SectionLabel } from '../src/components/Card';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
+import { z } from '../src/design/scale';
 import { depthOf, standingsOf, useNight } from '../src/lib/nightStore';
 
 /**
@@ -96,7 +97,7 @@ export default function Pick() {
               {notSeated.map((p) => (
                 <Chip key={p.id} label={p.name} onPress={() => go(p.id, p.played ? 'rebuy' : 'buyin')} />
               ))}
-              <Chip label="New player" dashed onPress={() => router.push('/seat')} lead={<Icon name="plus" color={t.text} size={16} />} />
+              <Chip label="New player" dashed onPress={() => router.push('/seat')} lead={<Icon name="plus" color={t.text} size={z(16)} />} />
             </View>
           </>
         )}
@@ -106,7 +107,7 @@ export default function Pick() {
 }
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: 20, paddingTop: 2, paddingBottom: 6, gap: 12 },
-  empty: { fontSize: 13, lineHeight: 19, paddingHorizontal: 2 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  body: { paddingHorizontal: z(20), paddingTop: z(2), paddingBottom: z(6), gap: z(12) },
+  empty: { fontSize: z(13), lineHeight: z(19), paddingHorizontal: z(2) },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: z(8) },
 });

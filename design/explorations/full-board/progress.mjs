@@ -16,8 +16,9 @@ export const BUILT = '2026-11-23T12:40:00Z';
 export const LATEST = '2026-11-24T10:45:00Z';
 
 export const ADDRESSED = {
+  'pass-game-nobody': ['“on the Full plan, or on the Regular plan”, here and in the app.', '2026-11-24T10:58:00Z'],
   'plan-regular-used': ['Full is the offer now, not a row: the ink card Open a game draws, with a headline that answers the screen’s news (“Host again tonight, not on 1 Dec”), and Upgrade to Full is the bar. Free stays a quiet row. The same on Your plan · Regular.', '2026-11-24T10:50:00Z'],
-  'stats-book': ['The break-even night is two flat marks with no $0 over it. Three options for “6 games · 25 h” at the top of the board: the counts as figures, each after its icon, or two pills. Losses were already red (bars, 2 L, −$60).', '2026-11-24T10:50:00Z'],
+  'stats-book': ['The win bars are green. The break-even night is two flat marks with no $0 over it. Three options for “6 games · 25 h” at the top of the board: the counts as figures, each after its icon, or two pills. Losses were already red (bars, 2 L, −$60).', '2026-11-24T10:50:00Z'],
   'settled-grouped': ['The fronters under Kitchen & drinks are written “Lena, Andro”; the two titles are unchanged. Same on every settled view.', '2026-11-23T22:40:00Z'],
   'count-up-empty': ['“Accounted for” is gone from the second line of the header on every Count up state; the line now starts with the count itself.', '2026-11-23T22:38:00Z'],
   'rounding-settle': ['The second sentence (“Nothing rewrites a count…”) is gone.', '2026-11-23T22:36:00Z'],

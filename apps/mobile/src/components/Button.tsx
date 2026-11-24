@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, type ViewStyle } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
+import { z } from '../design/scale';
 import { control, look, radius, type } from '../design/tokens';
 
 export type ButtonVariant =
@@ -151,5 +152,6 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  label: { ...type.body, fontFamily: 'head', fontSize: 15.5, fontWeight: '700' },
+  /* The kit's `.btn2` words, 700 15 in the title face, at this phone's scale (`design/scale.ts`). */
+  label: { ...type.body, fontFamily: 'head', fontSize: z(14.5), fontWeight: '700' },
 });

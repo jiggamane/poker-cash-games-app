@@ -1,6 +1,8 @@
 import { Pressable, StyleSheet } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
+import { cappedFigure } from '../design/tokens';
+import { z } from '../design/scale';
 
 /*
  * WHERE A PRESET RUNS OUT OF ROOM.
@@ -72,7 +74,10 @@ export function Preset({
         { opacity: pressed ? 0.7 : 1 },
       ]}
     >
-      <Text numberOfLines={1} style={[styles.presetValue, { color: on ? t.onFill : t.text }]}>
+      {/* A figure in a box the board fixed, so capped like every other one: at 360, in CHF and
+          120% text, "CHF500" was 88 in an 83-point preset once the type took the board's scale
+          (ui-currency, 24 November). */}
+      <Text {...cappedFigure} numberOfLines={1} style={[styles.presetValue, { color: on ? t.onFill : t.text }]}>
         {label}
       </Text>
       <Text
@@ -95,26 +100,26 @@ export function Preset({
 const styles = StyleSheet.create({
   preset: {
     flex: 1,
-    height: 52,
+    height: z(52),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    paddingHorizontal: 6,
-    borderRadius: 12,
+    gap: z(4),
+    paddingHorizontal: z(6),
+    borderRadius: z(12),
   },
   presetValue: {
     alignSelf: 'stretch',
     textAlign: 'center',
     fontFamily: 'head',
-    fontSize: 15,
+    fontSize: z(15),
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   presetCaption: {
     alignSelf: 'stretch',
     textAlign: 'center',
-    fontSize: 9.5,
+    fontSize: z(9.5),
     fontWeight: '700',
-    letterSpacing: 0.95,
+    letterSpacing: z(0.95),
   },
 });

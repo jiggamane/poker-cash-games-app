@@ -12,6 +12,7 @@ import { Card } from '../src/components/Card';
 import { announceRebuy } from '../src/components/rebuyAnnouncement';
 import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { moneyColor, useTheme } from '../src/design/useTheme';
+import { z } from '../src/design/scale';
 import { cappedFigure } from '../src/design/tokens';
 import {
   buyIn,
@@ -274,14 +275,14 @@ export default function Log() {
       bar={[{ label: commitLabel, disabled: !valid || busy, onPress: () => void commit() }]}
     >
       <View style={styles.amountRow}>
-        {/* The board's 68, stepped down once the figure is longer than the
+        {/* The full board's 56 at this phone's scale (`design/scale.ts`), stepped down once the figure is longer than the
             board ever drew, and capped against the reader's text setting.
             `typedAmount.ts` and B20. */}
         <Text
           {...cappedFigure}
           style={[
             styles.amount,
-            typedFigureSize(formatMoney(money(amount)), 68),
+            typedFigureSize(formatMoney(money(amount)), z(56)),
             { color: overTable ? t.loss : valid ? t.text : t.muted },
           ]}
         >
@@ -336,7 +337,7 @@ export default function Log() {
       )}
 
       <View style={styles.stamp}>
-        <Icon name="clock" color={t.muted} size={17} />
+        <Icon name="clock" color={t.muted} size={z(17)} />
         <Text style={[styles.stampText, { color: t.text }]}>Stamped {stamped}</Text>
       </View>
 
@@ -346,17 +347,17 @@ export default function Log() {
 }
 
 const styles = StyleSheet.create({
-  amountRow: { alignItems: 'center', paddingTop: 6, paddingBottom: 14, gap: 8 },
-  overTable: { fontSize: 12.5, fontWeight: '500', lineHeight: 17.5, paddingHorizontal: 36, textAlign: 'center' },
-  amount: { fontFamily: 'head', fontSize: 68, fontWeight: '800', letterSpacing: -3.06, fontVariant: ['tabular-nums'] },
+  amountRow: { alignItems: 'center', paddingTop: z(6), paddingBottom: z(14), gap: z(8) },
+  overTable: { fontSize: z(12.5), fontWeight: '500', lineHeight: z(17.5), paddingHorizontal: z(36), textAlign: 'center' },
+  amount: { fontFamily: 'head', fontSize: z(56), fontWeight: '800', letterSpacing: z(-2.52), fontVariant: ['tabular-nums'] },
 
-  presets: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingBottom: 14 },
+  presets: { flexDirection: 'row', gap: z(8), paddingHorizontal: z(20), paddingBottom: z(14) },
 
-  result: { marginHorizontal: 20, marginBottom: 14 },
-  resultRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  resultLabel: { fontSize: 14.5, fontWeight: '600' },
-  resultFigure: { fontFamily: 'head', fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+  result: { marginHorizontal: z(20), marginBottom: z(14) },
+  resultRow: { flexDirection: 'row', alignItems: 'center', gap: z(12) },
+  resultLabel: { fontSize: z(14.5), fontWeight: '600' },
+  resultFigure: { fontFamily: 'head', fontSize: z(19), fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
-  stamp: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 22, marginBottom: 14 },
-  stampText: { fontSize: 14.5, fontWeight: '500' },
+  stamp: { flexDirection: 'row', alignItems: 'center', gap: z(10), marginHorizontal: z(22), marginBottom: z(14) },
+  stampText: { fontSize: z(14.5), fontWeight: '500' },
 });

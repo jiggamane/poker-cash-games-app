@@ -26,6 +26,7 @@ export const PARTS = [
       'The bar: one action, two equal halves, blocked, a line above, a sub-line',
       'Cards on the shorter shadow, rows with no chevrons, section labels, lifted chips (C), presets, the keypad as a grid',
       'The approved drawings, exported from the icon board into the app',
+      'The board’s proportions: every size from the kit is scaled to the phone (1.22 on a 393-point iPhone), because the board draws on a 312-point miniature (24 November)',
     ],
     notes: [
       'Screens not yet in their part already wear the ink top, the new sheet, the colours and the faces; their primary button stays a filled button in the content until their part moves it to the bar.',
@@ -48,7 +49,7 @@ export const PARTS = [
     what: 'Approved on the board; each has one question to answer on the way, listed here so it can be answered before the code.',
     rows: [
       ['Home', '/', 'The plan-ran-out state uses a line marked UNSURE in the handoff.'],
-      ['Tonight, Table admin, money hidden', '/session', 'Hide is a new feature: is the choice remembered across nights, and does it reach the settled night and My stats?'],
+      ['Tonight, Table admin, money hidden', '/session', 'Answered 24 November: Hide is on Tonight only, and it only hides how the sums are shown on this phone — nothing else changes. Ready to build.'],
       ['Post-game results, all four views', '/settled', 'The Ended row opens End time but nothing marks it as tappable now chevrons are gone.'],
       ['Player card, three states', '/player', 'Rebuy $500 as the whole bar is a much larger target than today, with Cash out a thumb above it: wanted?'],
       ['One entry', '/entry', 'Close duplicates the sheet’s own close: keep it or drop it?'],
