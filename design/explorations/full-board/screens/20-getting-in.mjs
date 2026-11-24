@@ -342,16 +342,30 @@ export default [
     html: walkLastOpen() },
   /* ── /new-group ───────────────────────────────────────────────────── */
   { id: 'new-group', route: '/new-group', name: 'New group · name and currency', nav: 'sheet',
-    note: 'Blocked until the group has a name. The currency box is a search; the four chips are its empty state.',
+    note: 'Owner, 24 November: the four defaults are USD, EUR, GBP and CAD, one tap each; Every currency opens the Currency sheet (the one Game details uses) for the rest, with its search. USD is picked here; the bar waits for the name.',
+    flags: ['“Every currency” as a chip is new; the app’s currency box is a search field with CZK among its chips.'],
     html: sheet({ behind: 'Your groups', title: 'New group', sub: 'Name and currency',
       body: [
         eyebrow('Group name'),
         field('', 'The Thursday game', { placeholder: true, focus: true }),
         eyebrow('Currency'),
-        field('', 'USD · US Dollar', { placeholder: true }),
-        chips(['CZK', 'EUR', 'GBP', { text: 'USD', on: true }]),
+        chips([{ text: 'USD', on: true }, 'EUR', 'GBP', 'CAD']).replace(/<\/div>$/, `<span class="chip" style="box-shadow:none;background:none;color:var(--muted);padding:0 6px">Every currency${ico('chevron', 13)}</span></div>`),
+        note('The group counts every night in this. It can change later in Settings; no figure is converted.'),
       ],
       bar: bar('Next', { blocked: true }) }) },
+
+  { id: 'new-group-nocur', route: '/new-group', name: 'New group · no currency yet', nav: 'sheet',
+    note: 'The name is typed but no currency is picked: none of the four is preselected, so the bar stays faint and its line says what is missing.',
+    flags: ['New words, draft: “Pick a currency to go on”. Whether to preselect one (by the phone’s region) or to ask is the open choice: this frame is the asking version.'],
+    html: sheet({ behind: 'Your groups', title: 'New group', sub: 'Name and currency',
+      body: [
+        eyebrow('Group name'),
+        field('', 'The Thursday game'),
+        eyebrow('Currency'),
+        chips(['USD', 'EUR', 'GBP', 'CAD']).replace(/<\/div>$/, `<span class="chip" style="box-shadow:none;background:none;color:var(--muted);padding:0 6px">Every currency${ico('chevron', 13)}</span></div>`),
+        note('The group counts every night in this. It can change later in Settings; no figure is converted.'),
+      ],
+      bar: bar('Next', { blocked: true, line: 'Pick a currency to go on' }) }) },
 
   { id: 'new-group-money', route: '/new-group', name: 'New group · the money side', nav: 'sheet',
     flags: ['A back circle is drawn on steps 2 and 3 (README rule 2). The app has NO way back between these steps today: only the close.'],
@@ -375,7 +389,7 @@ export default [
         note('A new group starts empty. Players you know are not carried over, and neither are their results elsewhere. Buy-ins default to $500.'),
         button('Add players later'),
       ],
-      bar: bar('Create the group') }) },
+      bar: bar('Start the group') }) },
 
   /* ── /claim ───────────────────────────────────────────────────────── */
   { id: 'claim', route: '/claim', name: 'Claim your place', nav: 'root',

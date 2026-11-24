@@ -19,7 +19,7 @@ const typed = (text, { under = '', muted = false, underTone = 'muted' } = {}) =>
 const presets = (items, on) =>
   `<div style="display:flex;gap:8px">${items.map(([big, cap], i) =>
     `<div style="flex:1;min-width:0;height:48px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;${
-      i === on ? 'background:var(--pri);color:var(--onpri)' : 'box-shadow:inset 0 0 0 1.5px var(--outline);color:var(--text)'}">` +
+      i === on ? 'background:var(--pri);color:var(--onpri)' : 'background:var(--card);box-shadow:var(--lift);color:var(--text)'}">` +
     `<b class="num" style="font-size:15px;line-height:1">${big}</b><span style="font:700 9px/1 var(--body);letter-spacing:.1em;opacity:.72">${cap}</span></div>`).join('')}</div>`;
 
 /** A sheet title with the app's badge beside it. */
@@ -133,12 +133,12 @@ export default [
       bar: bar('Lena carries $50') }) },
 
   { id: 'share-set', route: '/share', name: 'A share · already set by hand', nav: 'sheet', allowOverflow: true,
-    note: 'Nothing to save until the figure changes, so the bar is blocked on Saved. The way back onto the split sits in the content, above the presets; the pad runs under the bar here, as it runs under the two buttons in the app.',
+    note: 'In the new look (owner, 24 November): the presets are lifted like the chips, the chosen one ink; the way back onto the split is a lifted row with what it would come to. Nothing to save until the figure changes, so the bar is blocked on Saved. The way back onto the split sits in the content, above the presets; the pad runs under the bar here, as it runs under the two buttons in the app.',
     html: sheet({ ...shareTop, title: titled('Lena', 'Bill'), sub: 'Kitchen &amp; drinks · set by hand',
       body: [
         typed('$50', { under: 'of $170 to cover' }),
         block('Nobody else moves', SHARE_BODY, `<div style="margin-top:4px">${other('Dana', 'unchanged', '$93')}${other('Andro', 'unchanged', '$27', { last: true })}</div>`, { plain: true }),
-        button('Put Lena back on the split'),
+        `<div style="display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;border-radius:12px;background:var(--card);box-shadow:var(--lift)"><span class="muted">${ico('restart', 17)}</span><span style="flex:1;font:600 14.5px/1.2 var(--body)">Put Lena back on the split</span><span class="num muted" style="font-size:13px">$29</span></div>`,
         sharePresets(2), keypad(),
       ],
       bar: bar('Saved', { blocked: true }) }) },

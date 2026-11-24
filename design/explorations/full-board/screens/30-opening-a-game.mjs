@@ -243,10 +243,10 @@ export default [
         note('The group keeps one book, so this is the money every night in it is counted in — past ones included. It renames the column; no figure is converted.'),
         label('Common', { quiet: true }),
         card([
-          row({ name: 'CZK', meta: 'Czech Koruna', value: 'Kč' }),
+          row({ name: 'USD', meta: 'US Dollar', value: '$', trail: `<span class="win">${ico('check', 16)}</span>` }),
           row({ name: 'EUR', meta: 'Euro', value: '€' }),
           row({ name: 'GBP', meta: 'British Pound', value: '£' }),
-          row({ name: 'USD', meta: 'US Dollar', value: '$', trail: `<span class="win">${ico('check', 16)}</span>` }),
+          row({ name: 'CAD', meta: 'Canadian Dollar', value: 'CA$' }),
         ]),
         label('Every currency', { quiet: true }),
         card([

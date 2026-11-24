@@ -13,9 +13,16 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-24T14:16:00Z';
+export const LATEST = '2026-11-24T17:10:00Z';
 
 export const ADDRESSED = {
+  'count-up-balanced': ['Three more vivid versions of Balanced: a green word, a green band, a big tick.', '2026-11-24T17:15:00Z'],
+  'deductions': ['In the new look: a lifted card under its label, Preview a quiet tag, each winner’s game, food and piggy as icons and figures.', '2026-11-24T17:15:00Z'],
+  'new-group-players': ['The bar reads Start the group.', '2026-11-24T17:15:00Z'],
+  'new-group': ['USD, EUR, GBP and CAD as the four defaults, Every currency opening the Currency sheet (which now lists the same four first), and a version with no currency picked.', '2026-11-24T17:15:00Z'],
+  'session-empty': ['The middle redrawn: the chip stack, the line, and Add players as a lifted button into the Add players sheet.', '2026-11-24T17:15:00Z'],
+  'share-set': ['Presets lifted like the chips, the chosen one ink; Put Lena back on the split a lifted row with what it comes to. The same presets on A share.', '2026-11-24T17:15:00Z'],
+  'watch': ['The night so far: time, words and sum on one baseline.', '2026-11-24T17:15:00Z'],
   'seat-name-changed': ['The line at the foot is gone, here, on the unchanged sheet, and in the app.', '2026-11-24T11:20:00Z'],
   'pass-game-nobody': ['“on the Full plan, or on the Regular plan”, here and in the app.', '2026-11-24T10:58:00Z'],
   'plan-regular-used': ['Full is the offer now, not a row: the ink card Open a game draws, with a headline that answers the screen’s news (“Host again tonight, not on 1 Dec”), and Upgrade to Full is the bar. Free stays a quiet row. The same on Your plan · Regular.', '2026-11-24T10:50:00Z'],
@@ -55,7 +62,7 @@ export const ADDRESSED = {
 };
 
 /* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
-export const SHOW = {   'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
+export const SHOW = { 'count-up-balanced': ['count-up-balanced', 'count-up-balanced-a', 'count-up-balanced-b', 'count-up-balanced-c'], 'new-group': ['new-group', 'new-group-nocur', 'new-night-currency'], 'share-set': ['share-set', 'share'],   'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
 
 export const DECIDED = [
   ['My stats, games and hours', 'as first drawn: one muted line beside the result'],
