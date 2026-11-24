@@ -474,3 +474,5 @@ the approved drawings into the app (`apps/mobile/src/art/spots.ts`).
 - **Round of 24 November, evening**: Balanced in three vivid versions (`count-up-balanced-a/b/c`); Deductions in the new look; Start the group; New group with USD/EUR/GBP/CAD, Every currency and a no-currency frame (`new-group-nocur`); Tonight empty redrawn with Add players; bill presets and the back-onto-the-split row lifted; Watching feed on one baseline.
 
 - **Balanced, round two** (owner): D green pill, E full green bar, F green card; Count up's player rows in the settled night's two lines with an icon.
+
+- **Balanced decided** (owner approved A): the green word with its tick; options B–F removed.
