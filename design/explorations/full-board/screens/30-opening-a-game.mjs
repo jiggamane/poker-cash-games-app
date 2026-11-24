@@ -247,6 +247,7 @@ export default [
           row({ name: 'EUR', meta: 'Euro', value: '€' }),
           row({ name: 'GBP', meta: 'British Pound', value: '£' }),
           row({ name: 'CAD', meta: 'Canadian Dollar', value: 'CA$' }),
+          row({ name: 'No currency', meta: 'Plain numbers, no symbol', value: '1,500' }),
         ]),
         label('Every currency', { quiet: true }),
         card([

@@ -19,7 +19,7 @@ export const ADDRESSED = {
   'count-up-balanced': ['Three more vivid versions of Balanced: a green word, a green band, a big tick.', '2026-11-24T17:15:00Z'],
   'deductions': ['In the new look: a lifted card under its label, Preview a quiet tag, each winner’s game, food and piggy as icons and figures.', '2026-11-24T17:15:00Z'],
   'new-group-players': ['The bar reads Start the group.', '2026-11-24T17:15:00Z'],
-  'new-group': ['USD, EUR, GBP and CAD as the four defaults, Every currency opening the Currency sheet (which now lists the same four first), and a version with no currency picked.', '2026-11-24T17:15:00Z'],
+  'new-group': ['No currency is a choice beside USD, EUR, GBP and CAD (figures as plain numbers), on its own frame and in the Currency sheet; Every currency is a full-size chip.', '2026-11-24T17:16:00Z'],
   'session-empty': ['The small print is gone: the chip stack, “Nobody has bought in yet” in the title face at 26, and a larger Add players button.', '2026-11-24T17:15:30Z'],
   'share-set': ['Presets lifted like the chips, the chosen one ink; Put Lena back on the split a lifted row with what it comes to. The same presets on A share.', '2026-11-24T17:15:00Z'],
   'watch': ['The night so far: time, words and sum on one baseline.', '2026-11-24T17:15:00Z'],
