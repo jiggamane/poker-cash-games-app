@@ -70,9 +70,9 @@ export const chart = (caption, cols) => {
       /* A loss is a red bar at least 8 tall, so a small one still reads as a bar and as red, not as a dash
          (owner, 24 November: "the graph should also use red for losses"). */
       : h < 0 ? bar(h, 'var(--red)')
-      /* Break-even: one grey bead sitting on the line, nothing above or below it (owner: "dont like when it
-         looks like a hamburger"). */
-      : `<circle cx="${cx}" cy="${BAND + 0.5}" r="3.5" style="fill:var(--muted)"/>`;
+      /* Break-even: one grey pill as wide as a bar, centred on the line — one piece, not the two marks the
+         owner called a hamburger, and as wide as the others (owner, 24 November). */
+      : `<rect x="${x}" y="${BAND + 0.5 - 3}" width="${BW}" height="6" rx="3" style="fill:var(--muted)"/>`;
     return `${b}<text x="${cx}" y="${BAND * 2 + 15}" text-anchor="middle" style="fill:var(--muted);font:500 9.5px var(--body)">${lbl}</text>`;
   }).join('');
   return card([
