@@ -26,6 +26,7 @@ export const PARTS = [
       'The bar: one action, two equal halves, blocked, a line above, a sub-line',
       'Cards on the shorter shadow, rows with no chevrons, section labels, lifted chips (C), presets, the keypad as a grid',
       'The approved drawings, exported from the icon board into the app',
+      'The board’s proportions: every size from the kit is scaled to the phone (1.22 on a 393-point iPhone), because the board draws on a 312-point miniature (24 November)',
     ],
     notes: [
       'Screens not yet in their part already wear the ink top, the new sheet, the colours and the faces; their primary button stays a filled button in the content until their part moves it to the bar.',
