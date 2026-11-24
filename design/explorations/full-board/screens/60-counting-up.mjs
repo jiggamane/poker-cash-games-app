@@ -28,7 +28,9 @@ const balancedLine = `<div style="display:flex;align-items:center;gap:8px;margin
 const termsCard = card([row({ name: 'Rounding · off', value: 'to the dollar' }), row({ name: 'Ended · 17:23', value: 'same night' })]);
 
 /** Name and its fact on one line, as the app's player rows have them. */
-const who = (name, fact) => `${name}<small style="display:inline;margin-left:8px">${fact}</small>`;
+const factIcon = (fact) => (fact.startsWith('cashed') ? 'cashOut' : fact.startsWith('in ') ? 'chipsIn' : 'chipsOut');
+/* Two lines, as the settled night's rows (owner, 24 November: “apply the player list style we have”): the name, and under it the fact with its icon. */
+const who = (name, fact) => `${name}<small style="display:flex;align-items:center;gap:4px;margin-top:4px"><span style="display:inline-flex;opacity:.8">${ico(factIcon(fact), 13)}</span>${fact}</small>`;
 
 const waiting = (name, bought) =>
   row({ name: who(name, `in ${bought}`), trail: `<span class="dimt num" style="font-size:16px">—</span><span class="muted">${ico('pencil', 16)}</span>` });
@@ -41,6 +43,11 @@ const tomas = counted('Tomáš', 'counted $0', '−$500');
 const ivo = counted('Ivo', 'counted $220', '−$780');
 
 const countTop = { title: 'Count up', trailing: '1 of 3' };
+
+/* Balanced, round two (owner, 24 November: “more styles for the status, a little more visible”). */
+const balancedD = `<div style="display:grid;justify-items:center;gap:6px;margin-top:10px;text-align:center"><span style="display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px 0 12px;border-radius:999px;background:#7BE3AE;color:#0A2A1A;font:800 19px/1 var(--head)">${ico('check', 20)}Balanced</span><span style="font-size:13px;opacity:.78"><span class="num">$5,000</span> in play · all counted</span></div>`;
+const balancedE = `<div style="margin-top:12px;padding:0 2px"><div style="display:flex;align-items:baseline;justify-content:space-between"><b style="font:800 30px/1 var(--head);letter-spacing:-.02em;color:#7BE3AE">Balanced</b><b class="num" style="font-size:18px">$5,000</b></div><div style="height:6px;border-radius:3px;background:#7BE3AE;margin-top:10px"></div><div style="display:flex;justify-content:space-between;font-size:12px;opacity:.75;margin-top:6px"><span>6 of 6 counted</span><span>100%</span></div></div>`;
+const balancedF = `<div style="display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(123,227,174,.14);box-shadow:inset 0 0 0 1.5px #7BE3AE"><span style="width:34px;height:34px;border-radius:50%;background:#7BE3AE;color:#0A2A1A;display:grid;place-items:center;flex:none">${ico('check', 20)}</span><div style="flex:1"><b style="display:block;font:800 20px/1 var(--head);color:#fff">Balanced</b><span style="font-size:12.5px;opacity:.75">every stack counted</span></div><b class="num" style="font-size:18px">$5,000</b></div>`;
 /* Balanced, more vivid (owner, 23 November: “try more styles for balanced, a bit more vivid”). */
 const balancedA = `<div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:0 2px"><span style="width:26px;height:26px;border-radius:50%;background:#7BE3AE;color:#0A2A1A;display:grid;place-items:center">${ico('check', 16)}</span><b style="font:800 22px/1 var(--head);flex:1;color:#7BE3AE">Balanced</b><b class="num" style="font-size:18px">$5,000</b><span style="font-size:12.5px;opacity:.72">in play</span></div>`;
 const balancedB = `<div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px 14px;border-radius:14px;background:#0E7A45">${ico('check', 20)}<b style="font:800 21px/1 var(--head);flex:1">Balanced</b><b class="num" style="font-size:18px">$5,000</b></div>`;
@@ -116,40 +123,56 @@ export default [
     note: 'Out of balance does not block: the gate is the count, so Next is live and leads to It doesn’t add up, where the $20 is named.',
     html: push({ ...countTop, extra: block({ gap: '−$20', pct: '99%', shares: [4980, 20], accounted: '6 counted', amount: '$4,980' }),
       body: [termsCard,
-        label('Still to count · 0'),
-        label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $250', '−$1,250')])],
+                label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $250', '−$1,250')])],
       bar: bar('Next') }) },
 
   { id: 'count-up-balanced', route: '/count-up', name: 'Count up · balanced', nav: 'push',
     note: 'Once the sums agree the block folds to its one line, as the app does after a beat, and the sheet rises to take the room.',
     html: push({ ...countTop, extra: balancedLine,
       body: [termsCard,
-        label('Still to count · 0'),
-        label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+                label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
       bar: bar('Next') }) },
 
   { id: 'count-up-balanced-a', route: '/count-up', name: 'Count up · balanced · A green word', nav: 'push',
     note: 'The same line, in colour: the tick in a green disc, Balanced in green, the sum in white.',
     html: push({ ...countTop, extra: balancedA,
       body: [termsCard,
-        label('Still to count · 0'),
-        label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+                label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
       bar: bar('Next') }) },
 
   { id: 'count-up-balanced-b', route: '/count-up', name: 'Count up · balanced · B a green band', nav: 'push',
     note: 'A green band across the top, the tick and Balanced in white on it, the sum at its right: the moment reads from across the table.',
     html: push({ ...countTop, extra: balancedB,
       body: [termsCard,
-        label('Still to count · 0'),
-        label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+                label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
       bar: bar('Next') }) },
 
   { id: 'count-up-balanced-c', route: '/count-up', name: 'Count up · balanced · C the big tick', nav: 'push',
     note: 'A large green tick beside Balanced, with the full sum under it: in play and counted, both $5,000.',
     html: push({ ...countTop, extra: balancedC,
       body: [termsCard,
-        label('Still to count · 0'),
-        label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+                label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+      bar: bar('Next') }) },
+
+  { id: 'count-up-balanced-d', route: '/count-up', name: 'Count up · balanced · D the green pill', nav: 'push',
+    note: 'Balanced as a filled green pill in the middle of the top, the sum and “all counted” under it.',
+    html: push({ ...countTop, extra: balancedD,
+      body: [termsCard,
+                label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+      bar: bar('Next') }) },
+
+  { id: 'count-up-balanced-e', route: '/count-up', name: 'Count up · balanced · E the full bar', nav: 'push',
+    note: 'Balanced large in green over a full green bar, the count and 100% under it: the same bar that filled while counting, finished.',
+    html: push({ ...countTop, extra: balancedE,
+      body: [termsCard,
+                label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+      bar: bar('Next') }) },
+
+  { id: 'count-up-balanced-f', route: '/count-up', name: 'Count up · balanced · F the green card', nav: 'push',
+    note: 'A green-outlined card on the ink with the tick, Balanced and the sum: the most contained.',
+    html: push({ ...countTop, extra: balancedF,
+      body: [termsCard,
+                label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
       bar: bar('Next') }) },
 
 
