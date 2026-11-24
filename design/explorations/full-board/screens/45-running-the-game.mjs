@@ -5,6 +5,7 @@
  *
  * Tonight's main state and its Table admin drawer are in `10-home-tonight.mjs`.
  */
+import { art } from '../kit.mjs';
 import { push, sheet, bar, barSplit, label, card, row, note, para, pill, terms, button, quiet, ico, topPill, topButton, topDropdown, topHero } from '../kit.mjs';
 
 /* ── parts the kit does not have (see the report) ─────────────────────── */
@@ -31,7 +32,7 @@ const timed = (time, what, { sub = '', amount = '', under = '', end = '', dim = 
     amount || under ? `<span class="a"${dim ? ' style="color:var(--muted)"' : ''}>${amount}${under ? `<small>${under}</small>` : ''}</span>` : ''}${end}</div>`;
 /** A feed line on /watch: lighter than a row, no rules between. */
 const feed = (time, what, amount = '', mine = false) =>
-  `<div style="display:flex;align-items:center;gap:10px;min-height:32px"><span class="num muted" style="flex:none;width:40px;font-size:12.5px;font-weight:600">${time}</span><span style="flex:1;min-width:0;font-size:14.5px;font-weight:${mine ? 600 : 500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis"${mine ? '' : ' class="muted"'}>${what}</span>${
+  `<div style="display:flex;align-items:baseline;gap:10px;padding:7px 0"><span class="num muted" style="flex:none;width:40px;font-size:12.5px;font-weight:600">${time}</span><span style="flex:1;min-width:0;font-size:14.5px;font-weight:${mine ? 600 : 500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis"${mine ? '' : ' class="muted"'}>${what}</span>${
     amount ? `<b class="num" style="flex:none;font-size:14.5px">${amount}</b>` : ''}</div>`;
 
 /* ── Tonight, as the other phones read it ─────────────────────────────── */
@@ -62,11 +63,12 @@ export const section = { title: 'Running the game', blurb: 'Who records the nigh
 
 export default [
   { id: 'session-empty', route: '/session', name: 'Tonight · nobody seated', nav: 'push',
-    note: 'The dock’s empty-table variant: the bar’s primary is Seat a player and Bill is dead until somebody is in.',
+    note: 'The dock’s empty-table variant (owner, 24 November: more visual, and a way into adding players). The middle is the chip stack from Start a session, the line, and Add players as a lifted button that opens the Add players sheet (the one-line version at the top of the board). The bar still seats one player; Bill is dead until somebody is in.',
+    flags: ['New words, draft: “Add tonight’s players…”, “Pick from the group, or type a new name”. The app has “Seat the first player and the table starts filling.”', 'Two ways in: Add players here (several at once) and Seat a player in the bar (one). Say if the bar should become Add players instead.'],
     html: push({ title: 'Tonight', trailing: topPill('just opened'), sub: '<b>You’re recording</b> · opened 14:07', subRight: topButton('questionCard'),
       extra: topHero({ label: 'On the table', big: '$0', side: 'nobody seated' }),
       body: [
-        `<div style="display:grid;justify-items:center;text-align:center;gap:8px;padding:56px 22px 0"><span class="dimt">${ico('person', 34)}</span><div class="h2">Nobody has bought in yet</div>${note('Seat the first player and the table starts filling. Buy-ins are $500 tonight.')}</div>`,
+        `<div style="display:grid;justify-items:center;text-align:center;gap:10px;padding:26px 16px 0"><div style="width:150px;height:118px;display:grid;place-items:center">${art('session', 118)}</div><div class="h2">Nobody has bought in yet</div>${note('Add tonight’s players and the table starts filling. Each starts at the $500 buy-in.')}<div style="margin-top:8px;display:inline-flex;align-items:center;gap:10px;height:48px;padding:0 8px 0 18px;border-radius:14px;background:var(--card);box-shadow:var(--lift);font:700 15px/1 var(--head);color:var(--text)">Add players<span style="width:28px;height:28px;border-radius:50%;background:var(--pri);color:var(--onpri);display:grid;place-items:center">${ico('plus', 15)}</span></div><span class="muted" style="font-size:12.5px">Pick from the group, or type a new name</span></div>`,
       ],
       bar: barSplit('Seat a player', { label: 'Bill', icon: 'receipt' }, { primaryIcon: 'person', secondaryDead: true, disc: { label: 'Table admin', hint: 'seat · cash out · end' } }) }) },
 

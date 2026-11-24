@@ -470,3 +470,5 @@ the approved drawings into the app (`apps/mobile/src/art/spots.ts`).
   "6 games · 25 h" (`screens/04-this-round-stats.mjs`, `stats-meta-a`…`c`).
 
 - **Board shows only what is left** (owner, 24 November): approved screens, Building it and Decided along the way fold away at the foot; the 22 November brief and the rules panel are gone; open questions list only screens still to review.
+
+- **Round of 24 November, evening**: Balanced in three vivid versions (`count-up-balanced-a/b/c`); Deductions in the new look; Start the group; New group with USD/EUR/GBP/CAD, Every currency and a no-currency frame (`new-group-nocur`); Tonight empty redrawn with Add players; bill presets and the back-onto-the-split row lifted; Watching feed on one baseline.

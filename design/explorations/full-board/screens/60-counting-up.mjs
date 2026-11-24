@@ -41,6 +41,11 @@ const tomas = counted('Tomáš', 'counted $0', '−$500');
 const ivo = counted('Ivo', 'counted $220', '−$780');
 
 const countTop = { title: 'Count up', trailing: '1 of 3' };
+/* Balanced, more vivid (owner, 23 November: “try more styles for balanced, a bit more vivid”). */
+const balancedA = `<div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:0 2px"><span style="width:26px;height:26px;border-radius:50%;background:#7BE3AE;color:#0A2A1A;display:grid;place-items:center">${ico('check', 16)}</span><b style="font:800 22px/1 var(--head);flex:1;color:#7BE3AE">Balanced</b><b class="num" style="font-size:18px">$5,000</b><span style="font-size:12.5px;opacity:.72">in play</span></div>`;
+const balancedB = `<div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px 14px;border-radius:14px;background:#0E7A45">${ico('check', 20)}<b style="font:800 21px/1 var(--head);flex:1">Balanced</b><b class="num" style="font-size:18px">$5,000</b></div>`;
+const balancedC = `<div style="display:flex;align-items:center;gap:14px;margin-top:12px;padding:0 2px"><span style="width:52px;height:52px;border-radius:50%;background:#7BE3AE;color:#0A2A1A;display:grid;place-items:center;flex:none;box-shadow:0 0 0 6px rgba(123,227,174,.18)">${ico('check', 28)}</span><div><b style="display:block;font:800 26px/1 var(--head);color:#fff">Balanced</b><span style="font-size:13px;opacity:.75"><span class="num">$5,000</span> in play · <span class="num">$5,000</span> counted</span></div></div>`;
+
 
 /* ── The count sheet ──────────────────────────────────────────────────── */
 
@@ -54,12 +59,15 @@ const dedTop = { title: 'Deductions', trailing: '2 of 3' };
 const after = (name, amount, working = '') =>
   `<div class="row" style="min-height:40px"><span class="n">${name}${working ? `<small class="wrap">${working}</small>` : ''}</span><span class="a ${amount.startsWith('+') ? 'win' : 'loss'}">${amount}</span></div>`;
 
-/** Provisional, so it is outlined with a dash and not lifted: the one group on the screen that is not yet a fact. */
-const preview = `<div style="border:1.5px dashed var(--outline);border-radius:14px;padding:12px 12px 10px">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px"><span class="lbl" style="margin:0;font-size:10px;letter-spacing:.05em;white-space:nowrap">Everyone after deductions</span>${pill('PREVIEW')}</div>
-  ${after('Dana', '+$1,429', 'game&nbsp;+1,620 · food&nbsp;−110 · piggy&nbsp;−81')}${after('Andro', '+$526', 'game&nbsp;+460 · food&nbsp;+89 · piggy&nbsp;−23')}${after('Lena', '+$429', 'game&nbsp;+430 · food&nbsp;+21 · piggy&nbsp;−22')}
-  ${after('Tomáš', '−$500')}${after('Ivo', '−$780')}${after('Petr', '−$1,230')}
-  <p class="note" style="margin-top:8px">Provisional until you settle. Tap any figure below to change it.</p></div>`;
+/** In the new look (owner, 24 November): a lifted card like every other group, the provisional state said by a quiet tag and the line under it, and each player's terms as the settled night writes them. */
+const termsLine = (parts) => `<span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">${parts.map(([icon, v]) => `<span class="muted" style="display:inline-flex;align-items:center;gap:3px;font:500 11.5px/1 var(--head)">${ico(icon, 12)}${v}</span>`).join('')}</span>`;
+const after2 = (name, amount, parts = []) => `<div class="row" style="min-height:46px;align-items:center"><span class="n">${name}${parts.length ? termsLine(parts) : ''}</span><span class="a ${amount.startsWith('+') ? 'win' : 'loss'}">${amount}</span></div>`;
+const preview = [
+  `<div class="lbl" style="white-space:nowrap;letter-spacing:.08em">Everyone after deductions<span class="r"><span style="font:700 10px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border-radius:999px;background:var(--raised);color:var(--muted)">Preview</span></span></div>`,
+  card([after2('Dana', '+$1,429', [['spadeCard', '+1,620'], ['food', '−110'], ['piggy', '−81']]), after2('Andro', '+$526', [['spadeCard', '+460'], ['food', '+89'], ['piggy', '−23']]), after2('Lena', '+$429', [['spadeCard', '+430'], ['food', '+21'], ['piggy', '−22']]),
+    after2('Tomáš', '−$500'), after2('Ivo', '−$780'), after2('Petr', '−$1,230')].join('')),
+  note('Provisional until you settle. Tap any figure below to change it.'),
+].join('');
 
 const blockHead = (name, total) => `<div class="split" style="padding:12px 0 4px"><b style="font:700 16px/1.2 var(--head)">${name}</b><b class="num" style="font-size:16.5px">${total}</b></div>`;
 const share = (name, amount) =>
@@ -120,8 +128,33 @@ export default [
         label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
       bar: bar('Next') }) },
 
+  { id: 'count-up-balanced-a', route: '/count-up', name: 'Count up · balanced · A green word', nav: 'push',
+    note: 'The same line, in colour: the tick in a green disc, Balanced in green, the sum in white.',
+    html: push({ ...countTop, extra: balancedA,
+      body: [termsCard,
+        label('Still to count · 0'),
+        label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+      bar: bar('Next') }) },
+
+  { id: 'count-up-balanced-b', route: '/count-up', name: 'Count up · balanced · B a green band', nav: 'push',
+    note: 'A green band across the top, the tick and Balanced in white on it, the sum at its right: the moment reads from across the table.',
+    html: push({ ...countTop, extra: balancedB,
+      body: [termsCard,
+        label('Still to count · 0'),
+        label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+      bar: bar('Next') }) },
+
+  { id: 'count-up-balanced-c', route: '/count-up', name: 'Count up · balanced · C the big tick', nav: 'push',
+    note: 'A large green tick beside Balanced, with the full sum under it: in play and counted, both $5,000.',
+    html: push({ ...countTop, extra: balancedC,
+      body: [termsCard,
+        label('Still to count · 0'),
+        label('Counted · 6'), card([dana, andro, lena, tomas, ivo, counted('Petr', 'counted $270', '−$1,230')])],
+      bar: bar('Next') }) },
+
+
   { id: 'deductions', route: '/deductions', name: 'Deductions', nav: 'push',
-    note: 'See who pays whom is the bar. In the app it is an outlined button, deliberately not the filled primary, because this step is a look before a decision; on the board the bar is the only place a screen’s way forward lives. The preview keeps its dashed outline instead of a lifted card: it is provisional.',
+    note: 'In the new look (owner, 24 November: “check with the new UI guide”): the preview is a lifted card under its label, Preview a quiet tag, each winner’s game, food and piggy as icons and figures like the settled night. See who pays whom is the bar. In the app it is an outlined button, deliberately not the filled primary, because this step is a look before a decision; on the board the bar is the only place a screen’s way forward lives. The preview keeps its dashed outline instead of a lifted card: it is provisional.',
     flags: ['The app draws See who pays whom as a secondary (outlined) button on purpose. Putting it in the bar makes it read as a primary; confirm that is wanted.'],
     html: push({ ...dedTop,
       body: [preview,
