@@ -459,3 +459,12 @@ the approved drawings into the app (`apps/mobile/src/art/spots.ts`).
   booster, Who's playing?, How much?, Your name.
 - **Part 2, approved with one small question each** — next; the questions are
   listed in the plan so they can be answered before the code.
+
+## Round of 24 November
+
+- **Your plan, Regular** (both states): Full is the offer, not a row — the ink
+  card Open a game draws, with a headline answering the screen's news, and
+  "Upgrade to Full · $9.99 a month" is the bar. Free stays a quiet row. Draft
+  words. Both screens now scroll under the bar.
+- **My stats**: the break-even night has no $0 over it. Three options for
+  "6 games · 25 h" (`screens/04-this-round-stats.mjs`, `stats-meta-a`…`c`).
