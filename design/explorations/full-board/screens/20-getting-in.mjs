@@ -229,56 +229,43 @@ export const section = { title: 'Getting in', blurb: 'Signing in by emailed link
 export default [
   /* ── /sign-in ─────────────────────────────────────────────────────── */
   { id: 'sign-in', route: '/sign-in', name: 'Sign in', nav: 'sheet',
-    flags: [
-      `Sample address "${EMAIL}" is not in the app (its placeholder is you@example.com).`,
-      'The redirect address shown (pokerclub://auth-callback) is the one sign-in.tsx names for a real build; the reference capture had no server so the line was not on screen.',
-      'With no address typed the bar is the same words, blocked ("Email me a link"), and counts down as "Email me a link in 42s" under a throttle. Not drawn separately.',
-    ],
+    flags: ['Trimmed to the field and one line (owner, 24 November: “all of the sign-in screens need much fewer text”). The shortened lines are draft; the app’s longer ones are in sign-in.tsx.'],
     html: sheet({ behind: 'Settings', title: 'Sign in',
       body: [
-        note('Only the host signs in. Players are names you type, and watchers open a link.'),
         field('Email', EMAIL, { focus: true }),
-        note('No password. We email you a link that signs you in.'),
-        redirectNote,
+        note('No password. We email you a link.'),
       ],
       bar: bar('Email me a link') }) },
 
   { id: 'sign-in-code', route: '/sign-in', name: 'Sign in · no account yet', nav: 'sheet',
     note: 'The address was refused, so the sheet grows a field for a code and the bar changes its words. Blocked until a code is typed.',
-    flags: ['The app marks this state’s copy "COPY NOT DRAWN" (sign-in.tsx): written in code, never on a board.'],
+    flags: ['Trimmed to the field and one line (owner, 24 November: “all of the sign-in screens need much fewer text”). The shortened lines are draft; the app’s longer ones are in sign-in.tsx.'],
     html: sheet({ behind: 'Settings', title: 'Sign in', tall: true,
       body: [
-        note('Only the host signs in. Players are names you type, and watchers open a link.'),
         field('Email', EMAIL),
-        note('No password. We email you a link that signs you in.'),
-        note('That address has no account yet. If somebody gave you a code, type it here: it opens an account for this address and emails it a link.'),
+        note('No account for that address yet. Got a code? Type it here.'),
         field('Code', 'FRIDAY', { placeholder: true, focus: true }),
-        note('As you were given it. Capitals or not, it does not matter.'),
-        redirectNote,
       ],
       bar: bar('Open an account', { blocked: true }) }) },
 
   { id: 'sign-in-sent', route: '/sign-in', name: 'Check your email', nav: 'sheet',
     note: 'The bar is the recovery, not the action: the action is in the mail app. It counts down, blocked, then reads "Send another link".',
-    flags: ['"42s" is a sample count; the app counts down from 60.', 'README rule 2 would give a later step a back circle; the app’s way back here is the button "Use a different email", so no back circle is drawn.'],
+    flags: ['Trimmed to the field and one line (owner, 24 November: “all of the sign-in screens need much fewer text”). The shortened lines are draft; the app’s longer ones are in sign-in.tsx.'],
     html: sheet({ behind: 'Settings', title: 'Check your email', tall: true,
       body: [
-        para(`A sign-in link is on its way to ${EMAIL}.`),
-        note('Open it on this phone and it brings you straight back here, signed in. It works once and expires shortly, so if it goes stale, send another.'),
-        eyebrow('If the button does nothing'),
-        note('The email prints the same address as text underneath it. Paste that into a browser on this phone — it signs you in the same way.'),
-        redirectNote,
+        para(`A link is on its way to ${EMAIL}.`),
+        note('Open it on this phone.'),
         button('Use a different email'),
       ],
       bar: bar('Send another link in 42s', { blocked: true }) }) },
 
   /* ── /auth-callback ───────────────────────────────────────────────── */
   { id: 'auth-callback', route: '/auth-callback', name: 'That link did not sign you in', nav: 'root',
+    flags: ['Trimmed (owner, 24 November). The shortened line is draft.'],
     note: 'Standalone: a link lands here cold, so there is no back and no close. The app centres this block on the page; here the title is the ink top.',
     html: standalone({ title: 'That link did not sign you in',
       body: [
-        para('The link may have already been used, or it may have expired — each one works once.'),
-        note('The email prints the same address as text under the button. Pasting that into a browser on this phone signs you in the same way — a fresh email is only needed if the link has expired.'),
+        para('It was used already, or it expired. Each link works once.'),
       ],
       bar: bar('Send myself another') }) },
 
@@ -342,15 +329,15 @@ export default [
     html: walkLastOpen() },
   /* ── /new-group ───────────────────────────────────────────────────── */
   { id: 'new-group', route: '/new-group', name: 'New group · name and currency', nav: 'sheet',
-    note: 'Owner, 24 November: the four defaults are USD, EUR, GBP and CAD, one tap each; No currency is a choice too (figures as plain numbers); Every currency opens the Currency sheet (the one Game details uses) for the rest, with its search. USD is picked here; the bar waits for the name.',
+    note: 'Owner, 24 November: the four defaults are USD, EUR, GBP and CAD, one tap each; No currency is a choice too (figures as plain numbers); Every currency opens the Currency sheet (the one Game details uses) for the rest, with its search. No currency is picked until somebody picks one (owner, 24 November); the bar waits for the name.',
     flags: ['“Every currency” as a chip is new; the app’s currency box is a search field with CZK among its chips.'],
     html: sheet({ behind: 'Your groups', title: 'New group', sub: 'Name and currency',
       body: [
         eyebrow('Group name'),
         field('', 'The Thursday game', { placeholder: true, focus: true }),
         eyebrow('Currency'),
-        chips([{ text: 'USD', on: true }, 'EUR', 'GBP', 'CAD', 'No currency']).replace(/<\/div>$/, `<span class="chip">Every currency<span style="display:inline-flex;color:var(--muted)">${ico('chevron', 14)}</span></span></div>`),
-        note('The group counts every night in this. It can change later in Settings; no figure is converted.'),
+        chips(['USD', 'EUR', 'GBP', 'CAD', { text: 'No currency', on: true }]).replace(/<\/div>$/, `<span class="chip">Every currency<span style="display:inline-flex;color:var(--muted)">${ico('chevron', 14)}</span></span></div>`),
+        note('It can change later in Settings.'),
       ],
       bar: bar('Next', { blocked: true }) }) },
 
