@@ -59,10 +59,17 @@ export const chart = (caption, cols) => {
   const W = 266, CW = W / 8, BAND = 38, BW = 15;
   const marks = cols.map(([lbl, h], i) => {
     const cx = i * CW + CW / 2, x = (cx - BW / 2).toFixed(1);
-    const b = h > 0 ? `<rect x="${x}" y="${BAND - Math.max(8, h)}" width="${BW}" height="${Math.max(8, h)}" rx="3" style="fill:var(--win)"/>`
+    /* Every bar stands on the line with no gap (owner, 24 November: "put this on the line, no gap"): square
+       where it meets the line, rounded only at its free end, and drawn through the line's own pixel. */
+    const bar = (h, fill) => {
+      const L = Math.max(8, Math.abs(h)), r = 3, x0 = +x, x1 = x0 + BW, base = BAND + 0.5;
+      const end = h > 0 ? base - L : base + L, s = h > 0 ? 1 : -1;
+      return `<path d="M${x0} ${base}V${end + s * r}Q${x0} ${end} ${x0 + r} ${end}H${x1 - r}Q${x1} ${end} ${x1} ${end + s * r}V${base}Z" style="fill:${fill}"/>`;
+    };
+    const b = h > 0 ? bar(h, 'var(--win)')
       /* A loss is a red bar at least 8 tall, so a small one still reads as a bar and as red, not as a dash
          (owner, 24 November: "the graph should also use red for losses"). */
-      : h < 0 ? `<rect x="${x}" y="${BAND + 1}" width="${BW}" height="${Math.max(8, -h)}" rx="3" style="fill:var(--red)"/>`
+      : h < 0 ? bar(h, 'var(--red)')
       /* Break-even: one grey bead sitting on the line, nothing above or below it (owner: "dont like when it
          looks like a hamburger"). */
       : `<circle cx="${cx}" cy="${BAND + 0.5}" r="3.5" style="fill:var(--muted)"/>`;
