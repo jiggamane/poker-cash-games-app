@@ -212,6 +212,8 @@ const track = () => `<div style="height:2px;border-radius:1px;background:var(--l
 export const shareRow = (items, dead = false) => `<div style="display:flex;gap:8px">${items.map(([icon, text]) =>
   `<div style="flex:1;display:grid;justify-items:center;gap:6px;padding:11px 0;border-radius:12px;box-shadow:inset 0 0 0 1.5px var(--${dead ? 'line' : 'outline'});color:var(--${dead ? 'dim' : 'text'});font:600 11.5px/1 var(--body)">${ico(icon, 18)}${text}</div>`).join('')}</div>`;
 /** The invite code as the hero: six characters, a dash after the third (owner, 22 November). */
+/** The QR code as a wide option under the other three (owner, 24 November: “make the QR code option larger”). */
+export const qrWide = `<div style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:12px;box-shadow:inset 0 0 0 1.5px var(--outline);font:700 15px/1 var(--head)">${ico('qr', 22)}Show the QR code</div>`;
 export const codeHero = (text, { muted = false } = {}) => `<div class="num" style="font-weight:800;font-size:31px;letter-spacing:.05em;text-align:center;padding:4px 0;color:var(--${muted ? 'muted' : 'text'})">${text}</div>`;
 /** One of the two five-character boxes on "Type your invite code". */
 const codeBox = (text, focus = false) => `<div class="fi${focus ? ' focus' : ''}" style="flex:1;height:62px;justify-content:center;font:700 24px/1 var(--head);letter-spacing:.14em">${text}</div>`;
@@ -239,12 +241,12 @@ export default [
 
   { id: 'sign-in-code', route: '/sign-in', name: 'Sign in · no account yet', nav: 'sheet',
     note: 'The address was refused, so the sheet grows a field for a code and the bar changes its words. Blocked until a code is typed.',
-    flags: ['Trimmed to the field and one line (owner, 24 November: “all of the sign-in screens need much fewer text”). The shortened lines are draft; the app’s longer ones are in sign-in.tsx.'],
+    flags: ['Trimmed to the field and one line (owner, 24 November). The code is typed in the same two boxes as Type your invite code (owner, 24 November), on the reading that it is the six-character invite code. The app’s sign-up code is a free word today (“FRIDAY”): if that stays, this goes back to a plain field.'],
     html: sheet({ behind: 'Settings', title: 'Sign in', tall: true,
       body: [
         field('Email', EMAIL),
         note('No account for that address yet. Got a code? Type it here.'),
-        field('Code', 'FRIDAY', { placeholder: true, focus: true }),
+        `<div style="display:flex;gap:10px;align-items:center">${codeBox('', true)}<span class="num muted" style="font-size:24px;font-weight:700">–</span>${codeBox('')}</div>`,
       ],
       bar: bar('Open an account', { blocked: true }) }) },
 
@@ -445,7 +447,8 @@ export default [
         eyebrow('Ivo’s code'),
         codeHero(CODE).replace('font-size:31px;letter-spacing:.05em','font-size:40px;letter-spacing:.08em'),
         note('One person, one code — it only ever attaches to Ivo. It works for a month.'),
-        shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share'], ['qr', 'QR code']]),
+        shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share']]),
+        qrWide,
         button('Reset the code'),
         `<div style="height:6px"></div>`,
       ] }) },
