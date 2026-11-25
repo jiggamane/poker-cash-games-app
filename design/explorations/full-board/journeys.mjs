@@ -52,7 +52,7 @@ export const PARTS = [
       { label: 'Add players', ids: ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-std-remove', 'c-search', 'c-nomatch', 'c-new', 'c-taken'] },
       { label: 'A new player, invited at the table', ids: ['c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'] },
       { label: 'Game details, behind Change', ids: ['new-night-details', 'new-night-details-rules', 'new-night-details-empty'] },
-      { label: 'A rule', ids: ['new-night-rule', 'new-night-rule-rest', 'new-night-rule-bill', 'new-night-rule-blocked'] },
+      { label: 'A rule', ids: ['new-night-rule', 'new-night-rule-rest', 'new-night-rule-bill', 'new-night-rule-blocked', 'new-night-rule-hourly-each'] },
       { label: 'Currency', ids: ['new-night-currency'] },
       { label: 'The table opens', ids: ['session-empty'] },
     ] }],
@@ -61,7 +61,7 @@ export const PARTS = [
 
   { key: 'during', title: 'During the night', files: ['40-during-the-game.mjs'],
     journeys: [{ name: 'Recording the money', steps: [
-      { label: 'Tonight', ids: ['session', 'session-hidden', 'tools-size-d', 'tools-size-e', 'tools-size-f', 'tools-size-g', 'tools-size-h'] },
+      { label: 'Tonight', ids: ['session', 'session-hidden'] },
       { label: 'The Table admin drawer', ids: ['session-admin'] },
       { label: 'A rebuy or a buy-in', ids: ['pick', 'log-rebuy', 'session-rebuy-undo'] },
       { label: 'A player’s card', ids: ['player', 'player-out', 'player-corrected'] },

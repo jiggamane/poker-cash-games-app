@@ -93,7 +93,9 @@ const moneyCard = card([
 
 const rulesFootnote = note('These belong to tonight. They are copied from the app default and changing one here changes this game only — the group keeps its own.');
 
-const kinds = ['A share of the win', 'A sum for the table', 'So much each', 'Each, by the hour', 'Out of each buy-in', 'The table, by the hour'];
+/* The hourly pair is one kind with its own form (owner, 25 November). */
+const kinds = ['A share of the win', 'A sum for the table', 'So much each', 'Out of each buy-in', 'By the hour'];
+const perHour = (v, dim = false) => `<span class="num" style="font:700 16px/1 var(--head);${dim ? 'color:var(--muted)' : ''}">$${v}<span class="muted" style="font:500 12.5px var(--body)"> / hour</span></span>`;
 const chipRow = (items, on, { small = false, tight = false } = {}) =>
   `<div class="chips" style="gap:6px${tight ? ';display:grid;grid-template-columns:1fr 1fr' : ''}">${items.map((t, i) => `<span class="chip${i === on ? ' on' : ''}" style="${tight ? 'height:34px;padding:0 4px;font-size:11.5px;justify-content:center' : small ? 'height:34px;padding:0 10px;font-size:12.5px' : ''}">${t}</span>`).join('')}</div>`;
 const howMuch = (n) => `<div style="display:flex;align-items:baseline;gap:8px;margin:0 2px"><span class="fig">${n}</span><span class="muted" style="font:700 19px/1 var(--head)">% of the win</span></div>`;
@@ -221,19 +223,30 @@ export default [
       ],
       bar: saveRemove('Save rule') }) },
 
-  { id: 'new-night-rule-blocked', route: '/new-night', name: 'A rule · not ready to save', nav: 'sheet',
-    note: 'A rule that cannot be saved says why on the bar itself, blocked: Give it a name, Set an amount, Say how often, Set a ceiling. With no name the sheet is titled New rule.',
+  { id: 'new-night-rule-blocked', route: '/new-night', name: 'A rule · by the hour, the same for everyone', nav: 'sheet',
+    note: 'By the hour has its own form (owner, 25 November): an amount per hour, the same for everyone or set for each player. Here one figure for all; the bar is blocked on the name, and says why.',
+    flags: ['New words, draft: “By the hour”, “Same for everyone”, “Set for each”, “Per player, per hour played”.'],
     html: sheet({ behind: BEHIND, title: 'New rule', tall: true, stepBack: true,
       body: [
         field('Called', 'What the group calls it', { placeholder: true, focus: true }),
-        label('How much', { quiet: true }),
-        howMuch('10'),
-        chipRow(kinds, 0, { tight: true }),
-        chipRow(['5%', '10%', '15%', '<span class="dimt">—</span>'], 1, { small: true }),
+        chipRow(kinds, 4, { tight: true }),
+        seg(['Same for everyone', 'Set for each'], 0),
+        field('Per player, per hour played', '$10', { suffix: '/ hour' }),
         label('Never more than', { quiet: true }),
         chipRow(['No ceiling', '$50', '$100', '<span class="dimt">—</span>'], 0, { small: true }),
       ],
       bar: bar('Give it a name', { blocked: true }) }) },
+
+  { id: 'new-night-rule-hourly-each', route: '/new-night', name: 'A rule · by the hour, set for each', nav: 'sheet',
+    note: 'Set for each: one row per player with their own figure per hour, prefilled at the shared one and quiet until changed, as Add players does with the buy-in.',
+    html: sheet({ behind: BEHIND, title: 'Seat time', tall: true, stepBack: true,
+      body: [
+        field('Called', 'Seat time'),
+        chipRow(kinds, 4, { tight: true }),
+        seg(['Same for everyone', 'Set for each'], 1),
+        card([['Andro', '10', true], ['Dana', '10', true], ['Ivo', '15', false], ['Lena', '10', true], ['Petr', '5', false]].map(([n, v, dim]) => row({ name: n, trail: perHour(v, dim) })).join('')),
+      ],
+      bar: saveRemove('Save rule') }) },
 
   { id: 'new-night-currency', route: '/new-night', name: 'Currency', nav: 'sheet', allowOverflow: true,
     note: 'Behind the Currency row of Game details. Picking a row writes the group and returns, so Done is only the way out. The list runs on under the bar (156 currencies).',
