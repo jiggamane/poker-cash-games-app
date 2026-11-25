@@ -4,7 +4,7 @@
  * entry on an added row, the Add control on the others, and the new-player line change.
  */
 import { sheet, bar, label, card, row, field, ico, note, button, quiet } from '../kit.mjs';
-import { eyebrow, shareRow, codeHero, qrWide } from './20-getting-in.mjs';
+import { eyebrow, shareRow, codeHero, codeCard, qrWide } from './20-getting-in.mjs';
 import { qrSvg, inviteLink } from '../qr.mjs';
 const MCODE = 'R4D-9WT';
 
@@ -131,8 +131,8 @@ export default [
     note: 'Invite replaces the Add players sheet’s content, one close as always: Marek’s own code, Copy, Message, Share and the QR code, as on Invite a player. The back circle returns to the list. One design with Invite Ivo from Players (owner, 24 November): the name in the title, the group under it, short, no bar; only Players’ version has Reset, as Marek’s code is new.',
     flags: ['The parts are Invite a player’s; “Invite Marek” as the title is new, draft. Reset the code stays on the Players screen, not here.'],
     html: sheet({ behind: 'The Thursday game', title: 'Invite Marek', sub: 'The Thursday game', stepBack: true,
-      body: [eyebrow('Marek’s code'), codeHero(MCODE).replace('font-size:31px;letter-spacing:.05em', 'font-size:40px;letter-spacing:.08em'),
-        note('One person, one code — it only ever attaches to Marek. It works for a month.'),
+      body: [codeCard('Marek’s code', MCODE),
+        note('One person, one code — it only ever attaches to Marek.'),
         shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share']]), qrWide] }) },
   { id: 'c-invite-qr', route: '/new-night', name: 'Add players C · Marek scans the code', nav: 'sheet',
     note: 'At the table the quickest way: QR code turns the sheet to the code; Marek scans it with the phone’s camera and claims the seat. A real code: it scans to pokerclub://claim?c=R4D-9WT.',

@@ -214,6 +214,13 @@ export const shareRow = (items, dead = false) => `<div style="display:flex;gap:8
 /** The invite code as the hero: six characters, a dash after the third (owner, 22 November). */
 /** The QR code as a wide option under the other three (owner, 24 November: “make the QR code option larger”). */
 export const qrWide = `<div style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:12px;box-shadow:inset 0 0 0 1.5px var(--outline);font:700 15px/1 var(--head)">${ico('qr', 22)}Show the QR code</div>`;
+/* The invite code as a finished part (owner, 25 November: “this part looks a bit unfinished”): a lifted card
+   with whose code it is and how long it lasts, and the six characters in two groups of three tiles. */
+export const codeCard = (whose, code) => {
+  const tile = (c) => `<span style="width:32px;height:44px;border-radius:9px;background:var(--raised);display:grid;place-items:center;font:800 22px/1 var(--head)">${c}</span>`;
+  const [a, b] = code.split('-');
+  return `<div class="card pad" style="display:grid;gap:14px;padding:14px 14px 16px"><div class="split" style="align-items:center"><span class="lbl q" style="margin:0">${whose}</span><span style="font:600 11.5px/1 var(--body);padding:5px 9px;border-radius:999px;background:var(--raised);color:var(--muted)">works for a month</span></div><div style="display:flex;justify-content:center;align-items:center;gap:5px;min-width:0">${[...a].map(tile).join('')}<span class="muted" style="width:12px;text-align:center;font:700 18px/1 var(--head)">–</span>${[...b].map(tile).join('')}</div></div>`;
+};
 export const codeHero = (text, { muted = false } = {}) => `<div class="num" style="font-weight:800;font-size:31px;letter-spacing:.05em;text-align:center;padding:4px 0;color:var(--${muted ? 'muted' : 'text'})">${text}</div>`;
 /** One of the two five-character boxes on "Type your invite code". */
 const codeBox = (text, focus = false, h = 62) => `<div class="fi${focus ? ' focus' : ''}" style="flex:1;height:${h}px;justify-content:center;font:700 24px/1 var(--head);letter-spacing:.14em">${text}</div>`;
@@ -444,9 +451,8 @@ export default [
     ],
     html: sheet({ behind: 'Players', title: 'Invite Ivo', sub: 'The Thursday game',
       body: [
-        eyebrow('Ivo’s code'),
-        codeHero(CODE).replace('font-size:31px;letter-spacing:.05em','font-size:40px;letter-spacing:.08em'),
-        note('One person, one code — it only ever attaches to Ivo. It works for a month.'),
+        codeCard('Ivo’s code', CODE),
+        note('One person, one code — it only ever attaches to Ivo.'),
         shareRow([['copy', 'Copy'], ['message', 'Message'], ['share', 'Share']]),
         qrWide,
         quiet('Reset the code'),

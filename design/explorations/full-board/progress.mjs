@@ -13,9 +13,10 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-25T10:10:00Z';
+export const LATEST = '2026-11-25T10:20:00Z';
 
 export const ADDRESSED = {
+  'invite': ['The code is a finished card: whose code and “works for a month” on top, the six characters in two groups of three tiles. The same on both invite sheets.', '2026-11-25T10:21:00Z'],
   'tools-size-d': ['D kept (32, no shape), with four shapes around the same cards: a rounded square, a thin ring, a pill, a round in felt green.', '2026-11-25T10:11:00Z'],
   'stats-empty': ['Placeholders before the first night: the chart’s bars and two list rows in the faint grey, the shapes the real ones will take.', '2026-11-25T09:31:00Z'],
   'session-rebuy-undo': ['Undo larger: 17, heavier, with a bigger tap area; the strip a little taller.', '2026-11-25T09:31:00Z'],
@@ -23,7 +24,6 @@ export const ADDRESSED = {
   'end-time': ['The end is stamped by itself; this sheet corrects it: Started and Ended shown, the day a field that opens the calendar.', '2026-11-25T09:41:00Z'],
   'sign-in-code': ['The code boxes are as tall as the email field.', '2026-11-25T09:41:00Z'],
   'session': ['The tools button: two cards fanned, the front one with a red question mark, drawn bigger (24 in the 34 round). On every screen that has the button; the options are off the board.', '2026-11-25T09:21:00Z'],
-  'invite': ['The two invite sheets are one design: Invite + the name as the title, the group under it, short, no bar. Reset the code is quiet text, on the Players version only.', '2026-11-24T18:41:00Z'],
   'c-invite': ['Show the QR code is a wide button under Copy, Message and Share; the same on Invite a player.', '2026-11-24T18:31:00Z'],
   'sign-in': ['Every sign-in screen trimmed to its field and one line; the setup note is off the board.', '2026-11-24T18:21:00Z'],
   'home-live': ['No second table offered: the live card only.', '2026-11-24T18:21:00Z'],
@@ -74,7 +74,7 @@ export const ADDRESSED = {
 };
 
 /* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
-export const SHOW = { 'tools-size-d': ['tools-size-d', 'tools-size-e', 'tools-size-f', 'tools-size-g', 'tools-size-h'], 'deductions': ['deductions-rules', 'deductions'], 'end-time': ['end-time', 'end-time-empty'], 'invite': ['invite', 'c-invite', 'invite-qr', 'c-invite-qr', 'invite-blocked'], 'c-invite': ['c-invite', 'invite'], 'sign-in': ['sign-in', 'sign-in-code', 'sign-in-sent', 'auth-callback'], 'new-group': ['new-group', 'new-group-nocur'], 'home-first': ['home-first', 'home-live', 'home-unsettled', 'home-member', 'home-pass', 'session-takenback', 'session-rebuy-undo', 'c-std-remove', 'member-remove', 'plan-restore', 'plan-store-wait', 'plan-store-failed', 'c-std-1', 'c-search', 'c-nomatch', 'c-new', 'c-taken', 'c-invited', 'settings-more', 'invite-blocked'], 'count-up': ['count-up', 'count-up-empty', 'count-up-off', 'count-up-balanced'], 'session': ['session', 'session-empty', 'watch', 'tools'], 'count-up-balanced': ['count-up-balanced', 'count-up'], 'new-group': ['new-group', 'new-group-nocur', 'new-night-currency'], 'share-set': ['share-set', 'share'],   'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
+export const SHOW = { 'tools-size-d': ['tools-size-d', 'tools-size-e', 'tools-size-f', 'tools-size-g', 'tools-size-h'], 'deductions': ['deductions-rules', 'deductions'], 'end-time': ['end-time', 'end-time-empty'], 'invite': ['c-invite', 'invite'], 'c-invite': ['c-invite', 'invite'], 'sign-in': ['sign-in', 'sign-in-code', 'sign-in-sent', 'auth-callback'], 'new-group': ['new-group', 'new-group-nocur'], 'home-first': ['home-first', 'home-live', 'home-unsettled', 'home-member', 'home-pass', 'session-takenback', 'session-rebuy-undo', 'c-std-remove', 'member-remove', 'plan-restore', 'plan-store-wait', 'plan-store-failed', 'c-std-1', 'c-search', 'c-nomatch', 'c-new', 'c-taken', 'c-invited', 'settings-more', 'invite-blocked'], 'count-up': ['count-up', 'count-up-empty', 'count-up-off', 'count-up-balanced'], 'session': ['session', 'session-empty', 'watch', 'tools'], 'count-up-balanced': ['count-up-balanced', 'count-up'], 'new-group': ['new-group', 'new-group-nocur', 'new-night-currency'], 'share-set': ['share-set', 'share'],   'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
 
 export const DECIDED = [
   ['The tools button', 'two fanned cards, a red question mark on the front, 24 points in the round'],
@@ -146,7 +146,6 @@ export const SNAPSHOT = {
   'invite-blocked': ["approved", "", "2026-11-24T16:49:53Z"],
   'invite-qr': ["approved", "lets try some themed rq code types if available. of not then the square one", "2026-11-22T21:36:44Z"],
   'invite-reset': ["approved", "", "2026-11-23T11:11:12Z"],
-  'invite': ["approved", "make the code 6 figure with a - after 3 symbols", "2026-11-22T22:22:52Z"],
   'lift-shorter': ["approved", "", "2026-11-22T17:35:28Z"],
   'log-cashout-over': ["approved", "", "2026-11-22T17:47:19Z"],
   'log-cashout': ["approved", "", "2026-11-22T17:47:14Z"],
