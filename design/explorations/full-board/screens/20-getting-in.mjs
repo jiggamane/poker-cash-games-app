@@ -216,7 +216,7 @@ export const shareRow = (items, dead = false) => `<div style="display:flex;gap:8
 export const qrWide = `<div style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:12px;box-shadow:inset 0 0 0 1.5px var(--outline);font:700 15px/1 var(--head)">${ico('qr', 22)}Show the QR code</div>`;
 export const codeHero = (text, { muted = false } = {}) => `<div class="num" style="font-weight:800;font-size:31px;letter-spacing:.05em;text-align:center;padding:4px 0;color:var(--${muted ? 'muted' : 'text'})">${text}</div>`;
 /** One of the two five-character boxes on "Type your invite code". */
-const codeBox = (text, focus = false) => `<div class="fi${focus ? ' focus' : ''}" style="flex:1;height:62px;justify-content:center;font:700 24px/1 var(--head);letter-spacing:.14em">${text}</div>`;
+const codeBox = (text, focus = false, h = 62) => `<div class="fi${focus ? ' focus' : ''}" style="flex:1;height:${h}px;justify-content:center;font:700 24px/1 var(--head);letter-spacing:.14em">${text}</div>`;
 /** A bulleted statement: one 5px dot, never an icon. */
 const statement = (text) => `<div style="display:flex;gap:10px;align-items:flex-start;font-size:14.5px;line-height:1.45"><span style="width:5px;height:5px;border-radius:50%;background:var(--muted);margin-top:8px;flex:none"></span><span>${text}</span></div>`;
 
@@ -246,7 +246,7 @@ export default [
       body: [
         field('Email', EMAIL),
         note('No account for that address yet. Got a code? Type it here.'),
-        `<div style="display:flex;gap:10px;align-items:center">${codeBox('', true)}<span class="num muted" style="font-size:24px;font-weight:700">–</span>${codeBox('')}</div>`,
+        `<div style="display:flex;gap:10px;align-items:center">${codeBox('', true, 48)}<span class="num muted" style="font-size:20px;font-weight:700">–</span>${codeBox('', false, 48)}</div>`,
       ],
       bar: bar('Open an account', { blocked: true }) }) },
 

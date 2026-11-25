@@ -13,13 +13,15 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-25T09:20:00Z';
+export const LATEST = '2026-11-25T09:40:00Z';
 
 export const ADDRESSED = {
+  'deductions': ['The rules and the bill in the app’s own rows: shares and piggy lines as player rows with their working, spends as the bill draws them, Add a spend a lifted chip, the way back to the rules a lifted row.', '2026-11-25T09:41:00Z'],
+  'end-time': ['The end is stamped by itself; this sheet corrects it: Started and Ended shown, the day a field that opens the calendar.', '2026-11-25T09:41:00Z'],
+  'sign-in-code': ['The code boxes are as tall as the email field.', '2026-11-25T09:41:00Z'],
   'session': ['The tools button: two cards fanned, the front one with a red question mark, drawn bigger (24 in the 34 round). On every screen that has the button; the options are off the board.', '2026-11-25T09:21:00Z'],
   'invite': ['The two invite sheets are one design: Invite + the name as the title, the group under it, short, no bar. Reset the code is quiet text, on the Players version only.', '2026-11-24T18:41:00Z'],
   'c-invite': ['Show the QR code is a wide button under Copy, Message and Share; the same on Invite a player.', '2026-11-24T18:31:00Z'],
-  'sign-in-code': ['The code is typed in the same two boxes as the invite code.', '2026-11-24T18:31:00Z'],
   'sign-in': ['Every sign-in screen trimmed to its field and one line; the setup note is off the board.', '2026-11-24T18:21:00Z'],
   'home-live': ['No second table offered: the live card only.', '2026-11-24T18:21:00Z'],
   'new-group': ['No currency is the default; a currency is picked by tapping one.', '2026-11-24T18:21:00Z'],
@@ -27,7 +29,6 @@ export const ADDRESSED = {
   'home-first': ['From the UX review: twelve states the journeys were missing (four Homes, the pass card and its taking back, Rebuy with Undo, taking a player out of Add players, Restore purchases and the store’s two states, the confirm before removing a player); the Add players states redrawn on the standard frame with the new-player line back; Settings and the blocked invite as a signed-in user sees them. Removed: c-rest, House rules, both Piggy bank rules, the second rule editor.', '2026-11-24T18:01:00Z'],
   'count-up': ['Rounding and Ended move to the foot of every Count up screen, under the player lists.', '2026-11-24T17:31:30Z'],
   'count-up-balanced': ['Balanced is A, the green word with the tick in a green disc, as you approved; the other five options are off the board. The player rows stay in two lines.', '2026-11-24T17:30:30Z'],
-  'deductions': ['In the new look: a lifted card under its label, Preview a quiet tag, each winner’s game, food and piggy as icons and figures.', '2026-11-24T17:15:00Z'],
   'new-group-players': ['The bar reads Start the group.', '2026-11-24T17:15:00Z'],
   'new-group': ['No currency is a choice beside USD, EUR, GBP and CAD (figures as plain numbers), on its own frame and in the Currency sheet; Every currency is a full-size chip.', '2026-11-24T17:16:00Z'],
   'session-empty': ['No small print; “Nobody has bought in yet” in the title face; Add players a filled ink button, the plus in a light circle.', '2026-11-24T17:21:30Z'],
@@ -71,7 +72,7 @@ export const ADDRESSED = {
 };
 
 /* When the change is new screens rather than an edit, the update shows those screens, not the old one. */
-export const SHOW = { 'invite': ['invite', 'c-invite', 'invite-qr', 'c-invite-qr', 'invite-blocked'], 'c-invite': ['c-invite', 'invite'], 'sign-in': ['sign-in', 'sign-in-code', 'sign-in-sent', 'auth-callback'], 'new-group': ['new-group', 'new-group-nocur'], 'home-first': ['home-first', 'home-live', 'home-unsettled', 'home-member', 'home-pass', 'session-takenback', 'session-rebuy-undo', 'c-std-remove', 'member-remove', 'plan-restore', 'plan-store-wait', 'plan-store-failed', 'c-std-1', 'c-search', 'c-nomatch', 'c-new', 'c-taken', 'c-invited', 'settings-more', 'invite-blocked'], 'count-up': ['count-up', 'count-up-empty', 'count-up-off', 'count-up-balanced'], 'session': ['session', 'session-empty', 'watch', 'tools'], 'count-up-balanced': ['count-up-balanced', 'count-up'], 'new-group': ['new-group', 'new-group-nocur', 'new-night-currency'], 'share-set': ['share-set', 'share'],   'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
+export const SHOW = { 'deductions': ['deductions-rules', 'deductions'], 'end-time': ['end-time', 'end-time-empty'], 'invite': ['invite', 'c-invite', 'invite-qr', 'c-invite-qr', 'invite-blocked'], 'c-invite': ['c-invite', 'invite'], 'sign-in': ['sign-in', 'sign-in-code', 'sign-in-sent', 'auth-callback'], 'new-group': ['new-group', 'new-group-nocur'], 'home-first': ['home-first', 'home-live', 'home-unsettled', 'home-member', 'home-pass', 'session-takenback', 'session-rebuy-undo', 'c-std-remove', 'member-remove', 'plan-restore', 'plan-store-wait', 'plan-store-failed', 'c-std-1', 'c-search', 'c-nomatch', 'c-new', 'c-taken', 'c-invited', 'settings-more', 'invite-blocked'], 'count-up': ['count-up', 'count-up-empty', 'count-up-off', 'count-up-balanced'], 'session': ['session', 'session-empty', 'watch', 'tools'], 'count-up-balanced': ['count-up-balanced', 'count-up'], 'new-group': ['new-group', 'new-group-nocur', 'new-night-currency'], 'share-set': ['share-set', 'share'],   'settled-grouped': ['settled', 'settled-grouped', 'settled-on-table'], 'count-up-empty': ['count-up-empty', 'count-up', 'count-up-off', 'count-up-balanced'], 'c-nomatch': ['c-nomatch', 'c-new', 'c-new-added', 'c-invite', 'c-invite-qr', 'c-invited'], 'plan-regular': ['plan-regular', 'plan-regular-used'], 'plan-founder': ['plan-founder', 'plan-friend'], 'c-std-1': ['c-std-1', 'c-std-2', 'c-std-3', 'c-std-4', 'c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'players-add-c': ['c-rest', 'c-search', 'c-nomatch', 'c-new', 'c-taken'], 'new-night-gate-used': ['plan-regular', 'plan-upgrade', 'plan-upgraded', 'plan-downgrade', 'plan-cancel', 'plan-pending', 'plan-free', 'plan-lapsed', 'plan-founder'], 'groups-empty': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'], 'groups-empty-2': ['groups-empty', 'groups-empty-2', 'groups-empty-3', 'groups-empty-4'] };
 
 export const DECIDED = [
   ['The tools button', 'two fanned cards, a red question mark on the front, 24 points in the round'],
@@ -123,7 +124,6 @@ export const SNAPSHOT = {
   'count-up': ["approved", "", "2026-11-24T17:19:00Z"],
   'dark-foot-c': ["", "show me more screens using that style", "2026-11-23T14:46:59Z"],
   'dark-sheet-a': ["approved", "", "2026-11-23T14:55:56Z"],
-  'deductions': ["changes", "good but check with the new ui guide", "2026-11-23T22:35:03Z"],
   'empty-doors': ["changes", "combine the create/invite logic into the concept 2", "2026-11-22T22:10:36Z"],
   'empty-tour': ["changes", "good, show the other screens. use the group chips icon instead for the 1st screen", "2026-11-22T22:09:49Z"],
   'entry-amount-blocked': ["approved", "", "2026-11-22T17:47:49Z"],
