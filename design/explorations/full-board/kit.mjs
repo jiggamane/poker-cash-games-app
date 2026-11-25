@@ -346,7 +346,8 @@ export const tile = (name, sub, place, level = 'home') => `<div class="tile">${t
 export const topPill = (text, { dot = true } = {}) => `<span class="tpill">${dot ? '<i></i>' : ''}${text}</span>`;
 /* The tools button's own drawing (owner, 25 November: two cards, K, with the red value, J, and bigger): two cards fanned, the front one white with a red question mark, 24 points in the 34-point round. */
 export const TOOLS_ICON = `<svg width="24" height="24" viewBox="0 0 22 20" aria-hidden="true" style="display:block"><rect x="3" y="3.5" width="10" height="14.5" rx="2" transform="rotate(-14 8 10.75)" fill="#fff" opacity=".5"/><g transform="rotate(10 13 10)"><rect x="8" y="2.5" width="10.5" height="15" rx="2.1" fill="#fff"/><text x="13.25" y="13.6" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="9.5" fill="#E5484D">?</text></g></svg>`;
-export const topButton = (iconName) => `<span class="tbtn">${iconName === 'questionCard' ? TOOLS_ICON : ico(iconName, 18)}</span>`;
+/* Owner, 25 November: D, the cards at 32 with no round behind them. */
+export const topButton = (iconName) => iconName === 'questionCard' ? `<span style="display:grid;place-items:center;width:36px;height:36px;flex:none">${TOOLS_ICON.replace('width="24" height="24"', 'width="32" height="32"')}</span>` : `<span class="tbtn">${ico(iconName, 18)}</span>`;
 export const topDropdown = (text) => `<span class="tdd">${text}${ico('chevronDown', 14)}</span>`;
 export const topHero = ({ label: l, big, side = '', shares = [] }) =>
   `<div class="thero"><div class="lbl" style="all:unset;font-size:12.5px;color:rgba(255,255,255,.72);font-weight:500">${l}</div><div class="row" style="border:0;padding:0;min-height:0;align-items:flex-end"><div class="big">${big}</div><div class="side">${side}</div></div>${
