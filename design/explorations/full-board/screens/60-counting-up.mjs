@@ -72,12 +72,13 @@ const preview = [
 ].join('');
 
 const blockHead = (name, total) => `<div class="split" style="padding:12px 0 4px"><b style="font:700 16px/1.2 var(--head)">${name}</b><b class="num" style="font-size:16.5px">${total}</b></div>`;
-const share = (name, amount) =>
-  `<div class="row" style="min-height:32px;padding:4px 0"><span class="n" style="font-weight:500;font-size:14.5px">${name}</span><span class="a" style="font-size:15px">${amount}</span><span class="muted">${ico('pencil', 14)}</span></div>`;
+/* The same rows as the rest of the app (owner, 25 November): a share is a player row with its working under the name and its pencil; a spend is the bill's own row. */
+const share = (name, amount, working = 'share of the bill') =>
+  `<div class="row"><span class="n">${name}<small>${working}</small></span><span class="a">${amount}</span><span class="muted">${ico('pencil', 15)}</span></div>`;
 const worked = (name, working, amount) =>
-  `<div style="display:flex;align-items:baseline;gap:8px;padding:3px 0;font-size:14px"><span style="font-weight:500">${name}</span><span class="muted" style="flex:1;font-size:12.5px">${working}</span><b class="num">${amount}</b></div>`;
-const spend = (time, name, who_, amount) =>
-  `<div class="row" style="padding:5px 0"><span class="muted num" style="flex:none;width:36px;font-size:12px">${time}</span><span class="n">${name}<small>${who_}</small></span><span class="a">${amount}</span></div>`;
+  `<div class="row"><span class="n">${name}<small>${working}</small></span><span class="a">${amount}</span></div>`;
+const spend = (at, what, who, amount) =>
+  `<div class="row"><span class="muted num" style="flex:none;width:38px;font-size:12.5px;font-weight:600">${at}</span><span class="n">${what}<small>${who}</small></span><span class="a">${amount}</span></div>`;
 
 export const section = { title: 'Ending the night: count and deductions', blurb: 'Steps 1 and 2 of the three that close a night: every stack is counted until the money adds up, then the group’s rules take their shares before anyone is told who pays whom.' };
 
@@ -134,19 +135,19 @@ export default [
         note('$120 back to Andro, $50 to Lena · $126 to the piggy bank')],
       bar: bar('See who pays whom') }) },
 
-  { id: 'deductions-rules', route: '/deductions', name: 'Deductions · the rules and the bill', nav: 'push',
-    note: 'The same screen scrolled on: each rule’s shares, the bill, and the two secondaries that stay in the content.',
+  { id: 'deductions-rules', route: '/deductions', name: 'Deductions · the rules and the bill', nav: 'push', allowOverflow: true,
+    note: 'The same screen scrolled on, in the app’s own rows (owner, 25 November): each rule’s shares as player rows with their working under the name, the bill’s spends as the bill draws them, Add a spend as a lifted chip and the way back to the rules as a lifted row.',
     html: push({ ...dedTop,
       body: [
         card([blockHead('Kitchen &amp; drinks', '$170'),
           `<p class="note" style="font-size:12.5px;margin-bottom:4px">Split between the winners, by the size of each win · Andro fronted $120, Lena $50.</p>`,
           share('Dana', '$110'), share('Andro', '$31'), share('Lena', '$29')]),
         card([blockHead('Group piggy bank · 5%', '$126'),
-          `<div style="padding-bottom:10px">${worked('Dana', '5% of 1,620', '$81')}${worked('Andro', '5% of 460', '$23')}${worked('Lena', '5% of 430', '$22')}</div>`]),
+          worked('Dana', '5% of 1,620', '$81'), worked('Andro', '5% of 460', '$23'), worked('Lena', '5% of 430', '$22')]),
         label('The bill', { right: '$170', quiet: true }),
         card([spend('15:21', 'Pizza', 'Andro fronted it', '$120'), spend('15:53', 'Drinks', 'Lena fronted it', '$50')]),
-        `<div class="chip dash" style="height:40px;border-radius:14px;justify-content:flex-start">${ico('plus', 16)}Add a spend</div>`,
-        button('Change a rule and look again'),
+        `<div style="display:flex"><span class="chip">Add a spend<span class="muted">${ico('plus', 13)}</span></span></div>`,
+        `<div style="display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;border-radius:12px;background:var(--card);box-shadow:var(--lift)"><span class="muted">${ico('restart', 17)}</span><span style="flex:1;font:600 14.5px/1.2 var(--body)">Change a rule and look again</span><span class="muted">${ico('chevron', 14)}</span></div>`,
       ],
       bar: bar('See who pays whom') }) },
 
