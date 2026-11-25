@@ -6,7 +6,7 @@
  * and the store's waiting and failed states; and the confirm before removing someone from the group.
  * Words the app already has are the app's; every other line is marked draft in its flags.
  */
-import { sheet, bar, card, row, note, quiet, ico, label, art } from '../kit.mjs';
+import { sheet, bar, card, row, note, quiet, ico, label, art, TOOLS_ICON } from '../kit.mjs';
 import home from './10-home-tonight.mjs';
 import running from './45-running-the-game.mjs';
 import addPlayers from './05-this-round.mjs';
@@ -27,6 +27,22 @@ const passCard = (title, sub) => `<div class="card" style="display:flex;gap:12px
 
 
 
+
+
+/* The tools button, bigger (owner, 25 November: “I want this icon to be larger, show several options”). */
+const TB_NOW = `<span class="tbtn">${TOOLS_ICON}</span>`;
+const sized = (icon, round) => {
+  const svg = TOOLS_ICON.replace('width="24" height="24"', `width="${icon}" height="${icon}"`);
+  const inner = round ? `<span class="tbtn" style="width:${round}px;height:${round}px">${svg}</span>` : `<span style="display:grid;place-items:center;width:${icon + 4}px;height:${icon + 4}px">${svg}</span>`;
+  if (!H.session.includes(TB_NOW)) throw new Error('no tools button');
+  return H.session.replace(TB_NOW, inner);
+};
+const SIZE_OPTIONS = [
+  ['a', 'A · 28 in the same round', 'The cards fill the 34-point round almost to its edge.', 28, 34],
+  ['b', 'B · 28 in a 40 round', 'A bigger round with room around the cards.', 28, 40],
+  ['c', 'C · 32 in a 44 round', 'The round at a full tap target; the most present.', 32, 44],
+  ['d', 'D · 32, no round', 'The cards alone on the ink, as large as C without the disc behind them.', 32, 0],
+];
 
 const DRAFT = (what) => `New words, draft: ${what}.`;
 
@@ -90,4 +106,5 @@ export default [
     html: sheet({ behind: 'Players', title: 'Remove Dana from the group?', stepBack: true,
       body: [note('Removing somebody keeps every night they played. The ledger keeps what they already played, and anything unsettled stays on the night it came from.'), quiet('Remove Dana', { red: true })],
       bar: bar('Keep Dana') }) },
+  ...SIZE_OPTIONS.map(([k, name, note, icon, round]) => ({ id: `tools-size-${k}`, route: '/session', name: `Tonight · the tools button · ${name}`, nav: 'push', note, html: sized(icon, round) })),
 ];
