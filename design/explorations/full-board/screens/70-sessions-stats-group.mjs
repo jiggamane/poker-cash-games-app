@@ -118,6 +118,13 @@ export const statsBookHtml = (metaStyle = 'plain') =>
         ]),
       ] });
 
+
+/* Placeholders for a book with no nights yet: the chart's own shapes and two list rows, in the faint grey. */
+const ghostChart = chart('Last 8 nights', [['', 14], ['', -8], ['', 20], ['', 6], ['', -12], ['', 26], ['', 10], ['', 32]])
+  .replace(/fill:var\(--(win|red|muted)\)/g, 'fill:var(--raised)').replace(/<text[^>]*><\/text>/g, '');
+const ghostLine = (w, h = 10) => `<span style="display:block;width:${w};height:${h}px;border-radius:${h / 2}px;background:var(--raised)"></span>`;
+const ghostGames = card([1, 2].map(() => `<div style="padding:12px 0;display:grid;gap:8px"><div class="split" style="align-items:center">${ghostLine('42%', 12)}${ghostLine('18%', 12)}</div>${ghostLine('64%', 8)}</div>`).join('<div class="hr" style="margin:0"></div>'), { style: 'padding:2px 12px' });
+
 export const section = { title: 'Sessions, stats and the group', blurb: 'Home’s first three tiles: the list of nights, where a player stands over a stretch, and the roster with one member’s sheet.' };
 
 export default [
@@ -150,11 +157,14 @@ export default [
     html: statsBookHtml() },
 
   { id: 'stats-empty', route: '/stats', name: 'My stats · no nights yet', nav: 'push',
-    note: 'What the seeded app shows today: the graph is not drawn until there is a night to plot.',
+    note: 'Before the first night (owner, 25 November): the chart and the list are drawn as placeholders in the faint grey, the shapes the real ones will take, so a new player sees what fills in once they play.',
+    flags: ['The app draws no graph and no list until there is a night; these placeholders are new.'],
     html: push({ title: 'My stats', trailing: scopeLabel('All groups'),
       body: [
         figureCard({ eyebrow: 'November', net: '$0', meta: '0 games · 0h 00m', won: 0, lost: 0, avg: '$0' }),
+        ghostChart,
         lastGames,
+        ghostGames,
         note('No nights yet. Your first one shows up here the moment it is settled.'),
       ] }) },
 

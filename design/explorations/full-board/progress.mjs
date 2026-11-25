@@ -13,9 +13,11 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-25T09:40:00Z';
+export const LATEST = '2026-11-25T09:30:00Z';
 
 export const ADDRESSED = {
+  'stats-empty': ['Placeholders before the first night: the chart’s bars and two list rows in the faint grey, the shapes the real ones will take.', '2026-11-25T09:31:00Z'],
+  'session-rebuy-undo': ['Undo larger: 17, heavier, with a bigger tap area; the strip a little taller.', '2026-11-25T09:31:00Z'],
   'deductions': ['The rules and the bill in the app’s own rows: shares and piggy lines as player rows with their working, spends as the bill draws them, Add a spend a lifted chip, the way back to the rules a lifted row.', '2026-11-25T09:41:00Z'],
   'end-time': ['The end is stamped by itself; this sheet corrects it: Started and Ended shown, the day a field that opens the calendar.', '2026-11-25T09:41:00Z'],
   'sign-in-code': ['The code boxes are as tall as the email field.', '2026-11-25T09:41:00Z'],
@@ -25,7 +27,6 @@ export const ADDRESSED = {
   'sign-in': ['Every sign-in screen trimmed to its field and one line; the setup note is off the board.', '2026-11-24T18:21:00Z'],
   'home-live': ['No second table offered: the live card only.', '2026-11-24T18:21:00Z'],
   'new-group': ['No currency is the default; a currency is picked by tapping one.', '2026-11-24T18:21:00Z'],
-  'session-rebuy-undo': ['Undo in a soft red that reads on the ink strip, the same size as the line.', '2026-11-24T18:21:00Z'],
   'home-first': ['From the UX review: twelve states the journeys were missing (four Homes, the pass card and its taking back, Rebuy with Undo, taking a player out of Add players, Restore purchases and the store’s two states, the confirm before removing a player); the Add players states redrawn on the standard frame with the new-player line back; Settings and the blocked invite as a signed-in user sees them. Removed: c-rest, House rules, both Piggy bank rules, the second rule editor.', '2026-11-24T18:01:00Z'],
   'count-up': ['Rounding and Ended move to the foot of every Count up screen, under the player lists.', '2026-11-24T17:31:30Z'],
   'count-up-balanced': ['Balanced is A, the green word with the tick in a green disc, as you approved; the other five options are off the board. The player rows stay in two lines.', '2026-11-24T17:30:30Z'],
