@@ -6,7 +6,7 @@
  * and the store's waiting and failed states; and the confirm before removing someone from the group.
  * Words the app already has are the app's; every other line is marked draft in its flags.
  */
-import { sheet, bar, card, row, note, quiet, ico, label, art, topButton } from '../kit.mjs';
+import { sheet, bar, card, row, note, quiet, ico, label, art } from '../kit.mjs';
 import home from './10-home-tonight.mjs';
 import running from './45-running-the-game.mjs';
 import addPlayers from './05-this-round.mjs';
@@ -26,24 +26,7 @@ const beforeBar = (html, inner) => { const i = html.lastIndexOf('<div class="bar
 const passCard = (title, sub) => `<div class="card" style="display:flex;gap:12px;align-items:flex-start;padding:14px;box-shadow:var(--lift),inset 3px 0 0 #0E7A45"><span style="flex:none;width:30px;height:30px;border-radius:50%;background:#0E7A45;color:#fff;display:grid;place-items:center">${ico('pass', 16)}</span><div><b style="display:block;font:700 15.5px/1.25 var(--head)">${title}</b><span class="muted" style="font-size:13px;line-height:1.4">${sub}</span></div></div>`;
 
 
-/* The round button on Tonight's top opens Poker tools (owner, 24 November: “let's update this icon”). Four options for what it shows. */
-const TB = topButton('questionCard');
-const withButton = (inner) => { if (!H.session.includes(TB)) throw new Error('no top button'); return H.session.replace(TB, `<span class="tbtn">${inner}</span>`); };
-const QCARD = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><g transform="rotate(12 10 10)"><rect x="4.5" y="2" width="11" height="16" rx="2.2" fill="#fff"/><text x="10" y="13.6" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="10" fill="#141A2A">?</text></g></svg>`;
-const QCHIP = `<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="#E5484D"/>${[0, 60, 120, 180, 240, 300].map((a) => `<rect x="9.6" y="1" width="2.8" height="3.6" rx=".6" fill="#fff" transform="rotate(${a} 11 11)"/>`).join('')}<circle cx="11" cy="11" r="5.6" fill="#fff"/><text x="11" y="14.6" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="9.5" fill="#141A2A">?</text></svg>`;
-const QCARD_UP = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="4.5" y="2" width="11" height="16" rx="2.2" fill="#fff"/><text x="10" y="13.6" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="10" fill="#141A2A">?</text></svg>`;
-const QCARD_RED = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><g transform="rotate(12 10 10)"><rect x="4.5" y="2" width="11" height="16" rx="2.2" fill="#fff"/><text x="10" y="13.6" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="10" fill="#E5484D">?</text></g></svg>`;
-const QCARD_FAN = `<svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true"><rect x="3" y="3.5" width="10" height="14.5" rx="2" transform="rotate(-14 8 10.75)" fill="#fff" opacity=".5"/><g transform="rotate(10 13 10)"><rect x="8" y="2.5" width="10.5" height="15" rx="2.1" fill="#fff"/><text x="13.25" y="13.6" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="9.5" fill="#141A2A">?</text></g></svg>`;
-const QCARD_PIP = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><g transform="rotate(12 10 10)"><rect x="4.5" y="2" width="11" height="16" rx="2.2" fill="#fff"/><circle cx="7.3" cy="5" r="1.2" fill="#E5484D"/><text x="10" y="14.2" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="10" fill="#141A2A">?</text></g></svg>`;
-const QCARD_LINE = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><g transform="rotate(12 10 10)"><rect x="5" y="2.5" width="10" height="15" rx="2" fill="none" stroke="#fff" stroke-width="1.6"/><text x="10" y="13.4" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-weight="800" font-size="9" fill="#fff">?</text></g></svg>`;
-const ICON_OPTIONS = [
-  ['g', 'G · the question card, tilted', 'Today’s question card, flat and white, tilted, the question mark in ink.', QCARD],
-  ['i', 'I · upright', 'The same card standing straight: calmer, lines up with the time pill.', QCARD_UP],
-  ['j', 'J · a red question mark', 'Tilted, with the question mark in the hearts-and-diamonds red: the one note of colour.', QCARD_RED],
-  ['k', 'K · two cards', 'A second card fanned behind it, half white: reads more as a deck, a little busier.', QCARD_FAN],
-  ['l', 'L · with a corner pip', 'A red pip in the corner like a playing card’s index, the question mark in the middle.', QCARD_PIP],
-  ['m', 'M · outline', 'Drawn in a white line instead of filled: the lightest, closest to the app’s line icons.', QCARD_LINE],
-];
+
 
 const DRAFT = (what) => `New words, draft: ${what}.`;
 
@@ -107,5 +90,4 @@ export default [
     html: sheet({ behind: 'Players', title: 'Remove Dana from the group?', stepBack: true,
       body: [note('Removing somebody keeps every night they played. The ledger keeps what they already played, and anything unsettled stays on the night it came from.'), quiet('Remove Dana', { red: true })],
       bar: bar('Keep Dana') }) },
-  ...ICON_OPTIONS.map(([k, name, note, inner]) => ({ id: `session-icon-${k}`, route: '/session', name: `Tonight · the tools button · ${name}`, nav: 'push', note, html: withButton(inner) })),
 ];
