@@ -33,15 +33,16 @@ const passCard = (title, sub) => `<div class="card" style="display:flex;gap:12px
 const TB_NOW = `<span class="tbtn">${TOOLS_ICON}</span>`;
 const sized = (icon, round) => {
   const svg = TOOLS_ICON.replace('width="24" height="24"', `width="${icon}" height="${icon}"`);
-  const inner = round ? `<span class="tbtn" style="width:${round}px;height:${round}px">${svg}</span>` : `<span style="display:grid;place-items:center;width:${icon + 4}px;height:${icon + 4}px">${svg}</span>`;
+  const inner = typeof round === 'string' ? `<span style="display:grid;place-items:center;flex:none;${round}">${svg}</span>` : round ? `<span class="tbtn" style="width:${round}px;height:${round}px">${svg}</span>` : `<span style="display:grid;place-items:center;width:${icon + 4}px;height:${icon + 4}px">${svg}</span>`;
   if (!H.session.includes(TB_NOW)) throw new Error('no tools button');
   return H.session.replace(TB_NOW, inner);
 };
 const SIZE_OPTIONS = [
-  ['a', 'A · 28 in the same round', 'The cards fill the 34-point round almost to its edge.', 28, 34],
-  ['b', 'B · 28 in a 40 round', 'A bigger round with room around the cards.', 28, 40],
-  ['c', 'C · 32 in a 44 round', 'The round at a full tap target; the most present.', 32, 44],
-  ['d', 'D · 32, no round', 'The cards alone on the ink, as large as C without the disc behind them.', 32, 0],
+  ['d', 'D · 32, no shape', 'The one you liked: the cards alone on the ink, 32 points.', 32, 0],
+  ['e', 'E · a rounded square', 'The same 32 cards in a 44-point rounded square, translucent like the time pill.', 32, 'width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.14)'],
+  ['f', 'F · a thin ring', 'A 44-point circle drawn as a hairline ring, no fill: the cards stay the loudest thing.', 32, 'width:44px;height:44px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3)'],
+  ['g', 'G · a pill', 'A wider pill, 50 by 38, the same translucency as the time pill above it.', 32, 'width:50px;height:38px;border-radius:999px;background:rgba(255,255,255,.14)'],
+  ['h', 'H · on felt', 'A 44-point round in deep table-felt green: the cards sit on the table.', 32, 'width:44px;height:44px;border-radius:50%;background:#0E5A36'],
 ];
 
 const DRAFT = (what) => `New words, draft: ${what}.`;
