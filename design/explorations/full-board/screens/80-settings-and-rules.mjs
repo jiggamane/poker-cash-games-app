@@ -212,7 +212,6 @@ export default [
         para('You leave. The record stays.'),
         label('Groups you run', { quiet: true }),
         card(row({ name: 'The Thursday game', meta: 'Deleted, with every night in it. Nobody else ever had a seat.', wrapMeta: true })),
-        card(row({ lead: ico('clipboard', 20), name: 'Copy a backup first', meta: 'The whole book, as text, on your clipboard', wrapMeta: true })),
       ],
       bar: bar(`<span style="display:inline-flex;align-items:center;gap:8px">${ico('trash', 18)}Delete account</span>`, { sub: 'Hold 1.5s · deletes now, no undo' }) }) },
 
