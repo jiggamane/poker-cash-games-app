@@ -13,11 +13,11 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-25T12:30:00Z';
+export const LATEST = '2026-11-25T12:45:00Z';
 
 export const ADDRESSED = {
+  'deductions': ['The game result under each name has its card icon back, before the figure.', '2026-11-25T12:46:00Z'],
   'delete-account': ['No backup offered: the sheet says what goes and holds to delete.', '2026-11-25T12:31:00Z'],
-  'deductions': ['The preview uses the settled night’s rows: the game result under the name, the deductions as one terms pill, the net on the right.', '2026-11-25T12:21:00Z'],
   'new-night-rule': ['The rule kinds lose the two hourly variants; By the hour is one kind with its own form, the same for everyone or set for each.', '2026-11-25T12:21:00Z'],
   'session': ['The tools button is D: the two cards at 32, no round behind them, on every screen with it.', '2026-11-25T12:21:00Z'],
   'invite': ['The code is a finished card: whose code and “works for a month” on top, the six characters in two groups of three tiles. The same on both invite sheets.', '2026-11-25T10:21:00Z'],
