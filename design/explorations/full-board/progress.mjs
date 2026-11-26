@@ -13,9 +13,10 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-26T12:50:00Z';
+export const LATEST = '2026-11-26T12:55:00Z';
 
 export const ADDRESSED = {
+  'plan-free': ['The other plans are rows that open: closed, the name, price and one line with a chevron; open, the full list and a Get for that plan. Full is drawn open.', '2026-11-26T12:56:00Z'],
   'deductions-rules': ['Each rule’s card has a Change pill in its head, opening that rule’s editor, so the rules can be changed at this stage.', '2026-11-26T12:51:00Z'],
   'c-invite': ['A later step’s sheet: the back and close circles on their own row, the title on its own line under them, full width. Every sheet that is a later step changes with it.', '2026-11-26T12:51:00Z'],
   'deductions': ['The game result under each name has the chips-out arrow before it, as the settled night draws it, instead of the card.', '2026-11-26T12:41:00Z'],
@@ -49,7 +50,6 @@ export const ADDRESSED = {
   'plan-regular': ['No games-left card here, and Full is a plain card with what it adds (no ink); Upgrade stays the bar. The used state keeps the ink card.', '2026-11-24T11:20:00Z'],
   'plan-upgrade': ['The ticks are white in a green disc, so they read on the ink card, on white and in the dark.', '2026-11-23T22:45:00Z'],
   'plan-upgraded': ['Regular and Free say Downgrade.', '2026-11-23T22:45:00Z'],
-  'plan-free': ['Choose is now Get.', '2026-11-23T22:45:00Z'],
   'plan-pending': ['Keep Full is a filled button inside the card, with a line on what keeping it means.', '2026-11-23T22:45:00Z'],
   'plan-founder': ['A friend’s plan next to the founder’s: one personal Full, for life.', '2026-11-23T22:45:00Z'],
   'c-std-1': ['One line per player: the tick and the line under each name are gone. A buy-in at the standard sits muted; a changed one is full ink. Every frame redrawn.', '2026-11-23T14:25:00Z'],
@@ -177,7 +177,6 @@ export const SNAPSHOT = {
   'plan-cancel': ["approved", "", "2026-11-23T15:05:15Z"],
   'plan-downgrade': ["approved", "", "2026-11-23T15:05:08Z"],
   'plan-founder': ["changes", "add same one for friends - they will have one personal full account lifetime", "2026-11-23T15:08:15Z"],
-  'plan-free': ["changes", "choose -> get", "2026-11-23T15:06:44Z"],
   'plan-lapsed': ["approved", "", "2026-11-23T15:06:50Z"],
   'plan-pending': ["", "make the 'keep full' more visible and inviting", "2026-11-23T15:06:08Z"],
   'plan-regular-used': ["changes", "upper part is good but now the otherplans look too idle. they shoudl draw attention as we do want the users to upgrade", "2026-11-24T10:38:11Z"],

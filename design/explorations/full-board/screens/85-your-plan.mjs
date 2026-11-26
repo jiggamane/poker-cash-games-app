@@ -43,6 +43,14 @@ const offer = (headline, adds, { quiet = false } = {}) => `<div class="card pad"
 const FULL_ADDS = ['Run games as often as you like', 'Pass a game to anyone, or take one'];
 const store = note('Billed through the App Store. Receipts and cancelling are also there, in Settings → Apple ID → Subscriptions.');
 
+
+/* The other plans as rows that open (owner, 26 November: “show the other plans in an expandable format”):
+   closed, a plan is its name, price and one line with a chevron; open, the card grows its list and its Get. */
+const expandPlan = (name, price, line, list, open = false) => `<div class="card" style="padding:0 14px">
+  <div style="display:flex;align-items:center;gap:10px;min-height:60px"><div style="flex:1;min-width:0"><b style="display:block;font:700 17px/1.2 var(--head)">${name}</b><span class="muted" style="font-size:12.5px">${line}</span></div><span class="num" style="font:700 16px/1 var(--head);white-space:nowrap">${price}<span class="muted" style="font:500 11.5px var(--body)"> / mo</span></span><span class="muted" style="display:inline-flex;transform:rotate(${open ? '-90' : '90'}deg)">${ico('chevron', 14)}</span></div>
+  ${open ? `<div style="display:grid;gap:8px;padding:2px 0 14px;border-top:1px solid var(--line);padding-top:12px">${list.map((t) => has(t)).join('')}<div style="margin-top:6px;height:44px;border-radius:12px;background:var(--pri);color:var(--onpri);display:flex;align-items:center;justify-content:center;font:700 15px/1 var(--head)">Get ${name} · ${price} a month</div></div>` : ''}
+</div>`;
+
 export const section = { title: 'Your plan',
   blurb: 'Changing a membership from Settings, outside the gate on opening a game: what you are on, moving up, moving down, stopping, and what happens when a plan runs out. New screens; draft words throughout.' };
 
@@ -103,11 +111,12 @@ export default [
         current('Full', price('$9.99'), 'until 1 Dec', FULL, ink('your plan')), store] }) },
 
   { id: 'plan-free', route: '/plan', name: 'Your plan · Free', nav: 'push',
-    note: 'On Free the head of the screen is what you have, and the two paid plans below it say what each adds, the cheaper first. Running a game is the line that matters, so each says it.',
+    note: 'On Free the head of the screen is what you have; the paid plans below are rows that open (owner, 26 November): closed, a name, a price and one line; open, the full list and its Get. Full is drawn open.',
     flags: [DRAFT],
     html: push({ title: 'Your plan', sub: 'Andro · The Thursday game',
       body: [current('Free', '', 'no charge', FREE, ink('your plan')), label('Run your own games', { quiet: true }),
-        card([other('Regular', '$2.49', 'One night as host each month, every night in the book', 'Get'), other('Full', '$9.99', 'Run games as often as you like', 'Get')])] }) },
+        expandPlan('Regular', '$2.49', 'One night as host each month', REGULAR),
+        expandPlan('Full', '$9.99', 'Run games as often as you like', FULL, true)] }) },
 
   { id: 'plan-lapsed', route: '/', name: 'Home · a plan ran out', nav: 'root',
     note: 'The handoff’s state 16, in the new look: after a plan ends, Start a session still sits where it was, its line saying why it is closed; tapping it opens the plan gate. Nothing else on Home changes.',
