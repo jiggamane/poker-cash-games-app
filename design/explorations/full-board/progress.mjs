@@ -13,9 +13,10 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-26T13:00:00Z';
+export const LATEST = '2026-11-26T13:05:00Z';
 
 export const ADDRESSED = {
+  'member-remove': ['No back circle: the question is the title on the top row, beside the close.', '2026-11-26T13:06:00Z'],
   'plan-free': ['The plan rows re-spaced: name and price on one line, the description full width under it, even padding, and even gaps in the open list.', '2026-11-26T13:01:00Z'],
   'deductions-rules': ['Each rule’s card has a Change pill in its head, opening that rule’s editor, so the rules can be changed at this stage.', '2026-11-26T12:51:00Z'],
   'c-invite': ['A later step’s sheet: the back and close circles on their own row, the title on its own line under them, full width. Every sheet that is a later step changes with it.', '2026-11-26T12:51:00Z'],
