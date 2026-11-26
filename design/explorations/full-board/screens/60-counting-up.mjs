@@ -67,7 +67,7 @@ const termsLine = (parts) => `<span style="display:flex;gap:8px;flex-wrap:wrap;m
 const after2 = (name, amount, parts = []) => row({ name, meta: parts.length ? `<span style="display:inline-flex;align-items:center;gap:4px">${ico(parts[0][0], 12)}${parts[0][1]}</span>` : '', amount, tone: amount.startsWith('+') ? 'win' : 'loss', under: parts.length > 1 ? terms(parts.slice(1).map(([icon, v]) => `${ico(icon, 12)} ${v}`).join(' ')) : '' });
 const preview = [
   `<div class="lbl" style="white-space:nowrap;letter-spacing:.08em">Everyone after deductions<span class="r"><span style="font:700 10px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border-radius:999px;background:var(--raised);color:var(--muted)">Preview</span></span></div>`,
-  card([after2('Dana', '+$1,429', [['spadeCard', '+1,620'], ['food', '−110'], ['piggy', '−81']]), after2('Andro', '+$526', [['spadeCard', '+460'], ['food', '+89'], ['piggy', '−23']]), after2('Lena', '+$429', [['spadeCard', '+430'], ['food', '+21'], ['piggy', '−22']]),
+  card([after2('Dana', '+$1,429', [['chipsOut', '+1,620'], ['food', '−110'], ['piggy', '−81']]), after2('Andro', '+$526', [['chipsOut', '+460'], ['food', '+89'], ['piggy', '−23']]), after2('Lena', '+$429', [['chipsOut', '+430'], ['food', '+21'], ['piggy', '−22']]),
     after2('Tomáš', '−$500'), after2('Ivo', '−$780'), after2('Petr', '−$1,230')].join('')),
   note('Provisional until you settle. Tap any figure below to change it.'),
 ].join('');
