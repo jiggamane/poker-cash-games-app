@@ -13,10 +13,10 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-26T12:55:00Z';
+export const LATEST = '2026-11-26T13:00:00Z';
 
 export const ADDRESSED = {
-  'plan-free': ['The other plans are rows that open: closed, the name, price and one line with a chevron; open, the full list and a Get for that plan. Full is drawn open.', '2026-11-26T12:56:00Z'],
+  'plan-free': ['The plan rows re-spaced: name and price on one line, the description full width under it, even padding, and even gaps in the open list.', '2026-11-26T13:01:00Z'],
   'deductions-rules': ['Each rule’s card has a Change pill in its head, opening that rule’s editor, so the rules can be changed at this stage.', '2026-11-26T12:51:00Z'],
   'c-invite': ['A later step’s sheet: the back and close circles on their own row, the title on its own line under them, full width. Every sheet that is a later step changes with it.', '2026-11-26T12:51:00Z'],
   'deductions': ['The game result under each name has the chips-out arrow before it, as the settled night draws it, instead of the card.', '2026-11-26T12:41:00Z'],
