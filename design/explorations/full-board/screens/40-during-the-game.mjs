@@ -227,7 +227,7 @@ export default [
     flags: ['The app’s tiles carry a line icon (percent, question card, flame); these carry the board’s drawings, as /tools will. Confirm the sheet should match /tools rather than keep the icons.'],
     html: sheet({ behind: 'Tonight', title: 'Poker tools', sub: 'nothing here touches the ledger',
       body: [
-        `<div class="tiles">${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Rulings', 'look up a ruling', 'rulings', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}</div>`,
+        `<div class="tiles">${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Rulings<span style="display:inline-block;vertical-align:3px;margin-left:6px;font:700 9.5px/1 var(--body);letter-spacing:.08em;padding:3px 6px;border-radius:999px;background:var(--raised);color:var(--muted)">BETA</span>', 'look up a ruling', 'rulings', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}</div>`,
       ] }) },
 
   /* ── /seat-name ── */

@@ -84,27 +84,26 @@ export const section = { title: 'Settings and money rules', blurb: 'The group’
 
 export default [
   { id: 'settings', route: '/settings', name: 'Settings', nav: 'push',
-    note: 'A place, so no bar. Each section is one card; a row that opens something carries no chevron.',
+    note: 'A place, so no bar. Your groups, Rules and rulings, the Calculator and The people are gone (owner, 26 November): each is reached from Home already.',
     html: push({ title: 'Settings', sub: 'The Thursday game · you are admin',
       body: [
         label('The group', { quiet: true }),
-        card([row({ name: 'Group name', value: 'The Thursday game' }), row({ name: 'Currency', value: 'USD · US Dollar' }), row({ name: 'Your groups' })]),
+        card([row({ name: 'Group name', value: 'The Thursday game' }), row({ name: 'Currency', value: 'USD · US Dollar' })]),
         label('The money', { quiet: true }),
-        card([row({ name: 'Standard buy-in', value: '$500' }), row({ name: 'Money rules' }), row({ name: 'Rules &amp; rulings' }), row({ name: 'Poker calculator' })]),
-        label('The people', { quiet: true }),
-        card([row({ name: 'You', value: 'Andro' }), row({ name: 'Players' }), row({ name: 'Invited', value: '0 waiting' }), row({ name: 'I have an invite code' })]),
+        card([row({ name: 'Standard buy-in', value: '$500' }), row({ name: 'Money rules' })]),
       ] }) },
 
   { id: 'settings-more', route: '/settings', name: 'Settings · account', nav: 'push', allowOverflow: true,
-    note: 'Signed in, as a user sees it: the account card with the app’s own rows, the phone’s backups, and the way out. The address is a sample.',
+    note: 'Signed in, as a user sees it. Each row says what it does in one line under its name (owner, 26 November: “I need to know what all of these stand for”). The address is a sample.',
+    flags: ['New words, draft: every line under a row name. They say what the app’s code does today (settings.tsx).'],
     html: push({ title: 'Settings', sub: 'The Thursday game · you are admin',
       body: [
         label('Account', { quiet: true }),
-        card([row({ name: 'Name', value: 'Andro' }), row({ name: 'Signed in as', value: 'andro@mail.com' }), row({ name: 'Plan', value: 'Regular' }), row({ name: 'Sync now' }), row({ name: 'Fetch my nights' }), row({ name: 'Connection' }), row({ name: 'Share this night' }), row({ name: 'Sign out' })]),
+        card([row({ name: 'Name', meta: 'How you appear in every group', value: 'Andro', wrapMeta: true }), row({ name: 'Signed in as', meta: 'Where your sign-in links are sent', value: 'andro@mail.com', wrapMeta: true }), row({ name: 'Plan', meta: 'Your membership; opens Your plan', value: 'Regular', wrapMeta: true }), row({ name: 'Sync now', meta: 'Sends this phone’s nights to the server now', wrapMeta: true }), row({ name: 'Fetch my nights', meta: 'Brings your nights from the server onto this phone', wrapMeta: true }), row({ name: 'Connection', meta: 'Checks this phone can reach the server', wrapMeta: true }), row({ name: 'Share this night', meta: 'Sends the link people use to watch tonight', wrapMeta: true }), row({ name: 'Sign out', meta: 'This phone stops using your account', wrapMeta: true })]),
         label('This phone', { quiet: true }),
-        card([row({ name: 'Copy a backup' }), row({ name: 'Restore from a backup' })]),
+        card([row({ name: 'Copy a backup', meta: 'The whole book as text, to keep anywhere', wrapMeta: true }), row({ name: 'Restore from a backup', meta: 'Loads a copied backup into this phone', wrapMeta: true })]),
         label('The exits', { quiet: true }),
-        card([row({ name: 'Hand over admin' }), row({ name: '<span class="red">Delete your account</span>' })]),
+        card([row({ name: 'Hand over admin', meta: 'Makes someone else the group’s admin', wrapMeta: true }), row({ name: '<span class="red">Delete your account</span>', meta: 'You leave; the record stays', wrapMeta: true })]),
       ] }) },
 
   { id: 'club-rules', route: '/club-rules', name: 'Money rules · group defaults', nav: 'push',
