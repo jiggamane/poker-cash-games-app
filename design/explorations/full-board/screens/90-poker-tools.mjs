@@ -96,7 +96,7 @@ export const section = { title: 'Poker tools', blurb: 'The calculator and its ru
 export default [
   { id: 'tools', route: '/tools', name: 'Poker tools', nav: 'push',
     html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger',
-      body: `<div class="tiles">${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Rulings', 'look up a ruling', 'rulings', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}</div>` }) },
+      body: `<div class="tiles">${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Rulings<span style="display:inline-block;vertical-align:3px;margin-left:6px;font:700 9.5px/1 var(--body);letter-spacing:.08em;padding:3px 6px;border-radius:999px;background:var(--raised);color:var(--muted)">BETA</span>', 'look up a ruling', 'rulings', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}</div>` }) },
 
   { id: 'odds', route: '/odds', name: 'Poker calculator', nav: 'push',
     note: 'No bar: the calculator is a place, and the deck at its foot is a keyboard, not an action. New hand is the round button on the ink.',
