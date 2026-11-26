@@ -90,7 +90,7 @@ export default [
   { id: 'member-remove', route: '/member', name: 'A player · remove from the group?', nav: 'sheet',
     note: 'Today one tap removes a player from the group. This puts a confirm in the same sheet: what it keeps, a red quiet remove, and Keep as the bar.',
     flags: [DRAFT('“Remove Dana from the group?”, “Remove Dana”'), 'The line under the title is the app’s own (member.tsx); today it sits under a one-tap remove.'],
-    html: sheet({ behind: 'Players', title: 'Remove Dana from the group?', stepBack: true,
+    html: sheet({ behind: 'Players', title: 'Remove Dana from the group?',
       body: [note('Removing somebody keeps every night they played. The ledger keeps what they already played, and anything unsettled stays on the night it came from.'), quiet('Remove Dana', { red: true })],
       bar: bar('Keep Dana') }) },
 ];
