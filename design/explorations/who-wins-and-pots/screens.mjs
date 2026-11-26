@@ -68,8 +68,8 @@ const HU = () => seats(['Ah Kh'], ['2c 2d']);
 /* Three all in for three different stacks: the short stack has the best hand, the middle one beats the deep one. */
 const ALLIN = () => seats(['Qh Jh', 1200], ['As Ac', 300], ['Kd Ks', 800]);
 
-const WHO_COPY = 'New strings: the title, “the best hand so far, no odds”, “Two cards”, Ahead, Behind, Tied, Split, and the line on the ink (“Ahead on the flop”, “Winner on the river”, “Split on the river”, “Tied before the flop”). The rest is the calculator’s.';
-const POTS_COPY = 'New strings: the title, “everyone all in, pot by pot”, “All in”, Stack, Pots, “in the middle”, Main pot, Side pot 1, “Between …”, “ahead”, “wins it”, Split, “each”, Uncalled, “back to …”.';
+const WHO_COPY = 'New strings: the title, “the best hand so far, no odds”, “Two cards”, Ahead, Behind, Tied, Split, and the line on the ink (“Ahead on the flop”, “Winner on the river”, “Split on the river”, “Tied before the flop”). The ink names the winning hand by its two cards, not by the seat. The rest is the calculator’s.';
+const POTS_COPY = 'New strings: the title, “everyone all in, pot by pot”, “All in”, Stack, Pots, “in the middle”, Main pot, Side pot 1, “Between”, “ahead”, “wins it”, Split, “each”, Uncalled, “back to”. Each result names a hand by its two cards, never Opponent 1, 2…; a seat’s name stands in only until its cards are in.';
 
 export const section = {
   title: 'Who wins, and Side pots',
@@ -110,7 +110,7 @@ export default [
     html: phone('who', { seats: seats(['Ah Kc'], ['Ad Qd']), board: board('As 9d 7c 4h 2s'), sel: null }) },
 
   { id: 'who-split', route: '/who-wins', name: 'Who wins · a split pot', nav: 'push',
-    note: 'Both play two pair from the board with an ace: Split on each seat and on the ink, with both names.',
+    note: 'Both play two pair from the board with an ace: Split on each seat, and both hands on the ink.',
     html: phone('who', { seats: seats(['Ac 3d'], ['Ah 4c']), board: board('Ks Kd 9c 9h 5s'), sel: null }) },
 
   /* ── Side pots ── */
@@ -125,16 +125,16 @@ export default [
     html: phone('pots', { seats: ALLIN(), board: board(), sel: null }) },
 
   { id: 'pots-flop', route: '/side-pots', name: 'Side pots · on the flop', nav: 'push',
-    note: 'A king on the flop: Opponent 2 is now ahead in both pots.',
+    note: 'A king on the flop: the kings are now ahead in both pots.',
     html: phone('pots', { seats: ALLIN(), board: board('Kc 7d 2s'), sel: null }) },
 
   { id: 'pots-river', route: '/side-pots', name: 'Side pots · on the river', nav: 'push',
-    note: 'The ace on the turn gives Opponent 1 the main pot; Opponent 2 keeps the side pot. Each seat now reads its stack and what the hand did to it.',
+    note: 'The ace on the turn gives the aces the main pot; the kings keep the side pot. Each seat now reads its stack and what the hand did to it.',
     flags: ['The figure at the right of a seat changes meaning on the river: the stack before, the signed change after. The small “Stack $300” above it is what says so. Confirm.'],
     html: phone('pots', { seats: ALLIN(), board: board('Kc 7d 2s Ah 9c'), sel: null }) },
 
   { id: 'pots-split', route: '/side-pots', name: 'Side pots · four players, a split side pot', nav: 'push', allowOverflow: true,
-    note: 'Four stacks, two straights: Me and Opponent 2 split both pots, $400 each from the main and $450 each from the side; Opponent 1’s set and Opponent 3’s nines lose, and Opponent 3’s top $500 comes back. Drawn from its top; the Uncalled row is below the fold.',
+    note: 'Four stacks, two straights: the two jack-tens split both pots, $400 each from the main and $450 each from the side; the set of aces and the nines lose, and the nines’ top $500 comes back. Drawn from its top; the Uncalled row is below the fold.',
     flags: ['An odd chip in a split goes to the first player in seat order (packages/core allocate()). Tables usually give it to the first player left of the button, which this tool does not know. Ask for the button, or say which rule it uses?'],
     html: phone('pots', { seats: seats(['Jh Th', 500], ['Ac Ad', 200], ['Jc Td', 500], ['9s 9d', 1000]), board: board('As Ks Qd 7c 2h'), sel: null }) },
 ];

@@ -65,6 +65,20 @@ export const addPlayer = `<div class="btn2" data-add style="box-shadow:none;bord
 /** The seats' names, as the calculator gives them: Me and Opponent, then Opponent 1, 2 … from three. */
 export const seatName = (i, n) => (i === 0 ? 'Me' : n === 2 ? 'Opponent' : `Opponent ${i}`);
 
+/**
+ * A seat's hand as the result names it: its two cards, small, in the line
+ * (owner, 26 November: results refer to the hands, not to Opponent 1, 2…).
+ * The seat's name stays on the seat itself; until both cards are in, the
+ * name stands in.
+ */
+export const handTag = (t, i, { w = 17, h = 23, fs = 9.5 } = {}) => {
+  const c = t.seats[i].cards;
+  return c.every(Boolean)
+    ? `<span style="display:inline-flex;gap:2px;vertical-align:middle;margin:-3px 0">${c.map((x) => pc(x, w, h, fs)).join('')}</span>`
+    : `<b style="font-weight:600">${seatName(i, t.seats.length)}</b>`;
+};
+const tags = (t, seats, opts) => `<span style="display:inline-flex;flex-wrap:wrap;gap:4px 7px;vertical-align:middle">${seats.map((i) => handTag(t, i, opts)).join('')}</span>`;
+
 /** Every card on the table, for the deck's greyed keys. */
 const used = (t) => [...t.seats.flatMap((s) => s.cards), ...t.board].filter(Boolean);
 
@@ -103,14 +117,11 @@ function whoWinsRead(t) {
 /** The answer, on the ink under the title. */
 function whoWinsHero(t, read) {
   if (!read) return '';
-  const n = t.seats.length;
   const best = read.ready.filter((i) => read.bySeat[i].place !== 'behind');
   const river = read.street === 5;
   const head = best.length > 1 ? (river ? 'Split ' : 'Tied ') + STREET[read.street] : (river ? 'Winner ' : 'Ahead ') + STREET[read.street];
-  const names = best.map((i) => seatName(i, n));
-  const who = best.length > 1 ? (names.length === 2 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`) : names[0];
-  return `<div class="thero" style="padding-top:12px"><div style="font-size:12.5px;color:rgba(255,255,255,.72);font-weight:500">${head[0].toUpperCase() + head.slice(1)}</div>
-    <div style="font:700 ${who.length > 14 ? 24 : 32}px/1.05 var(--head);letter-spacing:-.025em;color:#fff;margin-top:5px">${who}</div>
+  return `<div class="thero" style="padding-top:8px"><div style="font-size:12.5px;color:rgba(255,255,255,.72);font-weight:500">${head[0].toUpperCase() + head.slice(1)}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px">${best.map((i) => `<span style="display:inline-flex;gap:4px">${t.seats[i].cards.map((c) => pc(c, 27, 37, 13.5)).join('')}</span>`).join('')}</div>
     <div style="font:600 14.5px/1.3 var(--body);color:rgba(255,255,255,.86);margin-top:5px">${read.bySeat[best[0]].label}</div></div>`;
 }
 
@@ -142,7 +153,6 @@ export function whoWins(t) {
 /* ── Side pots ────────────────────────────────────────────────────────── */
 
 const fmt = (n) => E.formatMoney(n);
-const list = (names) => (names.length <= 2 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`);
 
 function potsRead(t) {
   const board = dealt(t).map(E.parseCard);
@@ -182,21 +192,18 @@ function potSeat(t, i, read) {
 }
 
 function potRow(t, p, read, last) {
-  const n = t.seats.length;
-  const names = p.eligible.map((i) => seatName(i, n));
   const river = read.street === 5;
   let outcome = '';
   if (p.leaders.length === 1) {
     const w = p.leaders[0];
-    outcome = `<b class="${river ? 'win' : ''}" style="font-weight:700">${seatName(w, n)}</b> ${river ? 'wins it' : 'ahead'}`;
+    outcome = `${handTag(t, w)} <b class="${river ? 'win' : ''}" style="font-weight:700">${river ? 'wins it' : 'ahead'}</b> <span class="muted">·</span> ${read.label[w]?.label ?? ''}`;
   } else if (p.leaders.length > 1) {
     const each = p.shares.every((x) => x === p.shares[0]);
-    const who = list(p.leaders.map((i) => seatName(i, n)));
-    outcome = `<b style="font-weight:700">${river ? 'Split' : 'Tied'}</b> <span class="muted">·</span> ${who}${river ? ` <span class="muted">·</span> <span class="m">${each ? `${fmt(p.shares[0])} each` : p.shares.map((x, k) => `${fmt(x)} ${seatName(p.leaders[k], n)}`).join(', ')}</span>` : ''}`;
+    outcome = `<b style="font-weight:700">${river ? 'Split' : 'Tied'}</b> ${tags(t, p.leaders)}${river ? ` <span class="muted">·</span> <span class="m">${each ? `${fmt(p.shares[0])} each` : p.shares.map((x, k) => `${handTag(t, p.leaders[k])} ${fmt(x)}`).join(' ')}</span>` : ''}`;
   }
   return `<div style="padding:9px 0;${last ? '' : 'border-bottom:1px solid var(--line)'}">
     <div class="split" style="align-items:baseline"><b style="font-size:15px">${p.name}</b><b class="num m" style="font-size:16.5px">${fmt(p.amount)}</b></div>
-    <div class="muted" style="font-size:12px;margin-top:2px">Between ${list(names)}</div>${outcome ? `<div style="font-size:13px;margin-top:4px;line-height:1.35">${outcome}</div>` : ''}</div>`;
+    <div class="muted" style="font-size:12px;margin-top:5px;display:flex;align-items:center;gap:6px">Between ${tags(t, p.eligible)}</div>${outcome ? `<div style="font-size:13px;margin-top:7px;line-height:1.5">${outcome}</div>` : ''}</div>`;
 }
 
 /** Side pots: the top's parts, the sheet and the bar. */
@@ -207,7 +214,7 @@ export function sidePots(t) {
   const potsCard = read && !t.sel
     ? [lbl('Pots', `${fmt(read.total)} in the middle`),
       `<div class="card" style="padding:0 12px">${read.pots.map((p, k) => potRow(t, p, read, k === read.pots.length - 1 && !read.returned)).join('')}${read.returned
-        ? `<div class="split" style="align-items:baseline;padding:9px 0"><span class="muted" style="font-size:13px"><b style="font-size:14px;color:var(--muted)">Uncalled</b> · back to ${seatName(read.returned.seat, t.seats.length)}</span><b class="num m muted" style="font-size:15px">${fmt(read.returned.amount)}</b></div>` : ''}</div>`]
+        ? `<div class="split" style="align-items:baseline;padding:9px 0"><span class="muted" style="font-size:13px"><b style="font-size:14px;color:var(--muted)">Uncalled</b> · back to ${handTag(t, read.returned.seat)}</span><b class="num m muted" style="font-size:15px">${fmt(read.returned.amount)}</b></div>` : ''}</div>`]
     : [];
   return {
     hero: '',
