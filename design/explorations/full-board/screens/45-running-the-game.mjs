@@ -123,7 +123,7 @@ export default [
       'The app has no back control on this step: “Pick someone else” is the way back. The board’s rule puts a back circle on a later step, so both are drawn; one of them is redundant.',
       '“1 December” is illustrative: it is the picked person’s own renewal date.',
     ],
-    html: sheet({ behind: 'Tonight', title: 'Pass to Ivo', stepBack: true,
+    html: sheet({ behind: 'Tonight', title: 'Pass to Ivo',
       body: [
         para('Ivo is on Regular, which runs one game a month. Taking this one uses it.'),
         card(`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><span class="fl">Ivo’s host night</span><b class="num" style="font-size:18px">Used tonight</b></div><div><span class="fl">Next one</span><b class="num" style="font-size:18px">1 December</b></div></div>`, { pad: true }),
