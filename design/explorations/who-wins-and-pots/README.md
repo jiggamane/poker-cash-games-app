@@ -48,7 +48,11 @@ says about those cards and stacks.
 - **The calculator's table**: same board, seats, deck keyboard, Add a player,
   New hand; a seat counts once both its cards are in.
 - **Who wins answers on the ink**: Ahead / Tied before the river, Winner /
-  Split on it, with the street, the name and the hand. No percentages.
+  Split on it, with the street, the winning hole cards and the hand. No
+  percentages.
+- **Results name hands, not seats** (owner, 26 November): the ink, each pot,
+  a split and the uncalled chips show the hand as its two cards, never
+  Opponent 1, 2…; seat labels stay on the seats.
 - **The best five, always**, from the flop: making cards full, kickers faded,
   a deciding kicker not faded and named (`Pair of aces · king kicker`).
 - **Side pots: the stack sits in the seat**, typed on the calculator's keypad
@@ -68,6 +72,5 @@ says about those cards and stacks.
 4. The odd chip in a split goes to the first seat in order; tables usually give
    it left of the button, which the tool does not know.
 5. "Stack", or "All in for"?
-6. Seat names stay the calculator's (Me, Opponent 1…).
-7. Both tile drawings are drafts and need the icon board.
-8. **Every new string is flagged** under its phone.
+6. Both tile drawings are drafts and need the icon board.
+7. **Every new string is flagged** under its phone.
