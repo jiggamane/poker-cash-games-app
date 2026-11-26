@@ -46,9 +46,9 @@ const store = note('Billed through the App Store. Receipts and cancelling are al
 
 /* The other plans as rows that open (owner, 26 November: “show the other plans in an expandable format”):
    closed, a plan is its name, price and one line with a chevron; open, the card grows its list and its Get. */
-const expandPlan = (name, price, line, list, open = false) => `<div class="card" style="padding:0 14px">
-  <div style="display:flex;align-items:center;gap:10px;min-height:60px"><div style="flex:1;min-width:0"><b style="display:block;font:700 17px/1.2 var(--head)">${name}</b><span class="muted" style="font-size:12.5px">${line}</span></div><span class="num" style="font:700 16px/1 var(--head);white-space:nowrap">${price}<span class="muted" style="font:500 11.5px var(--body)"> / mo</span></span><span class="muted" style="display:inline-flex;transform:rotate(${open ? '-90' : '90'}deg)">${ico('chevron', 14)}</span></div>
-  ${open ? `<div style="display:grid;gap:8px;padding:2px 0 14px;border-top:1px solid var(--line);padding-top:12px">${list.map((t) => has(t)).join('')}<div style="margin-top:6px;height:44px;border-radius:12px;background:var(--pri);color:var(--onpri);display:flex;align-items:center;justify-content:center;font:700 15px/1 var(--head)">Get ${name} · ${price} a month</div></div>` : ''}
+const expandPlan = (name, price, line, list, open = false) => `<div class="card" style="padding:0 16px">
+  <div style="display:grid;gap:4px;padding:14px 0 ${open ? '12px' : '14px'}"><div style="display:flex;align-items:center;gap:10px"><b style="flex:1;font:700 17px/1.2 var(--head)">${name}</b><span class="num" style="font:700 16px/1 var(--head);white-space:nowrap">${price}<span class="muted" style="font:500 11.5px var(--body)"> / mo</span></span><span class="muted" style="display:inline-flex;width:16px;justify-content:center;transform:rotate(${open ? '-90' : '90'}deg)">${ico('chevron', 14)}</span></div><span class="muted" style="font-size:13px;line-height:1.35;padding-right:26px">${line}</span></div>
+  ${open ? `<div style="display:grid;gap:10px;padding:14px 0 16px;border-top:1px solid var(--line)">${list.map((t) => has(t)).join('')}<div style="margin-top:4px;height:46px;border-radius:12px;background:var(--pri);color:var(--onpri);display:flex;align-items:center;justify-content:center;font:700 15px/1 var(--head)">Get ${name} · ${price} a month</div></div>` : ''}
 </div>`;
 
 export const section = { title: 'Your plan',
