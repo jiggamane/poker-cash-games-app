@@ -462,7 +462,7 @@ export default [
   { id: 'invite-qr', route: '/invite', name: 'Scan to join', nav: 'sheet',
     note: 'Same sheet, content replaced. The app’s text button "Back to the invite" is the back circle’s job here, and is kept as words too.',
     flags: ['Square, as you chose on 22 November. A real code: it scans to the invite’s link, pokerclub://claim?c=K7M-4XP.'],
-    html: sheet({ behind: 'Players', title: 'Scan to join', sub: 'Ivo · The Thursday game', stepBack: true,
+    html: sheet({ behind: 'Players', title: 'Scan to join', sub: 'Ivo · The Thursday game',
       body: [
         `<div style="display:grid;place-items:center">${qrSvg(inviteLink(CODE))}</div>`,
         `<div class="num" style="font-weight:700;font-size:17px;letter-spacing:.05em;text-align:center">${CODE}</div>`,
@@ -478,7 +478,7 @@ export default [
       'invite.tsx says this confirm is "OUTLINE and never red: colour is money", yet the app draws it with the red destructive variant. README rule 3 (red quiet) is followed here.',
       'For a claimed seat the title is "Give Ivo’s seat a new code?", with three paragraphs and the tag "ALREADY USED". Not drawn. The app marks both sets of copy as wanting sign-off.',
     ],
-    html: sheet({ behind: 'Players', title: 'Reset the code?', sub: 'Ivo', stepBack: true,
+    html: sheet({ behind: 'Players', title: 'Reset the code?', sub: 'Ivo',
       body: [
         para('The code you already sent stops working. Anyone holding it sees nothing, and it cannot be undone.'),
         note('A new ten-character code takes its place, bound to Ivo in the same way.'),
