@@ -13,12 +13,12 @@
  */
 export const BUILT = '2026-11-23T12:40:00Z';
 /* The last round: changes at or after this time are the ones at the top of the board. Move it forward each round. */
-export const LATEST = '2026-11-26T13:20:00Z';
+export const LATEST = '2026-11-26T13:25:00Z';
 
 export const ADDRESSED = {
+  'rules': ['The BETA mark sits under Rulings’ description, on the tools menu and from Tonight.', '2026-11-26T13:26:00Z'],
   'settings': ['Your groups, Rules and rulings, the Calculator and The people are gone: the group and the money only.', '2026-11-26T13:21:00Z'],
   'settings-more': ['Each row says what it does in one line under its name.', '2026-11-26T13:21:00Z'],
-  'rules': ['Rulings carries a BETA mark in the Poker tools menu, on Home’s tools and from Tonight.', '2026-11-26T13:21:00Z'],
   'c-invite': ['No back circle where it only repeated the close: Invite Marek and its Scan to join, Scan to join and Reset the code from Players, and confirming a pass. The title sits on the top row beside the close. Real multi-step flows keep theirs.', '2026-11-26T13:11:00Z'],
   'member-remove': ['No back circle: the question is the title on the top row, beside the close.', '2026-11-26T13:06:00Z'],
   'plan-free': ['The plan rows re-spaced: name and price on one line, the description full width under it, even padding, and even gaps in the open list.', '2026-11-26T13:01:00Z'],
