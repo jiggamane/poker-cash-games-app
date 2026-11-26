@@ -177,7 +177,7 @@ export default [
       ],
       bar: bar('Save details') }) },
 
-  { id: 'new-night-rule', route: '/new-night', name: 'A rule · Group piggy bank', nav: 'sheet',
+  { id: 'new-night-rule', route: '/new-night', name: 'A rule · Group piggy bank', nav: 'sheet', allowOverflow: true,
     note: 'The rule editor, titled with the rule’s own name. Its top: what it is called, how much, and its ceiling.',
     flags: ['The app’s presets end in a fourth box for typing your own figure (it shows 5 here, and — under Never more than). Drawn as an outlined chip; it has no label in the app.'],
     html: sheet({ behind: BEHIND, title: 'Group piggy bank', tall: true, stepBack: true,

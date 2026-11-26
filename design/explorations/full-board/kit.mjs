@@ -175,6 +175,8 @@ export const CSS = `
 .fb .modal .shd h2{margin:0;flex:1;font:700 24px/1.1 var(--head);letter-spacing:-.02em;color:var(--text)}
 .fb .modal .shd .x{width:32px;height:32px;border-radius:50%;background:var(--raised);display:grid;place-items:center;flex:none;color:var(--text)}
 .fb .modal .shd .bkx{width:32px;height:32px;border-radius:50%;background:var(--raised);display:grid;place-items:center;flex:none;color:var(--text)}
+.fb .modal .shd-nav{align-items:center;margin-bottom:10px}
+.fb .modal .sht{margin:0 20px;font:700 26px/1.1 var(--head);letter-spacing:-.02em;color:var(--text);flex:none}
 .fb .modal .ssub{color:var(--muted);font-size:13px;line-height:1.4;margin:4px 20px 0;flex:none}
 .fb .modal .mbody{flex:1;min-height:0;padding:14px 20px 18px;overflow:hidden;display:flex;flex-direction:column;gap:12px}
 .fb .modal .mbody>*{flex:none}
@@ -257,7 +259,11 @@ export function pushRaw({ topHtml, body, bar: foot = '' }) {
  */
 export function sheet({ behind = '', title, sub = '', body, bar: foot = '', tall = false, stepBack = false }) {
   return `<div class="fb"><div class="scr">${top({ title: behind })}<div class="body"></div><div class="scrim"></div>
-  <div class="modal${tall ? ' tall' : ''}"><div class="grab"></div><div class="shd">${stepBack ? `<span class="bkx">${ico('chevron', 18).replace('<svg', '<svg style="transform:scaleX(-1)"')}</span>` : ''}<h2>${title}</h2><span class="x">${ico('close', 16)}</span></div>${
+  <div class="modal${tall ? ' tall' : ''}"><div class="grab"></div>${stepBack
+    /* A later step (owner, 26 November: the title level with the back and close looked unfinished): the two
+       circles get their own row, the title its own line under them, full width. */
+    ? `<div class="shd shd-nav"><span class="bkx">${ico('chevron', 18).replace('<svg', '<svg style="transform:scaleX(-1)"')}</span><span style="flex:1"></span><span class="x">${ico('close', 16)}</span></div><h2 class="sht">${title}</h2>`
+    : `<div class="shd"><h2>${title}</h2><span class="x">${ico('close', 16)}</span></div>`}${
     sub ? `<p class="ssub">${sub}</p>` : ''}<div class="mbody">${join(body)}</div>${foot}</div></div></div>`;
 }
 

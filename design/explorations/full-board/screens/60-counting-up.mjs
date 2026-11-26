@@ -72,7 +72,8 @@ const preview = [
   note('Provisional until you settle. Tap any figure below to change it.'),
 ].join('');
 
-const blockHead = (name, total) => `<div class="split" style="padding:12px 0 4px"><b style="font:700 16px/1.2 var(--head)">${name}</b><b class="num" style="font-size:16.5px">${total}</b></div>`;
+/* Each rule can be changed here too (owner, 26 November): a Change pill in its head opens its editor. */
+const blockHead = (name, total, change = true) => `<div style="display:flex;align-items:center;gap:8px;padding:12px 0 4px"><b style="font:700 16px/1.2 var(--head);flex:1;min-width:0">${name}</b>${change ? `<span style="display:inline-flex;align-items:center;gap:5px;font:600 12.5px/1 var(--body);padding:6px 10px;border-radius:999px;background:var(--raised);color:var(--text)">${ico('pencil', 12)}Change</span>` : ''}<b class="num" style="font-size:16.5px">${total}</b></div>`;
 /* The same rows as the rest of the app (owner, 25 November): a share is a player row with its working under the name and its pencil; a spend is the bill's own row. */
 const share = (name, amount, working = 'share of the bill') =>
   `<div class="row"><span class="n">${name}<small>${working}</small></span><span class="a">${amount}</span><span class="muted">${ico('pencil', 15)}</span></div>`;
