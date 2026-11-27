@@ -11,6 +11,7 @@ import {
   type Stakes,
 } from '@poker-club/core';
 import { HOST_ID, NAME_THE_HOST, RETIRED_HOST_NAMES } from './hostSeat';
+import { CLUB_NAME, isRetiredClubName } from './clubName';
 import { seatStatuses, type SeatStatus } from './invites';
 import { dropPlayerFromPlay, renamePlayerInPlay, setMeSeat } from './nightStore';
 import { leavesThePhone } from './queueable';
@@ -556,6 +557,17 @@ export async function renameClub(clubId: string, name: string): Promise<void> {
   await db.runAsync(`UPDATE club SET name = ? WHERE id = ?`, name.trim(), clubId);
   await loadClubs();
   await queueSettings(clubId, was);
+}
+
+/**
+ * A club still named out of an old seed, onto the club's name — through
+ * `renameClub`, so the server's book is renamed rather than duplicated. Call it
+ * after `loadClubs`; a second launch finds nothing. See `clubName.ts`.
+ */
+export async function retireSeedClubName(): Promise<void> {
+  for (const c of state.clubs.filter((club) => isRetiredClubName(club.name))) {
+    await renameClub(c.id, CLUB_NAME);
+  }
 }
 
 /**

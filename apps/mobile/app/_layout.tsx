@@ -7,7 +7,7 @@ import * as Linking from 'expo-linking';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../src/design/useTheme';
 import { completeSignInFromUrl } from '../src/lib/authLink';
-import { loadClubs } from '../src/lib/clubStore';
+import { loadClubs, retireSeedClubName } from '../src/lib/clubStore';
 import { openNight } from '../src/lib/nightStore';
 import { loadBook } from '../src/lib/bookStore';
 import { useBackupPump } from '../src/lib/backupPump';
@@ -95,6 +95,8 @@ export default function RootLayout() {
           ...(night.meId === undefined ? {} : { meId: night.meId }),
         }),
       )
+      // The club's name out of an old seed, onto its own — `clubName.ts`.
+      .then(() => retireSeedClubName())
       .catch((e) => {
         console.error('openNight failed — the app has no local database', e);
       });
