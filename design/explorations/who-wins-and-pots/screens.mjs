@@ -159,7 +159,7 @@ SPOTS.sidePotsD5 = { ...DV, draw: (P) => frontAndBack(P, [32, GROUND], [62, GROU
  * on the felt between them.
  */
 const sideBySide = (P, { tilt = 0, divider = false } = {}) => {
-  const [sx, sy] = [20, GROUND - 4 - Math.max(tilt, 0)];
+  const [sx, sy] = [20, GROUND - 1 - Math.max(tilt, 0)];
   const [mx, my] = [64, GROUND - 1 + Math.min(tilt, 0)];
   const line = divider ? `<path d="M${(sx + mx) / 2 - 1} ${GROUND - 22}L${(sx + mx) / 2 - 4} ${GROUND + 4}" stroke="${P.ink.top}" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5 3.5" opacity=".45"/>` : '';
   return shadow(P, sx, 16, 5, sy + 1) + shadow(P, mx, 26, 7.5, my + 1) + line + bunch(P, [
