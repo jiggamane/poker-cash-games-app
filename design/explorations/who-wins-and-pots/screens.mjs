@@ -27,19 +27,27 @@ SPOTS.whoWins = {
   where: 'Poker tools · tile',
   status: 'draft',
   /*
-   * The board: five cards face up, laid in a diagonal from the front left to
-   * the back right (owner, 27 November). The faces are placeholders, a single
-   * suit at the centre with no rank, as the small 7-2 drawing draws its cards:
-   * at tile size a rank would not read. Drawn back to front so each card lies
-   * on the one behind it.
+   * The board: five cards face up, lying on the table (owner, 27 November:
+   * "put them on the surface"), in a diagonal from the front left to the back
+   * right. Each card is drawn flat and then foreshortened into the ground
+   * plane, the way the icon system foreshortens a chip's face (`K` in
+   * `art.mjs`, eased to 0.5 so a card still reads as a card), with its edge a
+   * step below it and a soft shadow on the felt. The faces are placeholders, a
+   * single suit at the centre with no rank, as the small 7-2 drawing draws its
+   * cards. Drawn back to front so each card lies on the one behind it.
    */
   draw: (P) => {
+    const FLAT = 0.5, W = 30, H = 42, TURN = -14;
     const five = [['heart', 'red'], ['spade', 'ink'], ['diamond', 'red'], ['club', 'ink'], ['heart', 'red']];
-    const at = (k) => ({ cx: 24 + k * 13, by: GROUND - 2 - k * 8 });
-    /* The shadow runs along the line of cards, under the first and the last, not as one puddle beneath them. */
-    const lay = `<ellipse cx="51" cy="${GROUND - 16}" rx="36" ry="6.5" transform="rotate(-29 51 ${GROUND - 16})" fill="${P.shadow}"/>`;
-    return lay + five.map((_, k) => 4 - k).map((k) =>
-      artCard(P, { ...at(k), w: 24, h: 34, rot: -10, suitName: five[k][0], color: five[k][1], small: true })).join('');
+    const at = (k) => [27 + k * 11, GROUND - 10 - k * 7];
+    const lie = (x, y, inner) => `<g transform="translate(${x} ${y}) scale(1 ${FLAT}) rotate(${TURN})">${inner}</g>`;
+    const plate = (fill, extra = '') => `<rect x="${-W / 2}" y="${-H / 2}" width="${W}" height="${H}" rx="3.6" fill="${fill}"${extra}/>`;
+    return five.map((_, k) => 4 - k).map((k) => {
+      const [x, y] = at(k);
+      return lie(x + 1.5, y + 2.5, plate(P.shadow)) +
+        lie(x, y + 1.6, plate(P.stockEdge)) +
+        lie(x, y, artCard(P, { cx: 0, by: H / 2, w: W, h: H, suitName: five[k][0], color: five[k][1], small: true }));
+    }).join('');
   },
 };
 SPOTS.sidePots = {
@@ -55,7 +63,7 @@ SPOTS.sidePots = {
 };
 const cornerArt = (key, size = 78) =>
   `<span class="art" style="position:absolute;right:-4px;bottom:-10px">${['freshDeck', 'freshDeckOnInk'].map((p, i) => `<span class="${i ? 'art-d' : 'art-l'}">${spot(key, p, { size, small: false })}</span>`).join('')}</span>`;
-export const whoWinsTile = `<div class="tile">${cornerArt('whoWins')}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
+export const whoWinsTile = `<div class="tile">${cornerArt('whoWins', 90)}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
 export const sidePotsTile = `<div class="tile">${cornerArt('sidePots')}<div><div class="tn">Side pots</div><div class="tx">a multi-way all in, pot by pot</div></div></div>`;
 
 /* ── tables ───────────────────────────────────────────────────────────── */
@@ -89,7 +97,7 @@ export const section = {
 export default [
   { id: 'tools-five', route: '/tools', name: 'Poker tools, with the two new tiles', nav: 'push',
     note: 'Who wins and Side pots take the half of the second row that is empty and a third row. With the Randomiser draft as well, it is three full rows.',
-    flags: ['Both tile drawings are drafts from the icon system’s parts. Who wins is the board, five cards face up on a diagonal with suit-only faces like the small 7-2 drawing (owner, 27 November); Side pots is three stacks.',
+    flags: ['Both tile drawings are drafts from the icon system’s parts. Who wins is the board, five cards face up lying on the table on a diagonal, suit-only faces like the small 7-2 drawing (owner, 27 November); Side pots is three stacks.',
       'Tile names and lines are new: “Who wins” · “the best hand now, no odds”, “Side pots” · “a multi-way all in, pot by pot”.'],
     html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger',
       body: `<div class="tiles">${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Rulings', 'look up a ruling', 'rulings', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}${whoWinsTile}${sidePotsTile}</div>` }) },
