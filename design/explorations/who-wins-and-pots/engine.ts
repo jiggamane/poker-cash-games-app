@@ -33,6 +33,8 @@ export interface SeatStanding {
   making: number;
   /** The index in `five` of the kicker that decided against the best other hand, or -1. */
   decider: number;
+  /** The engine's packed value: higher is better, equal is a tie. For ordering only. */
+  value: number;
   /** 'best' alone at the top, 'shared' tied at the top, 'behind'. */
   place: 'best' | 'shared' | 'behind';
 }
@@ -74,6 +76,7 @@ export function standings(hands: Card[][], board: Card[]): SeatStanding[] {
     const name = nameHand(value);
     const five = board.length >= 3 ? bestFive(cards) : [...h].sort((a, b) => b - a);
     return {
+      value,
       label: decided ? `${name} · ${RANK_WORD[decided.a]} kicker` : name,
       five: five.map(cardText),
       making: board.length >= 3 ? MAKING[category]! : category === 1 ? 2 : 1,

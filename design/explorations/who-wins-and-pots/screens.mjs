@@ -123,6 +123,43 @@ export default [
     note: 'Both play two pair from the board with an ace: Split on each seat, and both hands on the ink.',
     html: phone('who', { seats: seats(['Ac 3d'], ['Ah 4c']), board: board('Ks Kd 9c 9h 5s'), sel: null }) },
 
+  /* ── Who wins: six ways to use the header (owner, 27 November) ── */
+  { id: 'hero-cards-1', route: '/who-wins', name: 'Header A · As drawn · kicker on the river', nav: 'push', allowOverflow: true, option: 'hero',
+    note: 'The winning hole cards and the hand, under the street. Compact; the hand is the answer.',
+    html: phone('who', { seats: seats(['Ah Kc'], ['Ad Qd']), board: board('As 9d 7c 4h 2s'), sel: null, hero: 'cards' }) },
+  { id: 'hero-cards-2', route: '/who-wins', name: 'Header A · As drawn · three players on the turn', nav: 'push', allowOverflow: true, option: 'hero',
+    html: phone('who', { seats: seats(['Ah Kh'], ['2c 2d'], ['Ts 9s']), board: board('Qh Jh 3s 7c'), sel: null, hero: 'cards' }) },
+
+  { id: 'hero-board-1', route: '/who-wins', name: 'Header B · The board on the ink · kicker on the river', nav: 'push', allowOverflow: true, option: 'hero',
+    note: 'The five community cards move up into the header and the verdict sits under them, so the sheet is only the players. The board is the thing everyone at the table is looking at.',
+    html: phone('who', { seats: seats(['Ah Kc'], ['Ad Qd']), board: board('As 9d 7c 4h 2s'), sel: null, hero: 'board' }) },
+  { id: 'hero-board-2', route: '/who-wins', name: 'Header B · The board on the ink · three players on the turn', nav: 'push', allowOverflow: true, option: 'hero',
+    html: phone('who', { seats: seats(['Ah Kh'], ['2c 2d'], ['Ts 9s']), board: board('Qh Jh 3s 7c'), sel: null, hero: 'board' }) },
+
+  { id: 'hero-sentence-1', route: '/who-wins', name: 'Header C · The sentence · kicker on the river', nav: 'push', allowOverflow: true, option: 'hero',
+    note: 'What beat what, in words, the way the run-out\u2019s foot says it. No cards in the header at all.',
+    html: phone('who', { seats: seats(['Ah Kc'], ['Ad Qd']), board: board('As 9d 7c 4h 2s'), sel: null, hero: 'sentence' }) },
+  { id: 'hero-sentence-2', route: '/who-wins', name: 'Header C · The sentence · three players on the turn', nav: 'push', allowOverflow: true, option: 'hero',
+    html: phone('who', { seats: seats(['Ah Kh'], ['2c 2d'], ['Ts 9s']), board: board('Qh Jh 3s 7c'), sel: null, hero: 'sentence' }) },
+
+  { id: 'hero-ranking-1', route: '/who-wins', name: 'Header D · The standings · kicker on the river', nav: 'push', allowOverflow: true, option: 'hero',
+    note: 'Every hand in order on the ink, 1st first, the same reading as Side pots\u2019 result. Up to three; a fourth and more stay on the sheet.',
+    html: phone('who', { seats: seats(['Ah Kc'], ['Ad Qd']), board: board('As 9d 7c 4h 2s'), sel: null, hero: 'ranking' }) },
+  { id: 'hero-ranking-2', route: '/who-wins', name: 'Header D · The standings · three players on the turn', nav: 'push', allowOverflow: true, option: 'hero',
+    html: phone('who', { seats: seats(['Ah Kh'], ['2c 2d'], ['Ts 9s']), board: board('Qh Jh 3s 7c'), sel: null, hero: 'ranking' }) },
+
+  { id: 'hero-five-1', route: '/who-wins', name: 'Header E · The winning five · kicker on the river', nav: 'push', allowOverflow: true, option: 'hero',
+    note: 'The five cards that make the best hand, large, kickers faded; a bar under each card that came from the hand. Answers \u201cwhat\u2019s their 5-card hand\u201d first.',
+    html: phone('who', { seats: seats(['Ah Kc'], ['Ad Qd']), board: board('As 9d 7c 4h 2s'), sel: null, hero: 'five' }) },
+  { id: 'hero-five-2', route: '/who-wins', name: 'Header E · The winning five · three players on the turn', nav: 'push', allowOverflow: true, option: 'hero',
+    html: phone('who', { seats: seats(['Ah Kh'], ['2c 2d'], ['Ts 9s']), board: board('Qh Jh 3s 7c'), sel: null, hero: 'five' }) },
+
+  { id: 'hero-streets-1', route: '/who-wins', name: 'Header F · Street by street · kicker on the river', nav: 'push', allowOverflow: true, option: 'hero',
+    note: 'Who was ahead before the flop, on the flop, the turn and the river, with the street now lit. The story of the hand, which no other screen tells.',
+    html: phone('who', { seats: seats(['Ah Kc'], ['Ad Qd']), board: board('As 9d 7c 4h 2s'), sel: null, hero: 'streets' }) },
+  { id: 'hero-streets-2', route: '/who-wins', name: 'Header F · Street by street · three players on the turn', nav: 'push', allowOverflow: true, option: 'hero',
+    html: phone('who', { seats: seats(['Ah Kh'], ['2c 2d'], ['Ts 9s']), board: board('Qh Jh 3s 7c'), sel: null, hero: 'streets' }) },
+
   /* ── Side pots ── */
   { id: 'pots-stack', route: '/side-pots', name: 'Side pots · typing a stack', nav: 'push',
     note: 'Each seat has its stack at the right. Tapping it brings up the keypad in the deck’s place and Done on the bar, as the calculator’s pot field does. Cards go in the same way as on Who wins.',
