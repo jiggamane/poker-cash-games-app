@@ -16,6 +16,7 @@
 
 import { money, type LedgerEntry, type MoneyRule, type Player } from '@poker-club/core';
 import { HOST_ID, HOST_NAME } from '../lib/hostSeat';
+import { CLUB_NAME } from '../lib/clubName';
 
 const DANA = 'seed-dana';
 /*
@@ -136,7 +137,10 @@ const rules: MoneyRule[] = [
 export const SEED_VERSION = 5;
 
 export const SEED = {
-  groupName: 'The Thursday game',
+  /* Not a reason to bump SEED_VERSION: `openNight` renames a seeded night
+     already on a phone, so replacing it — and whatever the host recorded on
+     it — would buy nothing. See `clubName.ts`. */
+  groupName: CLUB_NAME,
   startedAt: at('20:05'),
   players,
   entries,

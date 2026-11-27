@@ -120,6 +120,7 @@ const NIGHT: Record<string, string> = {
 const CLUB: Record<string, string> = {
   createClub: 'book.upsert + player.upsert',
   renameClub: 'book.upsert, carrying the old name so the book is still found',
+  retireSeedClubName: 'book.upsert, through renameClub — the old seed name onto the club\'s (clubName.ts)',
   setClubCurrency: 'book.upsert',
   setClubBuyIn: 'book.upsert',
   setClubRounding: 'book.upsert',

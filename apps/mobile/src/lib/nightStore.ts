@@ -26,6 +26,7 @@ import {
 } from '@poker-club/core';
 import { formatMoney } from './money';
 import { CLAIM_LIVE_NIGHTS } from './hostSeat';
+import { RENAME_GROUP_NIGHTS, RETIRED_CLUB_NAMES } from './clubName';
 import { outbox, recordEntry } from './ledgerRepo';
 import {
   drain,
@@ -219,6 +220,10 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
       }
     }
 
+    /* Every night of a club still named out of an old seed, onto the club's
+       name — here, before anything reads a night, so no screen meets the old
+       one. The second launch matches nothing. See `clubName.ts`. */
+    await db.runAsync(RENAME_GROUP_NIGHTS, ...RETIRED_CLUB_NAMES);
   });
 
 export interface Night {

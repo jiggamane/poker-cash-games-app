@@ -1,5 +1,6 @@
 import type * as SQLite from 'expo-sqlite';
 import { database } from './db';
+import { RENAME_GROUP_HOLDS, RETIRED_CLUB_NAMES } from './clubName';
 
 /**
  * Where a night is being written — this phone, or another one.
@@ -89,6 +90,9 @@ const getDb = (): Promise<SQLite.SQLiteDatabase> =>
         dismissed   INTEGER NOT NULL DEFAULT 0
       );
     `);
+    /* A held night of a club still named out of an old seed follows the club
+       onto its name, or `heldBookFor` stops finding it. See `clubName.ts`. */
+    await db.runAsync(RENAME_GROUP_HOLDS, ...RETIRED_CLUB_NAMES);
   });
 
 export async function holdOf(sessionId: string): Promise<HoldRow | null> {
