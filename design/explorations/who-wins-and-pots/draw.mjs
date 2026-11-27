@@ -125,6 +125,85 @@ function whoWinsHero(t, read) {
     <div style="font:600 14.5px/1.3 var(--body);color:rgba(255,255,255,.86);margin-top:5px">${read.bySeat[best[0]].label}</div></div>`;
 }
 
+/*
+ * ── The header, six ways (owner, 27 November: "try different approaches to
+ * how we could use the header part"). `t.hero` picks one; the default is A,
+ * as drawn first. Each takes the same read of the table.
+ */
+const ORDINAL = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
+const inkLabel = (text) => `<div style="font-size:12.5px;color:rgba(255,255,255,.72);font-weight:500">${text}</div>`;
+const inkLine = (html, mt = 5) => `<div style="font:600 14.5px/1.3 var(--body);color:rgba(255,255,255,.86);margin-top:${mt}px">${html}</div>`;
+const headOf = (read, best) => {
+  const river = read.street === 5;
+  const h = (best.length > 1 ? (river ? 'Split ' : 'Tied ') : river ? 'Winner ' : 'Ahead ') + STREET[read.street];
+  return h[0].toUpperCase() + h.slice(1);
+};
+const bestOf = (read) => read.ready.filter((i) => read.bySeat[i].place !== 'behind');
+const handCards = (t, i, w = 27, h = 37, fs = 13.5) => `<span style="display:inline-flex;gap:3px">${t.seats[i].cards.map((c) => pc(c, w, h, fs)).join('')}</span>`;
+/** Seats in order of strength, by the engine's packed value; and each one's place, equal hands sharing it. */
+const ranked = (read) => [...read.ready].sort((a, b) => read.bySeat[b].value - read.bySeat[a].value || a - b);
+const placeOf = (read, i) => 1 + [...new Set(read.ready.map((j) => read.bySeat[j].value))].filter((v) => v > read.bySeat[i].value).length;
+const lc = (label) => label[0].toLowerCase() + label.slice(1);
+const inkSlot = () => `<span style="width:30px;height:42px;border-radius:6px;border:1.5px dashed rgba(255,255,255,.32);display:inline-block;flex:none"></span>`;
+
+const HEROES = {
+  /* A · as drawn: the winning hole cards and the hand. */
+  cards: (t, read) => whoWinsHero(t, read),
+
+  /* B · the board on the ink: the five community cards live in the header, the verdict under them; the sheet is players only. */
+  board: (t, read) => {
+    const best = bestOf(read);
+    return `<div class="thero" style="padding-top:8px">${inkLabel(headOf(read, best))}
+      <div style="display:flex;gap:6px;margin-top:8px">${t.board.map((c) => (c ? pc(c, 30, 42, 14.5) : inkSlot())).join('')}</div>
+      ${inkLine(`${best.map((i) => handCards(t, i, 20, 28, 10.5)).join(' ')} <span style="vertical-align:middle">${read.bySeat[best[0]].label}</span>`, 10)}</div>`;
+  },
+
+  /* C · the sentence: what beat what, in words, as the run-out's foot says it. */
+  sentence: (t, read) => {
+    const best = bestOf(read);
+    const behind = ranked(read).filter((i) => read.bySeat[i].place === 'behind');
+    const top = read.bySeat[best[0]].label.replace(' · ', ', ');
+    const second = behind.length ? read.bySeat[behind[0]].label.replace(' · ', ', ') : null;
+    const text = best.length > 1 ? `${top}, both ways` : second ? `${top} beats ${lc(second)}` : top;
+    return `<div class="thero" style="padding-top:8px">${inkLabel(headOf(read, best))}
+      <div style="font:700 ${text.length > 44 ? 20 : 23}px/1.15 var(--head);letter-spacing:-.015em;color:#fff;margin-top:6px;text-wrap:balance">${text}</div></div>`;
+  },
+
+  /* D · the standings: every hand in order on the ink, 1st first, as Side pots' result reads. */
+  ranking: (t, read) => {
+    const best = bestOf(read);
+    const rows = ranked(read).slice(0, 3).map((i) => {
+      const place = placeOf(read, i);
+      return `<div style="display:flex;align-items:center;gap:10px;margin-top:7px;${place === 1 ? '' : 'opacity:.62'}"><b style="font:800 13px/1 var(--head);width:26px;color:#fff">${ORDINAL[place - 1]}</b>${handCards(t, i, 20, 28, 10.5)}<span style="font:600 14px/1.25 var(--body);color:#fff">${read.bySeat[i].label}</span></div>`;
+    });
+    return `<div class="thero" style="padding-top:8px">${inkLabel(headOf(read, best))}${rows.join('')}</div>`;
+  },
+
+  /* E · the winning five: the five cards that make the best hand, large on the ink; the cards from the hand marked under. */
+  five: (t, read) => {
+    const best = bestOf(read);
+    const st = read.bySeat[best[0]];
+    const hole = t.seats[best[0]].cards;
+    return `<div class="thero" style="padding-top:8px">${inkLabel(`${headOf(read, best)} · ${st.label}`)}
+      <div style="display:flex;gap:6px;margin-top:8px">${st.five.map((c, k) => `<span style="display:inline-flex;flex-direction:column;align-items:center;gap:4px">${pc(c, 34, 47, 16, { dim: k >= st.making && k !== st.decider })}<i style="width:14px;height:3px;border-radius:2px;background:${hole.includes(c) ? '#fff' : 'transparent'}"></i></span>`).join('')}</div></div>`;
+  },
+
+  /* F · street by street: who was ahead before the flop, on the flop, the turn, the river; the street now is lit. */
+  streets: (t, read) => {
+    const b = t.board.filter(Boolean);
+    const cols = [0, 3, 4, 5].map((n, k) => {
+      const name = ['Pre-flop', 'Flop', 'Turn', 'River'][k];
+      if (n > b.length) return `<div style="opacity:.35"><div style="font:700 9.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:#fff">${name}</div><div style="color:#fff;margin-top:9px">—</div></div>`;
+      const st = E.standings(read.ready.map((i) => t.seats[i].cards.map(E.parseCard)), b.slice(0, n).map(E.parseCard));
+      const top = read.ready.filter((_, k2) => st[k2].place !== 'behind');
+      const now = n === read.street;
+      return `<div style="${now ? '' : 'opacity:.6'}"><div style="font:700 9.5px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:#fff">${name}</div><div style="display:flex;gap:3px;margin-top:7px">${top.length > 1 ? '<span style="font:600 12px/24px var(--body);color:#fff">Tied</span>' : t.seats[top[0]].cards.map((c) => pc(c, 17, 24, 9.5)).join('')}</div></div>`;
+    });
+    return `<div class="thero" style="padding-top:8px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">${cols.join('')}</div>
+      ${inkLine(`${headOf(read, bestOf(read))} · ${read.bySeat[bestOf(read)[0]].label}`, 12)}</div>`;
+  },
+};
+
 function whoWinsSeat(t, i, read) {
   const n = t.seats.length;
   const st = read?.bySeat[i];
@@ -139,9 +218,9 @@ export function whoWins(t) {
   const read = whoWinsRead(t);
   const deckOpen = !!t.sel;
   return {
-    hero: deckOpen ? '' : whoWinsHero(t, read),
+    hero: deckOpen || !read ? '' : HEROES[t.hero ?? 'cards'](t, read),
     body: [
-      lbl('Board', read ? STREET[read.street] : ''), boardRow(t),
+      ...(t.hero === 'board' && read && !deckOpen ? [] : [lbl('Board', read ? STREET[read.street] : ''), boardRow(t)]),
       lbl('Players'),
       ...t.seats.map((_, i) => whoWinsSeat(t, i, read)),
       ...(deckOpen ? ['<div class="grow"></div>', deck(used(t)), '<div style="height:8px"></div>'] : t.seats.length < 9 ? [addPlayer] : []),
@@ -186,8 +265,6 @@ function potSeat(t, i) {
     <div style="flex:1;min-width:0"><span class="muted" style="font-size:13px">${seatName(i, n)}</span></div>
     <div data-stack="${i}" style="display:flex;flex-direction:column;align-items:flex-end;flex:none;cursor:pointer"><span class="muted" style="font-size:11.5px">Stack</span><b class="num m${s.stack > 0 || focus ? '' : ' dimt'}" style="font-size:17px;margin-top:2px;${focus ? 'padding:4px 8px;margin-right:-8px;border-radius:9px;box-shadow:inset 0 0 0 2px var(--text)' : ''}">${stackText}</b></div></div></div>`;
 }
-
-const ORDINAL = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 
 /**
  * The result, hand first (owner, 26 November: "the focus should be on the
