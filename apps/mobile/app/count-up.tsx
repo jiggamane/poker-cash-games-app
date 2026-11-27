@@ -7,6 +7,7 @@ import {
   Pressable,
   StyleSheet,
   View,
+  useWindowDimensions,
   type LayoutChangeEvent,
 } from 'react-native';
 import { Text } from '../src/components/Text';
@@ -20,7 +21,7 @@ import {
 } from '@poker-club/core';
 import { formatSignedToFit, formatToFit } from '../src/lib/money';
 import { BLOCK_FITS, headlineSize, percent, toneOf, type Tone } from '../src/lib/countUpBlock';
-import { Button } from '../src/components/Button';
+import { Card } from '../src/components/Card';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
 import { TermBar } from '../src/components/TermBar';
@@ -29,7 +30,8 @@ import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { useTheme } from '../src/design/useTheme';
 import type { Theme } from '../src/design/tokens';
-import { cappedFigure, radius, tabular, type } from '../src/design/tokens';
+import { cappedFigure, moneyMaxFontScale, tabular, type } from '../src/design/tokens';
+import { z } from '../src/design/scale';
 import { clockLabel } from '../src/lib/elapsed';
 import { endedRowLabel, endedRowValue } from '../src/lib/endTime';
 import { cashedOutAt, standingsOf, useNight } from '../src/lib/nightStore';
@@ -60,7 +62,7 @@ import { cashedOutAt, standingsOf, useNight } from '../src/lib/nightStore';
  *     +₾1,000                                          102%
  *     ████████████████████████████████████████████▓▓▓▓▓▓▓▓
  *     In play · 8 players                            ₾47,000
- *     Accounted for · 8 counted                      ₾48,000
+ *     8 counted                                      ₾48,000
  *
  * Nothing in it can truncate in any state. The headline is the one display
  * figure left and it is FLUID — 38 points down to a 24 floor as the digits
@@ -77,6 +79,17 @@ import { cashedOutAt, standingsOf, useNight } from '../src/lib/nightStore';
  * block that spends that whole stretch in the colour reserved for missing money
  * is raising an alarm about arithmetic that has not finished happening. See
  * `toneOf`.
+ *
+ * THE FULL BOARD (`design/explorations/full-board/`, `count-up*`, approved
+ * 23–24 November) PUTS THE BLOCK ON THE INK TOP, where Tonight keeps the pot,
+ * and there it is the top's own white IN EVERY STATE: the kit has no win or
+ * loss tone that reads on the ink, and the board drew it white and was
+ * approved as drawn. So the off state is no longer coral — the signed gap, its
+ * percentage and E5 one tap on say it. The one colour left is Balanced, the
+ * owner's option A (24 November): the word in green with the tick in a green
+ * disc, the sum in white. Under the block the rows are the settled night's two
+ * lines, each group one lifted card, and Rounding and Ended are one card at
+ * the foot (owner, 24 November). Next is the bar.
  *
  * OFF BALANCE DOES NOT BLOCK THE NIGHT. The gate is the COUNT: Next is dead
  * only while a stack is missing. A night that does not add up goes on to E5,
@@ -105,8 +118,8 @@ export default function CountUp() {
    * A NIGHT ANOTHER PHONE IS RECORDING is counted there, not here — see
    * `hold.ts`. The screen still reads, because the phone that passed the night
    * follows it; every control that would write is taken off rather than left to
-   * be refused by the store: no row opens a count, the two bars lose their
-   * chevrons, and the footer says where the night is instead of offering Next.
+   * be refused by the store: no row opens a count, the two term rows stop
+   * opening, and the footer says where the night is instead of the Next bar.
    */
   const away = night.hold === 'away';
 
@@ -141,14 +154,14 @@ export default function CountUp() {
    * kind of fact, and the room asking who is up wants them in one order.
    *
    * IT ALSO PUTS THE SCREEN BACK IN AGREEMENT WITH ITS OWN BLOCK. The header
-   * reads `Accounted for · 6 counted`, summing counted stacks and cash-outs
+   * reads `6 counted`, summing counted stacks and cash-outs
    * into one figure — the cut's S111, which says cash-outs are not called out
    * separately. Until now the list under it answered that 6 with a 5 and a 1 in
    * two headings.
    *
    * THE ORDER IS THE COLUMN AT THE RIGHT EDGE, which is the same argument
-   * Tonight's seated group sorts on. Every row here draws its result at 19/700
-   * and nothing else numeric, so a list sorted by it can be checked by a reader
+   * Tonight's seated group sorts on. Every row here draws its result at the
+   * right edge and nothing else there, so a list sorted by it can be checked by a reader
    * running a finger down the column. `Still to count` is left in seat order
    * because it has no result to rank on — an em dash is not a position.
    *
@@ -156,9 +169,9 @@ export default function CountUp() {
    * a counted row reopens the keypad and a cashed-out row does not, because a
    * figure is fixed where it was entered. Under two headings the group said
    * which; under one, the ROW has to — so a cashed-out row now reads `cashed
-   * out 10:45` rather than the bare clock it could get away with before, and
-   * keeps the shorter slab that the player-list rule gives a row with nothing
-   * to tap. `docs/screens.md` carries the decision and what it costs.
+   * out 10:45` rather than the bare clock it could get away with before, with
+   * the cash-out icon where a counted row has chips out. `docs/screens.md`
+   * carries the decision and what it costs.
    *
    * TIES KEEP SEAT ORDER — `Array#sort` is stable and `standingsOf` is in seat
    * order, so two players who ended level stay in the order their seats were
@@ -197,81 +210,30 @@ export default function CountUp() {
       title="Count up"
       backTo="Tonight"
       trailing={<Step label="1 of 3" />}
-      footer={
-        <>
-          {/* E2b's link is gone with E2b — 5 September. It was the only way
-              into "Where everyone stands", which drew these same rows in this
-              same order one tap away; the two finished groups rank in place
-              now, so there is nothing behind the link to see. */}
-          {away ? (
-            <Text style={[styles.away, { color: t.muted }]}>
-              Being recorded on another phone. Tonight → Take the game back.
-            </Text>
-          ) : (
-            <Button
-              label="Next"
-              variant={ready ? 'primary' : 'blocked'}
-              onPress={() => router.push(settled ? '/deductions' : '/settle-up')}
-            />
-          )}
-        </>
-      }
+      /* On the ink, under the title: the board's `extra`, as Tonight's pot. */
+      onInk={<BalanceBlock balance={balance} />}
+      /* NEXT IS THE BAR (the full board), faint until every stack is in — the
+         gate is the count, not the balance. E2b's link went with E2b on
+         5 September: the two finished groups rank in place now, so there is
+         nothing behind it to see. */
+      {...(away
+        ? {
+            footer: (
+              <Text style={[styles.away, { color: t.muted }]}>
+                Being recorded on another phone. Tonight → Take the game back.
+              </Text>
+            ),
+          }
+        : {
+            bar: [
+              {
+                label: 'Next',
+                disabled: !ready,
+                onPress: () => router.push(settled ? '/deductions' : '/settle-up'),
+              },
+            ],
+          })}
     >
-      <BalanceBlock balance={balance} />
-
-      {/*
-       * THE STEP, AND THIS IS THE SCREEN THAT OWNS IT —
-       * `design/handoff-E2/docs/E2-rounding.md`, cut 31 August. Directly under
-       * the balance block and above the player list, because rounding changes
-       * what a stack is worth and so has to be decided where stacks are
-       * entered. E4 and E6 draw the same bar and open the same sheet; only this
-       * one is where it is set.
-       *
-       * ⚠ The addendum's frames `5a`–`5d` sit on the rev-18 E2 chrome — the
-       * `COUNTED $2,610 of $2,880` strip and an `Apply the money rules` button
-       * — which layout 2a superseded. Its own warning says to take the row and
-       * the sheet and anchor them under the NEW block, which is what this is.
-       */}
-      <RoundingBar
-        mode={night.roundingMode}
-        {...(away
-          ? {}
-          : { onPress: () => router.push({ pathname: '/rounding', params: { scope: 'night' } }) })}
-        style={styles.rounding}
-      />
-
-      {/*
-       * AND WHEN THE CARDS STOPPED, on the row under it — B87.
-       *
-       * IT SITS HERE FOR THE REASON THE STEP DOES. This is the screen where the
-       * night is being finished, so it is the screen where the night's terms
-       * are set, and the end time is one of them: `Ended · 03:12` is the same
-       * kind of line as `Rounding · nearest $10` and reads as one because it is
-       * drawn as one.
-       *
-       * IT IS NOT IN THE BLOCK ABOVE, and that is the whole reason it is down
-       * here. `design/handoff-count-up-header/` retired the two-column card for
-       * the signed gap, the percentage and the two sums, with no eyebrow and no
-       * verdict strip — adding a clock to it would be putting back a term the
-       * cut took out, on the one block whose argument is that nothing in it can
-       * truncate.
-       *
-       * THE NIGHT IT EXISTS FOR IS THE ONE BEING READ A DAY LATE. Tapping End
-       * game stamps this honestly, so most nights it is right before anybody
-       * looks; the host who is settling yesterday's game, or who tapped through
-       * an hour after the last hand, taps it and types the real one.
-       */}
-      <TermBar
-        label={endedRowLabel(night.endedAt)}
-        value={endedRowValue(night.startedAt, night.endedAt)}
-        {...(away ? {} : { onPress: () => router.push('/end-time') })}
-        /* STACKED DIRECTLY UNDER THE BAR ABOVE, so it drops its own top rule:
-           two bars that each draw a hairline top and bottom put two of them
-           between these rows, which reads as a heavier divider than the ones
-           closing the pair. One rule between, one above, one below. */
-        style={styles.stackedBar}
-      />
-
       {/*
        * TWO GROUPS — the work, and the result.
        *
@@ -285,25 +247,23 @@ export default function CountUp() {
        * this screen is the one it exists to make, which is between a stack the
        * host still has to type and a result that is final.
        *
-       * THE HEADER USED TO CARRY THE COLUMN'S MEANING — `COUNTED · 3 · RESULT
-       * BEFORE DEDUCTIONS` — because the right-hand column changes meaning
-       * between a row still to count and a row that is finished, and nothing
-       * else on the row said which. The slab says it now
-       * (`design/handoff-player-list/`, cut 3 September), so both labels are a
-       * name and a count. What has not come off those figures is on the lede
-       * and the rounding bar above them.
+       * Both labels are a name and a count. The right-hand column changes
+       * meaning between a row still to count (an em dash) and a row that is
+       * finished (a signed result), and the group a row sits in says which.
        *
-       * `COUNTED` IS THE BLOCK'S OWN WORD for this group, and the two now agree
-       * to the person: the block reads `Accounted for · 6 counted`, summing
-       * stacks and cash-outs, and the group underneath it holds those same six.
-       * The row says which kind it is — `counted $960` against `cashed out
-       * 10:45` — which is where that distinction belongs now that it is not a
-       * heading.
+       * `COUNTED` IS THE BLOCK'S OWN WORD for this group, and the two agree to
+       * the person: the block's second line reads `6 counted`, summing stacks
+       * and cash-outs, and the group underneath it holds those same six. The
+       * row says which kind it is — `counted $960` against `cashed out 17:17`,
+       * each with its icon — which is where that distinction belongs now that
+       * it is not a heading.
        *
-       * GROUPS NEVER REORDER AND NEVER DISAPPEAR. An empty one draws its header
-       * with `· 0` rather than vanishing, so the host can see that nobody is
-       * left to count rather than inferring it from a group that is no longer
-       * on screen.
+       * GROUPS NEVER REORDER AND NEVER DISAPPEAR. An empty one draws its label
+       * with `· 0` rather than vanishing (only its card goes), so the host can
+       * see that nobody is left to count rather than inferring it from a group
+       * that is no longer on screen. ⚠ The board's all-counted states draw no
+       * `Still to count` label at all; nothing in its notes says the owner
+       * took it out, so the app keeps it.
        */}
       <View style={styles.groups}>
         {/* MEASURED BUT NEVER ANIMATED. A counted row travels from where its
@@ -316,6 +276,7 @@ export default function CountUp() {
                 <ActiveRow
                   name={p.name}
                   fact={`in ${formatToFit(p.boughtIn, ROW_FITS)}`}
+                  icon="chipsIn"
                   last={i === toCount.length - 1}
                   accessibilityLabel={`Count ${p.name}`}
                   {...(away
@@ -325,9 +286,13 @@ export default function CountUp() {
                           router.push({ pathname: '/log', params: { player: p.id, kind: 'count' } }),
                       })}
                   right={
+                    /* The em dash where a result will be, and the pencil: what
+                       "this one is left" has drawn on every revision, and what
+                       `ui-journeys.mjs` finds the rows by. The pencil is muted,
+                       as the board draws it; the look has no amber. */
                     <>
                       <Text style={[styles.waiting, { color: t.dim }]}>—</Text>
-                      <Icon name="pencil" color={t.amber} size={17} />
+                      <Icon name="pencil" color={t.muted} size={z(16)} />
                     </>
                   }
                 />
@@ -338,17 +303,17 @@ export default function CountUp() {
 
         {/*
           * COUNTED AND CASHED OUT ARE THE SAME TREATMENT, and since 6 September
-          * they are the same GROUP: both are finished, so both are slabs, and
-          * they rank together. What differs is the fact each one carries — the
-          * stack for one, `cashed out` and the time for the other — and what
-          * happens when it is tapped.
+          * they are the same GROUP: both are finished, and they rank together.
+          * What differs is the fact each one carries — the stack for one,
+          * `cashed out` and the time for the other — and what happens when it
+          * is tapped.
           *
-          * ⚠ A COUNTED SLAB KEEPS ITS CHEVRON, WHICH THE HANDOFF TAKES AWAY,
-          * and it is the same exception Tonight's cashed-out slab gets. The
-          * rule for this app is *a figure is fixed where it was entered*: this
-          * screen is where a count is typed, so this screen is where a count
-          * typed wrong is retyped. Tapping the slab reopens the same keypad
-          * with the same prefill and overwrites it.
+          * A COUNTED ROW REOPENS ITS KEYPAD, which the handoff's finished rows
+          * never do. The rule for this app is *a figure is fixed where it was
+          * entered*: this screen is where a count is typed, so this screen is
+          * where a count typed wrong is retyped. Tapping the row reopens the
+          * same keypad with the same prefill and overwrites it. Since the full
+          * board it carries no chevron to say so — nothing in the look points.
           *
           * ⚠ THE PREFILL HALF OF THAT SENTENCE WAS NOT TRUE UNTIL B85. The
           * sheet opened at ₾0 however many times a stack had been counted, so
@@ -364,16 +329,12 @@ export default function CountUp() {
           * the app that exists for recovering from a mistake.
           *
           * A CASHED-OUT ROW DOES NOT OPEN, by the same rule read the other way:
-          * that figure was entered on Tonight, and Tonight's slab is where it
-          * is retyped. In one merged group that difference is no longer stated
-          * by a heading, so it is stated by the row — the chevron, and the 44
-          * the player-list rule gives a slab that is a target against the 39 it
-          * gives one that is not. Both deviations and the question are in
-          * `docs/screens.md`.
+          * that figure was entered on Tonight, and Tonight is where it is
+          * retyped. The row's fact and icon say which kind it is.
           */}
         <Ranked name="counted" ruler={ruler}>
           <PlayerGroup label="Counted" count={finished.length}>
-            {finished.map((p) => (
+            {finished.map((p, i) => (
               <Travelling key={p.id} id={p.id} group="counted" rank ruler={ruler}>
                 <FinishedSlab
                   name={p.name}
@@ -382,8 +343,10 @@ export default function CountUp() {
                       ? `counted ${formatToFit(endedWith(p), ROW_FITS)}`
                       : cashedOutFact(night, p.id, p.cashedOut)
                   }
+                  icon={p.atTable ? 'chipsOut' : 'cashOut'}
                   result={resultBeforeDeductions(p.boughtIn, endedWith(p))}
                   fits={ROW_FITS}
+                  last={i === finished.length - 1}
                   {...(p.atTable && !away
                     ? {
                         accessibilityLabel: `Count ${p.name} again`,
@@ -397,6 +360,47 @@ export default function CountUp() {
           </PlayerGroup>
         </Ranked>
 
+        {/*
+         * THE NIGHT'S TWO TERMS, ONE CARD AT THE FOOT — owner, 24 November
+         * ("Rounding and Ended move to the foot of every Count up screen, under
+         * the player lists"). They sat directly under the block until then.
+         *
+         * THE STEP, AND THIS IS THE SCREEN THAT OWNS IT —
+         * `design/handoff-E2/docs/E2-rounding.md`, cut 31 August. Rounding
+         * changes what a stack is worth and so has to be decided where stacks
+         * are entered. E4 and E6 draw the same row and open the same sheet;
+         * only this one is where it is set.
+         *
+         * AND WHEN THE CARDS STOPPED, on the row under it — B87. This is the
+         * screen where the night is being finished, so it is the screen where
+         * the night's terms are set, and the end time is one of them: `Ended ·
+         * 03:12` is the same kind of line as `Rounding · nearest $10` and reads
+         * as one because it is drawn as one. It is NOT in the block on the ink:
+         * the count-up header cut retired every term but the gap, its
+         * percentage and the two sums, on the one block whose argument is that
+         * nothing in it can truncate.
+         *
+         * THE NIGHT IT EXISTS FOR IS THE ONE BEING READ A DAY LATE. Tapping End
+         * game stamps this honestly, so most nights it is right before anybody
+         * looks; the host who is settling yesterday's game, or who tapped through
+         * an hour after the last hand, taps it and types the real one.
+         */}
+        <Card>
+          <RoundingBar
+            mode={night.roundingMode}
+            bare
+            {...(away
+              ? {}
+              : { onPress: () => router.push({ pathname: '/rounding', params: { scope: 'night' } }) })}
+          />
+          <TermBar
+            label={endedRowLabel(night.endedAt)}
+            value={endedRowValue(night.startedAt, night.endedAt)}
+            bare
+            last
+            {...(away ? {} : { onPress: () => router.push('/end-time') })}
+          />
+        </Card>
       </View>
     </Screen>
   );
@@ -437,77 +441,68 @@ const cashedOutFact = (
 // ---------------------------------------------------------------------------
 
 /**
- * How each state is painted: an edge and one ink, and the ink is on the
- * headline, the percentage and the accounted-for amount alike.
- *
- * One table rather than three branches, so a state cannot pick up a colour
- * from another one by accident, and so the light twin — which the cut leaves
- * to us — is derived once for all three.
- */
-const paint = (t: Theme, tone: Tone): { edge: string; ink: string } => {
-  switch (tone) {
-    case 'balanced':
-      return { edge: t.winStrong, ink: t.win };
-    case 'counting':
-      /* PLAIN TEXT AND A HAIRLINE — see `toneOf`. The block is not making a
-         claim about the night yet, so it is not wearing a colour that does.
-         Every figure in it is white; only the captions beside them are
-         muted, exactly as they are in the other two states. */
-      return { edge: t.hairline, ink: t.text };
-    default:
-      /* The cut measures this edge at 50% and the token is 55%. One alpha of
-         one hue, shared with the end-the-night row rather than forked for a
-         difference nobody can see. */
-      return { edge: t.dangerStrong, ink: t.loss };
-  }
-};
-
-/**
  * THE BAR IS DRAWN TO THE REAL SCALE — each segment flexed by its own raw
  * amount, not by a percentage worked out first.
  *
  * Over: what went in, then the overage beyond it. Short: what is accounted
  * for, then the hole. Level: one segment, the whole width. A table holding
  * more than went into it therefore grows a segment PAST the money rather than
- * topping out at it, and an over reads as an over rather than as a balance in
- * the wrong colour.
+ * topping out at it, and an over reads as an over rather than as a balance.
  *
- * The empty night is the one case with no scale at all — nothing in and
- * nothing counted is 0 against 0 — so it draws the track and nothing else.
+ * ON THE INK IT IS TONIGHT'S SHARE BAR READ AS PROGRESS (the board's note):
+ * the run in the top's white, the rest in its quieter white, as Tonight draws
+ * its alternate shares — the same two whites in every state, since the block
+ * carries no colour on the ink. The empty night is the one case with no scale
+ * at all — nothing in and nothing counted is 0 against 0 — so it draws the
+ * faint track and nothing else.
  */
 const segments = (
   t: Theme,
   tone: Tone,
   b: BalanceCheck,
 ): ReadonlyArray<{ flex: number; color: string }> => {
-  if (b.boughtIn === 0 && b.accountedFor === 0) return [{ flex: 1, color: t.track }];
-  if (tone === 'balanced') return [{ flex: 1, color: t.win }];
-
-  /*
-   * MID-COUNT THE BAR IS A PROGRESS BAR AND NOTHING MORE — grey against the
-   * track, in the same two segments and to the same scale. It fills as the
-   * stacks go in; it does not say the night is short while it is filling. Only
-   * once the count is done does the run become the loss colour and the
-   * remainder its wash, which is the cut's own pair.
-   */
-  const run = tone === 'off' ? t.loss : t.muted;
-  const rest = tone === 'off' ? t.dangerTrack : t.track;
+  if (b.boughtIn === 0 && b.accountedFor === 0) return [{ flex: 1, color: t.onTopFill }];
+  if (tone === 'balanced') return [{ flex: 1, color: t.onTop }];
 
   return b.left < 0
     ? [
-        { flex: b.boughtIn, color: t.barIn },
-        { flex: -b.left, color: run },
+        { flex: b.boughtIn, color: t.onTop },
+        { flex: -b.left, color: t.onTopMuted },
       ]
     : [
-        { flex: b.accountedFor, color: run },
-        { flex: b.left, color: rest },
+        { flex: b.accountedFor, color: t.onTop },
+        { flex: b.left, color: t.onTopMuted },
       ];
+};
+
+/**
+ * HOW BIG THE HEADLINE MAY GROW ON A WIDER PHONE.
+ *
+ * `headlineSize` is measured at 360, where `z()` is 1 and the block now has
+ * about 320 points (the ink's 18 a side and the block's 2) — more than the 284
+ * the card it replaced had, so nine digits at the 24 floor fit there with room.
+ * Every other size on the screen goes through `z()`, which at 393 is 1.22,
+ * while the room only grows with the width, about 1.08: a short gap has room
+ * to take the whole of `z()`, a nine-digit one does not.
+ *
+ * So the size is `z()` of the measured one, held under what the glyphs can
+ * take in the room there is — each glyph at most 0.62 of the size in the
+ * figure face, grown by the money cap on the reader's text setting, with the
+ * percentage's ~4 glyphs and the gap beside it — and never under the size
+ * measured at 360.
+ */
+const useHeadlineSize = (glyphs: number): number => {
+  const { width } = useWindowDimensions();
+  const measured = headlineSize(glyphs);
+  if (!(width > 0)) return measured;
+  const room = width - 2 * z(18) - 2 * z(2) - z(15) * 4 * 0.62 * moneyMaxFontScale - z(10);
+  const fits = room / (glyphs * 0.62 * moneyMaxFontScale);
+  return Math.round(Math.max(measured, Math.min(z(measured), fits)) * 2) / 2;
 };
 
 function BalanceBlock({ balance }: { balance: BalanceCheck }) {
   const t = useTheme();
   const tone = toneOf(balance);
-  const c = paint(t, tone);
   const balanced = tone === 'balanced';
   const shut = useCollapse(balanced);
 
@@ -515,7 +510,7 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
      other way up: a positive gap is money on the table that nobody bought. */
   const gap = -balance.left as Money;
   const headline = formatSignedToFit(gap, BLOCK_FITS);
-  const size = headlineSize(headline.length);
+  const size = useHeadlineSize(headline.length);
 
   /*
    * COUNTED AND CASHED OUT ARE ONE FIGURE, per the cut: `8 counted`, never
@@ -530,39 +525,51 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
   const waiting = balance.uncounted.length;
 
   /* PROPOSED COPY, and the cut says so — the still-to-count clause is the one
-     string in the block that is not signed off. `docs/screens.md`. */
+     string in the block that is not signed off. `docs/screens.md`.
+     `Accounted for ·` WENT, owner, 23 November (the board's README, "Count up
+     header"): the line starts with the count itself. */
   const accounted = waiting === 0 ? `${done} counted` : `${done} counted, ${waiting} still to count`;
 
   return (
     <Pressable
       /*
-       * ONLY ONCE IT BALANCES. A card that could be folded away mid-count would
+       * ONLY ONCE IT BALANCES. A block that could be folded away mid-count would
        * be offering to hide the one figure the screen exists to drive to zero.
        */
       accessibilityRole={balanced ? 'button' : undefined}
       accessibilityLabel={balanced && shut.collapsed ? `Balanced, ${formatToFit(balance.boughtIn, BLOCK_FITS)} in play` : undefined}
       accessibilityHint={balanced ? 'Double tap to show the comparison.' : undefined}
       onPress={balanced ? shut.toggle : undefined}
-      style={[styles.block, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: c.edge }]}
+      style={styles.block}
     >
       {shut.collapsed ? (
         /*
-         * THE ONE LINE THE CARD KEEPS — `✓ Balanced ₾47,000 in play`.
+         * THE ONE LINE THE BLOCK KEEPS — `✓ Balanced $5,000 in play`, in the
+         * owner's option A (24 November): the word in green, the tick in a
+         * green disc, the sum in white.
          *
          * The comparison has done its job the moment the two sums agree, and
          * from there it is 90 points of arithmetic held over the list a host is
          * actually working through. What survives is the verdict and the figure,
-         * which is what a person glances back up at.
+         * which is what a person glances back up at, and the sheet rises to
+         * take the room.
+         *
+         * ⚠ THE GREEN IS `liveDot`, the one green the theme has that reads on
+         * the ink (the kit's `#7BE3AE`, the same value), and the tick in it is
+         * the ink itself where the kit draws a near-black green. An on-ink win
+         * token in `tokens.ts` would name it properly; that file is shared.
          */
         <View style={styles.shutLine}>
-          <Icon name="check" color={t.win} size={17} />
-          <Text style={[styles.shutVerdict, { color: t.win }]} numberOfLines={1}>
+          <View style={[styles.disc, { backgroundColor: t.liveDot }]}>
+            <Icon name="check" color={t.top} size={z(16)} />
+          </View>
+          <Text style={[styles.shutVerdict, { color: t.liveDot }]} numberOfLines={1}>
             Balanced
           </Text>
-          <Text style={[styles.shutFigure, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
+          <Text style={[styles.shutFigure, { color: t.onTop }]} numberOfLines={1} {...cappedFigure}>
             {formatToFit(balance.boughtIn, BLOCK_FITS)}
           </Text>
-          <Text style={[styles.shutCaption, { color: t.muted }]} numberOfLines={1}>
+          <Text style={[styles.shutCaption, { color: t.onTopMuted }]} numberOfLines={1}>
             in play
           </Text>
         </View>
@@ -570,20 +577,20 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
         <>
         <View style={styles.headline}>
           <Text
-            style={[styles.gap, { color: c.ink, fontSize: size, lineHeight: size * 1.05, letterSpacing: -0.03 * size }]}
+            style={[styles.gap, { color: t.onTop, fontSize: size, lineHeight: size * 1.05, letterSpacing: -0.03 * size }]}
             numberOfLines={1}
             {...cappedFigure}
           >
             {headline}
           </Text>
-          <Text style={[styles.share, { color: c.ink }]} numberOfLines={1} {...cappedFigure}>
+          <Text style={[styles.share, { color: t.onTop }]} numberOfLines={1} {...cappedFigure}>
             {`${percent(balance)}%`}
           </Text>
         </View>
 
         <Bar segments={segments(t, tone, balance)} />
 
-        <View style={styles.sums}>
+        <View>
           {/*
             * ONE WORD FOR THIS FIGURE, APP-WIDE — 5 September, on the owner's
             * instruction, and it is why this row does not read `Bought in` as
@@ -597,11 +604,9 @@ function BalanceBlock({ balance }: { balance: BalanceCheck }) {
             */}
           <Sum
             caption={`In play · ${balance.playersTotal} ${balance.playersTotal === 1 ? 'player' : 'players'}`}
-            /* Never coloured: it is the fixed side of the comparison. */
-            colour={t.text}
             amount={balance.boughtIn}
           />
-          <Sum caption={`Accounted for · ${accounted}`} colour={c.ink} amount={balance.accountedFor} />
+          <Sum caption={accounted} amount={balance.accountedFor} />
         </View>
         </>
       )}
@@ -697,7 +702,7 @@ function Bar({ segments }: { segments: ReadonlyArray<{ flex: number; color: stri
   }, [first, second, scale]);
 
   return (
-    <View style={styles.bar}>
+    <View style={styles.bar} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {shown.map((seg, i) => (
         <Animated.View
           key={i}
@@ -705,6 +710,7 @@ function Bar({ segments }: { segments: ReadonlyArray<{ flex: number; color: stri
             flexGrow: i === 0 ? first : second,
             flexShrink: 1,
             flexBasis: 0,
+            borderRadius: z(1.5),
             backgroundColor: seg.color,
           }}
         />
@@ -722,11 +728,11 @@ function Bar({ segments }: { segments: ReadonlyArray<{ flex: number; color: stri
  * a fact the list below states in a header — before a digit of money is at
  * risk. B43 is what the other order cost.
  */
-function Sum({ caption, colour, amount }: { caption: string; colour: string; amount: Money }) {
+function Sum({ caption, amount }: { caption: string; amount: Money }) {
   const t = useTheme();
   return (
     <View style={styles.sum}>
-      <Text style={[styles.caption, { color: t.muted }]} numberOfLines={1}>
+      <Text style={[styles.caption, { color: t.onTopMuted }]} numberOfLines={1}>
         {caption}
       </Text>
       {/*
@@ -736,12 +742,14 @@ function Sum({ caption, colour, amount }: { caption: string; colour: string; amo
        * It was unmarked for a day, as the two sides of a comparison whose
        * answer is the headline above them. On a phone that read wrong, and the
        * reason is what this block is made of: these are not small terms under a
-       * name, they are 22-point figures in the card the screen opens with, and
-       * a bare `15,400` at that size reads as a quantity of something rather
-       * than as money. The settled night's `CHIPS` block draws the same two
-       * marked, and now they agree. `docs/screens.md` has the exemption.
+       * name, they are figures in the block the screen opens with, and a bare
+       * `15,400` at that size reads as a quantity of something rather than as
+       * money. The settled night's `CHIPS` block draws the same two marked, and
+       * now they agree. `docs/screens.md` has the exemption.
+       *
+       * NEVER COLOURED since the full board: both sides are the ink's white.
        */}
-      <Text style={[styles.amount, { color: colour }]} numberOfLines={1} {...cappedFigure}>
+      <Text style={[styles.amount, { color: t.onTop }]} numberOfLines={1} {...cappedFigure}>
         {formatToFit(amount, BLOCK_FITS)}
       </Text>
     </View>
@@ -1045,147 +1053,70 @@ function Ranked({
  * The stack on the right gave first and it gave the most. It is 19/700 against
  * the sub-line's 12.5/400, so a glyph of it is worth nearly two down there —
  * `$2,352,500` on the right cost the line under it about seventy points, which
- * is `· counted $2.4M` and the whole of what would not fit.
+ * is `· counted $2.4M` and the whole of what would not fit. (Those sizes are
+ * the pre-board row's; the board's 16.5 figure in a card at 360 has less room
+ * per glyph, so the threshold stays where it was measured.)
  */
 const ROW_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
-  away: { ...type.footnote, textAlign: 'center', paddingVertical: 12 },
-  /* Under the block's own bottom margin, above the first group's label. */
-  rounding: { marginTop: 4 },
-  stackedBar: { borderTopWidth: 0 },
-  /* The rows' own 22, carried once for all three groups. */
-  groups: { marginHorizontal: 22 },
-  waiting: { fontSize: 19, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
+  away: { ...type.footnote, textAlign: 'center', paddingVertical: z(12) },
+  /* A pushed screen's body: the board's 18 a side, its parts 12 apart. */
+  groups: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
+  /* The board's waiting mark: an em dash at 16 in the figure face, dim. */
+  waiting: { fontFamily: 'head', fontSize: z(16), fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
 
-  // ---- the block --------------------------------------------------------
+  // ---- the block, on the ink ---------------------------------------------
   /*
-   * ONE CARD, ONE PADDING BOX, THREE THINGS IN IT — 16/18/14 inside, and a
-   * 12-point gap between the headline, the bar and the sums. The block it
-   * replaced was three boxes with their own paddings and a rule between two of
-   * them, because it had a footer strip; nothing is pinned to the bottom of
-   * this one, so nothing needs the seam.
+   * THE BOARD'S `block()`, inside the ink top's own 18: 12 under the title row
+   * (the kit's `.thero` 4 of margin and 8 of padding), 2 in at the sides, and
+   * the top's own 42 under it, which the sheet overlaps by 26. No card and no
+   * edge: on the ink the block is type.
    */
-  block: {
-    marginTop: 8,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    paddingTop: 16,
-    paddingHorizontal: 18,
-    paddingBottom: 14,
-    gap: 12,
-  },
-  /* `✓ Balanced  ₾47,000 in play` — one row, and the card's own padding round
-     it, so folding does not change the block's gutters. */
-  shutLine: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  shutVerdict: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
+  block: { paddingTop: z(12), paddingHorizontal: z(2), paddingBottom: z(2) },
+  /* `✓ Balanced  $5,000 in play` — option A: a 26 disc, 10 between. */
+  shutLine: { flexDirection: 'row', alignItems: 'center', gap: z(10) },
+  disc: { width: z(26), height: z(26), borderRadius: z(13), alignItems: 'center', justifyContent: 'center' },
+  shutVerdict: { flex: 1, fontFamily: 'head', fontSize: z(22), fontWeight: '800', lineHeight: z(24) },
   shutFigure: {
-    marginLeft: 'auto',
     flexShrink: 0,
-    fontSize: 17,
+    fontFamily: 'head',
+    fontSize: z(18),
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
-  shutCaption: { fontSize: 12, fontWeight: '500', flexShrink: 0 },
+  shutCaption: { fontSize: z(12.5), fontWeight: '400', flexShrink: 0 },
   /* Bottom-aligned, so the percentage sits on the foot of the figure whatever
      size the figure has come out at. */
-  headline: { flexDirection: 'row', alignItems: 'flex-end', gap: 9 },
+  headline: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: z(10) },
   /*
    * Size, line height and tracking are all set at the call site because all
-   * three are functions of the glyph count — see `headlineSize`. The 1.05 on
-   * the line height is the same departure `type.title` makes and for the same
-   * reason: at a flat 1 a descender lands on whatever is under the text box.
+   * three are functions of the glyph count — see `headlineSize` — and of the
+   * phone's width (`useHeadlineSize`). The 1.05 on the line height is the
+   * same departure `type.title` makes and for the same reason: at a flat 1 a
+   * descender lands on whatever is under the text box.
    */
-  gap: { fontWeight: '800', flexShrink: 1, ...tabular },
-  share: { fontSize: 15, fontWeight: '700', marginLeft: 'auto', flexShrink: 0, ...tabular },
+  gap: { fontFamily: 'head', fontWeight: '700', flexShrink: 1, ...tabular },
+  share: { fontFamily: 'head', fontSize: z(15), fontWeight: '700', paddingBottom: z(3), marginLeft: 'auto', flexShrink: 0, ...tabular },
 
-  /* Two segments held apart by 2, in a box that clips them to the radius. A
-     single-segment state has nothing to be held apart from. */
-  bar: { flexDirection: 'row', height: 8, borderRadius: 3, overflow: 'hidden', gap: 2 },
+  /* The kit's `.tbar`, as the board sets it here: 5 tall, segments 3 apart,
+     12 under the figure and 10 above the sums. */
+  bar: { flexDirection: 'row', height: z(5), gap: 3, marginTop: z(12), marginBottom: z(10) },
 
-  sums: { gap: 7 },
-  sum: { flexDirection: 'row', alignItems: 'baseline', gap: 12 },
+  /* The board's `sum()`: 6 above each, the caption and the figure 10 apart. */
+  sum: { flexDirection: 'row', alignItems: 'baseline', gap: z(10), marginTop: z(6) },
   /* THE HALF THAT GIVES. `flex: 1` with `minWidth: 0` is what lets a long
-     clause ellipsise rather than push the money off the card. */
-  caption: { fontSize: 13.5, fontWeight: '500', flex: 1, minWidth: 0 },
+     clause ellipsise rather than push the money off the block. */
+  caption: { fontSize: z(12.5), fontWeight: '400', flex: 1, minWidth: 0 },
   /* THE HALF THAT DOES NOT. */
-  amount: { fontSize: 18, fontWeight: '700', flexShrink: 0, ...tabular },
+  amount: { fontFamily: 'head', fontSize: z(16), fontWeight: '700', flexShrink: 0, ...tabular },
 
   /*
    * A STACK LANDS — `design/handoff-count-up-header/`, the animation table.
-   * The wash is drawn over the slab rather than as its fill, so nothing in
-   * `PlayerList` has to learn about this screen; `bottom: 5` is the slab's own
-   * margin, kept out of the flash.
+   * The wash is drawn over the row rather than as its fill, so nothing in
+   * `PlayerList` has to learn about this screen; it reaches half of the
+   * card's 12 out either side, rounded, so the row lights as a block without
+   * squaring off the card's own corners on the first and last rows.
    */
-  flash: { bottom: 5, borderRadius: radius.pressable },
-
-  // ---- the list ---------------------------------------------------------
-  /*
-   * E2's OWN TYPE SCALE, which `05-active-vs-settled.md` states in full
-   * precisely because it is NOT Tonight's: 15.5 and 18 here against 17 and 19
-   * there, 11.5 of sub-line against 12, and a 12-point group header against an
-   * 11.5-point one. Three groups and eight players is 61 points more than this
-   * screen has, so every half point of it was spent deliberately — a scale
-   * borrowed from the other screen costs a row off the fold.
-   */
-  group: { marginHorizontal: 22 },
-  groupAfter: { paddingTop: 14 },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-
-  /** `7px 4px`, hairline under every row. */
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 7,
-    paddingHorizontal: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  /**
-   * Tinted, and pushed 8 out past the list so the tint reads as a block.
-   *
-   * IT KEEPS ITS OWN HEIGHT. The doc's `7px 4px` is the list's, and this row
-   * carries a 34-point Count chip: pulling its padding down to 7 would leave
-   * the tint hugging the chip with nothing around it, and the row is the one
-   * the host is aiming a thumb at. The extra points are the chip's, not the
-   * type's — everything inside it is on the same scale as the rows above.
-   */
-  waitingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 11,
-    paddingHorizontal: 12,
-    marginHorizontal: -8,
-    borderRadius: 8,
-  },
-  confirmedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 7,
-    paddingHorizontal: 4,
-  },
-  rowText: { gap: 3, flexShrink: 1, minWidth: 0 },
-  name: { ...type.rowName, fontSize: 15.5 },
-  /*
-   * 11.5 — the doc's E2 sub-line, which is a point lower than the 12.5 this
-   * line was set at when it was measured against E6's board. It is the same
-   * line doing more work: it now carries two figures and their words on every
-   * settled row rather than only on a stack the step moved.
-   */
-  detail: { ...type.rowDetail, fontSize: 11.5 },
-  /* NEVER SHRINKS — the name gives, a figure does not. See B18. */
-  figure: { ...type.figure, fontSize: 18, marginLeft: 'auto', flexShrink: 0 },
-
-  countChip: {
-    marginLeft: 'auto',
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: radius.pressable,
-    borderWidth: 1.5,
-  },
-  countChipLabel: { fontSize: 14, fontWeight: '700' },
+  flash: { left: z(-6), right: z(-6), borderRadius: z(8) },
 });

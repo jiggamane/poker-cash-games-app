@@ -22,14 +22,15 @@ import {
   formatToFitUnmarked,
   rateLabel,
 } from '../src/lib/money';
-import { Button } from '../src/components/Button';
-import { Icon } from '../src/components/Icon';
+import { Card, CardRow, SectionLabel } from '../src/components/Card';
+import { Icon, type IconName } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
 import { Screen } from '../src/components/Screen';
 import { SpendList } from '../src/components/SpendList';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, radius } from '../src/design/tokens';
+import { cappedFigure } from '../src/design/tokens';
+import { z } from '../src/design/scale';
 import {
   clearManualCharges,
   nameOf,
@@ -64,6 +65,16 @@ import { useIsAdmin } from '../src/lib/whoIsReading';
  * The bill block NEVER disappears. A bar tab usually arrives after the count,
  * so the common case is a bill of em dashes with its rows already in place; a
  * block that appeared later would move everything under it at the worst moment.
+ *
+ * THE FULL BOARD (`design/explorations/full-board/`, `deductions*`, approved
+ * 24–26 November): the preview is a lifted card under its label, Preview a
+ * quiet tag, each row the settled night's — the game result under the name
+ * after the chips-out arrow (owner, 26 November), the other terms as one terms
+ * pill under the net (25 November). The rules are "in the app's own rows"
+ * (25 November): each rule a lifted card, its shares player rows with their
+ * working under the name, and a Change pill in its head that opens the rule
+ * (26 November: "so the rules can be changed at this stage"). See who pays
+ * whom is the bar.
  */
 export default function Deductions() {
   const t = useTheme();
@@ -126,16 +137,14 @@ export default function Deductions() {
         title="Not yet"
         backTo="Count up"
         trailing={<Step label="2 of 3" />}
-        lede="No rule can take its share until every stack has been counted, because there is nothing yet to take a share of."
-        footer={
-          <Button
-            label="Back to the count"
-            variant="primary"
-            onPress={() => router.dismissTo('/count-up')}
-          />
-        }
+        bar={[{ label: 'Back to the count', onPress: () => router.dismissTo('/count-up') }]}
       >
-        {null}
+        {/* The board's `para()`, on the sheet rather than on the ink. */}
+        <View style={styles.body}>
+          <Text style={[styles.para, { color: t.text }]}>
+            No rule can take its share until every stack has been counted, because there is nothing yet to take a share of.
+          </Text>
+        </View>
       </Screen>
     );
   }
@@ -156,16 +165,16 @@ export default function Deductions() {
         title="A rule will not settle"
         backTo="Count up"
         trailing={<Step label="2 of 3" />}
-        lede="Every stack is counted. One of tonight's rules cannot be applied, so nothing can be worked out until it is changed or switched off."
-        footer={
-          <Button
-            label="Open tonight's rules"
-            variant="primary"
-            onPress={() => router.push('/money-rules')}
-          />
-        }
+        bar={[{ label: "Open tonight's rules", onPress: () => router.push('/money-rules') }]}
       >
-        <Text style={[styles.failure, { color: t.muted }]}>{result.detail}</Text>
+        <View style={styles.body}>
+          <Text style={[styles.para, { color: t.text }]}>
+            Every stack is counted. One of tonight's rules cannot be applied, so nothing can be worked out until it is changed or switched off.
+          </Text>
+          {/* The engine's own sentence, which the board does not draw (its
+              flag says so) and which names the rule. */}
+          <Text style={[styles.failure, { color: t.muted }]}>{result.detail}</Text>
+        </View>
       </Screen>
     );
   }

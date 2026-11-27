@@ -10,7 +10,7 @@ import {
   type SettledMode,
   type StoredVerification,
 } from '@poker-club/core';
-import { Button } from '../src/components/Button';
+import { Card } from '../src/components/Card';
 import { RoundingBar } from '../src/components/RoundingBar';
 import { TermBar } from '../src/components/TermBar';
 import { Screen } from '../src/components/Screen';
@@ -22,7 +22,7 @@ import {
   ViewControl,
 } from '../src/components/SessionViews';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, unscaledLabel } from '../src/design/tokens';
+import { T, z } from '../src/design/scale';
 import { nightSpan } from '../src/lib/elapsed';
 import { endedRowLabel, endedRowValue } from '../src/lib/endTime';
 import { setSessionView, useSessionView } from '../src/lib/sessionViewStore';
@@ -131,9 +131,8 @@ export default function NightResults() {
         backTo="the club"
         headScroll="all"
         lede="This night was never closed. Count everyone up and settle it to see the record."
-        footer={
-          <Button label="Open the night" variant="primary" onPress={() => router.replace('/session')} />
-        }
+        /* The one way on, so it is the bar (the full board's F3). */
+        bar={[{ label: 'Open the night', onPress: () => router.replace('/session') }]}
       >
         {null}
       </Screen>
@@ -182,31 +181,23 @@ export default function NightResults() {
        */
       headScroll="all"
       /*
-       * THE FOOTER BUTTON IS THE VIEW'S. On Final it is the one thing this
-       * screen leads to; on At table it leads back to the answer, because a
-       * column that sums to zero is a check rather than a result and the cut
-       * gives the reader the way out of it.
+       * THE BAR IS THE VIEW'S. On Final it is the one thing this screen leads
+       * to; on At table it leads back to the answer, because a column that sums
+       * to zero is a check rather than a result and the cut gives the reader the
+       * way out of it.
        *
-       * OUTLINED, NOT FILLED — `10a`'s own 1px at 16% white. This screen is a
-       * record being read rather than a step being completed, and a filled
-       * button on it reads as the next thing to do.
+       * ⚠ THE BAR, WHERE `10a` DREW AN OUTLINED BUTTON ON PURPOSE (a record
+       * being read, not a step). The full board makes it the action — "Who pays
+       * whom" is the settled night's bar (`settled`, `settled-grouped`, flagged
+       * and approved; the bar's type was reviewed on this very screen).
        */
-      footer={
-        onTable ? (
-          <Button
-            label="See the final result"
-            variant="secondary"
-            onPress={() => setSessionView('finalDetailed')}
-          />
-        ) : (
-          <Button
-            label="Who pays whom"
-            variant="secondary"
-            onPress={() => router.push('/payments')}
-          />
-        )
+      bar={
+        onTable
+          ? [{ label: 'See the final result', onPress: () => setSessionView('finalDetailed') }]
+          : [{ label: 'Who pays whom', onPress: () => router.push('/payments') }]
       }
     >
+      <View style={styles.column}>
       <DidNotCheckOut verdict={night.verification} />
 
       {/*
@@ -237,21 +228,28 @@ export default function NightResults() {
        * computed `pointer-events` on it was `none`. It is gone; the 32% and the
        * deafness are this screen's, and dismissal is the control's.
        */}
-      <View style={menuOpen && { opacity: MENU_DIM }} pointerEvents={menuOpen ? 'box-only' : 'auto'}>
-        <View style={styles.list}>
+      <View
+        style={[styles.stack, menuOpen && { opacity: MENU_DIM }]}
+        pointerEvents={menuOpen ? 'box-only' : 'auto'}
+      >
+        {/* ONE LIFTED CARD with the rows straight inside it: the night pass
+            reads the block below as the next sibling of the rows' parent and
+            counts it against the eight-row budget. */}
+        <Card>
           {rows.map((row, i) => (
             <SessionRow
               key={row.player.playerId}
               rank={i + 1}
               row={row}
               view={view}
+              last={i === rows.length - 1}
               onPress={() =>
                 router.push({ pathname: '/player', params: { id: row.player.playerId } })
               }
               onSpends={() => router.push('/deductions')}
             />
           ))}
-        </View>
+        </Card>
 
         {onTable ? (
           <ChipsBlock balance={balance} offTable={result.totalOffTable} />
@@ -303,8 +301,9 @@ export default function NightResults() {
            screen either way, and it drops its top rule only when there is
            already one directly above it. Two stacked bars would otherwise draw
            a double hairline between them. */
-        style={showsStep ? styles.stackedBar : styles.rounding}
+        style={showsStep ? [styles.rounding, styles.stackedBar] : styles.rounding}
       />
+      </View>
     </Screen>
   );
 }

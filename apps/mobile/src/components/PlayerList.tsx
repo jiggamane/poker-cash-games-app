@@ -1,11 +1,13 @@
-import type { ReactNode } from 'react';
+import { Children, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import type { Money } from '@poker-club/core';
 import { formatSignedToFit } from '../lib/money';
-import { Icon } from './Icon';
+import { Card, SectionLabel } from './Card';
+import { Icon, type IconName } from './Icon';
 import { moneyColor, useTheme } from '../design/useTheme';
-import { cappedFigure, radius, unscaledLabel } from '../design/tokens';
+import { z } from '../design/scale';
+import { cappedFigure } from '../design/tokens';
 
 /**
  * The mixed player list — `design/handoff-player-list/`, cut 3 September.
@@ -43,31 +45,63 @@ import { cappedFigure, radius, unscaledLabel } from '../design/tokens';
  * A SLAB IS 39 TALL AND A ROW IS 44, and that is deliberate rather than
  * incidental: 44 is the minimum hit target and nothing on a slab is a target.
  * The heights say which is which before a word is read.
+ *
+ * ⚠ THE FULL BOARD (`design/explorations/full-board/`, `count-up*`, approved
+ * 24 November) REDRAWS ALL OF THE ABOVE, and this file now draws the board.
+ * Each group is a section label over ONE LIFTED CARD, and every row
+ * in it — still to count or counted — is the settled night's two-line row
+ * (owner, 24 November: "apply the player list style we have"): the name, and
+ * under it the fact with its icon (chips in, chips out, cashed out). There is
+ * no slab and no chevron anywhere; what says a row is finished is the group it
+ * sits in and the signed result at its right, where a row still to count has
+ * an em dash and a pencil. Every row is 44 at least, so the tap target rule
+ * holds for the rows that open the keypad without a second height. The
+ * component names are kept (`FinishedSlab` is no longer a slab) so the one
+ * screen that uses them reads as it did.
  */
 
-/** A group header — `COUNTED · 3`. Name and count, and never more. */
+/** A group header — `COUNTED · 3` — over the card its rows sit in. */
 export function PlayerGroup({
   label,
   count,
-  first = false,
+  first: _first = false,
   children,
 }: {
   label: string;
   count: number;
-  /** No top padding above the first group on a screen. */
+  /** Kept for the callers; the column's own gap spaces the groups now. */
   first?: boolean;
   children: ReactNode;
 }) {
+  /* GROUPS NEVER DISAPPEAR: an empty one keeps its `· 0` label, and only the
+     card goes, since an empty lifted card is a box with nothing in it. */
+  const empty = Children.toArray(children).length === 0;
+  return (
+    <View style={styles.group}>
+      <SectionLabel text={`${label} · ${count}`} />
+      {!empty && <Card>{children}</Card>}
+    </View>
+  );
+}
+
+/**
+ * The fact under the name, with its icon — the settled night's second line.
+ * The icon says which kind of fact it is (chips in, chips out, cashed out) at
+ * the board's 13 and a little under the muted colour's strength.
+ */
+function Fact({ icon, fact }: { icon: IconName; fact: string }) {
   const t = useTheme();
   return (
-    <View>
-      <Text
-        style={[styles.label, first && styles.labelFirst, { color: t.muted }]}
-        {...unscaledLabel}
-      >
-        {`${label} · ${count}`}
+    <View style={styles.factLine}>
+      <View style={styles.factIcon}>
+        <Icon name={icon} color={t.muted} size={z(13)} />
+      </View>
+      {/* The fact gives before anything at the right does; on its own line it
+          has the row's width less the figure, which is more than the longest
+          `counted $2.4M` at 360 and 120% text needs. */}
+      <Text style={[styles.fact, { color: t.muted }]} numberOfLines={1} {...cappedFigure}>
+        {fact}
       </Text>
-      {children}
     </View>
   );
 }
@@ -75,13 +109,14 @@ export function PlayerGroup({
 /**
  * Somebody who still has chips.
  *
- * THE FACT SITS BESIDE THE NAME, never stacked under it. A two-line row is what
- * a settled row used to look like, and the two treatments have to be told apart
- * at a glance in a list that mixes them.
+ * TWO LINES since the full board (owner, 24 November): the name, and the fact
+ * under it. It used to sit beside the name so an active row and a slab could
+ * be told apart at a glance; the card and the em dash at the right do that now.
  */
 export function ActiveRow({
   name,
   fact,
+  icon = 'chipsIn',
   right,
   lead,
   avatar,
@@ -92,7 +127,9 @@ export function ActiveRow({
   name: string;
   /** What they have in — `in $1,500`, `in $1,000 · 2 buy-ins`. */
   fact: string;
-  /** The affordance: a pencil, a figure and a chevron, or a chevron alone. */
+  /** The fact's icon. Chips in, unless the screen says otherwise. */
+  icon?: IconName;
+  /** The affordance: a pencil, a figure, or an em dash and a pencil. */
   right?: ReactNode;
   /** A rank column's placeholder, where the screen has one. */
   lead?: ReactNode;
@@ -100,7 +137,7 @@ export function ActiveRow({
   avatar?: string;
   onPress?: () => void;
   accessibilityLabel?: string;
-  /** The list closes on the group below it rather than on a rule. */
+  /** The last row in its card draws no hairline under it. */
   last?: boolean;
 }) {
   const t = useTheme();
@@ -113,20 +150,17 @@ export function ActiveRow({
           <Text style={[styles.initial, { color: t.muted }]}>{avatar}</Text>
         </View>
       )}
-      <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
-        {name}
-      </Text>
-      <Text style={[styles.fact, { color: t.dim }]} numberOfLines={1}>
-        {fact}
-      </Text>
+      <View style={styles.words}>
+        <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
+          {name}
+        </Text>
+        <Fact icon={icon} fact={fact} />
+      </View>
       {right}
     </>
   );
 
-  const frame = [
-    styles.row,
-    { borderBottomColor: t.hairline, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth },
-  ];
+  const frame = [styles.row, !last && { borderBottomWidth: 1, borderBottomColor: t.hairline }];
 
   /* Not a Pressable when there is nothing to press. A disabled one still
      announces itself to a screen reader as a control that is unavailable, and
@@ -149,56 +183,51 @@ export function ActiveRow({
  * Somebody who is finished — counted, or gone.
  *
  * NOTHING ON IT IS TAPPABLE unless the screen asks, and `opens` is how it asks
- * — a prop passed by name on two rows in the whole app rather than a default
- * any list can fall into.
+ * — a prop passed by name rather than a default any list can fall into.
  *
  * THE HANDOFF SAYS NEVER, on the grounds that a finished row has nothing left
- * to open, and it is right about the rows it was drawn against: a ranked player
- * on E2b, a name in a picker that has already been picked, a stack whose figure
- * belongs to another screen. It was not drawn against THIS app's corrections.
- * The ledger is append-only, so a wrong figure is fixed by entering it again,
- * and two rows are the only door to the screen that does that:
+ * to open, and it is right about the rows it was drawn against. It was not
+ * drawn against THIS app's corrections. The ledger is append-only, so a wrong
+ * figure is fixed by entering it again, and a counted stack on E2 reopens the
+ * keypad it was typed on. Without it E5's `Fix` — the app's one recovery path
+ * — hands the host back to a screen with every row counted and nothing on it
+ * to change.
  *
- *   - **a counted stack on E2** reopens the keypad it was typed on. Without it
- *     E5's `Fix` — the app's one recovery path — hands the host back to a
- *     screen with every row counted and nothing on it to change.
- *   - **a cashed-out player on Tonight** reopens their card. `/player` is the
- *     only route to `/entry` anywhere, and the roster opens `/member`, the club
- *     record, not the night's card.
+ * The rule is A FIGURE IS FIXED WHERE IT WAS ENTERED, which is also why a
+ * cashed-out row on E2 does *not* open: that figure was typed on Tonight, and
+ * Tonight is where it is retyped. The row says which kind it is in its fact —
+ * `counted $960` against `cashed out 17:17`, each with its own icon.
  *
- * The rule the two share is A FIGURE IS FIXED WHERE IT WAS ENTERED, which is
- * also why a cashed-out row on E2 does *not* open: that figure was typed on
- * Tonight, and Tonight's slab is the one that reopens it. Since 6 September
- * those rows rank in E2's one finished group alongside the counted ones, so
- * that difference is carried by the row — the chevron, and the 44 below —
- * rather than by the heading it used to sit under.
- *
- * A SLAB THAT OPENS SOMETHING KEEPS THE CHEVRON AND GROWS TO 44. Both, or
- * neither: 39 is under the hit minimum precisely because nothing on a slab is a
- * target, and a tap area with no glyph over it is worse than the chevron the
- * rule was trying to remove. `docs/screens.md` carries both deviations and the
- * question they are waiting on.
+ * NO CHEVRON ON THE ONE THAT OPENS, since the full board: nothing in the look
+ * points (Fresh Deck, kept by the board). It was a chevron and a taller slab
+ * until 24 November; every row is 44 now, so the target rule holds without it.
  */
 export function FinishedSlab({
   name,
   fact,
+  icon,
   result,
   lead,
   fits,
   opens,
   accessibilityLabel,
+  last = false,
 }: {
   name: string;
-  /** Whatever finished them — `counted $960`, `23:15`, `23:15 · out $2,120`. */
+  /** Whatever finished them — `counted $960`, `cashed out 23:15`. */
   fact: string;
+  /** The fact's icon. Read off the fact when left out: cashed out, or chips out. */
+  icon?: IconName;
   result: Money;
   /** A rank numeral, where the screen ranks them. */
   lead?: ReactNode;
   /** Where the figure starts abbreviating, from the screen's own measurement. */
   fits: number;
-  /** Two rows in the app — see above. Brings a chevron and the 44 with it. */
+  /** Reopens where the figure was entered — see above. */
   opens?: () => void;
   accessibilityLabel?: string;
+  /** The last row in its card draws no hairline under it. */
+  last?: boolean;
 }) {
   const t = useTheme();
 
@@ -207,15 +236,14 @@ export function FinishedSlab({
       {lead}
       {/* THE NAME IS IN FULL TEXT COLOUR, NOT MUTED — owner, 17 November, on
           E2 Count up and then on Tonight. Once a night is mostly or wholly
-          finished the list is all slabs, and a column of muted names left
-          nothing on it to read by. The group heading and the slab's surface
-          still say these players are finished; the fact stays dim. */}
-      <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
-        {name}
-      </Text>
-      <Text style={[styles.fact, { color: t.dim }]} numberOfLines={1}>
-        {fact}
-      </Text>
+          finished the list is all finished rows, and a column of muted names
+          left nothing on it to read by. */}
+      <View style={styles.words}>
+        <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
+          {name}
+        </Text>
+        <Fact icon={icon ?? (fact.startsWith('cashed') ? 'cashOut' : 'chipsOut')} fact={fact} />
+      </View>
       {/* Never shrinks: the name and the fact may give, a figure may not — B16
           is a result that came apart across two lines on a list like this. */}
       <Text
@@ -225,24 +253,19 @@ export function FinishedSlab({
       >
         {formatSignedToFit(result, fits)}
       </Text>
-      {opens !== undefined && <Icon name="chevron" color={t.muted} />}
     </>
   );
 
-  if (opens === undefined) {
-    return <View style={[styles.slab, { backgroundColor: t.surface, boxShadow: t.lift }]}>{body}</View>;
-  }
+  const frame = [styles.row, !last && { borderBottomWidth: 1, borderBottomColor: t.hairline }];
+
+  if (opens === undefined) return <View style={frame}>{body}</View>;
 
   return (
     <Pressable
       accessibilityRole="button"
       {...(accessibilityLabel === undefined ? {} : { accessibilityLabel })}
       onPress={opens}
-      style={({ pressed }) => [
-        styles.slab,
-        styles.slabOpens,
-        { backgroundColor: t.surface, boxShadow: t.lift, opacity: pressed ? 0.6 : 1 },
-      ]}
+      style={({ pressed }) => [...frame, { opacity: pressed ? 0.6 : 1 }]}
     >
       {body}
     </Pressable>
@@ -260,62 +283,41 @@ export function Rank({ n }: { n?: number }) {
 }
 
 const styles = StyleSheet.create({
-  /* `10 0 4`, and nothing above the first group on the screen. */
-  label: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.1,
-    textTransform: 'uppercase',
-    paddingTop: 10,
-    paddingBottom: 4,
-  },
-  labelFirst: { paddingTop: 0 },
+  /* The label and its card, the board's 12 apart. */
+  group: { gap: z(12) },
 
-  /* `10 0`, 44 tall, a hairline under each row. */
+  /* The kit's `.row`: 44 at least, `8 0`, a hairline under every row but the last. */
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
-    paddingVertical: 10,
-    minHeight: 44,
+    gap: z(10),
+    paddingVertical: z(8),
+    minHeight: z(44),
   },
 
   /*
-   * `8 14`, radius 8, 5 between slabs, 39 tall — under the 44 minimum on
-   * purpose, because nothing on a slab is a hit target.
+   * THE WORDS ARE THE ONLY THING ON THE ROW THAT GIVES, and that is the same
+   * order of priority every list here states: a figure may not ellipsise, a
+   * name may. A truncated name is legible; a truncated stack is a different
+   * number.
    */
-  slab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    marginBottom: 5,
-    minHeight: 39,
-    borderRadius: radius.pressable,
-  },
-  /* The one slab that is a target takes the target's height. See `opens`. */
-  slabOpens: { minHeight: 44 },
-
-  /*
-   * THE NAME IS THE ONLY THING ON THE ROW THAT GIVES, and that is the same
-   * order of priority `ledger.tsx` states for its columns: a figure may not
-   * ellipsise, a name may. Both used to shrink, which meant a long fact took
-   * its shortfall out of the fact — `counted $12,880` came to 116 points in a
-   * 109-point box at 120% text and lost its last digit, on the screen whose
-   * job is stacks. A truncated name is legible; a truncated stack is a
-   * different number.
-   */
-  name: { fontSize: 17, fontWeight: '700', flexShrink: 1, minWidth: 0 },
-  fact: { fontSize: 13, fontWeight: '400', flexShrink: 0 },
+  words: { flex: 1, minWidth: 0 },
+  name: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6) },
+  /* The board's `who()`: 4 under the name, the icon 4 from the words. */
+  factLine: { flexDirection: 'row', alignItems: 'center', gap: z(4), marginTop: z(4) },
+  factIcon: { opacity: 0.8 },
+  fact: { fontSize: z(12), fontWeight: '400', lineHeight: z(15), flexShrink: 1 },
   result: {
     marginLeft: 'auto',
     flexShrink: 0,
-    fontSize: 19,
+    fontFamily: 'head',
+    fontSize: z(16.5),
     fontWeight: '700',
+    lineHeight: z(18.2),
     fontVariant: ['tabular-nums'],
+    textAlign: 'right',
   },
   rank: { width: 16, fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  avatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  initial: { fontSize: 15, fontWeight: '700' },
+  avatar: { width: z(36), height: z(36), borderRadius: z(18), alignItems: 'center', justifyContent: 'center' },
+  initial: { fontSize: z(15), fontWeight: '700' },
 });

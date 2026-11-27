@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import {
@@ -24,7 +25,8 @@ import {
 import { Dropdown } from './Dropdown';
 import { Icon, type IconName } from './Icon';
 import { moneyColor, useTheme } from '../design/useTheme';
-import { cappedFigure, radius, space, tabular, unscaledLabel, type Theme } from '../design/tokens';
+import { T, z } from '../design/scale';
+import { cappedFigure, tabular, type Theme } from '../design/tokens';
 
 /**
  * THE PAST SESSION — `design/handoff-session-views/Artboards - Session Views.dc.html`,
@@ -56,17 +58,22 @@ import { cappedFigure, radius, space, tabular, unscaledLabel, type Theme } from 
  * WHAT CHANGED FROM THE SCREEN THIS REPLACES, and each one is a decision rather
  * than a restyle:
  *
- *   · NO RULES BETWEEN ROWS AND NO CHEVRONS. Row separation is the 60-point row
- *     height alone. The handoff is explicit: *"an earlier version fenced every
+ *   · NO CHEVRONS. The handoff is explicit: *"an earlier version fenced every
  *     row and read as noise"* — and that earlier version was ours.
- *   · A RANK NUMBER opens every row, 15 wide and dim, so the list reads as a
- *     ranking without the figures having to carry that job as well.
- *   · THE NAME IS 17/400, NOT 16/600. Only two things on a row are at full
- *     brightness — the name and the right-hand figure — and everything else is
- *     annotation. Weight is what separates the two lines, not colour.
- *   · A WARMER BONE. `annotation` (`#8C8578`) rather than `offTable`
- *     (`#D9D3C4`), so the annotation line sits clearly UNDER the name in the
- *     reading order. See the note on the token.
+ *
+ * ⚠ AND THE FULL BOARD REDREW ALL OF IT IN THE APPROVED LOOK (`settled`,
+ * `settled-grouped`, `settled-on-table`, `settled-view-menu` in
+ * `design/explorations/full-board/`, approved 22–23 November), which wins over
+ * the session-views cut on LOOK and leaves its behaviour alone:
+ *
+ *   · THE LIST IS ONE LIFTED CARD of the kit's rows — name over its working at
+ *     the left, the net over the evening's terms at the right — with the kit's
+ *     hairline between rows. The rank number and the 60-point unfenced row are
+ *     gone with the drawing that had them; the order is still the ranking.
+ *   · EVERY ANNOTATION IS THE KIT'S MUTED, the bone `annotation` tokens off this
+ *     screen, and the itemised spends sit in the kit's `terms` pill (`raised`).
+ *   · THE BLOCKS UNDER THE LIST are a quiet section label with lines under it,
+ *     the label carrying the block's total at its right end.
  *
  * NOTHING HERE ADDS ANYTHING UP. Every figure is a `SettledTerm` or a
  * `SettledRow.net` off the engine, the deduction rows are `ruleOutcomes()`, and
@@ -84,25 +91,34 @@ const SPEND_GLYPH: Record<RuleDestination, IconName | null> = {
 };
 
 /**
- * ONE PLAYER'S FINISHED NIGHT — 60 points, two lines, and the top one is the
- * same in all three views.
+ * ONE PLAYER'S FINISHED NIGHT — a kit row in the list's card, two lines, and
+ * the top one is the same in all three views.
  *
- * `row` is the engine's. `view` decides only what goes on the right of the
- * annotation line, and the caller has already asked `settledRows` for the mode
- * that matches — so a row cannot print `On table`'s figure over `Final`'s
- * terms.
+ * `row` is the engine's. `view` decides only what goes on the annotation line,
+ * and the caller has already asked `settledRows` for the mode that matches — so
+ * a row cannot print `On table`'s figure over `Final`'s terms.
+ *
+ * ⚠ TWO LINES, NOT TWO COLUMNS, though the board draws name-over-meta beside
+ * net-over-terms. The night pass (`ui-journeys.mjs`) reads the annotation line
+ * as the row's LAST CHILD and its pairs as that line's children; the two lines
+ * draw the same picture, left and right, and keep that structure.
  */
 export function SessionRow({
-  rank,
   row,
   view,
   onPress,
   onSpends,
+  last = false,
 }: {
-  /** 1-based, and the list's own order rather than anything computed here. */
+  /**
+   * 1-based, the list's own order. Kept for the callers; since the full board
+   * the row draws no rank number — the list's position is the ranking.
+   */
   rank: number;
   row: SettledRow;
   view: SessionView;
+  /** The last row in its card drops the hairline under it. */
+  last?: boolean;
   /** Opens that player's detail — the handoff's row tap. */
   onPress?: () => void;
   /** The tinted group's own tap, which opens the deductions instead. */
@@ -134,9 +150,6 @@ export function SessionRow({
       {/* THE RANK LINE. Unchanged across all three views — that is the rule the
           whole control rests on, so nothing about it may read `view`. */}
       <View style={styles.rankLine}>
-        <Text style={[styles.rank, tabular, { color: t.dim }]} {...unscaledLabel}>
-          {rank}
-        </Text>
         <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
           {row.player.name}
         </Text>
@@ -154,20 +167,21 @@ export function SessionRow({
         </Text>
       </View>
 
-      {/* THE ANNOTATION LINE. Indented 29 so it starts under the name rather
-          than under the rank, which is what makes the rank read as a column. */}
+      {/* THE ANNOTATION LINE. The working at its left, under the name — the
+          kit's row `meta` — and the evening at its right, under the net — the
+          row's `under`. */}
       <View style={styles.annotation}>
         {asGame && <GameTerm amount={row.atTheTable} theme={t} />}
 
         {chips.map((term) => (
-          <SpendPair key={termKey(term)} term={term} theme={t} size={13} figure={12.5} />
+          <SpendPair key={termKey(term)} term={term} theme={t} size={z(12)} figure={z(12)} />
         ))}
 
         {view === 'onTable' ? (
           /* NO SPEND MARKS IN THIS VIEW, and the words say why rather than the
              absence having to. Spends do not exist here — the figure on the
              right is the poker result and nothing has been taken off it. */
-          <Text style={[styles.before, { color: t.annotation }]} numberOfLines={1}>
+          <Text style={[styles.before, { color: t.muted }]} numberOfLines={1}>
             before spends
           </Text>
         ) : spends.length === 0 ? null : view === 'finalDetailed' ? (
@@ -179,9 +193,12 @@ export function SessionRow({
     </>
   );
 
+  /* The kit's row: a hairline under every row but the card's last. */
+  const rowStyle = [styles.row, !last && { borderBottomWidth: 1, borderBottomColor: t.hairline }];
+
   if (onPress === undefined) {
     return (
-      <View testID="session-row" style={styles.row}>
+      <View testID="session-row" style={rowStyle}>
         {body}
       </View>
     );
@@ -193,7 +210,7 @@ export function SessionRow({
       accessibilityRole="button"
       accessibilityLabel={`${row.player.name}, ${formatSignedToFit(row.net, ROW_FITS)}`}
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+      style={({ pressed }) => [rowStyle, pressed && styles.pressed]}
     >
       {body}
     </Pressable>
@@ -236,7 +253,7 @@ function GameTerm({ amount, theme: t }: { amount: Money; theme: Theme }) {
   return (
     <Text
       testID="session-game"
-      style={[styles.pairFigure, tabular, { color: t.annotation, fontSize: 12.5 }]}
+      style={[styles.pairFigure, tabular, { color: t.muted, fontSize: z(12) }]}
       numberOfLines={1}
       {...cappedFigure}
     >
@@ -246,8 +263,8 @@ function GameTerm({ amount, theme: t }: { amount: Money; theme: Theme }) {
 }
 
 /**
- * `10a` — every spend the player incurred, each with its own figure, inside a
- * tinted group.
+ * `10a` — every spend the player incurred, each with its own figure, inside the
+ * kit's `terms` pill (the full board's `settled`: `raised`, radius 7).
  *
  * THE GROUP IS ONE TAP TARGET and it opens the deductions screen. It is the
  * only thing on the row that does not open the player, because the deductions
@@ -273,11 +290,11 @@ function Itemised({
       term={spend}
       {...(back === undefined ? {} : { back })}
       theme={t}
-      size={12}
-      figure={12}
+      size={z(12)}
+      figure={z(11)}
     />
   ));
-  const style = [styles.group, { backgroundColor: t.annotationTint }];
+  const style = [styles.group, { backgroundColor: t.raised }];
 
   if (onSpends === undefined) {
     return (
@@ -300,8 +317,9 @@ function Itemised({
 }
 
 /**
- * `10b` — the same marks with no individual figures, then one bone figure: what
- * the evening cost that player.
+ * `10b` — the same marks with no individual figures, then one figure: what the
+ * evening cost that player. Muted, like the rest of the line (the full board's
+ * `settled-grouped`).
  *
  * Five figures on a row instead of seven, which is the whole of the trade. The
  * marks stay because WHICH things a person paid for is the half of it a figure
@@ -317,9 +335,9 @@ function Grouped({ spends, theme: t }: { spends: readonly SettledTerm[]; theme: 
            and it is inside the total beside them. */
         .filter((g) => g.term.kind === 'spend')
         .map((g) => (
-          <Icon key={termKey(g.term)} name={g.glyph} color={t.annotationStroke} size={13} />
+          <Icon key={termKey(g.term)} name={g.glyph} color={t.muted} size={z(12)} />
         ))}
-      <Text style={[styles.groupedTotal, tabular, { color: t.annotation }]} {...cappedFigure}>
+      <Text style={[styles.groupedTotal, tabular, { color: t.muted }]} {...cappedFigure}>
         {/* UNMARKED. It is the itemised view's three figures rolled into one and
             it sits on the same line they do — a sub-total inside the working, not
             the answer the working comes to. */}
@@ -332,8 +350,8 @@ function Grouped({ spends, theme: t }: { spends: readonly SettledTerm[]; theme: 
 /**
  * A GLYPH AND ITS FIGURE, 4 apart — the atom every annotation line is made of.
  *
- * The stroke is `annotationStroke` and the figure is `annotation`: one step
- * apart, both under the name. Nothing on this line is ever green or red.
+ * Both in the kit's muted (the full board), under the name and under the net.
+ * Nothing on this line is ever green or red.
  */
 function SpendPair({
   term,
@@ -347,12 +365,12 @@ function SpendPair({
    * A bill that was FRONTED carries two figures behind one mark —
    * `−$31 +$120`. Two forks side by side read as two bills, and a line break
    * between them reads as a fourth deduction; both are the same fact about one
-   * bill, so they share its glyph. Both are `annotation`: the sign is what says
+   * bill, so they share its glyph. Both are muted: the sign is what says
    * which way the money went, which is why every figure on this line is signed.
    */
   back?: SettledTerm;
   theme: Theme;
-  /** 13 on the open line, 12 inside the tinted group. */
+  /** The glyph and the figure, already through `z()`: 12/12 on the open line, 12/11 in the pill. */
   size: number;
   figure: number;
 }) {
@@ -368,14 +386,14 @@ function SpendPair({
        * already uses on a formula line. Flagged, not passed off as design.
        */}
       {glyph === null ? (
-        <Text style={[styles.word, { color: t.annotation, fontSize: figure }]} numberOfLines={1}>
+        <Text style={[styles.word, { color: t.muted, fontSize: figure }]} numberOfLines={1}>
           {wordFor(term)}
         </Text>
       ) : (
-        <Icon name={glyph} color={t.annotationStroke} size={size} />
+        <Icon name={glyph} color={t.muted} size={size} />
       )}
       <Text
-        style={[styles.pairFigure, tabular, { color: t.annotation, fontSize: figure }]}
+        style={[styles.pairFigure, tabular, { color: t.muted, fontSize: figure }]}
         numberOfLines={1}
         {...cappedFigure}
       >
@@ -383,7 +401,7 @@ function SpendPair({
       </Text>
       {back !== undefined && (
         <Text
-          style={[styles.pairFigure, tabular, { color: t.annotation, fontSize: figure }]}
+          style={[styles.pairFigure, tabular, { color: t.muted, fontSize: figure }]}
           numberOfLines={1}
           {...cappedFigure}
         >
@@ -473,39 +491,49 @@ export { MENU_DIM } from './Dropdown';
 /**
  * THE BLOCK UNDER THE TABLE — `DEDUCTIONS` on both Final views.
  *
- * One row per rule that took something: its glyph, its own name, who fronted it
+ * One line per rule that took something: its glyph, its own name, who fronted it
  * or who is holding it, and what it took. It is the half of the night a figure
  * on a row cannot state, which is why the tinted group opens it in full.
+ *
+ * THE FULL BOARD'S BLOCK (`settled`, `settled-grouped`): a quiet section label
+ * with the total at its right end, and the lines under it on the sheet — not a
+ * card, because it is the list's footnote rather than a group of its own.
+ *
+ * ⚠ ONE ROOT VIEW, LABEL AND LINES TOGETHER. The night pass measures this block
+ * as the list card's next sibling and counts its whole height against the
+ * eight-row budget; a label drawn as a sibling of its own would fall out of it.
  */
 export function DeductionsBlock({ outcomes, total }: { outcomes: RuleOutcome[]; total: Money }) {
   const t = useTheme();
   if (outcomes.length === 0) return null;
 
   return (
-    <View style={[styles.block, { borderTopColor: t.hairline }]}>
-      <View style={styles.blockHead}>
-        <Text style={[styles.blockLabel, { color: t.muted }]} {...unscaledLabel}>
-          Deductions
-        </Text>
-        <Text style={[styles.blockTotal, tabular, { color: t.offTable }]} {...cappedFigure}>
-          {formatToFit(total, ROW_FITS)}
-        </Text>
-      </View>
+    <View style={styles.block}>
+      <BlockLabel
+        text="Deductions"
+        right={
+          <Text style={[styles.blockTotal, tabular, { color: t.text }]} {...cappedFigure}>
+            {formatToFit(total, ROW_FITS)}
+          </Text>
+        }
+      />
 
-      {outcomes.map((o) => (
-        <View key={o.ruleId} style={styles.blockRow}>
-          <Glyph destination={o.destination} theme={t} />
-          <Text style={[styles.blockName, { color: t.offTable }]} numberOfLines={1}>
-            {o.name}
-          </Text>
-          <Text style={[styles.blockHolder, { color: t.annotation }]} numberOfLines={1}>
-            {holder(o)}
-          </Text>
-          <Text style={[styles.blockAmount, tabular, { color: t.offTable }]} {...cappedFigure}>
-            {formatToFit(o.total, ROW_FITS)}
-          </Text>
-        </View>
-      ))}
+      <View style={styles.blockLines}>
+        {outcomes.map((o) => (
+          <View key={o.ruleId} style={styles.blockRow}>
+            <Glyph destination={o.destination} theme={t} />
+            <Text style={[styles.blockName, { color: t.text }]} numberOfLines={1}>
+              {o.name}
+            </Text>
+            <Text style={[styles.blockHolder, { color: t.muted }]} numberOfLines={1}>
+              {holder(o)}
+            </Text>
+            <Text style={[styles.blockAmount, tabular, { color: t.text }]} {...cappedFigure}>
+              {formatToFit(o.total, ROW_FITS)}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -518,47 +546,52 @@ export function DeductionsBlock({ outcomes, total }: { outcomes: RuleOutcome[]; 
  * sums to nothing — and this states the two sides that produced the zero rather
  * than only the zero, because a bare `$0` is not checkable against anything.
  * Every figure and every count is `balanceCheck()`'s.
+ *
+ * The full board's `settled-on-table`: the same quiet label and lines as the
+ * deductions, the verdict at the label's right end, the footnote under it.
  */
 export function ChipsBlock({ balance, offTable }: { balance: BalanceCheck; offTable: Money }) {
   const t = useTheme();
   const people = balance.countedPlayers + balance.cashedOutPlayers;
 
   return (
-    <View style={[styles.block, { borderTopColor: t.hairline }]}>
-      <View style={styles.blockHead}>
-        <Text style={[styles.blockLabel, { color: t.muted }]} {...unscaledLabel}>
-          Chips
-        </Text>
-        {/*
-         * ⚠ THE WORD IS THE ENGINE'S VERDICT, NOT THE SCREEN'S. `state` is
-         * `balanceCheck`'s own, and a night that did not come out right says so
-         * here rather than printing `balanced` over a hole.
-         */}
-        <Text style={[styles.blockTotal, { color: t.offTable }]}>
-          {balance.state === 'balanced' ? 'balanced' : balance.state}
-        </Text>
-      </View>
+    <View style={styles.block}>
+      <BlockLabel
+        text="Chips"
+        right={
+          /*
+           * ⚠ THE WORD IS THE ENGINE'S VERDICT, NOT THE SCREEN'S. `state` is
+           * `balanceCheck`'s own, and a night that did not come out right says so
+           * here rather than printing `balanced` over a hole.
+           */
+          <Text style={[styles.blockTotal, { color: t.text }]}>
+            {balance.state === 'balanced' ? 'balanced' : balance.state}
+          </Text>
+        }
+      />
 
-      <View style={styles.blockRow}>
-        <Icon name="chipsIn" color={t.annotationStroke} size={13} />
-        <Text style={[styles.blockName, { color: t.offTable }]}>In</Text>
-        <Text style={[styles.blockHolder, { color: t.annotation }]} numberOfLines={1}>
-          {`${balance.entries} ${balance.entries === 1 ? 'buy-in' : 'buy-ins'}`}
-        </Text>
-        <Text style={[styles.blockAmount, tabular, { color: t.offTable }]} {...cappedFigure}>
-          {formatToFit(balance.boughtIn, ROW_FITS)}
-        </Text>
-      </View>
+      <View style={styles.blockLines}>
+        <View style={styles.blockRow}>
+          <Icon name="chipsIn" color={t.muted} size={z(14)} />
+          <Text style={[styles.blockName, { color: t.text }]}>In</Text>
+          <Text style={[styles.blockHolder, { color: t.muted }]} numberOfLines={1}>
+            {`${balance.entries} ${balance.entries === 1 ? 'buy-in' : 'buy-ins'}`}
+          </Text>
+          <Text style={[styles.blockAmount, tabular, { color: t.text }]} {...cappedFigure}>
+            {formatToFit(balance.boughtIn, ROW_FITS)}
+          </Text>
+        </View>
 
-      <View style={styles.blockRow}>
-        <Icon name="chipsOut" color={t.annotationStroke} size={13} />
-        <Text style={[styles.blockName, { color: t.offTable }]}>Out</Text>
-        <Text style={[styles.blockHolder, { color: t.annotation }]} numberOfLines={1}>
-          {`${people} counted`}
-        </Text>
-        <Text style={[styles.blockAmount, tabular, { color: t.offTable }]} {...cappedFigure}>
-          {formatToFit(balance.accountedFor, ROW_FITS)}
-        </Text>
+        <View style={styles.blockRow}>
+          <Icon name="chipsOut" color={t.muted} size={z(14)} />
+          <Text style={[styles.blockName, { color: t.text }]}>Out</Text>
+          <Text style={[styles.blockHolder, { color: t.muted }]} numberOfLines={1}>
+            {`${people} counted`}
+          </Text>
+          <Text style={[styles.blockAmount, tabular, { color: t.text }]} {...cappedFigure}>
+            {formatToFit(balance.accountedFor, ROW_FITS)}
+          </Text>
+        </View>
       </View>
 
       {/* Drawn only where there IS something not applied — a night with no rule
@@ -572,19 +605,43 @@ export function ChipsBlock({ balance, offTable }: { balance: BalanceCheck; offTa
   );
 }
 
-/** A block row's mark, at the same optical size as the annotation line's. */
+/**
+ * The kit's quiet section label, with a figure or a word at its right end.
+ *
+ * NOT `Card.tsx`'s `SectionLabel`, which upper-cases the string itself: the
+ * night pass finds these two blocks by their words (`Deductions`, `Chips`), so
+ * the words stay as written and the stylesheet does the capitals, as it always
+ * has on this block.
+ */
+function BlockLabel({ text, right }: { text: string; right: ReactNode }) {
+  const t = useTheme();
+  return (
+    <View style={styles.blockHead}>
+      <Text style={[T.lookLabel, styles.blockLabel, { color: t.muted }]}>{text}</Text>
+      {right}
+    </View>
+  );
+}
+
+/** A block row's mark, a step larger than the annotation line's (the board's 14). */
 function Glyph({ destination, theme: t }: { destination: RuleDestination; theme: Theme }) {
   const name = SPEND_GLYPH[destination];
   if (name === null) return <View style={styles.noGlyph} />;
-  return <Icon name={name} color={t.annotationStroke} size={13} />;
+  return <Icon name={name} color={t.muted} size={z(14)} />;
 }
 
 /**
- * `Dana fronted`, `held by the group`.
+ * `Lena, Andro`, `held by the group`.
  *
  * A BILL NAMES THE PEOPLE, because somebody is owed for it and this row is
  * where that is said. Every other kind names nobody in particular: the take
  * goes to a collector holding it on the room's behalf.
+ *
+ * ⚠ THE NAMES AND NOTHING ELSE — the owner, 23 November, on the full board
+ * (`settled-grouped`, "a shorter format"): `Lena and Andro fronted` became
+ * `Lena, Andro`. The line sits in the muted ink beside the bill's own name, so
+ * the verb was saying what the place already does. More than two run on with
+ * commas and the line ellipsises like every other holder.
  *
  * ⚠ THE HANDOFF WRITES `jar collects` AND THIS DOES NOT. `Piggy bank, never
  * Kitty` has been the app's rule since the money rules were written and
@@ -597,9 +654,7 @@ function holder(o: RuleOutcome): string {
 
   const names = o.paidTo.filter((c) => c.amount !== 0).map((c) => c.name);
   if (names.length === 0) return 'nobody fronted it';
-  if (names.length === 1) return `${names[0]} fronted`;
-  if (names.length === 2) return `${names[0]} and ${names[1]} fronted`;
-  return `${names[0]} and ${names.length - 1} others fronted`;
+  return names.join(', ');
 }
 
 /** Which mark a term is, and null where the handoff drew none. */
@@ -666,37 +721,43 @@ const termKey = (term: SettledTerm): string =>
 
 const styles = StyleSheet.create({
   /*
-   * 60 POINTS, TWO LINES, 5 APART — and NO hairline and NO chevron. The list's
-   * separation is the row height alone, which is the handoff's central point:
-   * *"an earlier version fenced every row and read as noise"*.
+   * THE KIT'S ROW — `min-height 44`, `8px 0`, a hairline under it (drawn by the
+   * row, not here, since the card's last row has none) — with its two lines 3
+   * apart. NO chevron: nothing points.
    *
    * `minHeight` rather than `height`, so the row grows with the reader's text
-   * setting rather than clipping a name at 120%. At the drawn sizes it is
-   * exactly 60 and eight rows are exactly 480.
+   * setting rather than clipping a name at 120%. At the drawn sizes it is about
+   * 56 of the board's points, which is the eight-row budget the night pass
+   * holds this list to (`ui-journeys.mjs`, "room for an eight-handed night").
    */
-  row: { minHeight: 60, justifyContent: 'center', gap: 5 },
+  row: { minHeight: z(44), paddingVertical: z(8), justifyContent: 'center', gap: z(3) },
   pressed: { opacity: 0.6 },
 
-  rankLine: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  /* Fixed 15 wide so the names line up whatever the rank is. */
-  rank: { width: 15, fontSize: 13, fontWeight: '400', lineHeight: 20 },
-  name: { fontSize: 17, fontWeight: '400', lineHeight: 20, flexShrink: 1 },
+  rankLine: { flexDirection: 'row', alignItems: 'center', gap: z(10) },
+  /* The kit's row name, 600 15.5/1.2. */
+  name: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6), flexShrink: 1 },
   /*
    * NEVER SHRINKS. The name may give — it is a word — and a figure may not:
    * left to shrink, "−$12,000" came apart into a dash on one line and an amount
-   * on the next, which reads as two things. See B18.
+   * on the next, which reads as two things. See B18. The kit's row figure,
+   * 700 16.5/1.1 in the figure face.
    */
-  figure: { marginLeft: 'auto', flexShrink: 0, fontSize: 17, fontWeight: '600', lineHeight: 20 },
+  figure: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontFamily: 'head',
+    fontSize: z(16.5),
+    fontWeight: '700',
+    lineHeight: z(18.2),
+  },
 
   /*
-   * 29 = the rank's 15 plus its 14 gap, so this starts under the name.
-   *
-   * IT WRAPS RATHER THAN RUNNING PAST THE MARGIN. The handoff draws every
+   * IT WRAPS RATHER THAN RUNNING PAST THE MARGIN. The board draws every
    * annotation on one line and at its own figures it is — but a night in the
-   * hundreds of thousands puts `−$117,600` in the tinted group, and pushed
-   * right by `marginLeft: auto` that ran off the page rather than folding. A
-   * wrapped pair is still a whole pair; a pair with its figure past the edge is
-   * a figure nobody can read. `ui-journeys.mjs` plays the night at three scales
+   * hundreds of thousands puts `−$117,600` in the pill, and pushed right by
+   * `marginLeft: auto` that ran off the page rather than folding. A wrapped
+   * pair is still a whole pair; a pair with its figure past the edge is a
+   * figure nobody can read. `ui-journeys.mjs` plays the night at three scales
    * and this is the one that found it.
    *
    * The row is `minHeight` for the same reason, so a wrapped line grows the row
@@ -706,65 +767,73 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    columnGap: 10,
-    rowGap: 4,
-    paddingLeft: 29,
+    columnGap: z(10),
+    rowGap: z(4),
   },
-  pair: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  pairFigure: { fontWeight: '400', lineHeight: 16 },
-  word: { fontWeight: '400', lineHeight: 16 },
-  before: { marginLeft: 'auto', fontSize: 12, fontWeight: '400', lineHeight: 16 },
+  pair: { flexDirection: 'row', alignItems: 'center', gap: z(4) },
+  /* Every money figure in the figure face (round eight). */
+  pairFigure: { fontFamily: 'head', fontWeight: '400', lineHeight: z(15) },
+  word: { fontWeight: '400', lineHeight: z(15) },
+  /* The kit's `.a small`: 500 11.5. */
+  before: { marginLeft: 'auto', fontSize: z(11.5), fontWeight: '500', lineHeight: z(14) },
 
-  /* The tinted group: `3px 9px` at radius 8, 9 between its pairs. */
+  /* The kit's `terms`: `4px 7px` at radius 7, 5 between its pairs. */
   group: {
     marginLeft: 'auto',
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: 9,
-    paddingVertical: 3,
-    paddingHorizontal: 9,
-    borderRadius: radius.pressable,
+    gap: z(5),
+    paddingVertical: z(4),
+    paddingHorizontal: z(7),
+    borderRadius: z(7),
   },
-  grouped: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 7 },
-  groupedTotal: { fontSize: 12.5, fontWeight: '400', lineHeight: 16 },
+  grouped: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: z(5) },
+  groupedTotal: { fontFamily: 'head', fontSize: z(11.5), fontWeight: '500', lineHeight: z(14) },
 
-  /* The control lives in the meta line and the menu hangs off it, so this is
-     the positioned parent and nothing above it needs to know. */
   /* The control and its menu are `Dropdown`'s — see `ViewControl` above. Their
      geometry lived here until 9 September, when a second screen wanted the same
      object and a third one wanted it twice. */
 
-
-  /* `10px 22px 0`, a hairline above, 12 of padding under it, 8 between rows. */
-  block: {
-    marginHorizontal: space.page,
-    marginTop: 10,
-    paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: 8,
+  /*
+   * THE BLOCK: a quiet label, then its lines 6 apart (the board's `block()`),
+   * 2 in from the card's edge like the label. The 12 between the label and the
+   * lines is the board's body gap, less the 4 the label pulls up under itself.
+   */
+  block: { gap: z(12) },
+  blockHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: z(8),
+    marginHorizontal: z(2),
+    marginTop: z(4),
+    marginBottom: z(-4),
   },
-  blockHead: { flexDirection: 'row', alignItems: 'baseline' },
-  blockLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.43, textTransform: 'uppercase' },
-  blockTotal: { marginLeft: 'auto', fontSize: 13, fontWeight: '600' },
-  blockRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  blockName: { fontSize: 13, fontWeight: '400', flexShrink: 1 },
-  blockHolder: { fontSize: 13, fontWeight: '400', flexShrink: 1 },
-  blockAmount: { marginLeft: 'auto', flexShrink: 0, fontSize: 13, fontWeight: '400' },
-  noGlyph: { width: 13 },
-  footnote: { fontSize: 12, fontWeight: '400', lineHeight: 17.4 },
+  blockLabel: { textTransform: 'uppercase' },
+  /* The label's right end: the kit's `.lbl .r`, 700 13 in the figure face. */
+  blockTotal: { marginLeft: 'auto', fontFamily: 'head', fontSize: z(13), fontWeight: '700' },
+  blockLines: { gap: z(6), marginHorizontal: z(2) },
+  blockRow: { flexDirection: 'row', alignItems: 'center', gap: z(8) },
+  blockName: { fontSize: z(12.5), fontWeight: '400', flexShrink: 1 },
+  /* The holder takes what is left and gives first: `Lena, Andro` ellipsises. */
+  blockHolder: { flex: 1, minWidth: 0, fontSize: z(12.5), fontWeight: '400' },
+  blockAmount: { flexShrink: 0, fontFamily: 'head', fontSize: z(12.5), fontWeight: '700' },
+  noGlyph: { width: z(14) },
+  /* The kit's `note`: 13/1.45, muted. */
+  footnote: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
 });
 
 /*
  * WHERE A FIGURE ON THIS SCREEN RUNS OUT, measured at 360 — the narrowest phone
- * in the device matrix.
+ * in the device matrix, where `z()` is about 1.15.
  *
- * The right-hand figure is 17/600 and never shrinks; "−$999,999" is about 88
- * points there, which leaves more than any name needs beside a 15-point rank.
- * Seven digits fit and eight do not, so a million is where a result stops
- * printing in full and `formatSignedToFit` drops to the compact form — which
- * the handoff forbids on this screen, so it is the point at which a night is
- * bigger than the layout rather than a point at which the layout is wrong.
+ * The right-hand figure is the kit's 16.5/700 and never shrinks; "−$999,999" is
+ * about 100 points there, inside a card row about 290 wide, which leaves more
+ * than any name needs. Seven digits fit and eight do not, so a million is where
+ * a result stops printing in full and `formatSignedToFit` drops to the compact
+ * form — which the handoff forbids on this screen, so it is the point at which a
+ * night is bigger than the layout rather than a point at which the layout is
+ * wrong.
  *
  * THE ANNOTATION LINE IS WHAT RUNS OUT FIRST, and it is allowed to: it wraps,
  * and a wrapped pair is still a whole pair. `cappedFigure` holds the phone's
