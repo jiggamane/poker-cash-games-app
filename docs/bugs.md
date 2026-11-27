@@ -139,6 +139,21 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B114 — the home tile reads "Poker to…"
+
+```
+Screen      / (club home), the fourth tile of the grid
+Seen        "Poker to…" on a phone with its text turned up — the name grew
+            with the system size, the fixed tile did not (6% to spare at 360,
+            20% at 393, at 100%)
+Expected    "Poker tools", whole, at every text size and width
+Found       27 Nov, a TestFlight screenshot from the owner
+Locked by   check:ui — ui-audit route pass on /, name-cut-off / name-uncapped
+            (the WHOLE pass, on every name marked data-whole)
+Status      fixed: the tile name is unscaledLabel (it does not grow) and
+            adjustsFontSizeToFit at 0.8 on a phone as the backstop
+```
+
 ### B113 — Your plan is empty on the live project
 
 ```

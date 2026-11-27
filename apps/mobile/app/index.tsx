@@ -8,6 +8,7 @@ import { type Money } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
 import { useTheme, useThemeName } from '../src/design/useTheme';
 import { L, LOOK_SCALE, z } from '../src/design/scale';
+import { unscaledLabel } from '../src/design/tokens';
 import { SPOTS, type SpotPlace } from '../src/art/spots';
 import { Spot } from '../src/components/Spot';
 import { formatNightDate } from '../src/lib/myStats';
@@ -421,7 +422,23 @@ function Tile({
       ]}
     >
       <TileArt place={place} />
-      <Text style={[styles.tileName, { color: t.text }]} numberOfLines={1}>
+      {/*
+       * THE NAME IS READ WHOLE (B114). It sat in a fixed tile and grew with the
+       * phone's text size, and "Poker tools" — the longest of the four, with 6%
+       * to spare at 360 and 20% at 393 — came back off a phone as "Poker to…".
+       * The tile is a box the board fixed, so the name does not grow
+       * (`unscaledLabel`: it is already a 21–24 point heading), and if a font
+       * still lands it wider than the tile it shrinks rather than ellipsises.
+       * The sub-line under it keeps scaling: it may take a second line.
+       * `data-whole` is what ui-audit's WHOLE pass measures.
+       */}
+      <Text
+        style={[styles.tileName, { color: t.text }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+        {...wholeName}
+      >
         {name}
       </Text>
       <Text style={[styles.tileSub, { color: t.muted }]} numberOfLines={2}>
@@ -430,6 +447,9 @@ function Tile({
     </Pressable>
   );
 }
+
+/** The tile name's text props — see B114 in `Tile`. A const, because `dataSet` is web-only and not in TextProps. */
+const wholeName = { ...unscaledLabel, dataSet: { ...unscaledLabel.dataSet, whole: '1' } } as const;
 
 /** A drawing anchored by its own outline to a tile's bottom-right corner, 6 in (the kit's `tileArt`). */
 function TileArt({ place }: { place: SpotPlace }) {
