@@ -103,14 +103,14 @@ const twoPots = (P, { r = 9.5, side, main, s = [20, GROUND - 7], m = [64, GROUND
   shadow(P, s[0], sw, 5, s[1] + 1) + shadow(P, m[0], mw, 7.5, m[1] + 1) +
   bunch(P, [...pot(P, s[0], s[1], side, r), ...pot(P, m[0], m[1], main, r, 1)]);
 const PV = { name: 'Side pots', where: 'Poker tools · tile', status: 'draft' };
-/* P1 · Towers: fewer, taller stacks. One tall stack and a short one on the left, two tall ones and a short one on the right. */
-SPOTS.sidePotsP1 = { ...PV, draw: (P) => twoPots(P, { side: [[-5, -3, 4], [6, 1, 2]], main: [[-9, -6, 7], [7, -6, 6], [0, 2, 3]] }) };
+/* P1 · Towers: fewer, taller stacks. A tall and a short one on the left; on the right a tall one, one three chips lower (owner, 27 November), and a short one. */
+SPOTS.sidePotsP1 = { ...PV, draw: (P) => twoPots(P, { side: [[-5, -3, 4], [6, 1, 2]], main: [[-9, -6, 4], [7, -6, 6], [0, 2, 3]] }) };
 /* P2 · Low and wide: shorter stacks, bigger chips, spread out across the felt. */
 SPOTS.sidePotsP2 = { ...PV, draw: (P) => twoPots(P, { r: 11, s: [19, GROUND - 6], m: [64, GROUND - 1], sw: 18, mw: 28,
   side: [[-6, -3, 2], [7, -2, 2], [0, 4, 1, 'flat']], main: [[-13, -5, 3], [3, -7, 4], [16, -2, 2], [-3, 3, 3]] }) };
-/* P3 · One stack each: the side pot a short stack, the main pot a tall one. The plainest reading of "two pots, one bigger". */
+/* P3 · One stack each: the side pot a short stack, the main pot taller (five chips, three taken off on 27 November). */
 SPOTS.sidePotsP3 = { ...PV, draw: (P) => twoPots(P, { r: 12, s: [30, GROUND - 6], m: [62, GROUND - 1], sw: 15, mw: 17,
-  side: [[0, 0, 3]], main: [[0, 0, 8]] }) };
+  side: [[0, 0, 3]], main: [[0, 0, 5]] }) };
 /* P4 · Turned more: the S2 stacks, the side pot well back and the main pot forward, a steeper angle between them. */
 SPOTS.sidePotsP4 = { ...PV, draw: (P) => twoPots(P, { s: [22, GROUND - 14], m: [62, GROUND + 1],
   side: [[-6, -4, 2], [6, -3, 3], [0, 3, 1, 'flat']], main: [[-11, -7, 4], [5, -8, 5], [16, -1, 3], [-4, 1, 3]] }) };
