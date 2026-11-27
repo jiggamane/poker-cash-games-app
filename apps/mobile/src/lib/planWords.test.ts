@@ -54,3 +54,15 @@ describe('telling a refused night from any other refusal', () => {
     expect(isHostNightGate('new row violates row-level security policy for table "session"')).toBe(false);
   });
 });
+
+describe("the server's own names for a plan", () => {
+  it('reads 0018’s pro and club as Full, so a server without 0022 still draws a plan', async () => {
+    const { tierName } = await import('./planWords');
+    expect(tierName('pro')).toBe('full');
+    expect(tierName('club')).toBe('full');
+    expect(tierName('full')).toBe('full');
+    expect(tierName('regular')).toBe('regular');
+    expect(tierName(undefined)).toBe('free');
+    expect(tierName('free')).toBe('free');
+  });
+});
