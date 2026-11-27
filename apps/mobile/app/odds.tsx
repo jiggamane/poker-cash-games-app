@@ -684,6 +684,12 @@ export default function OddsCalculator() {
       backTo={backTo}
       meta={ODDS_SUBTITLE}
       metaTrailing={restart}
+      /* THE ICON DOES NOT GROW THE HEADER (the owner, 27 November; B115).
+         Through the ordinary trailing row it wrapped to a third header line
+         at larger text and carried a 10-point floor; inline, the line is the
+         subtitle's height, the icon overhangs it, and the subtitle shrinks
+         to fit beside it. See `Screen`'s `metaTrailingInline`. */
+      metaTrailingInline
       footer={
         typing === null ? (
           deckOpen ? deck : undefined

@@ -139,6 +139,23 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B115 — the calculator's New hand icon takes a header line of its own
+
+```
+Screen      /odds (Poker calculator)
+Seen        the round New hand icon dropped under "Texas Hold'em card and chip
+            odds" on a phone with its text turned up, a third header line
+Expected    the header is the title and its line, icon or no icon
+Found       27 Nov, a TestFlight screenshot from the owner
+Locked by   check:ui — ui-audit route pass on /odds (meta-line-truncated);
+            the height itself is held by construction: the icon's slot is the
+            meta line's line height (inlineSlot in Screen.tsx)
+Status      fixed: Screen's metaTrailingInline — the row never wraps and has
+            no floor (B112 and B68 still hold everywhere else), the icon sits
+            in a slot one meta line tall and overhangs it, and the subtitle
+            shrinks to fit (0.7) on a phone
+```
+
 ### B114 — the home tile reads "Poker to…"
 
 ```

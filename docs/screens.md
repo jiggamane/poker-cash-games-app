@@ -3053,6 +3053,11 @@ whole of this is the web build in a desktop browser.
   that line (Sessions' group scope, the past session's view), and it carries its
   own floor (B68, B82): the text shrinks, the icon does not. The glyph is the new
   `restart` in `Icon.tsx`.
+  **27 November (B115): it no longer uses the ordinary trailing row.** That row wraps
+  (B112) and carries a floor (B68), so at larger text the icon became a third
+  header line. It now uses `metaTrailingInline`: the subtitle shrinks to
+  fit and the icon is centred on a slot one meta line tall, overhanging it —
+  the header is the same height with the icon as without.
 - **The line's logic is one function with the states in the order they win:**
   a half-dealt seat, a result for this exact table, counting, two hands the
   engine will not take, then the invitation. `oddsStatus.test.ts` holds each

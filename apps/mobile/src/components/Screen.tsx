@@ -34,6 +34,7 @@ export function Screen({
   meta,
   metaNode,
   metaTrailing,
+  metaTrailingInline = false,
   backTo,
   lede,
   children,
@@ -103,6 +104,17 @@ export function Screen({
    * `styles.metaRow`, and B68.
    */
   metaTrailing?: ReactNode;
+  /**
+   * The control rides the meta line WITHOUT TOUCHING THE HEADER'S HEIGHT — the
+   * calculator's New hand (the owner, 27 November; B115). The ordinary row
+   * wraps before it cuts (B112) and takes a floor for a 34-point control
+   * (B68), so at larger text the icon became a header line of its own. Here
+   * the row never wraps and has no floor: the control sits in a slot exactly
+   * one meta line tall and overhangs it into the header's own padding, and
+   * the text shrinks to fit on a phone rather than ellipsise. For a control
+   * with no menu under it only — a menu wants the floor.
+   */
+  metaTrailingInline?: boolean;
   /**
    * Where back goes, for the screen reader. The button itself is a bare
    * chevron now — the label that used to sit beside it is gone.
@@ -237,15 +249,17 @@ export function Screen({
       )}
 
       {metaNode === undefined && meta !== undefined && metaTrailing !== undefined && (
-        <View style={styles.metaRow}>
+        <View style={[styles.metaRow, metaTrailingInline && styles.metaRowInline]}>
           <Text
             nativeID="screen-meta"
             style={[styles.metaShared, { color: t.onTopMuted }]}
             numberOfLines={1}
+            adjustsFontSizeToFit={metaTrailingInline}
+            minimumFontScale={0.7}
           >
             {meta}
           </Text>
-          {metaTrailing}
+          {metaTrailingInline ? <View style={styles.inlineSlot}>{metaTrailing}</View> : metaTrailing}
         </View>
       )}
 
@@ -445,6 +459,10 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   metaShared: { ...T.lookMeta, flexShrink: 1 },
+  /* `metaTrailingInline`: one line, no floor, no wrap. */
+  metaRowInline: { flexWrap: 'nowrap', paddingBottom: 0 },
+  /* One meta line tall; the control is centred on it and overhangs. */
+  inlineSlot: { height: T.lookMeta.lineHeight, justifyContent: 'center', marginLeft: 'auto', flexShrink: 0 },
   /* The element form of `metaShared`: it takes what the control leaves and
      its own text shrinks inside it, which is what `minWidth: 0` is for. */
   metaNodeShared: { flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 },
