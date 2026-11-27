@@ -26,11 +26,21 @@ SPOTS.whoWins = {
   name: 'Who wins',
   where: 'Poker tools · tile',
   status: 'draft',
-  /* Two hands face up, the winning one standing in front. */
-  draw: (P, o) =>
-    shadow(P, 50, 24) +
-    artCard(P, { cx: 38, by: GROUND - 3, w: 34, h: 48, rot: -14, rank: 'K', suitName: 'spade', small: o.small }) +
-    artCard(P, { cx: 58, by: GROUND - 1, w: 38, h: 54, rot: 8, rank: 'A', suitName: 'heart', color: 'red', small: o.small }),
+  /*
+   * The board: five cards face up, laid in a diagonal from the front left to
+   * the back right (owner, 27 November). The faces are placeholders, a single
+   * suit at the centre with no rank, as the small 7-2 drawing draws its cards:
+   * at tile size a rank would not read. Drawn back to front so each card lies
+   * on the one behind it.
+   */
+  draw: (P) => {
+    const five = [['heart', 'red'], ['spade', 'ink'], ['diamond', 'red'], ['club', 'ink'], ['heart', 'red']];
+    const at = (k) => ({ cx: 24 + k * 13, by: GROUND - 2 - k * 8 });
+    /* The shadow runs along the line of cards, under the first and the last, not as one puddle beneath them. */
+    const lay = `<ellipse cx="51" cy="${GROUND - 16}" rx="36" ry="6.5" transform="rotate(-29 51 ${GROUND - 16})" fill="${P.shadow}"/>`;
+    return lay + five.map((_, k) => 4 - k).map((k) =>
+      artCard(P, { ...at(k), w: 24, h: 34, rot: -10, suitName: five[k][0], color: five[k][1], small: true })).join('');
+  },
 };
 SPOTS.sidePots = {
   name: 'Side pots',
@@ -79,7 +89,7 @@ export const section = {
 export default [
   { id: 'tools-five', route: '/tools', name: 'Poker tools, with the two new tiles', nav: 'push',
     note: 'Who wins and Side pots take the half of the second row that is empty and a third row. With the Randomiser draft as well, it is three full rows.',
-    flags: ['Both tile drawings are drafts, built from the icon system’s parts (two cards, three stacks); they need a turn on the icon board.',
+    flags: ['Both tile drawings are drafts from the icon system’s parts. Who wins is the board, five cards face up on a diagonal with suit-only faces like the small 7-2 drawing (owner, 27 November); Side pots is three stacks.',
       'Tile names and lines are new: “Who wins” · “the best hand now, no odds”, “Side pots” · “a multi-way all in, pot by pot”.'],
     html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger',
       body: `<div class="tiles">${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Rulings', 'look up a ruling', 'rulings', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}${whoWinsTile}${sidePotsTile}</div>` }) },
