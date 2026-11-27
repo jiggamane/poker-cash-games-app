@@ -57,9 +57,10 @@ says about those cards and stacks.
   a deciding kicker not faded and named (`Pair of aces · king kicker`).
 - **Side pots: the stack sits in the seat**, typed on the calculator's keypad
   with Done on the bar. Everyone is all in for their stack.
-- **Pot by pot**: Main pot, Side pot 1…, who can win each, who takes it (or is
-  ahead in it before the river). A layer only one stack reached is Uncalled and
-  goes back. On the river each seat shows its signed change.
+- **Hands first, then pots** (owner, 26 November): under the seats, every hand
+  ranked 1st, 2nd, 3rd…, with its combo, the pots it takes, the amount and its
+  change; "As it stands" before the river. Pot by pot follows as detail, with
+  the Uncalled layer that goes back.
 
 ## Open, for the owner
 

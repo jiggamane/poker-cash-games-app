@@ -171,24 +171,45 @@ function potsRead(t) {
     pots: r.pots.map((p) => ({ ...p, eligible: p.eligible.map(at), leaders: p.leaders.map(at) })),
     returned: r.returned ? { seat: at(r.returned.seat), amount: r.returned.amount } : null,
     ends: r.ends ? Object.fromEntries(r.ends.map((e, k) => [at(k), e])) : null,
+    places: Object.fromEntries(r.places.map((pl, k) => [at(k), pl])),
     label,
   };
 }
 
-function potSeat(t, i, read) {
+/** A seat on Side pots is where its cards and stack go in; what the hand does is read in the Result below. */
+function potSeat(t, i) {
   const n = t.seats.length;
   const s = t.seats[i];
-  const st = read?.label[i];
-  const end = read?.ends && read.street === 5 ? read.ends[i] : null;
   const focus = sel(t, 'stack', i);
   const stackText = s.stack > 0 || focus ? fmt(s.stack || 0) : '$0';
-  const figure = end
-    ? `<span class="muted" style="font-size:11.5px">Stack ${fmt(s.stack)}</span><b class="num m ${end.change > 0 ? 'win' : end.change < 0 ? 'loss' : ''}" style="font-size:17px;margin-top:3px">${E.formatSigned(end.change)}</b>`
-    : `<span class="muted" style="font-size:11.5px">Stack</span><b class="num m${s.stack > 0 || focus ? '' : ' dimt'}" style="font-size:17px;margin-top:2px;cursor:pointer;${focus ? 'padding:4px 8px;margin-right:-8px;border-radius:9px;box-shadow:inset 0 0 0 2px var(--text)' : ''}">${stackText}</b>`;
   return `<div class="card pad" style="padding:8px 12px"><div style="display:flex;align-items:center;gap:10px">${holeCards(t, i)}
-    <div style="flex:1;min-width:0"><span class="muted" style="font-size:12.5px">${seatName(i, n)}</span>
-    <div style="font-size:13.5px;font-weight:600;line-height:1.25;margin-top:3px;${st ? '' : 'color:var(--dim);font-weight:500'}">${st ? st.label : 'Two cards'}</div></div>
-    <div data-stack="${i}" style="display:flex;flex-direction:column;align-items:flex-end;flex:none;cursor:pointer">${figure}</div></div></div>`;
+    <div style="flex:1;min-width:0"><span class="muted" style="font-size:13px">${seatName(i, n)}</span></div>
+    <div data-stack="${i}" style="display:flex;flex-direction:column;align-items:flex-end;flex:none;cursor:pointer"><span class="muted" style="font-size:11.5px">Stack</span><b class="num m${s.stack > 0 || focus ? '' : ' dimt'}" style="font-size:17px;margin-top:2px;${focus ? 'padding:4px 8px;margin-right:-8px;border-radius:9px;box-shadow:inset 0 0 0 2px var(--text)' : ''}">${stackText}</b></div></div></div>`;
+}
+
+const ORDINAL = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
+
+/**
+ * The result, hand first (owner, 26 November: "the focus should be on the
+ * player, their hand: 1st, 2nd and 3rd places, their winning combo and the
+ * amounts"). One row per hand in order of strength: its place, its cards, its
+ * combo, the pots it takes, what it takes and its change on the hand.
+ */
+function resultCard(t, read) {
+  const river = read.street === 5;
+  const seats = Object.keys(read.places).map(Number).sort((a, b) => read.places[a] - read.places[b] || a - b);
+  const rows = seats.map((i, k) => {
+    const end = read.ends[i];
+    const mine = read.pots.filter((p) => p.leaders.includes(i)).map((p) => (p.leaders.length > 1 ? `${p.name}, split` : p.name));
+    const what = [mine.length ? mine.join(' · ') : river ? 'No pot' : 'Behind in every pot', end.back > 0 ? `${fmt(end.back)} back, uncalled` : ''].filter(Boolean).join(' · ');
+    const tone = end.change > 0 ? 'win' : end.change < 0 ? 'loss' : '';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;${k === seats.length - 1 ? '' : 'border-bottom:1px solid var(--line)'}">
+      <b style="font:800 14px/1 var(--head);width:28px;flex:none;${read.places[i] === 1 ? '' : 'color:var(--muted)'}">${ORDINAL[read.places[i] - 1]}</b>
+      ${handTag(t, i, { w: 20, h: 28, fs: 10.5 })}
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;line-height:1.25">${read.label[i]?.label ?? ''}</div><div class="muted m" style="font-size:11.5px;margin-top:3px;line-height:1.3">${what}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;flex:none"><b class="num m${end.won > 0 ? '' : ' muted'}" style="font-size:16.5px">${fmt(end.won)}</b><span class="num m ${tone}" style="font-size:12px;font-weight:600;margin-top:3px">${E.formatSigned(end.change)}</span></div></div>`;
+  });
+  return [lbl(river ? 'Result' : 'As it stands', `${fmt(read.total)} in the pots`), `<div class="card" style="padding:0 12px">${rows.join('')}</div>`];
 }
 
 function potRow(t, p, read, last) {
@@ -196,7 +217,7 @@ function potRow(t, p, read, last) {
   let outcome = '';
   if (p.leaders.length === 1) {
     const w = p.leaders[0];
-    outcome = `${handTag(t, w)} <b class="${river ? 'win' : ''}" style="font-weight:700">${river ? 'wins it' : 'ahead'}</b> <span class="muted">·</span> ${read.label[w]?.label ?? ''}`;
+    outcome = `${handTag(t, w)} <b class="${river ? 'win' : ''}" style="font-weight:700">${river ? 'wins it' : 'ahead'}</b>`;
   } else if (p.leaders.length > 1) {
     const each = p.shares.every((x) => x === p.shares[0]);
     outcome = `<b style="font-weight:700">${river ? 'Split' : 'Tied'}</b> ${tags(t, p.leaders)}${river ? ` <span class="muted">·</span> <span class="m">${each ? `${fmt(p.shares[0])} each` : p.shares.map((x, k) => `${handTag(t, p.leaders[k])} ${fmt(x)}`).join(' ')}</span>` : ''}`;
@@ -212,7 +233,7 @@ export function sidePots(t) {
   const typing = t.sel?.kind === 'stack';
   const deckOpen = !!t.sel && !typing;
   const potsCard = read && !t.sel
-    ? [lbl('Pots', `${fmt(read.total)} in the middle`),
+    ? [...(read.ends ? resultCard(t, read) : []), lbl('Pots'),
       `<div class="card" style="padding:0 12px">${read.pots.map((p, k) => potRow(t, p, read, k === read.pots.length - 1 && !read.returned)).join('')}${read.returned
         ? `<div class="split" style="align-items:baseline;padding:9px 0"><span class="muted" style="font-size:13px"><b style="font-size:14px;color:var(--muted)">Uncalled</b> · back to ${handTag(t, read.returned.seat)}</span><b class="num m muted" style="font-size:15px">${fmt(read.returned.amount)}</b></div>` : ''}</div>`]
     : [];
@@ -221,7 +242,7 @@ export function sidePots(t) {
     body: [
       lbl('Board', read && read.pots[0]?.leaders.length ? STREET[read.street] : ''), boardRow(t),
       lbl('All in', !t.sel && t.seats.length < 9 ? addInLabel() : ''),
-      ...t.seats.map((_, i) => potSeat(t, i, read)),
+      ...t.seats.map((_, i) => potSeat(t, i)),
       ...(deckOpen ? ['<div class="grow"></div>', deck(used(t)), '<div style="height:8px"></div>']
         : typing ? ['<div class="grow"></div>', keypad()]
         : potsCard),

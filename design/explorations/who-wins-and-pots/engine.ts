@@ -99,8 +99,14 @@ export interface PotsResult {
   pots: PotOutcome[];
   /** A stack nobody could match, back to its owner untouched. */
   returned: { seat: number; amount: Money } | null;
-  /** What each seat ends the hand with, and its change on the hand; null until every pot has a leader. */
-  ends: { collects: Money; change: Money }[] | null;
+  /**
+   * What each seat ends the hand with: `won` from the pots, `back` uncalled,
+   * `collects` the two together, `change` against its stack. Null until every
+   * pot has a leader.
+   */
+  ends: { won: Money; back: Money; collects: Money; change: Money }[] | null;
+  /** Each seat's place by hand, 1 for the best; equal hands share a place, and the next hand takes the next one. Null without cards. */
+  places: (number | null)[];
   /** Everything in the pots, the uncalled stack not included. */
   total: Money;
 }
@@ -126,14 +132,21 @@ export function allInPots(hands: (Card[] | null)[], board: Card[], stacks: numbe
     const leaders = known ? eligible.filter((i) => values[i] === top) : [];
     pots.push({ name: pots.length === 0 ? 'Main pot' : `Side pot ${pots.length}`, amount: layer.amount, eligible, leaders, shares: known ? allocate(layer.amount, leaders.map(() => 1)) : [] });
   }
-  const collects = stacks.map(() => ZERO);
-  for (const p of pots) p.leaders.forEach((s, k) => { collects[s] = add(collects[s]!, p.shares[k]!); });
-  if (returned) collects[returned.seat] = add(collects[returned.seat]!, returned.amount);
+  const won = stacks.map(() => ZERO);
+  for (const p of pots) p.leaders.forEach((s, k) => { won[s] = add(won[s]!, p.shares[k]!); });
+  const back = stacks.map((_, i) => (returned && returned.seat === i ? returned.amount : ZERO));
+  const ranked = [...new Set(values.filter((v) => v >= 0))].sort((a, b) => b - a);
   const settled = pots.length > 0 && pots.every((p) => p.leaders.length > 0);
   return {
     pots,
     returned,
-    ends: settled ? collects.map((c, i) => ({ collects: c, change: subtract(c, money(stacks[i]!)) })) : null,
+    ends: settled
+      ? won.map((w, i) => {
+          const collects = add(w, back[i]!);
+          return { won: w, back: back[i]!, collects, change: subtract(collects, money(stacks[i]!)) };
+        })
+      : null,
+    places: values.map((v) => (v < 0 ? null : ranked.indexOf(v) + 1)),
     total: sum(pots.map((p) => p.amount)),
   };
 }

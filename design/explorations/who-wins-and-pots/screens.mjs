@@ -69,7 +69,7 @@ const HU = () => seats(['Ah Kh'], ['2c 2d']);
 const ALLIN = () => seats(['Qh Jh', 1200], ['As Ac', 300], ['Kd Ks', 800]);
 
 const WHO_COPY = 'New strings: the title, “the best hand so far, no odds”, “Two cards”, Ahead, Behind, Tied, Split, and the line on the ink (“Ahead on the flop”, “Winner on the river”, “Split on the river”, “Tied before the flop”). The ink names the winning hand by its two cards, not by the seat. The rest is the calculator’s.';
-const POTS_COPY = 'New strings: the title, “everyone all in, pot by pot”, “All in”, Stack, Pots, “in the middle”, Main pot, Side pot 1, “Between”, “ahead”, “wins it”, Split, “each”, Uncalled, “back to”. Each result names a hand by its two cards, never Opponent 1, 2…; a seat’s name stands in only until its cards are in.';
+const POTS_COPY = 'New strings: the title, “everyone all in, pot by pot”, “All in”, Stack, Result, “As it stands”, “in the pots”, 1st 2nd 3rd…, “No pot”, “Behind in every pot”, “back, uncalled”, “, split”, Pots, Main pot, Side pot 1, “Between”, “ahead”, “wins it”, Split, “each”, Uncalled, “back to”. Each result names a hand by its two cards, never Opponent 1, 2…; a seat’s name stands in only until its cards are in.';
 
 export const section = {
   title: 'Who wins, and Side pots',
@@ -119,22 +119,23 @@ export default [
     flags: [POTS_COPY, 'A stack here is everything the player has in the hand, blinds included: the most they can lose. Is that how a table thinks of it, or should it be “All in for”?'],
     html: phone('pots', { seats: seats([null, 1200], [null, 300], [null, 800]), board: board(), sel: { kind: 'stack', i: 2 } }) },
 
-  { id: 'pots-preflop', route: '/side-pots', name: 'Side pots · all in before the flop', nav: 'push',
-    note: 'Three stacks make a main pot everybody can win, a side pot only the two deeper stacks can, and what nobody could match goes straight back. Under each pot, who would take it if the cards stopped here.',
+  { id: 'pots-preflop', route: '/side-pots', name: 'Side pots · all in before the flop', nav: 'push', allowOverflow: true,
+    note: 'Hands first (owner, 26 November): under the seats, every hand in order of strength with its place, combo, the pots it takes, the amount and its change. Before the river it is “As it stands”: what each would take if the cards stopped here. The pot-by-pot card follows below the fold, as detail.',
     flags: ['The pots are packages/core’s sidePots(), the rulings calculator’s, unchanged. The top layer only one stack reached is shown as Uncalled rather than as a pot.'],
     html: phone('pots', { seats: ALLIN(), board: board(), sel: null }) },
 
-  { id: 'pots-flop', route: '/side-pots', name: 'Side pots · on the flop', nav: 'push',
+  { id: 'pots-flop', route: '/side-pots', name: 'Side pots · on the flop', nav: 'push', allowOverflow: true,
     note: 'A king on the flop: the kings are now ahead in both pots.',
     html: phone('pots', { seats: ALLIN(), board: board('Kc 7d 2s'), sel: null }) },
 
-  { id: 'pots-river', route: '/side-pots', name: 'Side pots · on the river', nav: 'push',
-    note: 'The ace on the turn gives the aces the main pot; the kings keep the side pot. Each seat now reads its stack and what the hand did to it.',
-    flags: ['The figure at the right of a seat changes meaning on the river: the stack before, the signed change after. The small “Stack $300” above it is what says so. Confirm.'],
+  { id: 'pots-river', route: '/side-pots', name: 'Side pots · on the river', nav: 'push', allowOverflow: true,
+    note: 'Result: 1st, the aces, take the main pot ($900, +$600); 2nd, the kings, the side pot ($1,000, +$200); 3rd, queen-jack, nothing but its uncalled $400 back (−$800). The seats above keep only the cards and stacks that went in.',
+    flags: ['The big figure is what the hand takes from the pots; the signed one under it is its change on the hand, uncalled chips included. Is the change needed, or is the amount enough?',
+      'Places are by hand strength. A short stack can be 1st and still take less than 2nd (here $900 against $1,000), because it could only win the main pot.'],
     html: phone('pots', { seats: ALLIN(), board: board('Kc 7d 2s Ah 9c'), sel: null }) },
 
-  { id: 'pots-split', route: '/side-pots', name: 'Side pots · four players, a split side pot', nav: 'push', allowOverflow: true,
-    note: 'Four stacks, two straights: the two jack-tens split both pots, $400 each from the main and $450 each from the side; the set of aces and the nines lose, and the nines’ top $500 comes back. Drawn from its top; the Uncalled row is below the fold.',
+  { id: 'pots-split', route: '/side-pots', name: 'Side pots · four players, split pots', nav: 'push', allowOverflow: true,
+    note: 'Four stacks, two straights: the two jack-tens split both pots, $400 each from the main and $450 each from the side; the set of aces and the nines lose, and the nines’ top $500 comes back. Both straights are 1st; a shared place moves the next hand to 2nd.',
     flags: ['An odd chip in a split goes to the first player in seat order (packages/core allocate()). Tables usually give it to the first player left of the button, which this tool does not know. Ask for the button, or say which rule it uses?'],
     html: phone('pots', { seats: seats(['Jh Th', 500], ['Ac Ad', 200], ['Jc Td', 500], ['9s 9d', 1000]), board: board('As Ks Qd 7c 2h'), sel: null }) },
 ];
