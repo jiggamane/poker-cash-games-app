@@ -174,7 +174,7 @@ const HEROES = {
     const best = bestOf(read);
     const rows = ranked(read).slice(0, 3).map((i) => {
       const place = placeOf(read, i);
-      return `<div style="display:flex;align-items:center;gap:10px;margin-top:7px;${place === 1 ? '' : 'opacity:.62'}"><b style="font:800 13px/1 var(--head);width:26px;color:#fff">${ORDINAL[place - 1]}</b>${handCards(t, i, 20, 28, 10.5)}<span style="font:600 14px/1.25 var(--body);color:#fff">${read.bySeat[i].label}</span></div>`;
+      return `<div style="display:flex;align-items:center;gap:10px;margin-top:8px;${place === 1 ? '' : 'opacity:.62'}">${handCards(t, i, 20, 28, 10.5)}<span style="display:flex;flex-direction:column;gap:3px"><span style="font:700 10px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:${place === 1 ? '#7BE3AE' : 'rgba(255,255,255,.72)'}">${ORDINAL[place - 1]}</span><span style="font:600 14px/1.25 var(--body);color:#fff">${read.bySeat[i].label}</span></span></div>`;
     });
     return `<div class="thero" style="padding-top:8px">${inkLabel(headOf(read, best))}${rows.join('')}</div>`;
   },
@@ -267,6 +267,10 @@ function potSeat(t, i) {
 }
 
 /**
+ * The place is a word over the combo, as Winner and Beaten sit on a seat, not
+ * a column of its own down the left (owner, 27 November: "don't isolate the
+ * area on the left side"); each row starts with the hand's cards.
+ *
  * The result, hand first (owner, 26 November: "the focus should be on the
  * player, their hand: 1st, 2nd and 3rd places, their winning combo and the
  * amounts"). One row per hand in order of strength: its place, its cards, its
@@ -281,9 +285,8 @@ function resultCard(t, read) {
     const what = [mine.length ? mine.join(' · ') : river ? 'No pot' : 'Behind in every pot', end.back > 0 ? `${fmt(end.back)} back, uncalled` : ''].filter(Boolean).join(' · ');
     const tone = end.change > 0 ? 'win' : end.change < 0 ? 'loss' : '';
     return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;${k === seats.length - 1 ? '' : 'border-bottom:1px solid var(--line)'}">
-      <b style="font:800 14px/1 var(--head);width:28px;flex:none;${read.places[i] === 1 ? '' : 'color:var(--muted)'}">${ORDINAL[read.places[i] - 1]}</b>
-      ${handTag(t, i, { w: 20, h: 28, fs: 10.5 })}
-      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;line-height:1.25">${read.label[i]?.label ?? ''}</div><div class="muted m" style="font-size:11.5px;margin-top:3px;line-height:1.3">${what}</div></div>
+      ${handTag(t, i, { w: 24, h: 33, fs: 12 })}
+      <div style="flex:1;min-width:0">${word(ORDINAL[read.places[i] - 1], read.places[i] === 1 ? 'win' : 'muted')}<div style="font-size:14px;font-weight:600;line-height:1.25;margin-top:4px">${read.label[i]?.label ?? ''}</div><div class="muted m" style="font-size:11.5px;margin-top:3px;line-height:1.3">${what}</div></div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;flex:none"><b class="num m${end.won > 0 ? '' : ' muted'}" style="font-size:16.5px">${fmt(end.won)}</b><span class="num m ${tone}" style="font-size:12px;font-weight:600;margin-top:3px">${E.formatSigned(end.change)}</span></div></div>`;
   });
   return [lbl(river ? 'Result' : 'As it stands', `${fmt(read.total)} in the pots`), `<div class="card" style="padding:0 12px">${rows.join('')}</div>`];
