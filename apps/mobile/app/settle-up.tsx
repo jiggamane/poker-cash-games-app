@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Text } from '../src/components/Text';
 import {
   balanceCheck,
@@ -447,6 +447,8 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
                THIS IS E5's LIST, NOT E4's: the balanced screen draws
                transfers and net chips and no sub-line at all. */
             meta={`in ${formatToFitUnmarked(s.boughtIn, ROW_FITS)} · out ${formatToFitUnmarked(s.out, ROW_FITS)}`}
+            /* A fact in two figures: it wraps rather than losing one. */
+            wrapMeta
             trail={
               <Text
                 style={[styles.result, { color: moneyColor(t, s.result) }]}
@@ -489,14 +491,21 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
  * ground states one fact twice, and the ground is the half that has to survive
  * a phone at arm's length in bad light. The outline keeps the chip an object
  * without giving it an opinion.
+ *
+ * THE FULL BOARD (`settle-up`): three to a row, name and figure centred, 32
+ * tall at radius 10. Three to a row by a 30% floor rather than a fixed third,
+ * so a chip carrying a figure in the millions grows onto a row of its own
+ * instead of clipping — the figure is never abbreviated here.
  */
 function NetChip({ name, amount }: { name: string; amount: Money }) {
   const t = useTheme();
   const won = amount >= 0;
   return (
     <View style={[styles.chip, { borderColor: t.hairline }]}>
-      <Text style={[styles.chipName, { color: t.text }]}>{name}</Text>
-      <Text style={[styles.chipFigure, { color: won ? t.win : t.loss }]}>
+      <Text style={[styles.chipName, { color: t.text }]} numberOfLines={1}>
+        {name}
+      </Text>
+      <Text style={[styles.chipFigure, { color: won ? t.win : t.loss }]} numberOfLines={1} {...cappedFigure}>
         {formatSignedUnmarked(amount)}
       </Text>
     </View>
@@ -504,74 +513,66 @@ function NetChip({ name, amount }: { name: string; amount: Money }) {
 }
 
 const styles = StyleSheet.create({
-  /* Above the transfers, under the lede that counts them. */
-  rounding: { marginBottom: 4 },
-  list: { marginHorizontal: space.page },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
-  party: { ...type.rowName, flexShrink: 1 },
-  amount: { ...type.figure, marginLeft: 'auto', flexShrink: 0 },
+  /* The full board's pushed screen: 18 in from the sheet, 12 between groups. */
+  column: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
+  /* The kit's `note`: 13/1.45, muted. */
+  note: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
+  /* `RoundingBar` carries its own side margin; the column's edge wins here. */
+  rounding: { marginHorizontal: 0 },
 
-  // 22 above, 22 aside — and the label carries the rows' own 4 of inset so it
-  // lines up with the names beneath it rather than with the hairline.
-  section: { marginTop: space.section, marginHorizontal: space.page },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 4 },
-  // A point of padding back on each side, which is what the 1px outline takes:
-  // an outlined chip and a filled one are the same object at the same size.
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 7,
-    paddingVertical: 9,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderRadius: radius.pressable,
+  /* The kit's row, the two names and the arrow in its left words. */
+  row: { flexDirection: 'row', alignItems: 'center', gap: z(7), minHeight: z(44), paddingVertical: z(8) },
+  party: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6), flexShrink: 1 },
+  amount: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+    fontFamily: 'head',
+    fontSize: z(16.5),
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
   },
-  chipName: type.netName,
-  chipFigure: type.netFigure,
-  edit: { marginHorizontal: space.card, marginTop: 20 },
 
-  blocked: { ...type.footnote, paddingHorizontal: 4 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: z(6) },
+  /*
+   * An outlined chip: 1 of hairline, centred, the name 600 12 and the figure in
+   * the figure face. `minHeight`, so it grows with the reader's text setting.
+   */
+  chip: {
+    flexGrow: 1,
+    minWidth: '30%',
+    minHeight: z(32),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: z(4),
+    paddingHorizontal: z(4),
+    borderWidth: 1,
+    borderRadius: z(10),
+  },
+  chipName: { fontSize: z(12), fontWeight: '600', flexShrink: 1 },
+  chipFigure: { fontFamily: 'head', fontSize: z(12), fontWeight: '700', fontVariant: ['tabular-nums'], flexShrink: 0 },
 
   // --- out of balance ------------------------------------------------------
-  // E5: `0 20px 16px` · `16px 18px` · gap 6 · radius 8. Not a card — a card's
-  // 14 put a rounder corner on the one block that has to read as an alarm.
-  alert: {
-    marginHorizontal: space.card,
-    marginBottom: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: radius.pressable,
-    borderWidth: 1,
-    gap: 6,
-  },
-  alertLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
-  // 13.5/1.5 as drawn, not the 14.5 lede: this sentence sits inside a block
-  // and a lede sits under a title.
-  alertBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
+  /* The label 7 over the sentence, the kit's padded card. */
+  alert: { gap: z(7) },
+  alertLabel: { textTransform: 'uppercase' },
+  alertBody: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
 
   /*
    * WHERE THE COUNTED ROW RUNS OUT OF ROOM — see ROW_FITS at the foot of this
-   * file. Everything fixed on the row is named here: an avatar of 36, a chevron
-   * of about 16, four gaps of 12 and 8 of padding, which is 108 of a 316-wide
-   * row on a 360 phone. What is left is shared by the name over its in-and-out
-   * line and the result beside it.
+   * file. The kit's row: the name over its in-and-out line, the result beside
+   * it, inside a card 12 in on each side of an 18-inset column.
    */
-  countRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 4 },
-  avatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  initial: { fontSize: 14, fontWeight: '700' },
-  rowText: { gap: 2, flexShrink: 1 },
-  name: type.rowName,
-  detail: type.rowDetail,
   // Never shrinks: the name and its in-and-out line may wrap, a figure may not.
-  result: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', flexShrink: 0, fontVariant: ['tabular-nums'] },
+  result: {
+    fontFamily: 'head',
+    fontSize: z(16.5),
+    fontWeight: '700',
+    flexShrink: 0,
+    fontVariant: ['tabular-nums'],
+  },
 
-  footnote: type.footnote,
   writeOff: { textDecorationLine: 'underline' },
-  settle: { flex: 2 },
-  fix: { flex: 1 },
-
-  footerRow: { flexDirection: 'row', gap: 10 },
 });
 
 /*
@@ -582,13 +583,16 @@ const styles = StyleSheet.create({
  * child that may not give: `formatMoney` never abbreviated, so a table playing
  * for millions pushed `$1,201,400` into a row already holding two names and the
  * figure wrapped. It is `formatToFit` at the same ten thousand as the row below,
- * because they are the same width and the same 19/700 — and the names ellipsise,
- * which is the right thing for a word and the wrong thing for money.
+ * because they are the same width and the same figure — and the names
+ * ellipsise, which is the right thing for a word and the wrong thing for money.
  *
- * Roughly 208 points are shared by the in-and-out line at 13/400 and the result
- * at 18/700 (see `countRow` above for where the rest of the row goes). At five
- * digits that is "in $99,999 · out $99,999" beside "−$99,999" — 140 and 78, and
- * it just fits. At six it is 155 and 89 and it does not.
+ * THE FULL BOARD'S ROW (24 November) gave the row back the avatar and the
+ * chevron it used to spend, and took it in the card's insets: at 360 the row is
+ * about 290 wide, shared by the in-and-out line at the kit's 12 and the result
+ * at its 16.5/700 (both through `z()`, about 1.15 there). Five digits fit with
+ * room; the threshold stays where it was measured rather than chasing the new
+ * room, because the line under the name scales with the reader's text and the
+ * figure does not.
  *
  * Nothing clipped when it stopped fitting, which is why this lived: the row
  * simply grew and the RESULT ITSELF broke across two lines, "−$1,201,400" as

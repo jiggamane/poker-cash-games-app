@@ -260,7 +260,8 @@ const DRAWN = {
      * it costs. Do not put `Bought in` back by reading the cut.
      */
     'In play',
-    'Accounted for',
+    /* `Accounted for` went, owner, 23 November (the full board's README, "Count
+       up header"): the line starts with the count itself. */
     /*
      * THE THREE GROUPS — `design/handoff-count-up-to-settled/boards/Cashed Out
      * States.dc.html`, frame `1a`, and `docs/05-active-vs-settled.md`.

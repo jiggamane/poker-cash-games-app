@@ -948,13 +948,13 @@ async function playANight(name, rebuys) {
   await holds(
     'the balance comparison folds away once the night adds up',
     (await page.locator(':text-is("Balanced"):visible').count()) === 1 &&
-      (await page.locator(':text-matches("^Accounted for"):visible').count()) === 0,
+      (await page.locator(':text-matches("^In play ·"):visible').count()) === 0,
     'the balance card did not fold after the last stack went in',
   );
   await tap('Balanced');
   await holds(
     'and tapping the line brings it back',
-    (await page.locator(':text-matches("^Accounted for"):visible').count()) === 1,
+    (await page.locator(':text-matches("^In play ·"):visible').count()) === 1,
     'the folded balance card does not reopen',
   );
   await stop('count up · folded');
@@ -1055,7 +1055,12 @@ async function playANight(name, rebuys) {
      covers, and the sign is a U+2212 minus rather than a hyphen. */
   await holds(
     'and every row says its working',
-    await page.evaluate(() => /game\s[+\u2212]/.test(document.body.innerText)),
+    /* The word `game` is the chips-out icon since 26 November (the full board's
+       Deductions), so the working is read as a signed figure inside a preview
+       row's own text rather than after the word. */
+    await page.evaluate(() =>
+      [...document.querySelectorAll('[data-testid="e3-preview-row"]')].some((r) => /[+\u2212]\d/.test(r.innerText)),
+    ),
     'no formula line under any name on E3 — the preview says nothing about the rules',
   );
 
@@ -1084,7 +1089,8 @@ async function playANight(name, rebuys) {
   const order = {
     person: await topOf('[data-testid="e3-preview-row"]:visible'),
     step: await topOf('#rounding-label:visible'),
-    bill: await topOf(':text-is("The bill"):visible'),
+    /* Case-blind: the label is drawn in capitals by `SectionLabel` (the full board). */
+    bill: await topOf(':text-matches("^the bill$", "i"):visible'),
   };
   await holds(
     'the people head the screen',
