@@ -14,7 +14,7 @@
  * `hand.ts`'s (`nameHand`, the owner's wording of 26 October).
  */
 import { push, bar, ico, tile, topButton } from '../full-board/kit.mjs';
-import { SPOTS, card as artCard, stack, chip, shadow, spot, GROUND } from '../icon-system/art.mjs';
+import { SPOTS, card as artCard, stack, chip, shadow, spot, suit as artSuit, GROUND } from '../icon-system/art.mjs';
 import { E } from './load.mjs';
 import { init, whoWins, sidePots } from './draw.mjs';
 
@@ -44,16 +44,27 @@ SPOTS.whoWins = {
  * where they mean to. `at(k)` places card k; `turn(k)` turns it in the plane
  * of the table; `extra` is drawn on the felt before the cards.
  */
-function flatBoard(P, { W = 23, H = 32, FLAT = 0.5, at = (k) => [19 + k * 14.5, GROUND - 14 - k * 3.5], turn = () => -8, extra = '', five = [['heart', 'red'], ['spade', 'ink'], ['diamond', 'red'], ['club', 'ink'], ['heart', 'red']] } = {}) {
+function flatBoard(P, { W = 23, H = 32, FLAT = 0.5, at = (k) => [19 + k * 14.5, GROUND - 14 - k * 3.5], turn = () => -8, extra = '', framed = false, five = [['heart', 'red'], ['spade', 'ink'], ['diamond', 'red'], ['club', 'ink'], ['heart', 'red']] } = {}) {
   const lie = (x, y, r, inner) => `<g transform="translate(${x} ${y}) scale(1 ${FLAT}) rotate(${r})">${inner}</g>`;
   const plate = (fill) => `<rect x="${-W / 2}" y="${-H / 2}" width="${W}" height="${H}" rx="3.6" fill="${fill}"/>`;
   return extra + five.map((_, k) => 4 - k).map((k) => {
     const [x, y] = at(k), r = turn(k);
     return lie(x + 1.5, y + 2.5, r, plate(P.shadow)) +
       lie(x, y + 1.6, r, plate(P.stockEdge)) +
-      lie(x, y, r, artCard(P, { cx: 0, by: H / 2, w: W, h: H, suitName: five[k][0], color: five[k][1], small: true }));
+      lie(x, y, r, artCard(P, { cx: 0, by: H / 2, w: W, h: H, suitName: five[k][0], color: five[k][1], small: true, centre: framed ? framedFace(P, W, H, five[k]) : undefined }));
   }).join('');
 }
+
+/**
+ * The Rulings card's face (`framedCard` in `art.mjs`): a red frame set in from
+ * the edge, card stock inside it, here with the suit kept at the centre.
+ */
+const framedFace = (P, W, H, [suitName, color]) => (x, y) => {
+  const k = W / 42;
+  return `<rect x="${x - W / 2 + 5 * k}" y="${y - H / 2 + 5 * k}" width="${W - 10 * k}" height="${H - 10 * k}" rx="${2.5 * k}" fill="${P.red.side}"/>` +
+    `<rect x="${x - W / 2 + 8 * k}" y="${y - H / 2 + 8 * k}" width="${W - 16 * k}" height="${H - 16 * k}" rx="${2 * k}" fill="${P.stock}"/>` +
+    artSuit(suitName, x - W * 0.2, y - W * 0.2, W * 0.4, color === 'red' ? P.red.side : P.ink.top);
+};
 
 /* Four variations of the flat board (owner, 27 November: "very close; four variations of pretty much the same, with minor deviations"). */
 const V = { name: 'Who wins', where: 'Poker tools · tile', status: 'draft' };
@@ -64,6 +75,8 @@ SPOTS.whoWins2 = { ...V, draw: (P) => flatBoard(P, { turn: () => -2, at: (k) => 
 /* 3 · Laid by hand: each card a few degrees off the one before, as cards land when they are slid out one at a time. */
 SPOTS.whoWins3 = { ...V, draw: (P) => flatBoard(P, { turn: (k) => [-14, -4, -11, -2, -9][k], at: (k) => [19 + k * 14.5, GROUND - 14 - k * 3.5 + [0, 1, -0.5, 1, 0][k]] }) };
 /* 4 · With the pot: the same board a little further back, and one red chip on the felt in front of it. */
+/* 5 · As now, with the Rulings card's red frame on every face and the suit kept (owner, 27 November). */
+SPOTS.whoWins5 = { ...V, draw: (P) => flatBoard(P, { framed: true }) };
 SPOTS.whoWins4 = { ...V, draw: (P) => flatBoard(P, { W: 21, H: 29, at: (k) => [27 + k * 12.5, GROUND - 19 - k * 3.2],
   extra: shadow(P, 17, 9, 3, GROUND - 3) + chip(P, { cx: 16, by: GROUND - 4, r: 8, h: 3.5, mat: 'red', small: true }) }) };
 
@@ -177,6 +190,7 @@ const WINS_OPTIONS = [
   ['whoWins2', '2', 'One straight strip', 'Every card square to the line it lies on, so the board reads as one clean row.'],
   ['whoWins3', '3', 'Laid by hand', 'Each card a few degrees off the one before, as cards land when slid out one at a time.'],
   ['whoWins4', '4', 'With the pot', 'The same board a little further back, and one red chip on the felt in front of it.'],
+  ['whoWins5', '5', 'Framed faces', 'As now, with the red frame of the Rulings card on every face, the suit kept at its centre.'],
 ].map(([key, n, title, note]) => ({ id: `tile-wins-${n}`, route: '/tools', name: `Who wins tile ${n} · ${title}`, nav: 'push', option: 'winsTile', note,
   html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger', body: `<div class="tiles">${TOOLS_THREE()}${winsTile(key)}${sidePotsTile}</div>` }) }));
 const TILE_OPTIONS = [
