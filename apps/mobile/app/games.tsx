@@ -5,10 +5,10 @@ import { Text } from '../src/components/Text';
 import { Dropdown, MENU_DIM, type DropdownItem } from '../src/components/Dropdown';
 import { GameRow } from '../src/components/GameRow';
 import { Card } from '../src/components/Card';
+import { GhostGames } from '../src/components/GhostGames';
 import { z } from '../src/design/scale';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
-import { space, type } from '../src/design/tokens';
 import { ALL_GROUPS, scopeLabel, setScope, useScope } from '../src/lib/bookStore';
 import { formatNightDate, mostRecentFirst, readBook } from '../src/lib/myStats';
 import { openNightById, useMyNights } from '../src/lib/nightStore';
@@ -116,12 +116,18 @@ export default function Sessions() {
         </Card>
         )}
 
+        {/* NO NIGHTS: the placeholder My stats draws under `LAST GAMES` —
+            two ghost rows in the faint grey, and the note under them — in the
+            place the card of nights would be, at its margins. */}
         {nights.length === 0 && (
-          <Text style={[styles.empty, { color: t.muted }]}>
-            {scope === ALL_GROUPS
-              ? 'No nights yet. One appears here the moment it is settled.'
-              : `No nights with ${scope} yet.`}
-          </Text>
+          <View style={styles.none}>
+            <GhostGames />
+            <Text style={[styles.empty, { color: t.muted }]}>
+              {scope === ALL_GROUPS
+                ? 'No nights yet. One appears here the moment it is settled.'
+                : `No nights with ${scope} yet.`}
+            </Text>
+          </View>
         )}
       </View>
     </Screen>
@@ -132,7 +138,10 @@ const styles = StyleSheet.create({
   /* Side margin 22, and no gap: the rows are 60 tall and their own height is
      the separation. Anything added here is the fencing the cut removed. */
   list: { marginHorizontal: z(18), marginTop: z(12) },
-  empty: { ...type.footnote, marginHorizontal: space.page, paddingTop: 8 },
+  /* My stats' body: 18 in, 12 down, 12 between the card and the note. */
+  none: { marginHorizontal: z(18), marginTop: z(12), gap: z(12) },
+  /* The kit's `note`: 13/1.45, muted — as My stats sets it. */
+  empty: { fontSize: z(13), lineHeight: z(18.85) },
 });
 
 /**
