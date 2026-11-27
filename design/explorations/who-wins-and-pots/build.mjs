@@ -61,6 +61,7 @@ const cell = (s) => `<figure class="cell" id="s-${s.id}"><div class="pg-ph">${s.
 
 const HERO = SCREENS.filter((s) => s.option === 'hero');
 const TILES = SCREENS.filter((s) => s.option === 'tile');
+const WINS = SCREENS.filter((s) => s.option === 'winsTile');
 const WHO = SCREENS.filter((s) => (s.route === '/who-wins' || s.route === '/tools') && !s.option);
 const POTS = SCREENS.filter((s) => s.route === '/side-pots');
 
@@ -116,9 +117,15 @@ ${CSS}
   <p>${esc(section.blurb)} Drawn in the look approved on 22 November (the full board’s kit). <b>No app code has changed.</b> Approve or redirect here first.</p>
 </header>
 <nav class="pg-strip" aria-label="Board">
-  <b>Who wins · Side pots</b><a href="#header">Header options</a><a href="#tiles">Tile options</a><a href="#try">Try it</a><a href="#who">Who wins</a><a href="#pots">Side pots</a><a href="#decided">Decided</a><a href="#open">Open</a>
+  <b>Who wins · Side pots</b><a href="#wins-tile">Who wins tile</a><a href="#header">Header options</a><a href="#tiles">Tile options</a><a href="#try">Try it</a><a href="#who">Who wins</a><a href="#pots">Side pots</a><a href="#decided">Decided</a><a href="#open">Open</a>
   <span class="pg-mode" role="group" aria-label="Phone theme"><button type="button" data-ph="light" aria-pressed="true">Light</button><button type="button" data-ph="dark" aria-pressed="false">Dark</button></span>
 </nav>
+
+<section id="wins-tile">
+  <h2>Who wins: four variations on the tile</h2>
+  <p>Your comment of 27 November: the flat board was close, so these keep it and change one thing each. 0 is the current drawing, for comparison.</p>
+  <div class="pg-grid phones">${WINS.map(cell).join('')}</div>
+</section>
 
 <section id="header">
   <h2>Who wins: six ways to use the header</h2>

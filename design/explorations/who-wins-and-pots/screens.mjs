@@ -36,20 +36,37 @@ SPOTS.whoWins = {
    * single suit at the centre with no rank, as the small 7-2 drawing draws its
    * cards. Drawn back to front so each card lies on the one behind it.
    */
-  draw: (P) => {
-    const FLAT = 0.5, W = 23, H = 32, TURN = -8;
-    const five = [['heart', 'red'], ['spade', 'ink'], ['diamond', 'red'], ['club', 'ink'], ['heart', 'red']];
-    const at = (k) => [19 + k * 14.5, GROUND - 14 - k * 3.5];
-    const lie = (x, y, inner) => `<g transform="translate(${x} ${y}) scale(1 ${FLAT}) rotate(${TURN})">${inner}</g>`;
-    const plate = (fill, extra = '') => `<rect x="${-W / 2}" y="${-H / 2}" width="${W}" height="${H}" rx="3.6" fill="${fill}"${extra}/>`;
-    return five.map((_, k) => 4 - k).map((k) => {
-      const [x, y] = at(k);
-      return lie(x + 1.5, y + 2.5, plate(P.shadow)) +
-        lie(x, y + 1.6, plate(P.stockEdge)) +
-        lie(x, y, artCard(P, { cx: 0, by: H / 2, w: W, h: H, suitName: five[k][0], color: five[k][1], small: true }));
-    }).join('');
-  },
+  draw: (P) => flatBoard(P),
 };
+
+/**
+ * The flat board, drawn from a few settings so its variations differ only
+ * where they mean to. `at(k)` places card k; `turn(k)` turns it in the plane
+ * of the table; `extra` is drawn on the felt before the cards.
+ */
+function flatBoard(P, { W = 23, H = 32, FLAT = 0.5, at = (k) => [19 + k * 14.5, GROUND - 14 - k * 3.5], turn = () => -8, extra = '', five = [['heart', 'red'], ['spade', 'ink'], ['diamond', 'red'], ['club', 'ink'], ['heart', 'red']] } = {}) {
+  const lie = (x, y, r, inner) => `<g transform="translate(${x} ${y}) scale(1 ${FLAT}) rotate(${r})">${inner}</g>`;
+  const plate = (fill) => `<rect x="${-W / 2}" y="${-H / 2}" width="${W}" height="${H}" rx="3.6" fill="${fill}"/>`;
+  return extra + five.map((_, k) => 4 - k).map((k) => {
+    const [x, y] = at(k), r = turn(k);
+    return lie(x + 1.5, y + 2.5, r, plate(P.shadow)) +
+      lie(x, y + 1.6, r, plate(P.stockEdge)) +
+      lie(x, y, r, artCard(P, { cx: 0, by: H / 2, w: W, h: H, suitName: five[k][0], color: five[k][1], small: true }));
+  }).join('');
+}
+
+/* Four variations of the flat board (owner, 27 November: "very close; four variations of pretty much the same, with minor deviations"). */
+const V = { name: 'Who wins', where: 'Poker tools · tile', status: 'draft' };
+/* 1 · Dealt as a dealer lays it: the flop together, a small gap before the turn and another before the river. */
+SPOTS.whoWins1 = { ...V, draw: (P) => flatBoard(P, { at: (k) => [17 + k * 12.5 + (k >= 3 ? 3 : 0) + (k >= 4 ? 3 : 0), GROUND - 14 - k * 3.5] }) };
+/* 2 · Square to the row: every card turned the same as the line it lies on, so the board reads as one straight strip. */
+SPOTS.whoWins2 = { ...V, draw: (P) => flatBoard(P, { turn: () => -2, at: (k) => [18 + k * 15, GROUND - 13 - k * 3.2] }) };
+/* 3 · Laid by hand: each card a few degrees off the one before, as cards land when they are slid out one at a time. */
+SPOTS.whoWins3 = { ...V, draw: (P) => flatBoard(P, { turn: (k) => [-14, -4, -11, -2, -9][k], at: (k) => [19 + k * 14.5, GROUND - 14 - k * 3.5 + [0, 1, -0.5, 1, 0][k]] }) };
+/* 4 · With the pot: the same board a little further back, and one red chip on the felt in front of it. */
+SPOTS.whoWins4 = { ...V, draw: (P) => flatBoard(P, { W: 21, H: 29, at: (k) => [27 + k * 12.5, GROUND - 19 - k * 3.2],
+  extra: shadow(P, 17, 9, 3, GROUND - 3) + chip(P, { cx: 16, by: GROUND - 4, r: 8, h: 3.5, mat: 'red', small: true }) }) };
+
 SPOTS.sidePots = {
   name: 'Side pots',
   where: 'Poker tools · tile',
@@ -106,6 +123,15 @@ const potsTile = (key) => `<div class="tile">${key === 'sidePots' ? cornerArt(ke
 export const sidePotsTile = potsTile('sidePots');
 const TOOLS_THREE = () => `${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Rulings', 'look up a ruling', 'rulings', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}`;
 /* Each Side pots drawing on the screen it lives on, for the owner to pick. */
+const winsTile = (key) => `<div class="tile">${cornerArt(key, 90, 4, key === 'whoWins4' ? -3 : -10)}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
+const WINS_OPTIONS = [
+  ['whoWins', '0', 'As now', 'The current drawing, for comparison: five cards flat on a shallow line, each turned a little.'],
+  ['whoWins1', '1', 'Dealt 3 + 1 + 1', 'The flop together, a small gap before the turn and another before the river, as a dealer lays the board.'],
+  ['whoWins2', '2', 'One straight strip', 'Every card square to the line it lies on, so the board reads as one clean row.'],
+  ['whoWins3', '3', 'Laid by hand', 'Each card a few degrees off the one before, as cards land when slid out one at a time.'],
+  ['whoWins4', '4', 'With the pot', 'The same board a little further back, and one red chip on the felt in front of it.'],
+].map(([key, n, title, note]) => ({ id: `tile-wins-${n}`, route: '/tools', name: `Who wins tile ${n} · ${title}`, nav: 'push', option: 'winsTile', note,
+  html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger', body: `<div class="tiles">${TOOLS_THREE()}${winsTile(key)}${sidePotsTile}</div>` }) }));
 const TILE_OPTIONS = [
   ['sidePots', 'A', 'Three stacks', 'As drawn: three stacks of different heights, the short stack’s pot and what the deeper ones play for over it.'],
   ['sidePotsB', 'B', 'Two bunches', 'Two bunches of chips about the same size, side by side: two pots.'],
@@ -143,6 +169,7 @@ export const section = {
 };
 
 export default [
+  ...WINS_OPTIONS,
   ...TILE_OPTIONS,
   { id: 'tools-five', route: '/tools', name: 'Poker tools, with the two new tiles', nav: 'push',
     note: 'Who wins and Side pots take the half of the second row that is empty and a third row. With the Randomiser draft as well, it is three full rows.',
