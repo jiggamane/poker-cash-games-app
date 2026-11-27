@@ -434,7 +434,8 @@ export default function Settings() {
               <Fact label="Signed in as" value={who.email} />
             )}
             {/* ⚠ COPY NOT DRAWN — the label. `planLine` has the rest. */}
-            {plan !== null && <Fact label="Plan" value={plan} />}
+            {/* The row opens Your plan (the full board's `plan-*`, 27 November). */}
+            {plan !== null && <FactAction label="Plan" value={plan} onPress={() => router.push('/plan')} />}
             <Action
               label={syncing ? 'Syncing…' : 'Sync now'}
               onPress={() => void drain()}

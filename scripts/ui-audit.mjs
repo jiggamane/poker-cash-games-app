@@ -111,6 +111,8 @@ const ROUTES = [
   // Account and names (9 November, `design/handoff-account-and-names/`): the
   // delete-account sheet, the name step, and renaming your own seat.
   '/delete-account', '/your-name', '/seat-name',
+  // Your plan and its change sheet (the full board's `plan-*`, 27 November).
+  '/plan', '/plan-change',
 ];
 
 /*
@@ -1250,6 +1252,7 @@ const SHEET_ROUTES = [
   '/sign-in', '/member', '/hand-over', '/nudge', '/new-group', '/new-night', '/invite',
   '/end-time', '/pass-game', '/late-changes', '/situation', '/table-rules', '/booster',
   '/pick-tool', '/delete-account', '/your-name', '/seat-name',
+  '/plan-change',
 ];
 
 /**

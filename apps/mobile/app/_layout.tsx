@@ -177,6 +177,8 @@ export default function RootLayout() {
         <Stack.Screen name="settled" />
         {/* E7 is a PUSH: the week after the night is a place you come back to. */}
         <Stack.Screen name="payments" />
+        {/* Your plan — a place you stay and read, pushed from Settings (the full board's `plan-*`). */}
+        <Stack.Screen name="plan" />
 
         {/* Sheets. Each of these ends with one action and then gets out. */}
         <Stack.Screen name="player" options={SHEET} />
@@ -211,6 +213,8 @@ export default function RootLayout() {
         <Stack.Screen name="your-name" options={SHEET} />
         <Stack.Screen name="seat-name" options={SHEET} />
         <Stack.Screen name="member" options={SHEET} />
+        {/* A change of plan, confirmed in one sheet over Your plan. */}
+        <Stack.Screen name="plan-change" options={SHEET} />
         <Stack.Screen name="hand-over" options={SHEET} />
         <Stack.Screen name="nudge" options={SHEET} />
         <Stack.Screen name="new-group" options={SHEET} />
