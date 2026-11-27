@@ -312,7 +312,8 @@ export const darkTheme: Theme = {
   offTableWash: 'rgba(217,211,196,0.09)',
   offTableTint: 'rgba(217,211,196,0.13)',
   offTableEdge: 'rgba(217,211,196,0.32)',
-  onFillWin: '#0E8A4F',
+  // On the light ink card of the dark theme: #0E8A4F was 3.79:1 on #ECEEF2 (ui-audit, Your groups); this is 5.7.
+  onFillWin: '#0B6B3C',
   dangerWash: 'rgba(240,112,92,0.12)',
   dangerEdge: 'rgba(240,112,92,0.35)',
   onFill: '#141A2A',

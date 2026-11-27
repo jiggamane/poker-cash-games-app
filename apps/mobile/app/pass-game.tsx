@@ -345,7 +345,8 @@ function PersonRow({
           hitSlop={6}
           style={({ pressed }) => [
             styles.chip,
-            { backgroundColor: t.surface, boxShadow: t.chipLift, opacity: pressed ? 0.6 : 1 },
+            /* Inside a card: in the dark a chip is one step up from the card it sits on. */
+            { backgroundColor: t.name === 'dark' ? t.raised : t.surface, boxShadow: t.chipLift, opacity: pressed ? 0.6 : 1 },
           ]}
         >
           <Text style={[styles.chipLabel, { color: t.text }]}>{action.label}</Text>

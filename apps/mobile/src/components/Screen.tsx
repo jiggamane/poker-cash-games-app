@@ -270,7 +270,10 @@ export function Screen({
       // the tool reads the page's own body colour, which belongs to the
       // browser and not to the design.
       nativeID="app-root"
-      style={[styles.screen, { backgroundColor: t.top, paddingTop: insets.top }]}
+      /* The ink under everything: the sheet is the ground laid over it. The
+         footer and the bar sit on a strip of the ground of their own, so the
+         ink bar never paints onto ink. */
+      style={[styles.screen, { backgroundColor: t.top }]}
     >
       {/*
        * THE INK TOP AND THE SHEET THAT RISES OVER IT. The title row and the
@@ -289,7 +292,7 @@ export function Screen({
             points of padding sit over the sheet's first 26. Without this they
             caught every tap there — the odds calculator's Board label went
             dead (ui-odds, 24 November). Only the rows inside it take a touch. */}
-        <View style={styles.top} pointerEvents="box-none">
+        <View style={[styles.top, { paddingTop: insets.top + L.topPadTop }]} pointerEvents="box-none">
           {titleRow}
           {sub}
           {onInk}
@@ -312,18 +315,16 @@ export function Screen({
         </View>
       </View>
 
-      {footer !== undefined && (
-        <View
-          style={[
-            footerPad ? styles.footer : undefined,
-            { backgroundColor: t.ground },
-            !hasBar && footerPad && { paddingBottom: 6 + insets.bottom },
-          ]}
-        >
-          {footer}
+      {(footer !== undefined || hasBar) && (
+        <View style={{ backgroundColor: t.ground }}>
+          {footer !== undefined && (
+            <View style={[footerPad ? styles.footer : undefined, !hasBar && footerPad && { paddingBottom: 6 + insets.bottom }]}>
+              {footer}
+            </View>
+          )}
+          {hasBar && <Bar actions={bar} line={barLine} />}
         </View>
       )}
-      {hasBar && <Bar actions={bar} line={barLine} />}
     </View>
   );
 }
@@ -430,6 +431,7 @@ const styles = StyleSheet.create({
        control is 34 points tall where the text is 16, so what the first row of
        the body meets is the button's edge rather than a baseline with air
        under it. B68. */
+    paddingBottom: 10,
   },
   metaShared: { ...T.lookMeta, flexShrink: 1 },
   /* The element form of `metaShared`: it takes what the control leaves and

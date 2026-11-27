@@ -30,7 +30,19 @@ import { look, type } from './tokens';
  * NOT in `tokens.ts`, which the Node tests import and which must not reach
  * react-native at runtime.
  */
-const { width, height } = Dimensions.get('window');
+const win = Dimensions.get('window');
+/*
+ * A REAL NUMBER OR THE PAGE'S OWN. On the web react-native-web reads the window
+ * off `visualViewport`, and `ui-audit.mjs` stands one up with a height only (to
+ * raise a keyboard): the width came back undefined, every size here NaN, and
+ * the whole look drew at the browser's defaults (24 November). Fall back to the
+ * page, then to the boards' 393 × 852.
+ */
+const sane = (n: number, page: number | undefined, dflt: number): number =>
+  Number.isFinite(n) && n > 0 ? n : page !== undefined && Number.isFinite(page) && page > 0 ? page : dflt;
+const hasWindow = typeof window !== 'undefined';
+const width = sane(win.width, hasWindow ? window.innerWidth : undefined, 393);
+const height = sane(win.height, hasWindow ? window.innerHeight : undefined, 852);
 export const LOOK_SCALE = Math.min(1.26, Math.max(1, Math.min(width / 312, height / 700)));
 
 /** A kit size, in this phone's points: scaled, on the half point. */

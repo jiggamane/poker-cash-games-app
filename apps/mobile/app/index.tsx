@@ -147,9 +147,11 @@ export default function ClubHome() {
       // Home does not use `Screen`, so it carries the marks itself — see
       // scripts/ui-frames.mjs.
       nativeID="app-root"
-      style={[styles.screen, { backgroundColor: t.top, paddingTop: insets.top }]}
+      /* The ink under everything: the sheet is the ground laid over it, and the
+         ink bar at the foot sits on a strip of the ground of its own. */
+      style={[styles.screen, { backgroundColor: t.top }]}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + z(8) }]}>
         <Text style={[styles.eyebrow, { color: t.onTopMuted }]} numberOfLines={1}>
           {host ? 'Your group' : `Hosted by ${admin?.name ?? '—'}`}
         </Text>
@@ -235,6 +237,7 @@ export default function ClubHome() {
 
       {/* The ink bar, not an action: Settings, the invite, the theme (approved
           as drawn, 22 November — the kit's `barMenu`). */}
+      <View style={{ backgroundColor: t.ground }}>
       <View style={[styles.dock, { backgroundColor: t.bar, paddingBottom: Math.max(insets.bottom, z(24)) }, t.barShadow !== 'none' && { boxShadow: t.barShadow }]}>
         <Pill icon="settings" label="Settings" onPress={() => router.push('/settings')} />
         {host && (
@@ -257,6 +260,7 @@ export default function ClubHome() {
         <View style={styles.pushRight}>
           <ThemeButton showing={themeName} />
         </View>
+      </View>
       </View>
     </View>
   );
@@ -524,7 +528,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
 
   /* The ink top: the kit's `.eyebrow` and `h1.home`. */
-  header: { paddingHorizontal: L.topPadH, paddingTop: z(8), paddingBottom: L.topPadBottom },
+  header: { paddingHorizontal: L.topPadH, paddingBottom: L.topPadBottom },
   eyebrow: { fontSize: z(13), lineHeight: z(17), marginBottom: z(4) },
   clubName: { fontFamily: 'head', fontSize: z(26), fontWeight: '700', lineHeight: z(27), letterSpacing: -0.52 * (z(26) / 26) },
   banner: { fontSize: z(12.5), marginTop: z(4) },

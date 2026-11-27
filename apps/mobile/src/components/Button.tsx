@@ -68,7 +68,9 @@ export function Button({
     borderRadius: variant === 'preset' || variant === 'chip' ? look.chipRadius : look.cardRadius,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    /* 12 a side: a pair of buttons on a 360 phone has ~150 each, and the words
+       ("Correct an entry") must sit on one line in it. */
+    paddingHorizontal: z(12),
   };
 
   let box: ViewStyle;
@@ -153,5 +155,5 @@ export function Button({
 
 const styles = StyleSheet.create({
   /* The kit's `.btn2` words, 700 15 in the title face, at this phone's scale (`design/scale.ts`). */
-  label: { ...type.body, fontFamily: 'head', fontSize: z(14.5), fontWeight: '700' },
+  label: { ...type.body, fontFamily: 'head', fontSize: z(14), fontWeight: '700' },
 });

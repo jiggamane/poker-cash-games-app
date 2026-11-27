@@ -345,7 +345,7 @@ export default function Session() {
       footerPad={false}
       footer={
         !recording ? (
-          <View style={[styles.band, { backgroundColor: t.ground }]}>
+          <View style={styles.band}>
             {away && role?.last?.kind === 'passed' && !role.last.opened ? (
               <View style={styles.bandWords}>
                 {/* 7 · the game is theirs on the server and their phone has
@@ -385,7 +385,7 @@ export default function Session() {
            * dock because it is about what the dock records, and on the sheet.
            */}
           {late.toReview > 0 && (
-            <View style={[styles.lateSlot, { backgroundColor: t.ground }]}>
+            <View style={styles.lateSlot}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${late.toReview} changes from another phone. Review.`}
@@ -774,7 +774,8 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
 
   /* The pot on the ink (the kit's `topHero`). */
-  hero: { paddingTop: z(14), paddingHorizontal: z(2), paddingBottom: z(2) },
+  /* The kit's 14 above the pot, less the meta row's own floor of 10 (B68). */
+  hero: { paddingTop: z(14) - 10, paddingHorizontal: z(2), paddingBottom: z(2) },
   heroLabel: { fontSize: z(12.5), fontWeight: '500' },
   heroRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: z(10), marginTop: z(4) },
   figureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: FIGURE_TAG_GAP, flexGrow: 1, flexShrink: 0, flexBasis: 'auto', minWidth: 0 },
