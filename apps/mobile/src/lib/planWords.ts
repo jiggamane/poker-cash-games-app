@@ -58,3 +58,12 @@ export function isHostNightGate(error: unknown): boolean {
   const raw = error instanceof Error ? error.message : String(error);
   return /host_night_gate:/.test(raw);
 }
+
+/**
+ * 0018's names, read as 0022's. The live project had not had 0022 applied on
+ * 27 November and still answered `pro` for the owner's account, which no
+ * screen draws — Your plan came up empty. A server that has it never says
+ * either word, so this costs nothing once it is applied.
+ */
+export const tierName = (raw: string | null | undefined): Plan['plan'] =>
+  raw === 'regular' ? 'regular' : raw === 'full' || raw === 'pro' || raw === 'club' ? 'full' : 'free';

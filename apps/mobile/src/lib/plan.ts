@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { CODE_OPENS_NOTHING, type Plan } from './planWords';
+import { CODE_OPENS_NOTHING, tierName, type Plan } from './planWords';
 
 export { planLine, isNoPlanForGroup, CODE_OPENS_NOTHING, type Plan } from './planWords';
 
@@ -18,10 +18,10 @@ export async function myPlan(): Promise<Plan> {
   const { data, error } = await supabase.rpc('my_plan');
   if (error) throw error;
   const row = (Array.isArray(data) ? data[0] : data) as
-    | { plan: Plan['plan']; source: Plan['source']; ends_at: string | null }
+    | { plan: string; source: Plan['source']; ends_at: string | null }
     | undefined;
   return {
-    plan: row?.plan ?? 'free',
+    plan: tierName(row?.plan),
     source: row?.source ?? null,
     endsAt: row?.ends_at ?? null,
   };

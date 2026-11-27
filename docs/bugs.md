@@ -139,6 +139,20 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B113 — Your plan is empty on the live project
+
+```
+Screen      /plan, and the plan row in Settings
+Seen        27 Nov: the live project has never had 0021 or 0022 applied, and
+            `my_plan()` answers `pro` for the owner's account. No branch of
+            /plan draws `pro`, so the screen came up with nothing on it
+Expected    0018's pro and club read as Full until the server is migrated
+Found       checking the live project before a real game
+Locked by   npm run check — planWords.test.ts, "the server's own names for a plan"
+Status      fixed: `tierName()` in planWords.ts. Open: apply 0021 and 0022 to
+            the live project — after a game night, not the day before one
+```
+
 ### B112 — the settled night's time is cut off beside its view control
 
 ```
