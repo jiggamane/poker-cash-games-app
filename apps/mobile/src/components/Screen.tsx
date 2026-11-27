@@ -331,7 +331,11 @@ export function Screen({
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  fixed: { flex: 1 },
+  /* OVER THE FOOTER STRIP, so a menu's backdrop hung from the ink top covers the
+     bar too. Every web View is its own stacking context at z 0, and the strip is
+     a later sibling: without this a tap past an open menu at the foot of the
+     phone landed on the bar and opened Who pays whom (ui-journeys, B77, 27 Nov). */
+  fixed: { flex: 1, zIndex: 2 },
   top: { paddingHorizontal: L.topPadH, paddingTop: L.topPadTop, paddingBottom: L.topPadBottom, zIndex: 20 },
   sheet: {
     flex: 1,
@@ -403,6 +407,13 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    /* AND IT WRAPS before it cuts. The settled night's `08:43 → 12:00` beside
+       `Final, detailed` wanted 124 of 117 at 360 and 120% text (ui-journeys,
+       27 November), and a time cut to `08:43 → 12:…` is a figure lost. The
+       control drops to a line of its own, still at the right edge (its
+       `marginLeft: auto`), so its menu still hangs right-aligned under it. */
+    flexWrap: 'wrap',
+    rowGap: z(6),
     /*
      * 8 RATHER THAN THE TITLE ROW'S 12, and the four points are not cosmetic —
      * B82. This row is the only place in the app where a line of text and a

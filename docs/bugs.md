@@ -139,6 +139,56 @@ one was not: the rule at the top of this file is the one that worked. See the
 `B77` note under **where the check went** below for the one thing the merge did
 have to adjudicate.*
 
+### B112 — the settled night's time is cut off beside its view control
+
+```
+Screen      /settled (and every pushed screen with a control on the meta line)
+Seen        `08:43 → 12:…` at 360 wide and 120% text — 124 points wanted, 117 given
+Expected    the whole time span; the control may move, the figure may not
+Found       27 Nov, the full-board build, ui-journeys
+Locked by   check:ui — ui-journeys "night settled", meta-line-truncated
+Status      fixed: the meta row wraps, the control keeps the right edge
+```
+
+### B111 — a tap past the settled night's view menu opened Who pays whom
+
+```
+Screen      /settled, /watch, My stats — any screen with a Dropdown and a bar
+Seen        the menu stayed up and the tap at the foot of the phone went to /payments
+Expected    a tap anywhere past an open menu closes it and does nothing else (B77)
+Found       27 Nov, ui-journeys — the full board put the bar where a list row was
+Locked by   check:ui — ui-journeys "and a tap outside closes it",
+            "and the tap did not open a night"
+Status      fixed: Screen's body sits over the footer strip (zIndex 2), so the
+            menu's backdrop covers the bar too
+```
+
+### B110 — a game figure under a name clipped to `+12.` on Deductions
+
+```
+Screen      /deductions, and the share sheet over it
+Seen        `+12.4k` in 46 points and `+1,620` in 49 at 360 and 120% text once
+            a spend and a share made the pill of terms four long; the spend
+            times `10:26` wrapped to two lines in the list under it
+Expected    every figure whole on one line
+Found       27 Nov, ui-journeys
+Locked by   check:ui — ui-journeys "deductions · a spend added after the count",
+            "a share, by hand" (clipped, wrapped)
+Status      fixed: the right column is capped at 62% and its pill wraps between
+            terms; the spend time has a floor rather than a width
+```
+
+### B109 — the bar's narrow half fell off the right edge
+
+```
+Screen      /settle-up out of balance (Fix), Tonight (Bill)
+Seen        `Settle the night` took the whole bar and Fix sat past the edge
+Expected    the narrow half 104 wide at the right, the wide half the rest
+Found       27 Nov, photographing the build beside the drawings
+Locked by   check:ui — ui-audit label-out-of-its-control on /settle-up
+Status      fixed: a fixed flex basis — react-native-web read `flex: 0` as zero
+```
+
 ### B108 — a function a migration "revoked from public" is still callable on Supabase
 
 ```

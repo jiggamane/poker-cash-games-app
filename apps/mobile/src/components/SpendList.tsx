@@ -142,7 +142,8 @@ const styles = StyleSheet.create({
   // The kit's `note()`: 13 / 1.45, muted.
   empty: { fontSize: z(13), lineHeight: z(18.85), marginHorizontal: z(2) },
   // As `/bill` leads its spend rows: 12.5 600, tabular, a fixed column.
-  time: { width: z(38), fontSize: z(12.5), fontWeight: '600', fontVariant: ['tabular-nums'] },
+  /* A floor, not a width: at 360 with 120% text "10:26" needs more than 38 and wrapped (ui-journeys, 27 Nov). */
+  time: { minWidth: z(38), flexShrink: 0, fontSize: z(12.5), fontWeight: '600', fontVariant: ['tabular-nums'] },
   // The kit's `.btn2`: 48 tall, 14 round, a 1.5 outline, 700 15 in the title face.
   add: {
     height: z(48),

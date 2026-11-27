@@ -772,14 +772,19 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, minWidth: 0 },
   rowName: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6) },
   termLine: { flexDirection: 'row', alignItems: 'center', gap: z(4), marginTop: z(2) },
-  term: { fontSize: z(12), fontWeight: '400', lineHeight: z(15), fontVariant: ['tabular-nums'], flexShrink: 1 },
+  term: { fontSize: z(12), fontWeight: '400', lineHeight: z(15), fontVariant: ['tabular-nums'], flexShrink: 0 },
   /*
    * NEVER SHRINKS — B18. The name and the line under it are words and may give;
    * a figure may not, and one left to shrink came apart into a dash on one line
    * and an amount on the next. The pill under the net is figures too, so the
    * whole right-hand column holds and the name gives.
+   *
+   * BUT NOT PAST 62%. With three or four terms at 360 and 120% text the pill
+   * took the row and the game figure under the name was clipped to `+12.` —
+   * a figure is a figure on either side (ui-journeys, 27 November). So the
+   * column is capped and the pill wraps BETWEEN its terms, never inside one.
    */
-  rowRight: { alignItems: 'flex-end', flexShrink: 0 },
+  rowRight: { alignItems: 'flex-end', flexShrink: 0, maxWidth: '62%' },
   rowNet: {
     fontFamily: 'head',
     fontSize: z(16.5),
@@ -789,8 +794,8 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   /* The kit's `terms()`: 500 11 in the figure face, `4 7`, 7 round, on the raised grey, 3 under the net. */
-  pill: { flexDirection: 'row', alignItems: 'center', gap: z(6), paddingVertical: z(4), paddingHorizontal: z(7), borderRadius: z(7), marginTop: z(3) },
-  pillTerm: { flexDirection: 'row', alignItems: 'center', gap: z(3) },
+  pill: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', columnGap: z(6), rowGap: z(2), paddingVertical: z(4), paddingHorizontal: z(7), borderRadius: z(7), marginTop: z(3) },
+  pillTerm: { flexDirection: 'row', alignItems: 'center', gap: z(3), flexShrink: 0 },
   pillText: { fontFamily: 'head', fontSize: z(11), fontWeight: '500', fontVariant: ['tabular-nums'] },
 
   /* The board's `blockHead`: `12 0 4`, the name taking what the pill and the total leave. */
