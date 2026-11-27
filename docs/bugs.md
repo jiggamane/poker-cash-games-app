@@ -149,11 +149,11 @@ Expected    the header is the title and its line, icon or no icon
 Found       27 Nov, a TestFlight screenshot from the owner
 Locked by   check:ui — ui-audit route pass on /odds (meta-line-truncated);
             the height itself is held by construction: the icon's slot is the
-            meta line's line height (restartSlot in odds.tsx)
-Status      fixed: the line is built in metaNode, not metaTrailing — the
-            subtitle shrinks to fit (0.7) and the icon overhangs a slot one
-            line tall, so the shared row's wrap (B112) and floor (B68) no
-            longer apply here
+            meta line's line height (inlineSlot in Screen.tsx)
+Status      fixed: Screen's metaTrailingInline — the row never wraps and has
+            no floor (B112 and B68 still hold everywhere else), the icon sits
+            in a slot one meta line tall and overhangs it, and the subtitle
+            shrinks to fit (0.7) on a phone
 ```
 
 ### B114 — the home tile reads "Poker to…"

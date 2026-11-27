@@ -682,31 +682,14 @@ export default function OddsCalculator() {
     <Screen
       title="Poker calculator"
       backTo={backTo}
-      /*
-       * THE ICON DOES NOT GROW THE HEADER (the owner, 27 November, from a
-       * TestFlight screenshot). Through `metaTrailing` it took the shared meta
-       * row, which carries a 10-point floor for a 34-point control (B68) and
-       * wraps rather than cut (B112) — so on a phone with its text turned up
-       * the icon dropped to a third header line of its own under the subtitle.
-       * Here the row is built in the meta line's own slot instead: the
-       * subtitle and the icon on one line exactly as tall as the subtitle,
-       * the icon centred on it and overhanging it into the header's own
-       * padding, and the subtitle shrinking to fit before it would ever
-       * ellipsise. Same height with the icon as without.
-       */
-      metaNode={
-        <>
-          <Text
-            style={[T.lookMeta, styles.subtitle, { color: t.onTopMuted }]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.7}
-          >
-            {ODDS_SUBTITLE}
-          </Text>
-          <View style={styles.restartSlot}>{restart}</View>
-        </>
-      }
+      meta={ODDS_SUBTITLE}
+      metaTrailing={restart}
+      /* THE ICON DOES NOT GROW THE HEADER (the owner, 27 November; B115).
+         Through the ordinary trailing row it wrapped to a third header line
+         at larger text and carried a 10-point floor; inline, the line is the
+         subtitle's height, the icon overhangs it, and the subtitle shrinks
+         to fit beside it. See `Screen`'s `metaTrailingInline`. */
+      metaTrailingInline
       footer={
         typing === null ? (
           deckOpen ? deck : undefined
@@ -1065,12 +1048,6 @@ const styles = StyleSheet.create({
   },
   deckRank: { fontFamily: 'head', fontSize: z(11.5), fontWeight: '800', lineHeight: z(12.5) },
   restart: { width: z(34), height: z(34), borderRadius: z(17), alignItems: 'center', justifyContent: 'center' },
-  /* The meta line's text, taking what the icon leaves (the meta line's own
-     type, so the line is the height it is on every other pushed screen). */
-  subtitle: { flex: 1, minWidth: 0 },
-  /* As tall as the meta line and no taller: the 34-point icon is centred on
-     it and overhangs, so it adds nothing to the header's height. */
-  restartSlot: { height: T.lookMeta.lineHeight, justifyContent: 'center', overflow: 'visible', marginLeft: z(8) },
   /* Off screen but in the tree: one point square, clipped, nothing drawn. */
   status: { position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0 },
   callout: {
