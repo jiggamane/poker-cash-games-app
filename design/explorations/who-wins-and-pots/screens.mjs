@@ -14,7 +14,7 @@
  * `hand.ts`'s (`nameHand`, the owner's wording of 26 October).
  */
 import { push, bar, ico, tile, topButton } from '../full-board/kit.mjs';
-import { SPOTS, card as artCard, stack, shadow, spot, GROUND } from '../icon-system/art.mjs';
+import { SPOTS, card as artCard, stack, chip, shadow, spot, GROUND } from '../icon-system/art.mjs';
 import { E } from './load.mjs';
 import { init, whoWins, sidePots } from './draw.mjs';
 
@@ -61,10 +61,58 @@ SPOTS.sidePots = {
     stack(P, { cx: 72, by: GROUND - 2, r: 14, h: 6, mats: ['red', 'ink', 'red', 'ink', 'red', 'ink'], wobble: [0, -1, 1, 0, -1, 1], small: true }) +
     stack(P, { cx: 49, by: GROUND + 2, r: 15, h: 6, mats: ['ink', 'red', 'ink', 'red'], wobble: [0, 1, -1, 0], small: o.small }),
 };
-const cornerArt = (key, size = 78, right = -4) =>
-  `<span class="art" style="position:absolute;right:${right}px;bottom:-10px">${['freshDeck', 'freshDeckOnInk'].map((p, i) => `<span class="${i ? 'art-d' : 'art-l'}">${spot(key, p, { size, small: false })}</span>`).join('')}</span>`;
+/*
+ * Side pots, more drawings (owner, 27 November: "more options, e.g. with two
+ * bunches of chips, depicting two pots"). A bunch is a few short stacks and a
+ * loose chip or two lying flat, drawn back to front; each pile sits on its own
+ * shadow so the two pots read as two places on the felt.
+ */
+const bunch = (P, piles) => [...piles].sort((a, b) => a.by - b.by).map((q) =>
+  q.flat ? chip(P, { cx: q.cx, by: q.by, r: q.r, h: 3, mat: q.mats[0], small: true })
+    : stack(P, { cx: q.cx, by: q.by, r: q.r, h: q.h ?? 5, mats: q.mats, wobble: q.wobble ?? q.mats.map((_, i) => (i % 2 ? 1 : 0)), small: true })).join('');
+SPOTS.sidePotsB = { name: 'Side pots · two bunches', where: 'Poker tools · tile', status: 'draft',
+  /* B: two bunches of about the same size, side by side, each three short stacks in a triangle and a loose chip. */
+  draw: (P) => shadow(P, 28, 23, 7, GROUND - 2) + shadow(P, 71, 22, 7, GROUND - 2) +
+    bunch(P, [
+      { cx: 19, by: GROUND - 10, r: 9.5, mats: ['ink', 'red', 'ink'] }, { cx: 36, by: GROUND - 9, r: 9.5, mats: ['red', 'ink', 'red', 'ink'] },
+      { cx: 27, by: GROUND + 1, r: 9.5, mats: ['red', 'ink'] }, { cx: 42, by: GROUND + 3, r: 8, mats: ['ink'], flat: true },
+      { cx: 63, by: GROUND - 10, r: 9.5, mats: ['red', 'ink', 'red'] }, { cx: 80, by: GROUND - 8, r: 9.5, mats: ['ink', 'red'] },
+      { cx: 70, by: GROUND + 1, r: 9.5, mats: ['ink', 'red', 'ink'] },
+    ]) };
+SPOTS.sidePotsC = { name: 'Side pots · main and side', where: 'Poker tools · tile', status: 'draft',
+  /* C: the main pot the bigger bunch, the side pot a small one, a dashed line on the felt between them. */
+  draw: (P) => shadow(P, 30, 26, 7.5, GROUND - 1) + shadow(P, 75, 15, 5, GROUND - 1) +
+    `<path d="M56 ${GROUND - 20}L52 ${GROUND + 4}" stroke="${P.ink.top}" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5 3.5" opacity=".45"/>` +
+    bunch(P, [
+      { cx: 18, by: GROUND - 11, r: 9.5, mats: ['ink', 'red', 'ink', 'red'] }, { cx: 35, by: GROUND - 11, r: 9.5, mats: ['red', 'ink', 'red', 'ink', 'red'] },
+      { cx: 41, by: GROUND + 1, r: 9.5, mats: ['ink', 'red'] }, { cx: 24, by: GROUND + 1, r: 9.5, mats: ['red', 'ink', 'red'] },
+      { cx: 10, by: GROUND + 3, r: 7, mats: ['red'], flat: true },
+      { cx: 71, by: GROUND - 5, r: 9, mats: ['red', 'ink'] }, { cx: 80, by: GROUND + 1, r: 9, mats: ['ink', 'red', 'ink'] },
+    ]) };
+SPOTS.sidePotsD = { name: 'Side pots · front and back', where: 'Poker tools · tile', status: 'draft',
+  /* D: the main pot in front, the side pot behind it and smaller, as two pots sit on a table seen from a seat. */
+  draw: (P) => shadow(P, 66, 16, 4.5, GROUND - 19) + shadow(P, 36, 27, 8, GROUND) +
+    bunch(P, [
+      { cx: 59, by: GROUND - 22, r: 8, h: 4, mats: ['red', 'ink', 'red'] }, { cx: 71, by: GROUND - 21, r: 8, h: 4, mats: ['ink', 'red'] },
+      { cx: 66, by: GROUND - 17, r: 8, h: 4, mats: ['ink', 'red', 'ink', 'red'] },
+      { cx: 26, by: GROUND - 6, r: 12, mats: ['red', 'ink', 'red'] }, { cx: 42, by: GROUND - 5, r: 12, mats: ['ink', 'red', 'ink', 'red'] },
+      { cx: 33, by: GROUND + 2, r: 12, mats: ['ink', 'red'] }, { cx: 51, by: GROUND + 3, r: 10, mats: ['red'], flat: true },
+    ]) };
+
+const cornerArt = (key, size = 78, right = -4, bottom = -10) =>
+  `<span class="art" style="position:absolute;right:${right}px;bottom:${bottom}px">${['freshDeck', 'freshDeckOnInk'].map((p, i) => `<span class="${i ? 'art-d' : 'art-l'}">${spot(key, p, { size, small: false })}</span>`).join('')}</span>`;
 export const whoWinsTile = `<div class="tile">${cornerArt('whoWins', 90, 4)}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
-export const sidePotsTile = `<div class="tile">${cornerArt('sidePots')}<div><div class="tn">Side pots</div><div class="tx">a multi-way all in, pot by pot</div></div></div>`;
+const potsTile = (key) => `<div class="tile">${key === 'sidePots' ? cornerArt(key) : cornerArt(key, 84, 4, -2)}<div><div class="tn">Side pots</div><div class="tx">a multi-way all in, pot by pot</div></div></div>`;
+export const sidePotsTile = potsTile('sidePots');
+const TOOLS_THREE = () => `${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Rulings', 'look up a ruling', 'rulings', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}`;
+/* Each Side pots drawing on the screen it lives on, for the owner to pick. */
+const TILE_OPTIONS = [
+  ['sidePots', 'A', 'Three stacks', 'As drawn: three stacks of different heights, the short stack’s pot and what the deeper ones play for over it.'],
+  ['sidePotsB', 'B', 'Two bunches', 'Two bunches of chips about the same size, side by side: two pots.'],
+  ['sidePotsC', 'C', 'Main and side', 'The main pot the bigger bunch, the side pot a small one, a dashed line on the felt between them.'],
+  ['sidePotsD', 'D', 'Front and back', 'The main pot in front, the side pot behind it and smaller, as a seat at the table sees two pots.'],
+].map(([key, letter, title, note]) => ({ id: `tile-pots-${letter.toLowerCase()}`, route: '/tools', name: `Side pots tile ${letter} · ${title}`, nav: 'push', option: 'tile', note,
+  html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger', body: `<div class="tiles">${TOOLS_THREE()}${whoWinsTile}${potsTile(key)}</div>` }) }));
 
 /* ── tables ───────────────────────────────────────────────────────────── */
 
@@ -95,6 +143,7 @@ export const section = {
 };
 
 export default [
+  ...TILE_OPTIONS,
   { id: 'tools-five', route: '/tools', name: 'Poker tools, with the two new tiles', nav: 'push',
     note: 'Who wins and Side pots take the half of the second row that is empty and a third row. With the Randomiser draft as well, it is three full rows.',
     flags: ['Both tile drawings are drafts from the icon system’s parts. Who wins is the board, five cards face up lying on the table on a diagonal, suit-only faces like the small 7-2 drawing (owner, 27 November); Side pots is three stacks.',

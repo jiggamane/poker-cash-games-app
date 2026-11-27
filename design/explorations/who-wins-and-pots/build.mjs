@@ -60,6 +60,7 @@ const cell = (s) => `<figure class="cell" id="s-${s.id}"><div class="pg-ph">${s.
     s.note ? `<span class="pg-nt">${esc(s.note)}</span>` : ''}${(s.flags ?? []).map((f) => `<span class="pg-flag">${esc(f)}</span>`).join('')}</figcaption></figure>`;
 
 const HERO = SCREENS.filter((s) => s.option === 'hero');
+const TILES = SCREENS.filter((s) => s.option === 'tile');
 const WHO = SCREENS.filter((s) => (s.route === '/who-wins' || s.route === '/tools') && !s.option);
 const POTS = SCREENS.filter((s) => s.route === '/side-pots');
 
@@ -115,7 +116,7 @@ ${CSS}
   <p>${esc(section.blurb)} Drawn in the look approved on 22 November (the full board’s kit). <b>No app code has changed.</b> Approve or redirect here first.</p>
 </header>
 <nav class="pg-strip" aria-label="Board">
-  <b>Who wins · Side pots</b><a href="#header">Header options</a><a href="#try">Try it</a><a href="#who">Who wins</a><a href="#pots">Side pots</a><a href="#decided">Decided</a><a href="#open">Open</a>
+  <b>Who wins · Side pots</b><a href="#header">Header options</a><a href="#tiles">Tile options</a><a href="#try">Try it</a><a href="#who">Who wins</a><a href="#pots">Side pots</a><a href="#decided">Decided</a><a href="#open">Open</a>
   <span class="pg-mode" role="group" aria-label="Phone theme"><button type="button" data-ph="light" aria-pressed="true">Light</button><button type="button" data-ph="dark" aria-pressed="false">Dark</button></span>
 </nav>
 
@@ -123,6 +124,12 @@ ${CSS}
   <h2>Who wins: six ways to use the header</h2>
   <p>Your comment of 27 November. Each option is drawn on the same two hands: heads-up decided by the kicker on the river, and three players on the turn. A is what the rest of the board shows. Pick one, or a mix, and it goes on every Who wins phone and the live one.</p>
   <div class="pg-grid phones">${HERO.map(cell).join('')}</div>
+</section>
+
+<section id="tiles">
+  <h2>Side pots: four drawings for the tile</h2>
+  <p>Your comment of 27 November. Each on the Poker tools screen beside the Who wins tile, so you see it at its real size and next to its neighbours.</p>
+  <div class="pg-grid phones">${TILES.map(cell).join('')}</div>
 </section>
 
 <section id="try">
