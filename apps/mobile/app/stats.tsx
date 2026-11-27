@@ -7,6 +7,7 @@ import { formatSigned, formatSignedToFit } from '../src/lib/money';
 import { Dropdown, MENU_DIM, type DropdownItem } from '../src/components/Dropdown';
 import { duration, GameRow } from '../src/components/GameRow';
 import { ChartPlaceholder, NightsChart } from '../src/components/NightsChart';
+import { GhostGames } from '../src/components/GhostGames';
 import { Card, SectionLabel } from '../src/components/Card';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
@@ -237,37 +238,6 @@ export default function MyStats() {
 }
 
 /**
- * TWO ROWS THAT ARE NOT NIGHTS — `stats-empty`'s `ghostGames`: the shape a
- * night row will take (a date and a figure, the line under them) in the faint
- * grey, with a rule between the two. Nothing in it is read aloud; the line
- * under the card says what it is.
- */
-function GhostGames() {
-  const t = useTheme();
-  const line = (width: `${number}%`, height: number) => (
-    <View style={{ width, height: z(height), borderRadius: z(height) / 2, backgroundColor: t.raised }} />
-  );
-  return (
-    <Card style={styles.ghostCard}>
-      <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-        {[0, 1].map((i) => (
-          <View
-            key={i}
-            style={[styles.ghostRow, i === 0 && { borderBottomWidth: 1, borderBottomColor: t.hairline }]}
-          >
-            <View style={styles.ghostHead}>
-              {line('42%', 12)}
-              {line('18%', 12)}
-            </View>
-            {line('64%', 8)}
-          </View>
-        ))}
-      </View>
-    </Card>
-  );
-}
-
-/**
  * THE FIGURE CARD — the answer, and the only tinted thing on the screen.
  *
  * `August` over `+$610`, with `6 games · 25 h` flush right on the same
@@ -449,10 +419,6 @@ const styles = StyleSheet.create({
 
   /* `padding: 4px 12px` — the rows carry their own 9 above and below. */
   nights: { paddingVertical: z(4) },
-
-  ghostCard: { paddingVertical: z(2) },
-  ghostRow: { paddingVertical: z(12), gap: z(8) },
-  ghostHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 
   /* The kit's `note`: 13/1.45, muted. */
   empty: { fontSize: z(13), lineHeight: z(18.85) },
