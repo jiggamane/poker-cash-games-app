@@ -71,15 +71,15 @@ SPOTS.sidePots = {
   /*
    * S2, the owner's pick: two pots side by side, the side pot on the left, the
    * main pot on the right and bigger (more stacks, taller ones; the chips the
-   * same size, as the two sit at the same distance), the side pot six points
-   * further back so the pair is turned a little off square. Each pot on its own
+   * same size, as the two sit at the same distance), the side pot (two short stacks' worth, its three-chip stack taken off on
+   * 27 November) six points further back so the pair is turned a little off square. Each pot on its own
    * shadow. The other angles and the earlier drawings are in git history.
    */
   draw: (P) => {
     const [sx, sy] = [20, GROUND - 7];
     const [mx, my] = [64, GROUND - 1];
     return shadow(P, sx, 16, 5, sy + 1) + shadow(P, mx, 26, 7.5, my + 1) + bunch(P, [
-      { cx: sx - 6, by: sy - 4, r: 9.5, mats: ['red', 'ink'] }, { cx: sx + 6, by: sy - 3, r: 9.5, mats: ['ink', 'red', 'ink'] },
+      { cx: sx - 6, by: sy - 4, r: 9.5, mats: ['red', 'ink'] },
       { cx: sx, by: sy + 3, r: 9.5, mats: ['red'], flat: true },
       { cx: mx - 11, by: my - 7, r: 9.5, mats: ['ink', 'red', 'ink', 'red'] }, { cx: mx + 5, by: my - 8, r: 9.5, mats: ['red', 'ink', 'red', 'ink', 'red'] },
       { cx: mx + 16, by: my - 1, r: 9.5, mats: ['ink', 'red', 'ink'] }, { cx: mx - 4, by: my + 1, r: 9.5, mats: ['red', 'ink', 'red'] },
@@ -105,9 +105,9 @@ const twoPots = (P, { r = 9.5, side, main, s = [20, GROUND - 7], m = [64, GROUND
 const PV = { name: 'Side pots', where: 'Poker tools · tile', status: 'draft' };
 /* P1 · Towers: fewer, taller stacks. A tall and a short one on the left; on the right a tall one, one three chips lower (owner, 27 November), and a short one. */
 SPOTS.sidePotsP1 = { ...PV, draw: (P) => twoPots(P, { side: [[-5, -3, 4], [6, 1, 2]], main: [[-9, -6, 4], [7, -6, 6], [0, 2, 3]] }) };
-/* P2 · Low and wide: shorter stacks, bigger chips, spread out across the felt. */
+/* P2 · Low and wide: shorter stacks, bigger chips, spread out across the felt; the main pot's front stack taken off (owner, 27 November). */
 SPOTS.sidePotsP2 = { ...PV, draw: (P) => twoPots(P, { r: 11, s: [19, GROUND - 6], m: [64, GROUND - 1], sw: 18, mw: 28,
-  side: [[-6, -3, 2], [7, -2, 2], [0, 4, 1, 'flat']], main: [[-13, -5, 3], [3, -7, 4], [16, -2, 2], [-3, 3, 3]] }) };
+  side: [[-6, -3, 2], [7, -2, 2], [0, 4, 1, 'flat']], main: [[-13, -5, 3], [3, -7, 4], [16, -2, 2]] }) };
 /* P3 · One stack each: the side pot a short stack, the main pot taller (five chips, three taken off on 27 November). */
 SPOTS.sidePotsP3 = { ...PV, draw: (P) => twoPots(P, { r: 12, s: [30, GROUND - 6], m: [62, GROUND - 1], sw: 15, mw: 17,
   side: [[0, 0, 3]], main: [[0, 0, 5]] }) };
