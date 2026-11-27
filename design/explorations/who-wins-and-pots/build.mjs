@@ -61,6 +61,7 @@ const cell = (s) => `<figure class="cell" id="s-${s.id}"><div class="pg-ph">${s.
     s.note ? `<span class="pg-nt">${esc(s.note)}</span>` : ''}${(s.flags ?? []).map((f) => `<span class="pg-flag">${esc(f)}</span>`).join('')}</figcaption></figure>`;
 
 const HERO = SCREENS.filter((s) => s.option === 'hero');
+const TILES = SCREENS.filter((s) => s.option === 'tile');
 const WHO = SCREENS.filter((s) => (s.route === '/who-wins' || s.route === '/tools') && !s.option);
 const POTS = SCREENS.filter((s) => s.route === '/side-pots');
 
@@ -116,9 +117,15 @@ ${CSS}
   <p>${esc(section.blurb)} Drawn in the look approved on 22 November (the full board’s kit). <b>No app code has changed.</b> Approve or redirect here first.</p>
 </header>
 <nav class="pg-strip" aria-label="Board">
-  <b>Who wins · Side pots</b><a href="#header">Header options</a><a href="#try">Try it</a><a href="#who">Who wins</a><a href="#pots">Side pots</a><a href="#decided">Decided</a><a href="#open">Open</a>
+  <b>Who wins · Side pots</b><a href="#tiles">Side pots tile</a><a href="#header">Header options</a><a href="#try">Try it</a><a href="#who">Who wins</a><a href="#pots">Side pots</a><a href="#decided">Decided</a><a href="#open">Open</a>
   <span class="pg-mode" role="group" aria-label="Phone theme"><button type="button" data-ph="light" aria-pressed="true">Light</button><button type="button" data-ph="dark" aria-pressed="false">Dark</button></span>
 </nav>
+
+<section id="tiles">
+  <h2>Side pots tile: stack sizes and angle</h2>
+  <p>Your comment of 27 November: the rest of Poker tools is approved; iterate on the Side pots stacks and their orientation. Every take keeps the two pots side by side with the bigger on the right. S2 is the current drawing, for comparison.</p>
+  <div class="pg-grid phones">${TILES.map(cell).join('')}</div>
+</section>
 
 <section id="header">
   <h2>Who wins: six ways to use the header</h2>

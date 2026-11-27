@@ -87,10 +87,53 @@ SPOTS.sidePots = {
   },
 };
 
+/*
+ * S2 iterated (owner, 27 November: "iterate on the stack sizes/heights,
+ * orientation; the rest on this screen is approved"). Always two pots side by
+ * side, the side pot on the left and the main pot on the right and bigger.
+ * A pot is a list of piles, each [dx, dy, chips] from the pot's centre, or
+ * [dx, dy, 1, 'flat'] for a loose chip; `r` is the chip size for both pots.
+ */
+const MATS = ['red', 'ink'];
+const pot = (P, cx, cy, piles, r, start = 0) => piles.map(([dx, dy, n, flat], i) => ({
+  cx: cx + dx, by: cy + dy, r, flat: flat === 'flat',
+  mats: Array.from({ length: n }, (_, k) => MATS[(k + i + start) % 2]),
+}));
+const twoPots = (P, { r = 9.5, side, main, s = [20, GROUND - 7], m = [64, GROUND - 1], sw = 16, mw = 26 }) =>
+  shadow(P, s[0], sw, 5, s[1] + 1) + shadow(P, m[0], mw, 7.5, m[1] + 1) +
+  bunch(P, [...pot(P, s[0], s[1], side, r), ...pot(P, m[0], m[1], main, r, 1)]);
+const PV = { name: 'Side pots', where: 'Poker tools · tile', status: 'draft' };
+/* P1 · Towers: fewer, taller stacks. One tall stack and a short one on the left, two tall ones and a short one on the right. */
+SPOTS.sidePotsP1 = { ...PV, draw: (P) => twoPots(P, { side: [[-5, -3, 4], [6, 1, 2]], main: [[-9, -6, 7], [7, -6, 6], [0, 2, 3]] }) };
+/* P2 · Low and wide: shorter stacks, bigger chips, spread out across the felt. */
+SPOTS.sidePotsP2 = { ...PV, draw: (P) => twoPots(P, { r: 11, s: [19, GROUND - 6], m: [64, GROUND - 1], sw: 18, mw: 28,
+  side: [[-6, -3, 2], [7, -2, 2], [0, 4, 1, 'flat']], main: [[-13, -5, 3], [3, -7, 4], [16, -2, 2], [-3, 3, 3]] }) };
+/* P3 · One stack each: the side pot a short stack, the main pot a tall one. The plainest reading of "two pots, one bigger". */
+SPOTS.sidePotsP3 = { ...PV, draw: (P) => twoPots(P, { r: 12, s: [30, GROUND - 6], m: [62, GROUND - 1], sw: 15, mw: 17,
+  side: [[0, 0, 3]], main: [[0, 0, 8]] }) };
+/* P4 · Turned more: the S2 stacks, the side pot well back and the main pot forward, a steeper angle between them. */
+SPOTS.sidePotsP4 = { ...PV, draw: (P) => twoPots(P, { s: [22, GROUND - 14], m: [62, GROUND + 1],
+  side: [[-6, -4, 2], [6, -3, 3], [0, 3, 1, 'flat']], main: [[-11, -7, 4], [5, -8, 5], [16, -1, 3], [-4, 1, 3]] }) };
+/* P5 · Level and graded: the two pots on one line, the stacks stepping up in height from left to right across both. */
+SPOTS.sidePotsP5 = { ...PV, draw: (P) => twoPots(P, { s: [20, GROUND - 3], m: [63, GROUND - 3],
+  side: [[-6, -2, 1], [6, 0, 2]], main: [[-12, -2, 3], [1, -4, 4], [14, -1, 5], [-4, 4, 2]] }) };
+
 const cornerArt = (key, size, right, bottom) =>
   `<span class="art" style="position:absolute;right:${right}px;bottom:${bottom}px">${['freshDeck', 'freshDeckOnInk'].map((p, i) => `<span class="${i ? 'art-d' : 'art-l'}">${spot(key, p, { size, small: false })}</span>`).join('')}</span>`;
 export const whoWinsTile = `<div class="tile">${cornerArt('whoWins', 90, 4, -10)}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
-export const sidePotsTile = `<div class="tile">${cornerArt('sidePots', 84, 4, -2)}<div><div class="tn">Side pots</div><div class="tx">a multi-way all in, pot by pot</div></div></div>`;
+const potsTile = (key) => `<div class="tile">${cornerArt(key, 84, 4, -2)}<div><div class="tn">Side pots</div><div class="tx">a multi-way all in, pot by pot</div></div></div>`;
+export const sidePotsTile = potsTile('sidePots');
+const toolsWith = (pots) => `<div class="tiles">${tile('Rulings', 'look up a ruling', 'rulings', 'tools')}${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}${whoWinsTile}${pots}</div>`;
+/* The Side pots tile, iterated: each take on the approved Poker tools screen, at its real size. */
+const POTS_OPTIONS = [
+  ['sidePots', 'S2', 'As picked', 'S2 as it stands, for comparison.'],
+  ['sidePotsP1', 'P1', 'Towers', 'Fewer, taller stacks: a tall and a short one on the left, two tall ones and a short one on the right.'],
+  ['sidePotsP2', 'P2', 'Low and wide', 'Shorter stacks of bigger chips, spread out across the felt.'],
+  ['sidePotsP3', 'P3', 'One stack each', 'A short stack for the side pot, a tall one for the main pot: the plainest reading of two pots, one bigger.'],
+  ['sidePotsP4', 'P4', 'Turned more', 'The S2 stacks with a steeper angle: the side pot well back, the main pot forward.'],
+  ['sidePotsP5', 'P5', 'Level and graded', 'Both pots on one line, the stacks stepping up in height from left to right across the two.'],
+].map(([key, code, title, note]) => ({ id: `tile-pots-${code.toLowerCase()}`, route: '/tools', name: `Side pots tile ${code} · ${title}`, nav: 'push', option: 'tile', note,
+  html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger', body: toolsWith(potsTile(key)) }) }));
 
 /* ── tables ───────────────────────────────────────────────────────────── */
 
@@ -121,6 +164,7 @@ export const section = {
 };
 
 export default [
+  ...POTS_OPTIONS,
   { id: 'tools-five', route: '/tools', name: 'Poker tools, in the new order', nav: 'push',
     note: 'The owner’s order of 27 November: Rulings, Calculator, Boosters, Who wins, Side pots. Rulings moves ahead of Calculator, which changes the shared ToolTiles and so Tonight’s Poker tools sheet too when built.',
     flags: ['Both drawings are the owner’s picks (Who wins version 5, Side pots S2), still drafts until a pass on the icon board.',
