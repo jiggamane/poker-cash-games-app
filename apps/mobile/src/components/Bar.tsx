@@ -31,6 +31,11 @@ export interface BarAction {
   disabled?: boolean;
   sub?: string;
   icon?: IconName;
+  /**
+   * A named secondary at the bar's right end: 104 wide, its mark over its word
+   * (the kit's `barSplit` secondary — Tonight's Bill, Settle up's Fix).
+   */
+  narrow?: boolean;
   /** For the checks and the screen reader, when the words alone are not enough. */
   accessibilityLabel?: string;
 }
@@ -64,6 +69,7 @@ export function Bar({ actions, line, above }: { actions: BarAction[]; line?: str
             onPress={a.onPress}
             style={({ pressed }) => [
               styles.act,
+              a.narrow === true && styles.narrow,
               i > 0 && { boxShadow: `inset 1px 0px 0px 0px ${t.barRule}` },
               pressed && styles.pressed,
             ]}
@@ -72,7 +78,7 @@ export function Bar({ actions, line, above }: { actions: BarAction[]; line?: str
             <View style={styles.words}>
               <Text
                 numberOfLines={1}
-                style={[T.lookBar, { color: a.disabled ? t.onBarDead : t.onBar }]}
+                style={[a.narrow === true ? T.lookBarSecondary : T.lookBar, { color: a.disabled ? t.onBarDead : t.onBar }]}
               >
                 {a.label}
               </Text>
@@ -103,6 +109,7 @@ const styles = StyleSheet.create({
     gap: z(8),
     paddingHorizontal: z(14),
   },
+  narrow: { flex: 0, width: L.barSecondaryWidth, flexDirection: 'column', gap: z(3), paddingHorizontal: z(6) },
   words: { alignItems: 'center', minWidth: 0, flexShrink: 1 },
   sub: { marginTop: z(5) },
   pressed: { opacity: 0.7 },

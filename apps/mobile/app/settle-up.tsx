@@ -403,13 +403,12 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
       backTo="Count up"
       /*
        * THE BAR KEEPS THE APP'S TWO CONTROLS (the board's note on
-       * `settle-up-off`): Settle the night, blocked, and Fix beside it. The
-       * board draws Fix as a narrow half with its mark over the word; `Bar`
-       * draws two equal halves, so it is that, with the pencil beside the word.
+       * `settle-up-off`): Settle the night, blocked, and Fix beside it as the
+       * bar's narrow secondary, its mark over its word, as drawn.
        */
       bar={[
         { label: 'Settle the night', disabled: true },
-        { label: 'Fix', icon: 'pencil', onPress: () => router.dismissTo('/count-up') },
+        { label: 'Fix', icon: 'pencil', narrow: true, onPress: () => router.dismissTo('/count-up') },
       ]}
     >
       <View style={styles.column}>

@@ -525,7 +525,12 @@ export function DeductionsBlock({ outcomes, total }: { outcomes: RuleOutcome[]; 
             <Text style={[styles.blockName, { color: t.text }]} numberOfLines={1}>
               {o.name}
             </Text>
-            <Text style={[styles.blockHolder, { color: t.muted }]} numberOfLines={1}>
+            <Text
+              style={[styles.blockHolder, { color: t.muted }]}
+              numberOfLines={1}
+              /* For ui-journeys: the names a bill row carries, since the verb went (owner, 23 November). */
+              testID={o.destination === 'bill' ? 'bill-fronters' : undefined}
+            >
               {holder(o)}
             </Text>
             <Text style={[styles.blockAmount, tabular, { color: t.text }]} {...cappedFigure}>

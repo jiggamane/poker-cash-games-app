@@ -1499,7 +1499,11 @@ async function playANight(name, rebuys) {
   await holds(
     'and the deductions block totals itself and says who fronted each bill',
     (await onScreen('Deductions')) === 1 &&
-      (await page.locator(':text-matches(" fronted$"):visible').count()) > 0,
+      /* The names on the bill's row (`Lena, Andro` since the owner's shorter
+         format of 23 November — the verb `fronted` went), and not its empty word. */
+      (await page.locator('[data-testid="bill-fronters"]:visible').evaluateAll((els) =>
+        els.some((e) => e.textContent.trim() !== '' && e.textContent.trim() !== 'nobody fronted it'),
+      )),
     'the deductions block has no total of its own, or names nobody',
   );
 

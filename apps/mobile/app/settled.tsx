@@ -266,7 +266,14 @@ export default function NightResults() {
        *
        * FINAL ONLY. At table is `out − in`, which the step does not reach.
        */}
-      {showsStep && <RoundingBar mode={night.roundingMode} style={styles.rounding} />}
+      {/*
+       * ONE CARD FOR THE TWO ROWS — the step, when it is drawn, and the end
+       * time — as Count up draws its own pair (bare `TermBar` rows, the kit's
+       * hairline between them). The board's `settled-grouped` draws the Ended
+       * row alone in its card, which is this card on a night with no step.
+       */}
+      <Card>
+      {showsStep && <RoundingBar mode={night.roundingMode} bare />}
 
       {/*
        * AND THE END TIME, WHICH — UNLIKE THE STEP — IS STILL SETTABLE. B87.
@@ -298,11 +305,11 @@ export default function NightResults() {
         onPress={() => router.push('/end-time')}
         /* THE STEP IS NOT ALWAYS THERE — it is hidden on At table and on a
            night with no rounding — so this row is the one that closes the
-           screen either way. It used to drop its top rule under the step so
-           the two bars made one seam; in the full board's column they stand
-           12 apart, each its own object, and there is no seam to share. */
-        style={styles.rounding}
+           card either way, and the one with no hairline under it. */
+        bare
+        last
       />
+      </Card>
       </View>
     </Screen>
   );
@@ -437,8 +444,4 @@ const styles = StyleSheet.create({
    */
   column: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
   stack: { gap: z(12) },
-
-  /* `RoundingBar` and `TermBar` are another file's and carry their own 22 of
-     side margin; in this column they take its edge instead. */
-  rounding: { marginHorizontal: 0 },
 });

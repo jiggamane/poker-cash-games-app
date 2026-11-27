@@ -3,9 +3,10 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '../src/components/Text';
 import { paymentProgress, settle, type TransferLine } from '@poker-club/core';
-import { formatMoney, formatToFit, roundingRowLabel, roundingRowValue } from '../src/lib/money';
-import { Card, CardRow, SectionLabel } from '../src/components/Card';
+import { formatMoney, formatToFit } from '../src/lib/money';
+import { Card, SectionLabel } from '../src/components/Card';
 import { Icon } from '../src/components/Icon';
+import { RoundingBar } from '../src/components/RoundingBar';
 import { Screen } from '../src/components/Screen';
 import { TotalsCard } from '../src/components/TotalsCard';
 import { useTheme } from '../src/design/useTheme';
@@ -126,15 +127,10 @@ export default function Payments() {
          * record of what people actually paid is the thing rule 8 forbids. So
          * the row states it and opens nothing.
          *
-         * A KIT ROW IN THE TOTALS CARD, as the board draws it, rather than
-         * `RoundingBar` under it: the same label and value off the same two
-         * `money.ts` calls, with no `onPress`, so it is no door.
+         * A BARE ROW IN THE TOTALS CARD, as the board draws it, rather than a
+         * card of its own under it. No `onPress`, so it is no door.
          */}
-        <CardRow
-          name={roundingRowLabel(night.roundingMode)}
-          value={roundingRowValue(night.roundingMode)}
-          last
-        />
+        <RoundingBar mode={night.roundingMode} bare last />
       </TotalsCard>
 
       <SectionLabel text="Transfers" quiet right={`${count.settled} of ${count.total} paid`} />
