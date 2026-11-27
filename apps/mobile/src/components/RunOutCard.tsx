@@ -13,7 +13,7 @@ import {
   type Street,
 } from '@poker-club/core';
 import { useTheme } from '../design/useTheme';
-import { radius, space, type } from '../design/tokens';
+import { L, T, z } from '../design/scale';
 import { oddsTone } from '../lib/oddsTone';
 import { COLUMNS, STREET_LABEL, runOutFigure, stillToCome, verdictOf, type Verdict } from '../lib/runOut';
 import { CARD_FACE, Pip, SUIT_GLYPH, inkOf } from './PlayingCard';
@@ -49,14 +49,27 @@ import { CARD_FACE, Pip, SUIT_GLYPH, inkOf } from './PlayingCard';
  * ⚠ NOT DRAWN, so mine (`docs/screens.md`): a street still counting shows the
  * calculator's bar in each of its cells; a street the board has not reached
  * shows `—`; the row labels *P1*, *P2*; the street names under the board.
+ *
+ * THE FULL BOARD (`run-out`, approved) is the layout since 27 November: the
+ * page's 18 a side and 12 between blocks; the hands and the board in the
+ * kit's 32 × 44 playing card; the figures in a lifted card of rows — a head
+ * row of the streets in 9.5 tracked capitals, a row per hand 42 tall with a
+ * hairline between — and the verdict in a second card; the credits under a
+ * hairline at the foot. Every size through `z()`. The board draws the figures
+ * in the kit's win and loss tones and asks; the app keeps its odds colours,
+ * the exception `tokens.ts` names.
  */
 
-/** A hand's card, and a board card: the odds screen's own 36 × 50. */
-const CARD_W = 36;
-const CARD_H = 50;
+/** The page's side: the pushed screen's 18. */
+const SIDE = z(18);
+/** A hand's card, and a board card: the kit's 32 × 44, the odds screen's own. */
+const CARD_W = z(32);
+const CARD_H = z(44);
 /** Between the three of the flop; between the flop, the turn and the river. */
-const IN_GROUP = 4;
-const BETWEEN = 12;
+const IN_GROUP = z(4);
+const BETWEEN = z(12);
+/** The figures card's own padding, a side. */
+const CARD_PAD = z(12);
 
 /** Which cards of the board each street adds — the flop three, the turn one, the river one. */
 const GROUPS: { street: Exclude<Street, 'preflop'>; from: number; to: number }[] = [
@@ -84,13 +97,14 @@ export function RunOutCard({
    * screen; until then it draws at the house frame's width.
    */
   const [measured, setMeasured] = useState(0);
-  const inner = width !== undefined ? width - 2 * space.page : measured > 0 ? measured : 402 - 2 * space.page;
-  /* The grid: a label column, then four of equal width. */
-  const labelW = Math.max(30, Math.min(44, inner * 0.12));
-  const colW = (inner - labelW) / 4;
-  const figureSize = Math.min(19, colW * 0.28);
+  const inner = width !== undefined ? width - 2 * SIDE : measured > 0 ? measured - 2 * SIDE : 393 - 2 * SIDE;
+  /* The grid, inside the figures card: a label column, then four of equal width. */
+  const gridW = inner - 2 * CARD_PAD;
+  const labelW = Math.max(z(30), Math.min(z(40), gridW * 0.11));
+  const colW = (gridW - labelW) / 4;
+  const figureSize = Math.min(z(15), colW * 0.28);
   /* PRE-FLOP is eight tracked capitals; under 64 points a column it steps down a size rather than truncating. */
-  const head = colW < 64 ? { fontSize: 10, letterSpacing: 0.5 } : null;
+  const head = colW < 64 ? { fontSize: z(8.5), letterSpacing: 0.3 } : null;
 
   const reached = new Set<Street>(COLUMNS.filter((s) => STREET_CARDS[s] <= input.board.length));
   const last = COLUMNS.filter((s) => reached.has(s)).pop() ?? 'preflop';
@@ -134,7 +148,7 @@ export function RunOutCard({
        * turn is the flop and one card, the river one more, which is why there
        * is one row and not four.
        */}
-      <Text style={[styles.sectionLabel, { color: t.muted }]}>Board</Text>
+      <Text style={[T.lookLabel, styles.sectionLabel, { color: t.muted }]}>Board</Text>
       <View nativeID="run-out-board" style={styles.board} accessible accessibilityLabel={boardSpoken(input.board)}>
         {GROUPS.map((g) => (
           <View key={g.street} style={styles.group}>
@@ -154,8 +168,8 @@ export function RunOutCard({
        * one decimal, in its own street's colour. A street still counting shows
        * the bar in each of its cells; one the board has not reached shows a dash.
        */}
-      <View style={styles.grid}>
-        <View style={styles.row}>
+      <View style={[styles.grid, { backgroundColor: t.surface, boxShadow: t.lift }]}>
+        <View style={[styles.row, styles.headRow, { borderBottomColor: t.hairline }]}>
           <View style={{ width: labelW }} />
           {COLUMNS.map((s) => (
             <Text key={s} style={[styles.colHead, { width: colW, color: t.muted }, head]} numberOfLines={1}>
@@ -176,7 +190,7 @@ export function RunOutCard({
             <View
               key={seat}
               nativeID={`run-out-row-${seat + 1}`}
-              style={[styles.row, styles.figureRow, { borderTopColor: t.hairline }]}
+              style={[styles.row, styles.figureRow, seat < input.hands.length - 1 && { borderBottomColor: t.hairline, borderBottomWidth: 1 }]}
               accessible
               accessibilityLabel={`Player ${seat + 1}: ${spokenCells.join('; ')}`}
             >
@@ -230,8 +244,7 @@ export function RunOutCard({
         </View>
       )}
 
-      <View style={[styles.rule, { backgroundColor: t.hairline }]} />
-      <View style={styles.credits}>
+      <View style={[styles.credits, { borderTopColor: t.hairline }]}>
         <Text style={[styles.credit, { color: t.muted }]}>
           {progress.counting === null ? 'Every street counted exactly' : 'Counting every street exactly'}
         </Text>
@@ -245,13 +258,14 @@ const spoken = (c: Card): string => `${RANKS[c >> 2]}${SUIT_GLYPH[c & 3]}`;
 const boardSpoken = (board: readonly Card[]): string =>
   board.length === 0 ? 'Board, no cards yet' : `Board, ${board.map(spoken).join(' ')}${board.length < BOARD_CARDS ? `, ${BOARD_CARDS - board.length} to come` : ''}`;
 
-/** A card on the picture: 36 × 50, the odds screen's slot, on card stock. */
+/** A card on the picture: 32 × 44, the odds screen's place, on card stock with the outline for an edge. */
 function Face({ card }: { card: Card }) {
+  const t = useTheme();
   const ink = inkOf(card);
   return (
-    <View style={styles.face} accessibilityLabel={spoken(card)}>
+    <View style={[styles.face, { borderColor: t.outline }]} accessibilityLabel={spoken(card)}>
       <Text style={[styles.faceRank, { color: ink }]}>{RANKS[card >> 2]}</Text>
-      <Pip suit={card & 3} size={14} color={ink} />
+      <Pip suit={card & 3} size={z(12)} color={ink} />
     </View>
   );
 }
@@ -259,51 +273,52 @@ function Face({ card }: { card: Card }) {
 /** A place on the board the hand has not reached: a dashed edge, nothing in it. */
 function Empty() {
   const t = useTheme();
-  return <View style={[styles.face, styles.empty, { borderColor: t.dashed }]} />;
+  return <View style={[styles.face, styles.empty, { borderColor: t.outline }]} />;
 }
 
 const styles = StyleSheet.create({
-  card: { marginHorizontal: space.page, paddingTop: 6 },
+  card: { paddingHorizontal: SIDE, paddingTop: z(12), gap: z(12) },
 
-  hands: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 22, rowGap: 14, alignItems: 'flex-end' },
-  handWrap: { flexDirection: 'row', alignItems: 'flex-end', columnGap: 22 },
-  /* Level with the middle of the cards: half a card less half a line. */
-  against: { ...type.rowName, fontWeight: '500', lineHeight: 22, paddingBottom: CARD_H / 2 - 11 },
-  handName: { ...type.rowDetail, fontSize: 14, paddingBottom: 8, paddingLeft: 1 },
+  hands: { flexDirection: 'row', flexWrap: 'wrap', columnGap: z(14), rowGap: z(12), alignItems: 'flex-end', marginHorizontal: z(2) },
+  handWrap: { flexDirection: 'row', alignItems: 'flex-end', columnGap: z(14) },
+  /* Level with the middle of the cards, as the board sets it: 12 above the cards' foot. */
+  against: { fontSize: z(14), lineHeight: z(18), paddingBottom: z(12) },
+  handName: { fontSize: z(12.5), lineHeight: z(16), marginBottom: z(6) },
   cards: { flexDirection: 'row', gap: IN_GROUP },
   face: {
     width: CARD_W,
     height: CARD_H,
-    borderRadius: 6,
+    borderRadius: z(6),
     backgroundColor: CARD_FACE,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(20,20,22,0.35)',
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: z(1),
   },
-  empty: { backgroundColor: 'transparent', borderWidth: 1, borderStyle: 'dashed' },
-  faceRank: { fontSize: 17, fontWeight: '800', lineHeight: 19, marginBottom: 1 },
+  empty: { backgroundColor: 'transparent', borderWidth: 1.5, borderStyle: 'dashed' },
+  faceRank: { fontFamily: 'head', fontSize: z(15), fontWeight: '800', lineHeight: z(16) },
 
-  sectionLabel: { ...type.sectionLabel, paddingTop: 24, paddingBottom: 10, paddingLeft: 1 },
-  board: { flexDirection: 'row', flexWrap: 'wrap', columnGap: BETWEEN, rowGap: 10 },
-  group: { alignItems: 'center', gap: 6 },
-  groupLabel: { ...type.label },
+  /* The kit's quiet label: its 4 above and -4 below, against the 12 between blocks. */
+  sectionLabel: { textTransform: 'uppercase', marginHorizontal: z(2), marginTop: z(4), marginBottom: z(-4) },
+  board: { flexDirection: 'row', flexWrap: 'wrap', columnGap: BETWEEN, rowGap: z(10), marginHorizontal: z(2) },
+  group: { alignItems: 'center', gap: z(5) },
+  groupLabel: { fontSize: z(9.5), lineHeight: z(11), fontWeight: '700', letterSpacing: 0.95 * (z(9.5) / 9.5), textTransform: 'uppercase' },
 
-  grid: { marginTop: 22 },
+  grid: { borderRadius: L.cardRadius, paddingHorizontal: CARD_PAD },
   row: { flexDirection: 'row', alignItems: 'center' },
-  figureRow: { borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: 9 },
-  colHead: { ...type.label, textAlign: 'center', paddingBottom: 8 },
-  rowLabel: { ...type.rowDetail, fontWeight: '600' },
-  figure: { fontWeight: '800', fontVariant: ['tabular-nums'], letterSpacing: -0.3, textAlign: 'center' },
-  cell: { justifyContent: 'center', paddingHorizontal: 8 },
-  track: { height: 4, borderRadius: 2, overflow: 'hidden' },
-  fill: { height: 4, borderRadius: 2 },
+  headRow: { paddingTop: z(11), paddingBottom: z(7), borderBottomWidth: 1 },
+  figureRow: { minHeight: z(42) },
+  colHead: { fontSize: z(9.5), lineHeight: z(11), fontWeight: '700', letterSpacing: 0.95 * (z(9.5) / 9.5), textTransform: 'uppercase', textAlign: 'center' },
+  rowLabel: { fontSize: z(11), fontWeight: '700' },
+  figure: { fontFamily: 'head', fontWeight: '700', fontVariant: ['tabular-nums'], textAlign: 'center' },
+  cell: { justifyContent: 'center', paddingHorizontal: z(8) },
+  track: { height: z(4), borderRadius: z(2), overflow: 'hidden' },
+  fill: { height: z(4), borderRadius: z(2) },
 
-  foot: { marginTop: 20, borderRadius: radius.card, paddingVertical: 14, paddingHorizontal: 16, gap: 3 },
-  footTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.2 },
-  footDetail: { ...type.lede, lineHeight: 20 },
+  foot: { borderRadius: L.cardRadius, padding: z(12), gap: z(3) },
+  footTitle: { fontFamily: 'head', fontSize: z(16), lineHeight: z(19), fontWeight: '700' },
+  footDetail: { fontSize: z(13), lineHeight: z(18) },
 
-  rule: { height: StyleSheet.hairlineWidth, marginTop: 26 },
-  credits: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 12, gap: 12 },
-  credit: { ...type.meta, flexShrink: 1 },
+  credits: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: z(2), marginTop: z(2), paddingTop: z(10), borderTopWidth: 1, gap: z(12) },
+  credit: { fontSize: z(12), lineHeight: z(16), flexShrink: 1 },
 });

@@ -3,6 +3,7 @@ import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { Text } from './Text';
 import type { Card, OutGroup } from '@poker-club/core';
 import { useTheme } from '../design/useTheme';
+import { z } from '../design/scale';
 import { FAN_OVERLAP, FAN_W, FanCard } from './PlayingCard';
 
 /**
@@ -23,11 +24,16 @@ import { FAN_OVERLAP, FAN_W, FanCard } from './PlayingCard';
  * ⚠ NOT DRAWN, so mine: "card" and "cards" as the unit, and the rows' own
  * accessibility labels (`Flush, 8 cards`). The board draws the words "9 cards"
  * and "1 card" and nothing else about them.
+ *
+ * THE FULL BOARD (`odds-turn`, approved) draws the closed form only: the names
+ * as the kit's pills — 600 11.5 in the muted ink on the raised fill, 5 / 9 of
+ * padding, fully round, 6 apart, 9 under the figures. The open table is not
+ * drawn there and takes the same sizes, through `z()`.
  */
 const PER_LINE = 9;
-const KIND_W = 118;
-const ROW_GAP = 10;
-const FAN_PAD = 6;
+const KIND_W = z(108);
+const ROW_GAP = z(10);
+const FAN_PAD = z(6);
 
 /** How many fanned cards fit on a line of this width, at most nine. */
 export function perLineIn(width: number): number {
@@ -49,7 +55,7 @@ export function OutsNames({ seat, groups }: { seat: number; groups: readonly Out
   return (
     <View nativeID={`outs-names-${seat}`} style={styles.names}>
       {groups.map((g) => (
-        <View key={g.category} style={[styles.chip, { backgroundColor: t.roundFill }]}>
+        <View key={g.category} style={[styles.chip, { backgroundColor: t.raised }]}>
           <Text style={[styles.chipText, { color: t.muted }]}>{g.kind}</Text>
         </View>
       ))}
@@ -73,7 +79,7 @@ export function OutsTable({ seat, groups }: { seat: number; groups: readonly Out
           key={g.category}
           nativeID={`outs-row-${seat}-${g.category.replace(/\s+/g, '-').toLowerCase()}`}
           accessibilityLabel={`${g.kind}, ${countText(g.cards.length)}`}
-          style={[styles.row, i > 0 && { borderTopColor: t.hairline, borderTopWidth: StyleSheet.hairlineWidth }]}
+          style={[styles.row, i > 0 && { borderTopColor: t.hairline, borderTopWidth: 1 }]}
         >
           <View style={styles.kind}>
             <Text style={[styles.kindName, { color: t.text }]}>{g.kind}</Text>
@@ -95,17 +101,18 @@ export function OutsTable({ seat, groups }: { seat: number; groups: readonly Out
 }
 
 const styles = StyleSheet.create({
-  names: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, paddingTop: 10 },
-  chip: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 10 },
-  chipText: { fontSize: 12, fontWeight: '600' },
+  names: { flexDirection: 'row', flexWrap: 'wrap', gap: z(6), paddingTop: z(9) },
+  chip: { paddingHorizontal: z(9), paddingVertical: z(5), borderRadius: 999 },
+  chipText: { fontSize: z(11.5), lineHeight: z(13), fontWeight: '600' },
 
-  table: { marginTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
-  row: { flexDirection: 'row', alignItems: 'center', gap: ROW_GAP, paddingVertical: 8 },
-  /* Wide enough for "Three of a kind" and "Straight flush" at the body size
+  /* The kit's hairline (1 point, the `hairline` token) above the table and between its rows. */
+  table: { marginTop: z(9), borderTopWidth: 1 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: ROW_GAP, paddingVertical: z(8) },
+  /* Wide enough for "Three of a kind" and "Straight flush" at this size
      without wrapping, which is where the names were widest. */
-  kind: { width: KIND_W, flexShrink: 0, gap: 1 },
-  kindName: { fontSize: 14, fontWeight: '700' },
-  kindCount: { fontSize: 12, fontWeight: '400' },
-  fan: { flex: 1, minWidth: 0, gap: 4, paddingLeft: FAN_PAD },
+  kind: { width: KIND_W, flexShrink: 0, gap: z(2) },
+  kindName: { fontSize: z(13), fontWeight: '700' },
+  kindCount: { fontSize: z(12), fontWeight: '400' },
+  fan: { flex: 1, minWidth: 0, gap: z(4), paddingLeft: FAN_PAD },
   line: { flexDirection: 'row' },
 });
