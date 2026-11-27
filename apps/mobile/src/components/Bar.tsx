@@ -109,7 +109,8 @@ const styles = StyleSheet.create({
     gap: z(8),
     paddingHorizontal: z(14),
   },
-  narrow: { flex: 0, width: L.barSecondaryWidth, flexDirection: 'column', gap: z(3), paddingHorizontal: z(6) },
+  /* A fixed basis, not `flex: 0`: react-native-web reads that as a zero basis and the half vanished off the edge. */
+  narrow: { flexGrow: 0, flexShrink: 0, flexBasis: L.barSecondaryWidth, width: L.barSecondaryWidth, flexDirection: 'column', gap: z(3), paddingHorizontal: z(6) },
   words: { alignItems: 'center', minWidth: 0, flexShrink: 1 },
   sub: { marginTop: z(5) },
   pressed: { opacity: 0.7 },
