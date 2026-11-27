@@ -116,6 +116,26 @@ SPOTS.sidePotsD = { name: 'Side pots · front and back', where: 'Poker tools · 
       { cx: 33, by: GROUND + 2, r: 12, mats: ['ink', 'red'] }, { cx: 51, by: GROUND + 3, r: 10, mats: ['red'], flat: true },
     ]) };
 
+/*
+ * D at other angles (owner, 27 November: "try this in different orientations").
+ * The same two pots, the main one in front and the side one behind it and
+ * smaller; only where the side pot sits relative to the main one changes.
+ */
+const frontAndBack = (P, [fx, fy], [bx, by], mirror = false) => {
+  const m = mirror ? -1 : 1;
+  return shadow(P, bx, 16, 4.5, by + 1) + shadow(P, fx, 27, 8, fy) + bunch(P, [
+    { cx: bx - 7 * m, by: by - 2, r: 8, h: 4, mats: ['red', 'ink', 'red'] }, { cx: bx + 5 * m, by: by - 1, r: 8, h: 4, mats: ['ink', 'red'] },
+    { cx: bx, by: by + 3, r: 8, h: 4, mats: ['ink', 'red', 'ink', 'red'] },
+    { cx: fx - 10 * m, by: fy - 6, r: 12, mats: ['red', 'ink', 'red'] }, { cx: fx + 6 * m, by: fy - 5, r: 12, mats: ['ink', 'red', 'ink', 'red'] },
+    { cx: fx - 3 * m, by: fy + 2, r: 12, mats: ['ink', 'red'] }, { cx: fx + 15 * m, by: fy + 3, r: 10, mats: ['red'], flat: true },
+  ]);
+};
+const DV = { name: 'Side pots · front and back', where: 'Poker tools · tile', status: 'draft' };
+SPOTS.sidePotsD2 = { ...DV, draw: (P) => frontAndBack(P, [58, GROUND], [28, GROUND - 20], true) };
+SPOTS.sidePotsD3 = { ...DV, draw: (P) => frontAndBack(P, [44, GROUND], [52, GROUND - 30]) };
+SPOTS.sidePotsD4 = { ...DV, draw: (P) => frontAndBack(P, [32, GROUND - 1], [72, GROUND - 10]) };
+SPOTS.sidePotsD5 = { ...DV, draw: (P) => frontAndBack(P, [32, GROUND], [62, GROUND - 31]) };
+
 const cornerArt = (key, size = 78, right = -4, bottom = -10) =>
   `<span class="art" style="position:absolute;right:${right}px;bottom:${bottom}px">${['freshDeck', 'freshDeckOnInk'].map((p, i) => `<span class="${i ? 'art-d' : 'art-l'}">${spot(key, p, { size, small: false })}</span>`).join('')}</span>`;
 export const whoWinsTile = `<div class="tile">${cornerArt('whoWins', 90, 4)}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
@@ -137,6 +157,10 @@ const TILE_OPTIONS = [
   ['sidePotsB', 'B', 'Two bunches', 'Two bunches of chips about the same size, side by side: two pots.'],
   ['sidePotsC', 'C', 'Main and side', 'The main pot the bigger bunch, the side pot a small one, a dashed line on the felt between them.'],
   ['sidePotsD', 'D', 'Front and back', 'The main pot in front, the side pot behind it and smaller, as a seat at the table sees two pots.'],
+  ['sidePotsD2', 'D2', 'Front and back, mirrored', 'D turned the other way: the main pot front right, the side pot behind it to the left.'],
+  ['sidePotsD3', 'D3', 'Front and back, straight behind', 'The side pot directly behind the main one, the depth alone telling them apart.'],
+  ['sidePotsD4', 'D4', 'Front and back, shallow', 'A low angle: the side pot nearly beside the main one, only a little further back.'],
+  ['sidePotsD5', 'D5', 'Front and back, steep', 'A steep angle: the side pot well back and to the right, the most depth of the five.'],
 ].map(([key, letter, title, note]) => ({ id: `tile-pots-${letter.toLowerCase()}`, route: '/tools', name: `Side pots tile ${letter} · ${title}`, nav: 'push', option: 'tile', note,
   html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger', body: `<div class="tiles">${TOOLS_THREE()}${whoWinsTile}${potsTile(key)}</div>` }) }));
 

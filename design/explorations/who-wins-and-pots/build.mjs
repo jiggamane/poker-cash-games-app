@@ -134,8 +134,8 @@ ${CSS}
 </section>
 
 <section id="tiles">
-  <h2>Side pots: four drawings for the tile</h2>
-  <p>Your comment of 27 November. Each on the Poker tools screen beside the Who wins tile, so you see it at its real size and next to its neighbours.</p>
+  <h2>Side pots: drawings for the tile</h2>
+  <p>Your comments of 27 November: two bunches, then D at other angles (D2 to D5). Each on the Poker tools screen beside the Who wins tile, so you see it at its real size and next to its neighbours.</p>
   <div class="pg-grid phones">${TILES.map(cell).join('')}</div>
 </section>
 
