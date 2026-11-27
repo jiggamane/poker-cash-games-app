@@ -276,6 +276,10 @@ export interface Theme {
   onBarMuted: string;
   /** The words of a blocked action on the bar. */
   onBarDead: string;
+  /** A destructive word on the bar (End this poker night): the kit's `#FF9AA2`. */
+  onBarDanger: string;
+  /** The same red on a filled ink pill, which turns light in the dark: the Undo on Tonight's toast. */
+  onFillDanger: string;
   /** The hairline between two actions on the bar, and above its line. */
   barRule: string;
   /** What lifts the bar off the sheet: nothing in the light (the ink does it), a soft shadow above it in the dark. */
@@ -308,7 +312,8 @@ export const darkTheme: Theme = {
   offTableWash: 'rgba(217,211,196,0.09)',
   offTableTint: 'rgba(217,211,196,0.13)',
   offTableEdge: 'rgba(217,211,196,0.32)',
-  onFillWin: '#0E8A4F',
+  // On the light ink card of the dark theme: #0E8A4F was 3.79:1 on #ECEEF2 (ui-audit, Your groups); this is 5.7.
+  onFillWin: '#0B6B3C',
   dangerWash: 'rgba(240,112,92,0.12)',
   dangerEdge: 'rgba(240,112,92,0.35)',
   onFill: '#141A2A',
@@ -354,6 +359,8 @@ export const darkTheme: Theme = {
   onBar: '#FFFFFF',
   onBarMuted: 'rgba(255,255,255,0.62)',
   onBarDead: 'rgba(255,255,255,0.38)',
+  onBarDanger: '#FF9AA2',
+  onFillDanger: '#C8283A',
   barRule: 'rgba(255,255,255,0.14)',
   barShadow: '0px -12px 24px -10px rgba(0,0,0,0.65)',
   lift: '0px 0px 0px 0px rgba(0,0,0,0)',
@@ -445,6 +452,8 @@ export const lightTheme: Theme = {
   onBar: '#FFFFFF',
   onBarMuted: 'rgba(255,255,255,0.62)',
   onBarDead: 'rgba(255,255,255,0.38)',
+  onBarDanger: '#FF9AA2',
+  onFillDanger: '#FF9AA2',
   barRule: 'rgba(255,255,255,0.14)',
   barShadow: 'none',
   lift: '0px 0px 0px 1px rgba(20,26,42,0.06), 0px 1px 3px 0px rgba(20,26,42,0.07), 0px 7px 14px -11px rgba(20,26,42,0.2)',

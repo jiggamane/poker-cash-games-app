@@ -10,10 +10,12 @@ import {
   type SettlementResult,
 } from '@poker-club/core';
 import { formatToFit } from '../lib/money';
+import { Card } from './Card';
 import { RoundingBar } from './RoundingBar';
 import { ChipsBlock, DeductionsBlock, MENU_DIM, SessionRow } from './SessionViews';
 import { useTheme } from '../design/useTheme';
-import { cappedFigure, space } from '../design/tokens';
+import { T, z } from '../design/scale';
+import { cappedFigure } from '../design/tokens';
 import type { SessionView } from '../lib/sessionViewStore';
 
 /**
@@ -79,7 +81,10 @@ export function NightResult({
   const balance = balanceCheck(ledger, new Map(), []);
 
   return (
-    <>
+    /* THE SHEET'S COLUMN, carried here rather than by the screen: `/watch`
+       draws this inside a body of its own with no inset, and the full board's
+       pushed screens stand 18 in from the sheet's edge, 12 between groups. */
+    <View style={styles.column}>
       {/*
        * THE ONE THING THE LIST CANNOT SAY.
        *
@@ -93,20 +98,23 @@ export function NightResult({
         <Difference difference={result.reconciliation.difference} loggedBy={loggedBy} />
       )}
 
-      <View style={menuOpen && { opacity: MENU_DIM }}>
-        <View style={styles.list}>
+      <View style={[styles.stack, menuOpen && { opacity: MENU_DIM }]}>
+        {/* ONE LIFTED CARD, the rows straight inside it — the night pass reads
+            the block as the next sibling of the rows' own parent. */}
+        <Card>
           {rows.map((row, i) => (
             <SessionRow
               key={row.player.playerId}
               rank={i + 1}
               row={row}
               view={view}
+              last={i === rows.length - 1}
               {...(onOpenPlayer === undefined
                 ? {}
                 : { onPress: () => onOpenPlayer(row.player.playerId) })}
             />
           ))}
-        </View>
+        </Card>
 
         {onTable ? (
           <ChipsBlock balance={balance} offTable={result.totalOffTable} />
@@ -125,7 +133,7 @@ export function NightResult({
           <RoundingBar mode={roundingMode} style={styles.rounding} />
         )}
       </View>
-    </>
+    </View>
   );
 }
 
@@ -143,14 +151,18 @@ export function NightResult({
  * The gap and who signed it off. It is a block rather than a pill because it is
  * the one thing on this screen that has to be read before the figures under it
  * are believed — every net below was derived with this difference inside it.
+ *
+ * DRAWN AS E5'S ALARM IS ON THE FULL BOARD (`settle-up-off`, approved): a
+ * padded card with the red label over the sentence. The look has no danger
+ * wash; the red word is the alarm.
  */
 function Difference({ difference, loggedBy }: { difference: Money; loggedBy: string | null }) {
   const t = useTheme();
   return (
-    <View style={[styles.gap, { backgroundColor: t.dangerWash, borderColor: t.dangerEdge }]}>
+    <Card pad style={styles.gap}>
       {/* NO GLYPH. E5 draws the same alarm as a tracked label over a sentence
           and nothing else, and this block is that block one step quieter. */}
-      <Text style={[styles.gapLabel, { color: t.danger }]} numberOfLines={1} {...cappedFigure}>
+      <Text style={[T.lookLabel, styles.gapLabel, { color: t.red }]} numberOfLines={1} {...cappedFigure}>
         {formatToFit(Math.abs(difference) as Money, ROW_FITS)}
         {difference > 0 ? ' over' : ' short'}
       </Text>
@@ -159,37 +171,24 @@ function Difference({ difference, loggedBy }: { difference: Money; loggedBy: str
         out with the difference in it
         {loggedBy === null ? '.' : `. Logged by ${loggedBy}.`}
       </Text>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   /* The list and the two blocks are `SessionViews.tsx`'s. What is left here is
-     the alarm above them and the step below. */
-  list: { marginHorizontal: space.page },
-  rounding: { marginTop: 10 },
+     the column they stand in, the alarm above them and the step below. */
+  column: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
+  stack: { gap: z(12) },
+  /* The step is another helper's component and carries its own side margin;
+     inside this column it takes the column's edge instead, and the stack's gap. */
+  rounding: { marginHorizontal: 0 },
 
-  /* `16px 22px 12px` · `13px 15px` · radius 8 — the alarm shape E5 uses, one
-     step quieter, because here it is a fact about a closed night rather than a
-     thing to go and fix. */
-  gap: {
-    marginHorizontal: space.card,
-    marginTop: 8,
-    marginBottom: 12,
-    paddingVertical: 13,
-    paddingHorizontal: 15,
-    borderWidth: 1,
-    borderRadius: 8,
-    gap: 5,
-  },
-  gapLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.1,
-    textTransform: 'uppercase',
-    fontVariant: ['tabular-nums'],
-  },
-  gapBody: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
+  /* The kit's padded card, the label 7 over the sentence (`settle-up-off`). */
+  gap: { gap: z(7) },
+  gapLabel: { textTransform: 'uppercase', fontVariant: ['tabular-nums'] },
+  /* The kit's 13/1.45. */
+  gapBody: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
 });
 
 /* Every figure under seven digits prints in full; past that it goes compact

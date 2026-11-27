@@ -1,11 +1,9 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { Text } from './Text';
+import { StyleSheet, View } from 'react-native';
 import { roundingLabel, type RoundingMode } from '@poker-club/core';
 import { roundingSentence } from '../lib/money';
-import { Icon } from './Icon';
-import { useTheme } from '../design/useTheme';
-import { space, type } from '../design/tokens';
+import { Card, CardRow, SectionLabel } from './Card';
+import { z } from '../design/scale';
 
 /**
  * How coarsely the group settles, as a row under the money rules.
@@ -14,12 +12,16 @@ import { space, type } from '../design/tokens';
  * pay, so it belongs on the money-rules screen and not in a list of display
  * preferences — but it has no destination, no collector and nobody it charges,
  * and it governs every rule above it at once. So it sits under its own caption
- * rather than inside the hairline list, where a reader scanning for a switch
- * would find one thing that does not have one.
+ * in its own card rather than inside the rules' list, where a reader scanning
+ * for a switch would find one thing that does not have one.
  *
  * The same row at both levels of the chain, for the same reason `RuleList`
  * is one component: the club's default and tonight's snapshot are the same
  * question asked at two moments, and a sentence written twice is two sentences.
+ *
+ * THE FULL BOARD (`money-rules`, `club-rules`, approved): a quiet caption over
+ * a one-row card, the sentence wrapping under the name, no chevron. Like
+ * `RuleList` it carries the sheet's 20 side inset itself.
  */
 export function RoundingRow({
   mode,
@@ -31,42 +33,22 @@ export function RoundingRow({
   scope: 'club' | 'night';
   caption?: string;
 }) {
-  const t = useTheme();
-
   return (
-    <>
-      <Text style={[styles.caption, { color: t.muted }]}>{caption}</Text>
-
-      <View style={styles.list}>
-        <Pressable
-          accessibilityRole="button"
+    <View style={styles.block}>
+      <SectionLabel text={caption} quiet />
+      <Card>
+        <CardRow
+          last
           onPress={() => router.push({ pathname: '/rounding', params: { scope } })}
-          style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
-        >
-          <View style={styles.rowText}>
-            <View style={styles.nameLine}>
-              <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
-                {roundingLabel(mode)}
-              </Text>
-              <Icon name="chevron" color={t.muted} size={15} />
-            </View>
-            <Text style={[styles.detail, { color: t.muted }]} numberOfLines={1}>
-              {roundingSentence(mode)}
-            </Text>
-          </View>
-        </Pressable>
-      </View>
-    </>
+          name={roundingLabel(mode)}
+          meta={roundingSentence(mode)}
+          wrapMeta
+        />
+      </Card>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  caption: { ...type.sectionLabel, marginTop: 18, marginHorizontal: space.page, marginBottom: 2 },
-  list: { marginHorizontal: space.page },
-  // doc 15 § 3: a sheet's body rows are 15 / 4, and this one ends the list.
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
-  rowText: { flex: 1, minWidth: 0, gap: 4 },
-  nameLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  name: { fontSize: 18, fontWeight: '700', flexShrink: 1 },
-  detail: { fontSize: 13.5, fontWeight: '400' },
+  block: { marginHorizontal: z(20), gap: z(12) },
 });

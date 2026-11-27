@@ -3,10 +3,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { Text, TextInput } from '../src/components/Text';
 import type { TextInputInstance } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
+import type { BarAction } from '../src/components/Bar';
+import { Card } from '../src/components/Card';
+import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
-import { space, type } from '../src/design/tokens';
+import { L, z } from '../src/design/scale';
 import {
   previewInvite,
   readClaimFailure,
@@ -19,10 +21,11 @@ import { explainServerError, isNoAnswer, isSupabaseConfigured } from '../src/lib
 /**
  * X2 — claiming your place. Rev 15, `14-invite-and-watcher.md`.
  *
- * STANDALONE, NO CHROME. It arrives from a link, the reader has not been
+ * STANDALONE, NO WAY BACK. It arrives from a link, the reader has not been
  * anywhere, and there is nothing to go back to: no chevron, no grabber, and
  * deliberately no close. That classification is unchanged by S77 — only X1
- * moved.
+ * moved. On the full board (approved) it has the ink top every screen has,
+ * with the title on it and nothing else, and a bar when a state has a primary.
  *
  * Four states, one screen:
  *
@@ -159,15 +162,13 @@ type Stage = 'checking' | 'ready' | 'dead' | 'typing' | 'unreachable' | 'member'
 const NO_ANSWER =
   'This is taking longer than it should. The code is fine — the phone cannot reach the club.';
 
+
 /** X2a. A 2px hairline with a 38% segment — no spinner glyph, no logo. */
 function Checking() {
-  const t = useTheme();
   return (
     <Standalone title="Checking your invite">
       <Body>This takes a second.</Body>
-      <View style={[styles.track, { backgroundColor: t.hairline }]}>
-        <View style={[styles.fill, { backgroundColor: t.text }]} />
-      </View>
+      <Track />
     </Standalone>
   );
 }
@@ -181,20 +182,16 @@ function Checking() {
  * has not bought the right to read either, and this screen is reachable by
  * anybody who types ten characters.
  *
- * The action is secondary. There is nothing to complete here, and a filled
- * button would say there was.
+ * The action is secondary, and there is no bar (the full board,
+ * `claim-checking`): there is nothing to complete here, and the bar would say
+ * there was.
  */
 function Unreachable({ trouble, onRetry }: { trouble: string; onRetry: () => void }) {
-  const t = useTheme();
   return (
     <Standalone title="Checking your invite">
       <Body>{trouble}</Body>
-      <View style={[styles.track, { backgroundColor: t.hairline }]}>
-        <View style={[styles.fill, { backgroundColor: t.text }]} />
-      </View>
-      <View style={styles.deadAction}>
-        <Button label="Try again" variant="secondary" onPress={onRetry} />
-      </View>
+      <Track />
+      <Button label="Try again" variant="secondary" onPress={onRetry} />
     </Standalone>
   );
 }
@@ -209,16 +206,16 @@ function Unreachable({ trouble, onRetry }: { trouble: string; onRetry: () => voi
  *
  * THE ONE REFUSAL ALLOWED TO NAME THE GROUP. `0009_invite_privacy.sql` argues
  * it: this fires only for a book the caller can already read, so the name is
- * not a fact they were missing. That is also why it gets a primary and a way
- * in, where the dead screen gets neither.
+ * not a fact they were missing. That is also why it gets a primary — the bar —
+ * and a way in, where the dead screen gets neither.
  */
 function AlreadyAMember({ group }: { group: string | null }) {
   return (
-    <Standalone title={group === null ? 'You already have a place here' : `You are already in ${group}`}>
+    <Standalone
+      title={group === null ? 'You already have a place here' : `You are already in ${group}`}
+      bar={[{ label: 'Open the club', onPress: () => router.replace('/') }]}
+    >
       <Body>This link is for a different place at that table, and you already have one.</Body>
-      <View style={styles.readyAction}>
-        <Button label="Open the club" variant="primary" onPress={() => router.replace('/')} />
-      </View>
     </Standalone>
   );
 }
@@ -232,16 +229,17 @@ function AlreadyAMember({ group }: { group: string | null }) {
  * property rather than a copy preference, and the server holds up its half in
  * `0009_invite_privacy.sql`: one message, one duration, cause in the log only.
  *
- * The one control is SECONDARY. There is no primary act available here, and a
- * filled button would imply there is.
+ * The one control is SECONDARY and there is no bar. There is no primary act
+ * available here, and the bar would imply there is. It used to centre on the
+ * page with a lift, having no chrome to hang from; the full board
+ * (`claim-dead`) gives it the ink top every standalone frame has, and it sits
+ * at the top of the sheet like the others.
  */
 function Dead({ onType }: { onType: () => void }) {
   return (
-    <Standalone title="This invite can’t be used" centred>
+    <Standalone title="This invite can’t be used">
       <Body>Ask whoever invited you for a new link.</Body>
-      <View style={styles.deadAction}>
-        <Button label="Type a code instead" variant="secondary" onPress={onType} />
-      </View>
+      <Button label="Type a code instead" variant="secondary" onPress={onType} />
     </Standalone>
   );
 }
@@ -271,7 +269,18 @@ function Ready({
 }) {
   const t = useTheme();
   return (
-    <Standalone title="Claim your place">
+    <Standalone
+      title="Claim your place"
+      /*
+       * Claiming keeps the label and goes faint, with the hairline in the
+       * content above the footnote. Never a full-screen spinner: the card
+       * behind it is the thing being confirmed, and covering it would hide the
+       * answer to "is this me". (The app dimmed the button to .55 with a
+       * hairline under it; on the bar the board leaves this undrawn and asks
+       * for a decision — the blocked bar is the nearest thing the bar has.)
+       */
+      bar={[{ label: 'Claim your place', onPress: onClaim, disabled: busy }]}
+    >
       {preview.hostName !== null && (
         <Text style={[styles.body, { color: t.muted }]}>
           {preview.hostName} added you as{' '}
@@ -279,11 +288,12 @@ function Ready({
         </Text>
       )}
 
-      <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
-        <Text style={[styles.cardName, { color: t.text }]}>{preview.playerName}</Text>
-        <View style={[styles.cardRule, { backgroundColor: t.hairline }]} />
+      <Card>
+        <Text style={[styles.cardName, { color: t.text, borderBottomColor: t.hairline }]}>
+          {preview.playerName}
+        </Text>
         <Text style={[styles.cardGroup, { color: t.text }]}>{preview.groupName}</Text>
-      </View>
+      </Card>
 
       {/* Decided copy. One 5px dot each — do not turn them into icons. */}
       <View style={styles.statements}>
@@ -299,20 +309,8 @@ function Ready({
         ))}
       </View>
 
-      <View style={styles.readyAction}>
-        {/*
-         * Claiming keeps the label and drops to .55 with a hairline under it.
-         * Never a full-screen spinner: the card behind it is the thing being
-         * confirmed, and covering it would hide the answer to "is this me".
-         */}
-        <View style={busy ? styles.busy : undefined}>
-          <Button label="Claim your place" variant="primary" onPress={onClaim} disabled={busy} />
-        </View>
-        {busy && (
-          <View style={[styles.track, { backgroundColor: t.hairline }]}>
-            <View style={[styles.fill, { backgroundColor: t.text }]} />
-          </View>
-        )}
+      <View style={styles.foot}>
+        {busy && <Track />}
         {preview.hostName !== null && (
           <Text style={[styles.footnote, { color: t.muted }]}>
             Not {preview.playerName}? Ask {preview.hostName} to send the right link.
@@ -330,6 +328,14 @@ function Ready({
  * and read back. A wrong code lands on X2c and NOT on an inline field error —
  * same string, same screen, same four causes, and an inline error would be a
  * fifth answer that told a guesser their code was the right shape.
+ *
+ * THE FULL BOARD (`claim-typing`) draws two boxes of THREE and says "Six
+ * characters". That is the owner's six-character code, which is a server
+ * change and a security decision (`new_invite_code`, 0007; 0009 rests on the
+ * ten), not this screen's — so the boxes keep five each and the line keeps
+ * "Ten". Its "Scan the QR code" is not built either: the app has no scanner,
+ * and the board flags it as draft that needs one. Check the code is the bar,
+ * faint until all ten are in.
  */
 function Typing({
   code,
@@ -344,35 +350,54 @@ function Typing({
   // The instance type, not the component: React Native 0.88 (SDK 58) stopped
   // accepting the class as a ref type.
   const second = useRef<TextInputInstance>(null);
+  const [focus, setFocus] = useState<0 | 1 | 2>(1);
 
   const clean = (v: string) => v.toUpperCase().replace(/[^A-Z0-9]/g, '');
   const first = code.slice(0, 5);
   const rest = code.slice(5, 10);
 
+  const box = (which: 1 | 2) => [
+    styles.field,
+    {
+      backgroundColor: t.surface,
+      borderColor: focus === which ? t.text : t.outline,
+      color: t.text,
+    },
+    focus === which && styles.fieldFocused,
+  ];
+
   return (
-    <Standalone title="Type your invite code">
+    <Standalone
+      title="Type your invite code"
+      bar={[{ label: 'Check the code', onPress: onCheck, disabled: code.length !== 10 }]}
+    >
       <Body>Ten characters, from the invite.</Body>
 
       <View style={styles.fields}>
         <TextInput
-          style={[styles.field, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline, color: t.text }]}
+          style={box(1)}
           value={first}
           onChangeText={(v) => {
             const next = clean(v).slice(0, 5) + rest;
             setCode(next);
             if (clean(v).length >= 5) second.current?.focus();
           }}
+          onFocus={() => setFocus(1)}
+          onBlur={() => setFocus(0)}
           autoCapitalize="characters"
           autoCorrect={false}
           maxLength={5}
           autoFocus
           accessibilityLabel="First five characters"
         />
+        <Text style={[styles.dash, { color: t.muted }]}>–</Text>
         <TextInput
           ref={second}
-          style={[styles.field, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.text, color: t.text }]}
+          style={box(2)}
           value={rest}
           onChangeText={(v) => setCode(first + clean(v).slice(0, 5))}
+          onFocus={() => setFocus(2)}
+          onBlur={() => setFocus(0)}
           autoCapitalize="characters"
           autoCorrect={false}
           maxLength={5}
@@ -383,43 +408,32 @@ function Typing({
       <Text style={[styles.footnote, { color: t.muted }]}>
         Letters and numbers. No I, O, 0 or 1 — they are not in the alphabet a code is drawn from.
       </Text>
-
-      <View style={styles.readyAction}>
-        <Button
-          label="Check the code"
-          variant={code.length === 10 ? 'primary' : 'blocked'}
-          disabled={code.length !== 10}
-          onPress={onCheck}
-        />
-      </View>
     </Standalone>
   );
 }
 
 /**
- * The container the four states share.
+ * The frame the states share.
  *
- * A bare safe area and nothing else — this is the one screen in the app with no
- * chrome of either kind, and adding a close or a chevron here would be telling
- * a person there is somewhere to go back to when there is not.
+ * STANDALONE: a link lands here cold, so there is NO BACK AND NO CLOSE — and
+ * adding either would be telling a person there is somewhere to go back to
+ * when there is not. On the full board that is an ink top with the title and
+ * nothing else on it, the sheet under it, and the bar when a state has a
+ * primary: `Screen` with no `backTo`.
  */
 function Standalone({
   title,
-  centred = false,
+  bar,
   children,
 }: {
   title: string;
-  centred?: boolean;
+  bar?: BarAction[];
   children: React.ReactNode;
 }) {
-  const t = useTheme();
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: t.ground }]} edges={['top', 'bottom']}>
-      <View style={[styles.page, centred && styles.centred]}>
-        <Text style={[styles.title, { color: t.text }]}>{title}</Text>
-        {children}
-      </View>
-    </SafeAreaView>
+    <Screen title={title} bar={bar} scroll={false}>
+      <View style={styles.page}>{children}</View>
+    </Screen>
   );
 }
 
@@ -428,52 +442,64 @@ function Body({ children }: { children: React.ReactNode }) {
   return <Text style={[styles.body, { color: t.muted }]}>{children}</Text>;
 }
 
+/** X2a's hairline: a 2px track with a 38% segment. No spinner. */
+function Track() {
+  const t = useTheme();
+  return (
+    <View style={[styles.track, { backgroundColor: t.hairline }]}>
+      <View style={[styles.fill, { backgroundColor: t.text }]} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  page: { flex: 1, paddingHorizontal: 22, paddingTop: 28, gap: 14 },
-  /* X2c has no chrome above it to hang from, so it centres with a 40px lift. */
-  centred: { justifyContent: 'center', paddingBottom: 60 },
+  /* A pushed screen's content: 18 in from the edges, 12 between. */
+  page: { flex: 1, paddingHorizontal: z(18), paddingTop: z(14), gap: z(12) },
 
-  title: { fontSize: 30, fontWeight: '800', letterSpacing: -0.9, lineHeight: 31.8 },
-  body: { fontSize: 14.5, fontWeight: '400', lineHeight: 21.75 },
-  bodyStrong: { fontSize: 14.5, fontWeight: '700' },
-  footnote: { ...type.footnote },
+  body: { fontSize: z(14.5), fontWeight: '400', lineHeight: z(21) },
+  bodyStrong: { fontSize: z(14.5), fontWeight: '700' },
+  footnote: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
 
-  track: { height: 2, borderRadius: 1, overflow: 'hidden', marginTop: 8 },
+  track: { height: 2, borderRadius: 1, overflow: 'hidden' },
   fill: { width: '38%', height: 2, borderRadius: 1 },
 
-  deadAction: { marginTop: 10 },
-
-  card: {
-    marginTop: 6,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 12,
+  /* Who you are over what you are joining, a hairline between (the board's `claim`). */
+  cardName: {
+    fontFamily: 'head',
+    fontSize: z(22),
+    fontWeight: '800',
+    letterSpacing: z(-0.44),
+    lineHeight: z(25.3),
+    paddingTop: z(16),
+    paddingBottom: z(12),
+    paddingHorizontal: z(4),
+    borderBottomWidth: 1,
   },
-  cardName: { fontSize: 22, fontWeight: '800', letterSpacing: -0.55 },
-  cardRule: { height: StyleSheet.hairlineWidth },
-  cardGroup: { fontSize: 17, fontWeight: '600' },
+  cardGroup: { fontSize: z(17), fontWeight: '600', paddingTop: z(12), paddingBottom: z(16), paddingHorizontal: z(4) },
 
-  statements: { marginTop: 6, gap: 10 },
-  statement: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  dot: { width: 5, height: 5, borderRadius: 2.5, marginTop: 8 },
-  statementText: { fontSize: 14.5, fontWeight: '400', lineHeight: 21, flexShrink: 1 },
+  statements: { marginTop: z(4), gap: z(10) },
+  statement: { flexDirection: 'row', alignItems: 'flex-start', gap: z(10) },
+  dot: { width: 5, height: 5, borderRadius: 2.5, marginTop: z(8) },
+  statementText: { fontSize: z(14.5), fontWeight: '400', lineHeight: z(21), flexShrink: 1 },
 
-  readyAction: { marginTop: 'auto', paddingBottom: 6, gap: 12 },
-  busy: { opacity: 0.55 },
+  /* The footnote sits at the foot of the sheet, just above the bar. */
+  foot: { marginTop: 'auto', paddingBottom: z(14), gap: z(12) },
 
-  fields: { flexDirection: 'row', gap: 10, marginTop: 6 },
+  fields: { flexDirection: 'row', alignItems: 'center', gap: z(10) },
+  /* The kit's `.fi` at 62: outlined, a 2 in the text colour on focus. */
   field: {
     flex: 1,
-    height: 62,
-    borderRadius: 8,
-    borderWidth: 2,
+    minWidth: 0,
+    height: z(62),
+    borderRadius: L.fieldRadius,
+    borderWidth: 1.5,
     textAlign: 'center',
-    fontSize: 24,
+    fontFamily: 'head',
+    fontSize: z(24),
     fontWeight: '700',
-    letterSpacing: 3.36,
-    paddingHorizontal: space.rowInset,
+    letterSpacing: z(3.36),
+    paddingHorizontal: z(8),
   },
+  fieldFocused: { borderWidth: 2 },
+  dash: { fontFamily: 'head', fontSize: z(24), fontWeight: '700' },
 });

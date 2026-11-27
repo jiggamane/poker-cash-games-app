@@ -46,8 +46,10 @@ export function oddsTone(standing: Standing, theme: Pick<Theme, 'name' | 'amber'
         word: boardComplete ? 'Winner' : 'Favourite',
       };
     case 'behind':
+      /* 68 − 4d in dark, not 68 − 6d: on the full board's lifted card (#212836) the
+         deepest red measured 4.47:1 against 4.5 (ui-audit, 27 November). */
       return {
-        color: dark ? hsl(6, 45 + 35 * d, 68 - 6 * d) : hsl(6, 55 + 20 * d, 46 - 8 * d),
+        color: dark ? hsl(6, 45 + 35 * d, 68 - 4 * d) : hsl(6, 55 + 20 * d, 46 - 8 * d),
         word: boardComplete ? 'Beaten' : 'Underdog',
       };
     case 'close':

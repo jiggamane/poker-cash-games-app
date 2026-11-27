@@ -4,6 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '../src/components/Text';
 import { Dropdown, MENU_DIM, type DropdownItem } from '../src/components/Dropdown';
 import { GameRow } from '../src/components/GameRow';
+import { Card } from '../src/components/Card';
+import { z } from '../src/design/scale';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
 import { space, type } from '../src/design/tokens';
@@ -92,7 +94,9 @@ export default function Sessions() {
       {/* Everything behind an open menu drops to 32%, and tapping it closes the
           menu rather than opening a night. */}
       <View style={menuOpen && { opacity: MENU_DIM }} pointerEvents={menuOpen ? 'none' : 'auto'}>
-        <View style={styles.list}>
+        {/* One card of nights, as My stats' Last games draws them (the full board). */}
+        {nights.length > 0 && (
+        <Card style={styles.list}>
           {nights.map((n) => (
             <GameRow
               key={n.id}
@@ -109,7 +113,8 @@ export default function Sessions() {
               onPress={() => void openNight(n.id)}
             />
           ))}
-        </View>
+        </Card>
+        )}
 
         {nights.length === 0 && (
           <Text style={[styles.empty, { color: t.muted }]}>
@@ -126,7 +131,7 @@ export default function Sessions() {
 const styles = StyleSheet.create({
   /* Side margin 22, and no gap: the rows are 60 tall and their own height is
      the separation. Anything added here is the fencing the cut removed. */
-  list: { marginHorizontal: space.page },
+  list: { marginHorizontal: z(18), marginTop: z(12) },
   empty: { ...type.footnote, marginHorizontal: space.page, paddingTop: 8 },
 });
 

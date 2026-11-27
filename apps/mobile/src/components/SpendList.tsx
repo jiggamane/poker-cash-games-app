@@ -3,10 +3,11 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { type Money, type PlayerId } from '@poker-club/core';
 import { formatMoney } from '../lib/money';
+import { Card, CardRow, SectionLabel } from './Card';
 import { Icon } from './Icon';
 import { Pill } from './Pill';
 import { useTheme } from '../design/useTheme';
-import { radius, space, type } from '../design/tokens';
+import { z } from '../design/scale';
 
 /** What this list needs of a spend. `nightStore`'s `Spend` satisfies it. */
 export interface SpendLine {
@@ -63,9 +64,17 @@ export function frontedSentence(
  * would be the second implementation that goes wrong. One row per spend so the
  * person who paid is on the screen and not one tap behind it.
  *
- * ⚠ COPY NOT DRAWN. No board puts the bill on O4 or on E3. Every string here is
- * L1's own, moved rather than invented: the caption, "nothing added yet", the
- * amber *unpaid* tag and the fronted line are what the bill already says.
+ * Every string here is L1's own, moved rather than invented: the caption,
+ * "nothing added yet", the amber *unpaid* tag and the fronted line are what
+ * the bill already says.
+ *
+ * THE FULL BOARD (`money-rules`, approved, is the first board to draw it): the
+ * caption is the quiet section label with the total at its right, the spends
+ * are one card whose rows lead with the time and carry no chevron — the same
+ * rows `/bill` draws — and Add a spend is the outlined button with a plus. It
+ * was a dashed card; the board draws `button('Add a spend', { icon: 'plus' })`,
+ * because nothing in the look is dashed but a chip. Like `RuleList` it carries
+ * the sheet's 20 side inset itself.
  */
 export function SpendList({
   caption = 'The bill',
@@ -86,51 +95,30 @@ export function SpendList({
   const empty = spends.length === 0;
 
   return (
-    <>
-      <View style={styles.captionRow}>
-        <Text style={[styles.caption, { color: t.muted }]}>{caption}</Text>
-        <Text style={[styles.captionValue, { color: empty ? t.muted : t.text }]}>
-          {formatMoney(total)}
-        </Text>
-      </View>
+    <View style={styles.block}>
+      <SectionLabel text={caption} right={formatMoney(total)} quiet />
 
-      <View style={styles.list}>
-        {empty ? (
-          <Text style={[styles.empty, { color: t.muted }]}>
-            Nothing added yet. Who pays it back is worked out at settle-up, never now.
-          </Text>
-        ) : (
-          spends.map((s, i) => (
-            <Pressable
+      {empty ? (
+        <Text style={[styles.empty, { color: t.muted }]}>
+          Nothing added yet. Who pays it back is worked out at settle-up, never now.
+        </Text>
+      ) : (
+        <Card>
+          {spends.map((s, i) => (
+            <CardRow
               key={s.id}
-              accessibilityRole="button"
+              last={i === spends.length - 1}
               onPress={() => router.push({ pathname: '/spend', params: { id: s.id } })}
-              style={({ pressed }) => [
-                styles.row,
-                {
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth: i === spends.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                  opacity: pressed ? 0.6 : 1,
-                },
-              ]}
-            >
-              <Text style={[styles.time, { color: t.muted }]}>{s.at}</Text>
-              <View style={styles.rowText}>
-                {/* An empty note is valid: the row is then the amount alone. */}
-                <Text style={[styles.note, { color: t.text }]} numberOfLines={1}>
-                  {s.note === '' ? formatMoney(s.amount) : s.note}
-                </Text>
-                <Text style={[styles.fronted, { color: t.muted }]} numberOfLines={1}>
-                  {frontedSentence(s, nameFor)}
-                </Text>
-              </View>
-              {s.coveredBy === 'unpaid' && <Pill label="unpaid" tone="amber" />}
-              <Text style={[styles.amount, { color: t.text }]}>{formatMoney(s.amount)}</Text>
-              <Icon name="chevron" color={t.muted} />
-            </Pressable>
-          ))
-        )}
-      </View>
+              lead={<Text style={[styles.time, { color: t.muted }]}>{s.at}</Text>}
+              /* An empty note is valid: the row is then the amount alone. */
+              name={s.note === '' ? formatMoney(s.amount) : s.note}
+              meta={frontedSentence(s, nameFor)}
+              trail={s.coveredBy === 'unpaid' ? <Pill label="unpaid" tone="amber" /> : undefined}
+              amount={formatMoney(s.amount)}
+            />
+          ))}
+        </Card>
+      )}
 
       {canAdd && (
         <Pressable
@@ -138,63 +126,33 @@ export function SpendList({
           onPress={() => router.push('/spend')}
           style={({ pressed }) => [
             styles.add,
-            { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 },
+            { borderColor: t.outline, opacity: pressed ? 0.6 : 1 },
           ]}
         >
-          <Icon name="plus" color={t.text} />
+          <Icon name="plus" color={t.text} size={z(18)} />
           <Text style={[styles.addLabel, { color: t.text }]}>Add a spend</Text>
         </Pressable>
       )}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  captionRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 10,
-    marginTop: 18,
-    marginHorizontal: space.page,
-    marginBottom: 2,
-  },
-  caption: type.sectionLabel,
-  captionValue: {
-    marginLeft: 'auto',
-    fontSize: 15,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-
-  list: { marginHorizontal: space.page },
-  empty: { ...type.footnote, paddingHorizontal: 4, paddingVertical: 10 },
-  // A spend is a transfer-height row on L1, not a feed-height one: 15, not 13.
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 15,
-    paddingHorizontal: 4,
-  },
-  time: { ...type.time, minWidth: 44, flexShrink: 0 }, // B99: grows with the text
-  rowText: { gap: 2, flexShrink: 1 },
-  note: type.entryType,
-  fronted: type.entryProvenance,
-  amount: { ...type.entryAmount, marginLeft: 'auto' },
-
-  /* The dashed add, same object as the one that starts a rule on the house
-     rules — the two things a host adds to the money off the table. */
+  block: { marginHorizontal: z(20), gap: z(12) },
+  // The kit's `note()`: 13 / 1.45, muted.
+  empty: { fontSize: z(13), lineHeight: z(18.85), marginHorizontal: z(2) },
+  // As `/bill` leads its spend rows: 12.5 600, tabular, a fixed column.
+  /* A floor, not a width: at 360 with 120% text "10:26" needs more than 38 and wrapped (ui-journeys, 27 Nov). */
+  time: { minWidth: z(38), flexShrink: 0, fontSize: z(12.5), fontWeight: '600', fontVariant: ['tabular-nums'] },
+  // The kit's `.btn2`: 48 tall, 14 round, a 1.5 outline, 700 15 in the title face.
   add: {
+    height: z(48),
+    borderRadius: z(14),
+    borderWidth: 1.5,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 11,
-    marginTop: 10,
-    marginHorizontal: space.page,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
+    justifyContent: 'center',
+    gap: z(8),
   },
-  addLabel: { fontSize: 15, fontWeight: '700' },
+  addLabel: { fontFamily: 'head', fontSize: z(15), fontWeight: '700' },
 });

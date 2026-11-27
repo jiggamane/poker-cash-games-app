@@ -18,7 +18,8 @@ import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { space, type } from '../src/design/tokens';
+import { z } from '../src/design/scale';
+import { Card, CardRow } from '../src/components/Card';
 import { setClubRounding, useClub } from '../src/lib/clubStore';
 import { settlementInput, setNightRounding, useNight } from '../src/lib/nightStore';
 import { useIsAdmin } from '../src/lib/whoIsReading';
@@ -186,80 +187,80 @@ export default function Rounding() {
     }
   }
 
+  /*
+   * THE FULL BOARD (`rounding`, `rounding-settle`, `rounding-locked`,
+   * approved). Apply is the bar; the steps are rows in one lifted card, the
+   * chosen one keeping its check; their second lines wrap rather than cut. A
+   * sheet that cannot change it has no list and no bar — the step under the
+   * title, the paragraph, and Close as the outlined button.
+   */
+
   /* A power the reader does not have is removed, not disabled. */
   if (!admin || closed) {
     return (
-      <Sheet
-        title="Rounding"
-        sub={rowLabel(current)}
-        footer={<Button label="Close" variant="secondary" onPress={() => router.back()} />}
-      >
-        <Text style={[styles.body, { color: t.muted }]}>{BODY}</Text>
-        <Text style={[styles.body, { color: t.muted }]}>
-          {closed
-            ? /* ⚠ NOT DRAWN. The addendum says only "locked once the night is
-                 closed"; no frame shows the sheet in that state. Written to the
-                 grammar of the sentence above it. */
-              'This night is closed. What it settled at is part of the record now.'
-            : 'Only the person who runs the group can change it.'}
-        </Text>
+      <Sheet title="Rounding" sub={rowLabel(current)}>
+        <View style={styles.body}>
+          <Text style={[styles.note, { color: t.muted }]}>{BODY}</Text>
+          <Text style={[styles.note, { color: t.muted }]}>
+            {closed
+              ? /* ⚠ NOT DRAWN. The addendum says only "locked once the night is
+                   closed"; no frame shows the sheet in that state. Written to the
+                   grammar of the sentence above it. */
+                'This night is closed. What it settled at is part of the record now.'
+              : 'Only the person who runs the group can change it.'}
+          </Text>
+          <Button label="Close" variant="secondary" onPress={() => router.back()} />
+        </View>
       </Sheet>
     );
   }
+
+  const choices = roundingChoices();
 
   return (
     <Sheet
       title="Rounding"
       badge="admin only"
-      footer={
-        <Button
-          label="Apply"
-          variant="primary"
-          disabled={busy}
-          onPress={() => void save()}
-        />
-      }
+      bar={[{ label: 'Apply', disabled: busy, onPress: () => void save() }]}
     >
-      {/* Body copy, verbatim from the addendum. */}
-      <Text style={[styles.body, { color: t.muted }]}>
-        {forClub
-          ? 'The group’s default. A night copies it when it opens, so this reaches the next game and never the one being played.'
-          : atSettle
-            ? AT_SETTLE
-            : BODY}
-      </Text>
+      <View style={styles.body}>
+        {/* Body copy, verbatim from the addendum. */}
+        <Text style={[styles.note, { color: t.muted }]}>
+          {forClub
+            ? 'The group’s default. A night copies it when it opens, so this reaches the next game and never the one being played.'
+            : atSettle
+              ? AT_SETTLE
+              : BODY}
+        </Text>
 
-      <View style={styles.rows}>
-        {roundingChoices().map((c) => {
-          const on = c.mode === choice;
-          const sub = subline(c.mode);
+        <Card>
+          {choices.map((c, i) => {
+            const on = c.mode === choice;
+            const sub = subline(c.mode);
 
-          return (
-            <Pressable
-              key={c.mode}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: on }}
-              accessibilityLabel={c.chip}
-              onPress={() => setPicked(c.mode)}
-              style={({ pressed }) => [
-                styles.row,
-                { borderTopColor: t.hairline, opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <View style={styles.rowText}>
-                <Text style={[styles.rowLabel, { color: t.text }]}>{c.chip}</Text>
-                {sub !== null && (
-                  <Text style={[styles.rowSub, { color: t.muted }]} numberOfLines={1}>
-                    {sub}
-                  </Text>
-                )}
-              </View>
-              {/* A CHECK, NOT A FILL AND NOT A RADIO — the addendum says so, and
-                  it is the mark this app already uses for a settled thing. */}
-              {on && <Icon name="check" color={t.text} size={18} />}
-            </Pressable>
-          );
-        })}
+            return (
+              <Pressable
+                key={c.mode}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={c.chip}
+                onPress={() => setPicked(c.mode)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <CardRow
+                  name={c.chip}
+                  {...(sub !== null ? { meta: sub } : {})}
+                  wrapMeta
+                  last={i === choices.length - 1}
+                  /* A CHECK, NOT A FILL AND NOT A RADIO — the addendum says
+                     so, and it is the mark this app already uses for a
+                     settled thing. */
+                  trail={on ? <Icon name="check" color={t.text} size={z(18)} /> : undefined}
+                />
+              </Pressable>
+            );
+          })}
+        </Card>
       </View>
     </Sheet>
   );
@@ -296,38 +297,22 @@ const BODY =
  * There has been no remainder since 2 September — the apportionment leaves
  * nothing over — so that sentence had the sheet promising the piggy bank money
  * the settlement was never going to hand it. The new cut's paragraph says what
- * this sheet actually does from here, and carries the same clause about the
- * count being kept.
+ * this sheet actually does from here.
+ *
+ * IT NO LONGER CARRIES THE CLAUSE ABOUT THE COUNT BEING KEPT. The owner took
+ * "Nothing rewrites a count — what was counted is kept underneath." out of this
+ * form of the sheet on 23 November (the full board, `rounding-settle`,
+ * `progress.mjs`); E2's paragraph above still has it.
  */
 const AT_SETTLE =
-  'Changing the step here recomputes the transfers on screen. Nothing rewrites a count — ' +
-  'what was counted is kept underneath. Changeable until the night is closed.';
+  'Changing the step here recomputes the transfers on screen. Changeable until the night is closed.';
 
 /** "Rounding · nearest $10", for the sub-line of a sheet that cannot change it. */
 const rowLabel = (mode: RoundingMode | null): string =>
   granularityOf(mode) === 1 ? 'Off' : `Nearest $${granularityOf(mode).toLocaleString('en-US')}`;
 
+/* The kit at this phone's scale (`design/scale.ts`): `note()` over a card of `row()`s. */
 const styles = StyleSheet.create({
-  body: {
-    ...type.rowDetail,
-    lineHeight: 20,
-    marginHorizontal: space.page,
-    marginBottom: 4,
-    paddingHorizontal: 4,
-  },
-
-  rows: { marginTop: 10, marginHorizontal: space.page },
-  /* One rule above each, so the four read as a list rather than as four
-     objects — the sheet's own edges close the block top and bottom. */
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 13,
-    paddingHorizontal: 4,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  rowText: { gap: 2, flexShrink: 1 },
-  rowLabel: { fontSize: 16, fontWeight: '600' },
-  rowSub: { fontSize: 12.5, fontWeight: '400', fontVariant: ['tabular-nums'] },
+  body: { paddingHorizontal: z(20), paddingTop: z(2), gap: z(12) },
+  note: { fontSize: z(13), lineHeight: z(18.85) },
 });

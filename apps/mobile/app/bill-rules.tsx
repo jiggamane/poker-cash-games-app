@@ -4,9 +4,11 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '../src/components/Text';
 import { roundingLabel, type MoneyRule } from '@poker-club/core';
 import { Button } from '../src/components/Button';
+import { Card, CardRow, SectionLabel } from '../src/components/Card';
+import { Radio } from '../src/components/RoundTick';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { block, radius, space, type } from '../src/design/tokens';
+import { z } from '../src/design/scale';
 import { saveRule, useNight } from '../src/lib/nightStore';
 
 /**
@@ -69,95 +71,98 @@ export default function BillRules() {
     }
   }
 
+  /*
+   * THE FULL BOARD (`bill-rules`, `bill-rules-changed`, approved): Save the
+   * rule is the bar, and it opens blocked — it wakes only when a different
+   * split is picked. The options are one card of radio rows, Rounding a
+   * one-row card, When it is charged a padded card. With no bill rule there is
+   * nothing to save, so there is no bar and the way back stays the outlined
+   * secondary it was.
+   */
   return (
     <Sheet
       title="Bill rules"
       badge="admin only"
       sub="what happens to the bill when the night is counted"
-      footer={
-        rule === undefined ? (
-          <Button label="Back to the bill" variant="secondary" onPress={() => router.back()} />
-        ) : (
-          <Button
-            label="Save the rule"
-            variant="primary"
-            disabled={busy || pick === splitOf(rule)}
-            onPress={() => void save()}
-          />
-        )
+      bar={
+        rule === undefined
+          ? undefined
+          : [
+              {
+                label: 'Save the rule',
+                disabled: busy || pick === splitOf(rule),
+                onPress: () => void save(),
+              },
+            ]
       }
     >
-      <Text style={[styles.sectionLabel, { color: t.muted }]}>How it is split</Text>
+      <View style={styles.body}>
+        <SectionLabel text="How it is split" quiet />
 
-      <View style={styles.options}>
-        {OPTIONS.map((o, i) => {
-          const on = o.key === pick;
-          return (
-            <Pressable
-              key={o.key}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: on }}
-              disabled={rule === undefined}
-              onPress={() => setPicked(o.key)}
-              style={({ pressed }) => [
-                styles.option,
-                {
-                  // Hairlines between the options, as L5 draws them. Without
-                  // them three two-line rows run together into one block of
-                  // text and the thing you are choosing between stops being
-                  // visible as three things.
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth:
-                    i === OPTIONS.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                  opacity: pressed ? 0.6 : 1,
-                },
-              ]}
-            >
-              <View style={[styles.circle, { borderColor: on ? t.text : t.dashed }]}>
-                {on && <View style={[styles.dot, { backgroundColor: t.text }]} />}
-              </View>
-              <View style={styles.optionText}>
-                <Text style={[styles.optionLabel, { color: t.text }]}>{o.label}</Text>
-                <Text style={[styles.optionCaption, { color: t.muted }]}>{o.caption}</Text>
-              </View>
-            </Pressable>
-          );
-        })}
+        {/* Hairlines between the options, as L5 draws them. Without them three
+            two-line rows run together into one block of text and the thing you
+            are choosing between stops being visible as three things. */}
+        <Card>
+          {OPTIONS.map((o, i) => {
+            const on = o.key === pick;
+            return (
+              <Pressable
+                key={o.key}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: on }}
+                disabled={rule === undefined}
+                onPress={() => setPicked(o.key)}
+                style={({ pressed }) => [
+                  styles.option,
+                  i < OPTIONS.length - 1 && { borderBottomWidth: 1, borderBottomColor: t.hairline },
+                  { opacity: pressed ? 0.6 : 1 },
+                ]}
+              >
+                <Radio on={on} size={20} ring={2} />
+                <View style={styles.optionText}>
+                  <Text style={[styles.optionLabel, { color: t.text }]}>{o.label}</Text>
+                  <Text style={[styles.optionCaption, { color: t.muted }]}>{o.caption}</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </Card>
+
+        {/*
+          * L5 draws this row and gives it a value. It was that value, hard-coded,
+          * for as long as rounding was not a setting — which made it a label
+          * describing behaviour rather than a row stating a rule. It now reads
+          * tonight's own setting and opens it, which is what a row with a value
+          * on the right has always looked like it does.
+          */}
+        <Card>
+          <CardRow
+            last
+            name="Rounding"
+            value={roundingLabel(night.roundingMode)}
+            onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
+          />
+        </Card>
+
+        <Card pad>
+          <Text style={[styles.blockTitle, { color: t.text }]}>When it is charged</Text>
+          <Text style={[styles.note, { color: t.muted }]}>
+            At settle-up, against the counted table — never during the game. Changing the rule
+            part-way through a night changes nothing that has already been charged, because nothing
+            has been. Where a split leaves a remainder, it goes to the largest share.
+          </Text>
+        </Card>
+
+        {rule === undefined && (
+          <>
+            <Text style={[styles.note, { color: t.muted }]}>
+              No rule shares the bill out tonight, so whoever paid, paid. Add one in the money rules
+              to change that.
+            </Text>
+            <Button label="Back to the bill" variant="secondary" onPress={() => router.back()} />
+          </>
+        )}
       </View>
-
-      {/*
-        * L5 draws this row and gives it a value. It was that value, hard-coded,
-        * for as long as rounding was not a setting — which made it a label
-        * describing behaviour rather than a row stating a rule. It now reads
-        * tonight's own setting and opens it, which is what a row with a value
-        * on the right has always looked like it does.
-        */}
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => router.push({ pathname: '/rounding', params: { scope: 'night' } })}
-        style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
-      >
-        <Text style={[styles.rowLabel, { color: t.text }]}>Rounding</Text>
-        <Text style={[styles.rowValue, { color: t.muted }]}>
-          {roundingLabel(night.roundingMode)}
-        </Text>
-      </Pressable>
-
-      <View style={[styles.block, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
-        <Text style={[styles.blockTitle, { color: t.text }]}>When it is charged</Text>
-        <Text style={[styles.blockBody, { color: t.muted }]}>
-          At settle-up, against the counted table — never during the game. Changing the rule
-          part-way through a night changes nothing that has already been charged, because nothing
-          has been. Where a split leaves a remainder, it goes to the largest share.
-        </Text>
-      </View>
-
-      {rule === undefined && (
-        <Text style={[styles.none, { color: t.muted }]}>
-          No rule shares the bill out tonight, so whoever paid, paid. Add one in the money rules
-          to change that.
-        </Text>
-      )}
     </Sheet>
   );
 }
@@ -184,44 +189,14 @@ const shapeOf = (pick: Split): Pick<MoneyRule, 'split' | 'charge'> =>
       : { split: 'evenly', charge: 'winners_only' };
 
 const styles = StyleSheet.create({
-  sectionLabel: { ...type.sectionLabel, marginHorizontal: space.page, paddingHorizontal: 4 },
-  options: { marginHorizontal: space.page, marginTop: 6 },
-  option: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 15, paddingHorizontal: 4 },
-  circle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  optionText: { gap: 3, flexShrink: 1 },
-  optionLabel: type.rowName,
-  optionCaption: type.rowDetail,
+  body: { paddingHorizontal: z(20), paddingTop: z(2), gap: z(12) },
+  // The board's radio row: the ring, then the option over its caption.
+  option: { flexDirection: 'row', alignItems: 'center', gap: z(10), minHeight: z(44), paddingVertical: z(8) },
+  optionText: { flex: 1, minWidth: 0 },
+  optionLabel: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6) },
+  optionCaption: { fontSize: z(12), lineHeight: z(15), marginTop: z(2) },
 
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: space.page,
-    marginTop: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 4,
-  },
-  rowLabel: type.rowName,
-  rowValue: { ...type.meta, marginLeft: 'auto' },
-
-  block: {
-    marginTop: 14,
-    marginHorizontal: space.card,
-    paddingVertical: block.padV,
-    paddingHorizontal: block.padH,
-    borderWidth: 1,
-    borderRadius: block.radius,
-    gap: block.gap,
-  },
-  blockTitle: type.blockTitle,
-  blockBody: type.blockBody,
-
-  none: { ...type.footnote, marginTop: 16, marginHorizontal: space.page },
+  blockTitle: { fontFamily: 'head', fontSize: z(16), fontWeight: '700', lineHeight: z(18.4), marginBottom: z(6) },
+  // The kit's `note()`: 13 / 1.45, muted.
+  note: { fontSize: z(13), lineHeight: z(18.85) },
 });

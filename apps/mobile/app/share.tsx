@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '../src/components/Text';
 import {
   chargeCeiling,
@@ -16,12 +16,14 @@ import {
 } from '@poker-club/core';
 import { formatMoney, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
+import { Icon } from '../src/components/Icon';
 import { Keypad } from '../src/components/Keypad';
-import { PRESET_FITS, Preset } from '../src/components/Preset';
+import { PRESET_FITS } from '../src/components/Preset';
 import { Sheet } from '../src/components/Sheet';
 import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { block, cappedFigure, space, type } from '../src/design/tokens';
+import { L, z } from '../src/design/scale';
+import { cappedFigure } from '../src/design/tokens';
 import { nameOf, setManualCharge, settlementInput, useNight } from '../src/lib/nightStore';
 import { timingOf } from '../src/lib/seatClock';
 import { useIsAdmin } from '../src/lib/whoIsReading';
@@ -159,20 +161,28 @@ export default function Share() {
     }
   }
 
+  /*
+   * THE FULL BOARD (`share`, `share-typed`, `share-set`, `share-viewer`,
+   * approved; `share-set` redrawn 24 November at the owner's word). The
+   * figure, the plain block saying what the others become, the presets, the
+   * pad, and the save as the bar. Put them back on the split, the outlined
+   * button under the save, is a lifted row in the content above the presets
+   * with what it would come to; a reader who cannot change it gets no pad and
+   * no bar, and Close as the outlined button.
+   */
+
   /* A power the reader does not have is removed, not disabled. */
   if (!admin) {
     return (
-      <Sheet
-        title={name}
-        badge={tagOf(rule)}
-        sub={`${rule.name} · ${formatMoney(money(onTheSplit))}`}
-        footer={<Button label="Close" variant="secondary" onPress={() => router.back()} />}
-      >
-        <Text style={[styles.note, { color: t.muted }]}>
-          {set === undefined
-            ? 'This is what the rule gives them. Only the person who runs the group can change it.'
-            : 'The host set this figure by hand. Only they can change it.'}
-        </Text>
+      <Sheet title={name} badge={tagOf(rule)} sub={`${rule.name} · ${formatMoney(money(onTheSplit))}`}>
+        <View style={styles.body}>
+          <Text style={[styles.note, { color: t.muted }]}>
+            {set === undefined
+              ? 'This is what the rule gives them. Only the person who runs the group can change it.'
+              : 'The host set this figure by hand. Only they can change it.'}
+          </Text>
+          <Button label="Close" variant="secondary" onPress={() => router.back()} />
+        </View>
       </Sheet>
     );
   }
@@ -186,121 +196,185 @@ export default function Share() {
           ? `${rule.name} · ${formatMoney(money(onTheSplit))} on the split`
           : `${rule.name} · set by hand`
       }
-      footer={
-        <>
-          <Button
-            label={
-              over
-                ? `Only ${formatMoney(ceiling!)} is left to give`
-                : amount === set
-                  ? 'Saved'
-                  : `${name} carries ${formatMoney(money(valid ? amount : 0))}`
-            }
-            variant={valid && amount !== set ? 'primary' : 'blocked'}
-            disabled={!valid || busy || amount === set}
-            onPress={() => void commit(money(amount))}
-          />
-          {set !== undefined && (
-            <Button
-              label={`Put ${name} back on the split`}
-              variant="secondary"
-              disabled={busy}
-              onPress={() => void commit(null)}
-            />
-          )}
-        </>
-      }
+      bar={[
+        {
+          label: over
+            ? `Only ${formatMoney(ceiling!)} is left to give`
+            : amount === set
+              ? 'Saved'
+              : `${name} carries ${formatMoney(money(valid ? amount : 0))}`,
+          disabled: !valid || busy || amount === set,
+          onPress: () => void commit(money(amount)),
+        },
+      ]}
     >
-      <View style={styles.amountRow}>
-        <Text
-          {...cappedFigure}
-          style={[
-            styles.amount,
-            typedFigureSize(formatMoney(money(Number.isFinite(amount) ? amount : 0)), 60),
-            { color: over ? t.loss : valid ? t.text : t.muted },
-          ]}
-        >
-          {formatMoney(money(Number.isFinite(amount) ? amount : 0))}
-        </Text>
-        <Text style={[styles.of, { color: t.muted }]}>
-          {total === null
-            ? `of ${rule.name.toLowerCase()} · nothing caps a percentage`
-            : `of ${formatMoney(total)} to cover`}
-        </Text>
-      </View>
-
-      {/* WHAT ELSE MOVES. The reason this sheet is safe to use, and the first
-          thing a host will look for after typing a figure. */}
-      <View style={[styles.blockPlain, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
-        <Text style={[styles.blockTitle, { color: t.text }]}>
-          {total === null
-            ? 'Nobody else moves'
-            : moved.length === 0
-              ? 'Nobody else moves'
-              : 'What the others become'}
-        </Text>
-
-        {total === null ? (
-          <Text style={[styles.blockBody, { color: t.muted }]}>
-            {rule.name} takes a share of each win on its own, so there is no total to make up.
-            Changing this figure changes what {rule.destination === 'kitty' ? 'the piggy bank' : 'the rule'} collects and nothing else.
+      <View style={styles.body}>
+        <View style={styles.amountRow}>
+          <Text
+            {...cappedFigure}
+            style={[
+              styles.amount,
+              typedFigureSize(formatMoney(money(Number.isFinite(amount) ? amount : 0)), z(38)),
+              { color: over ? t.loss : valid ? t.text : t.muted },
+            ]}
+          >
+            {formatMoney(money(Number.isFinite(amount) ? amount : 0))}
           </Text>
-        ) : (
-          <>
+          <Text style={[styles.of, { color: t.muted }]}>
+            {total === null
+              ? `of ${rule.name.toLowerCase()} · nothing caps a percentage`
+              : `of ${formatMoney(total)} to cover`}
+          </Text>
+        </View>
+
+        {/* WHAT ELSE MOVES. The reason this sheet is safe to use, and the first
+            thing a host will look for after typing a figure. Set straight on
+            the sheet rather than in a card, so the pad still fits under it. */}
+        <View style={styles.blockPlain}>
+          <Text style={[styles.blockTitle, { color: t.text }]}>
+            {total === null
+              ? 'Nobody else moves'
+              : moved.length === 0
+                ? 'Nobody else moves'
+                : 'What the others become'}
+          </Text>
+
+          {total === null ? (
             <Text style={[styles.blockBody, { color: t.muted }]}>
-              The rest is shared out again by the rule — but only between the people whose share has
-              not been set by hand. Anyone already set stays exactly where they were.
+              {rule.name} takes a share of each win on its own, so there is no total to make up.
+              Changing this figure changes what {rule.destination === 'kitty' ? 'the piggy bank' : 'the rule'} collects and nothing else.
             </Text>
+          ) : (
+            <>
+              <Text style={[styles.blockBody, { color: t.muted }]}>
+                The rest is shared out again by the rule — but only between the people whose share has
+                not been set by hand. Anyone already set stays exactly where they were.
+              </Text>
 
-            {others.map((p) => (
-              <View key={p.id} style={[styles.otherRow, { borderBottomColor: t.previewRule }]}>
-                <Text style={[styles.otherName, { color: p.byHand ? t.muted : t.text }]} numberOfLines={1}>
-                  {p.name}
-                  {p.byHand ? ' · by hand' : ''}
-                </Text>
-                <Text style={[styles.otherWas, { color: t.muted }]}>
-                  {p.after === p.before ? 'unchanged' : formatMoney(money(p.before))}
-                </Text>
-                <Text
-                  style={[
-                    styles.otherNow,
-                    { color: p.after === p.before ? t.muted : moneyColor(t, (p.before - p.after) as Money) },
-                  ]}
-                >
-                  {formatMoney(money(p.after))}
-                </Text>
+              <View style={styles.others}>
+                {others.map((p, i) => (
+                  <View
+                    key={p.id}
+                    style={[
+                      styles.otherRow,
+                      i < others.length - 1 && { borderBottomWidth: 1, borderBottomColor: t.hairline },
+                    ]}
+                  >
+                    <Text style={[styles.otherName, { color: p.byHand ? t.muted : t.text }]} numberOfLines={1}>
+                      {p.name}
+                      {p.byHand ? ' · by hand' : ''}
+                    </Text>
+                    <Text style={[styles.otherWas, { color: t.muted }]}>
+                      {p.after === p.before ? 'unchanged' : formatMoney(money(p.before))}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.otherNow,
+                        { color: p.after === p.before ? t.muted : moneyColor(t, (p.before - p.after) as Money) },
+                      ]}
+                    >
+                      {formatMoney(money(p.after))}
+                    </Text>
+                  </View>
+                ))}
               </View>
-            ))}
-          </>
+            </>
+          )}
+        </View>
+
+        {/* The way back onto the split: a lifted row, with what it would come
+            to, above the presets (`share-set`). It removes the override rather
+            than typing the old number back in. */}
+        {set !== undefined && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Put ${name} back on the split`}
+            disabled={busy}
+            onPress={() => void commit(null)}
+            style={({ pressed }) => [
+              styles.back,
+              { backgroundColor: t.surface, boxShadow: t.lift, opacity: busy ? 0.4 : pressed ? 0.6 : 1 },
+            ]}
+          >
+            <Icon name="restart" color={t.muted} size={z(17)} />
+            <Text style={[styles.backLabel, { color: t.text }]} numberOfLines={1}>
+              Put {name} back on the split
+            </Text>
+            <Text style={[styles.backFigure, { color: t.muted }]}>{formatMoney(money(onTheSplit))}</Text>
+          </Pressable>
         )}
-      </View>
 
-      {/* The chip row is `src/components/Preset.tsx` — the same object as on
-          the amount sheet, and shared rather than copied because this screen
-          spent a week on the shape B3 replaced there. See B14 in docs/bugs.md. */}
-      <View style={styles.presets}>
-        <Preset
-          label={formatToFit(money(onTheSplit), PRESET_FITS)}
-          caption="BY THE RULE"
-          on={amount === onTheSplit && onTheSplit !== 0}
-          onPress={() => field.offer(onTheSplit)}
-        />
-        <Preset
-          label={formatMoney(money(0))}
-          caption="NOTHING"
-          on={amount === 0}
-          onPress={() => field.offer(0)}
-        />
-        <Preset
-          label="Custom"
-          caption="SET"
-          on={amount !== onTheSplit && amount !== 0}
-          onPress={() => field.offer(null)}
-        />
-      </View>
+        {/* THE PRESETS ARE THE BOARD'S, NOT `Preset.tsx`'s (owner, 24
+            November: "lifted like the chips, the chosen one ink"). The shared
+            preset is still outlined and 52 tall; until it moves, this sheet
+            draws the lifted one locally — `SharePreset` below. B14 is why they
+            were one component, and why the two should be again. */}
+        <View style={styles.presets}>
+          <SharePreset
+            label={formatToFit(money(onTheSplit), PRESET_FITS)}
+            caption="BY THE RULE"
+            on={amount === onTheSplit && onTheSplit !== 0}
+            onPress={() => field.offer(onTheSplit)}
+          />
+          <SharePreset
+            label={formatMoney(money(0))}
+            caption="NOTHING"
+            on={amount === 0}
+            onPress={() => field.offer(0)}
+          />
+          <SharePreset
+            label="Custom"
+            caption="SET"
+            on={amount !== onTheSplit && amount !== 0}
+            onPress={() => field.offer(null)}
+          />
+        </View>
 
-      <Keypad {...field.keys} />
+        <View style={styles.pad}>
+          <Keypad {...field.keys} />
+        </View>
+      </View>
     </Sheet>
+  );
+}
+
+/**
+ * The full board's preset (the kit's `presets()` in `50-the-bill.mjs`): the
+ * figure over its caption, lifted like a chip, the chosen one filled with ink.
+ * 48 tall, 12 corners. Everything else is `Preset.tsx`'s, including the
+ * capped figure and the accessibility it reads out.
+ */
+function SharePreset({
+  label,
+  caption,
+  on,
+  onPress,
+}: {
+  label: string;
+  caption: string;
+  on: boolean;
+  onPress: () => void;
+}) {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: on }}
+      accessibilityLabel={`${label} · ${caption}`}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.preset,
+        on ? { backgroundColor: t.text } : { backgroundColor: t.surface, boxShadow: t.lift },
+        { opacity: pressed ? 0.7 : 1 },
+      ]}
+    >
+      <Text {...cappedFigure} numberOfLines={1} style={[styles.presetValue, { color: on ? t.onFill : t.text }]}>
+        {label}
+      </Text>
+      <Text numberOfLines={1} style={[styles.presetCaption, { color: on ? t.onFill : t.text }]}>
+        {caption}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -349,35 +423,73 @@ function safeSettle(input: Parameters<typeof settle>[0] | null): SettlementResul
   }
 }
 
+/* The kit at this phone's scale (`design/scale.ts`). */
 const styles = StyleSheet.create({
-  amountRow: { alignItems: 'center', paddingTop: 10, paddingBottom: 14, gap: 6 },
-  amount: { fontSize: 60, fontWeight: '800', letterSpacing: -3, fontVariant: ['tabular-nums'] },
-  of: { ...type.rowDetail, textAlign: 'center', paddingHorizontal: space.card },
+  body: { paddingHorizontal: z(20), paddingTop: z(2), gap: z(12) },
 
-  note: { ...type.rowDetail, lineHeight: 20, marginHorizontal: space.page, paddingHorizontal: 4 },
+  /* The board's `typed()`: the figure, 6 under it the line saying what it is of. */
+  amountRow: { alignItems: 'center', gap: z(6) },
+  amount: { fontFamily: 'head', fontSize: z(38), fontWeight: '700', letterSpacing: z(-1.14), fontVariant: ['tabular-nums'] },
+  of: { fontSize: z(12.5), fontWeight: '400', minHeight: z(17), textAlign: 'center' },
 
-  blockPlain: {
-    marginHorizontal: space.card,
-    marginBottom: 14,
-    paddingVertical: block.padV,
-    paddingHorizontal: block.padH,
-    borderWidth: 1,
-    borderRadius: block.radius,
-    gap: block.gap,
-  },
-  blockTitle: type.blockTitle,
-  blockBody: type.blockBody,
+  note: { fontSize: z(13), lineHeight: z(18.85) },
+
+  /* The board's `block(…, { plain: true })`: no card, 2 in from the edge. */
+  blockPlain: { marginHorizontal: z(2) },
+  blockTitle: { fontFamily: 'head', fontSize: z(15), fontWeight: '700', lineHeight: z(18), marginBottom: z(3) },
+  blockBody: { fontSize: z(12.5), lineHeight: z(17.5) },
+  others: { marginTop: z(4) },
 
   otherRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 7,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: z(10),
+    paddingVertical: z(6),
   },
-  otherName: { fontSize: 14, fontWeight: '600', flex: 1, minWidth: 0 },
-  otherWas: { fontSize: 12.5, fontWeight: '400', fontVariant: ['tabular-nums'] },
-  otherNow: { fontSize: 15, fontWeight: '700', width: 74, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  otherName: { fontSize: z(14), fontWeight: '600', flex: 1, minWidth: 0 },
+  otherWas: { fontSize: z(12.5), fontWeight: '400', fontVariant: ['tabular-nums'] },
+  otherNow: { fontFamily: 'head', fontSize: z(15), fontWeight: '700', minWidth: z(56), textAlign: 'right', fontVariant: ['tabular-nums'] },
 
-  presets: { flexDirection: 'row', gap: 8, paddingHorizontal: space.card, paddingBottom: 14 },
+  back: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: z(10),
+    minHeight: z(48),
+    paddingHorizontal: z(14),
+    borderRadius: L.fieldRadius,
+  },
+  backLabel: { flex: 1, fontSize: z(14.5), fontWeight: '600' },
+  backFigure: { fontSize: z(13), fontWeight: '400', fontVariant: ['tabular-nums'] },
+
+  presets: { flexDirection: 'row', gap: z(8) },
+  preset: {
+    flex: 1,
+    minWidth: 0,
+    height: z(48),
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: z(4),
+    paddingHorizontal: z(6),
+    borderRadius: L.chipRadius,
+  },
+  presetValue: {
+    alignSelf: 'stretch',
+    textAlign: 'center',
+    fontFamily: 'head',
+    fontSize: z(15),
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  /* 700 9 at .1em, the ink at 72% on either fill. */
+  presetCaption: {
+    alignSelf: 'stretch',
+    textAlign: 'center',
+    fontSize: z(9),
+    fontWeight: '700',
+    letterSpacing: z(0.9),
+    opacity: 0.72,
+  },
+
+  /** Out of the body's 20 so the pad's hairlines run to the sheet's edges. */
+  pad: { marginHorizontal: z(-20) },
 });

@@ -3,8 +3,10 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { money, potOdds, formatHundredths, type SeatOdds } from '@poker-club/core';
 import { Icon } from './Icon';
-import { cappedFigure, radius, type } from '../design/tokens';
+import { cappedFigure } from '../design/tokens';
+import { L, z } from '../design/scale';
 import { useTheme } from '../design/useTheme';
+import { SectionLabel } from './Card';
 import { formatMoney, formatSigned } from '../lib/money';
 
 /**
@@ -35,7 +37,9 @@ import { formatMoney, formatSigned } from '../lib/money';
  * `+$16`, the last rounded half away from zero — the exact quotient is the
  * percentages' job. And amber, the board's colour for the break-even marker and
  * its label, is the app's "waiting" colour; it is kept because the owner chose
- * the board, and it is the one use of it on this screen.
+ * the board, and it is the one use of it on this screen. The full board draws
+ * the marker in the text colour and asks whether to; the app's odds colours
+ * are the exception `tokens.ts` names, so the amber stays.
  */
 export type PotField = 'pot' | 'call';
 
@@ -70,10 +74,8 @@ export function PotOddsCard({
   const needs = hasCall ? formatHundredths(p.needsHundredths) : '—';
 
   return (
-    <View nativeID="pot-odds">
-      <View style={styles.head}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Pot odds</Text>
-      </View>
+    <View nativeID="pot-odds" style={styles.wrap}>
+      <SectionLabel text="Pot odds" quiet />
 
       {!open ? (
         <Pressable
@@ -86,12 +88,10 @@ export function PotOddsCard({
             <Text style={[styles.title, { color: t.text }]}>Pot odds</Text>
             <Text style={[styles.sub, { color: t.muted }]}>Type the pot and what you must call</Text>
           </View>
-          <View style={styles.down}>
-            <Icon name="chevron" color={t.muted} />
-          </View>
+          <Icon name="chevronDown" color={t.muted} size={z(18)} />
         </Pressable>
       ) : (
-        <View style={[styles.card, styles.openCard, { backgroundColor: t.surface, boxShadow: t.lift }]}>
+        <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift }]}>
           {/* The same label that opened it closes it: the card's own title row. */}
           <Pressable
             accessibilityRole="button"
@@ -100,9 +100,7 @@ export function PotOddsCard({
             style={({ pressed }) => [styles.openHead, { opacity: pressed ? 0.6 : 1 }]}
           >
             <Text style={[styles.title, { color: t.text }]}>Pot odds</Text>
-            <View style={styles.up}>
-              <Icon name="chevron" color={t.muted} />
-            </View>
+            <Icon name="chevronUp" color={t.muted} size={z(18)} />
           </Pressable>
 
           <AmountRow
@@ -128,7 +126,7 @@ export function PotOddsCard({
           </View>
 
           <View style={styles.barBlock}>
-            <View style={[styles.track, { backgroundColor: t.hairline }]}>
+            <View style={[styles.track, { backgroundColor: t.raised }]}>
               <View style={[styles.fill, { backgroundColor: t.text, width: `${p.hasHundredths / 100}%` }]} />
               {hasCall && (
                 <View
@@ -150,7 +148,7 @@ export function PotOddsCard({
             <View style={[styles.money, { borderTopColor: t.hairline }]}>
               <Text nativeID="pot-odds-returns" style={[styles.returns, { color: t.text }]}>
                 Over many runs this call returns{' '}
-                <Text style={{ fontWeight: '800', color: p.returns > 0 ? t.win : p.returns < 0 ? t.loss : t.text }}>
+                <Text style={[styles.returnsFigure, { color: p.returns > 0 ? t.win : p.returns < 0 ? t.loss : t.text }]}>
                   {formatSigned(money(p.returns))}
                 </Text>
               </Text>
@@ -166,7 +164,11 @@ export function PotOddsCard({
   );
 }
 
-/** A typed amount: the label, and the figure in a box that is outlined while the keypad is on it. */
+/**
+ * A typed amount: the label, and the figure in a box that is outlined while the
+ * keypad is on it. An untyped `$0` is in the text colour, as the full board
+ * draws it (`odds-amount`); it was muted.
+ */
 function AmountRow({
   label,
   amount,
@@ -185,7 +187,7 @@ function AmountRow({
   const t = useTheme();
   const shown = formatMoney(money(amount));
   return (
-    <View style={[styles.amountRow, !last && { borderBottomColor: t.hairline, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+    <View style={[styles.amountRow, !last && { borderBottomColor: t.hairline, borderBottomWidth: 1 }]}>
       <Text style={[styles.amountLabel, { color: t.text }]}>{label}</Text>
       <Pressable
         ref={boxRef}
@@ -195,7 +197,7 @@ function AmountRow({
         hitSlop={8}
         style={[styles.amountBox, { borderColor: active ? t.text : 'transparent' }]}
       >
-        <Text {...cappedFigure} style={[styles.amount, { color: amount === 0 && !active ? t.muted : t.text }]}>
+        <Text {...cappedFigure} style={[styles.amount, { color: t.text }]}>
           {shown}
         </Text>
       </Pressable>
@@ -217,42 +219,47 @@ function Figure({ label, value }: { label: string; value: string }) {
   );
 }
 
+/*
+ * THE FULL BOARD'S MEASURES (`odds-turn`, `odds-amount`, approved), each
+ * through `z()`: a lifted card with 12 of padding under a quiet section label;
+ * the title 700 15.5 in the title face; the two amounts on rows 34 tall, 700 15
+ * against a 700 17 figure, the one being typed in a 2-point outline of the text
+ * colour, 5 / 9 of padding, 9 round; Needs and You have at 26 with the per-cent
+ * at 14; an 8-point track on the raised fill; the scale at 11; the return at
+ * 13.5 under a hairline and the formula at 11.5.
+ */
 const styles = StyleSheet.create({
-  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 4, paddingTop: 22, paddingBottom: 8, gap: 12 },
-  sectionLabel: { ...type.sectionLabel, flexShrink: 1 },
+  wrap: { gap: z(12) },
 
-  card: { marginHorizontal: 4, borderRadius: radius.card - 2 },
-  closed: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 16 },
-  closedText: { flex: 1, minWidth: 0, gap: 2 },
-  title: { fontSize: 17, fontWeight: '700' },
-  sub: { fontSize: 13, fontWeight: '400' },
-  /* The one chevron the app has points right; this card opens down and closes up. */
-  down: { transform: [{ rotate: '90deg' }] },
-  up: { transform: [{ rotate: '-90deg' }] },
+  card: { borderRadius: L.cardRadius, padding: z(12) },
+  closed: { flexDirection: 'row', alignItems: 'center', gap: z(10) },
+  closedText: { flex: 1, minWidth: 0, gap: z(2) },
+  title: { fontFamily: 'head', fontSize: z(15.5), lineHeight: z(18.6), fontWeight: '700' },
+  sub: { fontSize: z(12.5), lineHeight: z(16), fontWeight: '400' },
 
-  openCard: { paddingHorizontal: 16, paddingBottom: 16 },
-  openHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, paddingBottom: 6 },
+  openHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 
-  amountRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 8 },
-  amountLabel: { fontSize: 17, fontWeight: '600', flexShrink: 1 },
-  amountBox: { borderWidth: 2, borderRadius: 8, paddingVertical: 3, paddingHorizontal: 10, minWidth: 64, alignItems: 'flex-end' },
-  amount: { fontSize: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  amountRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: z(10), minHeight: z(34), marginTop: z(4) },
+  amountLabel: { fontSize: z(15), fontWeight: '700', flexShrink: 1 },
+  amountBox: { borderWidth: 2, borderRadius: z(9), paddingVertical: z(3), paddingHorizontal: z(7), minWidth: z(56), alignItems: 'flex-end' },
+  amount: { fontFamily: 'head', fontSize: z(17), lineHeight: z(20), fontWeight: '700', fontVariant: ['tabular-nums'] },
 
-  pair: { flexDirection: 'row', gap: 12, marginTop: 8 },
+  pair: { flexDirection: 'row', gap: z(8), marginTop: z(8) },
   figure: { flex: 1, minWidth: 0 },
-  figureLabel: { fontSize: 13, fontWeight: '400' },
-  figureValue: { fontSize: 28, fontWeight: '800', letterSpacing: -1, fontVariant: ['tabular-nums'] },
-  figurePct: { fontSize: 15, letterSpacing: 0 },
+  figureLabel: { fontSize: z(12), fontWeight: '400' },
+  figureValue: { fontFamily: 'head', fontSize: z(26), lineHeight: z(30), fontWeight: '700', letterSpacing: -0.78 * (z(26) / 26), fontVariant: ['tabular-nums'] },
+  figurePct: { fontSize: z(14), letterSpacing: 0 },
 
-  barBlock: { marginTop: 12 },
-  track: { height: 12, borderRadius: 6, overflow: 'visible' },
-  fill: { height: 12, borderRadius: 6 },
-  marker: { position: 'absolute', top: -4, width: 3, height: 20, borderRadius: 2, marginLeft: -1 },
-  scale: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 6, gap: 8 },
-  scaleText: { fontSize: 12, fontWeight: '400', fontVariant: ['tabular-nums'] },
-  breakEven: { fontWeight: '600', flexShrink: 1, textAlign: 'center' },
+  barBlock: { marginTop: z(8) },
+  track: { height: z(8), borderRadius: z(4), overflow: 'visible' },
+  fill: { height: z(8), borderRadius: z(4) },
+  marker: { position: 'absolute', top: z(-4), bottom: z(-4), width: 2, marginLeft: -1 },
+  scale: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: z(6), gap: z(8) },
+  scaleText: { fontSize: z(11), fontWeight: '400', fontVariant: ['tabular-nums'] },
+  breakEven: { fontWeight: '700', flexShrink: 1, textAlign: 'center' },
 
-  money: { marginTop: 12, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 4 },
-  returns: { fontSize: 15, lineHeight: 21, fontWeight: '400' },
-  formula: { fontSize: 12, lineHeight: 17, fontVariant: ['tabular-nums'] },
+  money: { marginTop: z(8), paddingTop: z(8), borderTopWidth: 1, gap: z(4) },
+  returns: { fontSize: z(13.5), lineHeight: z(19), fontWeight: '500' },
+  returnsFigure: { fontFamily: 'head', fontWeight: '700', fontVariant: ['tabular-nums'] },
+  formula: { fontSize: z(11.5), lineHeight: z(16.5), fontVariant: ['tabular-nums'] },
 });

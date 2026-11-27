@@ -16,11 +16,15 @@ import { ToolTiles } from '../src/components/ToolTiles';
  * Back from the tool is Tonight, as it was.
  *
  * ⚠ COPY NOT DRAWN — the title and the sub-line are `/tools`' own.
+ *
+ * THE FULL BOARD (`pick-tool`, approved): a chooser, so no bar; the tiles are
+ * `/tools`' own, with the approved drawings rather than the line icons.
  */
 export default function PickTool() {
   return (
     <Sheet title="Poker tools" sub="nothing here touches the ledger">
       <ToolTiles
+        on="sheet"
         onOpen={(tool) => {
           router.back();
           router.push({ pathname: tool.path, params: { from: 'tonight' } });

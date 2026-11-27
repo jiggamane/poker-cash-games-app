@@ -40,6 +40,7 @@ export function Screen({
   footer,
   bar,
   barLine,
+  onInk,
   footerPad = true,
   scroll = true,
   headScroll = 'none',
@@ -119,6 +120,12 @@ export function Screen({
    * the bar; a screen with a `bar` never puts a filled button in `footer`.
    */
   bar?: BarAction[];
+  /**
+   * More of the ink top, under the title and its line: what a screen keeps on
+   * the ink rather than on the sheet — Tonight's pot (the kit's `extra`,
+   * `topHero`). Keep it short; the top is not a place for lists.
+   */
+  onInk?: ReactNode;
   /** A quiet line inside the bar, above its words. */
   barLine?: string;
   /** Off when the footer carries its own margins — the dock does. */
@@ -263,7 +270,10 @@ export function Screen({
       // the tool reads the page's own body colour, which belongs to the
       // browser and not to the design.
       nativeID="app-root"
-      style={[styles.screen, { backgroundColor: t.top, paddingTop: insets.top }]}
+      /* The ink under everything: the sheet is the ground laid over it. The
+         footer and the bar sit on a strip of the ground of their own, so the
+         ink bar never paints onto ink. */
+      style={[styles.screen, { backgroundColor: t.top }]}
     >
       {/*
        * THE INK TOP AND THE SHEET THAT RISES OVER IT. The title row and the
@@ -282,9 +292,10 @@ export function Screen({
             points of padding sit over the sheet's first 26. Without this they
             caught every tap there — the odds calculator's Board label went
             dead (ui-odds, 24 November). Only the rows inside it take a touch. */}
-        <View style={styles.top} pointerEvents="box-none">
+        <View style={[styles.top, { paddingTop: insets.top + L.topPadTop }]} pointerEvents="box-none">
           {titleRow}
           {sub}
+          {onInk}
         </View>
         <View style={[styles.sheet, { backgroundColor: t.ground }]}>
           {scroll ? (
@@ -304,25 +315,27 @@ export function Screen({
         </View>
       </View>
 
-      {footer !== undefined && (
-        <View
-          style={[
-            footerPad ? styles.footer : undefined,
-            { backgroundColor: t.ground },
-            !hasBar && footerPad && { paddingBottom: 6 + insets.bottom },
-          ]}
-        >
-          {footer}
+      {(footer !== undefined || hasBar) && (
+        <View style={{ backgroundColor: t.ground }}>
+          {footer !== undefined && (
+            <View style={[footerPad ? styles.footer : undefined, !hasBar && footerPad && { paddingBottom: 6 + insets.bottom }]}>
+              {footer}
+            </View>
+          )}
+          {hasBar && <Bar actions={bar} line={barLine} />}
         </View>
       )}
-      {hasBar && <Bar actions={bar} line={barLine} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  fixed: { flex: 1 },
+  /* OVER THE FOOTER STRIP, so a menu's backdrop hung from the ink top covers the
+     bar too. Every web View is its own stacking context at z 0, and the strip is
+     a later sibling: without this a tap past an open menu at the foot of the
+     phone landed on the bar and opened Who pays whom (ui-journeys, B77, 27 Nov). */
+  fixed: { flex: 1, zIndex: 2 },
   top: { paddingHorizontal: L.topPadH, paddingTop: L.topPadTop, paddingBottom: L.topPadBottom, zIndex: 20 },
   sheet: {
     flex: 1,
@@ -394,6 +407,13 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    /* AND IT WRAPS before it cuts. The settled night's `08:43 → 12:00` beside
+       `Final, detailed` wanted 124 of 117 at 360 and 120% text (ui-journeys,
+       27 November), and a time cut to `08:43 → 12:…` is a figure lost. The
+       control drops to a line of its own, still at the right edge (its
+       `marginLeft: auto`), so its menu still hangs right-aligned under it. */
+    flexWrap: 'wrap',
+    rowGap: z(6),
     /*
      * 8 RATHER THAN THE TITLE ROW'S 12, and the four points are not cosmetic —
      * B82. This row is the only place in the app where a line of text and a
@@ -422,6 +442,7 @@ const styles = StyleSheet.create({
        control is 34 points tall where the text is 16, so what the first row of
        the body meets is the button's edge rather than a baseline with air
        under it. B68. */
+    paddingBottom: 10,
   },
   metaShared: { ...T.lookMeta, flexShrink: 1 },
   /* The element form of `metaShared`: it takes what the control leaves and

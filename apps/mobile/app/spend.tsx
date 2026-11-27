@@ -4,13 +4,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, TextInput } from '../src/components/Text';
 import { money, resolveLedger, type Money, type PlayerId } from '@poker-club/core';
 import { formatMoney } from '../src/lib/money';
-import { Button } from '../src/components/Button';
-import { Icon } from '../src/components/Icon';
+import { Chip } from '../src/components/Card';
 import { Keypad } from '../src/components/Keypad';
 import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { cappedFigure, radius, space, type } from '../src/design/tokens';
+import { L, z } from '../src/design/scale';
+import { cappedFigure } from '../src/design/tokens';
 import {
   addSpend,
   spendsOf,
@@ -36,8 +36,9 @@ import {
  * amount sheet in this app — /log, /entry and /share are all figure, one short
  * row, pad — and the chips move behind a row that states who is covering it.
  * `09-navigation.md`: a multi-step flow REPLACES ONE SHEET'S CONTENT and keeps
- * one close, so the close returns to the spend rather than dismissing, and the
- * sheet never pushes. `new-night.tsx` is the same shape.
+ * one close, and the sheet never pushes. Since the full board the second step
+ * carries the step-back circle that returns to the spend, and the close leaves
+ * the sheet from either step. `new-night.tsx` is the same shape.
  *
  * THERE IS NO TYPE ON A SPEND, and there are no prefills above the note either.
  * L2 drew a chip row writing `Food`, `Drinks` or `Venue` into the field, and on
@@ -128,7 +129,7 @@ export default function SpendScreen() {
   /*
    * WHICH STEP THE ONE SHEET IS SHOWING. `new-night.tsx` holds its flow the
    * same way, and 09-navigation is why both do: the content is replaced, the
-   * close comes back a step, and there is never a second panel.
+   * back circle comes back a step, and there is never a second panel.
    */
   const [step, setStep] = useState<Step>('spend');
 
@@ -165,7 +166,7 @@ export default function SpendScreen() {
         : picked.map(nameOf).join(' · ');
 
   /*
-   * The blocking shortfall, on both footers: the spend step's primary will not
+   * The blocking shortfall, on both bars: the spend step's primary will not
    * save while the shares disagree with the figure, and the covered-by step's
    * Done will not leave while they do — the same sentence rather than two.
    */
@@ -205,6 +206,20 @@ export default function SpendScreen() {
     }
   }
 
+  /*
+   * THE FULL BOARD (`spend`, `spend-edit`, `spend-covered`, approved): the
+   * primary is the bar on both steps; Void this spend, the destructive button
+   * that sat under it, is the quiet red line in the content. The two fields are
+   * the kit's outlined field, and Covered by carries no chevron — the look has
+   * none, and the board flags that it is now told from Note only by its label.
+   *
+   * THE SECOND STEP HAS A BACK CIRCLE. It used to have none: its one close came
+   * back a step. The board draws the step-back circle on it (a real step of a
+   * flow keeps its circle — `progress.mjs`, 26 November), so the circle comes
+   * back to the spend and the close leaves the sheet, the same as on the first
+   * step. A chip writes as it is tapped, so leaving loses nothing a close on the
+   * first step would not.
+   */
   return (
     <Sheet
       title={
@@ -221,55 +236,37 @@ export default function SpendScreen() {
                 ? `stamped ${now()}`
                 : `logged ${existing.at}${existing.entryIds.length > 1 ? ' · fronted by several' : ''}`,
           }
-        : {})}
-      /* One sheet, one close: on the second step it comes back a step rather
-         than throwing away a half-typed spend. 09-navigation. */
-      {...(step === 'covered' ? { onClose: () => setStep('spend') } : {})}
-      footer={
-        step === 'covered' ? (
-          /* Nothing is held back to be saved here — a chip writes the state as
-             it is tapped — so this is the way back for somebody who opened the
-             list, and the block for shares that do not add up. */
-          <Button
-            label={shortfall ?? 'Done'}
-            variant="primary"
-            disabled={shortfall !== null}
-            onPress={() => setStep('spend')}
-          />
-        ) : (
-          <>
-            <Button
-              label={
-                shortfall ??
-                (amount === 0
-                  ? 'Type an amount'
-                  : existing === undefined
-                    ? `Add ${formatMoney(money(amount))} to the bill`
-                    : 'Save changes')
-              }
-              variant="primary"
-              disabled={!valid || busy}
-              onPress={() => void save()}
-            />
-            {existing !== undefined && (
-              <Button
-                label="Void this spend"
-                variant="destructive"
-                disabled={busy}
-                onPress={() => void discard()}
-              />
-            )}
-          </>
-        )
+        : { onBack: () => setStep('spend') })}
+      bar={
+        step === 'covered'
+          ? [
+              /* Nothing is held back to be saved here — a chip writes the state
+                 as it is tapped — so this is the way back for somebody who
+                 opened the list, and the block for shares that do not add up. */
+              { label: shortfall ?? 'Done', disabled: shortfall !== null, onPress: () => setStep('spend') },
+            ]
+          : [
+              {
+                label:
+                  shortfall ??
+                  (amount === 0
+                    ? 'Type an amount'
+                    : existing === undefined
+                      ? `Add ${formatMoney(money(amount))} to the bill`
+                      : 'Save changes'),
+                disabled: !valid || busy,
+                onPress: () => void save(),
+              },
+            ]
       }
     >
       {step === 'spend' ? (
-        <>
+        <View style={styles.body}>
           <Text
             {...cappedFigure}
             style={[
               styles.amount,
-              typedFigureSize(formatMoney(money(amount)), 68),
+              typedFigureSize(formatMoney(money(amount)), z(38)),
               { color: amount > 0 ? t.text : t.muted },
             ]}
           >
@@ -278,12 +275,12 @@ export default function SpendScreen() {
 
           {/* THE PAD, DIRECTLY UNDER THE FIGURE IT TYPES INTO — B45, and the
               order every other amount sheet is already in. Nothing goes
-              between these two. */}
+              between these two. It runs edge to edge, out of the body's pad. */}
           <View style={styles.pad}>
             <Keypad {...field.keys} />
           </View>
 
-          <View style={styles.block}>
+          <View>
             <View style={styles.labelRow}>
               <Text style={[styles.label, { color: t.muted }]}>NOTE</Text>
               <Text style={[styles.optional, { color: t.dim }]}>optional</Text>
@@ -292,25 +289,21 @@ export default function SpendScreen() {
               value={note}
               onChangeText={setNote}
               placeholder="What it was"
-              placeholderTextColor={t.muted}
+              placeholderTextColor={t.dim}
               autoCapitalize="sentences"
               style={[
                 styles.input,
-                {
-                  color: t.text,
-                  backgroundColor: t.surface, boxShadow: t.lift,
-                  borderColor: note.trim() === '' ? t.dashed : t.hairline,
-                  borderStyle: note.trim() === '' ? 'dashed' : 'solid',
-                },
+                note === '' && styles.placeholder,
+                { color: t.text, backgroundColor: t.surface, borderColor: t.outline },
               ]}
             />
           </View>
 
           {/* The same box as the note above it: one you type into, one you
-              tap. The chevron is the whole of what tells them apart, which is
-              the promise 09-navigation makes about a row that opens. */}
-          <View style={styles.block}>
-            <Text style={[styles.label, { color: t.muted }]}>COVERED BY</Text>
+              tap. With no chevron in the look, the label is what tells them
+              apart — the board's open question, not an oversight here. */}
+          <View>
+            <Text style={[styles.label, styles.labelAlone, { color: t.muted }]}>COVERED BY</Text>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Covered by ${coveredBy}`}
@@ -318,39 +311,45 @@ export default function SpendScreen() {
               style={({ pressed }) => [
                 styles.input,
                 styles.picker,
-                {
-                  backgroundColor: t.surface, boxShadow: t.lift,
-                  borderColor: cover.kind === 'unpaid' ? t.dashed : t.hairline,
-                  borderStyle: cover.kind === 'unpaid' ? 'dashed' : 'solid',
-                  opacity: pressed ? 0.6 : 1,
-                },
+                { backgroundColor: t.surface, borderColor: t.outline, opacity: pressed ? 0.6 : 1 },
               ]}
             >
               <Text
                 style={[
                   styles.pickerValue,
-                  { color: cover.kind === 'unpaid' ? t.muted : t.text },
+                  cover.kind === 'unpaid' && styles.placeholder,
+                  { color: cover.kind === 'unpaid' ? t.dim : t.text },
                 ]}
                 numberOfLines={1}
               >
                 {coveredBy}
               </Text>
-              <Icon name="chevron" color={t.muted} size={13} />
             </Pressable>
           </View>
 
-          {error !== null && <Text style={[styles.error, { color: t.danger }]}>{error}</Text>}
-        </>
+          {existing !== undefined && (
+            <Pressable
+              accessibilityRole="button"
+              disabled={busy}
+              onPress={() => void discard()}
+              style={({ pressed }) => [styles.quiet, { opacity: busy ? 0.4 : pressed ? 0.6 : 1 }]}
+            >
+              <Text style={[styles.quietLabel, { color: t.red }]}>Void this spend</Text>
+            </Pressable>
+          )}
+
+          {error !== null && <Text style={[styles.error, { color: t.red }]}>{error}</Text>}
+        </View>
       ) : (
-        <View style={styles.block}>
+        <View style={styles.body}>
           <View style={styles.chips}>
             {seated.map((p) => {
               const on = cover.kind === 'players' && cover.ids.includes(p.id);
               return (
-                <Pressable
+                <Chip
                   key={p.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: on }}
+                  label={p.name}
+                  on={on}
                   onPress={() =>
                     setCover((c) => {
                       const ids =
@@ -364,34 +363,28 @@ export default function SpendScreen() {
                       return ids.length === 0 ? { kind: 'unpaid' } : { kind: 'players', ids };
                     })
                   }
-                  style={({ pressed }) => [
-                    styles.chip,
-                    on
-                      ? { backgroundColor: t.text, borderColor: t.text }
-                      : { borderColor: t.quietOutline },
-                    { opacity: pressed ? 0.7 : 1 },
-                  ]}
-                >
-                  <Text style={[styles.chipLabel, { color: on ? t.onFill : t.text }]}>
-                    {p.name}
-                  </Text>
-                </Pressable>
+                />
               );
             })}
 
-            <CoverChip
+            <Chip
               label="The piggy bank"
               on={cover.kind === 'kitty'}
               onPress={() => setCover({ kind: 'kitty' })}
             />
-            <CoverChip
+            {/* Dashed while it is not the choice, as the board draws it; once
+                chosen it takes the ink like any chosen chip, so the step still
+                says which of the three cases it is in. */}
+            <Chip
               label="Nobody yet"
-              dashed
+              dashed={cover.kind !== 'unpaid'}
               on={cover.kind === 'unpaid'}
               onPress={() => setCover({ kind: 'unpaid' })}
             />
           </View>
 
+          {/* Not drawn on the board (its flag): several people fronting one
+              spend. Styled as the kit's fields and rows. */}
           {picked.length > 1 && (
             <View style={styles.shares}>
               {picked.map((pid) => (
@@ -407,19 +400,19 @@ export default function SpendScreen() {
                     testID="amount"
                     keyboardType="number-pad"
                     placeholder="0"
-                    placeholderTextColor={t.muted}
+                    placeholderTextColor={t.dim}
                     style={[
                       styles.shareInput,
                       {
                         color: t.text,
-                        backgroundColor: t.surface, boxShadow: t.lift,
-                        borderColor: sharesAddUp ? t.hairline : t.danger,
+                        backgroundColor: t.surface,
+                        borderColor: sharesAddUp ? t.outline : t.red,
                       },
                     ]}
                   />
                 </View>
               ))}
-              <Text style={[styles.shareNote, { color: sharesAddUp ? t.muted : t.danger }]}>
+              <Text style={[styles.shareNote, { color: sharesAddUp ? t.muted : t.red }]}>
                 {formatMoney(fronted as Money)} of {formatMoney(money(amount))} covered.
               </Text>
             </View>
@@ -464,101 +457,71 @@ function asCover(
   };
 }
 
-function CoverChip({
-  label,
-  on,
-  dashed = false,
-  onPress,
-}: {
-  label: string;
-  on: boolean;
-  dashed?: boolean;
-  onPress: () => void;
-}) {
-  const t = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: on }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.chip,
-        on
-          ? { backgroundColor: t.text, borderColor: t.text }
-          : { borderColor: dashed ? t.dashed : t.quietOutline, borderStyle: dashed ? 'dashed' : 'solid' },
-        { opacity: pressed ? 0.7 : 1 },
-      ]}
-    >
-      <Text style={[styles.chipLabel, { color: on ? t.onFill : dashed ? t.muted : t.text }]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const now = (): string =>
   new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
+/* The kit at this phone's scale (`design/scale.ts`): the sheet body is 20 a
+   side with 12 between its parts, the figure is `.fig`, the fields `.fi`. */
 const styles = StyleSheet.create({
+  body: { paddingHorizontal: z(20), paddingTop: z(2), gap: z(12) },
   amount: {
-    fontSize: 68,
-    fontWeight: '800',
-    letterSpacing: -3.4,
-    lineHeight: 70,
+    fontFamily: 'head',
+    fontSize: z(38),
+    fontWeight: '700',
+    letterSpacing: z(-1.14),
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
-    // 12 rather than the 18 it was: this is the gap between the figure and the
-    // keys that type it, and it is the whole of what is now between them.
-    marginBottom: 12,
   },
-  /** Under the pad, before the two rows that say what the spend was. */
-  pad: { marginBottom: 18 },
+  /** Out of the body's 20 so the pad's hairlines run to the sheet's edges. */
+  pad: { marginHorizontal: z(-20) },
 
-  block: { marginHorizontal: space.card, marginBottom: 14 },
-  labelRow: { flexDirection: 'row', alignItems: 'center' },
-  label: { ...type.label, marginBottom: 10 },
-  optional: { ...type.meta, marginLeft: 'auto', marginBottom: 10 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: z(6), marginLeft: z(2) },
+  label: { fontSize: z(11), fontWeight: '700', letterSpacing: z(1.1) },
+  labelAlone: { marginBottom: z(6), marginLeft: z(2) },
+  optional: { fontSize: z(12.5), fontWeight: '400', marginLeft: 'auto' },
 
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: radius.pressable,
-    borderWidth: 1.5,
-  },
-  chipLabel: { fontSize: 14.5, fontWeight: '600' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: z(8) },
 
-  // The label above already carries 10 below itself; this used to carry another
-  // 10 on top of it, and a 20-point gap on a sheet that is fighting for height
-  // is one of them too many.
+  /* The kit's `.fi`: 48 tall, 12 corners, a 1.5 outline on the card fill. */
   input: {
-    ...type.body,
-    borderWidth: 1,
-    borderRadius: radius.pressable,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
+    minHeight: z(48),
+    fontSize: z(16),
+    fontWeight: '600',
+    borderWidth: 1.5,
+    borderRadius: L.fieldRadius,
+    paddingHorizontal: z(14),
+    paddingVertical: z(12),
   },
+  /* `.fi.ph`: the placeholder is dim and regular. */
+  placeholder: { fontWeight: '400' },
 
-  // The same box as the note field, laid out as a row: the value, then the
-  // chevron that says it opens.
-  picker: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  pickerValue: { ...type.body, flex: 1 },
+  // The same box as the note field, laid out as a row.
+  picker: { flexDirection: 'row', alignItems: 'center', gap: z(10) },
+  pickerValue: { fontSize: z(16), fontWeight: '600', flex: 1 },
 
-  shares: { marginTop: 14, gap: 8 },
-  shareRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  shareName: { ...type.rowName, flexShrink: 1 },
+  /* The kit's `quiet()`, red: a line of text, not a button. */
+  quiet: { minHeight: z(40), alignItems: 'center', justifyContent: 'center' },
+  quietLabel: { fontSize: z(14), fontWeight: '600' },
+
+  shares: { gap: z(8) },
+  shareRow: { flexDirection: 'row', alignItems: 'center', gap: z(12) },
+  shareName: { fontSize: z(15.5), fontWeight: '600', flexShrink: 1 },
   shareInput: {
-    ...type.figure,
     marginLeft: 'auto',
-    minWidth: 110,
+    minWidth: z(110),
+    minHeight: z(48),
     textAlign: 'right',
-    borderWidth: 1,
-    borderRadius: radius.pressable,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    fontFamily: 'head',
+    fontSize: z(16),
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    borderWidth: 1.5,
+    borderRadius: L.fieldRadius,
+    paddingHorizontal: z(14),
+    paddingVertical: z(10),
   },
-  shareNote: { ...type.meta, marginTop: 2 },
+  shareNote: { fontSize: z(12.5), fontWeight: '500', lineHeight: z(17.5) },
 
-  explain: { ...type.footnote, marginTop: 12 },
-  error: { ...type.footnote, marginHorizontal: space.card, marginBottom: 12 },
+  explain: { fontSize: z(13), lineHeight: z(18.85) },
+  error: { fontSize: z(13), lineHeight: z(18.85) },
 });

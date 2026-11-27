@@ -29,7 +29,8 @@ import { PotOddsCard, type PotField } from '../src/components/PotOddsCard';
 import { Screen } from '../src/components/Screen';
 import { amountOf, useTypedAmount } from '../src/components/typedAmount';
 import { useTheme } from '../src/design/useTheme';
-import { control, radius, space, type } from '../src/design/tokens';
+import { space } from '../src/design/tokens';
+import { L, T, z } from '../src/design/scale';
 import { ODDS_SUBTITLE, oddsStatus } from '../src/lib/oddsStatus';
 import { needsSecondCard, seatName } from '../src/lib/seatName';
 import { oddsTone } from '../src/lib/oddsTone';
@@ -71,7 +72,8 @@ import { oddsTone } from '../src/lib/oddsTone';
  * out and `potOdds()` in core does every figure of it. Typing the pot or the
  * call swaps the deck at the foot for the amount keypad and a *Done*: one
  * footer, one job, so a card cannot be dealt while an amount is being typed.
- * ⚠ NOT DRAWN: *Done*, and the *—* a Needs shows before a call is typed.
+ * *Done* is the bar under the keypad since the full board (`odds-amount`).
+ * ⚠ NOT DRAWN: the *—* a Needs shows before a call is typed.
  *
  * THE RIVER (decided 26 October, board 21). Once the fifth card is down nothing
  * is left to count, and the card says so three ways: the figures are whole —
@@ -100,14 +102,16 @@ import { oddsTone } from '../src/lib/oddsTone';
  * nothing is outlined, since nothing is waiting for a card. Tapping a dealt
  * card takes it back and brings the deck up on the place it left, to deal
  * the card that replaces it (the owner, 4 November). Whatever is on the
- * screen has the room while it is away. ⚠ NOT DRAWN: the strip, and *Done* on
- * it (the keypad's word). No grabber on it: a grabber means a sheet
- * (`09-navigation.md`), and this is a push.
+ * screen has the room while it is away. The strip, and *Done* on it, are
+ * drawn since the full board (`odds`). No grabber on it: a grabber means a
+ * sheet (`09-navigation.md`), and this is a push.
  *
- * ⚠ COPY NOT DRAWN. No board draws this screen, so every string on it is mine
- * and wants review: the title, the status line's five states (written down in
- * `src/lib/oddsStatus.ts`), the seat labels, *Win* and *Tie*, *Board*, *Dead
- * cards*, *Add a player*, *New hand*.
+ * COPY. The full board (27 November) draws the title, the line under it, the
+ * seat labels, *Win* and *Tie*, *Board*, *Players*, *Dead cards*, *Add a
+ * player* and *Done* — the app's own words, copied onto it. ⚠ Still not drawn
+ * anywhere, so mine: the status line's five states (written down in
+ * `src/lib/oddsStatus.ts`, spoken only) and *New hand* (the round button's
+ * spoken name).
  *
  * DELIBERATE DEVIATIONS from the original it is rebuilt from:
  *
@@ -117,7 +121,20 @@ import { oddsTone } from '../src/lib/oddsTone';
  * - The work is sliced so the screen keeps drawing while 1.7 million boards
  *   are dealt, and the meta line counts it down. The original showed a spinner.
  *
- * AND ONE FROM THE APP'S OWN RULE. A card is drawn as a card: ivory stock,
+ * THE FULL BOARD'S LOOK (27 November; `90-poker-tools.mjs`, entries `odds`,
+ * `odds-turn`, `odds-amount`, `odds-river`, all approved). The title and the
+ * line under it on the ink, with *New hand* the kit's round button on the ink
+ * at the line's right end; the table on the sheet at the page's 18, 12 between
+ * blocks; every seat a lifted card; Board, Players and Dead cards the kit's
+ * quiet labels; places and cards the kit's 32 × 44 playing card. No bar while
+ * the deck is up: the deck is a keyboard, not an action. The one bar is the
+ * amount keypad's *Done*, which was the primary button under it. The board
+ * asks about the odds colours (it draws Underdog and Beaten in the grey loss
+ * tone, break-even in the text colour); the app keeps green, red and amber
+ * with the word beside — the exception `tokens.ts` names. Every size through
+ * `z()`.
+ *
+ * AND ONE FROM THE APP'S OWN RULE. A card is drawn as a card: white stock,
  * black ink, red ink for hearts and diamonds, in both themes — the owner's
  * instruction, same day. `tokens.ts` says nothing in the app is coloured but
  * money, and the three constants below are the only colours in the app that
@@ -488,8 +505,8 @@ export default function OddsCalculator() {
     const cellW = (deckW - 12 * DECK_GAP) / 13;
     const centre = col * (cellW + DECK_GAP) + cellW / 2;
     const left = Math.min(
-      Math.max(centre - CALLOUT_W / 2, CALLOUT_EDGE - space.card),
-      deckW + space.card - CALLOUT_EDGE - CALLOUT_W,
+      Math.max(centre - CALLOUT_W / 2, CALLOUT_EDGE - DECK_SIDE),
+      deckW + DECK_SIDE - CALLOUT_EDGE - CALLOUT_W,
     );
     const top = row * (DECK_CELL_H + DECK_GAP) - CALLOUT_GAP - CALLOUT_H;
     const stem = Math.min(Math.max(centre - left - STEM / 2, 8), CALLOUT_W - STEM - 8);
@@ -553,7 +570,7 @@ export default function OddsCalculator() {
   ).current;
 
   const deck = (
-    <View>
+    <View style={styles.deck}>
       <View {...swipe.panHandlers} style={styles.deckStrip}>
         <Pressable
           accessibilityRole="button"
@@ -613,11 +630,13 @@ export default function OddsCalculator() {
                 style={[
                   styles.deckCard,
                   /* A card already on the table is a flat blank where it
-                     was — no card stock, no edge — so it cannot be mistaken
-                     for one that can still be picked. Its rank and pip stay on
-                     it in the muted ink, as a placeholder: owner, 4 November
-                     (B106) — a row of gaps did not say which cards were out. */
-                  { backgroundColor: gone ? t.surface : CARD_FACE },
+                     was — the raised fill, no card stock, no edge (the full
+                     board's) — so it cannot be mistaken for one that can still
+                     be picked. Its rank and pip stay on it in the muted ink, as
+                     a placeholder: owner, 4 November (B106) — a row of gaps did
+                     not say which cards were out. The board draws them in the
+                     dim ink; muted is kept, because B106 asked for readable. */
+                  gone ? { backgroundColor: t.raised } : { backgroundColor: CARD_FACE, borderWidth: 1, borderColor: t.outline },
                   pressedCard === c && !gone && { borderWidth: 2, borderColor: t.text },
                 ]}
               >
@@ -627,7 +646,7 @@ export default function OddsCalculator() {
                 >
                   {RANKS[12 - col]}
                 </Text>
-                <Pip suit={suit} size={11} color={gone ? t.muted : inkOf(c)} />
+                <Pip suit={suit} size={z(10)} color={gone ? t.muted : inkOf(c)} />
               </View>
             );
           })}
@@ -640,9 +659,10 @@ export default function OddsCalculator() {
     </View>
   );
 
-  /* New hand: a round icon, the back button's fill, at the right end of the
-     status line. See `Screen`'s `metaTrailing`: the text beside it shrinks and
-     this does not. Its hit area is 50 pt with the slop. */
+  /* New hand: the kit's round button on the ink (`topButton('restart')`), at
+     the right end of the line under the title. See `Screen`'s `metaTrailing`:
+     the text beside it shrinks and this does not. Its hit area is 50 pt with
+     the slop. */
   const restart = (
     <Pressable
       accessibilityRole="button"
@@ -651,10 +671,10 @@ export default function OddsCalculator() {
       onPress={newHand}
       style={({ pressed }) => [
         styles.restart,
-        { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 },
+        { backgroundColor: t.onTopFill, opacity: pressed ? 0.6 : 1 },
       ]}
     >
-      <Icon name="restart" color={t.text} />
+      <Icon name="restart" color={t.onTop} size={z(18)} />
     </Pressable>
   );
 
@@ -668,16 +688,15 @@ export default function OddsCalculator() {
         typing === null ? (
           deckOpen ? deck : undefined
         ) : (
-          /* The amount keypad in the deck's place, with the way back to the deck. */
-          <View style={styles.amountFoot}>
-            <Keypad {...field.keys} compact={compactPad} />
-            <View style={styles.doneWrap}>
-              <Button label="Done" onPress={finishAmount} />
-            </View>
-          </View>
+          /* The amount keypad in the deck's place, across the sheet's width. */
+          <Keypad {...field.keys} compact={compactPad} />
         )
       }
       footerPad={typing === null}
+      /* *Done* under the keypad is the bar (`odds-amount`): the only state of
+         the calculator that has one, because it is the only one that finishes
+         something. */
+      bar={typing === null ? undefined : [{ label: 'Done', onPress: finishAmount }]}
       scrollRef={scroller}
       onScrollY={(y) => (scrolledY.current = y)}
     >
@@ -698,14 +717,14 @@ export default function OddsCalculator() {
         <Text nativeID="odds-status" accessibilityLiveRegion="polite" style={styles.status}>
           {status}
         </Text>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Board</Text>
+        <Label text="Board" />
         <View style={styles.row}>
           {table.board.map((c, i) => (
             <CardSlot key={i} {...slotProps({ kind: 'board', i }, c, `Board, card ${i + 1}`)} />
           ))}
         </View>
 
-        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Players</Text>
+        <Label text="Players" />
         {/*
          * One CARD per seat — layout G, decided 25 October: the hand, the name
          * with its word (Favourite, Underdog, Too close) and the figures, on a
@@ -765,7 +784,7 @@ export default function OddsCalculator() {
                   {calculating && complete.some((x) => x.seat === seat) ? (
                     <View style={styles.loading} accessibilityLabel={`Calculating, ${Math.round(doneShare * 100)}%`}>
                       <Text style={[styles.figureLabel, { color: t.muted }]}>Calculating</Text>
-                      <View style={[styles.track, { backgroundColor: t.hairline }]}>
+                      <View style={[styles.track, { backgroundColor: t.raised }]}>
                         <View style={[styles.fill, { backgroundColor: t.text, width: `${Math.max(2, Math.round(doneShare * 100))}%` }]} />
                       </View>
                     </View>
@@ -783,9 +802,9 @@ export default function OddsCalculator() {
                     aria-expanded={open}
                     hitSlop={8}
                     onPress={() => toggleOuts(seat)}
-                    style={({ pressed }) => [styles.chevron, { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 }]}
+                    style={({ pressed }) => [styles.chevron, { backgroundColor: t.raised, opacity: pressed ? 0.6 : 1 }]}
                   >
-                    <Icon name={open ? 'chevronUp' : 'chevronDown'} color={t.muted} />
+                    <Icon name={open ? 'chevronUp' : 'chevronDown'} color={t.muted} size={z(16)} />
                   </Pressable>
                 )}
               </View>
@@ -829,13 +848,9 @@ export default function OddsCalculator() {
 
         {/* Dashed, because dashed means "creates something" (`tokens.ts`).
             Gone at nine, which is the table's limit and the engine's. */}
-        {table.seats.length < MAX_SEATS && (
-          <View style={styles.add}>
-            <Button label="Add a player" variant="add" onPress={addSeat} />
-          </View>
-        )}
+        {table.seats.length < MAX_SEATS && <Button label="Add a player" variant="add" onPress={addSeat} />}
 
-        <Text style={[styles.sectionLabel, styles.after, { color: t.muted }]}>Dead cards</Text>
+        <Label text="Dead cards" />
         <View style={styles.row}>
           {table.dead.map((c) => (
             <CardSlot key={c} {...slotProps({ kind: 'dead' }, c, 'Dead card')} active={false} />
@@ -845,6 +860,18 @@ export default function OddsCalculator() {
       </Pressable>
     </Screen>
   );
+}
+
+/**
+ * A quiet section label — the kit's `label(text, { quiet: true })`: 700 11,
+ * tracked, upper case in the muted ink. Not `SectionLabel`, which upper-cases
+ * the string itself: here the words stay as written and the case is the
+ * style's, because `ui-odds.mjs` taps the text *Board* to prove that a tap off
+ * any control sends the deck away.
+ */
+function Label({ text }: { text: string }) {
+  const t = useTheme();
+  return <Text style={[T.lookLabel, styles.label, { color: t.muted }]}>{text}</Text>;
 }
 
 function Figure({ label, value, color }: { label: string; value: string; color?: string | undefined }) {
@@ -881,14 +908,16 @@ function Callout({ card, left, top, stem }: { card: Card; left: number; top: num
 /**
  * One place a card can be: empty, outlined when it is next, or holding one.
  *
- * An empty place is a dashed edge with a plus in it — dashed because dashed
+ * The kit's 32 × 44 (`odds`). An empty place is a dashed edge in the outline
+ * colour with a plus in it — dashed because dashed
  * means "creates something" (`tokens.ts`), the plus because the owner asked
  * (24 October) for a place that takes a card to look unlike a card that has
  * been taken, which in the deck is a flat blank with its name in muted ink. The next place is the same
  * plus inside a solid outline in the text colour. No fill on either: a fill
  * the colour of what is behind it is a block that paints nothing, which
  * `ui-audit.mjs` calls surface-on-itself and is right to. A dealt card is
- * card stock with ink on it, the same in both themes; see the head of the file.
+ * card stock with ink on it and the outline for an edge, the same in both
+ * themes; see the head of the file.
  */
 function CardSlot({
   card,
@@ -912,19 +941,19 @@ function CardSlot({
         styles.slot,
         {
           backgroundColor: card === null ? 'transparent' : CARD_FACE,
-          borderColor: active ? t.text : card === null ? t.dashed : CARD_FACE,
-          borderWidth: active ? 2 : card === null ? control.quietWidth : StyleSheet.hairlineWidth,
+          borderColor: active ? t.text : t.outline,
+          borderWidth: active ? 2 : card === null ? 1.5 : 1,
           borderStyle: card === null && !active ? 'dashed' : 'solid',
           opacity: pressed ? 0.6 : 1,
         },
       ]}
     >
       {card === null ? (
-        <Icon name="plus" color={active ? t.text : t.muted} size={16} />
+        <Icon name="plus" color={active ? t.text : t.muted} size={z(14)} />
       ) : (
         <>
           <Text style={[styles.slotRank, { color: inkOf(card) }]}>{RANKS[card >> 2]}</Text>
-          <Pip suit={card & 3} size={14} color={inkOf(card)} />
+          <Pip suit={card & 3} size={z(12)} color={inkOf(card)} />
         </>
       )}
     </Pressable>
@@ -934,9 +963,12 @@ function CardSlot({
 /* Under this many points tall the amount keypad's keys are the short ones. */
 const SHORT_PHONE = 700;
 
-/* The deck's own numbers, and the callout's, which are measured against them. */
-const DECK_GAP = 3;
-const DECK_CELL_H = 40;
+/* The deck's own numbers, and the callout's, which are measured against them:
+   the kit's 3 between cells and 32 a cell, 10 in from the screen's edge (the
+   board pulls the deck 8 into the page's 18). */
+const DECK_GAP = z(3);
+const DECK_CELL_H = z(32);
+const DECK_SIDE = z(10);
 /* How far past the deck's edge a slide still reads the edge card; beyond it the
    finger is off the deck and letting go deals nothing. */
 const SLIDE_SLOP = 6;
@@ -946,68 +978,70 @@ const CALLOUT_GAP = 4;
 const CALLOUT_EDGE = 8;
 const STEM = 14;
 
-const SLOT_W = 36;
-const SLOT_H = 50;
+const SLOT_W = z(32);
+const SLOT_H = z(44);
 
 const styles = StyleSheet.create({
-  list: { marginHorizontal: space.page },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 8, paddingTop: 14 },
-  after: { paddingTop: 22 },
+  /* The sheet's content: the pushed screen's 18 a side and 12 between blocks (the kit's `.body`). */
+  list: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
+  /* The kit's `.lbl`: 4 above and -4 below, against the 12 between blocks. */
+  label: { textTransform: 'uppercase', marginHorizontal: z(2), marginTop: z(4), marginBottom: z(-4) },
 
-  /* A card: the surface token, 14 round, 10 / 12 of padding — the boards' own. */
-  seatCard: { marginTop: 8, paddingVertical: 10, paddingHorizontal: 12, borderRadius: radius.card },
-  seatRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  pair: { flexDirection: 'row', gap: 4 },
-  seatText: { flex: 1, minWidth: 0, gap: 2 },
-  seatName: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 2 },
-  word: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
-  chevron: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  seatLabel: { ...type.rowDetail },
-  /* The river: the hand's name under the figures, 15/500 in the text colour, and
-     its five cards in a row under that — board 21's own measures. */
-  handName: { fontSize: 15, fontWeight: '500', lineHeight: 20, paddingTop: 10 },
-  handFive: { flexDirection: 'row', gap: 4, paddingTop: 8 },
+  /* A seat: the kit's lifted card with 10 / 12 of padding (`seat()` on the board). */
+  seatCard: { paddingVertical: z(10), paddingHorizontal: z(12), borderRadius: L.cardRadius },
+  seatRow: { flexDirection: 'row', alignItems: 'center', gap: z(10) },
+  pair: { flexDirection: 'row', gap: z(4) },
+  seatText: { flex: 1, minWidth: 0 },
+  seatName: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: z(8), rowGap: z(2) },
+  word: { fontSize: z(10.5), lineHeight: z(13), fontWeight: '700', letterSpacing: 0.84 * (z(10.5) / 10.5), textTransform: 'uppercase' },
+  chevron: { width: z(28), height: z(28), borderRadius: z(14), alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  seatLabel: { fontSize: z(12.5), lineHeight: z(16) },
+  /* The river: the hand's name under the figures, 14.5/500 in the text colour, and
+     its five cards in a row under that — the board's own measures. */
+  handName: { fontSize: z(14.5), fontWeight: '500', lineHeight: z(19), paddingTop: z(9) },
+  handFive: { flexDirection: 'row', gap: z(4), paddingTop: z(8) },
   /* The two figures on one line, wrapping to two only if the text setting
      leaves them no room — never truncating. */
-  figures: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 2 },
-  figure: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  figureLabel: { ...type.rowDetail },
-  figureValue: { ...type.rowName, fontVariant: ['tabular-nums'] },
+  figures: { flexDirection: 'row', flexWrap: 'wrap', columnGap: z(10), rowGap: z(2), marginTop: z(3) },
+  figure: { flexDirection: 'row', alignItems: 'baseline', gap: z(5) },
+  figureLabel: { fontSize: z(12.5), lineHeight: z(18) },
+  figureValue: { fontFamily: 'head', fontSize: z(14.5), lineHeight: z(18), fontWeight: '700', fontVariant: ['tabular-nums'] },
   /* The loading state stands exactly as tall as the figures line it replaces,
      so the row does not jump when the result lands. */
-  loading: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 22 },
-  track: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
-  fill: { height: 4, borderRadius: 2 },
+  loading: { flexDirection: 'row', alignItems: 'center', gap: z(10), height: z(18), marginTop: z(3) },
+  track: { flex: 1, height: z(4), borderRadius: z(2), overflow: 'hidden' },
+  fill: { height: z(4), borderRadius: z(2) },
 
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 4 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: z(6), marginHorizontal: z(2) },
 
   slot: {
     width: SLOT_W,
     height: SLOT_H,
-    borderRadius: 6,
+    borderRadius: z(6),
     alignItems: 'center',
     justifyContent: 'center',
+    gap: z(1),
   },
-  slotRank: { fontSize: 17, fontWeight: '800', lineHeight: 19, marginBottom: 1 },
+  slotRank: { fontFamily: 'head', fontSize: z(15), fontWeight: '800', lineHeight: z(16) },
 
+  /* The deck reaches DECK_SIDE from the screen's edges, through the footer's own padding. */
+  deck: { marginHorizontal: DECK_SIDE - space.card },
+  /* Done at the right, 700 14 in the text colour; the strip is the swipe's target, 32 tall. */
+  deckStrip: { height: z(32), flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingHorizontal: z(4) },
+  deckDone: { fontSize: z(14), fontWeight: '700' },
   /* Above the body: the callout hangs up over the rows and the table. */
-  /* Done at the right, at text size; the strip is the swipe's target, 36 tall. */
-  deckStrip: { height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingHorizontal: 4 },
-  deckDone: { ...type.secondary },
   deckWrap: { gap: DECK_GAP, position: 'relative', zIndex: 10 },
   suitRow: { flexDirection: 'row', gap: DECK_GAP },
   deckCard: {
     flex: 1,
     height: DECK_CELL_H,
-    borderRadius: 4,
+    borderRadius: z(4),
     alignItems: 'center',
     justifyContent: 'center',
+    gap: z(1),
   },
-  deckRank: { fontSize: 12, fontWeight: '800', lineHeight: 14, marginBottom: 1 },
-  add: { paddingTop: 12, paddingHorizontal: 4 },
-  amountFoot: { gap: 10, paddingBottom: 6 },
-  doneWrap: { paddingHorizontal: space.card },
-  restart: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  deckRank: { fontFamily: 'head', fontSize: z(11.5), fontWeight: '800', lineHeight: z(12.5) },
+  restart: { width: z(34), height: z(34), borderRadius: z(17), alignItems: 'center', justifyContent: 'center' },
   /* Off screen but in the tree: one point square, clipped, nothing drawn. */
   status: { position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0 },
   callout: {

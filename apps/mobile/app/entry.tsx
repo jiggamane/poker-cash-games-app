@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Text } from '../src/components/Text';
 import { money, resolveLedger } from '@poker-club/core';
 import { formatMoney, formatToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
-import { Icon } from '../src/components/Icon';
+import { Card, CardRow } from '../src/components/Card';
 import { Keypad } from '../src/components/Keypad';
 import { PRESET_FITS, Preset } from '../src/components/Preset';
 import { Sheet } from '../src/components/Sheet';
 import { amountOf, typedFigureSize, useTypedAmount } from '../src/components/typedAmount';
 import { useTheme } from '../src/design/useTheme';
-import { cappedFigure, radius, space, type } from '../src/design/tokens';
+import { cappedFigure } from '../src/design/tokens';
+import { z } from '../src/design/scale';
 import { correctEntry, nameOf, useNight, voidEntry } from '../src/lib/nightStore';
 
 /**
@@ -84,92 +85,99 @@ export default function EntryPage() {
     }
   }
 
+  /*
+   * THE ENTRY BEING CORRECTED, stated once at the top of both steps — the full
+   * board's `entryHead`: a caps line over the headline, in a lifted card.
+   */
+  const head = (
+    <Card pad>
+      <Text style={[styles.label, { color: t.muted }]}>
+        {`${clock(night.occurredAt[entry.id])} · ${entry.voided ? 'voided' : entry.corrected ? 'corrected since' : 'as logged'}`.toUpperCase()}
+      </Text>
+      <Text style={[styles.headline, { color: t.text }]}>
+        {who} · {what} · {formatMoney(entry.amount)}
+      </Text>
+    </Card>
+  );
+
   return (
     <Sheet
       title="One entry"
       /*
        * 09-navigation.md § sheets: a flow REPLACES ONE SHEET'S CONTENT and
-       * keeps one close, and the close goes back a step — the same shape as
-       * New session and Invite. Without it the only way out of the amount
-       * step was to dismiss the whole sheet, so a mis-tap on "Change the
-       * amount" cost the host the entry they had opened.
+       * keeps one close. The amount step carries the back circle the full
+       * board draws (`entry-amount`, `stepBack`), and it goes back a step —
+       * without it the only way out of the amount step was to dismiss the
+       * whole sheet, so a mis-tap on "Change the amount" cost the host the
+       * entry they had opened. The close is the sheet's, on both steps.
        */
-      onClose={mode === 'amount' ? () => setMode('menu') : undefined}
-      footer={
-        mode === 'amount' ? (
-          <Button
-            label={valid ? `Correct to ${formatMoney(money(amount))}` : 'Type the right amount'}
-            variant="primary"
-            disabled={!valid || busy}
-            onPress={() => void apply('correct')}
-          />
-        ) : (
-          <Button label="Close" variant="secondary" onPress={() => router.back()} />
-        )
+      onBack={mode === 'amount' ? () => setMode('menu') : undefined}
+      /*
+       * THE FULL BOARD (`entry-amount`, `entry-amount-blocked`, approved): on
+       * the amount step the correction is the bar, with the figure in it, faint
+       * until the figure differs from the one logged. The menu step is a
+       * choice, not a confirm, so it has no bar (`entry`).
+       */
+      bar={
+        mode === 'amount'
+          ? [
+              {
+                label: valid ? `Correct to ${formatMoney(money(amount))}` : 'Type the right amount',
+                disabled: !valid || busy,
+                onPress: () => void apply('correct'),
+              },
+            ]
+          : undefined
       }
     >
-      <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
-        <Text style={[styles.label, { color: t.muted }]}>
-          {clock(night.occurredAt[entry.id])} · {entry.voided ? 'voided' : entry.corrected ? 'corrected since' : 'as logged'}
-        </Text>
-        <Text style={[styles.headline, { color: t.text }]}>
-          {who} · {what} · {formatMoney(entry.amount)}
-        </Text>
-      </View>
-
-      {/* The sentence belongs to the choice, so it is on the step where the
-          choice is made. On the amount step it would push the keypad off a
-          short phone to say a thing that was read one tap ago. */}
-      {mode === 'menu' && (
-        <Text style={[styles.explain, { color: t.muted }]}>
-          The ledger is append-only. A correction does not erase this line — it writes a reversal
-          underneath it, and both stay visible to everyone.
-        </Text>
-      )}
-
       {mode === 'menu' ? (
-        <View style={styles.list}>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              field.offer(entry.amount);
-              setMode('amount');
-            }}
-            style={({ pressed }) => [
-              styles.row,
-              styles.firstRow,
-              { borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
-            ]}
-          >
-            <Text style={[styles.rowLabel, { color: t.text }]}>Change the amount</Text>
-            <Text style={[styles.rowHint, { color: t.muted }]}>writes a correction</Text>
-            <Icon name="chevron" color={t.muted} />
-          </Pressable>
+        <View style={styles.body}>
+          {head}
+          {/* The sentence belongs to the choice, so it is on the step where the
+              choice is made. On the amount step it would push the keypad off a
+              short phone to say a thing that was read one tap ago. */}
+          <Text style={[styles.explain, { color: t.muted }]}>
+            The ledger is append-only. A correction does not erase this line — it writes a reversal
+            underneath it, and both stay visible to everyone.
+          </Text>
 
-          <Pressable
-            accessibilityRole="button"
-            disabled={entry.voided || busy}
-            onPress={() => void apply('void')}
-            style={({ pressed }) => [
-              styles.row,
-              { borderColor: t.hairline, opacity: entry.voided ? 0.4 : pressed ? 0.6 : 1 },
-            ]}
-          >
-            <Text style={[styles.rowLabel, { color: t.danger }]}>
-              {entry.voided ? 'Already voided' : 'Void this entry'}
-            </Text>
-            <Text style={[styles.rowHint, { color: t.muted }]}>writes a reversal</Text>
-            <Icon name="chevron" color={t.muted} />
-          </Pressable>
+          {/* No chevrons (the full board): the two rows say what they write
+              under their names rather than at the right. */}
+          <Card>
+            <CardRow
+              name="Change the amount"
+              meta="writes a correction"
+              onPress={() => {
+                field.offer(entry.amount);
+                setMode('amount');
+              }}
+            />
+            <CardRow
+              last
+              name={
+                <Text style={{ color: entry.voided ? t.dim : t.red }}>
+                  {entry.voided ? 'Already voided' : 'Void this entry'}
+                </Text>
+              }
+              meta="writes a reversal"
+              accessibilityLabel={entry.voided ? 'Already voided' : 'Void this entry'}
+              onPress={entry.voided || busy ? undefined : () => void apply('void')}
+            />
+          </Card>
+
+          {/* ⚠ The board keeps Close, outlined, and flags that it repeats the
+              sheet's own close now that it is not a full-width footer. */}
+          <Button label="Close" variant="secondary" onPress={() => router.back()} />
         </View>
       ) : (
         <>
+          <View style={styles.body}>{head}</View>
           <View style={styles.amountRow}>
             <Text
               {...cappedFigure}
               style={[
                 styles.amount,
-                typedFigureSize(formatMoney(money(amount)), 68),
+                typedFigureSize(formatMoney(money(amount)), z(56)),
                 { color: valid ? t.text : t.muted },
               ]}
             >
@@ -201,6 +209,7 @@ export default function EntryPage() {
             />
           </View>
 
+          {/* The pad runs to the bar, as on /log. */}
           <Keypad {...field.keys} />
         </>
       )}
@@ -214,36 +223,18 @@ const clock = (iso: string | undefined): string =>
     : new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: space.card,
-    marginBottom: 16,
-    padding: 18,
-    borderRadius: radius.pressable,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: 6,
-  },
-  label: type.label,
-  headline: { fontSize: 26, fontWeight: '800', letterSpacing: -0.52 },
+  /* The sheet's body: the kit's `.mbody`, 20 in and 12 between groups. */
+  body: { paddingHorizontal: z(20), paddingTop: z(2), gap: z(12) },
+  label: { fontSize: z(10.5), lineHeight: z(10.5), fontWeight: '700', letterSpacing: z(1.05) },
+  /* The kit's `.h2` at the 21 the board sets it in here. */
+  headline: { fontFamily: 'head', fontSize: z(21), fontWeight: '700', letterSpacing: z(-0.21), lineHeight: z(24), marginTop: z(7) },
 
-  explain: { ...type.footnote, marginHorizontal: space.page, marginBottom: 18, lineHeight: 21 },
+  explain: { fontSize: z(13), lineHeight: z(18.85), marginHorizontal: z(2) },
 
-  list: { marginHorizontal: space.page },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  firstRow: { borderTopWidth: StyleSheet.hairlineWidth },
-  rowLabel: type.rowName,
-  rowHint: { ...type.meta, marginLeft: 'auto' },
+  /* The typed figure and the presets: /log's, at the board's 56. */
+  amountRow: { alignItems: 'center', paddingTop: z(14), paddingBottom: z(14) },
+  presets: { flexDirection: 'row', gap: z(8), paddingHorizontal: z(20), paddingBottom: z(14) },
+  amount: { fontFamily: 'head', fontSize: z(56), fontWeight: '800', letterSpacing: z(-2.52), fontVariant: ['tabular-nums'] },
 
-  amountRow: { alignItems: 'center', paddingTop: 6, paddingBottom: 16 },
-  // The row on /log, to the point: `gap:8; padding:0 20px 16px`.
-  presets: { flexDirection: 'row', gap: 8, paddingHorizontal: space.card, paddingBottom: 16 },
-  amount: { fontSize: 68, fontWeight: '800', letterSpacing: -3.4, fontVariant: ['tabular-nums'] },
-
-  note: { ...type.footnote, marginHorizontal: space.page },
+  note: { fontSize: z(13), lineHeight: z(18.85), marginHorizontal: z(22) },
 });

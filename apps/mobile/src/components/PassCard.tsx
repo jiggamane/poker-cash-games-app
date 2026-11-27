@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
-import { radius } from '../design/tokens';
+import { L, z } from '../design/scale';
 import { clockLabel } from '../lib/elapsed';
 import { dismissNotice } from '../lib/handover';
 import type { Notice } from '../lib/hold';
@@ -91,10 +91,14 @@ export function PassCard({ notice, on }: { notice: Notice; on: 'tonight' | 'home
       onPress={() => void open()}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.drawerEdge, opacity: pressed ? 0.85 : 1 },
+        { backgroundColor: t.surface, boxShadow: t.lift, borderLeftColor: t.win, opacity: pressed ? 0.85 : 1 },
       ]}
     >
-      <Icon name="pass" color={t.text} size={19} />
+      {/* THE FULL BOARD (`home-pass`, `session-takenback`): a lifted card with a
+          green edge, the pass glyph white in a green disc. */}
+      <View style={[styles.disc, { backgroundColor: t.win }]}>
+        <Icon name="pass" color={t.onFill} size={z(16)} />
+      </View>
       <View style={styles.text}>
         <Text style={[styles.title, { color: t.text }]}>{title}</Text>
         <Text style={[styles.body, { color: t.muted }]}>{body}</Text>
@@ -104,9 +108,9 @@ export function PassCard({ notice, on }: { notice: Notice; on: 'tonight' | 'home
         accessibilityLabel="Dismiss"
         hitSlop={8}
         onPress={() => void dismissNotice(notice.id)}
-        style={({ pressed }) => [styles.close, { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 }]}
+        style={({ pressed }) => [styles.close, { opacity: pressed ? 0.6 : 1 }]}
       >
-        <Icon name="close" color={t.text} size={14} />
+        <Icon name="close" color={t.muted} size={z(12)} />
       </Pressable>
     </Pressable>
   );
@@ -117,28 +121,19 @@ const monthOf = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-GB', { month: 'long' });
 
 const styles = StyleSheet.create({
-  /* 14 / 14 / 14 / 16, radius 14, a 1px edge one step stronger than a hairline. */
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12,
-    marginHorizontal: 14,
-    paddingTop: 14,
-    paddingRight: 14,
-    paddingBottom: 14,
-    paddingLeft: 16,
-    borderRadius: radius.card,
-    borderWidth: 1,
+    gap: z(12),
+    paddingVertical: z(14),
+    paddingRight: z(10),
+    paddingLeft: z(14),
+    borderRadius: L.cardRadius,
+    borderLeftWidth: 3,
   },
-  text: { flex: 1, minWidth: 0, gap: 3 },
-  title: { fontSize: 16.5, fontWeight: '700' },
-  body: { fontSize: 13, fontWeight: '400', lineHeight: 18.85 },
-  close: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
+  disc: { width: z(28), height: z(28), borderRadius: z(14), alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  text: { flex: 1, minWidth: 0, gap: z(3) },
+  title: { fontFamily: 'head', fontSize: z(15.5), fontWeight: '700', lineHeight: z(19) },
+  body: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.5) },
+  close: { width: z(24), height: z(24), alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 });

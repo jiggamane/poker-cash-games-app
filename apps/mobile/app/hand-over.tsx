@@ -3,11 +3,11 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '../src/components/Text';
 import type { PlayerId } from '@poker-club/core';
-import { Avatar } from '../src/components/Avatar';
-import { Button } from '../src/components/Button';
+import { Card, SectionLabel } from '../src/components/Card';
+import { Radio } from '../src/components/RoundTick';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { space, type } from '../src/design/tokens';
+import { z } from '../src/design/scale';
 import { makeAdmin, nightsPlayed, useClub, type Member } from '../src/lib/clubStore';
 import { useNight } from '../src/lib/nightStore';
 
@@ -61,82 +61,78 @@ export default function HandOver() {
     }
   }
 
+  /*
+   * THE FULL BOARD (`hand-over`, `hand-over-none`, approved): the hand-over is
+   * the bar, blocked until a claimed player is picked; the people are one card
+   * of names — no avatars — each with a radio at the end, its ring the hairline
+   * on a row that cannot be picked.
+   */
   return (
     <Sheet
       title="Hand over admin"
       sub="One admin at a time. You stay in the group as a player, with your whole history."
       sentence
-      footer={
-        <Button
-          label={chosen === undefined ? 'Hand over admin' : `Hand over to ${chosen.name}`}
-          variant="primary"
-          disabled={busy || chosen === undefined}
-          onPress={() => void handOver()}
-        />
-      }
+      bar={[
+        {
+          label: chosen === undefined ? 'Hand over admin' : `Hand over to ${chosen.name}`,
+          disabled: busy || chosen === undefined,
+          onPress: () => void handOver(),
+        },
+      ]}
     >
-      <View style={styles.list}>
-        {others.map((m, i) => {
-          const claimed = m.standing !== 'name_only';
-          const on = m.id === picked;
-          return (
-            <Pressable
-              key={m.id}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: on, disabled: !claimed }}
-              disabled={!claimed || busy}
-              onPress={() => setPicked(m.id)}
-              style={({ pressed }) => [
-                styles.row,
-                {
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth: i === others.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                  opacity: pressed ? 0.6 : 1,
-                },
-              ]}
-            >
-              <Avatar name={m.name} />
-              <View style={styles.rowText}>
-                {/* Never dimmed. An unclaimed person is a real member of this
-                    group who has not opened the app; greying their name says
-                    they are lesser, and the sub-line already says the thing. */}
-                <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
-                  {m.name}
-                </Text>
-                <Text style={[styles.sub, { color: t.muted }]} numberOfLines={1}>
-                  {standing(m, claimed, m.id === collector, nights?.get(m.id))}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.circle,
-                  { borderColor: on ? t.text : claimed ? t.dashed : t.quietOutline },
-                ]}
-              >
-                {on && <View style={[styles.dot, { backgroundColor: t.text }]} />}
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
+      <View style={styles.body}>
+        {others.length > 0 && (
+          <Card>
+            {others.map((m, i) => {
+              const claimed = m.standing !== 'name_only';
+              const on = m.id === picked;
+              return (
+                <Pressable
+                  key={m.id}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: on, disabled: !claimed }}
+                  disabled={!claimed || busy}
+                  onPress={() => setPicked(m.id)}
+                  style={({ pressed }) => [
+                    styles.row,
+                    i < others.length - 1 && { borderBottomWidth: 1, borderBottomColor: t.hairline },
+                    { opacity: pressed ? 0.6 : 1 },
+                  ]}
+                >
+                  <View style={styles.rowText}>
+                    {/* Never dimmed. An unclaimed person is a real member of this
+                        group who has not opened the app; greying their name says
+                        they are lesser, and the sub-line already says the thing. */}
+                    <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
+                      {m.name}
+                    </Text>
+                    <Text style={[styles.sub, { color: t.muted }]}>
+                      {standing(m, claimed, m.id === collector, nights?.get(m.id))}
+                    </Text>
+                  </View>
+                  <Radio on={on} dead={!claimed} />
+                </Pressable>
+              );
+            })}
+          </Card>
+        )}
 
-      <View style={styles.block}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>What moves</Text>
-        <Text style={[styles.moves, { color: t.text }]}>
-          Money rules, settle-up, invites and the exits.
-        </Text>
-        <Text style={[styles.keeps, { color: t.win }]}>
-          Nothing already settled changes hands.
+        <SectionLabel text="What moves" quiet />
+        <View style={styles.moves}>
+          <Text style={[styles.movesLine, { color: t.text }]}>
+            Money rules, settle-up, invites and the exits.
+          </Text>
+          <Text style={[styles.keeps, { color: t.win }]}>Nothing already settled changes hands.</Text>
+        </View>
+
+        {/* ONE TEXT NODE. Interpolating the name mid-sentence splits it into
+            three, and the fragment either side of the name wraps on its own. */}
+        <Text style={[styles.note, { color: t.muted }]}>
+          {`Only a claimed player can be admin. Once handed over, only ${
+            chosen === undefined ? 'they' : chosen.name
+          } can hand it back — you cannot take it.`}
         </Text>
       </View>
-
-      {/* ONE TEXT NODE. Interpolating the name mid-sentence splits it into
-          three, and the fragment either side of the name wraps on its own. */}
-      <Text style={[styles.footnote, { color: t.muted }]}>
-        {`Only a claimed player can be admin. Once handed over, only ${
-          chosen === undefined ? 'they' : chosen.name
-        } can hand it back — you cannot take it.`}
-      </Text>
     </Sheet>
   );
 }
@@ -161,32 +157,16 @@ function standing(
 }
 
 const styles = StyleSheet.create({
-  list: { marginHorizontal: space.page },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-  },
-  rowText: { flexShrink: 1, gap: 2 },
-  name: type.rowName,
-  sub: type.meta,
-  circle: {
-    marginLeft: 'auto',
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dot: { width: 10, height: 10, borderRadius: 5 },
+  body: { paddingHorizontal: z(20), paddingTop: z(2), gap: z(12) },
+  // The card row (`Card.tsx`), as a radio: words, then the ring.
+  row: { flexDirection: 'row', alignItems: 'center', gap: z(10), minHeight: z(44), paddingVertical: z(8) },
+  rowText: { flex: 1, minWidth: 0 },
+  name: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6) },
+  sub: { fontSize: z(12), lineHeight: z(15), marginTop: z(2) },
 
-  block: { marginTop: 26, marginHorizontal: space.page, gap: 6 },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 4 },
-  moves: { ...type.rowName, paddingHorizontal: 4 },
-  keeps: { ...type.meta, paddingHorizontal: 4 },
-
-  footnote: { ...type.footnote, marginTop: 22, marginHorizontal: space.page, paddingHorizontal: 4 },
+  moves: { marginHorizontal: z(2), gap: z(4) },
+  movesLine: { fontSize: z(15), fontWeight: '600', lineHeight: z(19.5) },
+  keeps: { fontSize: z(13), lineHeight: z(17) },
+  // The kit's `note()`: 13 / 1.45, muted.
+  note: { fontSize: z(13), lineHeight: z(18.85) },
 });

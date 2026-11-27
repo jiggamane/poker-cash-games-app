@@ -188,7 +188,9 @@ export function Sheet({
                 <Text
                   nativeID="sheet-title"
                   style={[styles.title, { color: t.text }]}
-                  numberOfLines={1}
+                  /* Two lines, as the board wraps a long one ("Your name in The
+                     Thursday game"); an ellipsis would drop the group's name. */
+                  numberOfLines={2}
                 >
                   {title}
                 </Text>

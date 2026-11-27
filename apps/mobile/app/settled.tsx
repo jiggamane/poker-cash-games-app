@@ -10,7 +10,7 @@ import {
   type SettledMode,
   type StoredVerification,
 } from '@poker-club/core';
-import { Button } from '../src/components/Button';
+import { Card } from '../src/components/Card';
 import { RoundingBar } from '../src/components/RoundingBar';
 import { TermBar } from '../src/components/TermBar';
 import { Screen } from '../src/components/Screen';
@@ -22,7 +22,7 @@ import {
   ViewControl,
 } from '../src/components/SessionViews';
 import { useTheme } from '../src/design/useTheme';
-import { radius, space, unscaledLabel } from '../src/design/tokens';
+import { T, z } from '../src/design/scale';
 import { nightSpan } from '../src/lib/elapsed';
 import { endedRowLabel, endedRowValue } from '../src/lib/endTime';
 import { setSessionView, useSessionView } from '../src/lib/sessionViewStore';
@@ -131,9 +131,8 @@ export default function NightResults() {
         backTo="the club"
         headScroll="all"
         lede="This night was never closed. Count everyone up and settle it to see the record."
-        footer={
-          <Button label="Open the night" variant="primary" onPress={() => router.replace('/session')} />
-        }
+        /* The one way on, so it is the bar (the full board's F3). */
+        bar={[{ label: 'Open the night', onPress: () => router.replace('/session') }]}
       >
         {null}
       </Screen>
@@ -182,41 +181,33 @@ export default function NightResults() {
        */
       headScroll="all"
       /*
-       * THE FOOTER BUTTON IS THE VIEW'S. On Final it is the one thing this
-       * screen leads to; on At table it leads back to the answer, because a
-       * column that sums to zero is a check rather than a result and the cut
-       * gives the reader the way out of it.
+       * THE BAR IS THE VIEW'S. On Final it is the one thing this screen leads
+       * to; on At table it leads back to the answer, because a column that sums
+       * to zero is a check rather than a result and the cut gives the reader the
+       * way out of it.
        *
-       * OUTLINED, NOT FILLED — `10a`'s own 1px at 16% white. This screen is a
-       * record being read rather than a step being completed, and a filled
-       * button on it reads as the next thing to do.
+       * ⚠ THE BAR, WHERE `10a` DREW AN OUTLINED BUTTON ON PURPOSE (a record
+       * being read, not a step). The full board makes it the action — "Who pays
+       * whom" is the settled night's bar (`settled`, `settled-grouped`, flagged
+       * and approved; the bar's type was reviewed on this very screen).
        */
-      footer={
-        onTable ? (
-          <Button
-            label="See the final result"
-            variant="secondary"
-            onPress={() => setSessionView('finalDetailed')}
-          />
-        ) : (
-          <Button
-            label="Who pays whom"
-            variant="secondary"
-            onPress={() => router.push('/payments')}
-          />
-        )
+      bar={
+        onTable
+          ? [{ label: 'See the final result', onPress: () => setSessionView('finalDetailed') }]
+          : [{ label: 'Who pays whom', onPress: () => router.push('/payments') }]
       }
     >
+      <View style={styles.column}>
       <DidNotCheckOut verdict={night.verification} />
 
       {/*
-       * THE LIST, AND NOTHING BETWEEN ITS ROWS. No hairline, no chevron, no
-       * fill — separation is the 60-point row alone, which is the cut's own
-       * central point about the version this replaces.
+       * THE LIST, ONE LIFTED CARD OF THE KIT'S ROWS — the full board's
+       * `settled`, which redrew the cut's unfenced 60-point rows in the
+       * approved look: a hairline between rows, no chevron, no rank number.
        *
        * THE RANK IS THE LIST'S POSITION and not a figure anybody computed:
        * `settledRows` sorts on the figure the row prints, so the order differs
-       * between Final and At table by design and the number simply follows it.
+       * between Final and At table by design and the position simply follows.
        */}
       {/*
        * EVERYTHING BEHIND THE MENU DROPS TO 32% — the handoff's own figure, and
@@ -237,21 +228,28 @@ export default function NightResults() {
        * computed `pointer-events` on it was `none`. It is gone; the 32% and the
        * deafness are this screen's, and dismissal is the control's.
        */}
-      <View style={menuOpen && { opacity: MENU_DIM }} pointerEvents={menuOpen ? 'box-only' : 'auto'}>
-        <View style={styles.list}>
+      <View
+        style={[styles.stack, menuOpen && { opacity: MENU_DIM }]}
+        pointerEvents={menuOpen ? 'box-only' : 'auto'}
+      >
+        {/* ONE LIFTED CARD with the rows straight inside it: the night pass
+            reads the block below as the next sibling of the rows' parent and
+            counts it against the eight-row budget. */}
+        <Card>
           {rows.map((row, i) => (
             <SessionRow
               key={row.player.playerId}
               rank={i + 1}
               row={row}
               view={view}
+              last={i === rows.length - 1}
               onPress={() =>
                 router.push({ pathname: '/player', params: { id: row.player.playerId } })
               }
               onSpends={() => router.push('/deductions')}
             />
           ))}
-        </View>
+        </Card>
 
         {onTable ? (
           <ChipsBlock balance={balance} offTable={result.totalOffTable} />
@@ -268,7 +266,14 @@ export default function NightResults() {
        *
        * FINAL ONLY. At table is `out − in`, which the step does not reach.
        */}
-      {showsStep && <RoundingBar mode={night.roundingMode} style={styles.rounding} />}
+      {/*
+       * ONE CARD FOR THE TWO ROWS — the step, when it is drawn, and the end
+       * time — as Count up draws its own pair (bare `TermBar` rows, the kit's
+       * hairline between them). The board's `settled-grouped` draws the Ended
+       * row alone in its card, which is this card on a night with no step.
+       */}
+      <Card>
+      {showsStep && <RoundingBar mode={night.roundingMode} bare />}
 
       {/*
        * AND THE END TIME, WHICH — UNLIKE THE STEP — IS STILL SETTABLE. B87.
@@ -300,11 +305,12 @@ export default function NightResults() {
         onPress={() => router.push('/end-time')}
         /* THE STEP IS NOT ALWAYS THERE — it is hidden on At table and on a
            night with no rounding — so this row is the one that closes the
-           screen either way, and it drops its top rule only when there is
-           already one directly above it. Two stacked bars would otherwise draw
-           a double hairline between them. */
-        style={showsStep ? styles.stackedBar : styles.rounding}
+           card either way, and the one with no hairline under it. */
+        bare
+        last
       />
+      </Card>
+      </View>
     </Screen>
   );
 }
@@ -334,8 +340,8 @@ function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
   if (verdict === undefined || verdict.ok) return null;
 
   return (
-    <View style={[styles.alert, { backgroundColor: t.dangerWash, borderColor: t.dangerEdge }]}>
-      <Text style={[styles.alertLabel, { color: t.danger }]} {...unscaledLabel}>
+    <Card pad style={styles.alert}>
+      <Text style={[T.lookLabel, styles.alertLabel, { color: t.red }]}>
         Did not check out
       </Text>
       <Text style={[styles.alertBody, { color: t.text }]}>
@@ -347,7 +353,7 @@ function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
       <Text style={[styles.alertCodes, { color: t.muted }]} numberOfLines={2}>
         {verdict.codes.join(' · ')}
       </Text>
-    </View>
+    </Card>
   );
 }
 
@@ -416,36 +422,26 @@ const ROW_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
   /*
-   * THE FAILED-CHECK BLOCK, measured off E5's *Out of balance* alert rather
-   * than drawn again: the two say the same kind of thing — this night does not
-   * add up, here is what is wrong — and two shapes for one meaning is how a
-   * reader stops recognising either.
+   * THE FAILED-CHECK BLOCK, drawn as E5's *Out of balance* alarm is: the two
+   * say the same kind of thing — this night does not add up, here is what is
+   * wrong — and two shapes for one meaning is how a reader stops recognising
+   * either. On the full board (`settle-up-off`) that is a padded card with the
+   * red label over the sentence; the look has no danger wash.
    */
-  alert: {
-    marginHorizontal: space.card,
-    marginBottom: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: radius.pressable,
-    borderWidth: 1,
-    gap: 6,
-  },
-  alertLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
-  alertBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
-  alertCodes: { fontSize: 11.5, fontWeight: '400', lineHeight: 16 },
+  alert: { gap: z(7) },
+  alertLabel: { textTransform: 'uppercase' },
+  alertBody: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
+  alertCodes: { fontSize: z(11.5), fontWeight: '400', lineHeight: z(16) },
 
   /*
-   * THE LIST, AND EVERYTHING ELSE ON THE SCREEN, IS `SessionViews.tsx`'S — the
-   * row, the view control, both blocks and the geometry of all three. What is
-   * left here is the two things that belong to this route rather than to the
-   * cut: the alarm above the list, and the step below it.
+   * THE SHEET'S COLUMN — the full board's pushed screen: 18 in from the sheet's
+   * edge, 12 between groups (`session.tsx` stands on the same numbers). The
+   * list, the blocks and the geometry of all three are `SessionViews.tsx`'s;
+   * what is left here is the alarm above the list and the two rows below it.
    *
-   * The list itself needs one number. Side margin 22, and no gap: the rows are
-   * 60 tall and their own height is the separation, so anything added here
-   * would be the fencing the cut removed, in another form.
+   * The list itself is one card: its rows carry the kit's hairlines, and the
+   * card is the only fence around them.
    */
-  list: { marginHorizontal: space.page },
-
-  rounding: { marginTop: 10 },
-  stackedBar: { borderTopWidth: 0 },
+  column: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
+  stack: { gap: z(12) },
 });

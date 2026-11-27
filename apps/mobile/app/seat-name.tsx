@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { Text, TextInput } from '../src/components/Text';
-import { Button } from '../src/components/Button';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { radius, type } from '../src/design/tokens';
+import { L, z } from '../src/design/scale';
 import { applySeatName, useClubs } from '../src/lib/clubStore';
 import { nameRefusal, renameMySeat } from '../src/lib/account';
 
@@ -30,6 +29,7 @@ export default function SeatName() {
   const [name, setName] = useState(seat?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
+  const [focused, setFocused] = useState(false);
 
   if (club === null || seat === null) return <Sheet title="Your name">{null}</Sheet>;
 
@@ -56,7 +56,10 @@ export default function SeatName() {
   return (
     <Sheet
       title={`Your name in ${club.name}`}
-      footer={<Button label={saving ? 'Saving…' : 'Save'} onPress={() => void save()} disabled={unchanged || saving} />}
+      /* THE FULL BOARD (`seat-name`, `seat-name-changed`, approved): Save is the
+         bar, faint until the name differs from the one the seat has; the field
+         is outlined, not filled. */
+      bar={[{ label: saving ? 'Saving…' : 'Save', onPress: () => void save(), disabled: unchanged || saving }]}
     >
       <View style={styles.body}>
         <Text style={[styles.lede, { color: t.text }]}>
@@ -68,13 +71,19 @@ export default function SeatName() {
             setName(v);
             setRefusal(null);
           }}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           autoCapitalize="words"
           maxLength={60}
           returnKeyType="done"
           onSubmitEditing={() => {
             if (!unchanged && !saving) void save();
           }}
-          style={[styles.input, { color: t.text, backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}
+          style={[
+            styles.input,
+            { color: t.text, backgroundColor: t.surface, borderColor: focused ? t.text : t.outline },
+            focused && styles.focused,
+          ]}
         />
         {refusal !== null && <Text style={[styles.refusal, { color: t.text }]}>{refusal}</Text>}
         {/* The line "If you delete your account, the seat goes back to …" was here, UNSURE on
@@ -85,14 +94,20 @@ export default function SeatName() {
 }
 
 const styles = StyleSheet.create({
-  body: { gap: 16 },
-  lede: { fontSize: 16, fontWeight: '400', lineHeight: 24 },
+  /* The sheet's body: the kit's `.mbody`, 20 in and 12 between groups. */
+  body: { gap: z(12), paddingHorizontal: z(20), paddingTop: z(2) },
+  /* The kit's `para()`: 15 on 1.45, in the text colour. */
+  lede: { fontSize: z(15), fontWeight: '400', lineHeight: z(21.75) },
+  /* The kit's `.fi`: 48 tall, 12 corners, a 1.5 outline that turns to a 2 in the text colour on focus. */
   input: {
-    ...type.body,
-    borderWidth: 1,
-    borderRadius: radius.pressable,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
+    minHeight: z(48),
+    fontSize: z(16),
+    fontWeight: '600',
+    borderWidth: 1.5,
+    borderRadius: L.fieldRadius,
+    paddingHorizontal: z(14),
+    paddingVertical: z(12),
   },
-  refusal: { fontSize: 13, fontWeight: '500', lineHeight: 18.9 },
+  focused: { borderWidth: 2, paddingHorizontal: z(13.5) },
+  refusal: { fontSize: z(13), fontWeight: '500', lineHeight: z(18.9) },
 });

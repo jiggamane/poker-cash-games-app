@@ -174,7 +174,8 @@ describe('the entry is written on the tap, and Undo voids it', () => {
        that lands without asking. Two 1s holds do not fit inside a 2s bar, so
        the handoff's rapid-tap rule needs the tap. */
     expect(card).not.toContain('HoldButton');
-    expect(card).toMatch(/label=\{`Rebuy \$\{formatMoney\(rebuy\)\}`\}/);
+    // The rebuy is the player card's bar since the full board (24 November): an action's label, not a Button prop.
+    expect(card).toMatch(/label: `Rebuy \$\{formatMoney\(rebuy\)\}`/);
   });
 });
 

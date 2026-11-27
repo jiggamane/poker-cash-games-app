@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
+import { z } from '../design/scale';
 
 /**
  * "1 of 3" — where a screen sits in the ending flow.
@@ -17,5 +18,6 @@ export function Step({ label }: { label: string }) {
 }
 
 const styles = StyleSheet.create({
-  step: { fontSize: 13, fontWeight: '600' },
+  /* The kit's `.trail`: 600 13, in the ink's quieter white. */
+  step: { fontSize: z(13), fontWeight: '600' },
 });

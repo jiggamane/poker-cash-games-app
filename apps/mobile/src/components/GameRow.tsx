@@ -3,7 +3,8 @@ import { Text } from './Text';
 import { type Money } from '@poker-club/core';
 import { formatSignedToFit } from '../lib/money';
 import { Icon } from './Icon';
-import { moneyColor, useTheme } from '../design/useTheme';
+import { useTheme } from '../design/useTheme';
+import { z } from '../design/scale';
 import { cappedFigure, tabular } from '../design/tokens';
 
 /**
@@ -16,16 +17,25 @@ import { cappedFigure, tabular } from '../design/tokens';
  * reason this is a component — three lists that "look similar" become three
  * lists that look different the first time one of them is edited.
  *
- *     Tue 4 August                                        −$493  ›
- *     👥 8 players   🕐 3h 40m
+ *     Sat 15 Aug                                          −$60
+ *     The poker club  👥 8 players  🕐 5h 10m
  *
- * NO RULE BETWEEN ROWS. Separation is the 60-point row alone, which the handoff
- * states as a decision rather than a style: *"an earlier version fenced every
- * row and read as noise"*.
+ * THE FULL BOARD'S `night()` (`design/explorations/full-board/screens/
+ * 70-sessions-stats-group.mjs`), approved: 600 15.5 date, the figure 700 16.5
+ * in the figure face, the annotation line 11.5 muted 4 under it, 9 above and
+ * below. The caller puts the rows in one `Card`; the row draws no card itself.
+ *
+ * NO RULE BETWEEN ROWS AND NO CHEVRON. Separation is the row's own padding,
+ * which the handoff states as a decision rather than a style: *"an earlier
+ * version fenced every row and read as noise"*; the chevron went with every
+ * other one in the new look (no row points).
  *
  * ONLY TWO THINGS ARE AT FULL BRIGHTNESS — the date and the figure. Everything
- * else is annotation in bone, which is what puts the second line underneath the
- * first in the reading order rather than beside it.
+ * else is annotation in the muted grey, which is what puts the second line
+ * underneath the first in the reading order rather than beside it.
+ *
+ * A LOSS IS RED, not the loss grey (owner, on the board: losses red — the W/L
+ * count and the list's figures). A win green, nothing at all muted.
  *
  * NOTHING HERE ADDS ANYTHING UP. The net is the caller's, off the engine.
  */
@@ -36,7 +46,6 @@ export function GameRow({
   group,
   players,
   minutes,
-  compact = false,
   testID,
   onPress,
 }: {
@@ -55,8 +64,9 @@ export function GameRow({
   /** How long the table ran. Omitted while it is still running. */
   minutes?: number;
   /**
-   * 56 rather than 60, for `Last games` — *"rows are 4px shorter than
-   * Sessions' because this list is a sample, not the destination"*.
+   * `Last games` rather than Sessions. The handoff drew the sample 4 points
+   * shorter; the full board draws both lists with the one `night()` row, so
+   * the flag is kept for the callers and draws the same row.
    */
   compact?: boolean;
   testID?: string;
@@ -68,7 +78,7 @@ export function GameRow({
     <>
       <View style={styles.head}>
         <Text
-          style={[compact ? styles.dateCompact : styles.date, { color: t.text }]}
+          style={[styles.date, { color: t.text }]}
           numberOfLines={1}
         >
           {date}
@@ -76,16 +86,16 @@ export function GameRow({
         {net === null ? (
           /* A night you sat out has no result, and a `$0` would be a claim
              about an evening that never happened to you. */
-          <Text style={[styles.sat, { color: t.annotation }]} numberOfLines={1}>
+          <Text style={[styles.sat, { color: t.muted }]} numberOfLines={1}>
             did not play
           </Text>
         ) : (
           <Text
             testID={testID === undefined ? undefined : `${testID}-net`}
             style={[
-              compact ? styles.netCompact : styles.net,
+              styles.net,
               tabular,
-              { color: net === 0 ? t.muted : moneyColor(t, net) },
+              { color: net === 0 ? t.muted : net > 0 ? t.win : t.red },
             ]}
             numberOfLines={1}
             {...cappedFigure}
@@ -93,31 +103,26 @@ export function GameRow({
             {formatSignedToFit(net, ROW_FITS)}
           </Text>
         )}
-        {/* 9 × 14 in `dim`, 2 of left padding. It is the app's own row chevron
-            at the handoff's size — see `docs/screens.md`. */}
-        <View style={styles.chevron}>
-          <Icon name="chevron" color={t.dim} size={14} />
-        </View>
       </View>
 
-      <View style={[styles.annotation, compact && styles.annotationCompact]}>
+      <View style={styles.annotation}>
         {group !== undefined && (
-          <Text style={[styles.figure, { color: t.annotation }]} numberOfLines={1}>
+          <Text style={[styles.figure, styles.group, { color: t.muted }]} numberOfLines={1}>
             {group}
           </Text>
         )}
         {players !== undefined && (
           <View style={styles.pair}>
-            <Icon name="people" color={t.annotationStroke} size={13} />
-            <Text style={[styles.figure, tabular, { color: t.annotation }]} numberOfLines={1}>
+            <Icon name="people" color={t.muted} size={z(12)} />
+            <Text style={[styles.figure, { color: t.muted }]} numberOfLines={1}>
               {`${players} ${players === 1 ? 'player' : 'players'}`}
             </Text>
           </View>
         )}
         {minutes !== undefined && minutes > 0 && (
           <View style={styles.pair}>
-            <Icon name="clock" color={t.annotationStroke} size={13} />
-            <Text style={[styles.figure, tabular, { color: t.annotation }]} numberOfLines={1}>
+            <Icon name="clock" color={t.muted} size={z(12)} />
+            <Text style={[styles.figure, { color: t.muted }]} numberOfLines={1}>
               {duration(minutes)}
             </Text>
           </View>
@@ -128,7 +133,7 @@ export function GameRow({
 
   if (onPress === undefined) {
     return (
-      <View testID={testID} style={compact ? styles.rowCompact : styles.row}>
+      <View testID={testID} style={styles.row}>
         {body}
       </View>
     );
@@ -142,10 +147,7 @@ export function GameRow({
         net === null ? `${date}, did not play` : `${date}, ${formatSignedToFit(net, ROW_FITS)}`
       }
       onPress={onPress}
-      style={({ pressed }) => [
-        compact ? styles.rowCompact : styles.row,
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       {body}
     </Pressable>
@@ -165,45 +167,40 @@ export function duration(minutes: number): string {
 
 const styles = StyleSheet.create({
   /*
-   * 60 TALL, TWO LINES, 5 APART, and no hairline anywhere. `minHeight` rather
-   * than `height` so the row grows with the reader's text setting instead of
-   * clipping a date at 120%; at the drawn sizes it is exactly 60, and ten rows
-   * fill the frame with no scroll.
+   * `padding: 9px 0`, two lines 4 apart, and no hairline anywhere. No fixed
+   * height, so the row grows with the reader's text setting instead of
+   * clipping a date at 120%.
    */
-  row: { minHeight: 60, justifyContent: 'center', gap: 5 },
-  /* 56 and 4 apart — `Last games`, which is a sample rather than the list. */
-  rowCompact: { minHeight: 56, justifyContent: 'center', gap: 4 },
+  row: { paddingVertical: z(9), gap: z(4) },
   pressed: { opacity: 0.6 },
 
-  head: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  date: { fontSize: 17, fontWeight: '400', lineHeight: 21, flexShrink: 1 },
-  dateCompact: { fontSize: 16.5, fontWeight: '400', lineHeight: 21, flexShrink: 1 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: z(10) },
+  date: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(19), flexShrink: 1 },
   /*
    * NEVER SHRINKS. The date may give — it is a word — and a figure may not:
    * left to shrink, "−$12,000" came apart into a dash on one line and an
    * amount on the next, which reads as two things. See B18.
    */
-  net: { marginLeft: 'auto', flexShrink: 0, fontSize: 17, fontWeight: '600', lineHeight: 21 },
-  netCompact: {
+  net: {
     marginLeft: 'auto',
     flexShrink: 0,
-    fontSize: 16.5,
-    fontWeight: '600',
-    lineHeight: 21,
+    fontFamily: 'head',
+    fontSize: z(16.5),
+    fontWeight: '700',
+    lineHeight: z(19),
   },
-  sat: { marginLeft: 'auto', flexShrink: 0, fontSize: 13, fontWeight: '400', lineHeight: 21 },
-  chevron: { flexShrink: 0, paddingLeft: 2, justifyContent: 'center' },
+  sat: { marginLeft: 'auto', flexShrink: 0, fontSize: z(13), fontWeight: '400', lineHeight: z(19) },
 
   /*
-   * IT WRAPS. The handoff draws one line and at its own figures it is one; a
+   * IT WRAPS. The board draws one line and at its own figures it is one; a
    * club with a long name beside a nine-player night at 120% text is not, and
    * a wrapped pair is still a whole pair where a clipped one is a fact nobody
    * can read.
    */
-  annotation: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 14, rowGap: 3 },
-  annotationCompact: { columnGap: 12 },
-  pair: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  figure: { fontSize: 12.5, fontWeight: '400', lineHeight: 16 },
+  annotation: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: z(7), rowGap: z(3) },
+  group: { flexShrink: 1, minWidth: 0 },
+  pair: { flexDirection: 'row', alignItems: 'center', gap: z(3) },
+  figure: { fontSize: z(11.5), fontWeight: '400', lineHeight: z(15) },
 });
 
 /*

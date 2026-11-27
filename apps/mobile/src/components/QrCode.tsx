@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Rect, Svg } from 'react-native-svg';
 import { QUIET_ZONE, qrMatrix } from '../lib/qr';
+import { z } from '../design/scale';
 
 /**
  * A QR code, drawn as squares. C3d.
@@ -12,29 +13,36 @@ import { QUIET_ZONE, qrMatrix } from '../lib/qr';
  * one element in this app that ignores the theme, and it does so for a reason
  * that has nothing to do with taste.
  *
- * The geometry is the drawing's: a 250 white block with a 210 live area, which
- * is where the four-module quiet zone comes from. The gap is not padding — a
- * scanner cannot find the finder patterns without blank space around them, and
- * a code drawn flush to the edge of its block is the classic "it looks right
- * and my phone will not read it".
+ * The geometry is the full board's (`invite-qr`, approved; square, the owner's
+ * pick of four on 22 November): a 188 white block with 12 corners, blown up to
+ * the phone through `z()`. It used to be C3d's 250 block around a 210 live
+ * area; the 20 points of extra margin are gone, and the four-module quiet zone
+ * inside the block stays (`QUIET_ZONE`) — wider than the board's two modules,
+ * on purpose. The gap is not padding — a scanner cannot find the finder
+ * patterns without blank space around them, and a code drawn flush to the edge
+ * of its block is the classic "it looks right and my phone will not read it".
+ *
+ * WHAT IT ENCODES IS NOT DECIDED HERE: the caller passes the invite's link
+ * (`inviteLinkFor`), exactly as before.
  *
  * One deliberate detail: adjacent dark modules are drawn as overlapping
- * rectangles half a pixel oversized. At 210/29 ≈ 7.2 device pixels per module,
+ * rectangles half a pixel oversized. At about 229/37 ≈ 6.2 points per module,
  * exact rectangles leave hairline seams where rounding falls between them, and
  * a camera reads those seams as light. Overlapping closes them without moving
  * any module's centre.
  */
 export function QrCode({
   value,
-  size = 250,
-  live = 210,
+  size = z(188),
+  live,
 }: {
   value: string;
   /** The white block. */
   size?: number;
-  /** The code inside it; the difference is the quiet zone. */
+  /** The code inside it, quiet zone included; defaults to the whole block. */
   live?: number;
 }) {
+  live ??= size;
   const matrix = useMemo(() => {
     try {
       return qrMatrix(value);
@@ -76,7 +84,7 @@ export function QrCode({
 const styles = StyleSheet.create({
   block: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: z(12),
     alignSelf: 'center',
     overflow: 'hidden',
   },

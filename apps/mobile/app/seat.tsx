@@ -1,20 +1,21 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Text, TextInput } from '../src/components/Text';
 import { money, resolveLedger } from '@poker-club/core';
 import { formatToFit, moneySymbol } from '../src/lib/money';
-import { Button } from '../src/components/Button';
+import { Chip, SectionLabel } from '../src/components/Card';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { cappedFigure, radius, space, type } from '../src/design/tokens';
+import { cappedFigure } from '../src/design/tokens';
+import { L, z } from '../src/design/scale';
 import { addPlayer, defaultBuyIn, seatAndBuyIn, useNight } from '../src/lib/nightStore';
 import { rosterIdFor, useClub } from '../src/lib/clubStore';
 import { benchFor, sameName } from '../src/lib/rosterMerge';
 
 /*
- * WHERE THE BUTTON'S LABEL RUNS OUT OF ROOM: it carries the amount — "Seat
- * Bartholomew · $500" — inside one line of a 353-wide button at 18/700.
+ * WHERE THE BAR'S LABEL RUNS OUT OF ROOM: it carries the amount — "Seat
+ * Bartholomew · $500" — on one line of the bar, at the bar's 18/700.
  */
 const NAMED_FITS = 100_000;
 
@@ -43,6 +44,8 @@ export default function Seat() {
 
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+  /** Which outlined field has the caret: its outline turns to the text colour (the kit's `.fi.focus`). */
+  const [focus, setFocus] = useState<'name' | 'stake' | null>(null);
   /**
    * The first buy-in, typed. It arrives filled with what the table has been
    * buying in for, and somebody sitting down for half of that — or double it —
@@ -131,46 +134,47 @@ export default function Seat() {
     }
   }
 
+  const barLabel =
+    trimmed === ''
+      ? 'Type a name'
+      : clash
+        ? `${trimmed} is already here`
+        : !stakeOk
+          ? 'Set a first buy-in'
+          : `Seat ${trimmed} · ${formatToFit(money(amount), NAMED_FITS)}`;
+
   return (
     <Sheet
       title="New player"
       sub="Seats them tonight and adds them to the group roster. They can be invited later."
       sentence
-      footer={
-        /*
-         * ONE BUTTON, as N7 draws it. There was a second — "Add to the roster
-         * only" — and it did what Players already does, sitting directly under
-         * a button that seats somebody and takes their money. Two controls a
-         * thumb-width apart, one of which is a ledger write and one of which
-         * is not, is the wrong thing to hand a host at one in the morning.
-         */
-        <Button
-          label={
-            trimmed === ''
-              ? 'Type a name'
-              : clash
-                ? `${trimmed} is already here`
-                : !stakeOk
-                  ? 'Set a first buy-in'
-                  : `Seat ${trimmed} · ${formatToFit(money(amount), NAMED_FITS)}`
-          }
-          variant="primary"
-          disabled={!valid || busy}
-          onPress={commit}
-        />
-      }
+      /*
+       * ONE ACTION, as N7 draws it, and since the full board (`seat`,
+       * `seat-empty`, `seat-clash`, approved) it is the bar: it carries the
+       * name and the amount, so the host reads the whole write before making
+       * it, and it goes faint with the reason when there is none to make.
+       *
+       * There was a second — "Add to the roster only" — and it did what Players
+       * already does, sitting directly under a button that seats somebody and
+       * takes their money. Two controls a thumb-width apart, one of which is a
+       * ledger write and one of which is not, is the wrong thing to hand a host
+       * at one in the morning.
+       */
+      bar={[{ label: barLabel, disabled: !valid || busy, onPress: () => void commit() }]}
     >
-      <View style={styles.field}>
-        <Text style={[styles.fieldLabel, { color: t.muted }]}>Name</Text>
-        <View style={[styles.input, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
+      <View style={styles.body}>
+        <View>
+          <Text style={[styles.fieldLabel, { color: t.muted }]}>Name</Text>
           <TextInput
             autoFocus
             value={name}
             onChangeText={setName}
             onSubmitEditing={commit}
+            onFocus={() => setFocus('name')}
+            onBlur={() => setFocus(null)}
             accessibilityLabel="The new player’s name"
             placeholder="Their name"
-            placeholderTextColor={t.muted}
+            placeholderTextColor={t.dim}
             returnKeyType="done"
             autoCapitalize="words"
             /*
@@ -191,7 +195,15 @@ export default function Seat() {
             textContentType="none"
             autoCorrect={false}
             spellCheck={false}
-            style={[styles.inputText, { color: t.text }]}
+            style={[
+              styles.input,
+              {
+                color: t.text,
+                backgroundColor: t.surface,
+                borderColor: focus === 'name' ? t.text : t.outline,
+              },
+              focus === 'name' && styles.inputFocused,
+            ]}
           />
         </View>
         {clash && (
@@ -200,127 +212,130 @@ export default function Seat() {
             the ledger cannot tell them apart.
           </Text>
         )}
-      </View>
 
-      {bench.length > 0 && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: t.muted }]}>From the roster</Text>
-          <View style={styles.chips}>
-            {bench.map((p) => (
-              <Pressable
-                key={p.id}
-                accessibilityRole="button"
-                onPress={() => void seatFromBench(p)}
-                style={({ pressed }) => [
-                  styles.chip,
-                  { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline, opacity: pressed ? 0.6 : 1 },
-                ]}
-              >
-                <Text style={[styles.chipLabel, { color: t.text }]}>{p.name}</Text>
-              </Pressable>
-            ))}
+        {bench.length > 0 && (
+          <>
+            <SectionLabel text="From the roster" quiet />
+            <View style={styles.chips}>
+              {bench.map((p) => (
+                <Chip key={p.id} label={p.name} onPress={() => void seatFromBench(p)} />
+              ))}
+            </View>
+          </>
+        )}
+
+        <View style={[styles.rule, { backgroundColor: t.hairline }]} />
+
+        <View style={styles.stake}>
+          <Text style={[styles.stakeLabel, { color: t.text }]}>First buy-in</Text>
+          <View
+            style={[
+              styles.stakeField,
+              {
+                backgroundColor: t.surface,
+                borderColor: focus === 'stake' ? t.text : t.outline,
+              },
+              focus === 'stake' && styles.stakeFieldFocused,
+            ]}
+          >
+            {/* The group's own, not a dollar sign. It is the one place in this
+                app where the symbol stands alone rather than in front of a
+                figure, which is exactly how it stayed a dollar for so long. */}
+            <Text style={[styles.stakeCurrency, { color: stakeOk ? t.text : t.muted }]}>
+              {moneySymbol()}
+            </Text>
+            <TextInput
+              value={typed}
+              onChangeText={(v) => setStake(v.replace(/[^0-9]/g, ''))}
+              onFocus={() => setFocus('stake')}
+              onBlur={() => setFocus(null)}
+              // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
+              // to a digits-only keyboard.
+              testID="amount"
+              keyboardType="number-pad"
+              accessibilityLabel="Their first buy-in"
+              autoComplete="off"
+              textContentType="none"
+              autoCorrect={false}
+              selectTextOnFocus
+              // Nine digits is a hundred million, which is past any table and
+              // short of the point where the figure stops fitting its own box.
+              maxLength={9}
+              // AND THE BOX IS A FIXED WIDTH WHATEVER THE READER'S TEXT SETTING
+              // IS, which is what made that sentence true only at 100% — B78.
+              // Capped, so there is a largest size the digits can be drawn at
+              // and the fixed box can be reasoned about at all. `ui-audit.mjs`
+              // holds it to four digits at the cap.
+              {...cappedFigure}
+              style={[styles.stakeValue, { color: stakeOk ? t.text : t.muted }]}
+            />
           </View>
-        </View>
-      )}
-
-      <View style={[styles.stake, { borderColor: t.hairline }]}>
-        <Text style={[styles.stakeLabel, { color: t.text }]}>First buy-in</Text>
-        <View style={[styles.stakeField, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
-          {/* The group's own, not a dollar sign. It is the one place in this
-              app where the symbol stands alone rather than in front of a
-              figure, which is exactly how it stayed a dollar for so long. */}
-          <Text style={[styles.stakeCurrency, { color: stakeOk ? t.text : t.muted }]}>
-            {moneySymbol()}
+          <Text style={[styles.stakeHint, { color: t.muted }]}>
+            {amount !== suggested
+              ? 'for this seat'
+              : ledger.totalBoughtIn === 0
+                ? 'the usual'
+                : 'same as the table'}
           </Text>
-          <TextInput
-            value={typed}
-            onChangeText={(v) => setStake(v.replace(/[^0-9]/g, ''))}
-            // A8: this is money. `scripts/ui-audit.mjs` holds every one of these
-            // to a digits-only keyboard.
-            testID="amount"
-            keyboardType="number-pad"
-            accessibilityLabel="Their first buy-in"
-            autoComplete="off"
-            textContentType="none"
-            autoCorrect={false}
-            selectTextOnFocus
-            // Nine digits is a hundred million, which is past any table and
-            // short of the point where the figure stops fitting its own box.
-            maxLength={9}
-            // AND THE BOX IS 72 POINTS WHATEVER THE READER'S TEXT SETTING IS,
-            // which is what made that sentence true only at 100% — B78. Capped,
-            // so there is a largest size the digits can be drawn at and the
-            // fixed box can be reasoned about at all. `ui-audit.mjs` holds it.
-            {...cappedFigure}
-            style={[styles.stakeValue, { color: stakeOk ? t.text : t.muted }]}
-          />
         </View>
-        <Text style={[styles.stakeHint, { color: t.muted }]}>
-          {amount !== suggested
-            ? 'for this seat'
-            : ledger.totalBoughtIn === 0
-              ? 'the usual'
-              : 'same as the table'}
-        </Text>
       </View>
     </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  field: { marginHorizontal: space.card, marginBottom: 14, gap: 7 },
-  fieldLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 1.08, textTransform: 'uppercase' },
+  /* The sheet's body: the kit's `.mbody`, 20 in and 12 between groups. */
+  body: { paddingHorizontal: z(20), paddingTop: z(2), gap: z(12) },
+
+  /* The kit's `field()`: a `.fl` label over a `.fi` box — outlined, 48 tall,
+     12 corners, the outline turning to a 2 in the text colour on focus. */
+  fieldLabel: { fontSize: z(12.5), fontWeight: '600', marginLeft: z(2), marginBottom: z(6) },
   input: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: radius.pressable,
-    borderWidth: StyleSheet.hairlineWidth,
+    minHeight: z(48),
+    fontSize: z(16),
+    fontWeight: '600',
+    borderWidth: 1.5,
+    borderRadius: L.fieldRadius,
+    paddingHorizontal: z(14),
+    paddingVertical: z(12),
   },
-  inputText: { fontSize: 19, fontWeight: '600', padding: 0 },
-  hint: { ...type.footnote },
+  inputFocused: { borderWidth: 2, paddingHorizontal: z(13.5) },
+  hint: { fontSize: z(13), lineHeight: z(18.85), marginHorizontal: z(2) },
 
-  section: { marginHorizontal: space.page, marginBottom: 14 },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 6 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 2 },
-  chip: { paddingVertical: 11, paddingHorizontal: 14, borderRadius: radius.pressable, borderWidth: 1 },
-  chipLabel: { fontSize: 15, fontWeight: '600' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: z(8) },
 
-  stake: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginHorizontal: space.card,
-    paddingVertical: 12,
-    paddingHorizontal: 2,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
+  /* The kit's `hr`. */
+  rule: { height: 1, marginVertical: z(2) },
+
+  stake: { flexDirection: 'row', alignItems: 'center', gap: z(10), marginHorizontal: z(2) },
   // The label and the hint both hold their line; only the hint may wrap, and
   // the field between them keeps its width whatever the two of them do.
-  stakeLabel: { fontSize: 16, fontWeight: '500', flexShrink: 0 },
+  stakeLabel: { fontSize: z(15), fontWeight: '500', flexShrink: 0 },
   stakeField: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 1,
+    justifyContent: 'space-between',
     // A fixed box. A text input left to itself takes whatever room is going
     // and squeezes the line beside it into a column of single words.
-    width: 108,
+    width: z(104),
+    minHeight: z(40),
     marginLeft: 'auto',
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    borderRadius: radius.pressable,
-    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: z(12),
+    borderRadius: L.fieldRadius,
+    borderWidth: 1.5,
   },
-  stakeCurrency: { fontSize: 16, fontWeight: '700' },
+  stakeFieldFocused: { borderWidth: 2, paddingHorizontal: z(11.5) },
+  stakeCurrency: { fontFamily: 'head', fontSize: z(16), fontWeight: '700' },
   stakeValue: {
     // A width, not a flex: an input given `flex` inside a fixed box overflows
     // it on web and puts the figure outside its own field.
-    width: 72,
-    fontSize: 16,
+    width: z(64),
+    fontFamily: 'head',
+    fontSize: z(16),
     fontWeight: '700',
     padding: 0,
     textAlign: 'right',
     fontVariant: ['tabular-nums'],
   },
-  stakeHint: { fontSize: 13, fontWeight: '600', flexShrink: 1, textAlign: 'right' },
+  stakeHint: { fontSize: z(12), fontWeight: '600', lineHeight: z(15), maxWidth: z(64), flexShrink: 1, textAlign: 'right' },
 });

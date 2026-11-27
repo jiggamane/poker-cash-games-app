@@ -6,7 +6,7 @@ import { RunOutEnumeration, oddsProblem, type RunOutProgress } from '@poker-club
 import { RunOutCard } from '../src/components/RunOutCard';
 import { Screen } from '../src/components/Screen';
 import { useTheme } from '../src/design/useTheme';
-import { space, type } from '../src/design/tokens';
+import { z } from '../src/design/scale';
 import { parseRunOutParams } from '../src/lib/runOut';
 
 /**
@@ -31,6 +31,10 @@ import { parseRunOutParams } from '../src/lib/runOut';
  *
  * ⚠ COPY NOT DRAWN: *How it ran out* and *All in before the flop* are board
  * 19's; the line shown when the link carries no table is mine.
+ *
+ * In the full board's look (`run-out`, approved): the title and the line under
+ * it on the ink, the picture on the sheet, no bar — a place, not a
+ * confirmation. The line with no table is the kit's note at the page's side.
  */
 export default function RunOut() {
   const t = useTheme();
@@ -74,5 +78,5 @@ export default function RunOut() {
 }
 
 const styles = StyleSheet.create({
-  problem: { ...type.lede, marginHorizontal: space.page, marginTop: 8 },
+  problem: { fontSize: z(13), lineHeight: z(19), marginHorizontal: z(18), marginTop: z(12) },
 });

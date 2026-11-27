@@ -31,7 +31,7 @@ describe('the word and the colour of a hand', () => {
 
   it('and the red, dark', () => {
     expect(tone([0.46, 0.54], 0, dark).color).toBe('hsl(6, 45%, 68%)');
-    expect(tone([0.15, 0.85], 0, dark).color).toBe('hsl(6, 80%, 62%)');
+    expect(tone([0.15, 0.85], 0, dark).color).toBe('hsl(6, 80%, 64%)');
   });
 
   it('the light ramps are darker: green from 33% (the canvas’s build note), red from 46%', () => {

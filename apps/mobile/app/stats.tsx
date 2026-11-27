@@ -6,10 +6,12 @@ import { type Money } from '@poker-club/core';
 import { formatSigned, formatSignedToFit } from '../src/lib/money';
 import { Dropdown, MENU_DIM, type DropdownItem } from '../src/components/Dropdown';
 import { duration, GameRow } from '../src/components/GameRow';
-import { NightsChart } from '../src/components/NightsChart';
+import { ChartPlaceholder, NightsChart } from '../src/components/NightsChart';
+import { Card, SectionLabel } from '../src/components/Card';
 import { Screen } from '../src/components/Screen';
-import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, space, tabular, type, unscaledLabel } from '../src/design/tokens';
+import { useTheme } from '../src/design/useTheme';
+import { z } from '../src/design/scale';
+import { cappedFigure, tabular, unscaledLabel } from '../src/design/tokens';
 import { ALL_GROUPS, scopeLabel, setPeriod, setScope, usePeriod, useScope } from '../src/lib/bookStore';
 import {
   formatNightDate,
@@ -38,16 +40,22 @@ const PERIODS: ReadonlyArray<{ label: string; value: Period }> = [
  *
  * Where a player stands over a stretch: one figure with its supporting counts,
  * a result-per-night graph for the last eight, and their last four games. A
- * PUSH from the club root with **nothing in the top-right** — the group
- * dropdown shares the TITLE row, which is the one place this screen departs
- * from the app's usual chrome and the handoff is explicit about why.
+ * PUSH from the club root — the group dropdown shares the TITLE row, on the
+ * ink in white, which is the one place this screen departs from the app's
+ * usual chrome and the handoff is explicit about why.
+ *
+ * IN THE FULL BOARD'S LOOK (`design/explorations/full-board/screens/
+ * 70-sessions-stats-group.mjs`: `stats`, `stats-book`, `stats-empty`, all
+ * approved): three lifted cards on the sheet, `LAST GAMES` a quiet section
+ * label with `See all` at its end, and no bar — it is a place, nothing to
+ * confirm. Before the first night the chart and the list are drawn as
+ * placeholders in the faint grey (owner, 25 November).
  *
  * THREE BLOCKS AND NOTHING ELSE:
  *
  *   THE FIGURE CARD   the period's net over `6 games · 25 h`, the period tabs
- *                     inside it, and two stat pairs under a divider. Tinted
- *                     rather than outlined — it is the answer, and it is the
- *                     only tinted thing on the screen.
+ *                     inside it, and two stat pairs under a divider. A lifted
+ *                     card like the other two — the board has no green fills.
  *   THE GRAPH         the last eight nights, tapped to read one out.
  *   LAST GAMES        four rows, and `See all` to Sessions.
  *
@@ -153,10 +161,13 @@ export default function MyStats() {
       backTo="the club"
       headScroll="meta"
     >
-      <View style={menuOpen && { opacity: MENU_DIM }} pointerEvents={menuOpen ? 'none' : 'auto'}>
+      <View
+        style={[styles.body, menuOpen && { opacity: MENU_DIM }]}
+        pointerEvents={menuOpen ? 'none' : 'auto'}
+      >
         <FigureCard period={period} stats={stats} now={now} since={since} />
 
-        {plotted.length > 0 && (
+        {plotted.length > 0 ? (
           <NightsChart
             caption={`Last ${plotted.length} ${plotted.length === 1 ? 'night' : 'nights'}`}
             cleared={cleared}
@@ -166,53 +177,93 @@ export default function MyStats() {
               net: n.net,
             }))}
           />
+        ) : (
+          /* Before the first night the chart is its own placeholder, with the
+             caption the full eight will have (`stats-empty`). */
+          <ChartPlaceholder caption="Last 8 nights" />
         )}
 
-        <View style={styles.list}>
-          <View style={styles.listHead}>
-            <Text style={[styles.sectionLabel, { color: t.muted }]} {...unscaledLabel}>
-              Last games
-            </Text>
+        <SectionLabel
+          text="Last games"
+          quiet
+          right={
             <Pressable
               accessibilityRole="button"
               onPress={() => router.push('/games')}
+              hitSlop={10}
               style={styles.seeAllHit}
             >
               <Text style={[styles.seeAll, { color: t.muted }]}>See all</Text>
             </Pressable>
-          </View>
+          }
+        />
 
-          {/*
-           * FOUR ROWS, AND THE GROUP NAME FIRST. This list spans every club the
-           * reader plays in — Sessions is scoped and does not repeat its own
-           * name eight times, and this one has to say which night was where.
-           * It reads the SCOPED history rather than the period's, for the same
-           * reason the graph does: `LAST GAMES` is a count, not a stretch.
-           */}
-          {mostRecentFirst(scoped)
-            .slice(0, 4)
-            .map((n) => (
-              <GameRow
-                key={n.id}
-                compact
-                date={formatNightDate(n.startedAt, true)}
-                net={n.net}
-                {...(scope === ALL_GROUPS ? { group: n.group } : {})}
-                {...(n.players === undefined ? {} : { players: n.players })}
-                minutes={n.minutes}
-                testID="stats-night"
-                onPress={() => void openNight(n.id)}
-              />
-            ))}
-
-          {scoped.length === 0 && (
+        {/*
+         * FOUR ROWS, AND THE GROUP NAME FIRST. This list spans every club the
+         * reader plays in — Sessions is scoped and does not repeat its own
+         * name eight times, and this one has to say which night was where.
+         * It reads the SCOPED history rather than the period's, for the same
+         * reason the graph does: `LAST GAMES` is a count, not a stretch.
+         */}
+        {scoped.length > 0 ? (
+          <Card style={styles.nights}>
+            {mostRecentFirst(scoped)
+              .slice(0, 4)
+              .map((n) => (
+                <GameRow
+                  key={n.id}
+                  compact
+                  date={formatNightDate(n.startedAt, true)}
+                  net={n.net}
+                  {...(scope === ALL_GROUPS ? { group: n.group } : {})}
+                  {...(n.players === undefined ? {} : { players: n.players })}
+                  minutes={n.minutes}
+                  testID="stats-night"
+                  onPress={() => void openNight(n.id)}
+                />
+              ))}
+          </Card>
+        ) : (
+          <>
+            <GhostGames />
             <Text style={[styles.empty, { color: t.muted }]}>
               No nights yet. Your first one shows up here the moment it is settled.
             </Text>
-          )}
-        </View>
+          </>
+        )}
       </View>
     </Screen>
+  );
+}
+
+/**
+ * TWO ROWS THAT ARE NOT NIGHTS — `stats-empty`'s `ghostGames`: the shape a
+ * night row will take (a date and a figure, the line under them) in the faint
+ * grey, with a rule between the two. Nothing in it is read aloud; the line
+ * under the card says what it is.
+ */
+function GhostGames() {
+  const t = useTheme();
+  const line = (width: `${number}%`, height: number) => (
+    <View style={{ width, height: z(height), borderRadius: z(height) / 2, backgroundColor: t.raised }} />
+  );
+  return (
+    <Card style={styles.ghostCard}>
+      <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        {[0, 1].map((i) => (
+          <View
+            key={i}
+            style={[styles.ghostRow, i === 0 && { borderBottomWidth: 1, borderBottomColor: t.hairline }]}
+          >
+            <View style={styles.ghostHead}>
+              {line('42%', 12)}
+              {line('18%', 12)}
+            </View>
+            {line('64%', 8)}
+          </View>
+        ))}
+      </View>
+    </Card>
   );
 }
 
@@ -234,13 +285,14 @@ export default function MyStats() {
  * the measurement. Owner's call, 15 September; recorded in
  * `docs/screens.md`.
  *
- * ⚠ THE TINT IS THE WIN COLOUR AT 13% WHATEVER THE FIGURE IS, and that is the
- * handoff's own card. It is a departure from B23's rule about washes behind
- * signed figures, and a narrow one: B23 is about a LIST of rows banded green
- * and red, where the band re-states the ranking the figures already give. This
- * is one card, it is the same colour on a losing month as on a winning one, and
- * it says "here is the answer" rather than "the answer is good".
- * `ui-audit.mjs` knows it by name. Recorded in `docs/screens.md`.
+ * THE GREEN TINT IS GONE. The handoff tinted this card with the win colour at
+ * 13% whatever the figure was; the full board has no green fills, so it is a
+ * lifted card like the other two (`stats`, approved). `period-card` keeps its
+ * name for `ui-audit.mjs`.
+ *
+ * A LOSS IS RED here — the net, the `L` count and the average — not the loss
+ * grey the rest of the app uses (owner, on the board). `6 games · 25 h` keeps
+ * its first style, one muted line: the owner passed over three others.
  */
 function FigureCard({
   period,
@@ -258,77 +310,86 @@ function FigureCard({
   const net = stats.net as Money;
 
   return (
-    <View testID="period-card" style={[styles.card, { backgroundColor: t.winWash }]}>
-      <View style={styles.cardTop}>
-        <Text style={[styles.eyebrow, { color: t.muted }]} {...unscaledLabel}>
-          {period === 'all' ? since : periodTitle(period, now)}
-        </Text>
-        <View style={styles.tabs}>
-          {PERIODS.map((p) => {
-            const on = p.value === period;
-            return (
-              <Pressable
-                key={p.value}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: on }}
-                onPress={() => setPeriod(p.value)}
-                style={[styles.tab, on && { borderBottomColor: t.text }]}
-              >
-                <Text
-                  style={[on ? styles.tabOn : styles.tabOff, { color: on ? t.text : t.muted }]}
+    /* `Card` takes no testID, so the name `ui-audit.mjs` reads is on a box
+       around it of exactly its size. */
+    <View testID="period-card">
+      <Card pad style={styles.card}>
+        <View style={styles.cardTop}>
+          <Text style={[styles.eyebrow, { color: t.muted }]} {...unscaledLabel}>
+            {period === 'all' ? since : periodTitle(period, now)}
+          </Text>
+          <View style={styles.tabs}>
+            {PERIODS.map((p) => {
+              const on = p.value === period;
+              return (
+                <Pressable
+                  key={p.value}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: on }}
+                  onPress={() => setPeriod(p.value)}
+                  hitSlop={6}
+                  style={[styles.tab, on && { borderBottomColor: t.text }]}
                 >
-                  {p.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+                  <Text
+                    style={[on ? styles.tabOn : styles.tabOff, { color: on ? t.text : t.muted }]}
+                  >
+                    {p.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
-      </View>
 
-      {/* 10 above and below the figure line — measured, not eyeballed. */}
-      <View style={styles.figureRow}>
-        <Text
-          testID="period-net"
-          style={[styles.figure, tabular, { color: net === 0 ? t.text : moneyColor(t, net) }]}
-          numberOfLines={1}
-          {...cappedFigure}
-        >
-          {formatSignedToFit(net, HEAD_FITS)}
-        </Text>
-        <Text style={[styles.cardMeta, tabular, { color: t.muted }]} numberOfLines={1}>
-          {`${stats.games} ${stats.games === 1 ? 'game' : 'games'} · ${hours(stats.minutes)}`}
-        </Text>
-      </View>
-
-      <View style={[styles.pairs, { borderTopColor: t.hairline }]}>
-        <View style={styles.pair}>
-          <Text style={[styles.pairLabel, { color: t.muted }]} {...unscaledLabel}>
-            Won / lost
-          </Text>
-          <Text style={[styles.pairValue, tabular]}>
-            <Text style={{ color: t.win }}>{`${stats.won} W`}</Text>
-            <Text style={{ color: t.muted }}> · </Text>
-            <Text style={{ color: t.loss }}>{`${stats.lost} L`}</Text>
-          </Text>
-        </View>
-        <View style={[styles.pair, styles.pairRight]}>
-          <Text style={[styles.pairLabel, { color: t.muted }]} {...unscaledLabel}>
-            Avg / night
-          </Text>
+        <View style={styles.figureRow}>
           <Text
-            style={[
-              styles.pairValue,
-              tabular,
-              { color: stats.average === 0 ? t.text : moneyColor(t, stats.average) },
-            ]}
+            testID="period-net"
+            style={[styles.figure, tabular, { color: signed(t, net) }]}
+            numberOfLines={1}
             {...cappedFigure}
           >
-            {formatSigned(stats.average as Money)}
+            {formatSignedToFit(net, HEAD_FITS)}
+          </Text>
+          <Text style={[styles.cardMeta, tabular, { color: t.muted }]} numberOfLines={1}>
+            {`${stats.games} ${stats.games === 1 ? 'game' : 'games'} · ${hours(stats.minutes)}`}
           </Text>
         </View>
-      </View>
+
+        <View style={[styles.rule, { backgroundColor: t.hairline }]} />
+
+        <View style={styles.pairs}>
+          <View style={styles.pair}>
+            <Text style={[styles.pairLabel, { color: t.muted }]} {...unscaledLabel}>
+              Won / lost
+            </Text>
+            <Text style={[styles.pairValue, tabular]}>
+              <Text style={{ color: t.win }}>{`${stats.won} W`}</Text>
+              <Text style={{ color: t.muted }}> · </Text>
+              <Text style={{ color: t.red }}>{`${stats.lost} L`}</Text>
+            </Text>
+          </View>
+          <View style={[styles.pair, styles.pairRight]}>
+            <Text style={[styles.pairLabel, { color: t.muted }]} {...unscaledLabel}>
+              Avg / night
+            </Text>
+            <Text
+              style={[styles.pairValue, tabular, { color: signed(t, stats.average) }]}
+              {...cappedFigure}
+            >
+              {formatSigned(stats.average as Money)}
+            </Text>
+          </View>
+        </View>
+      </Card>
     </View>
   );
+}
+
+/** Green up, red down, the text colour at nothing — this screen's losses are red. */
+function signed(t: ReturnType<typeof useTheme>, amount: number): string {
+  if (amount > 0) return t.win;
+  if (amount < 0) return t.red;
+  return t.text;
 }
 
 /**
@@ -344,42 +405,57 @@ function hours(minutes: number): string {
 }
 
 const styles = StyleSheet.create({
-  /* `0 20px 12px` · `20px 22px` · radius 12, tinted, no border. */
-  card: {
-    marginHorizontal: 20,
-    marginTop: 4,
-    marginBottom: 12,
-    paddingVertical: 20,
-    paddingHorizontal: 22,
-    borderRadius: 12,
-    gap: 3,
+  /* The sheet's content: 18 in from each edge, the cards 12 apart. */
+  body: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
+
+  /* The kit's `card pad` at `padding: 16px`. */
+  card: { padding: z(16) },
+  cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: z(10) },
+  eyebrow: {
+    fontSize: z(11),
+    lineHeight: z(13),
+    fontWeight: '700',
+    letterSpacing: z(1.32),
+    textTransform: 'uppercase',
+    flexShrink: 1,
   },
-  cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.32, textTransform: 'uppercase', flexShrink: 1 },
-  tabs: { flexDirection: 'row', alignItems: 'baseline', gap: 12, marginLeft: 'auto' },
-  tab: { paddingBottom: 3, borderBottomWidth: 1.5, borderBottomColor: 'transparent' },
-  tabOff: { fontSize: 11.5, fontWeight: '500' },
-  tabOn: { fontSize: 11.5, fontWeight: '700' },
+  tabs: { flexDirection: 'row', alignItems: 'baseline', gap: z(12), marginLeft: 'auto' },
+  tab: { paddingBottom: z(3), borderBottomWidth: 1.5, borderBottomColor: 'transparent' },
+  tabOff: { fontSize: z(11.5), fontWeight: '500' },
+  tabOn: { fontSize: z(11.5), fontWeight: '700' },
 
-  figureRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10, marginTop: 7 },
-  figure: { fontSize: 34, fontWeight: '800', letterSpacing: -1.36, lineHeight: 36, flexShrink: 1 },
-  cardMeta: { marginLeft: 'auto', flexShrink: 0, fontSize: 12, fontWeight: '400' },
+  figureRow: { flexDirection: 'row', alignItems: 'baseline', gap: z(10), marginTop: z(10) },
+  /* `.fig` at 34: 700, the figure face, -.03em. */
+  figure: {
+    fontFamily: 'head',
+    fontSize: z(34),
+    fontWeight: '700',
+    letterSpacing: z(-1.02),
+    lineHeight: z(36),
+    flexShrink: 1,
+  },
+  cardMeta: { marginLeft: 'auto', flexShrink: 0, fontFamily: 'head', fontSize: z(12), fontWeight: '400' },
 
-  pairs: { flexDirection: 'row', alignItems: 'flex-end', gap: 24, marginTop: 7, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth },
-  pair: { gap: 4 },
+  rule: { height: 1, marginVertical: z(12) },
+
+  pairs: { flexDirection: 'row', alignItems: 'flex-end', gap: z(24) },
+  pair: { gap: z(6) },
   pairRight: { marginLeft: 'auto', alignItems: 'flex-end' },
-  pairLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
-  pairValue: { fontSize: 18, fontWeight: '700' },
+  pairLabel: { fontSize: z(10), lineHeight: z(10), fontWeight: '700', letterSpacing: z(1), textTransform: 'uppercase' },
+  pairValue: { fontFamily: 'head', fontSize: z(18), fontWeight: '700' },
 
-  /* `14px 22px 10px`. */
-  list: { marginHorizontal: space.page, marginTop: 14, marginBottom: 10 },
-  listHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 2 },
-  sectionLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
-  // The push has to carry the margin, not the text inside it: `auto` on the
-  // Text only pushes it within a box that is already hard against the label.
-  seeAllHit: { marginLeft: 'auto', paddingLeft: 12 },
-  seeAll: { fontSize: 12.5, fontWeight: '500' },
-  empty: { ...type.footnote, paddingTop: 8 },
+  seeAllHit: { paddingLeft: z(12) },
+  seeAll: { fontSize: z(12.5), fontWeight: '500' },
+
+  /* `padding: 4px 12px` — the rows carry their own 9 above and below. */
+  nights: { paddingVertical: z(4) },
+
+  ghostCard: { paddingVertical: z(2) },
+  ghostRow: { paddingVertical: z(12), gap: z(8) },
+  ghostHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+
+  /* The kit's `note`: 13/1.45, muted. */
+  empty: { fontSize: z(13), lineHeight: z(18.85) },
 });
 
 /*

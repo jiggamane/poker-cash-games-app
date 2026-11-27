@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Text } from './Text';
 import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';
-import { radius } from '../design/tokens';
+import { z } from '../design/scale';
 
 /**
  * THE APP'S ONE DROPDOWN — a label that names the current state, and a menu
@@ -23,6 +23,12 @@ import { radius } from '../design/tokens';
  * property of the screen you are already on, picked and dismissed without
  * leaving it. It floats — the one thing in this app that does — so it is also
  * the one thing that casts a shadow.
+ *
+ * IT SITS ON THE INK TOP, on My stats (the title row), Sessions and the
+ * settled night (the meta line), so the closed control is the full board's
+ * `topDropdown` (`kit.mjs`, `.tdd`): white 600 12.5 on the ink's own fill,
+ * radius 10, a chevron down. The open MENU is not on the ink — it hangs over
+ * the sheet — so it is a surface card like every other card in the look.
  *
  * ⚠ OPEN IS THE CALLER'S. While the menu is up, everything behind it drops to
  * 32%, and "everything behind it" is the screen's business rather than the
@@ -73,15 +79,16 @@ export function Dropdown<T extends string>({
   const { width, height } = useWindowDimensions();
   const active = items.find((i) => i.value === value) ?? items[0];
   /* A control with one thing to pick is not a control. It still says what the
-     state is — that is the label's other job — so it draws as text. */
+     state is — that is the label's other job — so it draws as the same pill
+     with no chevron (the board's `scopeLabel`). */
   const only = items.length < 2;
 
   if (active === undefined) return null;
 
   if (only) {
     return (
-      <View testID={testID} style={[styles.anchor, styles.button, { backgroundColor: t.surface, boxShadow: t.lift }]}>
-        <Text style={[styles.label, { color: t.offTable }]} numberOfLines={1}>
+      <View testID={testID} style={[styles.anchor, styles.button, { backgroundColor: t.onTopFill }]}>
+        <Text style={[styles.label, { color: t.onTop }]} numberOfLines={1}>
           {active.label}
         </Text>
       </View>
@@ -96,12 +103,16 @@ export function Dropdown<T extends string>({
         accessibilityState={{ expanded: open }}
         accessibilityLabel={accessibilityLabel ?? `${active.label}. Change it.`}
         onPress={() => onOpenChange(!open)}
-        style={[styles.button, { backgroundColor: open ? t.raised : t.surface }]}
+        style={({ pressed }) => [
+          styles.button,
+          { backgroundColor: t.onTopFill },
+          pressed && { opacity: 0.6 },
+        ]}
       >
-        <Text style={[styles.label, { color: open ? t.text : t.offTable }]} numberOfLines={1}>
+        <Text style={[styles.label, { color: t.onTop }]} numberOfLines={1}>
           {active.label}
         </Text>
-        <Icon name={open ? 'chevronUp' : 'chevronDown'} color={t.muted} size={11} />
+        <Icon name={open ? 'chevronUp' : 'chevronDown'} color={t.onTop} size={z(14)} />
       </Pressable>
 
       {open && (
@@ -120,7 +131,7 @@ export function Dropdown<T extends string>({
       {open && (
         <View
           testID={testID === undefined ? undefined : `${testID}-menu`}
-          style={[styles.menu, { backgroundColor: t.menu, borderColor: t.sheetEdge }]}
+          style={[styles.menu, { backgroundColor: t.surface, borderColor: t.hairline }]}
         >
           {items.map((item) => {
             const on = item.value === value;
@@ -133,20 +144,20 @@ export function Dropdown<T extends string>({
                   onPick(item.value);
                   onOpenChange(false);
                 }}
-                style={[styles.row, on && { backgroundColor: t.menuActive }]}
+                style={[styles.row, on && { backgroundColor: t.raised }]}
               >
                 <View style={styles.check}>
-                  {on && <Icon name="check" color={t.offTable} size={13} />}
+                  {on && <Icon name="check" color={t.text} size={z(13)} />}
                 </View>
                 <View style={styles.text}>
                   <Text
-                    style={[on ? styles.itemOn : styles.item, { color: t.offTable }]}
+                    style={[on ? styles.itemOn : styles.item, { color: t.text }]}
                     numberOfLines={1}
                   >
                     {item.label}
                   </Text>
                   {item.hint !== undefined && (
-                    <Text style={[styles.hint, { color: t.annotation }]} numberOfLines={1}>
+                    <Text style={[styles.hint, { color: t.muted }]} numberOfLines={1}>
                       {item.hint}
                     </Text>
                   )}
@@ -166,16 +177,16 @@ const styles = StyleSheet.create({
   /* Pushed to the right-hand end of whatever line it shares — the meta line on
      Sessions, the title row on My stats. */
   anchor: { marginLeft: 'auto', position: 'relative', alignItems: 'flex-end' },
+  /* `.tdd`: `padding: 7px 11px`, gap 6, radius 10. */
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingLeft: 11,
-    paddingRight: 10,
-    borderRadius: radius.pressable,
+    gap: z(6),
+    paddingVertical: z(7),
+    paddingHorizontal: z(11),
+    borderRadius: z(10),
   },
-  label: { fontSize: 13, fontWeight: '600', flexShrink: 1 },
+  label: { fontSize: z(12.5), fontWeight: '600', flexShrink: 1 },
 
   /* A phone's worth of reach past every edge of the anchor — see the note on
      the dimensions above. Transparent: the 32% behind an open menu is the
@@ -183,33 +194,35 @@ const styles = StyleSheet.create({
      the menu's own `zIndex: 5`. */
   backdrop: { position: 'absolute', zIndex: 4 },
 
-  /* 226 wide, 34 below the control, right-aligned to it. */
+  /* 226 wide, just below the control, right-aligned to it; the look's card
+     radius. */
   menu: {
     position: 'absolute',
-    top: 34,
+    top: z(36),
     right: 0,
-    width: 226,
-    borderRadius: 12,
+    width: z(226),
+    borderRadius: z(14),
     borderWidth: 1,
     overflow: 'hidden',
     zIndex: 5,
-    /* `0 18px 40px rgba(0,0,0,.55)` — see the note on floating, above. */
+    /* It floats — see the note above — so it keeps a deeper fall than a
+       card's lift. */
     elevation: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.55,
+    shadowOpacity: 0.22,
     shadowRadius: 20,
-    shadowOffset: { width: 0, height: 18 },
+    shadowOffset: { width: 0, height: 12 },
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 11,
-    paddingHorizontal: 13,
+    gap: z(10),
+    paddingVertical: z(11),
+    paddingHorizontal: z(13),
   },
-  check: { width: 13, alignItems: 'center' },
-  text: { gap: 1, flexShrink: 1 },
-  item: { fontSize: 14, fontWeight: '400' },
-  itemOn: { fontSize: 14, fontWeight: '600' },
-  hint: { fontSize: 11.5, fontWeight: '400' },
+  check: { width: z(13), alignItems: 'center' },
+  text: { gap: z(1), flexShrink: 1 },
+  item: { fontSize: z(14), fontWeight: '400' },
+  itemOn: { fontSize: z(14), fontWeight: '600' },
+  hint: { fontSize: z(11.5), fontWeight: '400' },
 });

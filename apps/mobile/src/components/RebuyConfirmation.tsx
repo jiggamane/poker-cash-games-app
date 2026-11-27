@@ -21,6 +21,7 @@ import {
   useRebuyAnnouncement,
 } from './rebuyAnnouncement';
 import { useTheme } from '../design/useTheme';
+import { z } from '../design/scale';
 import { cappedFigure, radius } from '../design/tokens';
 
 /**
@@ -192,7 +193,7 @@ function useTagLife(stamp: number | undefined, calm: boolean) {
  * both answers are somebody else's file: Tonight's headline at the board's 34,
  * or that right-hand column narrower.
  */
-export function TotalTag({ fits, room }: { fits: number; room: number }) {
+export function TotalTag({ fits, room, onInk = false }: { fits: number; room: number; onInk?: boolean }) {
   const t = useTheme();
   const it = useRebuyAnnouncement();
   const calm = useCalm();
@@ -220,7 +221,8 @@ export function TotalTag({ fits, room }: { fits: number; room: number }) {
       {...cappedFigure}
       style={[
         styles.totalTag,
-        { color: t.win },
+        /* On the ink top (Tonight's pot, the full board) in the live green. */
+        { color: onInk ? t.liveDot : t.win },
         {
           opacity,
           transform: [
@@ -393,7 +395,9 @@ export function RebuyBar() {
       accessibilityLiveRegion="polite"
       style={[
         styles.bar,
-        { borderColor: t.winEdge, backgroundColor: t.ground },
+        /* THE FULL BOARD (`session-rebuy-undo`): an ink pill over the list, the
+           check in green, Undo in the bar's red. The opposite colour in the dark. */
+        { backgroundColor: t.text },
         {
           opacity: rise,
           transform: calm
@@ -410,14 +414,14 @@ export function RebuyBar() {
        * is what makes it opaque: the table must not be legible through a bar
        * that is covering it.
        */}
-      <View style={[StyleSheet.absoluteFill, styles.barTint, { backgroundColor: t.winTint }]} />
+
       {/* The board's own check, at the board's own 18: `Icon`'s `check` is the
           path `M4.5 12.5l5 5 10-11`, which is the same string this bar is drawn
           with. Its stroke is the icon set's 2.2 rather than the bar's 3 — a
           weight in `Icon.tsx` is shared by every screen in the app, and one is
           not worth reopening a shared component for. */}
-      <Icon name="check" color={t.win} size={18} />
-      <Text style={[styles.barLine, { color: t.text }]} numberOfLines={1}>
+      <Icon name="check" color={t.onFillWin} size={z(18)} />
+      <Text style={[styles.barLine, { color: t.onFill }]} numberOfLines={1}>
         {line}
       </Text>
       <Pressable
@@ -426,7 +430,7 @@ export function RebuyBar() {
         onPress={() => void undoRebuy()}
         style={({ pressed }) => [styles.undo, { opacity: pressed ? 0.6 : 1 }]}
       >
-        <Text style={[styles.undoText, { color: t.win }]}>Undo</Text>
+        <Text style={[styles.undoText, { color: t.onFillDanger }]}>Undo</Text>
       </Pressable>
     </Animated.View>
   );
@@ -468,45 +472,28 @@ const styles = StyleSheet.create({
    */
   bar: {
     position: 'absolute',
-    left: 14,
-    right: 14,
+    left: z(14),
+    right: z(14),
     bottom: '100%',
-    minHeight: 48,
+    marginBottom: z(10),
+    minHeight: z(56),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 11,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    /* NOT `overflow: 'hidden'`, which is the reflex for a rounded box and would
-       take the shadow with it — on iOS that flag is `masksToBounds`, and a
-       masked layer draws nothing outside itself. The fill layer below rounds
-       its own corners instead. */
-    // `0 -6px 26px rgba(0,0,0,.5)` — it is the one thing in this app that
-    // floats over the table, and the shadow is what says so.
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 13,
-    elevation: 12,
+    gap: z(10),
+    paddingVertical: z(14),
+    paddingHorizontal: z(16),
+    borderRadius: z(14),
+    boxShadow: '0px 12px 24px -10px rgba(0,0,0,0.45)',
   },
-  barTint: { borderRadius: 12 },
-  barLine: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
-  /* Padded to 44 of target on a 48 bar — the board's own `12px 2px 12px 14px`
-     with `-12` of margin, so the box it takes up is still the word. */
+  barLine: { fontSize: z(14.5), fontWeight: '600', flexShrink: 1 },
+  /* The undo is wider than its word, the extra taken back with `-12` of margin,
+     so the box it takes up is still the word. */
   undo: { marginLeft: 'auto', paddingTop: 12, paddingBottom: 12, paddingLeft: 14, paddingRight: 2, marginVertical: -12, flexShrink: 0 },
-  undoText: { fontSize: 15, fontWeight: '700' },
+  undoText: { fontFamily: 'head', fontSize: z(16.5), fontWeight: '700' },
 
-  /*
-   * 20/800, `-.03em`, and 4 of top margin.
-   *
-   * The board aligns the tag's CAP with the figure's cap — `align-items:
-   * flex-start` on two boxes whose leading differs. Here the figure is 44 on a
-   * 44 line (cap top ≈ 10.6 into the box) and the tag is 20 on a 24 line (cap
-   * top ≈ 6.8), so the tag is pushed the difference: 4, near enough.
-   */
   totalTag: {
+    /* An Animated.Text, so its face is named here rather than resolved. */
+    fontFamily: 'LibreFranklin-800',
     fontSize: 20,
     lineHeight: 24,
     fontWeight: '800',
@@ -532,5 +519,5 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     flexShrink: 0,
   },
-  nameTagText: { fontSize: 11.5, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  nameTagText: { fontFamily: 'head', fontSize: z(11.5), fontWeight: '700', fontVariant: ['tabular-nums'] },
 });
