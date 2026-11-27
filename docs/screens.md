@@ -3420,6 +3420,12 @@ screen behind the tile.
 - **A fresh club's waiting tiles** (Sessions, My stats) are drawn in
   `disabled`, as the rows were, and do not navigate.
 
+- **The tile names do not grow with the phone's text size** (27 November,
+  B114): *Poker tools* came back off a phone as *Poker to…* with the text
+  turned up. The name is `unscaledLabel` and `adjustsFontSizeToFit` (0.8) as
+  the backstop; the sub-line still scales. `ui-audit.mjs`'s WHOLE pass holds
+  every `data-whole` name to its box at its cap.
+
 **⚠ COPY NOT DRAWN by any handoff, and marked UNSURE on the canvas:** *Poker
 tools* (the tile and the title), the tile's sub-line *poker calculator, rules &
 rulings*, the Poker tools meta line *nothing here touches the ledger*, and the

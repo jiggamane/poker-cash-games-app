@@ -1152,6 +1152,47 @@ const AMOUNTS = `
 `;
 
 /**
+ * A NAME THAT MUST BE READ WHOLE — B114.
+ *
+ * ROOM lets words ellipsise, because a truncated name is a nuisance and a
+ * truncated number is a lie. A few names are not allowed that: the home grid's
+ * tile names are the whole of what a tile says, and "Poker to…" is a
+ * destination nobody can name. They carry data-whole, and this measures each
+ * one's full text at the LARGEST it can be drawn — its data-fontcap — against
+ * its box. No cap is itself the finding: the name grows with the reader and
+ * the tile does not.
+ */
+const WHOLE = `
+(() => {
+  const px = (v) => Math.round(v * 100) / 100;
+  const findings = [];
+  for (const el of document.querySelectorAll('[data-whole]')) {
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden' || cs.display === 'none' || el.clientWidth === 0) continue;
+    const name = el.textContent.trim();
+    const cap = el.closest('[data-fontcap]');
+    if (cap === null) {
+      findings.push({ check: 'name-uncapped', detail: 'no data-fontcap — it grows and its box does not', where: name });
+      continue;
+    }
+    const pen = document.createElement('canvas').getContext('2d');
+    pen.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' +
+      (parseFloat(cs.fontSize) || 0) * Number(cap.dataset.fontcap) + 'px ' + cs.fontFamily;
+    pen.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+    const needs = pen.measureText(name).width;
+    if (needs > el.clientWidth + 1) {
+      findings.push({
+        check: 'name-cut-off',
+        detail: 'needs ' + px(needs) + ' in ' + px(el.clientWidth) + ' at \u00d7' + cap.dataset.fontcap,
+        where: name,
+      });
+    }
+  }
+  return findings;
+})()
+`;
+
+/**
  * A keyboard, stood in for.
  *
  * The browser raises none, so the one thing that goes wrong when it does —
@@ -1417,6 +1458,8 @@ for (const WIDTH of sheetsOnly ? [] : WIDTHS) {
         findings = await page.evaluate(ROOM);
         /* The money fields on the face this route opens at — see AMOUNTS. */
         findings.push(...(await page.evaluate(AMOUNTS)));
+        /* The names that may not ellipsise — see WHOLE. */
+        findings.push(...(await page.evaluate(WHOLE)));
 
         /*
          * The head, for the screens that have asked for a moving one — see
