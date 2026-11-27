@@ -3646,3 +3646,36 @@ filled button in the content until its part moves it to the bar.
 **Part 1, approved with nothing open** — `/bill`, `/boosters`, `/booster`,
 `/pick`, `/log`, `/your-name`, built and photographed beside their drawings
 (`scripts/ui-look.mjs`). Not yet seen on a phone.
+
+## The full board, in code — parts 2 and 3 (27 November)
+
+**Part 2, the night** — Home, Tonight (the pot on the ink, the shares bar, the
+hold bar), the player card, entry, seating, tools, the spends, rounding, end
+time, the money and bill rules, handing over and passing the game, sign-in,
+invite, claim, groups. **Part 3, the end and the rest** — Count up, Deductions,
+Settle up, Who pays whom, the settled night in its three views, My stats, the
+calculator (`/odds`, `/run-out`), and **Your plan** (`/plan`, `/plan-change`).
+Every one of them photographed beside its drawing; none yet seen on a phone,
+and from now on the phone is a TestFlight build, not Expo Go.
+
+**Not built, on instruction:** *which hand wins* and the side-pot calculator.
+
+**Your plan sells nothing yet.** Owner, 27 November: screens now, store later.
+Every store call goes through `src/lib/purchases.ts`, which answers "no store";
+the screens print no price (prices are only ever the store's own strings) and
+their bars stay faint. Wiring it is that one file, once the RevenueCat project
+and the App Store Connect subscriptions exist.
+
+**Decided while building, not by a drawing** (each to confirm on the board):
+the rank number is dropped on settled rows; the settle status pill is neutral;
+*Nudge the table* hides once every transfer is paid; the app keeps its own
+strings *Invite a player*, *QR code*, *Offline* where the board's differ; the
+playing card's face is white in both themes; the odds red in dark is 68 − 4d
+(it was 4.47:1 on the lifted card). Amber and the losses colour on My stats
+are still the owner's to answer.
+
+**Fixed on the way, each now red in `check:ui` if it comes back:** the ink top
+swallowed taps on the sheet's first 26 points (pointer events, `ui-odds`); the
+bar's narrow half collapsed to a zero basis on the web and left *Fix* off the
+edge (`label-out-of-its-control`); the audit measured at a NaN scale because
+its fake viewport has no width (`scale.ts` falls back).
