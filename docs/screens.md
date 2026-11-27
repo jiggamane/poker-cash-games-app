@@ -3668,12 +3668,12 @@ and the App Store Connect subscriptions exist.
 
 **Owner, 27 November — confirmed:** the rank number is dropped on settled
 rows; the settle status pill is neutral grey; *Nudge the table* hides once
-every transfer is paid. The white card face in dark is being checked visually.
+every transfer is paid. The playing card face stays white in both themes (seen in both, same day).
 
 **Decided while building, not by a drawing** (each to confirm on the board):
 the app keeps its own
 strings *Invite a player*, *QR code*, *Offline* where the board's differ; the
-playing card's face is white in both themes; the odds red in dark is 68 − 4d
+odds red in dark is 68 − 4d
 (it was 4.47:1 on the lifted card). Amber and the losses colour on My stats
 are still the owner's to answer.
 
