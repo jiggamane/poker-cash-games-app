@@ -3,14 +3,14 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '../src/components/Text';
 import { paymentProgress, settle, type TransferLine } from '@poker-club/core';
-import { formatMoney, formatToFit } from '../src/lib/money';
-import { Button } from '../src/components/Button';
+import { formatMoney, formatToFit, roundingRowLabel, roundingRowValue } from '../src/lib/money';
+import { Card, CardRow, SectionLabel } from '../src/components/Card';
 import { Icon } from '../src/components/Icon';
-import { RoundingBar } from '../src/components/RoundingBar';
 import { Screen } from '../src/components/Screen';
 import { TotalsCard } from '../src/components/TotalsCard';
 import { useTheme } from '../src/design/useTheme';
-import { cappedFigure, space, unscaledLabel } from '../src/design/tokens';
+import { z } from '../src/design/scale';
+import { cappedFigure } from '../src/design/tokens';
 import { setPaid, settlementOf, transferKey, useNight } from '../src/lib/nightStore';
 
 /**
@@ -36,10 +36,16 @@ import { setPaid, settlementOf, transferKey, useNight } from '../src/lib/nightSt
  * costs nothing: there is no second control to find and no word to read.
  * Recorded in `docs/screens.md`.
  *
- * THE HEADER IS THE SAME CARD `/settled` DRAWS, reading the same figure. `Left
- * to move` is `paymentProgress`'s `value.owed`, and so is the pill's amount on
- * both screens — the cut's rule, and the one thing on these two screens that
- * would be most obviously broken if it were ever computed twice.
+ * THE HEADER IS THE SAME CARD `/settled` DREW, reading the same figure. `Left
+ * to move` is `paymentProgress`'s `value.owed`, and so is the pill's amount —
+ * the cut's rule, and the one thing on this screen that would be most
+ * obviously broken if it were ever computed twice.
+ *
+ * THE FULL BOARD (`payments`, `payments-settled`, approved): the totals and
+ * the step in one lifted card, the transfers in another under a quiet label
+ * with the count at its right, the piggy-bank note, Nudge the table as a quiet
+ * line, and Mark all as paid as the bar. With every row ticked there is no
+ * primary, so no bar.
  */
 export default function Payments() {
   const t = useTheme();
@@ -77,33 +83,25 @@ export default function Payments() {
       title="Who pays whom"
       meta={`${nightDate(night.startedAt)} · ${count.total} ${count.total === 1 ? 'transfer' : 'transfers'}`}
       backTo="the results"
-      footer={
-        done ? undefined : (
-          <View style={styles.foot}>
-            {/*
-             * ⚠ `Nudge the table` IS NOT DRAWN ON 2a EITHER, and it survives for
-             * the reason it did under R2: this screen is the only door into
-             * `/nudge` in the app. The cut's footer is one button and it is not
-             * this one, so the nudge is a chip above it. Delete it the day a
-             * board draws the nudge somewhere else.
-             */}
-            <Button label="Nudge the table" variant="chip" onPress={() => router.push('/nudge')} />
-            <Button
-              label="Mark all as paid"
-              variant="primary"
-              onPress={() => {
-                for (const line of waiting) {
-                  /* Refused on a night another phone holds (`hold.ts`); the
-                     tick simply does not land, and the row says so by not
-                     changing. */
-                  void setPaid(line.fromPlayerId, line.toPlayerId, true).catch(() => undefined);
-                }
-              }}
-            />
-          </View>
-        )
+      bar={
+        done
+          ? undefined
+          : [
+              {
+                label: 'Mark all as paid',
+                onPress: () => {
+                  for (const line of waiting) {
+                    /* Refused on a night another phone holds (`hold.ts`); the
+                       tick simply does not land, and the row says so by not
+                       changing. */
+                    void setPaid(line.fromPlayerId, line.toPlayerId, true).catch(() => undefined);
+                  }
+                },
+              },
+            ]
       }
     >
+      <View style={styles.column}>
       {/*
        * ⚠ AND NO `Close the night` WHERE THE CUT DRAWS ONE. Its 2a closes the
        * night from this screen; in this app the night was closed at settle-up,
@@ -119,44 +117,64 @@ export default function Payments() {
         amount={value.owed}
         owed={value.owed}
         anyPaid={count.settled > 0}
-      />
+      >
+        {/*
+         * THE STEP, STATED AND LOCKED. The cut lets 2a change it — *"changing
+         * the step here recomputes the transfers on screen"* — and its own body
+         * copy ends *"changeable until the night is closed"*, which this night
+         * is. Every transfer below was derived at this step and re-rounding a
+         * record of what people actually paid is the thing rule 8 forbids. So
+         * the row states it and opens nothing.
+         *
+         * A KIT ROW IN THE TOTALS CARD, as the board draws it, rather than
+         * `RoundingBar` under it: the same label and value off the same two
+         * `money.ts` calls, with no `onPress`, so it is no door.
+         */}
+        <CardRow
+          name={roundingRowLabel(night.roundingMode)}
+          value={roundingRowValue(night.roundingMode)}
+          last
+        />
+      </TotalsCard>
 
-      {/*
-       * THE STEP, STATED AND LOCKED. The cut lets 2a change it — *"changing the
-       * step here recomputes the transfers on screen"* — and its own body copy
-       * ends *"changeable until the night is closed"*, which this night is. Every
-       * transfer below was derived at this step and re-rounding a record of what
-       * people actually paid is the thing rule 8 forbids. So the row states it
-       * and opens nothing.
-       */}
-      <RoundingBar mode={night.roundingMode} style={styles.rounding} />
+      <SectionLabel text="Transfers" quiet right={`${count.settled} of ${count.total} paid`} />
 
-      <View style={styles.list}>
-        <View style={styles.listHead}>
-          <Text style={[styles.eyebrow, { color: t.muted }]} {...unscaledLabel}>
-            Transfers
-          </Text>
-          <Text style={[styles.listCount, { color: t.muted }]}>
-            {`${count.settled} of ${count.total} paid`}
-          </Text>
-        </View>
-
-        {lines.map((line) => (
-          <TransferRow key={line.key} line={line} />
-        ))}
-
-        {count.total === 0 && (
-          <Text style={[styles.none, { color: t.muted }]}>
-            Nothing to move: everyone left level.
-          </Text>
-        )}
-      </View>
+      {count.total > 0 ? (
+        <Card>
+          {lines.map((line, i) => (
+            <TransferRow key={line.key} line={line} last={i === lines.length - 1} />
+          ))}
+        </Card>
+      ) : (
+        <Text style={[styles.none, { color: t.muted }]}>
+          Nothing to move: everyone left level.
+        </Text>
+      )}
 
       <View style={styles.note}>
-        <Icon name="info" color={t.muted} size={14} />
+        <Icon name="info" color={t.muted} size={z(14)} />
         <Text style={[styles.noteText, { color: t.muted }]}>
           The piggy bank is set aside for the group, so it stays on the book after the night closes.
         </Text>
+      </View>
+
+      {/*
+       * ⚠ `Nudge the table` IS NOT DRAWN ON 2a EITHER, and it survives for the
+       * reason it did under R2: this screen is the only door into `/nudge` in
+       * the app. The full board keeps it in the content as a quiet line with
+       * the message mark (`payments`, approved), and drops it with the bar once
+       * every row is ticked.
+       */}
+      {!done && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/nudge')}
+          style={({ pressed }) => [styles.quiet, pressed && { opacity: 0.6 }]}
+        >
+          <Icon name="message" color={t.muted} size={z(16)} />
+          <Text style={[styles.quietText, { color: t.muted }]}>Nudge the table</Text>
+        </Pressable>
+      )}
       </View>
     </Screen>
   );
@@ -171,18 +189,24 @@ export default function Payments() {
  * one tap per row, anywhere on the row. The marker on the right is still there
  * and still says what it says; it is simply not the only place the tap lands.
  *
- * THE PIGGY BANK IS A RECIPIENT LIKE ANY PERSON, and it is drawn in bone —
- * the arrow with it — because it is the one row where the money is leaving the
- * players for good. Which recipients those are is `paymentProgress`'s answer,
- * not this screen's: the same membership test that keeps a collector's float
- * off anybody's result (B27).
+ * THE PIGGY BANK IS A RECIPIENT LIKE ANY PERSON, and it is drawn in the muted
+ * ink — the arrow with it — because it is the one row where the money is
+ * leaving the players for good. (The app drew it in bone; the full board has no
+ * bone token and draws it muted, flagged and approved.) Which recipients those
+ * are is `paymentProgress`'s answer, not this screen's: the same membership test
+ * that keeps a collector's float off anybody's result (B27).
+ *
+ * THE KIT'S ROW in the transfers card: a hairline under every row but the last,
+ * no chevron. A paid row is the kit's `dimr` — its words in the dim ink, in
+ * place, still a row and still a tap.
  */
-function TransferRow({ line }: { line: TransferLine }) {
+function TransferRow({ line, last }: { line: TransferLine; last: boolean }) {
   const t = useTheme();
 
-  /* Paid outranks bone: a row that has been handed over is spent ink whoever
-     it went to, or the piggy row would be the one row that never dims. */
-  const ink = line.paid ? t.dim : line.toOffTable ? t.offTable : t.text;
+  /* Paid outranks the piggy bank's muted: a row that has been handed over is
+     spent ink whoever it went to, or the piggy row would be the one row that
+     never dims. */
+  const ink = line.paid ? t.dim : line.toOffTable ? t.muted : t.text;
 
   return (
     <Pressable
@@ -201,14 +225,14 @@ function TransferRow({ line }: { line: TransferLine }) {
       }
       style={({ pressed }) => [
         styles.row,
-        { borderTopColor: t.hairline, opacity: line.paid ? 0.62 : 1 },
-        pressed && { opacity: line.paid ? 0.4 : 0.6 },
+        !last && { borderBottomWidth: 1, borderBottomColor: t.hairline },
+        pressed && { opacity: 0.6 },
       ]}
     >
       <Text style={[styles.who, { color: ink }]} numberOfLines={1}>
         {line.from}
       </Text>
-      <Icon name="arrow" color={line.paid ? t.disabled : line.toOffTable ? t.offTable : t.dim} size={15} />
+      <Icon name="arrow" color={line.paid ? t.dim : t.muted} size={z(15)} />
       <Text style={[styles.who, { color: ink }]} numberOfLines={1}>
         {line.to}
       </Text>
@@ -218,17 +242,17 @@ function TransferRow({ line }: { line: TransferLine }) {
 
       {/*
        * 22 across, and two states rather than one drawn twice: an empty ring
-       * while it is open, the win colour filled with a check once it is not.
+       * while it is open, a ring in the win colour with a check once it is not.
+       * The app filled it green; the look has no green fills, so the board
+       * draws the ring and the check (`payments-settled`, flagged, approved).
        */}
       <View
         style={[
           styles.marker,
-          line.paid
-            ? { backgroundColor: t.win }
-            : { borderWidth: 1.6, borderColor: t.quietOutline },
+          { borderColor: line.paid ? t.win : t.outline },
         ]}
       >
-        {line.paid && <Icon name="check" color={t.ground} size={13} />}
+        {line.paid && <Icon name="check" color={t.win} size={z(13)} />}
       </View>
     </Pressable>
   );
@@ -237,58 +261,61 @@ function TransferRow({ line }: { line: TransferLine }) {
 const nightDate = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 
-/* The transfer amount at 18/700, with two names giving beside it. */
+/* The transfer amount at the kit's 16.5/700 (19 at 360), with two names giving
+   beside it and the 22 marker after it: "$999,999" is about 100 of a row about
+   290 wide, so seven digits print in full and a million goes compact. */
 const ROW_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
-
-  rounding: { marginTop: 14 },
-
-  list: { marginHorizontal: space.page, marginTop: 16 },
-  listHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 4 },
-  listCount: { marginLeft: 'auto', fontSize: 12.5, fontWeight: '500', fontVariant: ['tabular-nums'] },
+  /* The full board's pushed screen: 18 in from the sheet, 12 between groups. */
+  column: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
 
   /*
-   * 14 of padding each way over a hairline, which comes to 48 with a 16pt name
-   * in it — past the 44 a tap target has to be, and it grows rather than clips
-   * when the reader turns the text up.
+   * THE KIT'S ROW — 8 of padding each way, at least 44 tall, which is the tap
+   * target a row has to be; it grows rather than clips when the reader turns
+   * the text up.
    */
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
-    paddingVertical: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: z(7),
+    minHeight: z(44),
+    paddingVertical: z(8),
   },
-  /* The two names give and the figure does not — B18. */
-  who: { fontSize: 16, fontWeight: '600', flexShrink: 1, minWidth: 0 },
+  /* The two names give and the figure does not — B18. The kit's row name. */
+  who: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6), flexShrink: 1, minWidth: 0 },
+  /* The kit's row figure, 700 16.5 in the figure face. */
   amount: {
     marginLeft: 'auto',
     flexShrink: 0,
-    fontSize: 18,
+    fontFamily: 'head',
+    fontSize: z(16.5),
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   marker: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: z(22),
+    height: z(22),
+    borderRadius: z(11),
+    borderWidth: 1.6,
+    marginLeft: z(3),
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
 
-  none: { fontSize: 14, fontWeight: '400', paddingVertical: 8 },
+  none: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85), marginHorizontal: z(2) },
 
+  /* The info mark beside the kit's note, 9 apart, its top on the first line. */
   note: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 9,
-    marginHorizontal: space.page,
-    paddingTop: 11,
+    gap: z(9),
+    marginHorizontal: z(2),
   },
-  noteText: { flex: 1, fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
+  noteText: { flex: 1, fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
 
-  foot: { gap: 10 },
+  /* The kit's quiet line, `btnq`: 600 14, muted, at least 40 tall. */
+  quiet: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: z(6), minHeight: z(40) },
+  quietText: { fontSize: z(14), fontWeight: '600' },
 });

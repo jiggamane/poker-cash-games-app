@@ -792,15 +792,17 @@ async function playANight(name, rebuys) {
    * night has — $1.2m at the millions scale, $99m at the ceiling — so the chip
    * that offers it back is as wide as this screen can ever ask for.
    *
-   * The two closes are the flow's own shape: the first goes back a step to the
-   * menu, the second leaves the sheet. If either stops working this stop fails
+   * Back, then close, is the flow's own shape: the back circle goes a step back
+   * to the menu, the close leaves the sheet. If either stops working this stop fails
    * on the tap after it rather than passing quietly.
    */
   await tap('Rebuy', { last: true });
   await stop('correct an entry');
   await tap('Change the amount');
   await stop('correct an entry · the amount');
-  await page.getByLabel('Close').last().click();
+  /* Back a step with the sheet's back circle (the full board's `entry-amount`,
+     24 November: a later step carries one, and its close leaves the sheet). */
+  await page.getByLabel('Back').last().click();
   await page.waitForTimeout(600);
   await stop('correct an entry · back a step');
   await page.getByLabel('Close').last().click();

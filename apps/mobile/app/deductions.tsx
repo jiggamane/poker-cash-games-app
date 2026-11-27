@@ -228,6 +228,10 @@ export default function Deductions() {
    * sentence has no such ceiling: the step is a term like any other, the figure
    * on the right is the one E4 settles, and the caveat is gone with the grid
    * that needed it.
+   *
+   * SINCE THE FULL BOARD THE WORDS ARE MARKS — chips out for the game, the
+   * fork and the piggy for the two rules — as the settled night draws them;
+   * a term with no mark keeps its word. See `TermMark`.
    */
   const rows = resultFormula(result.value);
 
@@ -236,16 +240,17 @@ export default function Deductions() {
       title="Deductions"
       backTo="Count up"
       trailing={<Step label="2 of 3" />}
-      footer={
-        /* An outline, not a fill: the loud button of this flow is at the end of
-           it, and this step is a look before a decision. */
-        <Button
-          label="See who pays whom"
-          variant="secondary"
-          onPress={() => router.push('/settle-up')}
-        />
-      }
+      /*
+       * THE BAR, since the full board — and that is a reversal. In the app it
+       * was an outlined button, deliberately not the filled primary, because
+       * this step is a look before a decision and the loud button of the flow
+       * is at the end of it. On the board the bar is the only place a screen's
+       * way forward lives; the board flagged exactly this and was approved as
+       * drawn (24 November).
+       */
+      bar={[{ label: 'See who pays whom', onPress: () => router.push('/settle-up') }]}
     >
+      <View style={styles.body}>
       {/*
        * WHO ENDS UP WITH WHAT, AT THE TOP OF THE SCREEN — 6 September.
        *
@@ -261,109 +266,124 @@ export default function Deductions() {
        * NOTHING WENT WITH IT. This screen never added anything up and still
        * does not: what each rule takes is printed in full, to the dollar, per
        * person, in the block it came from, and where the money actually goes
-       * is the line under the step below. What the total said that no other
-       * figure says is how much of the table is leaving it — and a room that
-       * wants that reads it off the rule blocks it is already arguing about.
+       * is the line under the step below.
        *
        * Nobody's net is settled until the transfers are, so this is a preview
-       * and is drawn as one — dashed, tagged, and recomputed from the engine
-       * every time a figure below it changes.
+       * and says so — a quiet `Preview` tag on its label and the provisional
+       * line under the card (the board, 24 November: the dashed frame it had
+       * became a lifted card like every other group) — and it is recomputed
+       * from the engine every time a figure below it changes.
        */}
-      <View style={[styles.preview, { borderColor: t.dashed }]}>
-        <View style={styles.previewHead}>
-          <Text style={[styles.previewTitle, { color: t.text }]}>Everyone after deductions</Text>
-          <View style={[styles.tag, { borderColor: t.dashed }]}>
+      <SectionLabel
+        text="Everyone after deductions"
+        right={
+          <View style={[styles.tag, { backgroundColor: t.raised }]}>
             <Text style={[styles.tagText, { color: t.muted }]}>PREVIEW</Text>
           </View>
-        </View>
+        }
+      />
 
-        {/*
-         * ONE ROW PER PERSON, AND THE WHOLE OF THEIR NIGHT ON IT.
-         *
-         * `Petr` · `game +$1,620 · food −$54 · piggy −$23` · `+$1,543`. The
-         * name and the working stack on the left, the position sits hard right,
-         * and colour is carried by the position and nothing else — a row is
-         * never tinted or filled by its outcome, which at eight players turns
-         * the frame into stripes and stops the figure being the thing you read.
-         *
-         * THE TERMS ARE THE ENGINE'S, in the engine's order. A term of $0 is not
-         * printed; a person with ONE term has no line at all, because `game
-         * −$500` under a `−$500` is the figure explaining itself.
-         *
-         * A NON-BREAKING SPACE INSIDE EACH TERM, and it is B18 rather than
-         * typography: with an ordinary space the line wrapped wherever it liked
-         * and where it liked was inside a figure — `piggy −` on one line and
-         * `$600` on the next. The separator between terms is a spaced middot,
-         * and that is the only place a break belongs.
-         */}
-        {rows.map(({ player: p, terms, net }, i) => (
-          <View
-            key={p.playerId}
-            testID="e3-preview-row"
-            style={[
-              styles.row,
-              i < rows.length - 1 && {
-                borderBottomColor: t.previewRule,
-                borderBottomWidth: StyleSheet.hairlineWidth,
-              },
-            ]}
-          >
-            <View style={styles.rowText}>
-              <Text style={[styles.rowName, { color: t.text }]} numberOfLines={1}>
-                {p.name}
-              </Text>
-              {terms.length > 1 && (
-                /* CAPPED LIKE THE NET BESIDE IT (24 November). The working is
-                   figures, and in Libre Franklin the net beside it is about a
-                   tenth wider than it was: at a millions table and 120% text,
-                   `game −251k · food +50` went to two lines (ui-journeys). The
-                   cap holds it at 1.1, as every figure in a fixed box is held. */
-                <Text style={[styles.rowFormula, { color: t.muted }]} numberOfLines={2} {...cappedFigure}>
-                  {/* THE TERMS ARE UNMARKED — the rule of 19 September, in
-                      `money.ts`: this line IS the working, and the figure it
-                      comes to is the net beside it, which keeps the mark. A
-                      sentence of four marked figures under a fifth was the
-                      currency said five times for one night. */}
-                  {terms
-                    .map(
-                      (term) =>
-                        `${term.label}\u00a0${formatSignedToFitUnmarked(term.amount, TERM_FITS)}`,
-                    )
-                    .join(' · ')}
-                </Text>
-              )}
-            </View>
-
-            {/* Muted at exactly zero, which `moneyColor` is not: it falls back
-                to the text colour, and among green and red a white figure reads
-                as a third state rather than as no state. */}
-            <Text
-              style={[styles.rowNet, { color: net === 0 ? t.muted : moneyColor(t, net) }]}
-              numberOfLines={1}
-              {...cappedFigure}
+      {/*
+       * ONE ROW PER PERSON, AND THE WHOLE OF THEIR NIGHT ON IT — the settled
+       * night's own row (owner, 25 November: "the same UI as other parts").
+       *
+       *     Dana                                        +$1,429
+       *     ⇡ +1,620                         [🍴 −110  % −81]
+       *
+       * The name and the game result under it, after the chips-out arrow (owner,
+       * 26 November); the net hard right with the other terms as one pill under
+       * it. Colour is carried by the net and nothing else — a row is never
+       * tinted or filled by its outcome, which at eight players turns the card
+       * into stripes and stops the figure being the thing you read.
+       *
+       * THE TERMS ARE THE ENGINE'S, in the engine's order. A term of $0 is not
+       * printed; a person with ONE term has no line at all, because `−$500`
+       * under a `−$500` is the figure explaining itself.
+       */}
+      <Card>
+        {rows.map(({ player: p, terms, net }, i) => {
+          const [game, ...rest] = terms;
+          const working = terms.length > 1;
+          return (
+            <View
+              key={p.playerId}
+              testID="e3-preview-row"
+              style={[
+                styles.row,
+                i < rows.length - 1 && { borderBottomColor: t.hairline, borderBottomWidth: 1 },
+              ]}
             >
-              {formatSignedToFit(net, ROW_FITS)}
-            </Text>
-          </View>
-        ))}
+              <View style={styles.rowText}>
+                <Text style={[styles.rowName, { color: t.text }]} numberOfLines={1}>
+                  {p.name}
+                </Text>
+                {working && game !== undefined && (
+                  <View style={styles.termLine}>
+                    <TermMark term={game} />
+                    {/* CAPPED LIKE THE NET BESIDE IT (24 November). The
+                        working is figures in the figure face, and at a
+                        millions table and 120% text it went to two lines
+                        (ui-journeys). The cap holds it at 1.1, as every figure
+                        in a fixed box is held.
 
-        {/*
-         * ⚠ ONE WORD OF DRAWN COPY CHANGED, and only because the screen it
-         * describes turned over: rev 18's line is "Tap any figure ABOVE to
-         * change it", written when this block sat at the foot with every rule
-         * above it. The rules are below it now. A promise that points at the
-         * wrong half of the screen is worse than a rewritten one, and the word
-         * is the whole of the change — `docs/screens.md` records it.
-         */}
-        <Text style={[styles.previewNote, { color: t.muted }]}>
-          {admin
-            ? 'Provisional until you settle. Tap any figure below to change it.'
-            : /* ⚠ COPY NOT DRAWN. E3 is the host's screen and its line promises
-                 a tap only the host has. Saying the first half without the
-                 second is the honest half of a drawn string, not a new one. */
-              'Provisional until the host settles.'}
-        </Text>
-      </View>
+                        THE TERMS ARE UNMARKED — the rule of 19 September, in
+                        `money.ts`: this line IS the working, and the figure it
+                        comes to is the net beside it, which keeps the mark. */}
+                    <Text style={[styles.term, { color: t.muted }]} numberOfLines={1} {...cappedFigure}>
+                      {termText(game)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.rowRight}>
+                {/* Muted at exactly zero, which `moneyColor` is not: it falls
+                    back to the text colour, and among green and red a plain
+                    figure reads as a third state rather than as no state. */}
+                <Text
+                  style={[styles.rowNet, { color: net === 0 ? t.muted : moneyColor(t, net) }]}
+                  numberOfLines={1}
+                  {...cappedFigure}
+                >
+                  {formatSignedToFit(net, ROW_FITS)}
+                </Text>
+                {working && rest.length > 0 && (
+                  /* The kit's `terms()` pill: every term after the game, each
+                     with its mark, on one line that never breaks inside a
+                     figure. */
+                  <View style={[styles.pill, { backgroundColor: t.raised }]}>
+                    {rest.map((term) => (
+                      <View key={term.key} style={styles.pillTerm}>
+                        <TermMark term={term} />
+                        <Text style={[styles.pillText, { color: t.muted }]} numberOfLines={1} {...cappedFigure}>
+                          {termText(term)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </Card>
+
+      {/*
+       * ⚠ ONE WORD OF DRAWN COPY CHANGED, and only because the screen it
+       * describes turned over: rev 18's line is "Tap any figure ABOVE to
+       * change it", written when this block sat at the foot with every rule
+       * above it. The rules are below it now. A promise that points at the
+       * wrong half of the screen is worse than a rewritten one, and the word
+       * is the whole of the change — `docs/screens.md` records it.
+       */}
+      <Text style={[styles.note, { color: t.muted }]}>
+        {admin
+          ? 'Provisional until you settle. Tap any figure below to change it.'
+          : /* ⚠ COPY NOT DRAWN. E3 is the host's screen and its line promises
+               a tap only the host has. Saying the first half without the
+               second is the honest half of a drawn string, not a new one. */
+            'Provisional until the host settles.'}
+      </Text>
 
       {/*
        * THE STEP, UNDER THE PEOPLE IT MOVES — the same row E2 and E4 draw, the
@@ -381,13 +401,16 @@ export default function Deductions() {
        * is why the row is not gated here: a member gets the same row, opens
        * the same sheet, and reads what the night is set to without an Apply.
        */}
-      <RoundingBar
-        mode={night.roundingMode}
-        onPress={() =>
-          router.push({ pathname: '/rounding', params: { scope: 'night', from: 'settle' } })
-        }
-        style={styles.rounding}
-      />
+      <Card>
+        <RoundingBar
+          mode={night.roundingMode}
+          bare
+          last
+          onPress={() =>
+            router.push({ pathname: '/rounding', params: { scope: 'night', from: 'settle' } })
+          }
+        />
+      </Card>
 
       {/*
        * WHERE THE MONEY ACTUALLY GOES — the header card's own line, without the
@@ -396,7 +419,7 @@ export default function Deductions() {
        * room will ask. The total that used to head this sentence is what has
        * been dropped; the sentence is what the total was hanging off.
        */}
-      <Text style={[styles.destinations, { color: t.muted }]}>
+      <Text style={[styles.note, { color: t.muted }]}>
         {billIn
           ? destinations
           : destinations === ''
@@ -404,30 +427,28 @@ export default function Deductions() {
             : `${destinations} · the bill is not in yet`}
       </Text>
 
-      <View style={styles.blocks}>
-        {active.map((d, i) => (
-          <Block
-            key={d.ruleId}
-            deduction={d}
-            rule={night.rules.find((r) => r.id === d.ruleId)}
-            night={night}
-            admin={admin}
-            basisFor={(playerId) => {
-              const p = players.find((x) => x.playerId === playerId);
-              if (p === undefined) return 0 as Money;
-              const rule = night.rules.find((r) => r.id === d.ruleId);
-              if (rule?.basis !== 'net_after_others') return p.grossResult;
-              // Everything the rules above this one already took off them.
-              const taken = deductions
-                .slice(0, i)
-                .flatMap((earlier) => earlier.charges)
-                .filter((c) => c.playerId === playerId)
-                .reduce((sum, c) => sum + c.amount, 0);
-              return (p.grossResult - taken) as Money;
-            }}
-          />
-        ))}
-      </View>
+      {active.map((d, i) => (
+        <Block
+          key={d.ruleId}
+          deduction={d}
+          rule={night.rules.find((r) => r.id === d.ruleId)}
+          night={night}
+          admin={admin}
+          basisFor={(playerId) => {
+            const p = players.find((x) => x.playerId === playerId);
+            if (p === undefined) return 0 as Money;
+            const rule = night.rules.find((r) => r.id === d.ruleId);
+            if (rule?.basis !== 'net_after_others') return p.grossResult;
+            // Everything the rules above this one already took off them.
+            const taken = deductions
+              .slice(0, i)
+              .flatMap((earlier) => earlier.charges)
+              .filter((c) => c.playerId === playerId)
+              .reduce((sum, c) => sum + c.amount, 0);
+            return (p.grossResult - taken) as Money;
+          }}
+        />
+      ))}
 
       {/*
        * THE BILL ITSELF, and who has actually put money in.
@@ -441,47 +462,83 @@ export default function Deductions() {
        * the drawer and the bill, added it, and walked forward through the count
        * again. Everything above this recomputes off the engine, so a spend
        * added here redraws the shares and the preview in one go.
+       *
+       * `SpendList` carries the sheet's 20 inset itself, so it is outdented by
+       * that much to sit on this column's 18. ⚠ The board draws Add a spend
+       * here as a lifted chip; `SpendList` (shared) draws the outlined button
+       * `money-rules` drew.
        */}
-      <SpendList
-        total={bill.total}
-        spends={bill.spends}
-        nameFor={(id) => nameOf(night, id)}
-        canAdd={admin}
-      />
+      <View style={styles.outdent}>
+        <SpendList
+          total={bill.total}
+          spends={bill.spends}
+          nameFor={(id) => nameOf(night, id)}
+          canAdd={admin}
+        />
+      </View>
 
       {/*
        * THE RULES THEMSELVES, not just one figure inside one of them.
        *
        * Every block above opens the rule it belongs to, which is enough while
        * the argument is about a share. It is not enough when the argument is
-       * about the rule — switching the piggy bank off because somebody brought
-       * the food, or adding a rule for a bill nobody had thought of — and this
-       * is the screen where a room finds that out, because it is the first one
-       * that shows what each rule actually takes.
+       * about the rule set — switching the piggy bank off because somebody
+       * brought the food, or adding a rule for a bill nobody had thought of —
+       * and this is the screen where a room finds that out, because it is the
+       * first one that shows what each rule actually takes.
        *
-       * Same copy and same treatment as E4's, one step further on: the corner
-       * is empty on a pushed screen, so the way back to the rules is at the
-       * end, where a room that disagrees with a figure is already looking.
+       * The board's lifted row with the restart mark (25 November). It draws a
+       * chevron at the end; nothing else in the look points, so it is left off.
        */}
-      <Button
-        label="Change a rule and look again"
-        variant="chip"
-        style={styles.edit}
-        onPress={() => router.push('/money-rules')}
-      />
+        <Card>
+          <CardRow
+            name="Change a rule and look again"
+            lead={<Icon name="restart" color={t.muted} size={z(17)} />}
+            last
+            accessibilityLabel="Change a rule and look again"
+            onPress={() => router.push('/money-rules')}
+          />
+        </Card>
+      </View>
     </Screen>
   );
 }
+
+/**
+ * A term's mark — the settled night's glyphs: chips out for the game, the
+ * fork for the bill, the piggy for the piggy bank. A term with no drawn mark
+ * (the host's fee, the next pot, the rounding step) prints its word instead,
+ * so no term is ever a bare figure nobody can name.
+ */
+const MARK: Record<string, IconName> = { game: 'chipsOut', bill: 'food', kitty: 'piggy' };
+
+function TermMark({ term }: { term: { key: string } }) {
+  const t = useTheme();
+  const name = MARK[term.key];
+  if (name === undefined) return null;
+  return <Icon name={name} color={t.muted} size={z(12)} />;
+}
+
+/**
+ * The figure, and the word where there is no mark. A NON-BREAKING SPACE
+ * between them, and it is B18 rather than typography: with an ordinary space
+ * the line wrapped wherever it liked and where it liked was inside a figure.
+ */
+const termText = (term: { key: string; label: string; amount: Money }): string =>
+  MARK[term.key] === undefined
+    ? `${term.label} ${formatSignedToFitUnmarked(term.amount, TERM_FITS)}`
+    : formatSignedToFitUnmarked(term.amount, TERM_FITS);
 
 /** Was this person's share of this rule typed by the host rather than split? */
 const handSet = (rule: MoneyRule | undefined, playerId: PlayerId): boolean =>
   rule !== undefined && manualChargeOf(rule, playerId) !== undefined;
 
 /**
- * One rule, itemised.
+ * One rule, itemised, as a lifted card.
  *
- * A percentage shows its working — "5% of $1,620 → $81" — because a percentage
- * is the one deduction nobody at the table can check in their head.
+ * A percentage shows its working — "5% of 1,620" under the name, $81 at the
+ * right — because a percentage is the one deduction nobody at the table can
+ * check in their head.
  */
 function Block({
   deduction,
@@ -531,37 +588,40 @@ function Block({
   const ruleId = rule?.id;
   const editable = admin && ruleId !== undefined;
 
-  const head = (
-    <>
-      <Text style={[styles.blockName, { color: t.text }]}>
-        {perPerson && rule !== undefined ? `${deduction.name} · ${rateLabel(rule)}` : deduction.name}
-      </Text>
-      <Text style={[styles.blockTotal, { color: empty ? t.muted : t.text }]}>
-        {empty ? '—' : formatMoney(deduction.total)}
-      </Text>
-      {/* A power the reader does not have is removed, not disabled: a member
-          gets the same head, with no chevron on it and nothing to tap. */}
-      {editable && <Icon name="chevron" color={t.muted} size={14} />}
-    </>
-  );
-
   return (
-    <View style={[styles.block, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
-      {editable ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${deduction.name} · change the rule`}
-          onPress={() =>
-            ruleId !== undefined &&
-            router.push({ pathname: '/rule', params: { id: ruleId } })
-          }
-          style={({ pressed }) => [styles.blockTop, { opacity: pressed ? 0.6 : 1 }]}
-        >
-          {head}
-        </Pressable>
-      ) : (
-        <View style={styles.blockTop}>{head}</View>
-      )}
+    <Card>
+      {/*
+       * THE HEAD: the rule's name, a Change pill, and what it takes — the
+       * board's `blockHead` (owner, 26 November: "each rule's card has a
+       * Change pill in its head, opening that rule's editor"). The pill is the
+       * door now, where the whole head with a chevron was; a power the reader
+       * does not have is removed, not disabled, so a member gets the same head
+       * with no pill on it.
+       */}
+      <View style={styles.blockTop}>
+        <Text style={[styles.blockName, { color: t.text }]}>
+          {perPerson && rule !== undefined ? `${deduction.name} · ${rateLabel(rule)}` : deduction.name}
+        </Text>
+        {editable && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${deduction.name} · change the rule`}
+            onPress={() =>
+              ruleId !== undefined &&
+              router.push({ pathname: '/rule', params: { id: ruleId } })
+            }
+            hitSlop={8}
+            style={({ pressed }) => [styles.change, { backgroundColor: t.raised, opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Icon name="pencil" color={t.text} size={z(12)} />
+            {/* The board's word (26 November). */}
+            <Text style={[styles.changeLabel, { color: t.text }]}>Change</Text>
+          </Pressable>
+        )}
+        <Text style={[styles.blockTotal, { color: empty ? t.muted : t.text }]} numberOfLines={1} {...cappedFigure}>
+          {empty ? '—' : formatMoney(deduction.total)}
+        </Text>
+      </View>
 
       {!perPerson && (
         <Text style={[styles.blockNote, { color: t.muted }]}>
@@ -593,55 +653,57 @@ function Block({
         </Pressable>
       )}
 
-      <View style={styles.blockRows}>
+      {/*
+       * ONE PLAYER ROW PER SHARE, in the app's own rows (owner, 25 November):
+       * the name, its working under it, the charge at the right, and the
+       * pencil where the host may restate it.
+       *
+       * THE PENCIL MEANS WHAT IT DRAWS. It used to open the rule — which is
+       * the answer to "this split is wrong", not to "Petr's share is wrong",
+       * and the two are different arguments. The head's Change pill is the
+       * first; a row is the second, and opens `/share`.
+       *
+       * THE WORKING: a percentage shows its sum, `5% of 1,620`, unmarked,
+       * because its answer is the charge on the right of the same row and
+       * carries the mark. A bill's share reads `share of the bill`, the
+       * board's words (25 November). A share typed by hand says `by hand`
+       * instead, because then there is no sum behind it. Any other rule's rows
+       * read as charges, which is what they are, with no line under the name.
+       */}
+      <View>
         {(deduction.charges.length > 0 ? deduction.charges : placeholders(night, rule)).map(
-          (c, i, all) => (
-            <Pressable
-              key={c.playerId}
-              accessibilityRole={admin ? 'button' : 'none'}
-              disabled={!admin || rule === undefined}
-              /*
-               * THE PENCIL NOW MEANS WHAT IT DRAWS. It used to open the rule —
-               * which is the answer to "this split is wrong", not to "Petr's
-               * share is wrong", and the two are different arguments. E3's own
-               * line under the preview has promised the second one all along.
-               */
-              onPress={() =>
-                rule !== undefined &&
-                router.push({ pathname: '/share', params: { rule: rule.id, player: c.playerId } })
-              }
-              style={({ pressed }) => [
-                percent ? styles.workingRow : styles.chargeRow,
-                !percent &&
-                  i < all.length - 1 && { borderBottomColor: t.previewRule, borderBottomWidth: StyleSheet.hairlineWidth },
-                { opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <Text style={[percent ? styles.workingName : styles.chargeName, { color: t.text }]}>
-                {nameOf(night, c.playerId)}
-                {handSet(rule, c.playerId) && (
-                  <Text style={{ color: t.muted }}> · by hand</Text>
-                )}
-              </Text>
-
-              {percent && rule !== undefined && !handSet(rule, c.playerId) && (
-                <Text style={[styles.working, { color: t.muted }]}>
-                  {/* `5% of 2,120`, unmarked: the working, whose answer is the
-                      charge on the right of the same row and carries the mark. */}
-                  {rule.amount}% of {formatToFitUnmarked(basisFor(c.playerId), WORKING_FITS)}
-                </Text>
-              )}
-
-              <Text style={[percent ? styles.workingAmount : styles.chargeAmount, { color: c.amount === 0 ? t.muted : t.text }]}>
-                {c.amount === 0 ? '—' : formatMoney(c.amount)}
-              </Text>
-
-              {!percent && admin && <Icon name="pencil" color={t.muted} size={14} />}
-            </Pressable>
-          ),
+          (c, i, all) => {
+            const byHandRow = handSet(rule, c.playerId);
+            const meta = byHandRow
+              ? 'by hand'
+              : percent && rule !== undefined
+                ? `${rule.amount}% of ${formatToFitUnmarked(basisFor(c.playerId), WORKING_FITS)}`
+                : deduction.destination === 'bill'
+                  ? 'share of the bill'
+                  : undefined;
+            return (
+              <CardRow
+                key={c.playerId}
+                name={nameOf(night, c.playerId)}
+                {...(meta === undefined ? {} : { meta })}
+                amount={c.amount === 0 ? '—' : formatMoney(c.amount)}
+                {...(c.amount === 0 ? { amountColor: t.muted } : {})}
+                last={i === all.length - 1}
+                {...(!percent && admin
+                  ? { trail: <Icon name="pencil" color={t.muted} size={z(15)} /> }
+                  : {})}
+                {...(admin && rule !== undefined
+                  ? {
+                      onPress: () =>
+                        router.push({ pathname: '/share', params: { rule: rule.id, player: c.playerId } }),
+                    }
+                  : {})}
+              />
+            );
+          },
         )}
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -685,123 +747,90 @@ const placeholders = (
 
 
 const styles = StyleSheet.create({
-  failure: { fontSize: 13.5, fontWeight: '400', lineHeight: 20, marginHorizontal: 20 },
-  /*
-   * THE STEP AND THE SENTENCE UNDER IT, between the people and the rules.
-   *
-   * `RoundingBar` carries its own 22 — doc 15 § 3.5, a plain row rather than a
-   * card — and the sentence takes the same, so the two line up with each other
-   * and sit two points proud of the blocks below, which are cards at 20.
-   */
-  rounding: { marginTop: 10 },
-  destinations: {
-    marginTop: 10,
-    marginBottom: 10,
-    marginHorizontal: 22,
-    fontSize: 13.5,
-    fontWeight: '400',
-    lineHeight: 19,
-  },
+  /* A pushed screen's body: the board's 18 a side, its parts 12 apart. */
+  body: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
+  /* `SpendList` brings the sheet's 20 itself; this takes it back to the 18. */
+  outdent: { marginHorizontal: z(-20) },
+  /* The kit's `para()`: 15 at 1.45, in the text colour. */
+  para: { fontSize: z(15), fontWeight: '400', lineHeight: z(21.75) },
+  /* The kit's `note()`: 13 at 1.45, muted, flush with the cards. */
+  note: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
+  failure: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
 
-  blocks: { marginHorizontal: 20, gap: 8 },
-  block: { borderRadius: radius.card, borderWidth: 1, paddingVertical: 11, paddingHorizontal: 12, gap: 6 },
-  blockTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  blockName: { fontSize: 17, fontWeight: '700', flexShrink: 1 },
-  blockTotal: { fontSize: 18, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
-  blockNote: { fontSize: 12.5, fontWeight: '400', lineHeight: 17.5 },
-  blockRows: { gap: 2 },
-
-  chargeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 5 },
-  chargeName: { fontSize: 15, fontWeight: '500', flexShrink: 1 },
-  chargeAmount: { fontSize: 16, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
-
-  workingRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10, paddingVertical: 2 },
-  workingName: { fontSize: 14, fontWeight: '500' },
-  working: { fontSize: 13, fontWeight: '400', fontVariant: ['tabular-nums'] },
-  workingAmount: { fontSize: 14, fontWeight: '700', marginLeft: 'auto', fontVariant: ['tabular-nums'] },
-
-  preview: {
-    /* It heads the body now, and the head above it carries its own padding —
-       the 6 was the gap to the rule blocks it used to sit under. */
-    marginTop: 0,
-    marginHorizontal: 20,
-    paddingTop: 10,
-    paddingHorizontal: 12,
-    paddingBottom: 9,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-  },
-  previewHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 6, paddingBottom: 5 },
-  previewTitle: { fontSize: 11.5, fontWeight: '700', letterSpacing: 1.15, textTransform: 'uppercase' },
-  tag: { marginLeft: 'auto', borderWidth: 1, borderStyle: 'dashed', borderRadius: 4, paddingVertical: 2, paddingHorizontal: 6 },
-  tagText: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.95 },
+  /* The quiet `Preview` tag at the label's right: 700 10, tracked, on the raised grey. */
+  tag: { paddingVertical: z(4), paddingHorizontal: z(7), borderRadius: 999 },
+  tagText: { fontSize: z(10), fontWeight: '700', letterSpacing: 1 },
 
   /*
-   * THE ROW, AND WHY IT IS NOT A GRID ANY MORE.
-   *
-   * `6px` either side is the inset the column cells carried, kept so the names
-   * line up with the note under them and with the label above; `7px` top and
-   * bottom is what the two lines need to sit as one object rather than as a
-   * name with a caption. A hairline between rows and none under the last, which
-   * is the preview's own rule and the same one the rule blocks above follow.
-   *
-   * NO FILL AND NO WASH ANYWHERE ON IT. The columns were tinted so the eye
-   * could follow one rule down six rows; a row that says its own rules needs
-   * nothing of the kind, and a frame of washed stripes is what B23 cost.
+   * THE ROW, AND WHY IT IS NOT A GRID ANY MORE. The kit's `row()`: 44 at least,
+   * `8 0`, a hairline between rows and none under the last. NO FILL AND NO
+   * WASH ANYWHERE ON IT: the old columns were tinted so the eye could follow
+   * one rule down six rows; a row that says its own rules needs nothing of the
+   * kind, and a card of washed stripes is what B23 cost.
    */
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 7, paddingHorizontal: 6 },
-  rowText: { flexShrink: 1, minWidth: 0, gap: 2 },
-  rowName: { fontSize: 15, fontWeight: '600' },
-  rowFormula: { fontSize: 12.5, fontWeight: '400', lineHeight: 17.5, fontVariant: ['tabular-nums'] },
+  row: { flexDirection: 'row', alignItems: 'center', gap: z(10), minHeight: z(44), paddingVertical: z(8) },
+  rowText: { flex: 1, minWidth: 0 },
+  rowName: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6) },
+  termLine: { flexDirection: 'row', alignItems: 'center', gap: z(4), marginTop: z(2) },
+  term: { fontSize: z(12), fontWeight: '400', lineHeight: z(15), fontVariant: ['tabular-nums'], flexShrink: 1 },
   /*
    * NEVER SHRINKS — B18. The name and the line under it are words and may give;
    * a figure may not, and one left to shrink came apart into a dash on one line
-   * and an amount on the next.
+   * and an amount on the next. The pill under the net is figures too, so the
+   * whole right-hand column holds and the name gives.
    */
+  rowRight: { alignItems: 'flex-end', flexShrink: 0 },
   rowNet: {
-    marginLeft: 'auto',
-    flexShrink: 0,
-    fontSize: 16,
+    fontFamily: 'head',
+    fontSize: z(16.5),
     fontWeight: '700',
+    lineHeight: z(18.2),
     fontVariant: ['tabular-nums'],
+    textAlign: 'right',
   },
+  /* The kit's `terms()`: 500 11 in the figure face, `4 7`, 7 round, on the raised grey, 3 under the net. */
+  pill: { flexDirection: 'row', alignItems: 'center', gap: z(6), paddingVertical: z(4), paddingHorizontal: z(7), borderRadius: z(7), marginTop: z(3) },
+  pillTerm: { flexDirection: 'row', alignItems: 'center', gap: z(3) },
+  pillText: { fontFamily: 'head', fontSize: z(11), fontWeight: '500', fontVariant: ['tabular-nums'] },
 
-  previewNote: { fontSize: 11.5, fontWeight: '400', lineHeight: 16.7, paddingTop: 7, paddingHorizontal: 6 },
-  edit: { alignSelf: 'flex-start', marginTop: 14, marginHorizontal: 20 },
-
+  /* The board's `blockHead`: `12 0 4`, the name taking what the pill and the total leave. */
+  blockTop: { flexDirection: 'row', alignItems: 'center', gap: z(8), paddingTop: z(12), paddingBottom: z(4) },
+  blockName: { flex: 1, minWidth: 0, fontFamily: 'head', fontSize: z(16), fontWeight: '700', lineHeight: z(19.2) },
+  change: { flexDirection: 'row', alignItems: 'center', gap: z(5), paddingVertical: z(6), paddingHorizontal: z(10), borderRadius: 999 },
+  changeLabel: { fontSize: z(12.5), fontWeight: '600' },
+  blockTotal: { flexShrink: 0, fontFamily: 'head', fontSize: z(16.5), fontWeight: '700', fontVariant: ['tabular-nums'] },
+  blockNote: { fontSize: z(12.5), fontWeight: '400', lineHeight: z(18.1), marginBottom: z(4) },
 });
 
 /*
  * THE BASIS OF A PERCENTAGE, in the working line under a name.
  *
- * 13/400 sharing a row with the name and the charge. Seven figures fit; the
- * eight of a table in the hundreds of millions did not, and the line wrapped
- * under a larger text setting. The basis is that player's gross, which is the
- * first term of that person's line in the preview at the foot of this screen.
+ * Under the name since the full board, at 12/400, with the charge beside the
+ * row. Seven figures fit; the eight of a table in the hundreds of millions did
+ * not, and the line wrapped under a larger text setting when it shared the
+ * name's line. The basis is that player's gross, which is the game term of
+ * that person's row in the preview at the head of this screen.
  */
 const WORKING_FITS = 10_000_000;
 
 /*
  * WHERE THE PREVIEW'S OWN FIGURES RUN OUT, measured at 360 — the narrowest
- * phone in the matrix, and inside a dashed card that takes 12 a side out of the
- * page's 20.
+ * phone in the matrix, inside a card that takes 12 a side out of the page's 18.
  *
- * A ROW holds about 284 points inside its own padding: the name and the formula
- * line on the left, the position at 16/700 on the right, 12 between them. The
- * words give and the figure does not, so the only question is what the figure
- * may take — "−$999,999" at about 82 leaves 190 for a name, which is more than
- * any name at this table needs. Seven digits print in full and eight abbreviate.
+ * A ROW holds about 300 points: the name and the game term on the left, the
+ * net at 16.5/700 on the right with the terms pill under it, 10 between. The
+ * words give and the figures do not, so the only question is what the right
+ * column may take — "−$999,999" at about 82, and a pill of three terms at the
+ * 11-point figure face about 120, leaves well over 100 for a name. Seven digits
+ * print in full and eight abbreviate.
  *
- * A TERM is 12.5/400 tabular and there may be four of them, separated by a
- * spaced middot: at full length `game +$99,999 · food −$99,999 · piggy −$99,999`
- * is about 240 against the 272 the line has, so the common night is one line and
- * a fourth term takes a second — which is the right failure for a sentence and
- * the wrong one for a figure. Ten thousand is where a term abbreviates, so a
- * table playing for millions reads `game +$1.2M` instead of wrapping to three.
+ * A TERM is unmarked and there may be four of them — the game under the name,
+ * the rest in the pill. Ten thousand is where a term abbreviates, so a table
+ * playing for millions reads `+1.2M` rather than pushing the pill across the
+ * name.
  *
- * `cappedFigure` holds the phone's text setting at the money cap on the
- * position, so none of this moves underneath the reader.
+ * `cappedFigure` holds the phone's text setting at the money cap on every
+ * figure here, so none of this moves underneath the reader.
  */
 const ROW_FITS = 1_000_000;
 const TERM_FITS = 10_000;

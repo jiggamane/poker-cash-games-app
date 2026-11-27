@@ -201,13 +201,13 @@ export default function NightResults() {
       <DidNotCheckOut verdict={night.verification} />
 
       {/*
-       * THE LIST, AND NOTHING BETWEEN ITS ROWS. No hairline, no chevron, no
-       * fill — separation is the 60-point row alone, which is the cut's own
-       * central point about the version this replaces.
+       * THE LIST, ONE LIFTED CARD OF THE KIT'S ROWS — the full board's
+       * `settled`, which redrew the cut's unfenced 60-point rows in the
+       * approved look: a hairline between rows, no chevron, no rank number.
        *
        * THE RANK IS THE LIST'S POSITION and not a figure anybody computed:
        * `settledRows` sorts on the figure the row prints, so the order differs
-       * between Final and At table by design and the number simply follows it.
+       * between Final and At table by design and the position simply follows.
        */}
       {/*
        * EVERYTHING BEHIND THE MENU DROPS TO 32% — the handoff's own figure, and
@@ -298,10 +298,10 @@ export default function NightResults() {
         onPress={() => router.push('/end-time')}
         /* THE STEP IS NOT ALWAYS THERE — it is hidden on At table and on a
            night with no rounding — so this row is the one that closes the
-           screen either way, and it drops its top rule only when there is
-           already one directly above it. Two stacked bars would otherwise draw
-           a double hairline between them. */
-        style={showsStep ? [styles.rounding, styles.stackedBar] : styles.rounding}
+           screen either way. It used to drop its top rule under the step so
+           the two bars made one seam; in the full board's column they stand
+           12 apart, each its own object, and there is no seam to share. */
+        style={styles.rounding}
       />
       </View>
     </Screen>
@@ -333,8 +333,8 @@ function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
   if (verdict === undefined || verdict.ok) return null;
 
   return (
-    <View style={[styles.alert, { backgroundColor: t.dangerWash, borderColor: t.dangerEdge }]}>
-      <Text style={[styles.alertLabel, { color: t.danger }]} {...unscaledLabel}>
+    <Card pad style={styles.alert}>
+      <Text style={[T.lookLabel, styles.alertLabel, { color: t.red }]}>
         Did not check out
       </Text>
       <Text style={[styles.alertBody, { color: t.text }]}>
@@ -346,7 +346,7 @@ function DidNotCheckOut({ verdict }: { verdict?: StoredVerification }) {
       <Text style={[styles.alertCodes, { color: t.muted }]} numberOfLines={2}>
         {verdict.codes.join(' · ')}
       </Text>
-    </View>
+    </Card>
   );
 }
 
@@ -415,36 +415,30 @@ const ROW_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
   /*
-   * THE FAILED-CHECK BLOCK, measured off E5's *Out of balance* alert rather
-   * than drawn again: the two say the same kind of thing — this night does not
-   * add up, here is what is wrong — and two shapes for one meaning is how a
-   * reader stops recognising either.
+   * THE FAILED-CHECK BLOCK, drawn as E5's *Out of balance* alarm is: the two
+   * say the same kind of thing — this night does not add up, here is what is
+   * wrong — and two shapes for one meaning is how a reader stops recognising
+   * either. On the full board (`settle-up-off`) that is a padded card with the
+   * red label over the sentence; the look has no danger wash.
    */
-  alert: {
-    marginHorizontal: space.card,
-    marginBottom: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: radius.pressable,
-    borderWidth: 1,
-    gap: 6,
-  },
-  alertLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
-  alertBody: { fontSize: 13.5, fontWeight: '400', lineHeight: 20.25 },
-  alertCodes: { fontSize: 11.5, fontWeight: '400', lineHeight: 16 },
+  alert: { gap: z(7) },
+  alertLabel: { textTransform: 'uppercase' },
+  alertBody: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
+  alertCodes: { fontSize: z(11.5), fontWeight: '400', lineHeight: z(16) },
 
   /*
-   * THE LIST, AND EVERYTHING ELSE ON THE SCREEN, IS `SessionViews.tsx`'S — the
-   * row, the view control, both blocks and the geometry of all three. What is
-   * left here is the two things that belong to this route rather than to the
-   * cut: the alarm above the list, and the step below it.
+   * THE SHEET'S COLUMN — the full board's pushed screen: 18 in from the sheet's
+   * edge, 12 between groups (`session.tsx` stands on the same numbers). The
+   * list, the blocks and the geometry of all three are `SessionViews.tsx`'s;
+   * what is left here is the alarm above the list and the two rows below it.
    *
-   * The list itself needs one number. Side margin 22, and no gap: the rows are
-   * 60 tall and their own height is the separation, so anything added here
-   * would be the fencing the cut removed, in another form.
+   * The list itself is one card: its rows carry the kit's hairlines, and the
+   * card is the only fence around them.
    */
-  list: { marginHorizontal: space.page },
+  column: { paddingHorizontal: z(18), paddingTop: z(12), gap: z(12) },
+  stack: { gap: z(12) },
 
-  rounding: { marginTop: 10 },
-  stackedBar: { borderTopWidth: 0 },
+  /* `RoundingBar` and `TermBar` are another file's and carry their own 22 of
+     side margin; in this column they take its edge instead. */
+  rounding: { marginHorizontal: 0 },
 });

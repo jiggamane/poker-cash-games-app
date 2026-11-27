@@ -2,9 +2,9 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { type Money } from '@poker-club/core';
 import { formatToFit } from '../lib/money';
-import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';
-import { radius, tabular } from '../design/tokens';
+import { z } from '../design/scale';
+import { tabular } from '../design/tokens';
 
 /**
  * The status pill — `design/handoff-game-end/`, cut 6 September.
@@ -37,32 +37,31 @@ import { radius, tabular } from '../design/tokens';
  * a new one, and the two screens now say the same thing about the same number.
  * Owner's call, 8 September; recorded in `docs/screens.md`.
  *
- * THREE STATES, AND THE MIDDLE ONE IS NOT A HALFWAY COLOUR. Bone is the app's
- * off-the-table hue — money in motion, neither won nor lost — and it is the
- * right one here because a night part way through settling is not a night
- * going wrong. Coral is for nothing having moved at all.
+ * THREE STATES UNTIL THE FULL BOARD, which draws two: an amount to move, and
+ * `Settled`. See the note in the body.
  */
-export function SettleStatus({ owed, anyPaid }: { owed: Money; anyPaid: boolean }) {
+export function SettleStatus({ owed }: { owed: Money; anyPaid: boolean }) {
   const t = useTheme();
 
+  /*
+   * ⚠ THE FULL BOARD DRAWS THE PILL PLAIN (`payments`, `payments-settled`,
+   * approved): the kit's `pill` — `raised`, the text ink — and `Settled` in the
+   * win colour. No coral wash for nothing moved and no bone for part of it:
+   * the look keeps red for chips and has no bone token. The figure in the pill
+   * says how much is left either way. `anyPaid` stays in the props, so the two
+   * callers keep stating it, for the day the board draws the middle state.
+   */
   if (owed === 0) {
     return (
-      <View style={[styles.pill, styles.withCheck, { backgroundColor: t.winTint, borderColor: t.winEdge }]}>
-        <Icon name="check" color={t.win} size={14} />
+      <View style={[styles.pill, { backgroundColor: t.raised }]}>
         <Text style={[styles.label, { color: t.win }]}>Settled</Text>
       </View>
     );
   }
 
-  /* Something has moved, or nothing has. The figure is the same either way —
-     what changes is whether the room is under way or has not started. */
-  const fill = anyPaid ? t.offTableTint : t.dangerWash;
-  const edge = anyPaid ? t.offTableEdge : t.dangerEdge;
-  const ink = anyPaid ? t.offTable : t.loss;
-
   return (
-    <View style={[styles.pill, { backgroundColor: fill, borderColor: edge }]}>
-      <Text style={[styles.label, tabular, { color: ink }]} numberOfLines={1}>
+    <View style={[styles.pill, { backgroundColor: t.raised }]}>
+      <Text style={[styles.label, tabular, { color: t.text }]} numberOfLines={1}>
         {`${formatToFit(owed, SETTLE_FITS)} to move`}
       </Text>
     </View>
@@ -81,24 +80,22 @@ export function SettleStatus({ owed, anyPaid }: { owed: Money; anyPaid: boolean 
  * big night found exactly that.
  *
  * So the threshold lives here, with the tighter of the two figures, and the
- * card imports it. 1,000,000 is where the card's 34/800 stops fitting its half;
- * `$999,999` at the pill's 14/700 is about 70 points and fits with room to
+ * card imports it. 1,000,000 is where the card's figure stops fitting its half;
+ * `$999,999` at the pill's 12/700 is about 70 points and fits with room to
  * spare, so the pill can afford the card's limit and the card cannot afford a
  * looser one.
  */
 export const SETTLE_FITS = 1_000_000;
 
 const styles = StyleSheet.create({
+  /* The kit's `pill`: `6px 10px`, fully round, 700 12. */
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    paddingVertical: 6,
-    paddingHorizontal: 11,
-    borderRadius: radius.pressable,
-    borderWidth: StyleSheet.hairlineWidth,
+    gap: z(6),
+    paddingVertical: z(6),
+    paddingHorizontal: z(10),
+    borderRadius: 999,
   },
-  /* The check eats into the leading padding rather than sitting beside it. */
-  withCheck: { paddingLeft: 9 },
-  label: { fontSize: 14, fontWeight: '700' },
+  label: { fontSize: z(12), fontWeight: '700' },
 });

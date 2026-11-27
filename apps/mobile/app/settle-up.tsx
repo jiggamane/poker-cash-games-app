@@ -24,12 +24,14 @@ import {
   formatToFitUnmarked,
 } from '../src/lib/money';
 import { Button } from '../src/components/Button';
+import { Card, CardRow, SectionLabel } from '../src/components/Card';
 import { Icon } from '../src/components/Icon';
 import { RoundingBar } from '../src/components/RoundingBar';
 import { Screen } from '../src/components/Screen';
 import { Step } from '../src/components/Step';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
+import { T, z } from '../src/design/scale';
+import { cappedFigure } from '../src/design/tokens';
 import {
   closeNight,
   nameOf,
@@ -60,6 +62,12 @@ import {
  * Every figure comes from the settlement engine. Nothing here does arithmetic
  * of its own; if a number looks wrong, the engine is wrong, and there is a test
  * for it.
+ *
+ * THE FULL BOARD (`settle-up`, `settle-up-off`, approved): the sentence that
+ * counts the transfers is the sheet's first line rather than a lede on the ink;
+ * the transfers are one lifted card of kit rows; the nets are outlined chips in
+ * rows of three under a quiet label; the way back to the rules is the outlined
+ * button; Close the session is the bar.
  */
 export default function SettleUp() {
   const t = useTheme();
@@ -174,57 +182,59 @@ export default function SettleUp() {
       title="Settle up"
       backTo="Deductions"
       trailing={<Step label="3 of 3" />}
-      lede={lede}
-      footer={
-        <>
-          {/* Closed on the phone recording it — `hold.ts`. The store would
-              refuse the close anyway; the control is taken off rather than
-              left to do nothing. */}
-          {night.hold !== 'away' && (
-          <Button
-            label="Close the session"
-            variant="primary"
-            onPress={() => {
-              /*
-               * `closeNight` and not `setStatus('settled')` — the close is not
-               * a status flag. It settles, hands the night to `verifyNight()`,
-               * freezes the result so no later engine can restate it, and
-               * queues the whole record for the server. See `closing.ts`.
-               *
-               * NAVIGATION WAITS FOR THE WRITE. It used to fire and forget,
-               * which was harmless while closing was one column and is not now:
-               * `/settled` reads the frozen result, and pushing before it
-               * exists would draw the night live for a frame and then swap the
-               * figures under the reader. The write is local SQLite — the queue
-               * drains separately and may fail all evening — so this is a few
-               * milliseconds, not a network round trip.
-               *
-               * A close that throws leaves the night open and the host on this
-               * screen, which is right: the only way `settle()` refuses here is
-               * an unbalanced count with no acknowledgement, and this screen
-               * already draws *Out of balance* for exactly that.
-               */
-              void closeNight().then(
-                () => {
-                  router.dismissTo('/');
-                  router.push('/settled');
+      /* Closed on the phone recording it — `hold.ts`. The store would refuse
+         the close anyway; the control is taken off rather than left to do
+         nothing, and with it the bar. */
+      bar={
+        night.hold === 'away'
+          ? undefined
+          : [
+              {
+                label: 'Close the session',
+                onPress: () => {
+                  /*
+                   * `closeNight` and not `setStatus('settled')` — the close is not
+                   * a status flag. It settles, hands the night to `verifyNight()`,
+                   * freezes the result so no later engine can restate it, and
+                   * queues the whole record for the server. See `closing.ts`.
+                   *
+                   * NAVIGATION WAITS FOR THE WRITE. It used to fire and forget,
+                   * which was harmless while closing was one column and is not now:
+                   * `/settled` reads the frozen result, and pushing before it
+                   * exists would draw the night live for a frame and then swap the
+                   * figures under the reader. The write is local SQLite — the queue
+                   * drains separately and may fail all evening — so this is a few
+                   * milliseconds, not a network round trip.
+                   *
+                   * A close that throws leaves the night open and the host on this
+                   * screen, which is right: the only way `settle()` refuses here is
+                   * an unbalanced count with no acknowledgement, and this screen
+                   * already draws *Out of balance* for exactly that.
+                   */
+                  void closeNight().then(
+                    () => {
+                      router.dismissTo('/');
+                      router.push('/settled');
+                    },
+                    () => {},
+                  );
                 },
-                () => {},
-              );
-            }}
-          />
-          )}
-          {/*
-            Share and Export used to sit here with no onPress at all — two
-            controls that did nothing, on the last screen of the night, at the
-            moment the host most needs to trust what they are tapping.
-            Sharing a night already exists, as the watcher link in Settings;
-            export is not designed and `05-build-order.md` puts it in phase 4.
-            An absent control is better than a dead one.
-          */}
-        </>
+              },
+            ]
       }
+      /*
+        Share and Export used to sit in the footer with no onPress at all — two
+        controls that did nothing, on the last screen of the night, at the
+        moment the host most needs to trust what they are tapping. Sharing a
+        night already exists, as the watcher link in Settings; export is not
+        designed and `05-build-order.md` puts it in phase 4. An absent control
+        is better than a dead one.
+      */
     >
+      <View style={styles.column}>
+      {/* The count in words, first on the sheet (the board's `note`). */}
+      <Text style={[styles.note, { color: t.muted }]}>{lede}</Text>
+
       {/*
        * THE STEP, ABOVE THE TRANSFERS AND NOT OWNED HERE —
        * `design/handoff-E2/docs/E2-rounding.md`, frames `4a`–`4d`. The
@@ -248,81 +258,80 @@ export default function SettleUp() {
         onPress={() =>
           router.push({ pathname: '/rounding', params: { scope: 'night', from: 'settle' } })
         }
+        /* Another file's row, with its own 22 of side margin; in this column
+           it takes the column's edge. */
         style={styles.rounding}
       />
 
-      <View style={styles.list}>
-        {transfers.map((tr, i) => {
-          /*
-           * THE PIGGY BANK IS A PAYEE LIKE ANYONE ELSE — `13-after-the-night.md`,
-           * verbatim, and frame `4a` draws it that way: the last row of the same
-           * list, the same hairline, the same ink, reading `Karel → Piggy bank`.
-           *
-           * IT USED TO BE AN OBJECT. A bone wash, rounded, inset from the list,
-           * because it is the one row where the money leaves the table for good
-           * — which is true and is not this screen's business: a room reading
-           * this list is handing over cash in order, and a row drawn as a panel
-           * reads as a row that works differently. Where the bone belongs is E6,
-           * on the block that says where the money ended up, and that is where
-           * it now is.
-           *
-           * The name is `destinationTerm`, so a payee that is not a person is
-           * still called what every other screen calls it.
-           */
-          const collected = offTable.get(tr.toPlayerId);
-          return (
-            <View
-              key={`${tr.fromPlayerId}-${tr.toPlayerId}-${i}`}
-              style={[
-                styles.row,
-                {
-                  borderBottomColor: t.hairline,
-                  borderBottomWidth:
-                    i === transfers.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                },
-              ]}
-            >
-              <Text style={[styles.party, { color: t.text }]} numberOfLines={1}>
-                {nameOf(night, tr.fromPlayerId)}
-              </Text>
-              <Icon name="arrow" color={t.muted} size={18} />
-              <Text style={[styles.party, { color: t.text }]} numberOfLines={1}>
-                {collected === undefined
-                  ? nameOf(night, tr.toPlayerId)
-                  : destinationTerm(collected)}
-              </Text>
-              <Text style={[styles.amount, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
-                {formatToFit(tr.amount, ROW_FITS)}
-              </Text>
-            </View>
-          );
-        })}
+      {transfers.length > 0 ? (
+        <Card>
+          {transfers.map((tr, i) => {
+            /*
+             * THE PIGGY BANK IS A PAYEE LIKE ANYONE ELSE — `13-after-the-night.md`,
+             * verbatim, and frame `4a` draws it that way: the last row of the same
+             * list, the same hairline, the same ink, reading `Karel → Piggy bank`.
+             *
+             * (The board's own transfer row, `settle-up`: the kit's row in the one
+             * card, the last row without its hairline.)
+             *
+             * IT USED TO BE AN OBJECT. A bone wash, rounded, inset from the list,
+             * because it is the one row where the money leaves the table for good
+             * — which is true and is not this screen's business: a room reading
+             * this list is handing over cash in order, and a row drawn as a panel
+             * reads as a row that works differently. Where the bone belongs is E6,
+             * on the block that says where the money ended up, and that is where
+             * it now is.
+             *
+             * The name is `destinationTerm`, so a payee that is not a person is
+             * still called what every other screen calls it.
+             */
+            const collected = offTable.get(tr.toPlayerId);
+            return (
+              <View
+                key={`${tr.fromPlayerId}-${tr.toPlayerId}-${i}`}
+                style={[
+                  styles.row,
+                  i < transfers.length - 1 && { borderBottomWidth: 1, borderBottomColor: t.hairline },
+                ]}
+              >
+                <Text style={[styles.party, { color: t.text }]} numberOfLines={1}>
+                  {nameOf(night, tr.fromPlayerId)}
+                </Text>
+                <Icon name="arrow" color={t.muted} size={z(15)} />
+                <Text style={[styles.party, { color: t.text }]} numberOfLines={1}>
+                  {collected === undefined
+                    ? nameOf(night, tr.toPlayerId)
+                    : destinationTerm(collected)}
+                </Text>
+                <Text style={[styles.amount, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
+                  {formatToFit(tr.amount, ROW_FITS)}
+                </Text>
+              </View>
+            );
+          })}
+        </Card>
+      ) : (
+        <Text style={[styles.note, { color: t.muted }]}>
+          Nothing to move: everyone left level.
+        </Text>
+      )}
 
-        {transfers.length === 0 && (
-          <Text style={[styles.blocked, { color: t.muted }]}>
-            Nothing to move: everyone left level.
-          </Text>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Night’s net</Text>
-        <View style={styles.chips}>
-          {net.map((f) => (
-            <NetChip key={f.player.playerId} name={f.player.name} amount={f.net} />
-          ))}
-        </View>
+      <SectionLabel text="Night’s net" quiet />
+      <View style={styles.chips}>
+        {net.map((f) => (
+          <NetChip key={f.player.playerId} name={f.player.name} amount={f.net} />
+        ))}
       </View>
 
       {/* The corner is empty on a pushed screen, so the way back to the rules
           is here, at the end, where a room that disagrees with a figure is
-          already looking. */}
+          already looking. The board's outlined button. */}
       <Button
         label="Change a rule and look again"
-        variant="chip"
-        style={styles.edit}
+        variant="secondary"
         onPress={() => router.push('/money-rules')}
       />
+      </View>
     </Screen>
   );
 }
@@ -392,29 +401,25 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
          count: a night that does not balance skips the deductions entirely
          (E2 sends it straight here), so back goes one step, to the count. */
       backTo="Count up"
-      footer={
-        <>
-          <Text style={[styles.footnote, { color: t.muted }]}>
-            Fix a count, add the missing buy-in, or{' '}
-            <Text style={styles.writeOff} onPress={() => void writeOff()}>
-              write the difference off to the piggy bank
-            </Text>
-            .
-          </Text>
-          <View style={styles.footerRow}>
-            <Button label="Settle the night" variant="blocked" style={styles.settle} />
-            <Button
-              label="Fix"
-              variant="secondary"
-              style={styles.fix}
-              onPress={() => router.dismissTo('/count-up')}
-            />
-          </View>
-        </>
-      }
+      /*
+       * THE BAR KEEPS THE APP'S TWO CONTROLS (the board's note on
+       * `settle-up-off`): Settle the night, blocked, and Fix beside it. The
+       * board draws Fix as a narrow half with its mark over the word; `Bar`
+       * draws two equal halves, so it is that, with the pencil beside the word.
+       */
+      bar={[
+        { label: 'Settle the night', disabled: true },
+        { label: 'Fix', icon: 'pencil', onPress: () => router.dismissTo('/count-up') },
+      ]}
     >
-      <View style={[styles.alert, { backgroundColor: t.dangerWash, borderColor: t.dangerEdge }]}>
-        <Text style={[styles.alertLabel, { color: t.danger }]}>Off by {formatMoney(off)}</Text>
+      <View style={styles.column}>
+      {/*
+       * THE ALARM, as the board draws it: a padded card with the red label
+       * over the sentence. The app drew it on a red wash with a red edge; the
+       * look has no danger surface (flagged on `settle-up-off`, approved).
+       */}
+      <Card pad style={styles.alert}>
+        <Text style={[T.lookLabel, styles.alertLabel, { color: t.red }]}>Off by {formatMoney(off)}</Text>
         <Text style={[styles.alertBody, { color: t.text }]}>
           {formatMoney(balance.boughtIn)} went in, {formatMoney(balance.accountedFor)} is
           accounted for.{' '}
@@ -422,53 +427,49 @@ function OutOfBalance({ night }: { night: NonNullable<ReturnType<typeof useNight
             ? 'Someone’s stack is short, or a buy-in was never written down.'
             : 'A count is too high, or a buy-in was written down twice.'}
         </Text>
-      </View>
+      </Card>
 
-      <View style={styles.list}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Counted</Text>
+      <SectionLabel text="Counted" quiet />
 
+      {/* Every counted player is a row into their own count — the kit's row,
+          names only and nothing pointing: no avatar, no chevron. */}
+      <Card>
         {counted.map((s, i) => (
-          <Pressable
+          <CardRow
             key={s.id}
-            accessibilityRole="button"
+            name={s.name}
+            last={i === counted.length - 1}
             onPress={() => router.push({ pathname: '/log', params: { player: s.id, kind: 'count' } })}
-            style={({ pressed }) => [
-              styles.countRow,
-              {
-                borderBottomColor: t.hairline,
-                borderBottomWidth: i === counted.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                opacity: pressed ? 0.6 : 1,
-              },
-            ]}
-          >
-            <View style={[styles.avatar, { backgroundColor: t.raised }]}>
-              <Text style={[styles.initial, { color: t.muted }]}>
-                {s.name.slice(0, 1).toUpperCase()}
-              </Text>
-            </View>
-            <View style={styles.rowText}>
-              <Text style={[styles.name, { color: t.text }]}>{s.name}</Text>
-              {/* `in 500 · out 2,120`, unmarked — the rule of 19 September, in
-                  `money.ts`. The two stacks are what the figure on the right of
-                  this row is made of, and that figure keeps the mark.
+            /* `in 500 · out 2,120`, unmarked — the rule of 19 September, in
+               `money.ts`. The two stacks are what the figure on the right of
+               this row is made of, and that figure keeps the mark.
 
-                  THIS IS E5's LIST, NOT E4's: the balanced screen draws
-                  transfers and net chips and no sub-line at all. */}
-              <Text style={[styles.detail, { color: t.muted }]}>
-                in {formatToFitUnmarked(s.boughtIn, ROW_FITS)} · out{' '}
-                {formatToFitUnmarked(s.out, ROW_FITS)}
+               THIS IS E5's LIST, NOT E4's: the balanced screen draws
+               transfers and net chips and no sub-line at all. */
+            meta={`in ${formatToFitUnmarked(s.boughtIn, ROW_FITS)} · out ${formatToFitUnmarked(s.out, ROW_FITS)}`}
+            trail={
+              <Text
+                style={[styles.result, { color: moneyColor(t, s.result) }]}
+                numberOfLines={1}
+                {...cappedFigure}
+              >
+                {formatSignedToFit(s.result, ROW_FITS)}
               </Text>
-            </View>
-            <Text
-              style={[styles.result, { color: moneyColor(t, s.result) }]}
-              numberOfLines={1}
-              {...cappedFigure}
-            >
-              {formatSignedToFit(s.result, ROW_FITS)}
-            </Text>
-            <Icon name="chevron" color={t.muted} />
-          </Pressable>
+            }
+          />
         ))}
+      </Card>
+
+      {/* Writing the difference off is a decision, not a dismissal, so it stays
+          a sentence and not a button — on the sheet, under the list, as the
+          board draws it. */}
+      <Text style={[styles.note, { color: t.muted }]}>
+        Fix a count, add the missing buy-in, or{' '}
+        <Text style={styles.writeOff} onPress={() => void writeOff()}>
+          write the difference off to the piggy bank
+        </Text>
+        .
+      </Text>
       </View>
     </Screen>
   );

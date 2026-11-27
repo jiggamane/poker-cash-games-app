@@ -1,10 +1,13 @@
+import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from './Text';
+import { Card } from './Card';
 import { type Money } from '@poker-club/core';
 import { formatToFit } from '../lib/money';
 import { SETTLE_FITS, SettleStatus } from './SettleStatus';
 import { useTheme } from '../design/useTheme';
-import { cappedFigure, radius, space, tabular, unscaledLabel } from '../design/tokens';
+import { z } from '../design/scale';
+import { cappedFigure, tabular, unscaledLabel } from '../design/tokens';
 
 /**
  * The totals card — `design/handoff-game-end/`, cut 6 September. One card,
@@ -23,85 +26,78 @@ import { cappedFigure, radius, space, tabular, unscaledLabel } from '../design/t
  * `align-items: flex-end` — the eyebrow and the figure grow downward from the
  * top, the pill sits on the figure's baseline. A tall pill and a short one
  * leave the card the same height.
+ *
+ * THE FULL BOARD (`payments`, approved) draws it as the first row of a lifted
+ * card, with the step's row under it in the same card: `children` are those
+ * rows, and the totals row takes the kit's hairline only when something
+ * follows it.
  */
 export function TotalsCard({
   eyebrow,
   amount,
   owed,
   anyPaid,
+  children,
 }: {
   eyebrow: string;
   amount: Money;
   /** What is still to move. Drives the pill, and never recomputed here. */
   owed: Money;
   anyPaid: boolean;
+  /** Kit rows under the totals, inside the same card. */
+  children?: ReactNode;
 }) {
   const t = useTheme();
 
   return (
-    <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
-      <View style={styles.left}>
-        <Text style={[styles.eyebrow, { color: t.muted }]} numberOfLines={1} {...unscaledLabel}>
-          {eyebrow}
-        </Text>
-        {/*
-         * FIVE FIGURES OF LARI IS THE CASE THAT DECIDES THE SIZE. `₾47,000` at
-         * 34/800 in half a card is what B43 was about, and the figure here has
-         * the card's whole width less the pill — so it is `formatToFit`, which
-         * drops to the compact form rather than truncating, at the same
-         * threshold the rest of the app uses.
-         */}
-        <Text style={[styles.figure, tabular, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
-          {formatToFit(amount, SETTLE_FITS)}
-        </Text>
-      </View>
+    <Card>
+      <View
+        style={[styles.head, children !== undefined && { borderBottomWidth: 1, borderBottomColor: t.hairline }]}
+      >
+        <View style={styles.left}>
+          <Text style={[styles.eyebrow, { color: t.muted }]} numberOfLines={1} {...unscaledLabel}>
+            {eyebrow}
+          </Text>
+          {/*
+           * FIVE FIGURES OF LARI IS THE CASE THAT DECIDES THE SIZE. `₾47,000` at
+           * 34/800 in half a card is what B43 was about, and the figure here has
+           * the card's whole width less the pill — so it is `formatToFit`, which
+           * drops to the compact form rather than truncating, at the same
+           * threshold the rest of the app uses.
+           */}
+          <Text style={[styles.figure, tabular, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
+            {formatToFit(amount, SETTLE_FITS)}
+          </Text>
+        </View>
 
-      <View style={styles.right}>
-        <Text style={[styles.eyebrow, { color: t.muted }]} numberOfLines={1} {...unscaledLabel}>
-          Status
-        </Text>
-        <SettleStatus owed={owed} anyPaid={anyPaid} />
+        <View style={styles.right}>
+          <Text style={[styles.eyebrow, { color: t.muted }]} numberOfLines={1} {...unscaledLabel}>
+            Status
+          </Text>
+          <SettleStatus owed={owed} anyPaid={anyPaid} />
+        </View>
       </View>
-    </View>
+      {children}
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: space.card,
-    /*
-     * THE FLOOR UNDER THE META LINE, and the card is the only thing that can
-     * lay it. `Screen` puts 6 under the title row and the meta line adds 2 on
-     * top of itself; neither of them leaves anything underneath, so the first
-     * element of the body decides its own gap — and this one was not asking
-     * for it. The card came out flush against `05:45 → 08:55 · 6 players ·
-     * settled` on both screens that draw it: meta bottom 83.7, card top 83.7.
-     *
-     * 16 is the board's own — `design/handoff-game-end/README.md` § 1a item 4,
-     * "margin `16px 20px 0`", where the 20 is the `space.card` above. Item 3 of
-     * § 2a says the transfers card is "identical construction to 1a's", so the
-     * one value is right for both. See B58.
-     */
-    /*
-     * 10 AND NOT THE BOARD'S 16, AND 10 AND NOT ITS 14 — the 8 September
-     * vertical pass, which both screens that draw this card are part of. The
-     * card is the tallest thing above either list and the two lists are what
-     * the screens exist for; see the note in `settled.tsx`'s stylesheet and the
-     * arithmetic in `docs/screens.md`.
-     *
-     * IT STAYS WELL CLEAR OF THE HEAD. B58 was this card having no top margin
-     * at all and sitting flush against the meta line, and the night pass now
-     * fires under 6 points between the two. 10 is still well clear of that, and
-     * the check that caught B58 still holds it.
-     */
-    marginTop: 10,
-    borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+  /*
+   * THE TOTALS ROW — the kit's row at `10px 0`, aligned on the bottom edge.
+   *
+   * ⚠ NO TOP MARGIN OF ITS OWN ANY MORE. B58 was this card sitting flush
+   * against the meta line, and the margin here was the fix while the body was
+   * laid straight under the head. The full board's sheet rises over the ink
+   * and the screen's column carries its own 12 above its first group, so the
+   * card's top is the column's business now; the night pass still fires under
+   * 6 points between the head and the body.
+   */
+  head: {
+    paddingVertical: z(10),
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 14,
+    gap: z(10),
     /*
      * B99. The figure is the headline and it was the half giving way: at 120%
      * text on a 360 phone the pill grew and the figure went to "$13,…". Neither
@@ -110,10 +106,12 @@ const styles = StyleSheet.create({
      * read in full. At the board's width and size nothing wraps.
      */
     flexWrap: 'wrap',
-    rowGap: 8,
+    rowGap: z(8),
   },
-  left: { flexDirection: 'column', gap: 4, flexShrink: 0 },
-  right: { marginLeft: 'auto', alignItems: 'flex-end', gap: 6, flexShrink: 0 },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase' },
-  figure: { fontSize: 30, fontWeight: '800', letterSpacing: -1.4, lineHeight: 31 },
+  left: { flexDirection: 'column', gap: z(6), flexShrink: 0 },
+  right: { marginLeft: 'auto', alignItems: 'flex-end', gap: z(6), flexShrink: 0 },
+  /* The board's eyebrow: 700 10.5, tracked .12em. */
+  eyebrow: { fontSize: z(10.5), fontWeight: '700', letterSpacing: 1.26, lineHeight: z(11), textTransform: 'uppercase' },
+  /* 700 26/1, -.02em, in the figure face. */
+  figure: { fontFamily: 'head', fontSize: z(26), fontWeight: '700', letterSpacing: -0.5, lineHeight: z(28) },
 });
