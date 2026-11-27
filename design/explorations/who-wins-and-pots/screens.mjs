@@ -37,9 +37,9 @@ SPOTS.whoWins = {
    * cards. Drawn back to front so each card lies on the one behind it.
    */
   draw: (P) => {
-    const FLAT = 0.5, W = 30, H = 42, TURN = -14;
+    const FLAT = 0.5, W = 23, H = 32, TURN = -8;
     const five = [['heart', 'red'], ['spade', 'ink'], ['diamond', 'red'], ['club', 'ink'], ['heart', 'red']];
-    const at = (k) => [27 + k * 11, GROUND - 10 - k * 7];
+    const at = (k) => [19 + k * 14.5, GROUND - 14 - k * 3.5];
     const lie = (x, y, inner) => `<g transform="translate(${x} ${y}) scale(1 ${FLAT}) rotate(${TURN})">${inner}</g>`;
     const plate = (fill, extra = '') => `<rect x="${-W / 2}" y="${-H / 2}" width="${W}" height="${H}" rx="3.6" fill="${fill}"${extra}/>`;
     return five.map((_, k) => 4 - k).map((k) => {
@@ -61,9 +61,9 @@ SPOTS.sidePots = {
     stack(P, { cx: 72, by: GROUND - 2, r: 14, h: 6, mats: ['red', 'ink', 'red', 'ink', 'red', 'ink'], wobble: [0, -1, 1, 0, -1, 1], small: true }) +
     stack(P, { cx: 49, by: GROUND + 2, r: 15, h: 6, mats: ['ink', 'red', 'ink', 'red'], wobble: [0, 1, -1, 0], small: o.small }),
 };
-const cornerArt = (key, size = 78) =>
-  `<span class="art" style="position:absolute;right:-4px;bottom:-10px">${['freshDeck', 'freshDeckOnInk'].map((p, i) => `<span class="${i ? 'art-d' : 'art-l'}">${spot(key, p, { size, small: false })}</span>`).join('')}</span>`;
-export const whoWinsTile = `<div class="tile">${cornerArt('whoWins', 90)}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
+const cornerArt = (key, size = 78, right = -4) =>
+  `<span class="art" style="position:absolute;right:${right}px;bottom:-10px">${['freshDeck', 'freshDeckOnInk'].map((p, i) => `<span class="${i ? 'art-d' : 'art-l'}">${spot(key, p, { size, small: false })}</span>`).join('')}</span>`;
+export const whoWinsTile = `<div class="tile">${cornerArt('whoWins', 90, 4)}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
 export const sidePotsTile = `<div class="tile">${cornerArt('sidePots')}<div><div class="tn">Side pots</div><div class="tx">a multi-way all in, pot by pot</div></div></div>`;
 
 /* ── tables ───────────────────────────────────────────────────────────── */
