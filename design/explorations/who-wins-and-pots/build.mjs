@@ -40,7 +40,7 @@ const DECIDED = [
   ['Who wins: the answer on the ink', 'Under the title: Ahead, Tied, Winner or Split, the street, the winning hole cards, and the hand. No percentages anywhere. Before the flop it compares the two hole cards; from the flop the best five.'],
   ['The five cards, always', 'From the flop each seat shows its best five so far: the cards that make the hand full, kickers faded. A kicker that decided the hand is not faded, and is named, as the calculator names it.'],
   ['Side pots: stacks in the seat', 'Each seat carries its stack at the right, typed on the calculator’s keypad with Done on the bar. Everybody is taken to be all in for their stack.'],
-  ['Pot by pot', 'Main pot, then Side pot 1, 2…, each with who can win it and who takes it (or is ahead in it before the river). A top layer that only one stack reached is Uncalled and goes back. On the river each seat shows its signed change on the hand.'],
+  ['Hands first, then pots', 'Under the seats, every hand in order of strength: 1st, 2nd, 3rd…, its combo, the pots it takes, the amount and its change (owner, 26 November). Before the river it reads As it stands. Below that, pot by pot as detail: Main pot, Side pot 1…, who can win each, and the Uncalled layer that goes back.'],
   ['Results name hands, not seats', 'Wherever a result is stated (the ink, each pot, a split, the uncalled chips) the hand is shown as its two cards, never as Opponent 1, 2… The seat labels stay on the seats, where the cards are entered.'],
   ['Every figure is the engine’s', 'The pots are packages/core sidePots() as it stands, a split is allocate(), the ranking is evaluate() and the names are nameHand(). Nothing on these phones was typed in by hand.'],
 ];
@@ -129,7 +129,7 @@ ${CSS}
         <li><b>Tap a place</b> for a card, on a seat or the board. The deck comes up at the foot; tap a card and the next empty place is outlined. Done puts the deck away.</li>
         <li><b>Tap a dealt card</b> to take it back.</li>
         <li><b>Who wins</b> answers on the ink as soon as two seats have both cards, and again on every street you deal.</li>
-        <li><b>Side pots: tap a stack</b> to type it on the keypad, then Done. The pots appear under the seats once two stacks are in.</li>
+        <li><b>Side pots: tap a stack</b> to type it on the keypad, then Done. The result, hand by hand, appears under the seats once the stacks and cards are in.</li>
         <li><b>Add a player</b> goes up to nine.</li>
       </ol>
     </div>
