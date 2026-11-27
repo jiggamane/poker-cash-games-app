@@ -136,11 +136,38 @@ SPOTS.sidePotsD3 = { ...DV, draw: (P) => frontAndBack(P, [44, GROUND], [52, GROU
 SPOTS.sidePotsD4 = { ...DV, draw: (P) => frontAndBack(P, [32, GROUND - 1], [72, GROUND - 10]) };
 SPOTS.sidePotsD5 = { ...DV, draw: (P) => frontAndBack(P, [32, GROUND], [62, GROUND - 31]) };
 
+/*
+ * Side by side (owner, 27 November: "in all variations have the stacks stand
+ * side by side, the larger one on the right; can try moving the angle slightly
+ * to the side"). The side pot on the left, the main pot on the right and
+ * bigger: more stacks and taller ones, the chips the same size because the
+ * two pots sit at the same distance. `tilt` lifts one pot back a few points,
+ * turning the pair a little off square; `divider` draws the dashed line of C
+ * on the felt between them.
+ */
+const sideBySide = (P, { tilt = 0, divider = false } = {}) => {
+  const [sx, sy] = [20, GROUND - 4 - Math.max(tilt, 0)];
+  const [mx, my] = [64, GROUND - 1 + Math.min(tilt, 0)];
+  const line = divider ? `<path d="M${(sx + mx) / 2 - 1} ${GROUND - 22}L${(sx + mx) / 2 - 4} ${GROUND + 4}" stroke="${P.ink.top}" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5 3.5" opacity=".45"/>` : '';
+  return shadow(P, sx, 16, 5, sy + 1) + shadow(P, mx, 26, 7.5, my + 1) + line + bunch(P, [
+    { cx: sx - 6, by: sy - 4, r: 9.5, mats: ['red', 'ink'] }, { cx: sx + 6, by: sy - 3, r: 9.5, mats: ['ink', 'red', 'ink'] },
+    { cx: sx, by: sy + 3, r: 9.5, mats: ['red'], flat: true },
+    { cx: mx - 11, by: my - 7, r: 9.5, mats: ['ink', 'red', 'ink', 'red'] }, { cx: mx + 5, by: my - 8, r: 9.5, mats: ['red', 'ink', 'red', 'ink', 'red'] },
+    { cx: mx + 16, by: my - 1, r: 9.5, mats: ['ink', 'red', 'ink'] }, { cx: mx - 4, by: my + 1, r: 9.5, mats: ['red', 'ink', 'red'] },
+  ]);
+};
+const SV = { name: 'Side pots · side by side', where: 'Poker tools · tile', status: 'draft' };
+SPOTS.sidePotsS1 = { ...SV, draw: (P) => sideBySide(P) };
+SPOTS.sidePotsS2 = { ...SV, draw: (P) => sideBySide(P, { tilt: 6 }) };
+SPOTS.sidePotsS3 = { ...SV, draw: (P) => sideBySide(P, { tilt: 12 }) };
+SPOTS.sidePotsS4 = { ...SV, draw: (P) => sideBySide(P, { tilt: -6 }) };
+SPOTS.sidePotsS5 = { ...SV, draw: (P) => sideBySide(P, { tilt: 6, divider: true }) };
+
 const cornerArt = (key, size = 78, right = -4, bottom = -10) =>
   `<span class="art" style="position:absolute;right:${right}px;bottom:${bottom}px">${['freshDeck', 'freshDeckOnInk'].map((p, i) => `<span class="${i ? 'art-d' : 'art-l'}">${spot(key, p, { size, small: false })}</span>`).join('')}</span>`;
 export const whoWinsTile = `<div class="tile">${cornerArt('whoWins', 90, 4)}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
-const potsTile = (key) => `<div class="tile">${key === 'sidePots' ? cornerArt(key) : cornerArt(key, 84, 4, -2)}<div><div class="tn">Side pots</div><div class="tx">a multi-way all in, pot by pot</div></div></div>`;
-export const sidePotsTile = potsTile('sidePots');
+const potsTile = (key) => `<div class="tile">${cornerArt(key, 84, 4, -2)}<div><div class="tn">Side pots</div><div class="tx">a multi-way all in, pot by pot</div></div></div>`;
+export const sidePotsTile = potsTile('sidePotsS2');
 const TOOLS_THREE = () => `${tile('Calculator', 'hand and pot odds', 'calculator', 'tools')}${tile('Rulings', 'look up a ruling', 'rulings', 'tools')}${tile('Boosters', 'bomb pots and more', 'boosters', 'tools')}`;
 /* Each Side pots drawing on the screen it lives on, for the owner to pick. */
 const winsTile = (key) => `<div class="tile">${cornerArt(key, 90, 4, key === 'whoWins4' ? -3 : -10)}<div><div class="tn">Who wins</div><div class="tx">the best hand now, no odds</div></div></div>`;
@@ -153,14 +180,11 @@ const WINS_OPTIONS = [
 ].map(([key, n, title, note]) => ({ id: `tile-wins-${n}`, route: '/tools', name: `Who wins tile ${n} · ${title}`, nav: 'push', option: 'winsTile', note,
   html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger', body: `<div class="tiles">${TOOLS_THREE()}${winsTile(key)}${sidePotsTile}</div>` }) }));
 const TILE_OPTIONS = [
-  ['sidePots', 'A', 'Three stacks', 'As drawn: three stacks of different heights, the short stack’s pot and what the deeper ones play for over it.'],
-  ['sidePotsB', 'B', 'Two bunches', 'Two bunches of chips about the same size, side by side: two pots.'],
-  ['sidePotsC', 'C', 'Main and side', 'The main pot the bigger bunch, the side pot a small one, a dashed line on the felt between them.'],
-  ['sidePotsD', 'D', 'Front and back', 'The main pot in front, the side pot behind it and smaller, as a seat at the table sees two pots.'],
-  ['sidePotsD2', 'D2', 'Front and back, mirrored', 'D turned the other way: the main pot front right, the side pot behind it to the left.'],
-  ['sidePotsD3', 'D3', 'Front and back, straight behind', 'The side pot directly behind the main one, the depth alone telling them apart.'],
-  ['sidePotsD4', 'D4', 'Front and back, shallow', 'A low angle: the side pot nearly beside the main one, only a little further back.'],
-  ['sidePotsD5', 'D5', 'Front and back, steep', 'A steep angle: the side pot well back and to the right, the most depth of the five.'],
+  ['sidePotsS1', 'S1', 'Level', 'Side by side and level: the side pot on the left, the main pot on the right, bigger.'],
+  ['sidePotsS2', 'S2', 'Turned a little', 'The side pot a few points further back, so the pair sits slightly off square. The tile everywhere else on the board uses this one until you pick.'],
+  ['sidePotsS3', 'S3', 'Turned more', 'The same turn taken further: the side pot clearly behind the line of the main one.'],
+  ['sidePotsS4', 'S4', 'Turned the other way', 'The main pot a few points further back instead, the side pot nearer.'],
+  ['sidePotsS5', 'S5', 'Turned a little, with a line', 'S2 with a dashed line on the felt between the two pots.'],
 ].map(([key, letter, title, note]) => ({ id: `tile-pots-${letter.toLowerCase()}`, route: '/tools', name: `Side pots tile ${letter} · ${title}`, nav: 'push', option: 'tile', note,
   html: push({ title: 'Poker tools', sub: 'nothing here touches the ledger', body: `<div class="tiles">${TOOLS_THREE()}${whoWinsTile}${potsTile(key)}</div>` }) }));
 

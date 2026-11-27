@@ -135,7 +135,7 @@ ${CSS}
 
 <section id="tiles">
   <h2>Side pots: drawings for the tile</h2>
-  <p>Your comments of 27 November: two bunches, then D at other angles (D2 to D5). Each on the Poker tools screen beside the Who wins tile, so you see it at its real size and next to its neighbours.</p>
+  <p>Your comment of 27 November: in every variation the two pots stand side by side, the larger on the right, and only the angle moves. Each on the Poker tools screen beside the Who wins tile, at its real size. The earlier drawings (three stacks, two bunches, front and back) are off the board.</p>
   <div class="pg-grid phones">${TILES.map(cell).join('')}</div>
 </section>
 
