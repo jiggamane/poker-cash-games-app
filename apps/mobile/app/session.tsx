@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import { Text } from '../src/components/Text';
@@ -11,12 +11,16 @@ import {
 } from '../src/lib/money';
 import { Dock } from '../src/components/Dock';
 import { Icon } from '../src/components/Icon';
-import { ActiveRow, FinishedSlab, PlayerGroup } from '../src/components/PlayerList';
 import { NameTag, RebuyBar, TotalTag } from '../src/components/RebuyConfirmation';
 import { Screen } from '../src/components/Screen';
 import { ToolsButton } from '../src/components/ToolsButton';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, unscaledLabel, radius, space, tabular, type } from '../src/design/tokens';
+import { cappedFigure } from '../src/design/tokens';
+import { L, z } from '../src/design/scale';
+import { Card, CardRow, SectionLabel } from '../src/components/Card';
+import { Spot } from '../src/components/Spot';
+import Svg, { Circle, Path } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clockLabel, useElapsed } from '../src/lib/elapsed';
 import {
   cashedOutAt,
@@ -130,6 +134,8 @@ export default function Session() {
    * not — so there is no loop here, just two numbers the tag is held against.
    * `TotalTag` carries the arithmetic and what it costs on a 360 phone.
    */
+  const hidden = useHidden();
+  const insets = useSafeAreaInsets();
   const [figureRoom, setFigureRoom] = useState(0);
   const [figureWidth, setFigureWidth] = useState(0);
 
@@ -250,14 +256,26 @@ export default function Session() {
     }
   }
 
+  /* Each seated player's share of the pot, for the bar under it on the ink. */
+  const shares = seated.map((p) => p.boughtIn as number).filter((n) => n > 0);
+
+  /*
+   * THE FULL BOARD (`session`, `session-admin`, `session-hidden`,
+   * `session-rebuy-undo`, `session-empty`, `session-watching`,
+   * `session-passed`, `session-takenback`, all approved): the pot moves onto
+   * the ink top with a bar of who holds it; the sheet holds the two groups as
+   * cards (no chevrons), with the eye that hides every figure on the sheet; the
+   * dock is the ink bar. A phone that does not record has no bar: the sheet
+   * runs to the foot and ends in the read-only line, or in the hold that takes
+   * the game back.
+   */
   return (
     <Screen
       title="Tonight"
       backTo="the club"
       /* The tag sits at the RIGHT EDGE of the title row rather than beside the
          title: it is the state of the night, not part of its name, and the
-         corner is where a reader looks for state. It is the only thing in that
-         corner; the start time lives on the role line under the title. */
+         corner is where a reader looks for state. */
       trailing={<LiveTag startedAt={night.startedAt} empty={empty} />}
       metaNode={
         <RoleLine
@@ -271,104 +289,118 @@ export default function Session() {
       }
       /* The poker tools at the right end of the role line — the same spot on
          the recording phone and a watcher's, by the owner's decision of 25
-         October ("Poker calculator · ways in"), and NOT a row in the drawer,
-         whose every control records money. One icon since 9 November, opening
-         the three tools as a sheet. It dims with the drawer like the rest of
-         the head. `ToolsButton` has the rest. */
+         October, and NOT a row in the drawer, whose every control records
+         money. `ToolsButton` has the rest. */
       metaTrailing={<ToolsButton />}
+      onInk={
+        <View style={styles.hero}>
+          <Text style={[styles.heroLabel, { color: t.onTopMuted }]}>On the table</Text>
+          <View style={styles.heroRow}>
+            <View
+              style={styles.figureRow}
+              onLayout={(e) => setFigureRoom(e.nativeEvent.layout.width)}
+            >
+              <Text
+                style={[styles.heroFigure, { color: t.onTop }]}
+                numberOfLines={1}
+                onLayout={(e) => setFigureWidth(e.nativeEvent.layout.width)}
+                {...cappedFigure}
+              >
+                {formatToFit(onTable, CARD_FITS)}
+              </Text>
+              <TotalTag onInk fits={CARD_FITS} room={figureRoom - figureWidth - FIGURE_TAG_GAP} />
+            </View>
+            <View style={styles.heroSide}>
+              {/* `in play`, not `total in` — 5 September, on the owner's
+                  instruction: one word for this figure everywhere it is drawn.
+                  `On the table` beside it is a DIFFERENT figure — what the
+                  seated players still have in front of them. No
+                  `numberOfLines`: B99, this is the line that reflows. */}
+              {totalIn !== onTable && (
+                <Text style={[styles.heroSideLine, { color: t.onTopMuted }]} {...cappedFigure}>
+                  {formatToFit(totalIn, CARD_FITS)} in play
+                </Text>
+              )}
+              <Text style={[styles.heroSideLine, { color: t.onTopMuted }]}>
+                {empty
+                  ? 'nobody seated'
+                  : out === 0
+                    ? `${seated.length} seated`
+                    : `${seated.length} seated · ${out} out`}
+              </Text>
+            </View>
+          </View>
+          {shares.length > 0 && (
+            <View style={styles.shares} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              {shares.map((n, i) => (
+                <View key={i} style={[styles.share, { flex: n, backgroundColor: i % 2 === 0 ? t.onTop : t.onTopMuted }]} />
+              ))}
+            </View>
+          )}
+        </View>
+      }
       scroll={false}
-      dimmed={drawer}
+      /* Not dimmed while the drawer is open: the board's `session-admin` keeps
+         the sheet as it is and lets the drawer rise over it. */
       footerPad={false}
       footer={
-        /*
-         * THE CONFIRMATION BAR RIDES ON THE DOCK, AND NEVER ON THE TABLE.
-         *
-         * A rebuy tapped on a player card lands here — `RebuyConfirmation.tsx`
-         * — and this is the third of the three places it shows: check, what
-         * happened, Undo, for two seconds. It is a sibling of the dock rather
-         * than a layer over the screen, so it hangs off the dock's top edge and
-         * rises with the drawer instead of being a number kept in step with one.
-         *
-         * The handoff's rule: confirmation may cover chrome and never money.
-         * Everything above this line is the table, and the dock below it stays
-         * uncovered on purpose — a second rebuy is one tap away while the bar
-         * is up.
-         */
         !recording ? (
-          /*
-           * NOT THIS PHONE'S TO RECORD — states 2b, 7, 8, 11, 20b, 20c. No
-           * dock: every control in it records money. In its place X1's
-           * read-only band, which says who can, and — on the phone that
-           * passed the game away, or the host's — the hold that takes it back.
-           */
-          <View style={[styles.band, { borderTopColor: t.hairline }]}>
-            {notice !== null && (
-              <View style={styles.cardSlot}>
-                <PassCard notice={notice} on="tonight" />
-              </View>
-            )}
+          <View style={[styles.band, { backgroundColor: t.ground }]}>
             {away && role?.last?.kind === 'passed' && !role.last.opened ? (
-              <>
+              <View style={styles.bandWords}>
                 {/* 7 · the game is theirs on the server and their phone has
-                    not opened it. Nobody records in the gap. */}
-                <View style={[styles.pendingPill, { borderColor: t.amber }]}>
-                  <Text style={[styles.pendingLabel, { color: t.amber }]}>
+                    not opened it. Nobody records in the gap. Outlined in the
+                    text colour: the look has no amber (the board flags it). */}
+                <View style={[styles.pendingPill, { borderColor: t.text }]}>
+                  <Text style={[styles.pendingLabel, { color: t.text }]}>
                     {`WAITING ON ${(role.last.toName ?? 'them').toUpperCase()}`}
                   </Text>
                 </View>
                 <Text style={[styles.bandText, { color: t.muted }]}>
                   {waitingLine(role.last.toName)}
                 </Text>
-              </>
+              </View>
             ) : (
-              <Text style={[styles.bandText, { color: t.muted }]}>
+              <Text style={[styles.bandText, styles.bandWords, { color: t.muted }]}>
                 {trouble ?? bandLine(away, role, recorder)}
               </Text>
             )}
-            {canTakeBack && (
-              <View style={styles.hold}>
-                <HoldButton
-                  variant="row"
-                  label="Take the game back"
-                  sub="Hold 1.5s · this phone records again"
-                  onComplete={() => void reclaim()}
-                />
-              </View>
+            {/* The hold that takes the game back is this phone's one action,
+                so it is the bar (the board's `session-passed`). */}
+            {canTakeBack ? (
+              <HoldButton
+                variant="bar"
+                label="Take the game back"
+                sub="Hold 1.5s · this phone records again"
+                onComplete={() => void reclaim()}
+              />
+            ) : (
+              <View style={{ height: insets.bottom }} />
             )}
           </View>
         ) : (
         <>
           {/*
-           * THE ANNOUNCEMENT, pinned above the dock — states 9 and 10. A card
-           * in the page; it goes on a tap, its close, or the first entry.
-           */}
-          {notice !== null && (
-            <View style={styles.cardSlot}>
-              <PassCard notice={notice} on="tonight" />
-            </View>
-          )}
-          {/*
-           * CHANGES ANOTHER PHONE HANDED IN — 0017, drawn as state 12: a
-           * chip-action outline row, the count in the amber pending pill,
-           * Review at the right. Money somebody recorded on this night while
-           * it was on their phone and could not send before it came back. It
-           * sits above the dock, where the host is looking, until it is decided.
+           * N12 · changes from another phone, waiting to be reviewed. Above the
+           * dock because it is about what the dock records, and on the sheet.
            */}
           {late.toReview > 0 && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${late.toReview} changes from another phone. Review.`}
-              onPress={() => router.push('/late-changes')}
-              style={({ pressed }) => [styles.late, { borderColor: t.quietOutline, opacity: pressed ? 0.6 : 1 }]}
-            >
-              <View style={[styles.countPill, { borderColor: t.amber }]}>
-                <Text style={[styles.countLabel, { color: t.amber }]}>{late.toReview}</Text>
-              </View>
-              <Text style={[styles.lateLine, { color: t.text }]} numberOfLines={1}>
-                {`${late.toReview === 1 ? 'change' : 'changes'} from another phone`}
-              </Text>
-              <Text style={[styles.review, { color: t.text }]}>Review</Text>
-            </Pressable>
+            <View style={[styles.lateSlot, { backgroundColor: t.ground }]}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${late.toReview} changes from another phone. Review.`}
+                onPress={() => router.push('/late-changes')}
+                style={({ pressed }) => [styles.late, { backgroundColor: t.surface, boxShadow: t.lift, opacity: pressed ? 0.6 : 1 }]}
+              >
+                <View style={[styles.countPill, { backgroundColor: t.text }]}>
+                  <Text style={[styles.countLabel, { color: t.onFill }]}>{late.toReview}</Text>
+                </View>
+                <Text style={[styles.lateLine, { color: t.text }]} numberOfLines={1}>
+                  {`${late.toReview === 1 ? 'change' : 'changes'} from another phone`}
+                </Text>
+                <Text style={[styles.review, { color: t.text }]}>Review</Text>
+              </Pressable>
+            </View>
           )}
           <RebuyBar />
           <Dock
@@ -392,21 +424,16 @@ export default function Session() {
               setDrawer(false);
               router.push({ pathname: '/pick', params: { kind: 'cashout' } });
             }}
-            /* O4 over Tonight — `09-navigation.md`: money rules open "from O1,
-               or Tonight". Until now they opened from neither, so a rule agreed
-               before the night could not be changed during it.
-
-               ⚠ KEPT AGAINST `design/handoff-game-admin/`, which draws the
-               drawer without it ("board T3 wins over the brief"). The board
-               wins on layout and the spec wins on behaviour, and this is the
-               spec's: 09-navigation names Tonight as a way in, and no other
-               control on this screen is one. `docs/screens.md` has it. */
+            /* Money rules from Tonight: 09-navigation names Tonight as a way
+               into tonight's rules, and no other control on this screen is
+               one. Kept against `design/handoff-game-admin/`; `docs/screens.md`
+               has it. */
             onRules={() => {
               setDrawer(false);
               router.push('/money-rules');
             }}
-            /* Pass the game — `design/handoff-game-admin/` state 1. The sheet
-               lists the group; the server moves the night. */
+            /* Only a recording phone with an account and a server can pass:
+               the sheet lists the group; the server moves the night. */
             {...(canPass
               ? {
                   onPass: () => {
@@ -415,29 +442,6 @@ export default function Session() {
                   },
                 }
               : {})}
-            /*
-             * THE MOMENT THE CARDS STOPPED IS NOW, AND IT IS WRITTEN DOWN HERE
-             * — B87.
-             *
-             * `setStatus('counting')` has always stamped `ended_at` and has
-             * always said, in `closing.ts`, that this is the honest answer:
-             * *"the night ENDED when counting started, not when the host
-             * finally tapped through the settlement"*. Nothing in the app ever
-             * called it. The only caller was a test, so the fallback in
-             * `closeOf` — `night.endedAt ?? at` — was not a safety net, it was
-             * the only path, and every night in the book recorded the moment
-             * the host tapped Settle instead of the moment the game finished.
-             * On a night whose totals did not add up and which was finished the
-             * next afternoon, that is a figure out by a day.
-             *
-             * It stamps ONCE: a night that comes back to counting keeps the
-             * first answer. `/end-time` is where a host corrects it when even
-             * this tap was late.
-             *
-             * NOT AWAITED, so the drawer closes and the screen moves the
-             * instant the thumb comes off. The write and the queued patch are
-             * the store's business and it emits when they land.
-             */
             onEnd={() => {
               setDrawer(false);
               void setStatus('counting');
@@ -448,97 +452,33 @@ export default function Session() {
         )
       }
     >
-      {/*
-       * Tapping anywhere off the panel closes the drawer.
-       *
-       * MOUNTED ONLY WHILE IT IS OPEN. Left in place and merely disabled, this
-       * wrapper marks the entire table `aria-disabled` — every row, every
-       * figure, all evening — and a screen reader announces the night as
-       * unavailable when nothing is wrong with it. There is no scrim to catch
-       * a tap when there is no drawer to close, so there is no element either.
-       */}
+      {/* With the drawer open the sheet steps back and a tap anywhere on it
+          closes the drawer. */}
       <PressableOrPlain
         wrap={drawer}
         onPress={() => setDrawer(false)}
         style={styles.body}
       >
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline },
-            empty && styles.cardEmpty,
-          ]}
-        >
-          <View style={styles.cardLeft}>
-            <Text style={[styles.tableLabel, { color: t.muted }]}>On the table</Text>
-            {/*
-             * A REBUY IS ANNOUNCED WHERE THE MONEY IS, AND THIS IS THE MONEY.
-             *
-             * `+$500` slides in beside this figure as it changes and fades to
-             * nothing over the next two seconds. The figure keeps its new
-             * value: the fade removes the announcement, not the fact — it is
-             * `onTable`, read off the ledger, and it was never part of the
-             * announcement at all.
-             *
-             * The row is `flex-start` so the tag's cap lines up with the
-             * figure's rather than its baseline, which is the board.
-             */}
-            <View
-              style={styles.figureRow}
-              onLayout={(e) => setFigureRoom(e.nativeEvent.layout.width)}
-            >
-              <Text
-                style={[styles.tableFigure, { color: t.text }]}
-                numberOfLines={1}
-                onLayout={(e) => setFigureWidth(e.nativeEvent.layout.width)}
-                {...cappedFigure}
-              >
-                {formatToFit(onTable, CARD_FITS)}
-              </Text>
-              <TotalTag fits={CARD_FITS} room={figureRoom - figureWidth - FIGURE_TAG_GAP} />
-            </View>
-          </View>
-
-          <View style={styles.cardRight}>
-            {/* No `numberOfLines` on the figure below: B99 — this is the line
-                that reflows when the headline needs the room, and a line that
-                cannot wrap clips. */}
-            {totalIn !== onTable && (
-              <Text style={[styles.totalIn, { color: t.muted }]} {...cappedFigure}>
-                {/* `in play`, not `total in` — 5 September, on the owner's
-                    instruction. One word for this figure everywhere it is
-                    drawn: it was `total in` here, `BOUGHT IN` on E2 and
-                    `PRIZEPOOL` on the settled night, one number under three
-                    nouns. `On the table` beside it is a DIFFERENT figure —
-                    what the seated players still have in front of them — and
-                    keeps its own name. */}
-                {formatToFit(totalIn, CARD_FITS)} in play
-              </Text>
-            )}
-            <Text style={[styles.seats, { color: t.dim }]}>
-              {empty
-                ? 'nobody seated'
-                : out === 0
-                  ? `${seated.length} seated`
-                  : `${seated.length} seated · ${out} out`}
-            </Text>
-            {/* WHEN THE NIGHT STARTED moved twice: off the title row, where
-                it and the running-time tag left "Tonight" too little to keep
-                one line, onto this card — and on 26 September off the card
-                onto the role line under the title, which is where
-                `design/handoff-game-admin/` § 4 puts it ("You're recording ·
-                started 20:05"). The card is the two lines the board draws. */}
-          </View>
-        </View>
-
         {empty ? (
           <View style={styles.blank}>
-            <Icon name="person" color={t.dim} size={34} />
+            {notice !== null && <PassCard notice={notice} on="tonight" />}
+            <Spot place="session" level="sheet" width={110} height={96} />
             <Text style={[styles.blankTitle, { color: t.text }]}>Nobody has bought in yet</Text>
-            <Text style={[styles.blankBody, { color: t.muted }]}>
-              Seat the first player and the table starts filling. Buy-ins are{' '}
-              {formatMoney(defaultBuyIn(ledger))} tonight.
-            </Text>
+            {/* The small lines are gone (owner, 24 November, on the board's
+                `session-empty`); the way on is the lifted Add players button,
+                which seats the first player as the bar's Seat a player does. */}
+            {recording && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/seat')}
+                style={({ pressed }) => [styles.addPlayers, { backgroundColor: t.text, opacity: pressed ? 0.85 : 1 }]}
+              >
+                <Text style={[styles.addPlayersLabel, { color: t.onFill }]}>Add players</Text>
+                <View style={[styles.addPlus, { backgroundColor: t.onFill }]}>
+                  <Icon name="plus" color={t.text} size={z(16)} />
+                </View>
+              </Pressable>
+            )}
           </View>
         ) : (
           <ScrollView
@@ -547,101 +487,76 @@ export default function Session() {
             showsVerticalScrollIndicator={false}
             scrollEnabled={!drawer}
           >
-            {/*
-             * TWO GROUPS, AND THE HEADER IS LOAD-BEARING —
-             * `05-active-vs-settled.md`. The right-hand column means two
-             * different things on this list: for somebody still playing it is
-             * MONEY IN, unsigned; for somebody who has cashed out it is a
-             * signed RESULT BEFORE DEDUCTIONS. Nothing else on the row says
-             * which, so the group header is the whole of what tells $500 and
-             * +$1,620 apart, and it is not decoration.
-             *
-             * DO NOT SHORTEN "result before deductions" TO "result". The doc
-             * says so in as many words, and the reason is what has not come
-             * off yet: the bill, the piggy bank and the rounding step all land
-             * later, so a row calling itself a *result* would be the third
-             * different figure the same person is shown for the same night.
-             *
-             * BOTH HEADERS ARE ALWAYS DRAWN, INCLUDING AT ZERO. "An empty
-             * group renders its header with `· 0` rather than disappearing, so
-             * the admin can see that nobody has cashed out yet" — a group that
-             * vanished would leave the host reading an ungrouped list whose
-             * one remaining header they have no reason to still be reading.
-             */}
-            <PlayerGroup label="Still playing" count={seated.length} first>
+            {/* The announcement, first on the sheet (the board's
+                `session-takenback`). */}
+            {notice !== null && <PassCard notice={notice} on="tonight" />}
+
+            <SectionLabel
+              text={`Still playing · ${seated.length}`}
+              right={<HideControl hidden={hidden} />}
+            />
+            <Card>
               {seated.map((p, i) => (
-                <ActiveRow
+                <CardRow
                   key={p.id}
                   name={p.name}
-                  fact=""
                   last={i === seated.length - 1}
                   {...(drawer || !recording ? {} : {
                     onPress: () => router.push({ pathname: '/player', params: { id: p.id } }),
                   })}
-                  right={
-                    <>
-                      {/*
-                       * THE SAME `+$500` AS A TAG, BESIDE THE NAME — and it is
-                       * drawn by the row, which is what keeps it on the right
-                       * person. This group is sorted by what people are in for
-                       * and a rebuy is the thing that moves a row UP it, so a
-                       * tag pinned to a position instead of to a player would
-                       * land on whoever the rebuy pushed down.
-                       *
-                       * It rides in `right` because `ActiveRow` is a shared
-                       * component and this is Tonight's alone — the tag's own
-                       * margin puts it back beside the name. See `NameTag`.
-                       */}
+                  trail={
+                    <View style={styles.amountCell}>
+                      {/* The rebuy's own figure beside the name's total, for the
+                          life of the confirmation. */}
                       <NameTag playerId={p.id} fits={ROW_FITS} />
-                      <Text style={[styles.amount, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
-                        {formatToFit(p.boughtIn, ROW_FITS)}
-                      </Text>
-                      {/* A watcher's rows carry no chevron (2b, 20b): there
-                          is nothing behind them a watcher may open. */}
-                      {recording && <Icon name="chevron" color={t.muted} />}
-                    </>
+                      {hidden ? (
+                        <Dots />
+                      ) : (
+                        <Text style={[styles.amount, { color: t.text }]} numberOfLines={1} {...cappedFigure}>
+                          {formatToFit(p.boughtIn, ROW_FITS)}
+                        </Text>
+                      )}
+                    </View>
                   }
                 />
               ))}
-            </PlayerGroup>
+            </Card>
 
-            {/*
-              * THE CASHED-OUT ROW IS A SLAB, AND IT LOSES ITS CHEVRON —
-              * `design/handoff-player-list/`, cut 3 September. It is finished:
-              * there is nothing left to open on it, and a finished slab is not
-              * tappable on any screen in the app.
-              *
-              * IT ALSO LOSES `in $500`. The buy-in has its own column on the
-              * rows above, the slab is one line, and name, time, cash-out and
-              * result are what fit. The label loses its qualifier for the same
-              * reason the slab exists: the treatment says "settled" and the
-              * words no longer have to.
-              *
-              * ⚠ AND IT KEEPS ITS CHEVRON, WHICH THE HANDOFF TAKES AWAY. The
-              * one deviation from the rule in the app, and it is about what
-              * this app has that the board was not drawn against: `/player` is
-              * the ONLY route to `/player` → `/entry`, and `/entry` is the only
-              * way to correct a cash-out typed wrong. The ledger is
-              * append-only, so a correction is the mechanism rather than a
-              * convenience; the roster opens `/member`, the club record, not
-              * the night's card. Dropping the chevron here does not tidy a
-              * finished row, it strands the fix for the most expensive typo of
-              * the evening. `docs/screens.md` carries it and the question.
-              */}
-            <PlayerGroup label="Cashed out" count={out}>
-              {gone.map((p) => (
-                <FinishedSlab
-                  key={p.id}
-                  name={p.name}
-                  fact={goneFact(cashedOutAt(night, p.id), p.cashedOut)}
-                  result={resultBeforeDeductions(p.boughtIn, p.cashedOut)}
-                  fits={ROW_FITS}
-                  {...(drawer || !recording ? {} : {
-                    opens: () => router.push({ pathname: '/player', params: { id: p.id } }),
+            {out > 0 && (
+              <>
+                <SectionLabel text={`Cashed out · ${out}`} />
+                <Card>
+                  {gone.map((p, i) => {
+                    const result = resultBeforeDeductions(p.boughtIn, p.cashedOut);
+                    const at = cashedOutAt(night, p.id);
+                    return (
+                      <CardRow
+                        key={p.id}
+                        name={p.name}
+                        last={i === gone.length - 1}
+                        meta={hidden ? `${at === undefined ? '' : `${clockLabel(at)} · `}out ••••` : goneFact(at, p.cashedOut)}
+                        {...(drawer || !recording ? {} : {
+                          onPress: () => router.push({ pathname: '/player', params: { id: p.id } }),
+                        })}
+                        trail={
+                          hidden ? (
+                            <Dots />
+                          ) : (
+                            <Text
+                              style={[styles.amount, { color: result === 0 ? t.muted : moneyColor(t, result) }]}
+                              numberOfLines={1}
+                              {...cappedFigure}
+                            >
+                              {formatSignedToFit(result, ROW_FITS)}
+                            </Text>
+                          )
+                        }
+                      />
+                    );
                   })}
-                />
-              ))}
-            </PlayerGroup>
+                </Card>
+              </>
+            )}
           </ScrollView>
         )}
       </PressableOrPlain>
@@ -649,19 +564,70 @@ export default function Session() {
   );
 }
 
-
-
-/**
- * The running time IS the live tag — there is no "LIVE" word any more. Green
- * dot, green figure, green at 14% behind them.
+/*
+ * HIDING THE MONEY (owner, 22 November; Tonight only, display only — owner,
+ * 24 November: "this should be available on the tonight screen only and this
+ * relates to only the visual display of sums, doesn't affect anything else").
+ * Every figure on the sheet becomes four dots — never the real figure blurred,
+ * so a screenshot gives nothing away; the pot on the ink stays. The choice is
+ * this phone's and lasts until Show is tapped (for the life of the app).
  */
-/**
- * A tap-catcher while the drawer is open, and nothing at all when it is not.
- *
- * Two elements rather than one disabled one, because the disabled version is
- * not invisible: it carries `aria-disabled` over everything inside it, and
- * what is inside it is the whole table.
- */
+let hiddenNow = false;
+const hiddenListeners = new Set<() => void>();
+function setHidden(next: boolean) {
+  hiddenNow = next;
+  hiddenListeners.forEach((l) => l());
+}
+function useHidden(): boolean {
+  return useSyncExternalStore(
+    (l) => {
+      hiddenListeners.add(l);
+      return () => hiddenListeners.delete(l);
+    },
+    () => hiddenNow,
+  );
+}
+
+/** The eye shows what a tap will do (owner, 23 November): the struck eye and Hide while the money shows, the open eye and Show while it is hidden. */
+function HideControl({ hidden }: { hidden: boolean }) {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={hidden ? 'Show amounts' : 'Hide amounts'}
+      hitSlop={10}
+      onPress={() => setHidden(!hidden)}
+      style={({ pressed }) => [styles.hide, { opacity: pressed ? 0.6 : 1 }]}
+    >
+      <Eye open={hidden} color={t.muted} />
+      <Text style={[styles.hideWord, { color: t.muted }]}>{hidden ? 'Show' : 'Hide'}</Text>
+    </Pressable>
+  );
+}
+
+function Eye({ open, color }: { open: boolean; color: string }) {
+  const size = z(17);
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" />
+      <Circle cx={12} cy={12} r={2.8} />
+      {!open && <Path d="M4 20L20 4" />}
+    </Svg>
+  );
+}
+
+/** A hidden figure: four dots in the muted grey (the owner's pick of five placeholders). */
+function Dots() {
+  const t = useTheme();
+  return (
+    <View style={styles.dots} accessibilityLabel="hidden">
+      {[0, 1, 2, 3].map((i) => (
+        <View key={i} style={[styles.dotsDot, { backgroundColor: t.muted }]} />
+      ))}
+    </View>
+  );
+}
+
 function PressableOrPlain({
   wrap,
   onPress,
@@ -807,173 +773,59 @@ const goneFact = (at: string | undefined, cashedOut: Money): string => {
 const styles = StyleSheet.create({
   body: { flex: 1 },
 
-  /* X1's band where the dock would be: hairline top, 15/22, 400 13/1.45. */
-  band: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: 15,
-    paddingBottom: 6,
-    paddingHorizontal: space.page,
-    gap: 10,
-  },
-  bandText: { fontSize: 13, fontWeight: '400', lineHeight: 18.85 },
-  hold: { paddingTop: 4 },
-  cardSlot: { marginHorizontal: -14, paddingBottom: 4 },
-  /* State 6's pending pill, on the band of state 7. */
-  pendingPill: {
-    alignSelf: 'flex-start',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 7,
-    borderWidth: 1,
-  },
-  pendingLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.05 },
-  /* State 12: a chip-action outline row above the dock. */
-  late: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginHorizontal: 14,
-    marginTop: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    borderWidth: 1.5,
-  },
-  countPill: {
-    minWidth: 22,
-    paddingVertical: 2,
-    paddingHorizontal: 7,
-    borderRadius: 7,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  countLabel: { fontSize: 11, fontWeight: '700', ...tabular },
-  lateLine: { ...type.chip, flexShrink: 1 },
-  review: { ...type.chip, fontWeight: '700', marginLeft: 'auto' },
+  /* The pot on the ink (the kit's `topHero`). */
+  hero: { paddingTop: z(14), paddingHorizontal: z(2), paddingBottom: z(2) },
+  heroLabel: { fontSize: z(12.5), fontWeight: '500' },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: z(10), marginTop: z(4) },
+  figureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: FIGURE_TAG_GAP, flexGrow: 1, flexShrink: 0, flexBasis: 'auto', minWidth: 0 },
+  heroFigure: { fontFamily: 'head', fontSize: z(40), fontWeight: '700', lineHeight: z(42), letterSpacing: -1.2 * (z(40) / 40), fontVariant: ['tabular-nums'] },
+  heroSide: { alignItems: 'flex-end', flexShrink: 1, minWidth: 0 },
+  heroSideLine: { fontSize: z(12), lineHeight: z(18), textAlign: 'right' },
+  shares: { flexDirection: 'row', gap: 3, height: 3, marginTop: z(12) },
+  share: { borderRadius: 1.5 },
+
+  /* The sheet. */
+  list: { flex: 1 },
+  listContent: { paddingHorizontal: z(18), paddingTop: z(12), paddingBottom: z(18), gap: z(12) },
+  amountCell: { flexDirection: 'row', alignItems: 'center', gap: z(8), flexShrink: 0 },
+  amount: { fontFamily: 'head', fontSize: z(16.5), fontWeight: '700', fontVariant: ['tabular-nums'], textAlign: 'right' },
+  hide: { flexDirection: 'row', alignItems: 'center', gap: z(6) },
+  hideWord: { fontSize: z(12.5), fontWeight: '600', letterSpacing: 0 },
+  dots: { flexDirection: 'row', gap: z(4), alignItems: 'center', height: z(18) },
+  dotsDot: { width: z(6), height: z(6), borderRadius: z(3) },
+
+  /* Nobody seated (the board's `session-empty`). */
+  blank: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: z(16), paddingHorizontal: z(24) },
+  blankTitle: { fontFamily: 'head', fontSize: z(26), fontWeight: '700', lineHeight: z(29), textAlign: 'center', maxWidth: z(220) },
+  addPlayers: { flexDirection: 'row', alignItems: 'center', gap: z(12), paddingLeft: z(22), paddingRight: z(10), height: z(54), borderRadius: L.cardRadius, boxShadow: '0px 12px 24px -12px rgba(20,26,42,0.55)' },
+  addPlayersLabel: { fontFamily: 'head', fontSize: z(18), fontWeight: '700' },
+  addPlus: { width: z(32), height: z(32), borderRadius: z(16), alignItems: 'center', justifyContent: 'center' },
+
+  /* A phone that does not record: the read-only line, or the wait, at the foot. */
+  band: { flexShrink: 0 },
+  bandWords: { paddingTop: z(14), paddingBottom: z(14), paddingHorizontal: z(18), gap: z(10) },
+  bandText: { fontSize: z(13), fontWeight: '400', lineHeight: z(19) },
+  pendingPill: { alignSelf: 'flex-start', paddingVertical: z(4), paddingHorizontal: z(8), borderRadius: 999, borderWidth: 1.5 },
+  pendingLabel: { fontSize: z(10.5), fontWeight: '700', letterSpacing: 1.05 },
+
+  /* N12 · changes from another phone. */
+  lateSlot: { paddingHorizontal: z(18), paddingBottom: z(10) },
+  late: { flexDirection: 'row', alignItems: 'center', gap: z(10), paddingVertical: z(10), paddingHorizontal: z(14), borderRadius: L.cardRadius },
+  countPill: { minWidth: z(22), paddingVertical: 2, paddingHorizontal: z(7), borderRadius: 999, alignItems: 'center' },
+  countLabel: { fontSize: z(11), fontWeight: '700', fontVariant: ['tabular-nums'] },
+  lateLine: { fontSize: z(14), fontWeight: '600', flexShrink: 1 },
+  review: { fontSize: z(14), fontWeight: '700', marginLeft: 'auto' },
+
   /* The role line — § 4: 500 13, tabular, the first word 600 in the text
      colour, one line that never wraps. The name is the one part that gives. */
   roleRow: { flexDirection: 'row', alignItems: 'center', flexShrink: 1, minWidth: 0 },
-  role: { fontSize: 13, fontWeight: '500', ...tabular },
-  /* The one-Text form of the line, beside the tool icons: it has to be the
-     child that shrinks, or the icons are pushed off the edge on a 360 phone.
-     The ` · ` fragments inside `roleRow` deliberately do not take this — the
-     name is the part that gives there, not the separators. */
+  role: { fontSize: z(13), fontWeight: '500', fontVariant: ['tabular-nums'] },
   roleLine: { flexShrink: 1, minWidth: 0 },
-  roleLead: { fontSize: 13, fontWeight: '600' },
-  roleName: { fontSize: 13, fontWeight: '500', flexShrink: 1 },
+  roleLead: { fontSize: z(13), fontWeight: '600' },
+  roleName: { fontSize: z(13), fontWeight: '500', flexShrink: 1 },
 
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: radius.badge,
-  },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  tagText: type.liveTag,
-
-  // --- the one money card --------------------------------------------------
-  card: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 12,
-    marginTop: 10,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderRadius: radius.card,
-  },
-  cardEmpty: { paddingVertical: 12 },
-  /* `flex: 1` rather than `flexShrink: 1`, and the layout is the same one: the
-     right column is content-sized and was already pushed right by its own auto
-     margin. What it buys is that the row inside stretches to the width the
-     column HAS, which is the number the rebuy tag is measured against. */
-  /*
-   * B99. `flex: 1` is a basis of ZERO: the column never claimed the width of
-   * its own headline and took whatever the right column left, which at 120%
-   * text on a 360 phone was 159 points for a figure needing 163 — so the
-   * headline clipped to "$14…" while the small print beside it kept every
-   * point. A basis of auto with no shrink claims the figure's width first;
-   * the right column is the one that gives, which is what the comment under
-   * it always said.
-   */
-  cardLeft: { gap: 8, flexGrow: 1, flexShrink: 0, flexBasis: 'auto', minWidth: 0 },
-  /* The figure and the `+$500` that announces a change to it — `gap: 10`,
-     tops aligned, and the tag never shrinks the figure it is about. */
-  figureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: FIGURE_TAG_GAP },
-  tableLabel: type.tableLabel,
-  tableFigure: type.tableFigure,
-  // The right column keeps its width and the figure beside it gives, never
-  // the other way round: three lines of small print reflow into a column of
-  // single words long before a headline runs out of room.
-  cardRight: { marginLeft: 'auto', alignItems: 'flex-end', gap: 3, flexShrink: 1, minWidth: 0 },
-  /* Right-aligned so a line that reflows ("$239M" over "in play") keeps the
-     column's edge. */
-  totalIn: { ...type.tableTotal, textAlign: 'right' },
-  seats: { ...type.tableSeats, textAlign: 'right' },
-
-  // --- the table -----------------------------------------------------------
-  list: { flex: 1, marginHorizontal: 22 },
-  listContent: { paddingBottom: 8 },
-
-  /*
-   * `11.5 / 700 / .1em`, muted, uppercase, `0 2px 8px`, and 20 above it — the
-   * doc's Tonight scale, which is deliberately not E2's: this screen's rows
-   * are 17 and 19 against E2's 15.5 and 18, and a header shared between them
-   * would be half a point wrong on one of the two.
-   */
-  groupLabel: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    letterSpacing: 1.15,
-    textTransform: 'uppercase',
-    paddingHorizontal: 2,
-    paddingBottom: 8,
-  },
-  groupAfter: { paddingTop: 20 },
-
-  /*
-   * `14px 2px` ACTIVE, `11px 2px` SETTLED — the settled row is shorter by 3
-   * points a side because it is taller by a sub-line, so the two states end up
-   * within a few points of each other and the list does not visibly jolt when
-   * somebody cashes out and their row changes group.
-   *
-   * A HAIRLINE UNDER EVERY ROW, the last one included. The doc says every row;
-   * the list is two groups now, so "all but the last" would have to mean all
-   * but the last of each — and a group ending on nothing, 20 points above the
-   * next header, reads as the list having stopped.
-   */
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 2,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowSettled: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 11,
-    paddingHorizontal: 2,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowText: { flexShrink: 1, minWidth: 0, gap: 3 },
-  name: { ...type.tableName, flexShrink: 1 },
-  /* 12/400 muted and tabular. It carries the two figures behind the signed one
-     beside it, so it is the row's substantive line and takes the muted token
-     rather than the dim one — `05-active-vs-settled.md` § Contrast. */
-  sub: { fontSize: 12, fontWeight: '400', fontVariant: ['tabular-nums'] },
-  /* NEVER SHRINKS. The name gives — it is a word — and a figure may not: left
-     to shrink, "+$1,620" comes apart into a sign on one line and an amount on
-     the next. See B18. */
-  amount: { ...type.tableAmount, marginLeft: 'auto', flexShrink: 0 },
-
-  blank: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: space.page },
-  blankTitle: { fontSize: 19, fontWeight: '700' },
-  blankBody: { fontSize: 14, fontWeight: '400', lineHeight: 21, textAlign: 'center', maxWidth: 250 },
+  /* The live tag on the ink (the kit's `tpill`). */
+  tag: { flexDirection: 'row', alignItems: 'center', gap: z(7), paddingVertical: z(8), paddingHorizontal: z(12), borderRadius: 999 },
+  dot: { width: z(7), height: z(7), borderRadius: z(3.5) },
+  tagText: { fontFamily: 'head', fontSize: z(13), fontWeight: '700', fontVariant: ['tabular-nums'] },
 });

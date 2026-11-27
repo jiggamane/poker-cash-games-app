@@ -38,12 +38,14 @@ import { ToolTiles } from '../src/components/ToolTiles';
  * same reason *Calculator* is not *Poker calculator*. ⚠ UNSURE, both lines.
  *
  * The tiles are `ToolTiles` since 9 November, shared with the Poker tools
- * sheet that Tonight's one tools icon opens (`/pick-tool`).
+ * sheet that Tonight's one tools icon opens (`/pick-tool`). Since the full
+ * board (`tools`, approved) they carry the approved drawings, not line icons.
  */
 export default function PokerTools() {
   return (
     <Screen title="Poker tools" backTo="the club" meta="nothing here touches the ledger">
       <ToolTiles
+        on="push"
         onOpen={(tool) => router.push({ pathname: tool.path, params: { from: 'tools' } })}
       />
     </Screen>

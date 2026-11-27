@@ -1,19 +1,25 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import type { MoneyRule } from '@poker-club/core';
+import { Card, CardRow, SectionLabel } from './Card';
 import { Icon } from './Icon';
 import { useTheme } from '../design/useTheme';
-import { space, type } from '../design/tokens';
+import { z } from '../design/scale';
 
 /**
  * The money-rules list — O4, and GR8 in the same idiom (rev 18 § 3).
  *
- * ONE HAIRLINE LIST, not a stack of cards: a caption, then one row per rule —
- * its name with a chevron, one line describing it, and the switch at the right
- * — and "Add a rule" as the last row rather than a button somewhere else, so
- * the list ends where a reader is already looking.
+ * A caption, then one row per rule — its name, one line describing it, and
+ * the switch at the right — and "Add a rule" directly under the list, so the
+ * list ends where a reader is already looking.
  *
- * It lives in a component because the same list is now drawn at three moments
+ * THE FULL BOARD (`money-rules`, approved): the rows are one lifted card, the
+ * caption is the quiet section label, the description wraps rather than
+ * truncating, nothing points (no chevron — the row is still the target that
+ * opens the rule), and Add a rule is the quiet line with a plus under the card
+ * rather than a row inside it.
+ *
+ * It lives in a component because the same list is drawn at three moments
  * and had been built twice: the club's defaults (GR8), tonight's snapshot
  * (O4 from the night), and the game's own rules before it opens (O4 from O1).
  * Only the level being edited differs, which is exactly what rev 18 closed.
@@ -22,13 +28,16 @@ import { space, type } from '../design/tokens';
  * defaults have no tonight to be off for, so GR8 passes nothing and the rows
  * carry no switch.
  *
- * `boxed` is the fourth moment, added by `design/handoff-game-settings/`: on
- * O1d the list sits inside the same surface card as the money settings above
- * it, hairlines between the rows rather than under them, because the two
- * blocks are read as one screen and a flat list beside a card reads as two
- * ranks of setting. It is OFF by default and the three older screens do not
- * pass it — a sheet whose whole body is one list has nothing to be boxed
- * against.
+ * `boxed` was the fourth moment, added by `design/handoff-game-settings/`: on
+ * O1d the list sat inside a surface card while the other three drew a flat
+ * hairline list. In the full board's look EVERY list is a card, so the two
+ * variants draw the same and the prop is kept only so O1d's call still reads
+ * as it did.
+ *
+ * IT CARRIES ITS OWN SIDE INSET (the sheet's 20) and stacks its parts 12
+ * apart, so a host drops it into an unpadded column — which is what every host
+ * that uses it is today. A host whose body is already the padded 20 column
+ * puts it outside that padding, or the inset doubles.
  */
 export function RuleList({
   caption,
@@ -38,7 +47,7 @@ export function RuleList({
   onToggle,
   onAdd,
   extraRows,
-  boxed = false,
+  boxed: _boxed = false,
 }: {
   caption: string;
   rules: readonly MoneyRule[];
@@ -48,102 +57,63 @@ export function RuleList({
   /** Off without deleting. Omitted where "off tonight" has no meaning. */
   onToggle?: (rule: MoneyRule, active: boolean) => void;
   onAdd: () => void;
-  /** Rows that belong inside the same hairline list — GR8's unset destinations. */
+  /** Rows that belong inside the same list — GR8's unset destinations. */
   extraRows?: React.ReactNode;
-  /** O1d: the list inside a surface card, as the card of settings above it. */
+  /** O1d: the list inside a card. Every list is a card now; see above. */
   boxed?: boolean;
 }) {
   const t = useTheme();
 
   return (
-    <>
-      <Text style={[styles.caption, { color: t.muted }]}>{caption}</Text>
+    <View style={styles.block}>
+      <SectionLabel text={caption} quiet />
 
-      <View
-        style={[
-          styles.list,
-          boxed && [styles.box, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }],
-        ]}
+      {(rules.length > 0 || extraRows !== undefined) && (
+        <Card>
+          {rules.map((rule, i) => {
+            /* Off for tonight reads muted, as it always has: the rule is still
+               there, and the switch beside it says why it is quiet. */
+            const off = onToggle !== undefined && !rule.active;
+            return (
+              <CardRow
+                key={rule.id}
+                last={i === rules.length - 1 && extraRows === undefined}
+                onPress={() => onOpen(rule)}
+                name={off ? <Text style={{ color: t.muted }}>{rule.name}</Text> : rule.name}
+                meta={describe(rule)}
+                wrapMeta
+                trail={
+                  onToggle === undefined ? undefined : (
+                    <Switch on={rule.active} onPress={() => onToggle(rule, !rule.active)} />
+                  )
+                }
+              />
+            );
+          })}
+          {extraRows}
+        </Card>
+      )}
+
+      {/* The only way in from here. The three dashed cards it replaced asked
+          the reader to choose a destination before they had seen the editor
+          that explains what one is. The kit's `quiet('Add a rule', { icon: 'plus' })`. */}
+      <Pressable
+        accessibilityRole="button"
+        onPress={onAdd}
+        style={({ pressed }) => [styles.add, { opacity: pressed ? 0.6 : 1 }]}
       >
-        {rules.map((rule, i) => (
-          <View
-            key={rule.id}
-            style={[
-              styles.row,
-              boxed && styles.boxRow,
-              /* Boxed, the line goes BETWEEN rows and never under the last one:
-                 a hairline against the card's own border is two lines a point
-                 apart. Flat, every row carries its own, which is what the
-                 three older screens draw. */
-              boxed
-                ? i > 0 && { borderTopColor: t.hairline, borderTopWidth: StyleSheet.hairlineWidth }
-                : { borderBottomColor: t.hairline, borderBottomWidth: StyleSheet.hairlineWidth },
-            ]}
-          >
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => onOpen(rule)}
-              style={({ pressed }) => [styles.rowText, { opacity: pressed ? 0.6 : 1 }]}
-            >
-              <View style={styles.nameLine}>
-                <Text
-                  style={[
-                    styles.name,
-                    boxed && styles.boxName,
-                    { color: onToggle !== undefined && !rule.active ? t.muted : t.text },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {rule.name}
-                </Text>
-                <Icon name="chevron" color={t.muted} size={15} />
-              </View>
-              <Text
-                style={[styles.detail, boxed && styles.boxDetail, { color: t.muted }]}
-                numberOfLines={1}
-              >
-                {describe(rule)}
-              </Text>
-            </Pressable>
-
-            {onToggle !== undefined && (
-              <Switch on={rule.active} onPress={() => onToggle(rule, !rule.active)} />
-            )}
-          </View>
-        ))}
-
-        {extraRows}
-
-        {/* Last row, and the only way in from here. The three dashed cards it
-            replaces asked the reader to choose a destination before they had
-            seen the editor that explains what one is. */}
-        <Pressable
-          accessibilityRole="button"
-          onPress={onAdd}
-          style={({ pressed }) => [
-            styles.row,
-            styles.addRow,
-            boxed && [
-              styles.boxRow,
-              rules.length > 0 && {
-                borderTopColor: t.hairline,
-                borderTopWidth: StyleSheet.hairlineWidth,
-              },
-            ],
-            { opacity: pressed ? 0.6 : 1 },
-          ]}
-        >
-          <Icon name="plus" color={t.text} size={15} />
-          <Text style={[styles.addLabel, boxed && styles.boxAddLabel, { color: t.text }]}>
-            Add a rule
-          </Text>
-        </Pressable>
-      </View>
-    </>
+        <Icon name="plus" color={t.muted} size={z(16)} />
+        <Text style={[styles.addLabel, { color: t.muted }]}>Add a rule</Text>
+      </Pressable>
+    </View>
   );
 }
 
-/** 44 × 26, knob 20. Filled when on — no colour, because colour is money. */
+/**
+ * The kit's `toggle()`: 46 × 28, a 22 knob. On is the ink fill with the knob
+ * in its opposite colour; off is the outline with a white knob. No colour,
+ * because colour is money.
+ */
 export function Switch({ on, onPress }: { on: boolean; onPress: () => void }) {
   const t = useTheme();
   return (
@@ -154,44 +124,30 @@ export function Switch({ on, onPress }: { on: boolean; onPress: () => void }) {
       hitSlop={10}
       style={[
         styles.track,
-        on ? { backgroundColor: t.text } : { backgroundColor: t.raised },
-        { justifyContent: on ? 'flex-end' : 'flex-start' },
+        { backgroundColor: on ? t.text : t.outline, justifyContent: on ? 'flex-end' : 'flex-start' },
       ]}
     >
-      <View style={[styles.knob, { backgroundColor: on ? t.onFill : t.muted }]} />
+      {/* `onTop` is the white of the ink top in both themes — the knob of an
+          off switch is white on either sheet. */}
+      <View style={[styles.knob, { backgroundColor: on ? t.onFill : t.onTop }]} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  caption: { ...type.sectionLabel, marginHorizontal: space.page, marginBottom: 2 },
-  list: { marginHorizontal: space.page },
-  // O1d's card: 13 radius, one hairline border, and the rows clipped inside it.
-  box: { marginHorizontal: space.card, borderRadius: 13, borderWidth: 1, overflow: 'hidden' },
-  // Tighter than the flat row, because the card's own padding is around it.
-  boxRow: { paddingVertical: 11, paddingHorizontal: 15 },
-  // doc 15 § 3: a sheet's body rows are 15 / 4 with a hairline between them.
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 4 },
-  rowText: { flex: 1, minWidth: 0, gap: 4 },
-  nameLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  name: { fontSize: 18, fontWeight: '700', flexShrink: 1 },
-  detail: { fontSize: 13.5, fontWeight: '400' },
-  addRow: { gap: 11, borderBottomWidth: 0 },
-  addLabel: { fontSize: 15, fontWeight: '700' },
-  /* Inside the card the rule sets as the settings above it do — 500 16 over a
-     12.5 line — rather than as the loudest thing on a sheet of its own. */
-  boxName: { fontSize: 16, fontWeight: '500' },
-  boxDetail: { fontSize: 12.5 },
-  boxAddLabel: { fontSize: 15, fontWeight: '600' },
+  block: { marginHorizontal: z(20), gap: z(12) },
+  // The kit's `.btnq`: 600 14 in the muted colour, 40 tall, centred, the icon 16.
+  add: { minHeight: z(40), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: z(6) },
+  addLabel: { fontSize: z(14), fontWeight: '600' },
 
   track: {
-    marginLeft: 'auto',
-    width: 44,
-    height: 26,
-    borderRadius: 13,
-    padding: 3,
+    flexShrink: 0,
+    width: z(46),
+    height: z(28),
+    borderRadius: z(14),
+    padding: z(3),
     flexDirection: 'row',
     alignItems: 'center',
   },
-  knob: { width: 20, height: 20, borderRadius: 10 },
+  knob: { width: z(22), height: z(22), borderRadius: z(11) },
 });

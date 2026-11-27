@@ -7,9 +7,9 @@ import { SpendList } from '../src/components/SpendList';
 import { RuleList } from '../src/components/RuleList';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Text } from '../src/components/Text';
-import { space, type } from '../src/design/tokens';
+import { z } from '../src/design/scale';
 import { nameOf, settlementOf, spendsOf, toggleRule, useNight } from '../src/lib/nightStore';
 
 /**
@@ -24,6 +24,13 @@ import { nameOf, settlementOf, spendsOf, toggleRule, useNight } from '../src/lib
  * The switch turns a rule off without deleting it. Groups have a piggy bank they
  * skip on somebody's birthday, and deleting the rule to skip it once means
  * rebuilding it next week.
+ *
+ * THE FULL BOARD (`money-rules`, approved): no bar — each switch takes effect
+ * as it is flipped, so there is nothing to confirm. Rules, the bill and the
+ * rounding are three lifted cards under quiet labels; Add a rule is the quiet
+ * line, Add a spend the outlined button. The three components carry the
+ * sheet's 20 side inset themselves, so the column here is unpadded and only
+ * stacks them 12 apart.
  */
 export default function MoneyRules() {
   const t = useTheme();
@@ -50,56 +57,60 @@ export default function MoneyRules() {
       sub="What comes off the table at settle-up, in the order it is taken. Nothing here touches a hand while it is being played."
       sentence
     >
-      <RuleList
-        caption="Tonight’s rules"
-        rules={rules}
-        describe={(rule: MoneyRule) =>
-          ruleDetail(rule, {
-            spent: ledger.totalExpenses,
-            collectorName:
-              rule.collectorPlayerId === ''
-                ? undefined
-                : nameOf(night, rule.collectorPlayerId),
-            ...(rule.active
-              ? { taken: preview?.deductions.find((d) => d.ruleId === rule.id)?.total }
-              : {}),
-          })
-        }
-        onOpen={(rule) => router.push({ pathname: '/rule', params: { id: rule.id } })}
-        onToggle={(rule, active) => void toggleRule(rule.id, active)}
-        onAdd={() =>
-          router.push({
-            pathname: '/rule',
-            params: { destination: 'kitty', order: String(nextOrder), draft: '1' },
-          })
-        }
-      />
+      <View style={styles.body}>
+        <RuleList
+          caption="Tonight’s rules"
+          rules={rules}
+          describe={(rule: MoneyRule) =>
+            ruleDetail(rule, {
+              spent: ledger.totalExpenses,
+              collectorName:
+                rule.collectorPlayerId === ''
+                  ? undefined
+                  : nameOf(night, rule.collectorPlayerId),
+              ...(rule.active
+                ? { taken: preview?.deductions.find((d) => d.ruleId === rule.id)?.total }
+                : {}),
+            })
+          }
+          onOpen={(rule) => router.push({ pathname: '/rule', params: { id: rule.id } })}
+          onToggle={(rule, active) => void toggleRule(rule.id, active)}
+          onAdd={() =>
+            router.push({
+              pathname: '/rule',
+              params: { destination: 'kitty', order: String(nextOrder), draft: '1' },
+            })
+          }
+        />
 
-      {/* WHAT IS ACTUALLY ON THE BILL, and who put the money in.
-          A bill rule in the list above says how the spending is split; it
-          cannot say what has been spent, and the amount and the person who
-          covered it were reachable only from the table's own drawer. This is
-          the screen a host opens when the argument is about the deductions, so
-          the spends are on it — `src/components/SpendList.tsx`. */}
-      <SpendList
-        total={ledger.totalExpenses}
-        spends={spendsOf(night, ledger)}
-        nameFor={(id) => nameOf(night, id)}
-      />
+        {/* WHAT IS ACTUALLY ON THE BILL, and who put the money in.
+            A bill rule in the list above says how the spending is split; it
+            cannot say what has been spent, and the amount and the person who
+            covered it were reachable only from the table's own drawer. This is
+            the screen a host opens when the argument is about the deductions, so
+            the spends are on it — `src/components/SpendList.tsx`. */}
+        <SpendList
+          total={ledger.totalExpenses}
+          spends={spendsOf(night, ledger)}
+          nameFor={(id) => nameOf(night, id)}
+        />
 
-      {/* Governs every rule above it at once, so it is under its own caption
-          rather than in the list: a reader looking down that list is looking
-          for things with a switch, and this has nothing to switch off. */}
-      <RoundingRow mode={night.roundingMode} scope="night" />
+        {/* Governs every rule above it at once, so it is under its own caption
+            rather than in the list: a reader looking down that list is looking
+            for things with a switch, and this has nothing to switch off. */}
+        <RoundingRow mode={night.roundingMode} scope="night" />
 
-      <Text style={[styles.footnote, { color: t.muted }]}>
-        These belong to tonight. A night is settled with the rules it opened with, so editing one
-        here changes this night and not the ones already closed.
-      </Text>
+        <Text style={[styles.footnote, { color: t.muted }]}>
+          These belong to tonight. A night is settled with the rules it opened with, so editing one
+          here changes this night and not the ones already closed.
+        </Text>
+      </View>
     </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  footnote: { ...type.footnote, marginHorizontal: space.page, marginTop: 18 },
+  body: { paddingTop: z(2), gap: z(12) },
+  // The kit's `note()`: 13 / 1.45, muted, flush with the cards.
+  footnote: { fontSize: z(13), lineHeight: z(18.85), marginHorizontal: z(20) },
 });

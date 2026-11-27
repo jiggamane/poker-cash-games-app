@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet } from 'react-native';
-import { Icon } from './Icon';
-import { useTheme } from '../design/useTheme';
+import { SvgXml } from 'react-native-svg';
+import { z } from '../design/scale';
 
 /**
  * The poker tools on a live night's role line — ONE round icon at the right end
@@ -24,32 +24,30 @@ import { useTheme } from '../design/useTheme';
  * It goes through `Screen`'s `metaTrailing`, so the role line's text shrinks
  * and this does not, and the whole head dims with the drawer.
  */
+/*
+ * The tools button's own drawing (owner, 25 November, "D"): two cards fanned on
+ * the ink, the back one at half white, the front one white with a red question
+ * mark, 32 points and no round behind it. It always sits on the ink top, in
+ * both themes, so its colours are the drawing's and not the theme's — like the
+ * approved spot drawings (`src/art/spots.ts`).
+ */
+const TOOLS_ICON = `<svg viewBox="0 0 22 20"><rect x="3" y="3.5" width="10" height="14.5" rx="2" transform="rotate(-14 8 10.75)" fill="#fff" opacity=".5"/><g transform="rotate(10 13 10)"><rect x="8" y="2.5" width="10.5" height="15" rx="2.1" fill="#fff"/><path d="M11.6 8.4c0-1.1.8-1.9 1.9-1.9s1.9.7 1.9 1.7c0 .8-.5 1.2-1.1 1.6-.5.3-.7.6-.7 1.1v.4" fill="none" stroke="#E5484D" stroke-width="1.5" stroke-linecap="round"/><circle cx="13.55" cy="13.5" r=".95" fill="#E5484D"/></g></svg>`;
+
 export function ToolsButton() {
-  const t = useTheme();
+  const size = z(32);
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Poker tools"
       hitSlop={4}
       onPress={() => router.push('/pick-tool')}
-      style={({ pressed }) => [
-        styles.round,
-        { backgroundColor: t.roundFill, opacity: pressed ? 0.6 : 1 },
-      ]}
+      style={({ pressed }) => [styles.slot, { opacity: pressed ? 0.6 : 1 }]}
     >
-      <Icon name="questionCard" color={t.text} />
+      <SvgXml xml={TOOLS_ICON} width={size} height={size} />
     </Pressable>
   );
 }
 
-const ROUND = 40;
-
 const styles = StyleSheet.create({
-  round: {
-    width: ROUND,
-    height: ROUND,
-    borderRadius: ROUND / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  slot: { width: z(36), height: z(36), alignItems: 'center', justifyContent: 'center' },
 });

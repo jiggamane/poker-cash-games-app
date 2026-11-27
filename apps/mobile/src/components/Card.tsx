@@ -40,13 +40,17 @@ export function Card({
  * colour (`quiet` for the muted one). `right` is a figure at its right end.
  * The kit's `label()`.
  */
-export function SectionLabel({ text, right, quiet = false, lead }: { text: string; right?: string; quiet?: boolean; lead?: ReactNode }) {
+export function SectionLabel({ text, right, quiet = false, lead }: { text: string; right?: ReactNode; quiet?: boolean; lead?: ReactNode }) {
   const t = useTheme();
   return (
     <View style={styles.label}>
       {lead}
       <Text style={[T.lookLabel, { color: quiet ? t.muted : t.text }]}>{text.toUpperCase()}</Text>
-      {right !== undefined && <Text style={[styles.right, { color: t.text }]}>{right}</Text>}
+      {typeof right === 'string' ? (
+        <Text style={[styles.right, { color: t.text }]}>{right}</Text>
+      ) : right !== undefined ? (
+        <View style={styles.rightNode}>{right}</View>
+      ) : null}
     </View>
   );
 }
@@ -186,5 +190,6 @@ const styles = StyleSheet.create({
   rows: { paddingHorizontal: z(12) },
   pad: { padding: z(12) },
   label: { flexDirection: 'row', alignItems: 'center', gap: z(8), marginHorizontal: z(2), marginTop: z(4), marginBottom: z(-4) },
+  rightNode: { marginLeft: 'auto' },
   right: { marginLeft: 'auto', fontFamily: 'head', fontSize: z(13), fontWeight: '700', fontVariant: ['tabular-nums'] },
 });

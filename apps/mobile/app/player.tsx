@@ -16,14 +16,15 @@ import {
   type EffectiveEntry,
   type Money,
 } from '@poker-club/core';
-import { formatMoney, formatSignedToFit, formatToFit } from '../src/lib/money';
+import { formatMoney, formatSigned, formatSignedToFit } from '../src/lib/money';
 import { Button } from '../src/components/Button';
-import { Icon } from '../src/components/Icon';
+import { Card, SectionLabel } from '../src/components/Card';
 import { announceRebuy } from '../src/components/rebuyAnnouncement';
 import { FreshEntryWash } from '../src/components/RebuyConfirmation';
 import { Sheet } from '../src/components/Sheet';
 import { moneyColor, useTheme } from '../src/design/useTheme';
-import { cappedFigure, unscaledLabel, radius, space, type } from '../src/design/tokens';
+import { cappedFigure } from '../src/design/tokens';
+import { z } from '../src/design/scale';
 import {
   lastRebuyAmount,
   rebuy as writeRebuy,
@@ -32,7 +33,6 @@ import {
   useNight,
 } from '../src/lib/nightStore';
 import { usePending } from '../src/lib/pending';
-import { Pill } from '../src/components/Pill';
 
 /**
  * The player card — T2 at the table, T4 cashed out. 08-tonight-home.md.
@@ -105,7 +105,9 @@ export default function PlayerCard() {
   if (player === undefined) {
     return (
       <Sheet title="Player">
-        <Text style={[styles.note, { color: t.muted }]}>Nobody by that name tonight.</Text>
+        <View style={styles.body}>
+          <Text style={[styles.note, { color: t.muted }]}>Nobody by that name tonight.</Text>
+        </View>
       </Sheet>
     );
   }
@@ -279,6 +281,50 @@ export default function PlayerCard() {
     }
   }
 
+  /*
+   * A CLOSED BOOK HAS NO CONTROLS ON IT.
+   *
+   * This card is reachable from E6 now, weeks after the night ended, and the
+   * two buttons below it would offer are a rebuy into a game nobody is playing
+   * and a correction to a settlement everybody has already been paid on.
+   * `settle()` recomputes from the ledger every time it is read, so a
+   * correction here would silently move a figure five people agreed on. One
+   * way out, and it is the door.
+   *
+   * And a night another phone is recording is read here, never written: the
+   * same one way out. See `hold.ts`.
+   */
+  const readOnly = nightSettlement !== null || night.hold === 'away';
+
+  /*
+   * THE THREE FIGURES, WRITTEN IN FULL — the owner, 22 November, on the full
+   * board (`player-out`): "use auto size down for the values once they near
+   * collision". They are never abbreviated any more; the row steps down
+   * together to the size the longest of them fits, 26 to a floor of 18, so the
+   * three stay one size. This reverses the 20 September exemption that marked
+   * them `$2.1k` past a thousand (`docs/screens.md`): a figure in full at 20
+   * points reads as money where `8.5k` at 28 read as a count of something.
+   *
+   * The size is the board's own rule (`40-during-the-game.mjs`, `fitSize`),
+   * worked out from the longest string, so the row is one size on every
+   * platform. `adjustsFontSizeToFit` under it is the native safety net for a
+   * reader's text turned up past what the rule budgeted for, and the row still
+   * wraps a third that will not fit rather than clipping it (B99).
+   */
+  const figures: { label: string; value: string; color: string; align: 'start' | 'middle' | 'end' }[] = [
+    { label: 'In for', value: formatMoney(inFor), color: t.text, align: 'start' },
+    {
+      label: 'Counted',
+      value: counted === undefined ? '—' : formatMoney(counted),
+      color: counted === undefined ? t.dim : t.text,
+      align: 'middle',
+    },
+    ...(result === undefined
+      ? []
+      : [{ label: 'Night', value: formatSigned(result), color: moneyColor(t, result), align: 'end' as const }]),
+  ];
+  const figureSize = z(fitSize(figures.map((f) => f.value), figures.length === 3 ? 3 : 2));
+
   return (
     <Sheet
       title={player.name}
@@ -315,59 +361,50 @@ export default function PlayerCard() {
             ? undefined
             : `left ${clock(night.occurredAt[lastOut.id])}`
       }
+      /*
+       * THE FULL BOARD (`player`, `player-corrected`, approved): Rebuy is the
+       * card's one primary, so it is the bar. The amount is M16's: their last
+       * rebuy tonight, then tonight's buy-in, then the group default. Where it
+       * came from is deliberately not printed anywhere — M17 — so the bar can
+       * only show the figure. Other amount is the way to a different one.
+       *
+       * A TAP, AND THE TABLE ANSWERS FOR IT. See `quickRebuy` above for what
+       * the hold was guarding and what took its place.
+       */
+      bar={
+        !readOnly && seated
+          ? [{ label: `Rebuy ${formatMoney(rebuy)}`, onPress: () => void quickRebuy() }]
+          : undefined
+      }
       footer={
-        /*
-         * A CLOSED BOOK HAS NO CONTROLS ON IT.
-         *
-         * This card is reachable from E6 now, weeks after the night ended, and
-         * the two buttons below it would offer are a rebuy into a game nobody
-         * is playing and a correction to a settlement everybody has already
-         * been paid on. `settle()` recomputes from the ledger every time it is
-         * read, so a correction here would silently move a figure five people
-         * agreed on. One way out, and it is the door.
-         */
-        /* And a night another phone is recording is read here, never written:
-           the same one way out. See `hold.ts`. */
-        nightSettlement !== null || night.hold === 'away' ? (
+        readOnly ? (
           <Button label="Close" variant="secondary" onPress={() => router.back()} />
         ) : seated ? (
-          <>
-            {/* The amount is M16's: their last rebuy tonight, then tonight's
-                buy-in, then the group default. Where it came from is
-                deliberately not printed anywhere — M17 — so the button can only
-                show the figure. Other amount is the way to a different one.
-
-                A TAP, AND THE TABLE ANSWERS FOR IT. See `quickRebuy` above for
-                what the hold was guarding and what took its place. */}
+          /* The outlined pair, directly above the bar — the board's note. */
+          <View style={styles.pair}>
             <Button
-              label={`Rebuy ${formatMoney(rebuy)}`}
-              variant="primary"
-              onPress={() => void quickRebuy()}
+              label="Other amount"
+              variant="secondary"
+              style={styles.half}
+              onPress={() =>
+                router.push({ pathname: '/log', params: { player: player.id, kind: 'rebuy' } })
+              }
             />
-            <View style={styles.pair}>
-              <Button
-                label="Other amount"
-                variant="secondary"
-                style={styles.half}
-                onPress={() =>
-                  router.push({ pathname: '/log', params: { player: player.id, kind: 'rebuy' } })
-                }
-              />
-              <Button
-                label="Cash out"
-                variant="secondary"
-                style={styles.half}
-                onPress={() =>
-                  router.push({ pathname: '/log', params: { player: player.id, kind: 'cashout' } })
-                }
-              />
-            </View>
-          </>
+            <Button
+              label="Cash out"
+              variant="secondary"
+              style={styles.half}
+              onPress={() =>
+                router.push({ pathname: '/log', params: { player: player.id, kind: 'cashout' } })
+              }
+            />
+          </View>
         ) : (
           <View style={styles.pair}>
-            {/* No primary once they are out. Correcting opens the newest line,
-                which is the one just written; every other line is one tap away
-                in the list above. */}
+            {/* No primary once they are out, so no bar (`player-out`): the
+                sheet ends in its two outlined buttons. Correcting opens the
+                newest line, which is the one just written; every other line
+                is one tap away in the list above. */}
             <Button
               label="Correct an entry"
               variant="secondary"
@@ -387,250 +424,228 @@ export default function PlayerCard() {
         )
       }
     >
-      <View style={[styles.card, { backgroundColor: t.surface, boxShadow: t.lift, borderColor: t.hairline }]}>
-        {/*
-         * EVERY FIGURE ON THIS CARD IS MARKED — the owner's call of
-         * 20 September, and the exception to the working rule in `money.ts`.
-         *
-         * The card IS a working — `In for` less `Counted` is `Night` — and it
-         * was drawn as one for a day. What that missed is the size: these are
-         * 28-point figures in the first thing the sheet shows, not a line of
-         * terms at 12.5 under a name, and `8.5k` at that size reads as a count
-         * of something. The rule earns its keep on a crowded annotation line
-         * and costs more than it saves here. `docs/screens.md` has the
-         * exemption and the reasoning.
-         */}
-        <StatPair label="In for" value={formatToFit(inFor, FITS)} tight={result !== undefined} />
-        <StatPair
-          label="Counted"
-          value={counted === undefined ? '—' : formatToFit(counted, FITS)}
-          muted={counted === undefined}
-          tight={result !== undefined}
-          align="middle"
-        />
-        {result !== undefined && (
-          <StatPair
-            label="Night"
-            value={formatSignedToFit(result, FITS)}
-            color={moneyColor(t, result)}
-            tight
-            align="end"
-          />
-        )}
-        {result === undefined && (
-          <Text style={[styles.cardNote, { color: t.muted }]}>
-            Net is known once chips are counted
-          </Text>
-        )}
-      </View>
-
-      <View style={styles.list}>
-        <Text style={[styles.sectionLabel, { color: t.muted }]}>Entries</Text>
-
-        {rows.map((r, i) => (
-          /* Read-only once the night is settled, for the reason the footer
-             gives: every row here is a way into a correction, and the book is
-             closed. The row itself is identical either way.
-
-             NOTHING GUARDS THE SECOND THE SHEET IS LEAVING ANY MORE, and it no
-             longer needs one. While the confirmation lived here the sheet stayed
-             up for 1.1s after the write with every row still live, and a row
-             tapped in that second pushed the correction screen for the sweep to
-             pop straight back off. The rebuy now leaves on the tap, so there is
-             no interval to protect. */
-          <PressableOrPlain
-            key={r.key}
-            press={
-              nightSettlement === null && night.hold !== 'away' && r.entryId !== undefined
-                ? () => router.push({ pathname: '/entry', params: { id: r.entryId } })
-                : undefined
-            }
-            style={({ pressed }) => [
-              styles.row,
-              {
-                borderBottomColor: t.hairline,
-                borderBottomWidth: i === rows.length - 1 ? 0 : StyleSheet.hairlineWidth,
-                opacity: pressed ? 0.6 : 1,
-              },
-            ]}
-          >
-            {/* The row this rebuy wrote, washed green for the same two seconds
-                the tags on Tonight get — and gone with them. Behind the line
-                rather than over it, and identified by the announcement's own
-                `entryIds` rather than by picking the newest rebuy. */}
-            <FreshEntryWash entryId={r.entryId} />
-            <Text style={[styles.time, { color: t.muted }]}>{clock(r.at)}</Text>
-            <View style={styles.entryText}>
-              <View style={styles.entryHead}>
-                <Text
-                  style={[
-                    styles.entryType,
-                    r.struck && styles.struck,
-                    { color: r.struck ? t.muted : t.text },
-                  ]}
-                >
-                  {r.title}
-                </Text>
-                {r.mark !== undefined && <Pill label={r.mark.label} tone={r.mark.tone} />}
-              </View>
-              <Text style={[styles.provenance, { color: t.muted }]} numberOfLines={1}>
-                {r.sub}
+      <View style={styles.body}>
+        <Card pad>
+          <View style={styles.summary}>
+            {figures.map((f) => (
+              <StatPair key={f.label} {...f} size={figureSize} />
+            ))}
+            {result === undefined && (
+              <Text style={[styles.summaryNote, { color: t.muted }]}>
+                Net is known once chips are counted
               </Text>
-            </View>
-            <Text style={[styles.entryAmount, { color: r.struck ? t.muted : t.text }]}>
-              {formatMoney(r.amount)}
-            </Text>
-          </PressableOrPlain>
-        ))}
+            )}
+          </View>
+        </Card>
+
+        <SectionLabel text="Entries" quiet />
+
+        {rows.length > 0 && (
+          <Card>
+            {rows.map((r, i) => (
+              /* Read-only once the night is settled, for the reason the footer
+                 gives: every row here is a way into a correction, and the book is
+                 closed. The row itself is identical either way.
+
+                 NOTHING GUARDS THE SECOND THE SHEET IS LEAVING ANY MORE, and it no
+                 longer needs one. While the confirmation lived here the sheet stayed
+                 up for 1.1s after the write with every row still live, and a row
+                 tapped in that second pushed the correction screen for the sweep to
+                 pop straight back off. The rebuy now leaves on the tap, so there is
+                 no interval to protect. */
+              <PressableOrPlain
+                key={r.key}
+                press={
+                  !readOnly && r.entryId !== undefined
+                    ? () => router.push({ pathname: '/entry', params: { id: r.entryId } })
+                    : undefined
+                }
+                style={({ pressed }) => [
+                  styles.row,
+                  i < rows.length - 1 && { borderBottomWidth: 1, borderBottomColor: t.hairline },
+                  pressed && { opacity: 0.6 },
+                ]}
+              >
+                {/* The row this rebuy wrote, washed green for the same two seconds
+                    the tags on Tonight get — and gone with them. Behind the line
+                    rather than over it, and identified by the announcement's own
+                    `entryIds` rather than by picking the newest rebuy. */}
+                <FreshEntryWash entryId={r.entryId} />
+                <Text style={[styles.time, { color: t.muted }]}>{clock(r.at)}</Text>
+                <View style={styles.entryText}>
+                  <View style={styles.entryHead}>
+                    <Text
+                      style={[
+                        styles.entryType,
+                        r.struck && styles.struck,
+                        { color: r.struck ? t.muted : t.text },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {r.title}
+                    </Text>
+                    {r.mark !== undefined && (
+                      /* The board's small mark: muted on the raised fill, for
+                         VOIDED, CORRECTION and QUEUED alike. */
+                      <View style={[styles.mark, { backgroundColor: t.raised }]}>
+                        <Text style={[styles.markText, { color: t.muted }]}>{r.mark.toUpperCase()}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.provenance, { color: t.muted }]}>{r.sub}</Text>
+                </View>
+                <Text style={[styles.entryAmount, { color: r.struck ? t.muted : t.text }]} numberOfLines={1}>
+                  {formatMoney(r.amount)}
+                </Text>
+              </PressableOrPlain>
+            ))}
+          </Card>
+        )}
 
         {rows.length === 0 && (
           <Text style={[styles.note, { color: t.muted }]}>Nothing logged for them yet.</Text>
         )}
 
-        {rows.some((r) => r.mark?.label === 'queued') && (
-          <Text style={[styles.queuedNote, { color: t.muted }]}>
+        {rows.some((r) => r.mark === 'queued') && (
+          <Text style={[styles.note, { color: t.muted }]}>
             A queued entry is written down and safe. It reaches the others when the phone gets a
             signal; nothing is lost and nothing is guessed.
           </Text>
         )}
-      </View>
 
-      {/*
-       * WHAT THE RULES TOOK, AND WHERE THAT LEFT THEM — the working.
-       *
-       * The card at the top is the table's answer: chips in, chips out, and the
-       * difference. This is the room's — the bill, the piggy bank, and what
-       * came back to whoever fronted the food — and it is the half a player
-       * actually argues about a week later. It is drawn only on a settled
-       * night, because until the rules have run there is nothing here that is
-       * not a guess.
-       *
-       * X1c's rows, in X1c's order (`working.ts`), on the sheet that survived
-       * it. Nothing on this screen adds anything up: the rows are the engine's,
-       * the labels come off the night's own rule snapshot — so a night settled
-       * under an older bill still names the split it was settled with — and the
-       * figure at the foot is `nightScore`'s score, which is what the row on E6
-       * says. What the transfers were built from is that plus the float on the
-       * line under it, which together are `finalPosition` — see B27 above.
-       *
-       * ⚠ THREE STRINGS ARE NOT DRAWN, and are flagged rather than passed off
-       * as decided copy — the handoff's rule. "After deductions" is E6's own
-       * section label with the table dropped off the front of it; "Their night"
-       * is the summary card's "Night" in the pronoun the note below already
-       * uses; and the empty line is written to the same grammar. No board draws
-       * this block on this sheet at all, because no board draws this sheet
-       * after a night has been settled.
-       */}
-      {settlement !== null && (
-        <View style={[styles.after, { borderTopColor: t.hairline }]}>
-          <Text style={[styles.sectionLabel, { color: t.muted }]}>After deductions</Text>
+        {/*
+         * WHAT THE RULES TOOK, AND WHERE THAT LEFT THEM — the working.
+         *
+         * The card at the top is the table's answer: chips in, chips out, and the
+         * difference. This is the room's — the bill, the piggy bank, and what
+         * came back to whoever fronted the food — and it is the half a player
+         * actually argues about a week later. It is drawn only on a settled
+         * night, because until the rules have run there is nothing here that is
+         * not a guess.
+         *
+         * X1c's rows, in X1c's order (`working.ts`), on the sheet that survived
+         * it. Nothing on this screen adds anything up: the rows are the engine's,
+         * the labels come off the night's own rule snapshot — so a night settled
+         * under an older bill still names the split it was settled with — and the
+         * figure at the foot is `nightScore`'s score, which is what the row on E6
+         * says. What the transfers were built from is that plus the float on the
+         * line under it, which together are `finalPosition` — see B27 above.
+         *
+         * ⚠ THREE STRINGS ARE NOT DRAWN, and are flagged rather than passed off
+         * as decided copy — the handoff's rule. "After deductions" is E6's own
+         * section label with the table dropped off the front of it; "Their night"
+         * is the summary card's "Night" in the pronoun the note below already
+         * uses; and the empty line is written to the same grammar. No board draws
+         * this block on this sheet at all, because no board draws this sheet
+         * after a night has been settled — the full board says so in its flags
+         * on `player`. So it is set in the look's own parts: a quiet label over
+         * a card, the total under a hairline.
+         */}
+        {settlement !== null && (
+          <>
+            <SectionLabel text="After deductions" quiet />
+            <Card pad>
+              <View style={styles.after}>
+                {working.map((r) => (
+                  <View key={r.key} style={styles.afterRow}>
+                    <Text style={[styles.afterLabel, { color: t.text }]} numberOfLines={2}>
+                      {r.label}
+                    </Text>
+                    {/* MARKED, with the rest of this sheet. The block is a
+                        working and `Their night` is what it comes to, but a
+                        sheet that marks its headline figures and not its
+                        receipt rows is a sheet drawn two ways. */}
+                    <Text
+                      style={[styles.afterValue, { color: r.offTable ? t.offTable : t.text }]}
+                      numberOfLines={1}
+                      {...cappedFigure}
+                    >
+                      {formatSignedToFit(r.amount, AFTER_FITS)}
+                    </Text>
+                  </View>
+                ))}
 
-          {working.map((r) => (
-            <View key={r.key} style={styles.afterRow}>
-              <Text style={[styles.afterLabel, { color: t.text }]} numberOfLines={2}>
-                {r.label}
-              </Text>
-              {/* MARKED, with the rest of this sheet — see the note on the
-                  card above. The block is a working and `Their night` is what
-                  it comes to, but a sheet that marks its headline figures and
-                  not its receipt rows is a sheet drawn two ways. */}
-              <Text
-                style={[styles.afterValue, { color: r.offTable ? t.offTable : t.text }]}
-                numberOfLines={1}
-                {...cappedFigure}
-              >
-                {formatSignedToFit(r.amount, AFTER_FITS)}
-              </Text>
-            </View>
-          ))}
+                {working.length === 0 && (
+                  <Text style={[styles.note, { color: t.muted }]}>No rule touched them tonight.</Text>
+                )}
 
-          {working.length === 0 && (
-            <Text style={[styles.note, styles.afterNone, { color: t.muted }]}>
-              No rule touched them tonight.
-            </Text>
-          )}
+                <View style={[styles.afterTotal, { borderTopColor: t.hairline }]}>
+                  <Text style={[styles.afterTotalLabel, { color: t.text }]}>Their night</Text>
+                  <Text
+                    style={[
+                      styles.afterTotalValue,
+                      { color: theirNight === 0 ? t.muted : moneyColor(t, theirNight) },
+                    ]}
+                    numberOfLines={1}
+                    {...cappedFigure}
+                  >
+                    {formatSignedToFit(theirNight, AFTER_FITS)}
+                  </Text>
+                </View>
 
-          <View style={[styles.afterTotal, { borderTopColor: t.hairline }]}>
-            <Text style={[styles.afterTotalLabel, { color: t.text }]}>Their night</Text>
-            <Text
-              style={[
-                styles.afterTotalValue,
-                { color: theirNight === 0 ? t.muted : moneyColor(t, theirNight) },
-              ]}
-              numberOfLines={1}
-              {...cappedFigure}
-            >
-              {formatSignedToFit(theirNight, AFTER_FITS)}
-            </Text>
-          </View>
+                {/* Under the total and outside it, in the colour money that is not
+                    theirs is drawn in everywhere else on this card. */}
+                {holding.map((r) => (
+                  <View key={r.key} style={styles.afterRow}>
+                    <Text style={[styles.afterLabel, { color: t.muted }]} numberOfLines={2}>
+                      {r.label}
+                    </Text>
+                    {/* Marked with the rows above it — it is outside the total
+                        rather than outside the block. */}
+                    <Text
+                      style={[styles.afterValue, { color: t.muted }]}
+                      numberOfLines={1}
+                      {...cappedFigure}
+                    >
+                      {formatSignedToFit(r.amount, AFTER_FITS)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
+          </>
+        )}
 
-          {/* Under the total and outside it, in the colour money that is not
-              theirs is drawn in everywhere else on this card. */}
-          {holding.map((r) => (
-            <View key={r.key} style={styles.afterRow}>
-              <Text style={[styles.afterLabel, { color: t.muted }]} numberOfLines={2}>
-                {r.label}
-              </Text>
-              {/* Marked with the rows above it — it is outside the total
-                  rather than outside the block. */}
-              <Text
-                style={[styles.afterValue, { color: t.muted }]}
-                numberOfLines={1}
-                {...cappedFigure}
-              >
-                {formatSignedToFit(r.amount, AFTER_FITS)}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Only while the deductions are still ahead of them. Once the night is
-          settled the block above IS what came off, and a line promising it is
-          still to happen would be describing a night that has ended. */}
-      {!seated && result !== undefined && settlement === null && (
-        <View style={[styles.settledNote, { borderTopColor: t.hairline }]}>
-          {/* The drawn line names the sample player and so carries her pronoun;
-              this is the same sentence with the pronoun that fits everyone. */}
-          <Text style={[styles.settledText, { color: t.muted }]}>
+        {/* Only while the deductions are still ahead of them. Once the night is
+            settled the block above IS what came off, and a line promising it is
+            still to happen would be describing a night that has ended. */}
+        {!seated && result !== undefined && settlement === null && (
+          /* The drawn line names the sample player and so carries her pronoun;
+             this is the same sentence with the pronoun that fits everyone. */
+          <Text style={[styles.note, { color: t.muted }]}>
             Their result is set. Bills and the piggy bank still come off it at settle-up.
           </Text>
-        </View>
-      )}
+        )}
+      </View>
     </Sheet>
   );
 }
 
 /*
- * WHERE THIS CARD RUNS OUT OF ROOM.
+ * THE SIZE THE SUMMARY ROW IS SET AT, the board's rule point for point
+ * (`design/explorations/full-board/screens/40-during-the-game.mjs`, `fitSize`):
+ * 26 points while the longest figure fits its share of the card, and below that
+ * the size it does fit, to a floor of 18. `room` is the card's inner width per
+ * figure on the board's phone — 76 points a third, 116 a half beside the note —
+ * and a figure is taken at 0.6 of its size per character. In kit points; the
+ * caller scales it with `z()` like every other kit size.
  *
- * Three figures side by side at 28/800, tabular, inside a card 20 in from each
- * edge. Past this threshold the figure is abbreviated rather than cut, and the
- * exact amount is still on the screen: every entry under this card carries its
- * own full figure, and they are what this is the sum of.
- *
- * THE ARITHMETIC IS AT 360 AND AT THE TEXT CAP, which is the only place it
- * bites. "Fits at 393" is the whole of B3 and "fits at 100% text" is the whole
- * of B18, and this card has now been both. On a 360-wide phone it holds 288
- * points inside its padding, the row keeps 8 of that for its two gaps at the
- * worst, and `moneyMaxFontScale` lets every figure grow a tenth past what a
- * browser draws. So the three together have 272 points at 110%, which is 247 at
- * 100%, and the widest a row can be is one big figure, one small one, and their
- * difference — "$1000M" beside "$100" beside "−$1000M" is 255 at 30 and 238 at
- * 28. That is what the two points of size were for; B19 is the night in the
- * millions that spent them.
- *
- * ⚠ MEASURED IN THE STACK THE APP ACTUALLY PAINTS IN. Figtree, which the boards
- * ask for and the app does not yet bundle, is about 11% wider at the same size,
- * and it would take this row back over its budget. Bundling the typeface means
- * measuring this again — `scripts/ui-check.mjs --figtree` is where — and paying
- * for it in the size or in this threshold.
+ * At the floor, the widest row the card can hold is three figures of eight
+ * characters ("$999,999" beside "−$999,999"); past that, `adjustsFontSizeToFit`
+ * takes it down another 30% on a phone, and the row wraps the third figure
+ * rather than clip it (B99). No night this app has ever recorded is near it.
  */
-const FITS = 1_000;
+const FIT_ROOM = { 3: 76, 2: 116 } as const;
+function fitSize(values: readonly string[], across: 2 | 3): number {
+  const chars = Math.max(...values.map((v) => v.length));
+  return Math.max(18, Math.min(26, Math.floor(FIT_ROOM[across] / (chars * 0.6))));
+}
 
 /*
- * AND WHERE THE WORKING UNDER IT DOES, which is a different number because it
- * is a different shape of row.
+ * WHERE THE WORKING UNDER IT RUNS OUT OF ROOM, which is a different number
+ * because it is a different shape of row, and it is NOT part of the owner's
+ * 22 November call: that was the summary card's three figures, and no board
+ * draws this block.
  *
  * One figure to a line rather than three: 320 points inside the sheet's own
  * margins at 360, a label at 14/400 that may wrap to two lines and give, and a
@@ -647,56 +662,49 @@ const AFTER_FITS = 1_000_000;
 /**
  * A label over a figure, two or three across the summary card.
  *
- * WHERE EACH ONE SITS IS THE ROW'S DECISION, NOT ITS OWN. The pairs used to
- * place themselves: a fixed 22 between the first two and `margin-left: auto` on
- * the third, which is what T4 draws. That hands ALL the slack to one gap, so
- * the spacing is a side effect of how wide the figures happen to be — $500 next
- * to $2,120 sat 22 apart with 50 points of nothing before the result, and a
- * night in the millions had 22 and none at all. The row is `space-between` now:
- * the gaps are equal, they grow and shrink together, and the composition holds
- * at any figure the night produces.
- *
- * DELIBERATE DEVIATION from T4 and from `08-tonight-home.md` § H4, which both
- * say the third pair is pushed right with `margin-left: auto`. It still ends at
- * the card's right edge — what changes is that the middle pair stops being
- * wherever the first one left it. The drawn spacing is only correct for the
- * drawn figures: on a night in the millions the same 22 and auto put the result
- * outside the card at 360 with the reader's text turned up, which is B19.
+ * WHERE EACH ONE SITS IS THE ROW'S DECISION, NOT ITS OWN. The row is
+ * `space-between`: the gaps are equal, they grow and shrink together, and the
+ * composition holds at any figure the night produces. A fixed gap between the
+ * first two and `margin-left: auto` on the third — what T4 drew — handed all
+ * the slack to one gap, so a night in the millions put the result outside the
+ * card at 360 with the reader's text turned up, which is B19.
  *
  * `align` is which of the three this is, and it decides how the label sits over
- * the figure: left at the start, centred in the middle, right at the end.
+ * the figure: left at the start, centred in the middle, right at the end — the
+ * full board's `stats()`.
  */
 function StatPair({
   label,
   value,
   color,
-  muted = false,
-  tight = false,
-  align = 'start',
+  size,
+  align,
 }: {
   label: string;
   value: string;
-  color?: string;
-  muted?: boolean;
-  tight?: boolean;
-  align?: 'start' | 'middle' | 'end';
+  color: string;
+  size: number;
+  align: 'start' | 'middle' | 'end';
 }) {
   const t = useTheme();
+  const textAlign = align === 'middle' ? 'center' : align === 'end' ? 'right' : 'left';
   return (
     <View
       style={[
         styles.stat,
         align === 'middle' && styles.statMiddle,
-        align === 'end' && styles.statPush,
+        align === 'end' && styles.statEnd,
       ]}
     >
-      <Text style={[styles.statLabel, { color: t.muted }]}>{label}</Text>
+      <Text style={[styles.statLabel, { color: t.muted, textAlign }]}>{label.toUpperCase()}</Text>
       <Text
         style={[
-          tight ? styles.statValueTight : styles.statValue,
-          { color: color ?? (muted ? t.muted : t.text) },
+          styles.statValue,
+          { fontSize: size, lineHeight: size, letterSpacing: -0.02 * size, color, textAlign },
         ]}
         numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
         {...cappedFigure}
       >
         {value}
@@ -788,7 +796,8 @@ interface EntryRow {
   sub: string;
   amount: Money;
   struck: boolean;
-  mark?: { label: string; tone: 'plain' | 'muted' | 'amber' };
+  /** VOIDED, CORRECTION or QUEUED: one muted mark beside the title (the full board's `mark()`). */
+  mark?: 'voided' | 'correction' | 'queued';
 }
 
 function entryRows(
@@ -851,11 +860,7 @@ function entryRows(
       sub: 'fronted the bill',
       amount: e.voided ? e.originalAmount : e.amount,
       struck: e.voided,
-      mark: e.voided
-        ? { label: 'voided', tone: 'muted' }
-        : queued.has(e.id)
-          ? { label: 'queued', tone: 'muted' }
-          : undefined,
+      mark: e.voided ? 'voided' : queued.has(e.id) ? 'queued' : undefined,
     });
   }
 
@@ -894,11 +899,7 @@ function entryRows(
       // in an append-only ledger a correction is a reversal plus a new row,
       // and the reader is being told the same thing either way: this line no
       // longer counts. The sub-line says which of the two it was.
-      mark: gone
-        ? { label: 'voided', tone: 'muted' }
-        : queued.has(e.id)
-          ? { label: 'queued', tone: 'muted' }
-          : undefined,
+      mark: gone ? 'voided' : queued.has(e.id) ? 'queued' : undefined,
     });
 
     if (!e.corrected) return;
@@ -918,7 +919,7 @@ function entryRows(
       sub: `replaces the ${clock(at)} ${name.toLowerCase()}`,
       amount: e.amount,
       struck: false,
-      mark: { label: 'correction', tone: 'plain' },
+      mark: 'correction',
     });
   });
 
@@ -962,104 +963,90 @@ const clock = (iso: string | undefined): string =>
     : new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
 const styles = StyleSheet.create({
+  /* The sheet's body: the kit's `.mbody`, 20 in and 12 between groups. */
+  body: { paddingHorizontal: z(20), paddingTop: z(2), gap: z(12) },
+
   /*
    * THE GAPS ARE WHATEVER IS LEFT, SHARED EQUALLY — see the note above StatPair.
+   * `gap` under `space-between` is a floor, not a spacing: the row hands out its
+   * slack evenly and only falls back to this when there is none.
    *
-   * `gap` under `space-between` is a FLOOR, not a spacing: the row hands out
-   * its slack evenly and only falls back to this when there is none. It is the
-   * one number here that has to be measured rather than chosen — the widest
-   * three figures the card can hold are 270 points of the 288 a 360-wide phone
-   * gives it, so 8 is what is left to divide.
+   * B99: the pairs wrap. A third that will not fit drops to a second line
+   * rather than clipping or leaving the card. At the board's figures nothing
+   * wraps, because the size above was chosen so it would not.
    */
-  card: {
+  summary: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    /*
-     * B99. "270 of the 288" above was measured on a fallback face; with Figtree
-     * rendered at the ×1.1 cap three figures in the millions come to more than
-     * the card, and the third left it. The pairs wrap now: a third that will
-     * not fit drops to a second line rather than clipping or leaving the card.
-     * At the board's width and figures nothing wraps.
-     */
-    flexWrap: 'wrap',
-    rowGap: 10,
     justifyContent: 'space-between',
-    gap: 8,
-    marginTop: 10,
-    marginHorizontal: 20,
-    marginBottom: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderRadius: radius.card,
+    flexWrap: 'wrap',
+    gap: z(8),
+    rowGap: z(10),
   },
-  // 4 between the caps label and the figure, as H2 draws it — 6 pushed the
-  // three pairs a row taller than the card they sit in was drawn for.
-  stat: { gap: 4 },
-  // The middle pair centres its label over its figure; the last one right-aligns
-  // both, because it ends at the card's edge. Neither pushes any more: the row
-  // places them.
+  stat: { minWidth: 0, flexShrink: 1 },
   statMiddle: { alignItems: 'center' },
-  statPush: { alignItems: 'flex-end' },
-  statLabel: type.statPairLabel,
-  statValue: type.statPairValue,
-  statValueTight: type.statPairValueTight,
-  cardNote: { ...type.statPairNote, maxWidth: 104, textAlign: 'right' },
+  statEnd: { alignItems: 'flex-end' },
+  statLabel: { fontSize: z(10.5), lineHeight: z(10.5), fontWeight: '700', letterSpacing: z(1.05) },
+  statValue: { fontFamily: 'head', fontWeight: '700', marginTop: z(6), fontVariant: ['tabular-nums'] },
+  summaryNote: { fontSize: z(12), lineHeight: z(16.2), maxWidth: z(104), textAlign: 'right' },
 
-  list: { marginHorizontal: 20 },
-  sectionLabel: { ...type.sectionLabel, paddingHorizontal: 4, paddingBottom: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4 },
-  time: { ...type.time, minWidth: 44, flexShrink: 0 }, // B99: grows with the text
-  entryText: { gap: 2, flexShrink: 1 },
-  entryHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  /* The kit's `row()` with a leading time: 44 high, 8 above and below. */
+  row: { flexDirection: 'row', alignItems: 'center', gap: z(10), minHeight: z(44), paddingVertical: z(8) },
+  // B99: grows with the reader's text rather than clipping the minutes.
+  time: { minWidth: z(40), flexShrink: 0, fontSize: z(12.5), fontWeight: '600', fontVariant: ['tabular-nums'] },
+  entryText: { flex: 1, minWidth: 0 },
+  entryHead: { flexDirection: 'row', alignItems: 'center', gap: z(7) },
   struck: { textDecorationLine: 'line-through' },
-  entryType: type.entryType,
-  provenance: type.entryProvenance,
-  entryAmount: { ...type.entryAmount, marginLeft: 'auto' },
-  queuedNote: { ...type.footnote, marginTop: 16, paddingHorizontal: 15 },
+  entryType: { fontSize: z(15.5), fontWeight: '600', lineHeight: z(18.6), flexShrink: 1 },
+  mark: { paddingVertical: z(3), paddingHorizontal: z(7), borderRadius: 999 },
+  markText: { fontSize: z(9.5), lineHeight: z(9.5), fontWeight: '700', letterSpacing: z(0.95) },
+  provenance: { fontSize: z(12), lineHeight: z(15), marginTop: z(2) },
+  entryAmount: {
+    fontFamily: 'head',
+    fontSize: z(16.5),
+    fontWeight: '700',
+    lineHeight: z(18.2),
+    fontVariant: ['tabular-nums'],
+    textAlign: 'right',
+    flexShrink: 0,
+  },
 
   /*
-   * THE WORKING, under the entries and over the note.
-   *
-   * E6's deductions block at this sheet's own margin: a rule top, a rule above
-   * the total, 14 for a row and 15/800 for the figure it comes to. It is the
-   * same furniture as the results screen the reader has just come from on
-   * purpose — the block is the per-person half of the totals they were looking
-   * at there, and a second visual language would read as a second subject.
+   * THE WORKING: a row per rule, the total under a hairline, the float under
+   * that — E6's deductions block, set in a card like every other group here.
    */
-  after: { marginTop: 16, marginHorizontal: 20, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 5 },
-  afterRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
-  afterLabel: { fontSize: 14, fontWeight: '400', flexShrink: 1 },
+  after: { gap: z(6) },
+  afterRow: { flexDirection: 'row', alignItems: 'baseline', gap: z(10) },
+  afterLabel: { fontSize: z(14), fontWeight: '400', lineHeight: z(19), flexShrink: 1 },
   /* NEVER SHRINKS — B18. The label beside it is words and gives instead. */
   afterValue: {
     marginLeft: 'auto',
     flexShrink: 0,
-    fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'head',
+    fontSize: z(14.5),
+    fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
-  afterNone: { marginHorizontal: 0 },
   afterTotal: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 8,
-    marginTop: 1,
-    paddingTop: 6,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: z(8),
+    marginTop: z(2),
+    paddingTop: z(8),
+    borderTopWidth: 1,
   },
-  afterTotalLabel: { fontSize: 13, fontWeight: '700', letterSpacing: 0.52, textTransform: 'uppercase' },
+  afterTotalLabel: { fontSize: z(11), fontWeight: '700', letterSpacing: z(1.32), textTransform: 'uppercase' },
   afterTotalValue: {
     marginLeft: 'auto',
     flexShrink: 0,
-    fontSize: 15,
-    fontWeight: '800',
+    fontFamily: 'head',
+    fontSize: z(16.5),
+    fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
 
-  settledNote: { marginTop: 14, marginHorizontal: 20, paddingTop: 12, borderTopWidth: 1 },
-  settledText: { fontSize: 13, fontWeight: '400', lineHeight: 19.5 },
-
-  note: { ...type.footnote, marginHorizontal: space.page },
-  pair: { flexDirection: 'row', gap: 10 },
+  /* The kit's `note()`. */
+  note: { fontSize: z(13), lineHeight: z(18.85), marginHorizontal: z(2) },
+  pair: { flexDirection: 'row', gap: z(8) },
   half: { flex: 1 },
 });

@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
-import { type } from '../design/tokens';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { L, T, z } from '../design/scale';
 import { Icon } from './Icon';
 
 /**
@@ -119,44 +120,45 @@ export function Dock({
   }
 
   const primaryLabel = empty ? 'Seat a player' : 'Rebuy';
+  const insets = useSafeAreaInsets();
 
+  /*
+   * THE FULL BOARD (`session`, `session-admin`, approved): the dock is the ink
+   * bar. A disclosure row (Table admin, and what is behind it), the drawer's
+   * rows on the same ink when it is open, and the pair as the bar's two
+   * actions — Rebuy wide, Bill a named secondary at its right (the kit's
+   * `barSplit`, `drawerRow`). No chevrons.
+   */
   return (
     <View
       style={[
         styles.panel,
-        {
-          backgroundColor: t.surface, boxShadow: t.lift,
-          borderColor: open ? t.drawerEdge : t.hairline,
-          gap: open ? 12 : 14,
-        },
+        { backgroundColor: t.bar, paddingBottom: Math.max(insets.bottom, L.barFloor) },
+        t.barShadow !== 'none' && { boxShadow: t.barShadow },
       ]}
     >
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
         onPress={() => onOpenChange(!open)}
-        style={({ pressed }) => [styles.disclosure, { opacity: pressed ? 0.6 : 1 }]}
+        style={({ pressed }) => [styles.disclosure, { boxShadow: `inset 0px -1px 0px 0px ${t.barRule}`, opacity: pressed ? 0.6 : 1 }]}
       >
-        <View style={open ? styles.flipped : undefined}>
-          <Icon name="chevronUp" color={open ? t.text : t.muted} />
-        </View>
-        <Text style={[open ? styles.labelOpen : styles.label, { color: open ? t.text : t.muted }]}>
-          Table admin
-        </Text>
+        <Icon name={open ? 'chevronDown' : 'chevronUp'} color={t.onTopMuted} size={z(16)} />
+        <Text style={[styles.label, { color: t.onTopMuted }]}>Table admin</Text>
         {!open &&
           (waiting > 0 ? (
-            <Text style={[styles.waiting, { color: t.muted }]}>
+            <Text style={[styles.waiting, { color: t.onBar }]}>
               {waiting} waiting
             </Text>
           ) : (
-            <Text style={[styles.hint, { color: t.dim }]}>
+            <Text style={[styles.hint, { color: t.onTopMuted }]}>
               {onPass === undefined ? 'seat · cash out · end' : 'seat · cash out · pass · end'}
             </Text>
           ))}
       </Pressable>
 
       {open && (
-        <View style={styles.drawer}>
+        <View>
           <DrawerRow icon="person" label="Seat a player" onPress={onSeat} dim={holding} />
           <DrawerRow icon="cashOut" label="Cash out a player" onPress={onCashOut} dim={holding} />
           <DrawerRow icon="rules" label="Money rules" onPress={onRules} dim={holding} />
@@ -164,16 +166,14 @@ export function Dock({
             <DrawerRow icon="pass" label="Pass the game" onPress={onPass} dim={holding} />
           )}
 
-          {/* The only way to end a night. Press and keep pressing. */}
+          {/* The only way to end a night. Press and keep pressing: the row fills
+              as it is held, its words in the bar's red (the kit's `hold`). */}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="End this poker night. Hold for a second and a half."
             onPressIn={startHold}
             onPressOut={cancelHold}
-            style={[
-              styles.end,
-              { borderColor: holding ? t.danger : t.dangerStrong },
-            ]}
+            style={[styles.end, { boxShadow: `inset 0px -1px 0px 0px ${t.barRule}` }]}
           >
             <Animated.View
               pointerEvents="none"
@@ -188,12 +188,12 @@ export function Dock({
                 },
               ]}
             />
-            <Icon name="clock" color={holding ? t.text : t.danger} size={19} />
+            <Icon name="clock" color={t.onBar} size={z(18)} />
             <View style={styles.endText}>
-              <Text style={[styles.endLabel, { color: holding ? t.text : t.danger }]}>
+              <Text style={[styles.endLabel, { color: holding ? t.onBar : t.onBarDanger }]}>
                 {holding ? 'Keep holding…' : 'End this poker night'}
               </Text>
-              <Text style={[styles.endSub, { color: holding ? t.text : t.muted }]}>
+              <Text style={[styles.endSub, { color: t.onBarMuted }]}>
                 {holding ? 'Release to cancel' : 'Hold 1.5s · counting starts, no rebuys'}
               </Text>
             </View>
@@ -206,13 +206,10 @@ export function Dock({
         <Pressable
           accessibilityRole="button"
           onPress={empty ? onSeat : onRebuy}
-          style={({ pressed }) => [
-            styles.primary,
-            { backgroundColor: t.text, opacity: pressed ? 0.85 : 1 },
-          ]}
+          style={({ pressed }) => [styles.primary, { opacity: pressed ? 0.7 : 1 }]}
         >
-          <Icon name={empty ? 'person' : 'plus'} color={t.onFill} size={19} />
-          <Text style={[styles.primaryLabel, { color: t.onFill }]}>{primaryLabel}</Text>
+          <Icon name={empty ? 'person' : 'plus'} color={t.onBar} size={z(20)} />
+          <Text style={[T.lookBar, { color: t.onBar }]} numberOfLines={1}>{primaryLabel}</Text>
         </Pressable>
 
         <Pressable
@@ -222,11 +219,11 @@ export function Dock({
           onPress={onBill}
           style={({ pressed }) => [
             styles.bill,
-            { borderColor: empty ? t.quietOutline : t.outline, opacity: pressed ? 0.7 : 1 },
+            { boxShadow: `inset 1px 0px 0px 0px ${t.barRule}`, opacity: pressed ? 0.7 : 1 },
           ]}
         >
-          <Icon name="receipt" color={empty ? t.dim : t.text} size={20} />
-          <Text style={[styles.billLabel, { color: empty ? t.dim : t.text }]}>Bill</Text>
+          <Icon name="receipt" color={empty ? t.onBarDead : t.onBar} size={z(20)} />
+          <Text style={[T.lookBarSecondary, { color: empty ? t.onBarDead : t.onBar }]}>Bill</Text>
         </Pressable>
       </View>
     </View>
@@ -251,90 +248,67 @@ function DrawerRow({
       onPress={onPress}
       style={({ pressed }) => [
         styles.row,
-        { backgroundColor: t.drawerFill, opacity: dim ? 0.4 : pressed ? 0.7 : 1 },
+        { boxShadow: `inset 0px -1px 0px 0px ${t.barRule}`, opacity: dim ? 0.4 : pressed ? 0.7 : 1 },
       ]}
     >
-      <Icon name={icon} color={t.text} size={19} />
-      <Text style={[styles.rowLabel, { color: t.text }]}>{label}</Text>
-      <View style={styles.pushRight}>
-        <Icon name="chevron" color={t.muted} />
-      </View>
+      <Icon name={icon} color={t.onBar} size={z(18)} />
+      <Text style={[styles.rowLabel, { color: t.onBar }]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  panel: {
-    marginTop: 10,
-    marginHorizontal: 14,
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingTop: 6,
-    paddingHorizontal: 12,
-    paddingBottom: 10,
-  },
-
-  // 46px of target and 14 of clearance: measured, and the point of the design.
+  panel: { flexShrink: 0 },
   disclosure: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingTop: 16,
-    paddingHorizontal: 6,
-    paddingBottom: 14,
+    gap: z(8),
+    paddingTop: z(11),
+    paddingBottom: z(9),
+    paddingHorizontal: z(22),
   },
-  flipped: { transform: [{ rotate: '180deg' }] },
-  label: type.dockLabel,
-  labelOpen: type.dockLabelOpen,
-  hint: { ...type.dockHint, marginLeft: 'auto' },
-  // Heavier than the hint it replaces: the board sets the count at 13/700.
-  waiting: { fontSize: 13, fontWeight: '700', marginLeft: 'auto' },
+  label: { fontSize: z(14), fontWeight: '600', flex: 1 },
+  hint: { fontSize: z(12), marginLeft: 'auto' },
+  waiting: { fontSize: z(12.5), fontWeight: '700', marginLeft: 'auto' },
 
-  drawer: { gap: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    borderRadius: 10,
+    gap: z(12),
+    minHeight: z(48),
+    paddingHorizontal: z(22),
   },
-  rowLabel: type.dockRow,
-  pushRight: { marginLeft: 'auto' },
+  rowLabel: { fontSize: z(15), fontWeight: '600' },
 
   end: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    borderRadius: 10,
-    borderWidth: 1.5,
+    gap: z(12),
+    minHeight: z(58),
+    paddingHorizontal: z(22),
     overflow: 'hidden',
   },
   wipe: { ...StyleSheet.absoluteFill, right: undefined },
-  endText: { gap: 2, flexShrink: 1 },
-  endLabel: type.dockEnd,
-  endSub: type.dockEndSub,
+  endText: { gap: z(3), flexShrink: 1 },
+  endLabel: { fontSize: z(15), fontWeight: '700' },
+  endSub: { fontSize: z(12) },
 
-  pair: { flexDirection: 'row', gap: 10 },
+  pair: { flexDirection: 'row' },
   dimmed: { opacity: 0.4 },
   primary: {
-    flex: 1.9,
+    flex: 1,
+    height: L.barHeight,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 20,
-    borderRadius: 10,
+    gap: z(8),
+    paddingHorizontal: z(14),
   },
-  primaryLabel: type.dockPrimary,
   bill: {
-    flex: 1,
+    width: L.barSecondaryWidth,
+    height: L.barHeight,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 5,
-    paddingVertical: 14,
-    borderRadius: 10,
-    borderWidth: 2,
+    gap: z(3),
   },
-  billLabel: type.dockSecondary,
 });

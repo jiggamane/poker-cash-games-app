@@ -40,6 +40,7 @@ export function Screen({
   footer,
   bar,
   barLine,
+  onInk,
   footerPad = true,
   scroll = true,
   headScroll = 'none',
@@ -119,6 +120,12 @@ export function Screen({
    * the bar; a screen with a `bar` never puts a filled button in `footer`.
    */
   bar?: BarAction[];
+  /**
+   * More of the ink top, under the title and its line: what a screen keeps on
+   * the ink rather than on the sheet — Tonight's pot (the kit's `extra`,
+   * `topHero`). Keep it short; the top is not a place for lists.
+   */
+  onInk?: ReactNode;
   /** A quiet line inside the bar, above its words. */
   barLine?: string;
   /** Off when the footer carries its own margins — the dock does. */
@@ -285,6 +292,7 @@ export function Screen({
         <View style={styles.top} pointerEvents="box-none">
           {titleRow}
           {sub}
+          {onInk}
         </View>
         <View style={[styles.sheet, { backgroundColor: t.ground }]}>
           {scroll ? (

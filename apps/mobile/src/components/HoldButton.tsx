@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { useTheme } from '../design/useTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { L, T, z } from '../design/scale';
 import { control, radius, type } from '../design/tokens';
 import { Icon, type IconName } from './Icon';
 
@@ -61,11 +63,13 @@ export function HoldButton({
    * H3/H3b). Deleting an account is the second thing it guards
    * (`design/handoff-account-and-names/`, S2–S5).
    */
-  variant?: 'primary' | 'row' | 'danger';
+  /** `bar`: the hold IS the screen's bar (the full board's `session-passed`): ink to the bottom edge, words straight on it. */
+  variant?: 'primary' | 'row' | 'danger' | 'bar';
   /** A glyph before the two lines. `danger` only, as the board draws it. */
   icon?: IconName;
 }) {
   const t = useTheme();
+  const insets = useSafeAreaInsets();
 
   /* The hold, and whether it is under way — the copy changes with it. */
   const progress = useRef(new Animated.Value(0)).current;
@@ -101,7 +105,9 @@ export function HoldButton({
       onPressIn={startHold}
       onPressOut={cancelHold}
       style={
-        variant === 'danger'
+        variant === 'bar'
+          ? [styles.bar, { backgroundColor: t.bar, paddingBottom: Math.max(insets.bottom, L.barFloor) }]
+          : variant === 'danger'
           ? [styles.row, styles.danger, { borderColor: holding ? t.loss : `${t.loss}8C` }]
           : variant === 'row'
             ? [styles.row, { borderColor: holding ? t.text : t.outline }]
@@ -118,13 +124,18 @@ export function HoldButton({
         style={[
           styles.wipe,
           {
-            backgroundColor: variant === 'danger' ? t.loss : variant === 'row' ? t.text : t.onFill,
+            backgroundColor: variant === 'danger' ? t.loss : variant === 'row' ? t.text : variant === 'bar' ? t.onBar : t.onFill,
             width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
           },
           variant === 'danger' && styles.dangerWipe,
         ]}
       />
-      {variant === 'danger' ? (
+      {variant === 'bar' ? (
+        <View style={styles.barWords}>
+          <Text style={[T.lookBar, { color: t.onBar }]}>{holding ? holdingLabel : label}</Text>
+          <Text style={[T.lookBarSub, styles.barSub, { color: t.onBarMuted }]}>{holding ? holdingSub : sub}</Text>
+        </View>
+      ) : variant === 'danger' ? (
         <>
           {icon !== undefined && <Icon name={icon} color={holding ? t.text : t.loss} />}
           <View style={styles.rowText}>
@@ -152,6 +163,9 @@ export function HoldButton({
 }
 
 const styles = StyleSheet.create({
+  bar: { overflow: 'hidden', flexShrink: 0 },
+  barWords: { height: L.barHeight, alignItems: 'center', justifyContent: 'center' },
+  barSub: { marginTop: z(5) },
   box: {
     minHeight: control.height,
     borderRadius: radius.pressable,

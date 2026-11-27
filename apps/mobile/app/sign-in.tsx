@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Text } from '../src/components/Text';
+import { StyleSheet, View, type KeyboardTypeOptions } from 'react-native';
+import { Text, TextInput } from '../src/components/Text';
 import { Button } from '../src/components/Button';
-import { Field } from '../src/components/Field';
 import { Sheet } from '../src/components/Sheet';
 import { useTheme } from '../src/design/useTheme';
-import { space, type } from '../src/design/tokens';
+import { L, T, z } from '../src/design/scale';
 import { authRedirectUrl } from '../src/lib/authLink';
 import {
   RESEND_WAIT_SECONDS,
@@ -178,11 +177,13 @@ export default function SignIn() {
   if (!isSupabaseConfigured) {
     return (
       <Sheet title="Not connected">
-        <Text style={[styles.body, styles.page, { color: t.muted }]}>
-          This build has no Supabase project configured, so there is nothing to sign in to. Put
-          EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in apps/mobile/.env and restart
-          the server.
-        </Text>
+        <View style={styles.page}>
+          <Text style={[styles.lede, { color: t.muted }]}>
+            This build has no Supabase project configured, so there is nothing to sign in to. Put
+            EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in apps/mobile/.env and restart
+            the server.
+          </Text>
+        </View>
       </Sheet>
     );
   }
@@ -199,63 +200,68 @@ export default function SignIn() {
    * the mail app, taps, and comes back signed in — `_layout.tsx` installs the
    * session off the URL wherever the app happens to be, and `/auth-callback`
    * is where the link lands. So the primary here is the recovery, not the
-   * action: a second email, once the first has had time to arrive.
+   * action: a second email, once the first has had time to arrive — and on the
+   * full board (`sign-in-sent`, approved) that recovery is the bar, faint while
+   * it counts down. "Use a different email" is the outlined secondary in the
+   * content.
    */
   if (stage === 'sent') {
     return (
       <Sheet
         title="Check your email"
-        footer={
-          <>
-            <Button
-              label={
-                busy ? 'Sending…' : cooling ? `Send another link in ${wait}s` : 'Send another link'
-              }
-              variant={cooling || busy ? 'blocked' : 'primary'}
-              disabled={cooling || busy}
-              onPress={send}
-            />
-            <Button
-              label="Use a different email"
-              variant="secondary"
-              /*
-               * The cooldown is NOT cleared here. It belongs to the server's
-               * rate limit, which counts per project and not per address, so
-               * stepping back to change a typo does not buy another email —
-               * and a button that looks available and is not is exactly what
-               * this countdown exists to prevent.
-               */
-              onPress={() => {
-                setStage('email');
-                setError(null);
-              }}
-            />
-          </>
-        }
+        bar={[
+          {
+            label: busy ? 'Sending…' : cooling ? `Send another link in ${wait}s` : 'Send another link',
+            onPress: () => void send(),
+            disabled: cooling || busy,
+          },
+        ]}
       >
         <View style={styles.page}>
-          <Text style={[styles.body, { color: t.text }]}>
-            A sign-in link is on its way to {email.trim()}.
-          </Text>
-          <Text style={[styles.body, styles.spaced, { color: t.muted }]}>
-            Open it on this phone and it brings you straight back here, signed in. It works once and
-            expires shortly, so if it goes stale, send another.
-          </Text>
+          {/* Board draft copy (`sign-in-sent`): the owner asked for "much fewer
+              text" on every sign-in screen (24 November), and the board trims
+              the stage to these two lines. The app's longer paragraph said the
+              link works once and expires; that is what the bar is for. */}
+          <Text style={[styles.lede, { color: t.text }]}>A link is on its way to {email.trim()}.</Text>
+          <Text style={[styles.note, { color: t.muted }]}>Open it on this phone.</Text>
+
+          <Button
+            label="Use a different email"
+            variant="secondary"
+            /*
+             * The cooldown is NOT cleared here. It belongs to the server's
+             * rate limit, which counts per project and not per address, so
+             * stepping back to change a typo does not buy another email —
+             * and a button that looks available and is not is exactly what
+             * this countdown exists to prevent.
+             */
+            onPress={() => {
+              setStage('email');
+              setError(null);
+            }}
+          />
+
+          {error !== null && <Text style={[styles.note, { color: t.loss }]}>{error}</Text>}
 
           {/*
             The one instruction that matters when the button in the email is
             dead, and it has to be on the screen rather than only in the mail:
             a host reading a stripped anchor has no button to read a hint under.
+
+            KEPT THROUGH THE TRIM, deliberately. The board's `sign-in-sent`
+            cuts the stage to two lines and does not draw this block, but B88
+            (`docs/bugs.md`) names it as one of the three things that carry the
+            weight the code used to — "both /sign-in and /auth-callback now
+            point at it". A trim of words is not a decision to remove a fix, so
+            it stays, quiet, at the foot.
           */}
           <View style={styles.aside}>
-            <Text style={[styles.asideLabel, { color: t.muted }]}>If the button does nothing</Text>
-            <Text style={[styles.body, { color: t.muted }]}>
+            <Text style={[T.lookLabel, { color: t.muted }]}>IF THE BUTTON DOES NOTHING</Text>
+            <Text style={[styles.note, { color: t.muted }]}>
               The email prints the same address as text underneath it. Paste that into a browser on
               this phone — it signs you in the same way.
             </Text>
           </View>
-
-          {error !== null && <Text style={[styles.body, styles.spaced, { color: t.loss }]}>{error}</Text>}
 
           <RedirectNote url={redirect} />
         </View>
@@ -266,38 +272,42 @@ export default function SignIn() {
   return (
     <Sheet
       title="Sign in"
-      footer={
-        needsCode ? (
-          <Button
-            label={busy ? 'Opening…' : cooling ? `Open an account in ${wait}s` : 'Open an account'}
-            variant={!emailOk || !codeOk || busy || cooling ? 'blocked' : 'primary'}
-            disabled={!emailOk || !codeOk || busy || cooling}
-            onPress={spendCode}
-          />
-        ) : (
-        <Button
-          /*
-           * The wait shows here too. The throttle is the project's, not the
-           * address's, so a host who came back to fix a typo is under it just
-           * the same and should read that on the button rather than in an
-           * error after spending a tap.
-           */
-          label={busy ? 'Sending…' : cooling ? `Email me a link in ${wait}s` : 'Email me a link'}
-          variant={!emailOk || busy || cooling ? 'blocked' : 'primary'}
-          disabled={!emailOk || busy || cooling}
-          onPress={send}
-        />
-        )
-      }
+      /*
+       * THE FULL BOARD (`sign-in`, `sign-in-code`, approved): the send is the
+       * bar, faint until it can go, and with a code field open the bar changes
+       * its words to "Open an account".
+       */
+      bar={[
+        needsCode
+          ? {
+              label: busy ? 'Opening…' : cooling ? `Open an account in ${wait}s` : 'Open an account',
+              onPress: () => void spendCode(),
+              disabled: !emailOk || !codeOk || busy || cooling,
+            }
+          : {
+              /*
+               * The wait shows here too. The throttle is the project's, not the
+               * address's, so a host who came back to fix a typo is under it
+               * just the same and should read that on the bar rather than in
+               * an error after spending a tap.
+               */
+              label: busy ? 'Sending…' : cooling ? `Email me a link in ${wait}s` : 'Email me a link',
+              onPress: () => void send(),
+              disabled: !emailOk || busy || cooling,
+            },
+      ]}
     >
       <View style={styles.page}>
-        <Text style={[styles.body, { color: t.muted }]}>
-          Only the host signs in. Players are names you type, and watchers open a link.
-        </Text>
-
-        <View style={styles.form}>
-          <Field
-            label="Email"
+        {/*
+         * Board draft copy (`sign-in`): the owner asked for "much fewer text"
+         * on every sign-in screen (24 November), and the board trims the sheet
+         * to the field and one line. Gone with it: the lede "Only the host
+         * signs in. Players are names you type, and watchers open a link." and
+         * the hint's "…a link that signs you in."
+         */}
+        <View>
+          <Text style={[styles.fieldLabel, { color: t.muted }]}>Email</Text>
+          <Input
             value={email}
             onChangeText={(v) => {
               setEmail(v);
@@ -307,40 +317,84 @@ export default function SignIn() {
             placeholder="you@example.com"
             keyboardType="email-address"
             autoFocus
-            hint="No password. We email you a link that signs you in."
+            accessibilityLabel="Email"
           />
         </View>
+        <Text style={[styles.note, { color: t.muted }]}>No password. We email you a link.</Text>
 
         {/*
-         * ⚠ COPY NOT DRAWN — no board has this state; the sheet was drawn
-         * for a closed test in which it was a dead end. Written to the grammar
-         * of the sheet around it and listed in `docs/screens.md`.
+         * ⚠ COPY NOT DRAWN until the full board — the sheet was drawn for a
+         * closed test in which this state was a dead end. Board draft copy
+         * (`sign-in-code`), trimmed like the rest at the owner's word.
+         *
+         * A PLAIN FIELD, NOT THE BOARD'S TWO BOXES. The board draws the code in
+         * the invite claim's two boxes "on the reading that it is the
+         * six-character invite code", and its own flag says that if the
+         * sign-up code stays a free word ("FRIDAY") this goes back to a plain
+         * field. It is a free word: `startWithCode` spends a plan code, not an
+         * invite.
          */}
         {needsCode && (
           <>
-            <Text style={[styles.body, styles.spaced, { color: t.muted }]}>
-              That address has no account yet. If somebody gave you a code, type it here: it opens
-              an account for this address and emails it a link.
+            <Text style={[styles.note, { color: t.muted }]}>
+              No account for that address yet. Got a code? Type it here.
             </Text>
-            <View style={styles.form}>
-              <Field
-                label="Code"
-                value={code}
-                onChangeText={setCode}
-                placeholder="FRIDAY"
-                hint="As you were given it. Capitals or not, it does not matter."
-              />
-            </View>
+            <Input value={code} onChangeText={setCode} placeholder="FRIDAY" accessibilityLabel="Code" />
           </>
         )}
 
-        {error !== null && <Text style={[styles.body, { color: t.loss }]}>{error}</Text>}
+        {error !== null && <Text style={[styles.note, { color: t.loss }]}>{error}</Text>}
 
         <RedirectNote url={redirect} />
       </View>
     </Sheet>
   );
 }
+
+/**
+ * The kit's `.fi`: outlined, never filled — 48 tall, 12 corners, a 1.5 outline
+ * that turns to a 2 in the text colour on focus. Local to this sheet rather
+ * than `Field`, which other screens still draw in the old look.
+ */
+function Input({
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType,
+  autoFocus,
+  accessibilityLabel,
+}: {
+  value: string;
+  onChangeText: (v: string) => void;
+  placeholder: string;
+  keyboardType?: KeyboardTypeOptions;
+  autoFocus?: boolean;
+  accessibilityLabel: string;
+}) {
+  const t = useTheme();
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={t.dim}
+      keyboardType={keyboardType}
+      autoFocus={autoFocus}
+      autoCapitalize="none"
+      autoCorrect={false}
+      accessibilityLabel={accessibilityLabel}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={[
+        styles.input,
+        { color: t.text, backgroundColor: t.surface, borderColor: focused ? t.text : t.outline },
+        focused && styles.focused,
+      ]}
+    />
+  );
+}
+
 
 /**
  * Seconds left before another email may be asked for, ticking.
@@ -408,7 +462,7 @@ function RedirectNote({ url }: { url: string }) {
   const t = useTheme();
   if (url === '') return null;
   return (
-    <View style={styles.note}>
+    <View style={styles.redirect}>
       <Text style={[styles.noteLabel, { color: t.muted }]}>Redirects to</Text>
       <Text style={[styles.noteUrl, { color: t.muted }]} selectable>
         {url}
@@ -421,19 +475,26 @@ function RedirectNote({ url }: { url: string }) {
 }
 
 const styles = StyleSheet.create({
-  page: { paddingHorizontal: space.page },
-  body: { ...type.body, fontWeight: '400', lineHeight: 24 },
-  spaced: { marginTop: 12 },
-  form: { marginTop: space.section },
-  aside: { marginTop: space.section, gap: 6 },
-  /*
-   * `type.label` — the app's caps section header, 11/700 at +1.1 tracking, the
-   * same object `Field` draws above an input. A bolded footnote would have
-   * been a third weight in a block that already has two, invented for one
-   * screen; the style guide has a header and this is a header.
-   */
-  asideLabel: type.label,
-  note: { marginTop: space.section, gap: 6 },
-  noteLabel: type.footnote,
-  noteUrl: { ...type.footnote, fontWeight: '600' },
+  /* Sheet content, as on every converted sheet: 20 in from the edges, 12 between. */
+  page: { paddingHorizontal: z(20), gap: z(12) },
+  /* The kit's `para()`: 15 at 1.45, in the text colour. */
+  lede: { fontSize: z(15), fontWeight: '400', lineHeight: z(21.75) },
+  /* The kit's `note()`: 13 at 1.45, muted. */
+  note: { fontSize: z(13), fontWeight: '400', lineHeight: z(18.85) },
+  /* The kit's `.fl`: the field's own label, sentence case, above it. */
+  fieldLabel: { fontSize: z(12.5), fontWeight: '600', marginBottom: z(6), marginLeft: z(2) },
+  input: {
+    minHeight: z(48),
+    fontSize: z(16),
+    fontWeight: '600',
+    borderWidth: 1.5,
+    borderRadius: L.fieldRadius,
+    paddingHorizontal: z(14),
+    paddingVertical: z(12),
+  },
+  focused: { borderWidth: 2, paddingHorizontal: z(13.5) },
+  aside: { gap: z(6), marginTop: z(4) },
+  redirect: { gap: z(5), marginTop: z(4) },
+  noteLabel: { fontSize: z(12), fontWeight: '400', lineHeight: z(16.8) },
+  noteUrl: { fontSize: z(12), fontWeight: '600', lineHeight: z(16.8) },
 });
