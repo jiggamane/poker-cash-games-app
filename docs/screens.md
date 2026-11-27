@@ -3666,9 +3666,12 @@ the screens print no price (prices are only ever the store's own strings) and
 their bars stay faint. Wiring it is that one file, once the RevenueCat project
 and the App Store Connect subscriptions exist.
 
+**Owner, 27 November — confirmed:** the rank number is dropped on settled
+rows; the settle status pill is neutral grey; *Nudge the table* hides once
+every transfer is paid. The white card face in dark is being checked visually.
+
 **Decided while building, not by a drawing** (each to confirm on the board):
-the rank number is dropped on settled rows; the settle status pill is neutral;
-*Nudge the table* hides once every transfer is paid; the app keeps its own
+the app keeps its own
 strings *Invite a player*, *QR code*, *Offline* where the board's differ; the
 playing card's face is white in both themes; the odds red in dark is 68 − 4d
 (it was 4.47:1 on the lifted card). Amber and the losses colour on My stats
